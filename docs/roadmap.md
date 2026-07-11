@@ -54,9 +54,9 @@ The components needed for a credible file explorer, picker, and embedded workspa
 5. preview pattern: provider adapter, content-preview adapter, annotation surfaces, preview shell
 6. the composed `box-content-explorer` surface
 
-## Phase 4: Specialized / domain-specific
+## Phase 4: Specialized / domain-specific — **done**
 
-`color-picker`, `dual-listbox`, `rich-text-input`, `rating`, `carousel` — all proven in the reference repo; port when a product need appears here.
+`color-picker`, `dual-listbox`, `rich-text-input`, `rating`, `carousel` — ported with tests; `color-picker` gained the source-level Box styling it never had upstream.
 
 ## Phase 5: New gaps (never built anywhere)
 
