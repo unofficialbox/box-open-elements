@@ -18,22 +18,25 @@ Each pattern area owns its headless modules and composed surfaces together:
 ```text
 src/patterns/
   content-explorer/
-    selection/        # built — headless selection controller
-    navigation/       # target
-    collection/       # target
-    actions/          # target
-    contracts.ts      # target — data-source contracts + HTTP adapter
-    controller.ts     # target — composition-root facade
-    types.ts          # built (minimal)
-  preview/            # target — provider adapter + annotation surfaces + shell
+    selection/        # built
+    navigation/       # built
+    collection/       # built
+    actions/          # built
+    adapters/         # built — box-explorer-{action-menu,toolbar,list,table,items,breadcrumbs}
+    contracts.ts      # built — data-source contracts + HTTP adapter
+    box-transport.ts  # built — Box API transport
+    controller.ts     # built — composition-root facade
+    schemas.ts        # built — wire schemas
+    types.ts          # built
+  preview/          # built — provider adapter, content-preview adapter, annotations, box-preview-element
   search/             # target
-  item/               # target
-  metadata/           # target
-  share/              # target
-  file-request/       # target
-  task/               # target
-  governance/         # target
-  insights/           # target
+  item/             # built — item-form, item-details-panel, bulk-action-bar, preview-header
+  metadata/           # built — contracts, schemas, metadata-filter-builder, metadata-inspector
+  share/              # built — contracts, schemas, permission-matrix, share-panel
+  file-request/       # built — file-request-builder
+  task/               # built — review-queue-item, task-assignment-panel
+  governance/         # built — governance-panel
+  insights/           # built — metric-card, chart-panel, bar/line/donut charts
 ```
 
 ## Import contract
@@ -52,65 +55,66 @@ Status: **built** = implemented here with tests; everything else has its referen
 Headless blocks (see [content-explorer.md](./content-explorer.md) for the composition model):
 
 - `selection` — **built**
-- `navigation`
-- `collection`
-- `actions`
-- `controller` (composition-root facade)
-- `contracts` + `box-transport` (data-source contracts, HTTP adapter, Box API transport)
-- composed surface: `box-content-explorer`
+- `navigation` — **built**
+- `collection` — **built**
+- `actions` — **built**
+- `controller` (composition-root facade) — **built**
+- `contracts` + `box-transport` (data-source contracts, HTTP adapter, Box API transport, wire schemas) — **built**
+- presentation adapters (`box-explorer-action-menu`, `box-explorer-toolbar`, `box-explorer-list`, `box-explorer-table`, `box-explorer-items`, `box-explorer-breadcrumbs`) — **built**
+- composed surface: `box-content-explorer` — **built**
 
 ### Preview (workflow + compositions)
 
-- provider-adapter contract (`PreviewProvider`, `PreviewAdapterState`, `PreviewProviderAdapter`)
-- `content-preview-adapter` (Box Content Preview integration)
-- `annotation-toolbar`, `annotation-inspector`, `annotation-thread`
-- composed surface: `box-preview-element` (pluggable adapter host)
+- provider-adapter contract (`PreviewProvider`, `PreviewAdapterState`, `PreviewProviderAdapter`) — **built**
+- `content-preview-adapter` (Box Content Preview integration) — **built**
+- `annotation-toolbar`, `annotation-inspector`, `annotation-thread` — **built**
+- composed surface: `box-preview-element` (pluggable adapter host) — **built**
 
 ### Search (compositions)
 
-- `filter-bar`
-- `saved-view-picker`
-- `search-results-header`
+- `filter-bar` — **built**
+- `saved-view-picker` — **built**
+- `search-results-header` — **built**
 
 ### Item (compositions)
 
-- `bulk-action-bar`
-- `item-details-panel`
-- `item-form`
-- `preview-header`
+- `bulk-action-bar` — **built**
+- `item-details-panel` — **built**
+- `item-form` — **built**
+- `preview-header` — **built**
 
 ### Metadata (compositions + contracts)
 
-- `metadata-filter-builder`
-- `metadata-inspector`
-- `contracts` (`MetadataDataSource`, templates, instances, query)
+- `metadata-filter-builder` — **built**
+- `metadata-inspector` — **built**
+- `contracts` (`MetadataDataSource`, templates, instances, query) — **built**
 
 ### Share (compositions + contracts)
 
-- `permission-matrix`
-- `share-panel`
-- `contracts` (`ShareDataSource`, shared links, collaborators)
+- `permission-matrix` — **built**
+- `share-panel` — **built**
+- `contracts` (`ShareDataSource`, shared links, collaborators) — **built**
 
 ### File Request (compositions)
 
-- `file-request-builder`
+- `file-request-builder` — **built**
 
 ### Task (compositions)
 
-- `review-queue-item`
-- `task-assignment-panel`
+- `review-queue-item` — **built**
+- `task-assignment-panel` — **built**
 
 ### Governance (compositions)
 
-- `governance-panel`
+- `governance-panel` — **built**
 
 ### Insights (compositions)
 
-- `bar-chart`
-- `chart-panel`
-- `donut-chart`
-- `line-chart`
-- `metric-card`
+- `bar-chart` — **built**
+- `chart-panel` — **built**
+- `donut-chart` — **built**
+- `line-chart` — **built**
+- `metric-card` — **built**
 
 ## Scoped workflow gap candidates
 

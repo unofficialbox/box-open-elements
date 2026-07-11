@@ -28,93 +28,93 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 ### Actions
 
 - `button` — **built**
-- `action-menu`
-- `button-group`
-- `icon-button`
-- `link-button`
-- `menu`
-- `menu-item`
-- `segmented-control`
-- `toolbar`
+- `action-menu` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/action-menu` (`box-explorer-action-menu`); a generic version remains future work*
+- `button-group` — **built**
+- `icon-button` — **built**
+- `link-button` — **built**
+- `menu` — **built**
+- `menu-item` — **built**
+- `segmented-control` — **built**
+- `toolbar` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/toolbar` (`box-explorer-toolbar`); a generic version remains future work*
 
 ### Collections
 
-- `card`
+- `card` — **built**
 - `carousel`
-- `items`
-- `list`
-- `pagination`
-- `table`
-- `tree`
-- `tree-grid`
+- `items` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/items` (`box-explorer-items`); a generic version remains future work*
+- `list` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/list` (`box-explorer-list`); a generic version remains future work*
+- `pagination` — **built**
+- `table` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/table` (`box-explorer-table`); a generic version remains future work*
+- `tree` — **built**
+- `tree-grid` — **built**
 
 ### Feedback
 
-- `alert`
-- `badge`
-- `empty-state`
-- `help-text`
-- `progress-bar`
-- `progress-ring`
-- `progress-steps`
-- `skeleton`
-- `spinner`
-- `toast`
+- `alert` — **built**
+- `badge` — **built**
+- `empty-state` — **built**
+- `help-text` — **built**
+- `progress-bar` — **built**
+- `progress-ring` — **built**
+- `progress-steps` — **built**
+- `skeleton` — **built**
+- `spinner` — **built**
+- `toast` — **built**
 
 ### Files
 
-- `drop-zone`
+- `drop-zone` — **built**
 
 ### Forms
 
-- `checkbox`
-- `checkbox-group`
+- `checkbox` — **built**
+- `checkbox-group` — **built**
 - `color-picker`
-- `combobox`
-- `date-field`
-- `dropdown`
+- `combobox` — **built**
+- `date-field` — **built**
+- `dropdown` — **built**
 - `dual-listbox`
-- `multi-select`
-- `number-input`
-- `radio-group`
-- `range-slider`
+- `multi-select` — **built**
+- `number-input` — **built**
+- `radio-group` — **built**
+- `range-slider` — **built**
 - `rating`
 - `rich-text-input`
-- `search-field`
-- `select`
-- `slider`
-- `spin-button`
-- `switch`
-- `text-area`
-- `text-field`
-- `time-field`
+- `search-field` — **built**
+- `select` — **built**
+- `slider` — **built**
+- `spin-button` — **built**
+- `switch` — **built**
+- `text-area` — **built**
+- `text-field` — **built**
+- `time-field` — **built**
 
 ### Identity
 
-- `avatar`
-- `persona`
+- `avatar` — **built**
+- `persona` — **built**
 
 ### Layout
 
-- `app-shell`
-- `split-view`
+- `app-shell` — **built**
+- `split-view` — **built**
 
 ### Navigation
 
-- `accordion`
-- `breadcrumbs`
-- `tabs`
+- `accordion` — **built**
+- `breadcrumbs` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/breadcrumbs` (`box-explorer-breadcrumbs`); a generic version remains future work*
+- `tabs` — **built**
 
 ### Overlays
 
-- `dialog`
-- `drawer`
-- `popover`
-- `tooltip`
+- `dialog` — **built**
+- `drawer` — **built**
+- `popover` — **built**
+- `tooltip` — **built**
 
 ### Visuals
 
-- `illustration`
+- `illustration` — **built**
 
 ## Scoped gap candidates
 

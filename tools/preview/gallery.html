@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>box-open-elements preview gallery</title>
+<style>
+  body {
+    margin: 0;
+    padding: 24px;
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    background: #f7f9fc;
+    color: #101820;
+  }
+  section {
+    background: #ffffff;
+    border: 1px solid #d6e0ea;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    max-width: 1080px;
+  }
+  h2 {
+    margin: 0 0 16px;
+    font-size: 15px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #52606d;
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .row:last-child { margin-bottom: 0; }
+  .col { display: flex; flex-direction: column; gap: 16px; flex: 1 1 320px; }
+</style>
+</head>
+<body>
+
+<section id="section-actions">
+  <h2>Components · Actions</h2>
+  <div class="row">
+    <box-button label="Primary"></box-button>
+    <box-button label="Neutral" tone="neutral"></box-button>
+    <box-button label="Danger" tone="danger"></box-button>
+    <box-button label="Small" size="small"></box-button>
+    <box-button label="Disabled" disabled></box-button>
+    <box-icon-button icon="+" label="Add item"></box-icon-button>
+    <box-icon-button icon="gear" label="Settings"></box-icon-button>
+    <box-link-button label="Open documentation" href="#"></box-link-button>
+  </div>
+  <div class="row">
+    <box-button-group id="button-group"></box-button-group>
+    <box-menu id="menu" label="File actions"></box-menu>
+  </div>
+</section>
+
+<section id="section-forms">
+  <h2>Components · Forms</h2>
+  <div class="row">
+    <box-text-field label="Name" value="Quarterly Plan"></box-text-field>
+    <box-search-field label="Search files" placeholder="Search files and folders"></box-search-field>
+    <box-select id="select" label="Owner"></box-select>
+    <box-combobox id="combobox" label="File type"></box-combobox>
+  </div>
+  <div class="row">
+    <box-checkbox label="Enable shared links" checked></box-checkbox>
+    <box-checkbox-group id="checkbox-group" label="Permissions"></box-checkbox-group>
+    <box-radio-group id="radio-group" label="Access level"></box-radio-group>
+    <box-multi-select id="multi-select" label="Collaborators"></box-multi-select>
+  </div>
+</section>
+
+<section id="section-feedback">
+  <h2>Components · Feedback &amp; Progress</h2>
+  <div class="row">
+    <box-alert title="Upload complete" message="24 files were added to Marketing." tone="success"></box-alert>
+    <box-badge label="Beta"></box-badge>
+    <box-badge label="Error" tone="error"></box-badge>
+    <box-spinner label="Loading"></box-spinner>
+    <box-help-text label="Shared links" message="Shared links expire after 30 days."></box-help-text>
+  </div>
+  <div class="row">
+    <box-progress-bar label="Storage used" value="64"></box-progress-bar>
+    <box-progress-ring label="Sync" value="80"></box-progress-ring>
+    <box-progress-steps id="progress-steps" label="Migration"></box-progress-steps>
+  </div>
+  <div class="row">
+    <box-empty-state title="No results" message="Try a different search or clear the filters."></box-empty-state>
+    <box-skeleton width="320px" height="18px"></box-skeleton>
+  </div>
+</section>
+
+<section id="section-composition">
+  <h2>Components · Navigation, Collections &amp; Identity</h2>
+  <div class="row">
+    <box-tabs id="tabs" label="Views"></box-tabs>
+    <box-avatar name="Morgan Lee"></box-avatar>
+    <box-persona name="Morgan Lee" description="Enterprise Admin"></box-persona>
+  </div>
+  <div class="row">
+    <div class="col">
+      <box-tree id="tree" label="Folders"></box-tree>
+      <box-accordion id="accordion" label="Details"></box-accordion>
+    </div>
+    <div class="col">
+      <box-card eyebrow="PDF · 2.4 MB" title="Quarterly Plan.pdf">Updated 2 hours ago by Morgan Lee</box-card>
+      <box-pagination page="2" page-size="25" total-items="220"></box-pagination>
+    </div>
+  </div>
+</section>
+
+<section id="section-patterns">
+  <h2>Patterns · Search &amp; Item Compositions</h2>
+  <div class="row">
+    <box-filter-bar id="filter-bar" label="Filters" query="contract"></box-filter-bar>
+  </div>
+  <div class="row">
+    <box-search-results-header id="results-header" label="Results" query="contract" result-count="128" scope="All files"></box-search-results-header>
+  </div>
+  <div class="row">
+    <div class="col">
+      <box-item-details-panel id="details-panel" title="Quarterly Plan.pdf" eyebrow="PDF · 2.4 MB" owner="Morgan Lee" status="Shared" message="Latest board-ready plan with updated forecasts."></box-item-details-panel>
+    </div>
+    <div class="col">
+      <box-bulk-action-bar id="bulk-bar" label="Selection" count="3" message="3 items selected"></box-bulk-action-bar>
+    </div>
+  </div>
+</section>
+
+<section id="section-explorer">
+  <h2>Patterns · Content Explorer (headless controller + adapters, mock transport)</h2>
+  <div class="row"><box-explorer-breadcrumbs id="explorer-breadcrumbs"></box-explorer-breadcrumbs></div>
+  <div class="row"><box-explorer-toolbar id="explorer-toolbar"></box-explorer-toolbar></div>
+  <div class="row"><box-explorer-table id="explorer-table"></box-explorer-table></div>
+</section>
+
+<section id="section-insights">
+  <h2>Patterns · Insights Compositions</h2>
+  <div class="row">
+    <box-metric-card id="metric-card" title="Active shared links" value="1,284" eyebrow="Last 30 days" message="Up from 1,102 in the prior period." status="Healthy"></box-metric-card>
+    <box-donut-chart id="donut-chart" title="Storage by type"></box-donut-chart>
+  </div>
+  <div class="row">
+    <box-bar-chart id="bar-chart" title="Uploads per week" timeframe="Last 5 weeks" summary="Steady growth across the quarter."></box-bar-chart>
+  </div>
+</section>
+
+<section id="section-share-governance">
+  <h2>Patterns · Share &amp; Governance Compositions</h2>
+  <div class="row">
+    <div class="col"><box-share-panel id="share-panel" title="Share Quarterly Plan.pdf" message="Anyone in the company with the link can view."></box-share-panel></div>
+    <div class="col"><box-governance-panel id="governance-panel" title="Governance" status="Compliant" message="Retention and classification policies applied."></box-governance-panel></div>
+  </div>
+</section>
+
+<section id="section-workflow">
+  <h2>Patterns · Task &amp; File Request Compositions</h2>
+  <div class="row">
+    <div class="col"><box-task-assignment-panel id="task-panel" title="Contract review" status="In progress" priority="High" due-date="Jul 18, 2026" message="Legal review before countersign."></box-task-assignment-panel></div>
+    <div class="col">
+      <box-review-queue-item id="review-item" title="MSA_Acme_v4.pdf" item-label="Contract" status="Awaiting review" priority="Medium" due-date="Jul 14, 2026" message="Second-pass legal review."></box-review-queue-item>
+      <box-file-request-builder id="file-request" title="Collect vendor W-9s" message="Request tax forms from onboarding vendors."></box-file-request-builder>
+    </div>
+  </div>
+</section>
+
+<section id="section-preview">
+  <h2>Patterns · Preview Shell &amp; Annotations</h2>
+  <div class="row">
+    <box-annotation-toolbar id="annotation-toolbar" label="Annotate"></box-annotation-toolbar>
+  </div>
+  <div class="row">
+    <box-preview-element id="preview-element" title="Quarterly Plan.pdf" item-label="PDF · 2.4 MB" status="Ready" message="Rendered by the active preview provider."></box-preview-element>
+  </div>
+</section>
+
+<section id="section-explorer-element">
+  <h2>Patterns · Composed box-content-explorer (mock transport)</h2>
+  <div class="row"><box-content-explorer id="content-explorer" root-folder-id="0" token="preview-token" page-size="25"></box-content-explorer></div>
+</section>
+
+<script type="module">
+  import {
+    applyDesignTokens,
+    registerBoxDefaultDesignSystem,
+    ContentExplorerController,
+    defineBoxButtonElement,
+    defineBoxIconButtonElement,
+    defineBoxLinkButtonElement,
+    defineBoxButtonGroupElement,
+    defineBoxMenuElement,
+    defineBoxMenuItemElement,
+    defineBoxTextFieldElement,
+    defineBoxSearchFieldElement,
+    defineBoxSelectElement,
+    defineBoxComboboxElement,
+    defineBoxCheckboxElement,
+    defineBoxCheckboxGroupElement,
+    defineBoxRadioGroupElement,
+    defineBoxMultiSelectElement,
+    defineBoxAlertElement,
+    defineBoxBadgeElement,
+    defineBoxSpinnerElement,
+    defineBoxSkeletonElement,
+    defineBoxEmptyStateElement,
+    defineBoxHelpTextElement,
+    defineBoxProgressBarElement,
+    defineBoxProgressRingElement,
+    defineBoxProgressStepsElement,
+    defineBoxTabsElement,
+    defineBoxTreeElement,
+    defineBoxAccordionElement,
+    defineBoxCardElement,
+    defineBoxPaginationElement,
+    defineBoxAvatarElement,
+    defineBoxPersonaElement,
+    defineBoxFilterBarElement,
+    defineBoxSearchResultsHeaderElement,
+    defineBoxItemDetailsPanelElement,
+    defineBoxBulkActionBarElement,
+    defineBoxExplorerBreadcrumbsElement,
+    defineBoxExplorerToolbarElement,
+    defineBoxExplorerTableElement,
+    defineBoxMetricCardElement,
+    defineBoxBarChartElement,
+    defineBoxDonutChartElement,
+    defineBoxSharePanelElement,
+    defineBoxGovernancePanelElement,
+    defineBoxTaskAssignmentPanelElement,
+    defineBoxReviewQueueItemElement,
+    defineBoxFileRequestBuilderElement,
+    defineBoxAnnotationToolbarElement,
+    defineBoxPreviewElement,
+    defineBoxContentExplorerElement,
+  } from "/dist/index.js";
+
+  registerBoxDefaultDesignSystem({ setActive: true });
+  applyDesignTokens(document.documentElement, "box-default");
+
+  for (const define of [
+    defineBoxButtonElement, defineBoxIconButtonElement, defineBoxLinkButtonElement,
+    defineBoxButtonGroupElement, defineBoxMenuElement, defineBoxMenuItemElement,
+    defineBoxTextFieldElement, defineBoxSearchFieldElement, defineBoxSelectElement,
+    defineBoxComboboxElement, defineBoxCheckboxElement, defineBoxCheckboxGroupElement,
+    defineBoxRadioGroupElement, defineBoxMultiSelectElement, defineBoxAlertElement,
+    defineBoxBadgeElement, defineBoxSpinnerElement, defineBoxSkeletonElement,
+    defineBoxEmptyStateElement, defineBoxHelpTextElement, defineBoxProgressBarElement,
+    defineBoxProgressRingElement, defineBoxProgressStepsElement, defineBoxTabsElement,
+    defineBoxTreeElement, defineBoxAccordionElement, defineBoxCardElement,
+    defineBoxPaginationElement, defineBoxAvatarElement, defineBoxPersonaElement,
+    defineBoxFilterBarElement, defineBoxSearchResultsHeaderElement,
+    defineBoxItemDetailsPanelElement, defineBoxBulkActionBarElement,
+    defineBoxExplorerBreadcrumbsElement, defineBoxExplorerToolbarElement,
+    defineBoxExplorerTableElement, defineBoxMetricCardElement, defineBoxBarChartElement,
+    defineBoxDonutChartElement, defineBoxSharePanelElement, defineBoxGovernancePanelElement,
+    defineBoxTaskAssignmentPanelElement, defineBoxReviewQueueItemElement,
+    defineBoxFileRequestBuilderElement, defineBoxAnnotationToolbarElement,
+    defineBoxPreviewElement, defineBoxContentExplorerElement,
+  ]) {
+    define();
+  }
+
+  const byId = (id) => document.getElementById(id);
+
+  byId("button-group").options = [
+    { label: "Share", value: "share" },
+    { label: "Download", value: "download" },
+    { label: "Delete", value: "delete" },
+  ];
+  byId("button-group").value = "share";
+  byId("menu").items = [
+    { id: "open", label: "Open" },
+    { id: "rename", label: "Rename" },
+    { id: "move", label: "Move or copy", disabled: true },
+  ];
+  byId("select").options = [
+    { label: "Morgan Lee", value: "morgan" },
+    { label: "Alex Kim", value: "alex" },
+  ];
+  byId("select").value = "morgan";
+  byId("combobox").options = [
+    { label: "PDF", value: "pdf" },
+    { label: "Document", value: "doc" },
+    { label: "Spreadsheet", value: "xls" },
+  ];
+  byId("checkbox-group").options = [
+    { label: "Can view", value: "view" },
+    { label: "Can edit", value: "edit" },
+    { label: "Can share", value: "share" },
+  ];
+  byId("checkbox-group").value = ["view", "edit"];
+  byId("radio-group").options = [
+    { label: "Company", value: "company" },
+    { label: "Invited people only", value: "invited" },
+  ];
+  byId("radio-group").value = "company";
+  byId("multi-select").options = [
+    { label: "Morgan Lee", value: "morgan" },
+    { label: "Alex Kim", value: "alex" },
+    { label: "Sam Rivera", value: "sam" },
+  ];
+  byId("multi-select").value = ["morgan", "alex"];
+  byId("progress-steps").items = [
+    { label: "Scan", value: "scan" },
+    { label: "Copy", value: "copy", description: "In progress" },
+    { label: "Verify", value: "verify" },
+  ];
+  byId("progress-steps").value = "copy";
+  byId("tabs").options = [
+    { label: "All files", value: "all" },
+    { label: "Recents", value: "recents" },
+    { label: "Shared", value: "shared" },
+  ];
+  byId("tabs").value = "all";
+  byId("tree").items = [
+    {
+      label: "Marketing", value: "marketing",
+      children: [
+        { label: "Brand", value: "brand" },
+        { label: "Events", value: "events" },
+      ],
+    },
+    { label: "Finance", value: "finance" },
+  ];
+  byId("tree").value = "marketing";
+  byId("accordion").items = [
+    { label: "Properties", value: "props", content: "Owner, size, and classification." },
+    { label: "Activity", value: "activity", content: "Recent comments and versions." },
+  ];
+  byId("accordion").value = "props";
+  byId("filter-bar").filterOptions = [
+    { label: "Modified", value: "modified" },
+    { label: "Owner", value: "owner" },
+    { label: "Type", value: "type" },
+  ];
+  byId("filter-bar").filters = ["type"];
+  byId("results-header").filters = ["Type: PDF", "Owner: Morgan Lee"];
+  byId("results-header").actions = [{ id: "save-view", label: "Save view" }];
+  byId("details-panel").actions = [
+    { id: "share", label: "Share" },
+    { id: "download", label: "Download" },
+  ];
+  byId("details-panel").meta = [
+    { label: "Owner", value: "Morgan Lee" },
+    { label: "Modified", value: "Jul 10, 2026" },
+  ];
+  byId("bulk-bar").actions = [
+    { id: "move", label: "Move" },
+    { id: "share", label: "Share" },
+    { id: "delete", label: "Delete" },
+  ];
+
+  // Assembled explorer with a mock transport
+  const mockTransport = {
+    async loadFolderItems({ folderId }) {
+      const root = folderId === "0";
+      return {
+        folderId,
+        folder: { id: folderId, name: root ? "All Files" : "Marketing", type: "folder" },
+        breadcrumbs: root
+          ? [{ id: "0", name: "All Files", type: "folder" }]
+          : [
+              { id: "0", name: "All Files", type: "folder" },
+              { id: "42", name: "Marketing", type: "folder" },
+            ],
+        items: [
+          { id: "42", name: "Marketing", type: "folder" },
+          { id: "77", name: "Legal", type: "folder" },
+          { id: "123", name: "Quarterly Plan.pdf", type: "file" },
+          { id: "124", name: "Brand Guidelines.pdf", type: "file" },
+          { id: "125", name: "box.com/launch", type: "web_link" },
+        ],
+        pagination: { hasMoreItems: true, limit: 25, offset: 0, totalCount: 120 },
+      };
+    },
+  };
+
+  const controller = new ContentExplorerController({
+    rootFolderId: "0",
+    token: "preview-token",
+    transport: mockTransport,
+    itemActions: [
+      { id: "share", label: "Share" },
+      { id: "download", label: "Download", itemTypes: ["file"] },
+    ],
+  });
+
+  byId("explorer-breadcrumbs").controller = controller;
+  byId("explorer-toolbar").controller = controller;
+  byId("explorer-table").controller = controller;
+
+  await controller.connect();
+  controller.toggleSelection("123");
+
+  byId("metric-card").trend = { label: "+16.5%", tone: "success" };
+  byId("donut-chart").segments = [
+    { id: "docs", label: "Documents", value: 46 },
+    { id: "media", label: "Media", value: 32 },
+    { id: "other", label: "Other", value: 22 },
+  ];
+  byId("bar-chart").points = [
+    { id: "w1", label: "W1", value: 42 },
+    { id: "w2", label: "W2", value: 51 },
+    { id: "w3", label: "W3", value: 48 },
+    { id: "w4", label: "W4", value: 64 },
+    { id: "w5", label: "W5", value: 71 },
+  ];
+  byId("bar-chart").legend = [{ label: "Uploads", tone: "brand" }];
+  byId("share-panel").sharedLink = {
+    url: "https://box.com/s/example",
+    access: "company",
+    label: "Company link",
+    status: "Active",
+  };
+  byId("share-panel").collaborators = [
+    { name: "Morgan Lee", role: "Editor" },
+    { name: "Alex Kim", role: "Viewer" },
+  ];
+  byId("share-panel").settings = [
+    { label: "Downloads", value: "Allowed" },
+    { label: "Expiration", value: "Jun 1, 2026" },
+  ];
+  byId("share-panel").actions = [{ id: "copy", label: "Copy link" }];
+  byId("governance-panel").policies = [
+    { label: "Retention", value: "7 years", description: "Finance default" },
+    { label: "Classification", value: "Internal" },
+  ];
+  byId("governance-panel").signals = [{ label: "Legal hold", tone: "warning" }];
+  byId("governance-panel").actions = [{ id: "audit", label: "View audit log" }];
+  byId("task-panel").assignees = [
+    { id: "morgan", name: "Morgan Lee", description: "Legal", status: "Active" },
+    { id: "alex", name: "Alex Kim", description: "Procurement" },
+  ];
+  byId("task-panel").setAttribute("current-assignee-id", "morgan");
+  byId("task-panel").checklist = [
+    { id: "terms", label: "Review terms", checked: true },
+    { id: "redlines", label: "Resolve redlines" },
+  ];
+  byId("task-panel").actions = [{ id: "approve", label: "Approve" }, { id: "reassign", label: "Reassign" }];
+  byId("review-item").assignee = { name: "Morgan Lee", role: "Legal" };
+  byId("review-item").metrics = [
+    { label: "Pages", value: "34" },
+    { label: "Comments", value: "6" },
+  ];
+  byId("review-item").actions = [{ id: "open", label: "Open" }, { id: "approve", label: "Approve", tone: "primary" }];
+  byId("file-request").fields = [
+    { id: "company", label: "Company name", required: true },
+    { id: "w9", label: "W-9 upload", description: "PDF only", required: true },
+  ];
+  byId("file-request").settings = [
+    { id: "due", label: "Due date", description: "Jul 31, 2026" },
+    { id: "notify", label: "Email notifications", description: "On upload" },
+  ];
+  byId("annotation-toolbar").tools = [
+    { id: "comment", label: "Comment" },
+    { id: "highlight", label: "Highlight" },
+    { id: "draw", label: "Draw" },
+    { id: "redact", label: "Redact", disabled: true },
+  ];
+  byId("preview-element").provider = {
+    id: "content-preview",
+    label: "Box Content Preview",
+    engine: "pdf.js",
+    status: "ready",
+  };
+  byId("preview-element").adapterState = { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%" };
+
+  const explorerElement = byId("content-explorer");
+  explorerElement.transport = mockTransport;
+
+  document.body.dataset.galleryReady = "true";
+</script>
+
+</body>
+</html>

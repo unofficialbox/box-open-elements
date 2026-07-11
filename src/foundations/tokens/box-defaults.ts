@@ -1,4 +1,5 @@
 import { registerDesignSystem } from "./registry.js";
+import { boxIconography } from "../icons/box-iconography.js";
 import type { DesignSystemDefinition } from "./types.js";
 
 const iconSvg = (viewBox: string, body: string): string =>
@@ -35,6 +36,7 @@ export const boxDefaultDesignSystem: DesignSystemDefinition = {
     StrokeStrokeHover: "#bcc9d6",
   },
   icons: {
+    ...boxIconography,
     info: iconSvg(
       "0 0 16 16",
       '<path fill="currentColor" d="M8.5 6.5H6.25a.75.75 0 0 0 0 1.5H7v4.5h-.75a.75.75 0 1 0 0 1.5H10a.75.75 0 1 0 0-1.5h-.75V7.41s.006-.217-.02-.327A.753.753 0 0 0 8.5 6.5ZM7.75 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" />',

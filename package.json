@@ -25,9 +25,65 @@
       "types": "./dist/components/*.d.ts",
       "import": "./dist/components/*.js"
     },
+    "./patterns/content-explorer": {
+      "types": "./dist/patterns/content-explorer/index.d.ts",
+      "import": "./dist/patterns/content-explorer/index.js"
+    },
+    "./patterns/content-explorer/selection": {
+      "types": "./dist/patterns/content-explorer/selection/index.d.ts",
+      "import": "./dist/patterns/content-explorer/selection/index.js"
+    },
+    "./patterns/content-explorer/collection": {
+      "types": "./dist/patterns/content-explorer/collection/index.d.ts",
+      "import": "./dist/patterns/content-explorer/collection/index.js"
+    },
+    "./patterns/content-explorer/navigation": {
+      "types": "./dist/patterns/content-explorer/navigation/index.d.ts",
+      "import": "./dist/patterns/content-explorer/navigation/index.js"
+    },
+    "./patterns/content-explorer/actions": {
+      "types": "./dist/patterns/content-explorer/actions/index.d.ts",
+      "import": "./dist/patterns/content-explorer/actions/index.js"
+    },
+    "./patterns/search": {
+      "types": "./dist/patterns/search/index.d.ts",
+      "import": "./dist/patterns/search/index.js"
+    },
+    "./patterns/item": {
+      "types": "./dist/patterns/item/index.d.ts",
+      "import": "./dist/patterns/item/index.js"
+    },
+    "./patterns/metadata": {
+      "types": "./dist/patterns/metadata/index.d.ts",
+      "import": "./dist/patterns/metadata/index.js"
+    },
+    "./patterns/share": {
+      "types": "./dist/patterns/share/index.d.ts",
+      "import": "./dist/patterns/share/index.js"
+    },
+    "./patterns/preview": {
+      "types": "./dist/patterns/preview/index.d.ts",
+      "import": "./dist/patterns/preview/index.js"
+    },
+    "./patterns/file-request": {
+      "types": "./dist/patterns/file-request/index.d.ts",
+      "import": "./dist/patterns/file-request/index.js"
+    },
+    "./patterns/task": {
+      "types": "./dist/patterns/task/index.d.ts",
+      "import": "./dist/patterns/task/index.js"
+    },
+    "./patterns/governance": {
+      "types": "./dist/patterns/governance/index.d.ts",
+      "import": "./dist/patterns/governance/index.js"
+    },
+    "./patterns/insights": {
+      "types": "./dist/patterns/insights/index.d.ts",
+      "import": "./dist/patterns/insights/index.js"
+    },
     "./patterns/*": {
-      "types": "./dist/patterns/*/index.d.ts",
-      "import": "./dist/patterns/*/index.js"
+      "types": "./dist/patterns/*.d.ts",
+      "import": "./dist/patterns/*.js"
     }
   },
   "files": [
@@ -40,11 +96,13 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "verify": "bun run typecheck && bun run test && bun run build"
+    "verify": "bun run typecheck && bun run test && bun run build",
+    "preview:capture": "bun run build && bun tools/preview/capture.ts"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.2",
     "jsdom": "^29.0.1",
+    "playwright-core": "^1.61.1",
     "typescript": "^5.8.2",
     "vitest": "^4.1.2"
   }

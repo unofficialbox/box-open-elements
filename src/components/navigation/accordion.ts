@@ -1,0 +1,236 @@
+const DEFAULT_TAG_NAME = "box-accordion";
+
+const escapeHtml = (value: string): string =>
+  value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+
+type BoxAccordionItem = {
+  content?: string;
+  label: string;
+  value: string;
+};
+
+export class BoxAccordionElement extends HTMLElement {
+  static get observedAttributes(): string[] {
+    return ["items", "label", "value"];
+  }
+
+  private valueInternal = "";
+
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+  }
+
+  get label(): string {
+    return this.getAttribute("label") ?? "Accordion";
+  }
+
+  set label(value: string) {
+    this.setAttribute("label", value);
+  }
+
+  get items(): BoxAccordionItem[] {
+    const raw = this.getAttribute("items");
+    if (!raw) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as BoxAccordionItem[];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  set items(value: BoxAccordionItem[]) {
+    this.setAttribute("items", JSON.stringify(value));
+  }
+
+  get value(): string {
+    return this.valueInternal;
+  }
+
+  set value(nextValue: string) {
+    this.valueInternal = nextValue;
+    this.setAttribute("value", nextValue);
+    this.render();
+  }
+
+  connectedCallback(): void {
+    this.render();
+  }
+
+  attributeChangedCallback(name: string): void {
+    if (name === "value") {
+      this.valueInternal = this.getAttribute("value") ?? "";
+    }
+
+    this.render();
+  }
+
+  private render(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const items = this.items;
+    const selectedValue = this.valueInternal || items[0]?.value || "";
+
+    if (selectedValue !== this.valueInternal) {
+      this.valueInternal = selectedValue;
+      this.setAttribute("value", selectedValue);
+    }
+
+    const markup = items
+      .map(item => {
+        const isOpen = item.value === selectedValue;
+        const panelId = `panel-${escapeHtml(item.value)}`;
+        const triggerId = `trigger-${escapeHtml(item.value)}`;
+
+        return `
+          <section part="item" data-open="${String(isOpen)}">
+            <button
+              type="button"
+              part="trigger"
+              id="${triggerId}"
+              data-value="${escapeHtml(item.value)}"
+              aria-expanded="${String(isOpen)}"
+              aria-controls="${panelId}"
+            >
+              <span part="heading">${escapeHtml(item.label)}</span>
+              <span part="indicator" aria-hidden="true">${isOpen ? "−" : "+"}</span>
+            </button>
+            ${
+              isOpen
+                ? `<div
+                    part="panel"
+                    id="${panelId}"
+                    role="region"
+                    aria-labelledby="${triggerId}"
+                  >${escapeHtml(item.content ?? "")}</div>`
+                : ""
+            }
+          </section>
+        `;
+      })
+      .join("");
+
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="accordion"] {
+          display: grid;
+          gap: 0.75rem;
+        }
+
+        [part="item"] {
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 84%, white 16%);
+          border-radius: 1rem;
+          background:
+            linear-gradient(
+              180deg,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 88%, white 12%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, var(--boe-token-surface-surface-secondary, #f7f9fc) 14%) 100%
+            );
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.82),
+            0 12px 24px rgba(15, 23, 42, 0.04);
+        }
+
+        [part="trigger"] {
+          inline-size: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          padding: 0.95rem 1rem;
+          border: none;
+          background: transparent;
+          color: var(--boe-token-text-text, #101820);
+          font: inherit;
+          text-align: left;
+          cursor: pointer;
+        }
+
+        [part="heading"] {
+          font-weight: 600;
+        }
+
+        [part="indicator"] {
+          inline-size: 1.75rem;
+          block-size: 1.75rem;
+          display: inline-grid;
+          place-items: center;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 80%, white 20%);
+          border-radius: 0.7rem;
+          background:
+            linear-gradient(
+              180deg,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, white 6%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 14%, var(--boe-token-surface-surface, #ffffff) 86%) 100%
+            );
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+          font-weight: 700;
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
+        }
+
+        [part="panel"] {
+          padding: 0 1rem 1rem;
+          color: var(--boe-token-text-text-secondary, #52606d);
+          line-height: 1.55;
+        }
+
+        [part="trigger"]:focus-visible {
+          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+          outline-offset: 3px;
+          border-radius: 1rem;
+        }
+      </style>
+      <div part="accordion" aria-label="${escapeHtml(this.label)}">
+        ${markup}
+      </div>
+    `;
+
+    this.shadowRoot.querySelectorAll('[part="trigger"]').forEach(trigger => {
+      trigger.addEventListener("click", () => {
+        const nextValue = (trigger as HTMLButtonElement).dataset.value ?? "";
+        if (!nextValue || nextValue === this.valueInternal) {
+          return;
+        }
+
+        this.valueInternal = nextValue;
+        this.setAttribute("value", nextValue);
+        this.dispatchEvent(
+          new CustomEvent("value-changed", {
+            bubbles: true,
+            composed: true,
+            detail: { value: nextValue },
+          }),
+        );
+      });
+    });
+  }
+}
+
+export const defineBoxAccordionElement = (
+  tagName = DEFAULT_TAG_NAME,
+): typeof BoxAccordionElement => {
+  const existingElement = customElements.get(tagName);
+  if (existingElement) {
+    return existingElement as typeof BoxAccordionElement;
+  }
+
+  customElements.define(tagName, BoxAccordionElement);
+  return BoxAccordionElement;
+};

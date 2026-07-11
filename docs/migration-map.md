@@ -11,7 +11,7 @@ This document maps everything in the original repo onto the new taxonomy so port
 | `Composites` (`src/web-components/composites/**`) | `Patterns` — compositions (`src/patterns/<area>/**`) | grouped by Box noun, unchanged |
 | `Elements` (`src/web-components/elements/**`) | `Patterns` — workflows | content explorer, preview shell |
 | Headless layer (`src/elements/**`) | `Patterns` — headless modules | controllers/contracts live inside their pattern area |
-| `src/design-system/**` | `src/foundations/tokens/**` (+ future `foundations/icons`) | token prefix `--obp-token-*` → `--boe-token-*`; change event `obp:design-system-change` → `boe:design-system-change` |
+| `src/design-system/**` | `src/foundations/tokens/**` + `src/foundations/icons/**` | token prefix `--obp-token-*` → `--boe-token-*`; change event `obp:design-system-change` → `boe:design-system-change` |
 | `src/core/**` | `src/core/**` | unchanged support layer |
 | `packages/box-server` | future `packages/box-server` | same boundary; see [integration/box-server.md](./integration/box-server.md) |
 
@@ -34,14 +34,14 @@ Custom element tag names (`box-button`, `box-dialog`, …) are unchanged.
 
 All 61 primitives map 1:1 into `src/components/` with the same category and name:
 
-- `primitives/actions/*` → `components/actions/*` (action-menu, button, button-group, icon-button, link-button, menu, menu-item, segmented-control, toolbar)
-- `primitives/collections/*` → `components/collections/*` (card, carousel, items, list, pagination, table, tree, tree-grid)
+- `primitives/actions/*` → `components/actions/*` (button, button-group, icon-button, link-button, menu, menu-item, segmented-control) — except `action-menu` and `toolbar`, whose implementations are explorer-bound `BoxExplorer*` elements and therefore ported to `patterns/content-explorer/adapters/*`
+- `primitives/collections/*` → `components/collections/*` (card, carousel, pagination, tree, tree-grid) — except `list`, `table`, and `items`, whose implementations are explorer-bound `BoxExplorer*` elements and therefore ported to `patterns/content-explorer/adapters/*`
 - `primitives/feedback/*` → `components/feedback/*` (alert, badge, empty-state, help-text, progress-bar, progress-ring, progress-steps, skeleton, spinner, toast)
 - `primitives/files/*` → `components/files/*` (drop-zone)
 - `primitives/forms/*` → `components/forms/*` (checkbox, checkbox-group, color-picker, combobox, date-field, dropdown, dual-listbox, multi-select, number-input, radio-group, range-slider, rating, rich-text-input, search-field, select, slider, spin-button, switch, text-area, text-field, time-field)
 - `primitives/identity/*` → `components/identity/*` (avatar, persona)
 - `primitives/layout/*` → `components/layout/*` (app-shell, split-view)
-- `primitives/navigation/*` → `components/navigation/*` (accordion, breadcrumbs, tabs)
+- `primitives/navigation/*` → `components/navigation/*` (accordion, tabs) — except `breadcrumbs`, whose implementation is an explorer-bound `BoxExplorer*` element and therefore ported to `patterns/content-explorer/adapters/breadcrumbs`
 - `primitives/overlays/*` → `components/overlays/*` (dialog, drawer, popover, tooltip)
 - `primitives/visuals/*` → `components/visuals/*` (illustration)
 
@@ -64,7 +64,7 @@ Both elements map into their pattern areas:
 
 Headless modules:
 
-- `elements/content-explorer/{controller,navigation,collection,selection,actions,types,contracts,box-transport,schemas}` → `patterns/content-explorer/*` (selection is already ported)
+- `elements/content-explorer/{controller,navigation,collection,selection,actions,types,contracts,box-transport,schemas}` → `patterns/content-explorer/*` (all ported)
 - `elements/preview/{provider-adapter,content-preview-adapter}` → `patterns/preview/*`
 - `elements/metadata/{contracts,schemas}` → `patterns/metadata/*`
 - `elements/share/{contracts,schemas}` → `patterns/share/*`
