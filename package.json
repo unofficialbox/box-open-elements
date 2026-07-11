@@ -68,11 +68,13 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "verify": "bun run typecheck && bun run test && bun run build"
+    "verify": "bun run typecheck && bun run test && bun run build",
+    "preview:capture": "bun run build && bun tools/preview/capture.ts"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.2",
     "jsdom": "^29.0.1",
+    "playwright-core": "^1.61.1",
     "typescript": "^5.8.2",
     "vitest": "^4.1.2"
   }

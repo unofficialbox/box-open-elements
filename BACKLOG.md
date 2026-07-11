@@ -23,6 +23,7 @@ This file tracks the highest-signal follow-up work that is still open. The phase
 ## Tooling and infrastructure
 
 - Rebuild the docs site per `docs/workshop/docs-site.md` once Phase 1 gives it a catalog; wire screenshot checkpoints + regression into CI alongside `bun run verify`.
+  - A first real-browser harness now exists: `bun run preview:capture` renders `tools/preview/gallery.html` (built dist + Box tokens + mock explorer) in headless Chromium and writes `docs/screenshots/gallery/*.png`. Grow this into the checkpoint/regression pipeline.
   - Carried caution from the predecessor: its demo-regression CI job was `continue-on-error` due to a CI-only race between `networkidle` and async panel activation; root-cause properly before hard-gating here.
 - Reintroduce Storybook as the extraction backend per `docs/workshop/storybook.md` after the docs site exists.
 - Port the style bridge per `docs/integration/style-bridge.md` when the first real re-styling scenario appears.
