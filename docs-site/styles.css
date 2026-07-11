@@ -174,6 +174,23 @@ body {
 
 .preview-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 18px; }
 
+.preview-toolbar { display: flex; gap: 4px; margin-bottom: 10px; }
+
+.size-button {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border: 1px solid #d6e0ea;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #52606d;
+  cursor: pointer;
+}
+
+.size-button:hover { background: #f5f8fc; }
+.size-button[aria-pressed="true"] { background: #e8f1ff; color: #0061d5; border-color: #0061d5; }
+
 .preview-canvas {
   background: #ffffff;
   border: 1px solid #d6e0ea;
@@ -185,9 +202,28 @@ body {
   align-items: flex-start;
   align-content: flex-start;
   min-height: 180px;
+  margin: 0 auto;
+  width: 100%;
+  transition: max-width 180ms ease;
 }
 
 .preview-note { grid-column: 1 / -1; font-size: 12.5px; color: #52606d; margin: 6px 2px 0; }
+
+.related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+
+.related-card {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  background: #ffffff;
+  border: 1px solid #d6e0ea;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #101820;
+}
+
+.related-card:hover { border-color: #0061d5; background: #f5f8fc; }
+.related-card code { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #52606d; }
 
 .inspector { display: grid; gap: 14px; align-content: start; }
 

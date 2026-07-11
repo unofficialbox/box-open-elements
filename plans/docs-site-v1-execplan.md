@@ -14,6 +14,7 @@ After this change, the repo has a runnable component-documentation site (`bun ru
 - [x] Bun server (`docs-site/server.ts`) — bundles the app with the library external, served from `/dist` via an import map (the site consumes the package like a consumer)
 - [x] `docs`, `docs:typecheck`, `docs:shots` scripts; screenshots under `docs/screenshots/docs-site/`
 - [x] `bun run verify` and `bun run docs:typecheck` green
+- [x] Preview device-size toolbar (Full / Tablet / Mobile) and a Related-links section from real catalog data (follow-up increment)
 
 ## Surprises & Discoveries
 
@@ -35,7 +36,7 @@ After this change, the repo has a runnable component-documentation site (`bun ru
 
 ## Outcomes & Retrospective
 
-Shipped: working docs site v1 with 88 reachable pages (86 catalog surfaces + 2 foundations pages), live inspectors, and runtime-derived API reference. Deferred to follow-ups (tracked in BACKLOG): variant/device-size preview toolbar, per-component guidance cards, dark mode, markdown-doc pages in the Foundations tab, Storybook extraction backend, screenshot-regression gating.
+Shipped: working docs site v1 with 88 reachable pages (86 catalog surfaces + 2 foundations pages), live inspectors, and runtime-derived API reference. Deferred to follow-ups (tracked in BACKLOG): variant dropdown (no per-variant data yet), per-component keyboard/best-practices cards (not documented per component yet), dark mode (needs dark token values), markdown-doc pages in the Foundations tab, Storybook extraction backend, screenshot-regression gating. The device-size preview toolbar and Related-links cards shipped as a follow-up increment.
 
 ## Context and Orientation
 

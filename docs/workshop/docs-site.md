@@ -4,7 +4,7 @@ The primary documentation experience for `box-open-elements` is a component-docu
 
 The predecessor repo built this shell (through Phase 6 of its docs-site ExecPlan) and the decisions below were validated there.
 
-**Status: v1 shipped** — `docs-site/` implements the rail (three taxonomy tabs, search, counts, version footer), tabbed component pages with live Events/Properties inspectors and runtime-derived API tables, and live tokens/iconography foundations pages (`bun run docs`; tracked by `plans/docs-site-v1-execplan.md`). Still open from the full direction: variant/device-size preview toolbar, guidance cards, dark mode (needs dark token values first), markdown foundation docs in-shell, Storybook extraction, screenshot-regression gating.
+**Status: v1 shipped** — `docs-site/` implements the rail (three taxonomy tabs, search, counts, version footer), tabbed component pages with live Events/Properties inspectors and runtime-derived API tables, and live tokens/iconography foundations pages (`bun run docs`; tracked by `plans/docs-site-v1-execplan.md`). The component page also has a device-size preview toolbar (Full/Tablet/Mobile) and a Related-links section. Still open from the full direction: variant dropdown (needs per-variant data), Usage/Best-practices guidance cards (need per-component keyboard docs), dark mode (needs dark token values first), markdown foundation docs in-shell, Storybook extraction, screenshot-regression gating.
 
 ## Visual direction
 

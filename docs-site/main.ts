@@ -138,8 +138,14 @@ const renderComponentPage = (entry: CatalogEntry): void => {
     <div data-panel="preview">
       <div class="preview-layout">
         <div>
-          <div class="preview-canvas" id="preview-canvas"></div>
+          <div class="preview-toolbar" role="group" aria-label="Preview width">
+            <button type="button" class="size-button" data-size="full" aria-pressed="true" title="Full width">Full</button>
+            <button type="button" class="size-button" data-size="tablet" aria-pressed="false" title="Tablet width (768px)">Tablet</button>
+            <button type="button" class="size-button" data-size="mobile" aria-pressed="false" title="Mobile width (380px)">Mobile</button>
+          </div>
+          <div class="preview-canvas" id="preview-canvas" data-preview-size="full"></div>
           ${example.note ? `<p class="preview-note">${escapeHtml(example.note)}</p>` : ""}
+          <div id="related-section"></div>
         </div>
         <aside class="inspector">
           <div class="inspector-panel">
@@ -260,6 +266,32 @@ const renderComponentPage = (entry: CatalogEntry): void => {
   rolesTarget.innerHTML = roles.size
     ? `<table class="api-table"><tr><th>Role</th></tr>${[...roles].sort().map(role => `<tr><td><code>${escapeHtml(role)}</code></td></tr>`).join("")}</table>`
     : '<p class="inspector-empty">No explicit ARIA roles in this preview (native semantics).</p>';
+
+  // Preview width toolbar
+  const SIZES: Record<string, string> = { full: "100%", tablet: "768px", mobile: "380px" };
+  stageBody.querySelectorAll<HTMLButtonElement>(".size-button").forEach(button => {
+    button.addEventListener("click", () => {
+      const size = button.dataset.size!;
+      canvas.dataset.previewSize = size;
+      canvas.style.maxWidth = SIZES[size];
+      stageBody.querySelectorAll<HTMLButtonElement>(".size-button").forEach(other => {
+        other.setAttribute("aria-pressed", String(other === button));
+      });
+    });
+  });
+
+  // Related: sibling surfaces in the same category (real catalog data)
+  const related = catalog.filter(item => item.tier === entry.tier && item.category === entry.category && item.id !== entry.id).slice(0, 6);
+  const relatedTarget = stageBody.querySelector<HTMLElement>("#related-section")!;
+  if (related.length) {
+    relatedTarget.innerHTML = `
+      <p class="section-label">Related in ${escapeHtml(entry.category)}</p>
+      <div class="related-grid">
+        ${related
+          .map(item => `<a class="related-card" href="#${item.tier}/${item.id}"><strong>${escapeHtml(titleOf(item.id))}</strong><code>&lt;${item.tag}&gt;</code></a>`)
+          .join("")}
+      </div>`;
+  }
 
   teardown = () => {
     observer?.disconnect();
