@@ -1,0 +1,52 @@
+# Documentation Index
+
+Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./taxonomy.md): **Foundations → Components → Patterns**.
+
+## Start here
+
+- [Taxonomy](./taxonomy.md) — the canonical tier model and category map
+- [Architecture](./architecture.md) — layers, headless-first design, transport boundary
+- [API Guidelines](./api-guidelines.md) — shared attribute/event/schema vocabulary
+- [Roadmap](./roadmap.md) — the phased build-out plan
+- [Migration Map](./migration-map.md) — everything in `box-open-web-components` mapped onto this repo
+
+## Foundations
+
+- [Design Tokens and Theming](./foundations/tokens.md)
+- [Iconography](./foundations/iconography.md)
+- [Box Brand Reference](./foundations/brand.md)
+- [Accessibility](./foundations/accessibility.md)
+
+## Components
+
+- [Components Catalog](./components/catalog.md) — target inventory by category
+
+## Patterns
+
+- [Patterns Catalog](./patterns/catalog.md) — target inventory by workflow area
+- [Content Explorer](./patterns/content-explorer.md) — the headless block model
+- [Preview](./patterns/preview.md) — provider adapters and annotation-first priorities
+
+## Integration
+
+- [Box Server Integration](./integration/box-server.md) — the server-side boundary
+- [Box Wire Examples](./integration/wire-examples.md) — language-neutral JSON contracts
+- [Style Bridge](./integration/style-bridge.md) — third-party CSS/SCSS translation
+
+## Workshop
+
+- [Docs Site Direction](./workshop/docs-site.md) — the component-docs-site shell
+- [Storybook](./workshop/storybook.md) — extraction-backend policy
+- [Build Alongs](./workshop/build-alongs.md) — microlearning lesson template
+
+## Research
+
+- [Taxonomy Comparison](./research/taxonomy-comparison.md) — tier naming across seven design systems
+- [Component Inventory Comparison](./research/component-inventory-comparison.md) — cross-system catalog gaps
+- [Upstream Gaps](./research/upstream-gaps.md) — box-ui-elements gap analysis
+
+## Working agreements
+
+- [AGENTS.md](../AGENTS.md) — durable repo rules for humans and AI agents
+- [PLANS.md](../PLANS.md) — the ExecPlan standard for multi-session work
+- [BACKLOG.md](../BACKLOG.md) — highest-signal open follow-ups
