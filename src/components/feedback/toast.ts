@@ -117,6 +117,69 @@ export class BoxToastElement extends HTMLElement {
     }
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="toast"] {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.85rem;
+          padding: 0.72rem 0.95rem;
+          border-radius: 0.75rem;
+          border-left: 3px solid var(--boe-token-surface-surface-brand, #0061d5);
+          background: var(--boe-token-surface-tooltip-surface, #222a35);
+          color: #ffffff;
+          box-shadow: 0 12px 28px rgba(15, 23, 42, 0.28);
+        }
+
+        [part="toast"][data-tone="success"] {
+          border-left-color: var(--boe-token-surface-status-surface-success, #26c281);
+        }
+
+        [part="toast"][data-tone="error"] {
+          border-left-color: var(--boe-token-surface-status-surface-error, #ed3757);
+        }
+
+        [part="toast"][data-tone="warning"],
+        [part="toast"][data-tone="inprogress"] {
+          border-left-color: var(--boe-token-surface-status-surface-inprogress, #f5b31b);
+        }
+
+        [part="message"] {
+          font-size: 0.92rem;
+          font-weight: 600;
+          line-height: 1.45;
+        }
+
+        [part="dismiss"] {
+          appearance: none;
+          flex: none;
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          border-radius: 999px;
+          background: transparent;
+          color: rgba(255, 255, 255, 0.86);
+          font: inherit;
+          font-size: 0.78rem;
+          font-weight: 600;
+          padding: 0.28rem 0.65rem;
+          cursor: pointer;
+          transition: background 140ms ease, color 140ms ease;
+        }
+
+        [part="dismiss"]:hover {
+          background: rgba(255, 255, 255, 0.12);
+          color: #ffffff;
+        }
+
+        [part="dismiss"]:focus-visible {
+          outline: 2px solid rgba(255, 255, 255, 0.55);
+          outline-offset: 2px;
+        }
+      </style>
       <div part="toast" data-tone="${escapeHtml(this.tone)}" role="status" aria-live="polite">
         <span part="message">${escapeHtml(this.message)}</span>
         <button type="button" part="dismiss">Dismiss</button>

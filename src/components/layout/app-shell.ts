@@ -40,6 +40,96 @@ export class BoxAppShellElement extends HTMLElement {
     }
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="shell"] {
+          display: grid;
+          grid-template-rows: auto 1fr auto;
+          min-height: 100%;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border-radius: 0.95rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          color: var(--boe-token-text-text, #101820);
+          overflow: hidden;
+        }
+
+        [part="header"] {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.85rem;
+          padding: 0.95rem 1.15rem;
+          border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 68%, transparent);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
+        }
+
+        [part="header-main"] {
+          display: grid;
+          gap: 0.2rem;
+        }
+
+        [part="header-main"] ::slotted([slot="eyebrow"]) {
+          font-size: 0.8rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--boe-token-text-text-secondary, #52606d);
+        }
+
+        [part="title"] {
+          margin: 0;
+          font: inherit;
+          font-size: 1.2rem;
+          font-weight: 700;
+          line-height: 1.2;
+        }
+
+        [part="header-actions"] {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 0.55rem;
+        }
+
+        [part="frame"] {
+          display: grid;
+          grid-template-columns: minmax(11rem, auto) 1fr minmax(11rem, auto);
+          align-items: stretch;
+          min-height: 0;
+        }
+
+        [part="nav"] {
+          padding: 1rem 0.95rem;
+          border-right: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 68%, transparent);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
+        }
+
+        [part="main"] {
+          min-width: 0;
+          padding: 1.15rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+        }
+
+        [part="aside"] {
+          padding: 1rem 0.95rem;
+          border-left: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 68%, transparent);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
+        }
+
+        [part="footer"] {
+          padding: 0.75rem 1.15rem;
+          border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 68%, transparent);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
+          color: var(--boe-token-text-text-secondary, #52606d);
+          font-size: 0.86rem;
+        }
+      </style>
       <section part="shell" aria-label="${escapeHtml(this.title)}">
         <header part="header">
           <div part="header-main">

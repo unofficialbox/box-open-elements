@@ -164,6 +164,71 @@ export class BoxRangeSliderElement extends HTMLElement {
     const end = Math.max(this.startInternal, this.endInternal);
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="field"] {
+          display: grid;
+          gap: 0.6rem;
+        }
+
+        [part="header"] {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.8rem;
+        }
+
+        [part="label"] {
+          font-size: 0.8rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--boe-token-text-text-secondary, #52606d);
+        }
+
+        [part="value"] {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          padding: 0.25rem 0.6rem;
+          border-radius: 999px;
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+          font-size: 0.85rem;
+          font-weight: 700;
+          font-variant-numeric: tabular-nums;
+        }
+
+        [part="ranges"] {
+          display: grid;
+          gap: 0.35rem;
+        }
+
+        [part="range-start"],
+        [part="range-end"] {
+          inline-size: 100%;
+          margin: 0;
+          accent-color: var(--boe-token-surface-surface-brand, #0061d5);
+          cursor: pointer;
+        }
+
+        [part="range-start"]:focus-visible,
+        [part="range-end"]:focus-visible {
+          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+          outline-offset: 2px;
+        }
+
+        [part="range-start"]:disabled,
+        [part="range-end"]:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
+        }
+      </style>
       <label part="field">
         <span part="header">
           <span part="label">${escapeHtml(this.label)}</span>

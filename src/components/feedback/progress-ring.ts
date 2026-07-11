@@ -76,6 +76,60 @@ export class BoxProgressRingElement extends HTMLElement {
     const dashOffset = circumference - (percentage / 100) * circumference;
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: inline-block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="ring"] {
+          display: inline-grid;
+          place-items: center;
+        }
+
+        [part="svg"] {
+          grid-area: 1 / 1;
+          width: ${size}px;
+          height: ${size}px;
+          transform: rotate(-90deg);
+        }
+
+        circle[part="track"] {
+          stroke: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 55%, var(--boe-token-stroke-stroke, #d6e0ea) 45%);
+        }
+
+        circle[part="indicator"] {
+          stroke: var(--boe-token-surface-surface-brand, #0061d5);
+          stroke-linecap: round;
+          transition: stroke-dashoffset 140ms ease;
+        }
+
+        [part="meta"] {
+          grid-area: 1 / 1;
+          display: grid;
+          justify-items: center;
+          gap: 0.1rem;
+          text-align: center;
+        }
+
+        [part="value"] {
+          font-size: ${Math.max(0.8, size / 88)}rem;
+          font-weight: 700;
+          line-height: 1;
+          letter-spacing: -0.02em;
+          font-variant-numeric: tabular-nums;
+          color: var(--boe-token-text-text, #101820);
+        }
+
+        [part="label"] {
+          font-size: 0.68rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--boe-token-text-text-secondary, #52606d);
+        }
+      </style>
       <div part="ring" role="group" aria-label="${escapeHtml(this.label)} progress">
         <svg
           part="svg"

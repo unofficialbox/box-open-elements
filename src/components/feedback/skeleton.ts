@@ -40,6 +40,42 @@ export class BoxSkeletonElement extends HTMLElement {
     }
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: inline-block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="skeleton"] {
+          border-radius: 0.5rem;
+          background:
+            linear-gradient(
+              90deg,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 55%, var(--boe-token-stroke-stroke, #d6e0ea) 45%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 88%, white 12%) 50%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 55%, var(--boe-token-stroke-stroke, #d6e0ea) 45%) 100%
+            );
+          background-size: 200% 100%;
+          animation: boe-skeleton-shimmer 1.4s ease infinite;
+        }
+
+        @keyframes boe-skeleton-shimmer {
+          0% {
+            background-position: 100% 0;
+          }
+
+          100% {
+            background-position: -100% 0;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          [part="skeleton"] {
+            animation: none;
+          }
+        }
+      </style>
       <span
         part="skeleton"
         style="display:inline-block;width:${this.width};height:${this.height};"

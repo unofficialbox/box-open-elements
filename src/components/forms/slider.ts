@@ -117,6 +117,61 @@ export class BoxSliderElement extends HTMLElement {
     }
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="field"] {
+          display: grid;
+          gap: 0.6rem;
+        }
+
+        [part="header"] {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.8rem;
+        }
+
+        [part="label"] {
+          font-size: 0.8rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--boe-token-text-text-secondary, #52606d);
+        }
+
+        [part="value"] {
+          display: inline-flex;
+          padding: 0.25rem 0.6rem;
+          border-radius: 999px;
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+          font-size: 0.85rem;
+          font-weight: 700;
+          font-variant-numeric: tabular-nums;
+        }
+
+        [part="range"] {
+          inline-size: 100%;
+          margin: 0;
+          accent-color: var(--boe-token-surface-surface-brand, #0061d5);
+          cursor: pointer;
+        }
+
+        [part="range"]:focus-visible {
+          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+          outline-offset: 2px;
+        }
+
+        [part="range"]:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
+        }
+      </style>
       <label part="field">
         <span part="header">
           <span part="label">${escapeHtml(this.label)}</span>

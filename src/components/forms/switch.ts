@@ -112,6 +112,102 @@ export class BoxSwitchElement extends HTMLElement {
     const thumbPart = this.checkedInternal ? "thumb thumb-checked" : "thumb";
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: inline-block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="switch"] {
+          appearance: none;
+          border: none;
+          background: transparent;
+          font: inherit;
+          color: inherit;
+          text-align: left;
+          display: inline-flex;
+          align-items: flex-start;
+          gap: 0.75rem;
+          padding: 0;
+          margin: 0;
+          cursor: pointer;
+        }
+
+        [part="switch"]:focus-visible {
+          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+          outline-offset: 2px;
+          border-radius: 0.5rem;
+        }
+
+        [part="switch"]:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
+        }
+
+        [part~="track"] {
+          flex: 0 0 auto;
+          display: inline-flex;
+          align-items: center;
+          inline-size: 2.5rem;
+          block-size: 1.4rem;
+          padding: 0.15rem;
+          box-sizing: border-box;
+          border-radius: 999px;
+          background: color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, white 18%);
+          box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08);
+          transition: background 140ms ease, box-shadow 140ms ease;
+        }
+
+        [part="switch"]:hover:not(:disabled) [part~="track"][data-checked="false"] {
+          background: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+        }
+
+        [part~="track"][data-checked="true"] {
+          background: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+
+        [part="switch"]:hover:not(:disabled) [part~="track"][data-checked="true"] {
+          background: var(--boe-token-surface-surface-brand-hover, #006ae9);
+        }
+
+        [part="switch"]:active:not(:disabled) [part~="track"][data-checked="true"] {
+          background: var(--boe-token-surface-surface-brand-pressed, #004eac);
+        }
+
+        [part~="thumb"] {
+          inline-size: 1.1rem;
+          block-size: 1.1rem;
+          border-radius: 999px;
+          background: var(--boe-token-surface-surface, #ffffff);
+          box-shadow:
+            0 1px 2px rgba(15, 23, 42, 0.18),
+            0 0 0 1px color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 45%, transparent);
+          transform: translateX(0);
+          transition: transform 140ms ease;
+        }
+
+        [part~="thumb"][data-checked="true"] {
+          transform: translateX(1.1rem);
+        }
+
+        [part="content"] {
+          display: grid;
+          gap: 0.2rem;
+          padding-block-start: 0.05rem;
+        }
+
+        [part="label"] {
+          font-weight: 600;
+          color: var(--boe-token-text-text, #101820);
+        }
+
+        [part="description"] {
+          font-size: 0.9rem;
+          line-height: 1.45;
+          color: var(--boe-token-text-text-secondary, #52606d);
+        }
+      </style>
       <button
         type="button"
         part="switch"

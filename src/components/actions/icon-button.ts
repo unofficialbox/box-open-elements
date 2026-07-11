@@ -85,6 +85,107 @@ export class BoxIconButtonElement extends HTMLElement {
     const iconMarkup = resolvedIcon ?? escapeHtml(this.icon);
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: inline-block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="button"] {
+          appearance: none;
+          width: 2.25rem;
+          height: 2.25rem;
+          display: inline-grid;
+          place-items: center;
+          padding: 0;
+          font: inherit;
+          border: 1px solid var(--boe-token-stroke-stroke, #d6e0ea);
+          border-radius: 0.75rem;
+          background:
+            linear-gradient(
+              180deg,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, white 6%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
+            );
+          color: var(--boe-token-text-text-secondary, #52606d);
+          cursor: pointer;
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.82),
+            0 1px 2px rgba(15, 23, 42, 0.04);
+          transition:
+            background-color 140ms ease,
+            border-color 140ms ease,
+            color 140ms ease,
+            box-shadow 140ms ease;
+        }
+
+        [part="button"]:hover:not(:disabled) {
+          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 28%, var(--boe-token-stroke-stroke, #d6e0ea) 72%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%);
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+
+        [part="button"]:active:not(:disabled) {
+          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #e8f1ff) 70%, white 30%);
+        }
+
+        [part="button"][data-tone="primary"] {
+          border-color: transparent;
+          background:
+            linear-gradient(
+              180deg,
+              var(--boe-token-surface-surface-brand, #0061d5) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 88%, #003c86 12%) 100%
+            );
+          color: var(--boe-token-text-text-on-brand, #ffffff);
+        }
+
+        [part="button"][data-tone="primary"]:hover:not(:disabled) {
+          background: var(--boe-token-surface-surface-brand-hover, #006ae9);
+          color: var(--boe-token-text-text-on-brand, #ffffff);
+        }
+
+        [part="button"][data-tone="primary"]:active:not(:disabled) {
+          background: var(--boe-token-surface-surface-brand-pressed, #004eac);
+        }
+
+        [part="button"][data-tone="danger"] {
+          border-color: transparent;
+          background: var(--boe-token-surface-status-surface-error, #ed3757);
+          color: var(--boe-token-text-text-on-brand, #ffffff);
+        }
+
+        [part="button"][data-tone="danger"]:hover:not(:disabled) {
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 90%, white 10%);
+          color: var(--boe-token-text-text-on-brand, #ffffff);
+        }
+
+        [part="button"]:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        }
+
+        [part="button"]:disabled {
+          cursor: not-allowed;
+          opacity: 0.55;
+          box-shadow: none;
+        }
+
+        [part="icon"] {
+          display: inline-grid;
+          place-items: center;
+          font-size: 1rem;
+          line-height: 1;
+        }
+
+        [part="icon"] svg {
+          width: 1.1em;
+          height: 1.1em;
+          display: block;
+          fill: currentColor;
+        }
+      </style>
       <button
         type="button"
         part="button"

@@ -11,49 +11,113 @@ const escapeHtml = (value: string): string =>
 const buttonStyles = `
   :host {
     display: inline-block;
+    color: inherit;
+    font: inherit;
   }
 
   button {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4em;
     font: inherit;
-    padding: 0.45em 1em;
-    border-radius: 6px;
+    font-weight: 600;
+    line-height: 1.2;
+    padding: 0.55em 1.1em;
+    border-radius: 0.75rem;
     border: 1px solid transparent;
     cursor: pointer;
-    background: var(--boe-token-surface-surface-brand, #0061d5);
+    background:
+      linear-gradient(
+        180deg,
+        var(--boe-token-surface-surface-brand, #0061d5) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 88%, #003c86 12%) 100%
+      );
     color: var(--boe-token-text-text-on-brand, #ffffff);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.16),
+      0 1px 2px rgba(15, 23, 42, 0.08);
+    transition:
+      background-color 140ms ease,
+      border-color 140ms ease,
+      color 140ms ease,
+      box-shadow 140ms ease;
   }
 
   button:hover:not(:disabled) {
     background: var(--boe-token-surface-surface-brand-hover, #006ae9);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      0 6px 14px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, transparent);
   }
 
   button:active:not(:disabled) {
     background: var(--boe-token-surface-surface-brand-pressed, #004eac);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+  }
+
+  button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
   }
 
   button[data-tone="neutral"] {
-    background: var(--boe-token-surface-surface, #ffffff);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, white 6%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
+      );
     color: var(--boe-token-text-text, #101820);
     border-color: var(--boe-token-stroke-stroke, #d6e0ea);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.82),
+      0 1px 2px rgba(15, 23, 42, 0.04);
   }
 
   button[data-tone="neutral"]:hover:not(:disabled),
   button[data-tone="neutral"]:active:not(:disabled) {
     background: var(--boe-token-surface-surface-hover, #f5f8fc);
+    border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+  }
+
+  button[data-tone="neutral"]:focus-visible {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
   }
 
   button[data-tone="danger"] {
-    background: var(--boe-token-surface-status-surface-error, #ed3757);
+    background:
+      linear-gradient(
+        180deg,
+        var(--boe-token-surface-status-surface-error, #ed3757) 0%,
+        color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 88%, #9c1230 12%) 100%
+      );
+    color: var(--boe-token-text-text-on-brand, #ffffff);
+  }
+
+  button[data-tone="danger"]:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 90%, white 10%);
+  }
+
+  button[data-tone="danger"]:active:not(:disabled) {
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 84%, black 16%);
+  }
+
+  button[data-tone="danger"]:focus-visible {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 22%, transparent);
   }
 
   button[data-size="small"] {
-    padding: 0.25em 0.7em;
+    padding: 0.35em 0.8em;
     font-size: 0.875em;
+    border-radius: 0.6rem;
   }
 
   button:disabled {
     cursor: not-allowed;
-    opacity: 0.5;
+    opacity: 0.55;
+    box-shadow: none;
   }
 `;
 

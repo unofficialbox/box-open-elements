@@ -40,6 +40,48 @@ export class BoxSpinnerElement extends HTMLElement {
     }
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: inline-block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="spinner"] {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        [part="indicator"] {
+          display: inline-block;
+          flex: none;
+          width: 1.1rem;
+          height: 1.1rem;
+          border-radius: 999px;
+          border: 2.5px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, white 82%);
+          border-top-color: var(--boe-token-surface-surface-brand, #0061d5);
+          animation: boe-spinner-rotate 0.8s linear infinite;
+        }
+
+        @keyframes boe-spinner-rotate {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          [part="indicator"] {
+            animation-duration: 1.6s;
+          }
+        }
+
+        [part="label"] {
+          font-size: 0.86rem;
+          font-weight: 600;
+          color: var(--boe-token-text-text-secondary, #52606d);
+        }
+      </style>
       <div part="spinner" role="status" aria-live="polite">
         <span part="indicator" aria-hidden="true"></span>
         <span part="label">${escapeHtml(this.label)}</span>

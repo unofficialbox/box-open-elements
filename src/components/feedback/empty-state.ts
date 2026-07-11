@@ -68,6 +68,59 @@ export class BoxEmptyStateElement extends HTMLElement {
       : "";
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="empty-state"] {
+          display: grid;
+          justify-items: center;
+          gap: 0.55rem;
+          padding: 2rem 1.5rem;
+          border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border-radius: 0.95rem;
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
+          text-align: center;
+        }
+
+        [part="title"] {
+          font-size: 1.05rem;
+          font-weight: 700;
+          color: var(--boe-token-text-text, #101820);
+        }
+
+        [part~="message"] {
+          max-width: 32rem;
+          color: var(--boe-token-text-text-secondary, #52606d);
+          line-height: 1.5;
+        }
+
+        [part="action"] {
+          appearance: none;
+          margin-top: 0.4rem;
+          border: 1px solid transparent;
+          border-radius: 999px;
+          background: var(--boe-token-surface-surface-brand, #0061d5);
+          color: var(--boe-token-text-text-on-brand, #ffffff);
+          font: inherit;
+          font-weight: 600;
+          padding: 0.58rem 1.05rem;
+          cursor: pointer;
+          transition: background 140ms ease, transform 140ms ease;
+        }
+
+        [part="action"]:hover {
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 88%, black 12%);
+        }
+
+        [part="action"]:focus-visible {
+          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+          outline-offset: 2px;
+        }
+      </style>
       <section part="empty-state" role="status" aria-live="polite">
         <strong part="title">${escapeHtml(this.title)}</strong>
         <span part="message description">${escapeHtml(this.message)}</span>

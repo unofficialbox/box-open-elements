@@ -56,6 +56,67 @@ export class BoxLinkButtonElement extends HTMLElement {
     }
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: inline-block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="link"] {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35em;
+          font: inherit;
+          font-weight: 600;
+          line-height: 1.2;
+          padding: 0.35em 0.6em;
+          margin: -0.35em -0.6em;
+          border-radius: 0.6rem;
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+          text-decoration: none;
+          text-underline-offset: 0.2em;
+          cursor: pointer;
+          transition:
+            background-color 140ms ease,
+            color 140ms ease,
+            box-shadow 140ms ease;
+        }
+
+        [part="link"]:hover {
+          text-decoration: underline;
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, transparent);
+          color: var(--boe-token-surface-surface-brand-hover, #006ae9);
+        }
+
+        [part="link"]:active {
+          color: var(--boe-token-surface-surface-brand-pressed, #004eac);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, transparent);
+        }
+
+        [part="link"]:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        }
+
+        [part="link"][data-tone="neutral"] {
+          color: var(--boe-token-text-text, #101820);
+        }
+
+        [part="link"][data-tone="neutral"]:hover {
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          color: var(--boe-token-text-text, #101820);
+        }
+
+        [part="link"][data-tone="danger"] {
+          color: var(--boe-token-surface-status-surface-error, #ed3757);
+        }
+
+        [part="link"][data-tone="danger"]:hover {
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 8%, transparent);
+          color: var(--boe-token-surface-status-surface-error, #ed3757);
+        }
+      </style>
       <a
         part="link"
         data-tone="${escapeHtml(this.tone)}"

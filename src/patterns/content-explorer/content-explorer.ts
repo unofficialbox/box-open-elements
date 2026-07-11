@@ -424,6 +424,215 @@ export class BoxContentExplorerElement extends HTMLElement {
       : "idle";
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        section {
+          display: grid;
+          gap: 0.85rem;
+          padding: 1.1rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border-radius: 0.95rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          transition: opacity 140ms ease;
+        }
+
+        section[aria-busy="true"] {
+          opacity: 0.65;
+        }
+
+        [part="folder"] {
+          display: grid;
+          gap: 0.35rem;
+        }
+
+        [part="folder"] h2 {
+          margin: 0;
+          font-size: 1.2rem;
+          font-weight: 700;
+          line-height: 1.2;
+          color: var(--boe-token-text-text, #101820);
+        }
+
+        [part="folder"] p {
+          margin: 0;
+          font-size: 0.8rem;
+          color: var(--boe-token-text-text-placeholder, #748091);
+        }
+
+        [part="breadcrumbs"] {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 0.2rem;
+        }
+
+        [part="breadcrumb"] {
+          appearance: none;
+          font: inherit;
+          font-size: 0.875rem;
+          padding: 0.25rem 0.55rem;
+          border: none;
+          border-radius: 0.55rem;
+          background: transparent;
+          color: var(--boe-token-text-text-secondary, #52606d);
+          cursor: pointer;
+          transition: background 140ms ease, color 140ms ease;
+        }
+
+        [part="breadcrumb"]:hover {
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, transparent);
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+
+        [part="breadcrumb"]:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        }
+
+        [part="breadcrumb-separator"] {
+          color: color-mix(in srgb, var(--boe-token-text-text-secondary, #52606d) 55%, transparent);
+          font-size: 0.875rem;
+        }
+
+        [part="status"] {
+          margin: 0;
+          font-size: 0.8rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--boe-token-text-text-secondary, #52606d);
+        }
+
+        [part="error"] {
+          margin: 0;
+          padding: 0.7rem 0.9rem;
+          border-radius: 0.7rem;
+          font-size: 0.9rem;
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, white);
+          border: 1px solid color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 34%, transparent);
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 72%, black 28%);
+        }
+
+        [part="refresh"],
+        [part="load-more"],
+        [part="item-action"] {
+          appearance: none;
+          font: inherit;
+          font-size: 0.875rem;
+          font-weight: 600;
+          padding: 0.45em 1em;
+          border-radius: 0.7rem;
+          border: 1px solid var(--boe-token-stroke-stroke, #d6e0ea);
+          background: var(--boe-token-surface-surface, #ffffff);
+          color: var(--boe-token-text-text, #101820);
+          cursor: pointer;
+          transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+        }
+
+        [part="refresh"] {
+          justify-self: start;
+        }
+
+        [part="refresh"]:hover:not(:disabled),
+        [part="load-more"]:hover,
+        [part="item-action"]:hover {
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+        }
+
+        [part="refresh"]:focus-visible,
+        [part="load-more"]:focus-visible,
+        [part="item-action"]:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        }
+
+        [part="refresh"]:disabled {
+          cursor: not-allowed;
+          opacity: 0.55;
+        }
+
+        [part="items"] {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          display: grid;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 62%, transparent);
+          border-radius: 0.8rem;
+          overflow: hidden;
+        }
+
+        [part="items"] > li {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.8rem;
+          padding: 0.2rem 0.6rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          transition: background 140ms ease;
+        }
+
+        [part="items"] > li + li {
+          border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 46%, transparent);
+        }
+
+        [part="items"] > li:hover {
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+        }
+
+        [part="items"] > li:has([part="item"][aria-selected="true"]) {
+          background: var(--boe-token-surface-item-surface-selected, #e8f1ff);
+        }
+
+        [part="item"] {
+          appearance: none;
+          font: inherit;
+          font-size: 0.95rem;
+          flex: 1;
+          text-align: left;
+          padding: 0.6rem 0.5rem;
+          border: none;
+          border-radius: 0.55rem;
+          background: transparent;
+          color: var(--boe-token-text-text, #101820);
+          cursor: pointer;
+          transition: color 140ms ease;
+        }
+
+        [part="item"]:hover {
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+
+        [part="item"]:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        }
+
+        [part="item"][aria-selected="true"] {
+          font-weight: 600;
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+
+        [part="item-actions"] {
+          display: flex;
+          gap: 0.4rem;
+        }
+
+        [part="item-action"] {
+          font-size: 0.8rem;
+          padding: 0.35em 0.8em;
+        }
+
+        [part="load-more-region"] {
+          display: flex;
+          justify-content: center;
+        }
+      </style>
       <section aria-busy="${state?.loading ? "true" : "false"}">
         ${folderMarkup}
         <p part="status" data-status="${statusText}" role="status" aria-live="polite">${statusText}</p>

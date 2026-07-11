@@ -132,6 +132,170 @@ export class BoxExplorerListElement extends HTMLElement {
         : "";
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="list-shell"] {
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 84%, white 16%);
+          border-radius: 0.95rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+          overflow: hidden;
+        }
+
+        [part="list-shell"][aria-busy="true"] {
+          opacity: 0.72;
+        }
+
+        [part="list"] {
+          list-style: none;
+          margin: 0;
+          padding: 0.4rem;
+          display: grid;
+          gap: 0.15rem;
+        }
+
+        [part~="item-row"] {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.15rem 0.35rem;
+          border-radius: 0.7rem;
+          transition: background-color 140ms ease;
+        }
+
+        [part~="item-row"]:hover {
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+        }
+
+        [part~="item-row-selected"],
+        [part~="item-row-selected"]:hover {
+          background: var(--boe-token-surface-item-surface-selected, #e8f1ff);
+        }
+
+        [part~="item"] {
+          flex: 1;
+          min-width: 0;
+          appearance: none;
+          text-align: left;
+          border: 0;
+          margin: 0;
+          padding: 0.55rem 0.6rem;
+          border-radius: 0.6rem;
+          background: transparent;
+          color: var(--boe-token-text-text, #101820);
+          font: inherit;
+          font-size: 0.94rem;
+          font-weight: 500;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          cursor: pointer;
+          transition:
+            background-color 140ms ease,
+            color 140ms ease,
+            box-shadow 140ms ease;
+        }
+
+        [part~="item"]:hover {
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%);
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+
+        [part~="item"]:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        }
+
+        [part~="item-selected"] {
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+
+        [part="item-actions"] {
+          display: flex;
+          align-items: center;
+          gap: 0.3rem;
+          flex: none;
+        }
+
+        [part~="item-action"] {
+          appearance: none;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 86%, white 14%);
+          border-radius: 0.6rem;
+          margin: 0;
+          padding: 0.3rem 0.6rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          color: var(--boe-token-text-text-secondary, #52606d);
+          font: inherit;
+          font-size: 0.82rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition:
+            border-color 140ms ease,
+            background-color 140ms ease,
+            color 140ms ease,
+            box-shadow 140ms ease;
+        }
+
+        [part~="item-action"]:hover {
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+          color: var(--boe-token-text-text, #101820);
+        }
+
+        [part~="item-action"]:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        }
+
+        input[type="checkbox"] {
+          accent-color: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+
+        [part="empty"] {
+          padding: 0.9rem 0.8rem;
+          color: var(--boe-token-text-text-secondary, #52606d);
+          font-size: 0.9rem;
+        }
+
+        [part="load-more-region"] {
+          display: flex;
+          justify-content: center;
+          padding: 0.5rem 0.6rem 0.7rem;
+          border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 55%, transparent);
+        }
+
+        [part="load-more"] {
+          appearance: none;
+          font: inherit;
+          font-size: 0.88rem;
+          font-weight: 500;
+          padding: 0.42rem 0.9rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 86%, white 14%);
+          border-radius: 0.7rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          color: var(--boe-token-text-text, #101820);
+          cursor: pointer;
+          transition:
+            border-color 140ms ease,
+            background-color 140ms ease,
+            box-shadow 140ms ease;
+        }
+
+        [part="load-more"]:hover {
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+        }
+
+        [part="load-more"]:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        }
+      </style>
       <section part="list-shell" aria-busy="${state?.loading ? "true" : "false"}">
         <ul part="list" role="listbox" aria-label="Items">${itemsMarkup}</ul>
         ${loadMoreMarkup ? `<div part="load-more-region">${loadMoreMarkup}</div>` : ""}
