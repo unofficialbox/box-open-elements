@@ -108,6 +108,98 @@ export class BoxAlertElement extends HTMLElement {
     const messageMarkup = this.message ? `<span part="description message">${escapeHtml(this.message)}</span>` : "";
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="alert"] {
+          display: flex;
+          align-items: start;
+          justify-content: space-between;
+          gap: 0.75rem;
+          padding: 0.85rem 0.95rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, white);
+          border-radius: 0.95rem;
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, white);
+          color: var(--boe-token-text-text, #101820);
+          transition: background 140ms ease, border-color 140ms ease;
+        }
+
+        [part="alert"][data-tone="success"] {
+          border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 34%, white);
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 12%, white);
+        }
+
+        [part="alert"][data-tone="error"] {
+          border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 30%, white);
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, white);
+        }
+
+        [part="alert"][data-tone="warning"],
+        [part="alert"][data-tone="inprogress"] {
+          border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 40%, white);
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 14%, white);
+        }
+
+        [part="content"] {
+          display: grid;
+          gap: 0.25rem;
+          line-height: 1.45;
+        }
+
+        [part="title"] {
+          font-weight: 700;
+          color: var(--boe-token-text-text, #101820);
+        }
+
+        [part="alert"][data-tone="info"] [part="title"] {
+          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 78%, var(--boe-token-text-text, #101820));
+        }
+
+        [part="alert"][data-tone="success"] [part="title"] {
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 58%, var(--boe-token-text-text, #101820));
+        }
+
+        [part="alert"][data-tone="error"] [part="title"] {
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 64%, var(--boe-token-text-text, #101820));
+        }
+
+        [part="alert"][data-tone="warning"] [part="title"],
+        [part="alert"][data-tone="inprogress"] [part="title"] {
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 46%, var(--boe-token-text-text, #101820));
+        }
+
+        [part~="description"] {
+          color: var(--boe-token-text-text-secondary, #52606d);
+        }
+
+        [part="dismiss"] {
+          appearance: none;
+          flex: none;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border-radius: 999px;
+          background: var(--boe-token-surface-surface, #ffffff);
+          color: var(--boe-token-text-text-secondary, #52606d);
+          font: inherit;
+          font-size: 0.8rem;
+          font-weight: 600;
+          padding: 0.3rem 0.7rem;
+          cursor: pointer;
+          transition: background 140ms ease, border-color 140ms ease;
+        }
+
+        [part="dismiss"]:hover {
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+        }
+
+        [part="dismiss"]:focus-visible {
+          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+          outline-offset: 2px;
+        }
+      </style>
       <div part="alert" data-tone="${escapeHtml(this.tone)}" role="status" aria-live="polite" aria-label="${escapeHtml(this.title || this.message)}">
         <div part="content">
           ${titleMarkup}

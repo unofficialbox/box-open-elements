@@ -122,6 +122,103 @@ export class BoxButtonGroupElement extends HTMLElement {
       .join("");
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: inline-block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="group"] {
+          display: inline-flex;
+          align-items: stretch;
+          gap: 0.5rem;
+        }
+
+        [part="group"][data-layout="attached"] {
+          gap: 0;
+        }
+
+        [part="button"] {
+          appearance: none;
+          font: inherit;
+          font-weight: 600;
+          line-height: 1.2;
+          padding: 0.55em 1.1em;
+          border: 1px solid var(--boe-token-stroke-stroke, #d6e0ea);
+          border-radius: 0.75rem;
+          background:
+            linear-gradient(
+              180deg,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, white 6%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
+            );
+          color: var(--boe-token-text-text, #101820);
+          cursor: pointer;
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.82),
+            0 1px 2px rgba(15, 23, 42, 0.04);
+          transition:
+            background-color 140ms ease,
+            border-color 140ms ease,
+            color 140ms ease,
+            box-shadow 140ms ease;
+        }
+
+        [part="button"][data-layout="attached"] {
+          border-radius: 0;
+        }
+
+        [part="button"][data-layout="attached"][data-position="first"] {
+          border-top-left-radius: 0.75rem;
+          border-bottom-left-radius: 0.75rem;
+        }
+
+        [part="button"][data-layout="attached"][data-position="last"] {
+          border-top-right-radius: 0.75rem;
+          border-bottom-right-radius: 0.75rem;
+        }
+
+        [part="button"][data-layout="attached"][data-position="only"] {
+          border-radius: 0.75rem;
+        }
+
+        [part="button"][data-layout="attached"][data-position="middle"],
+        [part="button"][data-layout="attached"][data-position="last"] {
+          margin-left: -1px;
+        }
+
+        [part="button"]:not([data-selected="true"]):hover {
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+        }
+
+        [part="button"][data-selected="true"] {
+          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, var(--boe-token-stroke-stroke, #d6e0ea) 78%);
+          background:
+            linear-gradient(
+              180deg,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, white 92%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #e8f1ff) 60%, white 40%) 100%
+            );
+          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 80%, var(--boe-token-text-text, #101820) 20%);
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.82),
+            0 6px 12px rgba(15, 23, 42, 0.035);
+          z-index: 1;
+        }
+
+        [part="button"]:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+          z-index: 2;
+        }
+
+        [part="button"]:disabled {
+          cursor: not-allowed;
+          opacity: 0.55;
+        }
+      </style>
       <div part="group" role="radiogroup" data-layout="${this.layout}" aria-label="${escapeHtml(this.label)}">
         ${optionsMarkup}
       </div>

@@ -74,6 +74,73 @@ export class BoxExplorerToolbarElement extends HTMLElement {
     const selectedCount = state?.selectedItemIds.length ?? 0;
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="toolbar"] {
+          display: flex;
+          align-items: center;
+          gap: 0.6rem;
+          padding: 0.6rem 0.8rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 84%, white 16%);
+          border-radius: 0.9rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        }
+
+        [part="status"],
+        [part="selection-count"] {
+          color: var(--boe-token-text-text-secondary, #52606d);
+          font-size: 0.85rem;
+          white-space: nowrap;
+        }
+
+        [part="selection-count"] {
+          margin-right: auto;
+        }
+
+        [part="refresh"],
+        [part="clear-selection"] {
+          appearance: none;
+          font: inherit;
+          font-size: 0.88rem;
+          font-weight: 500;
+          padding: 0.42rem 0.8rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 86%, white 14%);
+          border-radius: 0.7rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          color: var(--boe-token-text-text, #101820);
+          cursor: pointer;
+          transition:
+            border-color 140ms ease,
+            background-color 140ms ease,
+            color 140ms ease,
+            box-shadow 140ms ease;
+        }
+
+        [part="refresh"]:hover:not(:disabled),
+        [part="clear-selection"]:hover:not(:disabled) {
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+        }
+
+        [part="refresh"]:focus-visible,
+        [part="clear-selection"]:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        }
+
+        [part="refresh"]:disabled,
+        [part="clear-selection"]:disabled {
+          color: color-mix(in srgb, var(--boe-token-text-text-secondary, #52606d) 60%, transparent);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 70%, white 30%);
+          cursor: not-allowed;
+        }
+      </style>
       <div part="toolbar">
         <span part="status">${loading ? "loading" : "ready"}</span>
         <span part="selection-count">${selectedCount} selected</span>

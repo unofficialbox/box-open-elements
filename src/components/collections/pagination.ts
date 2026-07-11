@@ -66,6 +66,78 @@ export class BoxPaginationElement extends HTMLElement {
     const endItem = Math.min(currentPage * this.pageSize, this.totalItems);
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: inline-block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="pagination"] {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
+        [part="previous"],
+        [part="next"] {
+          appearance: none;
+          font: inherit;
+          font-size: 0.875em;
+          font-weight: 600;
+          line-height: 1.2;
+          padding: 0.35em 0.8em;
+          border: 1px solid var(--boe-token-stroke-stroke, #d6e0ea);
+          border-radius: 0.6rem;
+          background:
+            linear-gradient(
+              180deg,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, white 6%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
+            );
+          color: var(--boe-token-text-text, #101820);
+          cursor: pointer;
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.82),
+            0 1px 2px rgba(15, 23, 42, 0.04);
+          transition:
+            background-color 140ms ease,
+            border-color 140ms ease,
+            color 140ms ease,
+            box-shadow 140ms ease;
+        }
+
+        [part="previous"]:hover:not(:disabled),
+        [part="next"]:hover:not(:disabled) {
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+
+        [part="previous"]:active:not(:disabled),
+        [part="next"]:active:not(:disabled) {
+          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #e8f1ff) 64%, white 36%);
+        }
+
+        [part="previous"]:focus-visible,
+        [part="next"]:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        }
+
+        [part="previous"]:disabled,
+        [part="next"]:disabled {
+          cursor: not-allowed;
+          opacity: 0.55;
+          box-shadow: none;
+        }
+
+        [part="summary"] {
+          font-size: 0.875em;
+          color: var(--boe-token-text-text-secondary, #52606d);
+          white-space: nowrap;
+        }
+      </style>
       <nav part="pagination" aria-label="Pagination">
         <button type="button" part="previous" aria-label="Previous page" ${canGoPrevious ? "" : "disabled"}>Previous</button>
         <span part="summary" aria-live="polite">Showing ${startItem}-${endItem} of ${this.totalItems}</span>

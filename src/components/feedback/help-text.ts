@@ -87,6 +87,81 @@ export class BoxHelpTextElement extends HTMLElement {
     const iconMarkup = resolveDesignIcon(iconName) ?? "i";
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="help-text"] {
+          display: flex;
+          align-items: start;
+          gap: 0.45rem;
+          font-size: 0.86rem;
+          line-height: 1.45;
+          color: var(--boe-token-text-text-secondary, #52606d);
+        }
+
+        [part="icon"] {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex: none;
+          width: 1.15rem;
+          height: 1.15rem;
+          margin-top: 0.08rem;
+          border-radius: 999px;
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+          font-size: 0.7rem;
+          font-weight: 700;
+          font-style: normal;
+        }
+
+        [part="icon"] svg {
+          width: 0.78rem;
+          height: 0.78rem;
+          fill: currentColor;
+        }
+
+        [part="help-text"][data-tone="success"] [part="icon"] {
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 14%, white 86%);
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 68%, var(--boe-token-text-text, #101820));
+        }
+
+        [part="help-text"][data-tone="error"] [part="icon"] {
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 12%, white 88%);
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 74%, var(--boe-token-text-text, #101820));
+        }
+
+        [part="help-text"][data-tone="warning"] [part="icon"] {
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 18%, white 82%);
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 52%, var(--boe-token-text-text, #101820));
+        }
+
+        [part="help-text"][data-tone="error"] {
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 68%, var(--boe-token-text-text, #101820));
+        }
+
+        [part="help-text"][data-tone="success"] {
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 56%, var(--boe-token-text-text, #101820));
+        }
+
+        [part="help-text"][data-tone="warning"] {
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 44%, var(--boe-token-text-text, #101820));
+        }
+
+        [part="content"] {
+          display: grid;
+          gap: 0.15rem;
+        }
+
+        [part="label"] {
+          font-weight: 700;
+          color: var(--boe-token-text-text, #101820);
+        }
+      </style>
       <div part="help-text" data-tone="${escapeHtml(this.tone)}" role="note" aria-label="${escapeHtml(this.label || "Help text")}">
         <span part="icon" aria-hidden="true" data-icon-source="${iconMarkup === "i" ? "text" : "design-system"}">${iconMarkup}</span>
         <div part="content">

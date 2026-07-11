@@ -167,6 +167,76 @@ export class BoxSegmentedControlElement extends HTMLElement {
       .join("");
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: inline-block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="control"] {
+          display: inline-flex;
+          align-items: stretch;
+          gap: 0.25rem;
+          padding: 0.25rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 84%, white 16%);
+          border-radius: 0.75rem;
+          background:
+            linear-gradient(
+              180deg,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 88%, white 12%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 2%, var(--boe-token-surface-surface-secondary, #f7f9fc) 98%) 100%
+            );
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+        }
+
+        [part="control"][data-layout="attached"] {
+          gap: 0;
+        }
+
+        [part="segment"] {
+          appearance: none;
+          font: inherit;
+          font-weight: 600;
+          line-height: 1.2;
+          padding: 0.45em 1em;
+          border: 1px solid transparent;
+          border-radius: 0.55rem;
+          background: transparent;
+          color: var(--boe-token-text-text-secondary, #52606d);
+          cursor: pointer;
+          transition:
+            background-color 140ms ease,
+            border-color 140ms ease,
+            color 140ms ease,
+            box-shadow 140ms ease;
+        }
+
+        [part="segment"]:hover:not(:disabled):not([data-selected="true"]) {
+          background: color-mix(in srgb, var(--boe-token-surface-surface-hover, #f5f8fc) 60%, white 40%);
+          color: var(--boe-token-text-text, #101820);
+        }
+
+        [part="segment"][data-selected="true"] {
+          background: var(--boe-token-surface-surface, #ffffff);
+          border-color: color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 70%, white 30%);
+          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 84%, var(--boe-token-text-text, #101820) 16%);
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.82),
+            0 2px 6px rgba(15, 23, 42, 0.08);
+        }
+
+        [part="segment"]:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+          z-index: 1;
+        }
+
+        [part="segment"]:disabled {
+          cursor: not-allowed;
+          opacity: 0.55;
+        }
+      </style>
       <div part="control" data-layout="${this.layout}" role="radiogroup" aria-label="${escapeHtml(this.label)}" aria-disabled="${String(this.disabled)}">
         ${optionsMarkup}
       </div>

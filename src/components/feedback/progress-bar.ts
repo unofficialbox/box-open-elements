@@ -63,6 +63,56 @@ export class BoxProgressBarElement extends HTMLElement {
     const percentage = Math.round((value / max) * 100);
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="progress"] {
+          display: grid;
+          gap: 0.45rem;
+        }
+
+        [part="meta"] {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          gap: 0.65rem;
+        }
+
+        [part="label"] {
+          font-size: 0.8rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--boe-token-text-text-secondary, #52606d);
+        }
+
+        [part="value"] {
+          font-size: 0.86rem;
+          font-weight: 700;
+          font-variant-numeric: tabular-nums;
+          color: var(--boe-token-text-text, #101820);
+        }
+
+        [part="track"] {
+          display: block;
+          height: 0.5rem;
+          border-radius: 999px;
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 55%, var(--boe-token-stroke-stroke, #d6e0ea) 45%);
+          overflow: hidden;
+        }
+
+        [part="indicator"] {
+          display: block;
+          height: 100%;
+          border-radius: 999px;
+          background: var(--boe-token-surface-surface-brand, #0061d5);
+          transition: width 140ms ease;
+        }
+      </style>
       <div part="progress" role="group" aria-label="${escapeHtml(this.label)} progress">
         <div part="meta">
           <span part="label">${escapeHtml(this.label)}</span>

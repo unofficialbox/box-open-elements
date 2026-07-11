@@ -126,6 +126,173 @@ export class BoxExplorerTableElement extends HTMLElement {
         : "";
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="table-shell"] {
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 84%, white 16%);
+          border-radius: 0.95rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+          overflow: hidden;
+        }
+
+        [part="table-shell"][aria-busy="true"] {
+          opacity: 0.72;
+        }
+
+        [part="table"] {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 0.92rem;
+          color: var(--boe-token-text-text, #101820);
+        }
+
+        [part="header-row"] {
+          background: var(--boe-token-surface-surface-secondary, #f7f9fc);
+        }
+
+        [part="header-row"] th {
+          padding: 0.6rem 0.8rem;
+          text-align: left;
+          font-size: 0.75rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--boe-token-text-text-secondary, #52606d);
+          border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 84%, white 16%);
+          white-space: nowrap;
+        }
+
+        [part="header-selection"] {
+          width: 2.5rem;
+        }
+
+        [part="header-actions"],
+        [part="actions-cell"] {
+          text-align: right;
+        }
+
+        [part="row"] td {
+          padding: 0.45rem 0.8rem;
+          border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 55%, transparent);
+        }
+
+        tbody tr:last-child td {
+          border-bottom: 0;
+        }
+
+        [part="row"] {
+          transition: background-color 140ms ease;
+        }
+
+        [part="row"]:hover {
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+        }
+
+        [part="row"][aria-selected="true"],
+        [part="row"][aria-selected="true"]:hover {
+          background: var(--boe-token-surface-item-surface-selected, #e8f1ff);
+        }
+
+        [part="selection"] {
+          accent-color: var(--boe-token-surface-surface-brand, #0061d5);
+          width: 1rem;
+          height: 1rem;
+          margin: 0;
+          display: block;
+          cursor: pointer;
+        }
+
+        [part="selection"]:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+          border-radius: 0.25rem;
+        }
+
+        [part="row-item"] {
+          appearance: none;
+          border: 0;
+          margin: 0;
+          padding: 0.35rem 0.5rem;
+          border-radius: 0.6rem;
+          background: transparent;
+          color: var(--boe-token-text-text, #101820);
+          font: inherit;
+          font-size: 0.94rem;
+          font-weight: 500;
+          text-align: left;
+          max-width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          cursor: pointer;
+          transition:
+            background-color 140ms ease,
+            color 140ms ease,
+            box-shadow 140ms ease;
+        }
+
+        [part="row-item"]:hover {
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%);
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+
+        [part="row-item"]:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        }
+
+        [part="type-cell"] {
+          color: var(--boe-token-text-text-secondary, #52606d);
+          font-size: 0.85rem;
+          text-transform: capitalize;
+        }
+
+        [part="empty"] {
+          padding: 0.9rem 0.8rem;
+          color: var(--boe-token-text-text-secondary, #52606d);
+          font-size: 0.9rem;
+        }
+
+        [part="load-more-region"] {
+          display: flex;
+          justify-content: center;
+          padding: 0.5rem 0.6rem 0.7rem;
+          border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 55%, transparent);
+        }
+
+        [part="load-more"] {
+          appearance: none;
+          font: inherit;
+          font-size: 0.88rem;
+          font-weight: 500;
+          padding: 0.42rem 0.9rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 86%, white 14%);
+          border-radius: 0.7rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          color: var(--boe-token-text-text, #101820);
+          cursor: pointer;
+          transition:
+            border-color 140ms ease,
+            background-color 140ms ease,
+            box-shadow 140ms ease;
+        }
+
+        [part="load-more"]:hover {
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+        }
+
+        [part="load-more"]:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        }
+      </style>
       <section part="table-shell" aria-busy="${state?.loading ? "true" : "false"}">
         <table part="table">
           <caption part="caption" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">

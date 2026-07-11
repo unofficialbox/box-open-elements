@@ -73,6 +73,45 @@ export class BoxCheckboxElement extends HTMLElement {
     }
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: inline-block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="field"] {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.6rem;
+          cursor: pointer;
+          color: var(--boe-token-text-text, #101820);
+          transition: color 140ms ease;
+        }
+
+        [part="input"] {
+          inline-size: 1rem;
+          block-size: 1rem;
+          margin: 0;
+          flex: 0 0 auto;
+          accent-color: var(--boe-token-surface-surface-brand, #0061d5);
+          cursor: inherit;
+        }
+
+        [part="input"]:focus-visible {
+          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+          outline-offset: 2px;
+        }
+
+        [part="label"] {
+          font-weight: 500;
+        }
+
+        :host([disabled]) [part="field"] {
+          opacity: 0.55;
+          cursor: not-allowed;
+        }
+      </style>
       <label part="field">
         <input
           type="checkbox"

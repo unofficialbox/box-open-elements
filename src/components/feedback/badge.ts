@@ -47,6 +47,50 @@ export class BoxBadgeElement extends HTMLElement {
     }
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: inline-block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="badge"] {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.25rem;
+          padding: 0.22rem 0.55rem;
+          border-radius: 999px;
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, white 90%);
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+          font-size: 0.74rem;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          white-space: nowrap;
+          transition: background 140ms ease, color 140ms ease;
+        }
+
+        [part="badge"][data-tone="neutral"] {
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 62%, var(--boe-token-stroke-stroke, #d6e0ea) 38%);
+          color: var(--boe-token-text-text-secondary, #52606d);
+        }
+
+        [part="badge"][data-tone="success"] {
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 14%, white 86%);
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 62%, var(--boe-token-text-text, #101820));
+        }
+
+        [part="badge"][data-tone="error"] {
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 12%, white 88%);
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 70%, var(--boe-token-text-text, #101820));
+        }
+
+        [part="badge"][data-tone="warning"],
+        [part="badge"][data-tone="inprogress"] {
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 16%, white 84%);
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 50%, var(--boe-token-text-text, #101820));
+        }
+      </style>
       <span part="badge" data-tone="${escapeHtml(this.tone)}" role="status" aria-label="${escapeHtml(this.label)}">${escapeHtml(this.label)}</span>
     `;
   }

@@ -118,6 +118,99 @@ export class BoxProgressStepsElement extends HTMLElement {
       .join("");
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="steps"] {
+          display: grid;
+          gap: 0.55rem;
+        }
+
+        [part="step"] {
+          appearance: none;
+          display: flex;
+          align-items: start;
+          gap: 0.7rem;
+          width: 100%;
+          text-align: left;
+          padding: 0.7rem 0.8rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 56%, transparent);
+          border-radius: 0.95rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          color: inherit;
+          font: inherit;
+          cursor: pointer;
+          transition: background 140ms ease, border-color 140ms ease;
+        }
+
+        [part="step"]:hover {
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+        }
+
+        [part="step"]:focus-visible {
+          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+          outline-offset: 2px;
+        }
+
+        [part="step"][data-state="current"] {
+          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+          background: var(--boe-token-surface-item-surface-selected, #e8f1ff);
+        }
+
+        [part="marker"] {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex: none;
+          width: 1.6rem;
+          height: 1.6rem;
+          border-radius: 999px;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
+          color: var(--boe-token-text-text-secondary, #52606d);
+          font-size: 0.78rem;
+          font-weight: 700;
+          font-variant-numeric: tabular-nums;
+          transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+        }
+
+        [part="step"][data-state="complete"] [part="marker"] {
+          border-color: transparent;
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 16%, white 84%);
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 62%, var(--boe-token-text-text, #101820));
+        }
+
+        [part="step"][data-state="current"] [part="marker"] {
+          border-color: transparent;
+          background: var(--boe-token-surface-surface-brand, #0061d5);
+          color: var(--boe-token-text-text-on-brand, #ffffff);
+        }
+
+        [part="content"] {
+          display: grid;
+          gap: 0.2rem;
+          padding-top: 0.1rem;
+        }
+
+        [part="step-label"] {
+          font-weight: 700;
+          color: var(--boe-token-text-text, #101820);
+        }
+
+        [part="step"][data-state="upcoming"] [part="step-label"] {
+          color: var(--boe-token-text-text-secondary, #52606d);
+        }
+
+        [part="step-description"] {
+          font-size: 0.86rem;
+          color: var(--boe-token-text-text-secondary, #52606d);
+          line-height: 1.45;
+        }
+      </style>
       <div part="steps" role="tablist" aria-label="${escapeHtml(this.label)}">
         ${stepsMarkup}
       </div>

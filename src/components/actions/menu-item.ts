@@ -72,6 +72,52 @@ export class BoxMenuItemElement extends HTMLElement {
     }
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="item"] {
+          width: 100%;
+          appearance: none;
+          text-align: left;
+          border: 0;
+          border-radius: 0.6rem;
+          background: transparent;
+          color: var(--boe-token-text-text, #101820);
+          font: inherit;
+          font-size: 0.92rem;
+          padding: 0.6rem 0.7rem;
+          cursor: pointer;
+          transition:
+            background-color 140ms ease,
+            color 140ms ease,
+            box-shadow 140ms ease;
+        }
+
+        [part="item"]:hover:not(:disabled) {
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+
+        [part="item"][data-selected="true"] {
+          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #e8f1ff) 64%, white 36%);
+          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 80%, var(--boe-token-text-text, #101820) 20%);
+          font-weight: 600;
+        }
+
+        [part="item"]:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        }
+
+        [part="item"]:disabled {
+          cursor: not-allowed;
+          opacity: 0.55;
+        }
+      </style>
       <button
         type="button"
         part="item"

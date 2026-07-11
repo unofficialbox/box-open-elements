@@ -93,6 +93,62 @@ export class BoxSelectElement extends HTMLElement {
       .join("");
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="field"] {
+          display: grid;
+          gap: 0.45rem;
+        }
+
+        [part="label"] {
+          font-size: 0.8rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--boe-token-text-text-secondary, #52606d);
+        }
+
+        [part="select"] {
+          appearance: none;
+          font: inherit;
+          color: var(--boe-token-text-text, #101820);
+          padding: 0.6rem 2.35rem 0.6rem 0.85rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 78%, white 22%);
+          border-radius: 0.7rem;
+          background:
+            url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%2352606d' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.85rem center / 12px 8px,
+            linear-gradient(
+              180deg,
+              var(--boe-token-surface-surface, #ffffff) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%) 100%
+            );
+          cursor: pointer;
+          transition:
+            border-color 140ms ease,
+            background 140ms ease,
+            box-shadow 140ms ease;
+        }
+
+        [part="select"]:hover:not(:disabled) {
+          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+        }
+
+        [part="select"]:focus-visible {
+          outline: none;
+          border-color: var(--boe-token-surface-surface-brand, #0061d5);
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        }
+
+        [part="select"]:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
+        }
+      </style>
       <label part="field">
         <span part="label">${escapeHtml(this.label)}</span>
         <select part="select" ${this.disabled ? "disabled" : ""}>
