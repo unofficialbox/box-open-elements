@@ -51,6 +51,9 @@ Bun.serve({
     if (path === "api/status") {
       return Response.json({ version });
     }
+    if (!path.startsWith("docs-site/") && !path.startsWith("dist/")) {
+      return new Response("not found", { status: 404 });
+    }
     const file = Bun.file(join(ROOT, path));
     if (!(await file.exists())) return new Response("not found", { status: 404 });
     return new Response(file, {

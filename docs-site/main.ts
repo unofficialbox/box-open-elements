@@ -203,7 +203,15 @@ const renderComponentPage = (entry: CatalogEntry): void => {
       const row = document.createElement("div");
       row.className = "event-row";
       const detail = (event as CustomEvent).detail;
-      row.innerHTML = `<span class="event-name">${escapeHtml(name)}</span><span class="event-detail">${escapeHtml(detail === undefined ? "" : JSON.stringify(detail))}</span>`;
+      let detailText = "";
+      if (detail !== undefined) {
+        try {
+          detailText = JSON.stringify(detail) ?? String(detail);
+        } catch {
+          detailText = String(detail);
+        }
+      }
+      row.innerHTML = `<span class="event-name">${escapeHtml(name)}</span><span class="event-detail">${escapeHtml(detailText)}</span>`;
       eventList.prepend(row);
       while (eventList.children.length > 30) eventList.lastElementChild?.remove();
     };
@@ -325,6 +333,7 @@ const renderIconsPage = (): void => {
 // ── Router ───────────────────────────────────────────────────────────────────
 
 const render = (): void => {
+  delete document.body.dataset.routeReady;
   teardown?.();
   teardown = null;
   state.route = parseHash();
@@ -339,7 +348,20 @@ const render = (): void => {
   renderComponentPage(entry);
 };
 
-window.addEventListener("hashchange", render);
+// Deterministic ready marker for screenshot tooling: set after two frames so
+// synchronous rendering and microtask-based example setup have settled.
+const markRouteReady = (): void => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.body.dataset.routeReady = `${state.route.tier}/${state.route.id}`;
+    });
+  });
+};
+
+window.addEventListener("hashchange", () => {
+  render();
+  markRouteReady();
+});
 
 document.querySelectorAll<HTMLButtonElement>(".rail-tabs button").forEach(button => {
   button.addEventListener("click", () => {
@@ -370,3 +392,4 @@ void fetch("/api/status")
 
 if (!location.hash) location.hash = "#components/button";
 render();
+markRouteReady();

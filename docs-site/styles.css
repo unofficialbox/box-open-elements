@@ -2,7 +2,7 @@
 
 body {
   margin: 0;
-  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-family: Inter, "Helvetica Neue", Arial, sans-serif;
   font-size: 15px;
   color: #101820;
   background: #f7f9fc;
@@ -78,7 +78,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #748091;
+  color: #52606d;
   padding: 0 6px;
   margin: 0 0 4px;
 }
@@ -104,7 +104,7 @@ body {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #748091;
+  color: #52606d;
   padding: 0 4px;
 }
 
@@ -122,7 +122,7 @@ body {
   margin-bottom: 18px;
 }
 
-#stage-breadcrumb { font-size: 13px; color: #748091; }
+#stage-breadcrumb { font-size: 13px; color: #52606d; }
 #stage-breadcrumb b { color: #101820; font-weight: 600; }
 
 #copy-link {
@@ -142,7 +142,7 @@ body {
 
 .page-tag {
   display: inline-block;
-  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12.5px;
   color: #0061d5;
   background: #e8f1ff;
@@ -187,7 +187,7 @@ body {
   min-height: 180px;
 }
 
-.preview-note { grid-column: 1 / -1; font-size: 12.5px; color: #748091; margin: 6px 2px 0; }
+.preview-note { grid-column: 1 / -1; font-size: 12.5px; color: #52606d; margin: 6px 2px 0; }
 
 .inspector { display: grid; gap: 14px; align-content: start; }
 
@@ -204,7 +204,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #748091;
+  color: #52606d;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -220,7 +220,7 @@ body {
 
 .inspector-list { font-size: 12.5px; display: grid; gap: 5px; max-height: 260px; overflow-y: auto; }
 .inspector-list code { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; }
-.inspector-empty { color: #748091; font-size: 12.5px; }
+.inspector-empty { color: #52606d; font-size: 12.5px; }
 .event-row { display: flex; gap: 8px; align-items: baseline; }
 .event-row .event-name { color: #0061d5; font-weight: 600; }
 .event-row .event-detail { color: #52606d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -233,14 +233,14 @@ pre.code-block {
   border-radius: 12px;
   padding: 18px 20px;
   overflow-x: auto;
-  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 13px;
   line-height: 1.6;
 }
 
 table.api-table { width: 100%; border-collapse: collapse; background: #ffffff; border: 1px solid #d6e0ea; border-radius: 12px; overflow: hidden; }
 table.api-table th, table.api-table td { text-align: left; padding: 9px 14px; font-size: 13px; border-top: 1px solid #edf2f7; }
-table.api-table th { background: #f7f9fc; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #748091; border-top: none; }
+table.api-table th { background: #f7f9fc; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #52606d; border-top: none; }
 table.api-table code { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
 
 .section-label {
@@ -248,7 +248,7 @@ table.api-table code { font-family: ui-monospace, Menlo, monospace; font-size: 1
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #748091;
+  color: #52606d;
   margin: 22px 0 8px;
 }
 
@@ -272,7 +272,7 @@ table.api-table code { font-family: ui-monospace, Menlo, monospace; font-size: 1
 .token-swatch { width: 44px; height: 44px; border-radius: 10px; border: 1px solid #d6e0ea; flex-shrink: 0; }
 .token-meta { min-width: 0; }
 .token-meta code { display: block; font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #52606d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.token-meta .token-value { font-size: 12px; color: #748091; }
+.token-meta .token-value { font-size: 12px; color: #52606d; }
 
 .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
 
