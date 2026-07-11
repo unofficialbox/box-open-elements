@@ -25,9 +25,37 @@
       "types": "./dist/components/*.d.ts",
       "import": "./dist/components/*.js"
     },
+    "./patterns/content-explorer": {
+      "types": "./dist/patterns/content-explorer/index.d.ts",
+      "import": "./dist/patterns/content-explorer/index.js"
+    },
+    "./patterns/content-explorer/selection": {
+      "types": "./dist/patterns/content-explorer/selection/index.d.ts",
+      "import": "./dist/patterns/content-explorer/selection/index.js"
+    },
+    "./patterns/content-explorer/collection": {
+      "types": "./dist/patterns/content-explorer/collection/index.d.ts",
+      "import": "./dist/patterns/content-explorer/collection/index.js"
+    },
+    "./patterns/content-explorer/navigation": {
+      "types": "./dist/patterns/content-explorer/navigation/index.d.ts",
+      "import": "./dist/patterns/content-explorer/navigation/index.js"
+    },
+    "./patterns/content-explorer/actions": {
+      "types": "./dist/patterns/content-explorer/actions/index.d.ts",
+      "import": "./dist/patterns/content-explorer/actions/index.js"
+    },
+    "./patterns/search": {
+      "types": "./dist/patterns/search/index.d.ts",
+      "import": "./dist/patterns/search/index.js"
+    },
+    "./patterns/item": {
+      "types": "./dist/patterns/item/index.d.ts",
+      "import": "./dist/patterns/item/index.js"
+    },
     "./patterns/*": {
-      "types": "./dist/patterns/*/index.d.ts",
-      "import": "./dist/patterns/*/index.js"
+      "types": "./dist/patterns/*.d.ts",
+      "import": "./dist/patterns/*.js"
     }
   },
   "files": [

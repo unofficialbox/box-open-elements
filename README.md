@@ -40,13 +40,14 @@ bun run verify
 
 ## Current state
 
-Phases 0 and 1 of the [roadmap](./docs/roadmap.md) are complete:
+Phases 0–2 of the [roadmap](./docs/roadmap.md) are complete:
 
 - `src/core` — typed event emitter and controller base class
 - `src/foundations/tokens` — the design-system registry (tokens, icons, illustrations) and the Box default bundle
 - `src/foundations/icons` — the generated Box iconography manifest and alias layer
-- `src/components` — 25 components across actions, forms, feedback, overlays, and collections
+- `src/components` — 39 components across actions, collections, feedback, files, forms, identity, navigation, overlays, and visuals
 - `src/patterns/content-explorer` — the full headless explorer stack (collection, navigation, selection, actions, facade controller, data-source contracts, Box transport, wire schemas) plus the `box-explorer-*` presentation adapters
+- `src/patterns/search` and `src/patterns/item` — the first pattern compositions (filter bar, search results header, saved view picker, item form, item details panel, bulk action bar, preview header)
 
 Everything else in the [components catalog](./docs/components/catalog.md) and [patterns catalog](./docs/patterns/catalog.md) has a reference implementation in `box-open-web-components` and is ported deliberately, phase by phase.
 

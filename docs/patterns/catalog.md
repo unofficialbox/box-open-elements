@@ -30,7 +30,7 @@ src/patterns/
     types.ts          # built
   preview/            # target — provider adapter + annotation surfaces + shell
   search/             # target
-  item/               # target
+  item/             # built — item-form, item-details-panel, bulk-action-bar, preview-header
   metadata/           # target
   share/              # target
   file-request/       # target
@@ -72,16 +72,16 @@ Headless blocks (see [content-explorer.md](./content-explorer.md) for the compos
 
 ### Search (compositions)
 
-- `filter-bar`
-- `saved-view-picker`
-- `search-results-header`
+- `filter-bar` — **built**
+- `saved-view-picker` — **built**
+- `search-results-header` — **built**
 
 ### Item (compositions)
 
-- `bulk-action-bar`
-- `item-details-panel`
-- `item-form`
-- `preview-header`
+- `bulk-action-bar` — **built**
+- `item-details-panel` — **built**
+- `item-form` — **built**
+- `preview-header` — **built**
 
 ### Metadata (compositions + contracts)
 

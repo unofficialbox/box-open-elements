@@ -39,31 +39,31 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 
 ### Collections
 
-- `card`
+- `card` — **built**
 - `carousel`
 - `items` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/items` (`box-explorer-items`); a generic version remains future work*
 - `list` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/list` (`box-explorer-list`); a generic version remains future work*
 - `pagination` — **built**
 - `table` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/table` (`box-explorer-table`); a generic version remains future work*
-- `tree`
-- `tree-grid`
+- `tree` — **built**
+- `tree-grid` — **built**
 
 ### Feedback
 
 - `alert` — **built**
 - `badge` — **built**
 - `empty-state` — **built**
-- `help-text`
-- `progress-bar`
-- `progress-ring`
-- `progress-steps`
+- `help-text` — **built**
+- `progress-bar` — **built**
+- `progress-ring` — **built**
+- `progress-steps` — **built**
 - `skeleton` — **built**
 - `spinner` — **built**
 - `toast` — **built**
 
 ### Files
 
-- `drop-zone`
+- `drop-zone` — **built**
 
 ### Forms
 
@@ -91,8 +91,8 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 
 ### Identity
 
-- `avatar`
-- `persona`
+- `avatar` — **built**
+- `persona` — **built**
 
 ### Layout
 
@@ -101,20 +101,20 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 
 ### Navigation
 
-- `accordion`
+- `accordion` — **built**
 - `breadcrumbs` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/breadcrumbs` (`box-explorer-breadcrumbs`); a generic version remains future work*
-- `tabs`
+- `tabs` — **built**
 
 ### Overlays
 
 - `dialog` — **built**
 - `drawer`
 - `popover` — **built**
-- `tooltip`
+- `tooltip` — **built**
 
 ### Visuals
 
-- `illustration`
+- `illustration` — **built**
 
 ## Scoped gap candidates
 
