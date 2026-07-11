@@ -29,7 +29,8 @@ import {
 | API | Purpose |
 | --- | --- |
 | `registerDesignSystem()` | register any custom token/icon/illustration bundle |
-| `registerBoxDefaultDesignSystem()` | register the built-in Box example bundle |
+| `registerBoxDefaultDesignSystem()` | register the built-in Box light bundle |
+| `registerBoxDarkDesignSystem()` | register the built-in Box dark bundle (`box-dark`) |
 | `setActiveDesignSystem()` | switch the active bundle at runtime |
 | `applyDesignTokens()` | write token values onto an element as CSS custom properties |
 | `createDesignTokenStyleText()` | generate a CSS block for SSR or stylesheet injection |
@@ -52,6 +53,28 @@ import {
 registerBoxDefaultDesignSystem({ setActive: true });
 applyDesignTokens(document.documentElement, "box-default");
 ```
+
+## Dark theme
+
+`box-dark` is a built-in bundle with the same token keys, icons, and illustrations as `box-default` — only the surface / text / stroke / status values change. Because every component reads `--boe-token-*`, switching the active bundle re-themes the whole catalog with no markup change:
+
+```ts
+import {
+  applyDesignTokens,
+  registerBoxDefaultDesignSystem,
+  registerBoxDarkDesignSystem,
+  setActiveDesignSystem,
+} from "box-open-elements/foundations/tokens";
+
+registerBoxDefaultDesignSystem();
+registerBoxDarkDesignSystem();
+
+// switch at runtime
+setActiveDesignSystem("box-dark");
+applyDesignTokens(document.documentElement, "box-dark");
+```
+
+The docs site's footer theme toggle uses exactly this mechanism.
 
 ## Custom design system example
 

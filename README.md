@@ -34,7 +34,10 @@ bun run test
 bun run test:coverage
 bun run build
 bun run verify
+bun run docs
 ```
+
+`bun run docs` builds the library and serves the component-documentation site at `http://localhost:4600` — browse the full catalog with live previews, events/properties inspectors, and foundations pages.
 
 `bun run verify` is the main safety check and runs typecheck, tests, and build in sequence.
 

@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   applyDesignTokens,
+  boxDarkDesignSystem,
   boxDefaultDesignSystem,
   createDesignTokenStyleText,
+  registerBoxDarkDesignSystem,
   registerBoxDefaultDesignSystem,
   registerDesignSystem,
   resolveDesignIcon,
@@ -41,5 +43,18 @@ describe("foundations/tokens", () => {
     setActiveDesignSystem("acme");
 
     expect(() => setActiveDesignSystem("does-not-exist")).toThrow(/Unknown design system/);
+  });
+
+  it("provides a dark bundle that covers every default token key with different values", () => {
+    registerBoxDarkDesignSystem();
+
+    const defaultKeys = Object.keys(boxDefaultDesignSystem.tokens ?? {}).sort();
+    const darkKeys = Object.keys(boxDarkDesignSystem.tokens ?? {}).sort();
+
+    expect(darkKeys).toEqual(defaultKeys);
+    expect(boxDarkDesignSystem.name).toBe("box-dark");
+    expect(boxDarkDesignSystem.tokens?.SurfaceSurface).not.toBe(boxDefaultDesignSystem.tokens?.SurfaceSurface);
+    // shares the default icon/illustration assets so it re-themes without re-registering assets
+    expect(boxDarkDesignSystem.icons).toBe(boxDefaultDesignSystem.icons);
   });
 });

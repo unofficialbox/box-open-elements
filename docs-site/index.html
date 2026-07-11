@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Box Open Elements</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%230061d5'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/docs-site/styles.css" />
+  <script type="importmap">
+    { "imports": { "box-open-elements": "/dist/index.js" } }
+  </script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="rail">
+      <header class="rail-head">
+        <span class="wordmark">box</span>
+        <span class="wordmark-sub">Open Elements</span>
+      </header>
+      <input id="rail-filter" type="search" placeholder="Search components…" aria-label="Filter catalog" />
+      <nav class="rail-tabs" role="tablist" aria-label="Catalog tiers">
+        <button type="button" data-tier="foundations" role="tab">Foundations</button>
+        <button type="button" data-tier="components" role="tab">Components</button>
+        <button type="button" data-tier="patterns" role="tab">Patterns</button>
+      </nav>
+      <div id="rail-tree" class="rail-tree"></div>
+      <footer class="rail-foot">
+        <span id="rail-version"></span>
+        <button type="button" id="theme-toggle" title="Toggle dark mode" aria-pressed="false">Dark</button>
+        <a href="https://github.com/unofficialbox/box-open-elements" target="_blank" rel="noreferrer">GitHub</a>
+      </footer>
+    </aside>
+    <main class="stage">
+      <header class="stage-head">
+        <nav id="stage-breadcrumb" aria-label="Breadcrumb"></nav>
+        <button type="button" id="copy-link" title="Copy link to this page">Copy link</button>
+      </header>
+      <div id="stage-body"></div>
+    </main>
+  </div>
+  <script type="module" src="/docs-site/main.js"></script>
+</body>
+</html>
