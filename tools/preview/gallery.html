@@ -137,6 +137,51 @@
   <div class="row"><box-explorer-table id="explorer-table"></box-explorer-table></div>
 </section>
 
+<section id="section-insights">
+  <h2>Patterns · Insights Compositions</h2>
+  <div class="row">
+    <box-metric-card id="metric-card" title="Active shared links" value="1,284" eyebrow="Last 30 days" message="Up from 1,102 in the prior period." status="Healthy"></box-metric-card>
+    <box-donut-chart id="donut-chart" title="Storage by type"></box-donut-chart>
+  </div>
+  <div class="row">
+    <box-bar-chart id="bar-chart" title="Uploads per week" timeframe="Last 5 weeks" summary="Steady growth across the quarter."></box-bar-chart>
+  </div>
+</section>
+
+<section id="section-share-governance">
+  <h2>Patterns · Share &amp; Governance Compositions</h2>
+  <div class="row">
+    <div class="col"><box-share-panel id="share-panel" title="Share Quarterly Plan.pdf" message="Anyone in the company with the link can view."></box-share-panel></div>
+    <div class="col"><box-governance-panel id="governance-panel" title="Governance" status="Compliant" message="Retention and classification policies applied."></box-governance-panel></div>
+  </div>
+</section>
+
+<section id="section-workflow">
+  <h2>Patterns · Task &amp; File Request Compositions</h2>
+  <div class="row">
+    <div class="col"><box-task-assignment-panel id="task-panel" title="Contract review" status="In progress" priority="High" due-date="Jul 18, 2026" message="Legal review before countersign."></box-task-assignment-panel></div>
+    <div class="col">
+      <box-review-queue-item id="review-item" title="MSA_Acme_v4.pdf" item-label="Contract" status="Awaiting review" priority="Medium" due-date="Jul 14, 2026" message="Second-pass legal review."></box-review-queue-item>
+      <box-file-request-builder id="file-request" title="Collect vendor W-9s" message="Request tax forms from onboarding vendors."></box-file-request-builder>
+    </div>
+  </div>
+</section>
+
+<section id="section-preview">
+  <h2>Patterns · Preview Shell &amp; Annotations</h2>
+  <div class="row">
+    <box-annotation-toolbar id="annotation-toolbar" label="Annotate"></box-annotation-toolbar>
+  </div>
+  <div class="row">
+    <box-preview-element id="preview-element" title="Quarterly Plan.pdf" item-label="PDF · 2.4 MB" status="Ready" message="Rendered by the active preview provider."></box-preview-element>
+  </div>
+</section>
+
+<section id="section-explorer-element">
+  <h2>Patterns · Composed box-content-explorer (mock transport)</h2>
+  <div class="row"><box-content-explorer id="content-explorer" root-folder-id="0" token="preview-token" page-size="25"></box-content-explorer></div>
+</section>
+
 <script type="module">
   import {
     applyDesignTokens,
@@ -179,6 +224,17 @@
     defineBoxExplorerBreadcrumbsElement,
     defineBoxExplorerToolbarElement,
     defineBoxExplorerTableElement,
+    defineBoxMetricCardElement,
+    defineBoxBarChartElement,
+    defineBoxDonutChartElement,
+    defineBoxSharePanelElement,
+    defineBoxGovernancePanelElement,
+    defineBoxTaskAssignmentPanelElement,
+    defineBoxReviewQueueItemElement,
+    defineBoxFileRequestBuilderElement,
+    defineBoxAnnotationToolbarElement,
+    defineBoxPreviewElement,
+    defineBoxContentExplorerElement,
   } from "/dist/index.js";
 
   registerBoxDefaultDesignSystem({ setActive: true });
@@ -198,7 +254,11 @@
     defineBoxFilterBarElement, defineBoxSearchResultsHeaderElement,
     defineBoxItemDetailsPanelElement, defineBoxBulkActionBarElement,
     defineBoxExplorerBreadcrumbsElement, defineBoxExplorerToolbarElement,
-    defineBoxExplorerTableElement,
+    defineBoxExplorerTableElement, defineBoxMetricCardElement, defineBoxBarChartElement,
+    defineBoxDonutChartElement, defineBoxSharePanelElement, defineBoxGovernancePanelElement,
+    defineBoxTaskAssignmentPanelElement, defineBoxReviewQueueItemElement,
+    defineBoxFileRequestBuilderElement, defineBoxAnnotationToolbarElement,
+    defineBoxPreviewElement, defineBoxContentExplorerElement,
   ]) {
     define();
   }
@@ -334,6 +394,82 @@
 
   await controller.connect();
   controller.toggleSelection("123");
+
+  byId("metric-card").trend = { label: "+16.5%", tone: "success" };
+  byId("donut-chart").segments = [
+    { id: "docs", label: "Documents", value: 46 },
+    { id: "media", label: "Media", value: 32 },
+    { id: "other", label: "Other", value: 22 },
+  ];
+  byId("bar-chart").points = [
+    { id: "w1", label: "W1", value: 42 },
+    { id: "w2", label: "W2", value: 51 },
+    { id: "w3", label: "W3", value: 48 },
+    { id: "w4", label: "W4", value: 64 },
+    { id: "w5", label: "W5", value: 71 },
+  ];
+  byId("bar-chart").legend = [{ label: "Uploads", tone: "brand" }];
+  byId("share-panel").sharedLink = {
+    url: "https://box.com/s/example",
+    access: "company",
+    label: "Company link",
+    status: "Active",
+  };
+  byId("share-panel").collaborators = [
+    { name: "Morgan Lee", role: "Editor" },
+    { name: "Alex Kim", role: "Viewer" },
+  ];
+  byId("share-panel").settings = [
+    { label: "Downloads", value: "Allowed" },
+    { label: "Expiration", value: "Jun 1, 2026" },
+  ];
+  byId("share-panel").actions = [{ id: "copy", label: "Copy link" }];
+  byId("governance-panel").policies = [
+    { label: "Retention", value: "7 years", description: "Finance default" },
+    { label: "Classification", value: "Internal" },
+  ];
+  byId("governance-panel").signals = [{ label: "Legal hold", tone: "warning" }];
+  byId("governance-panel").actions = [{ id: "audit", label: "View audit log" }];
+  byId("task-panel").assignees = [
+    { id: "morgan", name: "Morgan Lee", description: "Legal", status: "Active" },
+    { id: "alex", name: "Alex Kim", description: "Procurement" },
+  ];
+  byId("task-panel").setAttribute("current-assignee-id", "morgan");
+  byId("task-panel").checklist = [
+    { id: "terms", label: "Review terms", checked: true },
+    { id: "redlines", label: "Resolve redlines" },
+  ];
+  byId("task-panel").actions = [{ id: "approve", label: "Approve" }, { id: "reassign", label: "Reassign" }];
+  byId("review-item").assignee = { name: "Morgan Lee", role: "Legal" };
+  byId("review-item").metrics = [
+    { label: "Pages", value: "34" },
+    { label: "Comments", value: "6" },
+  ];
+  byId("review-item").actions = [{ id: "open", label: "Open" }, { id: "approve", label: "Approve", tone: "primary" }];
+  byId("file-request").fields = [
+    { id: "company", label: "Company name", required: true },
+    { id: "w9", label: "W-9 upload", description: "PDF only", required: true },
+  ];
+  byId("file-request").settings = [
+    { id: "due", label: "Due date", description: "Jul 31, 2026" },
+    { id: "notify", label: "Email notifications", description: "On upload" },
+  ];
+  byId("annotation-toolbar").tools = [
+    { id: "comment", label: "Comment" },
+    { id: "highlight", label: "Highlight" },
+    { id: "draw", label: "Draw" },
+    { id: "redact", label: "Redact", disabled: true },
+  ];
+  byId("preview-element").provider = {
+    id: "content-preview",
+    label: "Box Content Preview",
+    engine: "pdf.js",
+    status: "ready",
+  };
+  byId("preview-element").adapterState = { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%" };
+
+  const explorerElement = byId("content-explorer");
+  explorerElement.transport = mockTransport;
 
   document.body.dataset.galleryReady = "true";
 </script>

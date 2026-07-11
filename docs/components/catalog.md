@@ -34,7 +34,7 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 - `link-button` — **built**
 - `menu` — **built**
 - `menu-item` — **built**
-- `segmented-control`
+- `segmented-control` — **built**
 - `toolbar` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/toolbar` (`box-explorer-toolbar`); a generic version remains future work*
 
 ### Collections
@@ -71,23 +71,23 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 - `checkbox-group` — **built**
 - `color-picker`
 - `combobox` — **built**
-- `date-field`
+- `date-field` — **built**
 - `dropdown` — **built**
 - `dual-listbox`
 - `multi-select` — **built**
-- `number-input`
+- `number-input` — **built**
 - `radio-group` — **built**
-- `range-slider`
+- `range-slider` — **built**
 - `rating`
 - `rich-text-input`
 - `search-field` — **built**
 - `select` — **built**
-- `slider`
-- `spin-button`
-- `switch`
+- `slider` — **built**
+- `spin-button` — **built**
+- `switch` — **built**
 - `text-area` — **built**
 - `text-field` — **built**
-- `time-field`
+- `time-field` — **built**
 
 ### Identity
 
@@ -96,8 +96,8 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 
 ### Layout
 
-- `app-shell`
-- `split-view`
+- `app-shell` — **built**
+- `split-view` — **built**
 
 ### Navigation
 
@@ -108,7 +108,7 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 ### Overlays
 
 - `dialog` — **built**
-- `drawer`
+- `drawer` — **built**
 - `popover` — **built**
 - `tooltip` — **built**
 

@@ -53,6 +53,34 @@
       "types": "./dist/patterns/item/index.d.ts",
       "import": "./dist/patterns/item/index.js"
     },
+    "./patterns/metadata": {
+      "types": "./dist/patterns/metadata/index.d.ts",
+      "import": "./dist/patterns/metadata/index.js"
+    },
+    "./patterns/share": {
+      "types": "./dist/patterns/share/index.d.ts",
+      "import": "./dist/patterns/share/index.js"
+    },
+    "./patterns/preview": {
+      "types": "./dist/patterns/preview/index.d.ts",
+      "import": "./dist/patterns/preview/index.js"
+    },
+    "./patterns/file-request": {
+      "types": "./dist/patterns/file-request/index.d.ts",
+      "import": "./dist/patterns/file-request/index.js"
+    },
+    "./patterns/task": {
+      "types": "./dist/patterns/task/index.d.ts",
+      "import": "./dist/patterns/task/index.js"
+    },
+    "./patterns/governance": {
+      "types": "./dist/patterns/governance/index.d.ts",
+      "import": "./dist/patterns/governance/index.js"
+    },
+    "./patterns/insights": {
+      "types": "./dist/patterns/insights/index.d.ts",
+      "import": "./dist/patterns/insights/index.js"
+    },
     "./patterns/*": {
       "types": "./dist/patterns/*.d.ts",
       "import": "./dist/patterns/*.js"

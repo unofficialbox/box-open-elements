@@ -34,6 +34,7 @@ export * from "./components/actions/button-group.js";
 export * from "./components/actions/icon-button.js";
 export * from "./components/actions/link-button.js";
 export * from "./components/actions/menu.js";
+export * from "./components/actions/segmented-control.js";
 export * from "./components/actions/menu-item.js";
 
 // Components: collections
@@ -70,6 +71,13 @@ export * from "./components/visuals/illustration.js";
 
 // Components: forms
 export * from "./components/forms/checkbox.js";
+export * from "./components/forms/date-field.js";
+export * from "./components/forms/number-input.js";
+export * from "./components/forms/range-slider.js";
+export * from "./components/forms/slider.js";
+export * from "./components/forms/spin-button.js";
+export * from "./components/forms/switch.js";
+export * from "./components/forms/time-field.js";
 export * from "./components/forms/checkbox-group.js";
 export * from "./components/forms/combobox.js";
 export * from "./components/forms/dropdown.js";
@@ -80,14 +88,26 @@ export * from "./components/forms/select.js";
 export * from "./components/forms/text-area.js";
 export * from "./components/forms/text-field.js";
 
+// Components: layout
+export * from "./components/layout/app-shell.js";
+export * from "./components/layout/split-view.js";
+
 // Components: overlays
 export * from "./components/overlays/dialog.js";
+export * from "./components/overlays/drawer.js";
 export * from "./components/overlays/popover.js";
 export * from "./components/overlays/tooltip.js";
 
 // Patterns: content explorer (headless blocks, contracts, transport, adapters)
 export * from "./patterns/content-explorer/index.js";
 
-// Patterns: search and item compositions
+// Patterns: compositions and workflow areas
 export * from "./patterns/search/index.js";
 export * from "./patterns/item/index.js";
+export * from "./patterns/metadata/index.js";
+export * from "./patterns/share/index.js";
+export * from "./patterns/preview/index.js";
+export * from "./patterns/file-request/index.js";
+export * from "./patterns/task/index.js";
+export * from "./patterns/governance/index.js";
+export * from "./patterns/insights/index.js";

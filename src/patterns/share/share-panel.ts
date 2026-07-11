@@ -1,0 +1,503 @@
+const DEFAULT_TAG_NAME = "box-share-panel";
+
+const escapeHtml = (value: string): string =>
+  value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+
+type SharePanelAction = {
+  id: string;
+  label: string;
+  tone?: string;
+};
+
+type SharePanelCollaborator = {
+  description?: string;
+  id?: string;
+  initials?: string;
+  name: string;
+  role: string;
+};
+
+type SharePanelSetting = {
+  label: string;
+  tone?: string;
+  value: string;
+};
+
+type SharePanelSharedLink = {
+  access: string;
+  expiresAt?: string;
+  label?: string;
+  status?: string;
+  url: string;
+};
+
+export class BoxSharePanelElement extends HTMLElement {
+  static get observedAttributes(): string[] {
+    return ["actions", "collaborators", "message", "settings", "shared-link", "title"];
+  }
+
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+  }
+
+  get actions(): SharePanelAction[] {
+    return this.parseJsonAttribute<SharePanelAction[]>("actions", []);
+  }
+
+  set actions(value: SharePanelAction[]) {
+    this.setAttribute("actions", JSON.stringify(value));
+  }
+
+  get collaborators(): SharePanelCollaborator[] {
+    return this.parseJsonAttribute<SharePanelCollaborator[]>("collaborators", []);
+  }
+
+  set collaborators(value: SharePanelCollaborator[]) {
+    this.setAttribute("collaborators", JSON.stringify(value));
+  }
+
+  get message(): string {
+    return this.getAttribute("message") ?? "";
+  }
+
+  set message(value: string) {
+    this.setAttribute("message", value);
+  }
+
+  get settings(): SharePanelSetting[] {
+    return this.parseJsonAttribute<SharePanelSetting[]>("settings", []);
+  }
+
+  set settings(value: SharePanelSetting[]) {
+    this.setAttribute("settings", JSON.stringify(value));
+  }
+
+  get sharedLink(): SharePanelSharedLink | null {
+    return this.parseJsonAttribute<SharePanelSharedLink | null>("shared-link", null);
+  }
+
+  set sharedLink(value: SharePanelSharedLink | null) {
+    if (!value) {
+      this.removeAttribute("shared-link");
+      return;
+    }
+
+    this.setAttribute("shared-link", JSON.stringify(value));
+  }
+
+  get title(): string {
+    return this.getAttribute("title") ?? "Share";
+  }
+
+  set title(value: string) {
+    this.setAttribute("title", value);
+  }
+
+  connectedCallback(): void {
+    this.render();
+  }
+
+  attributeChangedCallback(): void {
+    this.render();
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private emitAction(actionId: string): void {
+    this.dispatchEvent(
+      new CustomEvent("action", {
+        bubbles: true,
+        composed: true,
+        detail: { action: actionId },
+      }),
+    );
+  }
+
+  private emitCollaboratorSelected(collaborator: SharePanelCollaborator): void {
+    this.dispatchEvent(
+      new CustomEvent("collaborator-selected", {
+        bubbles: true,
+        composed: true,
+        detail: collaborator,
+      }),
+    );
+  }
+
+  private render(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const sharedLink = this.sharedLink;
+    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
+    const sharedLinkMarkup = sharedLink
+      ? `
+          <section part="shared-link">
+            <div part="shared-link-header">
+              <div part="shared-link-label">${escapeHtml(sharedLink.label ?? "Shared link")}</div>
+              <div part="shared-link-access">${escapeHtml(sharedLink.access)}</div>
+            </div>
+            <button type="button" part="shared-link-url" data-action-id="copy-link">${escapeHtml(sharedLink.url)}</button>
+            <div part="shared-link-meta">
+              ${sharedLink.status ? `<span part="shared-link-status">${escapeHtml(sharedLink.status)}</span>` : ""}
+              ${sharedLink.expiresAt ? `<span part="shared-link-expiry">Expires ${escapeHtml(sharedLink.expiresAt)}</span>` : ""}
+            </div>
+          </section>
+        `
+      : "";
+    const settingsMarkup = this.settings.length
+      ? `
+          <section part="settings">
+            <div part="section-title">Settings</div>
+            <dl part="settings-list">
+              ${this.settings
+                .map(
+                  setting => `
+                    <div part="setting">
+                      <dt part="setting-label">${escapeHtml(setting.label)}</dt>
+                      <dd part="setting-value" data-tone="${escapeHtml(setting.tone ?? "neutral")}">${escapeHtml(setting.value)}</dd>
+                    </div>
+                  `,
+                )
+                .join("")}
+            </dl>
+          </section>
+        `
+      : "";
+    const collaboratorsMarkup = this.collaborators.length
+      ? `
+          <section part="collaborators">
+            <div part="section-title">Collaborators</div>
+            <div part="collaborator-list">
+              ${this.collaborators
+                .map(
+                  collaborator => `
+                    <button
+                      type="button"
+                      part="collaborator"
+                      data-collaborator-name="${escapeHtml(collaborator.name)}"
+                      data-collaborator-role="${escapeHtml(collaborator.role)}"
+                      data-collaborator-description="${escapeHtml(collaborator.description ?? "")}"
+                      data-collaborator-id="${escapeHtml(collaborator.id ?? "")}"
+                    >
+                      <span part="collaborator-avatar">${escapeHtml(collaborator.initials ?? collaborator.name.slice(0, 2).toUpperCase())}</span>
+                      <span part="collaborator-meta">
+                        <span part="collaborator-name">${escapeHtml(collaborator.name)}</span>
+                        <span part="collaborator-role">${escapeHtml(collaborator.role)}</span>
+                        ${collaborator.description ? `<span part="collaborator-description">${escapeHtml(collaborator.description)}</span>` : ""}
+                      </span>
+                    </button>
+                  `,
+                )
+                .join("")}
+            </div>
+          </section>
+        `
+      : "";
+    const actionsMarkup = this.actions.length
+      ? `
+          <div part="actions">
+            ${this.actions
+              .map(
+                action => `
+                  <button
+                    type="button"
+                    part="action"
+                    data-action-id="${escapeHtml(action.id)}"
+                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
+                  >
+                    ${escapeHtml(action.label)}
+                  </button>
+                `,
+              )
+              .join("")}
+          </div>
+        `
+      : "";
+
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="panel"] {
+          display: grid;
+          gap: 1rem;
+          padding: 1.1rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border-radius: 1rem;
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
+        }
+
+        [part="header"] {
+          display: grid;
+          gap: 0.45rem;
+        }
+
+        [part="title"] {
+          font-size: 1.35rem;
+          font-weight: 700;
+          line-height: 1.15;
+        }
+
+        [part="message"] {
+          color: var(--boe-token-text-text-secondary, #52606d);
+          line-height: 1.55;
+        }
+
+        [part="shared-link"],
+        [part="settings"],
+        [part="collaborators"] {
+          display: grid;
+          gap: 0.7rem;
+        }
+
+        [part="shared-link"] {
+          padding: 0.95rem;
+          border-radius: 0.95rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 48%, transparent);
+        }
+
+        [part="shared-link-header"] {
+          display: flex;
+          gap: 0.8rem;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        [part="shared-link-label"],
+        [part="section-title"] {
+          font-size: 0.8rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--boe-token-text-text-secondary, #52606d);
+        }
+
+        [part="shared-link-access"] {
+          display: inline-flex;
+          padding: 0.35rem 0.6rem;
+          border-radius: 999px;
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+          font-size: 0.8rem;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+        }
+
+        [part="shared-link-url"] {
+          appearance: none;
+          width: 100%;
+          text-align: left;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 52%, transparent);
+          border-radius: 0.8rem;
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 82%, white 18%);
+          color: var(--boe-token-text-text, #1f1e1b);
+          font: inherit;
+          padding: 0.8rem 0.9rem;
+          cursor: pointer;
+        }
+
+        [part="shared-link-url"]:hover,
+        [part="shared-link-url"]:focus-visible {
+          border-color: rgba(0, 97, 213, 0.24);
+          outline: none;
+        }
+
+        [part="shared-link-meta"] {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.6rem;
+          color: var(--boe-token-text-text-secondary, #52606d);
+          font-size: 0.92rem;
+        }
+
+        [part="shared-link-status"] {
+          font-weight: 600;
+          color: #1d6a43;
+        }
+
+        [part="settings-list"] {
+          display: grid;
+          gap: 0.7rem;
+          margin: 0;
+        }
+
+        [part="setting"] {
+          display: flex;
+          gap: 0.8rem;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.8rem 0.9rem;
+          border-radius: 0.85rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 42%, transparent);
+        }
+
+        [part="setting-label"] {
+          margin: 0;
+          color: var(--boe-token-text-text-secondary, #52606d);
+          font-weight: 600;
+        }
+
+        [part="setting-value"] {
+          margin: 0;
+          font-weight: 600;
+          color: var(--boe-token-text-text, #1f1e1b);
+        }
+
+        [part="setting-value"][data-tone="success"] {
+          color: #1d6a43;
+        }
+
+        [part="setting-value"][data-tone="accent"] {
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+
+        [part="collaborator-list"] {
+          display: grid;
+          gap: 0.75rem;
+        }
+
+        [part="collaborator"] {
+          display: grid;
+          grid-template-columns: auto 1fr;
+          gap: 0.8rem;
+          align-items: center;
+          width: 100%;
+          text-align: left;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 52%, transparent);
+          border-radius: 0.9rem;
+          padding: 0.8rem 0.9rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          color: inherit;
+          font: inherit;
+          cursor: pointer;
+        }
+
+        [part="collaborator"]:hover,
+        [part="collaborator"]:focus-visible {
+          border-color: rgba(0, 97, 213, 0.22);
+          outline: none;
+        }
+
+        [part="collaborator-avatar"] {
+          inline-size: 2.5rem;
+          block-size: 2.5rem;
+          display: grid;
+          place-items: center;
+          border-radius: 999px;
+          background: rgba(0, 97, 213, 0.12);
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+          font-weight: 700;
+        }
+
+        [part="collaborator-meta"] {
+          display: grid;
+          gap: 0.15rem;
+        }
+
+        [part="collaborator-name"] {
+          font-weight: 600;
+        }
+
+        [part="collaborator-role"] {
+          color: var(--boe-token-text-text-secondary, #52606d);
+        }
+
+        [part="collaborator-description"] {
+          color: var(--boe-token-text-text-secondary, #52606d);
+          font-size: 0.94rem;
+        }
+
+        [part="actions"] {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.7rem;
+        }
+
+        [part="action"] {
+          appearance: none;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 70%, transparent);
+          border-radius: 999px;
+          background: var(--boe-token-surface-surface, #ffffff);
+          color: inherit;
+          font: inherit;
+          font-weight: 600;
+          padding: 0.72rem 1rem;
+          cursor: pointer;
+        }
+
+        [part="action"][data-tone="primary"] {
+          background: var(--boe-token-surface-surface-brand, #0061d5);
+          border-color: var(--boe-token-text-text, #1f1e1b);
+          color: white;
+        }
+      </style>
+      <section part="panel">
+        <header part="header">
+          <div part="title">${escapeHtml(this.title)}</div>
+          ${messageMarkup}
+        </header>
+        ${sharedLinkMarkup}
+        ${settingsMarkup}
+        ${collaboratorsMarkup}
+        ${actionsMarkup}
+      </section>
+    `;
+
+    this.shadowRoot.querySelectorAll<HTMLElement>("[data-action-id]").forEach(button => {
+      button.addEventListener("click", () => {
+        const actionId = button.dataset.actionId;
+        if (actionId) {
+          this.emitAction(actionId);
+        }
+      });
+    });
+
+    this.shadowRoot.querySelectorAll<HTMLElement>("[data-collaborator-name]").forEach(button => {
+      button.addEventListener("click", () => {
+        this.emitCollaboratorSelected({
+          id: button.dataset.collaboratorId || undefined,
+          name: button.dataset.collaboratorName ?? "",
+          role: button.dataset.collaboratorRole ?? "",
+          description: button.dataset.collaboratorDescription || undefined,
+        });
+      });
+    });
+  }
+}
+
+export const defineBoxSharePanelElement = (
+  tagName = DEFAULT_TAG_NAME,
+): typeof BoxSharePanelElement => {
+  const existingElement = customElements.get(tagName);
+  if (existingElement) {
+    return existingElement as typeof BoxSharePanelElement;
+  }
+
+  customElements.define(tagName, BoxSharePanelElement);
+  return BoxSharePanelElement;
+};

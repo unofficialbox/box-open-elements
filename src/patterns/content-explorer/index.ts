@@ -20,3 +20,6 @@ export * from "./adapters/list.js";
 export * from "./adapters/table.js";
 export * from "./adapters/items.js";
 export * from "./adapters/breadcrumbs.js";
+
+// Composed workflow surface
+export * from "./content-explorer.js";
