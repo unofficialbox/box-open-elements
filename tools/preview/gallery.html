@@ -177,6 +177,20 @@
   </div>
 </section>
 
+<section id="section-specialized">
+  <h2>Components · Specialized</h2>
+  <div class="row">
+    <box-color-picker id="color-picker" label="Brand color" value="#0061d5"></box-color-picker>
+    <box-rating id="rating" label="Quality" value="4" max="5"></box-rating>
+  </div>
+  <div class="row">
+    <box-dual-listbox id="dual-listbox" label="Report fields"></box-dual-listbox>
+  </div>
+  <div class="row">
+    <box-rich-text-input id="rich-text" label="Announcement" value="<p>Welcome to the <strong>new</strong> workspace.</p>"></box-rich-text-input>
+  </div>
+</section>
+
 <section id="section-explorer-element">
   <h2>Patterns · Composed box-content-explorer (mock transport)</h2>
   <div class="row"><box-content-explorer id="content-explorer" root-folder-id="0" token="preview-token" page-size="25"></box-content-explorer></div>
@@ -235,6 +249,10 @@
     defineBoxAnnotationToolbarElement,
     defineBoxPreviewElement,
     defineBoxContentExplorerElement,
+    defineBoxColorPickerElement,
+    defineBoxDualListboxElement,
+    defineBoxRatingElement,
+    defineBoxRichTextInputElement,
   } from "/dist/index.js";
 
   registerBoxDefaultDesignSystem({ setActive: true });
@@ -258,7 +276,8 @@
     defineBoxDonutChartElement, defineBoxSharePanelElement, defineBoxGovernancePanelElement,
     defineBoxTaskAssignmentPanelElement, defineBoxReviewQueueItemElement,
     defineBoxFileRequestBuilderElement, defineBoxAnnotationToolbarElement,
-    defineBoxPreviewElement, defineBoxContentExplorerElement,
+    defineBoxPreviewElement, defineBoxContentExplorerElement, defineBoxColorPickerElement,
+    defineBoxDualListboxElement, defineBoxRatingElement, defineBoxRichTextInputElement,
   ]) {
     define();
   }
@@ -467,6 +486,21 @@
     status: "ready",
   };
   byId("preview-element").adapterState = { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%" };
+
+  byId("dual-listbox").options = [
+    { label: "File name", value: "name" },
+    { label: "Owner", value: "owner" },
+    { label: "Modified", value: "modified" },
+    { label: "Size", value: "size" },
+    { label: "Classification", value: "classification" },
+  ];
+  byId("dual-listbox").value = ["name", "owner"];
+  byId("color-picker").swatches = [
+    { value: "#0061d5", label: "Box blue" },
+    { value: "#26c281", label: "Success" },
+    { value: "#f5b31b", label: "In progress" },
+    { value: "#ed3757", label: "Error" },
+  ];
 
   const explorerElement = byId("content-explorer");
   explorerElement.transport = mockTransport;

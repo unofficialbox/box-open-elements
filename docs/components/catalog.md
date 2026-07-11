@@ -40,7 +40,7 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 ### Collections
 
 - `card` — **built**
-- `carousel`
+- `carousel` — **built**
 - `items` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/items` (`box-explorer-items`); a generic version remains future work*
 - `list` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/list` (`box-explorer-list`); a generic version remains future work*
 - `pagination` — **built**
@@ -69,17 +69,17 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 
 - `checkbox` — **built**
 - `checkbox-group` — **built**
-- `color-picker`
+- `color-picker` — **built**
 - `combobox` — **built**
 - `date-field` — **built**
 - `dropdown` — **built**
-- `dual-listbox`
+- `dual-listbox` — **built**
 - `multi-select` — **built**
 - `number-input` — **built**
 - `radio-group` — **built**
 - `range-slider` — **built**
-- `rating`
-- `rich-text-input`
+- `rating` — **built**
+- `rich-text-input` — **built**
 - `search-field` — **built**
 - `select` — **built**
 - `slider` — **built**

@@ -1,0 +1,382 @@
+const DEFAULT_TAG_NAME = "box-carousel";
+
+const escapeHtml = (value: string): string =>
+  value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+
+type CarouselItem = {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  imageSrc?: string;
+};
+
+export class BoxCarouselElement extends HTMLElement {
+  static get observedAttributes(): string[] {
+    return ["items", "label", "value"];
+  }
+
+  private valueInternal = 0;
+
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+  }
+
+  get label(): string {
+    return this.getAttribute("label") ?? "Carousel";
+  }
+
+  set label(value: string) {
+    this.setAttribute("label", value);
+  }
+
+  get items(): CarouselItem[] {
+    const raw = this.getAttribute("items");
+    if (!raw) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as CarouselItem[];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  set items(value: CarouselItem[]) {
+    this.setAttribute("items", JSON.stringify(value));
+  }
+
+  get value(): number {
+    return this.valueInternal;
+  }
+
+  set value(value: number) {
+    this.valueInternal = this.normalizeIndex(value);
+    this.setAttribute("value", String(this.valueInternal));
+    this.render();
+  }
+
+  connectedCallback(): void {
+    this.render();
+  }
+
+  attributeChangedCallback(name: string): void {
+    if (name === "value") {
+      this.valueInternal = this.normalizeIndex(Number(this.getAttribute("value") ?? "0"));
+    }
+
+    this.render();
+  }
+
+  private normalizeIndex(value: number): number {
+    const maxIndex = Math.max(0, this.items.length - 1);
+    if (!Number.isFinite(value)) {
+      return 0;
+    }
+
+    return Math.min(maxIndex, Math.max(0, Math.round(value)));
+  }
+
+  private emitValueChanged(index: number): void {
+    this.dispatchEvent(
+      new CustomEvent("value-changed", {
+        bubbles: true,
+        composed: true,
+        detail: { value: index },
+      }),
+    );
+  }
+
+  private setIndex(index: number): void {
+    const nextIndex = this.normalizeIndex(index);
+    this.valueInternal = nextIndex;
+    this.setAttribute("value", String(nextIndex));
+    this.emitValueChanged(nextIndex);
+    this.render();
+  }
+
+  private changeBy(delta: number): void {
+    if (this.items.length === 0) {
+      return;
+    }
+
+    const nextIndex = (this.valueInternal + delta + this.items.length) % this.items.length;
+    this.setIndex(nextIndex);
+  }
+
+  private render(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const items = this.items;
+    const activeItem = items[this.valueInternal] ?? null;
+    const imageMarkup = activeItem?.imageSrc
+      ? `<img part="image" src="${escapeHtml(activeItem.imageSrc)}" alt="" />`
+      : `<div part="image-placeholder" aria-hidden="true"></div>`;
+
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="carousel"] {
+          display: grid;
+          gap: 1rem;
+          padding: 1.15rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 84%, white 16%);
+          border-radius: 1.2rem;
+          background:
+            linear-gradient(
+              180deg,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 90%, white 10%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 84%, var(--boe-token-surface-surface-secondary, #f7f9fc) 16%) 100%
+            );
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.82),
+            0 18px 36px rgba(15, 23, 42, 0.05);
+        }
+
+        [part="label"] {
+          font-size: 0.82rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+        }
+
+        [part="viewport"] {
+          display: grid;
+          grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+          gap: 1.15rem;
+          align-items: stretch;
+        }
+
+        [part="image"],
+        [part="image-placeholder"] {
+          inline-size: 100%;
+          block-size: 100%;
+          min-block-size: 12rem;
+          border-radius: 1.05rem;
+          object-fit: cover;
+          background:
+            linear-gradient(
+              145deg,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 28%, white 72%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-surface-surface-secondary, #f7f9fc) 84%) 44%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 78%, white 22%) 100%
+            );
+          border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.75),
+            inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+            0 18px 34px rgba(15, 23, 42, 0.08);
+        }
+
+        [part="content"] {
+          display: grid;
+          gap: 0.8rem;
+          align-content: center;
+          padding: 1rem 1.05rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-stroke-stroke, #d6e0ea) 90%);
+          border-radius: 1.05rem;
+          background:
+            linear-gradient(
+              180deg,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, white 10%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface-secondary, #f7f9fc) 14%, var(--boe-token-surface-surface, #ffffff) 82%) 100%
+            );
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.8),
+            0 10px 22px rgba(15, 23, 42, 0.04);
+        }
+
+        [part="eyebrow"] {
+          font-size: 0.82rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+
+        [part="title"] {
+          font-size: 1.52rem;
+          font-weight: 700;
+          line-height: 1.12;
+          letter-spacing: -0.03em;
+        }
+
+        [part="description"] {
+          color: var(--boe-token-text-text-secondary, #52606d);
+          line-height: 1.58;
+          max-width: 44ch;
+        }
+
+        [part="controls"] {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          padding-top: 0.2rem;
+        }
+
+        [part="nav"] {
+          display: flex;
+          gap: 0.65rem;
+        }
+
+        [part="previous"],
+        [part="next"] {
+          inline-size: 2.45rem;
+          block-size: 2.45rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 76%, white 24%);
+          border-radius: 0.95rem;
+          background:
+            linear-gradient(
+              180deg,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, white 8%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 14%, var(--boe-token-surface-surface, #ffffff) 86%) 100%
+            );
+          color: var(--boe-token-text-text-secondary, #52606d);
+          font: inherit;
+          cursor: pointer;
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.74),
+            0 10px 20px rgba(15, 23, 42, 0.04);
+          transition:
+            border-color 140ms ease,
+            background 140ms ease,
+            color 140ms ease;
+        }
+
+        [part="previous"]:hover,
+        [part="next"]:hover {
+          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+          background:
+            linear-gradient(
+              180deg,
+              color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 74%, white 26%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 6%, var(--boe-token-surface-item-surface-hover, #eef4fb) 68%, white 26%) 100%
+            );
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+
+        [part="pagination"] {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.55rem;
+          padding: 0.35rem 0.45rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 70%, white 30%);
+          border-radius: 999px;
+          background:
+            linear-gradient(
+              180deg,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, white 8%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 3%, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%, var(--boe-token-surface-surface, #ffffff) 85%) 100%
+            );
+        }
+
+        [part~="dot"] {
+          inline-size: 0.74rem;
+          block-size: 0.72rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 72%, transparent);
+          border-radius: 999px;
+          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, var(--boe-token-surface-surface-secondary, #f7f9fc) 10%);
+          cursor: pointer;
+          transition: inline-size 140ms ease, background 140ms ease, border-color 140ms ease;
+        }
+
+        [part~="dot-selected"] {
+          inline-size: 1.4rem;
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, white 84%);
+          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, transparent);
+        }
+
+        [part="previous"]:focus-visible,
+        [part="next"]:focus-visible,
+        [part~="dot"]:focus-visible {
+          outline: 2px solid #2563eb;
+          outline-offset: 2px;
+        }
+
+        @media (max-width: 720px) {
+          [part="viewport"] {
+            grid-template-columns: 1fr;
+          }
+        }
+      </style>
+      <section part="carousel" aria-label="${escapeHtml(this.label)}">
+        <div part="label">${escapeHtml(this.label)}</div>
+        ${
+          activeItem
+            ? `
+              <div part="viewport">
+                ${imageMarkup}
+                <div part="content">
+                  ${activeItem.eyebrow ? `<div part="eyebrow">${escapeHtml(activeItem.eyebrow)}</div>` : ""}
+                  <div part="title">${escapeHtml(activeItem.title)}</div>
+                  ${activeItem.description ? `<div part="description">${escapeHtml(activeItem.description)}</div>` : ""}
+                </div>
+              </div>
+              <div part="controls">
+                <div part="nav">
+                  <button type="button" part="previous" aria-label="Previous slide">‹</button>
+                  <button type="button" part="next" aria-label="Next slide">›</button>
+                </div>
+                <div part="pagination" role="tablist" aria-label="${escapeHtml(this.label)} slides">
+                  ${items
+                    .map(
+                      (item, index) => {
+                        const dotPart = index === this.valueInternal ? "dot dot-selected" : "dot";
+                        return `
+                        <button
+                          type="button"
+                          part="${dotPart}"
+                          role="tab"
+                          aria-label="Go to slide ${index + 1}: ${escapeHtml(item.title)}"
+                          aria-current="${String(index === this.valueInternal)}"
+                          data-index="${index}"
+                        ></button>
+                      `;
+                      },
+                    )
+                    .join("")}
+                </div>
+              </div>
+            `
+            : `<div part="description">No items</div>`
+        }
+      </section>
+    `;
+
+    this.shadowRoot.querySelector('[part="previous"]')?.addEventListener("click", () => this.changeBy(-1));
+    this.shadowRoot.querySelector('[part="next"]')?.addEventListener("click", () => this.changeBy(1));
+    this.shadowRoot.querySelectorAll('[part~="dot"]').forEach(button => {
+      button.addEventListener("click", () => {
+        const index = Number((button as HTMLButtonElement).dataset.index ?? "0");
+        this.setIndex(index);
+      });
+    });
+  }
+}
+
+export const defineBoxCarouselElement = (
+  tagName = DEFAULT_TAG_NAME,
+): typeof BoxCarouselElement => {
+  const existingElement = customElements.get(tagName);
+  if (existingElement) {
+    return existingElement as typeof BoxCarouselElement;
+  }
+
+  customElements.define(tagName, BoxCarouselElement);
+  return BoxCarouselElement;
+};

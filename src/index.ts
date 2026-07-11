@@ -39,6 +39,7 @@ export * from "./components/actions/menu-item.js";
 
 // Components: collections
 export * from "./components/collections/card.js";
+export * from "./components/collections/carousel.js";
 export * from "./components/collections/pagination.js";
 export * from "./components/collections/tree.js";
 export * from "./components/collections/tree-grid.js";
@@ -71,6 +72,10 @@ export * from "./components/visuals/illustration.js";
 
 // Components: forms
 export * from "./components/forms/checkbox.js";
+export * from "./components/forms/color-picker.js";
+export * from "./components/forms/dual-listbox.js";
+export * from "./components/forms/rating.js";
+export * from "./components/forms/rich-text-input.js";
 export * from "./components/forms/date-field.js";
 export * from "./components/forms/number-input.js";
 export * from "./components/forms/range-slider.js";
