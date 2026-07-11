@@ -22,7 +22,7 @@ This file tracks the highest-signal follow-up work that is still open. The phase
 
 ## Tooling and infrastructure
 
-- Docs site v1 shipped (`bun run docs`, see `plans/docs-site-v1-execplan.md`). Device-size preview toolbar and Related-links cards now shipped. Remaining per `docs/workshop/docs-site.md`: variant dropdown (needs per-variant data), Usage/Best-practices guidance cards (need per-component keyboard docs), dark mode (blocked on dark token values), in-shell markdown foundation docs; then wire screenshot checkpoints + regression into CI alongside `bun run verify`.
+- Docs site v1 shipped (`bun run docs`, see `plans/docs-site-v1-execplan.md`). Device-size preview toolbar, Related-links cards, and a real dark theme (the `box-dark` token bundle plus a footer toggle) now shipped. Remaining per `docs/workshop/docs-site.md`: variant dropdown (needs per-variant data), Usage/Best-practices guidance cards (need per-component keyboard docs), in-shell markdown foundation docs; then wire screenshot checkpoints + regression into CI alongside `bun run verify`.
   - A first real-browser harness now exists: `bun run preview:capture` renders `tools/preview/gallery.html` (built dist + Box tokens + mock explorer) in headless Chromium and writes `docs/screenshots/gallery/*.png`. Grow this into the checkpoint/regression pipeline.
   - Carried caution from the predecessor: its demo-regression CI job was `continue-on-error` due to a CI-only race between `networkidle` and async panel activation; root-cause properly before hard-gating here.
 - Reintroduce Storybook as the extraction backend per `docs/workshop/storybook.md` after the docs site exists.

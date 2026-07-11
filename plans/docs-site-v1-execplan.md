@@ -15,6 +15,7 @@ After this change, the repo has a runnable component-documentation site (`bun ru
 - [x] `docs`, `docs:typecheck`, `docs:shots` scripts; screenshots under `docs/screenshots/docs-site/`
 - [x] `bun run verify` and `bun run docs:typecheck` green
 - [x] Preview device-size toolbar (Full / Tablet / Mobile) and a Related-links section from real catalog data (follow-up increment)
+- [x] Real dark theme: `box-dark` foundations token bundle + rail-footer toggle that swaps the active design system and re-applies tokens (follow-up increment)
 
 ## Surprises & Discoveries
 
@@ -25,6 +26,7 @@ After this change, the repo has a runnable component-documentation site (`bun ru
 - Decision: Light theme only in v1; dark mode deferred until dark token values exist.
   Rationale: The "no invented placeholder content" rule — a dark toggle without dark tokens would fake it.
   Date/Author: 2026-07-11 / Claude
+  Superseded: a genuine `box-dark` token bundle was added to foundations, so the docs-site dark toggle now swaps real tokens rather than faking it. This also gives the library a real dark theme (the reference repo only faked dark at the demo-CSS tier).
 
 - Decision: The Events panel listens for the shared event vocabulary from `docs/api-guidelines.md` on the preview canvas rather than per-example wiring.
   Rationale: One mechanism covers every page honestly; events that fire are real.
@@ -36,7 +38,7 @@ After this change, the repo has a runnable component-documentation site (`bun ru
 
 ## Outcomes & Retrospective
 
-Shipped: working docs site v1 with 88 reachable pages (86 catalog surfaces + 2 foundations pages), live inspectors, and runtime-derived API reference. Deferred to follow-ups (tracked in BACKLOG): variant dropdown (no per-variant data yet), per-component keyboard/best-practices cards (not documented per component yet), dark mode (needs dark token values), markdown-doc pages in the Foundations tab, Storybook extraction backend, screenshot-regression gating. The device-size preview toolbar and Related-links cards shipped as a follow-up increment.
+Shipped: working docs site v1 with 88 reachable pages (86 catalog surfaces + 2 foundations pages), live inspectors, and runtime-derived API reference. Deferred to follow-ups (tracked in BACKLOG): variant dropdown (no per-variant data yet), per-component keyboard/best-practices cards (not documented per component yet), markdown-doc pages in the Foundations tab, Storybook extraction backend, screenshot-regression gating. The device-size preview toolbar and Related-links cards shipped as a follow-up increment.
 
 ## Context and Orientation
 

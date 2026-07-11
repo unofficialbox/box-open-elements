@@ -138,6 +138,20 @@ body {
 
 #copy-link:hover { background: #f5f8fc; }
 
+#theme-toggle {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border: 1px solid #d6e0ea;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #52606d;
+  cursor: pointer;
+}
+
+#theme-toggle:hover { background: #f5f8fc; }
+
 .page-title { margin: 0 0 4px; font-size: 26px; letter-spacing: -0.02em; }
 
 .page-tag {
@@ -328,3 +342,76 @@ table.api-table code { font-family: ui-monospace, Menlo, monospace; font-size: 1
 
 .icon-card .glyph { font-size: 22px; color: #101820; width: 24px; height: 24px; }
 .icon-card .glyph svg { width: 24px; height: 24px; }
+
+/* ── Dark theme (site chrome; component previews retheme via box-dark tokens) ── */
+
+:root[data-theme="dark"] { color-scheme: dark; }
+
+:root[data-theme="dark"] body { background: #141a21; color: #e6edf3; }
+
+:root[data-theme="dark"] .rail { background: #1a2028; border-right-color: #2c3742; }
+:root[data-theme="dark"] .wordmark { color: #7db4ff; }
+:root[data-theme="dark"] .wordmark-sub,
+:root[data-theme="dark"] .rail-tabs button,
+:root[data-theme="dark"] .rail-group-label,
+:root[data-theme="dark"] .rail-foot,
+:root[data-theme="dark"] .section-label,
+:root[data-theme="dark"] #stage-breadcrumb,
+:root[data-theme="dark"] .stage-tabs button,
+:root[data-theme="dark"] .size-button,
+:root[data-theme="dark"] .inspector-panel h3,
+:root[data-theme="dark"] .inspector-empty,
+:root[data-theme="dark"] .preview-note,
+:root[data-theme="dark"] .related-card code,
+:root[data-theme="dark"] .token-meta code,
+:root[data-theme="dark"] .token-meta .token-value,
+:root[data-theme="dark"] table.api-table th,
+:root[data-theme="dark"] .icon-card { color: #9fb0c0; }
+
+:root[data-theme="dark"] #rail-filter { background: #141a21; border-color: #2c3742; color: #e6edf3; }
+:root[data-theme="dark"] .rail-item { color: #e6edf3; }
+:root[data-theme="dark"] .rail-item:hover { background: #232b35; }
+:root[data-theme="dark"] .rail-item[aria-current="page"],
+:root[data-theme="dark"] .rail-tabs button[aria-selected="true"] { background: #1b3a5c; color: #7db4ff; }
+
+:root[data-theme="dark"] #stage-breadcrumb b { color: #e6edf3; }
+:root[data-theme="dark"] .page-title,
+:root[data-theme="dark"] .prose { color: #e6edf3; }
+:root[data-theme="dark"] .prose a,
+:root[data-theme="dark"] .rail-foot a:hover,
+:root[data-theme="dark"] .event-row .event-name,
+:root[data-theme="dark"] .inspector-panel h3 .count,
+:root[data-theme="dark"] .stage-tabs button[aria-selected="true"] { color: #7db4ff; }
+
+:root[data-theme="dark"] .page-tag,
+:root[data-theme="dark"] .inspector-panel h3 .count { background: #1b3a5c; color: #7db4ff; }
+
+:root[data-theme="dark"] #copy-link,
+:root[data-theme="dark"] #theme-toggle,
+:root[data-theme="dark"] .size-button,
+:root[data-theme="dark"] .preview-canvas,
+:root[data-theme="dark"] .inspector-panel,
+:root[data-theme="dark"] .token-card,
+:root[data-theme="dark"] .icon-card,
+:root[data-theme="dark"] .related-card,
+:root[data-theme="dark"] table.api-table { background: #1a2028; border-color: #2c3742; }
+
+:root[data-theme="dark"] #copy-link,
+:root[data-theme="dark"] #theme-toggle,
+:root[data-theme="dark"] .related-card,
+:root[data-theme="dark"] .icon-card .glyph,
+:root[data-theme="dark"] table.api-table code { color: #e6edf3; }
+
+:root[data-theme="dark"] #copy-link:hover,
+:root[data-theme="dark"] #theme-toggle:hover,
+:root[data-theme="dark"] .size-button:hover,
+:root[data-theme="dark"] .rail-tabs button:hover { background: #232b35; }
+:root[data-theme="dark"] .related-card:hover { background: #232b35; border-color: #7db4ff; }
+
+:root[data-theme="dark"] .size-button[aria-pressed="true"] { background: #1b3a5c; color: #7db4ff; border-color: #7db4ff; }
+
+:root[data-theme="dark"] .stage-tabs { border-bottom-color: #2c3742; }
+:root[data-theme="dark"] table.api-table th { background: #232b35; }
+:root[data-theme="dark"] table.api-table th,
+:root[data-theme="dark"] table.api-table td { border-top-color: #2c3742; }
+:root[data-theme="dark"] .token-swatch { border-color: #2c3742; }

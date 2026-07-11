@@ -78,6 +78,25 @@ try {
     await page.screenshot({ path: join(OUT_DIR, `${name}.png`) });
     console.log(`captured ${name}.png`);
   }
+
+  // Dark-theme pass: toggle dark, then capture a component page and a foundations page.
+  const darkRoutes: Array<[string, string, string]> = [
+    ["components-button-dark", "#components/button", "components/button"],
+    ["foundations-tokens-dark", "#foundations/tokens", "foundations/tokens"],
+  ];
+  for (const [name, hash, readyMarker] of darkRoutes) {
+    await page.goto(`http://localhost:${PORT}/${hash}`, { waitUntil: "networkidle" });
+    await page.waitForSelector(`body[data-route-ready="${readyMarker}"]`, { timeout: 15_000 });
+    await page.evaluate(() => {
+      if (document.documentElement.dataset.theme !== "dark") {
+        (document.getElementById("theme-toggle") as HTMLButtonElement | null)?.click();
+      }
+    });
+    await page.waitForSelector('html[data-theme="dark"]', { timeout: 5_000 });
+    await page.waitForTimeout(200);
+    await page.screenshot({ path: join(OUT_DIR, `${name}.png`) });
+    console.log(`captured ${name}.png`);
+  }
 } finally {
   await browser?.close();
   server.kill();

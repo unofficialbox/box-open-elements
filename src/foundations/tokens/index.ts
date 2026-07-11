@@ -12,6 +12,7 @@ export {
   setActiveDesignSystem,
 } from "./registry.js";
 export { boxDefaultDesignSystem, registerBoxDefaultDesignSystem } from "./box-defaults.js";
+export { boxDarkDesignSystem, registerBoxDarkDesignSystem } from "./box-dark.js";
 export type {
   ApplyDesignTokensOptions,
   DesignAssetRenderContext,

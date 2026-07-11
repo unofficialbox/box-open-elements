@@ -4,14 +4,37 @@ import { examples } from "./examples.js";
 
 // ── Bootstrap: tokens + every custom element ────────────────────────────────
 
-lib.registerBoxDefaultDesignSystem({ setActive: true });
-lib.applyDesignTokens(document.documentElement, "box-default");
+lib.registerBoxDefaultDesignSystem();
+lib.registerBoxDarkDesignSystem();
 
 for (const [name, value] of Object.entries(lib)) {
   if (/^defineBox[A-Za-z]+Element$/.test(name) && typeof value === "function") {
     (value as () => void)();
   }
 }
+
+// ── Theme: swap the active design system + retheme the site chrome ──────────
+
+const applyTheme = (theme: "light" | "dark"): void => {
+  const system = theme === "dark" ? "box-dark" : "box-default";
+  lib.setActiveDesignSystem(system);
+  lib.applyDesignTokens(document.documentElement, system);
+  document.documentElement.dataset.theme = theme;
+  const toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.setAttribute("aria-pressed", String(theme === "dark"));
+    toggle.textContent = theme === "dark" ? "Light" : "Dark";
+  }
+};
+
+const storedTheme = localStorage.getItem("boe-docs-theme");
+applyTheme(storedTheme === "dark" ? "dark" : "light");
+
+document.getElementById("theme-toggle")?.addEventListener("click", () => {
+  const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  localStorage.setItem("boe-docs-theme", next);
+  applyTheme(next);
+});
 
 // ── Shared event vocabulary the Events panel listens for ────────────────────
 

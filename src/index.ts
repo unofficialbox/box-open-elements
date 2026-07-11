@@ -7,11 +7,13 @@ export type { JsonSchema } from "./core/json-schema.js";
 export {
   DESIGN_SYSTEM_CHANGE_EVENT,
   applyDesignTokens,
+  boxDarkDesignSystem,
   boxDefaultDesignSystem,
   createDesignTokenStyleText,
   getActiveDesignSystem,
   getDesignSystem,
   listDesignSystems,
+  registerBoxDarkDesignSystem,
   registerBoxDefaultDesignSystem,
   registerDesignSystem,
   resolveDesignIcon,
