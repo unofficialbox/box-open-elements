@@ -111,6 +111,106 @@ export class BoxDropdownElement extends HTMLElement {
       : "";
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="dropdown"] {
+          position: relative;
+          display: inline-block;
+          min-inline-size: 0;
+        }
+
+        [part="trigger"] {
+          appearance: none;
+          font: inherit;
+          color: var(--boe-token-text-text, #101820);
+          text-align: left;
+          padding: 0.6rem 2.35rem 0.6rem 0.85rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 78%, white 22%);
+          border-radius: 0.7rem;
+          background:
+            url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%2352606d' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.85rem center / 12px 8px,
+            linear-gradient(
+              180deg,
+              var(--boe-token-surface-surface, #ffffff) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%) 100%
+            );
+          cursor: pointer;
+          transition:
+            border-color 140ms ease,
+            background 140ms ease,
+            box-shadow 140ms ease;
+        }
+
+        [part="trigger"]:hover:not(:disabled) {
+          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+        }
+
+        [part="trigger"]:focus-visible {
+          outline: none;
+          border-color: var(--boe-token-surface-surface-brand, #0061d5);
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        }
+
+        [part="trigger"][aria-expanded="true"] {
+          border-color: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+
+        [part="trigger"]:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
+        }
+
+        [part="menu"] {
+          position: absolute;
+          inset-block-start: calc(100% + 0.35rem);
+          inset-inline-start: 0;
+          z-index: 20;
+          min-inline-size: 100%;
+          display: grid;
+          gap: 0.15rem;
+          padding: 0.35rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 78%, white 22%);
+          border-radius: 0.75rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          box-shadow: 0 12px 30px color-mix(in srgb, #0b1e33 14%, transparent);
+        }
+
+        [part="item"] {
+          appearance: none;
+          border: none;
+          font: inherit;
+          font-weight: 500;
+          color: var(--boe-token-text-text, #101820);
+          text-align: left;
+          white-space: nowrap;
+          padding: 0.55rem 0.7rem;
+          border-radius: 0.5rem;
+          background: transparent;
+          cursor: pointer;
+          transition:
+            background 140ms ease,
+            color 140ms ease;
+        }
+
+        [part="item"]:hover {
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+        }
+
+        [part="item"]:focus-visible {
+          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, transparent);
+          outline-offset: -2px;
+        }
+
+        [part="item"][data-selected="true"] {
+          background: var(--boe-token-surface-item-surface-selected, #e8f1ff);
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+      </style>
       <div part="dropdown">
         <button
           type="button"

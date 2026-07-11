@@ -156,6 +156,123 @@ export class BoxSpinButtonElement extends HTMLElement {
     const maxAttribute = this.max == null ? "" : `max="${escapeHtml(String(this.max))}"`;
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: inline-block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="field"] {
+          display: grid;
+          gap: 0.45rem;
+        }
+
+        [part="label"] {
+          font-size: 0.8rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--boe-token-text-text-secondary, #52606d);
+        }
+
+        [part="control"] {
+          display: inline-flex;
+          align-items: stretch;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 78%, white 22%);
+          border-radius: 0.7rem;
+          background:
+            linear-gradient(
+              180deg,
+              var(--boe-token-surface-surface, #ffffff) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%) 100%
+            );
+          overflow: hidden;
+          transition:
+            border-color 140ms ease,
+            background 140ms ease,
+            box-shadow 140ms ease;
+        }
+
+        [part="control"]:hover {
+          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+        }
+
+        [part="control"]:focus-within {
+          border-color: var(--boe-token-surface-surface-brand, #0061d5);
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        }
+
+        [part="decrement"],
+        [part="increment"] {
+          appearance: none;
+          border: none;
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 88%, white 12%);
+          color: var(--boe-token-text-text-secondary, #52606d);
+          font: inherit;
+          font-weight: 700;
+          inline-size: 2.25rem;
+          cursor: pointer;
+          transition:
+            background 140ms ease,
+            color 140ms ease;
+        }
+
+        [part="decrement"] {
+          border-inline-end: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 78%, white 22%);
+        }
+
+        [part="increment"] {
+          border-inline-start: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 78%, white 22%);
+        }
+
+        [part="decrement"]:hover:not(:disabled),
+        [part="increment"]:hover:not(:disabled) {
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+
+        [part="decrement"]:active:not(:disabled),
+        [part="increment"]:active:not(:disabled) {
+          background: var(--boe-token-surface-item-surface-selected, #e8f1ff);
+        }
+
+        [part="decrement"]:focus-visible,
+        [part="increment"]:focus-visible {
+          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+          outline-offset: -2px;
+        }
+
+        [part="input"] {
+          appearance: textfield;
+          border: none;
+          background: transparent;
+          font: inherit;
+          color: var(--boe-token-text-text, #101820);
+          text-align: center;
+          font-variant-numeric: tabular-nums;
+          padding: 0.6rem 0.5rem;
+          inline-size: 4.5rem;
+          min-inline-size: 0;
+        }
+
+        [part="input"]::-webkit-outer-spin-button,
+        [part="input"]::-webkit-inner-spin-button {
+          appearance: none;
+          margin: 0;
+        }
+
+        [part="input"]:focus {
+          outline: none;
+        }
+
+        [part="decrement"]:disabled,
+        [part="increment"]:disabled,
+        [part="input"]:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
+        }
+      </style>
       <div part="field">
         <span part="label">${escapeHtml(this.label)}</span>
         <div part="control">

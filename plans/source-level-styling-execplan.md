@@ -36,7 +36,11 @@ After this change, every component and explorer adapter in the catalog carries t
 
 ## Outcomes & Retrospective
 
-(Filled at completion — see final commit.)
+Shipped: all 34 previously-unstyled components, 4 explorer adapters (`items` inherits the list's template), and the composed `box-content-explorer` element now carry token-driven Box styling. Zero test modifications; `bun run verify` green (262 tests). Gallery recaptured — forms, actions, feedback, and both explorer sections now render the Box design language.
+
+Known native-widget limits (documented by the styling pass): `combobox`'s `<datalist>` popup, native `select`/date/time picker popups, and bare `<input type="range">` tracks can only take `accent-color`/closed-control styling — full custom treatments would require structural changes, deferred to a future component-upgrade pass.
+
+Lesson: the plain look was concentrated in the oldest Phase 1 controls; newer reference components already carried styles. Checking `grep -L '<style>'` beats assuming.
 
 ## Context and Orientation
 

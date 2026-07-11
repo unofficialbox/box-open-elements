@@ -107,6 +107,95 @@ export class BoxMultiSelectElement extends HTMLElement {
     const summary = this.valueInternal.length === 0 ? "No selections" : `${this.valueInternal.length} selected`;
 
     this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="field"] {
+          margin: 0;
+          padding: 0;
+          border: none;
+          min-inline-size: 0;
+          display: grid;
+          gap: 0.6rem;
+        }
+
+        [part="label"] {
+          margin: 0 0 0.2rem;
+          padding: 0;
+          font-size: 0.8rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--boe-token-text-text-secondary, #52606d);
+        }
+
+        [part="summary"] {
+          justify-self: start;
+          display: inline-flex;
+          padding: 0.35rem 0.6rem;
+          border-radius: 999px;
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+          font-size: 0.8rem;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+        }
+
+        [part="options"] {
+          display: grid;
+          gap: 0.15rem;
+          padding: 0.35rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 78%, white 22%);
+          border-radius: 0.75rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          box-shadow: 0 12px 30px color-mix(in srgb, #0b1e33 14%, transparent);
+        }
+
+        [part="option"] {
+          display: flex;
+          align-items: center;
+          gap: 0.6rem;
+          padding: 0.55rem 0.7rem;
+          border-radius: 0.5rem;
+          cursor: pointer;
+          color: var(--boe-token-text-text, #101820);
+          transition:
+            background 140ms ease,
+            color 140ms ease;
+        }
+
+        [part="option"]:hover {
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+        }
+
+        [part="option"]:has([part="input"]:checked) {
+          background: var(--boe-token-surface-item-surface-selected, #e8f1ff);
+          color: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+
+        [part="option"]:focus-within {
+          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, transparent);
+          outline-offset: -2px;
+        }
+
+        [part="input"] {
+          inline-size: 1rem;
+          block-size: 1rem;
+          accent-color: var(--boe-token-surface-surface-brand, #0061d5);
+          margin: 0;
+          flex: 0 0 auto;
+          cursor: inherit;
+        }
+
+        [part="option-label"] {
+          font-weight: 500;
+        }
+      </style>
       <fieldset part="field">
         <legend part="label">${escapeHtml(this.label)}</legend>
         <span part="summary">${escapeHtml(summary)}</span>
