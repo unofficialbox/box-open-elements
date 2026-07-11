@@ -97,10 +97,14 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "verify": "bun run typecheck && bun run test && bun run build",
-    "preview:capture": "bun run build && bun tools/preview/capture.ts"
+    "preview:capture": "bun run build && bun tools/preview/capture.ts",
+    "docs": "bun run build && bun docs-site/server.ts",
+    "docs:typecheck": "tsc -p docs-site/tsconfig.json",
+    "docs:shots": "bun run build && bun tools/preview/docs-site-shots.ts"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.2",
+    "bun-types": "^1.3.14",
     "jsdom": "^29.0.1",
     "playwright-core": "^1.61.1",
     "typescript": "^5.8.2",

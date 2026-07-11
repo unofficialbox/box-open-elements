@@ -2,7 +2,9 @@
 
 The primary documentation experience for `box-open-elements` is a component-documentation site: browse a catalog by tier and category, open a component, and see its preview states, code, API surface, accessibility notes, live events, and current property values side by side — Box-branded throughout.
 
-The predecessor repo built this shell (through Phase 6 of its docs-site ExecPlan) and the decisions below were validated there. Rebuild the shell here against the new taxonomy rather than inventing a new direction.
+The predecessor repo built this shell (through Phase 6 of its docs-site ExecPlan) and the decisions below were validated there.
+
+**Status: v1 shipped** — `docs-site/` implements the rail (three taxonomy tabs, search, counts, version footer), tabbed component pages with live Events/Properties inspectors and runtime-derived API tables, and live tokens/iconography foundations pages (`bun run docs`; tracked by `plans/docs-site-v1-execplan.md`). Still open from the full direction: variant/device-size preview toolbar, guidance cards, dark mode (needs dark token values first), markdown foundation docs in-shell, Storybook extraction, screenshot-regression gating.
 
 ## Visual direction
 
