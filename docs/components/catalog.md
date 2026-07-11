@@ -28,38 +28,38 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 ### Actions
 
 - `button` — **built**
-- `action-menu`
-- `button-group`
-- `icon-button`
-- `link-button`
-- `menu`
-- `menu-item`
+- `action-menu` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/action-menu` (`box-explorer-action-menu`); a generic version remains future work*
+- `button-group` — **built**
+- `icon-button` — **built**
+- `link-button` — **built**
+- `menu` — **built**
+- `menu-item` — **built**
 - `segmented-control`
-- `toolbar`
+- `toolbar` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/toolbar` (`box-explorer-toolbar`); a generic version remains future work*
 
 ### Collections
 
 - `card`
 - `carousel`
-- `items`
-- `list`
-- `pagination`
-- `table`
+- `items` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/items` (`box-explorer-items`); a generic version remains future work*
+- `list` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/list` (`box-explorer-list`); a generic version remains future work*
+- `pagination` — **built**
+- `table` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/table` (`box-explorer-table`); a generic version remains future work*
 - `tree`
 - `tree-grid`
 
 ### Feedback
 
-- `alert`
-- `badge`
-- `empty-state`
+- `alert` — **built**
+- `badge` — **built**
+- `empty-state` — **built**
 - `help-text`
 - `progress-bar`
 - `progress-ring`
 - `progress-steps`
-- `skeleton`
-- `spinner`
-- `toast`
+- `skeleton` — **built**
+- `spinner` — **built**
+- `toast` — **built**
 
 ### Files
 
@@ -67,26 +67,26 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 
 ### Forms
 
-- `checkbox`
-- `checkbox-group`
+- `checkbox` — **built**
+- `checkbox-group` — **built**
 - `color-picker`
-- `combobox`
+- `combobox` — **built**
 - `date-field`
-- `dropdown`
+- `dropdown` — **built**
 - `dual-listbox`
-- `multi-select`
+- `multi-select` — **built**
 - `number-input`
-- `radio-group`
+- `radio-group` — **built**
 - `range-slider`
 - `rating`
 - `rich-text-input`
-- `search-field`
-- `select`
+- `search-field` — **built**
+- `select` — **built**
 - `slider`
 - `spin-button`
 - `switch`
-- `text-area`
-- `text-field`
+- `text-area` — **built**
+- `text-field` — **built**
 - `time-field`
 
 ### Identity
@@ -102,14 +102,14 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 ### Navigation
 
 - `accordion`
-- `breadcrumbs`
+- `breadcrumbs` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/breadcrumbs` (`box-explorer-breadcrumbs`); a generic version remains future work*
 - `tabs`
 
 ### Overlays
 
-- `dialog`
+- `dialog` — **built**
 - `drawer`
-- `popover`
+- `popover` — **built**
 - `tooltip`
 
 ### Visuals

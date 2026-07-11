@@ -1,0 +1,114 @@
+const DEFAULT_TAG_NAME = "box-menu-item";
+
+const escapeHtml = (value: string): string =>
+  value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+
+export class BoxMenuItemElement extends HTMLElement {
+  static get observedAttributes(): string[] {
+    return ["disabled", "label", "selected", "value"];
+  }
+
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+  }
+
+  get disabled(): boolean {
+    return this.hasAttribute("disabled");
+  }
+
+  set disabled(value: boolean) {
+    if (value) {
+      this.setAttribute("disabled", "");
+    } else {
+      this.removeAttribute("disabled");
+    }
+  }
+
+  get label(): string {
+    return this.getAttribute("label") ?? "Menu Item";
+  }
+
+  set label(value: string) {
+    this.setAttribute("label", value);
+  }
+
+  get value(): string {
+    return this.getAttribute("value") ?? "";
+  }
+
+  set value(value: string) {
+    this.setAttribute("value", value);
+  }
+
+  get selected(): boolean {
+    return this.hasAttribute("selected");
+  }
+
+  set selected(value: boolean) {
+    if (value) {
+      this.setAttribute("selected", "");
+    } else {
+      this.removeAttribute("selected");
+    }
+  }
+
+  connectedCallback(): void {
+    this.render();
+  }
+
+  attributeChangedCallback(): void {
+    this.render();
+  }
+
+  private render(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <button
+        type="button"
+        part="item"
+        role="menuitemradio"
+        data-selected="${String(this.selected)}"
+        aria-checked="${String(this.selected)}"
+        aria-disabled="${String(this.disabled)}"
+        ${this.disabled ? "disabled" : ""}
+      >
+        ${escapeHtml(this.label)}
+      </button>
+    `;
+
+    this.shadowRoot.querySelector('[part="item"]')?.addEventListener("click", () => {
+      if (this.disabled) {
+        return;
+      }
+
+      this.dispatchEvent(
+        new CustomEvent("selected", {
+          bubbles: true,
+          composed: true,
+          detail: { value: this.value, label: this.label },
+        }),
+      );
+    });
+  }
+}
+
+export const defineBoxMenuItemElement = (
+  tagName = DEFAULT_TAG_NAME,
+): typeof BoxMenuItemElement => {
+  const existingElement = customElements.get(tagName);
+  if (existingElement) {
+    return existingElement as typeof BoxMenuItemElement;
+  }
+
+  customElements.define(tagName, BoxMenuItemElement);
+  return BoxMenuItemElement;
+};

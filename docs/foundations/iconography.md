@@ -12,13 +12,12 @@ The Box design system adapts an external icon inventory (the `2023-Icon-collecti
 
 ## Current status in this repo
 
-The Box default bundle (`src/foundations/tokens/box-defaults.ts`) currently ships a small hand-curated icon set (`info`, `alert`, `folder-shared`, `file-pdf`) and two illustrations. The bespoke `folder-shared` and `file-pdf` assets exist because they are not clean one-to-one matches in the source icon pack.
+The generated manifest and its alias layer are vendored at `src/foundations/icons/` (`box-iconography.generated.ts` + `box-iconography.ts`) and wired into `boxDefaultDesignSystem.icons`. The bundle also keeps a few bespoke assets (`info`, `alert`, `folder-shared`, `file-pdf`) because they are not clean one-to-one matches in the source icon pack.
 
-The full generator (`tools/iconography/generate-box-iconography.mjs` in `box-open-web-components`, output ~4,000 lines of generated manifest) has not been ported yet. Port it when the component catalog grows enough to need the full inventory:
+The generator itself (`tools/iconography/generate-box-iconography.mjs` in `box-open-web-components`) has not been ported; port it when the manifest next needs regeneration from an updated source pack:
 
 - Command shape: `bun tools/iconography/generate-box-iconography.mjs`
-- Output: a generated manifest under `src/foundations/icons/` plus an alias layer
-- Wire the generated manifest into `boxDefaultDesignSystem.icons`
+- Output: the generated manifest under `src/foundations/icons/`
 
 ## Usage
 

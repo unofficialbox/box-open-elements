@@ -18,13 +18,16 @@ Each pattern area owns its headless modules and composed surfaces together:
 ```text
 src/patterns/
   content-explorer/
-    selection/        # built — headless selection controller
-    navigation/       # target
-    collection/       # target
-    actions/          # target
-    contracts.ts      # target — data-source contracts + HTTP adapter
-    controller.ts     # target — composition-root facade
-    types.ts          # built (minimal)
+    selection/        # built
+    navigation/       # built
+    collection/       # built
+    actions/          # built
+    adapters/         # built — box-explorer-{action-menu,toolbar,list,table,items,breadcrumbs}
+    contracts.ts      # built — data-source contracts + HTTP adapter
+    box-transport.ts  # built — Box API transport
+    controller.ts     # built — composition-root facade
+    schemas.ts        # built — wire schemas
+    types.ts          # built
   preview/            # target — provider adapter + annotation surfaces + shell
   search/             # target
   item/               # target
@@ -52,12 +55,13 @@ Status: **built** = implemented here with tests; everything else has its referen
 Headless blocks (see [content-explorer.md](./content-explorer.md) for the composition model):
 
 - `selection` — **built**
-- `navigation`
-- `collection`
-- `actions`
-- `controller` (composition-root facade)
-- `contracts` + `box-transport` (data-source contracts, HTTP adapter, Box API transport)
-- composed surface: `box-content-explorer`
+- `navigation` — **built**
+- `collection` — **built**
+- `actions` — **built**
+- `controller` (composition-root facade) — **built**
+- `contracts` + `box-transport` (data-source contracts, HTTP adapter, Box API transport, wire schemas) — **built**
+- presentation adapters (`box-explorer-action-menu`, `box-explorer-toolbar`, `box-explorer-list`, `box-explorer-table`, `box-explorer-items`, `box-explorer-breadcrumbs`) — **built**
+- composed surface: `box-content-explorer` — target
 
 ### Preview (workflow + compositions)
 
