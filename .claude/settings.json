@@ -4,6 +4,7 @@
       "Bash(bun run typecheck)",
       "Bash(bun run test)",
       "Bash(bun run test:coverage)",
+      "Bash(git fetch *)",
       "mcp__github__pull_request_read",
       "mcp__github__list_pull_requests",
       "mcp__Claude_Code_Remote__list_repos"
