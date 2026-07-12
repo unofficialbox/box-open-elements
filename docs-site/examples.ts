@@ -110,6 +110,18 @@ export const examples: Record<string, ComponentExample> = {
       ],
     }),
   },
+  "draggable-list": {
+    html: `<box-draggable-list label="Saved views"></box-draggable-list>`,
+    setup: root => set(root, "box-draggable-list", {
+      items: [
+        { value: "recents", label: "Recents" },
+        { value: "shared", label: "Shared with me" },
+        { value: "starred", label: "Starred" },
+        { value: "trash", label: "Trash" },
+      ],
+    }),
+    note: "Focus a handle, then ArrowUp/ArrowDown (or drag) to reorder.",
+  },
   "grid-view": {
     html: `<box-grid-view label="Files"></box-grid-view>`,
     setup: root => set(root, "box-grid-view", {
