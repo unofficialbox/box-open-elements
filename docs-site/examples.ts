@@ -156,6 +156,7 @@ export const examples: Record<string, ComponentExample> = {
   badge: { html: `<box-badge label="Beta"></box-badge>\n<box-badge label="Error" tone="error"></box-badge>` },
   chip: { html: `<box-chip label="Marketing" tone="brand" removable value="marketing"></box-chip>\n<box-chip label="Legal" removable value="legal"></box-chip>` },
   "empty-state": { html: `<box-empty-state title="No results" message="Try a different search or clear the filters."></box-empty-state>` },
+  "error-mask": { html: `<box-error-mask heading="Couldn't load files" message="Something went wrong while loading this folder." action-label="Retry"></box-error-mask>` },
   "help-text": { html: `<box-help-text label="Shared links" message="Shared links expire after 30 days."></box-help-text>` },
   "progress-bar": { html: `<box-progress-bar label="Storage used" value="64"></box-progress-bar>` },
   "progress-ring": { html: `<box-progress-ring label="Sync" value="80"></box-progress-ring>` },

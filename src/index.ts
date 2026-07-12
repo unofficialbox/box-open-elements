@@ -52,6 +52,7 @@ export * from "./components/feedback/alert.js";
 export * from "./components/feedback/badge.js";
 export * from "./components/feedback/chip.js";
 export * from "./components/feedback/empty-state.js";
+export * from "./components/feedback/error-mask.js";
 export * from "./components/feedback/help-text.js";
 export * from "./components/feedback/progress-bar.js";
 export * from "./components/feedback/progress-ring.js";

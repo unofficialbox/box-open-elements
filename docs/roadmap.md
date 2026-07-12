@@ -64,7 +64,7 @@ From the validated gap analyses ([research/upstream-gaps.md](./research/upstream
 
 - strongest first: `chip`/`tag`, `divider` — **done** (`box-chip`, `box-divider`)
 - then: standalone `calendar`, tag/token input field — **done** (`box-calendar`, `box-tag-input`)
-- component gaps: `nav-sidebar`/`sidebar-toggle-button` — **done** (`box-nav-sidebar`, `box-sidebar-toggle-button`, layout tier); `grid-view` — **done** (`box-grid-view`, collections tier); `fieldset`/`section` — **done** (`box-fieldset` forms tier, `box-section` layout tier); then `error-mask`, `draggable-list`, picker list items, `nudge`, `pill-cloud`, `pill-selector-dropdown`
+- component gaps: `nav-sidebar`/`sidebar-toggle-button` — **done** (`box-nav-sidebar`, `box-sidebar-toggle-button`, layout tier); `grid-view` — **done** (`box-grid-view`, collections tier); `fieldset`/`section` — **done** (`box-fieldset` forms tier, `box-section` layout tier); `error-mask` — **done** (`box-error-mask`, feedback tier); then `draggable-list`, picker list items, `nudge`, `pill-cloud`, `pill-selector-dropdown`
 - pattern compositions: `access-stats`, `collaborator-avatars`
 - pattern workflows: `invite-collaborators-modal`, `unified-share-modal`, `presence`
 - re-verify each against upstream behavior before building
