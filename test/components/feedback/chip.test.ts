@@ -103,6 +103,21 @@ describe("BoxChipElement", () => {
     expect(element.shadowRoot?.activeElement?.getAttribute("part")).toBe("chip");
   });
 
+  it("restores focus to the remove button across an observed-attribute re-render", () => {
+    const element = document.createElement("box-chip") as BoxChipElement;
+    element.label = "PDF";
+    element.setAttribute("removable", "");
+    document.body.append(element);
+
+    const removeButton = element.shadowRoot?.querySelector('[part="remove"]') as HTMLElement | null;
+    removeButton?.focus();
+    expect(element.shadowRoot?.activeElement?.getAttribute("part")).toBe("remove");
+
+    // An unrelated observed attribute changing forces a full re-render.
+    element.tone = "brand";
+    expect(element.shadowRoot?.activeElement?.getAttribute("part")).toBe("remove");
+  });
+
   it("exposes selectable as a reflected boolean property", () => {
     const element = document.createElement("box-chip") as BoxChipElement;
     element.label = "PDF";

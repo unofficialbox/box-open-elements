@@ -461,8 +461,10 @@ export class BoxCalendarElement extends HTMLElement {
             <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
-        <div part="weekdays" role="row">${weekdayCells}</div>
-        <div part="grid" role="grid" aria-label="${escapeHtml(`${MONTH_NAMES[m - 1]} ${y}`)}">${rows.join("")}</div>
+        <div part="grid" role="grid" aria-label="${escapeHtml(`${MONTH_NAMES[m - 1]} ${y}`)}">
+          <div part="weekdays" role="row">${weekdayCells}</div>
+          ${rows.join("")}
+        </div>
       </div>
     `;
 

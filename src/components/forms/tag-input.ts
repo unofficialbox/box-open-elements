@@ -341,13 +341,7 @@ export class BoxTagInputElement extends HTMLElement {
       });
       input.addEventListener("keydown", event => this.handleKeydown(event, input));
       input.addEventListener("blur", () => {
-        const candidate = this.draft;
-        if (candidate.trim()) {
-          this.draft = "";
-          if (!this.addTag(candidate)) {
-            this.draft = candidate;
-          }
-        }
+        this.commitDraft(this.draft);
       });
     }
 
@@ -356,17 +350,26 @@ export class BoxTagInputElement extends HTMLElement {
     }
   }
 
+  // Clear the draft *before* addTag: it re-renders synchronously and the fresh
+  // <input> is seeded from this.draft, so a stale value would linger. Restore the
+  // draft if the tag was rejected so the user doesn't lose what they typed.
+  private commitDraft(candidate: string): boolean {
+    if (!candidate.trim()) {
+      return false;
+    }
+    this.draft = "";
+    if (this.addTag(candidate)) {
+      return true;
+    }
+    this.draft = candidate;
+    return false;
+  }
+
   private handleKeydown(event: KeyboardEvent, input: HTMLInputElement): void {
     if (event.key === "Enter" || event.key === ",") {
       event.preventDefault();
-      // Clear the draft *before* addTag: it re-renders synchronously and the
-      // fresh <input> is seeded from this.draft, so a stale value would linger.
-      const candidate = input.value;
-      this.draft = "";
-      if (this.addTag(candidate)) {
+      if (this.commitDraft(input.value)) {
         this.restoreFocus();
-      } else {
-        this.draft = candidate;
       }
       return;
     }

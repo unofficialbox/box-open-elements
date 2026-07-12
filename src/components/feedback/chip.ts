@@ -119,10 +119,10 @@ export class BoxChipElement extends HTMLElement {
       return;
     }
 
-    // Re-rendering replaces the [part="chip"] node, so a keyboard user who just
-    // toggled selection would lose focus to document.body. Remember whether focus
-    // was inside the shadow root and restore it after the new markup is in place.
-    const hadFocus = this.shadowRoot.activeElement !== null;
+    // Re-rendering replaces the shadow nodes, so a keyboard user who just toggled
+    // selection would lose focus to document.body. Remember which part held focus
+    // and restore it to the matching node after the new markup is in place.
+    const focusedPart = this.shadowRoot.activeElement?.getAttribute("part") ?? null;
     const label = this.label;
     const removeMarkup = this.removable
       ? `<button type="button" part="remove" aria-label="Remove ${escapeHtml(label)}" ${this.disabled ? "disabled" : ""}>
@@ -233,6 +233,7 @@ export class BoxChipElement extends HTMLElement {
         data-interactive="${this.selectable && !this.disabled ? "true" : "false"}"
         role="${this.selectable ? "button" : "listitem"}"
         ${this.selectable ? `aria-pressed="${this.selected ? "true" : "false"}"` : ""}
+        ${this.selectable && this.disabled ? 'aria-disabled="true"' : ""}
         ${this.selectable && !this.disabled ? 'tabindex="0"' : ""}
       >
         <span part="label">${escapeHtml(label)}</span>
@@ -258,8 +259,10 @@ export class BoxChipElement extends HTMLElement {
       });
     }
 
-    if (hadFocus && this.selectable && !this.disabled) {
+    if (focusedPart === "chip" && this.selectable && !this.disabled) {
       chip?.focus();
+    } else if (focusedPart === "remove" && this.removable && !this.disabled) {
+      removeButton?.focus();
     }
   }
 }

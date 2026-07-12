@@ -102,9 +102,14 @@ describe("BoxCalendarElement", () => {
   it("groups day cells into week rows for the ARIA grid pattern", () => {
     const element = create({ month: "2026-02" });
     const grid = element.shadowRoot?.querySelector('[part="grid"]');
-    const rows = grid?.querySelectorAll('[role="row"]');
+    // The weekdays header row and every week row must live inside the grid so the
+    // ARIA grid pattern has a valid owning ancestor for its rows.
+    const weeks = grid?.querySelectorAll('[part="week"]');
     // February 2026 starts on a Sunday and has 28 days: exactly four full weeks.
-    expect(rows?.length).toBe(4);
+    expect(weeks?.length).toBe(4);
+    // Header row + week rows are all owned by the grid, and each spans seven cells.
+    const rows = grid?.querySelectorAll('[role="row"]');
+    expect(rows?.length).toBe(5);
     for (const row of Array.from(rows ?? [])) {
       expect(row.childElementCount).toBe(7);
     }
