@@ -1,0 +1,494 @@
+const DEFAULT_TAG_NAME = "box-calendar";
+
+const escapeHtml = (value: string): string =>
+  value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+
+const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+const pad = (value: number): string => String(value).padStart(2, "0");
+
+/** An immutable calendar date expressed as {y, m (1-12), d}. */
+interface CalendarDate {
+  y: number;
+  m: number;
+  d: number;
+}
+
+const toISO = ({ y, m, d }: CalendarDate): string => `${y}-${pad(m)}-${pad(d)}`;
+
+const parseISO = (value: string): CalendarDate | null => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) {
+    return null;
+  }
+  const y = Number(match[1]);
+  const m = Number(match[2]);
+  const d = Number(match[3]);
+  if (m < 1 || m > 12 || d < 1 || d > 31) {
+    return null;
+  }
+  return { y, m, d };
+};
+
+const parseMonth = (value: string): { y: number; m: number } | null => {
+  const match = /^(\d{4})-(\d{2})$/.exec(value);
+  if (!match) {
+    return null;
+  }
+  const m = Number(match[2]);
+  if (m < 1 || m > 12) {
+    return null;
+  }
+  return { y: Number(match[1]), m };
+};
+
+const daysInMonth = (y: number, m: number): number => new Date(Date.UTC(y, m, 0)).getUTCDate();
+
+const firstWeekday = (y: number, m: number): number => new Date(Date.UTC(y, m - 1, 1)).getUTCDay();
+
+/** Add `delta` days to a date, rolling across month/year boundaries. */
+const addDays = ({ y, m, d }: CalendarDate, delta: number): CalendarDate => {
+  const next = new Date(Date.UTC(y, m - 1, d + delta));
+  return { y: next.getUTCFullYear(), m: next.getUTCMonth() + 1, d: next.getUTCDate() };
+};
+
+const clampDay = (y: number, m: number, d: number): number => Math.min(d, daysInMonth(y, m));
+
+export class BoxCalendarElement extends HTMLElement {
+  static get observedAttributes(): string[] {
+    return ["disabled", "max", "min", "month", "value"];
+  }
+
+  /** The date the roving tabindex currently points at. */
+  private activeDate: CalendarDate | null = null;
+
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+  }
+
+  get value(): string {
+    return this.getAttribute("value") ?? "";
+  }
+
+  set value(next: string) {
+    this.setAttribute("value", next);
+  }
+
+  get month(): string {
+    return this.getAttribute("month") ?? "";
+  }
+
+  set month(next: string) {
+    this.setAttribute("month", next);
+  }
+
+  get min(): string {
+    return this.getAttribute("min") ?? "";
+  }
+
+  set min(next: string) {
+    this.setAttribute("min", next);
+  }
+
+  get max(): string {
+    return this.getAttribute("max") ?? "";
+  }
+
+  set max(next: string) {
+    this.setAttribute("max", next);
+  }
+
+  get disabled(): boolean {
+    return this.hasAttribute("disabled");
+  }
+
+  set disabled(next: boolean) {
+    this.toggleAttribute("disabled", next);
+  }
+
+  connectedCallback(): void {
+    this.render();
+  }
+
+  attributeChangedCallback(): void {
+    this.activeDate = null;
+    this.render();
+  }
+
+  /** The year/month currently displayed: explicit `month`, else `value`'s month, else today. */
+  private displayedMonth(): { y: number; m: number } {
+    const explicit = parseMonth(this.month);
+    if (explicit) {
+      return explicit;
+    }
+    const selected = parseISO(this.value);
+    if (selected) {
+      return { y: selected.y, m: selected.m };
+    }
+    const today = new Date();
+    return { y: today.getFullYear(), m: today.getMonth() + 1 };
+  }
+
+  private isOutOfRange(iso: string): boolean {
+    if (this.min && iso < this.min) {
+      return true;
+    }
+    if (this.max && iso > this.max) {
+      return true;
+    }
+    return false;
+  }
+
+  private goToMonth(y: number, m: number): void {
+    const normalized = `${y}-${pad(m)}`;
+    this.activeDate = null;
+    this.setAttribute("month", normalized);
+    this.dispatchEvent(
+      new CustomEvent("month-changed", {
+        bubbles: true,
+        composed: true,
+        detail: { month: normalized },
+      }),
+    );
+  }
+
+  private shiftMonth(delta: number): void {
+    const { y, m } = this.displayedMonth();
+    const next = new Date(Date.UTC(y, m - 1 + delta, 1));
+    this.goToMonth(next.getUTCFullYear(), next.getUTCMonth() + 1);
+  }
+
+  private selectDate(date: CalendarDate): void {
+    const iso = toISO(date);
+    if (this.disabled || this.isOutOfRange(iso)) {
+      return;
+    }
+    this.activeDate = date;
+    this.setAttribute("value", iso);
+    // Keep the grid on the month of the chosen day.
+    this.setAttribute("month", `${date.y}-${pad(date.m)}`);
+    this.dispatchEvent(
+      new CustomEvent("value-changed", {
+        bubbles: true,
+        composed: true,
+        detail: { value: iso },
+      }),
+    );
+  }
+
+  /** Move roving focus by `delta` days, following into the neighbouring month if needed. */
+  private moveActive(delta: number): void {
+    const current = this.activeDate ?? this.resolveActiveDate();
+    const next = addDays(current, delta);
+    this.activeDate = next;
+    const display = this.displayedMonth();
+    if (next.y !== display.y || next.m !== display.m) {
+      this.setAttribute("month", `${next.y}-${pad(next.m)}`);
+    }
+    this.render();
+    this.focusActive();
+  }
+
+  private focusActive(): void {
+    if (!this.activeDate) {
+      return;
+    }
+    const iso = toISO(this.activeDate);
+    const button = this.shadowRoot?.querySelector(`[data-date="${iso}"]`) as HTMLButtonElement | null;
+    button?.focus();
+  }
+
+  /** The date the roving tabindex should default to for the displayed month. */
+  private resolveActiveDate(): CalendarDate {
+    if (this.activeDate) {
+      return this.activeDate;
+    }
+    const { y, m } = this.displayedMonth();
+    const selected = parseISO(this.value);
+    if (selected && selected.y === y && selected.m === m) {
+      return selected;
+    }
+    const today = new Date();
+    if (today.getFullYear() === y && today.getMonth() + 1 === m) {
+      return { y, m, d: today.getDate() };
+    }
+    return { y, m, d: 1 };
+  }
+
+  private render(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const { y, m } = this.displayedMonth();
+    const selected = parseISO(this.value);
+    const active = this.resolveActiveDate();
+    const activeIso = toISO({ y, m, d: clampDay(y, m, active.d) });
+    const today = new Date();
+    const todayIso = toISO({ y: today.getFullYear(), m: today.getMonth() + 1, d: today.getDate() });
+
+    const leading = firstWeekday(y, m);
+    const total = daysInMonth(y, m);
+
+    const cells: string[] = [];
+    for (let i = 0; i < leading; i += 1) {
+      cells.push(`<span part="day-blank" aria-hidden="true"></span>`);
+    }
+    for (let day = 1; day <= total; day += 1) {
+      const iso = toISO({ y, m, d: day });
+      const isSelected = selected ? toISO(selected) === iso : false;
+      const isToday = iso === todayIso;
+      const isActive = iso === activeIso;
+      const outOfRange = this.isOutOfRange(iso);
+      const disabled = this.disabled || outOfRange;
+      cells.push(
+        `<button
+          type="button"
+          part="day${isSelected ? " day-selected" : ""}${isToday ? " day-today" : ""}"
+          role="gridcell"
+          data-date="${iso}"
+          data-selected="${isSelected ? "true" : "false"}"
+          data-today="${isToday ? "true" : "false"}"
+          tabindex="${isActive && !disabled ? "0" : "-1"}"
+          aria-selected="${isSelected ? "true" : "false"}"
+          aria-label="${escapeHtml(`${MONTH_NAMES[m - 1]} ${day}, ${y}`)}"
+          ${disabled ? "disabled" : ""}
+        >${day}</button>`,
+      );
+    }
+
+    const weekdayCells = WEEKDAYS.map(
+      label => `<span part="weekday" role="columnheader" aria-label="${escapeHtml(label)}">${label}</span>`,
+    ).join("");
+
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: inline-block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="calendar"] {
+          display: grid;
+          gap: 0.75rem;
+          inline-size: 17.5rem;
+          max-inline-size: 100%;
+          padding: 0.85rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 78%, white 22%);
+          border-radius: 0.9rem;
+          background:
+            linear-gradient(
+              180deg,
+              var(--boe-token-surface-surface, #ffffff) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #f7f9fc) 8%) 100%
+            );
+        }
+
+        [part="header"] {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.5rem;
+        }
+
+        [part="title"] {
+          font-weight: 700;
+          font-size: 0.95rem;
+          color: var(--boe-token-text-text, #101820);
+        }
+
+        [part~="nav"] {
+          appearance: none;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          inline-size: 2rem;
+          block-size: 2rem;
+          padding: 0;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 78%, white 22%);
+          border-radius: 0.6rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          color: var(--boe-token-text-text-secondary, #52606d);
+          cursor: pointer;
+          transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+        }
+
+        [part~="nav"] svg {
+          inline-size: 0.85rem;
+          block-size: 0.85rem;
+        }
+
+        [part~="nav"]:hover {
+          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+        }
+
+        [part~="nav"]:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 20%, transparent);
+        }
+
+        [part="weekdays"],
+        [part="grid"] {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 0.15rem;
+        }
+
+        [part="weekday"] {
+          text-align: center;
+          font-size: 0.68rem;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: var(--boe-token-text-text-secondary, #52606d);
+          padding-block: 0.2rem;
+        }
+
+        [part="day-blank"] {
+          block-size: 2.1rem;
+        }
+
+        [part~="day"] {
+          appearance: none;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          block-size: 2.1rem;
+          padding: 0;
+          border: 1px solid transparent;
+          border-radius: 0.55rem;
+          background: transparent;
+          font: inherit;
+          font-size: 0.82rem;
+          color: var(--boe-token-text-text, #101820);
+          cursor: pointer;
+          transition: background 120ms ease, color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+        }
+
+        [part~="day"]:hover:not(:disabled) {
+          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+        }
+
+        [part~="day"][data-today="true"] {
+          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 40%, transparent);
+          font-weight: 700;
+        }
+
+        [part~="day"][data-selected="true"] {
+          background: var(--boe-token-surface-surface-brand, #0061d5);
+          border-color: var(--boe-token-surface-surface-brand, #0061d5);
+          color: var(--boe-token-text-text-on-brand, #ffffff);
+          font-weight: 700;
+        }
+
+        [part~="day"][data-selected="true"]:hover:not(:disabled) {
+          background: var(--boe-token-surface-surface-brand-hover, #006ae9);
+        }
+
+        [part~="day"]:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, transparent);
+        }
+
+        [part~="day"]:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+      </style>
+      <div part="calendar" role="group" aria-label="Calendar">
+        <div part="header">
+          <button type="button" part="nav nav-prev" aria-label="Previous month">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span part="title" aria-live="polite">${escapeHtml(`${MONTH_NAMES[m - 1]} ${y}`)}</span>
+          <button type="button" part="nav nav-next" aria-label="Next month">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div part="weekdays" role="row">${weekdayCells}</div>
+        <div part="grid" role="grid" aria-label="${escapeHtml(`${MONTH_NAMES[m - 1]} ${y}`)}">${cells.join("")}</div>
+      </div>
+    `;
+
+    this.shadowRoot.querySelector('[part~="nav-prev"]')?.addEventListener("click", () => this.shiftMonth(-1));
+    this.shadowRoot.querySelector('[part~="nav-next"]')?.addEventListener("click", () => this.shiftMonth(1));
+
+    for (const button of Array.from(this.shadowRoot.querySelectorAll<HTMLButtonElement>('[part~="day"]'))) {
+      button.addEventListener("click", () => {
+        const date = parseISO(button.dataset.date ?? "");
+        if (date) {
+          this.selectDate(date);
+        }
+      });
+    }
+
+    const grid = this.shadowRoot.querySelector('[part="grid"]') as HTMLElement | null;
+    grid?.addEventListener("keydown", event => this.handleGridKeydown(event));
+  }
+
+  private handleGridKeydown(event: KeyboardEvent): void {
+    const deltas: Record<string, number> = {
+      ArrowLeft: -1,
+      ArrowRight: 1,
+      ArrowUp: -7,
+      ArrowDown: 7,
+    };
+    if (event.key in deltas) {
+      event.preventDefault();
+      this.moveActive(deltas[event.key]);
+      return;
+    }
+    if (event.key === "PageUp") {
+      event.preventDefault();
+      this.moveActive(-daysInMonth(this.displayedMonth().y, this.displayedMonth().m));
+      return;
+    }
+    if (event.key === "PageDown") {
+      event.preventDefault();
+      const { y, m } = this.displayedMonth();
+      this.moveActive(daysInMonth(y, m));
+      return;
+    }
+    if (event.key === "Home") {
+      event.preventDefault();
+      const active = this.activeDate ?? this.resolveActiveDate();
+      this.moveActive(1 - active.d);
+      return;
+    }
+    if (event.key === "End") {
+      event.preventDefault();
+      const active = this.activeDate ?? this.resolveActiveDate();
+      this.moveActive(daysInMonth(active.y, active.m) - active.d);
+      return;
+    }
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      const active = this.activeDate ?? this.resolveActiveDate();
+      this.selectDate(active);
+    }
+  }
+}
+
+export const defineBoxCalendarElement = (
+  tagName = DEFAULT_TAG_NAME,
+): typeof BoxCalendarElement => {
+  const existingElement = customElements.get(tagName);
+  if (existingElement) {
+    return existingElement as typeof BoxCalendarElement;
+  }
+
+  customElements.define(tagName, BoxCalendarElement);
+  return BoxCalendarElement;
+};

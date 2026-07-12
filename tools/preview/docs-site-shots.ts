@@ -15,6 +15,10 @@ const BANNER_TIMEOUT_MS = 20_000;
 const routes: Array<[string, string, string]> = [
   ["components-button", "#components/button", "components/button"],
   ["components-forms", "#components/multi-select", "components/multi-select"],
+  ["components-chip", "#components/chip", "components/chip"],
+  ["components-divider", "#components/divider", "components/divider"],
+  ["components-calendar", "#components/calendar", "components/calendar"],
+  ["components-tag-input", "#components/tag-input", "components/tag-input"],
   ["patterns-content-explorer", "#patterns/content-explorer", "patterns/content-explorer"],
   ["patterns-share-panel", "#patterns/share-panel", "patterns/share-panel"],
   ["foundations-tokens", "#foundations/tokens", "foundations/tokens"],

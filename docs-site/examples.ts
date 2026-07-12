@@ -142,6 +142,7 @@ export const examples: Record<string, ComponentExample> = {
   },
   alert: { html: `<box-alert title="Upload complete" message="24 files were added to Marketing." tone="success"></box-alert>` },
   badge: { html: `<box-badge label="Beta"></box-badge>\n<box-badge label="Error" tone="error"></box-badge>` },
+  chip: { html: `<box-chip label="Marketing" tone="brand" removable value="marketing"></box-chip>\n<box-chip label="Legal" removable value="legal"></box-chip>` },
   "empty-state": { html: `<box-empty-state title="No results" message="Try a different search or clear the filters."></box-empty-state>` },
   "help-text": { html: `<box-help-text label="Shared links" message="Shared links expire after 30 days."></box-help-text>` },
   "progress-bar": { html: `<box-progress-bar label="Storage used" value="64"></box-progress-bar>` },
@@ -194,6 +195,7 @@ export const examples: Record<string, ComponentExample> = {
       ],
     }),
   },
+  calendar: { html: `<box-calendar value="2026-07-18" month="2026-07"></box-calendar>` },
   "date-field": { html: `<box-date-field label="Due date" value="2026-07-18"></box-date-field>` },
   dropdown: {
     html: `<box-dropdown label="Sort by"></box-dropdown>`,
@@ -257,12 +259,17 @@ export const examples: Record<string, ComponentExample> = {
   slider: { html: `<box-slider label="Density" value="40" min="0" max="100"></box-slider>` },
   "spin-button": { html: `<box-spin-button label="Quota (GB)" value="50" min="0" max="500"></box-spin-button>` },
   switch: { html: `<box-switch label="Email notifications" checked></box-switch>` },
+  "tag-input": {
+    html: `<box-tag-input label="Labels" placeholder="Add a label"></box-tag-input>`,
+    setup: root => set(root, "box-tag-input", { tags: ["marketing", "q3", "launch"] }),
+  },
   "text-area": { html: `<box-text-area label="Notes" placeholder="Add review notes"></box-text-area>` },
   "text-field": { html: `<box-text-field label="Name" value="Quarterly Plan"></box-text-field>` },
   "time-field": { html: `<box-time-field label="Launch time" value="09:30"></box-time-field>` },
   avatar: { html: `<box-avatar name="Morgan Lee"></box-avatar>` },
   persona: { html: `<box-persona name="Morgan Lee" description="Enterprise Admin"></box-persona>` },
   "app-shell": { html: `<box-app-shell title="Box Admin"></box-app-shell>` },
+  divider: { html: `<box-divider label="Shared with your team"></box-divider>` },
   "split-view": { html: `<box-split-view label="Master detail"></box-split-view>` },
   accordion: {
     html: `<box-accordion label="Details"></box-accordion>`,

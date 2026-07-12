@@ -62,8 +62,8 @@ The components needed for a credible file explorer, picker, and embedded workspa
 
 From the validated gap analyses ([research/upstream-gaps.md](./research/upstream-gaps.md), [research/component-inventory-comparison.md](./research/component-inventory-comparison.md)):
 
-- strongest first: `chip`/`tag`, `divider`
-- then: standalone `calendar`, tag/token input field
+- strongest first: `chip`/`tag`, `divider` — **done** (`box-chip`, `box-divider`)
+- then: standalone `calendar`, tag/token input field — **done** (`box-calendar`, `box-tag-input`)
 - component gaps: `grid-view`, `nav-sidebar`/`sidebar-toggle-button`, `fieldset`/`section`, `error-mask`, `draggable-list`, picker list items, `nudge`, `pill-cloud`, `pill-selector-dropdown`
 - pattern compositions: `access-stats`, `collaborator-avatars`
 - pattern workflows: `invite-collaborators-modal`, `unified-share-modal`, `presence`
