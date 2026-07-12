@@ -42,6 +42,7 @@ export * from "./components/actions/menu-item.js";
 // Components: collections
 export * from "./components/collections/card.js";
 export * from "./components/collections/carousel.js";
+export * from "./components/collections/grid-view.js";
 export * from "./components/collections/pagination.js";
 export * from "./components/collections/tree.js";
 export * from "./components/collections/tree-grid.js";

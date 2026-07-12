@@ -110,6 +110,18 @@ export const examples: Record<string, ComponentExample> = {
       ],
     }),
   },
+  "grid-view": {
+    html: `<box-grid-view label="Files"></box-grid-view>`,
+    setup: root => set(root, "box-grid-view", {
+      items: [
+        { value: "123", label: "Quarterly Plan.pdf", meta: "PDF · 2.1 MB", icon: "P" },
+        { value: "124", label: "Brand Guidelines.pdf", meta: "PDF · 5.4 MB", icon: "P" },
+        { value: "42", label: "Marketing", meta: "Folder · 18 items", icon: "M" },
+        { value: "125", label: "box.com/launch", meta: "Web link", icon: "L" },
+      ],
+      value: "123",
+    }),
+  },
   pagination: { html: `<box-pagination page="2" page-size="25" total-items="220"></box-pagination>` },
   tree: {
     html: `<box-tree label="Folders"></box-tree>`,
