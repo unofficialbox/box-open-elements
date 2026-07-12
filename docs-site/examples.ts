@@ -271,6 +271,27 @@ export const examples: Record<string, ComponentExample> = {
   "app-shell": { html: `<box-app-shell title="Box Admin"></box-app-shell>` },
   divider: { html: `<box-divider label="Shared with your team"></box-divider>` },
   "split-view": { html: `<box-split-view label="Master detail"></box-split-view>` },
+  "nav-sidebar": {
+    html: `<box-nav-sidebar label="Workspace" id="demo-nav-sidebar">
+  <box-sidebar-toggle-button slot="header" controls="demo-nav-sidebar" label="Collapse navigation"></box-sidebar-toggle-button>
+  <a href="#">All Files</a>
+  <a href="#">Recents</a>
+  <a href="#">Synced</a>
+  <a href="#">Trash</a>
+  <span slot="footer">2.4 GB of 10 GB used</span>
+</box-nav-sidebar>`,
+    setup: root => {
+      const sidebar = root.querySelector("box-nav-sidebar") as (HTMLElement & { collapsed: boolean }) | null;
+      const toggle = root.querySelector("box-sidebar-toggle-button");
+      toggle?.addEventListener("toggle", event => {
+        if (sidebar) {
+          sidebar.collapsed = !(event as CustomEvent<{ expanded: boolean }>).detail.expanded;
+        }
+      });
+    },
+    note: "Wire the toggle button's `toggle` event to the sidebar's `collapsed` property.",
+  },
+  "sidebar-toggle-button": { html: `<box-sidebar-toggle-button label="Toggle navigation"></box-sidebar-toggle-button>` },
   accordion: {
     html: `<box-accordion label="Details"></box-accordion>`,
     setup: root => set(root, "box-accordion", {

@@ -101,6 +101,8 @@ export * from "./components/forms/text-field.js";
 // Components: layout
 export * from "./components/layout/app-shell.js";
 export * from "./components/layout/divider.js";
+export * from "./components/layout/nav-sidebar.js";
+export * from "./components/layout/sidebar-toggle-button.js";
 export * from "./components/layout/split-view.js";
 
 // Components: overlays
