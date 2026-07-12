@@ -254,6 +254,12 @@ export const examples: Record<string, ComponentExample> = {
       value: "company",
     }),
   },
+  fieldset: {
+    html: `<box-fieldset label="Shipping address" description="Where should we ship your order?">
+  <box-text-field label="Street"></box-text-field>
+  <box-text-field label="City"></box-text-field>
+</box-fieldset>`,
+  },
   "range-slider": { html: `<box-range-slider label="Size range" min="0" max="100"></box-range-slider>` },
   rating: { html: `<box-rating label="Quality" value="4" max="5"></box-rating>` },
   "rich-text-input": { html: `<box-rich-text-input label="Announcement" value="<p>Welcome to the <strong>new</strong> workspace.</p>"></box-rich-text-input>` },
@@ -304,6 +310,12 @@ export const examples: Record<string, ComponentExample> = {
     note: "Wire the toggle button's `toggle` event to the sidebar's `collapsed` property.",
   },
   "sidebar-toggle-button": { html: `<box-sidebar-toggle-button label="Toggle navigation"></box-sidebar-toggle-button>` },
+  section: {
+    html: `<box-section eyebrow="Workspace" heading="Members" description="People with access to this workspace.">
+  <box-button slot="actions" label="Invite" tone="primary"></box-button>
+  <box-persona name="Morgan Lee" description="Enterprise Admin"></box-persona>
+</box-section>`,
+  },
   accordion: {
     html: `<box-accordion label="Details"></box-accordion>`,
     setup: root => set(root, "box-accordion", {

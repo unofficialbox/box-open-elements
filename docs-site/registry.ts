@@ -23,11 +23,11 @@ export const catalog: CatalogEntry[] = [
   ...c("Forms", [
     "calendar", "checkbox", "checkbox-group", "color-picker", "combobox", "date-field", "dropdown",
     "dual-listbox", "multi-select", "number-input", "radio-group", "range-slider", "rating",
-    "rich-text-input", "search-field", "select", "slider", "spin-button", "switch",
+    "fieldset", "rich-text-input", "search-field", "select", "slider", "spin-button", "switch",
     "tag-input", "text-area", "text-field", "time-field",
   ]),
   ...c("Identity", ["avatar", "persona"]),
-  ...c("Layout", ["app-shell", "divider", "nav-sidebar", "sidebar-toggle-button", "split-view"]),
+  ...c("Layout", ["app-shell", "divider", "nav-sidebar", "section", "sidebar-toggle-button", "split-view"]),
   ...c("Navigation", ["accordion", "tabs"]),
   ...c("Overlays", ["dialog", "drawer", "popover", "tooltip"]),
   ...c("Visuals", ["illustration"]),

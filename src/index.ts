@@ -91,6 +91,7 @@ export * from "./components/forms/tag-input.js";
 export * from "./components/forms/time-field.js";
 export * from "./components/forms/checkbox-group.js";
 export * from "./components/forms/combobox.js";
+export * from "./components/forms/fieldset.js";
 export * from "./components/forms/dropdown.js";
 export * from "./components/forms/multi-select.js";
 export * from "./components/forms/radio-group.js";
@@ -103,6 +104,7 @@ export * from "./components/forms/text-field.js";
 export * from "./components/layout/app-shell.js";
 export * from "./components/layout/divider.js";
 export * from "./components/layout/nav-sidebar.js";
+export * from "./components/layout/section.js";
 export * from "./components/layout/sidebar-toggle-button.js";
 export * from "./components/layout/split-view.js";
 
