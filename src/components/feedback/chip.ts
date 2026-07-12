@@ -71,6 +71,14 @@ export class BoxChipElement extends HTMLElement {
     this.toggleAttribute("disabled", value);
   }
 
+  get selectable(): boolean {
+    return this.hasAttribute("selectable");
+  }
+
+  set selectable(value: boolean) {
+    this.toggleAttribute("selectable", value);
+  }
+
   connectedCallback(): void {
     this.render();
   }
@@ -111,6 +119,10 @@ export class BoxChipElement extends HTMLElement {
       return;
     }
 
+    // Re-rendering replaces the shadow nodes, so a keyboard user who just toggled
+    // selection would lose focus to document.body. Remember which part held focus
+    // and restore it to the matching node after the new markup is in place.
+    const focusedPart = this.shadowRoot.activeElement?.getAttribute("part") ?? null;
     const label = this.label;
     const removeMarkup = this.removable
       ? `<button type="button" part="remove" aria-label="Remove ${escapeHtml(label)}" ${this.disabled ? "disabled" : ""}>
@@ -218,10 +230,11 @@ export class BoxChipElement extends HTMLElement {
         data-removable="${this.removable ? "true" : "false"}"
         data-selected="${this.selected ? "true" : "false"}"
         data-disabled="${this.disabled ? "true" : "false"}"
-        data-interactive="${this.hasAttribute("selectable") && !this.disabled ? "true" : "false"}"
-        role="${this.hasAttribute("selectable") ? "button" : "listitem"}"
-        ${this.hasAttribute("selectable") ? `aria-pressed="${this.selected ? "true" : "false"}"` : ""}
-        ${this.hasAttribute("selectable") && !this.disabled ? 'tabindex="0"' : ""}
+        data-interactive="${this.selectable && !this.disabled ? "true" : "false"}"
+        role="${this.selectable ? "button" : "listitem"}"
+        ${this.selectable ? `aria-pressed="${this.selected ? "true" : "false"}"` : ""}
+        ${this.selectable && this.disabled ? 'aria-disabled="true"' : ""}
+        ${this.selectable && !this.disabled ? 'tabindex="0"' : ""}
       >
         <span part="label">${escapeHtml(label)}</span>
         ${removeMarkup}
@@ -236,7 +249,7 @@ export class BoxChipElement extends HTMLElement {
       this.dismiss();
     });
 
-    if (this.hasAttribute("selectable")) {
+    if (this.selectable) {
       chip?.addEventListener("click", () => this.toggleSelection());
       chip?.addEventListener("keydown", event => {
         if (event.key === "Enter" || event.key === " ") {
@@ -244,6 +257,12 @@ export class BoxChipElement extends HTMLElement {
           this.toggleSelection();
         }
       });
+    }
+
+    if (focusedPart === "chip" && this.selectable && !this.disabled) {
+      chip?.focus();
+    } else if (focusedPart === "remove" && this.removable && !this.disabled) {
+      removeButton?.focus();
     }
   }
 }

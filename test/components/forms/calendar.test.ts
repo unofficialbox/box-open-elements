@@ -95,5 +95,34 @@ describe("BoxCalendarElement", () => {
     // Rolling past July 31 lands on August, so the grid re-renders to August.
     expect(element.shadowRoot?.querySelector('[part="title"]')?.textContent).toContain("August 2026");
     expect(element.month).toBe("2026-08");
+    // Roving focus must follow into the new month's grid.
+    expect(element.shadowRoot?.activeElement?.getAttribute("data-date")).toBe("2026-08-01");
+  });
+
+  it("groups day cells into week rows for the ARIA grid pattern", () => {
+    const element = create({ month: "2026-02" });
+    const grid = element.shadowRoot?.querySelector('[part="grid"]');
+    // The weekdays header row and every week row must live inside the grid so the
+    // ARIA grid pattern has a valid owning ancestor for its rows.
+    const weeks = grid?.querySelectorAll('[part="week"]');
+    // February 2026 starts on a Sunday and has 28 days: exactly four full weeks.
+    expect(weeks?.length).toBe(4);
+    // Header row + week rows are all owned by the grid, and each spans seven cells.
+    const rows = grid?.querySelectorAll('[role="row"]');
+    expect(rows?.length).toBe(5);
+    for (const row of Array.from(rows ?? [])) {
+      expect(row.childElementCount).toBe(7);
+    }
+  });
+
+  it("keeps a tabbable cell when the default active day is out of range", () => {
+    // A month with no selection and not the current month defaults its active day
+    // to the 1st, which here is out of range and must clamp to the first enabled day.
+    const element = create({ month: "2027-03", min: "2027-03-15" });
+    const tabbable = element.shadowRoot?.querySelector('[part~="day"][tabindex="0"]') as
+      | HTMLButtonElement
+      | null;
+    expect(tabbable?.getAttribute("data-date")).toBe("2027-03-15");
+    expect(tabbable?.disabled).toBe(false);
   });
 });

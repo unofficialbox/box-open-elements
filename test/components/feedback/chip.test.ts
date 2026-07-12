@@ -80,4 +80,55 @@ describe("BoxChipElement", () => {
       expect.objectContaining({ detail: { value: "pdf", selected: true } }),
     );
   });
+
+  it("toggles selection via keyboard and keeps focus on the chip", () => {
+    const element = document.createElement("box-chip") as BoxChipElement;
+    element.label = "PDF";
+    element.setAttribute("selectable", "");
+    document.body.append(element);
+
+    const press = (key: string): void => {
+      const chip = element.shadowRoot?.querySelector('[part="chip"]') as HTMLElement | null;
+      chip?.focus();
+      chip?.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
+    };
+
+    press("Enter");
+    expect(element.selected).toBe(true);
+    // Focus must survive the re-render triggered by the selection change.
+    expect(element.shadowRoot?.activeElement?.getAttribute("part")).toBe("chip");
+
+    press(" ");
+    expect(element.selected).toBe(false);
+    expect(element.shadowRoot?.activeElement?.getAttribute("part")).toBe("chip");
+  });
+
+  it("restores focus to the remove button across an observed-attribute re-render", () => {
+    const element = document.createElement("box-chip") as BoxChipElement;
+    element.label = "PDF";
+    element.setAttribute("removable", "");
+    document.body.append(element);
+
+    const removeButton = element.shadowRoot?.querySelector('[part="remove"]') as HTMLElement | null;
+    removeButton?.focus();
+    expect(element.shadowRoot?.activeElement?.getAttribute("part")).toBe("remove");
+
+    // An unrelated observed attribute changing forces a full re-render.
+    element.tone = "brand";
+    expect(element.shadowRoot?.activeElement?.getAttribute("part")).toBe("remove");
+  });
+
+  it("exposes selectable as a reflected boolean property", () => {
+    const element = document.createElement("box-chip") as BoxChipElement;
+    element.label = "PDF";
+    element.selectable = true;
+    document.body.append(element);
+
+    expect(element.hasAttribute("selectable")).toBe(true);
+    expect(element.shadowRoot?.querySelector('[part="chip"]')?.getAttribute("role")).toBe("button");
+
+    element.selectable = false;
+    expect(element.selectable).toBe(false);
+    expect(element.hasAttribute("selectable")).toBe(false);
+  });
 });

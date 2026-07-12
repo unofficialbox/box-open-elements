@@ -133,8 +133,9 @@ export class BoxTagInputElement extends HTMLElement {
       return false;
     }
     this.tagsInternal = [...this.tagsInternal, tag];
+    // reflectValue() mutates the `value` attribute, which drives a render via
+    // attributeChangedCallback — no explicit render() needed here.
     this.reflectValue();
-    this.render();
     this.emit("tag-added", { tag });
     this.emit("tags-changed", { tags: this.tags });
     return true;
@@ -149,8 +150,8 @@ export class BoxTagInputElement extends HTMLElement {
       return false;
     }
     this.tagsInternal = this.tagsInternal.filter((_, i) => i !== index);
+    // reflectValue() drives the render through attributeChangedCallback.
     this.reflectValue();
-    this.render();
     this.emit("tag-removed", { tag });
     this.emit("tags-changed", { tags: this.tags });
     return true;
@@ -301,6 +302,19 @@ export class BoxTagInputElement extends HTMLElement {
         [part="input"]:disabled {
           cursor: not-allowed;
         }
+
+        [part="hint"] {
+          position: absolute;
+          inline-size: 1px;
+          block-size: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0 0 0 0);
+          clip-path: inset(50%);
+          white-space: nowrap;
+          border: 0;
+        }
       </style>
       <div part="field">
         <span part="label" id="tag-input-label">${escapeHtml(this.label)}</span>
@@ -316,7 +330,7 @@ export class BoxTagInputElement extends HTMLElement {
             ${this.disabled || atMax ? "disabled" : ""}
           />
         </div>
-        <span part="hint" id="tag-input-hint" hidden>Press Enter or comma to add a tag; Backspace removes the last tag.</span>
+        <span part="hint" id="tag-input-hint">Press Enter or comma to add a tag; Backspace removes the last tag.</span>
       </div>
     `;
 
@@ -327,9 +341,7 @@ export class BoxTagInputElement extends HTMLElement {
       });
       input.addEventListener("keydown", event => this.handleKeydown(event, input));
       input.addEventListener("blur", () => {
-        if (this.draft.trim() && this.addTag(this.draft)) {
-          this.draft = "";
-        }
+        this.commitDraft(this.draft);
       });
     }
 
@@ -338,11 +350,25 @@ export class BoxTagInputElement extends HTMLElement {
     }
   }
 
+  // Clear the draft *before* addTag: it re-renders synchronously and the fresh
+  // <input> is seeded from this.draft, so a stale value would linger. Restore the
+  // draft if the tag was rejected so the user doesn't lose what they typed.
+  private commitDraft(candidate: string): boolean {
+    if (!candidate.trim()) {
+      return false;
+    }
+    this.draft = "";
+    if (this.addTag(candidate)) {
+      return true;
+    }
+    this.draft = candidate;
+    return false;
+  }
+
   private handleKeydown(event: KeyboardEvent, input: HTMLInputElement): void {
     if (event.key === "Enter" || event.key === ",") {
       event.preventDefault();
-      if (this.addTag(input.value)) {
-        this.draft = "";
+      if (this.commitDraft(input.value)) {
         this.restoreFocus();
       }
       return;
