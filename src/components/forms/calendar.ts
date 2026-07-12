@@ -189,14 +189,39 @@ export class BoxCalendarElement extends HTMLElement {
   /** Move roving focus by `delta` days, following into the neighbouring month if needed. */
   private moveActive(delta: number): void {
     const current = this.activeDate ?? this.resolveActiveDate();
-    const next = addDays(current, delta);
-    this.activeDate = next;
+    const next = this.clampToEnabled(addDays(current, delta));
     const display = this.displayedMonth();
+    // `setAttribute` synchronously runs attributeChangedCallback, which nulls out
+    // activeDate — so assign `next` *after* the month change or focus would be lost.
     if (next.y !== display.y || next.m !== display.m) {
       this.setAttribute("month", `${next.y}-${pad(next.m)}`);
     }
+    this.activeDate = next;
     this.render();
     this.focusActive();
+  }
+
+  /**
+   * Clamp a candidate roving date to the nearest in-range day so the tabbable cell
+   * (and arrow-key navigation) never lands on a disabled/out-of-range button, which
+   * would leave the grid unreachable via Tab. When the whole calendar is disabled
+   * there is nothing to focus, so the candidate is returned untouched.
+   */
+  private clampToEnabled(candidate: CalendarDate): CalendarDate {
+    if (this.disabled || !this.isOutOfRange(toISO(candidate))) {
+      return candidate;
+    }
+    for (let step = 1; step <= 366; step += 1) {
+      const forward = addDays(candidate, step);
+      if (!this.isOutOfRange(toISO(forward))) {
+        return forward;
+      }
+      const backward = addDays(candidate, -step);
+      if (!this.isOutOfRange(toISO(backward))) {
+        return backward;
+      }
+    }
+    return candidate;
   }
 
   private focusActive(): void {
@@ -215,14 +240,17 @@ export class BoxCalendarElement extends HTMLElement {
     }
     const { y, m } = this.displayedMonth();
     const selected = parseISO(this.value);
+    let candidate: CalendarDate;
     if (selected && selected.y === y && selected.m === m) {
-      return selected;
+      candidate = selected;
+    } else {
+      const today = new Date();
+      candidate =
+        today.getFullYear() === y && today.getMonth() + 1 === m
+          ? { y, m, d: today.getDate() }
+          : { y, m, d: 1 };
     }
-    const today = new Date();
-    if (today.getFullYear() === y && today.getMonth() + 1 === m) {
-      return { y, m, d: today.getDate() };
-    }
-    return { y, m, d: 1 };
+    return this.clampToEnabled(candidate);
   }
 
   private render(): void {
@@ -265,6 +293,17 @@ export class BoxCalendarElement extends HTMLElement {
           ${disabled ? "disabled" : ""}
         >${day}</button>`,
       );
+    }
+    // Pad the trailing partial week so every row owns exactly seven cells.
+    while (cells.length % 7 !== 0) {
+      cells.push(`<span part="day-blank" aria-hidden="true"></span>`);
+    }
+
+    // The ARIA grid pattern requires role="gridcell" to be owned by role="row",
+    // so group the day cells into one row per week.
+    const rows: string[] = [];
+    for (let i = 0; i < cells.length; i += 7) {
+      rows.push(`<div part="week" role="row">${cells.slice(i, i + 7).join("")}</div>`);
     }
 
     const weekdayCells = WEEKDAYS.map(
@@ -340,9 +379,14 @@ export class BoxCalendarElement extends HTMLElement {
         }
 
         [part="weekdays"],
-        [part="grid"] {
+        [part="week"] {
           display: grid;
           grid-template-columns: repeat(7, 1fr);
+          gap: 0.15rem;
+        }
+
+        [part="grid"] {
+          display: grid;
           gap: 0.15rem;
         }
 
@@ -418,7 +462,7 @@ export class BoxCalendarElement extends HTMLElement {
           </button>
         </div>
         <div part="weekdays" role="row">${weekdayCells}</div>
-        <div part="grid" role="grid" aria-label="${escapeHtml(`${MONTH_NAMES[m - 1]} ${y}`)}">${cells.join("")}</div>
+        <div part="grid" role="grid" aria-label="${escapeHtml(`${MONTH_NAMES[m - 1]} ${y}`)}">${rows.join("")}</div>
       </div>
     `;
 

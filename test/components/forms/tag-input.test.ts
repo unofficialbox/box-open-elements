@@ -33,12 +33,17 @@ describe("BoxTagInputElement", () => {
 
     const input = inputOf(element);
     input.value = "launch";
+    // Dispatch a real input event so the component's draft state is populated,
+    // exercising the same path as actual typing.
+    input.dispatchEvent(new Event("input", { bubbles: true }));
     input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
 
     expect(element.tags).toEqual(["launch"]);
     expect(changed).toHaveBeenCalledWith(
       expect.objectContaining({ detail: { tags: ["launch"] } }),
     );
+    // The freshly rendered input must be cleared, not retain the committed text.
+    expect(inputOf(element).value).toBe("");
   });
 
   it("ignores duplicate tags case-insensitively", () => {
@@ -59,6 +64,7 @@ describe("BoxTagInputElement", () => {
 
     const input = inputOf(element);
     input.value = "";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
     input.dispatchEvent(new KeyboardEvent("keydown", { key: "Backspace", bubbles: true }));
 
     expect(element.tags).toEqual(["a"]);
