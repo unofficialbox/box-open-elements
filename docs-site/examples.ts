@@ -110,6 +110,9 @@ export const examples: Record<string, ComponentExample> = {
       ],
     }),
   },
+  "datalist-item": {
+    html: `<box-datalist-item label="Quarterly Plan.pdf" meta="PDF · 2.1 MB" icon="P" value="123"></box-datalist-item>\n<box-datalist-item label="Marketing" meta="Folder · 18 items" icon="M" value="42" selected></box-datalist-item>`,
+  },
   "draggable-list": {
     html: `<box-draggable-list label="Saved views"></box-draggable-list>`,
     setup: root => set(root, "box-draggable-list", {
@@ -274,6 +277,18 @@ export const examples: Record<string, ComponentExample> = {
   <box-text-field label="City"></box-text-field>
 </box-fieldset>`,
   },
+  "category-selector": {
+    html: `<box-category-selector label="Filter by type"></box-category-selector>`,
+    setup: root => set(root, "box-category-selector", {
+      options: [
+        { value: "all", label: "All" },
+        { value: "docs", label: "Documents" },
+        { value: "media", label: "Media" },
+        { value: "links", label: "Links" },
+      ],
+      value: "all",
+    }),
+  },
   "pill-cloud": {
     html: `<box-pill-cloud label="File type"></box-pill-cloud>`,
     setup: root => set(root, "box-pill-cloud", {
@@ -325,6 +340,9 @@ export const examples: Record<string, ComponentExample> = {
   "time-field": { html: `<box-time-field label="Launch time" value="09:30"></box-time-field>` },
   avatar: { html: `<box-avatar name="Morgan Lee"></box-avatar>` },
   persona: { html: `<box-persona name="Morgan Lee" description="Enterprise Admin"></box-persona>` },
+  "contact-datalist-item": {
+    html: `<box-contact-datalist-item name="Morgan Lee" email="morgan@box.com" value="morgan" selected></box-contact-datalist-item>\n<box-contact-datalist-item name="Alex Kim" email="alex@box.com" value="alex"></box-contact-datalist-item>`,
+  },
   "app-shell": { html: `<box-app-shell title="Box Admin"></box-app-shell>` },
   divider: { html: `<box-divider label="Shared with your team"></box-divider>` },
   "split-view": { html: `<box-split-view label="Master detail"></box-split-view>` },

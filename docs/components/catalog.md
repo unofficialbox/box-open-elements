@@ -41,6 +41,7 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 
 - `card` — **built**
 - `carousel` — **built**
+- `datalist-item` — **built**
 - `draggable-list` — **built**
 - `grid-view` — **built**
 - `items` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/items` (`box-explorer-items`); a generic version remains future work*
@@ -71,6 +72,7 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 
 ### Forms
 
+- `category-selector` — **built**
 - `checkbox` — **built**
 - `checkbox-group` — **built**
 - `color-picker` — **built**
@@ -99,6 +101,7 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 ### Identity
 
 - `avatar` — **built**
+- `contact-datalist-item` — **built**
 - `persona` — **built**
 
 ### Layout
@@ -132,7 +135,7 @@ Beyond the 61 carried-over components, these gaps were identified by real compar
 
 - strongest cross-system gaps: `chip`/`tag` (distinct from status-only `badge`), `divider`
 - close seconds: standalone `calendar` grid (sibling to `date-field`), tag/token input field
-- from the box-ui-elements comparison: `category-selector`, `datalist-item`, `contact-datalist-item` (`draggable-list` and `grid-view` now **built** in Collections; `error-mask` and `nudge` in Feedback; `fieldset`, `pill-cloud`, and `pill-selector-dropdown` in Forms; `nav-sidebar`, `section`, and `sidebar-toggle-button` in Layout)
+- from the box-ui-elements comparison: **all built** — `category-selector` (Forms), `datalist-item` (Collections), `contact-datalist-item` (Identity), plus `draggable-list`/`grid-view` (Collections), `error-mask`/`nudge` (Feedback), `fieldset`/`pill-cloud`/`pill-selector-dropdown` (Forms), and `nav-sidebar`/`section`/`sidebar-toggle-button` (Layout)
 
 Re-verify each against actual upstream behavior before building — the comparisons were name-and-concept-level, not behavioral audits.
 
