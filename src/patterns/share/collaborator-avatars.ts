@@ -159,7 +159,7 @@ export class BoxCollaboratorAvatarsElement extends HTMLElement {
           border: 2px solid var(--boe-token-surface-surface, #ffffff);
           border-radius: 999px;
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 72%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 72%, var(--boe-token-text-text, #222222));
           font: inherit;
           font-size: 0.78rem;
           font-weight: 700;
@@ -181,8 +181,8 @@ export class BoxCollaboratorAvatarsElement extends HTMLElement {
         }
 
         [part="overflow"] {
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 82%, white 18%);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 82%, white 18%);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="avatar-image"] {
@@ -192,7 +192,7 @@ export class BoxCollaboratorAvatarsElement extends HTMLElement {
         }
 
         [part="empty"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.86rem;
         }
       </style>

@@ -160,10 +160,10 @@ export class BoxPreviewHeaderElement extends HTMLElement {
           color: inherit;
           font: inherit;
           --_obp-surface: var(--boe-token-surface-surface, #ffffff);
-          --_obp-surface-muted: var(--boe-token-surface-surface-secondary, #f7f9fc);
-          --_obp-border: color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
-          --_obp-border-subtle: color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 64%, transparent);
-          --_obp-text-muted: var(--boe-token-text-text-secondary, #52606d);
+          --_obp-surface-muted: var(--boe-token-surface-surface-secondary, #fbfbfb);
+          --_obp-border: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+          --_obp-border-subtle: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
+          --_obp-text-muted: var(--boe-token-text-text-secondary, #6f6f6f);
           --_obp-brand: var(--boe-token-surface-surface-brand, #0061d5);
           --_obp-brand-soft: color-mix(in srgb, var(--_obp-brand) 12%, white 88%);
         }

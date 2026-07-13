@@ -293,12 +293,12 @@ export class BoxTreeGridElement extends HTMLElement {
           display: inline-grid;
           place-items: center;
           appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 88%, white 12%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, white 12%);
           border-radius: 0.375rem;
           padding: 0;
           line-height: 1;
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, #eef4fb 6%);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           cursor: pointer;
           box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
         }

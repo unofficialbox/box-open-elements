@@ -99,7 +99,7 @@ export class BoxMenuElement extends HTMLElement {
           padding: 0.45rem;
           display: grid;
           gap: 0.2rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 84%, white 16%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, white 16%);
           border-radius: 0.75rem;
           background: var(--boe-token-surface-surface, #ffffff);
           box-shadow: 0 12px 30px color-mix(in srgb, #0b1e33 14%, transparent);
@@ -112,7 +112,7 @@ export class BoxMenuElement extends HTMLElement {
           border: 0;
           border-radius: 0.6rem;
           background: transparent;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           font: inherit;
           font-size: 0.92rem;
           padding: 0.6rem 0.7rem;
@@ -124,12 +124,12 @@ export class BoxMenuElement extends HTMLElement {
         }
 
         [part="menu-item"]:hover:not(:disabled) {
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
           color: var(--boe-token-surface-surface-brand, #0061d5);
         }
 
         [part="menu-item"]:active:not(:disabled) {
-          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #e8f1ff) 64%, white 36%);
+          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, white 36%);
         }
 
         [part="menu-item"]:focus-visible {

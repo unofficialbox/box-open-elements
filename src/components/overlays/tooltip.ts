@@ -99,7 +99,7 @@ export class BoxTooltipElement extends HTMLElement {
           display: inline-grid;
           place-items: center;
           appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 80%, white 20%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 80%, white 20%);
           border-radius: 0.75rem;
           background:
             linear-gradient(
@@ -107,7 +107,7 @@ export class BoxTooltipElement extends HTMLElement {
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, white 8%) 0%,
               color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 14%, var(--boe-token-surface-surface, #ffffff) 86%) 100%
             );
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font: inherit;
           padding: 0;
           cursor: pointer;
@@ -128,7 +128,7 @@ export class BoxTooltipElement extends HTMLElement {
             linear-gradient(
               180deg,
               color-mix(in srgb, #20304d 88%, var(--boe-token-surface-surface-brand, #0061d5) 12%) 0%,
-              #101820 100%
+              #222222 100%
             );
           color: rgba(255, 255, 255, 0.94);
           box-shadow:

@@ -51,10 +51,10 @@ export class BoxAppShellElement extends HTMLElement {
           display: grid;
           grid-template-rows: auto 1fr auto;
           min-height: 100%;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 0.95rem;
           background: var(--boe-token-surface-surface, #ffffff);
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           overflow: hidden;
         }
 
@@ -65,8 +65,8 @@ export class BoxAppShellElement extends HTMLElement {
           justify-content: space-between;
           gap: 0.85rem;
           padding: 0.95rem 1.15rem;
-          border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 68%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
+          border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
         }
 
         [part="header-main"] {
@@ -79,7 +79,7 @@ export class BoxAppShellElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="title"] {
@@ -106,8 +106,8 @@ export class BoxAppShellElement extends HTMLElement {
 
         [part="nav"] {
           padding: 1rem 0.95rem;
-          border-right: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 68%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
+          border-right: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
         }
 
         [part="main"] {
@@ -118,15 +118,15 @@ export class BoxAppShellElement extends HTMLElement {
 
         [part="aside"] {
           padding: 1rem 0.95rem;
-          border-left: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 68%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
+          border-left: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
         }
 
         [part="footer"] {
           padding: 0.75rem 1.15rem;
-          border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 68%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.86rem;
         }
       </style>

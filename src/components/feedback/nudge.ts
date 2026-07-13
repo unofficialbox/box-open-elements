@@ -134,7 +134,7 @@ export class BoxNudgeElement extends HTMLElement {
           border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, white);
           border-radius: 0.8rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 7%, white);
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
         }
 
         [part="icon"] {
@@ -164,7 +164,7 @@ export class BoxNudgeElement extends HTMLElement {
         }
 
         [part="message"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="action"] {
@@ -198,7 +198,7 @@ export class BoxNudgeElement extends HTMLElement {
           border: 0;
           border-radius: 999px;
           background: transparent;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           cursor: pointer;
         }
 

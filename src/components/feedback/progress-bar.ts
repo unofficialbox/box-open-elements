@@ -87,21 +87,21 @@ export class BoxProgressBarElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="value"] {
           font-size: 0.86rem;
           font-weight: 700;
           font-variant-numeric: tabular-nums;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
         }
 
         [part="track"] {
           display: block;
           height: 0.5rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 55%, var(--boe-token-stroke-stroke, #d6e0ea) 45%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 55%, var(--boe-token-stroke-stroke, #e8e8e8) 45%);
           overflow: hidden;
         }
 

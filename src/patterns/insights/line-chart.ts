@@ -311,9 +311,9 @@ export class BoxLineChartElement extends HTMLElement {
           display: grid;
           gap: 0.875rem;
           padding: 0.95rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 96%, white 4%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, white 4%);
         }
 
         [part="header"] {
@@ -350,7 +350,7 @@ export class BoxLineChartElement extends HTMLElement {
         }
 
         [part="message"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.4;
           max-inline-size: 42rem;
         }
@@ -360,7 +360,7 @@ export class BoxLineChartElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="actions"] {
@@ -372,7 +372,7 @@ export class BoxLineChartElement extends HTMLElement {
 
         [part="action"] {
           appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 64%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
           border-radius: 999px;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
@@ -393,7 +393,7 @@ export class BoxLineChartElement extends HTMLElement {
           gap: 0.65rem;
           padding: 0.2rem 0.2rem 0.45rem;
           border-radius: 0.85rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 48%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, #eef4fb 14%);
         }
 
@@ -406,7 +406,7 @@ export class BoxLineChartElement extends HTMLElement {
         }
 
         [part="grid-line"] {
-          stroke: color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 52%, transparent);
+          stroke: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 52%, transparent);
           stroke-width: 0.7;
           stroke-dasharray: 0.85 2;
         }
@@ -456,9 +456,9 @@ export class BoxLineChartElement extends HTMLElement {
           align-items: center;
           gap: 0.45rem;
           padding: 0.45rem 0.7rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 52%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 52%, transparent);
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 90%, white 10%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%, white 10%);
           color: inherit;
           font: inherit;
           text-align: left;
@@ -478,7 +478,7 @@ export class BoxLineChartElement extends HTMLElement {
 
         [part="point-value"] {
           font-size: 0.72rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="legend"] {
@@ -494,7 +494,7 @@ export class BoxLineChartElement extends HTMLElement {
           padding: 0.34rem 0.56rem;
           border-radius: 999px;
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, #eef4fb 14%);
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 48%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
         }
 
         [part="legend-swatch"] {
@@ -519,14 +519,14 @@ export class BoxLineChartElement extends HTMLElement {
 
         [part="legend-value"] {
           font-size: 0.72rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="empty"] {
           padding: 1rem;
           border-radius: 0.9rem;
-          border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 70%, transparent);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
       </style>
       <article part="panel">

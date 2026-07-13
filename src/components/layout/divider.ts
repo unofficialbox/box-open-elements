@@ -95,7 +95,7 @@ export class BoxDividerElement extends HTMLElement {
           flex: 1 1 0%;
           block-size: 1px;
           border: 0;
-          background: var(--boe-token-stroke-stroke, #d6e0ea);
+          background: var(--boe-token-stroke-stroke, #e8e8e8);
         }
 
         :host([orientation="vertical"]) [part~="line"] {
@@ -111,7 +111,7 @@ export class BoxDividerElement extends HTMLElement {
           letter-spacing: 0.08em;
           text-transform: uppercase;
           white-space: nowrap;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
       </style>
       <div

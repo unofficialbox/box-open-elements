@@ -131,7 +131,7 @@ export class BoxToastElement extends HTMLElement {
           padding: 0.72rem 0.95rem;
           border-radius: 0.75rem;
           border-left: 3px solid var(--boe-token-surface-surface-brand, #0061d5);
-          background: var(--boe-token-surface-tooltip-surface, #222a35);
+          background: var(--boe-token-surface-tooltip-surface, #222222);
           color: #ffffff;
           box-shadow: 0 12px 28px rgba(15, 23, 42, 0.28);
         }

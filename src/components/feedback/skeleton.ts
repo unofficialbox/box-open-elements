@@ -52,9 +52,9 @@ export class BoxSkeletonElement extends HTMLElement {
           background:
             linear-gradient(
               90deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 55%, var(--boe-token-stroke-stroke, #d6e0ea) 45%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 88%, white 12%) 50%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 55%, var(--boe-token-stroke-stroke, #d6e0ea) 45%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 55%, var(--boe-token-stroke-stroke, #e8e8e8) 45%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, white 12%) 50%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 55%, var(--boe-token-stroke-stroke, #e8e8e8) 45%) 100%
             );
           background-size: 200% 100%;
           animation: boe-skeleton-shimmer 1.4s ease infinite;

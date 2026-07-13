@@ -190,13 +190,13 @@ export class BoxRatingElement extends HTMLElement {
           align-items: center;
           gap: 0.45rem;
           padding: 0.85rem 0.95rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 90%, white 10%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 84%, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%, white 10%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 84%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
             );
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.82),
@@ -214,7 +214,7 @@ export class BoxRatingElement extends HTMLElement {
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 82%, transparent) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 16%, transparent) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 16%, transparent) 100%
             );
           color: rgba(82, 96, 109, 0.45);
           cursor: pointer;
@@ -231,7 +231,7 @@ export class BoxRatingElement extends HTMLElement {
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, white 86%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #e8f1ff) 74%, white 26%) 100%
+              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 74%, white 26%) 100%
             );
         }
 
@@ -263,7 +263,7 @@ export class BoxRatingElement extends HTMLElement {
 
         [part="value"] {
           font-size: 0.95rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
       </style>
       <div part="field">

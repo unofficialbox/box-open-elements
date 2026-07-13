@@ -107,12 +107,12 @@ export class BoxAvatarElement extends HTMLElement {
           place-items: center;
           overflow: hidden;
           border-radius: 999px;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 76%, white 24%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 76%, white 24%);
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 88%, white 12%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 84%, var(--boe-token-surface-surface-secondary, #f7f9fc) 16%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, white 12%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 84%, var(--boe-token-surface-surface-secondary, #fbfbfb) 16%) 100%
             );
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.8),
@@ -124,7 +124,7 @@ export class BoxAvatarElement extends HTMLElement {
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, white 82%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface-secondary, #f7f9fc) 92%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%) 100%
             );
         }
 
@@ -133,7 +133,7 @@ export class BoxAvatarElement extends HTMLElement {
             linear-gradient(
               180deg,
               color-mix(in srgb, #16a34a 18%, white 82%) 0%,
-              color-mix(in srgb, #16a34a 8%, var(--boe-token-surface-surface-secondary, #f7f9fc) 92%) 100%
+              color-mix(in srgb, #16a34a 8%, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%) 100%
             );
         }
 
@@ -145,7 +145,7 @@ export class BoxAvatarElement extends HTMLElement {
 
         [part="fallback"] {
           font-weight: 700;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           letter-spacing: 0.02em;
         }
       </style>

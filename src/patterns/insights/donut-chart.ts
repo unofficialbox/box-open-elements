@@ -306,9 +306,9 @@ export class BoxDonutChartElement extends HTMLElement {
           display: grid;
           gap: 0.875rem;
           padding: 0.95rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 96%, white 4%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, white 4%);
         }
 
         [part="header"] {
@@ -345,7 +345,7 @@ export class BoxDonutChartElement extends HTMLElement {
         }
 
         [part="message"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.42;
         }
 
@@ -354,7 +354,7 @@ export class BoxDonutChartElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="actions"] {
@@ -366,7 +366,7 @@ export class BoxDonutChartElement extends HTMLElement {
 
         [part="action"] {
           appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 64%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
           border-radius: 999px;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
@@ -388,7 +388,7 @@ export class BoxDonutChartElement extends HTMLElement {
           align-items: center;
           padding: 0.85rem;
           border-radius: 1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 48%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, #eef4fb 12%);
         }
 
@@ -406,7 +406,7 @@ export class BoxDonutChartElement extends HTMLElement {
 
         [part="track"] {
           fill: none;
-          stroke: color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 30%, transparent);
+          stroke: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 30%, transparent);
           stroke-width: 13;
         }
 
@@ -445,7 +445,7 @@ export class BoxDonutChartElement extends HTMLElement {
           gap: 0.55rem;
           align-items: center;
           padding: 0.54rem 0.68rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 48%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
           border-radius: 0.95rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, #eef4fb 10%);
           color: inherit;
@@ -460,7 +460,7 @@ export class BoxDonutChartElement extends HTMLElement {
 
         [part="legend-item"]:hover {
           transform: translateY(-1px);
-          border-color: color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 74%, transparent);
+          border-color: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 74%, transparent);
           box-shadow: 0 10px 18px rgba(15, 23, 42, 0.05);
         }
 
@@ -490,14 +490,14 @@ export class BoxDonutChartElement extends HTMLElement {
 
         [part="legend-value"] {
           font-size: 0.76rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="empty"] {
           padding: 1rem;
           border-radius: 0.9rem;
-          border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 70%, transparent);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         @media (max-width: 720px) {

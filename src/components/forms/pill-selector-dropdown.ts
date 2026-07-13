@@ -270,7 +270,7 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
           align-items: center;
           gap: 0.4rem;
           padding: 0.4rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
         }
@@ -281,8 +281,8 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
           gap: 0.3rem;
           padding: 0.2rem 0.3rem 0.2rem 0.6rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 70%, white 30%);
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 70%, white 30%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           font-size: 0.82rem;
           font-weight: 600;
         }
@@ -298,7 +298,7 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
           border: 0;
           border-radius: 999px;
           background: transparent;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           cursor: pointer;
         }
 
@@ -309,7 +309,7 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
 
         [part="pill-remove"]:hover {
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, transparent);
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
         }
 
         [part="dropdown"] {
@@ -323,10 +323,10 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
           align-items: center;
           gap: 0.3rem;
           padding: 0.3rem 0.6rem;
-          border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 999px;
           background: transparent;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font: inherit;
           font-size: 0.82rem;
           font-weight: 600;
@@ -334,8 +334,8 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
         }
 
         [part="trigger"]:hover {
-          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
-          color: var(--boe-token-text-text, #101820);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+          color: var(--boe-token-text-text, #222222);
         }
 
         [part="trigger"]:focus-visible,
@@ -353,7 +353,7 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
           margin: 0;
           padding: 0.3rem;
           list-style: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 0.6rem;
           background: var(--boe-token-surface-surface, #ffffff);
           box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
@@ -368,19 +368,19 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
           border: 0;
           border-radius: 0.4rem;
           background: transparent;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           font: inherit;
           font-size: 0.85rem;
           cursor: pointer;
         }
 
         [part="option"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
         }
 
         [part="option-empty"] {
           padding: 0.4rem 0.55rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.82rem;
         }
       </style>

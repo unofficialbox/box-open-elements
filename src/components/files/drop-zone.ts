@@ -71,13 +71,13 @@ export class BoxDropZoneElement extends HTMLElement {
           gap: 0.55rem;
           justify-items: start;
           padding: 1.35rem 1.4rem;
-          border: 1.5px dashed color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-stroke-stroke, #d6e0ea) 84%);
+          border: 1.5px dashed color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-stroke-stroke, #e8e8e8) 84%);
           border-radius: 1.2rem;
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 86%, white 14%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #f7f9fc) 8%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 86%, white 14%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 100%
             );
           cursor: pointer;
           transition:
@@ -91,8 +91,8 @@ export class BoxDropZoneElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #e8f1ff) 76%, white 24%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-item-surface-selected, #e8f1ff) 72%, white 18%) 100%
+              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 76%, white 24%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-item-surface-selected, #f2f7fd) 72%, white 18%) 100%
             );
           box-shadow:
             inset 0 0 0 1px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent),
@@ -114,7 +114,7 @@ export class BoxDropZoneElement extends HTMLElement {
         }
 
         [part~="description"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.5;
           max-width: 34ch;
         }

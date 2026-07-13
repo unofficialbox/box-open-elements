@@ -118,9 +118,9 @@ export class BoxAccessStatsElement extends HTMLElement {
         [part="stats"] {
           margin: 0;
           padding: 0.9rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 0.95rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
         }
 
         [part="title"] {
@@ -129,7 +129,7 @@ export class BoxAccessStatsElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="grid"] {
@@ -145,7 +145,7 @@ export class BoxAccessStatsElement extends HTMLElement {
           padding: 0.7rem 0.5rem;
           border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 48%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
           text-align: center;
         }
 
@@ -159,18 +159,18 @@ export class BoxAccessStatsElement extends HTMLElement {
           font-size: 1.35rem;
           font-weight: 700;
           line-height: 1.1;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
         }
 
         [part="tile-label"] {
           font-size: 0.76rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="empty"] {
           padding: 1rem;
           text-align: center;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.9rem;
         }
       </style>

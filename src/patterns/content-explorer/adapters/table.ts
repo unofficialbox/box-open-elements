@@ -134,7 +134,7 @@ export class BoxExplorerTableElement extends HTMLElement {
         }
 
         [part="table-shell"] {
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 84%, white 16%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, white 16%);
           border-radius: 0.95rem;
           background: var(--boe-token-surface-surface, #ffffff);
           box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -149,11 +149,11 @@ export class BoxExplorerTableElement extends HTMLElement {
           width: 100%;
           border-collapse: collapse;
           font-size: 0.92rem;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
         }
 
         [part="header-row"] {
-          background: var(--boe-token-surface-surface-secondary, #f7f9fc);
+          background: var(--boe-token-surface-surface-secondary, #fbfbfb);
         }
 
         [part="header-row"] th {
@@ -163,8 +163,8 @@ export class BoxExplorerTableElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
-          border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 84%, white 16%);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
+          border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, white 16%);
           white-space: nowrap;
         }
 
@@ -179,7 +179,7 @@ export class BoxExplorerTableElement extends HTMLElement {
 
         [part="row"] td {
           padding: 0.45rem 0.8rem;
-          border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 55%, transparent);
+          border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 55%, transparent);
         }
 
         tbody tr:last-child td {
@@ -191,12 +191,12 @@ export class BoxExplorerTableElement extends HTMLElement {
         }
 
         [part="row"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
         }
 
         [part="row"][aria-selected="true"],
         [part="row"][aria-selected="true"]:hover {
-          background: var(--boe-token-surface-item-surface-selected, #e8f1ff);
+          background: var(--boe-token-surface-item-surface-selected, #f2f7fd);
         }
 
         [part="selection"] {
@@ -221,7 +221,7 @@ export class BoxExplorerTableElement extends HTMLElement {
           padding: 0.35rem 0.5rem;
           border-radius: 0.6rem;
           background: transparent;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           font: inherit;
           font-size: 0.94rem;
           font-weight: 500;
@@ -248,14 +248,14 @@ export class BoxExplorerTableElement extends HTMLElement {
         }
 
         [part="type-cell"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.85rem;
           text-transform: capitalize;
         }
 
         [part="empty"] {
           padding: 0.9rem 0.8rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.9rem;
         }
 
@@ -263,7 +263,7 @@ export class BoxExplorerTableElement extends HTMLElement {
           display: flex;
           justify-content: center;
           padding: 0.5rem 0.6rem 0.7rem;
-          border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 55%, transparent);
+          border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 55%, transparent);
         }
 
         [part="load-more"] {
@@ -272,10 +272,10 @@ export class BoxExplorerTableElement extends HTMLElement {
           font-size: 0.88rem;
           font-weight: 500;
           padding: 0.42rem 0.9rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 86%, white 14%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, white 14%);
           border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           cursor: pointer;
           transition:
             border-color 140ms ease,
@@ -284,8 +284,8 @@ export class BoxExplorerTableElement extends HTMLElement {
         }
 
         [part="load-more"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
-          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
         }
 
         [part="load-more"]:focus-visible {

@@ -140,7 +140,7 @@ export class BoxExplorerListElement extends HTMLElement {
         }
 
         [part="list-shell"] {
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 84%, white 16%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, white 16%);
           border-radius: 0.95rem;
           background: var(--boe-token-surface-surface, #ffffff);
           box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -169,12 +169,12 @@ export class BoxExplorerListElement extends HTMLElement {
         }
 
         [part~="item-row"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
         }
 
         [part~="item-row-selected"],
         [part~="item-row-selected"]:hover {
-          background: var(--boe-token-surface-item-surface-selected, #e8f1ff);
+          background: var(--boe-token-surface-item-surface-selected, #f2f7fd);
         }
 
         [part~="item"] {
@@ -187,7 +187,7 @@ export class BoxExplorerListElement extends HTMLElement {
           padding: 0.55rem 0.6rem;
           border-radius: 0.6rem;
           background: transparent;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           font: inherit;
           font-size: 0.94rem;
           font-weight: 500;
@@ -224,12 +224,12 @@ export class BoxExplorerListElement extends HTMLElement {
 
         [part~="item-action"] {
           appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 86%, white 14%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, white 14%);
           border-radius: 0.6rem;
           margin: 0;
           padding: 0.3rem 0.6rem;
           background: var(--boe-token-surface-surface, #ffffff);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font: inherit;
           font-size: 0.82rem;
           font-weight: 500;
@@ -242,9 +242,9 @@ export class BoxExplorerListElement extends HTMLElement {
         }
 
         [part~="item-action"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
-          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
-          color: var(--boe-token-text-text, #101820);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+          color: var(--boe-token-text-text, #222222);
         }
 
         [part~="item-action"]:focus-visible {
@@ -258,7 +258,7 @@ export class BoxExplorerListElement extends HTMLElement {
 
         [part="empty"] {
           padding: 0.9rem 0.8rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.9rem;
         }
 
@@ -266,7 +266,7 @@ export class BoxExplorerListElement extends HTMLElement {
           display: flex;
           justify-content: center;
           padding: 0.5rem 0.6rem 0.7rem;
-          border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 55%, transparent);
+          border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 55%, transparent);
         }
 
         [part="load-more"] {
@@ -275,10 +275,10 @@ export class BoxExplorerListElement extends HTMLElement {
           font-size: 0.88rem;
           font-weight: 500;
           padding: 0.42rem 0.9rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 86%, white 14%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, white 14%);
           border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           cursor: pointer;
           transition:
             border-color 140ms ease,
@@ -287,8 +287,8 @@ export class BoxExplorerListElement extends HTMLElement {
         }
 
         [part="load-more"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
-          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
         }
 
         [part="load-more"]:focus-visible {

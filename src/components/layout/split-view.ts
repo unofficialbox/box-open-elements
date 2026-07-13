@@ -95,7 +95,7 @@ export class BoxSplitViewElement extends HTMLElement {
           content: "";
           width: 1px;
           height: 100%;
-          background: color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          background: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
         }
       </style>
       <section part="split-view" aria-label="${escapeHtml(this.label)}">

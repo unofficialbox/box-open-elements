@@ -71,13 +71,13 @@ export class BoxCardElement extends HTMLElement {
           display: grid;
           gap: 0.9rem;
           padding: 1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, white 18%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, white 18%);
           border-radius: 1.1rem;
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 88%, white 12%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, var(--boe-token-surface-surface-secondary, #f7f9fc) 14%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, white 12%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%) 100%
             );
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.82),
@@ -105,7 +105,7 @@ export class BoxCardElement extends HTMLElement {
         }
 
         [part="body"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.55;
         }
       </style>

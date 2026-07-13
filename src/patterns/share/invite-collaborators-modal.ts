@@ -181,7 +181,7 @@ export class BoxInviteCollaboratorsModalElement extends HTMLElement {
           padding: 1.25rem;
           border-radius: 1rem;
           background: var(--boe-token-surface-surface, #ffffff);
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
         }
 
@@ -194,7 +194,7 @@ export class BoxInviteCollaboratorsModalElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.06em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="recipients"] {
@@ -202,7 +202,7 @@ export class BoxInviteCollaboratorsModalElement extends HTMLElement {
           flex-wrap: wrap;
           gap: 0.35rem;
           padding: 0.4rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 0.6rem;
         }
 
@@ -212,8 +212,8 @@ export class BoxInviteCollaboratorsModalElement extends HTMLElement {
           gap: 0.3rem;
           padding: 0.2rem 0.3rem 0.2rem 0.55rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 70%, white 30%);
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 70%, white 30%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           font-size: 0.8rem;
           font-weight: 600;
         }
@@ -228,7 +228,7 @@ export class BoxInviteCollaboratorsModalElement extends HTMLElement {
           border: 0;
           border-radius: 999px;
           background: transparent;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           cursor: pointer;
         }
 
@@ -249,7 +249,7 @@ export class BoxInviteCollaboratorsModalElement extends HTMLElement {
           inline-size: 100%;
           box-sizing: border-box;
           padding: 0.55rem 0.65rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 0.6rem;
           background: var(--boe-token-surface-surface, #ffffff);
           font: inherit;
@@ -284,7 +284,7 @@ export class BoxInviteCollaboratorsModalElement extends HTMLElement {
         }
 
         [part="cancel"] {
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
         }

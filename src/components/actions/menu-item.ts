@@ -86,7 +86,7 @@ export class BoxMenuItemElement extends HTMLElement {
           border: 0;
           border-radius: 0.6rem;
           background: transparent;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           font: inherit;
           font-size: 0.92rem;
           padding: 0.6rem 0.7rem;
@@ -98,13 +98,13 @@ export class BoxMenuItemElement extends HTMLElement {
         }
 
         [part="item"]:hover:not(:disabled) {
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
           color: var(--boe-token-surface-surface-brand, #0061d5);
         }
 
         [part="item"][data-selected="true"] {
-          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #e8f1ff) 64%, white 36%);
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 80%, var(--boe-token-text-text, #101820) 20%);
+          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, white 36%);
+          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 80%, var(--boe-token-text-text, #222222) 20%);
           font-weight: 600;
         }
 

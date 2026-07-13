@@ -134,13 +134,13 @@ export class BoxCarouselElement extends HTMLElement {
           display: grid;
           gap: 1rem;
           padding: 1.15rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 84%, white 16%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, white 16%);
           border-radius: 1.2rem;
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 90%, white 10%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 84%, var(--boe-token-surface-surface-secondary, #f7f9fc) 16%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%, white 10%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 84%, var(--boe-token-surface-surface-secondary, #fbfbfb) 16%) 100%
             );
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.82),
@@ -172,8 +172,8 @@ export class BoxCarouselElement extends HTMLElement {
             linear-gradient(
               145deg,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 28%, white 72%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-surface-surface-secondary, #f7f9fc) 84%) 44%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 78%, white 22%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-surface-surface-secondary, #fbfbfb) 84%) 44%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 78%, white 22%) 100%
             );
           border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
           box-shadow:
@@ -187,13 +187,13 @@ export class BoxCarouselElement extends HTMLElement {
           gap: 0.8rem;
           align-content: center;
           padding: 1rem 1.05rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-stroke-stroke, #d6e0ea) 90%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-stroke-stroke, #e8e8e8) 90%);
           border-radius: 1.05rem;
           background:
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, white 10%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface-secondary, #f7f9fc) 14%, var(--boe-token-surface-surface, #ffffff) 82%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%, var(--boe-token-surface-surface, #ffffff) 82%) 100%
             );
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.8),
@@ -216,7 +216,7 @@ export class BoxCarouselElement extends HTMLElement {
         }
 
         [part="description"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.58;
           max-width: 44ch;
         }
@@ -238,15 +238,15 @@ export class BoxCarouselElement extends HTMLElement {
         [part="next"] {
           inline-size: 2.45rem;
           block-size: 2.45rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 76%, white 24%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 76%, white 24%);
           border-radius: 0.95rem;
           background:
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, white 8%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 14%, var(--boe-token-surface-surface, #ffffff) 86%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%, var(--boe-token-surface-surface, #ffffff) 86%) 100%
             );
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font: inherit;
           cursor: pointer;
           box-shadow:
@@ -275,22 +275,22 @@ export class BoxCarouselElement extends HTMLElement {
           flex-wrap: wrap;
           gap: 0.55rem;
           padding: 0.35rem 0.45rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 70%, white 30%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, white 30%);
           border-radius: 999px;
           background:
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, white 8%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 3%, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%, var(--boe-token-surface-surface, #ffffff) 85%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 3%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 85%) 100%
             );
         }
 
         [part~="dot"] {
           inline-size: 0.74rem;
           block-size: 0.72rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 72%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 72%, transparent);
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, var(--boe-token-surface-surface-secondary, #f7f9fc) 10%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, var(--boe-token-surface-surface-secondary, #fbfbfb) 10%);
           cursor: pointer;
           transition: inline-size 140ms ease, background 140ms ease, border-color 140ms ease;
         }

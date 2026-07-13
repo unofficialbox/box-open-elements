@@ -145,15 +145,15 @@ export class BoxButtonGroupElement extends HTMLElement {
           font-weight: 600;
           line-height: 1.2;
           padding: 0.55em 1.1em;
-          border: 1px solid var(--boe-token-stroke-stroke, #d6e0ea);
+          border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
           border-radius: 0.75rem;
           background:
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, white 6%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
             );
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           cursor: pointer;
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.82),
@@ -189,19 +189,19 @@ export class BoxButtonGroupElement extends HTMLElement {
         }
 
         [part="button"]:not([data-selected="true"]):hover {
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
-          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
         }
 
         [part="button"][data-selected="true"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, var(--boe-token-stroke-stroke, #d6e0ea) 78%);
+          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, var(--boe-token-stroke-stroke, #e8e8e8) 78%);
           background:
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, white 92%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #e8f1ff) 60%, white 40%) 100%
+              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 60%, white 40%) 100%
             );
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 80%, var(--boe-token-text-text, #101820) 20%);
+          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 80%, var(--boe-token-text-text, #222222) 20%);
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.82),
             0 6px 12px rgba(15, 23, 42, 0.035);

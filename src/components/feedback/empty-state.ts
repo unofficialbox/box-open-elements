@@ -80,21 +80,21 @@ export class BoxEmptyStateElement extends HTMLElement {
           justify-items: center;
           gap: 0.55rem;
           padding: 2rem 1.5rem;
-          border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 0.95rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
           text-align: center;
         }
 
         [part="title"] {
           font-size: 1.05rem;
           font-weight: 700;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
         }
 
         [part~="message"] {
           max-width: 32rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.5;
         }
 

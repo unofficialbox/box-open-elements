@@ -150,10 +150,10 @@ export class BoxDraggableListElement extends HTMLElement {
           align-items: center;
           gap: 0.65rem;
           padding: 0.55rem 0.7rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
         }
 
         [part="item"][data-dragging="true"] {
@@ -175,7 +175,7 @@ export class BoxDraggableListElement extends HTMLElement {
           border: 0;
           border-radius: 0.4rem;
           background: transparent;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           cursor: grab;
         }
 

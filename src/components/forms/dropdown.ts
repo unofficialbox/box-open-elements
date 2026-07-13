@@ -127,17 +127,17 @@ export class BoxDropdownElement extends HTMLElement {
         [part="trigger"] {
           appearance: none;
           font: inherit;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           text-align: left;
           padding: 0.6rem 2.35rem 0.6rem 0.85rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 78%, white 22%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, white 22%);
           border-radius: 0.7rem;
           background:
             url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%2352606d' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.85rem center / 12px 8px,
             linear-gradient(
               180deg,
               var(--boe-token-surface-surface, #ffffff) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
             );
           cursor: pointer;
           transition:
@@ -147,7 +147,7 @@ export class BoxDropdownElement extends HTMLElement {
         }
 
         [part="trigger"]:hover:not(:disabled) {
-          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
         }
 
         [part="trigger"]:focus-visible {
@@ -174,7 +174,7 @@ export class BoxDropdownElement extends HTMLElement {
           display: grid;
           gap: 0.15rem;
           padding: 0.35rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 78%, white 22%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, white 22%);
           border-radius: 0.75rem;
           background: var(--boe-token-surface-surface, #ffffff);
           box-shadow: 0 12px 30px color-mix(in srgb, #0b1e33 14%, transparent);
@@ -185,7 +185,7 @@ export class BoxDropdownElement extends HTMLElement {
           border: none;
           font: inherit;
           font-weight: 500;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           text-align: left;
           white-space: nowrap;
           padding: 0.55rem 0.7rem;
@@ -198,7 +198,7 @@ export class BoxDropdownElement extends HTMLElement {
         }
 
         [part="item"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
         }
 
         [part="item"]:focus-visible {
@@ -207,7 +207,7 @@ export class BoxDropdownElement extends HTMLElement {
         }
 
         [part="item"][data-selected="true"] {
-          background: var(--boe-token-surface-item-surface-selected, #e8f1ff);
+          background: var(--boe-token-surface-item-surface-selected, #f2f7fd);
           color: var(--boe-token-surface-surface-brand, #0061d5);
         }
       </style>

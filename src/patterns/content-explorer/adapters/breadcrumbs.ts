@@ -110,7 +110,7 @@ export class BoxExplorerBreadcrumbsElement extends HTMLElement {
           padding: 0.3rem 0.55rem;
           border-radius: 999px;
           background: transparent;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font: inherit;
           font-size: 0.92rem;
           font-weight: 500;
@@ -137,18 +137,18 @@ export class BoxExplorerBreadcrumbsElement extends HTMLElement {
         }
 
         [part="breadcrumb"]:last-of-type {
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           font-weight: 600;
         }
 
         [part="separator"] {
-          color: color-mix(in srgb, var(--boe-token-text-text-secondary, #52606d) 55%, transparent);
+          color: color-mix(in srgb, var(--boe-token-text-text-secondary, #6f6f6f) 55%, transparent);
           font-size: 0.85rem;
           user-select: none;
         }
 
         [part="empty"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.9rem;
         }
       </style>

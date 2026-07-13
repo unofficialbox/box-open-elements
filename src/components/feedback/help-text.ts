@@ -100,7 +100,7 @@ export class BoxHelpTextElement extends HTMLElement {
           gap: 0.45rem;
           font-size: 0.86rem;
           line-height: 1.45;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="icon"] {
@@ -127,29 +127,29 @@ export class BoxHelpTextElement extends HTMLElement {
 
         [part="help-text"][data-tone="success"] [part="icon"] {
           background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 14%, white 86%);
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 68%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 68%, var(--boe-token-text-text, #222222));
         }
 
         [part="help-text"][data-tone="error"] [part="icon"] {
           background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 12%, white 88%);
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 74%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 74%, var(--boe-token-text-text, #222222));
         }
 
         [part="help-text"][data-tone="warning"] [part="icon"] {
           background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 18%, white 82%);
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 52%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 52%, var(--boe-token-text-text, #222222));
         }
 
         [part="help-text"][data-tone="error"] {
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 68%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 68%, var(--boe-token-text-text, #222222));
         }
 
         [part="help-text"][data-tone="success"] {
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 56%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 56%, var(--boe-token-text-text, #222222));
         }
 
         [part="help-text"][data-tone="warning"] {
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 44%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 44%, var(--boe-token-text-text, #222222));
         }
 
         [part="content"] {
@@ -159,7 +159,7 @@ export class BoxHelpTextElement extends HTMLElement {
 
         [part="label"] {
           font-weight: 700;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
         }
       </style>
       <div part="help-text" data-tone="${escapeHtml(this.tone)}" role="note" aria-label="${escapeHtml(this.label || "Help text")}">

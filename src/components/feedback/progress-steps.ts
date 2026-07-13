@@ -138,7 +138,7 @@ export class BoxProgressStepsElement extends HTMLElement {
           width: 100%;
           text-align: left;
           padding: 0.7rem 0.8rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 56%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 56%, transparent);
           border-radius: 0.95rem;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
@@ -148,7 +148,7 @@ export class BoxProgressStepsElement extends HTMLElement {
         }
 
         [part="step"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
         }
 
         [part="step"]:focus-visible {
@@ -158,7 +158,7 @@ export class BoxProgressStepsElement extends HTMLElement {
 
         [part="step"][data-state="current"] {
           border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          background: var(--boe-token-surface-item-surface-selected, #e8f1ff);
+          background: var(--boe-token-surface-item-surface-selected, #f2f7fd);
         }
 
         [part="marker"] {
@@ -169,9 +169,9 @@ export class BoxProgressStepsElement extends HTMLElement {
           width: 1.6rem;
           height: 1.6rem;
           border-radius: 999px;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.78rem;
           font-weight: 700;
           font-variant-numeric: tabular-nums;
@@ -181,7 +181,7 @@ export class BoxProgressStepsElement extends HTMLElement {
         [part="step"][data-state="complete"] [part="marker"] {
           border-color: transparent;
           background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 16%, white 84%);
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 62%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 62%, var(--boe-token-text-text, #222222));
         }
 
         [part="step"][data-state="current"] [part="marker"] {
@@ -198,16 +198,16 @@ export class BoxProgressStepsElement extends HTMLElement {
 
         [part="step-label"] {
           font-weight: 700;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
         }
 
         [part="step"][data-state="upcoming"] [part="step-label"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="step-description"] {
           font-size: 0.86rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.45;
         }
       </style>

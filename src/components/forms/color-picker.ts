@@ -157,7 +157,7 @@ export class BoxColorPickerElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="control"] {
@@ -165,13 +165,13 @@ export class BoxColorPickerElement extends HTMLElement {
           align-items: center;
           gap: 0.7rem;
           padding: 0.45rem 0.7rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 78%, white 22%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, white 22%);
           border-radius: 0.7rem;
           background:
             linear-gradient(
               180deg,
               var(--boe-token-surface-surface, #ffffff) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 42%, var(--boe-token-surface-surface, #ffffff) 58%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 42%, var(--boe-token-surface-surface, #ffffff) 58%) 100%
             );
           transition: border-color 140ms ease, box-shadow 140ms ease;
         }
@@ -185,7 +185,7 @@ export class BoxColorPickerElement extends HTMLElement {
           width: 2.1rem;
           height: 2.1rem;
           padding: 0;
-          border: 1px solid var(--boe-token-stroke-stroke, #d6e0ea);
+          border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
           border-radius: 0.55rem;
           background: transparent;
           cursor: pointer;
@@ -199,7 +199,7 @@ export class BoxColorPickerElement extends HTMLElement {
         [part="value"] {
           font-size: 0.9rem;
           font-variant-numeric: tabular-nums;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="swatches"] {
@@ -213,7 +213,7 @@ export class BoxColorPickerElement extends HTMLElement {
           width: 1.7rem;
           height: 1.7rem;
           padding: 0;
-          border: 2px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 70%, transparent);
+          border: 2px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
           border-radius: 999px;
           background: var(--swatch-color, #ffffff);
           cursor: pointer;
@@ -222,7 +222,7 @@ export class BoxColorPickerElement extends HTMLElement {
 
         [part="swatch"]:hover:not(:disabled) {
           transform: scale(1.08);
-          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
         }
 
         [part="swatch"][aria-pressed="true"] {

@@ -195,9 +195,9 @@ export class BoxAnnotationThreadElement extends HTMLElement {
           display: grid;
           gap: 1rem;
           padding: 1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
         }
 
         [part="header"] {
@@ -212,7 +212,7 @@ export class BoxAnnotationThreadElement extends HTMLElement {
         }
 
         [part="message"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.5;
         }
 
@@ -228,7 +228,7 @@ export class BoxAnnotationThreadElement extends HTMLElement {
           gap: 0.72rem;
           align-items: start;
           padding: 0.8rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 48%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
           border-radius: 1rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 78%, transparent);
           color: inherit;
@@ -243,7 +243,7 @@ export class BoxAnnotationThreadElement extends HTMLElement {
 
         [part="entry"]:hover {
           transform: translateY(-1px);
-          border-color: color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 74%, transparent);
+          border-color: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 74%, transparent);
           box-shadow: 0 10px 18px rgba(15, 23, 42, 0.05);
         }
 
@@ -295,7 +295,7 @@ export class BoxAnnotationThreadElement extends HTMLElement {
           padding: 0.18rem 0.42rem;
           border-radius: 999px;
           background: var(--boe-token-surface-item-surface-selected, #f2f7fd);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.75rem;
         }
 
@@ -305,7 +305,7 @@ export class BoxAnnotationThreadElement extends HTMLElement {
         }
 
         [part="entry-time"] {
-          color: color-mix(in srgb, var(--boe-token-text-text-secondary, #52606d) 86%, transparent);
+          color: color-mix(in srgb, var(--boe-token-text-text-secondary, #6f6f6f) 86%, transparent);
           font-size: 0.78rem;
         }
 
@@ -319,7 +319,7 @@ export class BoxAnnotationThreadElement extends HTMLElement {
           appearance: none;
           min-height: 2rem;
           padding: 0.35rem 0.72rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 60%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 60%, transparent);
           border-radius: 999px;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
@@ -336,8 +336,8 @@ export class BoxAnnotationThreadElement extends HTMLElement {
         [part="empty"] {
           padding: 1rem;
           border-radius: 0.9rem;
-          border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 70%, transparent);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
       </style>
       <article part="thread">

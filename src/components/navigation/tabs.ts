@@ -140,28 +140,28 @@ export class BoxTabsElement extends HTMLElement {
         [part="tabs"][data-layout="attached"] {
           gap: 0;
           padding: 0.125rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 84%, white 16%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, white 16%);
           border-radius: 999px;
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 88%, white 12%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 2%, var(--boe-token-surface-surface-secondary, #f7f9fc) 86%, white 12%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, white 12%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 2%, var(--boe-token-surface-surface-secondary, #fbfbfb) 86%, white 12%) 100%
             );
           box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
         }
 
         [part="tab"] {
           appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 84%, white 16%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, white 16%);
           border-radius: 999px;
           background:
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, white 6%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 10%, var(--boe-token-surface-surface, #ffffff) 90%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 10%, var(--boe-token-surface-surface, #ffffff) 90%) 100%
             );
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           font: inherit;
           min-height: 2.125rem;
           padding: 0.1875rem 0.75rem;
@@ -197,21 +197,21 @@ export class BoxTabsElement extends HTMLElement {
         }
 
         [part="tab"][data-selected="true"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, var(--boe-token-stroke-stroke, #d6e0ea) 86%);
+          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, var(--boe-token-stroke-stroke, #e8e8e8) 86%);
           background:
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, white 92%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #e8f1ff) 42%, white 58%) 100%
+              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 42%, white 58%) 100%
             );
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 78%, var(--boe-token-text-text, #101820) 22%);
+          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 78%, var(--boe-token-text-text, #222222) 22%);
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.82),
             0 6px 12px rgba(15, 23, 42, 0.035);
         }
 
         [part="tab"]:not([data-selected="true"]):hover {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-stroke-stroke, #d6e0ea) 90%);
+          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-stroke-stroke, #e8e8e8) 90%);
           background:
             linear-gradient(
               180deg,

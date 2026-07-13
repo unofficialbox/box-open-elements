@@ -207,9 +207,9 @@ export class BoxGovernancePanelElement extends HTMLElement {
           display: grid;
           gap: 1rem;
           padding: 1.1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
         }
 
         [part="header"] {
@@ -231,7 +231,7 @@ export class BoxGovernancePanelElement extends HTMLElement {
         }
 
         [part="message"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.55;
         }
 
@@ -284,7 +284,7 @@ export class BoxGovernancePanelElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="policy-list"] {
@@ -297,7 +297,7 @@ export class BoxGovernancePanelElement extends HTMLElement {
           display: grid;
           gap: 0.4rem;
           text-align: left;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 56%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 56%, transparent);
           border-radius: 0.9rem;
           padding: 0.85rem 0.9rem;
           background: var(--boe-token-surface-surface, #ffffff);
@@ -330,7 +330,7 @@ export class BoxGovernancePanelElement extends HTMLElement {
         }
 
         [part="policy-description"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.45;
         }
 
@@ -342,7 +342,7 @@ export class BoxGovernancePanelElement extends HTMLElement {
 
         [part="action"] {
           appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 64%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
           border-radius: 999px;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;

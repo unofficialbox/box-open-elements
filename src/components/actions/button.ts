@@ -46,14 +46,14 @@ const buttonStyles = `
   }
 
   button:hover:not(:disabled) {
-    background: var(--boe-token-surface-surface-brand-hover, #006ae9);
+    background: var(--boe-token-surface-surface-brand-hover, #0057c0);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.2),
       0 6px 14px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, transparent);
   }
 
   button:active:not(:disabled) {
-    background: var(--boe-token-surface-surface-brand-pressed, #004eac);
+    background: var(--boe-token-surface-surface-brand-pressed, #004eaa);
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
   }
 
@@ -67,10 +67,10 @@ const buttonStyles = `
       linear-gradient(
         180deg,
         color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, white 6%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
+        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
       );
-    color: var(--boe-token-text-text, #101820);
-    border-color: var(--boe-token-stroke-stroke, #d6e0ea);
+    color: var(--boe-token-text-text, #222222);
+    border-color: var(--boe-token-stroke-stroke, #e8e8e8);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.82),
       0 1px 2px rgba(15, 23, 42, 0.04);
@@ -78,8 +78,8 @@ const buttonStyles = `
 
   button[data-tone="neutral"]:hover:not(:disabled),
   button[data-tone="neutral"]:active:not(:disabled) {
-    background: var(--boe-token-surface-surface-hover, #f5f8fc);
-    border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
   }
 
   button[data-tone="neutral"]:focus-visible {

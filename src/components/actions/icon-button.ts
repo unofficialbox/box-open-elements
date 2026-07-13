@@ -100,15 +100,15 @@ export class BoxIconButtonElement extends HTMLElement {
           place-items: center;
           padding: 0;
           font: inherit;
-          border: 1px solid var(--boe-token-stroke-stroke, #d6e0ea);
+          border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
           border-radius: 0.75rem;
           background:
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, white 6%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
             );
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           cursor: pointer;
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.82),
@@ -121,13 +121,13 @@ export class BoxIconButtonElement extends HTMLElement {
         }
 
         [part="button"]:hover:not(:disabled) {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 28%, var(--boe-token-stroke-stroke, #d6e0ea) 72%);
+          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 28%, var(--boe-token-stroke-stroke, #e8e8e8) 72%);
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
         }
 
         [part="button"]:active:not(:disabled) {
-          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #e8f1ff) 70%, white 30%);
+          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 70%, white 30%);
         }
 
         [part="button"][data-tone="primary"] {
@@ -142,12 +142,12 @@ export class BoxIconButtonElement extends HTMLElement {
         }
 
         [part="button"][data-tone="primary"]:hover:not(:disabled) {
-          background: var(--boe-token-surface-surface-brand-hover, #006ae9);
+          background: var(--boe-token-surface-surface-brand-hover, #0057c0);
           color: var(--boe-token-text-text-on-brand, #ffffff);
         }
 
         [part="button"][data-tone="primary"]:active:not(:disabled) {
-          background: var(--boe-token-surface-surface-brand-pressed, #004eac);
+          background: var(--boe-token-surface-surface-brand-pressed, #004eaa);
         }
 
         [part="button"][data-tone="danger"] {
