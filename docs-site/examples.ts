@@ -7,6 +7,7 @@
 import {
   ContentExplorerController,
   type ExplorerTransport,
+  type InviteCollaboratorsTransport,
   type PresenceTransport,
   type PresenceUser,
 } from "box-open-elements";
@@ -516,6 +517,28 @@ export const examples: Record<string, ComponentExample> = {
         { id: "6", name: "Casey Ng" },
       ],
     }),
+  },
+  "invite-collaborators-modal": {
+    html: `<box-button label="Invite people" tone="primary"></box-button>\n<box-invite-collaborators-modal item-id="42"></box-invite-collaborators-modal>`,
+    setup: root => {
+      const modal = root.querySelector("box-invite-collaborators-modal") as
+        | (HTMLElement & { transport: InviteCollaboratorsTransport; open: boolean })
+        | null;
+      if (modal) {
+        // A mock transport that echoes the recipients back as invited.
+        modal.transport = {
+          async sendInvites(input) {
+            return { invited: input.recipients };
+          },
+        };
+      }
+      root.querySelector("box-button")?.addEventListener("click", () => {
+        if (modal) {
+          modal.open = true;
+        }
+      });
+    },
+    note: "Click the button to open. Set a `transport` + `item-id`; the modal owns an InviteCollaboratorsController.",
   },
   presence: {
     html: `<box-presence label="Who's here" max="4"></box-presence>`,
