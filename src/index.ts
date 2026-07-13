@@ -42,6 +42,7 @@ export * from "./components/actions/menu-item.js";
 // Components: collections
 export * from "./components/collections/card.js";
 export * from "./components/collections/carousel.js";
+export * from "./components/collections/datalist-item.js";
 export * from "./components/collections/draggable-list.js";
 export * from "./components/collections/grid-view.js";
 export * from "./components/collections/pagination.js";
@@ -92,6 +93,7 @@ export * from "./components/forms/spin-button.js";
 export * from "./components/forms/switch.js";
 export * from "./components/forms/tag-input.js";
 export * from "./components/forms/time-field.js";
+export * from "./components/forms/category-selector.js";
 export * from "./components/forms/checkbox-group.js";
 export * from "./components/forms/combobox.js";
 export * from "./components/forms/fieldset.js";
