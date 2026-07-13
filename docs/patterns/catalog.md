@@ -91,6 +91,8 @@ Headless blocks (see [content-explorer.md](./content-explorer.md) for the compos
 
 ### Share (compositions + contracts)
 
+- `access-stats` — **built**
+- `collaborator-avatars` — **built**
 - `permission-matrix` — **built**
 - `share-panel` — **built**
 - `contracts` (`ShareDataSource`, shared links, collaborators) — **built**
@@ -120,7 +122,7 @@ Headless blocks (see [content-explorer.md](./content-explorer.md) for the compos
 
 From the upstream `box/box-ui-elements` comparison (see [../research/upstream-gaps.md](../research/upstream-gaps.md)):
 
-- **Compositions**: `access-stats` (data-injected statistics display), `collaborator-avatars` (stacked avatar group)
+- **Compositions**: `access-stats`, `collaborator-avatars` — **both built** in the Share section above
 - **Workflows**: `invite-collaborators-modal` (multi-step, transport-aware), `unified-share-modal` (Box's most orchestration-heavy share surface), `presence` (live data subscription)
 - Cross-system candidates: coach mark / product tour (sequenced multi-anchor onboarding), timeline / activity feed
 

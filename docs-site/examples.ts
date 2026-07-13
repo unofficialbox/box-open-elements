@@ -499,6 +499,29 @@ export const examples: Record<string, ComponentExample> = {
     }),
   },
   "permission-matrix": { html: `<box-permission-matrix title="Permissions"></box-permission-matrix>` },
+  "collaborator-avatars": {
+    html: `<box-collaborator-avatars label="Collaborators" max="4"></box-collaborator-avatars>`,
+    setup: root => set(root, "box-collaborator-avatars", {
+      collaborators: [
+        { id: "1", name: "Morgan Lee" },
+        { id: "2", name: "Alex Kim" },
+        { id: "3", name: "Sam Patel" },
+        { id: "4", name: "Jordan Rivera" },
+        { id: "5", name: "Robin Cho" },
+        { id: "6", name: "Casey Ng" },
+      ],
+    }),
+  },
+  "access-stats": {
+    html: `<box-access-stats label="Shared link activity"></box-access-stats>`,
+    setup: root => set(root, "box-access-stats", {
+      stats: [
+        { label: "Views", value: 1280, icon: "👁" },
+        { label: "Downloads", value: 96, icon: "⬇" },
+        { label: "Comments", value: 7, icon: "💬" },
+      ],
+    }),
+  },
   "annotation-toolbar": {
     html: `<box-annotation-toolbar label="Annotate"></box-annotation-toolbar>`,
     setup: root => set(root, "box-annotation-toolbar", {
