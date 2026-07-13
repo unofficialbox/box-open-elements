@@ -157,6 +157,23 @@ describe("BoxUnifiedShareModalElement", () => {
     expect(onCopied).not.toHaveBeenCalled();
   });
 
+  it("does not emit linkcopied when navigator.clipboard is unavailable", async () => {
+    const original = navigator.clipboard;
+    Object.defineProperty(navigator, "clipboard", { value: undefined, configurable: true });
+    try {
+      const element = await openModal();
+      const onCopied = vi.fn();
+      element.addEventListener("linkcopied", onCopied);
+
+      (element.shadowRoot?.querySelector('[part="copy"]') as HTMLButtonElement).click();
+      await Promise.resolve();
+
+      expect(onCopied).not.toHaveBeenCalled();
+    } finally {
+      Object.defineProperty(navigator, "clipboard", { value: original, configurable: true });
+    }
+  });
+
   it("keeps focus on the access select while it updates", async () => {
     const element = await openModal();
     const access = element.shadowRoot?.querySelector('[part="access"]') as HTMLSelectElement;
