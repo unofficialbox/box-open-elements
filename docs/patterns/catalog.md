@@ -32,7 +32,7 @@ src/patterns/
   search/             # target
   item/             # built — item-form, item-details-panel, bulk-action-bar, preview-header
   metadata/           # built — contracts, schemas, metadata-filter-builder, metadata-inspector
-  share/              # built — contracts, schemas, access-stats, collaborator-avatars, permission-matrix, presence, share-panel
+  share/              # built — contracts, schemas, access-stats, collaborator-avatars, invite-collaborators-modal, permission-matrix, presence, share-panel
   file-request/       # built — file-request-builder
   task/               # built — review-queue-item, task-assignment-panel
   governance/         # built — governance-panel
@@ -93,6 +93,7 @@ Headless blocks (see [content-explorer.md](./content-explorer.md) for the compos
 
 - `access-stats` — **built**
 - `collaborator-avatars` — **built**
+- `invite-collaborators-modal` — **built** (workflow: `InviteCollaboratorsTransport` contract + `InviteCollaboratorsController` + `box-invite-collaborators-modal`)
 - `permission-matrix` — **built**
 - `presence` — **built** (workflow: `PresenceTransport` contract + `PresenceController` + `box-presence` live-feed element)
 - `share-panel` — **built**
@@ -124,7 +125,7 @@ Headless blocks (see [content-explorer.md](./content-explorer.md) for the compos
 From the upstream `box/box-ui-elements` comparison (see [../research/upstream-gaps.md](../research/upstream-gaps.md)):
 
 - **Compositions**: `access-stats`, `collaborator-avatars` — **both built** in the Share section above
-- **Workflows**: `invite-collaborators-modal` (multi-step, transport-aware), `unified-share-modal` (Box's most orchestration-heavy share surface); `presence` (live data subscription) — **built** in the Share section above
+- **Workflows**: `unified-share-modal` (Box's most orchestration-heavy share surface) remains; `invite-collaborators-modal` (multi-step, transport-aware) and `presence` (live data subscription) — **built** in the Share section above
 - Cross-system candidates: coach mark / product tour (sequenced multi-anchor onboarding), timeline / activity feed
 
 ## Design rules
