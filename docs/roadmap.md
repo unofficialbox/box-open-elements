@@ -66,7 +66,7 @@ From the validated gap analyses ([research/upstream-gaps.md](./research/upstream
 - then: standalone `calendar`, tag/token input field — **done** (`box-calendar`, `box-tag-input`)
 - component gaps: `nav-sidebar`/`sidebar-toggle-button` — **done** (`box-nav-sidebar`, `box-sidebar-toggle-button`, layout tier); `grid-view` — **done** (`box-grid-view`, collections tier); `fieldset`/`section` — **done** (`box-fieldset` forms tier, `box-section` layout tier); `error-mask` — **done** (`box-error-mask`, feedback tier); `draggable-list` — **done** (`box-draggable-list`, collections tier); `nudge`/`pill-cloud`/`pill-selector-dropdown` — **done** (`box-nudge` feedback tier, `box-pill-cloud` + `box-pill-selector-dropdown` forms tier); picker list items + `category-selector` — **done** (`box-datalist-item` collections tier, `box-contact-datalist-item` identity tier, `box-category-selector` forms tier). **All Phase 5 component gaps are now built.**
 - pattern compositions: `access-stats`, `collaborator-avatars` — **done** (`box-access-stats`, `box-collaborator-avatars`, share pattern area)
-- pattern workflows: `invite-collaborators-modal`, `unified-share-modal`, `presence`
+- pattern workflows: `presence` — **done** (`PresenceController` + `box-presence`, share pattern area); remaining: `invite-collaborators-modal`, `unified-share-modal`
 - re-verify each against upstream behavior before building
 
 ## Cross-cutting tracks
