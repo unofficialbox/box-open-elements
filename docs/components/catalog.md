@@ -41,6 +41,8 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 
 - `card` — **built**
 - `carousel` — **built**
+- `draggable-list` — **built**
+- `grid-view` — **built**
 - `items` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/items` (`box-explorer-items`); a generic version remains future work*
 - `list` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/list` (`box-explorer-list`); a generic version remains future work*
 - `pagination` — **built**
@@ -53,6 +55,7 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 - `alert` — **built**
 - `badge` — **built**
 - `empty-state` — **built**
+- `error-mask` — **built**
 - `help-text` — **built**
 - `progress-bar` — **built**
 - `progress-ring` — **built**
@@ -74,6 +77,7 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 - `date-field` — **built**
 - `dropdown` — **built**
 - `dual-listbox` — **built**
+- `fieldset` — **built**
 - `multi-select` — **built**
 - `number-input` — **built**
 - `radio-group` — **built**
@@ -97,6 +101,9 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 ### Layout
 
 - `app-shell` — **built**
+- `nav-sidebar` — **built**
+- `section` — **built**
+- `sidebar-toggle-button` — **built**
 - `split-view` — **built**
 
 ### Navigation
@@ -122,7 +129,7 @@ Beyond the 61 carried-over components, these gaps were identified by real compar
 
 - strongest cross-system gaps: `chip`/`tag` (distinct from status-only `badge`), `divider`
 - close seconds: standalone `calendar` grid (sibling to `date-field`), tag/token input field
-- from the box-ui-elements comparison: `category-selector`, `datalist-item`, `contact-datalist-item`, `draggable-list`, `error-mask`, `fieldset`, `section`, `grid-view`, `nav-sidebar`, `sidebar-toggle-button`, `nudge`, `pill-cloud`, `pill-selector-dropdown`
+- from the box-ui-elements comparison: `category-selector`, `datalist-item`, `contact-datalist-item`, `nudge`, `pill-cloud`, `pill-selector-dropdown` (`draggable-list` and `grid-view` now **built** in Collections; `error-mask` in Feedback; `fieldset` in Forms; `nav-sidebar`, `section`, and `sidebar-toggle-button` in the Layout section above)
 
 Re-verify each against actual upstream behavior before building — the comparisons were name-and-concept-level, not behavioral audits.
 

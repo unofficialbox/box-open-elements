@@ -14,20 +14,20 @@ const p = (category: string, ids: string[], tagPrefix = "box-"): CatalogEntry[] 
 export const catalog: CatalogEntry[] = [
   // Components
   ...c("Actions", ["button", "button-group", "icon-button", "link-button", "menu", "menu-item", "segmented-control"]),
-  ...c("Collections", ["card", "carousel", "pagination", "tree", "tree-grid"]),
+  ...c("Collections", ["card", "carousel", "draggable-list", "grid-view", "pagination", "tree", "tree-grid"]),
   ...c("Feedback", [
-    "alert", "badge", "chip", "empty-state", "help-text", "progress-bar", "progress-ring",
+    "alert", "badge", "chip", "empty-state", "error-mask", "help-text", "progress-bar", "progress-ring",
     "progress-steps", "skeleton", "spinner", "toast",
   ]),
   ...c("Files", ["drop-zone"]),
   ...c("Forms", [
     "calendar", "checkbox", "checkbox-group", "color-picker", "combobox", "date-field", "dropdown",
     "dual-listbox", "multi-select", "number-input", "radio-group", "range-slider", "rating",
-    "rich-text-input", "search-field", "select", "slider", "spin-button", "switch",
+    "fieldset", "rich-text-input", "search-field", "select", "slider", "spin-button", "switch",
     "tag-input", "text-area", "text-field", "time-field",
   ]),
   ...c("Identity", ["avatar", "persona"]),
-  ...c("Layout", ["app-shell", "divider", "split-view"]),
+  ...c("Layout", ["app-shell", "divider", "nav-sidebar", "section", "sidebar-toggle-button", "split-view"]),
   ...c("Navigation", ["accordion", "tabs"]),
   ...c("Overlays", ["dialog", "drawer", "popover", "tooltip"]),
   ...c("Visuals", ["illustration"]),

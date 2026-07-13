@@ -42,6 +42,8 @@ export * from "./components/actions/menu-item.js";
 // Components: collections
 export * from "./components/collections/card.js";
 export * from "./components/collections/carousel.js";
+export * from "./components/collections/draggable-list.js";
+export * from "./components/collections/grid-view.js";
 export * from "./components/collections/pagination.js";
 export * from "./components/collections/tree.js";
 export * from "./components/collections/tree-grid.js";
@@ -51,6 +53,7 @@ export * from "./components/feedback/alert.js";
 export * from "./components/feedback/badge.js";
 export * from "./components/feedback/chip.js";
 export * from "./components/feedback/empty-state.js";
+export * from "./components/feedback/error-mask.js";
 export * from "./components/feedback/help-text.js";
 export * from "./components/feedback/progress-bar.js";
 export * from "./components/feedback/progress-ring.js";
@@ -90,6 +93,7 @@ export * from "./components/forms/tag-input.js";
 export * from "./components/forms/time-field.js";
 export * from "./components/forms/checkbox-group.js";
 export * from "./components/forms/combobox.js";
+export * from "./components/forms/fieldset.js";
 export * from "./components/forms/dropdown.js";
 export * from "./components/forms/multi-select.js";
 export * from "./components/forms/radio-group.js";
@@ -101,6 +105,9 @@ export * from "./components/forms/text-field.js";
 // Components: layout
 export * from "./components/layout/app-shell.js";
 export * from "./components/layout/divider.js";
+export * from "./components/layout/nav-sidebar.js";
+export * from "./components/layout/section.js";
+export * from "./components/layout/sidebar-toggle-button.js";
 export * from "./components/layout/split-view.js";
 
 // Components: overlays

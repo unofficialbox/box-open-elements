@@ -110,6 +110,30 @@ export const examples: Record<string, ComponentExample> = {
       ],
     }),
   },
+  "draggable-list": {
+    html: `<box-draggable-list label="Saved views"></box-draggable-list>`,
+    setup: root => set(root, "box-draggable-list", {
+      items: [
+        { value: "recents", label: "Recents" },
+        { value: "shared", label: "Shared with me" },
+        { value: "starred", label: "Starred" },
+        { value: "trash", label: "Trash" },
+      ],
+    }),
+    note: "Focus a handle, then ArrowUp/ArrowDown (or drag) to reorder.",
+  },
+  "grid-view": {
+    html: `<box-grid-view label="Files"></box-grid-view>`,
+    setup: root => set(root, "box-grid-view", {
+      items: [
+        { value: "123", label: "Quarterly Plan.pdf", meta: "PDF · 2.1 MB", icon: "P" },
+        { value: "124", label: "Brand Guidelines.pdf", meta: "PDF · 5.4 MB", icon: "P" },
+        { value: "42", label: "Marketing", meta: "Folder · 18 items", icon: "M" },
+        { value: "125", label: "box.com/launch", meta: "Web link", icon: "L" },
+      ],
+      value: "123",
+    }),
+  },
   pagination: { html: `<box-pagination page="2" page-size="25" total-items="220"></box-pagination>` },
   tree: {
     html: `<box-tree label="Folders"></box-tree>`,
@@ -144,6 +168,7 @@ export const examples: Record<string, ComponentExample> = {
   badge: { html: `<box-badge label="Beta"></box-badge>\n<box-badge label="Error" tone="error"></box-badge>` },
   chip: { html: `<box-chip label="Marketing" tone="brand" removable value="marketing"></box-chip>\n<box-chip label="Legal" removable value="legal"></box-chip>` },
   "empty-state": { html: `<box-empty-state title="No results" message="Try a different search or clear the filters."></box-empty-state>` },
+  "error-mask": { html: `<box-error-mask heading="Couldn't load files" message="Something went wrong while loading this folder." action-label="Retry"></box-error-mask>` },
   "help-text": { html: `<box-help-text label="Shared links" message="Shared links expire after 30 days."></box-help-text>` },
   "progress-bar": { html: `<box-progress-bar label="Storage used" value="64"></box-progress-bar>` },
   "progress-ring": { html: `<box-progress-ring label="Sync" value="80"></box-progress-ring>` },
@@ -242,6 +267,12 @@ export const examples: Record<string, ComponentExample> = {
       value: "company",
     }),
   },
+  fieldset: {
+    html: `<box-fieldset label="Shipping address" description="Where should we ship your order?">
+  <box-text-field label="Street"></box-text-field>
+  <box-text-field label="City"></box-text-field>
+</box-fieldset>`,
+  },
   "range-slider": { html: `<box-range-slider label="Size range" min="0" max="100"></box-range-slider>` },
   rating: { html: `<box-rating label="Quality" value="4" max="5"></box-rating>` },
   "rich-text-input": { html: `<box-rich-text-input label="Announcement" value="<p>Welcome to the <strong>new</strong> workspace.</p>"></box-rich-text-input>` },
@@ -271,6 +302,33 @@ export const examples: Record<string, ComponentExample> = {
   "app-shell": { html: `<box-app-shell title="Box Admin"></box-app-shell>` },
   divider: { html: `<box-divider label="Shared with your team"></box-divider>` },
   "split-view": { html: `<box-split-view label="Master detail"></box-split-view>` },
+  "nav-sidebar": {
+    html: `<box-nav-sidebar label="Workspace" id="demo-nav-sidebar">
+  <box-sidebar-toggle-button slot="header" controls="demo-nav-sidebar" label="Collapse navigation"></box-sidebar-toggle-button>
+  <a href="#">All Files</a>
+  <a href="#">Recents</a>
+  <a href="#">Synced</a>
+  <a href="#">Trash</a>
+  <span slot="footer">2.4 GB of 10 GB used</span>
+</box-nav-sidebar>`,
+    setup: root => {
+      const sidebar = root.querySelector("box-nav-sidebar") as (HTMLElement & { collapsed: boolean }) | null;
+      const toggle = root.querySelector("box-sidebar-toggle-button");
+      toggle?.addEventListener("toggle", event => {
+        if (sidebar) {
+          sidebar.collapsed = !(event as CustomEvent<{ expanded: boolean }>).detail.expanded;
+        }
+      });
+    },
+    note: "Wire the toggle button's `toggle` event to the sidebar's `collapsed` property.",
+  },
+  "sidebar-toggle-button": { html: `<box-sidebar-toggle-button label="Toggle navigation"></box-sidebar-toggle-button>` },
+  section: {
+    html: `<box-section eyebrow="Workspace" heading="Members" description="People with access to this workspace.">
+  <box-button slot="actions" label="Invite" tone="primary"></box-button>
+  <box-persona name="Morgan Lee" description="Enterprise Admin"></box-persona>
+</box-section>`,
+  },
   accordion: {
     html: `<box-accordion label="Details"></box-accordion>`,
     setup: root => set(root, "box-accordion", {
