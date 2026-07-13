@@ -10,3 +10,5 @@ export * from "./presence-contracts.js";
 export * from "./presence-controller.js";
 export * from "./presence.js";
 export * from "./share-panel.js";
+export * from "./unified-share-controller.js";
+export * from "./unified-share-modal.js";

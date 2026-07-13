@@ -10,6 +10,8 @@ import {
   type InviteCollaboratorsTransport,
   type PresenceTransport,
   type PresenceUser,
+  type ShareDataSource,
+  type ShareState,
 } from "box-open-elements";
 
 type SetupFn = (root: HTMLElement) => void;
@@ -539,6 +541,51 @@ export const examples: Record<string, ComponentExample> = {
       });
     },
     note: "Click the button to open. Set a `transport` + `item-id`; the modal owns an InviteCollaboratorsController.",
+  },
+  "unified-share-modal": {
+    html: `<box-button label="Share" tone="primary"></box-button>\n<box-unified-share-modal item-id="42" heading="Share Quarterly Plan.pdf"></box-unified-share-modal>`,
+    setup: root => {
+      const modal = root.querySelector("box-unified-share-modal") as
+        | (HTMLElement & { dataSource: ShareDataSource; open: boolean })
+        | null;
+      // An in-memory ShareDataSource so the modal's link + people tabs are live.
+      let state: ShareState = {
+        itemId: "42",
+        itemType: "file",
+        sharedLink: {
+          url: "https://app.box.com/s/quarterly-plan-2026",
+          access: "company",
+          canDownload: true,
+          canPreview: true,
+        },
+        collaborators: [
+          { id: "1", name: "Morgan Lee", type: "user", role: "co-owner", status: "active" },
+          { id: "2", name: "Alex Kim", type: "user", role: "editor", status: "active" },
+          { id: "3", name: "Finance Team", type: "group", role: "viewer" },
+        ],
+      };
+      const dataSource: ShareDataSource = {
+        async getShareState() {
+          return state;
+        },
+        async updateSharedLink({ sharedLink }) {
+          state = { ...state, sharedLink };
+          return state;
+        },
+        async listCollaborators() {
+          return state.collaborators;
+        },
+      };
+      if (modal) {
+        modal.dataSource = dataSource;
+      }
+      root.querySelector("box-button")?.addEventListener("click", () => {
+        if (modal) {
+          modal.open = true;
+        }
+      });
+    },
+    note: "Click the button to open. Set a `dataSource` + `item-id`; the modal owns a UnifiedShareController that loads the shared link and collaborators, and emits `invite` for the invite flow.",
   },
   presence: {
     html: `<box-presence label="Who's here" max="4"></box-presence>`,
