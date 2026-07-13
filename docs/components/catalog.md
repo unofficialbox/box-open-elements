@@ -57,6 +57,7 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 - `empty-state` — **built**
 - `error-mask` — **built**
 - `help-text` — **built**
+- `nudge` — **built**
 - `progress-bar` — **built**
 - `progress-ring` — **built**
 - `progress-steps` — **built**
@@ -80,6 +81,8 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 - `fieldset` — **built**
 - `multi-select` — **built**
 - `number-input` — **built**
+- `pill-cloud` — **built**
+- `pill-selector-dropdown` — **built**
 - `radio-group` — **built**
 - `range-slider` — **built**
 - `rating` — **built**
@@ -129,7 +132,7 @@ Beyond the 61 carried-over components, these gaps were identified by real compar
 
 - strongest cross-system gaps: `chip`/`tag` (distinct from status-only `badge`), `divider`
 - close seconds: standalone `calendar` grid (sibling to `date-field`), tag/token input field
-- from the box-ui-elements comparison: `category-selector`, `datalist-item`, `contact-datalist-item`, `nudge`, `pill-cloud`, `pill-selector-dropdown` (`draggable-list` and `grid-view` now **built** in Collections; `error-mask` in Feedback; `fieldset` in Forms; `nav-sidebar`, `section`, and `sidebar-toggle-button` in the Layout section above)
+- from the box-ui-elements comparison: `category-selector`, `datalist-item`, `contact-datalist-item` (`draggable-list` and `grid-view` now **built** in Collections; `error-mask` and `nudge` in Feedback; `fieldset`, `pill-cloud`, and `pill-selector-dropdown` in Forms; `nav-sidebar`, `section`, and `sidebar-toggle-button` in Layout)
 
 Re-verify each against actual upstream behavior before building — the comparisons were name-and-concept-level, not behavioral audits.
 

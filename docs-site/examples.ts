@@ -170,6 +170,7 @@ export const examples: Record<string, ComponentExample> = {
   "empty-state": { html: `<box-empty-state title="No results" message="Try a different search or clear the filters."></box-empty-state>` },
   "error-mask": { html: `<box-error-mask heading="Couldn't load files" message="Something went wrong while loading this folder." action-label="Retry"></box-error-mask>` },
   "help-text": { html: `<box-help-text label="Shared links" message="Shared links expire after 30 days."></box-help-text>` },
+  nudge: { html: `<box-nudge heading="Try grid view" message="Preview files as thumbnails from the view switcher." action-label="Show me"></box-nudge>` },
   "progress-bar": { html: `<box-progress-bar label="Storage used" value="64"></box-progress-bar>` },
   "progress-ring": { html: `<box-progress-ring label="Sync" value="80"></box-progress-ring>` },
   "progress-steps": {
@@ -272,6 +273,31 @@ export const examples: Record<string, ComponentExample> = {
   <box-text-field label="Street"></box-text-field>
   <box-text-field label="City"></box-text-field>
 </box-fieldset>`,
+  },
+  "pill-cloud": {
+    html: `<box-pill-cloud label="File type"></box-pill-cloud>`,
+    setup: root => set(root, "box-pill-cloud", {
+      options: [
+        { value: "pdf", label: "PDF" },
+        { value: "doc", label: "Documents" },
+        { value: "img", label: "Images" },
+        { value: "video", label: "Video" },
+        { value: "audio", label: "Audio" },
+      ],
+      value: ["pdf", "img"],
+    }),
+  },
+  "pill-selector-dropdown": {
+    html: `<box-pill-selector-dropdown label="Collaborators" placeholder="Add person"></box-pill-selector-dropdown>`,
+    setup: root => set(root, "box-pill-selector-dropdown", {
+      options: [
+        { value: "morgan", label: "Morgan Lee" },
+        { value: "alex", label: "Alex Kim" },
+        { value: "sam", label: "Sam Patel" },
+        { value: "jordan", label: "Jordan Rivera" },
+      ],
+      value: ["morgan"],
+    }),
   },
   "range-slider": { html: `<box-range-slider label="Size range" min="0" max="100"></box-range-slider>` },
   rating: { html: `<box-rating label="Quality" value="4" max="5"></box-rating>` },

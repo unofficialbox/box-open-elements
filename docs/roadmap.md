@@ -64,7 +64,7 @@ From the validated gap analyses ([research/upstream-gaps.md](./research/upstream
 
 - strongest first: `chip`/`tag`, `divider` — **done** (`box-chip`, `box-divider`)
 - then: standalone `calendar`, tag/token input field — **done** (`box-calendar`, `box-tag-input`)
-- component gaps: `nav-sidebar`/`sidebar-toggle-button` — **done** (`box-nav-sidebar`, `box-sidebar-toggle-button`, layout tier); `grid-view` — **done** (`box-grid-view`, collections tier); `fieldset`/`section` — **done** (`box-fieldset` forms tier, `box-section` layout tier); `error-mask` — **done** (`box-error-mask`, feedback tier); `draggable-list` — **done** (`box-draggable-list`, collections tier); then picker list items, `nudge`, `pill-cloud`, `pill-selector-dropdown`
+- component gaps: `nav-sidebar`/`sidebar-toggle-button` — **done** (`box-nav-sidebar`, `box-sidebar-toggle-button`, layout tier); `grid-view` — **done** (`box-grid-view`, collections tier); `fieldset`/`section` — **done** (`box-fieldset` forms tier, `box-section` layout tier); `error-mask` — **done** (`box-error-mask`, feedback tier); `draggable-list` — **done** (`box-draggable-list`, collections tier); `nudge`/`pill-cloud`/`pill-selector-dropdown` — **done** (`box-nudge` feedback tier, `box-pill-cloud` + `box-pill-selector-dropdown` forms tier); then picker list items (`datalist-item`, `contact-datalist-item`), `category-selector`
 - pattern compositions: `access-stats`, `collaborator-avatars`
 - pattern workflows: `invite-collaborators-modal`, `unified-share-modal`, `presence`
 - re-verify each against upstream behavior before building
