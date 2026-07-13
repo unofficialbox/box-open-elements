@@ -3,4 +3,7 @@ export * from "./schemas.js";
 export * from "./access-stats.js";
 export * from "./collaborator-avatars.js";
 export * from "./permission-matrix.js";
+export * from "./presence-contracts.js";
+export * from "./presence-controller.js";
+export * from "./presence.js";
 export * from "./share-panel.js";

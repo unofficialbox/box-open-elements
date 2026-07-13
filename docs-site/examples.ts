@@ -4,7 +4,12 @@
  * cannot be expressed as simple attributes. Entries without an example fall
  * back to a bare element with a `label` attribute.
  */
-import { ContentExplorerController, type ExplorerTransport } from "box-open-elements";
+import {
+  ContentExplorerController,
+  type ExplorerTransport,
+  type PresenceTransport,
+  type PresenceUser,
+} from "box-open-elements";
 
 type SetupFn = (root: HTMLElement) => void;
 
@@ -511,6 +516,41 @@ export const examples: Record<string, ComponentExample> = {
         { id: "6", name: "Casey Ng" },
       ],
     }),
+  },
+  presence: {
+    html: `<box-presence label="Who's here" max="4"></box-presence>`,
+    setup: root => {
+      const rosters: PresenceUser[][] = [
+        [{ id: "1", name: "Morgan Lee", activity: "editing" }],
+        [
+          { id: "1", name: "Morgan Lee", activity: "editing" },
+          { id: "2", name: "Alex Kim", activity: "viewing" },
+        ],
+        [
+          { id: "1", name: "Morgan Lee", activity: "editing" },
+          { id: "2", name: "Alex Kim", activity: "viewing" },
+          { id: "3", name: "Sam Patel", activity: "viewing" },
+        ],
+        [
+          { id: "2", name: "Alex Kim", activity: "viewing" },
+          { id: "3", name: "Sam Patel", activity: "editing" },
+        ],
+      ];
+      // A mock realtime feed that cycles the roster so the live region updates.
+      const transport: PresenceTransport = {
+        subscribe(listener: (users: PresenceUser[]) => void) {
+          let index = 0;
+          listener(rosters[0]);
+          const timer = setInterval(() => {
+            index = (index + 1) % rosters.length;
+            listener(rosters[index]);
+          }, 2200);
+          return () => clearInterval(timer);
+        },
+      };
+      set(root, "box-presence", { transport });
+    },
+    note: "Set a `transport` and the element owns a PresenceController, connecting to the live feed.",
   },
   "access-stats": {
     html: `<box-access-stats label="Shared link activity"></box-access-stats>`,

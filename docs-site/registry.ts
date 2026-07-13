@@ -38,7 +38,7 @@ export const catalog: CatalogEntry[] = [
   ...p("Search", ["filter-bar", "search-results-header", "saved-view-picker"]),
   ...p("Item", ["item-form", "item-details-panel", "bulk-action-bar", "preview-header"]),
   ...p("Metadata", ["metadata-filter-builder", "metadata-inspector"]),
-  ...p("Share", ["share-panel", "permission-matrix", "access-stats", "collaborator-avatars"]),
+  ...p("Share", ["share-panel", "permission-matrix", "access-stats", "collaborator-avatars", "presence"]),
   ...p("Preview", ["annotation-toolbar", "annotation-inspector", "annotation-thread", "preview-element"]),
   ...p("File Request", ["file-request-builder"]),
   ...p("Task", ["task-assignment-panel", "review-queue-item"]),
