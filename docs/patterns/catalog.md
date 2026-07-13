@@ -32,7 +32,7 @@ src/patterns/
   search/             # target
   item/             # built — item-form, item-details-panel, bulk-action-bar, preview-header
   metadata/           # built — contracts, schemas, metadata-filter-builder, metadata-inspector
-  share/              # built — contracts, schemas, access-stats, collaborator-avatars, invite-collaborators-modal, permission-matrix, presence, share-panel
+  share/              # built — contracts, schemas, access-stats, collaborator-avatars, invite-collaborators-modal, permission-matrix, presence, share-panel, unified-share-modal
   file-request/       # built — file-request-builder
   task/               # built — review-queue-item, task-assignment-panel
   governance/         # built — governance-panel
@@ -97,6 +97,7 @@ Headless blocks (see [content-explorer.md](./content-explorer.md) for the compos
 - `permission-matrix` — **built**
 - `presence` — **built** (workflow: `PresenceTransport` contract + `PresenceController` + `box-presence` live-feed element)
 - `share-panel` — **built**
+- `unified-share-modal` — **built** (workflow: `UnifiedShareController` over the `ShareDataSource` contract + `box-unified-share-modal` — shared-link + people tabs, emits `invite`)
 - `contracts` (`ShareDataSource`, shared links, collaborators) — **built**
 
 ### File Request (compositions)
@@ -125,7 +126,7 @@ Headless blocks (see [content-explorer.md](./content-explorer.md) for the compos
 From the upstream `box/box-ui-elements` comparison (see [../research/upstream-gaps.md](../research/upstream-gaps.md)):
 
 - **Compositions**: `access-stats`, `collaborator-avatars` — **both built** in the Share section above
-- **Workflows**: `unified-share-modal` (Box's most orchestration-heavy share surface) remains; `invite-collaborators-modal` (multi-step, transport-aware) and `presence` (live data subscription) — **built** in the Share section above
+- **Workflows**: `unified-share-modal` (Box's most orchestration-heavy share surface), `invite-collaborators-modal` (multi-step, transport-aware), and `presence` (live data subscription) — **all built** in the Share section above
 - Cross-system candidates: coach mark / product tour (sequenced multi-anchor onboarding), timeline / activity feed
 
 ## Design rules
