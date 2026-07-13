@@ -116,6 +116,61 @@ describe("BoxUnifiedShareModalElement", () => {
     expect(element.shadowRoot?.querySelector('[part="collaborator-name"]')?.textContent).toContain("Morgan Lee");
   });
 
+  it("switches tabs via arrow keys and moves focus", async () => {
+    const element = await openModal();
+    const tablist = element.shadowRoot?.querySelector('[part="tablist"]') as HTMLElement;
+
+    tablist.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+
+    expect(element.shadowRoot?.querySelector('[part="tab-people"]')?.getAttribute("aria-selected")).toBe("true");
+    expect(element.shadowRoot?.querySelector('[part="collaborator"]')).not.toBeNull();
+
+    tablist.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+    expect(element.shadowRoot?.querySelector('[part="tab-link"]')?.getAttribute("aria-selected")).toBe("true");
+  });
+
+  it("closes on Escape", async () => {
+    const element = await openModal();
+    const onClose = vi.fn();
+    element.addEventListener("close", onClose);
+
+    element.shadowRoot
+      ?.querySelector('[part="dialog"]')
+      ?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(element.open).toBe(false);
+  });
+
+  it("does not emit linkcopied when the clipboard write fails", async () => {
+    const writeText = vi.fn(async () => {
+      throw new Error("denied");
+    });
+    Object.assign(navigator, { clipboard: { writeText } });
+    const element = await openModal();
+    const onCopied = vi.fn();
+    element.addEventListener("linkcopied", onCopied);
+
+    (element.shadowRoot?.querySelector('[part="copy"]') as HTMLButtonElement).click();
+
+    await vi.waitFor(() => expect(writeText).toHaveBeenCalled());
+    expect(onCopied).not.toHaveBeenCalled();
+  });
+
+  it("keeps focus on the access select while it updates", async () => {
+    const element = await openModal();
+    const access = element.shadowRoot?.querySelector('[part="access"]') as HTMLSelectElement;
+    access.focus();
+    access.value = "open";
+    access.dispatchEvent(new Event("change", { bubbles: true }));
+
+    await vi.waitFor(() =>
+      expect((element.shadowRoot?.querySelector('[part="access"]') as HTMLSelectElement).value).toBe("open"),
+    );
+    // The same node survived (not rebuilt), so focus is retained inside the dialog.
+    expect(element.shadowRoot?.activeElement).toBe(element.shadowRoot?.querySelector('[part="access"]'));
+  });
+
   it("emits invite when the invite affordance is used", async () => {
     const element = await openModal();
     (element.shadowRoot?.querySelector('[part="tab-people"]') as HTMLButtonElement).click();

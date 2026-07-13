@@ -54,6 +54,9 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
   private controller: UnifiedShareController | null = null;
   private controllerUnsubscribe: (() => void) | null = null;
   private dataSourceValue: ShareDataSource | null = null;
+  // Structural signature of the currently-rendered body; null after a shell
+  // (re)build so the next updateDynamic renders fresh. See updateDynamic().
+  private bodySignature: string | null = null;
 
   constructor() {
     super();
@@ -163,6 +166,7 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
 
     const built = this.shadowRoot.querySelector('[part="dialog"]');
     if (!built) {
+      this.bodySignature = null;
       this.buildStructure();
       (this.shadowRoot.querySelector('[part="tab-link"]') as HTMLButtonElement | null)?.focus();
     }
@@ -454,6 +458,47 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
         this.close();
       }
     });
+
+    // Dialog-level keyboard contract: Escape dismisses, and Tab is trapped so
+    // focus cannot leave the modal while aria-modal is set.
+    this.shadowRoot.querySelector('[part="dialog"]')?.addEventListener("keydown", event => {
+      const keyboardEvent = event as KeyboardEvent;
+      if (keyboardEvent.key === "Escape") {
+        keyboardEvent.stopPropagation();
+        this.close();
+        return;
+      }
+      if (keyboardEvent.key === "Tab") {
+        this.trapFocus(keyboardEvent);
+      }
+    });
+  }
+
+  /** Keep Tab / Shift+Tab focus cycling inside the dialog's tabbable controls. */
+  private trapFocus(event: KeyboardEvent): void {
+    const dialog = this.shadowRoot?.querySelector('[part="dialog"]');
+    if (!dialog) {
+      return;
+    }
+
+    const focusables = Array.from(
+      dialog.querySelectorAll<HTMLElement>('button, select, input, [tabindex]'),
+    ).filter(element => !element.hasAttribute("disabled") && element.tabIndex !== -1);
+    if (focusables.length === 0) {
+      return;
+    }
+
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = this.shadowRoot?.activeElement as HTMLElement | null;
+
+    if (event.shiftKey && active === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus();
+    }
   }
 
   private close(): void {
@@ -465,7 +510,8 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
     try {
       await navigator.clipboard?.writeText(url);
     } catch {
-      // Clipboard access can be denied; still surface the intent to the host.
+      // Clipboard access can be denied — don't claim success the host would toast.
+      return;
     }
     this.dispatchEvent(new CustomEvent("linkcopied", { bubbles: true, composed: true, detail: { url } }));
   }
@@ -473,6 +519,12 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
   private updateDynamic(): void {
     if (!this.shadowRoot || !this.open) {
       return;
+    }
+
+    // Keep the observed `heading` attribute reflected after the shell is built.
+    const title = this.shadowRoot.querySelector('[part="title"]');
+    if (title) {
+      title.textContent = this.heading;
     }
 
     const state = this.controller?.getState();
@@ -493,18 +545,60 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
       activeTab === "people" ? "unified-share-tab-people" : "unified-share-tab-link",
     );
 
-    if (!state || state.status === "loading" || state.status === "idle") {
-      body.innerHTML = `<p part="status">Loading share settings…</p>`;
+    const phase = !state || state.status === "loading" || state.status === "idle"
+      ? "loading"
+      : state.status === "error"
+        ? "error"
+        : "ready";
+    const hasLink = Boolean(state?.sharedLink?.url);
+    // Only rebuild the body when its structure actually changes (phase / tab /
+    // whether a link exists). Within a phase, patch dynamic values in place so a
+    // focused control — e.g. the access <select> toggling disabled during
+    // setAccess — is never destroyed and focus stays inside the dialog.
+    const signature = `${phase}|${activeTab}|${hasLink}`;
+    if (signature !== this.bodySignature) {
+      this.bodySignature = signature;
+      if (phase === "loading") {
+        body.innerHTML = `<p part="status">Loading share settings…</p>`;
+        return;
+      }
+      if (phase === "error") {
+        body.innerHTML = `<p part="error">${escapeHtml(state?.error ?? "Something went wrong.")}</p>`;
+        return;
+      }
+      body.innerHTML = activeTab === "link" ? this.renderLinkTab(state!) : this.renderPeopleTab(state!);
+      this.attachBodyListeners();
+    }
+
+    if (phase === "ready" && state && activeTab === "link") {
+      this.patchLinkTab(state);
+    }
+  }
+
+  /** In-place refresh of the link tab's dynamic values (no DOM teardown). */
+  private patchLinkTab(state: UnifiedShareState): void {
+    if (!this.shadowRoot) {
       return;
     }
 
-    if (state.status === "error") {
-      body.innerHTML = `<p part="error">${escapeHtml(state.error ?? "Something went wrong.")}</p>`;
-      return;
+    const access = state.sharedLink?.access ?? "collaborators";
+    const select = this.shadowRoot.querySelector('[part="access"]') as HTMLSelectElement | null;
+    if (select) {
+      // aria-busy (not disabled) so an actively-focused select is never blurred
+      // mid-update; the controller's in-flight guard ignores overlapping changes.
+      select.setAttribute("aria-busy", state.updatingLink ? "true" : "false");
+      if (select.value !== access) {
+        select.value = access;
+      }
     }
-
-    body.innerHTML = activeTab === "link" ? this.renderLinkTab(state) : this.renderPeopleTab(state);
-    this.attachBodyListeners(state);
+    const hint = this.shadowRoot.querySelector('[part="access-hint"]');
+    if (hint) {
+      hint.textContent = ACCESS_OPTIONS.find(option => option.value === access)?.description ?? "";
+    }
+    const url = this.shadowRoot.querySelector('[part="link-url"]') as HTMLInputElement | null;
+    if (url && state.sharedLink?.url && url.value !== state.sharedLink.url) {
+      url.value = state.sharedLink.url;
+    }
   }
 
   private renderLinkTab(state: UnifiedShareState): string {
@@ -531,7 +625,7 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
       ${linkSection}
       <div part="field">
         <label part="label" for="unified-share-access">Who has access</label>
-        <select part="access" id="unified-share-access"${state.updatingLink ? " disabled" : ""}>${options}</select>
+        <select part="access" id="unified-share-access" aria-busy="${state.updatingLink ? "true" : "false"}">${options}</select>
         <p part="access-hint">${escapeHtml(description)}</p>
       </div>
     `;
@@ -563,14 +657,16 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
     `;
   }
 
-  private attachBodyListeners(state: UnifiedShareState): void {
+  // Attached once per body rebuild; each handler reads live controller state at
+  // event time so it stays correct across in-place patches (no rebuild).
+  private attachBodyListeners(): void {
     if (!this.shadowRoot) {
       return;
     }
 
     const copy = this.shadowRoot.querySelector('[part="copy"]');
     copy?.addEventListener("click", () => {
-      void this.copyLink(state.sharedLink?.url ?? "");
+      void this.copyLink(this.controller?.getState().sharedLink?.url ?? "");
     });
 
     const access = this.shadowRoot.querySelector('[part="access"]');
@@ -581,11 +677,12 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
 
     const invite = this.shadowRoot.querySelector('[part="invite"]');
     invite?.addEventListener("click", () => {
+      const current = this.controller?.getState();
       this.dispatchEvent(
         new CustomEvent("invite", {
           bubbles: true,
           composed: true,
-          detail: { itemId: this.itemId, itemType: this.itemType, access: accessLabel(state.sharedLink?.access) },
+          detail: { itemId: this.itemId, itemType: this.itemType, access: accessLabel(current?.sharedLink?.access) },
         }),
       );
     });

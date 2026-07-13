@@ -36,6 +36,12 @@ type UnifiedShareEvents = {
 export class UnifiedShareController extends Controller<UnifiedShareState, UnifiedShareEvents> {
   private readonly config: Required<Pick<UnifiedShareControllerConfig, "itemType">> & UnifiedShareControllerConfig;
 
+  // Shared in-flight guard: load() and setAccess() both talk to the same data
+  // source and write the same sharedLink/collaborators state, so they must not
+  // overlap — otherwise a slower response could clobber a newer one and silently
+  // revert the user's access change. Only one runs at a time.
+  private inFlight = false;
+
   constructor(config: UnifiedShareControllerConfig) {
     super({
       status: "idle",
@@ -57,12 +63,13 @@ export class UnifiedShareController extends Controller<UnifiedShareState, Unifie
     return caught instanceof Error ? caught.message : fallback;
   }
 
-  /** Load the item's shared link and collaborators. No-op while already loading. */
+  /** Load the item's shared link and collaborators. No-op while any request is in flight. */
   async load(): Promise<void> {
-    if (this.state.status === "loading") {
+    if (this.inFlight) {
       return;
     }
 
+    this.inFlight = true;
     this.update({ status: "loading", error: null });
     try {
       const shareState = await this.config.dataSource.getShareState({
@@ -79,16 +86,19 @@ export class UnifiedShareController extends Controller<UnifiedShareState, Unifie
       const error = this.toMessage(caught, "Failed to load share settings");
       this.update({ status: "error", error });
       this.emit("error", { error });
+    } finally {
+      this.inFlight = false;
     }
   }
 
-  /** Change the shared-link access level through the data source. No-op while updating. */
+  /** Change the shared-link access level through the data source. No-op while any request is in flight. */
   async setAccess(access: NonNullable<SharedLinkState["access"]>): Promise<void> {
-    if (this.state.updatingLink) {
+    if (this.inFlight) {
       return;
     }
 
     const nextLink: SharedLinkState = { ...(this.state.sharedLink ?? {}), access };
+    this.inFlight = true;
     this.update({ updatingLink: true, error: null });
     try {
       const shareState = await this.config.dataSource.updateSharedLink({
@@ -106,6 +116,8 @@ export class UnifiedShareController extends Controller<UnifiedShareState, Unifie
       const error = this.toMessage(caught, "Failed to update the shared link");
       this.update({ updatingLink: false, error });
       this.emit("error", { error });
+    } finally {
+      this.inFlight = false;
     }
   }
 
