@@ -243,7 +243,7 @@ export class BoxMetricCardElement extends HTMLElement {
           padding: 0.22rem 0.48rem;
           border-radius: 999px;
           background: color-mix(in srgb, var(--boe-token-surface-surface-tertiary, #e8e8e8) 72%, white 28%);
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
+          color: var(--boe-token-text-text, #222222);
           font-size: 0.76rem;
           font-weight: 700;
         }

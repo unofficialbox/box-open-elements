@@ -127,8 +127,8 @@ export class BoxTooltipElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, #20304d 88%, var(--boe-token-surface-surface-brand, #0061d5) 12%) 0%,
-              #222222 100%
+              color-mix(in srgb, var(--boe-token-surface-tooltip-surface, #222222) 88%, var(--boe-token-surface-surface-brand, #0061d5) 12%) 0%,
+              var(--boe-token-surface-tooltip-surface, #222222) 100%
             );
           color: rgba(255, 255, 255, 0.94);
           box-shadow:

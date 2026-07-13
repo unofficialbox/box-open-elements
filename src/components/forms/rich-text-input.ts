@@ -254,7 +254,7 @@ export class BoxRichTextInputElement extends HTMLElement {
 
         [part="editor"]:empty::before {
           content: attr(data-placeholder);
-          color: color-mix(in srgb, var(--boe-token-text-text-secondary, #6f6f6f) 64%, transparent);
+          color: var(--boe-token-text-text-placeholder, #909090);
         }
 
         [part="editor"]:focus-visible,

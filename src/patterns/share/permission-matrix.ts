@@ -210,7 +210,7 @@ export class BoxPermissionMatrixElement extends HTMLElement {
           border-radius: 0.9rem;
           background: linear-gradient(
             180deg,
-            color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, #fbfbfb 8%) 0%,
+            color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
             var(--boe-token-surface-surface, #ffffff) 100%
           );
           box-shadow:

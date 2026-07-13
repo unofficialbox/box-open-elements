@@ -461,7 +461,7 @@ export class BoxContentExplorerElement extends HTMLElement {
         [part="folder"] p {
           margin: 0;
           font-size: 0.8rem;
-          color: var(--boe-token-text-text-placeholder, #909090);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="breadcrumbs"] {

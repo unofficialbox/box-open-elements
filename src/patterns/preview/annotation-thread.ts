@@ -305,7 +305,7 @@ export class BoxAnnotationThreadElement extends HTMLElement {
         }
 
         [part="entry-time"] {
-          color: color-mix(in srgb, var(--boe-token-text-text-secondary, #6f6f6f) 86%, transparent);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.78rem;
         }
 
