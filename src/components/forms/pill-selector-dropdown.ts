@@ -167,6 +167,9 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
     if (!this.valueInternal.includes(value)) {
       return;
     }
+    // The clicked remove button is destroyed by the re-render; move focus to the
+    // trigger so keyboard/AT users stay inside the widget.
+    this.pendingFocus = "trigger";
     this.commit(this.valueInternal.filter(item => item !== value));
   }
 
@@ -411,7 +414,8 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
     const trigger = this.shadowRoot.querySelector('[part="trigger"]') as HTMLButtonElement | null;
     trigger?.addEventListener("click", () => {
       if (this.open) {
-        this.closeMenu(false);
+        // Re-render recreates the trigger, so ask to refocus it after closing.
+        this.closeMenu(true);
       } else {
         this.openMenu();
       }
@@ -421,6 +425,11 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
       if ((key === "ArrowDown" || key === "Enter" || key === " ") && !this.open) {
         event.preventDefault();
         this.openMenu();
+      } else if (key === "Escape" && this.open) {
+        // Focus can rest on the trigger while the menu is open (e.g. after adding
+        // the last option); Escape must still close it.
+        event.preventDefault();
+        this.closeMenu(true);
       }
     });
 

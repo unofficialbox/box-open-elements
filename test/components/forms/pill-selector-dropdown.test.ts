@@ -148,4 +148,41 @@ describe("BoxPillSelectorDropdownElement", () => {
     expect(element.value).toEqual(["morgan"]);
     expect((element.shadowRoot?.activeElement as HTMLElement)?.dataset.value).toBe("alex");
   });
+
+  it("returns focus to the trigger after removing a pill", () => {
+    const element = createSelector(["morgan", "alex"]);
+
+    (element.shadowRoot?.querySelector('[part="pill-remove"][data-value="morgan"]') as HTMLButtonElement).click();
+
+    expect(element.value).toEqual(["alex"]);
+    expect((element.shadowRoot?.activeElement as HTMLElement)?.getAttribute("part")).toBe("trigger");
+  });
+
+  it("returns focus to the trigger when the menu is closed by clicking the trigger", () => {
+    const element = createSelector();
+    trigger(element).click();
+    expect(element.shadowRoot?.querySelector('[part="menu"]')).toBeTruthy();
+
+    trigger(element).click();
+
+    expect(element.shadowRoot?.querySelector('[part="menu"]')).toBeNull();
+    expect((element.shadowRoot?.activeElement as HTMLElement)?.getAttribute("part")).toBe("trigger");
+  });
+
+  it("closes on Escape from the trigger when the last option was just added", () => {
+    // Selecting the final option leaves the menu open with focus on the trigger.
+    const element = createSelector(["morgan", "alex"]);
+    trigger(element).click();
+    (element.shadowRoot?.querySelector('[part="option"][data-value="sam"]') as HTMLButtonElement).click();
+
+    expect(element.value).toEqual(["morgan", "alex", "sam"]);
+    expect(element.shadowRoot?.querySelector('[part="menu"]')).toBeTruthy();
+    expect((element.shadowRoot?.activeElement as HTMLElement)?.getAttribute("part")).toBe("trigger");
+
+    trigger(element).dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+
+    expect(element.shadowRoot?.querySelector('[part="menu"]')).toBeNull();
+    expect(trigger(element).getAttribute("aria-expanded")).toBe("false");
+    expect((element.shadowRoot?.activeElement as HTMLElement)?.getAttribute("part")).toBe("trigger");
+  });
 });
