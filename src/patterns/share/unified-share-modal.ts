@@ -507,8 +507,13 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
   }
 
   private async copyLink(url: string): Promise<void> {
+    // No clipboard API (insecure context / unsupported / test env) is not a
+    // rejection — bail before claiming a success the host would toast.
+    if (!navigator.clipboard) {
+      return;
+    }
     try {
-      await navigator.clipboard?.writeText(url);
+      await navigator.clipboard.writeText(url);
     } catch {
       // Clipboard access can be denied — don't claim success the host would toast.
       return;
