@@ -56,6 +56,9 @@ export class BoxPresenceElement extends HTMLElement {
   }
 
   set transport(value: PresenceTransport | null) {
+    if (this.transportValue === value) {
+      return;
+    }
     this.transportValue = value;
     this.startController();
   }
@@ -92,7 +95,6 @@ export class BoxPresenceElement extends HTMLElement {
   }
 
   connectedCallback(): void {
-    this.render();
     this.startController();
   }
 
@@ -106,7 +108,9 @@ export class BoxPresenceElement extends HTMLElement {
 
   private startController(): void {
     this.teardownController();
-    if (!this.transportValue) {
+    // Only open a subscription once the element is in the DOM, so setting a
+    // transport before insertion (or on a never-inserted element) cannot leak.
+    if (!this.isConnected || !this.transportValue) {
       this.render();
       return;
     }
@@ -127,35 +131,13 @@ export class BoxPresenceElement extends HTMLElement {
     this.controller = null;
   }
 
-  private render(): void {
-    if (!this.shadowRoot) {
+  // Build the shadow structure once. Keeping the [part="summary"] aria-live node
+  // stable across roster updates lets assistive tech announce the change rather
+  // than treat the replaced node as fresh, static content.
+  private ensureStructure(): void {
+    if (!this.shadowRoot || this.shadowRoot.querySelector('[part="presence"]')) {
       return;
     }
-
-    const users = this.users;
-    const max = this.max;
-    const visible = users.slice(0, max);
-    const overflow = Math.max(0, users.length - visible.length);
-
-    const avatarsMarkup = visible
-      .map((user, index) => {
-        const initials = user.initials || initialsFromName(user.name) || "?";
-        const inner = user.src
-          ? `<img part="avatar-image" src="${escapeHtml(user.src)}" alt="" />`
-          : escapeHtml(initials);
-        const activity = user.activity === "editing" ? "editing" : "viewing";
-        return `
-          <span
-            part="avatar"
-            data-activity="${activity}"
-            style="z-index:${visible.length - index};"
-            title="${escapeHtml(user.name)} (${activity})"
-          >${inner}<span part="dot" data-activity="${activity}" aria-hidden="true"></span></span>
-        `;
-      })
-      .join("");
-
-    const overflowMarkup = overflow ? `<span part="overflow">+${overflow}</span>` : "";
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -174,6 +156,10 @@ export class BoxPresenceElement extends HTMLElement {
         [part="stack"] {
           display: inline-flex;
           align-items: center;
+        }
+
+        [part="stack"][hidden] {
+          display: none;
         }
 
         [part="avatar"],
@@ -233,11 +219,59 @@ export class BoxPresenceElement extends HTMLElement {
           color: var(--boe-token-text-text-secondary, #52606d);
         }
       </style>
-      <div part="presence" role="group" aria-label="${escapeHtml(this.label)}">
-        ${users.length ? `<span part="stack">${avatarsMarkup}${overflowMarkup}</span>` : ""}
-        <span part="summary" aria-live="polite">${escapeHtml(summarize(users))}</span>
+      <div part="presence" role="group">
+        <span part="stack" hidden></span>
+        <span part="summary" aria-live="polite"></span>
       </div>
     `;
+  }
+
+  private render(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.ensureStructure();
+    const presence = this.shadowRoot.querySelector('[part="presence"]') as HTMLElement | null;
+    const stack = this.shadowRoot.querySelector('[part="stack"]') as HTMLElement | null;
+    const summary = this.shadowRoot.querySelector('[part="summary"]') as HTMLElement | null;
+    if (!presence || !stack || !summary) {
+      return;
+    }
+
+    presence.setAttribute("aria-label", this.label);
+
+    const users = this.users;
+    const max = this.max;
+    const visible = users.slice(0, max);
+    const overflow = Math.max(0, users.length - visible.length);
+
+    const avatarsMarkup = visible
+      .map((user, index) => {
+        const initials = user.initials || initialsFromName(user.name) || "?";
+        const inner = user.src
+          ? `<img part="avatar-image" src="${escapeHtml(user.src)}" alt="" />`
+          : escapeHtml(initials);
+        const activity = user.activity === "editing" ? "editing" : "viewing";
+        return `
+          <span
+            part="avatar"
+            role="img"
+            aria-label="${escapeHtml(`${user.name}, ${activity}`)}"
+            data-activity="${activity}"
+            style="z-index:${visible.length - index};"
+          >${inner}<span part="dot" data-activity="${activity}" aria-hidden="true"></span></span>
+        `;
+      })
+      .join("");
+
+    const overflowMarkup = overflow ? `<span part="overflow">+${overflow}</span>` : "";
+
+    // Update the pile in place; the summary's aria-live node is never replaced,
+    // only its text, so roster changes are announced.
+    stack.innerHTML = `${avatarsMarkup}${overflowMarkup}`;
+    stack.hidden = users.length === 0;
+    summary.textContent = summarize(users);
   }
 }
 

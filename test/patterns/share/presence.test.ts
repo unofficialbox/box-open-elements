@@ -5,20 +5,32 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { BoxPresenceElement, defineBoxPresenceElement } from "../../../src/patterns/share/presence.js";
 import type { PresenceTransport, PresenceUser } from "../../../src/patterns/share/presence-contracts.js";
 
-type MockTransport = PresenceTransport & { push: (users: PresenceUser[]) => void; unsubscribed: boolean };
+type MockTransport = PresenceTransport & {
+  push: (users: PresenceUser[]) => void;
+  subscribeCount: number;
+  unsubscribeCount: number;
+  activeListeners: number;
+};
 
 const createMockTransport = (): MockTransport => {
   let listener: ((users: PresenceUser[]) => void) | null = null;
   const transport: MockTransport = {
-    unsubscribed: false,
+    subscribeCount: 0,
+    unsubscribeCount: 0,
+    activeListeners: 0,
     push(users) {
       listener?.(users);
     },
     subscribe(next) {
+      transport.subscribeCount += 1;
+      transport.activeListeners += 1;
       listener = next;
       return () => {
-        listener = null;
-        transport.unsubscribed = true;
+        if (listener === next) {
+          listener = null;
+        }
+        transport.unsubscribeCount += 1;
+        transport.activeListeners -= 1;
       };
     },
   };
@@ -51,6 +63,20 @@ describe("BoxPresenceElement", () => {
     expect(summary?.textContent).toContain("1 editing");
   });
 
+  it("exposes each avatar's name and activity to assistive tech", () => {
+    const element = document.createElement("box-presence") as BoxPresenceElement;
+    element.users = [
+      { id: "1", name: "Morgan Lee", activity: "editing" },
+      { id: "2", name: "Alex Kim", activity: "viewing" },
+    ];
+    document.body.append(element);
+
+    const avatars = element.shadowRoot?.querySelectorAll('[part="avatar"]');
+    expect(avatars?.[0].getAttribute("role")).toBe("img");
+    expect(avatars?.[0].getAttribute("aria-label")).toBe("Morgan Lee, editing");
+    expect(avatars?.[1].getAttribute("aria-label")).toBe("Alex Kim, viewing");
+  });
+
   it("shows an empty summary when no one is present", () => {
     const element = document.createElement("box-presence") as BoxPresenceElement;
     document.body.append(element);
@@ -79,7 +105,6 @@ describe("BoxPresenceElement", () => {
     element.transport = transport;
     document.body.append(element);
 
-    // No one yet.
     expect(element.shadowRoot?.querySelector('[part="summary"]')?.textContent).toContain("No one else here");
 
     transport.push([
@@ -92,14 +117,36 @@ describe("BoxPresenceElement", () => {
     expect(element.users.map(user => user.id)).toEqual(["1", "2"]);
   });
 
-  it("tears down the transport subscription when removed from the DOM", () => {
+  it("keeps the live-region summary node stable across roster updates", () => {
     const transport = createMockTransport();
     const element = document.createElement("box-presence") as BoxPresenceElement;
     element.transport = transport;
     document.body.append(element);
 
-    element.remove();
+    const before = element.shadowRoot?.querySelector('[part="summary"]');
+    transport.push([{ id: "1", name: "Morgan Lee" }]);
+    const after = element.shadowRoot?.querySelector('[part="summary"]');
 
-    expect(transport.unsubscribed).toBe(true);
+    // Same node, only its text changed — so aria-live announces the update.
+    expect(after).toBe(before);
+    expect(after?.textContent).toContain("1 person here");
+  });
+
+  it("does not subscribe until inserted and cleans up exactly once on removal", () => {
+    const transport = createMockTransport();
+    const element = document.createElement("box-presence") as BoxPresenceElement;
+    element.transport = transport;
+
+    // Assigned while detached: no subscription yet.
+    expect(transport.subscribeCount).toBe(0);
+    expect(transport.activeListeners).toBe(0);
+
+    document.body.append(element);
+    expect(transport.subscribeCount).toBe(1);
+    expect(transport.activeListeners).toBe(1);
+
+    element.remove();
+    expect(transport.unsubscribeCount).toBe(1);
+    expect(transport.activeListeners).toBe(0);
   });
 });
