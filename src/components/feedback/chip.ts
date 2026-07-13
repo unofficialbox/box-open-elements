@@ -144,9 +144,9 @@ export class BoxChipElement extends HTMLElement {
           gap: 0.35rem;
           padding: 0.28rem 0.35rem 0.28rem 0.7rem;
           border-radius: 999px;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, white 18%);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 70%, white 30%);
-          color: var(--boe-token-text-text, #101820);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, white 18%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 70%, white 30%);
+          color: var(--boe-token-text-text, #222222);
           font-size: 0.82rem;
           font-weight: 600;
           line-height: 1.2;
@@ -163,20 +163,20 @@ export class BoxChipElement extends HTMLElement {
         }
 
         [part="chip"][data-interactive="true"]:hover {
-          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
         }
 
         [part="chip"][data-tone="brand"] {
           border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, transparent);
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, white 90%);
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 72%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 72%, var(--boe-token-text-text, #222222));
         }
 
         [part="chip"][data-selected="true"] {
           border-color: var(--boe-token-surface-surface-brand, #0061d5);
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, white 86%);
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 74%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 74%, var(--boe-token-text-text, #222222));
         }
 
         [part="chip"][data-disabled="true"] {
@@ -200,7 +200,7 @@ export class BoxChipElement extends HTMLElement {
           border: 0;
           border-radius: 999px;
           background: transparent;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           cursor: pointer;
           transition: background 140ms ease, color 140ms ease;
         }
@@ -212,7 +212,7 @@ export class BoxChipElement extends HTMLElement {
 
         [part="remove"]:hover:not(:disabled) {
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, transparent);
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
         }
 
         [part="remove"]:focus-visible {

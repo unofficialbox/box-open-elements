@@ -72,10 +72,10 @@ export class BoxNavSidebarElement extends HTMLElement {
           inline-size: 15rem;
           padding: 0.9rem 0.8rem;
           box-sizing: border-box;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 0.95rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
-          color: var(--boe-token-text-text, #101820);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
+          color: var(--boe-token-text-text, #222222);
           overflow: hidden;
           transition: inline-size 160ms ease;
         }
@@ -109,8 +109,8 @@ export class BoxNavSidebarElement extends HTMLElement {
 
         [part="footer"] {
           padding-block-start: 0.75rem;
-          border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 68%, transparent);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.86rem;
         }
       </style>

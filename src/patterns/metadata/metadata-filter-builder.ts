@@ -214,9 +214,9 @@ export class BoxMetadataFilterBuilderElement extends HTMLElement {
           display: grid;
           gap: 0.9rem;
           padding: 1rem 1.1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
         }
 
         [part="label"] {
@@ -244,7 +244,7 @@ export class BoxMetadataFilterBuilderElement extends HTMLElement {
           width: 100%;
           min-width: 0;
           padding: 0.75rem 0.85rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 64%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
           border-radius: 0.85rem;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
@@ -254,7 +254,7 @@ export class BoxMetadataFilterBuilderElement extends HTMLElement {
 
         [part="add"],
         [part="remove"] {
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 64%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
           border-radius: 999px;
           padding: 0.65rem 0.95rem;
           background: var(--boe-token-surface-surface, #ffffff);
@@ -271,7 +271,7 @@ export class BoxMetadataFilterBuilderElement extends HTMLElement {
         }
 
         [part="empty"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.5;
         }
 

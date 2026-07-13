@@ -179,7 +179,7 @@ export class BoxPresenceElement extends HTMLElement {
           border: 2px solid var(--boe-token-surface-surface, #ffffff);
           border-radius: 999px;
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 72%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 72%, var(--boe-token-text-text, #222222));
           font-size: 0.76rem;
           font-weight: 700;
         }
@@ -203,7 +203,7 @@ export class BoxPresenceElement extends HTMLElement {
           block-size: 0.6rem;
           border: 2px solid var(--boe-token-surface-surface, #ffffff);
           border-radius: 999px;
-          background: var(--boe-token-text-text-secondary, #52606d);
+          background: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="dot"][data-activity="viewing"] {
@@ -215,13 +215,13 @@ export class BoxPresenceElement extends HTMLElement {
         }
 
         [part="overflow"] {
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 82%, white 18%);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 82%, white 18%);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="summary"] {
           font-size: 0.84rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
       </style>
       <div part="presence" role="group">

@@ -85,7 +85,7 @@ export class BoxCheckboxElement extends HTMLElement {
           align-items: center;
           gap: 0.6rem;
           cursor: pointer;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           transition: color 140ms ease;
         }
 

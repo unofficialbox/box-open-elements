@@ -188,10 +188,10 @@ export class BoxGridViewElement extends HTMLElement {
           justify-items: center;
           gap: 0.5rem;
           padding: 1rem 0.85rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 0.85rem;
           background: var(--boe-token-surface-surface, #ffffff);
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           font: inherit;
           text-align: center;
           cursor: pointer;
@@ -199,8 +199,8 @@ export class BoxGridViewElement extends HTMLElement {
         }
 
         [part~="tile"]:hover {
-          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
         }
 
         [part~="tile-selected"] {
@@ -219,8 +219,8 @@ export class BoxGridViewElement extends HTMLElement {
           inline-size: 2.75rem;
           block-size: 2.75rem;
           border-radius: 0.6rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 82%, white 18%);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 82%, white 18%);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 1.1rem;
           font-weight: 700;
         }
@@ -234,13 +234,13 @@ export class BoxGridViewElement extends HTMLElement {
 
         [part="meta"] {
           font-size: 0.76rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="empty"] {
           padding: 1.5rem;
           text-align: center;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.9rem;
         }
       </style>

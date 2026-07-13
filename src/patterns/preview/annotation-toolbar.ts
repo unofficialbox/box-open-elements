@@ -229,9 +229,9 @@ export class BoxAnnotationToolbarElement extends HTMLElement {
           display: grid;
           gap: 0.9rem;
           padding: 1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
         }
 
         [part="header"] {
@@ -257,7 +257,7 @@ export class BoxAnnotationToolbarElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="tools"],
@@ -273,7 +273,7 @@ export class BoxAnnotationToolbarElement extends HTMLElement {
           appearance: none;
           min-height: 2rem;
           padding: 0.35rem 0.72rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 60%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 60%, transparent);
           border-radius: 999px;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
@@ -308,7 +308,7 @@ export class BoxAnnotationToolbarElement extends HTMLElement {
           inline-size: 2rem;
           block-size: 2rem;
           padding: 0;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 60%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 60%, transparent);
           border-radius: 999px;
           background: var(--boe-token-surface-surface, #ffffff);
           cursor: pointer;
@@ -335,7 +335,7 @@ export class BoxAnnotationToolbarElement extends HTMLElement {
         }
 
         [part="empty"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
       </style>
       <article part="toolbar">

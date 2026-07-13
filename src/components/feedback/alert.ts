@@ -124,7 +124,7 @@ export class BoxAlertElement extends HTMLElement {
           border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, white);
           border-radius: 0.95rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, white);
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           transition: background 140ms ease, border-color 140ms ease;
         }
 
@@ -152,37 +152,37 @@ export class BoxAlertElement extends HTMLElement {
 
         [part="title"] {
           font-weight: 700;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
         }
 
         [part="alert"][data-tone="info"] [part="title"] {
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 78%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 78%, var(--boe-token-text-text, #222222));
         }
 
         [part="alert"][data-tone="success"] [part="title"] {
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 58%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 58%, var(--boe-token-text-text, #222222));
         }
 
         [part="alert"][data-tone="error"] [part="title"] {
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 64%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 64%, var(--boe-token-text-text, #222222));
         }
 
         [part="alert"][data-tone="warning"] [part="title"],
         [part="alert"][data-tone="inprogress"] [part="title"] {
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 46%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 46%, var(--boe-token-text-text, #222222));
         }
 
         [part~="description"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="dismiss"] {
           appearance: none;
           flex: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 999px;
           background: var(--boe-token-surface-surface, #ffffff);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font: inherit;
           font-size: 0.8rem;
           font-weight: 600;
@@ -192,7 +192,7 @@ export class BoxAlertElement extends HTMLElement {
         }
 
         [part="dismiss"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
         }
 
         [part="dismiss"]:focus-visible {

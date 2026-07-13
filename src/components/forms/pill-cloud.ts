@@ -145,10 +145,10 @@ export class BoxPillCloudElement extends HTMLElement {
         [part~="pill"] {
           appearance: none;
           padding: 0.35rem 0.75rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 999px;
           background: var(--boe-token-surface-surface, #ffffff);
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           font: inherit;
           font-size: 0.82rem;
           font-weight: 600;
@@ -157,14 +157,14 @@ export class BoxPillCloudElement extends HTMLElement {
         }
 
         [part~="pill"]:hover:not(:disabled) {
-          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
         }
 
         [part~="pill-selected"] {
           border-color: var(--boe-token-surface-surface-brand, #0061d5);
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 74%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 74%, var(--boe-token-text-text, #222222));
         }
 
         [part~="pill"]:focus-visible {
@@ -178,7 +178,7 @@ export class BoxPillCloudElement extends HTMLElement {
         }
 
         [part="empty"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.86rem;
         }
       </style>

@@ -177,7 +177,7 @@ export class BoxIllustrationElement extends HTMLElement {
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, white 66%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-surface-surface-secondary, #f7f9fc) 84%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-surface-surface-secondary, #fbfbfb) 84%) 100%
             );
           border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, transparent);
           box-shadow:
@@ -222,7 +222,7 @@ export class BoxIllustrationElement extends HTMLElement {
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, white 10%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface-secondary, #f7f9fc) 90%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%) 100%
             );
           border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, transparent);
           box-shadow:
@@ -287,7 +287,7 @@ export class BoxIllustrationElement extends HTMLElement {
         }
 
         [part~="caption"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.5;
         }
       </style>

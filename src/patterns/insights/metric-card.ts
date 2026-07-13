@@ -171,9 +171,9 @@ export class BoxMetricCardElement extends HTMLElement {
           display: grid;
           gap: 0.75rem;
           padding: 0.95rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 96%, white 4%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, white 4%);
         }
 
         [part="header"] {
@@ -186,7 +186,7 @@ export class BoxMetricCardElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="title-row"] {
@@ -224,7 +224,7 @@ export class BoxMetricCardElement extends HTMLElement {
         }
 
         [part="message"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.42;
         }
 
@@ -242,8 +242,8 @@ export class BoxMetricCardElement extends HTMLElement {
           gap: 0.35rem;
           padding: 0.22rem 0.48rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-tertiary, #edf2f7) 72%, white 28%);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-tertiary, #e8e8e8) 72%, white 28%);
+          color: var(--boe-token-text-text, #222222);
           font-size: 0.76rem;
           font-weight: 700;
         }
@@ -260,7 +260,7 @@ export class BoxMetricCardElement extends HTMLElement {
 
         [part="action"] {
           appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 64%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
           border-radius: 999px;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;

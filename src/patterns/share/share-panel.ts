@@ -244,9 +244,9 @@ export class BoxSharePanelElement extends HTMLElement {
           display: grid;
           gap: 1rem;
           padding: 1.1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
         }
 
         [part="header"] {
@@ -261,7 +261,7 @@ export class BoxSharePanelElement extends HTMLElement {
         }
 
         [part="message"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.55;
         }
 
@@ -276,7 +276,7 @@ export class BoxSharePanelElement extends HTMLElement {
           padding: 0.95rem;
           border-radius: 0.95rem;
           background: var(--boe-token-surface-surface, #ffffff);
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 48%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
         }
 
         [part="shared-link-header"] {
@@ -292,7 +292,7 @@ export class BoxSharePanelElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="shared-link-access"] {
@@ -311,9 +311,9 @@ export class BoxSharePanelElement extends HTMLElement {
           appearance: none;
           width: 100%;
           text-align: left;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 52%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 52%, transparent);
           border-radius: 0.8rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 82%, white 18%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 82%, white 18%);
           color: var(--boe-token-text-text, #1f1e1b);
           font: inherit;
           padding: 0.8rem 0.9rem;
@@ -330,7 +330,7 @@ export class BoxSharePanelElement extends HTMLElement {
           display: flex;
           flex-wrap: wrap;
           gap: 0.6rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.92rem;
         }
 
@@ -353,12 +353,12 @@ export class BoxSharePanelElement extends HTMLElement {
           padding: 0.8rem 0.9rem;
           border-radius: 0.85rem;
           background: var(--boe-token-surface-surface, #ffffff);
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 42%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 42%, transparent);
         }
 
         [part="setting-label"] {
           margin: 0;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-weight: 600;
         }
 
@@ -388,7 +388,7 @@ export class BoxSharePanelElement extends HTMLElement {
           align-items: center;
           width: 100%;
           text-align: left;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 52%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 52%, transparent);
           border-radius: 0.9rem;
           padding: 0.8rem 0.9rem;
           background: var(--boe-token-surface-surface, #ffffff);
@@ -424,11 +424,11 @@ export class BoxSharePanelElement extends HTMLElement {
         }
 
         [part="collaborator-role"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="collaborator-description"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.94rem;
         }
 
@@ -440,7 +440,7 @@ export class BoxSharePanelElement extends HTMLElement {
 
         [part="action"] {
           appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 70%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
           border-radius: 999px;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;

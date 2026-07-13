@@ -86,7 +86,7 @@ export class BoxExplorerToolbarElement extends HTMLElement {
           align-items: center;
           gap: 0.6rem;
           padding: 0.6rem 0.8rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 84%, white 16%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, white 16%);
           border-radius: 0.9rem;
           background: var(--boe-token-surface-surface, #ffffff);
           box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -94,7 +94,7 @@ export class BoxExplorerToolbarElement extends HTMLElement {
 
         [part="status"],
         [part="selection-count"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.85rem;
           white-space: nowrap;
         }
@@ -110,10 +110,10 @@ export class BoxExplorerToolbarElement extends HTMLElement {
           font-size: 0.88rem;
           font-weight: 500;
           padding: 0.42rem 0.8rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 86%, white 14%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, white 14%);
           border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           cursor: pointer;
           transition:
             border-color 140ms ease,
@@ -124,8 +124,8 @@ export class BoxExplorerToolbarElement extends HTMLElement {
 
         [part="refresh"]:hover:not(:disabled),
         [part="clear-selection"]:hover:not(:disabled) {
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
-          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
         }
 
         [part="refresh"]:focus-visible,
@@ -136,8 +136,8 @@ export class BoxExplorerToolbarElement extends HTMLElement {
 
         [part="refresh"]:disabled,
         [part="clear-selection"]:disabled {
-          color: color-mix(in srgb, var(--boe-token-text-text-secondary, #52606d) 60%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 70%, white 30%);
+          color: color-mix(in srgb, var(--boe-token-text-text-secondary, #6f6f6f) 60%, transparent);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 70%, white 30%);
           cursor: not-allowed;
         }
       </style>

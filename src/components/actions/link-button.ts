@@ -86,11 +86,11 @@ export class BoxLinkButtonElement extends HTMLElement {
         [part="link"]:hover {
           text-decoration: underline;
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, transparent);
-          color: var(--boe-token-surface-surface-brand-hover, #006ae9);
+          color: var(--boe-token-surface-surface-brand-hover, #0057c0);
         }
 
         [part="link"]:active {
-          color: var(--boe-token-surface-surface-brand-pressed, #004eac);
+          color: var(--boe-token-surface-surface-brand-pressed, #004eaa);
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, transparent);
         }
 
@@ -100,12 +100,12 @@ export class BoxLinkButtonElement extends HTMLElement {
         }
 
         [part="link"][data-tone="neutral"] {
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
         }
 
         [part="link"][data-tone="neutral"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
-          color: var(--boe-token-text-text, #101820);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
+          color: var(--boe-token-text-text, #222222);
         }
 
         [part="link"][data-tone="danger"] {

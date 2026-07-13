@@ -117,12 +117,12 @@ export class BoxDatalistItemElement extends HTMLElement {
           padding: 0.5rem 0.65rem;
           border-radius: 0.6rem;
           cursor: pointer;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           transition: background 140ms ease;
         }
 
         [part="item"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
         }
 
         [part="item"][data-selected="true"] {
@@ -146,8 +146,8 @@ export class BoxDatalistItemElement extends HTMLElement {
           inline-size: 1.9rem;
           block-size: 1.9rem;
           border-radius: 0.45rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 82%, white 18%);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 82%, white 18%);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-weight: 700;
           font-size: 0.85rem;
         }
@@ -168,7 +168,7 @@ export class BoxDatalistItemElement extends HTMLElement {
 
         [part="meta"] {
           font-size: 0.78rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
       </style>
       <div

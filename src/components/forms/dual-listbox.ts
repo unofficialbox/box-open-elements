@@ -235,13 +235,13 @@ export class BoxDualListboxElement extends HTMLElement {
           flex-direction: column;
           gap: 0.75rem;
           padding: 1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1.05rem;
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 88%, white 12%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 82%, var(--boe-token-surface-surface-secondary, #f7f9fc) 14%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, white 12%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 82%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%) 100%
             );
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.8),
@@ -268,13 +268,13 @@ export class BoxDualListboxElement extends HTMLElement {
 
         [part="option"] {
           width: 100%;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 64%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
           border-radius: 0.95rem;
           background:
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, white 6%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 10%, var(--boe-token-surface-surface, #ffffff) 90%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 10%, var(--boe-token-surface-surface, #ffffff) 90%) 100%
             );
           color: inherit;
           font: inherit;
@@ -288,7 +288,7 @@ export class BoxDualListboxElement extends HTMLElement {
         }
 
         [part="option"]:hover:not(:disabled) {
-          border-color: color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 100%, transparent);
+          border-color: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 100%, transparent);
           background: color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 52%, white 48%);
         }
 
@@ -298,7 +298,7 @@ export class BoxDualListboxElement extends HTMLElement {
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, white 86%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #e8f1ff) 72%, white 28%) 100%
+              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 72%, white 28%) 100%
             );
           box-shadow: inset 0 0 0 1px rgba(0, 97, 213, 0.06);
         }
@@ -331,13 +331,13 @@ export class BoxDualListboxElement extends HTMLElement {
         [part="move-left"] {
           inline-size: 2.9rem;
           block-size: 2.9rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 88%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, transparent);
           border-radius: 0.95rem;
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 84%, white 16%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface-secondary, #f7f9fc) 80%, white 16%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 84%, white 16%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface-secondary, #fbfbfb) 80%, white 16%) 100%
             );
           color: inherit;
           font: inherit;
@@ -368,7 +368,7 @@ export class BoxDualListboxElement extends HTMLElement {
           border: 1px dashed rgba(214, 224, 234, 0.72);
           border-radius: 0.9rem;
           padding: 1rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 65%, transparent);
           text-align: center;
         }

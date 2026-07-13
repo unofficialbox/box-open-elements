@@ -179,13 +179,13 @@ export class BoxSegmentedControlElement extends HTMLElement {
           align-items: stretch;
           gap: 0.25rem;
           padding: 0.25rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 84%, white 16%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, white 16%);
           border-radius: 0.75rem;
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 88%, white 12%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 2%, var(--boe-token-surface-surface-secondary, #f7f9fc) 98%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, white 12%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 2%, var(--boe-token-surface-surface-secondary, #fbfbfb) 98%) 100%
             );
           box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
         }
@@ -203,7 +203,7 @@ export class BoxSegmentedControlElement extends HTMLElement {
           border: 1px solid transparent;
           border-radius: 0.55rem;
           background: transparent;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           cursor: pointer;
           transition:
             background-color 140ms ease,
@@ -213,14 +213,14 @@ export class BoxSegmentedControlElement extends HTMLElement {
         }
 
         [part="segment"]:hover:not(:disabled):not([data-selected="true"]) {
-          background: color-mix(in srgb, var(--boe-token-surface-surface-hover, #f5f8fc) 60%, white 40%);
-          color: var(--boe-token-text-text, #101820);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-hover, #f4f4f4) 60%, white 40%);
+          color: var(--boe-token-text-text, #222222);
         }
 
         [part="segment"][data-selected="true"] {
           background: var(--boe-token-surface-surface, #ffffff);
-          border-color: color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 70%, white 30%);
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 84%, var(--boe-token-text-text, #101820) 16%);
+          border-color: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, white 30%);
+          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 84%, var(--boe-token-text-text, #222222) 16%);
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.82),
             0 2px 6px rgba(15, 23, 42, 0.08);

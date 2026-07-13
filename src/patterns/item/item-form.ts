@@ -289,9 +289,9 @@ export class BoxItemFormElement extends HTMLElement {
           display: grid;
           gap: 1rem;
           padding: 1.1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 92%, white 8%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%, white 8%);
         }
 
         [part="label"] {
@@ -310,7 +310,7 @@ export class BoxItemFormElement extends HTMLElement {
           display: grid;
           gap: 0.9rem;
           padding: 1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 52%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 52%, transparent);
           border-radius: 0.9rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 68%, transparent);
         }
@@ -320,7 +320,7 @@ export class BoxItemFormElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="field"] {
@@ -345,13 +345,13 @@ export class BoxItemFormElement extends HTMLElement {
         }
 
         [part="field-description"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.95rem;
         }
 
         [part="field-value"] {
           padding: 0.8rem 0.9rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 48%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
           border-radius: 0.85rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 82%, transparent);
           color: rgba(35, 32, 28, 0.94);
@@ -368,7 +368,7 @@ export class BoxItemFormElement extends HTMLElement {
           width: 100%;
           min-width: 0;
           padding: 0.8rem 0.9rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 64%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
           border-radius: 0.85rem;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
@@ -396,7 +396,7 @@ export class BoxItemFormElement extends HTMLElement {
 
         [part="submit"],
         [part="cancel"] {
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 999px;
           padding: 0.75rem 1.1rem;
           background: var(--boe-token-surface-surface, #ffffff);

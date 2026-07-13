@@ -203,7 +203,7 @@ export class BoxTagInputElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="control"] {
@@ -212,13 +212,13 @@ export class BoxTagInputElement extends HTMLElement {
           align-items: center;
           gap: 0.4rem;
           padding: 0.4rem 0.5rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 78%, white 22%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, white 22%);
           border-radius: 0.7rem;
           background:
             linear-gradient(
               180deg,
               var(--boe-token-surface-surface, #ffffff) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
             );
           transition: border-color 140ms ease, box-shadow 140ms ease;
         }
@@ -240,7 +240,7 @@ export class BoxTagInputElement extends HTMLElement {
           padding: 0.2rem 0.3rem 0.2rem 0.55rem;
           border-radius: 999px;
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, white 90%);
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 72%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 72%, var(--boe-token-text-text, #222222));
           font-size: 0.8rem;
           font-weight: 600;
           white-space: nowrap;
@@ -287,12 +287,12 @@ export class BoxTagInputElement extends HTMLElement {
           border: none;
           background: transparent;
           font: inherit;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           padding: 0.25rem 0;
         }
 
         [part="input"]::placeholder {
-          color: var(--boe-token-text-text-placeholder, #748091);
+          color: var(--boe-token-text-text-placeholder, #909090);
         }
 
         [part="input"]:focus {

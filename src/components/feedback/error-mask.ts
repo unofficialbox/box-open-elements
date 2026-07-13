@@ -120,12 +120,12 @@ export class BoxErrorMaskElement extends HTMLElement {
         [part="title"] {
           font-size: 1.05rem;
           font-weight: 700;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
         }
 
         [part~="message"] {
           max-width: 32rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.5;
         }
 

@@ -135,13 +135,13 @@ export class BoxAccordionElement extends HTMLElement {
         }
 
         [part="item"] {
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 84%, white 16%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, white 16%);
           border-radius: 1rem;
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 88%, white 12%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, var(--boe-token-surface-surface-secondary, #f7f9fc) 14%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, white 12%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%) 100%
             );
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.82),
@@ -157,7 +157,7 @@ export class BoxAccordionElement extends HTMLElement {
           padding: 0.95rem 1rem;
           border: none;
           background: transparent;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           font: inherit;
           text-align: left;
           cursor: pointer;
@@ -172,13 +172,13 @@ export class BoxAccordionElement extends HTMLElement {
           block-size: 1.75rem;
           display: inline-grid;
           place-items: center;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 80%, white 20%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 80%, white 20%);
           border-radius: 0.7rem;
           background:
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, white 6%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 14%, var(--boe-token-surface-surface, #ffffff) 86%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%, var(--boe-token-surface-surface, #ffffff) 86%) 100%
             );
           color: var(--boe-token-surface-surface-brand, #0061d5);
           font-weight: 700;
@@ -187,7 +187,7 @@ export class BoxAccordionElement extends HTMLElement {
 
         [part="panel"] {
           padding: 0 1rem 1rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.55;
         }
 

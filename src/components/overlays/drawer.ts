@@ -166,11 +166,11 @@ export class BoxDrawerElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 78%, var(--boe-token-surface-surface-secondary, #f7f9fc) 22%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 78%, var(--boe-token-surface-surface-secondary, #fbfbfb) 22%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, white 8%) 100%
             );
           color: var(--boe-token-text-text, #1f1e1b);
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.82),
             0 26px 52px rgba(15, 23, 42, 0.14);
@@ -205,7 +205,7 @@ export class BoxDrawerElement extends HTMLElement {
           justify-content: space-between;
           gap: 1rem;
           padding: 1.35rem 1.35rem 1.1rem;
-          border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
         }
 
         [part="meta"] {
@@ -222,16 +222,16 @@ export class BoxDrawerElement extends HTMLElement {
 
         [part="description"] {
           margin: 0;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.5;
         }
 
         [part="close"] {
           appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 0.9rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font: inherit;
           min-height: 2rem;
           padding: 0.35rem 0.8rem;

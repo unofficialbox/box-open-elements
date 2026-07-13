@@ -71,24 +71,24 @@ export class BoxBadgeElement extends HTMLElement {
         }
 
         [part="badge"][data-tone="neutral"] {
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 62%, var(--boe-token-stroke-stroke, #d6e0ea) 38%);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 62%, var(--boe-token-stroke-stroke, #e8e8e8) 38%);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="badge"][data-tone="success"] {
           background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 14%, white 86%);
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 62%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 62%, var(--boe-token-text-text, #222222));
         }
 
         [part="badge"][data-tone="error"] {
           background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 12%, white 88%);
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 70%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 70%, var(--boe-token-text-text, #222222));
         }
 
         [part="badge"][data-tone="warning"],
         [part="badge"][data-tone="inprogress"] {
           background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 16%, white 84%);
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 50%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 50%, var(--boe-token-text-text, #222222));
         }
       </style>
       <span part="badge" data-tone="${escapeHtml(this.tone)}" role="status" aria-label="${escapeHtml(this.label)}">${escapeHtml(this.label)}</span>

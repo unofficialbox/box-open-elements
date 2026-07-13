@@ -244,9 +244,9 @@ export class BoxReviewQueueItemElement extends HTMLElement {
           display: grid;
           gap: 0.95rem;
           padding: 1rem 1.05rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 96%, white 4%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, white 4%);
         }
 
         [part="header"] {
@@ -268,12 +268,12 @@ export class BoxReviewQueueItemElement extends HTMLElement {
         }
 
         [part="item-label"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-weight: 600;
         }
 
         [part="message"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.5;
         }
 
@@ -347,7 +347,7 @@ export class BoxReviewQueueItemElement extends HTMLElement {
 
         [part="assignee-role"],
         [part="metric-label"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="metrics"] {
@@ -362,7 +362,7 @@ export class BoxReviewQueueItemElement extends HTMLElement {
           padding: 0.5rem 0.7rem;
           border-radius: 0.8rem;
           background: var(--boe-token-surface-surface, #ffffff);
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 48%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
         }
 
         [part="metric-value"] {
@@ -378,7 +378,7 @@ export class BoxReviewQueueItemElement extends HTMLElement {
 
         [part="action"] {
           appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 64%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
           border-radius: 999px;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;

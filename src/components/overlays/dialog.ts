@@ -119,10 +119,10 @@ export class BoxDialogElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 78%, var(--boe-token-surface-surface-secondary, #f7f9fc) 22%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 78%, var(--boe-token-surface-surface-secondary, #fbfbfb) 22%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, white 8%) 100%
             );
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1.35rem;
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.82),
@@ -142,7 +142,7 @@ export class BoxDialogElement extends HTMLElement {
 
         [part="description"] {
           margin: 0;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.5;
         }
 
@@ -156,13 +156,13 @@ export class BoxDialogElement extends HTMLElement {
           justify-content: end;
           gap: 0.65rem;
           padding-top: 0.15rem;
-          border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 68%, transparent);
+          border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
         }
 
         [part="cancel"],
         [part="confirm"] {
           appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 999px;
           font: inherit;
           min-height: 2rem;
@@ -171,8 +171,8 @@ export class BoxDialogElement extends HTMLElement {
         }
 
         [part="cancel"] {
-          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="confirm"] {

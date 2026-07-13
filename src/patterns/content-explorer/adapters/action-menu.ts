@@ -136,10 +136,10 @@ export class BoxExplorerActionMenuElement extends HTMLElement {
           display: inline-grid;
           place-items: center;
           appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 86%, white 14%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, white 14%);
           border-radius: 0.75rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, #eef4fb 6%);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font: inherit;
           cursor: pointer;
           padding: 0;
@@ -154,7 +154,7 @@ export class BoxExplorerActionMenuElement extends HTMLElement {
         }
 
         [part="trigger"]:hover {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 28%, var(--boe-token-stroke-stroke, #d6e0ea) 72%);
+          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 28%, var(--boe-token-stroke-stroke, #e8e8e8) 72%);
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
         }
@@ -199,7 +199,7 @@ export class BoxExplorerActionMenuElement extends HTMLElement {
           padding: 0.45rem;
           display: grid;
           gap: 0.2rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 84%, white 16%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, white 16%);
           border-radius: 0.95rem;
           background: var(--boe-token-surface-surface, #ffffff);
           box-shadow: 0 18px 32px rgba(0, 67, 146, 0.12);
@@ -212,7 +212,7 @@ export class BoxExplorerActionMenuElement extends HTMLElement {
           border: 0;
           border-radius: 0.7rem;
           background: transparent;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           font: inherit;
           font-size: 0.92rem;
           padding: 0.6rem 0.7rem;
@@ -220,7 +220,7 @@ export class BoxExplorerActionMenuElement extends HTMLElement {
         }
 
         [part="menu-item"]:hover {
-          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #e8f1ff) 64%, white 36%);
+          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, white 36%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
         }
 

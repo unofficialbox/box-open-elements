@@ -127,12 +127,12 @@ export class BoxContactDatalistItemElement extends HTMLElement {
           padding: 0.5rem 0.65rem;
           border-radius: 0.6rem;
           cursor: pointer;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           transition: background 140ms ease;
         }
 
         [part="item"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
         }
 
         [part="item"][data-selected="true"] {
@@ -158,7 +158,7 @@ export class BoxContactDatalistItemElement extends HTMLElement {
           block-size: 2.1rem;
           border-radius: 999px;
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 72%, var(--boe-token-text-text, #101820));
+          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 72%, var(--boe-token-text-text, #222222));
           font-weight: 700;
           font-size: 0.82rem;
         }
@@ -185,7 +185,7 @@ export class BoxContactDatalistItemElement extends HTMLElement {
 
         [part="email"] {
           font-size: 0.78rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;

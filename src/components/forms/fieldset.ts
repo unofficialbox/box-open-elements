@@ -122,13 +122,13 @@ export class BoxFieldsetElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.06em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="description"] {
           margin: 0 0 0.85rem;
           font-size: 0.86rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="body"] {

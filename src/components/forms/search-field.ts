@@ -103,7 +103,7 @@ export class BoxSearchFieldElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="input-shell"] {
@@ -111,13 +111,13 @@ export class BoxSearchFieldElement extends HTMLElement {
           align-items: center;
           gap: 0.4rem;
           padding: 0.3rem 0.3rem 0.3rem 0.85rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 78%, white 22%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, white 22%);
           border-radius: 0.7rem;
           background:
             linear-gradient(
               180deg,
               var(--boe-token-surface-surface, #ffffff) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
             );
           transition:
             border-color 140ms ease,
@@ -126,7 +126,7 @@ export class BoxSearchFieldElement extends HTMLElement {
         }
 
         [part="input-shell"]:hover {
-          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
         }
 
         [part="input-shell"]:focus-within {
@@ -141,12 +141,12 @@ export class BoxSearchFieldElement extends HTMLElement {
           border: none;
           background: transparent;
           font: inherit;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           padding: 0.3rem 0;
         }
 
         [part="input"]::placeholder {
-          color: var(--boe-token-text-text-placeholder, #748091);
+          color: var(--boe-token-text-text-placeholder, #909090);
         }
 
         [part="input"]:focus {
@@ -180,22 +180,22 @@ export class BoxSearchFieldElement extends HTMLElement {
         }
 
         [part="submit"]:hover:not(:disabled) {
-          background: var(--boe-token-surface-surface-brand-hover, #006ae9);
+          background: var(--boe-token-surface-surface-brand-hover, #0057c0);
         }
 
         [part="submit"]:active:not(:disabled) {
-          background: var(--boe-token-surface-surface-brand-pressed, #004eac);
+          background: var(--boe-token-surface-surface-brand-pressed, #004eaa);
         }
 
         [part="clear"] {
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 78%, white 22%);
-          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, white 22%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="clear"]:hover:not(:disabled) {
-          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
         }
 
         [part="submit"]:focus-visible,

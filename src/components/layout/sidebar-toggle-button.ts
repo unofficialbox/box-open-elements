@@ -107,10 +107,10 @@ export class BoxSidebarToggleButtonElement extends HTMLElement {
           inline-size: 2.1rem;
           block-size: 2.1rem;
           padding: 0;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 0.6rem;
           background: var(--boe-token-surface-surface, #ffffff);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           cursor: pointer;
           transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
         }
@@ -121,9 +121,9 @@ export class BoxSidebarToggleButtonElement extends HTMLElement {
         }
 
         [part="button"]:hover:not(:disabled) {
-          border-color: var(--boe-token-stroke-stroke-hover, #bcc9d6);
-          background: var(--boe-token-surface-surface-hover, #f5f8fc);
-          color: var(--boe-token-text-text, #101820);
+          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
+          color: var(--boe-token-text-text, #222222);
         }
 
         [part="button"]:focus-visible {

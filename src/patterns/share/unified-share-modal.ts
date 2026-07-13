@@ -201,7 +201,7 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
           padding: 1.25rem;
           border-radius: 1rem;
           background: var(--boe-token-surface-surface, #ffffff);
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
         }
 
@@ -224,7 +224,7 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
           border: 0;
           border-radius: 999px;
           background: transparent;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           cursor: pointer;
         }
 
@@ -235,7 +235,7 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
           gap: 0.25rem;
           padding: 0.25rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 70%, white 30%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 70%, white 30%);
         }
 
         [part^="tab-"] {
@@ -246,13 +246,13 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
           font: inherit;
           font-weight: 600;
           background: transparent;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           cursor: pointer;
         }
 
         [part^="tab-"][aria-selected="true"] {
           background: var(--boe-token-surface-surface, #ffffff);
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
           box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
         }
 
@@ -263,7 +263,7 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.06em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="link-row"] { display: flex; gap: 0.5rem; }
@@ -273,9 +273,9 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
           min-inline-size: 0;
           box-sizing: border-box;
           padding: 0.55rem 0.65rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 0.6rem;
-          background: var(--boe-token-surface-surface-secondary, #f7f9fc);
+          background: var(--boe-token-surface-surface-secondary, #fbfbfb);
           font: inherit;
           color: inherit;
         }
@@ -297,7 +297,7 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
           inline-size: 100%;
           box-sizing: border-box;
           padding: 0.55rem 0.65rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 0.6rem;
           background: var(--boe-token-surface-surface, #ffffff);
           font: inherit;
@@ -307,7 +307,7 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
         [part="access-hint"] {
           margin: 0;
           font-size: 0.82rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="field"] { display: grid; gap: 0.35rem; }
@@ -337,14 +337,14 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
 
         [part="collaborator-meta"] {
           font-size: 0.8rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="collaborator-role"] {
           margin-inline-start: auto;
           font-size: 0.8rem;
           font-weight: 600;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           text-transform: capitalize;
         }
 
@@ -364,7 +364,7 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
         [part="status"] {
           margin: 0;
           font-size: 0.9rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="error"] {

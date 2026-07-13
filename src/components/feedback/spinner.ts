@@ -79,7 +79,7 @@ export class BoxSpinnerElement extends HTMLElement {
         [part="label"] {
           font-size: 0.86rem;
           font-weight: 600;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
       </style>
       <div part="spinner" role="status" aria-live="polite">

@@ -179,13 +179,13 @@ export class BoxRichTextInputElement extends HTMLElement {
           display: grid;
           gap: 0.9rem;
           padding: 1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1.05rem;
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 90%, white 10%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 82%, var(--boe-token-surface-surface-secondary, #f7f9fc) 14%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%, white 10%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 82%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%) 100%
             );
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.82),
@@ -197,26 +197,26 @@ export class BoxRichTextInputElement extends HTMLElement {
           flex-wrap: wrap;
           gap: 0.6rem;
           padding: 0.25rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-stroke-stroke, #d6e0ea) 92%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-stroke-stroke, #e8e8e8) 92%);
           border-radius: 1rem;
           background:
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, white 6%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
             );
         }
 
         [part="tool-button"] {
           min-inline-size: 2.6rem;
           block-size: 2.6rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 74%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 74%, transparent);
           border-radius: 0.9rem;
           background:
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, white 8%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
             );
           color: inherit;
           font: inherit;
@@ -237,13 +237,13 @@ export class BoxRichTextInputElement extends HTMLElement {
         [part="editor"] {
           min-block-size: 12rem;
           padding: 1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 64%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
           border-radius: 0.95rem;
           background:
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 97%, white 3%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 2%, var(--boe-token-surface-surface-secondary, #f7f9fc) 8%, var(--boe-token-surface-surface, #ffffff) 90%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 2%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%, var(--boe-token-surface-surface, #ffffff) 90%) 100%
             );
           line-height: 1.6;
           outline: none;
@@ -254,7 +254,7 @@ export class BoxRichTextInputElement extends HTMLElement {
 
         [part="editor"]:empty::before {
           content: attr(data-placeholder);
-          color: color-mix(in srgb, var(--boe-token-text-text-secondary, #52606d) 64%, transparent);
+          color: var(--boe-token-text-text-placeholder, #909090);
         }
 
         [part="editor"]:focus-visible,

@@ -140,7 +140,7 @@ export class BoxCheckboxGroupElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="options"] {
@@ -153,14 +153,14 @@ export class BoxCheckboxGroupElement extends HTMLElement {
           align-items: center;
           gap: 0.75rem;
           padding: 0.82rem 0.9rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 78%, white 22%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, white 22%);
           border-radius: 0.95rem;
           cursor: pointer;
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 88%, white 12%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #f7f9fc) 12%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, white 12%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
             );
           transition:
             border-color 140ms ease,
@@ -169,22 +169,22 @@ export class BoxCheckboxGroupElement extends HTMLElement {
         }
 
         [part="option"]:hover {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-stroke-stroke, #d6e0ea) 84%);
+          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-stroke-stroke, #e8e8e8) 84%);
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-hover, #f5f8fc) 44%, white 56%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, var(--boe-token-surface-surface-hover, #f5f8fc) 14%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-hover, #f4f4f4) 44%, white 56%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, var(--boe-token-surface-surface-hover, #f4f4f4) 14%) 100%
             );
         }
 
         [part="option"]:has([part="input"]:checked) {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 20%, var(--boe-token-stroke-stroke, #d6e0ea) 80%);
+          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 20%, var(--boe-token-stroke-stroke, #e8e8e8) 80%);
           background:
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 9%, white 91%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #e8f1ff) 58%, white 42%) 100%
+              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 58%, white 42%) 100%
             );
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.82),
@@ -212,7 +212,7 @@ export class BoxCheckboxGroupElement extends HTMLElement {
 
         [part="option-label"] {
           font-weight: 500;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
         }
       </style>
       <fieldset part="group">

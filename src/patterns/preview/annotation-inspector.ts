@@ -213,9 +213,9 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
           display: grid;
           gap: 1rem;
           padding: 1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
         }
 
         [part="header"] {
@@ -230,7 +230,7 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
         }
 
         [part="message"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.5;
         }
 
@@ -239,7 +239,7 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
           gap: 0.85rem;
           padding: 0.95rem;
           border-radius: 1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 48%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
           background: rgba(255, 255, 255, 0.72);
         }
 
@@ -282,7 +282,7 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
           display: flex;
           flex-wrap: wrap;
           gap: 0.35rem;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.78rem;
         }
 
@@ -309,7 +309,7 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
         }
 
         [part="timestamp"] {
-          color: color-mix(in srgb, var(--boe-token-text-text-secondary, #52606d) 86%, transparent);
+          color: color-mix(in srgb, var(--boe-token-text-text-secondary, #6f6f6f) 86%, transparent);
           font-size: 0.78rem;
         }
 
@@ -323,7 +323,7 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="reply-list"] {
@@ -338,9 +338,9 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
           gap: 0.7rem;
           align-items: start;
           padding: 0.7rem 0.75rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 42%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 42%, transparent);
           border-radius: 0.9rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #f7f9fc) 88%, white 12%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, white 12%);
           color: inherit;
           font: inherit;
           text-align: left;
@@ -348,7 +348,7 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
         }
 
         [part="reply-body"] {
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.45;
         }
 
@@ -362,7 +362,7 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
           appearance: none;
           min-height: 2rem;
           padding: 0.35rem 0.72rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 60%, transparent);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 60%, transparent);
           border-radius: 999px;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
@@ -379,8 +379,8 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
         [part="empty"] {
           padding: 1rem;
           border-radius: 0.9rem;
-          border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 70%, transparent);
-          color: var(--boe-token-text-text-secondary, #52606d);
+          border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
       </style>
       <article part="panel">

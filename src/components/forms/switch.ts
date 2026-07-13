@@ -154,13 +154,13 @@ export class BoxSwitchElement extends HTMLElement {
           padding: 0.15rem;
           box-sizing: border-box;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 82%, white 18%);
+          background: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, white 18%);
           box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08);
           transition: background 140ms ease, box-shadow 140ms ease;
         }
 
         [part="switch"]:hover:not(:disabled) [part~="track"][data-checked="false"] {
-          background: var(--boe-token-stroke-stroke-hover, #bcc9d6);
+          background: var(--boe-token-stroke-stroke-hover, #bcbcbc);
         }
 
         [part~="track"][data-checked="true"] {
@@ -168,11 +168,11 @@ export class BoxSwitchElement extends HTMLElement {
         }
 
         [part="switch"]:hover:not(:disabled) [part~="track"][data-checked="true"] {
-          background: var(--boe-token-surface-surface-brand-hover, #006ae9);
+          background: var(--boe-token-surface-surface-brand-hover, #0057c0);
         }
 
         [part="switch"]:active:not(:disabled) [part~="track"][data-checked="true"] {
-          background: var(--boe-token-surface-surface-brand-pressed, #004eac);
+          background: var(--boe-token-surface-surface-brand-pressed, #004eaa);
         }
 
         [part~="thumb"] {
@@ -182,7 +182,7 @@ export class BoxSwitchElement extends HTMLElement {
           background: var(--boe-token-surface-surface, #ffffff);
           box-shadow:
             0 1px 2px rgba(15, 23, 42, 0.18),
-            0 0 0 1px color-mix(in srgb, var(--boe-token-stroke-stroke, #d6e0ea) 45%, transparent);
+            0 0 0 1px color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 45%, transparent);
           transform: translateX(0);
           transition: transform 140ms ease;
         }
@@ -199,13 +199,13 @@ export class BoxSwitchElement extends HTMLElement {
 
         [part="label"] {
           font-weight: 600;
-          color: var(--boe-token-text-text, #101820);
+          color: var(--boe-token-text-text, #222222);
         }
 
         [part="description"] {
           font-size: 0.9rem;
           line-height: 1.45;
-          color: var(--boe-token-text-text-secondary, #52606d);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
       </style>
       <button
