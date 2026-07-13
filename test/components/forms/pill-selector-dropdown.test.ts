@@ -51,7 +51,7 @@ describe("BoxPillSelectorDropdownElement", () => {
     trigger(element).click();
 
     const menu = element.shadowRoot?.querySelector('[part="menu"]');
-    expect(menu?.getAttribute("role")).toBe("listbox");
+    expect(menu?.getAttribute("role")).toBe("menu");
     expect(trigger(element).getAttribute("aria-expanded")).toBe("true");
     const optionValues = Array.from(element.shadowRoot?.querySelectorAll('[part="option"]') ?? []).map(
       node => (node as HTMLElement).dataset.value,
@@ -90,5 +90,62 @@ describe("BoxPillSelectorDropdownElement", () => {
     trigger(element).click();
     expect(element.shadowRoot?.querySelector('[part="option"]')).toBeNull();
     expect(element.shadowRoot?.querySelector('[part="option-empty"]')?.textContent).toContain("No more options");
+  });
+
+  it("exposes menu semantics and focuses the first item on open", () => {
+    const element = createSelector();
+
+    trigger(element).click();
+
+    expect(element.shadowRoot?.querySelector('[part="menu"]')?.getAttribute("role")).toBe("menu");
+    const items = element.shadowRoot?.querySelectorAll('[part="option"][role="menuitem"]');
+    expect(items?.length).toBe(3);
+    // Opening moves focus into the menu, onto the first item.
+    expect((element.shadowRoot?.activeElement as HTMLElement)?.dataset.value).toBe("morgan");
+  });
+
+  it("moves focus between menu items with arrow keys", () => {
+    const element = createSelector();
+    trigger(element).click();
+
+    const first = element.shadowRoot?.activeElement as HTMLElement;
+    first.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    expect((element.shadowRoot?.activeElement as HTMLElement)?.dataset.value).toBe("alex");
+
+    (element.shadowRoot?.activeElement as HTMLElement).dispatchEvent(
+      new KeyboardEvent("keydown", { key: "End", bubbles: true }),
+    );
+    expect((element.shadowRoot?.activeElement as HTMLElement)?.dataset.value).toBe("sam");
+
+    (element.shadowRoot?.activeElement as HTMLElement).dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }),
+    );
+    expect((element.shadowRoot?.activeElement as HTMLElement)?.dataset.value).toBe("alex");
+  });
+
+  it("closes on Escape and returns focus to the trigger", () => {
+    const element = createSelector();
+    trigger(element).click();
+    expect(element.shadowRoot?.querySelector('[part="menu"]')).toBeTruthy();
+
+    (element.shadowRoot?.activeElement as HTMLElement).dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+
+    expect(element.shadowRoot?.querySelector('[part="menu"]')).toBeNull();
+    expect(trigger(element).getAttribute("aria-expanded")).toBe("false");
+    expect((element.shadowRoot?.activeElement as HTMLElement)?.getAttribute("part")).toBe("trigger");
+  });
+
+  it("keeps the menu open after adding and advances focus to the next option", () => {
+    const element = createSelector();
+    trigger(element).click();
+
+    (element.shadowRoot?.querySelector('[part="option"][data-value="morgan"]') as HTMLButtonElement).click();
+
+    // Still open, morgan gone, focus on the next remaining option.
+    expect(element.shadowRoot?.querySelector('[part="menu"]')).toBeTruthy();
+    expect(element.value).toEqual(["morgan"]);
+    expect((element.shadowRoot?.activeElement as HTMLElement)?.dataset.value).toBe("alex");
   });
 });

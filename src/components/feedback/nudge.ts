@@ -78,7 +78,8 @@ export class BoxNudgeElement extends HTMLElement {
   }
 
   connectedCallback(): void {
-    this.openValue = !this.hasAttribute("open") ? true : this.hasAttribute("open");
+    // Open by default; dismiss() (via the `open` property) manages the closed state.
+    this.openValue = true;
     this.render();
   }
 

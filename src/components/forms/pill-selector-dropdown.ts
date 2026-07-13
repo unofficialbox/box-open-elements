@@ -17,8 +17,9 @@ type PillOption = {
  * A multi-select pill field: the current selection shows as removable pills, and
  * an "Add" dropdown offers the remaining options. Data arrives via `options`;
  * the selection is exposed as `value` (a string[]) and every add/remove emits
- * `value-changed`. The menu is a `role="listbox"` toggled from an
- * `aria-haspopup` trigger.
+ * `value-changed`. The popup is a `role="menu"` of `role="menuitem"` buttons —
+ * opening focuses the first item; ArrowUp/Down/Home/End move focus, Escape (or
+ * moving focus outside) closes and returns focus to the trigger.
  */
 export class BoxPillSelectorDropdownElement extends HTMLElement {
   static get observedAttributes(): string[] {
@@ -27,6 +28,21 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
 
   private valueInternal: string[] = [];
   private open = false;
+  private menuFocusValue: string | null = null;
+  private pendingFocus: "menu" | "trigger" | null = null;
+
+  // Close the open menu when a pointer press lands outside this element. Bound
+  // once so it can be added/removed cleanly; a focusout listener can't be used
+  // because every interaction re-renders and transiently drops focus to body.
+  private readonly onOutsidePointer = (event: Event): void => {
+    if (!this.open) {
+      return;
+    }
+    const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+    if (!path.some(node => node === this)) {
+      this.closeMenu(false);
+    }
+  };
 
   constructor() {
     super();
@@ -81,6 +97,10 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
     this.render();
   }
 
+  disconnectedCallback(): void {
+    document.removeEventListener("pointerdown", this.onOutsidePointer);
+  }
+
   attributeChangedCallback(name: string): void {
     if (name === "value") {
       const raw = this.getAttribute("value");
@@ -99,14 +119,25 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
     this.render();
   }
 
+  private availableOptions(): PillOption[] {
+    return this.options.filter(option => !this.valueInternal.includes(option.value));
+  }
+
   private labelFor(value: string): string {
     return this.options.find(option => option.value === value)?.label ?? value;
   }
 
   private commit(next: string[]): void {
     this.valueInternal = next;
-    this.setAttribute("value", JSON.stringify(next));
-    this.render();
+    const serialized = JSON.stringify(next);
+    // Render exactly once: setAttribute already triggers attributeChangedCallback
+    // (which renders), so only render manually when the attribute is unchanged.
+    // A double render would replace and un-focus the item we just moved focus to.
+    if (this.getAttribute("value") === serialized) {
+      this.render();
+    } else {
+      this.setAttribute("value", serialized);
+    }
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,
@@ -120,8 +151,16 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
     if (!value || this.valueInternal.includes(value)) {
       return;
     }
-    // Keep the menu open so several options can be added in a row.
-    this.commit([...this.valueInternal, value]);
+
+    const next = [...this.valueInternal, value];
+    // Keep the menu open so several options can be added in a row; move focus to
+    // the next remaining option, or back to the trigger once none remain.
+    const remaining = this.options.filter(
+      option => !next.includes(option.value),
+    );
+    this.menuFocusValue = remaining[0]?.value ?? null;
+    this.pendingFocus = remaining.length ? "menu" : "trigger";
+    this.commit(next);
   }
 
   private removeValue(value: string): void {
@@ -131,8 +170,48 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
     this.commit(this.valueInternal.filter(item => item !== value));
   }
 
-  private toggleOpen(force?: boolean): void {
-    this.open = force ?? !this.open;
+  private openMenu(): void {
+    if (this.open) {
+      return;
+    }
+    this.open = true;
+    this.menuFocusValue = this.availableOptions()[0]?.value ?? null;
+    this.pendingFocus = this.menuFocusValue ? "menu" : null;
+    document.addEventListener("pointerdown", this.onOutsidePointer);
+    this.render();
+  }
+
+  private closeMenu(focusTrigger: boolean): void {
+    if (!this.open) {
+      return;
+    }
+    this.open = false;
+    this.menuFocusValue = null;
+    this.pendingFocus = focusTrigger ? "trigger" : null;
+    document.removeEventListener("pointerdown", this.onOutsidePointer);
+    this.render();
+  }
+
+  private moveMenuFocus(delta: number): void {
+    const available = this.availableOptions();
+    if (!available.length) {
+      return;
+    }
+
+    const currentIndex = available.findIndex(option => option.value === this.menuFocusValue);
+    const nextIndex = Math.max(0, Math.min(available.length - 1, currentIndex + delta));
+    this.menuFocusValue = available[nextIndex]?.value ?? null;
+    this.pendingFocus = "menu";
+    this.render();
+  }
+
+  private moveMenuFocusTo(edge: "first" | "last"): void {
+    const available = this.availableOptions();
+    if (!available.length) {
+      return;
+    }
+    this.menuFocusValue = (edge === "first" ? available[0] : available[available.length - 1])?.value ?? null;
+    this.pendingFocus = "menu";
     this.render();
   }
 
@@ -141,7 +220,7 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
       return;
     }
 
-    const available = this.options.filter(option => !this.valueInternal.includes(option.value));
+    const available = this.availableOptions();
 
     const pillsMarkup = this.valueInternal
       .map(
@@ -160,13 +239,19 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
       ? available
           .map(
             option => `
-              <li part="option-row" role="option" aria-selected="false">
-                <button type="button" part="option" data-value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</button>
+              <li part="option-row" role="none">
+                <button
+                  type="button"
+                  part="option"
+                  role="menuitem"
+                  data-value="${escapeHtml(option.value)}"
+                  tabindex="${option.value === this.menuFocusValue ? "0" : "-1"}"
+                >${escapeHtml(option.label)}</button>
               </li>
             `,
           )
           .join("")
-      : `<li part="option-empty" role="presentation">No more options</li>`;
+      : `<li part="option-empty" role="none">No more options</li>`;
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -302,20 +387,41 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
           <button
             type="button"
             part="trigger"
-            aria-haspopup="listbox"
+            aria-haspopup="menu"
             aria-expanded="${String(this.open)}"
           >+ ${escapeHtml(this.placeholder)}</button>
           ${
             this.open
-              ? `<ul part="menu" role="listbox" aria-label="${escapeHtml(this.label)} options">${optionsMarkup}</ul>`
+              ? `<ul part="menu" role="menu" aria-label="${escapeHtml(this.label)} options">${optionsMarkup}</ul>`
               : ""
           }
         </div>
       </div>
     `;
 
-    this.shadowRoot.querySelector('[part="trigger"]')?.addEventListener("click", () => {
-      this.toggleOpen();
+    this.attachListeners();
+    this.applyPendingFocus();
+  }
+
+  private attachListeners(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const trigger = this.shadowRoot.querySelector('[part="trigger"]') as HTMLButtonElement | null;
+    trigger?.addEventListener("click", () => {
+      if (this.open) {
+        this.closeMenu(false);
+      } else {
+        this.openMenu();
+      }
+    });
+    trigger?.addEventListener("keydown", event => {
+      const key = (event as KeyboardEvent).key;
+      if ((key === "ArrowDown" || key === "Enter" || key === " ") && !this.open) {
+        event.preventDefault();
+        this.openMenu();
+      }
     });
 
     for (const remove of Array.from(this.shadowRoot.querySelectorAll('[part="pill-remove"]'))) {
@@ -325,9 +431,59 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
     }
 
     for (const option of Array.from(this.shadowRoot.querySelectorAll('[part="option"]'))) {
-      option.addEventListener("click", () => {
-        this.addValue((option as HTMLButtonElement).dataset.value ?? "");
+      const button = option as HTMLButtonElement;
+      button.addEventListener("click", () => {
+        this.addValue(button.dataset.value ?? "");
       });
+      button.addEventListener("keydown", event => {
+        const keyboardEvent = event as KeyboardEvent;
+        switch (keyboardEvent.key) {
+          case "ArrowDown":
+            keyboardEvent.preventDefault();
+            this.moveMenuFocus(1);
+            break;
+          case "ArrowUp":
+            keyboardEvent.preventDefault();
+            this.moveMenuFocus(-1);
+            break;
+          case "Home":
+            keyboardEvent.preventDefault();
+            this.moveMenuFocusTo("first");
+            break;
+          case "End":
+            keyboardEvent.preventDefault();
+            this.moveMenuFocusTo("last");
+            break;
+          case "Escape":
+            keyboardEvent.preventDefault();
+            this.closeMenu(true);
+            break;
+          default:
+            break;
+        }
+      });
+    }
+
+  }
+
+  private applyPendingFocus(): void {
+    if (!this.shadowRoot || !this.pendingFocus) {
+      return;
+    }
+
+    const pending = this.pendingFocus;
+    this.pendingFocus = null;
+
+    if (pending === "trigger") {
+      (this.shadowRoot.querySelector('[part="trigger"]') as HTMLButtonElement | null)?.focus();
+      return;
+    }
+
+    if (pending === "menu" && this.menuFocusValue) {
+      const target = Array.from(this.shadowRoot.querySelectorAll('[part="option"]')).find(
+        node => (node as HTMLButtonElement).dataset.value === this.menuFocusValue,
+      ) as HTMLButtonElement | undefined;
+      target?.focus();
     }
   }
 }
