@@ -57,11 +57,26 @@ describe("BoxAccessStatsElement", () => {
     expect(element.shadowRoot?.querySelector('[part="tile-icon"]')?.textContent).toContain("👁");
   });
 
-  it("renders an empty affordance with no stats", () => {
+  it("keeps the labelled group and shows an empty affordance with no stats", () => {
     const element = document.createElement("box-access-stats") as BoxAccessStatsElement;
     document.body.append(element);
 
-    expect(element.shadowRoot?.querySelector('[part="stats"]')).toBeNull();
+    const group = element.shadowRoot?.querySelector('[part="stats"]');
+    expect(group?.getAttribute("role")).toBe("group");
+    expect(group?.getAttribute("aria-label")).toBe("Access stats");
     expect(element.shadowRoot?.querySelector('[part="empty"]')?.textContent).toContain("No access data");
+  });
+
+  it("drops malformed stat entries", () => {
+    const element = document.createElement("box-access-stats") as BoxAccessStatsElement;
+    element.setAttribute(
+      "stats",
+      JSON.stringify([null, { label: "Views", value: 5 }, { label: "Bad", value: "x" }]),
+    );
+    document.body.append(element);
+
+    const tiles = element.shadowRoot?.querySelectorAll('[part="tile"]');
+    expect(tiles?.length).toBe(1);
+    expect(tiles?.[0].querySelector('[part="tile-label"]')?.textContent).toBe("Views");
   });
 });

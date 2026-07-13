@@ -24,6 +24,19 @@ type AccessStat = {
   icon?: string;
 };
 
+const isAccessStat = (candidate: unknown): candidate is AccessStat => {
+  if (typeof candidate !== "object" || candidate === null) {
+    return false;
+  }
+  const { label, value, icon } = candidate as Record<string, unknown>;
+  return (
+    typeof label === "string" &&
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    (icon === undefined || typeof icon === "string")
+  );
+};
+
 /**
  * A compact, data-injected display of how a shared item has been accessed —
  * view / download / comment counts and the like. A composition: the numbers
@@ -42,7 +55,7 @@ export class BoxAccessStatsElement extends HTMLElement {
   }
 
   get label(): string {
-    return this.getAttribute("label") ?? "Access stats";
+    return this.getAttribute("label")?.trim() || "Access stats";
   }
 
   set label(value: string) {
@@ -56,8 +69,8 @@ export class BoxAccessStatsElement extends HTMLElement {
     }
 
     try {
-      const parsed = JSON.parse(raw) as AccessStat[];
-      return Array.isArray(parsed) ? parsed : [];
+      const parsed: unknown = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.filter(isAccessStat) : [];
     } catch {
       return [];
     }
@@ -162,12 +175,10 @@ export class BoxAccessStatsElement extends HTMLElement {
         }
       </style>
       ${
-        stats.length
-          ? `<section part="stats" role="group" aria-label="${escapeHtml(this.label)}">
+        `<section part="stats" role="group" aria-label="${escapeHtml(this.label)}">
               <p part="title">${escapeHtml(this.label)}</p>
-              <div part="grid">${tiles}</div>
+              ${stats.length ? `<div part="grid">${tiles}</div>` : `<div part="empty">No access data</div>`}
             </section>`
-          : `<div part="empty">No access data</div>`
       }
     `;
   }

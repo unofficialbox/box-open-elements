@@ -32,7 +32,7 @@ src/patterns/
   search/             # target
   item/             # built — item-form, item-details-panel, bulk-action-bar, preview-header
   metadata/           # built — contracts, schemas, metadata-filter-builder, metadata-inspector
-  share/              # built — contracts, schemas, permission-matrix, share-panel
+  share/              # built — contracts, schemas, access-stats, collaborator-avatars, permission-matrix, share-panel
   file-request/       # built — file-request-builder
   task/               # built — review-queue-item, task-assignment-panel
   governance/         # built — governance-panel

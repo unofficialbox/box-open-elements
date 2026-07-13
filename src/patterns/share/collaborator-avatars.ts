@@ -24,6 +24,19 @@ type Collaborator = {
   src?: string;
 };
 
+const isCollaborator = (value: unknown): value is Collaborator => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.name === "string" &&
+    (candidate.id === undefined || typeof candidate.id === "string") &&
+    (candidate.initials === undefined || typeof candidate.initials === "string") &&
+    (candidate.src === undefined || typeof candidate.src === "string")
+  );
+};
+
 /**
  * A stacked "avatar pile" for the collaborators on an item, with a `+N` overflow
  * chip once the count exceeds `max`. A composition: data arrives via the
@@ -48,8 +61,8 @@ export class BoxCollaboratorAvatarsElement extends HTMLElement {
     }
 
     try {
-      const parsed = JSON.parse(raw) as Collaborator[];
-      return Array.isArray(parsed) ? parsed : [];
+      const parsed: unknown = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.filter(isCollaborator) : [];
     } catch {
       return [];
     }
@@ -60,7 +73,7 @@ export class BoxCollaboratorAvatarsElement extends HTMLElement {
   }
 
   get label(): string {
-    return this.getAttribute("label") ?? "Collaborators";
+    return this.getAttribute("label")?.trim() || "Collaborators";
   }
 
   set label(value: string) {
@@ -186,7 +199,7 @@ export class BoxCollaboratorAvatarsElement extends HTMLElement {
       ${
         collaborators.length
           ? `<div part="group" role="group" aria-label="${escapeHtml(this.label)}">${avatarsMarkup}${overflowMarkup}</div>`
-          : `<div part="empty">No collaborators</div>`
+          : `<div part="group" role="group" aria-label="${escapeHtml(this.label)}"><span part="empty">No collaborators</span></div>`
       }
     `;
 

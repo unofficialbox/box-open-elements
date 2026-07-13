@@ -46,6 +46,23 @@ describe("BoxCollaboratorAvatarsElement", () => {
     expect(avatars?.[0].getAttribute("aria-label")).toBe("Morgan Lee");
   });
 
+  it("uses explicitly supplied initials over the derived ones", () => {
+    const element = document.createElement("box-collaborator-avatars") as BoxCollaboratorAvatarsElement;
+    element.collaborators = [{ id: "1", name: "Morgan Lee", initials: "MX" }];
+    document.body.append(element);
+
+    expect(element.shadowRoot?.querySelector('[part="avatar"]')?.textContent?.trim()).toBe("MX");
+  });
+
+  it("uses a supplied label as the group accessible name", () => {
+    const element = document.createElement("box-collaborator-avatars") as BoxCollaboratorAvatarsElement;
+    element.collaborators = people;
+    element.label = "Shared with";
+    document.body.append(element);
+
+    expect(element.shadowRoot?.querySelector('[part="group"]')?.getAttribute("aria-label")).toBe("Shared with");
+  });
+
   it("caps visible avatars at max and shows a +N overflow chip", () => {
     const element = create(3);
 
@@ -85,11 +102,23 @@ describe("BoxCollaboratorAvatarsElement", () => {
     expect(onOverflow).toHaveBeenCalledWith(expect.objectContaining({ detail: { count: 3 } }));
   });
 
-  it("renders an empty affordance with no collaborators", () => {
+  it("keeps the labelled group and shows an empty affordance with no collaborators", () => {
     const element = document.createElement("box-collaborator-avatars") as BoxCollaboratorAvatarsElement;
     document.body.append(element);
 
-    expect(element.shadowRoot?.querySelector('[part="group"]')).toBeNull();
+    const group = element.shadowRoot?.querySelector('[part="group"]');
+    expect(group?.getAttribute("role")).toBe("group");
+    expect(group?.getAttribute("aria-label")).toBe("Collaborators");
     expect(element.shadowRoot?.querySelector('[part="empty"]')?.textContent).toContain("No collaborators");
+  });
+
+  it("drops malformed collaborator records", () => {
+    const element = document.createElement("box-collaborator-avatars") as BoxCollaboratorAvatarsElement;
+    element.setAttribute("collaborators", JSON.stringify([null, { name: "Morgan Lee" }, { id: 5 }]));
+    document.body.append(element);
+
+    const avatars = element.shadowRoot?.querySelectorAll('[part="avatar"]');
+    expect(avatars?.length).toBe(1);
+    expect(avatars?.[0].getAttribute("aria-label")).toBe("Morgan Lee");
   });
 });
