@@ -26,11 +26,13 @@ const createMockTransport = (): MockTransport => {
       transport.activeListeners += 1;
       listener = next;
       return () => {
+        // Only the current subscription's teardown adjusts the counters; a stale
+        // unsubscribe (from a prior cycle) must be a no-op.
         if (listener === next) {
           listener = null;
+          transport.unsubscribeCount += 1;
+          transport.activeListeners -= 1;
         }
-        transport.unsubscribeCount += 1;
-        transport.activeListeners -= 1;
       };
     },
   };
@@ -148,5 +150,38 @@ describe("BoxPresenceElement", () => {
     element.remove();
     expect(transport.unsubscribeCount).toBe(1);
     expect(transport.activeListeners).toBe(0);
+
+    // Reattaching resubscribes exactly once — no duplicate/leaked subscriptions.
+    document.body.append(element);
+    expect(transport.subscribeCount).toBe(2);
+    expect(transport.activeListeners).toBe(1);
+
+    element.remove();
+    expect(transport.unsubscribeCount).toBe(2);
+    expect(transport.activeListeners).toBe(0);
+  });
+
+  it("preserves the last roster across detach and reattach", () => {
+    const transport = createMockTransport();
+    const element = document.createElement("box-presence") as BoxPresenceElement;
+    element.transport = transport;
+    document.body.append(element);
+
+    transport.push([
+      { id: "1", name: "Morgan Lee" },
+      { id: "2", name: "Alex Kim" },
+    ]);
+    expect(element.shadowRoot?.querySelectorAll('[part="avatar"]').length).toBe(2);
+
+    element.remove();
+    document.body.append(element);
+
+    // The last roster renders immediately, before the transport pushes again.
+    expect(element.shadowRoot?.querySelectorAll('[part="avatar"]').length).toBe(2);
+    expect(element.shadowRoot?.querySelector('[part="summary"]')?.textContent).toContain("2 people here");
+
+    // Live updates still flow after the reconnect.
+    transport.push([{ id: "1", name: "Morgan Lee" }]);
+    expect(element.shadowRoot?.querySelectorAll('[part="avatar"]').length).toBe(1);
   });
 });

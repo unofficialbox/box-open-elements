@@ -125,6 +125,11 @@ export class BoxPresenceElement extends HTMLElement {
   }
 
   private teardownController(): void {
+    if (this.controller) {
+      // Preserve the last live roster so a reconnect renders it immediately,
+      // before the transport delivers its first update.
+      this.usersValue = this.controller.users;
+    }
     this.controllerUnsubscribe?.();
     this.controllerUnsubscribe = null;
     this.controller?.destroy();
