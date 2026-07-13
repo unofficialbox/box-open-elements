@@ -63,6 +63,15 @@ describe("BoxCollaboratorAvatarsElement", () => {
     expect(element.shadowRoot?.querySelector('[part="group"]')?.getAttribute("aria-label")).toBe("Shared with");
   });
 
+  it("falls back to the default label when the supplied label is blank", () => {
+    const element = document.createElement("box-collaborator-avatars") as BoxCollaboratorAvatarsElement;
+    element.collaborators = people;
+    element.label = "   ";
+    document.body.append(element);
+
+    expect(element.shadowRoot?.querySelector('[part="group"]')?.getAttribute("aria-label")).toBe("Collaborators");
+  });
+
   it("caps visible avatars at max and shows a +N overflow chip", () => {
     const element = create(3);
 
