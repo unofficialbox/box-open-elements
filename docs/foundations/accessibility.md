@@ -28,6 +28,11 @@ Components expose accessible semantics as part of the default contract, not as o
 - `Enter` and `Space` should activate the currently focused item when activation is expected
 - `Escape` should dismiss transient surfaces such as dialogs, drawers, popovers, tooltips, and menus
 
+## Focus visibility
+
+- every interactive control shows a visible focus indicator on `:focus-visible`, driven by the design-system brand token (`--boe-token-surface-surface-brand`) rather than a hardcoded color, so the ring matches the active theme and adapts between light and dark
+- status and other semantic colors resolve through design tokens (`--boe-token-surface-status-*`) and `color-mix` against the surface/text tokens, so contrast holds when the theme changes instead of leaving light-on-light or dark-on-dark patches
+
 ## State guidance
 
 - prefer `aria-selected` for selection state in listbox, tab, tree, and similar composite widgets
