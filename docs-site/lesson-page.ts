@@ -9,7 +9,7 @@
  * the complete runnable source. The live previews run against the already-
  * loaded library, exactly what the shown code produces in a consumer app.
  */
-import { createMockTransport } from "./examples.js";
+import { addedLines } from "./diff.js";
 import type { Lesson, LessonStep, PreviewKey } from "./lessons.js";
 
 type ExplorerElement = HTMLElement & { transport: unknown };
@@ -22,38 +22,38 @@ const escapeHtml = (value: string): string =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 
-/** Line indices in `curr` that are new relative to `prev` (LCS diff). */
-const addedLines = (prev: string, curr: string): Set<number> => {
-  const a = prev ? prev.split("\n") : [];
-  const b = curr.split("\n");
-  const m = a.length;
-  const n = b.length;
-  const dp: number[][] = Array.from({ length: m + 1 }, () => new Array<number>(n + 1).fill(0));
-  for (let i = m - 1; i >= 0; i--) {
-    for (let j = n - 1; j >= 0; j--) {
-      dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
-    }
-  }
-  const added = new Set<number>();
-  let i = 0;
-  let j = 0;
-  while (i < m && j < n) {
-    if (a[i] === b[j]) {
-      i++;
-      j++;
-    } else if (dp[i + 1][j] >= dp[i][j + 1]) {
-      i++;
-    } else {
-      added.add(j);
-      j++;
-    }
-  }
-  while (j < n) {
-    added.add(j);
-    j++;
-  }
-  return added;
-};
+// The same folder-correct mock the lesson's Step 2 shows, so the live preview
+// renders exactly what the copied starter produces.
+const FOLDER_NAMES: Record<string, string> = { "0": "All Files", "42": "Marketing", "77": "Legal" };
+const lessonTransport = () => ({
+  async loadFolderItems({ folderId }: { folderId: string }) {
+    const atRoot = folderId === "0";
+    const name = FOLDER_NAMES[folderId] || "Folder";
+    return {
+      folderId,
+      folder: { id: folderId, name, type: "folder" as const },
+      breadcrumbs: atRoot
+        ? [{ id: "0", name: "All Files", type: "folder" as const }]
+        : [
+            { id: "0", name: "All Files", type: "folder" as const },
+            { id: folderId, name, type: "folder" as const },
+          ],
+      items: atRoot
+        ? [
+            { id: "42", name: "Marketing", type: "folder" as const },
+            { id: "77", name: "Legal", type: "folder" as const },
+            { id: "123", name: "Quarterly Plan.pdf", type: "file" as const },
+            { id: "124", name: "Brand Guidelines.pdf", type: "file" as const },
+            { id: "125", name: "box.com/launch", type: "web_link" as const },
+          ]
+        : [
+            { id: `${folderId}-plan`, name: `${name} plan.docx`, type: "file" as const },
+            { id: `${folderId}-brief`, name: `${name} brief.pdf`, type: "file" as const },
+          ],
+      pagination: { hasMoreItems: false, limit: 25, offset: 0, totalCount: atRoot ? 5 : 2 },
+    };
+  },
+});
 
 /** A code block: full source, delta lines highlighted, with a copy button. */
 const codeBlock = (code: string, highlight: Set<number>, copyLabel: string): string => {
@@ -75,7 +75,7 @@ const codeBlock = (code: string, highlight: Set<number>, copyLabel: string): str
 
 const mountExplorer = (canvas: HTMLElement, options: { multiple?: boolean; pageSize?: string } = {}): ExplorerElement => {
   const explorer = document.createElement("box-content-explorer") as ExplorerElement;
-  explorer.transport = createMockTransport();
+  explorer.transport = lessonTransport();
   explorer.setAttribute("root-folder-id", "0");
   explorer.setAttribute("token", "developer-token");
   if (options.multiple) explorer.setAttribute("selection-mode", "multiple");
@@ -117,10 +117,10 @@ const runPreview = (key: PreviewKey, canvas: HTMLElement, log: LogFn): (() => vo
     const onFolder = (event: Event): void => {
       const folder = (event as CustomEvent).detail?.folder;
       if (folder) here.textContent = `You are in: ${folder.name}`;
-      log("folder-changed", (event as CustomEvent).detail);
+      log("folder-loaded", (event as CustomEvent).detail);
     };
-    explorer.addEventListener("folder-changed", onFolder);
-    cleanups.push(() => explorer.removeEventListener("folder-changed", onFolder));
+    explorer.addEventListener("folder-loaded", onFolder);
+    cleanups.push(() => explorer.removeEventListener("folder-loaded", onFolder));
   }
 
   if (key === "select" || key === "multiselect") {
@@ -155,7 +155,7 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
         </header>
         <p class="lesson-goal">${escapeHtml(step.goal)}</p>
         <p class="lesson-anchor"><span class="lesson-file">${escapeHtml(step.file)}</span> — ${escapeHtml(step.anchor)}</p>
-        ${codeBlock(step.code, highlight, isSetup ? "Copy app.ts" : "Copy full file (checkpoint)")}
+        ${codeBlock(step.code, highlight, isSetup ? "Copy app.js" : "Copy full file (checkpoint)")}
         <div class="lesson-result">
           <p class="section-label">Result</p>
           <div class="preview-canvas lesson-canvas" data-preview="${step.preview}"></div>
@@ -204,8 +204,8 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
             <p>The live lesson above needs nothing installed. To build it locally, drop these two files together and run them — same code, run against the published package.</p>
             <p class="lesson-anchor"><span class="lesson-file">index.html</span></p>
             ${codeBlock(lesson.starterHtml, new Set<number>(), "Copy index.html")}
-            <p class="lesson-anchor"><span class="lesson-file">app.ts</span> — the complete lesson</p>
-            ${codeBlock(finalCode, new Set<number>(), "Copy app.ts")}
+            <p class="lesson-anchor"><span class="lesson-file">app.js</span> — the complete lesson</p>
+            ${codeBlock(finalCode, new Set<number>(), "Copy app.js")}
             <p class="prose"><strong>Run it:</strong> ${escapeHtml(lesson.install)}</p>
           </section>
         </div>

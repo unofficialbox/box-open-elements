@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { lessons, lessonById, explorerLesson, type PreviewKey } from "../../docs-site/lessons.js";
 import { catalog } from "../../docs-site/registry.js";
+import { addedLines } from "../../docs-site/diff.js";
 
 const PREVIEW_KEYS: PreviewKey[] = ["empty", "shell", "connected", "navigate", "select", "multiselect"];
 
@@ -73,7 +74,7 @@ describe("build-along lessons", () => {
       "box-content-explorer",
       "explorer.transport = transport",
       "root-folder-id",
-      "folder-changed",
+      "folder-loaded",
       "selection-changed",
       "item-activated",
       "selection-mode",
@@ -92,9 +93,61 @@ describe("build-along lessons", () => {
   });
 
   it("ships a runnable starter that references the app module and package", () => {
-    expect(explorerLesson.starterHtml).toContain("app.ts");
+    expect(explorerLesson.starterHtml).toContain("app.js");
     expect(explorerLesson.starterHtml).toContain("box-open-elements");
     expect(explorerLesson.starterHtml).toContain('id="app"');
+    // Pinned CDN version so the copyable starter never floats.
+    expect(explorerLesson.starterHtml).toMatch(/box-open-elements@\d+\.\d+\.\d+/);
     expect(explorerLesson.install.toLowerCase()).toContain("install");
+  });
+
+  it("keeps lesson + starter as browser-valid JavaScript (no build step)", () => {
+    // The starter loads app.js from a static server, so the shown code must be
+    // plain browser JS — no TypeScript-only syntax that a browser can't run.
+    expect(explorerLesson.starterHtml).toContain('src="./app.js"');
+    expect(explorerLesson.starterHtml).not.toContain(".ts");
+    for (const step of explorerLesson.steps) {
+      expect(step.code).not.toMatch(/\bas\s+[A-Z]/); // e.g. `as CustomEvent`
+      expect(step.code).not.toMatch(/:\s*(string|number|boolean)\b/); // param type annotations
+      expect(step.code).not.toContain("!."); // non-null assertions
+    }
+  });
+
+  it("mock transport stays consistent per folder id (no contradictory navigation)", () => {
+    // Guard the reviewer's case: every non-root folder must not masquerade as
+    // Marketing. The shown Step 2 code drives folder name off the id.
+    const step2 = explorerLesson.steps.find(step => step.n === 2)!;
+    expect(step2.code).toContain("folderNames[folderId]");
+    expect(step2.code).toContain('"77": "Legal"');
+  });
+});
+
+describe("lesson delta diff", () => {
+  it("marks only genuinely new lines", () => {
+    const prev = "a\nb\nc";
+    const curr = "a\nb\nX\nc";
+    expect([...addedLines(prev, curr)].sort()).toEqual([2]);
+  });
+
+  it("marks every line as added when there is no previous step", () => {
+    expect([...addedLines("", "one\ntwo")].sort()).toEqual([0, 1]);
+  });
+
+  it("highlights exactly the cumulative growth between real steps", () => {
+    const steps = explorerLesson.steps;
+    for (let i = 1; i < steps.length; i++) {
+      const added = addedLines(steps[i - 1].code, steps[i].code);
+      const prevLineCount = steps[i - 1].code.split("\n").length;
+      const currLineCount = steps[i].code.split("\n").length;
+      // Something is highlighted, and never more than the file has.
+      expect(added.size).toBeGreaterThan(0);
+      expect(added.size).toBeLessThanOrEqual(currLineCount);
+      // Cumulative growth means at least (curr - prev) lines are new.
+      expect(added.size).toBeGreaterThanOrEqual(currLineCount - prevLineCount);
+      for (const index of added) {
+        expect(index).toBeGreaterThanOrEqual(0);
+        expect(index).toBeLessThan(currLineCount);
+      }
+    }
   });
 });

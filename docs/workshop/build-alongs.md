@@ -1,6 +1,6 @@
 # Build Alongs (Microlearning)
 
-Alongside catalog browsing, the docs site teaches through short "build-along" lessons: guided, hands-on paths from blank page to a working pattern-level result. The predecessor repo shipped the first one (`Explorer`) and validated the *microlearning shape* — short units, outcome-first, visible progress. It did **not** validate an experience a human could actually build alongside in their own editor; that gap is the reason this spec was revised. Nothing is implemented in this repo yet, so these requirements are the greenfield contract, not a description of existing code.
+Alongside catalog browsing, the docs site teaches through short "build-along" lessons: guided, hands-on paths from blank page to a working pattern-level result. The predecessor repo shipped the first one (`Explorer`) and validated the *microlearning shape* — short units, outcome-first, visible progress. It did **not** validate an experience a human could actually build alongside in their own editor; that gap is the reason this spec was revised. These requirements began as a greenfield contract rather than a description of prior code; the first lesson (`Explorer`) is implemented against them in the docs site.
 
 ## Design goal
 
@@ -22,7 +22,7 @@ Every lesson runs in two places that stay in lockstep. **The live deployed websi
 
 Rules that keep the two honest:
 
-- The code shown in a step is **identical** in both targets. The live preview must render exactly what the local starter produces — no docs-site-internal wiring (import-boundary shims, registry glue) may leak into lesson code.
+- The **learner-owned code** shown in a step is **identical** in both targets: the same source, imports, and component behavior must render the same result whether run in the live preview or the local starter. The docs-site-only chrome *around* that result — the preview wrapper, the Events/inspection panels, the copy affordances — is not part of the lesson code and may differ; but no docs-site-internal wiring (import-boundary shims, registry glue) may ever leak into the lesson code itself.
 - Lesson code imports through the **public package path** (`box-open-elements/...`), exactly what a third-party developer types. If a snippet only works because of docs-site internals, it is wrong.
 - The starter is generic and reused across lessons, not re-invented per lesson.
 
@@ -30,7 +30,7 @@ Rules that keep the two honest:
 
 1. **Outcome** — one sentence plus a live preview of the final state, shown before any code.
 2. **Why this matters** — one short paragraph.
-3. **Setup (Step 0)** — on the live site, the in-browser starting point: the blank lesson state, already running, nothing to install. For the secondary local path it also lists the starter + install/run command. Either way the reader has a blank-but-running app before Step 1. Mandatory; does not count against the teaching-step budget.
+3. **Setup (Step 0)** — a blank, running host with the design system applied and no pattern element mounted yet (Step 1 introduces that). On the live site it is already running, nothing to install; for the secondary local path it also lists the starter + install/run command. Either way the reader has a blank-but-running app before Step 1. Mandatory; does not count against the teaching-step budget.
 4. **4–6 teaching steps**, each ~2–4 minutes.
 5. **Wrap-up** — what works now, what to do next, links onward.
 
@@ -68,8 +68,8 @@ Split a lesson when:
 
 The content-explorer build-along, revised to the build-it-yourself contract:
 
-- **Step 0 — Setup.** On the live site: open the lesson and see the empty explorer shell already rendered — nothing to install (the library is deployed alongside the lesson). To build locally instead: create the starter (an HTML page plus a module that registers the Box design system and imports the explorer from `box-open-elements`), install the package, and run it. Either way, no Box account needed — the lesson uses the mock transport.
-- **Step 1** — render the shell.
+- **Step 0 — Setup.** A blank, running app: the Box design system is registered and its tokens are applied, but no explorer is mounted yet. On the live site it is already running — nothing to install (the library is deployed alongside the lesson). To build locally instead: create the starter (an HTML page plus a module that registers the Box design system and defines the explorer element from `box-open-elements`) and serve it. Either way, no Box account needed — the lesson uses the mock transport.
+- **Step 1 — render the shell.** Create and mount `<box-content-explorer>`; it renders its empty, un-connected shell.
 - **Step 2** — connect the session (root folder, transport/mock data source).
 - **Step 3** — navigate folders and breadcrumbs.
 - **Step 4** — listen to events (`select`, `navigate`).
