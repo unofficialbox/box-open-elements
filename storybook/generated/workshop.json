@@ -32,6 +32,11 @@
           "name": "disabled",
           "type": "boolean",
           "description": "Renders the button inert."
+        },
+        {
+          "kind": "event",
+          "name": "click",
+          "description": "Fired when the button is activated."
         }
       ],
       "variants": [

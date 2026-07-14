@@ -10,7 +10,7 @@
  */
 import { join } from "node:path";
 
-const ROOT = new URL("..", import.meta.url).pathname;
+const ROOT = join(import.meta.dir, "..");
 const OUT = join(ROOT, "storybook/dist");
 
 const build = await Bun.build({
@@ -29,4 +29,5 @@ if (!build.success) {
 await Bun.write(join(OUT, "index.html"), await Bun.file(join(ROOT, "storybook/index.html")).text());
 await Bun.write(join(OUT, "styles.css"), await Bun.file(join(ROOT, "storybook/styles.css")).text());
 
-console.log(`Workshop built → storybook/dist (${build.outputs.length} bundle)`);
+const bundleCount = build.outputs.length;
+console.log(`Workshop built → storybook/dist (${bundleCount} ${bundleCount === 1 ? "bundle" : "bundles"})`);

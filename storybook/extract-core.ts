@@ -68,8 +68,11 @@ export const extractStories = (
     if (variants.length === 0) {
       errors.push(`${label}: needs at least one variant.`);
     }
+    // Require a tag-name boundary after the tag so a prefix-overlapping element
+    // (e.g. `box-chip` vs. a hypothetical `box-chip-group`) can't satisfy the check.
+    const tagPattern = new RegExp(`<${meta.tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[\\s/>]`);
     for (const variant of variants) {
-      if (!variant.html.includes(`<${meta.tag}`)) {
+      if (!tagPattern.test(variant.html)) {
         errors.push(`${label}: variant "${variant.name}" does not render <${meta.tag}>.`);
       }
     }

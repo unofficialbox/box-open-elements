@@ -48,7 +48,7 @@ const renderNav = (): void => {
           <p class="nav-label">${escapeHtml(category)}</p>
           ${group
             .map(
-              story => `<button type="button" class="nav-item" data-id="${story.id}" aria-current="${story.id === activeId}">${escapeHtml(story.title.split("/").pop() ?? story.id)}</button>`,
+              story => `<button type="button" class="nav-item" data-id="${escapeHtml(story.id)}" aria-current="${story.id === activeId}">${escapeHtml(story.title.split("/").pop() ?? story.id)}</button>`,
             )
             .join("")}
         </div>`,
@@ -59,6 +59,9 @@ const renderNav = (): void => {
       activeId = button.dataset.id ?? activeId;
       renderNav();
       renderStage();
+      // renderNav() rebuilds the buttons, so restore focus to the active one
+      // to keep keyboard navigation from falling back to <body>.
+      nav.querySelector<HTMLButtonElement>(`.nav-item[data-id="${activeId}"]`)?.focus();
     });
   });
 };

@@ -14,6 +14,7 @@ const button: StoryModule = {
       { kind: "attribute", name: "tone", type: '"primary" | "neutral" | "danger"', description: "Visual emphasis." },
       { kind: "attribute", name: "size", type: '"small"', description: "Compact size; omit for default." },
       { kind: "attribute", name: "disabled", type: "boolean", description: "Renders the button inert." },
+      { kind: "event", name: "click", description: "Fired when the button is activated." },
     ],
   },
   variants: [

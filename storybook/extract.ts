@@ -12,7 +12,7 @@ import { catalog, titleOf } from "../docs-site/registry.js";
 import { storyModules } from "./registry.js";
 import { extractStories } from "./extract-core.js";
 
-const ROOT = new URL("..", import.meta.url).pathname;
+const ROOT = join(import.meta.dir, "..");
 const OUT_FILE = join(ROOT, "storybook/generated/workshop.json");
 
 const { stories, errors } = extractStories(storyModules, { catalog, titleOf });
