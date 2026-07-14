@@ -48,7 +48,7 @@ Does not own:
 
 ### 2. Server adapter package
 
-A separate server-oriented package (`packages/box-server`, to be rebuilt from the original scaffold) owns Box integration details:
+A separate server-oriented package (`packages/box-server` — **built**; see its [README](../../packages/box-server/README.md)) owns Box integration details:
 
 ```text
 packages/box-server/
