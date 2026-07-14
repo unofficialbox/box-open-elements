@@ -214,7 +214,7 @@ export class BoxMetadataInspectorElement extends HTMLElement {
         }
 
         [part="field"]:focus-visible {
-          outline: 2px solid #2563eb;
+          outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
           outline-offset: 2px;
         }
 
@@ -245,7 +245,7 @@ export class BoxMetadataInspectorElement extends HTMLElement {
         }
 
         [part="field-value"][data-tone="success"] {
-          color: #1d6a43;
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 70%, var(--boe-token-text-text, #222222));
         }
 
         [part="field-description"] {

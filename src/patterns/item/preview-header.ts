@@ -257,7 +257,7 @@ export class BoxPreviewHeaderElement extends HTMLElement {
 
         [part="action"]:focus-visible,
         [part="breadcrumb"]:focus-visible {
-          outline: 2px solid #2563eb;
+          outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
           outline-offset: 2px;
         }
       </style>

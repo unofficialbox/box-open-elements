@@ -384,7 +384,7 @@ export class BoxItemFormElement extends HTMLElement {
         [part="submit"]:focus-visible,
         [part="cancel"]:focus-visible,
         [part="checkbox"]:focus-visible {
-          outline: 2px solid #2563eb;
+          outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
           outline-offset: 2px;
         }
 
