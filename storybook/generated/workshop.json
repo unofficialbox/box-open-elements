@@ -1,0 +1,411 @@
+{
+  "stories": [
+    {
+      "id": "button",
+      "tag": "box-button",
+      "title": "Components/Actions/Button",
+      "category": "Actions",
+      "shortDescription": "The primary action trigger.",
+      "docsDescription": "A labelled button with Box tones and sizes. Emits a `click` event; set `disabled` to make it inert.",
+      "sourceSnippet": "<box-button label=\"Save\" tone=\"primary\"></box-button>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Visible button text."
+        },
+        {
+          "kind": "attribute",
+          "name": "tone",
+          "type": "\"primary\" | \"neutral\" | \"danger\"",
+          "description": "Visual emphasis."
+        },
+        {
+          "kind": "attribute",
+          "name": "size",
+          "type": "\"small\"",
+          "description": "Compact size; omit for default."
+        },
+        {
+          "kind": "attribute",
+          "name": "disabled",
+          "type": "boolean",
+          "description": "Renders the button inert."
+        },
+        {
+          "kind": "event",
+          "name": "click",
+          "description": "Fired when the button is activated."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Primary",
+          "html": "<box-button label=\"Save\" tone=\"primary\"></box-button>"
+        },
+        {
+          "name": "Neutral",
+          "html": "<box-button label=\"Cancel\" tone=\"neutral\"></box-button>"
+        },
+        {
+          "name": "Danger",
+          "html": "<box-button label=\"Delete\" tone=\"danger\"></box-button>"
+        },
+        {
+          "name": "Small",
+          "html": "<box-button label=\"Small\" tone=\"primary\" size=\"small\"></box-button>"
+        },
+        {
+          "name": "Disabled",
+          "html": "<box-button label=\"Disabled\" tone=\"primary\" disabled></box-button>"
+        }
+      ]
+    },
+    {
+      "id": "icon-button",
+      "tag": "box-icon-button",
+      "title": "Components/Actions/Icon Button",
+      "category": "Actions",
+      "shortDescription": "An icon-only action with an accessible label.",
+      "docsDescription": "A compact action rendering a single glyph; the required `label` provides the accessible name.",
+      "sourceSnippet": "<box-icon-button icon=\"+\" label=\"Add item\"></box-icon-button>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "icon",
+          "type": "string",
+          "description": "Icon token or glyph."
+        },
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible name (visually hidden)."
+        },
+        {
+          "kind": "attribute",
+          "name": "disabled",
+          "type": "boolean",
+          "description": "Renders the button inert."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Add",
+          "html": "<box-icon-button icon=\"+\" label=\"Add item\"></box-icon-button>"
+        },
+        {
+          "name": "Settings",
+          "html": "<box-icon-button icon=\"gear\" label=\"Settings\"></box-icon-button>"
+        },
+        {
+          "name": "Disabled",
+          "html": "<box-icon-button icon=\"+\" label=\"Add item\" disabled></box-icon-button>"
+        }
+      ]
+    },
+    {
+      "id": "badge",
+      "tag": "box-badge",
+      "title": "Components/Feedback/Badge",
+      "category": "Feedback",
+      "shortDescription": "A compact status label.",
+      "docsDescription": "A small inline label for status or categorization, in the Box feedback tones.",
+      "sourceSnippet": "<box-badge label=\"Beta\"></box-badge>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Badge text."
+        },
+        {
+          "kind": "attribute",
+          "name": "tone",
+          "type": "\"neutral\" | \"success\" | \"warning\" | \"error\"",
+          "description": "Status color."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Neutral",
+          "html": "<box-badge label=\"Beta\"></box-badge>"
+        },
+        {
+          "name": "Success",
+          "html": "<box-badge label=\"Active\" tone=\"success\"></box-badge>"
+        },
+        {
+          "name": "Warning",
+          "html": "<box-badge label=\"Pending\" tone=\"warning\"></box-badge>"
+        },
+        {
+          "name": "Error",
+          "html": "<box-badge label=\"Failed\" tone=\"error\"></box-badge>"
+        }
+      ]
+    },
+    {
+      "id": "chip",
+      "tag": "box-chip",
+      "title": "Components/Feedback/Chip",
+      "category": "Feedback",
+      "shortDescription": "A compact, optionally removable tag.",
+      "docsDescription": "A small token for a selected value or filter. Emits `remove` with its `value` when dismissed.",
+      "sourceSnippet": "<box-chip label=\"Marketing\" tone=\"brand\" removable value=\"marketing\"></box-chip>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Chip text."
+        },
+        {
+          "kind": "attribute",
+          "name": "tone",
+          "type": "\"brand\" | \"neutral\"",
+          "description": "Visual emphasis."
+        },
+        {
+          "kind": "attribute",
+          "name": "removable",
+          "type": "boolean",
+          "description": "Shows a remove affordance."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Payload emitted on remove."
+        },
+        {
+          "kind": "event",
+          "name": "remove",
+          "description": "Fired with `{ value }` when the chip is dismissed."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Brand removable",
+          "html": "<box-chip label=\"Marketing\" tone=\"brand\" removable value=\"marketing\"></box-chip>"
+        },
+        {
+          "name": "Neutral removable",
+          "html": "<box-chip label=\"Legal\" removable value=\"legal\"></box-chip>"
+        },
+        {
+          "name": "Static",
+          "html": "<box-chip label=\"Read only\" tone=\"neutral\"></box-chip>"
+        }
+      ]
+    },
+    {
+      "id": "alert",
+      "tag": "box-alert",
+      "title": "Components/Feedback/Alert",
+      "category": "Feedback",
+      "shortDescription": "An inline message banner.",
+      "docsDescription": "A titled banner conveying status with a tone, and an optional message body.",
+      "sourceSnippet": "<box-alert title=\"Upload complete\" message=\"24 files were added.\" tone=\"success\"></box-alert>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "title",
+          "type": "string",
+          "description": "Banner heading."
+        },
+        {
+          "kind": "attribute",
+          "name": "message",
+          "type": "string",
+          "description": "Optional body text."
+        },
+        {
+          "kind": "attribute",
+          "name": "tone",
+          "type": "\"info\" | \"success\" | \"warning\" | \"error\"",
+          "description": "Status color."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Info",
+          "html": "<box-alert title=\"Heads up\" message=\"Shared links expire in 30 days.\" tone=\"info\"></box-alert>"
+        },
+        {
+          "name": "Success",
+          "html": "<box-alert title=\"Upload complete\" message=\"24 files were added to Marketing.\" tone=\"success\"></box-alert>"
+        },
+        {
+          "name": "Warning",
+          "html": "<box-alert title=\"Storage almost full\" message=\"You've used 92% of your quota.\" tone=\"warning\"></box-alert>"
+        },
+        {
+          "name": "Error",
+          "html": "<box-alert title=\"Upload failed\" message=\"3 files could not be added.\" tone=\"error\"></box-alert>"
+        }
+      ]
+    },
+    {
+      "id": "spinner",
+      "tag": "box-spinner",
+      "title": "Components/Feedback/Spinner",
+      "category": "Feedback",
+      "shortDescription": "An indeterminate loading indicator.",
+      "docsDescription": "A looping indicator for indeterminate waits. The `label` names it for assistive technology.",
+      "sourceSnippet": "<box-spinner label=\"Loading\"></box-spinner>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible loading label."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-spinner label=\"Loading\"></box-spinner>"
+        },
+        {
+          "name": "With context",
+          "html": "<box-spinner label=\"Syncing files\"></box-spinner>"
+        }
+      ]
+    },
+    {
+      "id": "progress-bar",
+      "tag": "box-progress-bar",
+      "title": "Components/Feedback/Progress Bar",
+      "category": "Feedback",
+      "shortDescription": "A determinate progress indicator.",
+      "docsDescription": "A horizontal bar showing completion from 0–100 with an accessible label.",
+      "sourceSnippet": "<box-progress-bar label=\"Storage used\" value=\"64\"></box-progress-bar>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible progress label."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "number",
+          "description": "Completion percentage (0–100)."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Low",
+          "html": "<box-progress-bar label=\"Storage used\" value=\"18\"></box-progress-bar>"
+        },
+        {
+          "name": "Mid",
+          "html": "<box-progress-bar label=\"Storage used\" value=\"64\"></box-progress-bar>"
+        },
+        {
+          "name": "Complete",
+          "html": "<box-progress-bar label=\"Storage used\" value=\"100\"></box-progress-bar>"
+        }
+      ]
+    },
+    {
+      "id": "switch",
+      "tag": "box-switch",
+      "title": "Components/Forms/Switch",
+      "category": "Forms",
+      "shortDescription": "A binary on/off toggle.",
+      "docsDescription": "A labelled toggle for an immediate boolean setting; emits `change` with the new state.",
+      "sourceSnippet": "<box-switch label=\"Email notifications\" checked></box-switch>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Toggle label."
+        },
+        {
+          "kind": "attribute",
+          "name": "checked",
+          "type": "boolean",
+          "description": "On state."
+        },
+        {
+          "kind": "attribute",
+          "name": "description",
+          "type": "string",
+          "description": "Optional helper text."
+        },
+        {
+          "kind": "attribute",
+          "name": "disabled",
+          "type": "boolean",
+          "description": "Renders the toggle inert."
+        }
+      ],
+      "variants": [
+        {
+          "name": "On",
+          "html": "<box-switch label=\"Email notifications\" checked></box-switch>"
+        },
+        {
+          "name": "Off",
+          "html": "<box-switch label=\"Email notifications\"></box-switch>"
+        },
+        {
+          "name": "With description",
+          "html": "<box-switch label=\"Shared links\" description=\"Anyone with the link can view\" checked></box-switch>"
+        },
+        {
+          "name": "Disabled",
+          "html": "<box-switch label=\"Locked setting\" disabled></box-switch>"
+        }
+      ]
+    },
+    {
+      "id": "checkbox",
+      "tag": "box-checkbox",
+      "title": "Components/Forms/Checkbox",
+      "category": "Forms",
+      "shortDescription": "A single selectable option.",
+      "docsDescription": "A labelled checkbox for an individual boolean choice; emits `change` when toggled.",
+      "sourceSnippet": "<box-checkbox label=\"Enable shared links\" checked></box-checkbox>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Checkbox label."
+        },
+        {
+          "kind": "attribute",
+          "name": "checked",
+          "type": "boolean",
+          "description": "Selected state."
+        },
+        {
+          "kind": "attribute",
+          "name": "disabled",
+          "type": "boolean",
+          "description": "Renders the checkbox inert."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Checked",
+          "html": "<box-checkbox label=\"Enable shared links\" checked></box-checkbox>"
+        },
+        {
+          "name": "Unchecked",
+          "html": "<box-checkbox label=\"Require password\"></box-checkbox>"
+        },
+        {
+          "name": "Disabled",
+          "html": "<box-checkbox label=\"Managed by admin\" checked disabled></box-checkbox>"
+        }
+      ]
+    }
+  ]
+}

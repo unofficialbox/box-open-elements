@@ -75,7 +75,7 @@ From the validated gap analyses ([research/upstream-gaps.md](./research/upstream
 These run alongside the phases rather than after them:
 
 - **Docs site** — rebuild the component-docs-site shell per [workshop/docs-site.md](./workshop/docs-site.md) once Phase 1 gives it a real catalog to show; wire screenshot checkpoints + regression into CI with it.
-- **Storybook** — reintroduce as the extraction backend per [workshop/storybook.md](./workshop/storybook.md) once the docs site exists.
+- **Storybook** — **done**: reintroduced Bun-natively as the extraction backend per [workshop/storybook.md](./workshop/storybook.md) — a `storybook/` workshop (typed stories → identity-guarded extracted JSON → a self-contained, separately-deployable static site). See its [README](../storybook/README.md). No Storybook/Vite runtime or consumer dependency.
 - **Build alongs** — first lesson is Explorer, per [workshop/build-alongs.md](./workshop/build-alongs.md), after the composed explorer surface lands.
 - **Server package** — **done**: `packages/box-server` rebuilt per [integration/box-server.md](./integration/box-server.md) — CCG auth + REST client, Box-backed explorer/share/metadata data sources, DTO mappers, and framework-neutral route handlers, all dependency-free (platform `fetch`) and covered by `bun run verify`.
 - **API consistency** — apply [api-guidelines.md](./api-guidelines.md) at port time; this rebuild is the chance to shed the old repo's compatibility aliases.
