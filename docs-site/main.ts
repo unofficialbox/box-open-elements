@@ -3,6 +3,7 @@ import { catalog, titleOf, type CatalogEntry } from "./registry.js";
 import { examples } from "./examples.js";
 import { lessons, lessonById } from "./lessons.js";
 import { renderLessonPage } from "./lesson-page.js";
+import { applyRailVersion } from "./rail-version.js";
 import workshop from "../storybook/generated/workshop.json" with { type: "json" };
 import accessibilityMd from "../docs/foundations/accessibility.md";
 import brandMd from "../docs/foundations/brand.md";
@@ -582,12 +583,16 @@ document.getElementById("copy-link")!.addEventListener("click", () => {
   void navigator.clipboard.writeText(location.href);
 });
 
-void fetch("/api/status")
-  .then(response => response.json())
-  .then((status: { version: string }) => {
-    document.getElementById("rail-version")!.textContent = `v${status.version}`;
-  })
-  .catch(() => {});
+// The static build (docs-site/build.ts) inlines the package version via a
+// `define`; the dev server (server.ts) leaves it undefined and serves the
+// version from /api/status instead. The `typeof` guard avoids a ReferenceError
+// in the dev bundle where the token is never substituted.
+const inlinedVersion = typeof __BOE_VERSION__ !== "undefined" ? __BOE_VERSION__ : null;
+applyRailVersion(
+  document.getElementById("rail-version"),
+  inlinedVersion,
+  () => fetch("/api/status").then(response => response.json() as Promise<{ version: string }>),
+);
 
 if (!location.hash) location.hash = "#components/button";
 render();
