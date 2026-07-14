@@ -29,6 +29,7 @@ export const boxDarkDesignSystem: DesignSystemDefinition = {
     SurfaceStatusSurfaceSuccess: "#2ed58f",
     SurfaceStatusSurfaceError: "#ff5a75",
     SurfaceStatusSurfaceInprogress: "#ffc447",
+    SurfaceStatusSurfaceAccent: "#a892f0",
     SurfaceIllustrationSurfaceBoxNeutral: "#4596ff",
     SurfaceBadgeFoldersharedSurface: "#2486fc",
     SurfaceBadgePdfSurface: "#ff4d5e",

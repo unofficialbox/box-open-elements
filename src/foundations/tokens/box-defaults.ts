@@ -30,6 +30,7 @@ export const boxDefaultDesignSystem: DesignSystemDefinition = {
     SurfaceStatusSurfaceSuccess: "#26c281",
     SurfaceStatusSurfaceError: "#ed3757",
     SurfaceStatusSurfaceInprogress: "#f5b31b",
+    SurfaceStatusSurfaceAccent: "#5b4b8a",
     SurfaceIllustrationSurfaceBoxNeutral: "#0061d5",
     SurfaceBadgeFoldersharedSurface: "#2486fc",
     SurfaceBadgePdfSurface: "#d0021b",

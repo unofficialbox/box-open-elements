@@ -337,8 +337,8 @@ export class BoxTaskAssignmentPanelElement extends HTMLElement {
         }
 
         [part="due-date"] {
-          background: color-mix(in srgb, #5b4b8a 12%, var(--boe-token-surface-surface, #ffffff));
-          color: color-mix(in srgb, #5b4b8a 72%, var(--boe-token-text-text, #222222));
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-accent, #5b4b8a) 12%, var(--boe-token-surface-surface, #ffffff));
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-accent, #5b4b8a) 72%, var(--boe-token-text-text, #222222));
         }
 
         [part="section-title"] {
