@@ -4,7 +4,7 @@ Alongside catalog browsing, the docs site teaches through short "build-along" le
 
 ## Design goal
 
-A build-along is a **build-it-yourself guide, not a watch-the-preview tour.** A developer must be able to start from an empty file and reach a working result by pasting real, runnable code into their own project — while a live in-page preview shows them the destination and mirrors each step. Every requirement below serves that goal. When a rule trades away "easy to skim" for "easy to actually build," it does so on purpose.
+A build-along is a **build-it-yourself guide, not a watch-the-preview tour** — but the place a learner builds it is the **live, deployed docs website first**, not a local checkout. A learner must be able to complete the entire lesson in the browser on the deployed site: read each step, copy real runnable code, and watch it execute in the live preview, with nothing to install. Taking the same code into their own local project is a fully supported **second** path, never a prerequisite. Every requirement below serves that goal. When a rule trades away "easy to skim" for "easy to actually build," it does so on purpose.
 
 ## Research grounding
 
@@ -13,16 +13,16 @@ A build-along is a **build-it-yourself guide, not a watch-the-preview tour.** A 
 - Coursera-style framing: front-load "what you will build" so the learner knows the destination first.
 - Box positions UI Elements as pre-built embeddable workflows that get developers to working content fast — build-alongs should deliver that same time-to-working-result.
 
-## Two run targets (both required)
+## Two run targets — live website first
 
-Every lesson runs in two places that stay in lockstep:
+Every lesson runs in two places that stay in lockstep. **The live deployed website is the primary target; the local project is a supported second path, never a prerequisite.**
 
-1. **Docs-site preview** — the live result renders in the docs site's preview canvas and event log, so the reader sees the outcome early and watches each step take effect with zero setup.
-2. **Standalone starter** — a tiny, linkable/downloadable runnable template (a single HTML entry plus one module) that reads like a real consumer app. The reader pastes each step's code into it and runs it locally.
+1. **Live docs-site lesson (primary)** — the whole lesson is completable in the browser on the deployed site. The component library ships to that **same** site, so each step's live result renders against the already-deployed library in the docs-site preview canvas and event log with **nothing to install**. This must work as a **statically deployed site**: no local dev server and no backend on the primary path (mock transport, like the rest of the docs site). The deployed site is the source of truth for whether a lesson works.
+2. **Local starter (secondary)** — a tiny, linkable/downloadable runnable template (a single HTML entry plus one module) that reads like a real consumer app, for a learner who then wants to build the lesson into their own project. Same code, run locally against the published package.
 
 Rules that keep the two honest:
 
-- The code shown in a step is **identical** in both targets. The docs-site preview must mirror exactly what the starter produces — no docs-site-internal wiring (import-boundary shims, registry glue) may leak into lesson code.
+- The code shown in a step is **identical** in both targets. The live preview must render exactly what the local starter produces — no docs-site-internal wiring (import-boundary shims, registry glue) may leak into lesson code.
 - Lesson code imports through the **public package path** (`box-open-elements/...`), exactly what a third-party developer types. If a snippet only works because of docs-site internals, it is wrong.
 - The starter is generic and reused across lessons, not re-invented per lesson.
 
@@ -30,7 +30,7 @@ Rules that keep the two honest:
 
 1. **Outcome** — one sentence plus a live preview of the final state, shown before any code.
 2. **Why this matters** — one short paragraph.
-3. **Setup (Step 0)** — the starter, install/run command, and how to open it. The reader has a blank-but-running app before Step 1. Setup is mandatory and does not count against the teaching-step budget.
+3. **Setup (Step 0)** — on the live site, the in-browser starting point: the blank lesson state, already running, nothing to install. For the secondary local path it also lists the starter + install/run command. Either way the reader has a blank-but-running app before Step 1. Mandatory; does not count against the teaching-step budget.
 4. **4–6 teaching steps**, each ~2–4 minutes.
 5. **Wrap-up** — what works now, what to do next, links onward.
 
@@ -43,7 +43,7 @@ Every teaching step card carries all of:
 - **Title + one-sentence goal.**
 - **File + location anchor** — which file changes and where ("in `app.ts`, directly below the imports"). Never an unplaced fragment.
 - **The change shown as the full current file with the delta highlighted**, plus a copy-the-whole-file button. The reader can always copy a complete, runnable file — the highlight tells them what's new, the full file tells them where it goes.
-- **One visible result** — reproducible by the reader in the starter, and mirrored in the docs-site preview. If a step can't produce a visible result the reader can also get locally, it isn't a step.
+- **One visible result** — rendered live in the deployed site's preview for every reader, and reproducible from the same code in the local starter. If a step can't produce a visible result on the live site, it isn't a step.
 - **What changed and why it works** — one required sentence of mechanism. Not optional; the "why" is usually the point.
 - **Checkpoint** — the complete known-good source at the end of the step. A reader who fell out of sync copies it and continues. The lesson also ends with one final complete source.
 
@@ -68,7 +68,7 @@ Split a lesson when:
 
 The content-explorer build-along, revised to the build-it-yourself contract:
 
-- **Step 0 — Setup.** Create the starter: an HTML page plus a module that registers the Box design system and imports the explorer from `box-open-elements`; install the package; run it; see an empty shell render. (No Box account needed — the lesson uses the mock transport.)
+- **Step 0 — Setup.** On the live site: open the lesson and see the empty explorer shell already rendered — nothing to install (the library is deployed alongside the lesson). To build locally instead: create the starter (an HTML page plus a module that registers the Box design system and imports the explorer from `box-open-elements`), install the package, and run it. Either way, no Box account needed — the lesson uses the mock transport.
 - **Step 1** — render the shell.
 - **Step 2** — connect the session (root folder, transport/mock data source).
 - **Step 3** — navigate folders and breadcrumbs.
@@ -80,4 +80,4 @@ Deliberately scoped to folder browsing only; metadata query, preview, uploader, 
 ## Authoring boundary
 
 - Build-alongs are hand-curated guided lessons and stay **outside** the Storybook extraction path (see [storybook.md](./storybook.md)) — they are workflows, not flat reference pages.
-- They reuse the docs site's preview canvas and event log for the live mirror, and they **do** get the minimum learner-facing scaffolding the build-it-yourself contract requires: a setup step, full-source-with-copy per step, per-step checkpoints, and the shared standalone starter. Withholding that scaffolding — the old "don't invent lesson-only infrastructure" rule — is exactly what made the previous format hard to follow. Keep the scaffolding generic and reusable across lessons rather than one-off per lesson.
+- They reuse the docs site's preview canvas and event log for the primary in-browser result, and they **do** get the minimum learner-facing scaffolding the build-it-yourself contract requires: a setup step, full-source-with-copy per step, per-step checkpoints, and the shared local starter for the secondary path. Withholding that scaffolding — the old "don't invent lesson-only infrastructure" rule — is exactly what made the previous format hard to follow. Keep the scaffolding generic and reusable across lessons rather than one-off per lesson.
