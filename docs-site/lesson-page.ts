@@ -10,6 +10,7 @@
  * loaded library, exactly what the shown code produces in a consumer app.
  */
 import { addedLines } from "./diff.js";
+import { lessonMockTransport } from "./lesson-mock-transport.js";
 import type { Lesson, LessonStep, PreviewKey } from "./lessons.js";
 
 type ExplorerElement = HTMLElement & { transport: unknown };
@@ -21,39 +22,6 @@ const escapeHtml = (value: string): string =>
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
-
-// The same folder-correct mock the lesson's Step 2 shows, so the live preview
-// renders exactly what the copied starter produces.
-const FOLDER_NAMES: Record<string, string> = { "0": "All Files", "42": "Marketing", "77": "Legal" };
-const lessonTransport = () => ({
-  async loadFolderItems({ folderId }: { folderId: string }) {
-    const atRoot = folderId === "0";
-    const name = FOLDER_NAMES[folderId] || "Folder";
-    return {
-      folderId,
-      folder: { id: folderId, name, type: "folder" as const },
-      breadcrumbs: atRoot
-        ? [{ id: "0", name: "All Files", type: "folder" as const }]
-        : [
-            { id: "0", name: "All Files", type: "folder" as const },
-            { id: folderId, name, type: "folder" as const },
-          ],
-      items: atRoot
-        ? [
-            { id: "42", name: "Marketing", type: "folder" as const },
-            { id: "77", name: "Legal", type: "folder" as const },
-            { id: "123", name: "Quarterly Plan.pdf", type: "file" as const },
-            { id: "124", name: "Brand Guidelines.pdf", type: "file" as const },
-            { id: "125", name: "box.com/launch", type: "web_link" as const },
-          ]
-        : [
-            { id: `${folderId}-plan`, name: `${name} plan.docx`, type: "file" as const },
-            { id: `${folderId}-brief`, name: `${name} brief.pdf`, type: "file" as const },
-          ],
-      pagination: { hasMoreItems: false, limit: 25, offset: 0, totalCount: atRoot ? 5 : 2 },
-    };
-  },
-});
 
 /** A code block: full source, delta lines highlighted, with a copy button. */
 const codeBlock = (code: string, highlight: Set<number>, copyLabel: string): string => {
@@ -75,7 +43,7 @@ const codeBlock = (code: string, highlight: Set<number>, copyLabel: string): str
 
 const mountExplorer = (canvas: HTMLElement, options: { multiple?: boolean; pageSize?: string } = {}): ExplorerElement => {
   const explorer = document.createElement("box-content-explorer") as ExplorerElement;
-  explorer.transport = lessonTransport();
+  explorer.transport = lessonMockTransport();
   explorer.setAttribute("root-folder-id", "0");
   explorer.setAttribute("token", "developer-token");
   if (options.multiple) explorer.setAttribute("selection-mode", "multiple");

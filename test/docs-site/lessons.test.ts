@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { lessons, lessonById, explorerLesson, type PreviewKey } from "../../docs-site/lessons.js";
 import { catalog } from "../../docs-site/registry.js";
 import { addedLines } from "../../docs-site/diff.js";
+import { lessonMockTransport } from "../../docs-site/lesson-mock-transport.js";
 
 const PREVIEW_KEYS: PreviewKey[] = ["empty", "shell", "connected", "navigate", "select", "multiselect"];
 
@@ -107,7 +108,8 @@ describe("build-along lessons", () => {
     expect(explorerLesson.starterHtml).toContain('src="./app.js"');
     expect(explorerLesson.starterHtml).not.toContain(".ts");
     for (const step of explorerLesson.steps) {
-      expect(step.code).not.toMatch(/\bas\s+[A-Z]/); // e.g. `as CustomEvent`
+      // TS type assertions — upper- and lower-case keywords alike.
+      expect(step.code).not.toMatch(/\bas\s+(const|any|unknown|never|string|number|boolean|[A-Z]\w*)\b/);
       expect(step.code).not.toMatch(/:\s*(string|number|boolean)\b/); // param type annotations
       expect(step.code).not.toContain("!."); // non-null assertions
     }
@@ -119,6 +121,26 @@ describe("build-along lessons", () => {
     const step2 = explorerLesson.steps.find(step => step.n === 2)!;
     expect(step2.code).toContain("folderNames[folderId]");
     expect(step2.code).toContain('"77": "Legal"');
+  });
+});
+
+describe("lesson mock transport (live preview)", () => {
+  it("returns root folder metadata, items, breadcrumbs, and pagination", async () => {
+    const result = await lessonMockTransport().loadFolderItems({ folderId: "0" });
+    expect(result.folder).toEqual({ id: "0", name: "All Files", type: "folder" });
+    expect(result.breadcrumbs).toEqual([{ id: "0", name: "All Files", type: "folder" }]);
+    expect(result.items.map(item => item.name)).toContain("Marketing");
+    expect(result.items.map(item => item.name)).toContain("Legal");
+    expect(result.pagination.totalCount).toBe(5);
+  });
+
+  it("returns the requested non-root folder, not a stand-in (Legal stays Legal)", async () => {
+    const result = await lessonMockTransport().loadFolderItems({ folderId: "77" });
+    expect(result.folder).toEqual({ id: "77", name: "Legal", type: "folder" });
+    expect(result.breadcrumbs.at(-1)).toEqual({ id: "77", name: "Legal", type: "folder" });
+    expect(result.items).toHaveLength(2);
+    expect(result.items.every(item => item.name.startsWith("Legal"))).toBe(true);
+    expect(result.pagination.totalCount).toBe(2);
   });
 });
 
