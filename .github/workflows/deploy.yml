@@ -13,11 +13,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# Allow the workflow to publish to Pages via OIDC.
+# Least privilege at workflow scope; the deploy job elevates to publish.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # One in-flight deploy at a time; don't cancel a running publish.
 concurrency:
@@ -52,6 +50,10 @@ jobs:
     name: Deploy to GitHub Pages
     needs: build
     runs-on: ubuntu-latest
+    # Pages publishing + OIDC scoped to just this job (the build job doesn't need them).
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

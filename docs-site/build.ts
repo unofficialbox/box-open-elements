@@ -20,8 +20,11 @@
  */
 import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { rewriteIndexHtml } from "./build-helpers.js";
 
-const ROOT = new URL("..", import.meta.url).pathname;
+// fileURLToPath (not URL.pathname) so checkout paths with spaces/non-ASCII decode.
+const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const OUT = join(ROOT, "docs-site/dist");
 const LIB_SRC = join(ROOT, "dist");
 const WORKSHOP_SRC = join(ROOT, "storybook/dist");
@@ -32,10 +35,13 @@ if (!existsSync(join(LIB_SRC, "index.js"))) {
   console.error("dist/index.js not found — run `bun run build` first.");
   process.exit(1);
 }
-// The workshop is optional: `site:build` includes it, `docs:build` may omit it.
-const includeWorkshop = existsSync(join(WORKSHOP_SRC, "index.html"));
-if (!includeWorkshop) {
-  console.warn("storybook/dist not found — building docs-site without the workshop (run `bun run storybook:build` to include it).");
+// The workshop is opt-in via an explicit flag (site:build passes it; docs:build
+// does not) rather than inferred from filesystem state, so a stale storybook/dist
+// can't silently change the docs-only build.
+const includeWorkshop = process.argv.includes("--include-workshop");
+if (includeWorkshop && !existsSync(join(WORKSHOP_SRC, "index.html"))) {
+  console.error("--include-workshop given but storybook/dist not found — run `bun run storybook:build` first.");
+  process.exit(1);
 }
 
 rmSync(OUT, { recursive: true, force: true });
@@ -62,28 +68,7 @@ cpSync(join(ROOT, "docs-site/styles.css"), join(OUT, "styles.css"));
 cpSync(LIB_SRC, join(OUT, "lib"), { recursive: true });
 if (includeWorkshop) cpSync(WORKSHOP_SRC, join(OUT, "workshop"), { recursive: true });
 
-/** Replace exactly once; throw if the anchor text is missing so we never ship a broken page. */
-const replaceOnce = (haystack: string, needle: string, replacement: string): string => {
-  if (!haystack.includes(needle)) {
-    throw new Error(`build.ts: expected to find ${JSON.stringify(needle)} in index.html`);
-  }
-  return haystack.replace(needle, replacement);
-};
-
-let html = await Bun.file(join(ROOT, "docs-site/index.html")).text();
-// Server-absolute refs → relative (host-agnostic: work at a sub-path or root).
-html = replaceOnce(html, 'href="/docs-site/styles.css"', 'href="./styles.css"');
-html = replaceOnce(html, '"box-open-elements": "/dist/index.js"', '"box-open-elements": "./lib/index.js"');
-html = replaceOnce(html, 'src="/docs-site/main.js"', 'src="./main.js"');
-// Surface the workshop (published at ./workshop/) from the rail footer.
-if (includeWorkshop) {
-  html = replaceOnce(
-    html,
-    '<a href="https://github.com/unofficialbox/box-open-elements" target="_blank" rel="noreferrer">GitHub</a>',
-    '<a href="./workshop/">Workshop</a>\n        ' +
-      '<a href="https://github.com/unofficialbox/box-open-elements" target="_blank" rel="noreferrer">GitHub</a>',
-  );
-}
+const html = rewriteIndexHtml(await Bun.file(join(ROOT, "docs-site/index.html")).text(), includeWorkshop);
 await Bun.write(join(OUT, "index.html"), html);
 
 console.log(
