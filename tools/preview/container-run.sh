@@ -25,6 +25,7 @@ CMD="${*:?usage: container-run.sh <command>}"
 
 docker_args=(
   --rm --init
+  --ipc=host
   -v "$REPO_ROOT:/work"
   -v boe-bun-cache:/root/.bun
   -w /work
@@ -34,9 +35,11 @@ docker_args=(
 )
 
 # Reuse the host Bun binary when present — avoids downloading it (and works even
-# when the sandbox proxy blocks bun.sh).
+# when the sandbox proxy blocks bun.sh). Only when the host matches the container
+# target (linux-x64); on macOS/ARM the ELF binary would fail exec-format, so let
+# the container install its own Bun instead.
 HOST_BUN="$(command -v bun || true)"
-if [[ -n "$HOST_BUN" ]]; then
+if [[ -n "$HOST_BUN" && "$(uname -s)" == "Linux" && "$(uname -m)" == "x86_64" ]]; then
   docker_args+=(-v "$HOST_BUN:/usr/local/bin/bun:ro")
 fi
 
@@ -61,7 +64,9 @@ exec docker run "${docker_args[@]}" "$IMAGE" bash -euc '
   if ! command -v bun >/dev/null 2>&1; then
     # No host Bun mounted — install it. The bun.sh installer needs unzip, which
     # the Playwright image lacks; add it best-effort before installing.
-    command -v unzip >/dev/null 2>&1 || apt-get update -qq && apt-get install -y -qq unzip >/dev/null 2>&1 || true
+    if ! command -v unzip >/dev/null 2>&1; then
+      apt-get update -qq && apt-get install -y -qq unzip >/dev/null 2>&1 || true
+    fi
     curl -fsSL https://bun.sh/install | bash >/dev/null
   fi
   bun install --frozen-lockfile

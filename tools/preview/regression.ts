@@ -30,6 +30,7 @@ import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, existsSync
 import { join } from "node:path";
 import { PNG } from "pngjs";
 import pixelmatch from "pixelmatch";
+import { parseMaxDiffRatio } from "./regression-config.js";
 
 const ROOT = new URL("../..", import.meta.url).pathname;
 const TMP = join(ROOT, ".regression-tmp");
@@ -45,7 +46,7 @@ const DIMENSION_SLACK = 2; // px; absorbs sub-pixel layout rounding across Chrom
 // (pinned Playwright container) run-to-run noise floor and well below a real
 // visual change. Override via REGRESSION_MAX_DIFF_RATIO for tuning/measurement.
 const PIXEL_THRESHOLD = 0.1;
-const MAX_DIFF_RATIO = Number(process.env.REGRESSION_MAX_DIFF_RATIO ?? 0.001);
+const MAX_DIFF_RATIO = parseMaxDiffRatio(process.env.REGRESSION_MAX_DIFF_RATIO);
 const VERBOSE = process.env.REGRESSION_VERBOSE === "1";
 
 interface Target {
