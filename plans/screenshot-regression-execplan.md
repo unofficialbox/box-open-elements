@@ -59,13 +59,23 @@ Regenerate all committed screenshots through the deterministic pipeline so the
 baseline == what CI produces. (Current baselines already use a fallback sans;
 this pins that fallback to the committed DejaVu so it's stable everywhere.)
 
-## Residual risk
+## Residual risk → outcome
 
-Cross-Chromium subpixel/AA differences between this sandbox's browser and CI's
-installed Chromium are absorbed by the tolerance. The exact cross-environment
-match can only be confirmed by the first CI run; if the tolerance proves too
-tight, refresh baselines from the CI artifact once. Documented in the workshop
-doc.
+The first CI run confirmed the cross-Chromium risk was real and **not**
+absorbable by tolerance: every baseline drifted 0.5–2.6% purely from
+Chromium/FreeType glyph rasterization (fonts matched — bundled DejaVu), and
+that AA noise overlaps the magnitude of genuine small changes (a blue→magenta
+token change measured only ~0.5% on some pages). A pixel gate therefore needs
+baseline and check to share one rendering environment.
+
+**Shipped (layered):** the CI gate is **render-health**, not pixel-perfect —
+for every baseline it fails if the page errored, rendered blank/near-blank, or
+changed dimensions. This is environment-independent because bundled fonts pin
+text metrics (so layout/dimensions match across Chromium builds even though AA
+doesn't). Strict pixel diffing stays available behind `--pixel` for a matched
+environment. **Follow-up:** run capture + `--pixel` inside the pinned Playwright
+Docker container for both baseline generation and CI, then a tight pixel gate
+becomes reliable.
 
 ## Verify + ship
 
