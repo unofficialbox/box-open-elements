@@ -416,7 +416,7 @@ export class BoxContentExplorerElement extends HTMLElement {
         ? `<button type="button" part="load-more">Load more</button>`
         : "";
     const refreshDisabled = state?.loading ? "disabled" : "";
-    const errorMarkup = state?.error ? `<p part="error">${state.error.message}</p>` : "";
+    const errorMarkup = state?.error ? `<p part="error">${escapeHtml(state.error.message)}</p>` : "";
     const statusText = state
       ? state.loading
         ? "loading"

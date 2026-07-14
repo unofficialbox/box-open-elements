@@ -21,7 +21,20 @@ describe("BoxSkeletonElement", () => {
     document.body.append(element);
 
     const skeleton = element.shadowRoot?.querySelector('[part="skeleton"]') as HTMLSpanElement | null;
-    expect(skeleton?.getAttribute("style")).toContain("width:180px");
-    expect(skeleton?.getAttribute("style")).toContain("height:24px");
+    expect(skeleton?.style.width).toBe("180px");
+    expect(skeleton?.style.height).toBe("24px");
+  });
+
+  it("does not allow attribute values to inject markup", () => {
+    const element = document.createElement("box-skeleton") as BoxSkeletonElement;
+    element.width = '16px" aria-hidden="false"><img src=x onerror=alert(1)>';
+    document.body.append(element);
+
+    // No markup was injected: the shadow root contains only the single span.
+    expect(element.shadowRoot?.querySelector("img")).toBeNull();
+    expect(element.shadowRoot?.querySelectorAll('[part="skeleton"]').length).toBe(1);
+    // The malformed value was rejected by the CSSOM rather than reflected.
+    const skeleton = element.shadowRoot?.querySelector('[part="skeleton"]') as HTMLSpanElement | null;
+    expect(skeleton?.style.width).toBe("");
   });
 });
