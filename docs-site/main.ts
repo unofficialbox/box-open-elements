@@ -3,6 +3,19 @@ import { catalog, titleOf, type CatalogEntry } from "./registry.js";
 import { examples } from "./examples.js";
 import { lessons, lessonById } from "./lessons.js";
 import { renderLessonPage } from "./lesson-page.js";
+import workshop from "../storybook/generated/workshop.json" with { type: "json" };
+import accessibilityMd from "../docs/foundations/accessibility.md";
+import brandMd from "../docs/foundations/brand.md";
+import tokensMd from "../docs/foundations/tokens.md";
+import iconographyMd from "../docs/foundations/iconography.md";
+
+// Real, extracted variant states per component (storybook workshop → docs site).
+// Only the components with authored stories have these; everything else keeps
+// its single curated example. No invented placeholder variants.
+type Variant = { name: string; html: string };
+const variantsById: Record<string, Variant[]> = Object.fromEntries(
+  workshop.stories.map(story => [story.id, story.variants]),
+);
 
 // ── Bootstrap: tokens + every custom element ────────────────────────────────
 
@@ -52,7 +65,15 @@ const SHARED_EVENTS = [
 const FOUNDATION_PAGES = [
   { id: "tokens", label: "Design Tokens" },
   { id: "icons", label: "Iconography" },
+  { id: "accessibility", label: "Accessibility" },
+  { id: "brand", label: "Brand" },
 ];
+
+// Foundation docs rendered from their real markdown source (no invented copy).
+const FOUNDATION_MD: Record<string, { title: string; md: string }> = {
+  accessibility: { title: "Accessibility", md: accessibilityMd },
+  brand: { title: "Brand", md: brandMd },
+};
 
 const escapeHtml = (value: string): string =>
   value
@@ -63,6 +84,74 @@ const escapeHtml = (value: string): string =>
 
 const toKebab = (value: string): string =>
   value.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+
+// Minimal, dependency-free markdown → HTML for the foundation docs (trusted,
+// repo-owned content). Handles headings, lists, code fences, inline code/bold/
+// links, rules, and paragraphs; anything else degrades to a paragraph.
+const renderMarkdown = (md: string): string => {
+  const inline = (text: string): string =>
+    escapeHtml(text)
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, label, url) => `<a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">${label}</a>`);
+
+  const out: string[] = [];
+  let inList = false;
+  let inCode = false;
+  let code: string[] = [];
+  const closeList = (): void => {
+    if (inList) {
+      out.push("</ul>");
+      inList = false;
+    }
+  };
+  for (const line of md.replace(/\r\n/g, "\n").split("\n")) {
+    if (line.trim().startsWith("```")) {
+      if (inCode) {
+        out.push(`<pre class="code-block"><code>${escapeHtml(code.join("\n"))}</code></pre>`);
+        code = [];
+        inCode = false;
+      } else {
+        closeList();
+        inCode = true;
+      }
+      continue;
+    }
+    if (inCode) {
+      code.push(line);
+      continue;
+    }
+    if (!line.trim()) {
+      closeList();
+      continue;
+    }
+    const heading = line.match(/^(#{1,4})\s+(.*)$/);
+    if (heading) {
+      closeList();
+      out.push(`<h${heading[1].length}>${inline(heading[2])}</h${heading[1].length}>`);
+      continue;
+    }
+    if (line.trim() === "---") {
+      closeList();
+      out.push("<hr />");
+      continue;
+    }
+    const item = line.match(/^\s*[-*]\s+(.*)$/);
+    if (item) {
+      if (!inList) {
+        out.push("<ul>");
+        inList = true;
+      }
+      out.push(`<li>${inline(item[1])}</li>`);
+      continue;
+    }
+    closeList();
+    out.push(`<p>${inline(line.trim())}</p>`);
+  }
+  closeList();
+  if (inCode) out.push(`<pre class="code-block"><code>${escapeHtml(code.join("\n"))}</code></pre>`);
+  return out.join("\n");
+};
 
 // ── State + routing ──────────────────────────────────────────────────────────
 
@@ -152,6 +241,9 @@ const renderRail = (): void => {
 
 const renderComponentPage = (entry: CatalogEntry): void => {
   const example = examples[entry.id] ?? { html: `<${entry.tag} label="${titleOf(entry.id)}"></${entry.tag}>` };
+  const variants = variantsById[entry.id] ?? [];
+  const hasVariants = variants.length >= 2;
+  const initialHtml = hasVariants ? variants[0].html : example.html;
   const constructor = customElements.get(entry.tag) as (CustomElementConstructor & { observedAttributes?: string[] }) | undefined;
   const observed = constructor?.observedAttributes ?? [];
 
@@ -169,10 +261,19 @@ const renderComponentPage = (entry: CatalogEntry): void => {
     <div data-panel="preview">
       <div class="preview-layout">
         <div>
-          <div class="preview-toolbar" role="group" aria-label="Preview width">
-            <button type="button" class="size-button" data-size="full" aria-pressed="true" title="Full width">Full</button>
-            <button type="button" class="size-button" data-size="tablet" aria-pressed="false" title="Tablet width (768px)">Tablet</button>
-            <button type="button" class="size-button" data-size="mobile" aria-pressed="false" title="Mobile width (380px)">Mobile</button>
+          <div class="preview-toolbar">
+            ${hasVariants
+              ? `<label class="variant-picker">Variant
+                  <select id="variant-select" aria-label="Preview variant">
+                    ${variants.map((variant, index) => `<option value="${index}">${escapeHtml(variant.name)}</option>`).join("")}
+                  </select>
+                </label>`
+              : ""}
+            <div class="size-group" role="group" aria-label="Preview width">
+              <button type="button" class="size-button" data-size="full" aria-pressed="true" title="Full width">Full</button>
+              <button type="button" class="size-button" data-size="tablet" aria-pressed="false" title="Tablet width (768px)">Tablet</button>
+              <button type="button" class="size-button" data-size="mobile" aria-pressed="false" title="Mobile width (380px)">Mobile</button>
+            </div>
           </div>
           <div class="preview-canvas" id="preview-canvas" data-preview-size="full"></div>
           ${example.note ? `<p class="preview-note">${escapeHtml(example.note)}</p>` : ""}
@@ -191,7 +292,7 @@ const renderComponentPage = (entry: CatalogEntry): void => {
       </div>
     </div>
     <div data-panel="code" hidden>
-      <pre class="code-block"><code>${escapeHtml(example.html)}</code></pre>
+      <pre class="code-block"><code id="code-block">${escapeHtml(initialHtml)}</code></pre>
       ${example.note ? `<p class="preview-note">${escapeHtml(example.note)}</p>` : ""}
     </div>
     <div data-panel="api" hidden>
@@ -222,10 +323,8 @@ const renderComponentPage = (entry: CatalogEntry): void => {
     });
   });
 
-  // Preview
+  // Preview (mounted below, once the inspectors are wired)
   const canvas = stageBody.querySelector<HTMLElement>("#preview-canvas")!;
-  canvas.innerHTML = example.html;
-  example.setup?.(canvas);
 
   // Events panel
   const eventList = stageBody.querySelector<HTMLElement>("#event-list")!;
@@ -256,47 +355,66 @@ const renderComponentPage = (entry: CatalogEntry): void => {
     listeners.push([name, listener]);
   }
 
-  // Properties panel: reflect the primary element's attributes live
-  const propList = stageBody.querySelector<HTMLElement>("#prop-list")!;
-  const primary = canvas.querySelector<HTMLElement>(entry.tag);
-  let observer: MutationObserver | null = null;
-  const renderProps = (): void => {
-    if (!primary) return;
-    const rows = [...primary.attributes].map(
-      attribute => `<div class="prop-row"><code>${escapeHtml(attribute.name)}</code><span class="prop-value">${escapeHtml(attribute.value || "—")}</span></div>`,
-    );
-    propList.innerHTML = rows.length ? rows.join("") : '<span class="inspector-empty">No reflected attributes yet.</span>';
-  };
-  if (primary) {
-    renderProps();
-    observer = new MutationObserver(renderProps);
-    observer.observe(primary, { attributes: true });
-  }
-
-  // API tab from live runtime data
+  // Observed attributes are a component-level fact — set once.
   const attributesTarget = stageBody.querySelector<HTMLElement>("#api-attributes")!;
   attributesTarget.innerHTML = observed.length
     ? `<table class="api-table"><tr><th>Attribute</th></tr>${observed.map(name => `<tr><td><code>${escapeHtml(name)}</code></td></tr>`).join("")}</table>`
     : '<p class="inspector-empty">This element observes no attributes.</p>';
 
-  const parts = new Set<string>();
-  const roles = new Set<string>();
-  canvas.querySelectorAll<HTMLElement>("*").forEach(node => {
-    node.shadowRoot?.querySelectorAll<HTMLElement>("[part]").forEach(inner => {
-      inner.getAttribute("part")!.split(/\s+/).forEach(part => parts.add(part));
-    });
-    node.shadowRoot?.querySelectorAll<HTMLElement>("[role]").forEach(inner => {
-      roles.add(inner.getAttribute("role")!);
-    });
-  });
+  // Live inspectors (props / parts / roles) — re-run whenever the variant changes.
+  const propList = stageBody.querySelector<HTMLElement>("#prop-list")!;
   const partsTarget = stageBody.querySelector<HTMLElement>("#api-parts")!;
-  partsTarget.innerHTML = parts.size
-    ? `<table class="api-table"><tr><th>Part</th><th>Selector</th></tr>${[...parts].sort().map(part => `<tr><td><code>${escapeHtml(part)}</code></td><td><code>${entry.tag}::part(${escapeHtml(part)})</code></td></tr>`).join("")}</table>`
-    : '<p class="inspector-empty">No parts exposed in this preview.</p>';
   const rolesTarget = stageBody.querySelector<HTMLElement>("#a11y-roles")!;
-  rolesTarget.innerHTML = roles.size
-    ? `<table class="api-table"><tr><th>Role</th></tr>${[...roles].sort().map(role => `<tr><td><code>${escapeHtml(role)}</code></td></tr>`).join("")}</table>`
-    : '<p class="inspector-empty">No explicit ARIA roles in this preview (native semantics).</p>';
+  let observer: MutationObserver | null = null;
+  const renderProps = (primary: HTMLElement | null): void => {
+    const rows = primary
+      ? [...primary.attributes].map(
+          attribute => `<div class="prop-row"><code>${escapeHtml(attribute.name)}</code><span class="prop-value">${escapeHtml(attribute.value || "—")}</span></div>`,
+        )
+      : [];
+    propList.innerHTML = rows.length ? rows.join("") : '<span class="inspector-empty">No reflected attributes yet.</span>';
+  };
+  const refreshInspectors = (): void => {
+    observer?.disconnect();
+    const primary = canvas.querySelector<HTMLElement>(entry.tag);
+    renderProps(primary);
+    if (primary) {
+      observer = new MutationObserver(() => renderProps(primary));
+      observer.observe(primary, { attributes: true });
+    }
+    const parts = new Set<string>();
+    const roles = new Set<string>();
+    canvas.querySelectorAll<HTMLElement>("*").forEach(node => {
+      node.shadowRoot?.querySelectorAll<HTMLElement>("[part]").forEach(inner => {
+        inner.getAttribute("part")!.split(/\s+/).forEach(part => parts.add(part));
+      });
+      node.shadowRoot?.querySelectorAll<HTMLElement>("[role]").forEach(inner => {
+        roles.add(inner.getAttribute("role")!);
+      });
+    });
+    partsTarget.innerHTML = parts.size
+      ? `<table class="api-table"><tr><th>Part</th><th>Selector</th></tr>${[...parts].sort().map(part => `<tr><td><code>${escapeHtml(part)}</code></td><td><code>${entry.tag}::part(${escapeHtml(part)})</code></td></tr>`).join("")}</table>`
+      : '<p class="inspector-empty">No parts exposed in this preview.</p>';
+    rolesTarget.innerHTML = roles.size
+      ? `<table class="api-table"><tr><th>Role</th></tr>${[...roles].sort().map(role => `<tr><td><code>${escapeHtml(role)}</code></td></tr>`).join("")}</table>`
+      : '<p class="inspector-empty">No explicit ARIA roles in this preview (native semantics).</p>';
+  };
+  const mount = (html: string, runSetup: boolean): void => {
+    canvas.innerHTML = html;
+    if (runSetup) example.setup?.(canvas);
+    refreshInspectors();
+  };
+  mount(initialHtml, !hasVariants);
+
+  // Variant picker — swaps the preview between real extracted variant states.
+  const variantSelect = stageBody.querySelector<HTMLSelectElement>("#variant-select");
+  const codeBlock = stageBody.querySelector<HTMLElement>("#code-block")!;
+  variantSelect?.addEventListener("change", () => {
+    const variant = variants[Number(variantSelect.value)];
+    if (!variant) return;
+    mount(variant.html, false);
+    codeBlock.textContent = variant.html;
+  });
 
   // Preview width toolbar
   const SIZES: Record<string, string> = { full: "100%", tablet: "768px", mobile: "380px" };
@@ -363,6 +481,8 @@ const renderTokensPage = (): void => {
           </div>`,
       )
       .join("")}
+    <hr class="md-sep" />
+    <div class="prose md-doc">${renderMarkdown(tokensMd.replace(/^#[^\n]*\n/, ""))}</div>
   `;
 };
 
@@ -390,7 +510,14 @@ const renderIconsPage = (): void => {
         .map(([name, svg]) => `<div class="icon-card"><span class="glyph">${svg}</span><code>${escapeHtml(name)}</code></div>`)
         .join("")}
     </div>
+    <hr class="md-sep" />
+    <div class="prose md-doc">${renderMarkdown(iconographyMd.replace(/^#[^\n]*\n/, ""))}</div>
   `;
+};
+
+const renderMarkdownPage = (title: string, md: string): void => {
+  breadcrumb.innerHTML = `Foundations / <b>${escapeHtml(title)}</b>`;
+  stageBody.innerHTML = `<div class="prose md-doc">${renderMarkdown(md)}</div>`;
 };
 
 // ── Router ───────────────────────────────────────────────────────────────────
@@ -405,7 +532,11 @@ const render = (): void => {
   renderRail();
   if (state.route.tier === "foundations") {
     if (state.route.id === "tokens") renderTokensPage();
-    else renderIconsPage();
+    else if (state.route.id === "icons") renderIconsPage();
+    else {
+      const doc = FOUNDATION_MD[state.route.id];
+      renderMarkdownPage(doc.title, doc.md);
+    }
     return;
   }
   if (state.route.tier === "lessons") {

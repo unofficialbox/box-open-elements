@@ -30,6 +30,8 @@ const routes: Array<[string, string, string]> = [
   ["patterns-share-panel", "#patterns/share-panel", "patterns/share-panel"],
   ["foundations-tokens", "#foundations/tokens", "foundations/tokens"],
   ["foundations-icons", "#foundations/icons", "foundations/icons"],
+  ["foundations-accessibility", "#foundations/accessibility", "foundations/accessibility"],
+  ["foundations-brand", "#foundations/brand", "foundations/brand"],
 ];
 
 const server = Bun.spawn(["bun", join(ROOT, "docs-site/server.ts")], {

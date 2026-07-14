@@ -198,7 +198,15 @@ body {
 
 .preview-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 18px; }
 
-.preview-toolbar { display: flex; gap: 4px; margin-bottom: 10px; }
+.preview-toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+.size-group { display: flex; gap: 4px; }
+.variant-picker { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #6f6f6f; }
+.variant-picker select {
+  font: inherit; font-weight: 500; color: #222222;
+  padding: 5px 9px; border: 1px solid #e8e8e8; border-radius: 8px; background: #ffffff; cursor: pointer;
+}
+.variant-picker select:hover { border-color: #bcbcbc; }
+.variant-picker select:focus-visible { outline: 2px solid #0061d5; outline-offset: 1px; }
 
 .size-button {
   font: inherit;
@@ -314,6 +322,20 @@ table.api-table code { font-family: ui-monospace, Menlo, monospace; font-size: 1
 
 .prose { max-width: 720px; line-height: 1.6; color: #222222; }
 .prose a { color: #0061d5; }
+.prose h1 { font-size: 24px; letter-spacing: -0.02em; margin: 0 0 10px; }
+.prose h2 { font-size: 18px; margin: 26px 0 8px; }
+.prose h3 { font-size: 15px; margin: 20px 0 6px; }
+.prose h4 { font-size: 12px; margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 0.06em; color: #6f6f6f; }
+.prose p { margin: 0 0 12px; }
+.prose ul { margin: 0 0 12px; padding-left: 20px; }
+.prose li { margin: 4px 0; }
+.prose code { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; background: #f4f4f4; padding: 1px 5px; border-radius: 5px; }
+.prose pre.code-block code { background: none; padding: 0; }
+.md-doc { max-width: 760px; }
+.md-sep { border: none; border-top: 1px solid #e8e8e8; margin: 28px 0; max-width: 760px; }
+:root[data-theme="dark"] .prose code { background: #2a2a2a; }
+:root[data-theme="dark"] .md-sep { border-top-color: #333333; }
+:root[data-theme="dark"] .prose h4 { color: #bcbcbc; }
 
 /* ── Foundations pages ────────────────────────────── */
 
@@ -414,6 +436,7 @@ table.api-table code { font-family: ui-monospace, Menlo, monospace; font-size: 1
 
 :root[data-theme="dark"] #copy-link:hover,
 :root[data-theme="dark"] #theme-toggle:hover,
+:root[data-theme="dark"] .variant-picker select { background: #1f1f1f; color: #f4f4f4; border-color: #3a3a3a; }
 :root[data-theme="dark"] .size-button:hover,
 :root[data-theme="dark"] .rail-tabs button:hover { background: #2a2a2a; }
 :root[data-theme="dark"] .related-card:hover { background: #2a2a2a; border-color: #7db4ff; }
