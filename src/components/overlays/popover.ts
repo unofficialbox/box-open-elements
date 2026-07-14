@@ -110,12 +110,12 @@ export class BoxPopoverElement extends HTMLElement {
           appearance: none;
           min-height: 2rem;
           padding: 0.4rem 0.78rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, white 14%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, var(--boe-token-surface-surface, #ffffff) 14%);
           border-radius: 0.85rem;
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, white 8%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface, #ffffff) 8%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 20%, var(--boe-token-surface-surface, #ffffff) 80%) 100%
             );
           color: var(--boe-token-text-text, #1f1e1b);
@@ -136,7 +136,7 @@ export class BoxPopoverElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 48%, white 52%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 48%, var(--boe-token-surface-surface, #ffffff) 52%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 84%, var(--boe-token-surface-item-surface-hover, #eef4fb) 16%) 100%
             );
         }
@@ -149,7 +149,7 @@ export class BoxPopoverElement extends HTMLElement {
         [part="surface"] {
           width: min(21rem, calc(100vw - 5rem));
           padding: 0.95rem 1rem 1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, white 14%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, var(--boe-token-surface-surface, #ffffff) 14%);
           border-radius: 1.1rem;
           background:
             linear-gradient(

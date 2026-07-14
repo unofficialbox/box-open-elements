@@ -150,7 +150,7 @@ export class BoxButtonGroupElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, white 6%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface, #ffffff) 6%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
             );
           color: var(--boe-token-text-text, #222222);
@@ -198,8 +198,8 @@ export class BoxButtonGroupElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, white 92%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 60%, white 40%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 60%, var(--boe-token-surface-surface, #ffffff) 40%) 100%
             );
           color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 80%, var(--boe-token-text-text, #222222) 20%);
           box-shadow:

@@ -513,7 +513,7 @@ export class BoxContentExplorerElement extends HTMLElement {
           padding: 0.7rem 0.9rem;
           border-radius: 0.7rem;
           font-size: 0.9rem;
-          background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, white);
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, var(--boe-token-surface-surface, #ffffff));
           border: 1px solid color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 34%, transparent);
           color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 72%, black 28%);
         }

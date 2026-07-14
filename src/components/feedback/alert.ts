@@ -121,27 +121,27 @@ export class BoxAlertElement extends HTMLElement {
           justify-content: space-between;
           gap: 0.75rem;
           padding: 0.85rem 0.95rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, white);
+          border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, var(--boe-token-surface-surface, #ffffff));
           border-radius: 0.95rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, white);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff));
           color: var(--boe-token-text-text, #222222);
           transition: background 140ms ease, border-color 140ms ease;
         }
 
         [part="alert"][data-tone="success"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 34%, white);
-          background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 12%, white);
+          border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 34%, var(--boe-token-surface-surface, #ffffff));
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 12%, var(--boe-token-surface-surface, #ffffff));
         }
 
         [part="alert"][data-tone="error"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 30%, white);
-          background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, white);
+          border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 30%, var(--boe-token-surface-surface, #ffffff));
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, var(--boe-token-surface-surface, #ffffff));
         }
 
         [part="alert"][data-tone="warning"],
         [part="alert"][data-tone="inprogress"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 40%, white);
-          background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 14%, white);
+          border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 40%, var(--boe-token-surface-surface, #ffffff));
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 14%, var(--boe-token-surface-surface, #ffffff));
         }
 
         [part="content"] {

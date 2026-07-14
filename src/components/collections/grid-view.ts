@@ -205,7 +205,7 @@ export class BoxGridViewElement extends HTMLElement {
 
         [part~="tile-selected"] {
           border-color: var(--boe-token-surface-surface-brand, #0061d5);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, white 90%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface, #ffffff) 90%);
         }
 
         [part~="tile"]:focus-visible {
@@ -219,7 +219,7 @@ export class BoxGridViewElement extends HTMLElement {
           inline-size: 2.75rem;
           block-size: 2.75rem;
           border-radius: 0.6rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 82%, white 18%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 82%, var(--boe-token-surface-surface, #ffffff) 18%);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 1.1rem;
           font-weight: 700;

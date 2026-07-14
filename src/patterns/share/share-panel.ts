@@ -246,7 +246,7 @@ export class BoxSharePanelElement extends HTMLElement {
           padding: 1.1rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
         [part="header"] {
@@ -299,7 +299,7 @@ export class BoxSharePanelElement extends HTMLElement {
           display: inline-flex;
           padding: 0.35rem 0.6rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
           font-size: 0.8rem;
           font-weight: 700;
@@ -313,7 +313,7 @@ export class BoxSharePanelElement extends HTMLElement {
           text-align: left;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 52%, transparent);
           border-radius: 0.8rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 82%, white 18%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 82%, var(--boe-token-surface-surface, #ffffff) 18%);
           color: var(--boe-token-text-text, #1f1e1b);
           font: inherit;
           padding: 0.8rem 0.9rem;
@@ -453,7 +453,7 @@ export class BoxSharePanelElement extends HTMLElement {
         [part="action"][data-tone="primary"] {
           background: var(--boe-token-surface-surface-brand, #0061d5);
           border-color: var(--boe-token-text-text, #1f1e1b);
-          color: white;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
       </style>
       <section part="panel">

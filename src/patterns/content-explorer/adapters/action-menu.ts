@@ -136,7 +136,7 @@ export class BoxExplorerActionMenuElement extends HTMLElement {
           display: inline-grid;
           place-items: center;
           appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, white 14%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, var(--boe-token-surface-surface, #ffffff) 14%);
           border-radius: 0.75rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, #eef4fb 6%);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
@@ -160,14 +160,14 @@ export class BoxExplorerActionMenuElement extends HTMLElement {
         }
 
         [part="trigger"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 78%, white 22%);
+          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
           outline-offset: 2px;
         }
 
         [part="trigger"][aria-expanded="true"] {
           background: var(--boe-token-surface-surface-brand, #0061d5);
           border-color: var(--boe-token-surface-surface-brand, #0061d5);
-          color: white;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
           box-shadow: 0 10px 22px rgba(0, 97, 213, 0.18);
         }
 
@@ -199,7 +199,7 @@ export class BoxExplorerActionMenuElement extends HTMLElement {
           padding: 0.45rem;
           display: grid;
           gap: 0.2rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, white 16%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
           border-radius: 0.95rem;
           background: var(--boe-token-surface-surface, #ffffff);
           box-shadow: 0 18px 32px rgba(0, 67, 146, 0.12);
@@ -220,12 +220,12 @@ export class BoxExplorerActionMenuElement extends HTMLElement {
         }
 
         [part="menu-item"]:hover {
-          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, white 36%);
+          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, var(--boe-token-surface-surface, #ffffff) 36%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
         }
 
         [part="menu-item"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 76%, white 24%);
+          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 76%, var(--boe-token-surface-surface, #ffffff) 24%);
           outline-offset: 1px;
         }
       </style>

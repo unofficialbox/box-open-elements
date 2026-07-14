@@ -135,7 +135,7 @@ export class BoxIllustrationElement extends HTMLElement {
           background:
             radial-gradient(
               circle at 50% 50%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, white 90%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface, #ffffff) 90%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, transparent) 58%,
               transparent 100%
             );
@@ -176,7 +176,7 @@ export class BoxIllustrationElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, white 66%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, var(--boe-token-surface-surface, #ffffff) 66%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-surface-surface-secondary, #fbfbfb) 84%) 100%
             );
           border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, transparent);
@@ -221,7 +221,7 @@ export class BoxIllustrationElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, white 10%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, var(--boe-token-surface-surface, #ffffff) 10%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%) 100%
             );
           border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, transparent);

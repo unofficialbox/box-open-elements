@@ -92,7 +92,7 @@ export class BoxPaginationElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, white 6%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface, #ffffff) 6%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
             );
           color: var(--boe-token-text-text, #222222);
@@ -116,7 +116,7 @@ export class BoxPaginationElement extends HTMLElement {
 
         [part="previous"]:active:not(:disabled),
         [part="next"]:active:not(:disabled) {
-          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, white 36%);
+          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, var(--boe-token-surface-surface, #ffffff) 36%);
         }
 
         [part="previous"]:focus-visible,

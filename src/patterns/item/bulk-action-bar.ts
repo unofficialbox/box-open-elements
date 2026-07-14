@@ -199,7 +199,7 @@ export class BoxBulkActionBarElement extends HTMLElement {
           --_obp-border-subtle: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 58%, transparent);
           --_obp-text-muted: var(--boe-token-text-text-secondary, #6f6f6f);
           --_obp-brand: var(--boe-token-surface-surface-brand, #0061d5);
-          --_obp-brand-soft: color-mix(in srgb, var(--_obp-brand) 12%, white 88%);
+          --_obp-brand-soft: color-mix(in srgb, var(--_obp-brand) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
         }
 
         [part="bar"] {

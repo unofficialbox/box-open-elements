@@ -308,7 +308,7 @@ export class BoxDonutChartElement extends HTMLElement {
           padding: 0.95rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, white 4%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, var(--boe-token-surface-surface, #ffffff) 4%);
         }
 
         [part="header"] {
@@ -378,7 +378,7 @@ export class BoxDonutChartElement extends HTMLElement {
         [part="action"][data-tone="primary"] {
           border-color: transparent;
           background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: white;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
 
         [part="visual"] {

@@ -112,7 +112,7 @@ export class BoxHelpTextElement extends HTMLElement {
           height: 1.15rem;
           margin-top: 0.08rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
           font-size: 0.7rem;
           font-weight: 700;
@@ -126,17 +126,17 @@ export class BoxHelpTextElement extends HTMLElement {
         }
 
         [part="help-text"][data-tone="success"] [part="icon"] {
-          background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 14%, white 86%);
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 14%, var(--boe-token-surface-surface, #ffffff) 86%);
           color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 68%, var(--boe-token-text-text, #222222));
         }
 
         [part="help-text"][data-tone="error"] [part="icon"] {
-          background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 12%, white 88%);
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
           color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 74%, var(--boe-token-text-text, #222222));
         }
 
         [part="help-text"][data-tone="warning"] [part="icon"] {
-          background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 18%, white 82%);
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 18%, var(--boe-token-surface-surface, #ffffff) 82%);
           color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 52%, var(--boe-token-text-text, #222222));
         }
 

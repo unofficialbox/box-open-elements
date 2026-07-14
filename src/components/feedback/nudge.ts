@@ -131,9 +131,9 @@ export class BoxNudgeElement extends HTMLElement {
           align-items: flex-start;
           gap: 0.65rem;
           padding: 0.7rem 0.8rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, white);
+          border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, var(--boe-token-surface-surface, #ffffff));
           border-radius: 0.8rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 7%, white);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 7%, var(--boe-token-surface-surface, #ffffff));
           color: var(--boe-token-text-text, #222222);
         }
 

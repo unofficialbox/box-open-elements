@@ -126,12 +126,12 @@ export class BoxPersonaElement extends HTMLElement {
           align-items: center;
           gap: 0.85rem;
           padding: 0.8rem 0.9rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 80%, white 20%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 80%, var(--boe-token-surface-surface, #ffffff) 20%);
           border-radius: 1rem;
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, white 12%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%) 100%
             );
         }
@@ -141,11 +141,11 @@ export class BoxPersonaElement extends HTMLElement {
           place-items: center;
           overflow: hidden;
           border-radius: 999px;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 76%, white 24%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 76%, var(--boe-token-surface-surface, #ffffff) 24%);
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, white 12%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%) 100%
             );
           box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
@@ -181,7 +181,7 @@ export class BoxPersonaElement extends HTMLElement {
         [part="status"] {
           padding: 0.22rem 0.55rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 78%, white 22%);
+          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
           font-size: 0.8rem;
           font-weight: 700;

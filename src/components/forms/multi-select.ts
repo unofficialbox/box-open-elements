@@ -138,7 +138,7 @@ export class BoxMultiSelectElement extends HTMLElement {
           display: inline-flex;
           padding: 0.35rem 0.6rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
           font-size: 0.8rem;
           font-weight: 700;
@@ -150,7 +150,7 @@ export class BoxMultiSelectElement extends HTMLElement {
           display: grid;
           gap: 0.15rem;
           padding: 0.35rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, white 22%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
           border-radius: 0.75rem;
           background: var(--boe-token-surface-surface, #ffffff);
           box-shadow: 0 12px 30px color-mix(in srgb, #0b1e33 14%, transparent);

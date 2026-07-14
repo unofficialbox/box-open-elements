@@ -313,7 +313,7 @@ export class BoxLineChartElement extends HTMLElement {
           padding: 0.95rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, white 4%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, var(--boe-token-surface-surface, #ffffff) 4%);
         }
 
         [part="header"] {
@@ -384,7 +384,7 @@ export class BoxLineChartElement extends HTMLElement {
         [part="action"][data-tone="primary"] {
           border-color: transparent;
           background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: white;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
 
         [part="visual"] {
@@ -431,7 +431,7 @@ export class BoxLineChartElement extends HTMLElement {
         }
 
         [part="dot"] {
-          fill: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 88%, white 12%);
+          fill: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
           stroke: rgba(255, 255, 255, 0.98);
           stroke-width: 0.75;
         }
@@ -458,7 +458,7 @@ export class BoxLineChartElement extends HTMLElement {
           padding: 0.45rem 0.7rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 52%, transparent);
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%, white 10%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%, var(--boe-token-surface-surface, #ffffff) 10%);
           color: inherit;
           font: inherit;
           text-align: left;
@@ -501,7 +501,7 @@ export class BoxLineChartElement extends HTMLElement {
           inline-size: 0.7rem;
           block-size: 0.7rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 88%, white 12%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
         }
 
         [part="legend-item"][data-tone="accent"] [part="legend-swatch"] {

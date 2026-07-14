@@ -66,7 +66,7 @@ const buttonStyles = `
     background:
       linear-gradient(
         180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, white 6%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface, #ffffff) 6%) 0%,
         color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
       );
     color: var(--boe-token-text-text, #222222);
@@ -97,7 +97,7 @@ const buttonStyles = `
   }
 
   button[data-tone="danger"]:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 90%, white 10%);
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 90%, var(--boe-token-surface-surface, #ffffff) 10%);
   }
 
   button[data-tone="danger"]:active:not(:disabled) {

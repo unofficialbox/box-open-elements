@@ -154,7 +154,7 @@ export class BoxSwitchElement extends HTMLElement {
           padding: 0.15rem;
           box-sizing: border-box;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, white 18%);
+          background: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, var(--boe-token-surface-surface, #ffffff) 18%);
           box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08);
           transition: background 140ms ease, box-shadow 140ms ease;
         }

@@ -196,7 +196,7 @@ export class BoxSearchResultsHeaderElement extends HTMLElement {
           --_obp-border-subtle: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
           --_obp-text-muted: var(--boe-token-text-text-secondary, #6f6f6f);
           --_obp-brand: var(--boe-token-surface-surface-brand, #0061d5);
-          --_obp-brand-soft: color-mix(in srgb, var(--_obp-brand) 12%, white 88%);
+          --_obp-brand-soft: color-mix(in srgb, var(--_obp-brand) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
         }
 
         [part="header"] {
@@ -262,7 +262,7 @@ export class BoxSearchResultsHeaderElement extends HTMLElement {
         [part="action"][data-tone="primary"] {
           border-color: var(--_obp-brand);
           background: var(--_obp-brand);
-          color: #fff;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
 
         [part="filters"] {

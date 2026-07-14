@@ -111,7 +111,7 @@ export class BoxSearchFieldElement extends HTMLElement {
           align-items: center;
           gap: 0.4rem;
           padding: 0.3rem 0.3rem 0.3rem 0.85rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, white 22%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
           border-radius: 0.7rem;
           background:
             linear-gradient(
@@ -188,7 +188,7 @@ export class BoxSearchFieldElement extends HTMLElement {
         }
 
         [part="clear"] {
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, white 22%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }

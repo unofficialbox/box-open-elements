@@ -170,7 +170,7 @@ export class BoxProgressStepsElement extends HTMLElement {
           height: 1.6rem;
           border-radius: 999px;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.78rem;
           font-weight: 700;
@@ -180,7 +180,7 @@ export class BoxProgressStepsElement extends HTMLElement {
 
         [part="step"][data-state="complete"] [part="marker"] {
           border-color: transparent;
-          background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 16%, white 84%);
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 16%, var(--boe-token-surface-surface, #ffffff) 84%);
           color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 62%, var(--boe-token-text-text, #222222));
         }
 

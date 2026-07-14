@@ -99,7 +99,7 @@ export class BoxMenuElement extends HTMLElement {
           padding: 0.45rem;
           display: grid;
           gap: 0.2rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, white 16%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
           border-radius: 0.75rem;
           background: var(--boe-token-surface-surface, #ffffff);
           box-shadow: 0 12px 30px color-mix(in srgb, #0b1e33 14%, transparent);
@@ -129,7 +129,7 @@ export class BoxMenuElement extends HTMLElement {
         }
 
         [part="menu-item"]:active:not(:disabled) {
-          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, white 36%);
+          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, var(--boe-token-surface-surface, #ffffff) 36%);
         }
 
         [part="menu-item"]:focus-visible {

@@ -140,7 +140,7 @@ export class BoxExplorerListElement extends HTMLElement {
         }
 
         [part="list-shell"] {
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, white 16%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
           border-radius: 0.95rem;
           background: var(--boe-token-surface-surface, #ffffff);
           box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -224,7 +224,7 @@ export class BoxExplorerListElement extends HTMLElement {
 
         [part~="item-action"] {
           appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, white 14%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, var(--boe-token-surface-surface, #ffffff) 14%);
           border-radius: 0.6rem;
           margin: 0;
           padding: 0.3rem 0.6rem;
@@ -275,7 +275,7 @@ export class BoxExplorerListElement extends HTMLElement {
           font-size: 0.88rem;
           font-weight: 500;
           padding: 0.42rem 0.9rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, white 14%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, var(--boe-token-surface-surface, #ffffff) 14%);
           border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
           color: var(--boe-token-text-text, #222222);

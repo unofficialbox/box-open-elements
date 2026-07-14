@@ -201,7 +201,7 @@ export class BoxFileRequestBuilderElement extends HTMLElement {
           padding: 1.1rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
         [part="header"] {
@@ -287,7 +287,7 @@ export class BoxFileRequestBuilderElement extends HTMLElement {
           display: inline-flex;
           padding: 0.25rem 0.5rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
           font-size: 0.78rem;
           font-weight: 700;
@@ -316,7 +316,7 @@ export class BoxFileRequestBuilderElement extends HTMLElement {
         [part="action"][data-tone="primary"] {
           background: var(--boe-token-surface-surface-brand, #0061d5);
           border-color: var(--boe-token-text-text, #1f1e1b);
-          color: white;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
       </style>
       <section part="builder">

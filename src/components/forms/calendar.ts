@@ -324,7 +324,7 @@ export class BoxCalendarElement extends HTMLElement {
           inline-size: 17.5rem;
           max-inline-size: 100%;
           padding: 0.85rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, white 22%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
           border-radius: 0.9rem;
           background:
             linear-gradient(
@@ -355,7 +355,7 @@ export class BoxCalendarElement extends HTMLElement {
           inline-size: 2rem;
           block-size: 2rem;
           padding: 0;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, white 22%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
           border-radius: 0.6rem;
           background: var(--boe-token-surface-surface, #ffffff);
           color: var(--boe-token-text-text-secondary, #6f6f6f);

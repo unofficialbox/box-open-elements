@@ -289,7 +289,7 @@ export class BoxTaskAssignmentPanelElement extends HTMLElement {
           padding: 1.1rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
         [part="header"] {
@@ -378,7 +378,7 @@ export class BoxTaskAssignmentPanelElement extends HTMLElement {
 
         [part="assignee"][aria-selected="true"] {
           border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 88%, white 12%);
+          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
         }
 
         [part="assignee-avatar"] {
@@ -389,10 +389,10 @@ export class BoxTaskAssignmentPanelElement extends HTMLElement {
           border-radius: 999px;
           background: linear-gradient(
             180deg,
-            color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 82%, white 18%) 0%,
+            color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 82%, var(--boe-token-surface-surface, #ffffff) 18%) 0%,
             var(--boe-token-surface-surface-brand, #0061d5) 100%
           );
-          color: white;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
           font-weight: 700;
           letter-spacing: 0.04em;
         }
@@ -455,7 +455,7 @@ export class BoxTaskAssignmentPanelElement extends HTMLElement {
         [part="action"][data-tone="primary"] {
           border-color: transparent;
           background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: white;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
 
         [part="action"]:focus-visible,

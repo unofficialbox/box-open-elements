@@ -59,7 +59,7 @@ export class BoxSpinnerElement extends HTMLElement {
           width: 1.1rem;
           height: 1.1rem;
           border-radius: 999px;
-          border: 2.5px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, white 82%);
+          border: 2.5px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, var(--boe-token-surface-surface, #ffffff) 82%);
           border-top-color: var(--boe-token-surface-surface-brand, #0061d5);
           animation: boe-spinner-rotate 0.8s linear infinite;
         }

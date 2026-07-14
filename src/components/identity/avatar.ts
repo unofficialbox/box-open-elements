@@ -107,11 +107,11 @@ export class BoxAvatarElement extends HTMLElement {
           place-items: center;
           overflow: hidden;
           border-radius: 999px;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 76%, white 24%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 76%, var(--boe-token-surface-surface, #ffffff) 24%);
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, white 12%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 84%, var(--boe-token-surface-surface-secondary, #fbfbfb) 16%) 100%
             );
           box-shadow:
@@ -123,7 +123,7 @@ export class BoxAvatarElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, white 82%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, var(--boe-token-surface-surface, #ffffff) 82%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%) 100%
             );
         }
@@ -132,7 +132,7 @@ export class BoxAvatarElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, #16a34a 18%, white 82%) 0%,
+              color-mix(in srgb, #16a34a 18%, var(--boe-token-surface-surface, #ffffff) 82%) 0%,
               color-mix(in srgb, #16a34a 8%, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%) 100%
             );
         }

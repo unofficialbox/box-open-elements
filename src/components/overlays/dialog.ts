@@ -120,7 +120,7 @@ export class BoxDialogElement extends HTMLElement {
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 78%, var(--boe-token-surface-surface-secondary, #fbfbfb) 22%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, white 8%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface, #ffffff) 8%) 100%
             );
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1.35rem;
@@ -178,7 +178,7 @@ export class BoxDialogElement extends HTMLElement {
         [part="confirm"] {
           border-color: transparent;
           background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: white;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
 
         [part="cancel"]:focus-visible,

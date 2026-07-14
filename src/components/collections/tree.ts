@@ -278,7 +278,7 @@ export class BoxTreeElement extends HTMLElement {
           gap: 0.375rem;
           margin-left: 0.5625rem;
           padding-left: 1.1875rem;
-          border-left: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, white 22%);
+          border-left: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
         }
 
         [part~="toggle"] {
@@ -287,14 +287,14 @@ export class BoxTreeElement extends HTMLElement {
           display: inline-grid;
           place-items: center;
           appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, white 12%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
           border-radius: 0.35rem;
           padding: 0;
           line-height: 1;
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, white 8%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface, #ffffff) 8%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 3%, var(--boe-token-surface-surface-secondary, #fbfbfb) 18%, var(--boe-token-surface-surface, #ffffff) 79%) 100%
             );
           color: var(--boe-token-text-text-secondary, #6f6f6f);
@@ -310,14 +310,14 @@ export class BoxTreeElement extends HTMLElement {
           display: inline-grid;
           place-items: center;
           appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, white 12%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
           border-radius: 0.375rem;
           padding: 0;
           line-height: 1;
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, white 8%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface, #ffffff) 8%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface-secondary, #fbfbfb) 18%, var(--boe-token-surface-surface, #ffffff) 78%) 100%
             );
           color: var(--boe-token-text-text-secondary, #6f6f6f);
@@ -326,7 +326,7 @@ export class BoxTreeElement extends HTMLElement {
         }
 
         [part~="toggle-expanded"] {
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
           border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, transparent);
           color: var(--boe-token-surface-surface-brand, #0061d5);
         }
@@ -367,7 +367,7 @@ export class BoxTreeElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, white 8%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface, #ffffff) 8%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%, var(--boe-token-surface-surface, #ffffff) 92%) 100%
             );
           color: var(--boe-token-text-text, #222222);
@@ -387,8 +387,8 @@ export class BoxTreeElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 68%, white 32%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-item-surface-hover, #eef4fb) 62%, white 34%) 100%
+              color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 68%, var(--boe-token-surface-surface, #ffffff) 32%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-item-surface-hover, #eef4fb) 62%, var(--boe-token-surface-surface, #ffffff) 34%) 100%
             );
         }
 
@@ -397,7 +397,7 @@ export class BoxTreeElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 78%, white 22%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 78%, var(--boe-token-surface-surface, #ffffff) 22%) 0%,
               color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, var(--boe-token-surface-surface, #ffffff) 36%) 100%
             );
           color: var(--boe-token-text-text, #222222);
