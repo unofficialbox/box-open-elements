@@ -28,12 +28,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # container-run.sh mounts the runner's Bun into the (Bun-less) Playwright
+      # image, so provide it here rather than downloading it inside the image.
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+
       # Capture + strict pixel diff run inside the pinned Playwright container
       # (mcr.microsoft.com/playwright:v1.61.1-noble) via the same script used to
       # regenerate baselines locally — so Chromium/FreeType antialiasing matches
-      # the committed baselines and a tight pixel gate is reliable. The image
-      # ships Bun-less but with the browsers pre-baked; container-run.sh installs
-      # Bun inside and mounts the repo, so no separate browser install is needed.
+      # the committed baselines and a tight pixel gate is reliable. The browsers
+      # are pre-baked in the image, so no separate browser install is needed.
       - name: Screenshot pixel-diff gate (pinned container)
         run: bash tools/preview/container-run.sh "bun run test:regression -- --pixel"
 

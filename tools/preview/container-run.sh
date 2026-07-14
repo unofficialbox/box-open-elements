@@ -58,7 +58,12 @@ fi
 exec docker run "${docker_args[@]}" "$IMAGE" bash -euc '
   export BUN_INSTALL=/root/.bun
   export PATH="/usr/local/bin:/root/.bun/bin:$PATH"
-  command -v bun >/dev/null 2>&1 || curl -fsSL https://bun.sh/install | bash >/dev/null
+  if ! command -v bun >/dev/null 2>&1; then
+    # No host Bun mounted — install it. The bun.sh installer needs unzip, which
+    # the Playwright image lacks; add it best-effort before installing.
+    command -v unzip >/dev/null 2>&1 || apt-get update -qq && apt-get install -y -qq unzip >/dev/null 2>&1 || true
+    curl -fsSL https://bun.sh/install | bash >/dev/null
+  fi
   bun install --frozen-lockfile
   eval "$BOE_CMD"
 '
