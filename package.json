@@ -100,6 +100,8 @@
     "preview:capture": "bun run build && bun tools/preview/capture.ts",
     "docs": "bun run build && bun docs-site/server.ts",
     "docs:typecheck": "tsc -p docs-site/tsconfig.json",
+    "docs:build": "bun run build && bun docs-site/build.ts",
+    "site:build": "bun run build && bun run storybook:build && bun docs-site/build.ts",
     "docs:shots": "bun run build && bun tools/preview/docs-site-shots.ts",
     "test:regression": "bun run build && bun tools/preview/regression.ts",
     "test:regression:pixel": "bash tools/preview/container-run.sh 'bun run test:regression -- --pixel'",

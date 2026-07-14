@@ -582,12 +582,21 @@ document.getElementById("copy-link")!.addEventListener("click", () => {
   void navigator.clipboard.writeText(location.href);
 });
 
-void fetch("/api/status")
-  .then(response => response.json())
-  .then((status: { version: string }) => {
-    document.getElementById("rail-version")!.textContent = `v${status.version}`;
-  })
-  .catch(() => {});
+// The static build (docs-site/build.ts) inlines the package version via a
+// `define`; the dev server (server.ts) leaves it undefined and serves the
+// version from /api/status instead. The `typeof` guard avoids a ReferenceError
+// in the dev bundle where the token is never substituted.
+const inlinedVersion = typeof __BOE_VERSION__ !== "undefined" ? __BOE_VERSION__ : null;
+if (inlinedVersion) {
+  document.getElementById("rail-version")!.textContent = `v${inlinedVersion}`;
+} else {
+  void fetch("/api/status")
+    .then(response => response.json())
+    .then((status: { version: string }) => {
+      document.getElementById("rail-version")!.textContent = `v${status.version}`;
+    })
+    .catch(() => {});
+}
 
 if (!location.hash) location.hash = "#components/button";
 render();
