@@ -16,17 +16,21 @@
  * renders, and layout collapse without the cross-environment fragility of a
  * pixel-perfect diff.
  *
- * Strict pixel diffing (`--pixel`) additionally compares pixels with pixelmatch
- * — only meaningful when baselines and this run share a rendering environment
- * (e.g. the pinned Playwright container; see the follow-up in docs-site.md).
+ * Strict pixel diffing (`--pixel`) additionally compares pixels with pixelmatch.
+ * It is only meaningful when the baselines and this run share a rendering
+ * environment, so both are produced inside the pinned Playwright container via
+ * tools/preview/container-run.sh — that is the CI gate. Render-health (no
+ * `--pixel`) is the environment-independent fallback for machines without Docker.
  *
- * Usage: bun run test:regression            (render-health, CI)
- *        bun tools/preview/regression.ts --pixel   (strict, matched env only)
+ * Usage: bun run test:regression            (render-health fallback)
+ *        bun run test:regression:pixel      (strict pixel gate, in container — CI)
+ *        bun tools/preview/regression.ts --pixel   (strict, current environment)
  */
 import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { PNG } from "pngjs";
 import pixelmatch from "pixelmatch";
+import { parseMaxDiffRatio } from "./regression-config.js";
 
 const ROOT = new URL("../..", import.meta.url).pathname;
 const TMP = join(ROOT, ".regression-tmp");
@@ -37,9 +41,13 @@ const PIXEL = process.argv.includes("--pixel") || process.env.REGRESSION_PIXEL =
 // Render-health thresholds.
 const MIN_INK_RATIO = 0.003; // at least 0.3% of pixels differ from the background
 const DIMENSION_SLACK = 2; // px; absorbs sub-pixel layout rounding across Chromium builds
-// Strict-pixel thresholds (--pixel only).
+// Strict-pixel thresholds (--pixel only). MAX_DIFF_RATIO is the fraction of
+// pixels allowed to differ; it is tuned to sit above the matched-environment
+// (pinned Playwright container) run-to-run noise floor and well below a real
+// visual change. Override via REGRESSION_MAX_DIFF_RATIO for tuning/measurement.
 const PIXEL_THRESHOLD = 0.1;
-const MAX_DIFF_RATIO = 0.005;
+const MAX_DIFF_RATIO = parseMaxDiffRatio(process.env.REGRESSION_MAX_DIFF_RATIO);
+const VERBOSE = process.env.REGRESSION_VERBOSE === "1";
 
 interface Target {
   name: string;
@@ -133,6 +141,7 @@ const compare = (target: Target): Failure[] => {
         threshold: PIXEL_THRESHOLD,
       });
       const ratio = changed / (baseline.width * baseline.height);
+      if (VERBOSE) console.log(`  · ${label}: ${(ratio * 100).toFixed(4)}% (${changed} px)`);
       if (ratio > MAX_DIFF_RATIO) {
         const diffPath = join(DIFF_DIR, `${target.name}__${file}`);
         writeFileSync(diffPath, PNG.sync.write(diff));

@@ -102,6 +102,8 @@
     "docs:typecheck": "tsc -p docs-site/tsconfig.json",
     "docs:shots": "bun run build && bun tools/preview/docs-site-shots.ts",
     "test:regression": "bun run build && bun tools/preview/regression.ts",
+    "test:regression:pixel": "bash tools/preview/container-run.sh 'bun run test:regression -- --pixel'",
+    "baselines:regen": "bash tools/preview/container-run.sh 'bun run build && bun tools/preview/capture.ts && bun tools/preview/docs-site-shots.ts'",
     "storybook:extract": "bun storybook/extract.ts",
     "storybook:dev": "bun run build && bun storybook/server.ts",
     "storybook:build": "bun run build && bun storybook/build.ts"
