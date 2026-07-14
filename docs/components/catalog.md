@@ -133,8 +133,8 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 
 Beyond the 61 carried-over components, these gaps were identified by real comparisons against upstream `box/box-ui-elements` and seven major public design systems (see [../research/upstream-gaps.md](../research/upstream-gaps.md) and [../research/component-inventory-comparison.md](../research/component-inventory-comparison.md)):
 
-- strongest cross-system gaps: `chip`/`tag` (distinct from status-only `badge`), `divider`
-- close seconds: standalone `calendar` grid (sibling to `date-field`), tag/token input field
+- strongest cross-system gaps: `chip`/`tag` (distinct from status-only `badge`), `divider` — **both built** (`box-chip`, `box-divider`)
+- close seconds: standalone `calendar` grid (sibling to `date-field`), tag/token input field — **both built** (`box-calendar`, `box-tag-input`)
 - from the box-ui-elements comparison: **all built** — `category-selector` (Forms), `datalist-item` (Collections), `contact-datalist-item` (Identity), plus `draggable-list`/`grid-view` (Collections), `error-mask`/`nudge` (Feedback), `fieldset`/`pill-cloud`/`pill-selector-dropdown` (Forms), and `nav-sidebar`/`section`/`sidebar-toggle-button` (Layout)
 
 Re-verify each against actual upstream behavior before building — the comparisons were name-and-concept-level, not behavioral audits.
