@@ -1,6 +1,8 @@
 import * as lib from "box-open-elements";
 import { catalog, titleOf, type CatalogEntry } from "./registry.js";
 import { examples } from "./examples.js";
+import { lessons, lessonById } from "./lessons.js";
+import { renderLessonPage } from "./lesson-page.js";
 
 // ── Bootstrap: tokens + every custom element ────────────────────────────────
 
@@ -75,6 +77,7 @@ const state: { tier: string; filter: string; route: Route } = {
 const parseHash = (): Route => {
   const [tier, id] = location.hash.replace(/^#/, "").split("/");
   if (tier === "foundations" && FOUNDATION_PAGES.some(page => page.id === id)) return { tier, id };
+  if (tier === "lessons" && lessonById(id)) return { tier, id };
   if ((tier === "components" || tier === "patterns") && catalog.some(entry => entry.tier === tier && entry.id === id)) {
     return { tier, id };
   }
@@ -137,6 +140,11 @@ const renderRail = (): void => {
         .filter(entry => entry.category === category)
         .map(entry => ({ id: entry.id, label: titleOf(entry.id), tier: entry.tier })),
     );
+  }
+
+  // Guided build-along lessons live in the Patterns tier as their own group.
+  if (state.tier === "patterns" && lessons.length) {
+    addGroup("Build Alongs", lessons.map(lesson => ({ id: lesson.id, label: lesson.title, tier: "lessons" })));
   }
 };
 
@@ -392,11 +400,16 @@ const render = (): void => {
   teardown?.();
   teardown = null;
   state.route = parseHash();
-  state.tier = state.route.tier;
+  // A lessons route keeps the Patterns tab + rail active.
+  state.tier = state.route.tier === "lessons" ? "patterns" : state.route.tier;
   renderRail();
   if (state.route.tier === "foundations") {
     if (state.route.id === "tokens") renderTokensPage();
     else renderIconsPage();
+    return;
+  }
+  if (state.route.tier === "lessons") {
+    teardown = renderLessonPage(lessonById(state.route.id)!, stageBody, breadcrumb);
     return;
   }
   const entry = catalog.find(item => item.tier === state.route.tier && item.id === state.route.id)!;
