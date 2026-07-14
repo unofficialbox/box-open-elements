@@ -259,7 +259,7 @@ export class BoxRichTextInputElement extends HTMLElement {
 
         [part="editor"]:focus-visible,
         [part="tool-button"]:focus-visible {
-          outline: 2px solid #2563eb;
+          outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
           outline-offset: 2px;
         }
 

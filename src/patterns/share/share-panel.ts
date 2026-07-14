@@ -336,7 +336,7 @@ export class BoxSharePanelElement extends HTMLElement {
 
         [part="shared-link-status"] {
           font-weight: 600;
-          color: #1d6a43;
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 70%, var(--boe-token-text-text, #222222));
         }
 
         [part="settings-list"] {
@@ -369,7 +369,7 @@ export class BoxSharePanelElement extends HTMLElement {
         }
 
         [part="setting-value"][data-tone="success"] {
-          color: #1d6a43;
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 70%, var(--boe-token-text-text, #222222));
         }
 
         [part="setting-value"][data-tone="accent"] {

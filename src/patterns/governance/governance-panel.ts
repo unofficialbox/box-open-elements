@@ -252,20 +252,20 @@ export class BoxGovernancePanelElement extends HTMLElement {
         }
 
         [part="status"] {
-          background: rgba(238, 248, 239, 0.96);
-          color: #2d6a3c;
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 14%, var(--boe-token-surface-surface, #ffffff));
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 70%, var(--boe-token-text-text, #222222));
         }
 
         [part="signal"][data-tone="warning"],
         [part="policy-value"][data-tone="warning"] {
-          background: rgba(255, 248, 225, 0.96);
-          color: #8a6517;
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 16%, var(--boe-token-surface-surface, #ffffff));
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 62%, var(--boe-token-text-text, #222222));
         }
 
         [part="signal"][data-tone="accent"],
         [part="policy-value"][data-tone="accent"] {
-          background: rgba(241, 235, 255, 0.96);
-          color: #5b4b8a;
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-accent, #5b4b8a) 12%, var(--boe-token-surface-surface, #ffffff));
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-accent, #5b4b8a) 72%, var(--boe-token-text-text, #222222));
         }
 
         [part="signals"] {
