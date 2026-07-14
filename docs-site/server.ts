@@ -25,6 +25,8 @@ const build = await Bun.build({
   external: ["box-open-elements"],
   format: "esm",
   minify: false,
+  // Foundation markdown docs are inlined as text and rendered in-shell.
+  loader: { ".md": "text" },
 });
 
 if (!build.success) {
