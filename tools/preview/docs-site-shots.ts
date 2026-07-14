@@ -4,11 +4,18 @@
  * Usage: bun run build && bun tools/preview/docs-site-shots.ts
  */
 import { chromium, type Browser } from "playwright-core";
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
+import { applyDeterministicFonts, blockRemoteFonts } from "./deterministic-fonts.js";
+
+/** Sandbox chromium if present, else let playwright-core resolve its install (CI). */
+const chromiumExecutablePath = (): string | undefined => {
+  if (process.env.PLAYWRIGHT_CHROMIUM_PATH) return process.env.PLAYWRIGHT_CHROMIUM_PATH;
+  return existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined;
+};
 
 const ROOT = new URL("../..", import.meta.url).pathname;
-const OUT_DIR = join(ROOT, "docs/screenshots/docs-site");
+const OUT_DIR = process.env.DOCS_SHOTS_OUT_DIR ?? join(ROOT, "docs/screenshots/docs-site");
 const PORT = 4601;
 const BANNER_TIMEOUT_MS = 20_000;
 
@@ -57,19 +64,20 @@ try {
   await waitForBanner();
   mkdirSync(OUT_DIR, { recursive: true });
 
-  const executablePath = process.env.PLAYWRIGHT_CHROMIUM_PATH ?? "/opt/pw-browsers/chromium";
   browser = await chromium.launch({
-    executablePath,
+    executablePath: chromiumExecutablePath(),
     args: ["--no-sandbox", "--disable-dev-shm-usage", "--force-device-scale-factor=2"],
   });
 
   const page = await browser.newPage({ viewport: { width: 1440, height: 940 } });
+  await blockRemoteFonts(page);
   page.on("pageerror", error => {
     console.error(`[pageerror] ${error.stack ?? error.message}`);
     process.exitCode = 1;
   });
   page.on("console", message => {
-    if (message.type() === "error") {
+    // Aborted remote fonts surface as resource-load errors — expected, not a failure.
+    if (message.type() === "error" && !message.text().includes("Failed to load resource")) {
       console.error(`[page] ${message.text()}`);
       process.exitCode = 1;
     }
@@ -78,6 +86,7 @@ try {
   for (const [name, hash, readyMarker] of routes) {
     await page.goto(`http://localhost:${PORT}/${hash}`, { waitUntil: "networkidle" });
     await page.waitForSelector(`body[data-route-ready="${readyMarker}"]`, { timeout: 15_000 });
+    await applyDeterministicFonts(page);
     await page.waitForTimeout(150);
     await page.screenshot({ path: join(OUT_DIR, `${name}.png`) });
     console.log(`captured ${name}.png`);
@@ -97,6 +106,7 @@ try {
       }
     });
     await page.waitForSelector('html[data-theme="dark"]', { timeout: 5_000 });
+    await applyDeterministicFonts(page);
     await page.waitForTimeout(200);
     await page.screenshot({ path: join(OUT_DIR, `${name}.png`) });
     console.log(`captured ${name}.png`);

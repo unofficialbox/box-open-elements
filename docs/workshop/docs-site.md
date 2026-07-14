@@ -39,7 +39,7 @@ The predecessor repo built this shell (through Phase 6 of its docs-site ExecPlan
 ## Engineering guardrails
 
 - The docs app imports the library through the package boundary (a single import-boundary module mapping the package name to the built `dist` output), so it reads like a consumer app.
-- Screenshot checkpoints + regression comparison are the guardrail for visual drift: capture checkpoints, review diffs, update baselines only deliberately. The predecessor wired this into CI (`verify` + `demo:regression`); rebuild that pipeline when the docs site lands here.
+- Screenshot checkpoints + regression comparison are the guardrail for visual drift: capture checkpoints, review diffs, update baselines only deliberately. **Built here**: `bun run preview:capture` / `bun run docs:shots` write the committed baselines under `docs/screenshots/`, and `bun run test:regression` re-captures and pixel-diffs against them (`pixelmatch`, ~0.5% tolerance), failing on drift. A `visual-regression` CI job runs it and uploads diff images on failure. Because a pixel gate needs identical rendering everywhere, the capture pipeline is **font-deterministic**: it blocks all remote fonts (the InterVariable CDN) and pins the sans + monospace stacks to committed DejaVu faces (`tools/preview/fonts/`) injected as data URIs. Inter stays the runtime font for users; only the screenshot pipeline is pinned. Regenerate baselines deliberately after an intended visual change and review the diff before committing.
 - Shell state (active tab, selection, sidebar width, theme) persists across refreshes.
 
 ## Optional Box connection
