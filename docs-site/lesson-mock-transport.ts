@@ -19,12 +19,18 @@ interface FolderResponse {
   pagination: { hasMoreItems: boolean; limit: number; offset: number; totalCount: number };
 }
 
-const FOLDER_NAMES: Record<string, string> = { "0": "All Files", "42": "Marketing", "77": "Legal" };
+// A Map (not a plain object) so lookups for inherited keys like "constructor"
+// or "toString" miss cleanly instead of returning a prototype method.
+const FOLDER_NAMES = new Map<string, string>([
+  ["0", "All Files"],
+  ["42", "Marketing"],
+  ["77", "Legal"],
+]);
 
 export const lessonMockTransport = () => ({
   async loadFolderItems({ folderId }: { folderId: string }): Promise<FolderResponse> {
     const atRoot = folderId === "0";
-    const name = FOLDER_NAMES[folderId] || "Folder";
+    const name = FOLDER_NAMES.get(folderId) ?? "Folder";
     return {
       folderId,
       folder: { id: folderId, name, type: "folder" },

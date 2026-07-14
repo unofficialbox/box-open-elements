@@ -142,6 +142,15 @@ describe("lesson mock transport (live preview)", () => {
     expect(result.items.every(item => item.name.startsWith("Legal"))).toBe(true);
     expect(result.pagination.totalCount).toBe(2);
   });
+
+  it("falls back to a string name for unknown or inherited-key ids", async () => {
+    for (const folderId of ["constructor", "toString", "hasOwnProperty", "999"]) {
+      const result = await lessonMockTransport().loadFolderItems({ folderId });
+      expect(typeof result.folder.name).toBe("string");
+      expect(result.folder.name).toBe("Folder");
+      expect(result.items.every(item => typeof item.name === "string" && item.name.startsWith("Folder"))).toBe(true);
+    }
+  });
 });
 
 describe("lesson delta diff", () => {
