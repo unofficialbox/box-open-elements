@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 # Workshop static build output
 storybook/dist/
+
+# Screenshot-regression working dir
+.regression-tmp/
