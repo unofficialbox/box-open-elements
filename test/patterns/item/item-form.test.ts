@@ -139,4 +139,26 @@ describe("BoxItemFormElement", () => {
     expect(input.value).toBe("Quarterly");
     expect(element.value).toEqual({ name: "Quarterly" });
   });
+
+  it("disables and syncs the focused control on external updates", () => {
+    const element = document.createElement("box-item-form") as BoxItemFormElement;
+    element.fields = [{ id: "name", label: "Name" }];
+    element.value = { name: "Draft" };
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[data-field-id="name"]') as HTMLInputElement;
+    input.focus();
+    expect(element.shadowRoot?.activeElement).toBe(input);
+    expect(input.disabled).toBe(false);
+
+    element.disabled = true;
+    expect(input.disabled).toBe(true);
+    expect(element.shadowRoot?.activeElement).toBe(input);
+
+    element.disabled = false;
+    element.value = { name: "Published" };
+    expect(input.disabled).toBe(false);
+    expect(input.value).toBe("Published");
+    expect(element.shadowRoot?.activeElement).toBe(input);
+  });
 });

@@ -445,8 +445,6 @@ export class BoxItemFormElement extends BaseElement {
   }
 
   private patchFieldValues(): void {
-    const active = this.shadowRoot?.activeElement as HTMLElement | null;
-
     if (this.mode === "read") {
       this.fields.forEach(field => {
         const valueEl = this.fieldsEl.querySelector(
@@ -463,7 +461,7 @@ export class BoxItemFormElement extends BaseElement {
       const control = this.fieldsEl.querySelector(
         `[data-field-id="${escapeSelectorValue(field.id)}"]`,
       ) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null;
-      if (!control || control === active) {
+      if (!control) {
         return;
       }
 
@@ -471,12 +469,19 @@ export class BoxItemFormElement extends BaseElement {
       const disabled = this.disabled || Boolean(field.disabled);
       control.disabled = disabled;
 
+      // Only rewrite value when stale so a focused control keeps its selection.
       if (control instanceof HTMLInputElement && control.type === "checkbox") {
-        control.checked = Boolean(value);
+        const nextChecked = Boolean(value);
+        if (control.checked !== nextChecked) {
+          control.checked = nextChecked;
+        }
         return;
       }
 
-      control.value = String(value);
+      const nextValue = String(value);
+      if (control.value !== nextValue) {
+        control.value = nextValue;
+      }
     });
   }
 

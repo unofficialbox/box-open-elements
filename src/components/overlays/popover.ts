@@ -94,7 +94,12 @@ export class BoxPopoverElement extends BaseElement {
       return;
     }
     event.preventDefault();
+    const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+    const originatedInside = path.some(node => node === this);
     this.hide();
+    if (originatedInside) {
+      this.triggerEl?.focus();
+    }
   };
 
   private readonly onOutsidePointer = (event: Event): void => {
@@ -138,6 +143,11 @@ export class BoxPopoverElement extends BaseElement {
 
   set label(value: string) {
     this.setAttribute("label", value);
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.syncDocumentListeners();
   }
 
   disconnectedCallback(): void {
@@ -187,7 +197,7 @@ export class BoxPopoverElement extends BaseElement {
   }
 
   private syncDocumentListeners(): void {
-    if (this.openValue) {
+    if (this.openValue && this.isConnected) {
       this.bindDocumentListeners();
     } else {
       this.unbindDocumentListeners();
@@ -202,8 +212,8 @@ export class BoxPopoverElement extends BaseElement {
     this.shadowRoot.innerHTML = `
       <style>${popoverStyles}</style>
       <div part="container">
-        <button type="button" part="trigger"></button>
-        <div part="surface" role="dialog" hidden>
+        <button type="button" part="trigger" id="boe-popover-trigger" aria-haspopup="dialog" aria-controls="boe-popover-surface"></button>
+        <div part="surface" role="dialog" id="boe-popover-surface" aria-labelledby="boe-popover-trigger" hidden>
           <slot></slot>
         </div>
       </div>

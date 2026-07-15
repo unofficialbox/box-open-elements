@@ -232,7 +232,7 @@ export class BoxPreviewHeaderElement extends BaseElement {
   }
 
   private actionsKey(): string {
-    return JSON.stringify(this.actions.map(action => ({ id: action.id, tone: action.tone ?? "neutral" })));
+    return JSON.stringify(this.actions.map(action => action.id));
   }
 
   private rebuildBreadcrumbs(): void {

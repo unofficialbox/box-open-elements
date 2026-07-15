@@ -35,6 +35,7 @@ describe("BoxDrawerElement", () => {
     await Promise.resolve();
 
     const closeButton = element.shadowRoot?.querySelector('[part="close"]') as HTMLButtonElement | null;
+    expect(closeButton).not.toBeNull();
     expect(element.shadowRoot?.activeElement).toBe(closeButton);
   });
 
