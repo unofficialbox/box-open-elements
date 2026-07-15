@@ -16,19 +16,16 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 
 ## Current state (as of this handoff)
 
-- **Branch tip for fidelity work:** land on `main` via PR, then continue batches
-  from `origin/main`. Active Batch 1 completion branch:
-  `cursor/batch-1-base-element-complete-7eb7`.
+- **Branch tip for fidelity work:** develop from `origin/main`. Batch 1 is
+  merged; start Batch 3 on a fresh `cursor/<name>-7eb7` branch.
 - **Live site:** GitHub Pages, `https://unofficialbox.github.io/box-open-elements/`,
   auto-deploys on push to `main` via `.github/workflows/deploy.yml`
   (build cmd `bun run site:build`, output `docs-site/dist`). The Workshop is
   **not** deployed (internal tool).
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
-- Recent merged PRs: #29 fidelity audit + Batches 0/2/6, **#31** Batch 1 starter
-  (`BaseElement` + button/checkbox/radio-group), **#32** Batch 1 forms/actions
-  wave. Batch 1 catalog-wide completion: **PR #33**
-  (`cursor/batch-1-base-element-complete-7eb7`).
+- Recent merged PRs: #29 fidelity audit + Batches 0/2/6, **#31/#32/#33** Batch 1
+  (`BaseElement` catalog-wide + CodeRabbit follow-ups).
 
 ## The active initiative: component fidelity program
 
@@ -47,7 +44,7 @@ organized into **systemic sweeps**, not per-component rewrites.
 - **Batch 6** (#29): renamed heading attribute `title`→`heading` across 26
   components, fixed crashing/blank docs examples, humanized Design-Tokens
   labels, unlinked the Workshop.
-- **Batch 1 — render-pattern / `BaseElement`** (#31, #32, current PR): every
+- **Batch 1 — render-pattern / `BaseElement`** (#31, #32, **#33** merged): every
   catalog component and pattern custom element extends `BaseElement`
   (`renderTemplate` / `setupListeners` / `update`). No remaining
   `attributeChangedCallback → shadowRoot.innerHTML` rebuild loop in
@@ -129,10 +126,7 @@ organized into **systemic sweeps**, not per-component rewrites.
 ## Open user-facing threads
 - User-reported review points addressed: token labels ✅, dark theme ✅ (Batch 2),
   Workshop unlink ✅, fidelity program in progress (Batches 3/4/5/7 remain).
-- **PR #33 CodeRabbit follow-ups:** addressed focus/list-rebuild findings from the
-  Batch 1 review (item-form, filter-bar, dual-listbox, metadata-filter-builder,
-  action-menu, overlays, collections, remaining pattern panels).
-  Regenerated gallery screenshot baselines for intentional layout/render diffs.
-  Addressed the second CodeRabbit pass (popover connected listeners, item panel
-  action tone patching, item-form disabled/value sync).
-- **Next:** merge #33, then start **Batch 3** (focus-visible + hover/active/disabled).
+- **PR #33** merged to `main` (`09cb7f6`) with CodeRabbit follow-ups and
+  regenerated gallery baselines.
+- **Next:** start **Batch 3** (focus-visible rings + hover/active/disabled
+  states) — lowest scoring fidelity dimension after Batch 1 landed.
