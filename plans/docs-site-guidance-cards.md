@@ -25,4 +25,4 @@ Docs site (`docs-site/`) + workshop metadata consumption.
 - [x] Guidance module + role maps
 - [x] Preview cards + Accessibility keyboard section
 - [x] Styles + tests
-- [ ] Docs/BACKLOG + verify + PR
+- [x] Docs/BACKLOG + verify + PR
