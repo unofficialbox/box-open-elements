@@ -16,17 +16,16 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 
 ## Current state (as of this handoff)
 
-- **Branch tip for fidelity work:** `cursor/batch-3-interaction-states-7eb7`
-  (Batch 3). After merge, continue from `origin/main` on a fresh
-  `cursor/<name>-7eb7` branch.
+- **Branch tip for fidelity work:** develop from `origin/main`. Batch 3 is
+  merged (#35); start Batch 4 on a fresh `cursor/<name>-7eb7` branch.
 - **Live site:** GitHub Pages, `https://unofficialbox.github.io/box-open-elements/`,
   auto-deploys on push to `main` via `.github/workflows/deploy.yml`
   (build cmd `bun run site:build`, output `docs-site/dist`). The Workshop is
   **not** deployed (internal tool).
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
-- Recent merged PRs: #29 fidelity audit + Batches 0/2/6, **#31/#32/#33** Batch 1
-  (`BaseElement` catalog-wide + CodeRabbit follow-ups).
+- Recent merged PRs: #29 Batches 0/2/6, **#31/#32/#33** Batch 1, **#35** Batch 3
+  (interaction states).
 
 ## The active initiative: component fidelity program
 
@@ -54,13 +53,11 @@ organized into **systemic sweeps**, not per-component rewrites.
   metadata-filter-builder, drop-zone). See
   [architecture.md](./architecture.md#web-component-render-contract).
 
-- **Batch 3 — focus-visible + hover/active/disabled** (PR #35): shared
-  helpers in `src/foundations/tokens/interaction.ts`
-  (`boeNeutralInteractiveStyles` / `boeBrandInteractiveStyles` /
-  `boeFocusVisibleStyles`) applied across catalog components and pattern
-  interactive parts. Style-presence tests cover the acute surfaces. CodeRabbit follow-ups:
-  opaque focus-ring fallback, selected-state hover precedence, expanded
-  action-menu focus ring, extra style tests.
+- **Batch 3 — focus-visible + hover/active/disabled** (#35 merged
+  `1a86235`): shared helpers in `src/foundations/tokens/interaction.ts`
+  applied across catalog + pattern interactive parts, with CodeRabbit
+  follow-ups (opaque focus-ring fallback, selected-state hover precedence,
+  expanded action-menu focus ring, style tests).
 
 ### Remaining (do these next, in order)
 1. **Batch 4 — ARIA roles + keyboard nav for composite widgets (~18).** Folds
@@ -136,5 +133,5 @@ organized into **systemic sweeps**, not per-component rewrites.
   Workshop unlink ✅, fidelity program in progress (Batches 3/4/5/7 remain).
 - **PR #33** merged to `main` (`09cb7f6`) with CodeRabbit follow-ups and
   regenerated gallery baselines.
-- **Next after Batch 3 merges:** start **Batch 4** (ARIA roles + keyboard nav
-  for composites, including heading semantics).
+- **Next:** start **Batch 4** (ARIA roles + keyboard nav for composites,
+  including heading semantics).
