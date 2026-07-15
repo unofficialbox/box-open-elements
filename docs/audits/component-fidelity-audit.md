@@ -24,51 +24,50 @@ result is written to the run journal, and the committed outputs are this report 
 
 **51 components score below 3/5; 229 high-severity issues logged.**
 
-> ⚠️ **Security first:** three components have genuine injection holes and should be fixed
-> ahead of everything else — `link-button` renders `href="javascript:…"` unfiltered,
-> `skeleton` interpolates unescaped `width`/`height` into an inline `style`, and
-> `content-explorer` injects `error.message` unescaped.
+> **Program status (live):** Batches **0, 1, 2, 3, 6 are DONE** (merged). Remaining in order:
+> **4** (ARIA/keyboard + heading semantics) → **5** (form association) → **7** (polish).
+> Session status: [HANDOFF.md](../HANDOFF.md). Scores and issue lists below are the **original
+> audit snapshot** — they are not re-scored after each batch; track completion in the prioritized
+> plan and HANDOFF.
+
+> ✅ **Batch 0 (security) done:** the three injection holes called out at audit time
+> (`link-button` href scheme check, `skeleton` CSSOM sizing, `content-explorer` error escaping)
+> were fixed in #29.
 
 ## Executive summary
 
-The library is broadly **below production bar**: 108 components average **2.78/5**, 51 under 3.0,
-and only `calendar` reaches 4.0+ on visual fidelity. The weakest dimensions are **states (2.52)**
-and **accessibility (2.62)** — API (3.19) and visual fidelity (3.16) are comparatively healthy,
-so the problems are **behavioral and semantic, not structural**. Two defects dominate almost every
-file: a **full `shadowRoot.innerHTML` rebuild on every state change** (destroys keyboard focus,
-kills declared CSS transitions, causes double-renders) and **hardcoded `white` inside `color-mix()`**
-(silently breaks the shipped dark theme). Because the same handful of anti-patterns repeat across
-dozens of components, most of the 229 high-severity findings are addressable through a **small
-number of systemic sweeps** rather than per-component rewrites.
+At audit time the library averaged **2.78/5** across 108 scored components (51 under 3.0), with
+**states (2.52)** and **accessibility (2.62)** weakest. Two defects dominated: a **full
+`shadowRoot.innerHTML` rebuild on every state change** and **hardcoded `white` inside
+`color-mix()`**. Those systemic themes (plus focus/hover states, `title`→`heading`, and the
+security holes) have since been swept — see the prioritized plan. Remaining work is primarily
+**ARIA/keyboard behavior**, **form association**, and leftover polish.
 
 ## Systemic themes
 
-- **Full-innerHTML re-render → focus loss / dead transitions (~55+ components).** The dominant
-  defect. `attributeChangedCallback`/setters call `render()` which reassigns `shadowRoot.innerHTML`,
-  destroying the focused node and re-binding all listeners. Breaks keyboard flow on every
-  toggle/keystroke and makes declared transitions dead code. E.g. `popover`, `checkbox`, `combobox`,
-  `metadata-filter-builder`, `select`, `button`, `nav-sidebar` (dead collapse), `progress-*`.
-- **Hardcoded `white` in `color-mix()` → dark mode broken (~35 components).** Surfaces mix a token
-  toward literal `white`, so tiles/pills/avatars stay light on `box-dark`. E.g. `metric-card`,
-  `persona`, `card`, `radio-group`, `checkbox-group`, `pill-cloud`, `segmented-control`, `badge`.
-- **Missing focus-visible rings + hover/active/disabled (~25 components).** Interactive controls
-  style at most `:focus-visible` (often nothing) despite hover/pressed tokens existing.
-- **`title` overrides native `HTMLElement.title` (~20 components).** Using `title` as a heading
-  attribute produces a stray OS tooltip and shadows the DOM API. E.g. `card`, `app-shell`,
-  `metric-card`, `preview-header`, `section`, `nudge`, chart components.
-- **ARIA role misuse (~15 components).** `role="listitem"` on `<button>` strips interactive
-  semantics; tab/tablist used for non-tab widgets; `menu`/`toolbar`/`listbox` roles declared with
-  no roving-tabindex keyboard nav.
-- **Form fields incomplete (~13 components).** No error/invalid state and not form-associated (no
-  `ElementInternals`/`name`), so values never submit. E.g. `select`, `text-field`, `date-field`,
-  `number-input`, `checkbox`, `radio-group`.
-- **Fabricated/nonexistent tokens fall back to hardcoded hex (~9 components).**
-  `--boe-token-surface-item-surface-hover` and `--boe-token-text-text-danger` don't exist, so they
-  never theme.
-- **Broken docs examples (~11 components).** The shipped example passes attributes the component
-  doesn't read or a data shape that throws (`tree-grid` crashes, `permission-matrix` blank,
-  `metadata-filter-builder`, `dropdown`, `dialog`, `toast`, `item-form`, `tooltip`).
-- **Injection / XSS (3 components, high severity).** `link-button`, `skeleton`, `content-explorer`.
+Status markers reflect post-audit sweeps. The original findings stay listed so the audit trail is intact.
+
+- **Full-innerHTML re-render → focus loss / dead transitions (~55+ components). — DONE (Batch 1).**
+  Catalog and pattern custom elements now extend `BaseElement` (`renderTemplate` / `setupListeners` /
+  `update`). See [architecture.md](../architecture.md#web-component-render-contract).
+- **Hardcoded `white` in `color-mix()` → dark mode broken (~35 components). — DONE (Batch 2).**
+  Replaced with surface tokens; added `SurfaceItemSurfaceHover` / `TextTextDanger`.
+- **Missing focus-visible rings + hover/active/disabled (~25 components). — DONE (Batch 3).**
+  Shared helpers in `src/foundations/tokens/interaction.ts`.
+- **`title` overrides native `HTMLElement.title` (~20 components). — DONE (Batch 6).**
+  Renamed to `heading`; docs examples repaired. Heading *semantics* (`<h*>` / `role="heading"`)
+  remain for Batch 4.
+- **ARIA role misuse (~15 components). — OPEN (Batch 4).** `role="listitem"` on `<button>` strips
+  interactive semantics; tab/tablist used for non-tab widgets; `menu`/`toolbar`/`listbox` roles
+  declared with no roving-tabindex keyboard nav.
+- **Form fields incomplete (~13 components). — OPEN (Batch 5).** No error/invalid state and not
+  form-associated (no `ElementInternals`/`name`), so values never submit. E.g. `select`,
+  `text-field`, `date-field`, `number-input`, `checkbox`, `radio-group`.
+- **Fabricated/nonexistent tokens fall back to hardcoded hex (~9 components). — DONE (Batch 2).**
+  Tokens now exist / are repointed.
+- **Broken docs examples (~11 components). — DONE (Batch 6).** Examples repaired as part of the
+  docs pass.
+- **Injection / XSS (3 components, high severity). — DONE (Batch 0).**
 
 ## Worst offenders
 
@@ -92,40 +91,42 @@ number of systemic sweeps** rather than per-component rewrites.
 
 ## Prioritized fix plan
 
-**Batch 0 — Security (do first).** Scheme-check `link-button` href, escape `skeleton`
-`width`/`height` before injecting into `style`, `escapeHtml` the `content-explorer` error message.
+**Batch 0 — Security — DONE (#29).** Scheme-check `link-button` href, escape `skeleton`
+`width`/`height` via CSSOM (not string `style`), `escapeHtml` the `content-explorer` error message.
 
-**Batch 1 — Replace full-innerHTML render with in-place patching — DONE.** Shared `BaseElement`
-(`src/core/element.ts`) builds the shadow DOM once via `renderTemplate()`, attaches listeners once
-via `setupListeners()`, and patches via `update()`. Applied across the full catalog and pattern
-surfaces (components + patterns; ~107 elements). Dynamic lists rebuild only their list container;
-focused inputs skip value overwrites while focused. Remaining medium/low polish stays in Batch 7.
+**Batch 1 — Replace full-innerHTML render with in-place patching — DONE (#31/#32/#33).** Shared
+`BaseElement` (`src/core/element.ts`) builds the shadow DOM once via `renderTemplate()`, attaches
+listeners once via `setupListeners()`, and patches via `update()`. Applied across the full catalog
+and pattern surfaces (components + patterns; ~107 elements). Dynamic lists rebuild only their list
+container; focused inputs skip value overwrites while focused. Remaining medium/low polish stays in
+Batch 7.
 
-**Batch 2 — Tokenize color for dark-mode correctness (~35).** Replace `color-mix(…, white N%)` with
-mixes against surface tokens; replace hardcoded status/accent hex with `--boe-token-surface-status-*`;
-add the missing real tokens behind the fabricated names (or repoint). Mostly mechanical, high payoff —
-`box-dark` currently renders a third of the library light-on-dark. **Folds in the user-reported
-dark-theme complaint.**
+**Batch 2 — Tokenize color for dark-mode correctness — DONE (#29).** Replaced
+`color-mix(…, white N%)` with mixes against surface tokens; replaced hardcoded status/accent hex
+with `--boe-token-surface-status-*`; added missing tokens (`SurfaceItemSurfaceHover`,
+`TextTextDanger`). **Folded in the user-reported dark-theme complaint.**
 
-**Batch 3 — Focus-visible rings + hover/active/disabled states — DONE.** Shared helpers in
+**Batch 3 — Focus-visible rings + hover/active/disabled states — DONE (#35).** Shared helpers in
 `src/foundations/tokens/interaction.ts` (`boeNeutralInteractiveStyles` /
 `boeBrandInteractiveStyles` / `boeFocusVisibleStyles`) applied across catalog components and
 pattern interactive parts; style-presence tests cover acute surfaces. Remaining state gaps that
 are ARIA/keyboard or form-association belong to Batches 4/5.
 
-**Batch 4 — ARIA correctness & keyboard interaction for composite widgets (~18).** Roving-tabindex +
-arrow/Home/End nav for `menu`/`toolbar`/`listbox`/`radiogroup`; remove `role="listitem"` from
-buttons; fix tab/tablist misuse; focus trap/restore on modals. Several widgets announce a role they
-don't behaviorally fulfill — AT users can open but not operate them.
+**Batch 4 — ARIA correctness & keyboard interaction for composite widgets (~18). — NEXT.**
+Roving-tabindex + arrow/Home/End nav for `menu`/`toolbar`/`listbox`/`radiogroup`; remove
+`role="listitem"` from buttons; fix tab/tablist misuse; focus trap/restore on modals. Also folds in
+heading semantics: render `heading` as a real `<h*>` / `role="heading"` with `aria-level`, not a
+`<div part="title">`. Several widgets announce a role they don't behaviorally fulfill — AT users
+can open but not operate them.
 
-**Batch 5 — Form-field completeness (~13).** Add `error`/`invalid` (attribute + `aria-invalid` +
-`SurfaceStatusSurfaceError` + message region) and make controls form-associated via
+**Batch 5 — Form-field completeness (~13). — OPEN.** Add `error`/`invalid` (attribute +
+`aria-invalid` + `SurfaceStatusSurfaceError` + message region) and make controls form-associated via
 `ElementInternals`/`name`; fix reflection drift and min/max clamping. Form components that can't show
 validation or submit their value aren't usable in real forms.
 
-**Batch 6 — `title` collision + docs repair (~20 + ~11).** Rename the `title` heading attribute to
-`heading` across the offenders (stop the native-tooltip collision); fix the broken shipped examples so
-demos render. Cheap, high-visibility credibility fixes. **Folds in the user-reported token-label
-humanization and Workshop unlink as part of the docs pass.**
+**Batch 6 — `title` collision + docs repair — DONE (#29).** Renamed the `title` heading attribute
+to `heading` across the offenders; fixed broken shipped examples; humanized Design-Tokens labels;
+unlinked the Workshop from the public site.
 
-**Batch 7 — Per-component polish.** Remaining medium/low issues not covered by the sweeps.
+**Batch 7 — Per-component polish. — OPEN.** Remaining medium/low issues not covered by the sweeps
+(e.g. deferred `skeleton` update short-circuit; leftover audit nits after Batches 4–5).

@@ -16,8 +16,8 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 
 ## Current state (as of this handoff)
 
-- **Branch tip for fidelity work:** develop from `origin/main`. Batch 3 is
-  merged (#35); start Batch 4 on a fresh `cursor/<name>-7eb7` branch.
+- **Branch tip for fidelity work:** develop from `origin/main`. Batches 0–3 and 6
+  are merged; start Batch 4 on a fresh `cursor/<name>-7eb7` branch.
 - **Live site:** GitHub Pages, `https://unofficialbox.github.io/box-open-elements/`,
   auto-deploys on push to `main` via `.github/workflows/deploy.yml`
   (build cmd `bun run site:build`, output `docs-site/dist`). The Workshop is
@@ -130,8 +130,7 @@ organized into **systemic sweeps**, not per-component rewrites.
 
 ## Open user-facing threads
 - User-reported review points addressed: token labels ✅, dark theme ✅ (Batch 2),
-  Workshop unlink ✅, fidelity program in progress (Batches 3/4/5/7 remain).
-- **PR #33** merged to `main` (`09cb7f6`) with CodeRabbit follow-ups and
-  regenerated gallery baselines.
+  Workshop unlink ✅, Batch 1 render contract ✅, Batch 3 interaction states ✅.
+  Fidelity program remaining: Batches **4 / 5 / 7**.
 - **Next:** start **Batch 4** (ARIA roles + keyboard nav for composites,
   including heading semantics).

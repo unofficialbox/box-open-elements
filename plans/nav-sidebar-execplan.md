@@ -30,7 +30,7 @@ example wires the toggle to the sidebar.
 - [x] Tests: `test/components/layout/nav-sidebar.test.ts`, `test/components/layout/sidebar-toggle-button.test.ts`
 - [x] Docs catalog (`docs/components/catalog.md`) + roadmap (`docs/roadmap.md`) updated
 - [x] Docs-site registry (`docs-site/registry.ts`) + example (`docs-site/examples.ts`)
-- [ ] `bun run verify` green, PR opened
+- [x] `bun run verify` green, PR opened
 
 ## Surprises & Discoveries
 

@@ -13,7 +13,7 @@ This document maps everything in the original repo onto the new taxonomy so port
 | Headless layer (`src/elements/**`) | `Patterns` — headless modules | controllers/contracts live inside their pattern area |
 | `src/design-system/**` | `src/foundations/tokens/**` + `src/foundations/icons/**` | token prefix `--obp-token-*` → `--boe-token-*`; change event `obp:design-system-change` → `boe:design-system-change` |
 | `src/core/**` | `src/core/**` | unchanged support layer |
-| `packages/box-server` | future `packages/box-server` | same boundary; see [integration/box-server.md](./integration/box-server.md) |
+| `packages/box-server` | `packages/box-server` (built) | same boundary; see [integration/box-server.md](./integration/box-server.md) |
 
 ## Import path mapping
 
@@ -94,7 +94,7 @@ Headless modules:
 | `docs/storybook-pilot.md` + Storybook ExecPlan decisions | `docs/workshop/storybook.md` |
 | Build Along ExecPlan lesson anatomy | `docs/workshop/build-alongs.md` |
 | `AGENTS.md`, `PLANS.md`, `BACKLOG.md` | same names, adapted |
-| `docs/HANDOFF.md`, `docs/codex-workflow.md`, visual-review logs, screenshot checkpoints | not carried — old-repo session mechanics; the durable ideas (screenshot regression as a guardrail, skills/subagents split) are noted in `AGENTS.md` and `docs/workshop/docs-site.md` |
+| `docs/HANDOFF.md`, `docs/codex-workflow.md`, visual-review logs, screenshot checkpoints | old-repo session mechanics were not carried as-is; this repo has a live [`docs/HANDOFF.md`](./HANDOFF.md) for the fidelity program. Durable ideas (screenshot regression as a guardrail, skills/subagents split) also live in `AGENTS.md` and `docs/workshop/docs-site.md` |
 
 ## API changes
 

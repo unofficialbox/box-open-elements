@@ -38,7 +38,7 @@ After this change, the repo has a runnable component-documentation site (`bun ru
 
 ## Outcomes & Retrospective
 
-Shipped: working docs site v1 with 88 reachable pages (86 catalog surfaces + 2 foundations pages), live inspectors, and runtime-derived API reference. Deferred to follow-ups (tracked in BACKLOG): variant dropdown (no per-variant data yet), per-component keyboard/best-practices cards (not documented per component yet), markdown-doc pages in the Foundations tab, Storybook extraction backend, screenshot-regression gating. The device-size preview toolbar and Related-links cards shipped as a follow-up increment.
+Shipped: working docs site v1 with 88 reachable pages (86 catalog surfaces + 2 foundations pages), live inspectors, and runtime-derived API reference. Follow-on increments since v1 (also shipped): device-size preview toolbar, Related-links cards, real `box-dark` toggle, Storybook-backed variant dropdown, markdown foundation docs in-shell, GitHub Pages deploy, and containerized screenshot pixel-diff CI. Still open (tracked in BACKLOG): Usage/Best-practices guidance cards — need real per-component content first.
 
 ## Context and Orientation
 

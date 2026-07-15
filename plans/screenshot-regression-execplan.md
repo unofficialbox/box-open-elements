@@ -68,14 +68,14 @@ that AA noise overlaps the magnitude of genuine small changes (a blue→magenta
 token change measured only ~0.5% on some pages). A pixel gate therefore needs
 baseline and check to share one rendering environment.
 
-**Shipped (layered):** the CI gate is **render-health**, not pixel-perfect —
-for every baseline it fails if the page errored, rendered blank/near-blank, or
-changed dimensions. This is environment-independent because bundled fonts pin
-text metrics (so layout/dimensions match across Chromium builds even though AA
-doesn't). Strict pixel diffing stays available behind `--pixel` for a matched
-environment. **Follow-up:** run capture + `--pixel` inside the pinned Playwright
-Docker container for both baseline generation and CI, then a tight pixel gate
-becomes reliable.
+**Shipped (layered):**
+
+1. **Render-health** (`bun run test:regression`): fails if a page errored, rendered
+   blank/near-blank, or changed dimensions — environment-independent via bundled fonts.
+2. **Strict pixel gate** (follow-up, now also shipped): capture + `--pixel` run inside
+   the pinned Playwright container for both baseline generation (`bun run baselines:regen`)
+   and CI (`.github/workflows/ci.yml` `visual-regression` job). Local equivalent:
+   `bun run test:regression:pixel`. See [docs/workshop/docs-site.md](../docs/workshop/docs-site.md).
 
 ## Verify + ship
 
