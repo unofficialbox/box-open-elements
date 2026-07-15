@@ -173,6 +173,7 @@ describe("BoxFilterBarElement", () => {
     expect(styles).toContain('[part="filter-chip"]:hover:not(:disabled)');
     expect(styles).toContain('[part="select"]:active:not(:disabled)');
     expect(styles).toContain('[part="filter-chip"]:disabled');
+    expect(styles).toContain('[part="filter-chip"][data-selected="true"]:active:not(:disabled)');
     expect(styles).toContain("--boe-token-surface-surface-brand");
   });
 });

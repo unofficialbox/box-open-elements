@@ -1,6 +1,9 @@
 import { ContentExplorerController } from "../controller.js";
 import { BaseElement } from "../../../core/index.js";
-import { boeNeutralInteractiveStyles } from "../../../foundations/tokens/index.js";
+import {
+  boeFocusRingShadow,
+  boeNeutralInteractiveStyles,
+} from "../../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-explorer-action-menu";
 
@@ -62,6 +65,13 @@ const elementStyles = `
           border-color: var(--boe-token-surface-surface-brand, #0061d5);
           color: var(--boe-token-text-text-on-brand, #ffffff);
           box-shadow: 0 10px 22px rgba(0, 97, 213, 0.18);
+        }
+
+        [part="trigger"][aria-expanded="true"]:focus-visible {
+          outline: none;
+          box-shadow:
+            ${boeFocusRingShadow},
+            0 10px 22px rgba(0, 97, 213, 0.18);
         }
 
         [part="trigger-label"] {

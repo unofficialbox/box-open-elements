@@ -80,6 +80,17 @@ describe("BoxCarouselElement", () => {
     expect(activeDot?.dataset.index).toBe("1");
   });
 
+  it("preserves selected-dot styles on hover and active", () => {
+    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    element.items = [{ title: "One" }, { title: "Two" }];
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part~="dot-selected"]:hover:not(:disabled)');
+    expect(styles).toContain('[part~="dot-selected"]:active:not(:disabled)');
+    expect(styles).toContain("--boe-token-surface-surface-brand");
+  });
+
   it("wraps when using previous from the first slide", () => {
     const element = document.createElement("box-carousel") as BoxCarouselElement;
     element.items = [

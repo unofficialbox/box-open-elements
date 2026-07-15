@@ -188,6 +188,12 @@ const carouselStyles = `
   ${boeNeutralInteractiveStyles('[part="next"]')}
   ${boeNeutralInteractiveStyles('[part~="dot"]')}
 
+  [part~="dot-selected"]:hover:not(:disabled),
+  [part~="dot-selected"]:active:not(:disabled) {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-surface-surface, #ffffff) 84%);
+    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, transparent);
+  }
+
   [part="previous"]:hover:not(:disabled),
   [part="next"]:hover:not(:disabled) {
     color: var(--boe-token-surface-surface-brand, #0061d5);

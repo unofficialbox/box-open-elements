@@ -87,6 +87,7 @@ describe("BoxBulkActionBarElement", () => {
     expect(styles).toContain('[part="clear"]:hover:not(:disabled)');
     expect(styles).toContain('[part="action"]:active:not(:disabled)');
     expect(styles).toContain('[part="action"]:disabled');
+    expect(styles).toContain('[part="action"][data-tone="primary"]:active:not(:disabled)');
     expect(styles).toContain("--boe-token-surface-surface-brand");
   });
 });

@@ -7,9 +7,13 @@
  * blocks so the ring and hover language stay consistent.
  */
 
-/** Brand focus ring (WCAG 2.4.7). Theme-adaptive via surface-brand. */
+/**
+ * Brand focus ring (WCAG 2.4.7). Theme-adaptive via surface-brand.
+ * Uses an opaque brand fallback so keyboard focus stays high-contrast when
+ * no design system has registered tokens yet.
+ */
 export const boeFocusRingShadow =
-  "0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent)";
+  "0 0 0 3px var(--boe-token-surface-surface-brand, #0061d5)";
 
 /**
  * Neutral control surface states (buttons, chips, triggers, list rows).

@@ -36,6 +36,11 @@ const menuItemStyles = `
 
   ${boeNeutralInteractiveStyles('[part="item"]')}
 
+  [part="item"][data-selected="true"]:hover:not(:disabled),
+  [part="item"][data-selected="true"]:active:not(:disabled) {
+    background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, var(--boe-token-surface-surface, #ffffff) 36%);
+  }
+
   [part="item"]:hover:not(:disabled) {
     color: var(--boe-token-surface-surface-brand, #0061d5);
   }

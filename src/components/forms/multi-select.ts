@@ -15,6 +15,7 @@ const escapeHtml = (value: string): string =>
     .replaceAll("'", "&#39;");
 
 type MultiSelectOption = {
+  disabled?: boolean;
   label: string;
   value: string;
 };
@@ -246,7 +247,7 @@ export class BoxMultiSelectElement extends BaseElement {
         .map(
           option => `
             <label part="option">
-              <input type="checkbox" part="input" value="${escapeHtml(option.value)}" />
+              <input type="checkbox" part="input" value="${escapeHtml(option.value)}" ${option.disabled ? "disabled" : ""} />
               <span part="option-label">${escapeHtml(option.label)}</span>
             </label>
           `,

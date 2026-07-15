@@ -109,7 +109,8 @@ const elementStyles = `
         ${boeNeutralInteractiveStyles('[part="filter-chip"]')}
 
         [part="filter-chip"][data-selected="true"],
-        [part="filter-chip"][data-selected="true"]:hover:not(:disabled) {
+        [part="filter-chip"][data-selected="true"]:hover:not(:disabled),
+        [part="filter-chip"][data-selected="true"]:active:not(:disabled) {
           border-color: color-mix(in srgb, var(--_obp-brand) 34%, transparent);
           background: var(--_obp-brand-soft);
           color: var(--_obp-brand);

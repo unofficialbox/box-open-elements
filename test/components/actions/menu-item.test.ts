@@ -64,4 +64,16 @@ describe("BoxMenuItemElement", () => {
     expect(button?.getAttribute("role")).toBe("menuitemradio");
     expect(button?.getAttribute("aria-checked")).toBe("true");
   });
+
+  it("preserves selected surface styles on hover and active", () => {
+    const element = document.createElement("box-menu-item") as BoxMenuItemElement;
+    element.label = "Rename";
+    element.selected = true;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="item"][data-selected="true"]:hover:not(:disabled)');
+    expect(styles).toContain('[part="item"][data-selected="true"]:active:not(:disabled)');
+    expect(styles).toContain("--boe-token-surface-item-surface-selected");
+  });
 });

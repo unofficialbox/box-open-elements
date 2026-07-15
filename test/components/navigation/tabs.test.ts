@@ -89,6 +89,20 @@ describe("BoxTabsElement", () => {
     expect((tabs[2] as HTMLElement | undefined)?.dataset.position).toBe("last");
   });
 
+  it("scopes hover/active to non-selected tabs and keeps focus-visible for all", () => {
+    const element = document.createElement("box-tabs") as BoxTabsElement;
+    element.options = [
+      { label: "Overview", value: "overview" },
+      { label: "Activity", value: "activity" },
+    ];
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="tab"]:not([data-selected="true"]):hover:not(:disabled)');
+    expect(styles).toContain('[part="tab"]:not([data-selected="true"]):active:not(:disabled)');
+    expect(styles).toContain('[part="tab"]:focus-visible');
+  });
+
   it("preserves focus on a tab when an attribute changes", () => {
     const element = document.createElement("box-tabs") as BoxTabsElement;
     element.options = [

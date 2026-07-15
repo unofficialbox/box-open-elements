@@ -64,4 +64,23 @@ describe("BoxPaginationElement", () => {
     expect(previous?.getAttribute("aria-label")).toBe("Previous page");
     expect(next?.getAttribute("aria-label")).toBe("Next page");
   });
+
+  it("includes focus/hover/active/disabled styles for previous and next", () => {
+    const element = document.createElement("box-pagination") as BoxPaginationElement;
+    element.page = 1;
+    element.pageSize = 10;
+    element.totalItems = 25;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="previous"]:focus-visible');
+    expect(styles).toContain('[part="previous"]:hover:not(:disabled)');
+    expect(styles).toContain('[part="previous"]:active:not(:disabled)');
+    expect(styles).toContain('[part="previous"]:disabled');
+    expect(styles).toContain('[part="next"]:focus-visible');
+    expect(styles).toContain('[part="next"]:hover:not(:disabled)');
+    expect(styles).toContain('[part="next"]:active:not(:disabled)');
+    expect(styles).toContain('[part="next"]:disabled');
+    expect(styles).toContain("--boe-token-surface-surface-brand");
+  });
 });

@@ -84,4 +84,22 @@ describe("BoxRadioGroupElement", () => {
     // Assert focus is still on the active shadow root element and not lost to the body
     expect(element.shadowRoot?.activeElement).toBe(firstInput);
   });
+
+  it("includes focus-within, hover, active, and disabled option styles", () => {
+    const element = document.createElement("box-radio-group") as BoxRadioGroupElement;
+    element.options = [
+      { label: "Single", value: "single" },
+      { label: "Multiple", value: "multiple" },
+    ];
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="option"]:focus-within');
+    expect(styles).toContain("--boe-token-surface-surface-brand");
+    expect(styles).toContain('[part="option"]:hover:not(:has([part="input"]:disabled))');
+    expect(styles).toContain('[part="option"]:active:not(:has([part="input"]:disabled))');
+    expect(styles).toContain('[part="option"]:has([part="input"]:disabled)');
+    expect(styles).toContain("cursor: not-allowed");
+    expect(styles).toContain("opacity: 0.55");
+  });
 });

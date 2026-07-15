@@ -135,7 +135,8 @@ const elementStyles = `
         ${boeNeutralInteractiveStyles('[part="clear"]')}
 
         [part="action"][data-tone="primary"],
-        [part="action"][data-tone="primary"]:hover:not(:disabled) {
+        [part="action"][data-tone="primary"]:hover:not(:disabled),
+        [part="action"][data-tone="primary"]:active:not(:disabled) {
           border-color: color-mix(in srgb, var(--_obp-brand) 34%, transparent);
           background: var(--_obp-brand-soft);
           color: var(--_obp-brand);

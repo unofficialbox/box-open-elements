@@ -8,8 +8,11 @@ import {
 } from "../../../src/foundations/tokens/interaction.js";
 
 describe("interaction style helpers", () => {
-  it("exposes a brand-token focus ring", () => {
+  it("exposes a brand-token focus ring with opaque fallback contrast", () => {
     expect(boeFocusRingShadow).toContain("--boe-token-surface-surface-brand");
+    expect(boeFocusRingShadow).toContain("#0061d5");
+    expect(boeFocusRingShadow).not.toContain("color-mix");
+    expect(boeFocusRingShadow).not.toContain("transparent");
   });
 
   it("builds neutral interactive states for a selector", () => {

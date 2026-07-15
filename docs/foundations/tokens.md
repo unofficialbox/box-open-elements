@@ -145,7 +145,7 @@ const styles = `
 | `boeFocusVisibleStyles(selector)` | controls that already own hover (native inputs) |
 | `boeFocusRingShadow` | raw box-shadow value for custom rules |
 
-The focus ring always resolves through `--boe-token-surface-surface-brand` so it adapts between `box-default` and `box-dark`.
+The focus ring always resolves through `--boe-token-surface-surface-brand` (opaque brand fallback `#0061d5`) so it adapts between `box-default` and `box-dark` and stays high-contrast when no design system is registered.
 
 ## Follow-ups
 

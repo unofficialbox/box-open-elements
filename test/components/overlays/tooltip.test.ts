@@ -71,4 +71,17 @@ describe("BoxTooltipElement", () => {
 
     expect(element.open).toBe(false);
   });
+
+  it("includes focus-visible and interactive styles for the trigger", () => {
+    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="trigger"]:focus-visible');
+    expect(styles).toContain('[part="trigger"]:hover:not(:disabled)');
+    expect(styles).toContain('[part="trigger"]:active:not(:disabled)');
+    expect(styles).toContain('[part="trigger"]:disabled');
+    expect(styles).toContain("--boe-token-surface-surface-hover");
+    expect(styles).toContain("--boe-token-surface-surface-brand");
+  });
 });

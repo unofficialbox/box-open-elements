@@ -1,5 +1,8 @@
 import { BaseElement } from "../../core/index.js";
-import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import {
+  boeFocusVisibleStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-tabs";
 
@@ -102,7 +105,8 @@ const tabsStyles = `
       0 6px 12px rgba(15, 23, 42, 0.035);
   }
 
-  ${boeNeutralInteractiveStyles('[part="tab"]')}
+  ${boeNeutralInteractiveStyles('[part="tab"]:not([data-selected="true"])')}
+  ${boeFocusVisibleStyles('[part="tab"]')}
 `;
 
 export class BoxTabsElement extends BaseElement {

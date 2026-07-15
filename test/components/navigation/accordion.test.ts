@@ -76,7 +76,8 @@ describe("BoxAccordionElement", () => {
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain('[part="trigger"]:focus-visible');
     expect(styles).toContain('[part="trigger"]:hover:not(:disabled)');
-    expect(styles).toContain("--boe-token-surface-surface-brand");
+    expect(styles).toContain("--boe-token-surface-surface-hover");
+    expect(styles).toContain("--boe-token-stroke-stroke-hover");
   });
 });
 

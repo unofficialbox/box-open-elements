@@ -20,7 +20,11 @@ const checkboxStyles = `
   }
 
   [part="field"]:hover:not(:has([part="input"]:disabled)) {
-    color: var(--boe-token-text-text, #222222);
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+  }
+
+  [part="field"]:active:not(:has([part="input"]:disabled)) {
+    color: var(--boe-token-surface-surface-brand-pressed, #004eaa);
   }
 
   [part="input"] {

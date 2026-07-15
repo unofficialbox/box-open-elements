@@ -52,7 +52,9 @@ const chipStyles = `
     color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 72%, var(--boe-token-text-text, #222222));
   }
 
-  [part="chip"][data-selected="true"] {
+  [part="chip"][data-selected="true"],
+  [part="chip"][data-selected="true"]:hover:not([data-disabled="true"]),
+  [part="chip"][data-selected="true"]:active:not([data-disabled="true"]) {
     border-color: var(--boe-token-surface-surface-brand, #0061d5);
     background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, var(--boe-token-surface-surface, #ffffff) 86%);
     color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 74%, var(--boe-token-text-text, #222222));
