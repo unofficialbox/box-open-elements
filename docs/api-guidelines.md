@@ -101,6 +101,7 @@ selected entry under `"value"`; range controls use `"range"` as the base for
 - Prefer `items` for rich objects and `options` for flat choices.
 - Prefer `value-changed` for selection/input updates.
 - Prefer `open-changed` for overlay visibility changes.
+- Prefer `ratio-changed` for resizable split panes (`detail: { ratio }` on `split-view`).
 - Prefer adding compatibility aliases before hard renames when an existing component uses a less ideal term such as `heading`, `caption`, or `subtitle`.
 
 ## Shared event contract
@@ -117,6 +118,7 @@ Recommended shared state-change events:
 
 - `value-changed`
 - `open-changed`
+- `ratio-changed` (`detail: { ratio }` for `split-view`)
 - `checked-changed`
 - `selected-changed`
 
