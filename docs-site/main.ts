@@ -2,9 +2,9 @@ import * as lib from "box-open-elements";
 import { catalog, titleOf, type CatalogEntry } from "./registry.js";
 import { examples } from "./examples.js";
 import {
-  hasUsageCard,
+  renderBulletList,
+  renderGuidanceCards,
   resolvePreviewGuidance,
-  type PreviewGuidance,
 } from "./guidance.js";
 import { inspectPreviewTree } from "./preview-inspect.js";
 import { lessons, lessonById } from "./lessons.js";
@@ -89,61 +89,8 @@ const escapeHtml = (value: string): string =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 
-/** Escape HTML then promote `` `code` `` spans (trusted authored guidance). */
-const renderInlineCode = (value: string): string =>
-  escapeHtml(value).replace(/`([^`]+)`/g, "<code>$1</code>");
-
 const toKebab = (value: string): string =>
   value.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-
-const renderBulletList = (bullets: string[]): string =>
-  `<ul class="guidance-list">${bullets.map(bullet => `<li>${renderInlineCode(bullet)}</li>`).join("")}</ul>`;
-
-const renderGuidanceCards = (guidance: PreviewGuidance): string => {
-  const cards: string[] = [];
-
-  if (hasUsageCard(guidance)) {
-    const lead = guidance.usage
-      ? `<p class="guidance-lead">${renderInlineCode(guidance.usage.shortDescription)}</p>
-         <p>${renderInlineCode(guidance.usage.docsDescription)}</p>`
-      : "";
-    const note = guidance.usageNote
-      ? `<p class="guidance-note"><strong>Note.</strong> ${renderInlineCode(guidance.usageNote)}</p>`
-      : "";
-    cards.push(`
-      <article class="guidance-card" data-guidance="usage">
-        <h3 class="guidance-title">Usage</h3>
-        ${lead}
-        ${note}
-      </article>`);
-  }
-
-  if (guidance.bestPractices.length) {
-    cards.push(`
-      <article class="guidance-card" data-guidance="best-practices">
-        <h3 class="guidance-title">Best practices</h3>
-        ${renderBulletList(guidance.bestPractices)}
-      </article>`);
-  }
-
-  if (guidance.keyboard.length) {
-    cards.push(`
-      <article class="guidance-card" data-guidance="keyboard">
-        <h3 class="guidance-title">Keyboard</h3>
-        ${renderBulletList(guidance.keyboard)}
-      </article>`);
-  }
-
-  if (!cards.length) {
-    return "";
-  }
-
-  return `
-    <section class="guidance-section" aria-label="Usage guidance">
-      <p class="section-label">Guidance</p>
-      <div class="guidance-grid">${cards.join("")}</div>
-    </section>`;
-};
 
 // Minimal, dependency-free markdown → HTML for the foundation docs (trusted,
 // repo-owned content). Handles headings, lists, code fences, inline code/bold/
@@ -447,7 +394,7 @@ const renderComponentPage = (entry: CatalogEntry): void => {
       observer = new MutationObserver(() => renderProps(primary));
       observer.observe(primary, { attributes: true });
     }
-    const inspection = inspectPreviewTree(canvas);
+    const inspection = inspectPreviewTree(canvas, { primaryTag: entry.tag });
     partsTarget.innerHTML = inspection.parts.length
       ? `<table class="api-table"><tr><th>Part</th><th>Selector</th></tr>${inspection.parts.map(part => `<tr><td><code>${escapeHtml(part)}</code></td><td><code>${entry.tag}::part(${escapeHtml(part)})</code></td></tr>`).join("")}</table>`
       : '<p class="inspector-empty">No parts exposed in this preview.</p>';

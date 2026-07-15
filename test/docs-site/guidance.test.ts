@@ -4,6 +4,7 @@ import {
   bestPracticesForRoles,
   hasUsageCard,
   keyboardGuidanceForRoles,
+  renderGuidanceCards,
   resolvePreviewGuidance,
   usageById,
 } from "../../docs-site/guidance.js";
@@ -66,5 +67,24 @@ describe("docs-site guidance", () => {
       roles: [],
     });
     expect(hasUsageCard(empty)).toBe(false);
+  });
+
+  it("renders guidance cards HTML only when real content exists", () => {
+    const withCards = resolvePreviewGuidance({
+      catalogId: "button",
+      roles: ["button"],
+      exampleNote: "Tone controls emphasis.",
+    });
+    const html = renderGuidanceCards(withCards);
+    expect(html).toContain('data-guidance="usage"');
+    expect(html).toContain('data-guidance="best-practices"');
+    expect(html).toContain('data-guidance="keyboard"');
+    expect(html).toContain("Tone controls emphasis.");
+    expect(html).toContain("<code>label</code>");
+
+    const emptyHtml = renderGuidanceCards(
+      resolvePreviewGuidance({ catalogId: "content-explorer", roles: [] }),
+    );
+    expect(emptyHtml).toBe("");
   });
 });

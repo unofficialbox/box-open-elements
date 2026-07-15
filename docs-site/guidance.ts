@@ -189,3 +189,64 @@ export const resolvePreviewGuidance = (args: {
 
 export const hasUsageCard = (guidance: PreviewGuidance): boolean =>
   Boolean(guidance.usage || guidance.usageNote);
+
+const escapeHtml = (value: string): string =>
+  value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+
+/** Escape HTML then promote `` `code` `` spans (trusted authored guidance). */
+export const renderInlineCode = (value: string): string =>
+  escapeHtml(value).replace(/`([^`]+)`/g, "<code>$1</code>");
+
+export const renderBulletList = (bullets: string[]): string =>
+  `<ul class="guidance-list">${bullets.map(bullet => `<li>${renderInlineCode(bullet)}</li>`).join("")}</ul>`;
+
+/** HTML for Preview-tab guidance cards; empty string when nothing real to show. */
+export const renderGuidanceCards = (guidance: PreviewGuidance): string => {
+  const cards: string[] = [];
+
+  if (hasUsageCard(guidance)) {
+    const lead = guidance.usage
+      ? `<p class="guidance-lead">${renderInlineCode(guidance.usage.shortDescription)}</p>
+         <p>${renderInlineCode(guidance.usage.docsDescription)}</p>`
+      : "";
+    const note = guidance.usageNote
+      ? `<p class="guidance-note"><strong>Note.</strong> ${renderInlineCode(guidance.usageNote)}</p>`
+      : "";
+    cards.push(`
+      <article class="guidance-card" data-guidance="usage">
+        <h3 class="guidance-title">Usage</h3>
+        ${lead}
+        ${note}
+      </article>`);
+  }
+
+  if (guidance.bestPractices.length) {
+    cards.push(`
+      <article class="guidance-card" data-guidance="best-practices">
+        <h3 class="guidance-title">Best practices</h3>
+        ${renderBulletList(guidance.bestPractices)}
+      </article>`);
+  }
+
+  if (guidance.keyboard.length) {
+    cards.push(`
+      <article class="guidance-card" data-guidance="keyboard">
+        <h3 class="guidance-title">Keyboard</h3>
+        ${renderBulletList(guidance.keyboard)}
+      </article>`);
+  }
+
+  if (!cards.length) {
+    return "";
+  }
+
+  return `
+    <section class="guidance-section" aria-label="Usage guidance">
+      <p class="section-label">Guidance</p>
+      <div class="guidance-grid">${cards.join("")}</div>
+    </section>`;
+};
