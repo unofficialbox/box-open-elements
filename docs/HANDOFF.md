@@ -54,11 +54,13 @@ organized into **systemic sweeps**, not per-component rewrites.
   metadata-filter-builder, drop-zone). See
   [architecture.md](./architecture.md#web-component-render-contract).
 
-- **Batch 3 — focus-visible + hover/active/disabled** (current PR): shared
+- **Batch 3 — focus-visible + hover/active/disabled** (PR #35): shared
   helpers in `src/foundations/tokens/interaction.ts`
   (`boeNeutralInteractiveStyles` / `boeBrandInteractiveStyles` /
   `boeFocusVisibleStyles`) applied across catalog components and pattern
-  interactive parts. Style-presence tests cover the acute surfaces.
+  interactive parts. Style-presence tests cover the acute surfaces. CodeRabbit follow-ups:
+  opaque focus-ring fallback, selected-state hover precedence, expanded
+  action-menu focus ring, extra style tests.
 
 ### Remaining (do these next, in order)
 1. **Batch 4 — ARIA roles + keyboard nav for composite widgets (~18).** Folds
