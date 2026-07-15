@@ -35,6 +35,7 @@ export class BoxInviteCollaboratorsModalElement extends BaseElement {
   private controllerUnsubscribe: (() => void) | null = null;
   private transportValue: InviteCollaboratorsTransport | null = null;
   private rolesValue: InviteRole[] = DEFAULT_ROLES;
+  private rolesSignature = "";
 
 
   get open(): boolean {
@@ -151,6 +152,7 @@ export class BoxInviteCollaboratorsModalElement extends BaseElement {
 
     if (!this.open) {
       this.shadowRoot.innerHTML = "";
+      this.rolesSignature = "";
       return;
     }
 
@@ -345,6 +347,7 @@ export class BoxInviteCollaboratorsModalElement extends BaseElement {
       </div>
     `;
 
+    this.rolesSignature = JSON.stringify(this.rolesValue);
     this.attachListeners();
   }
 
@@ -443,8 +446,24 @@ export class BoxInviteCollaboratorsModalElement extends BaseElement {
       });
     });
 
-    if (role && state) {
-      role.value = state.role;
+    if (role) {
+      const nextRolesSignature = JSON.stringify(this.rolesValue);
+      if (nextRolesSignature !== this.rolesSignature) {
+        const previousValue = role.value;
+        role.innerHTML = this.rolesValue
+          .map(entry => `<option value="${escapeHtml(entry.value)}">${escapeHtml(entry.label)}</option>`)
+          .join("");
+        this.rolesSignature = nextRolesSignature;
+        const preferred = state?.role || previousValue;
+        if (preferred && this.rolesValue.some(entry => entry.value === preferred)) {
+          role.value = preferred;
+        } else if (this.rolesValue[0]) {
+          role.value = this.rolesValue[0].value;
+          this.controller?.setRole(this.rolesValue[0].value);
+        }
+      } else if (state) {
+        role.value = state.role;
+      }
     }
 
     const submitting = state?.status === "submitting";

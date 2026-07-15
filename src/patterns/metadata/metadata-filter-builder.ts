@@ -201,11 +201,8 @@ export class BoxMetadataFilterBuilderElement extends BaseElement {
     );
     this.writeRulesAttribute();
     this.emitValueChanged();
-    // Do not rebuild the rules list for in-place field edits — that would destroy
-    // the focused input mid-typing. Structure-only changes go through add/remove.
-    if ("field" in patch || "operator" in patch) {
-      this.patchRuleControls(index);
-    }
+    // Structure-only changes go through add/remove. Field/operator/value edits are
+    // patched in place by update() so the focused control is not remounted.
   }
 
   private addRule(): void {
@@ -293,14 +290,15 @@ export class BoxMetadataFilterBuilderElement extends BaseElement {
   }
 
   private structureKey(): string {
+    // Field/operator values are patched in place so select changes keep focus.
+    // Only add/remove (and fields catalog changes) are structural rebuilds.
     return JSON.stringify({
       fields: this.fields,
-      rules: this.rulesInternal.map(rule => ({ field: rule.field, operator: rule.operator })),
       count: this.rulesInternal.length,
     });
   }
 
-  private patchRuleControls(index: number): void {
+  private patchRuleControls(index: number, active: HTMLElement | null): void {
     const rule = this.rulesInternal[index];
     if (!rule) {
       return;
@@ -312,12 +310,12 @@ export class BoxMetadataFilterBuilderElement extends BaseElement {
     const operatorSelect = this.rulesEl.querySelector<HTMLSelectElement>(
       `[data-control="operator"][data-rule-index="${index}"]`,
     );
-    if (fieldSelect) {
-      fieldSelect.innerHTML = this.renderFieldOptions(rule.field);
+    // Set values in place — never rebuild option lists here (fields catalog changes
+    // already trigger a structural rebuild via structureKey).
+    if (fieldSelect && fieldSelect !== active && fieldSelect.value !== rule.field) {
       fieldSelect.value = rule.field;
     }
-    if (operatorSelect) {
-      operatorSelect.innerHTML = this.renderOperatorOptions(rule.operator);
+    if (operatorSelect && operatorSelect !== active && operatorSelect.value !== rule.operator) {
       operatorSelect.value = rule.operator;
     }
   }
@@ -398,7 +396,7 @@ export class BoxMetadataFilterBuilderElement extends BaseElement {
 
     const nextSignature = this.structureKey();
     if (nextSignature === this.structureSignature && this.rulesEl.childElementCount > 0) {
-      // Structure unchanged: patch unfocused inputs only (external rules setter).
+      // Structure unchanged: patch unfocused controls only (external rules setter).
       const active = this.shadowRoot?.activeElement as HTMLElement | null;
       this.rulesInternal.forEach((rule, index) => {
         const input = this.rulesEl.querySelector<HTMLInputElement>(
@@ -407,7 +405,7 @@ export class BoxMetadataFilterBuilderElement extends BaseElement {
         if (input && input !== active) {
           input.value = rule.value;
         }
-        this.patchRuleControls(index);
+        this.patchRuleControls(index, active);
       });
       return;
     }

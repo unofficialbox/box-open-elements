@@ -122,4 +122,45 @@ describe("BoxFilterBarElement", () => {
     expect(element.shadowRoot?.activeElement).toBe(input);
     expect(element.query).toBe("mark");
   });
+
+  it("keeps chip focus when toggling filters", () => {
+    const element = document.createElement("box-filter-bar") as BoxFilterBarElement;
+    element.filterOptions = [
+      { label: "Owned by me", value: "mine" },
+      { label: "Shared externally", value: "shared" },
+    ];
+    document.body.append(element);
+
+    const chip = element.shadowRoot?.querySelector(
+      '[part="filter-chip"][data-value="mine"]',
+    ) as HTMLButtonElement;
+    chip.focus();
+    chip.click();
+
+    expect(element.filters).toEqual(["mine"]);
+    expect(element.shadowRoot?.activeElement).toBe(chip);
+    expect(chip.dataset.selected).toBe("true");
+
+    chip.click();
+    expect(element.filters).toEqual([]);
+    expect(element.shadowRoot?.activeElement).toBe(chip);
+    expect(chip.dataset.selected).toBe("false");
+  });
+
+  it("preserves search focus across unrelated attribute updates", () => {
+    const element = document.createElement("box-filter-bar") as BoxFilterBarElement;
+    element.filterOptions = [{ label: "Mine", value: "mine" }];
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
+    input.focus();
+    input.value = "docs";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+
+    element.filters = ["mine"];
+    element.label = "Search filters";
+
+    expect(element.shadowRoot?.activeElement).toBe(input);
+    expect(input.value).toBe("docs");
+  });
 });

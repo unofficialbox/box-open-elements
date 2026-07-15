@@ -95,5 +95,36 @@ describe("BoxMetadataFilterBuilderElement", () => {
     expect(element.shadowRoot?.activeElement).toBe(input);
     expect(input.value).toBe("confidential");
   });
+
+  it("keeps field/operator select focus when changing rule controls", () => {
+    const element = document.createElement("box-metadata-filter-builder") as BoxMetadataFilterBuilderElement;
+    element.fields = [
+      { id: "classification", label: "Classification" },
+      { id: "department", label: "Department" },
+    ];
+    element.rules = [{ field: "classification", operator: "is", value: "internal" }];
+    document.body.append(element);
+
+    const fieldSelect = element.shadowRoot?.querySelector(
+      '[data-control="field"]',
+    ) as HTMLSelectElement;
+    fieldSelect.focus();
+    fieldSelect.value = "department";
+    fieldSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+    expect(element.shadowRoot?.activeElement).toBe(fieldSelect);
+    expect(element.rules[0]?.field).toBe("department");
+    expect(element.shadowRoot?.querySelector('[data-control="field"]')).toBe(fieldSelect);
+
+    const operatorSelect = element.shadowRoot?.querySelector(
+      '[data-control="operator"]',
+    ) as HTMLSelectElement;
+    operatorSelect.focus();
+    operatorSelect.value = "contains";
+    operatorSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+    expect(element.shadowRoot?.activeElement).toBe(operatorSelect);
+    expect(element.rules[0]?.operator).toBe("contains");
+  });
 });
 

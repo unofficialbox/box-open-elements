@@ -137,9 +137,13 @@ export class BoxExplorerActionMenuElement extends BaseElement {
 
   private open = false;
 
+  private wasOpen = false;
+
   private unsubscribeFns: Array<() => void> = [];
 
   private menuId = `box-action-menu-${Math.random().toString(36).slice(2, 10)}`;
+
+  private hostEl!: HTMLElement;
 
 
   get controller(): ContentExplorerController | null {
@@ -223,6 +227,7 @@ export class BoxExplorerActionMenuElement extends BaseElement {
       <style>${elementStyles}</style>
       <div part="content-host"></div>
     `;
+    this.hostEl = this.shadowRoot.querySelector('[part="content-host"]')!;
   }
 
   protected setupListeners(): void {
@@ -285,19 +290,20 @@ export class BoxExplorerActionMenuElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const host = this.shadowRoot.querySelector('[part="content-host"]');
-    if (!host) {
+    if (!this.hostEl) {
       return;
     }
 
     const actions = this.itemIdValue ? (this.controllerValue?.getItemActions(this.itemIdValue) ?? []) : [];
+    const justOpened = this.open && !this.wasOpen;
+    this.wasOpen = this.open;
+
+    const active = this.shadowRoot?.activeElement as HTMLElement | null;
+    const focusedActionId = active?.getAttribute?.("data-action-id") ?? null;
+    const focusedTrigger = active?.getAttribute?.("part") === "trigger";
 
     if (!this.itemIdValue || actions.length === 0) {
-      host.innerHTML = `<span part="empty"></span>`;
+      this.hostEl.innerHTML = `<span part="empty"></span>`;
       return;
     }
 
@@ -310,7 +316,7 @@ export class BoxExplorerActionMenuElement extends BaseElement {
           .join("")}</div>`
       : "";
 
-    host.innerHTML = `
+    this.hostEl.innerHTML = `
       <div part="menu-shell">
         <button
           type="button"
@@ -324,9 +330,28 @@ export class BoxExplorerActionMenuElement extends BaseElement {
       </div>
     `;
 
-    if (this.open) {
+    if (justOpened) {
       queueMicrotask(() => {
         (this.shadowRoot?.querySelector('[part="menu-item"]') as HTMLButtonElement | null)?.focus();
+      });
+      return;
+    }
+
+    if (focusedActionId && this.open) {
+      queueMicrotask(() => {
+        const match = Array.from(
+          this.shadowRoot?.querySelectorAll('[part="menu-item"]') ?? [],
+        ).find(node => (node as HTMLElement).getAttribute("data-action-id") === focusedActionId) as
+          | HTMLButtonElement
+          | undefined;
+        match?.focus();
+      });
+      return;
+    }
+
+    if (focusedTrigger) {
+      queueMicrotask(() => {
+        (this.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null)?.focus();
       });
     }
   }

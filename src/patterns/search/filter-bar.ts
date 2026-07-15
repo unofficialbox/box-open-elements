@@ -132,6 +132,14 @@ export class BoxFilterBarElement extends BaseElement {
   private sortValueInternal = "";
   private viewValueInternal = "";
   private filtersInternal: string[] = [];
+  private labelEl!: HTMLElement;
+  private barEl!: HTMLElement;
+  private inputEl!: HTMLInputElement;
+  private sortEl!: HTMLSelectElement;
+  private viewEl!: HTMLSelectElement;
+  private filtersEl!: HTMLElement;
+  private optionsSignature = "";
+
   get label(): string {
     return this.getAttribute("label") ?? "Filter Bar";
   }
@@ -263,7 +271,7 @@ export class BoxFilterBarElement extends BaseElement {
     );
   }
 
-  private renderOptionList(options: FilterBarOption[], selectedValue: string, partName: string): string {
+  private renderOptionList(options: FilterBarOption[], selectedValue: string): string {
     return options
       .map(
         option => `
@@ -275,8 +283,18 @@ export class BoxFilterBarElement extends BaseElement {
       .join("");
   }
 
-  private renderFilterChips(): string {
-    return this.filterOptions
+  private optionsKey(): string {
+    return JSON.stringify({
+      filterOptions: this.filterOptions,
+      sortOptions: this.sortOptions,
+      viewOptions: this.viewOptions,
+    });
+  }
+
+  private rebuildOptionControls(): void {
+    this.sortEl.innerHTML = this.renderOptionList(this.sortOptions, this.sortValue);
+    this.viewEl.innerHTML = this.renderOptionList(this.viewOptions, this.viewValue);
+    this.filtersEl.innerHTML = this.filterOptions
       .map(option => {
         const selected = this.filters.includes(option.value);
         return `
@@ -294,6 +312,15 @@ export class BoxFilterBarElement extends BaseElement {
       .join("");
   }
 
+  private patchChips(): void {
+    this.filtersEl.querySelectorAll('[part="filter-chip"]').forEach(button => {
+      const chip = button as HTMLButtonElement;
+      const selected = this.filters.includes(chip.dataset.value ?? "");
+      chip.setAttribute("aria-pressed", String(selected));
+      chip.dataset.selected = String(selected);
+    });
+  }
+
   protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
@@ -301,53 +328,39 @@ export class BoxFilterBarElement extends BaseElement {
 
     this.shadowRoot.innerHTML = `
       <style>${elementStyles}</style>
-      <div part="content-host"></div>
-    `;
-  }
-
-  protected update(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const host = this.shadowRoot.querySelector('[part="content-host"]');
-    if (!host) {
-      return;
-    }
-
-    host.innerHTML = `
-      <section part="bar" aria-label="${escapeHtml(this.label)}">
-        <div part="label">${escapeHtml(this.label)}</div>
+      <section part="bar" aria-label="">
+        <div part="label"></div>
         <div part="controls">
           <label part="field">
             <span part="field-label">Search</span>
-            <input type="search" part="input" value="${escapeHtml(this.query)}" placeholder="Search items" />
+            <input type="search" part="input" placeholder="Search items" />
           </label>
           <label part="select-field">
             <span part="field-label">Sort</span>
-            <select part="select" data-control="sort">
-              ${this.renderOptionList(this.sortOptions, this.sortValue, "sort")}
-            </select>
+            <select part="select" data-control="sort"></select>
           </label>
           <label part="select-field">
             <span part="field-label">View</span>
-            <select part="select" data-control="view">
-              ${this.renderOptionList(this.viewOptions, this.viewValue, "view")}
-            </select>
+            <select part="select" data-control="view"></select>
           </label>
         </div>
-        <div part="filters">
-          ${this.renderFilterChips()}
-        </div>
+        <div part="filters"></div>
       </section>
     `;
+    this.barEl = this.shadowRoot.querySelector('[part="bar"]')!;
+    this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
+    this.sortEl = this.shadowRoot.querySelector('[data-control="sort"]')!;
+    this.viewEl = this.shadowRoot.querySelector('[data-control="view"]')!;
+    this.filtersEl = this.shadowRoot.querySelector('[part="filters"]')!;
+  }
 
-    const input = this.shadowRoot.querySelector('[part="input"]') as HTMLInputElement | null;
-    input?.addEventListener("input", event => {
+  protected setupListeners(): void {
+    this.inputEl.addEventListener("input", event => {
       this.queryInternal = (event.currentTarget as HTMLInputElement).value;
       this.emitValueChanged();
     });
-    input?.addEventListener("change", () => {
+    this.inputEl.addEventListener("change", () => {
       this.setAttribute("query", this.queryInternal);
       this.dispatchEvent(
         new CustomEvent("search", {
@@ -358,37 +371,67 @@ export class BoxFilterBarElement extends BaseElement {
       );
     });
 
-    this.shadowRoot.querySelectorAll('[part="select"]').forEach(select => {
-      select.addEventListener("change", event => {
-        const element = event.currentTarget as HTMLSelectElement;
-        const control = element.dataset.control;
-        if (control === "sort") {
-          this.sortValueInternal = element.value;
-          this.setAttribute("sort-value", element.value);
-        } else if (control === "view") {
-          this.viewValueInternal = element.value;
-          this.setAttribute("view-value", element.value);
-        }
-        this.emitValueChanged();
-      });
+    this.sortEl.addEventListener("change", event => {
+      const element = event.currentTarget as HTMLSelectElement;
+      this.sortValueInternal = element.value;
+      this.setAttribute("sort-value", element.value);
+      this.emitValueChanged();
     });
 
-    this.shadowRoot.querySelectorAll('[part="filter-chip"]').forEach(button => {
-      button.addEventListener("click", () => {
-        const value = (button as HTMLButtonElement).dataset.value ?? "";
-        if (!value) {
-          return;
-        }
-
-        const nextFilters = this.filters.includes(value)
-          ? this.filters.filter(entry => entry !== value)
-          : [...this.filters, value];
-        this.filtersInternal = nextFilters;
-        this.setAttribute("filters", JSON.stringify(nextFilters));
-        this.emitValueChanged();
-      });
+    this.viewEl.addEventListener("change", event => {
+      const element = event.currentTarget as HTMLSelectElement;
+      this.viewValueInternal = element.value;
+      this.setAttribute("view-value", element.value);
+      this.emitValueChanged();
     });
-  
+
+    this.filtersEl.addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest('[part="filter-chip"]') as HTMLButtonElement | null;
+      if (!button || !this.filtersEl.contains(button)) {
+        return;
+      }
+
+      const value = button.dataset.value ?? "";
+      if (!value) {
+        return;
+      }
+
+      const nextFilters = this.filters.includes(value)
+        ? this.filters.filter(entry => entry !== value)
+        : [...this.filters, value];
+      this.filtersInternal = nextFilters;
+      this.setAttribute("filters", JSON.stringify(nextFilters));
+      this.emitValueChanged();
+    });
+  }
+
+  protected update(): void {
+    if (!this.labelEl || !this.inputEl) {
+      return;
+    }
+
+    this.labelEl.textContent = this.label;
+    this.barEl.setAttribute("aria-label", this.label);
+
+    const active = this.shadowRoot?.activeElement;
+    if (active !== this.inputEl) {
+      this.inputEl.value = this.query;
+    }
+    if (active !== this.sortEl) {
+      this.sortEl.value = this.sortValue;
+    }
+    if (active !== this.viewEl) {
+      this.viewEl.value = this.viewValue;
+    }
+
+    const nextOptions = this.optionsKey();
+    if (nextOptions !== this.optionsSignature) {
+      this.optionsSignature = nextOptions;
+      this.rebuildOptionControls();
+      return;
+    }
+
+    this.patchChips();
   }
 }
 

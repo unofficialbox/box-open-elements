@@ -10,6 +10,9 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
+const escapeSelectorValue = (value: string): string =>
+  value.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
+
 type ItemFormFieldOption = {
   label: string;
   value: string;
@@ -178,6 +181,13 @@ export class BoxItemFormElement extends BaseElement {
   }
 
   private valueInternal: ItemFormValues = {};
+  private labelEl!: HTMLElement;
+  private fieldsEl!: HTMLElement;
+  private actionsEl!: HTMLElement;
+  private submitEl!: HTMLButtonElement;
+  private cancelEl!: HTMLButtonElement;
+  private structureSignature = "";
+
   get disabled(): boolean {
     return this.hasAttribute("disabled");
   }
@@ -335,7 +345,7 @@ export class BoxItemFormElement extends BaseElement {
 
     if (this.mode === "read") {
       return `
-        <div part="field" data-mode="read">
+        <div part="field" data-mode="read" data-field-id="${escapeHtml(field.id)}">
           <span part="field-label">${escapeHtml(field.label)}</span>
           ${descriptionMarkup}
           <div part="field-value">${escapeHtml(this.renderReadValue(field))}</div>
@@ -414,6 +424,62 @@ export class BoxItemFormElement extends BaseElement {
     `;
   }
 
+  private structureKey(): string {
+    return JSON.stringify({
+      fields: this.fields,
+      mode: this.mode,
+    });
+  }
+
+  private rebuildFields(): void {
+    this.fieldsEl.innerHTML = this.getFieldSections()
+      .map(
+        section => `
+          <section part="section">
+            <div part="section-label">${escapeHtml(section.name)}</div>
+            ${section.fields.map(field => this.renderField(field)).join("")}
+          </section>
+        `,
+      )
+      .join("");
+  }
+
+  private patchFieldValues(): void {
+    const active = this.shadowRoot?.activeElement as HTMLElement | null;
+
+    if (this.mode === "read") {
+      this.fields.forEach(field => {
+        const valueEl = this.fieldsEl.querySelector(
+          `[data-mode="read"][data-field-id="${escapeSelectorValue(field.id)}"] [part="field-value"]`,
+        );
+        if (valueEl) {
+          valueEl.textContent = this.renderReadValue(field);
+        }
+      });
+      return;
+    }
+
+    this.fields.forEach(field => {
+      const control = this.fieldsEl.querySelector(
+        `[data-field-id="${escapeSelectorValue(field.id)}"]`,
+      ) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null;
+      if (!control || control === active) {
+        return;
+      }
+
+      const value = this.getFieldValue(field);
+      const disabled = this.disabled || Boolean(field.disabled);
+      control.disabled = disabled;
+
+      if (control instanceof HTMLInputElement && control.type === "checkbox") {
+        control.checked = Boolean(value);
+        return;
+      }
+
+      control.value = String(value);
+    });
+  }
+
   protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
@@ -421,52 +487,24 @@ export class BoxItemFormElement extends BaseElement {
 
     this.shadowRoot.innerHTML = `
       <style>${elementStyles}</style>
-      <div part="content-host"></div>
-    `;
-  }
-
-  protected update(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const host = this.shadowRoot.querySelector('[part="content-host"]');
-    if (!host) {
-      return;
-    }
-
-    host.innerHTML = `
       <form part="form" novalidate>
-        <div part="label">${escapeHtml(this.label)}</div>
-        <div part="fields">
-          ${this.getFieldSections()
-            .map(
-              section => `
-                <section part="section">
-                  <div part="section-label">${escapeHtml(section.name)}</div>
-                  ${section.fields.map(field => this.renderField(field)).join("")}
-                </section>
-              `,
-            )
-            .join("")}
+        <div part="label"></div>
+        <div part="fields"></div>
+        <div part="actions">
+          <button type="button" part="cancel">Cancel</button>
+          <button type="submit" part="submit"></button>
         </div>
-        ${
-          this.mode === "edit"
-            ? `
-              <div part="actions">
-                <button type="button" part="cancel" ${this.disabled ? "disabled" : ""}>Cancel</button>
-                <button type="submit" part="submit" ${this.disabled ? "disabled" : ""}>${escapeHtml(this.submitLabel)}</button>
-              </div>
-            `
-            : ""
-        }
       </form>
     `;
+    this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.fieldsEl = this.shadowRoot.querySelector('[part="fields"]')!;
+    this.actionsEl = this.shadowRoot.querySelector('[part="actions"]')!;
+    this.cancelEl = this.shadowRoot.querySelector('[part="cancel"]')!;
+    this.submitEl = this.shadowRoot.querySelector('[part="submit"]')!;
+  }
 
-    const form = this.shadowRoot.querySelector('[part="form"]') as HTMLFormElement | null;
-    if (this.mode !== "edit") {
-      return;
-    }
+  protected setupListeners(): void {
+    const form = this.shadowRoot?.querySelector('[part="form"]') as HTMLFormElement | null;
 
     form?.addEventListener("input", event => {
       const target = event.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
@@ -498,7 +536,7 @@ export class BoxItemFormElement extends BaseElement {
       );
     });
 
-    this.shadowRoot.querySelector('[part="cancel"]')?.addEventListener("click", () => {
+    this.cancelEl.addEventListener("click", () => {
       if (this.disabled) {
         return;
       }
@@ -511,7 +549,27 @@ export class BoxItemFormElement extends BaseElement {
         }),
       );
     });
-  
+  }
+
+  protected update(): void {
+    if (!this.labelEl || !this.fieldsEl) {
+      return;
+    }
+
+    this.labelEl.textContent = this.label;
+    this.submitEl.textContent = this.submitLabel;
+    this.actionsEl.hidden = this.mode !== "edit";
+    this.submitEl.disabled = this.disabled;
+    this.cancelEl.disabled = this.disabled;
+
+    const nextSignature = this.structureKey();
+    if (nextSignature !== this.structureSignature || this.fieldsEl.childElementCount === 0) {
+      this.structureSignature = nextSignature;
+      this.rebuildFields();
+      return;
+    }
+
+    this.patchFieldValues();
   }
 }
 

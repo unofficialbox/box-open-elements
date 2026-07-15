@@ -218,6 +218,8 @@ export class BoxDualListboxElement extends BaseElement {
   private selectedListEl!: HTMLElement;
   private moveRightEl!: HTMLButtonElement;
   private moveLeftEl!: HTMLButtonElement;
+  private listsSignature = "";
+  private selectionOnlyUpdate = false;
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -264,9 +266,6 @@ export class BoxDualListboxElement extends BaseElement {
   set value(nextValue: string[]) {
     this.valueInternal = [...nextValue];
     this.setAttribute("value", JSON.stringify(nextValue));
-    if (this.isRendered) {
-      this.update();
-    }
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
@@ -337,8 +336,31 @@ export class BoxDualListboxElement extends BaseElement {
       set.add(value);
     }
     if (this.isRendered) {
+      this.selectionOnlyUpdate = true;
       this.update();
+      this.selectionOnlyUpdate = false;
     }
+  }
+
+  private patchSelectionState(): void {
+    const patchList = (listEl: HTMLElement, selection: Set<string>) => {
+      listEl.querySelectorAll('[part="option"]').forEach(node => {
+        const button = node as HTMLButtonElement;
+        const selected = selection.has(button.dataset.value ?? "");
+        button.setAttribute("aria-selected", String(selected));
+      });
+    };
+
+    patchList(this.availableListEl, this.availableSelection);
+    patchList(this.selectedListEl, this.chosenSelection);
+  }
+
+  private listsKey(availableItems: DualListboxOption[], selectedItems: DualListboxOption[]): string {
+    return JSON.stringify({
+      available: availableItems.map(option => [option.value, option.label, Boolean(option.disabled)]),
+      selected: selectedItems.map(option => [option.value, option.label, Boolean(option.disabled)]),
+      disabled: this.disabled,
+    });
   }
 
   private renderListItems(list: "available" | "selected", items: DualListboxOption[]): string {
@@ -425,12 +447,23 @@ export class BoxDualListboxElement extends BaseElement {
 
     this.legendEl.textContent = this.label;
 
+    if (this.selectionOnlyUpdate) {
+      this.patchSelectionState();
+      return;
+    }
+
     const selectedSet = new Set(this.valueInternal);
     const availableItems = this.options.filter(option => !selectedSet.has(option.value));
     const selectedItems = this.options.filter(option => selectedSet.has(option.value));
+    const nextSignature = this.listsKey(availableItems, selectedItems);
 
-    this.availableListEl.innerHTML = this.renderListItems("available", availableItems);
-    this.selectedListEl.innerHTML = this.renderListItems("selected", selectedItems);
+    if (nextSignature !== this.listsSignature || this.availableListEl.childElementCount === 0) {
+      this.listsSignature = nextSignature;
+      this.availableListEl.innerHTML = this.renderListItems("available", availableItems);
+      this.selectedListEl.innerHTML = this.renderListItems("selected", selectedItems);
+    } else {
+      this.patchSelectionState();
+    }
 
     if (this.disabled) {
       this.moveRightEl.setAttribute("disabled", "");

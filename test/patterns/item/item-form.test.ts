@@ -109,9 +109,34 @@ describe("BoxItemFormElement", () => {
     document.body.append(element);
 
     const fieldValue = element.shadowRoot?.querySelector('[part="field-value"]') as HTMLElement | null;
-    const actions = element.shadowRoot?.querySelector('[part="actions"]');
+    const actions = element.shadowRoot?.querySelector('[part="actions"]') as HTMLElement | null;
 
     expect(fieldValue?.textContent).toBe("Brand Strategy.pdf");
-    expect(actions).toBeNull();
+    expect(actions?.hidden).toBe(true);
+  });
+
+  it("keeps the active field focused while typing", () => {
+    const element = document.createElement("box-item-form") as BoxItemFormElement;
+    element.fields = [{ id: "name", label: "Name" }];
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[data-field-id="name"]') as HTMLInputElement;
+    input.focus();
+    expect(element.shadowRoot?.activeElement).toBe(input);
+
+    input.value = "Quar";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(element.shadowRoot?.activeElement).toBe(input);
+    expect(input.value).toBe("Quar");
+    expect(input.selectionStart).toBe(4);
+
+    input.value = "Quarterly";
+    input.setSelectionRange(9, 9);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+
+    expect(element.shadowRoot?.activeElement).toBe(input);
+    expect(input).toBe(element.shadowRoot?.querySelector('[data-field-id="name"]'));
+    expect(input.value).toBe("Quarterly");
+    expect(element.value).toEqual({ name: "Quarterly" });
   });
 });
