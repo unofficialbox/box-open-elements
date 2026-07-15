@@ -414,4 +414,35 @@ describe("BoxContentExplorerElement", () => {
     expect(element.state?.view.mode).toBe("folder");
     expect(element.shadowRoot?.querySelector('[part="clear-search"]')).toBeNull();
   });
+
+  it("honors a declarative search-query set before connect", async () => {
+    const transport: ExplorerTransport = {
+      loadFolderItems: vi.fn().mockResolvedValue(
+        createResult({
+          items: [{ id: "1", name: "Spec", type: "file" }],
+        }),
+      ),
+      searchItems: vi.fn().mockResolvedValue({
+        query: "plan",
+        ancestorFolderId: "0",
+        items: [{ id: "9", name: "Quarterly Plan", type: "file" }],
+        pagination: { hasMoreItems: false, limit: 25, offset: 0, totalCount: 1 },
+      }),
+    };
+    const element = document.createElement("box-content-explorer") as BoxContentExplorerElement;
+    element.transport = transport;
+    element.rootFolderId = "0";
+    element.token = "token";
+    element.pageSize = 25;
+    element.setAttribute("search-query", "plan");
+
+    document.body.append(element);
+    await flushMicrotasks();
+    await flushMicrotasks();
+    await flushMicrotasks();
+
+    expect(transport.searchItems).toHaveBeenCalled();
+    expect(element.state?.view.mode).toBe("search");
+    expect(element.shadowRoot?.textContent).toContain("Quarterly Plan");
+  });
 });

@@ -168,9 +168,10 @@ export const mapPagination = (
   const limit = collection.limit ?? requested.limit;
   const totalCount = typeof collection.total_count === "number" ? collection.total_count : null;
   const returned = collection.entries?.length ?? 0;
+  const nextOffset = offset + returned;
   const hasMoreItems =
-    totalCount === null ? returned >= limit : offset + returned < totalCount;
-  return { hasMoreItems, limit, offset, totalCount };
+    totalCount === null ? returned >= limit : nextOffset < totalCount;
+  return { hasMoreItems, limit, offset, totalCount, nextOffset };
 };
 
 export const buildExplorerResult = (

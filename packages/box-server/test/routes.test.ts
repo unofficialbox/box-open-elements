@@ -68,13 +68,22 @@ describe("content-explorer search route", () => {
     } as ContentExplorerDataSource);
 
     const response = await handler(
-      new Request("https://app.test/api/content-explorer/search?query=plan&ancestorFolderId=0&limit=25"),
+      new Request(
+        "https://app.test/api/content-explorer/search?query=plan&ancestorFolderId=0&limit=25&offset=50",
+        { headers: { "accept-language": "en-US", "x-request-id": "req-s" } },
+      ),
     );
 
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({ query: "plan", ancestorFolderId: "0" });
     expect(search).toHaveBeenCalledWith(
-      expect.objectContaining({ query: "plan", ancestorFolderId: "0", limit: 25 }),
+      expect.objectContaining({
+        query: "plan",
+        ancestorFolderId: "0",
+        limit: 25,
+        offset: 50,
+        context: { locale: "en-US", requestId: "req-s" },
+      }),
     );
   });
 
@@ -91,6 +100,24 @@ describe("content-explorer search route", () => {
       search: vi.fn(),
     } as unknown as ContentExplorerDataSource);
     expect((await withSearch(new Request("https://app.test/api/content-explorer/search"))).status).toBe(400);
+  });
+
+  it("returns 405/404 and maps thrown errors", async () => {
+    const handler = createContentExplorerSearchRouteHandler({
+      listFolderItems: vi.fn(),
+      search: vi.fn(async () => {
+        throw new BoxApiError("boom", { status: 503, code: "unavailable" });
+      }),
+    } as unknown as ContentExplorerDataSource);
+
+    expect(
+      (await handler(new Request("https://app.test/api/content-explorer/search?query=x", { method: "POST" }))).status,
+    ).toBe(405);
+    expect((await handler(new Request("https://app.test/api/content-explorer/nope"))).status).toBe(404);
+
+    const failed = await handler(new Request("https://app.test/api/content-explorer/search?query=x"));
+    expect(failed.status).toBe(503);
+    expect(await failed.json()).toMatchObject({ code: "unavailable", message: "boom" });
   });
 });
 

@@ -68,7 +68,6 @@ export const createBoxExplorerDataSource = (
       query: {
         query: input.query,
         fields: ITEM_FIELDS,
-        type: "file,folder,web_link",
         limit,
         offset,
         ...(input.ancestorFolderId ? { ancestor_folder_ids: input.ancestorFolderId } : {}),

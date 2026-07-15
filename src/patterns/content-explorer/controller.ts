@@ -215,13 +215,13 @@ export class ContentExplorerController extends Controller<ExplorerState, Explore
   }
 
   async navigateTo(folderId: string): Promise<void> {
-    if (this.state.view.mode === "search") {
-      this.setView(createInitialExplorerViewState());
-    }
-
     const nextFolder = this.navigationController.navigateTo(folderId);
     if (!nextFolder) {
       return;
+    }
+
+    if (this.state.view.mode === "search") {
+      this.setView(createInitialExplorerViewState());
     }
 
     this.setState({
@@ -344,6 +344,9 @@ export class ContentExplorerController extends Controller<ExplorerState, Explore
     });
     this.collectionController.startLoading();
 
+    const pagination = this.collectionController.getState().pagination;
+    const requestOffset = append ? (pagination.nextOffset ?? this.collectionController.getState().items.length) : 0;
+
     try {
       if (this.state.view.mode === "search") {
         const searchItems = this.config.transport.searchItems;
@@ -354,8 +357,8 @@ export class ContentExplorerController extends Controller<ExplorerState, Explore
         const result = await searchItems({
           query,
           ancestorFolderId: this.state.view.searchAncestorFolderId ?? undefined,
-          limit: this.collectionController.getState().pagination.limit,
-          offset: append ? this.collectionController.getState().items.length : 0,
+          limit: pagination.limit,
+          offset: requestOffset,
           token: this.config.token,
           language: this.config.language,
         });
@@ -365,8 +368,8 @@ export class ContentExplorerController extends Controller<ExplorerState, Explore
 
       const result = await this.config.transport.loadFolderItems({
         folderId: this.state.currentFolderId,
-        limit: this.collectionController.getState().pagination.limit,
-        offset: append ? this.collectionController.getState().items.length : 0,
+        limit: pagination.limit,
+        offset: requestOffset,
         token: this.config.token,
         language: this.config.language,
       });

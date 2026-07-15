@@ -122,6 +122,12 @@ export interface ExplorerPaginationState {
   limit: number;
   offset: number;
   totalCount: number | null;
+  /**
+   * Upstream cursor for the next page when client-side filtering shrinks `items`
+   * (e.g. unsupported Box entry types). Controllers should prefer this over
+   * `items.length` when requesting the next page.
+   */
+  nextOffset?: number;
 }
 
 export interface ExplorerTransportResult {

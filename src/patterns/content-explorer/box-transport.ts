@@ -256,7 +256,6 @@ const createSearchUrl = (
   const url = new URL(`${apiBaseUrl.replace(/\/$/, "")}/search`);
   url.searchParams.set("query", query);
   url.searchParams.set("fields", fields.join(","));
-  url.searchParams.set("type", "file,folder,web_link");
   if (ancestorFolderId) {
     url.searchParams.set("ancestor_folder_ids", ancestorFolderId);
   }
@@ -284,18 +283,19 @@ const getErrorMessage = async (response: Response): Promise<string> => {
 
 const toPagination = (
   payload: { offset?: number; limit?: number; total_count?: number },
-  entriesLength: number,
+  rawEntriesLength: number,
   request: { offset?: number; limit?: number },
 ) => {
   const offset = payload.offset ?? request.offset ?? 0;
-  const limit = payload.limit ?? request.limit ?? entriesLength;
+  const limit = payload.limit ?? request.limit ?? rawEntriesLength;
   const totalCount = payload.total_count ?? null;
-  const nextOffset = offset + entriesLength;
+  const nextOffset = offset + rawEntriesLength;
   return {
-    hasMoreItems: totalCount === null ? entriesLength === limit : nextOffset < totalCount,
+    hasMoreItems: totalCount === null ? rawEntriesLength === limit : nextOffset < totalCount,
     limit,
     offset,
     totalCount,
+    nextOffset,
   };
 };
 
@@ -323,7 +323,8 @@ export const createBoxExplorerTransport = (options: BoxExplorerTransportOptions 
       }
 
       const payload = (await response.json()) as BoxFolderItemsResponse;
-      const { entries } = normalizeItems(payload.entries ?? []);
+      const rawEntries = payload.entries ?? [];
+      const { entries } = normalizeItems(rawEntries);
       const folder = normalizeFolder(payload, request.folderId);
 
       return {
@@ -331,7 +332,7 @@ export const createBoxExplorerTransport = (options: BoxExplorerTransportOptions 
         folder,
         folderId: request.folderId,
         items: entries,
-        pagination: toPagination(payload, entries.length, request),
+        pagination: toPagination(payload, rawEntries.length, request),
       };
     },
 
@@ -360,13 +361,14 @@ export const createBoxExplorerTransport = (options: BoxExplorerTransportOptions 
       }
 
       const payload = (await response.json()) as BoxSearchResponse;
-      const { entries } = normalizeItems(payload.entries ?? []);
+      const rawEntries = payload.entries ?? [];
+      const { entries } = normalizeItems(rawEntries);
 
       return {
         query: request.query,
         ...(request.ancestorFolderId ? { ancestorFolderId: request.ancestorFolderId } : {}),
         items: entries,
-        pagination: toPagination(payload, entries.length, request),
+        pagination: toPagination(payload, rawEntries.length, request),
       };
     },
   };

@@ -85,6 +85,7 @@ export const explorerPaginationSchema: JsonSchema = {
     limit: { type: "number" },
     offset: { type: "number" },
     totalCount: { type: ["number", "null"] },
+    nextOffset: { type: "number" },
   },
 };
 

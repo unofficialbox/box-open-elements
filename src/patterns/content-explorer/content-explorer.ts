@@ -495,18 +495,23 @@ export class BoxContentExplorerElement extends BaseElement {
     if (!config) {
       this.teardownController();
       if (this.isRendered) {
-      this.update();
-    }
+        this.update();
+      }
       return;
     }
 
+    const initialSearchQuery = this.searchQuery?.trim() ?? "";
     this.teardownController();
-    this.controller = new ContentExplorerController(config);
-    this.subscribeToController(this.controller);
+    const controller = new ContentExplorerController(config);
+    this.controller = controller;
+    this.subscribeToController(controller);
     if (this.isRendered) {
       this.update();
     }
-    await this.controller.connect();
+    await controller.connect();
+    if (this.controller === controller && initialSearchQuery) {
+      await controller.search(initialSearchQuery);
+    }
   }
 
   private readConfig(): ExplorerSessionConfig | null {

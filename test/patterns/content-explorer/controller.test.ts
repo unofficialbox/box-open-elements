@@ -398,13 +398,13 @@ describe("ContentExplorerController", () => {
     expect(transport.loadFolderItems).toHaveBeenCalledTimes(2);
   });
 
-  it("exits search when navigating to a folder", async () => {
+  it("exits search when navigating to a folder discovered via search", async () => {
     const transport: ExplorerTransport = {
       loadFolderItems: vi
         .fn()
         .mockResolvedValueOnce(
           createResult({
-            items: [{ id: "marketing", name: "Marketing", type: "folder" }],
+            items: [{ id: "1", name: "Spec", type: "file" }],
           }),
         )
         .mockResolvedValueOnce(
@@ -419,6 +419,31 @@ describe("ContentExplorerController", () => {
           }),
         ),
       searchItems: vi.fn().mockResolvedValue({
+        query: "marketing",
+        items: [{ id: "marketing", name: "Marketing", type: "folder" }],
+        pagination: { hasMoreItems: false, limit: 100, offset: 0, totalCount: 1 },
+      }),
+    };
+    const controller = new ContentExplorerController({
+      rootFolderId: "0",
+      token: "token",
+      transport,
+    });
+
+    await controller.connect();
+    await controller.search("marketing");
+    expect(controller.getState().view.mode).toBe("search");
+    await controller.navigateTo("marketing");
+
+    expect(controller.getState().view.mode).toBe("folder");
+    expect(controller.getState().currentFolderId).toBe("marketing");
+    expect(controller.getState().items).toEqual([{ id: "leaf", name: "Leaf", type: "file" }]);
+  });
+
+  it("keeps search mode when navigateTo is a no-op", async () => {
+    const transport: ExplorerTransport = {
+      loadFolderItems: vi.fn().mockResolvedValue(createResult({ items: [] })),
+      searchItems: vi.fn().mockResolvedValue({
         query: "q",
         items: [{ id: "hit", name: "Hit", type: "file" }],
         pagination: { hasMoreItems: false, limit: 100, offset: 0, totalCount: 1 },
@@ -432,10 +457,10 @@ describe("ContentExplorerController", () => {
 
     await controller.connect();
     await controller.search("q");
-    await controller.navigateTo("marketing");
+    // Same folder id as current → navigation controller returns null.
+    await controller.navigateTo("0");
 
-    expect(controller.getState().view.mode).toBe("folder");
-    expect(controller.getState().currentFolderId).toBe("marketing");
-    expect(controller.getState().items).toEqual([{ id: "leaf", name: "Leaf", type: "file" }]);
+    expect(controller.getState().view.mode).toBe("search");
+    expect(controller.getState().items).toEqual([{ id: "hit", name: "Hit", type: "file" }]);
   });
 });

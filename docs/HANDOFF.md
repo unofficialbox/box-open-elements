@@ -1,7 +1,8 @@
 # Handoff — box-open-elements
 
 Snapshot for the next agent picking up this work. Read this first, then
-`docs/audits/component-fidelity-audit.md` (the active work driver).
+`plans/explorer-search-item-contract.md` (active explorer search/item work) and
+`docs/audits/component-fidelity-audit.md` (completed fidelity program).
 
 ## What this repo is
 
@@ -72,7 +73,7 @@ organized into **systemic sweeps**, not per-component rewrites.
   (identity size/fallback, alert/permission a11y, checkbox indeterminate,
   combobox value mapping, accordion collapse/headings, overlay/layout/explorer/
   chart/tree fixes, calendar `today` pin, etc.).
-- **Design-heavy leftovers** (this branch): floating popover (`placement` +
+- **Design-heavy leftovers** (#42): floating popover (`placement` +
   open focus), slotted tooltip trigger, explorer `item-gesture` select-vs-
   activate split, app-shell `@container` reflow, nav-sidebar collapsed icon
   contract (`--boe-nav-label-display`).

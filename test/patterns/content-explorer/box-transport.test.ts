@@ -60,10 +60,11 @@ describe("createBoxExplorerTransport", () => {
         { id: "2", name: "Designs", type: "folder" },
       ],
       pagination: {
-        hasMoreItems: true,
+        hasMoreItems: false,
         limit: 2,
         offset: 0,
         totalCount: 3,
+        nextOffset: 3,
       },
     });
   });
@@ -225,5 +226,61 @@ describe("createBoxExplorerTransport", () => {
       ancestorFolderId: "0",
       items: [{ id: "9", name: "Hit", type: "file" }],
     });
+  });
+
+  it("advances nextOffset by raw entry count when filtering unsupported types", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            entries: [
+              { id: "1", name: "Report", type: "file" },
+              { id: "x", name: "Bookmark", type: "bookmark" },
+            ],
+            limit: 2,
+            offset: 0,
+            total_count: 4,
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            entries: [
+              { id: "2", name: "Designs", type: "folder" },
+              { id: "3", name: "Notes", type: "file" },
+            ],
+            limit: 2,
+            offset: 2,
+            total_count: 4,
+          }),
+          { status: 200 },
+        ),
+      );
+
+    const transport = createBoxExplorerTransport({
+      apiBaseUrl: "https://api.box.test/2.0",
+      fetch: fetchMock,
+    });
+
+    const first = await transport.loadFolderItems({
+      folderId: "123",
+      limit: 2,
+      offset: 0,
+      token: "secret",
+    });
+    expect(first.items.map(item => item.id)).toEqual(["1"]);
+    expect(first.pagination.nextOffset).toBe(2);
+
+    const second = await transport.loadFolderItems({
+      folderId: "123",
+      limit: 2,
+      offset: first.pagination.nextOffset,
+      token: "secret",
+    });
+    expect(second.items.map(item => item.id)).toEqual(["2", "3"]);
+    expect(fetchMock.mock.calls[1]?.[0]).toContain("offset=2");
   });
 });
