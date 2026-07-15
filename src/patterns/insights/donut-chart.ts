@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-donut-chart";
 
 const escapeHtml = (value: string): string =>
@@ -29,273 +31,8 @@ type DonutSegmentArc = {
   end: number;
 };
 
-export class BoxDonutChartElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["actions", "heading", "message", "segments", "summary", "timeframe"];
-  }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get actions(): DonutChartAction[] {
-    return this.parseJsonAttribute<DonutChartAction[]>("actions", []);
-  }
-
-  set actions(value: DonutChartAction[]) {
-    this.setAttribute("actions", JSON.stringify(value));
-  }
-
-  get message(): string {
-    return this.getAttribute("message") ?? "";
-  }
-
-  set message(value: string) {
-    if (!value) {
-      this.removeAttribute("message");
-      return;
-    }
-
-    this.setAttribute("message", value);
-  }
-
-  get segments(): DonutChartSegment[] {
-    return this.parseJsonAttribute<DonutChartSegment[]>("segments", []);
-  }
-
-  set segments(value: DonutChartSegment[]) {
-    this.setAttribute("segments", JSON.stringify(value));
-  }
-
-  get summary(): string {
-    return this.getAttribute("summary") ?? "";
-  }
-
-  set summary(value: string) {
-    if (!value) {
-      this.removeAttribute("summary");
-      return;
-    }
-
-    this.setAttribute("summary", value);
-  }
-
-  get timeframe(): string {
-    return this.getAttribute("timeframe") ?? "";
-  }
-
-  set timeframe(value: string) {
-    if (!value) {
-      this.removeAttribute("timeframe");
-      return;
-    }
-
-    this.setAttribute("timeframe", value);
-  }
-
-  get heading(): string {
-    return this.getAttribute("heading") ?? "Donut Chart";
-  }
-
-  set heading(value: string) {
-    this.setAttribute("heading", value);
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private parseJsonAttribute<T>(name: string, fallback: T): T {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return fallback;
-    }
-
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
-  }
-
-  private emitAction(actionId: string): void {
-    this.dispatchEvent(
-      new CustomEvent("action", {
-        bubbles: true,
-        composed: true,
-        detail: { action: actionId },
-      }),
-    );
-  }
-
-  private emitSegmentSelected(segment: DonutChartSegment): void {
-    this.dispatchEvent(
-      new CustomEvent("segment-selected", {
-        bubbles: true,
-        composed: true,
-        detail: segment,
-      }),
-    );
-  }
-
-  private toneColor(tone?: string): string {
-    switch (tone) {
-      case "accent":
-        return "#5a7cf7";
-      case "success":
-        return "#26c281";
-      case "warning":
-        return "#f59e0b";
-      default:
-        return "#0061d5";
-    }
-  }
-
-  private polarToCartesian(centerX: number, centerY: number, radius: number, angleInDegrees: number) {
-    const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180;
-    return {
-      x: centerX + radius * Math.cos(angleInRadians),
-      y: centerY + radius * Math.sin(angleInRadians),
-    };
-  }
-
-  private describeSegmentPath(startAngle: number, endAngle: number, outerRadius = 44, innerRadius = 31): string {
-    const center = 50;
-    const outerStart = this.polarToCartesian(center, center, outerRadius, startAngle);
-    const outerEnd = this.polarToCartesian(center, center, outerRadius, endAngle);
-    const innerStart = this.polarToCartesian(center, center, innerRadius, endAngle);
-    const innerEnd = this.polarToCartesian(center, center, innerRadius, startAngle);
-    const largeArcFlag = endAngle - startAngle > 180 ? "1" : "0";
-
-    return [
-      "M",
-      outerStart.x.toFixed(2),
-      outerStart.y.toFixed(2),
-      "A",
-      outerRadius,
-      outerRadius,
-      0,
-      largeArcFlag,
-      1,
-      outerEnd.x.toFixed(2),
-      outerEnd.y.toFixed(2),
-      "L",
-      innerStart.x.toFixed(2),
-      innerStart.y.toFixed(2),
-      "A",
-      innerRadius,
-      innerRadius,
-      0,
-      largeArcFlag,
-      0,
-      innerEnd.x.toFixed(2),
-      innerEnd.y.toFixed(2),
-      "Z",
-    ].join(" ");
-  }
-
-  private getArcs(): DonutSegmentArc[] {
-    const positiveSegments = this.segments.filter(segment => segment.value > 0);
-    const total = positiveSegments.reduce((sum, segment) => sum + segment.value, 0) || 1;
-    const gap = positiveSegments.length > 1 ? 2.4 : 0;
-    let current = 0;
-    return positiveSegments.map(segment => {
-      const start = current;
-      const sweep = (segment.value / total) * 360;
-      current += sweep;
-      const safeGap = sweep > gap ? gap : 0;
-      return {
-        segment,
-        start,
-        end: current,
-        displayStart: start + safeGap / 2,
-        displayEnd: current - safeGap / 2,
-      };
-    });
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const arcs = this.getArcs();
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const summaryMarkup = this.summary ? `<div part="summary">${escapeHtml(this.summary)}</div>` : "";
-    const timeframeMarkup = this.timeframe ? `<div part="timeframe">${escapeHtml(this.timeframe)}</div>` : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-    const chartMarkup = arcs.length
-      ? `
-          <div part="visual">
-            <div part="donut-wrap">
-              <svg part="chart" viewBox="0 0 100 100" role="img" aria-label="${escapeHtml(this.heading)} segment distribution">
-                <circle part="track" cx="50" cy="50" r="37.5"></circle>
-                ${arcs
-                  .map(
-                    ({ segment, displayStart, displayEnd }) => `
-                      <path
-                        part="segment"
-                        data-segment-id="${escapeHtml(segment.id)}"
-                        data-tone="${escapeHtml(segment.tone ?? "neutral")}"
-                        d="${this.describeSegmentPath(displayStart, displayEnd)}"
-                        fill="${this.toneColor(segment.tone)}"
-                      ></path>
-                    `,
-                  )
-                  .join("")}
-              </svg>
-              <div part="center">
-                ${summaryMarkup}
-                ${timeframeMarkup}
-              </div>
-            </div>
-            <div part="legend" role="list" aria-label="${escapeHtml(this.heading)} segments">
-              ${arcs
-                .map(
-                  ({ segment }) => `
-                    <button
-                      type="button"
-                      part="legend-item"
-                      role="listitem"
-                      data-segment-id="${escapeHtml(segment.id)}"
-                      data-tone="${escapeHtml(segment.tone ?? "neutral")}"
-                      aria-label="${escapeHtml(`${segment.label}: ${segment.value}`)}"
-                    >
-                      <span part="legend-swatch" style="--segment-color:${this.toneColor(segment.tone)};"></span>
-                      <span part="legend-copy">
-                        <span part="legend-label">${escapeHtml(segment.label)}</span>
-                        <span part="legend-value">${escapeHtml(String(segment.value))}</span>
-                      </span>
-                    </button>
-                  `,
-                )
-                .join("")}
-            </div>
-          </div>
-        `
-      : `<div part="empty">No donut-chart data available.</div>`;
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -505,7 +242,285 @@ export class BoxDonutChartElement extends HTMLElement {
             grid-template-columns: 1fr;
           }
         }
-      </style>
+      `;
+
+export class BoxDonutChartElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["actions", "heading", "message", "segments", "summary", "timeframe"];
+  }
+  get actions(): DonutChartAction[] {
+    return this.parseJsonAttribute<DonutChartAction[]>("actions", []);
+  }
+
+  set actions(value: DonutChartAction[]) {
+    this.setAttribute("actions", JSON.stringify(value));
+  }
+
+  get message(): string {
+    return this.getAttribute("message") ?? "";
+  }
+
+  set message(value: string) {
+    if (!value) {
+      this.removeAttribute("message");
+      return;
+    }
+
+    this.setAttribute("message", value);
+  }
+
+  get segments(): DonutChartSegment[] {
+    return this.parseJsonAttribute<DonutChartSegment[]>("segments", []);
+  }
+
+  set segments(value: DonutChartSegment[]) {
+    this.setAttribute("segments", JSON.stringify(value));
+  }
+
+  get summary(): string {
+    return this.getAttribute("summary") ?? "";
+  }
+
+  set summary(value: string) {
+    if (!value) {
+      this.removeAttribute("summary");
+      return;
+    }
+
+    this.setAttribute("summary", value);
+  }
+
+  get timeframe(): string {
+    return this.getAttribute("timeframe") ?? "";
+  }
+
+  set timeframe(value: string) {
+    if (!value) {
+      this.removeAttribute("timeframe");
+      return;
+    }
+
+    this.setAttribute("timeframe", value);
+  }
+
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Donut Chart";
+  }
+
+  set heading(value: string) {
+    this.setAttribute("heading", value);
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private emitAction(actionId: string): void {
+    this.dispatchEvent(
+      new CustomEvent("action", {
+        bubbles: true,
+        composed: true,
+        detail: { action: actionId },
+      }),
+    );
+  }
+
+  private emitSegmentSelected(segment: DonutChartSegment): void {
+    this.dispatchEvent(
+      new CustomEvent("segment-selected", {
+        bubbles: true,
+        composed: true,
+        detail: segment,
+      }),
+    );
+  }
+
+  private toneColor(tone?: string): string {
+    switch (tone) {
+      case "accent":
+        return "#5a7cf7";
+      case "success":
+        return "#26c281";
+      case "warning":
+        return "#f59e0b";
+      default:
+        return "#0061d5";
+    }
+  }
+
+  private polarToCartesian(centerX: number, centerY: number, radius: number, angleInDegrees: number) {
+    const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180;
+    return {
+      x: centerX + radius * Math.cos(angleInRadians),
+      y: centerY + radius * Math.sin(angleInRadians),
+    };
+  }
+
+  private describeSegmentPath(startAngle: number, endAngle: number, outerRadius = 44, innerRadius = 31): string {
+    const center = 50;
+    const outerStart = this.polarToCartesian(center, center, outerRadius, startAngle);
+    const outerEnd = this.polarToCartesian(center, center, outerRadius, endAngle);
+    const innerStart = this.polarToCartesian(center, center, innerRadius, endAngle);
+    const innerEnd = this.polarToCartesian(center, center, innerRadius, startAngle);
+    const largeArcFlag = endAngle - startAngle > 180 ? "1" : "0";
+
+    return [
+      "M",
+      outerStart.x.toFixed(2),
+      outerStart.y.toFixed(2),
+      "A",
+      outerRadius,
+      outerRadius,
+      0,
+      largeArcFlag,
+      1,
+      outerEnd.x.toFixed(2),
+      outerEnd.y.toFixed(2),
+      "L",
+      innerStart.x.toFixed(2),
+      innerStart.y.toFixed(2),
+      "A",
+      innerRadius,
+      innerRadius,
+      0,
+      largeArcFlag,
+      0,
+      innerEnd.x.toFixed(2),
+      innerEnd.y.toFixed(2),
+      "Z",
+    ].join(" ");
+  }
+
+  private getArcs(): DonutSegmentArc[] {
+    const positiveSegments = this.segments.filter(segment => segment.value > 0);
+    const total = positiveSegments.reduce((sum, segment) => sum + segment.value, 0) || 1;
+    const gap = positiveSegments.length > 1 ? 2.4 : 0;
+    let current = 0;
+    return positiveSegments.map(segment => {
+      const start = current;
+      const sweep = (segment.value / total) * 360;
+      current += sweep;
+      const safeGap = sweep > gap ? gap : 0;
+      return {
+        segment,
+        start,
+        end: current,
+        displayStart: start + safeGap / 2,
+        displayEnd: current - safeGap / 2,
+      };
+    });
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const arcs = this.getArcs();
+    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
+    const summaryMarkup = this.summary ? `<div part="summary">${escapeHtml(this.summary)}</div>` : "";
+    const timeframeMarkup = this.timeframe ? `<div part="timeframe">${escapeHtml(this.timeframe)}</div>` : "";
+    const actionsMarkup = this.actions.length
+      ? `
+          <div part="actions">
+            ${this.actions
+              .map(
+                action => `
+                  <button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">
+                    ${escapeHtml(action.label)}
+                  </button>
+                `,
+              )
+              .join("")}
+          </div>
+        `
+      : "";
+    const chartMarkup = arcs.length
+      ? `
+          <div part="visual">
+            <div part="donut-wrap">
+              <svg part="chart" viewBox="0 0 100 100" role="img" aria-label="${escapeHtml(this.heading)} segment distribution">
+                <circle part="track" cx="50" cy="50" r="37.5"></circle>
+                ${arcs
+                  .map(
+                    ({ segment, displayStart, displayEnd }) => `
+                      <path
+                        part="segment"
+                        data-segment-id="${escapeHtml(segment.id)}"
+                        data-tone="${escapeHtml(segment.tone ?? "neutral")}"
+                        d="${this.describeSegmentPath(displayStart, displayEnd)}"
+                        fill="${this.toneColor(segment.tone)}"
+                      ></path>
+                    `,
+                  )
+                  .join("")}
+              </svg>
+              <div part="center">
+                ${summaryMarkup}
+                ${timeframeMarkup}
+              </div>
+            </div>
+            <div part="legend" role="list" aria-label="${escapeHtml(this.heading)} segments">
+              ${arcs
+                .map(
+                  ({ segment }) => `
+                    <button
+                      type="button"
+                      part="legend-item"
+                      role="listitem"
+                      data-segment-id="${escapeHtml(segment.id)}"
+                      data-tone="${escapeHtml(segment.tone ?? "neutral")}"
+                      aria-label="${escapeHtml(`${segment.label}: ${segment.value}`)}"
+                    >
+                      <span part="legend-swatch" style="--segment-color:${this.toneColor(segment.tone)};"></span>
+                      <span part="legend-copy">
+                        <span part="legend-label">${escapeHtml(segment.label)}</span>
+                        <span part="legend-value">${escapeHtml(String(segment.value))}</span>
+                      </span>
+                    </button>
+                  `,
+                )
+                .join("")}
+            </div>
+          </div>
+        `
+      : `<div part="empty">No donut-chart data available.</div>`;
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <article part="panel">
         <header part="header">
           <div part="meta">
@@ -538,6 +553,7 @@ export class BoxDonutChartElement extends HTMLElement {
         }
       });
     });
+  
   }
 }
 

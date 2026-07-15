@@ -1,12 +1,112 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-nudge";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+const nudgeStyles = `
+  :host {
+    display: block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="nudge"] {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, var(--boe-token-surface-surface, #ffffff));
+    border-radius: 0.8rem;
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 7%, var(--boe-token-surface-surface, #ffffff));
+    color: var(--boe-token-text-text, #222222);
+  }
+
+  [part="icon"] {
+    flex: none;
+    display: grid;
+    place-items: center;
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+  }
+
+  [part="icon"] svg {
+    inline-size: 1.15rem;
+    block-size: 1.15rem;
+  }
+
+  [part="content"] {
+    display: grid;
+    gap: 0.15rem;
+    flex: 1 1 auto;
+    line-height: 1.4;
+    font-size: 0.88rem;
+  }
+
+  [part~="title"] {
+    font-weight: 700;
+  }
+
+  [part~="title"][hidden] {
+    display: none;
+  }
+
+  [part="message"] {
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+  }
+
+  [part="message"][hidden] {
+    display: none;
+  }
+
+  [part="action"] {
+    appearance: none;
+    justify-self: start;
+    margin-top: 0.2rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  [part="action"]:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+    outline-offset: 2px;
+    border-radius: 0.2rem;
+  }
+
+  [part="dismiss"] {
+    appearance: none;
+    flex: none;
+    inline-size: 1.4rem;
+    block-size: 1.4rem;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    cursor: pointer;
+  }
+
+  [part="dismiss"] svg {
+    inline-size: 0.8rem;
+    block-size: 0.8rem;
+  }
+
+  [part="dismiss"]:hover {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, transparent);
+  }
+
+  [part="dismiss"]:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+    outline-offset: 2px;
+  }
+`;
 
 /**
  * A compact inline nudge — a lightweight hint or promotion pointing at a nearby
@@ -14,17 +114,16 @@ const escapeHtml = (value: string): string =>
  * (emits `action`) and can be dismissed (emits `dismiss` and hides). Announced
  * politely via `role="status"`; the host decides what the action does.
  */
-export class BoxNudgeElement extends HTMLElement {
+export class BoxNudgeElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["action-label", "heading", "message", "open"];
   }
 
   private openValue = true;
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private hostEl!: HTMLElement;
+  private headingEl: HTMLElement | null = null;
+  private messageEl: HTMLElement | null = null;
+  private actionEl: HTMLButtonElement | null = null;
 
   get open(): boolean {
     return this.openValue;
@@ -42,7 +141,9 @@ export class BoxNudgeElement extends HTMLElement {
     } else {
       this.removeAttribute("open");
     }
-    this.render();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   get heading(): string {
@@ -72,15 +173,14 @@ export class BoxNudgeElement extends HTMLElement {
   connectedCallback(): void {
     // Open by default; dismiss() (via the `open` property) manages the closed state.
     this.openValue = true;
-    this.render();
+    super.connectedCallback();
   }
 
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "open") {
       this.openValue = this.hasAttribute("open");
     }
-
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   dismiss(): void {
@@ -92,122 +192,46 @@ export class BoxNudgeElement extends HTMLElement {
     this.dispatchEvent(new CustomEvent("dismiss", { bubbles: true, composed: true }));
   }
 
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
-    if (!this.openValue) {
-      this.shadowRoot.innerHTML = "";
+    this.shadowRoot.innerHTML = `
+      <style>${nudgeStyles}</style>
+      <div part="host"></div>
+    `;
+    this.hostEl = this.shadowRoot.querySelector('[part="host"]')!;
+  }
+
+  protected setupListeners(): void {
+    this.hostEl.addEventListener("click", event => {
+      const target = event.target as HTMLElement;
+      if (target.closest('[part="dismiss"]')) {
+        this.dismiss();
+        return;
+      }
+      if (target.closest('[part="action"]')) {
+        this.dispatchEvent(
+          new CustomEvent("action", {
+            bubbles: true,
+            composed: true,
+            detail: { label: this.actionLabel },
+          }),
+        );
+      }
+    });
+  }
+
+  private ensureOpenStructure(): void {
+    if (this.hostEl.querySelector('[part="nudge"]')) {
+      this.headingEl = this.hostEl.querySelector('[part~="title"]');
+      this.messageEl = this.hostEl.querySelector('[part="message"]');
+      this.actionEl = this.hostEl.querySelector('[part="action"]');
       return;
     }
 
-    const heading = this.heading;
-    const message = this.message;
-    const headingMarkup = heading ? `<strong part="heading title">${escapeHtml(heading)}</strong>` : "";
-    const messageMarkup = message ? `<span part="message">${escapeHtml(message)}</span>` : "";
-    const actionMarkup = this.actionLabel
-      ? `<button type="button" part="action">${escapeHtml(this.actionLabel)}</button>`
-      : "";
-
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="nudge"] {
-          display: flex;
-          align-items: flex-start;
-          gap: 0.65rem;
-          padding: 0.7rem 0.8rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, var(--boe-token-surface-surface, #ffffff));
-          border-radius: 0.8rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 7%, var(--boe-token-surface-surface, #ffffff));
-          color: var(--boe-token-text-text, #222222);
-        }
-
-        [part="icon"] {
-          flex: none;
-          display: grid;
-          place-items: center;
-          inline-size: 1.5rem;
-          block-size: 1.5rem;
-          color: var(--boe-token-surface-surface-brand, #0061d5);
-        }
-
-        [part="icon"] svg {
-          inline-size: 1.15rem;
-          block-size: 1.15rem;
-        }
-
-        [part="content"] {
-          display: grid;
-          gap: 0.15rem;
-          flex: 1 1 auto;
-          line-height: 1.4;
-          font-size: 0.88rem;
-        }
-
-        [part~="title"] {
-          font-weight: 700;
-        }
-
-        [part="message"] {
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-
-        [part="action"] {
-          appearance: none;
-          justify-self: start;
-          margin-top: 0.2rem;
-          padding: 0;
-          border: 0;
-          background: none;
-          color: var(--boe-token-surface-surface-brand, #0061d5);
-          font: inherit;
-          font-size: 0.85rem;
-          font-weight: 700;
-          cursor: pointer;
-          text-decoration: underline;
-          text-underline-offset: 2px;
-        }
-
-        [part="action"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
-          border-radius: 0.2rem;
-        }
-
-        [part="dismiss"] {
-          appearance: none;
-          flex: none;
-          inline-size: 1.4rem;
-          block-size: 1.4rem;
-          padding: 0;
-          border: 0;
-          border-radius: 999px;
-          background: transparent;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          cursor: pointer;
-        }
-
-        [part="dismiss"] svg {
-          inline-size: 0.8rem;
-          block-size: 0.8rem;
-        }
-
-        [part="dismiss"]:hover {
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, transparent);
-        }
-
-        [part="dismiss"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
-        }
-      </style>
+    this.hostEl.innerHTML = `
       <div part="nudge" role="status" aria-live="polite">
         <span part="icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -217,29 +241,75 @@ export class BoxNudgeElement extends HTMLElement {
           </svg>
         </span>
         <div part="content">
-          ${headingMarkup}
-          ${messageMarkup}
-          ${actionMarkup}
+          <strong part="heading title" hidden></strong>
+          <span part="message" hidden></span>
         </div>
         <button type="button" part="dismiss" aria-label="Dismiss">
           <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         </button>
       </div>
     `;
+    this.headingEl = this.hostEl.querySelector('[part~="title"]');
+    this.messageEl = this.hostEl.querySelector('[part="message"]');
+    this.actionEl = null;
+  }
 
-    this.shadowRoot.querySelector('[part="action"]')?.addEventListener("click", () => {
-      this.dispatchEvent(
-        new CustomEvent("action", {
-          bubbles: true,
-          composed: true,
-          detail: { label: this.actionLabel },
-        }),
-      );
-    });
+  private syncActionButton(): void {
+    const content = this.hostEl.querySelector('[part="content"]');
+    if (!content) {
+      return;
+    }
 
-    this.shadowRoot.querySelector('[part="dismiss"]')?.addEventListener("click", () => {
-      this.dismiss();
-    });
+    if (this.actionLabel) {
+      if (!this.actionEl) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.setAttribute("part", "action");
+        content.append(button);
+        this.actionEl = button;
+      }
+      this.actionEl.textContent = this.actionLabel;
+    } else if (this.actionEl) {
+      this.actionEl.remove();
+      this.actionEl = null;
+    }
+  }
+
+  protected update(): void {
+    if (!this.hostEl) {
+      return;
+    }
+
+    if (!this.openValue) {
+      this.hostEl.innerHTML = "";
+      this.headingEl = null;
+      this.messageEl = null;
+      this.actionEl = null;
+      return;
+    }
+
+    this.ensureOpenStructure();
+    if (!this.headingEl || !this.messageEl) {
+      return;
+    }
+
+    if (this.heading) {
+      this.headingEl.hidden = false;
+      this.headingEl.textContent = this.heading;
+    } else {
+      this.headingEl.hidden = true;
+      this.headingEl.textContent = "";
+    }
+
+    if (this.message) {
+      this.messageEl.hidden = false;
+      this.messageEl.textContent = this.message;
+    } else {
+      this.messageEl.hidden = true;
+      this.messageEl.textContent = "";
+    }
+
+    this.syncActionButton();
   }
 }
 

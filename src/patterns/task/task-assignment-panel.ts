@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-task-assignment-panel";
 
 const escapeHtml = (value: string): string =>
@@ -29,254 +31,8 @@ type TaskAssignmentPanelChecklistItem = {
   label: string;
 };
 
-export class BoxTaskAssignmentPanelElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["actions", "assignees", "checklist", "current-assignee-id", "due-date", "message", "priority", "status", "heading"];
-  }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get actions(): TaskAssignmentPanelAction[] {
-    return this.parseJsonAttribute<TaskAssignmentPanelAction[]>("actions", []);
-  }
-
-  set actions(value: TaskAssignmentPanelAction[]) {
-    this.setAttribute("actions", JSON.stringify(value));
-  }
-
-  get assignees(): TaskAssignmentPanelAssignee[] {
-    return this.parseJsonAttribute<TaskAssignmentPanelAssignee[]>("assignees", []);
-  }
-
-  set assignees(value: TaskAssignmentPanelAssignee[]) {
-    this.setAttribute("assignees", JSON.stringify(value));
-  }
-
-  get checklist(): TaskAssignmentPanelChecklistItem[] {
-    return this.parseJsonAttribute<TaskAssignmentPanelChecklistItem[]>("checklist", []);
-  }
-
-  set checklist(value: TaskAssignmentPanelChecklistItem[]) {
-    this.setAttribute("checklist", JSON.stringify(value));
-  }
-
-  get currentAssigneeId(): string {
-    return this.getAttribute("current-assignee-id") ?? "";
-  }
-
-  set currentAssigneeId(value: string) {
-    if (!value) {
-      this.removeAttribute("current-assignee-id");
-      return;
-    }
-
-    this.setAttribute("current-assignee-id", value);
-  }
-
-  get dueDate(): string {
-    return this.getAttribute("due-date") ?? "";
-  }
-
-  set dueDate(value: string) {
-    if (!value) {
-      this.removeAttribute("due-date");
-      return;
-    }
-
-    this.setAttribute("due-date", value);
-  }
-
-  get message(): string {
-    return this.getAttribute("message") ?? "";
-  }
-
-  set message(value: string) {
-    this.setAttribute("message", value);
-  }
-
-  get priority(): string {
-    return this.getAttribute("priority") ?? "";
-  }
-
-  set priority(value: string) {
-    if (!value) {
-      this.removeAttribute("priority");
-      return;
-    }
-
-    this.setAttribute("priority", value);
-  }
-
-  get status(): string {
-    return this.getAttribute("status") ?? "";
-  }
-
-  set status(value: string) {
-    if (!value) {
-      this.removeAttribute("status");
-      return;
-    }
-
-    this.setAttribute("status", value);
-  }
-
-  get heading(): string {
-    return this.getAttribute("heading") ?? "Task Assignment";
-  }
-
-  set heading(value: string) {
-    this.setAttribute("heading", value);
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private parseJsonAttribute<T>(name: string, fallback: T): T {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return fallback;
-    }
-
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
-  }
-
-  private emitAction(actionId: string): void {
-    this.dispatchEvent(
-      new CustomEvent("action", {
-        bubbles: true,
-        composed: true,
-        detail: {
-          action: actionId,
-          assigneeId: this.currentAssigneeId,
-          checklist: this.checklist,
-        },
-      }),
-    );
-  }
-
-  private updateAssignee(assigneeId: string): void {
-    this.currentAssigneeId = assigneeId;
-    this.dispatchEvent(
-      new CustomEvent("assignee-changed", {
-        bubbles: true,
-        composed: true,
-        detail: { assigneeId },
-      }),
-    );
-  }
-
-  private updateChecklist(itemId: string, checked: boolean): void {
-    const nextChecklist = this.checklist.map(item => (item.id === itemId ? { ...item, checked } : item));
-    this.checklist = nextChecklist;
-    this.dispatchEvent(
-      new CustomEvent("checklist-changed", {
-        bubbles: true,
-        composed: true,
-        detail: { itemId, checked, checklist: nextChecklist },
-      }),
-    );
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const statusMarkup = this.status ? `<span part="status">${escapeHtml(this.status)}</span>` : "";
-    const priorityMarkup = this.priority ? `<span part="priority">${escapeHtml(this.priority)}</span>` : "";
-    const dueDateMarkup = this.dueDate ? `<span part="due-date">Due ${escapeHtml(this.dueDate)}</span>` : "";
-    const assigneesMarkup = this.assignees.length
-      ? `
-          <section part="assignees">
-            <div part="section-title">Assignees</div>
-            <div part="assignee-list" role="listbox" aria-label="${escapeHtml(this.heading)} assignees">
-              ${this.assignees
-                .map(
-                  assignee => `
-                    <button
-                      type="button"
-                      part="assignee"
-                      role="option"
-                      aria-selected="${String(assignee.id === this.currentAssigneeId)}"
-                      data-assignee-id="${escapeHtml(assignee.id)}"
-                    >
-                      <span part="assignee-avatar">${escapeHtml(assignee.initials ?? assignee.name.slice(0, 2).toUpperCase())}</span>
-                      <span part="assignee-meta">
-                        <span part="assignee-name">${escapeHtml(assignee.name)}</span>
-                        ${assignee.description ? `<span part="assignee-description">${escapeHtml(assignee.description)}</span>` : ""}
-                        ${assignee.status ? `<span part="assignee-status">${escapeHtml(assignee.status)}</span>` : ""}
-                      </span>
-                    </button>
-                  `,
-                )
-                .join("")}
-            </div>
-          </section>
-        `
-      : "";
-    const checklistMarkup = this.checklist.length
-      ? `
-          <section part="checklist">
-            <div part="section-title">Checklist</div>
-            <div part="checklist-items">
-              ${this.checklist
-                .map(
-                  item => `
-                    <label part="checklist-item">
-                      <input
-                        type="checkbox"
-                        part="checkbox"
-                        data-item-id="${escapeHtml(item.id)}"
-                        ${item.checked ? "checked" : ""}
-                      />
-                      <span part="checklist-copy">
-                        <span part="checklist-label">${escapeHtml(item.label)}</span>
-                        ${item.description ? `<span part="checklist-description">${escapeHtml(item.description)}</span>` : ""}
-                      </span>
-                    </label>
-                  `,
-                )
-                .join("")}
-            </div>
-          </section>
-        `
-      : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button
-                    type="button"
-                    part="action"
-                    data-action-id="${escapeHtml(action.id)}"
-                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
-                  >
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -464,7 +220,266 @@ export class BoxTaskAssignmentPanelElement extends HTMLElement {
           outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
           outline-offset: 2px;
         }
-      </style>
+      `;
+
+export class BoxTaskAssignmentPanelElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["actions", "assignees", "checklist", "current-assignee-id", "due-date", "message", "priority", "status", "heading"];
+  }
+  get actions(): TaskAssignmentPanelAction[] {
+    return this.parseJsonAttribute<TaskAssignmentPanelAction[]>("actions", []);
+  }
+
+  set actions(value: TaskAssignmentPanelAction[]) {
+    this.setAttribute("actions", JSON.stringify(value));
+  }
+
+  get assignees(): TaskAssignmentPanelAssignee[] {
+    return this.parseJsonAttribute<TaskAssignmentPanelAssignee[]>("assignees", []);
+  }
+
+  set assignees(value: TaskAssignmentPanelAssignee[]) {
+    this.setAttribute("assignees", JSON.stringify(value));
+  }
+
+  get checklist(): TaskAssignmentPanelChecklistItem[] {
+    return this.parseJsonAttribute<TaskAssignmentPanelChecklistItem[]>("checklist", []);
+  }
+
+  set checklist(value: TaskAssignmentPanelChecklistItem[]) {
+    this.setAttribute("checklist", JSON.stringify(value));
+  }
+
+  get currentAssigneeId(): string {
+    return this.getAttribute("current-assignee-id") ?? "";
+  }
+
+  set currentAssigneeId(value: string) {
+    if (!value) {
+      this.removeAttribute("current-assignee-id");
+      return;
+    }
+
+    this.setAttribute("current-assignee-id", value);
+  }
+
+  get dueDate(): string {
+    return this.getAttribute("due-date") ?? "";
+  }
+
+  set dueDate(value: string) {
+    if (!value) {
+      this.removeAttribute("due-date");
+      return;
+    }
+
+    this.setAttribute("due-date", value);
+  }
+
+  get message(): string {
+    return this.getAttribute("message") ?? "";
+  }
+
+  set message(value: string) {
+    this.setAttribute("message", value);
+  }
+
+  get priority(): string {
+    return this.getAttribute("priority") ?? "";
+  }
+
+  set priority(value: string) {
+    if (!value) {
+      this.removeAttribute("priority");
+      return;
+    }
+
+    this.setAttribute("priority", value);
+  }
+
+  get status(): string {
+    return this.getAttribute("status") ?? "";
+  }
+
+  set status(value: string) {
+    if (!value) {
+      this.removeAttribute("status");
+      return;
+    }
+
+    this.setAttribute("status", value);
+  }
+
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Task Assignment";
+  }
+
+  set heading(value: string) {
+    this.setAttribute("heading", value);
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private emitAction(actionId: string): void {
+    this.dispatchEvent(
+      new CustomEvent("action", {
+        bubbles: true,
+        composed: true,
+        detail: {
+          action: actionId,
+          assigneeId: this.currentAssigneeId,
+          checklist: this.checklist,
+        },
+      }),
+    );
+  }
+
+  private updateAssignee(assigneeId: string): void {
+    this.currentAssigneeId = assigneeId;
+    this.dispatchEvent(
+      new CustomEvent("assignee-changed", {
+        bubbles: true,
+        composed: true,
+        detail: { assigneeId },
+      }),
+    );
+  }
+
+  private updateChecklist(itemId: string, checked: boolean): void {
+    const nextChecklist = this.checklist.map(item => (item.id === itemId ? { ...item, checked } : item));
+    this.checklist = nextChecklist;
+    this.dispatchEvent(
+      new CustomEvent("checklist-changed", {
+        bubbles: true,
+        composed: true,
+        detail: { itemId, checked, checklist: nextChecklist },
+      }),
+    );
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
+    const statusMarkup = this.status ? `<span part="status">${escapeHtml(this.status)}</span>` : "";
+    const priorityMarkup = this.priority ? `<span part="priority">${escapeHtml(this.priority)}</span>` : "";
+    const dueDateMarkup = this.dueDate ? `<span part="due-date">Due ${escapeHtml(this.dueDate)}</span>` : "";
+    const assigneesMarkup = this.assignees.length
+      ? `
+          <section part="assignees">
+            <div part="section-title">Assignees</div>
+            <div part="assignee-list" role="listbox" aria-label="${escapeHtml(this.heading)} assignees">
+              ${this.assignees
+                .map(
+                  assignee => `
+                    <button
+                      type="button"
+                      part="assignee"
+                      role="option"
+                      aria-selected="${String(assignee.id === this.currentAssigneeId)}"
+                      data-assignee-id="${escapeHtml(assignee.id)}"
+                    >
+                      <span part="assignee-avatar">${escapeHtml(assignee.initials ?? assignee.name.slice(0, 2).toUpperCase())}</span>
+                      <span part="assignee-meta">
+                        <span part="assignee-name">${escapeHtml(assignee.name)}</span>
+                        ${assignee.description ? `<span part="assignee-description">${escapeHtml(assignee.description)}</span>` : ""}
+                        ${assignee.status ? `<span part="assignee-status">${escapeHtml(assignee.status)}</span>` : ""}
+                      </span>
+                    </button>
+                  `,
+                )
+                .join("")}
+            </div>
+          </section>
+        `
+      : "";
+    const checklistMarkup = this.checklist.length
+      ? `
+          <section part="checklist">
+            <div part="section-title">Checklist</div>
+            <div part="checklist-items">
+              ${this.checklist
+                .map(
+                  item => `
+                    <label part="checklist-item">
+                      <input
+                        type="checkbox"
+                        part="checkbox"
+                        data-item-id="${escapeHtml(item.id)}"
+                        ${item.checked ? "checked" : ""}
+                      />
+                      <span part="checklist-copy">
+                        <span part="checklist-label">${escapeHtml(item.label)}</span>
+                        ${item.description ? `<span part="checklist-description">${escapeHtml(item.description)}</span>` : ""}
+                      </span>
+                    </label>
+                  `,
+                )
+                .join("")}
+            </div>
+          </section>
+        `
+      : "";
+    const actionsMarkup = this.actions.length
+      ? `
+          <div part="actions">
+            ${this.actions
+              .map(
+                action => `
+                  <button
+                    type="button"
+                    part="action"
+                    data-action-id="${escapeHtml(action.id)}"
+                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
+                  >
+                    ${escapeHtml(action.label)}
+                  </button>
+                `,
+              )
+              .join("")}
+          </div>
+        `
+      : "";
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <section part="panel">
         <header part="header">
           <div part="title">${escapeHtml(this.heading)}</div>
@@ -503,6 +518,7 @@ export class BoxTaskAssignmentPanelElement extends HTMLElement {
         }
       });
     });
+  
   }
 }
 

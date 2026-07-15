@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-item-details-panel";
 
 const escapeHtml = (value: string): string =>
@@ -26,168 +28,8 @@ type ItemDetailsOwner = {
   initials?: string;
 };
 
-export class BoxItemDetailsPanelElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["actions", "eyebrow", "message", "meta", "owner", "status", "heading"];
-  }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get actions(): ItemDetailsAction[] {
-    return this.parseJsonAttribute<ItemDetailsAction[]>("actions", []);
-  }
-
-  set actions(value: ItemDetailsAction[]) {
-    this.setAttribute("actions", JSON.stringify(value));
-  }
-
-  get eyebrow(): string {
-    return this.getAttribute("eyebrow") ?? "";
-  }
-
-  set eyebrow(value: string) {
-    this.setAttribute("eyebrow", value);
-  }
-
-  get message(): string {
-    return this.getAttribute("message") ?? "";
-  }
-
-  set message(value: string) {
-    this.setAttribute("message", value);
-  }
-
-  get meta(): ItemDetailsMetaItem[] {
-    return this.parseJsonAttribute<ItemDetailsMetaItem[]>("meta", []);
-  }
-
-  set meta(value: ItemDetailsMetaItem[]) {
-    this.setAttribute("meta", JSON.stringify(value));
-  }
-
-  get owner(): ItemDetailsOwner | null {
-    return this.parseJsonAttribute<ItemDetailsOwner | null>("owner", null);
-  }
-
-  set owner(value: ItemDetailsOwner | null) {
-    if (!value) {
-      this.removeAttribute("owner");
-      return;
-    }
-
-    this.setAttribute("owner", JSON.stringify(value));
-  }
-
-  get status(): string {
-    return this.getAttribute("status") ?? "";
-  }
-
-  set status(value: string) {
-    this.setAttribute("status", value);
-  }
-
-  get heading(): string {
-    return this.getAttribute("heading") ?? "";
-  }
-
-  set heading(value: string) {
-    this.setAttribute("heading", value);
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private parseJsonAttribute<T>(name: string, fallback: T): T {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return fallback;
-    }
-
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
-  }
-
-  private emitAction(actionId: string): void {
-    this.dispatchEvent(
-      new CustomEvent("action", {
-        bubbles: true,
-        composed: true,
-        detail: { action: actionId },
-      }),
-    );
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const eyebrowMarkup = this.eyebrow ? `<div part="eyebrow">${escapeHtml(this.eyebrow)}</div>` : "";
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const statusMarkup = this.status ? `<div part="status">${escapeHtml(this.status)}</div>` : "";
-    const owner = this.owner;
-    const ownerMarkup = owner
-      ? `
-          <section part="owner">
-            <div part="owner-avatar">${escapeHtml(owner.initials ?? owner.name.slice(0, 2).toUpperCase())}</div>
-            <div part="owner-meta">
-              <div part="owner-name">${escapeHtml(owner.name)}</div>
-              ${owner.description ? `<div part="owner-description">${escapeHtml(owner.description)}</div>` : ""}
-              ${owner.status ? `<div part="owner-status">${escapeHtml(owner.status)}</div>` : ""}
-            </div>
-          </section>
-        `
-      : "";
-    const metaMarkup = this.meta.length
-      ? `
-          <dl part="meta">
-            ${this.meta
-              .map(
-                item => `
-                  <div part="meta-row">
-                    <dt part="meta-label">${escapeHtml(item.label)}</dt>
-                    <dd part="meta-value">${escapeHtml(item.value)}</dd>
-                  </div>
-                `,
-              )
-              .join("")}
-          </dl>
-        `
-      : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button
-                    type="button"
-                    part="action"
-                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
-                    data-action-id="${escapeHtml(action.id)}"
-                  >
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -337,7 +179,180 @@ export class BoxItemDetailsPanelElement extends HTMLElement {
           outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
           outline-offset: 2px;
         }
-      </style>
+      `;
+
+export class BoxItemDetailsPanelElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["actions", "eyebrow", "message", "meta", "owner", "status", "heading"];
+  }
+  get actions(): ItemDetailsAction[] {
+    return this.parseJsonAttribute<ItemDetailsAction[]>("actions", []);
+  }
+
+  set actions(value: ItemDetailsAction[]) {
+    this.setAttribute("actions", JSON.stringify(value));
+  }
+
+  get eyebrow(): string {
+    return this.getAttribute("eyebrow") ?? "";
+  }
+
+  set eyebrow(value: string) {
+    this.setAttribute("eyebrow", value);
+  }
+
+  get message(): string {
+    return this.getAttribute("message") ?? "";
+  }
+
+  set message(value: string) {
+    this.setAttribute("message", value);
+  }
+
+  get meta(): ItemDetailsMetaItem[] {
+    return this.parseJsonAttribute<ItemDetailsMetaItem[]>("meta", []);
+  }
+
+  set meta(value: ItemDetailsMetaItem[]) {
+    this.setAttribute("meta", JSON.stringify(value));
+  }
+
+  get owner(): ItemDetailsOwner | null {
+    return this.parseJsonAttribute<ItemDetailsOwner | null>("owner", null);
+  }
+
+  set owner(value: ItemDetailsOwner | null) {
+    if (!value) {
+      this.removeAttribute("owner");
+      return;
+    }
+
+    this.setAttribute("owner", JSON.stringify(value));
+  }
+
+  get status(): string {
+    return this.getAttribute("status") ?? "";
+  }
+
+  set status(value: string) {
+    this.setAttribute("status", value);
+  }
+
+  get heading(): string {
+    return this.getAttribute("heading") ?? "";
+  }
+
+  set heading(value: string) {
+    this.setAttribute("heading", value);
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private emitAction(actionId: string): void {
+    this.dispatchEvent(
+      new CustomEvent("action", {
+        bubbles: true,
+        composed: true,
+        detail: { action: actionId },
+      }),
+    );
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const eyebrowMarkup = this.eyebrow ? `<div part="eyebrow">${escapeHtml(this.eyebrow)}</div>` : "";
+    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
+    const statusMarkup = this.status ? `<div part="status">${escapeHtml(this.status)}</div>` : "";
+    const owner = this.owner;
+    const ownerMarkup = owner
+      ? `
+          <section part="owner">
+            <div part="owner-avatar">${escapeHtml(owner.initials ?? owner.name.slice(0, 2).toUpperCase())}</div>
+            <div part="owner-meta">
+              <div part="owner-name">${escapeHtml(owner.name)}</div>
+              ${owner.description ? `<div part="owner-description">${escapeHtml(owner.description)}</div>` : ""}
+              ${owner.status ? `<div part="owner-status">${escapeHtml(owner.status)}</div>` : ""}
+            </div>
+          </section>
+        `
+      : "";
+    const metaMarkup = this.meta.length
+      ? `
+          <dl part="meta">
+            ${this.meta
+              .map(
+                item => `
+                  <div part="meta-row">
+                    <dt part="meta-label">${escapeHtml(item.label)}</dt>
+                    <dd part="meta-value">${escapeHtml(item.value)}</dd>
+                  </div>
+                `,
+              )
+              .join("")}
+          </dl>
+        `
+      : "";
+    const actionsMarkup = this.actions.length
+      ? `
+          <div part="actions">
+            ${this.actions
+              .map(
+                action => `
+                  <button
+                    type="button"
+                    part="action"
+                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
+                    data-action-id="${escapeHtml(action.id)}"
+                  >
+                    ${escapeHtml(action.label)}
+                  </button>
+                `,
+              )
+              .join("")}
+          </div>
+        `
+      : "";
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <section part="panel">
         <header part="header">
           ${eyebrowMarkup}
@@ -359,6 +374,7 @@ export class BoxItemDetailsPanelElement extends HTMLElement {
         }
       });
     });
+  
   }
 }
 

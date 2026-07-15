@@ -1,4 +1,5 @@
 import { ContentExplorerController } from "../controller.js";
+import { BaseElement } from "../../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-explorer-breadcrumbs";
 
@@ -13,82 +14,8 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-export class BoxExplorerBreadcrumbsElement extends HTMLElement {
-  private controllerValue: ContentExplorerController | null = null;
 
-  private unsubscribeFns: Array<() => void> = [];
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get controller(): ContentExplorerController | null {
-    return this.controllerValue;
-  }
-
-  set controller(value: ContentExplorerController | null) {
-    this.controllerValue = value;
-    this.bindController();
-    this.render();
-  }
-
-  connectedCallback(): void {
-    this.bindController();
-    this.render();
-  }
-
-  disconnectedCallback(): void {
-    this.teardownSubscriptions();
-  }
-
-  private bindController(): void {
-    this.teardownSubscriptions();
-
-    if (!this.isConnected || !this.controllerValue) {
-      return;
-    }
-
-    for (const eventName of ["breadcrumbsChanged", "folderLoaded", "folderChanged"] as const) {
-      this.unsubscribeFns.push(
-        this.controllerValue.subscribe(eventName, payload => {
-          this.dispatchEvent(
-            new CustomEvent(toKebabCase(String(eventName)), {
-              bubbles: true,
-              composed: true,
-              detail: payload,
-            }),
-          );
-          this.render();
-        }),
-      );
-    }
-  }
-
-  private teardownSubscriptions(): void {
-    for (const unsubscribe of this.unsubscribeFns) {
-      unsubscribe();
-    }
-    this.unsubscribeFns = [];
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const breadcrumbs = this.controllerValue?.getState().breadcrumbs ?? [];
-    const markup = breadcrumbs.length
-      ? breadcrumbs
-          .map(
-            crumb =>
-              `<button type="button" part="breadcrumb" data-folder-id="${escapeHtml(crumb.id)}">${escapeHtml(crumb.name)}</button>`,
-          )
-          .join('<span part="separator">/</span>')
-      : `<span part="empty">No breadcrumbs</span>`;
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -151,7 +78,97 @@ export class BoxExplorerBreadcrumbsElement extends HTMLElement {
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.9rem;
         }
-      </style>
+      `;
+
+export class BoxExplorerBreadcrumbsElement extends BaseElement {
+  private controllerValue: ContentExplorerController | null = null;
+
+  private unsubscribeFns: Array<() => void> = [];
+  get controller(): ContentExplorerController | null {
+    return this.controllerValue;
+  }
+
+  set controller(value: ContentExplorerController | null) {
+    this.controllerValue = value;
+    this.bindController();
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
+  connectedCallback(): void {
+    this.bindController();
+    super.connectedCallback();
+  }
+
+  disconnectedCallback(): void {
+    this.teardownSubscriptions();
+  }
+
+  private bindController(): void {
+    this.teardownSubscriptions();
+
+    if (!this.isConnected || !this.controllerValue) {
+      return;
+    }
+
+    for (const eventName of ["breadcrumbsChanged", "folderLoaded", "folderChanged"] as const) {
+      this.unsubscribeFns.push(
+        this.controllerValue.subscribe(eventName, payload => {
+          this.dispatchEvent(
+            new CustomEvent(toKebabCase(String(eventName)), {
+              bubbles: true,
+              composed: true,
+              detail: payload,
+            }),
+          );
+          if (this.isRendered) {
+      this.update();
+    }
+        }),
+      );
+    }
+  }
+
+  private teardownSubscriptions(): void {
+    for (const unsubscribe of this.unsubscribeFns) {
+      unsubscribe();
+    }
+    this.unsubscribeFns = [];
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const breadcrumbs = this.controllerValue?.getState().breadcrumbs ?? [];
+    const markup = breadcrumbs.length
+      ? breadcrumbs
+          .map(
+            crumb =>
+              `<button type="button" part="breadcrumb" data-folder-id="${escapeHtml(crumb.id)}">${escapeHtml(crumb.name)}</button>`,
+          )
+          .join('<span part="separator">/</span>')
+      : `<span part="empty">No breadcrumbs</span>`;
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <nav part="breadcrumbs">${markup}</nav>`;
 
     this.shadowRoot.querySelectorAll('[part="breadcrumb"]').forEach(node => {
@@ -162,6 +179,7 @@ export class BoxExplorerBreadcrumbsElement extends HTMLElement {
         }
       });
     });
+  
   }
 }
 

@@ -1,5 +1,6 @@
 import { ContentExplorerController } from "../controller.js";
 import { BoxExplorerActionMenuElement } from "./action-menu.js";
+import { BaseElement } from "../../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-explorer-table";
 
@@ -14,119 +15,8 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-export class BoxExplorerTableElement extends HTMLElement {
-  private controllerValue: ContentExplorerController | null = null;
 
-  private unsubscribeFns: Array<() => void> = [];
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get controller(): ContentExplorerController | null {
-    return this.controllerValue;
-  }
-
-  set controller(value: ContentExplorerController | null) {
-    this.controllerValue = value;
-    this.bindController();
-    this.render();
-  }
-
-  connectedCallback(): void {
-    this.bindController();
-    this.render();
-  }
-
-  disconnectedCallback(): void {
-    this.teardownSubscriptions();
-  }
-
-  private bindController(): void {
-    this.teardownSubscriptions();
-
-    if (!this.isConnected || !this.controllerValue) {
-      return;
-    }
-
-    for (const eventName of [
-      "itemsChanged",
-      "itemActivated",
-      "itemActionInvoked",
-      "loadingChanged",
-      "paginationChanged",
-      "selectionChanged",
-    ] as const) {
-      this.unsubscribeFns.push(
-        this.controllerValue.subscribe(eventName, payload => {
-          this.dispatchEvent(
-            new CustomEvent(toKebabCase(String(eventName)), {
-              bubbles: true,
-              composed: true,
-              detail: payload,
-            }),
-          );
-          this.render();
-        }),
-      );
-    }
-  }
-
-  private teardownSubscriptions(): void {
-    for (const unsubscribe of this.unsubscribeFns) {
-      unsubscribe();
-    }
-    this.unsubscribeFns = [];
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const state = this.controllerValue?.getState();
-    const rowsMarkup = state?.items.length
-      ? state.items
-          .map(item => {
-            const isSelected = state.selectedItemIds.includes(item.id);
-            const actions = (state.availableActionsByItemId[item.id] ?? []).length
-              ? `<box-explorer-action-menu part="row-action-menu" data-item-id="${escapeHtml(item.id)}"></box-explorer-action-menu>`
-              : "";
-
-            return `
-              <tr part="row" data-item-id="${escapeHtml(item.id)}" aria-selected="${isSelected ? "true" : "false"}">
-                <td part="selection-cell">
-                  <input
-                    type="checkbox"
-                    part="selection"
-                    data-item-id="${escapeHtml(item.id)}"
-                    aria-label="${escapeHtml(`Select ${item.name}`)}"
-                    ${isSelected ? "checked" : ""}
-                  />
-                </td>
-                <td part="name-cell">
-                  <button
-                    type="button"
-                    part="row-item"
-                    data-item-id="${escapeHtml(item.id)}"
-                    aria-label="${escapeHtml(`Open ${item.name}`)}"
-                  >${escapeHtml(item.name)}</button>
-                </td>
-                <td part="type-cell">${escapeHtml(item.type)}</td>
-                <td part="actions-cell">${actions}</td>
-              </tr>
-            `;
-          })
-          .join("")
-      : `<tr part="empty-row"><td colspan="4" part="empty">No items loaded</td></tr>`;
-    const loadMoreMarkup =
-      state?.pagination.hasMoreItems && !state.loading
-        ? `<button type="button" part="load-more">Load more</button>`
-        : "";
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -292,8 +182,82 @@ export class BoxExplorerTableElement extends HTMLElement {
           outline: none;
           box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
         }
-      </style>
-      <section part="table-shell" aria-busy="${state?.loading ? "true" : "false"}">
+      `;
+
+export class BoxExplorerTableElement extends BaseElement {
+  private controllerValue: ContentExplorerController | null = null;
+
+  private unsubscribeFns: Array<() => void> = [];
+  get controller(): ContentExplorerController | null {
+    return this.controllerValue;
+  }
+
+  set controller(value: ContentExplorerController | null) {
+    this.controllerValue = value;
+    this.bindController();
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
+  connectedCallback(): void {
+    this.bindController();
+    super.connectedCallback();
+  }
+
+  disconnectedCallback(): void {
+    this.teardownSubscriptions();
+  }
+
+  private bindController(): void {
+    this.teardownSubscriptions();
+
+    if (!this.isConnected || !this.controllerValue) {
+      return;
+    }
+
+    for (const eventName of [
+      "itemsChanged",
+      "itemActivated",
+      "itemActionInvoked",
+      "loadingChanged",
+      "paginationChanged",
+      "selectionChanged",
+    ] as const) {
+      this.unsubscribeFns.push(
+        this.controllerValue.subscribe(eventName, payload => {
+          this.dispatchEvent(
+            new CustomEvent(toKebabCase(String(eventName)), {
+              bubbles: true,
+              composed: true,
+              detail: payload,
+            }),
+          );
+          if (this.isRendered) {
+            this.update();
+          }
+        }),
+      );
+    }
+  }
+
+  private teardownSubscriptions(): void {
+    for (const unsubscribe of this.unsubscribeFns) {
+      unsubscribe();
+    }
+    this.unsubscribeFns = [];
+  }
+
+  private itemsSignature = "";
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <section part="table-shell">
         <table part="table">
           <caption part="caption" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">
             Content items
@@ -306,38 +270,152 @@ export class BoxExplorerTableElement extends HTMLElement {
               <th part="header-actions" scope="col">Actions</th>
             </tr>
           </thead>
-          <tbody>${rowsMarkup}</tbody>
+          <tbody></tbody>
         </table>
-        ${loadMoreMarkup ? `<div part="load-more-region">${loadMoreMarkup}</div>` : ""}
+        <div part="load-more-region" hidden></div>
       </section>
     `;
+  }
 
-    this.shadowRoot.querySelectorAll('[part="row-item"]').forEach(node => {
-      node.addEventListener("click", event => {
-        const itemId = (event.currentTarget as HTMLElement).getAttribute("data-item-id");
-        if (itemId) {
-          this.controllerValue?.toggleSelection(itemId);
-          void this.controllerValue?.activateItem(itemId);
-        }
-      });
+  protected setupListeners(): void {
+    const tbody = this.shadowRoot?.querySelector("tbody");
+    const loadMoreRegion = this.shadowRoot?.querySelector('[part="load-more-region"]');
+    if (!tbody || !loadMoreRegion) {
+      return;
+    }
+
+    tbody.addEventListener("click", event => {
+      const rowItem = (event.target as HTMLElement).closest('[part="row-item"]') as HTMLElement | null;
+      if (!rowItem || !tbody.contains(rowItem)) {
+        return;
+      }
+      const itemId = rowItem.getAttribute("data-item-id");
+      if (itemId) {
+        this.controllerValue?.toggleSelection(itemId);
+        void this.controllerValue?.activateItem(itemId);
+      }
     });
-    this.shadowRoot.querySelectorAll('[part="selection"]').forEach(node => {
-      node.addEventListener("change", event => {
-        const itemId = (event.currentTarget as HTMLElement).getAttribute("data-item-id");
-        if (itemId) {
-          this.controllerValue?.toggleSelection(itemId);
-        }
-      });
+
+    tbody.addEventListener("change", event => {
+      const checkbox = (event.target as HTMLElement).closest('[part="selection"]') as HTMLInputElement | null;
+      if (!checkbox || !tbody.contains(checkbox)) {
+        return;
+      }
+      const itemId = checkbox.getAttribute("data-item-id");
+      if (itemId) {
+        this.controllerValue?.toggleSelection(itemId);
+      }
     });
-    this.shadowRoot.querySelectorAll("box-explorer-action-menu").forEach(node => {
+
+    loadMoreRegion.addEventListener("click", event => {
+      if ((event.target as HTMLElement).closest('[part="load-more"]')) {
+        void this.controllerValue?.loadNextPage();
+      }
+    });
+  }
+
+  private syncActionMenus(): void {
+    this.shadowRoot?.querySelectorAll("box-explorer-action-menu").forEach(node => {
       const itemId = node.getAttribute("data-item-id");
       const menuElement = node as BoxExplorerActionMenuElement;
       menuElement.controller = this.controllerValue;
       menuElement.itemId = itemId;
     });
-    this.shadowRoot.querySelector('[part="load-more"]')?.addEventListener("click", () => {
-      void this.controllerValue?.loadNextPage();
+  }
+
+  private patchSelection(): void {
+    const state = this.controllerValue?.getState();
+    const tbody = this.shadowRoot?.querySelector("tbody");
+    if (!state || !tbody) {
+      return;
+    }
+
+    tbody.querySelectorAll('[part="row"]').forEach(row => {
+      const itemId = (row as HTMLElement).dataset.itemId ?? "";
+      const isSelected = state.selectedItemIds.includes(itemId);
+      row.setAttribute("aria-selected", isSelected ? "true" : "false");
+      const checkbox = row.querySelector('[part="selection"]') as HTMLInputElement | null;
+      if (checkbox && checkbox !== this.shadowRoot?.activeElement) {
+        checkbox.checked = isSelected;
+      }
     });
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const state = this.controllerValue?.getState();
+    const shell = this.shadowRoot.querySelector('[part="table-shell"]') as HTMLElement | null;
+    const tbody = this.shadowRoot.querySelector("tbody") as HTMLElement | null;
+    const loadMoreRegion = this.shadowRoot.querySelector('[part="load-more-region"]') as HTMLElement | null;
+    if (!shell || !tbody || !loadMoreRegion) {
+      return;
+    }
+
+    shell.setAttribute("aria-busy", state?.loading ? "true" : "false");
+
+    const nextSignature = JSON.stringify({
+      items: state?.items.map(item => ({ id: item.id, name: item.name, type: item.type })) ?? [],
+      actions: state?.availableActionsByItemId ?? {},
+      hasMore: state?.pagination.hasMoreItems ?? false,
+      loading: state?.loading ?? false,
+    });
+
+    if (nextSignature !== this.itemsSignature) {
+      this.itemsSignature = nextSignature;
+      const rowsMarkup = state?.items.length
+        ? state.items
+            .map(item => {
+              const isSelected = state.selectedItemIds.includes(item.id);
+              const actions = (state.availableActionsByItemId[item.id] ?? []).length
+                ? `<box-explorer-action-menu part="row-action-menu" data-item-id="${escapeHtml(item.id)}"></box-explorer-action-menu>`
+                : "";
+
+              return `
+                <tr part="row" data-item-id="${escapeHtml(item.id)}" aria-selected="${isSelected ? "true" : "false"}">
+                  <td part="selection-cell">
+                    <input
+                      type="checkbox"
+                      part="selection"
+                      data-item-id="${escapeHtml(item.id)}"
+                      aria-label="${escapeHtml(`Select ${item.name}`)}"
+                      ${isSelected ? "checked" : ""}
+                    />
+                  </td>
+                  <td part="name-cell">
+                    <button
+                      type="button"
+                      part="row-item"
+                      data-item-id="${escapeHtml(item.id)}"
+                      aria-label="${escapeHtml(`Open ${item.name}`)}"
+                    >${escapeHtml(item.name)}</button>
+                  </td>
+                  <td part="type-cell">${escapeHtml(item.type)}</td>
+                  <td part="actions-cell">${actions}</td>
+                </tr>
+              `;
+            })
+            .join("")
+        : `<tr part="empty-row"><td colspan="4" part="empty">No items loaded</td></tr>`;
+
+      tbody.innerHTML = rowsMarkup;
+
+      if (state?.pagination.hasMoreItems && !state.loading) {
+        loadMoreRegion.hidden = false;
+        loadMoreRegion.innerHTML = `<button type="button" part="load-more">Load more</button>`;
+      } else {
+        loadMoreRegion.hidden = true;
+        loadMoreRegion.innerHTML = "";
+      }
+
+      this.syncActionMenus();
+      return;
+    }
+
+    // Preserve checkbox nodes across selection-only updates.
+    this.patchSelection();
   }
 }
 

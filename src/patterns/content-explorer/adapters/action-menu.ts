@@ -1,4 +1,5 @@
 import { ContentExplorerController } from "../controller.js";
+import { BaseElement } from "../../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-explorer-action-menu";
 
@@ -13,109 +14,8 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-export class BoxExplorerActionMenuElement extends HTMLElement {
-  private controllerValue: ContentExplorerController | null = null;
 
-  private itemIdValue: string | null = null;
-
-  private open = false;
-
-  private unsubscribeFns: Array<() => void> = [];
-
-  private menuId = `box-action-menu-${Math.random().toString(36).slice(2, 10)}`;
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get controller(): ContentExplorerController | null {
-    return this.controllerValue;
-  }
-
-  set controller(value: ContentExplorerController | null) {
-    this.controllerValue = value;
-    this.bindController();
-    this.render();
-  }
-
-  get itemId(): string | null {
-    return this.itemIdValue;
-  }
-
-  set itemId(value: string | null) {
-    this.itemIdValue = value;
-    this.open = false;
-    this.render();
-  }
-
-  connectedCallback(): void {
-    this.bindController();
-    this.render();
-  }
-
-  disconnectedCallback(): void {
-    this.teardownSubscriptions();
-  }
-
-  private bindController(): void {
-    this.teardownSubscriptions();
-
-    if (!this.isConnected || !this.controllerValue) {
-      return;
-    }
-
-    this.unsubscribeFns.push(
-      this.controllerValue.subscribe("itemsChanged", payload => {
-        this.dispatchEvent(
-          new CustomEvent("items-changed", {
-            bubbles: true,
-            composed: true,
-            detail: payload,
-          }),
-        );
-        this.render();
-      }),
-    );
-
-    this.unsubscribeFns.push(
-      this.controllerValue.subscribe("selectionChanged", () => {
-        this.render();
-      }),
-    );
-
-  }
-
-  private teardownSubscriptions(): void {
-    for (const unsubscribe of this.unsubscribeFns) {
-      unsubscribe();
-    }
-    this.unsubscribeFns = [];
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const actions = this.itemIdValue ? (this.controllerValue?.getItemActions(this.itemIdValue) ?? []) : [];
-
-    if (!this.itemIdValue || actions.length === 0) {
-      this.shadowRoot.innerHTML = `<span part="empty"></span>`;
-      return;
-    }
-
-    const menuMarkup = this.open
-      ? `<div id="${this.menuId}" part="menu" role="menu">${actions
-          .map(
-            action =>
-              `<button type="button" part="menu-item" role="menuitem" data-action-id="${escapeHtml(action.id)}">${escapeHtml(action.label)}</button>`,
-          )
-          .join("")}</div>`
-      : "";
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: inline-grid;
           position: relative;
@@ -228,40 +128,115 @@ export class BoxExplorerActionMenuElement extends HTMLElement {
           outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 76%, var(--boe-token-surface-surface, #ffffff) 24%);
           outline-offset: 1px;
         }
-      </style>
-      <div part="menu-shell">
-        <button
-          type="button"
-          part="trigger"
-          aria-label="Open item actions"
-          aria-expanded="${this.open ? "true" : "false"}"
-          aria-haspopup="menu"
-          ${this.open ? `aria-controls="${this.menuId}"` : ""}
-        ><span part="trigger-label">Actions</span><span part="trigger-icon" aria-hidden="true">⋯</span></button>
-        ${menuMarkup}
-      </div>
-    `;
+      `;
 
-    const trigger = this.shadowRoot.querySelector('[part="trigger"]') as HTMLButtonElement | null;
-    trigger?.addEventListener("click", () => {
-      this.open = !this.open;
-      this.render();
-    });
-    trigger?.addEventListener("keydown", event => {
-      const keyboardEvent = event as KeyboardEvent;
-      if (keyboardEvent.key === "ArrowDown" || keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
-        keyboardEvent.preventDefault();
-        this.open = true;
-        this.render();
-      } else if (keyboardEvent.key === "Escape" && this.open) {
-        keyboardEvent.preventDefault();
-        this.open = false;
-        this.render();
+export class BoxExplorerActionMenuElement extends BaseElement {
+  private controllerValue: ContentExplorerController | null = null;
+
+  private itemIdValue: string | null = null;
+
+  private open = false;
+
+  private unsubscribeFns: Array<() => void> = [];
+
+  private menuId = `box-action-menu-${Math.random().toString(36).slice(2, 10)}`;
+
+
+  get controller(): ContentExplorerController | null {
+    return this.controllerValue;
+  }
+
+  set controller(value: ContentExplorerController | null) {
+    this.controllerValue = value;
+    this.bindController();
+    this.refresh();
+  }
+
+  get itemId(): string | null {
+    return this.itemIdValue;
+  }
+
+  set itemId(value: string | null) {
+    this.itemIdValue = value;
+    this.open = false;
+    this.refresh();
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.bindController();
+    this.refresh();
+  }
+
+  private refresh(): void {
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
+  disconnectedCallback(): void {
+    this.teardownSubscriptions();
+  }
+
+  private bindController(): void {
+    this.teardownSubscriptions();
+
+    if (!this.isConnected || !this.controllerValue) {
+      return;
+    }
+
+    this.unsubscribeFns.push(
+      this.controllerValue.subscribe("itemsChanged", payload => {
+        this.dispatchEvent(
+          new CustomEvent("items-changed", {
+            bubbles: true,
+            composed: true,
+            detail: payload,
+          }),
+        );
+        this.refresh();
+      }),
+    );
+
+    this.unsubscribeFns.push(
+      this.controllerValue.subscribe("selectionChanged", () => {
+        this.refresh();
+      }),
+    );
+
+  }
+
+  private teardownSubscriptions(): void {
+    for (const unsubscribe of this.unsubscribeFns) {
+      unsubscribe();
+    }
+    this.unsubscribeFns = [];
+  }
+
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected setupListeners(): void {
+    this.shadowRoot?.addEventListener("click", event => {
+      const target = event.target as HTMLElement;
+      const trigger = target.closest('[part="trigger"]') as HTMLButtonElement | null;
+      if (trigger && this.shadowRoot?.contains(trigger)) {
+        this.open = !this.open;
+        this.update();
+        return;
       }
-    });
-    this.shadowRoot.querySelectorAll('[part="menu-item"]').forEach(node => {
-      node.addEventListener("click", event => {
-        const actionId = (event.currentTarget as HTMLElement).getAttribute("data-action-id");
+      const menuItem = target.closest('[part="menu-item"]') as HTMLElement | null;
+      if (menuItem && this.shadowRoot?.contains(menuItem)) {
+        const actionId = menuItem.getAttribute("data-action-id");
         if (this.itemIdValue && actionId) {
           const item = this.controllerValue?.getState().items.find(entry => entry.id === this.itemIdValue) ?? null;
           const action = this.controllerValue?.getItemActions(this.itemIdValue).find(entry => entry.id === actionId) ?? null;
@@ -276,21 +251,78 @@ export class BoxExplorerActionMenuElement extends HTMLElement {
             );
           }
           this.open = false;
-          this.render();
+          this.update();
         }
-      });
-      node.addEventListener("keydown", event => {
-        const keyboardEvent = event as KeyboardEvent;
-        if (keyboardEvent.key === "Escape") {
+      }
+    });
+
+    this.shadowRoot?.addEventListener("keydown", event => {
+      const keyboardEvent = event as KeyboardEvent;
+      const target = keyboardEvent.target as HTMLElement;
+      const trigger = target.closest('[part="trigger"]') as HTMLButtonElement | null;
+      if (trigger && this.shadowRoot?.contains(trigger)) {
+        if (keyboardEvent.key === "ArrowDown" || keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
+          keyboardEvent.preventDefault();
+          this.open = true;
+          this.update();
+        } else if (keyboardEvent.key === "Escape" && this.open) {
           keyboardEvent.preventDefault();
           this.open = false;
-          this.render();
-          queueMicrotask(() => {
-            (this.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null)?.focus();
-          });
+          this.update();
         }
-      });
+        return;
+      }
+      const menuItem = target.closest('[part="menu-item"]') as HTMLElement | null;
+      if (menuItem && this.shadowRoot?.contains(menuItem) && keyboardEvent.key === "Escape") {
+        keyboardEvent.preventDefault();
+        this.open = false;
+        this.update();
+        queueMicrotask(() => {
+          (this.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null)?.focus();
+        });
+      }
     });
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    const actions = this.itemIdValue ? (this.controllerValue?.getItemActions(this.itemIdValue) ?? []) : [];
+
+    if (!this.itemIdValue || actions.length === 0) {
+      host.innerHTML = `<span part="empty"></span>`;
+      return;
+    }
+
+    const menuMarkup = this.open
+      ? `<div id="${this.menuId}" part="menu" role="menu">${actions
+          .map(
+            action =>
+              `<button type="button" part="menu-item" role="menuitem" data-action-id="${escapeHtml(action.id)}">${escapeHtml(action.label)}</button>`,
+          )
+          .join("")}</div>`
+      : "";
+
+    host.innerHTML = `
+      <div part="menu-shell">
+        <button
+          type="button"
+          part="trigger"
+          aria-label="Open item actions"
+          aria-expanded="${this.open ? "true" : "false"}"
+          aria-haspopup="menu"
+          ${this.open ? `aria-controls="${this.menuId}"` : ""}
+        ><span part="trigger-label">Actions</span><span part="trigger-icon" aria-hidden="true">⋯</span></button>
+        ${menuMarkup}
+      </div>
+    `;
 
     if (this.open) {
       queueMicrotask(() => {
@@ -298,6 +330,7 @@ export class BoxExplorerActionMenuElement extends HTMLElement {
       });
     }
   }
+
 }
 
 export const defineBoxExplorerActionMenuElement = (

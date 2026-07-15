@@ -53,4 +53,24 @@ describe("BoxDropZoneElement", () => {
       }),
     );
   });
+
+  it("preserves the file input across label updates while dragging", () => {
+    const element = document.createElement("box-drop-zone") as BoxDropZoneElement;
+    element.label = "Upload";
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
+    const zone = element.shadowRoot?.querySelector('[part="zone"]') as HTMLLabelElement;
+    input.focus();
+    expect(element.shadowRoot?.activeElement).toBe(input);
+
+    zone.dispatchEvent(new Event("dragenter", { bubbles: true }));
+    element.label = "Drop to upload";
+
+    const nextInput = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
+    expect(nextInput).toBe(input);
+    expect(element.shadowRoot?.activeElement).toBe(input);
+    expect(zone.dataset.dragging).toBe("true");
+    expect(element.shadowRoot?.querySelector('[part="label"]')?.textContent).toBe("Drop to upload");
+  });
 });

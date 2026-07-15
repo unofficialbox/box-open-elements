@@ -1,24 +1,122 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-alert";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+const alertStyles = `
+  :host {
+    display: block;
+    color: inherit;
+    font: inherit;
+  }
 
-export class BoxAlertElement extends HTMLElement {
+  :host([hidden]) {
+    display: none;
+  }
+
+  [part="alert"] {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 0.95rem;
+    border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, var(--boe-token-surface-surface, #ffffff));
+    border-radius: 0.95rem;
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff));
+    color: var(--boe-token-text-text, #222222);
+    transition: background 140ms ease, border-color 140ms ease;
+  }
+
+  [part="alert"][data-tone="success"] {
+    border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 34%, var(--boe-token-surface-surface, #ffffff));
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 12%, var(--boe-token-surface-surface, #ffffff));
+  }
+
+  [part="alert"][data-tone="error"] {
+    border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 30%, var(--boe-token-surface-surface, #ffffff));
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, var(--boe-token-surface-surface, #ffffff));
+  }
+
+  [part="alert"][data-tone="warning"],
+  [part="alert"][data-tone="inprogress"] {
+    border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 40%, var(--boe-token-surface-surface, #ffffff));
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 14%, var(--boe-token-surface-surface, #ffffff));
+  }
+
+  [part="content"] {
+    display: grid;
+    gap: 0.25rem;
+    line-height: 1.45;
+  }
+
+  [part="title"] {
+    font-weight: 700;
+    color: var(--boe-token-text-text, #222222);
+  }
+
+  [part="title"][hidden] {
+    display: none;
+  }
+
+  [part="alert"][data-tone="info"] [part="title"] {
+    color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 78%, var(--boe-token-text-text, #222222));
+  }
+
+  [part="alert"][data-tone="success"] [part="title"] {
+    color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 58%, var(--boe-token-text-text, #222222));
+  }
+
+  [part="alert"][data-tone="error"] [part="title"] {
+    color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 64%, var(--boe-token-text-text, #222222));
+  }
+
+  [part="alert"][data-tone="warning"] [part="title"],
+  [part="alert"][data-tone="inprogress"] [part="title"] {
+    color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 46%, var(--boe-token-text-text, #222222));
+  }
+
+  [part~="description"] {
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+  }
+
+  [part~="description"][hidden] {
+    display: none;
+  }
+
+  [part="dismiss"] {
+    appearance: none;
+    flex: none;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+    border-radius: 999px;
+    background: var(--boe-token-surface-surface, #ffffff);
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.3rem 0.7rem;
+    cursor: pointer;
+    transition: background 140ms ease, border-color 140ms ease;
+  }
+
+  [part="dismiss"]:hover {
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+  }
+
+  [part="dismiss"]:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+    outline-offset: 2px;
+  }
+`;
+
+export class BoxAlertElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["description", "heading", "message", "open", "tone"];
   }
 
   private openValue = true;
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private alertEl!: HTMLElement;
+  private titleEl!: HTMLElement;
+  private messageEl!: HTMLElement;
+  private dismissEl!: HTMLButtonElement;
 
   get open(): boolean {
     return this.openValue;
@@ -37,7 +135,9 @@ export class BoxAlertElement extends HTMLElement {
       this.removeAttribute("open");
     }
     this.dispatchEvent(new CustomEvent("open-changed", { bubbles: true, composed: true, detail: { open: nextValue } }));
-    this.render();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   get heading(): string {
@@ -74,15 +174,14 @@ export class BoxAlertElement extends HTMLElement {
 
   connectedCallback(): void {
     this.openValue = this.hasAttribute("open") || !this.hasAttribute("open");
-    this.render();
+    super.connectedCallback();
   }
 
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "open") {
       this.openValue = this.hasAttribute("open");
     }
-
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   dismiss(): void {
@@ -94,124 +193,62 @@ export class BoxAlertElement extends HTMLElement {
     this.dispatchEvent(new CustomEvent("dismiss", { bubbles: true, composed: true }));
   }
 
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
-    if (!this.openValue || (!this.heading && !this.message)) {
-      this.shadowRoot.innerHTML = "";
-      return;
-    }
-
-    const titleMarkup = this.heading ? `<strong part="title">${escapeHtml(this.heading)}</strong>` : "";
-    const messageMarkup = this.message ? `<span part="description message">${escapeHtml(this.message)}</span>` : "";
-
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="alert"] {
-          display: flex;
-          align-items: start;
-          justify-content: space-between;
-          gap: 0.75rem;
-          padding: 0.85rem 0.95rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, var(--boe-token-surface-surface, #ffffff));
-          border-radius: 0.95rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff));
-          color: var(--boe-token-text-text, #222222);
-          transition: background 140ms ease, border-color 140ms ease;
-        }
-
-        [part="alert"][data-tone="success"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 34%, var(--boe-token-surface-surface, #ffffff));
-          background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 12%, var(--boe-token-surface-surface, #ffffff));
-        }
-
-        [part="alert"][data-tone="error"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 30%, var(--boe-token-surface-surface, #ffffff));
-          background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, var(--boe-token-surface-surface, #ffffff));
-        }
-
-        [part="alert"][data-tone="warning"],
-        [part="alert"][data-tone="inprogress"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 40%, var(--boe-token-surface-surface, #ffffff));
-          background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 14%, var(--boe-token-surface-surface, #ffffff));
-        }
-
-        [part="content"] {
-          display: grid;
-          gap: 0.25rem;
-          line-height: 1.45;
-        }
-
-        [part="title"] {
-          font-weight: 700;
-          color: var(--boe-token-text-text, #222222);
-        }
-
-        [part="alert"][data-tone="info"] [part="title"] {
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 78%, var(--boe-token-text-text, #222222));
-        }
-
-        [part="alert"][data-tone="success"] [part="title"] {
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 58%, var(--boe-token-text-text, #222222));
-        }
-
-        [part="alert"][data-tone="error"] [part="title"] {
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 64%, var(--boe-token-text-text, #222222));
-        }
-
-        [part="alert"][data-tone="warning"] [part="title"],
-        [part="alert"][data-tone="inprogress"] [part="title"] {
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 46%, var(--boe-token-text-text, #222222));
-        }
-
-        [part~="description"] {
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-
-        [part="dismiss"] {
-          appearance: none;
-          flex: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 999px;
-          background: var(--boe-token-surface-surface, #ffffff);
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          font: inherit;
-          font-size: 0.8rem;
-          font-weight: 600;
-          padding: 0.3rem 0.7rem;
-          cursor: pointer;
-          transition: background 140ms ease, border-color 140ms ease;
-        }
-
-        [part="dismiss"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f4f4f4);
-        }
-
-        [part="dismiss"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
-        }
-      </style>
-      <div part="alert" data-tone="${escapeHtml(this.tone)}" role="status" aria-live="polite" aria-label="${escapeHtml(this.heading || this.message)}">
+      <style>${alertStyles}</style>
+      <div part="alert" role="status" aria-live="polite">
         <div part="content">
-          ${titleMarkup}
-          ${messageMarkup}
+          <strong part="title" hidden></strong>
+          <span part="description message" hidden></span>
         </div>
         <button type="button" part="dismiss" aria-label="Dismiss alert">Dismiss</button>
       </div>
     `;
+    this.alertEl = this.shadowRoot.querySelector('[part="alert"]')!;
+    this.titleEl = this.shadowRoot.querySelector('[part="title"]')!;
+    this.messageEl = this.shadowRoot.querySelector('[part~="description"]')!;
+    this.dismissEl = this.shadowRoot.querySelector('[part="dismiss"]')!;
+  }
 
-    this.shadowRoot.querySelector('[part="dismiss"]')?.addEventListener("click", () => {
+  protected setupListeners(): void {
+    this.dismissEl.addEventListener("click", () => {
       this.dismiss();
     });
+  }
+
+  protected update(): void {
+    if (!this.alertEl) {
+      return;
+    }
+
+    const visible = this.openValue && Boolean(this.heading || this.message);
+    this.hidden = !visible;
+    if (!visible) {
+      return;
+    }
+
+    this.alertEl.dataset.tone = this.tone;
+    this.alertEl.setAttribute("aria-label", this.heading || this.message);
+
+    if (this.heading) {
+      this.titleEl.hidden = false;
+      this.titleEl.textContent = this.heading;
+    } else {
+      this.titleEl.hidden = true;
+      this.titleEl.textContent = "";
+    }
+
+    if (this.message) {
+      this.messageEl.hidden = false;
+      this.messageEl.textContent = this.message;
+    } else {
+      this.messageEl.hidden = true;
+      this.messageEl.textContent = "";
+    }
   }
 }
 

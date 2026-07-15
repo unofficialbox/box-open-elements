@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-filter-bar";
 
 const escapeHtml = (value: string): string =>
@@ -20,189 +22,8 @@ type FilterBarState = {
   view: string;
 };
 
-export class BoxFilterBarElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["filter-options", "filters", "label", "query", "sort-options", "sort-value", "view-options", "view-value"];
-  }
 
-  private queryInternal = "";
-  private sortValueInternal = "";
-  private viewValueInternal = "";
-  private filtersInternal: string[] = [];
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get label(): string {
-    return this.getAttribute("label") ?? "Filter Bar";
-  }
-
-  set label(value: string) {
-    this.setAttribute("label", value);
-  }
-
-  get query(): string {
-    return this.queryInternal;
-  }
-
-  set query(value: string) {
-    this.queryInternal = value;
-    this.setAttribute("query", value);
-  }
-
-  get sortValue(): string {
-    return this.sortValueInternal;
-  }
-
-  set sortValue(value: string) {
-    this.sortValueInternal = value;
-    this.setAttribute("sort-value", value);
-  }
-
-  get viewValue(): string {
-    return this.viewValueInternal;
-  }
-
-  set viewValue(value: string) {
-    this.viewValueInternal = value;
-    this.setAttribute("view-value", value);
-  }
-
-  get filters(): string[] {
-    return this.filtersInternal;
-  }
-
-  set filters(value: string[]) {
-    this.filtersInternal = value;
-    this.setAttribute("filters", JSON.stringify(value));
-  }
-
-  get filterOptions(): FilterBarOption[] {
-    return this.parseOptionsAttribute("filter-options");
-  }
-
-  set filterOptions(value: FilterBarOption[]) {
-    this.setAttribute("filter-options", JSON.stringify(value));
-  }
-
-  get sortOptions(): FilterBarOption[] {
-    return this.parseOptionsAttribute("sort-options");
-  }
-
-  set sortOptions(value: FilterBarOption[]) {
-    this.setAttribute("sort-options", JSON.stringify(value));
-  }
-
-  get viewOptions(): FilterBarOption[] {
-    return this.parseOptionsAttribute("view-options");
-  }
-
-  set viewOptions(value: FilterBarOption[]) {
-    this.setAttribute("view-options", JSON.stringify(value));
-  }
-
-  connectedCallback(): void {
-    this.syncInternalStateFromAttributes();
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.syncInternalStateFromAttributes();
-    this.render();
-  }
-
-  private syncInternalStateFromAttributes(): void {
-    this.queryInternal = this.getAttribute("query") ?? "";
-    this.sortValueInternal = this.getAttribute("sort-value") ?? "";
-    this.viewValueInternal = this.getAttribute("view-value") ?? "";
-
-    const rawFilters = this.getAttribute("filters");
-    if (!rawFilters) {
-      this.filtersInternal = [];
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(rawFilters) as string[];
-      this.filtersInternal = Array.isArray(parsed) ? parsed : [];
-    } catch {
-      this.filtersInternal = [];
-    }
-  }
-
-  private parseOptionsAttribute(name: string): FilterBarOption[] {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return [];
-    }
-
-    try {
-      const parsed = JSON.parse(raw) as FilterBarOption[];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }
-
-  private getState(): FilterBarState {
-    return {
-      query: this.query,
-      sort: this.sortValue,
-      view: this.viewValue,
-      filters: this.filters,
-    };
-  }
-
-  private emitValueChanged(): void {
-    this.dispatchEvent(
-      new CustomEvent("value-changed", {
-        bubbles: true,
-        composed: true,
-        detail: { value: this.getState() },
-      }),
-    );
-  }
-
-  private renderOptionList(options: FilterBarOption[], selectedValue: string, partName: string): string {
-    return options
-      .map(
-        option => `
-          <option value="${escapeHtml(option.value)}" ${selectedValue === option.value ? "selected" : ""}>
-            ${escapeHtml(option.label)}
-          </option>
-        `,
-      )
-      .join("");
-  }
-
-  private renderFilterChips(): string {
-    return this.filterOptions
-      .map(option => {
-        const selected = this.filters.includes(option.value);
-        return `
-          <button
-            type="button"
-            part="filter-chip"
-            data-value="${escapeHtml(option.value)}"
-            aria-pressed="${String(selected)}"
-            data-selected="${String(selected)}"
-          >
-            ${escapeHtml(option.label)}
-          </button>
-        `;
-      })
-      .join("");
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -300,7 +121,201 @@ export class BoxFilterBarElement extends HTMLElement {
             grid-template-columns: 1fr;
           }
         }
-      </style>
+      `;
+
+export class BoxFilterBarElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["filter-options", "filters", "label", "query", "sort-options", "sort-value", "view-options", "view-value"];
+  }
+
+  private queryInternal = "";
+  private sortValueInternal = "";
+  private viewValueInternal = "";
+  private filtersInternal: string[] = [];
+  get label(): string {
+    return this.getAttribute("label") ?? "Filter Bar";
+  }
+
+  set label(value: string) {
+    this.setAttribute("label", value);
+  }
+
+  get query(): string {
+    return this.queryInternal;
+  }
+
+  set query(value: string) {
+    this.queryInternal = value;
+    this.setAttribute("query", value);
+  }
+
+  get sortValue(): string {
+    return this.sortValueInternal;
+  }
+
+  set sortValue(value: string) {
+    this.sortValueInternal = value;
+    this.setAttribute("sort-value", value);
+  }
+
+  get viewValue(): string {
+    return this.viewValueInternal;
+  }
+
+  set viewValue(value: string) {
+    this.viewValueInternal = value;
+    this.setAttribute("view-value", value);
+  }
+
+  get filters(): string[] {
+    return this.filtersInternal;
+  }
+
+  set filters(value: string[]) {
+    this.filtersInternal = value;
+    this.setAttribute("filters", JSON.stringify(value));
+  }
+
+  get filterOptions(): FilterBarOption[] {
+    return this.parseOptionsAttribute("filter-options");
+  }
+
+  set filterOptions(value: FilterBarOption[]) {
+    this.setAttribute("filter-options", JSON.stringify(value));
+  }
+
+  get sortOptions(): FilterBarOption[] {
+    return this.parseOptionsAttribute("sort-options");
+  }
+
+  set sortOptions(value: FilterBarOption[]) {
+    this.setAttribute("sort-options", JSON.stringify(value));
+  }
+
+  get viewOptions(): FilterBarOption[] {
+    return this.parseOptionsAttribute("view-options");
+  }
+
+  set viewOptions(value: FilterBarOption[]) {
+    this.setAttribute("view-options", JSON.stringify(value));
+  }
+
+  connectedCallback(): void {
+    this.syncInternalStateFromAttributes();
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    this.syncInternalStateFromAttributes();
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private syncInternalStateFromAttributes(): void {
+    this.queryInternal = this.getAttribute("query") ?? "";
+    this.sortValueInternal = this.getAttribute("sort-value") ?? "";
+    this.viewValueInternal = this.getAttribute("view-value") ?? "";
+
+    const rawFilters = this.getAttribute("filters");
+    if (!rawFilters) {
+      this.filtersInternal = [];
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(rawFilters) as string[];
+      this.filtersInternal = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      this.filtersInternal = [];
+    }
+  }
+
+  private parseOptionsAttribute(name: string): FilterBarOption[] {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as FilterBarOption[];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private getState(): FilterBarState {
+    return {
+      query: this.query,
+      sort: this.sortValue,
+      view: this.viewValue,
+      filters: this.filters,
+    };
+  }
+
+  private emitValueChanged(): void {
+    this.dispatchEvent(
+      new CustomEvent("value-changed", {
+        bubbles: true,
+        composed: true,
+        detail: { value: this.getState() },
+      }),
+    );
+  }
+
+  private renderOptionList(options: FilterBarOption[], selectedValue: string, partName: string): string {
+    return options
+      .map(
+        option => `
+          <option value="${escapeHtml(option.value)}" ${selectedValue === option.value ? "selected" : ""}>
+            ${escapeHtml(option.label)}
+          </option>
+        `,
+      )
+      .join("");
+  }
+
+  private renderFilterChips(): string {
+    return this.filterOptions
+      .map(option => {
+        const selected = this.filters.includes(option.value);
+        return `
+          <button
+            type="button"
+            part="filter-chip"
+            data-value="${escapeHtml(option.value)}"
+            aria-pressed="${String(selected)}"
+            data-selected="${String(selected)}"
+          >
+            ${escapeHtml(option.label)}
+          </button>
+        `;
+      })
+      .join("");
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <section part="bar" aria-label="${escapeHtml(this.label)}">
         <div part="label">${escapeHtml(this.label)}</div>
         <div part="controls">
@@ -373,6 +388,7 @@ export class BoxFilterBarElement extends HTMLElement {
         this.emitValueChanged();
       });
     });
+  
   }
 }
 

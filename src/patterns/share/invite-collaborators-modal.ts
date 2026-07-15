@@ -1,5 +1,6 @@
 import { InviteCollaboratorsController } from "./invite-collaborators-controller.js";
 import type { InviteCollaboratorsTransport, InviteRole } from "./invite-collaborators-contracts.js";
+import { BaseElement } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-invite-collaborators-modal";
 
@@ -25,7 +26,7 @@ const DEFAULT_ROLES: InviteRole[] = [
  * dismissal, closing itself in both cases. Structure is built once per open so
  * the live inputs keep focus while only the pills/status update.
  */
-export class BoxInviteCollaboratorsModalElement extends HTMLElement {
+export class BoxInviteCollaboratorsModalElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["heading", "item-id", "open", "submit-label"];
   }
@@ -35,10 +36,6 @@ export class BoxInviteCollaboratorsModalElement extends HTMLElement {
   private transportValue: InviteCollaboratorsTransport | null = null;
   private rolesValue: InviteRole[] = DEFAULT_ROLES;
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
 
   get open(): boolean {
     return this.hasAttribute("open");
@@ -79,7 +76,7 @@ export class BoxInviteCollaboratorsModalElement extends HTMLElement {
   set transport(value: InviteCollaboratorsTransport | null) {
     this.transportValue = value;
     this.ensureController(true);
-    this.render();
+    this.refresh();
   }
 
   get roles(): InviteRole[] {
@@ -88,12 +85,13 @@ export class BoxInviteCollaboratorsModalElement extends HTMLElement {
 
   set roles(value: InviteRole[]) {
     this.rolesValue = value.length ? value : DEFAULT_ROLES;
-    this.render();
+    this.refresh();
   }
 
   connectedCallback(): void {
+    super.connectedCallback();
     this.ensureController(false);
-    this.render();
+    this.refresh();
   }
 
   disconnectedCallback(): void {
@@ -104,7 +102,7 @@ export class BoxInviteCollaboratorsModalElement extends HTMLElement {
     if (name === "item-id") {
       this.ensureController(true);
     }
-    this.render();
+    this.refresh();
   }
 
   private ensureController(recreate: boolean): void {
@@ -130,7 +128,23 @@ export class BoxInviteCollaboratorsModalElement extends HTMLElement {
     this.controller = null;
   }
 
-  private render(): void {
+
+  private refresh(): void {
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+    // Styles and open content are owned by update()/buildStructure so closed
+    // state can clear the dialog without dropping the BaseElement lifecycle.
+    this.shadowRoot.innerHTML = "";
+  }
+
+  protected update(): void {
     if (!this.shadowRoot) {
       return;
     }

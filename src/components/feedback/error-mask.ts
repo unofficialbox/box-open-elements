@@ -1,12 +1,83 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-error-mask";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+const errorMaskStyles = `
+  :host {
+    display: block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="error-mask"] {
+    display: grid;
+    justify-items: center;
+    gap: 0.55rem;
+    padding: 2rem 1.5rem;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke-danger, #f0b7b2) 82%, transparent);
+    border-radius: 0.95rem;
+    background: color-mix(in srgb, var(--boe-token-surface-surface-danger, #fdecea) 60%, var(--boe-token-surface-surface, #ffffff) 40%);
+    text-align: center;
+  }
+
+  [part="icon"] {
+    display: grid;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--boe-token-surface-surface-danger, #fdecea) 55%, var(--boe-token-surface-surface, #ffffff) 45%);
+    color: var(--boe-token-text-text-danger, #b3261e);
+  }
+
+  [part="icon"] svg {
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+  }
+
+  [part="title"] {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--boe-token-text-text, #222222);
+  }
+
+  [part~="message"] {
+    max-width: 32rem;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    line-height: 1.5;
+  }
+
+  [part~="message"][hidden] {
+    display: none;
+  }
+
+  [part="action"] {
+    appearance: none;
+    margin-top: 0.4rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: var(--boe-token-surface-surface-brand, #0061d5);
+    color: var(--boe-token-text-text-on-brand, #ffffff);
+    font: inherit;
+    font-weight: 600;
+    padding: 0.58rem 1.05rem;
+    cursor: pointer;
+    transition: background 140ms ease, transform 140ms ease;
+  }
+
+  [part="action"]:hover {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 88%, black 12%);
+  }
+
+  [part="action"]:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+    outline-offset: 2px;
+  }
+
+  [part="action"][hidden] {
+    display: none;
+  }
+`;
 
 /**
  * A full-section error state that masks a region that failed to load — distinct
@@ -14,15 +85,14 @@ const escapeHtml = (value: string): string =>
  * assertively via `role="alert"` and offers an optional retry action that emits
  * a `retry` event; the host owns the actual reload.
  */
-export class BoxErrorMaskElement extends HTMLElement {
+export class BoxErrorMaskElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["action-label", "description", "heading", "message"];
   }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private titleEl!: HTMLElement;
+  private messageEl!: HTMLElement;
+  private actionEl: HTMLButtonElement | null = null;
 
   get heading(): string {
     return this.getAttribute("heading") ?? "Something went wrong";
@@ -56,94 +126,13 @@ export class BoxErrorMaskElement extends HTMLElement {
     this.setAttribute("action-label", value);
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
-    const message = this.message;
-    const messageMarkup = message ? `<span part="message description">${escapeHtml(message)}</span>` : "";
-    const actionMarkup = this.actionLabel
-      ? `<button type="button" part="action">${escapeHtml(this.actionLabel)}</button>`
-      : "";
-
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="error-mask"] {
-          display: grid;
-          justify-items: center;
-          gap: 0.55rem;
-          padding: 2rem 1.5rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke-danger, #f0b7b2) 82%, transparent);
-          border-radius: 0.95rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-danger, #fdecea) 60%, var(--boe-token-surface-surface, #ffffff) 40%);
-          text-align: center;
-        }
-
-        [part="icon"] {
-          display: grid;
-          place-items: center;
-          inline-size: 2.75rem;
-          block-size: 2.75rem;
-          border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-danger, #fdecea) 55%, var(--boe-token-surface-surface, #ffffff) 45%);
-          color: var(--boe-token-text-text-danger, #b3261e);
-        }
-
-        [part="icon"] svg {
-          inline-size: 1.5rem;
-          block-size: 1.5rem;
-        }
-
-        [part="title"] {
-          font-size: 1.05rem;
-          font-weight: 700;
-          color: var(--boe-token-text-text, #222222);
-        }
-
-        [part~="message"] {
-          max-width: 32rem;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          line-height: 1.5;
-        }
-
-        [part="action"] {
-          appearance: none;
-          margin-top: 0.4rem;
-          border: 1px solid transparent;
-          border-radius: 999px;
-          background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: var(--boe-token-text-text-on-brand, #ffffff);
-          font: inherit;
-          font-weight: 600;
-          padding: 0.58rem 1.05rem;
-          cursor: pointer;
-          transition: background 140ms ease, transform 140ms ease;
-        }
-
-        [part="action"]:hover {
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 88%, black 12%);
-        }
-
-        [part="action"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
-        }
-      </style>
+      <style>${errorMaskStyles}</style>
       <section part="error-mask" role="alert" aria-live="assertive">
         <span part="icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -152,21 +141,60 @@ export class BoxErrorMaskElement extends HTMLElement {
             <path d="M12 17h.01"/>
           </svg>
         </span>
-        <strong part="title">${escapeHtml(this.heading)}</strong>
-        ${messageMarkup}
-        ${actionMarkup}
+        <strong part="title"></strong>
+        <span part="message description" hidden></span>
       </section>
     `;
+    this.titleEl = this.shadowRoot.querySelector('[part="title"]')!;
+    this.messageEl = this.shadowRoot.querySelector('[part~="message"]')!;
+  }
 
-    this.shadowRoot.querySelector('[part="action"]')?.addEventListener("click", () => {
-      this.dispatchEvent(
-        new CustomEvent("retry", {
-          bubbles: true,
-          composed: true,
-          detail: { label: this.actionLabel },
-        }),
-      );
-    });
+  private syncActionButton(): void {
+    const section = this.shadowRoot?.querySelector('[part="error-mask"]');
+    if (!section) {
+      return;
+    }
+
+    if (this.actionLabel) {
+      if (!this.actionEl) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.setAttribute("part", "action");
+        button.addEventListener("click", () => {
+          this.dispatchEvent(
+            new CustomEvent("retry", {
+              bubbles: true,
+              composed: true,
+              detail: { label: this.actionLabel },
+            }),
+          );
+        });
+        section.append(button);
+        this.actionEl = button;
+      }
+      this.actionEl.textContent = this.actionLabel;
+    } else if (this.actionEl) {
+      this.actionEl.remove();
+      this.actionEl = null;
+    }
+  }
+
+  protected update(): void {
+    if (!this.titleEl) {
+      return;
+    }
+
+    this.titleEl.textContent = this.heading;
+
+    if (this.message) {
+      this.messageEl.hidden = false;
+      this.messageEl.textContent = this.message;
+    } else {
+      this.messageEl.hidden = true;
+      this.messageEl.textContent = "";
+    }
+
+    this.syncActionButton();
   }
 }
 

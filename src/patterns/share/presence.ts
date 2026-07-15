@@ -1,5 +1,6 @@
 import { PresenceController } from "./presence-controller.js";
 import type { PresenceTransport, PresenceUser } from "./presence-contracts.js";
+import { BaseElement } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-presence";
 
@@ -36,7 +37,7 @@ const summarize = (users: PresenceUser[]): string => {
  * update) or by injecting a static `users` array. A polite live region
  * announces roster changes. Pair the transport with your realtime backend.
  */
-export class BoxPresenceElement extends HTMLElement {
+export class BoxPresenceElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["label", "max"];
   }
@@ -45,11 +46,6 @@ export class BoxPresenceElement extends HTMLElement {
   private transportValue: PresenceTransport | null = null;
   private usersValue: PresenceUser[] = [];
   private controllerUnsubscribe: (() => void) | null = null;
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
 
   get transport(): PresenceTransport | null {
     return this.transportValue;
@@ -69,8 +65,8 @@ export class BoxPresenceElement extends HTMLElement {
 
   set users(value: PresenceUser[]) {
     this.usersValue = [...value];
-    if (!this.controller) {
-      this.render();
+    if (!this.controller && this.isRendered) {
+      this.update();
     }
   }
 
@@ -95,6 +91,7 @@ export class BoxPresenceElement extends HTMLElement {
   }
 
   connectedCallback(): void {
+    super.connectedCallback();
     this.startController();
   }
 
@@ -102,8 +99,10 @@ export class BoxPresenceElement extends HTMLElement {
     this.teardownController();
   }
 
-  attributeChangedCallback(): void {
-    this.render();
+  private refresh(): void {
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   private startController(): void {
@@ -111,7 +110,7 @@ export class BoxPresenceElement extends HTMLElement {
     // Only open a subscription once the element is in the DOM, so setting a
     // transport before insertion (or on a never-inserted element) cannot leak.
     if (!this.isConnected || !this.transportValue) {
-      this.render();
+      this.refresh();
       return;
     }
 
@@ -119,9 +118,9 @@ export class BoxPresenceElement extends HTMLElement {
       transport: this.transportValue,
       initialUsers: this.usersValue,
     });
-    this.controllerUnsubscribe = this.controller.subscribe("presenceChanged", () => this.render());
+    this.controllerUnsubscribe = this.controller.subscribe("presenceChanged", () => this.refresh());
     this.controller.connect();
-    this.render();
+    this.refresh();
   }
 
   private teardownController(): void {
@@ -139,8 +138,8 @@ export class BoxPresenceElement extends HTMLElement {
   // Build the shadow structure once. Keeping the [part="summary"] aria-live node
   // stable across roster updates lets assistive tech announce the change rather
   // than treat the replaced node as fresh, static content.
-  private ensureStructure(): void {
-    if (!this.shadowRoot || this.shadowRoot.querySelector('[part="presence"]')) {
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
       return;
     }
 
@@ -231,12 +230,11 @@ export class BoxPresenceElement extends HTMLElement {
     `;
   }
 
-  private render(): void {
+  protected update(): void {
     if (!this.shadowRoot) {
       return;
     }
 
-    this.ensureStructure();
     const presence = this.shadowRoot.querySelector('[part="presence"]') as HTMLElement | null;
     const stack = this.shadowRoot.querySelector('[part="stack"]') as HTMLElement | null;
     const summary = this.shadowRoot.querySelector('[part="summary"]') as HTMLElement | null;

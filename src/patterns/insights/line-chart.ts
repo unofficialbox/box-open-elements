@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-line-chart";
 
 const escapeHtml = (value: string): string =>
@@ -33,274 +35,8 @@ type ChartCoordinate = {
   y: number;
 };
 
-export class BoxLineChartElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["actions", "legend", "message", "points", "summary", "timeframe", "heading"];
-  }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get actions(): LineChartAction[] {
-    return this.parseJsonAttribute<LineChartAction[]>("actions", []);
-  }
-
-  set actions(value: LineChartAction[]) {
-    this.setAttribute("actions", JSON.stringify(value));
-  }
-
-  get legend(): LineChartLegendItem[] {
-    return this.parseJsonAttribute<LineChartLegendItem[]>("legend", []);
-  }
-
-  set legend(value: LineChartLegendItem[]) {
-    this.setAttribute("legend", JSON.stringify(value));
-  }
-
-  get message(): string {
-    return this.getAttribute("message") ?? "";
-  }
-
-  set message(value: string) {
-    if (!value) {
-      this.removeAttribute("message");
-      return;
-    }
-
-    this.setAttribute("message", value);
-  }
-
-  get points(): LineChartPoint[] {
-    return this.parseJsonAttribute<LineChartPoint[]>("points", []);
-  }
-
-  set points(value: LineChartPoint[]) {
-    this.setAttribute("points", JSON.stringify(value));
-  }
-
-  get summary(): string {
-    return this.getAttribute("summary") ?? "";
-  }
-
-  set summary(value: string) {
-    if (!value) {
-      this.removeAttribute("summary");
-      return;
-    }
-
-    this.setAttribute("summary", value);
-  }
-
-  get timeframe(): string {
-    return this.getAttribute("timeframe") ?? "";
-  }
-
-  set timeframe(value: string) {
-    if (!value) {
-      this.removeAttribute("timeframe");
-      return;
-    }
-
-    this.setAttribute("timeframe", value);
-  }
-
-  get heading(): string {
-    return this.getAttribute("heading") ?? "Line Chart";
-  }
-
-  set heading(value: string) {
-    this.setAttribute("heading", value);
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private parseJsonAttribute<T>(name: string, fallback: T): T {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return fallback;
-    }
-
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
-  }
-
-  private emitAction(actionId: string): void {
-    this.dispatchEvent(
-      new CustomEvent("action", {
-        bubbles: true,
-        composed: true,
-        detail: { action: actionId },
-      }),
-    );
-  }
-
-  private emitPointSelected(point: LineChartPoint): void {
-    this.dispatchEvent(
-      new CustomEvent("point-selected", {
-        bubbles: true,
-        composed: true,
-        detail: point,
-      }),
-    );
-  }
-
-  private getCoordinates(points: LineChartPoint[]): ChartCoordinate[] {
-    if (points.length === 0) {
-      return [];
-    }
-
-    const max = points.reduce((value, point) => Math.max(value, point.value), 0) || 1;
-    const min = points.reduce((value, point) => Math.min(value, point.value), points[0]?.value ?? 0);
-    const spread = Math.max(max - min, 1);
-    const horizontalInset = 0;
-    const chartWidth = 100 - horizontalInset * 2;
-
-    return points.map((point, index) => {
-      const x = points.length === 1 ? 50 : horizontalInset + (index / (points.length - 1)) * chartWidth;
-      const y = 47 - ((point.value - min) / spread) * 40;
-      return {
-        point,
-        x: Number(x.toFixed(2)),
-        y: Number(Math.max(4, Math.min(47, y)).toFixed(2)),
-      };
-    });
-  }
-
-  private buildSmoothPath(coordinates: ChartCoordinate[]): string {
-    if (coordinates.length === 0) {
-      return "";
-    }
-
-    if (coordinates.length === 1) {
-      const { x, y } = coordinates[0];
-      return `M ${x} ${y}`;
-    }
-
-    let path = `M ${coordinates[0].x} ${coordinates[0].y}`;
-    for (let index = 0; index < coordinates.length - 1; index += 1) {
-      const current = coordinates[index];
-      const next = coordinates[index + 1];
-      const controlX = Number(((current.x + next.x) / 2).toFixed(2));
-      path += ` C ${controlX} ${current.y}, ${controlX} ${next.y}, ${next.x} ${next.y}`;
-    }
-    return path;
-  }
-
-  private buildAreaPath(coordinates: ChartCoordinate[]): string {
-    if (coordinates.length === 0) {
-      return "";
-    }
-
-    const linePath = this.buildSmoothPath(coordinates);
-    const first = coordinates[0];
-    const last = coordinates[coordinates.length - 1];
-    return `${linePath} L ${last.x} 52 L ${first.x} 52 Z`;
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const summaryMarkup = this.summary ? `<div part="summary">${escapeHtml(this.summary)}</div>` : "";
-    const timeframeMarkup = this.timeframe ? `<div part="timeframe">${escapeHtml(this.timeframe)}</div>` : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-    const coordinates = this.getCoordinates(this.points);
-    const linePath = this.buildSmoothPath(coordinates);
-    const areaPath = this.buildAreaPath(coordinates);
-    const chartMarkup = this.points.length
-      ? `
-          <div part="visual">
-            <svg part="chart" viewBox="0 0 100 56" role="img" aria-label="${escapeHtml(this.heading)} trend line">
-              <defs>
-                <linearGradient id="line-chart-area-gradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, transparent)"></stop>
-                  <stop offset="100%" stop-color="color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 3%, transparent)"></stop>
-                </linearGradient>
-              </defs>
-              <line part="grid-line" x1="0" y1="5" x2="100" y2="5"></line>
-              <line part="grid-line" x1="0" y1="20.5" x2="100" y2="20.5"></line>
-              <line part="grid-line" x1="0" y1="36" x2="100" y2="36"></line>
-              <line part="grid-line" x1="0" y1="51.5" x2="100" y2="51.5"></line>
-              <path part="area" d="${areaPath}"></path>
-              <path part="path" d="${linePath}"></path>
-              ${coordinates
-                .map(({ point, x, y }) => {
-                  return `
-                    <circle part="dot-halo" cx="${x}" cy="${y}" r="2.2"></circle>
-                    <circle part="dot" data-tone="${escapeHtml(point.tone ?? "neutral")}" cx="${x}" cy="${y}" r="1.2"></circle>
-                  `;
-                })
-                .join("")}
-            </svg>
-            <div part="points" role="list" aria-label="${escapeHtml(this.heading)} points">
-              ${coordinates
-                .map(
-                  ({ point }) => `
-                    <button
-                      type="button"
-                      part="point"
-                      role="listitem"
-                      data-point-id="${escapeHtml(point.id)}"
-                      data-tone="${escapeHtml(point.tone ?? "neutral")}"
-                      aria-label="${escapeHtml(`${point.label}: ${point.value}`)}"
-                    >
-                      <span part="point-label">${escapeHtml(point.label)}</span>
-                      <span part="point-value">${escapeHtml(String(point.value))}</span>
-                    </button>
-                  `,
-                )
-                .join("")}
-            </div>
-          </div>
-        `
-      : `<div part="empty">No line-chart data available.</div>`;
-    const legendMarkup = this.legend.length
-      ? `
-          <div part="legend">
-            ${this.legend
-              .map(
-                item => `
-                  <div part="legend-item" data-tone="${escapeHtml(item.tone ?? "neutral")}">
-                    <span part="legend-swatch"></span>
-                    <span part="legend-label">${escapeHtml(item.label)}</span>
-                    ${item.value ? `<span part="legend-value">${escapeHtml(item.value)}</span>` : ""}
-                  </div>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -528,7 +264,286 @@ export class BoxLineChartElement extends HTMLElement {
           border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
-      </style>
+      `;
+
+export class BoxLineChartElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["actions", "legend", "message", "points", "summary", "timeframe", "heading"];
+  }
+  get actions(): LineChartAction[] {
+    return this.parseJsonAttribute<LineChartAction[]>("actions", []);
+  }
+
+  set actions(value: LineChartAction[]) {
+    this.setAttribute("actions", JSON.stringify(value));
+  }
+
+  get legend(): LineChartLegendItem[] {
+    return this.parseJsonAttribute<LineChartLegendItem[]>("legend", []);
+  }
+
+  set legend(value: LineChartLegendItem[]) {
+    this.setAttribute("legend", JSON.stringify(value));
+  }
+
+  get message(): string {
+    return this.getAttribute("message") ?? "";
+  }
+
+  set message(value: string) {
+    if (!value) {
+      this.removeAttribute("message");
+      return;
+    }
+
+    this.setAttribute("message", value);
+  }
+
+  get points(): LineChartPoint[] {
+    return this.parseJsonAttribute<LineChartPoint[]>("points", []);
+  }
+
+  set points(value: LineChartPoint[]) {
+    this.setAttribute("points", JSON.stringify(value));
+  }
+
+  get summary(): string {
+    return this.getAttribute("summary") ?? "";
+  }
+
+  set summary(value: string) {
+    if (!value) {
+      this.removeAttribute("summary");
+      return;
+    }
+
+    this.setAttribute("summary", value);
+  }
+
+  get timeframe(): string {
+    return this.getAttribute("timeframe") ?? "";
+  }
+
+  set timeframe(value: string) {
+    if (!value) {
+      this.removeAttribute("timeframe");
+      return;
+    }
+
+    this.setAttribute("timeframe", value);
+  }
+
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Line Chart";
+  }
+
+  set heading(value: string) {
+    this.setAttribute("heading", value);
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private emitAction(actionId: string): void {
+    this.dispatchEvent(
+      new CustomEvent("action", {
+        bubbles: true,
+        composed: true,
+        detail: { action: actionId },
+      }),
+    );
+  }
+
+  private emitPointSelected(point: LineChartPoint): void {
+    this.dispatchEvent(
+      new CustomEvent("point-selected", {
+        bubbles: true,
+        composed: true,
+        detail: point,
+      }),
+    );
+  }
+
+  private getCoordinates(points: LineChartPoint[]): ChartCoordinate[] {
+    if (points.length === 0) {
+      return [];
+    }
+
+    const max = points.reduce((value, point) => Math.max(value, point.value), 0) || 1;
+    const min = points.reduce((value, point) => Math.min(value, point.value), points[0]?.value ?? 0);
+    const spread = Math.max(max - min, 1);
+    const horizontalInset = 0;
+    const chartWidth = 100 - horizontalInset * 2;
+
+    return points.map((point, index) => {
+      const x = points.length === 1 ? 50 : horizontalInset + (index / (points.length - 1)) * chartWidth;
+      const y = 47 - ((point.value - min) / spread) * 40;
+      return {
+        point,
+        x: Number(x.toFixed(2)),
+        y: Number(Math.max(4, Math.min(47, y)).toFixed(2)),
+      };
+    });
+  }
+
+  private buildSmoothPath(coordinates: ChartCoordinate[]): string {
+    if (coordinates.length === 0) {
+      return "";
+    }
+
+    if (coordinates.length === 1) {
+      const { x, y } = coordinates[0];
+      return `M ${x} ${y}`;
+    }
+
+    let path = `M ${coordinates[0].x} ${coordinates[0].y}`;
+    for (let index = 0; index < coordinates.length - 1; index += 1) {
+      const current = coordinates[index];
+      const next = coordinates[index + 1];
+      const controlX = Number(((current.x + next.x) / 2).toFixed(2));
+      path += ` C ${controlX} ${current.y}, ${controlX} ${next.y}, ${next.x} ${next.y}`;
+    }
+    return path;
+  }
+
+  private buildAreaPath(coordinates: ChartCoordinate[]): string {
+    if (coordinates.length === 0) {
+      return "";
+    }
+
+    const linePath = this.buildSmoothPath(coordinates);
+    const first = coordinates[0];
+    const last = coordinates[coordinates.length - 1];
+    return `${linePath} L ${last.x} 52 L ${first.x} 52 Z`;
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
+    const summaryMarkup = this.summary ? `<div part="summary">${escapeHtml(this.summary)}</div>` : "";
+    const timeframeMarkup = this.timeframe ? `<div part="timeframe">${escapeHtml(this.timeframe)}</div>` : "";
+    const actionsMarkup = this.actions.length
+      ? `
+          <div part="actions">
+            ${this.actions
+              .map(
+                action => `
+                  <button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">
+                    ${escapeHtml(action.label)}
+                  </button>
+                `,
+              )
+              .join("")}
+          </div>
+        `
+      : "";
+    const coordinates = this.getCoordinates(this.points);
+    const linePath = this.buildSmoothPath(coordinates);
+    const areaPath = this.buildAreaPath(coordinates);
+    const chartMarkup = this.points.length
+      ? `
+          <div part="visual">
+            <svg part="chart" viewBox="0 0 100 56" role="img" aria-label="${escapeHtml(this.heading)} trend line">
+              <defs>
+                <linearGradient id="line-chart-area-gradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, transparent)"></stop>
+                  <stop offset="100%" stop-color="color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 3%, transparent)"></stop>
+                </linearGradient>
+              </defs>
+              <line part="grid-line" x1="0" y1="5" x2="100" y2="5"></line>
+              <line part="grid-line" x1="0" y1="20.5" x2="100" y2="20.5"></line>
+              <line part="grid-line" x1="0" y1="36" x2="100" y2="36"></line>
+              <line part="grid-line" x1="0" y1="51.5" x2="100" y2="51.5"></line>
+              <path part="area" d="${areaPath}"></path>
+              <path part="path" d="${linePath}"></path>
+              ${coordinates
+                .map(({ point, x, y }) => {
+                  return `
+                    <circle part="dot-halo" cx="${x}" cy="${y}" r="2.2"></circle>
+                    <circle part="dot" data-tone="${escapeHtml(point.tone ?? "neutral")}" cx="${x}" cy="${y}" r="1.2"></circle>
+                  `;
+                })
+                .join("")}
+            </svg>
+            <div part="points" role="list" aria-label="${escapeHtml(this.heading)} points">
+              ${coordinates
+                .map(
+                  ({ point }) => `
+                    <button
+                      type="button"
+                      part="point"
+                      role="listitem"
+                      data-point-id="${escapeHtml(point.id)}"
+                      data-tone="${escapeHtml(point.tone ?? "neutral")}"
+                      aria-label="${escapeHtml(`${point.label}: ${point.value}`)}"
+                    >
+                      <span part="point-label">${escapeHtml(point.label)}</span>
+                      <span part="point-value">${escapeHtml(String(point.value))}</span>
+                    </button>
+                  `,
+                )
+                .join("")}
+            </div>
+          </div>
+        `
+      : `<div part="empty">No line-chart data available.</div>`;
+    const legendMarkup = this.legend.length
+      ? `
+          <div part="legend">
+            ${this.legend
+              .map(
+                item => `
+                  <div part="legend-item" data-tone="${escapeHtml(item.tone ?? "neutral")}">
+                    <span part="legend-swatch"></span>
+                    <span part="legend-label">${escapeHtml(item.label)}</span>
+                    ${item.value ? `<span part="legend-value">${escapeHtml(item.value)}</span>` : ""}
+                  </div>
+                `,
+              )
+              .join("")}
+          </div>
+        `
+      : "";
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <article part="panel">
         <header part="header">
           <div part="meta">
@@ -564,6 +579,7 @@ export class BoxLineChartElement extends HTMLElement {
         }
       });
     });
+  
   }
 }
 

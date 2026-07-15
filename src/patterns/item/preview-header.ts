@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-preview-header";
 
 const escapeHtml = (value: string): string =>
@@ -19,142 +21,8 @@ type PreviewHeaderBreadcrumb = {
   label: string;
 };
 
-export class BoxPreviewHeaderElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["actions", "breadcrumbs", "message", "status", "heading"];
-  }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get actions(): PreviewHeaderAction[] {
-    return this.parseJsonAttribute<PreviewHeaderAction[]>("actions", []);
-  }
-
-  set actions(value: PreviewHeaderAction[]) {
-    this.setAttribute("actions", JSON.stringify(value));
-  }
-
-  get breadcrumbs(): PreviewHeaderBreadcrumb[] {
-    return this.parseJsonAttribute<PreviewHeaderBreadcrumb[]>("breadcrumbs", []);
-  }
-
-  set breadcrumbs(value: PreviewHeaderBreadcrumb[]) {
-    this.setAttribute("breadcrumbs", JSON.stringify(value));
-  }
-
-  get message(): string {
-    return this.getAttribute("message") ?? "";
-  }
-
-  set message(value: string) {
-    this.setAttribute("message", value);
-  }
-
-  get status(): string {
-    return this.getAttribute("status") ?? "";
-  }
-
-  set status(value: string) {
-    this.setAttribute("status", value);
-  }
-
-  get heading(): string {
-    return this.getAttribute("heading") ?? "";
-  }
-
-  set heading(value: string) {
-    this.setAttribute("heading", value);
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private parseJsonAttribute<T>(name: string, fallback: T): T {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return fallback;
-    }
-
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
-  }
-
-  private emitAction(actionId: string): void {
-    this.dispatchEvent(
-      new CustomEvent("action", {
-        bubbles: true,
-        composed: true,
-        detail: { action: actionId },
-      }),
-    );
-  }
-
-  private emitBreadcrumbSelected(id: string): void {
-    this.dispatchEvent(
-      new CustomEvent("breadcrumb-selected", {
-        bubbles: true,
-        composed: true,
-        detail: { id },
-      }),
-    );
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const breadcrumbsMarkup = this.breadcrumbs.length
-      ? `
-          <nav part="breadcrumbs" aria-label="Preview breadcrumbs">
-            ${this.breadcrumbs
-              .map(
-                crumb => `
-                  <button type="button" part="breadcrumb" data-crumb-id="${escapeHtml(crumb.id)}">
-                    ${escapeHtml(crumb.label)}
-                  </button>
-                `,
-              )
-              .join('<span part="separator">/</span>')}
-          </nav>
-        `
-      : "";
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const statusMarkup = this.status ? `<div part="status">${escapeHtml(this.status)}</div>` : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button
-                    type="button"
-                    part="action"
-                    data-action-id="${escapeHtml(action.id)}"
-                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
-                  >
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -260,7 +128,154 @@ export class BoxPreviewHeaderElement extends HTMLElement {
           outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
           outline-offset: 2px;
         }
-      </style>
+      `;
+
+export class BoxPreviewHeaderElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["actions", "breadcrumbs", "message", "status", "heading"];
+  }
+  get actions(): PreviewHeaderAction[] {
+    return this.parseJsonAttribute<PreviewHeaderAction[]>("actions", []);
+  }
+
+  set actions(value: PreviewHeaderAction[]) {
+    this.setAttribute("actions", JSON.stringify(value));
+  }
+
+  get breadcrumbs(): PreviewHeaderBreadcrumb[] {
+    return this.parseJsonAttribute<PreviewHeaderBreadcrumb[]>("breadcrumbs", []);
+  }
+
+  set breadcrumbs(value: PreviewHeaderBreadcrumb[]) {
+    this.setAttribute("breadcrumbs", JSON.stringify(value));
+  }
+
+  get message(): string {
+    return this.getAttribute("message") ?? "";
+  }
+
+  set message(value: string) {
+    this.setAttribute("message", value);
+  }
+
+  get status(): string {
+    return this.getAttribute("status") ?? "";
+  }
+
+  set status(value: string) {
+    this.setAttribute("status", value);
+  }
+
+  get heading(): string {
+    return this.getAttribute("heading") ?? "";
+  }
+
+  set heading(value: string) {
+    this.setAttribute("heading", value);
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private emitAction(actionId: string): void {
+    this.dispatchEvent(
+      new CustomEvent("action", {
+        bubbles: true,
+        composed: true,
+        detail: { action: actionId },
+      }),
+    );
+  }
+
+  private emitBreadcrumbSelected(id: string): void {
+    this.dispatchEvent(
+      new CustomEvent("breadcrumb-selected", {
+        bubbles: true,
+        composed: true,
+        detail: { id },
+      }),
+    );
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const breadcrumbsMarkup = this.breadcrumbs.length
+      ? `
+          <nav part="breadcrumbs" aria-label="Preview breadcrumbs">
+            ${this.breadcrumbs
+              .map(
+                crumb => `
+                  <button type="button" part="breadcrumb" data-crumb-id="${escapeHtml(crumb.id)}">
+                    ${escapeHtml(crumb.label)}
+                  </button>
+                `,
+              )
+              .join('<span part="separator">/</span>')}
+          </nav>
+        `
+      : "";
+    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
+    const statusMarkup = this.status ? `<div part="status">${escapeHtml(this.status)}</div>` : "";
+    const actionsMarkup = this.actions.length
+      ? `
+          <div part="actions">
+            ${this.actions
+              .map(
+                action => `
+                  <button
+                    type="button"
+                    part="action"
+                    data-action-id="${escapeHtml(action.id)}"
+                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
+                  >
+                    ${escapeHtml(action.label)}
+                  </button>
+                `,
+              )
+              .join("")}
+          </div>
+        `
+      : "";
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <section part="header">
         ${breadcrumbsMarkup}
         <div part="main">
@@ -291,6 +306,7 @@ export class BoxPreviewHeaderElement extends HTMLElement {
         }
       });
     });
+  
   }
 }
 

@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-governance-panel";
 
 const escapeHtml = (value: string): string =>
@@ -26,177 +28,8 @@ type GovernancePanelSignal = {
   tone?: string;
 };
 
-export class BoxGovernancePanelElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["actions", "heading", "message", "policies", "signals", "status"];
-  }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get actions(): GovernancePanelAction[] {
-    return this.parseJsonAttribute<GovernancePanelAction[]>("actions", []);
-  }
-
-  set actions(value: GovernancePanelAction[]) {
-    this.setAttribute("actions", JSON.stringify(value));
-  }
-
-  get message(): string {
-    return this.getAttribute("message") ?? "";
-  }
-
-  set message(value: string) {
-    this.setAttribute("message", value);
-  }
-
-  get policies(): GovernancePanelPolicy[] {
-    return this.parseJsonAttribute<GovernancePanelPolicy[]>("policies", []);
-  }
-
-  set policies(value: GovernancePanelPolicy[]) {
-    this.setAttribute("policies", JSON.stringify(value));
-  }
-
-  get signals(): GovernancePanelSignal[] {
-    return this.parseJsonAttribute<GovernancePanelSignal[]>("signals", []);
-  }
-
-  set signals(value: GovernancePanelSignal[]) {
-    this.setAttribute("signals", JSON.stringify(value));
-  }
-
-  get status(): string {
-    return this.getAttribute("status") ?? "";
-  }
-
-  set status(value: string) {
-    if (!value) {
-      this.removeAttribute("status");
-      return;
-    }
-
-    this.setAttribute("status", value);
-  }
-
-  get heading(): string {
-    return this.getAttribute("heading") ?? "Governance";
-  }
-
-  set heading(value: string) {
-    this.setAttribute("heading", value);
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private parseJsonAttribute<T>(name: string, fallback: T): T {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return fallback;
-    }
-
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
-  }
-
-  private emitAction(actionId: string): void {
-    this.dispatchEvent(
-      new CustomEvent("action", {
-        bubbles: true,
-        composed: true,
-        detail: { action: actionId },
-      }),
-    );
-  }
-
-  private emitPolicySelected(policy: GovernancePanelPolicy): void {
-    this.dispatchEvent(
-      new CustomEvent("policy-selected", {
-        bubbles: true,
-        composed: true,
-        detail: policy,
-      }),
-    );
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const statusMarkup = this.status ? `<span part="status">${escapeHtml(this.status)}</span>` : "";
-    const signalsMarkup = this.signals.length
-      ? `
-          <div part="signals">
-            ${this.signals
-              .map(
-                signal => `
-                  <span part="signal" data-tone="${escapeHtml(signal.tone ?? "neutral")}">${escapeHtml(signal.label)}</span>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-    const policiesMarkup = this.policies.length
-      ? `
-          <section part="policies">
-            <div part="section-title">Policy Summary</div>
-            <div part="policy-list">
-              ${this.policies
-                .map(
-                  policy => `
-                    <button
-                      type="button"
-                      part="policy"
-                      data-policy-label="${escapeHtml(policy.label)}"
-                      data-policy-value="${escapeHtml(policy.value)}"
-                      data-policy-description="${escapeHtml(policy.description ?? "")}"
-                      data-policy-tone="${escapeHtml(policy.tone ?? "neutral")}"
-                    >
-                      <span part="policy-header">
-                        <span part="policy-label">${escapeHtml(policy.label)}</span>
-                        <span part="policy-value" data-tone="${escapeHtml(policy.tone ?? "neutral")}">${escapeHtml(policy.value)}</span>
-                      </span>
-                      ${policy.description ? `<span part="policy-description">${escapeHtml(policy.description)}</span>` : ""}
-                    </button>
-                  `,
-                )
-                .join("")}
-            </div>
-          </section>
-        `
-      : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -356,7 +189,189 @@ export class BoxGovernancePanelElement extends HTMLElement {
           background: var(--boe-token-surface-surface-brand, #0061d5);
           color: var(--boe-token-text-text-on-brand, #ffffff);
         }
-      </style>
+      `;
+
+export class BoxGovernancePanelElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["actions", "heading", "message", "policies", "signals", "status"];
+  }
+  get actions(): GovernancePanelAction[] {
+    return this.parseJsonAttribute<GovernancePanelAction[]>("actions", []);
+  }
+
+  set actions(value: GovernancePanelAction[]) {
+    this.setAttribute("actions", JSON.stringify(value));
+  }
+
+  get message(): string {
+    return this.getAttribute("message") ?? "";
+  }
+
+  set message(value: string) {
+    this.setAttribute("message", value);
+  }
+
+  get policies(): GovernancePanelPolicy[] {
+    return this.parseJsonAttribute<GovernancePanelPolicy[]>("policies", []);
+  }
+
+  set policies(value: GovernancePanelPolicy[]) {
+    this.setAttribute("policies", JSON.stringify(value));
+  }
+
+  get signals(): GovernancePanelSignal[] {
+    return this.parseJsonAttribute<GovernancePanelSignal[]>("signals", []);
+  }
+
+  set signals(value: GovernancePanelSignal[]) {
+    this.setAttribute("signals", JSON.stringify(value));
+  }
+
+  get status(): string {
+    return this.getAttribute("status") ?? "";
+  }
+
+  set status(value: string) {
+    if (!value) {
+      this.removeAttribute("status");
+      return;
+    }
+
+    this.setAttribute("status", value);
+  }
+
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Governance";
+  }
+
+  set heading(value: string) {
+    this.setAttribute("heading", value);
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private emitAction(actionId: string): void {
+    this.dispatchEvent(
+      new CustomEvent("action", {
+        bubbles: true,
+        composed: true,
+        detail: { action: actionId },
+      }),
+    );
+  }
+
+  private emitPolicySelected(policy: GovernancePanelPolicy): void {
+    this.dispatchEvent(
+      new CustomEvent("policy-selected", {
+        bubbles: true,
+        composed: true,
+        detail: policy,
+      }),
+    );
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
+    const statusMarkup = this.status ? `<span part="status">${escapeHtml(this.status)}</span>` : "";
+    const signalsMarkup = this.signals.length
+      ? `
+          <div part="signals">
+            ${this.signals
+              .map(
+                signal => `
+                  <span part="signal" data-tone="${escapeHtml(signal.tone ?? "neutral")}">${escapeHtml(signal.label)}</span>
+                `,
+              )
+              .join("")}
+          </div>
+        `
+      : "";
+    const policiesMarkup = this.policies.length
+      ? `
+          <section part="policies">
+            <div part="section-title">Policy Summary</div>
+            <div part="policy-list">
+              ${this.policies
+                .map(
+                  policy => `
+                    <button
+                      type="button"
+                      part="policy"
+                      data-policy-label="${escapeHtml(policy.label)}"
+                      data-policy-value="${escapeHtml(policy.value)}"
+                      data-policy-description="${escapeHtml(policy.description ?? "")}"
+                      data-policy-tone="${escapeHtml(policy.tone ?? "neutral")}"
+                    >
+                      <span part="policy-header">
+                        <span part="policy-label">${escapeHtml(policy.label)}</span>
+                        <span part="policy-value" data-tone="${escapeHtml(policy.tone ?? "neutral")}">${escapeHtml(policy.value)}</span>
+                      </span>
+                      ${policy.description ? `<span part="policy-description">${escapeHtml(policy.description)}</span>` : ""}
+                    </button>
+                  `,
+                )
+                .join("")}
+            </div>
+          </section>
+        `
+      : "";
+    const actionsMarkup = this.actions.length
+      ? `
+          <div part="actions">
+            ${this.actions
+              .map(
+                action => `
+                  <button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">
+                    ${escapeHtml(action.label)}
+                  </button>
+                `,
+              )
+              .join("")}
+          </div>
+        `
+      : "";
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <section part="panel">
         <header part="header">
           <div part="title-row">
@@ -390,6 +405,7 @@ export class BoxGovernancePanelElement extends HTMLElement {
         });
       });
     });
+  
   }
 }
 

@@ -1,27 +1,114 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-chip";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+const chipStyles = `
+  :host {
+    display: inline-block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="chip"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.28rem 0.35rem 0.28rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, var(--boe-token-surface-surface, #ffffff) 18%);
+    background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 70%, var(--boe-token-surface-surface, #ffffff) 30%);
+    color: var(--boe-token-text-text, #222222);
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+  }
+
+  [part="chip"]:not([data-removable="true"]) {
+    padding-inline-end: 0.7rem;
+  }
+
+  [part="chip"][data-interactive="true"] {
+    cursor: pointer;
+  }
+
+  [part="chip"][data-interactive="true"]:hover {
+    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+  }
+
+  [part="chip"][data-tone="brand"] {
+    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, transparent);
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface, #ffffff) 90%);
+    color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 72%, var(--boe-token-text-text, #222222));
+  }
+
+  [part="chip"][data-selected="true"] {
+    border-color: var(--boe-token-surface-surface-brand, #0061d5);
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, var(--boe-token-surface-surface, #ffffff) 86%);
+    color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 74%, var(--boe-token-text-text, #222222));
+  }
+
+  [part="chip"][data-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  [part="chip"]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, transparent);
+  }
+
+  [part="remove"] {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.15rem;
+    block-size: 1.15rem;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    cursor: pointer;
+    transition: background 140ms ease, color 140ms ease;
+  }
+
+  [part="remove"] svg {
+    inline-size: 0.7rem;
+    block-size: 0.7rem;
+  }
+
+  [part="remove"]:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, transparent);
+    color: var(--boe-token-text-text, #222222);
+  }
+
+  [part="remove"]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 30%, transparent);
+  }
+
+  [part="remove"]:disabled {
+    cursor: not-allowed;
+  }
+`;
 
 /**
  * A compact, labelled token. Unlike `box-badge` (a passive status marker) a chip
  * is interactive: it can be selected and it can be dismissed, emitting `remove`
  * with its `value` so a host list can drop it.
  */
-export class BoxChipElement extends HTMLElement {
+export class BoxChipElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["disabled", "label", "removable", "selectable", "selected", "tone", "value"];
   }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private chipEl!: HTMLElement;
+  private labelEl!: HTMLElement;
+  private removeEl: HTMLButtonElement | null = null;
 
   get label(): string {
     return this.getAttribute("label") ?? "";
@@ -79,14 +166,6 @@ export class BoxChipElement extends HTMLElement {
     this.toggleAttribute("selectable", value);
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
   dismiss(): void {
     if (this.disabled || !this.removable) {
       return;
@@ -114,156 +193,97 @@ export class BoxChipElement extends HTMLElement {
     );
   }
 
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
-    // Re-rendering replaces the shadow nodes, so a keyboard user who just toggled
-    // selection would lose focus to document.body. Remember which part held focus
-    // and restore it to the matching node after the new markup is in place.
-    const focusedPart = this.shadowRoot.activeElement?.getAttribute("part") ?? null;
-    const label = this.label;
-    const removeMarkup = this.removable
-      ? `<button type="button" part="remove" aria-label="Remove ${escapeHtml(label)}" ${this.disabled ? "disabled" : ""}>
-           <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-         </button>`
-      : "";
-
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: inline-block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="chip"] {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.35rem;
-          padding: 0.28rem 0.35rem 0.28rem 0.7rem;
-          border-radius: 999px;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, var(--boe-token-surface-surface, #ffffff) 18%);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 70%, var(--boe-token-surface-surface, #ffffff) 30%);
-          color: var(--boe-token-text-text, #222222);
-          font-size: 0.82rem;
-          font-weight: 600;
-          line-height: 1.2;
-          white-space: nowrap;
-          transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
-        }
-
-        [part="chip"]:not([data-removable="true"]) {
-          padding-inline-end: 0.7rem;
-        }
-
-        [part="chip"][data-interactive="true"] {
-          cursor: pointer;
-        }
-
-        [part="chip"][data-interactive="true"]:hover {
-          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
-          background: var(--boe-token-surface-surface-hover, #f4f4f4);
-        }
-
-        [part="chip"][data-tone="brand"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface, #ffffff) 90%);
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 72%, var(--boe-token-text-text, #222222));
-        }
-
-        [part="chip"][data-selected="true"] {
-          border-color: var(--boe-token-surface-surface-brand, #0061d5);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, var(--boe-token-surface-surface, #ffffff) 86%);
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 74%, var(--boe-token-text-text, #222222));
-        }
-
-        [part="chip"][data-disabled="true"] {
-          opacity: 0.55;
-          cursor: not-allowed;
-        }
-
-        [part="chip"]:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, transparent);
-        }
-
-        [part="remove"] {
-          appearance: none;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          inline-size: 1.15rem;
-          block-size: 1.15rem;
-          padding: 0;
-          border: 0;
-          border-radius: 999px;
-          background: transparent;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          cursor: pointer;
-          transition: background 140ms ease, color 140ms ease;
-        }
-
-        [part="remove"] svg {
-          inline-size: 0.7rem;
-          block-size: 0.7rem;
-        }
-
-        [part="remove"]:hover:not(:disabled) {
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, transparent);
-          color: var(--boe-token-text-text, #222222);
-        }
-
-        [part="remove"]:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 2px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 30%, transparent);
-        }
-
-        [part="remove"]:disabled {
-          cursor: not-allowed;
-        }
-      </style>
-      <span
-        part="chip"
-        data-tone="${escapeHtml(this.tone)}"
-        data-removable="${this.removable ? "true" : "false"}"
-        data-selected="${this.selected ? "true" : "false"}"
-        data-disabled="${this.disabled ? "true" : "false"}"
-        data-interactive="${this.selectable && !this.disabled ? "true" : "false"}"
-        role="${this.selectable ? "button" : "listitem"}"
-        ${this.selectable ? `aria-pressed="${this.selected ? "true" : "false"}"` : ""}
-        ${this.selectable && this.disabled ? 'aria-disabled="true"' : ""}
-        ${this.selectable && !this.disabled ? 'tabindex="0"' : ""}
-      >
-        <span part="label">${escapeHtml(label)}</span>
-        ${removeMarkup}
+      <style>${chipStyles}</style>
+      <span part="chip">
+        <span part="label"></span>
       </span>
     `;
+    this.chipEl = this.shadowRoot.querySelector('[part="chip"]')!;
+    this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+  }
 
-    const chip = this.shadowRoot.querySelector('[part="chip"]') as HTMLElement | null;
-    const removeButton = this.shadowRoot.querySelector('[part="remove"]') as HTMLButtonElement | null;
-
-    removeButton?.addEventListener("click", event => {
-      event.stopPropagation();
-      this.dismiss();
+  protected setupListeners(): void {
+    this.chipEl.addEventListener("click", event => {
+      if ((event.target as HTMLElement).closest('[part="remove"]')) {
+        return;
+      }
+      if (this.selectable) {
+        this.toggleSelection();
+      }
     });
 
-    if (this.selectable) {
-      chip?.addEventListener("click", () => this.toggleSelection());
-      chip?.addEventListener("keydown", event => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          this.toggleSelection();
-        }
-      });
+    this.chipEl.addEventListener("keydown", event => {
+      if (!this.selectable) {
+        return;
+      }
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        this.toggleSelection();
+      }
+    });
+  }
+
+  private syncRemoveButton(): void {
+    if (this.removable) {
+      if (!this.removeEl) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.setAttribute("part", "remove");
+        button.innerHTML =
+          '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+        button.addEventListener("click", event => {
+          event.stopPropagation();
+          this.dismiss();
+        });
+        this.chipEl.append(button);
+        this.removeEl = button;
+      }
+      this.removeEl.setAttribute("aria-label", `Remove ${this.label}`);
+      this.removeEl.disabled = this.disabled;
+    } else if (this.removeEl) {
+      this.removeEl.remove();
+      this.removeEl = null;
+    }
+  }
+
+  protected update(): void {
+    if (!this.chipEl) {
+      return;
     }
 
-    if (focusedPart === "chip" && this.selectable && !this.disabled) {
-      chip?.focus();
-    } else if (focusedPart === "remove" && this.removable && !this.disabled) {
-      removeButton?.focus();
+    this.chipEl.dataset.tone = this.tone;
+    this.chipEl.dataset.removable = this.removable ? "true" : "false";
+    this.chipEl.dataset.selected = this.selected ? "true" : "false";
+    this.chipEl.dataset.disabled = this.disabled ? "true" : "false";
+    this.chipEl.dataset.interactive = this.selectable && !this.disabled ? "true" : "false";
+    this.chipEl.setAttribute("role", this.selectable ? "button" : "listitem");
+
+    if (this.selectable) {
+      this.chipEl.setAttribute("aria-pressed", this.selected ? "true" : "false");
+      if (this.disabled) {
+        this.chipEl.setAttribute("aria-disabled", "true");
+      } else {
+        this.chipEl.removeAttribute("aria-disabled");
+      }
+      if (!this.disabled) {
+        this.chipEl.tabIndex = 0;
+      } else {
+        this.chipEl.removeAttribute("tabindex");
+      }
+    } else {
+      this.chipEl.removeAttribute("aria-pressed");
+      this.chipEl.removeAttribute("aria-disabled");
+      this.chipEl.removeAttribute("tabindex");
     }
+
+    this.labelEl.textContent = this.label;
+    this.syncRemoveButton();
   }
 }
 

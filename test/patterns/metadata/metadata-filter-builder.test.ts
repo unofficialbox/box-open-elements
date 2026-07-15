@@ -68,5 +68,32 @@ describe("BoxMetadataFilterBuilderElement", () => {
     expect(added).toHaveBeenCalled();
     expect(removed).toHaveBeenCalled();
   });
+
+  it("preserves focus and value while typing into a rule input", () => {
+    const element = document.createElement("box-metadata-filter-builder") as BoxMetadataFilterBuilderElement;
+    element.fields = [{ id: "classification", label: "Classification" }];
+    element.rules = [{ field: "classification", operator: "is", value: "" }];
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
+    input.focus();
+    expect(element.shadowRoot?.activeElement).toBe(input);
+
+    input.value = "con";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(element.shadowRoot?.activeElement).toBe(input);
+    expect(input.value).toBe("con");
+
+    input.value = "confidential";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(element.shadowRoot?.activeElement).toBe(input);
+    expect(input.value).toBe("confidential");
+    expect(element.rules[0]?.value).toBe("confidential");
+
+    // An unrelated attribute update must not destroy the focused input.
+    element.label = "Filters";
+    expect(element.shadowRoot?.activeElement).toBe(input);
+    expect(input.value).toBe("confidential");
+  });
 });
 

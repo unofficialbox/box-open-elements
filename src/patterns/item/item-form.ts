@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-item-form";
 
 const escapeHtml = (value: string): string =>
@@ -26,18 +28,156 @@ type ItemFormField = {
 
 type ItemFormValues = Record<string, boolean | string>;
 
-export class BoxItemFormElement extends HTMLElement {
+
+const elementStyles = `
+        :host {
+          display: block;
+          color: inherit;
+          font: inherit;
+        }
+
+        [part="form"] {
+          display: grid;
+          gap: 1rem;
+          padding: 1.1rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+          border-radius: 1rem;
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%, var(--boe-token-surface-surface, #ffffff) 8%);
+        }
+
+        [part="label"] {
+          font-size: 0.9rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+
+        [part="fields"] {
+          display: grid;
+          gap: 0.9rem;
+        }
+
+        [part="section"] {
+          display: grid;
+          gap: 0.9rem;
+          padding: 1rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 52%, transparent);
+          border-radius: 0.9rem;
+          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 68%, transparent);
+        }
+
+        [part="section-label"] {
+          font-size: 0.82rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
+        }
+
+        [part="field"] {
+          display: grid;
+          gap: 0.45rem;
+        }
+
+        [part="checkbox-field"] {
+          display: grid;
+          grid-template-columns: auto 1fr;
+          gap: 0.75rem;
+          align-items: start;
+        }
+
+        [part="checkbox-content"] {
+          display: grid;
+          gap: 0.35rem;
+        }
+
+        [part="field-label"] {
+          font-weight: 700;
+        }
+
+        [part="field-description"] {
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
+          font-size: 0.95rem;
+        }
+
+        [part="field-value"] {
+          padding: 0.8rem 0.9rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
+          border-radius: 0.85rem;
+          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 82%, transparent);
+          color: rgba(35, 32, 28, 0.94);
+          min-block-size: 1.25rem;
+          white-space: pre-wrap;
+        }
+
+        [part="input"],
+        [part="checkbox"] {
+          font: inherit;
+        }
+
+        [part="input"] {
+          width: 100%;
+          min-width: 0;
+          padding: 0.8rem 0.9rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
+          border-radius: 0.85rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          color: inherit;
+          box-sizing: border-box;
+        }
+
+        textarea[part="input"] {
+          min-block-size: 6.5rem;
+          resize: vertical;
+        }
+
+        [part="input"]:focus-visible,
+        [part="submit"]:focus-visible,
+        [part="cancel"]:focus-visible,
+        [part="checkbox"]:focus-visible {
+          outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
+          outline-offset: 2px;
+        }
+
+        [part="actions"] {
+          display: flex;
+          gap: 0.75rem;
+          justify-content: flex-end;
+        }
+
+        [part="submit"],
+        [part="cancel"] {
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+          border-radius: 999px;
+          padding: 0.75rem 1.1rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          color: inherit;
+          font: inherit;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        [part="submit"] {
+          background: var(--boe-token-surface-surface-brand, #0061d5);
+          color: var(--boe-token-text-text-on-brand, #ffffff);
+          border-color: var(--boe-token-surface-surface-brand, #0061d5);
+        }
+
+        [part="submit"]:disabled,
+        [part="cancel"]:disabled,
+        [part="input"]:disabled,
+        [part="checkbox"]:disabled {
+          cursor: not-allowed;
+          opacity: 0.6;
+        }
+      `;
+
+export class BoxItemFormElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["disabled", "fields", "label", "mode", "submit-label", "value"];
   }
 
   private valueInternal: ItemFormValues = {};
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
   get disabled(): boolean {
     return this.hasAttribute("disabled");
   }
@@ -99,14 +239,16 @@ export class BoxItemFormElement extends HTMLElement {
   set value(value: ItemFormValues) {
     this.valueInternal = { ...value };
     this.setAttribute("value", JSON.stringify(value));
-    this.render();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   connectedCallback(): void {
-    this.render();
+    super.connectedCallback();
   }
 
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
       const raw = this.getAttribute("value");
       if (!raw) {
@@ -121,7 +263,7 @@ export class BoxItemFormElement extends HTMLElement {
       }
     }
 
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   private emitValueChanged(): void {
@@ -272,154 +414,28 @@ export class BoxItemFormElement extends HTMLElement {
     `;
   }
 
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
 
-        [part="form"] {
-          display: grid;
-          gap: 1rem;
-          padding: 1.1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%, var(--boe-token-surface-surface, #ffffff) 8%);
-        }
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
 
-        [part="label"] {
-          font-size: 0.9rem;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-        }
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
 
-        [part="fields"] {
-          display: grid;
-          gap: 0.9rem;
-        }
-
-        [part="section"] {
-          display: grid;
-          gap: 0.9rem;
-          padding: 1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 52%, transparent);
-          border-radius: 0.9rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 68%, transparent);
-        }
-
-        [part="section-label"] {
-          font-size: 0.82rem;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-
-        [part="field"] {
-          display: grid;
-          gap: 0.45rem;
-        }
-
-        [part="checkbox-field"] {
-          display: grid;
-          grid-template-columns: auto 1fr;
-          gap: 0.75rem;
-          align-items: start;
-        }
-
-        [part="checkbox-content"] {
-          display: grid;
-          gap: 0.35rem;
-        }
-
-        [part="field-label"] {
-          font-weight: 700;
-        }
-
-        [part="field-description"] {
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          font-size: 0.95rem;
-        }
-
-        [part="field-value"] {
-          padding: 0.8rem 0.9rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
-          border-radius: 0.85rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 82%, transparent);
-          color: rgba(35, 32, 28, 0.94);
-          min-block-size: 1.25rem;
-          white-space: pre-wrap;
-        }
-
-        [part="input"],
-        [part="checkbox"] {
-          font: inherit;
-        }
-
-        [part="input"] {
-          width: 100%;
-          min-width: 0;
-          padding: 0.8rem 0.9rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
-          border-radius: 0.85rem;
-          background: var(--boe-token-surface-surface, #ffffff);
-          color: inherit;
-          box-sizing: border-box;
-        }
-
-        textarea[part="input"] {
-          min-block-size: 6.5rem;
-          resize: vertical;
-        }
-
-        [part="input"]:focus-visible,
-        [part="submit"]:focus-visible,
-        [part="cancel"]:focus-visible,
-        [part="checkbox"]:focus-visible {
-          outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
-          outline-offset: 2px;
-        }
-
-        [part="actions"] {
-          display: flex;
-          gap: 0.75rem;
-          justify-content: flex-end;
-        }
-
-        [part="submit"],
-        [part="cancel"] {
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 999px;
-          padding: 0.75rem 1.1rem;
-          background: var(--boe-token-surface-surface, #ffffff);
-          color: inherit;
-          font: inherit;
-          font-weight: 700;
-          cursor: pointer;
-        }
-
-        [part="submit"] {
-          background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: var(--boe-token-text-text-on-brand, #ffffff);
-          border-color: var(--boe-token-surface-surface-brand, #0061d5);
-        }
-
-        [part="submit"]:disabled,
-        [part="cancel"]:disabled,
-        [part="input"]:disabled,
-        [part="checkbox"]:disabled {
-          cursor: not-allowed;
-          opacity: 0.6;
-        }
-      </style>
+    host.innerHTML = `
       <form part="form" novalidate>
         <div part="label">${escapeHtml(this.label)}</div>
         <div part="fields">
@@ -495,6 +511,7 @@ export class BoxItemFormElement extends HTMLElement {
         }),
       );
     });
+  
   }
 }
 

@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-search-results-header";
 
 const escapeHtml = (value: string): string =>
@@ -14,178 +16,8 @@ type SearchHeaderAction = {
   tone?: string;
 };
 
-export class BoxSearchResultsHeaderElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["actions", "filters", "label", "query", "result-count", "scope", "sort-label", "view-label"];
-  }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get actions(): SearchHeaderAction[] {
-    return this.parseJsonAttribute<SearchHeaderAction[]>("actions", []);
-  }
-
-  set actions(value: SearchHeaderAction[]) {
-    this.setAttribute("actions", JSON.stringify(value));
-  }
-
-  get filters(): string[] {
-    return this.parseJsonAttribute<string[]>("filters", []);
-  }
-
-  set filters(value: string[]) {
-    this.setAttribute("filters", JSON.stringify(value));
-  }
-
-  get label(): string {
-    return this.getAttribute("label") ?? "Search Results";
-  }
-
-  set label(value: string) {
-    this.setAttribute("label", value);
-  }
-
-  get query(): string {
-    return this.getAttribute("query") ?? "";
-  }
-
-  set query(value: string) {
-    this.setAttribute("query", value);
-  }
-
-  get resultCount(): number {
-    const raw = this.getAttribute("result-count");
-    const parsed = raw ? Number.parseInt(raw, 10) : 0;
-    return Number.isFinite(parsed) ? Math.max(parsed, 0) : 0;
-  }
-
-  set resultCount(value: number) {
-    this.setAttribute("result-count", String(value));
-  }
-
-  get scope(): string {
-    return this.getAttribute("scope") ?? "";
-  }
-
-  set scope(value: string) {
-    this.setAttribute("scope", value);
-  }
-
-  get sortLabel(): string {
-    return this.getAttribute("sort-label") ?? "";
-  }
-
-  set sortLabel(value: string) {
-    this.setAttribute("sort-label", value);
-  }
-
-  get viewLabel(): string {
-    return this.getAttribute("view-label") ?? "";
-  }
-
-  set viewLabel(value: string) {
-    this.setAttribute("view-label", value);
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private parseJsonAttribute<T>(name: string, fallback: T): T {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return fallback;
-    }
-
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
-  }
-
-  private emitAction(actionId: string): void {
-    this.dispatchEvent(
-      new CustomEvent("action", {
-        bubbles: true,
-        composed: true,
-        detail: { action: actionId },
-      }),
-    );
-  }
-
-  private emitFilterRemoved(filter: string): void {
-    this.dispatchEvent(
-      new CustomEvent("filter-removed", {
-        bubbles: true,
-        composed: true,
-        detail: { filter },
-      }),
-    );
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const contextParts = [
-      this.query ? `Query: ${this.query}` : "",
-      this.scope ? `Scope: ${this.scope}` : "",
-      this.sortLabel ? `Sorted by ${this.sortLabel}` : "",
-      this.viewLabel ? `View: ${this.viewLabel}` : "",
-    ].filter(Boolean);
-
-    const filtersMarkup = this.filters.length
-      ? `
-          <div part="filters">
-            ${this.filters
-              .map(
-                filter => `
-                  <button
-                    type="button"
-                    part="filter-chip"
-                    data-filter="${escapeHtml(filter)}"
-                  >
-                    ${escapeHtml(filter)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button
-                    type="button"
-                    part="action"
-                    data-action-id="${escapeHtml(action.id)}"
-                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
-                  >
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -275,7 +107,190 @@ export class BoxSearchResultsHeaderElement extends HTMLElement {
           content: " ×";
           color: var(--_obp-text-muted);
         }
-      </style>
+      `;
+
+export class BoxSearchResultsHeaderElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["actions", "filters", "label", "query", "result-count", "scope", "sort-label", "view-label"];
+  }
+  get actions(): SearchHeaderAction[] {
+    return this.parseJsonAttribute<SearchHeaderAction[]>("actions", []);
+  }
+
+  set actions(value: SearchHeaderAction[]) {
+    this.setAttribute("actions", JSON.stringify(value));
+  }
+
+  get filters(): string[] {
+    return this.parseJsonAttribute<string[]>("filters", []);
+  }
+
+  set filters(value: string[]) {
+    this.setAttribute("filters", JSON.stringify(value));
+  }
+
+  get label(): string {
+    return this.getAttribute("label") ?? "Search Results";
+  }
+
+  set label(value: string) {
+    this.setAttribute("label", value);
+  }
+
+  get query(): string {
+    return this.getAttribute("query") ?? "";
+  }
+
+  set query(value: string) {
+    this.setAttribute("query", value);
+  }
+
+  get resultCount(): number {
+    const raw = this.getAttribute("result-count");
+    const parsed = raw ? Number.parseInt(raw, 10) : 0;
+    return Number.isFinite(parsed) ? Math.max(parsed, 0) : 0;
+  }
+
+  set resultCount(value: number) {
+    this.setAttribute("result-count", String(value));
+  }
+
+  get scope(): string {
+    return this.getAttribute("scope") ?? "";
+  }
+
+  set scope(value: string) {
+    this.setAttribute("scope", value);
+  }
+
+  get sortLabel(): string {
+    return this.getAttribute("sort-label") ?? "";
+  }
+
+  set sortLabel(value: string) {
+    this.setAttribute("sort-label", value);
+  }
+
+  get viewLabel(): string {
+    return this.getAttribute("view-label") ?? "";
+  }
+
+  set viewLabel(value: string) {
+    this.setAttribute("view-label", value);
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private emitAction(actionId: string): void {
+    this.dispatchEvent(
+      new CustomEvent("action", {
+        bubbles: true,
+        composed: true,
+        detail: { action: actionId },
+      }),
+    );
+  }
+
+  private emitFilterRemoved(filter: string): void {
+    this.dispatchEvent(
+      new CustomEvent("filter-removed", {
+        bubbles: true,
+        composed: true,
+        detail: { filter },
+      }),
+    );
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const contextParts = [
+      this.query ? `Query: ${this.query}` : "",
+      this.scope ? `Scope: ${this.scope}` : "",
+      this.sortLabel ? `Sorted by ${this.sortLabel}` : "",
+      this.viewLabel ? `View: ${this.viewLabel}` : "",
+    ].filter(Boolean);
+
+    const filtersMarkup = this.filters.length
+      ? `
+          <div part="filters">
+            ${this.filters
+              .map(
+                filter => `
+                  <button
+                    type="button"
+                    part="filter-chip"
+                    data-filter="${escapeHtml(filter)}"
+                  >
+                    ${escapeHtml(filter)}
+                  </button>
+                `,
+              )
+              .join("")}
+          </div>
+        `
+      : "";
+
+    const actionsMarkup = this.actions.length
+      ? `
+          <div part="actions">
+            ${this.actions
+              .map(
+                action => `
+                  <button
+                    type="button"
+                    part="action"
+                    data-action-id="${escapeHtml(action.id)}"
+                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
+                  >
+                    ${escapeHtml(action.label)}
+                  </button>
+                `,
+              )
+              .join("")}
+          </div>
+        `
+      : "";
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <section part="header">
         <div part="topline">
           <div part="meta">
@@ -306,6 +321,7 @@ export class BoxSearchResultsHeaderElement extends HTMLElement {
         }
       });
     });
+  
   }
 }
 
