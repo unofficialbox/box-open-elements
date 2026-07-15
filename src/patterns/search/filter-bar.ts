@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-filter-bar";
 
@@ -103,17 +104,15 @@ const elementStyles = `
           cursor: pointer;
         }
 
-        [part="filter-chip"][data-selected="true"] {
+        ${boeNeutralInteractiveStyles('[part="input"]')}
+        ${boeNeutralInteractiveStyles('[part="select"]')}
+        ${boeNeutralInteractiveStyles('[part="filter-chip"]')}
+
+        [part="filter-chip"][data-selected="true"],
+        [part="filter-chip"][data-selected="true"]:hover:not(:disabled) {
           border-color: color-mix(in srgb, var(--_obp-brand) 34%, transparent);
           background: var(--_obp-brand-soft);
           color: var(--_obp-brand);
-        }
-
-        [part="input"]:focus-visible,
-        [part="select"]:focus-visible,
-        [part="filter-chip"]:focus-visible {
-          outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
-          outline-offset: 2px;
         }
 
         @media (max-width: 900px) {

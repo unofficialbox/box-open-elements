@@ -1,4 +1,8 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeBrandInteractiveStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-item-details-panel";
 
@@ -172,15 +176,13 @@ const elementStyles = `
           cursor: pointer;
         }
 
+        ${boeNeutralInteractiveStyles('[part="action"]')}
+        ${boeBrandInteractiveStyles('[part="action"][data-tone="primary"]')}
+
         [part="action"][data-tone="primary"] {
           background: var(--_obp-brand);
           border-color: var(--_obp-brand);
           color: var(--boe-token-text-text-on-brand, #ffffff);
-        }
-
-        [part="action"]:focus-visible {
-          outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
-          outline-offset: 2px;
         }
       `;
 

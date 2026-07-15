@@ -1,8 +1,157 @@
 import { InviteCollaboratorsController } from "./invite-collaborators-controller.js";
 import type { InviteCollaboratorsTransport, InviteRole } from "./invite-collaborators-contracts.js";
 import { BaseElement } from "../../core/index.js";
+import {
+  boeBrandInteractiveStyles,
+  boeFocusVisibleStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-invite-collaborators-modal";
+
+const elementStyles = `
+        :host { display: contents; color: inherit; font: inherit; }
+
+        [part="backdrop"] {
+          position: fixed;
+          inset: 0;
+          display: grid;
+          place-items: center;
+          padding: 1rem;
+          background: rgba(15, 23, 42, 0.45);
+          z-index: 1000;
+        }
+
+        [part="dialog"] {
+          inline-size: min(30rem, 100%);
+          max-block-size: calc(100vh - 2rem);
+          overflow: auto;
+          display: grid;
+          gap: 0.85rem;
+          padding: 1.25rem;
+          border-radius: 1rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          color: var(--boe-token-text-text, #222222);
+          box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+        }
+
+        [part="title"] { margin: 0; font-size: 1.2rem; font-weight: 700; }
+
+        [part="field"] { display: grid; gap: 0.35rem; }
+
+        [part="label"] {
+          font-size: 0.78rem;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
+        }
+
+        [part="recipients"] {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.35rem;
+          padding: 0.4rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+          border-radius: 0.6rem;
+        }
+
+        [part="pill"] {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          padding: 0.2rem 0.3rem 0.2rem 0.55rem;
+          border-radius: 999px;
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 70%, var(--boe-token-surface-surface, #ffffff) 30%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+          font-size: 0.8rem;
+          font-weight: 600;
+        }
+
+        [part="pill-remove"] {
+          appearance: none;
+          inline-size: 1.05rem;
+          block-size: 1.05rem;
+          display: inline-grid;
+          place-items: center;
+          padding: 0;
+          border: 0;
+          border-radius: 999px;
+          background: transparent;
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
+          cursor: pointer;
+        }
+
+        [part="pill-remove"] svg { inline-size: 0.6rem; block-size: 0.6rem; }
+
+        [part="recipient-input"] {
+          flex: 1 1 8rem;
+          min-inline-size: 8rem;
+          border: 0;
+          outline: none;
+          background: transparent;
+          font: inherit;
+          color: inherit;
+        }
+
+        [part="role"],
+        [part="message"] {
+          inline-size: 100%;
+          box-sizing: border-box;
+          padding: 0.55rem 0.65rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+          border-radius: 0.6rem;
+          background: var(--boe-token-surface-surface, #ffffff);
+          font: inherit;
+          color: inherit;
+        }
+
+        [part="message"] { min-block-size: 4rem; resize: vertical; }
+
+        [part="error"] {
+          margin: 0;
+          color: var(--boe-token-text-text-danger, #b3261e);
+          font-size: 0.85rem;
+        }
+
+        [part="error"][hidden] { display: none; }
+
+        [part="actions"] {
+          display: flex;
+          justify-content: flex-end;
+          gap: 0.5rem;
+          margin-block-start: 0.25rem;
+        }
+
+        [part="cancel"],
+        [part="submit"] {
+          appearance: none;
+          border-radius: 999px;
+          font: inherit;
+          font-weight: 600;
+          padding: 0.55rem 1rem;
+          cursor: pointer;
+        }
+
+        [part="cancel"] {
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+          background: var(--boe-token-surface-surface, #ffffff);
+          color: inherit;
+        }
+
+        [part="submit"] {
+          border: 1px solid transparent;
+          background: var(--boe-token-surface-surface-brand, #0061d5);
+          color: var(--boe-token-text-text-on-brand, #ffffff);
+        }
+
+        ${boeNeutralInteractiveStyles('[part="cancel"]')}
+        ${boeNeutralInteractiveStyles('[part="pill-remove"]')}
+        ${boeNeutralInteractiveStyles('[part="role"]')}
+        ${boeNeutralInteractiveStyles('[part="message"]')}
+        ${boeFocusVisibleStyles('[part="recipient-input"]')}
+        ${boeBrandInteractiveStyles('[part="submit"]')}
+`;
 
 const escapeHtml = (value: string): string =>
   value
@@ -175,151 +324,7 @@ export class BoxInviteCollaboratorsModalElement extends BaseElement {
       .join("");
 
     this.shadowRoot.innerHTML = `
-      <style>
-        :host { display: contents; color: inherit; font: inherit; }
-
-        [part="backdrop"] {
-          position: fixed;
-          inset: 0;
-          display: grid;
-          place-items: center;
-          padding: 1rem;
-          background: rgba(15, 23, 42, 0.45);
-          z-index: 1000;
-        }
-
-        [part="dialog"] {
-          inline-size: min(30rem, 100%);
-          max-block-size: calc(100vh - 2rem);
-          overflow: auto;
-          display: grid;
-          gap: 0.85rem;
-          padding: 1.25rem;
-          border-radius: 1rem;
-          background: var(--boe-token-surface-surface, #ffffff);
-          color: var(--boe-token-text-text, #222222);
-          box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
-        }
-
-        [part="title"] { margin: 0; font-size: 1.2rem; font-weight: 700; }
-
-        [part="field"] { display: grid; gap: 0.35rem; }
-
-        [part="label"] {
-          font-size: 0.78rem;
-          font-weight: 700;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-
-        [part="recipients"] {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.35rem;
-          padding: 0.4rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.6rem;
-        }
-
-        [part="pill"] {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.3rem;
-          padding: 0.2rem 0.3rem 0.2rem 0.55rem;
-          border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 70%, var(--boe-token-surface-surface, #ffffff) 30%);
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          font-size: 0.8rem;
-          font-weight: 600;
-        }
-
-        [part="pill-remove"] {
-          appearance: none;
-          inline-size: 1.05rem;
-          block-size: 1.05rem;
-          display: inline-grid;
-          place-items: center;
-          padding: 0;
-          border: 0;
-          border-radius: 999px;
-          background: transparent;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          cursor: pointer;
-        }
-
-        [part="pill-remove"] svg { inline-size: 0.6rem; block-size: 0.6rem; }
-
-        [part="recipient-input"] {
-          flex: 1 1 8rem;
-          min-inline-size: 8rem;
-          border: 0;
-          outline: none;
-          background: transparent;
-          font: inherit;
-          color: inherit;
-        }
-
-        [part="role"],
-        [part="message"] {
-          inline-size: 100%;
-          box-sizing: border-box;
-          padding: 0.55rem 0.65rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.6rem;
-          background: var(--boe-token-surface-surface, #ffffff);
-          font: inherit;
-          color: inherit;
-        }
-
-        [part="message"] { min-block-size: 4rem; resize: vertical; }
-
-        [part="error"] {
-          margin: 0;
-          color: var(--boe-token-text-text-danger, #b3261e);
-          font-size: 0.85rem;
-        }
-
-        [part="error"][hidden] { display: none; }
-
-        [part="actions"] {
-          display: flex;
-          justify-content: flex-end;
-          gap: 0.5rem;
-          margin-block-start: 0.25rem;
-        }
-
-        [part="cancel"],
-        [part="submit"] {
-          appearance: none;
-          border-radius: 999px;
-          font: inherit;
-          font-weight: 600;
-          padding: 0.55rem 1rem;
-          cursor: pointer;
-        }
-
-        [part="cancel"] {
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          background: var(--boe-token-surface-surface, #ffffff);
-          color: inherit;
-        }
-
-        [part="submit"] {
-          border: 1px solid transparent;
-          background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: var(--boe-token-text-text-on-brand, #ffffff);
-        }
-
-        [part="submit"]:disabled { opacity: 0.55; cursor: not-allowed; }
-
-        [part="cancel"]:focus-visible,
-        [part="submit"]:focus-visible,
-        [part="recipient-input"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
-        }
-      </style>
+      <style>${elementStyles}</style>
       <div part="backdrop">
         <section part="dialog" role="dialog" aria-modal="true" aria-labelledby="invite-title">
           <h2 part="title" id="invite-title">${escapeHtml(this.heading)}</h2>

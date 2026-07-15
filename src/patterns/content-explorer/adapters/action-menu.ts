@@ -1,5 +1,6 @@
 import { ContentExplorerController } from "../controller.js";
 import { BaseElement } from "../../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-explorer-action-menu";
 
@@ -53,18 +54,10 @@ const elementStyles = `
             box-shadow 140ms ease;
         }
 
-        [part="trigger"]:hover {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 28%, var(--boe-token-stroke-stroke, #e8e8e8) 72%);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%);
-          color: var(--boe-token-surface-surface-brand, #0061d5);
-        }
+        ${boeNeutralInteractiveStyles('[part="trigger"]')}
 
-        [part="trigger"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-          outline-offset: 2px;
-        }
-
-        [part="trigger"][aria-expanded="true"] {
+        [part="trigger"][aria-expanded="true"],
+        [part="trigger"][aria-expanded="true"]:hover:not(:disabled) {
           background: var(--boe-token-surface-surface-brand, #0061d5);
           border-color: var(--boe-token-surface-surface-brand, #0061d5);
           color: var(--boe-token-text-text-on-brand, #ffffff);
@@ -119,15 +112,7 @@ const elementStyles = `
           cursor: pointer;
         }
 
-        [part="menu-item"]:hover {
-          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, var(--boe-token-surface-surface, #ffffff) 36%);
-          color: var(--boe-token-surface-surface-brand, #0061d5);
-        }
-
-        [part="menu-item"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 76%, var(--boe-token-surface-surface, #ffffff) 24%);
-          outline-offset: 1px;
-        }
+        ${boeNeutralInteractiveStyles('[part="menu-item"]')}
       `;
 
 export class BoxExplorerActionMenuElement extends BaseElement {

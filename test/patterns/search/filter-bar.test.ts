@@ -163,4 +163,16 @@ describe("BoxFilterBarElement", () => {
     expect(element.shadowRoot?.activeElement).toBe(input);
     expect(input.value).toBe("docs");
   });
+
+  it("includes brand focus-visible and interactive states for controls", () => {
+    const element = document.createElement("box-filter-bar") as BoxFilterBarElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="input"]:focus-visible');
+    expect(styles).toContain('[part="filter-chip"]:hover:not(:disabled)');
+    expect(styles).toContain('[part="select"]:active:not(:disabled)');
+    expect(styles).toContain('[part="filter-chip"]:disabled');
+    expect(styles).toContain("--boe-token-surface-surface-brand");
+  });
 });

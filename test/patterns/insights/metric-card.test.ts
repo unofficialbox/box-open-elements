@@ -52,4 +52,17 @@ describe("BoxMetricCardElement", () => {
       }),
     );
   });
+
+  it("includes brand focus-visible and interactive states for the action", () => {
+    const element = document.createElement("box-metric-card") as BoxMetricCardElement;
+    element.action = { id: "open-report", label: "Open report", tone: "primary" };
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="action"]:focus-visible');
+    expect(styles).toContain('[part="action"]:hover:not(:disabled)');
+    expect(styles).toContain('[part="action"][data-tone="primary"]:active:not(:disabled)');
+    expect(styles).toContain('[part="action"]:disabled');
+    expect(styles).toContain("--boe-token-surface-surface-brand");
+  });
 });

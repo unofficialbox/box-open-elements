@@ -1,6 +1,10 @@
 import { ContentExplorerController } from "../controller.js";
 import { BoxExplorerActionMenuElement } from "./action-menu.js";
 import { BaseElement } from "../../../core/index.js";
+import {
+  boeFocusVisibleStyles,
+  boeNeutralInteractiveStyles,
+} from "../../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-explorer-table";
 
@@ -96,13 +100,10 @@ const elementStyles = `
           margin: 0;
           display: block;
           cursor: pointer;
-        }
-
-        [part="selection"]:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
           border-radius: 0.25rem;
         }
+
+        ${boeFocusVisibleStyles('[part="selection"]')}
 
         [part="row-item"] {
           appearance: none;
@@ -127,14 +128,21 @@ const elementStyles = `
             box-shadow 140ms ease;
         }
 
-        [part="row-item"]:hover {
+        [part="row-item"]:hover:not(:disabled) {
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
         }
 
-        [part="row-item"]:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        [part="row-item"]:active:not(:disabled) {
+          background: color-mix(in srgb, var(--boe-token-surface-surface-hover, #f4f4f4) 70%, var(--boe-token-surface-surface-secondary, #fbfbfb) 30%);
+        }
+
+        ${boeFocusVisibleStyles('[part="row-item"]')}
+
+        [part="row-item"]:disabled {
+          cursor: not-allowed;
+          opacity: 0.55;
+          box-shadow: none;
         }
 
         [part="type-cell"] {
@@ -173,15 +181,7 @@ const elementStyles = `
             box-shadow 140ms ease;
         }
 
-        [part="load-more"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f4f4f4);
-          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
-        }
-
-        [part="load-more"]:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-        }
+        ${boeNeutralInteractiveStyles('[part="load-more"]')}
       `;
 
 export class BoxExplorerTableElement extends BaseElement {

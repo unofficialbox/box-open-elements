@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-bulk-action-bar";
 
@@ -126,20 +127,18 @@ const elementStyles = `
             background 140ms ease;
         }
 
-        [part="action"][data-tone="primary"] {
+        [part="clear"] {
+          color: var(--_obp-text-muted);
+        }
+
+        ${boeNeutralInteractiveStyles('[part="action"]')}
+        ${boeNeutralInteractiveStyles('[part="clear"]')}
+
+        [part="action"][data-tone="primary"],
+        [part="action"][data-tone="primary"]:hover:not(:disabled) {
           border-color: color-mix(in srgb, var(--_obp-brand) 34%, transparent);
           background: var(--_obp-brand-soft);
           color: var(--_obp-brand);
-        }
-
-        [part="action"]:hover,
-        [part="clear"]:hover {
-          transform: translateY(-1px);
-          border-color: color-mix(in srgb, var(--_obp-brand) 34%, transparent);
-        }
-
-        [part="clear"] {
-          color: var(--_obp-text-muted);
         }
 
         @media (max-width: 720px) {

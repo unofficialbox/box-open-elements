@@ -135,4 +135,15 @@ describe("BoxInviteCollaboratorsModalElement", () => {
     expect([...role().options].map(option => option.value)).toEqual(["uploader", "previewer"]);
     expect(role().value).toBe("uploader");
   });
+
+  it("includes brand focus-visible and interactive states for modal controls", () => {
+    const element = openModal(createTransport());
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="submit"]:focus-visible');
+    expect(styles).toContain('[part="cancel"]:hover:not(:disabled)');
+    expect(styles).toContain('[part="submit"]:active:not(:disabled)');
+    expect(styles).toContain('[part="submit"]:disabled');
+    expect(styles).toContain("--boe-token-surface-surface-brand");
+  });
 });

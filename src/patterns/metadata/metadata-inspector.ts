@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-metadata-inspector";
 
@@ -96,15 +97,7 @@ const elementStyles = `
           cursor: pointer;
         }
 
-        [part="field"]:hover {
-          border-color: rgba(0, 97, 213, 0.22);
-          transform: translateY(-1px);
-        }
-
-        [part="field"]:focus-visible {
-          outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
-          outline-offset: 2px;
-        }
+        ${boeNeutralInteractiveStyles('[part="field"]')}
 
         [part="field-header"] {
           display: flex;

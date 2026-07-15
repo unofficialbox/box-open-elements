@@ -1,4 +1,9 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeBrandInteractiveStyles,
+  boeFocusVisibleStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-task-assignment-panel";
 
@@ -132,11 +137,6 @@ const elementStyles = `
           cursor: pointer;
         }
 
-        [part="assignee"][aria-selected="true"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
-        }
-
         [part="assignee-avatar"] {
           width: 2.2rem;
           height: 2.2rem;
@@ -208,17 +208,21 @@ const elementStyles = `
           cursor: pointer;
         }
 
+        ${boeNeutralInteractiveStyles('[part="action"]')}
+        ${boeNeutralInteractiveStyles('[part="assignee"]')}
+        ${boeFocusVisibleStyles('[part="checkbox"]')}
+        ${boeBrandInteractiveStyles('[part="action"][data-tone="primary"]')}
+
+        [part="assignee"][aria-selected="true"],
+        [part="assignee"][aria-selected="true"]:hover:not(:disabled) {
+          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
+        }
+
         [part="action"][data-tone="primary"] {
           border-color: transparent;
           background: var(--boe-token-surface-surface-brand, #0061d5);
           color: var(--boe-token-text-text-on-brand, #ffffff);
-        }
-
-        [part="action"]:focus-visible,
-        [part="assignee"]:focus-visible,
-        [part="checkbox"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
         }
       `;
 

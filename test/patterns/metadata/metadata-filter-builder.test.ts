@@ -126,5 +126,17 @@ describe("BoxMetadataFilterBuilderElement", () => {
     expect(element.shadowRoot?.activeElement).toBe(operatorSelect);
     expect(element.rules[0]?.operator).toBe("contains");
   });
+
+  it("includes brand focus-visible and interactive states for controls", () => {
+    const element = document.createElement("box-metadata-filter-builder") as BoxMetadataFilterBuilderElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="input"]:focus-visible');
+    expect(styles).toContain('[part="add"]:hover:not(:disabled)');
+    expect(styles).toContain('[part="remove"]:active:not(:disabled)');
+    expect(styles).toContain('[part="select"]:disabled');
+    expect(styles).toContain("--boe-token-surface-surface-brand");
+  });
 });
 

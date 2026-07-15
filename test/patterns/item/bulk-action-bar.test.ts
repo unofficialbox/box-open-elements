@@ -76,5 +76,18 @@ describe("BoxBulkActionBarElement", () => {
       }),
     );
   });
+
+  it("includes brand focus-visible and interactive states for actions", () => {
+    const element = document.createElement("box-bulk-action-bar") as BoxBulkActionBarElement;
+    element.actions = [{ id: "share", label: "Share" }];
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="action"]:focus-visible');
+    expect(styles).toContain('[part="clear"]:hover:not(:disabled)');
+    expect(styles).toContain('[part="action"]:active:not(:disabled)');
+    expect(styles).toContain('[part="action"]:disabled');
+    expect(styles).toContain("--boe-token-surface-surface-brand");
+  });
 });
 

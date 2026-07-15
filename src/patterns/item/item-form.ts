@@ -1,4 +1,9 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeBrandInteractiveStyles,
+  boeFocusVisibleStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-item-form";
 
@@ -134,14 +139,6 @@ const elementStyles = `
           resize: vertical;
         }
 
-        [part="input"]:focus-visible,
-        [part="submit"]:focus-visible,
-        [part="cancel"]:focus-visible,
-        [part="checkbox"]:focus-visible {
-          outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
-          outline-offset: 2px;
-        }
-
         [part="actions"] {
           display: flex;
           gap: 0.75rem;
@@ -166,13 +163,10 @@ const elementStyles = `
           border-color: var(--boe-token-surface-surface-brand, #0061d5);
         }
 
-        [part="submit"]:disabled,
-        [part="cancel"]:disabled,
-        [part="input"]:disabled,
-        [part="checkbox"]:disabled {
-          cursor: not-allowed;
-          opacity: 0.6;
-        }
+        ${boeNeutralInteractiveStyles('[part="input"]')}
+        ${boeFocusVisibleStyles('[part="checkbox"]')}
+        ${boeNeutralInteractiveStyles('[part="cancel"]')}
+        ${boeBrandInteractiveStyles('[part="submit"]')}
       `;
 
 export class BoxItemFormElement extends BaseElement {

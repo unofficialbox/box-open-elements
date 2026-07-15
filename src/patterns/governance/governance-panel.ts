@@ -1,4 +1,8 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeBrandInteractiveStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-governance-panel";
 
@@ -139,17 +143,6 @@ const elementStyles = `
           cursor: pointer;
         }
 
-        [part="policy"]:hover {
-          border-color: rgba(0, 97, 213, 0.22);
-          transform: translateY(-1px);
-        }
-
-        [part="policy"]:focus-visible,
-        [part="action"]:focus-visible {
-          outline: 2px solid rgba(0, 97, 213, 0.28);
-          outline-offset: 2px;
-        }
-
         [part="policy-header"] {
           display: flex;
           gap: 0.7rem;
@@ -183,6 +176,10 @@ const elementStyles = `
           padding: 0.72rem 1rem;
           cursor: pointer;
         }
+
+        ${boeNeutralInteractiveStyles('[part="policy"]')}
+        ${boeNeutralInteractiveStyles('[part="action"]')}
+        ${boeBrandInteractiveStyles('[part="action"][data-tone="primary"]')}
 
         [part="action"][data-tone="primary"] {
           border-color: transparent;
