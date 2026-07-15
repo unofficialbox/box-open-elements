@@ -261,7 +261,7 @@ body {
 
 .guidance-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
   gap: 10px;
 }
 
@@ -269,6 +269,7 @@ body {
   display: grid;
   gap: 8px;
   align-content: start;
+  min-width: 0;
   padding: 12px 14px;
   background: #ffffff;
   border: 1px solid #e8e8e8;
@@ -299,6 +300,7 @@ body {
 .guidance-list code {
   font-family: ui-monospace, Menlo, monospace;
   font-size: 11.5px;
+  overflow-wrap: anywhere;
 }
 
 .guidance-list {

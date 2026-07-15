@@ -6,6 +6,7 @@ import {
   resolvePreviewGuidance,
   type PreviewGuidance,
 } from "./guidance.js";
+import { inspectPreviewTree } from "./preview-inspect.js";
 import { lessons, lessonById } from "./lessons.js";
 import { renderLessonPage } from "./lesson-page.js";
 import { applyRailVersion } from "./rail-version.js";
@@ -446,65 +447,17 @@ const renderComponentPage = (entry: CatalogEntry): void => {
       observer = new MutationObserver(() => renderProps(primary));
       observer.observe(primary, { attributes: true });
     }
-    const parts = new Set<string>();
-    const roles = new Set<string>();
-    const guidanceRoles = new Set<string>();
-    const collectFromRoot = (root: ParentNode): void => {
-      root.querySelectorAll<HTMLElement>("[part]").forEach(inner => {
-        inner.getAttribute("part")!.split(/\s+/).forEach(part => parts.add(part));
-      });
-      root.querySelectorAll<HTMLElement>("[role]").forEach(inner => {
-        const role = inner.getAttribute("role");
-        if (role) {
-          roles.add(role);
-          guidanceRoles.add(role);
-        }
-      });
-      // Native interactive semantics feed guidance when no explicit role is set.
-      root.querySelectorAll<HTMLElement>("button, [type='button'], [type='submit']").forEach(node => {
-        if (!node.getAttribute("role")) {
-          guidanceRoles.add("button");
-        }
-      });
-      root.querySelectorAll<HTMLInputElement>("input[type='checkbox']").forEach(node => {
-        if (!node.getAttribute("role")) {
-          guidanceRoles.add("checkbox");
-        }
-      });
-      root.querySelectorAll<HTMLInputElement>("input[type='radio']").forEach(node => {
-        if (!node.getAttribute("role")) {
-          guidanceRoles.add("radio");
-        }
-      });
-      root.querySelectorAll<HTMLElement>("input:not([type]), input[type='text'], input[type='search'], textarea").forEach(
-        node => {
-          if (!node.getAttribute("role")) {
-            guidanceRoles.add(node.getAttribute("type") === "search" ? "searchbox" : "textbox");
-          }
-        },
-      );
-    };
-    canvas.querySelectorAll<HTMLElement>("*").forEach(node => {
-      const hostRole = node.getAttribute("role");
-      if (hostRole) {
-        roles.add(hostRole);
-        guidanceRoles.add(hostRole);
-      }
-      if (node.shadowRoot) {
-        collectFromRoot(node.shadowRoot);
-      }
-    });
-    collectFromRoot(canvas);
-    partsTarget.innerHTML = parts.size
-      ? `<table class="api-table"><tr><th>Part</th><th>Selector</th></tr>${[...parts].sort().map(part => `<tr><td><code>${escapeHtml(part)}</code></td><td><code>${entry.tag}::part(${escapeHtml(part)})</code></td></tr>`).join("")}</table>`
+    const inspection = inspectPreviewTree(canvas);
+    partsTarget.innerHTML = inspection.parts.length
+      ? `<table class="api-table"><tr><th>Part</th><th>Selector</th></tr>${inspection.parts.map(part => `<tr><td><code>${escapeHtml(part)}</code></td><td><code>${entry.tag}::part(${escapeHtml(part)})</code></td></tr>`).join("")}</table>`
       : '<p class="inspector-empty">No parts exposed in this preview.</p>';
-    rolesTarget.innerHTML = roles.size
-      ? `<table class="api-table"><tr><th>Role</th></tr>${[...roles].sort().map(role => `<tr><td><code>${escapeHtml(role)}</code></td></tr>`).join("")}</table>`
+    rolesTarget.innerHTML = inspection.roles.length
+      ? `<table class="api-table"><tr><th>Role</th></tr>${inspection.roles.map(role => `<tr><td><code>${escapeHtml(role)}</code></td></tr>`).join("")}</table>`
       : '<p class="inspector-empty">No explicit ARIA roles in this preview (native semantics).</p>';
 
     const guidance = resolvePreviewGuidance({
       catalogId: entry.id,
-      roles: guidanceRoles,
+      roles: inspection.guidanceRoles,
       exampleNote: example.note,
     });
     guidanceTarget.innerHTML = renderGuidanceCards(guidance);
