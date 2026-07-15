@@ -270,7 +270,10 @@ export class BoxAlertElement extends BaseElement {
       this.titleEl.textContent = this.heading;
     } else {
       this.alertEl.removeAttribute("aria-labelledby");
-      this.alertEl.removeAttribute("aria-label");
+      const accessibleName = this.message
+        ? `${toneAccessibleLabel(this.tone)}: ${this.message}`
+        : toneAccessibleLabel(this.tone);
+      this.alertEl.setAttribute("aria-label", accessibleName);
       this.titleEl.hidden = true;
       this.titleEl.textContent = "";
     }

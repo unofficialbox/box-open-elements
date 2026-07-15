@@ -288,11 +288,22 @@ export class BoxExplorerListElement extends BaseElement {
     }
 
     queueMicrotask(() => {
-      const target = list.querySelector(
-        `[part~="item"][data-item-id="${focusItemId}"]`,
-      ) as HTMLButtonElement | null;
-      target?.focus();
+      this.findItemButton(list, focusItemId)?.focus();
     });
+  }
+
+  private findItemButton(list: HTMLElement, itemId: string): HTMLButtonElement | null {
+    if (typeof CSS !== "undefined" && typeof CSS.escape === "function") {
+      return list.querySelector(
+        `[part~="item"][data-item-id="${CSS.escape(itemId)}"]`,
+      ) as HTMLButtonElement | null;
+    }
+
+    return (
+      Array.from(list.querySelectorAll<HTMLButtonElement>('[part~="item"][data-item-id]')).find(
+        button => button.dataset.itemId === itemId,
+      ) ?? null
+    );
   }
 
   private itemsSignature = "";
@@ -376,8 +387,7 @@ export class BoxExplorerListElement extends BaseElement {
         this.focusItemId = nextItemId;
         this.patchFocusAndSelection();
         queueMicrotask(() => {
-          const target = list.querySelector(`[part~="item"][data-item-id="${nextItemId}"]`) as HTMLButtonElement | null;
-          target?.focus();
+          this.findItemButton(list as HTMLElement, nextItemId)?.focus();
         });
       }
     });

@@ -71,6 +71,7 @@ describe("BoxSplitViewElement", () => {
     const separator = element.shadowRoot?.querySelector('[part="separator"]') as HTMLElement | null;
     separator?.dispatchEvent(new PointerEvent("pointerdown", { pointerId: 1, bubbles: true }));
     separator?.dispatchEvent(new PointerEvent("pointermove", { pointerId: 1, clientX: 600, bubbles: true }));
+    separator?.dispatchEvent(new PointerEvent("pointerup", { pointerId: 1, bubbles: true }));
 
     expect(changed).toHaveBeenCalledWith(
       expect.objectContaining({

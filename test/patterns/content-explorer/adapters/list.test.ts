@@ -154,6 +154,8 @@ describe("BoxExplorerListElement", () => {
 
     expect(document.activeElement).toBe(outsideButton);
     expect(element.shadowRoot?.querySelector('[part~="item"][tabindex="0"]')).toBeNull();
+    expect(element.shadowRoot?.querySelector('[part~="item"][data-item-id="leaf"]')).toBeTruthy();
+    expect(element.shadowRoot?.querySelector('[part~="item"][data-item-id="marketing"]')).toBeNull();
   });
 
   it("surfaces load failures in the list shell", async () => {
@@ -173,5 +175,6 @@ describe("BoxExplorerListElement", () => {
     await flushMicrotasks();
 
     expect(element.shadowRoot?.querySelector('[part="error"]')?.textContent).toContain("Network unavailable");
+    expect(element.shadowRoot?.querySelector('[part="error"]')?.getAttribute("role")).toBe("alert");
   });
 });

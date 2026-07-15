@@ -85,6 +85,17 @@ describe("BoxTooltipElement", () => {
     expect(styles).toContain("--boe-token-surface-surface-brand");
   });
 
+  it("uses a custom trigger label when provided", () => {
+    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    element.label = "Retention policy details";
+    element.triggerLabel = "View retention policy";
+
+    document.body.append(element);
+
+    const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement;
+    expect(trigger.getAttribute("aria-label")).toBe("View retention policy");
+  });
+
   it("positions the tooltip panel absolutely without duplicating trigger and description text", () => {
     const element = document.createElement("box-tooltip") as BoxTooltipElement;
     element.label = "Retention policy details";

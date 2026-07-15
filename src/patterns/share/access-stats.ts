@@ -17,6 +17,13 @@ const formatFullCount = (value: number): string => {
   return String(value);
 };
 
+const formatScaled = (abs: number, divisor: number): string => {
+  const scaled = abs / divisor;
+  const decimals = abs % divisor === 0 ? 0 : 1;
+  const rounded = Math.round(scaled * 10 ** decimals) / 10 ** decimals;
+  return rounded % 1 === 0 ? String(Math.round(rounded)) : rounded.toFixed(decimals);
+};
+
 const formatCount = (value: number): string => {
   if (!Number.isFinite(value)) {
     return "0";
@@ -26,13 +33,17 @@ const formatCount = (value: number): string => {
   const abs = Math.abs(value);
 
   if (abs >= 1_000_000_000) {
-    return `${sign}${(abs / 1_000_000_000).toFixed(abs % 1_000_000_000 === 0 ? 0 : 1)}B`;
+    return `${sign}${formatScaled(abs, 1_000_000_000)}B`;
   }
   if (abs >= 1_000_000) {
-    return `${sign}${(abs / 1_000_000).toFixed(abs % 1_000_000 === 0 ? 0 : 1)}M`;
+    return `${sign}${formatScaled(abs, 1_000_000)}M`;
   }
   if (abs >= 1000) {
-    return `${sign}${(abs / 1000).toFixed(abs % 1000 === 0 ? 0 : 1)}k`;
+    const kDisplay = formatScaled(abs, 1000);
+    if (parseFloat(kDisplay) >= 1000) {
+      return `${sign}${formatScaled(abs, 1_000_000)}M`;
+    }
+    return `${sign}${kDisplay}k`;
   }
 
   return String(value);

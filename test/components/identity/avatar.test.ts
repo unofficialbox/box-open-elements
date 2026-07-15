@@ -76,4 +76,23 @@ describe("BoxAvatarElement", () => {
     expect(image?.hidden).toBe(true);
     expect(element.shadowRoot?.querySelector('[part="fallback"]')?.textContent).toBe("ML");
   });
+
+  it("preserves errored image state when unrelated attributes change", () => {
+    const element = document.createElement("box-avatar") as BoxAvatarElement;
+    element.name = "Morgan Lee";
+    element.src = "https://example.com/missing.png";
+
+    document.body.append(element);
+
+    const image = element.shadowRoot?.querySelector('[part="image"]') as HTMLImageElement | null;
+    image?.dispatchEvent(new Event("error"));
+    expect(image?.hidden).toBe(true);
+    expect(element.shadowRoot?.querySelector('[part="fallback"]')?.textContent).toBe("ML");
+
+    element.tone = "success";
+    element.size = 64;
+
+    expect(image?.hidden).toBe(true);
+    expect(element.shadowRoot?.querySelector('[part="fallback"]')?.textContent).toBe("ML");
+  });
 });

@@ -79,6 +79,16 @@ describe("BoxAccessStatsElement", () => {
     expect(downloads?.getAttribute("aria-label")).toBe("2500000000 Downloads");
   });
 
+  it("promotes near-million counts to M instead of 1000k", () => {
+    const element = document.createElement("box-access-stats") as BoxAccessStatsElement;
+    element.stats = [{ label: "Views", value: 999_950 }];
+    document.body.append(element);
+
+    const tile = element.shadowRoot?.querySelector('[part="tile"]');
+    expect(tile?.querySelector('[part="tile-value"]')?.textContent).toBe("1M");
+    expect(tile?.getAttribute("aria-label")).toBe("999950 Views");
+  });
+
   it("keeps the labelled section and shows an empty affordance with no stats", () => {
     const element = document.createElement("box-access-stats") as BoxAccessStatsElement;
     document.body.append(element);

@@ -93,4 +93,39 @@ describe("BoxExplorerToolbarElement", () => {
     expect(status?.getAttribute("data-status")).toBe("failed");
     expect(status?.textContent).toBe("failed");
   });
+
+  it("supports horizontal roving tabindex between toolbar buttons", async () => {
+    const transport: ExplorerTransport = {
+      loadFolderItems: vi.fn().mockResolvedValue(
+        createResult({
+          items: [{ id: "1", name: "Spec", type: "file" }],
+        }),
+      ),
+    };
+    const controller = new ContentExplorerController({
+      rootFolderId: "0",
+      token: "token",
+      transport,
+      selectionMode: "single",
+    });
+    const element = document.createElement("box-explorer-toolbar") as BoxExplorerToolbarElement;
+    element.controller = controller;
+
+    document.body.append(element);
+    await controller.connect();
+    controller.toggleSelection("1");
+    await flushMicrotasks();
+
+    const refresh = element.shadowRoot?.querySelector('[part="refresh"]') as HTMLButtonElement | null;
+    const clear = element.shadowRoot?.querySelector('[part="clear-selection"]') as HTMLButtonElement | null;
+    refresh?.focus();
+    expect(refresh?.tabIndex).toBe(0);
+    expect(clear?.tabIndex).toBe(-1);
+
+    refresh?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    await flushMicrotasks();
+
+    expect(clear?.tabIndex).toBe(0);
+    expect(refresh?.tabIndex).toBe(-1);
+  });
 });

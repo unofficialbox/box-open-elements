@@ -588,11 +588,17 @@ export class BoxDonutChartElement extends BaseElement {
       button.addEventListener("click", () => {
         const segmentId = button.getAttribute("data-segment-id");
         const segment = this.segments.find(item => item.id === segmentId);
-        if (segment) {
+        if (!segment) {
+          return;
+        }
+
+        if (this.selectedSegmentId === segment.id) {
+          this.selectedSegmentId = null;
+        } else {
           this.selectedSegmentId = segment.id;
           this.emitSegmentSelected(segment);
-          this.update();
         }
+        this.update();
       });
     });
   

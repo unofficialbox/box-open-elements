@@ -160,21 +160,27 @@ export class BoxAvatarElement extends BaseElement {
 
     const existingImage = this.avatarEl.querySelector('[part="image"]') as HTMLImageElement | null;
     const existingFallback = this.avatarEl.querySelector('[part="fallback"]') as HTMLElement | null;
+    const nextSrc = this.src;
 
-    if (this.src) {
+    if (nextSrc) {
       const image = existingImage ?? document.createElement("img");
       image.setAttribute("part", "image");
-      image.src = this.src;
       image.alt = this.alt;
-      image.hidden = false;
-      image.onerror = () => {
-        image.hidden = true;
-        this.showAvatarFallback(existingFallback, fallback);
-      };
-      image.onload = () => {
+
+      const currentSrc = image.getAttribute("src");
+      if (currentSrc !== nextSrc) {
+        image.src = nextSrc;
         image.hidden = false;
-        this.avatarEl.querySelector('[part="fallback"]')?.remove();
-      };
+        image.onerror = () => {
+          image.hidden = true;
+          this.showAvatarFallback(existingFallback, fallback);
+        };
+        image.onload = () => {
+          image.hidden = false;
+          this.avatarEl.querySelector('[part="fallback"]')?.remove();
+        };
+      }
+
       if (!existingImage) {
         this.avatarEl.append(image);
       }

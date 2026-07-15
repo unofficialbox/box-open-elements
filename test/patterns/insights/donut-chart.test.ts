@@ -139,4 +139,26 @@ describe("BoxDonutChartElement", () => {
     expect(pressed?.getAttribute("aria-pressed")).toBe("true");
     expect(pressed?.getAttribute("data-pressed")).toBe("true");
   });
+
+  it("clears pressed legend state when the selected segment is clicked again", () => {
+    const element = document.createElement("box-donut-chart") as BoxDonutChartElement;
+    element.segments = [
+      { id: "internal", label: "Internal", value: 10 },
+      { id: "external", label: "External", value: 8 },
+    ];
+
+    document.body.append(element);
+
+    const external = element.shadowRoot?.querySelector(
+      '[part="legend-item"][data-segment-id="external"]',
+    ) as HTMLButtonElement | null;
+    external?.click();
+    external?.click();
+
+    const pressed = element.shadowRoot?.querySelector(
+      '[part="legend-item"][data-segment-id="external"]',
+    ) as HTMLButtonElement | null;
+    expect(pressed?.getAttribute("aria-pressed")).toBe("false");
+    expect(pressed?.getAttribute("data-pressed")).toBe("false");
+  });
 });

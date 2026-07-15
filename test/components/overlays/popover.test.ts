@@ -139,4 +139,16 @@ describe("BoxPopoverElement", () => {
     const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null;
     expect(trigger?.disabled).toBe(true);
   });
+
+  it("does not open via the open attribute when disabled", () => {
+    const element = document.createElement("box-popover") as BoxPopoverElement;
+    element.disabled = true;
+    document.body.append(element);
+
+    element.setAttribute("open", "");
+
+    expect(element.open).toBe(false);
+    expect(element.hasAttribute("open")).toBe(false);
+    expect(element.shadowRoot?.querySelector('[part="surface"]')?.hasAttribute("hidden")).toBe(true);
+  });
 });

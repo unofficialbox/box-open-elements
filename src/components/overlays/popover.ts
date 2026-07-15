@@ -162,8 +162,17 @@ export class BoxPopoverElement extends BaseElement {
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "open") {
-      this.openValue = this.hasAttribute("open");
-      this.syncDocumentListeners();
+      if (this.disabled && this.hasAttribute("open")) {
+        this.openValue = false;
+        this.removeAttribute("open");
+        this.syncDocumentListeners();
+        if (this.isRendered) {
+          this.update();
+        }
+      } else {
+        this.openValue = this.hasAttribute("open");
+        this.syncDocumentListeners();
+      }
     }
     if (name === "disabled" && this.disabled && this.openValue) {
       this.hide();

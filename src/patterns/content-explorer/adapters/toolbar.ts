@@ -1,5 +1,6 @@
 import { ContentExplorerController } from "../controller.js";
 import { BaseElement } from "../../../core/index.js";
+import { applyRovingTabindex, handleRovingKeydown } from "../../../foundations/a11y/index.js";
 import { boeNeutralInteractiveStyles } from "../../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-explorer-toolbar";
@@ -163,7 +164,15 @@ export class BoxExplorerToolbarElement extends BaseElement {
     this.shadowRoot.querySelector('[part="clear-selection"]')?.addEventListener("click", () => {
       this.controllerValue?.clearSelection();
     });
-  
+
+    const toolbar = this.shadowRoot.querySelector('[part="toolbar"]');
+    const buttons = Array.from(
+      this.shadowRoot.querySelectorAll<HTMLButtonElement>('[part="refresh"], [part="clear-selection"]'),
+    ).filter(button => !button.disabled);
+    applyRovingTabindex(buttons, 0);
+    toolbar?.addEventListener("keydown", event => {
+      handleRovingKeydown(event as KeyboardEvent, buttons, { orientation: "horizontal" });
+    });
   }
 }
 

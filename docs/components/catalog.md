@@ -110,7 +110,7 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 - `nav-sidebar` — **built**
 - `section` — **built**
 - `sidebar-toggle-button` — **built**
-- `split-view` — **built**
+- `split-view` — **built** (emits `ratio-changed` with `detail: { ratio }` while resizing)
 
 ### Navigation
 

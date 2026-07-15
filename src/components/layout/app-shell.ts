@@ -124,6 +124,7 @@ export class BoxAppShellElement extends BaseElement {
   private navSlot!: HTMLSlotElement;
   private asideSlot!: HTMLSlotElement;
   private footerSlot!: HTMLSlotElement;
+  private slotObserver: MutationObserver | null = null;
 
   get heading(): string {
     return this.getAttribute("heading") ?? "App Shell";
@@ -197,15 +198,21 @@ export class BoxAppShellElement extends BaseElement {
     this.asideSlot.addEventListener("slotchange", () => this.syncLandmarkVisibility());
     this.footerSlot.addEventListener("slotchange", () => this.syncLandmarkVisibility());
     // Cover hosts (incl. jsdom) that do not emit slotchange for light-DOM appends.
-    new MutationObserver(() => this.syncLandmarkVisibility()).observe(this, {
+    this.slotObserver = new MutationObserver(() => this.syncLandmarkVisibility());
+    this.slotObserver.observe(this, {
       childList: true,
     });
   }
 
+  disconnectedCallback(): void {
+    this.slotObserver?.disconnect();
+    this.slotObserver = null;
+  }
+
   private hasNamedSlotContent(name: string, slot: HTMLSlotElement): boolean {
-    // Prefer light-DOM query — jsdom often leaves slot.assignedNodes() empty
+    // Prefer direct light-DOM children — jsdom often leaves slot.assignedNodes() empty
     // even when slotted children are present.
-    if (this.querySelector(`[slot="${name}"]`) != null) {
+    if (Array.from(this.children).some(el => el.getAttribute("slot") === name)) {
       return true;
     }
     return slot.assignedNodes({ flatten: true }).length > 0;

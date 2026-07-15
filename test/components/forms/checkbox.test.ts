@@ -143,4 +143,33 @@ describe("BoxCheckboxElement", () => {
     expect(element.indeterminate).toBe(false);
     expect(element.hasAttribute("indeterminate")).toBe(false);
   });
+
+  it("clears indeterminate when checked is set to false", () => {
+    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    element.indeterminate = true;
+    document.body.append(element);
+
+    element.checked = false;
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
+    expect(element.indeterminate).toBe(false);
+    expect(element.hasAttribute("indeterminate")).toBe(false);
+    expect(input.indeterminate).toBe(false);
+    expect(input.getAttribute("aria-checked")).toBe("false");
+    expect(element.getAttribute("aria-checked")).toBe("false");
+  });
+
+  it("reflects aria-checked on the host for checked, unchecked, and mixed states", () => {
+    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    document.body.append(element);
+
+    element.checked = true;
+    expect(element.getAttribute("aria-checked")).toBe("true");
+
+    element.indeterminate = true;
+    expect(element.getAttribute("aria-checked")).toBe("mixed");
+
+    element.checked = false;
+    expect(element.getAttribute("aria-checked")).toBe("false");
+  });
 });

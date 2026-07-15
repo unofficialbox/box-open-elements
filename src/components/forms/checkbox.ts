@@ -88,6 +88,8 @@ export class BoxCheckboxElement extends FormAssociatedElement {
       this.removeAttribute("indeterminate");
     } else {
       this.removeAttribute("checked");
+      this.indeterminateInternal = false;
+      this.removeAttribute("indeterminate");
     }
     if (this.isRendered) {
       this.update();
@@ -245,11 +247,11 @@ export class BoxCheckboxElement extends FormAssociatedElement {
     this.inputEl.checked = this.checkedInternal;
     this.inputEl.indeterminate = this.indeterminateInternal;
     this.inputEl.value = this.valueInternal;
-    if (this.indeterminateInternal) {
-      this.inputEl.setAttribute("aria-checked", "mixed");
-    } else {
-      this.inputEl.setAttribute("aria-checked", String(this.checkedInternal));
-    }
+    const ariaChecked = this.indeterminateInternal
+      ? "mixed"
+      : String(this.checkedInternal);
+    this.inputEl.setAttribute("aria-checked", ariaChecked);
+    this.setAttribute("aria-checked", ariaChecked);
     if (this.disabled) {
       this.inputEl.setAttribute("disabled", "");
     } else {

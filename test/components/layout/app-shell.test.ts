@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BoxAppShellElement, defineBoxAppShellElement } from "../../../src/components/layout/app-shell.js";
 
@@ -53,5 +53,18 @@ describe("BoxAppShellElement", () => {
 
     expect(nav.hidden).toBe(false);
     expect(aside.hidden).toBe(true);
+  });
+
+  it("disconnects the slot observer when removed from the document", () => {
+    const element = document.createElement("box-app-shell") as BoxAppShellElement;
+    document.body.append(element);
+
+    const observer = (element as unknown as { slotObserver: MutationObserver | null }).slotObserver;
+    const disconnect = vi.spyOn(observer!, "disconnect");
+
+    element.remove();
+
+    expect(disconnect).toHaveBeenCalled();
+    expect((element as unknown as { slotObserver: MutationObserver | null }).slotObserver).toBeNull();
   });
 });
