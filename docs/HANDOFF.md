@@ -25,7 +25,8 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
 - Recent merged PRs: #29 Batches 0/2/6, **#31/#32/#33** Batch 1, **#35** Batch 3,
-  **#38** Batch 4, Batch 5 in flight on `cursor/batch-5-form-association-7eb7`.
+  **#38** Batch 4. **Batch 5** implemented on `cursor/batch-5-form-association-7eb7`
+  (PR #39 — await merge before starting Batch 7).
 
 ## The active initiative: component fidelity program
 
@@ -136,6 +137,7 @@ organized into **systemic sweeps**, not per-component rewrites.
   `getMirroredFormValue(el.internals)` in tests.
 
 ## Open user-facing threads
-- Fidelity Batches **0–6 done** (5 in this PR); remaining: **Batch 7** polish.
-- **Next:** start **Batch 7** (skeleton short-circuit, multi-value form assoc,
-  leftover audit nits).
+- Fidelity Batches **0–4 and 6 merged**; **Batch 5** complete in code on PR #39
+  (pending merge). Remaining: **Batch 7** polish after #39 lands.
+- **Next (after #39 merges):** start **Batch 7** (skeleton short-circuit,
+  multi-value form assoc, leftover audit nits).

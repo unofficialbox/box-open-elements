@@ -54,6 +54,7 @@ const writeValidity = (
 /** Shared invalid-state styles using the status-error token. */
 export const boeFormFieldErrorStyles = `
   :host([invalid]) [part="input"],
+  :host([invalid]) [part="textarea"],
   :host([invalid]) [part="select"],
   :host([invalid]) [part="control"],
   :host([invalid]) [part="editor"] {
@@ -61,6 +62,7 @@ export const boeFormFieldErrorStyles = `
   }
 
   :host([invalid]) [part="input"]:focus-visible,
+  :host([invalid]) [part="textarea"]:focus-visible,
   :host([invalid]) [part="select"]:focus-visible,
   :host([invalid]) [part="control"]:focus-visible {
     border-color: var(--boe-token-surface-status-surface-error, #ed3757);

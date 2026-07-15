@@ -3,6 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BoxRadioGroupElement, defineBoxRadioGroupElement } from "../../../src/components/forms/radio-group.js";
+import { FORM_ERROR_MESSAGE_ID, getMirroredFormValue } from "../../../src/core/index.js";
 
 describe("BoxRadioGroupElement", () => {
   beforeEach(() => {
@@ -83,6 +84,60 @@ describe("BoxRadioGroupElement", () => {
 
     // Assert focus is still on the active shadow root element and not lost to the body
     expect(element.shadowRoot?.activeElement).toBe(firstInput);
+  });
+
+  it("omits form value when unselected or stale, but keeps an explicit empty option", () => {
+    const element = document.createElement("box-radio-group") as BoxRadioGroupElement;
+    element.name = "choice";
+    element.options = [
+      { label: "Single", value: "single" },
+      { label: "Multiple", value: "multiple" },
+    ];
+    document.body.append(element);
+
+    expect(getMirroredFormValue(element.internals)).toBe(null);
+
+    element.value = "missing";
+    expect(getMirroredFormValue(element.internals)).toBe(null);
+
+    element.options = [
+      { label: "None", value: "" },
+      { label: "Single", value: "single" },
+    ];
+    element.value = "";
+    expect(getMirroredFormValue(element.internals)).toBe("");
+
+    element.value = "single";
+    expect(getMirroredFormValue(element.internals)).toBe("single");
+  });
+
+  it("propagates invalid ARIA state to every radio option", () => {
+    const element = document.createElement("box-radio-group") as BoxRadioGroupElement;
+    element.options = [
+      { label: "Single", value: "single" },
+      { label: "Multiple", value: "multiple" },
+    ];
+    element.invalid = true;
+    element.errorMessage = "Pick one";
+    document.body.append(element);
+
+    const inputs = Array.from(
+      element.shadowRoot?.querySelectorAll('[part="input"]') ?? [],
+    ) as HTMLInputElement[];
+    expect(inputs).toHaveLength(2);
+
+    const second = inputs[1]!;
+    second.focus();
+    expect(element.shadowRoot?.activeElement).toBe(second);
+
+    for (const input of inputs) {
+      expect(input.getAttribute("aria-invalid")).toBe("true");
+      expect(input.getAttribute("aria-errormessage")).toBe(FORM_ERROR_MESSAGE_ID);
+    }
+
+    const error = element.shadowRoot?.querySelector('[part="error-message"]');
+    expect(error?.textContent).toBe("Pick one");
+    expect((error as HTMLElement | null)?.hidden).toBe(false);
   });
 
   it("includes focus-within, hover, active, and disabled option styles", () => {

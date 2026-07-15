@@ -198,7 +198,7 @@ export class BoxDateFieldElement extends FormAssociatedElement {
       this.inputEl.removeAttribute("max");
     }
 
-    if (document.activeElement !== this.inputEl) {
+    if (this.shadowRoot?.activeElement !== this.inputEl) {
       this.inputEl.value = this.valueInternal;
     }
 

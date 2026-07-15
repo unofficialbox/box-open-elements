@@ -198,7 +198,7 @@ export class BoxTextAreaElement extends FormAssociatedElement {
     this.textareaEl.placeholder = this.placeholder;
     this.textareaEl.rows = this.rows;
 
-    if (document.activeElement !== this.textareaEl) {
+    if (this.shadowRoot?.activeElement !== this.textareaEl) {
       this.textareaEl.value = this.valueInternal;
     }
 

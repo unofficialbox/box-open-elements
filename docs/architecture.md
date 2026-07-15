@@ -74,6 +74,18 @@ outer shell and listeners stable. Focused inputs should not overwrite `.value` w
 
 ## Form-associated controls
 
+```mermaid
+sequenceDiagram
+  participant Control
+  participant Base as FormAssociatedElement
+  participant Internals as ElementInternals
+  participant Form
+  Control->>Base: value / validity changes
+  Base->>Internals: setFormValue + setValidity
+  Internals->>Form: submit / native validation
+  Form->>Base: reset or state restore callback
+```
+
 Everyday form controls extend `FormAssociatedElement` (`static formAssociated = true`) so they
 participate in native `<form>` submission via `ElementInternals`:
 

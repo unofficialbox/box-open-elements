@@ -24,8 +24,8 @@ result is written to the run journal, and the committed outputs are this report 
 
 **51 components score below 3/5; 229 high-severity issues logged.**
 
-> **Program status (live):** Batches **0, 1, 2, 3, 4, 5, 6 are DONE** (merged or in flight). Remaining:
-> **7** (polish).
+> **Program status (live):** Batches **0, 1, 2, 3, 4, 6 merged**; **5** implemented
+> (PR #39, pending merge). Remaining: **7** (polish).
 > Session status: [HANDOFF.md](../HANDOFF.md). Scores and issue lists below are the **original
 > audit snapshot** — they are not re-scored after each batch; track completion in the prioritized
 > plan and HANDOFF.

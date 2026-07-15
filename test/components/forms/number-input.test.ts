@@ -66,6 +66,22 @@ describe("BoxNumberInputElement", () => {
     expect(getMirroredFormValue(element.internals)).toBe("0");
   });
 
+  it("does not revert to a stale pre-clamp value when max is relaxed", () => {
+    const element = document.createElement("box-number-input") as BoxNumberInputElement;
+    element.min = 0;
+    element.max = 10;
+    element.value = 7;
+    document.body.append(element);
+
+    element.max = 3;
+    expect(element.value).toBe(3);
+    expect(getMirroredFormValue(element.internals)).toBe("3");
+
+    element.max = 8;
+    expect(element.value).toBe(3);
+    expect(getMirroredFormValue(element.internals)).toBe("3");
+  });
+
   it("clamps user input to min and max bounds", () => {
     const element = document.createElement("box-number-input") as BoxNumberInputElement;
     element.min = 1;

@@ -1,4 +1,5 @@
 import {
+  FORM_ERROR_MESSAGE_ID,
   FormAssociatedElement,
   boeFormFieldErrorStyles,
   formErrorMessageMarkup,
@@ -195,7 +196,8 @@ export class BoxRadioGroupElement extends FormAssociatedElement {
   }
 
   protected getFormValue(): FormValue {
-    return this.valueInternal;
+    const selected = this.options.some(option => option.value === this.valueInternal);
+    return selected ? this.valueInternal : null;
   }
 
   protected restoreFormValue(value: FormValue): void {
@@ -298,10 +300,19 @@ export class BoxRadioGroupElement extends FormAssociatedElement {
       }
     });
 
-    const firstInput = this.optionsContainerEl.querySelector('[part="input"]') as
-      | HTMLInputElement
-      | null;
-    this.applyInvalidState(firstInput, this.errorEl);
+    const invalid = this.invalid;
+    const message = this.errorMessage;
+    this.optionsContainerEl.querySelectorAll<HTMLInputElement>('[part="input"]').forEach(input => {
+      input.setAttribute("aria-invalid", String(invalid));
+      if (invalid && message) {
+        input.setAttribute("aria-errormessage", FORM_ERROR_MESSAGE_ID);
+      } else {
+        input.removeAttribute("aria-errormessage");
+      }
+    });
+    this.errorEl.textContent = message;
+    this.errorEl.hidden = !(invalid && Boolean(message));
+    this.syncFormAssociation();
   }
 }
 

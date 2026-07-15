@@ -161,8 +161,14 @@ export class BoxNumberInputElement extends FormAssociatedElement {
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-    if (name === "value" || name === "min" || name === "max") {
-      this.valueInternal = this.clamp(parseNumber(this.getAttribute("value"), this.valueInternal));
+    if (name === "value") {
+      this.valueInternal = this.clamp(parseNumber(newValue, this.valueInternal));
+    } else if (name === "min" || name === "max") {
+      const clamped = this.clamp(this.valueInternal);
+      this.valueInternal = clamped;
+      if (this.getAttribute("value") !== String(clamped)) {
+        this.setAttribute("value", String(clamped));
+      }
     }
     super.attributeChangedCallback(name, oldValue, newValue);
   }

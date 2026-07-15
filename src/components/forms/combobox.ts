@@ -220,7 +220,7 @@ export class BoxComboboxElement extends FormAssociatedElement {
       )
       .join("");
 
-    if (document.activeElement !== this.inputEl) {
+    if (this.shadowRoot?.activeElement !== this.inputEl) {
       this.inputEl.value = this.valueInternal;
     }
 
