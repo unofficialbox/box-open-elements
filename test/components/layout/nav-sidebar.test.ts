@@ -60,4 +60,19 @@ describe("BoxNavSidebarElement", () => {
     expect(element.collapsed).toBe(true);
     expect(element.shadowRoot?.querySelector('[part="sidebar"]')?.getAttribute("data-collapsed")).toBe("true");
   });
+
+  it("exposes a collapsed icon-strip CSS contract for slotted nav rows", () => {
+    const element = document.createElement("box-nav-sidebar") as BoxNavSidebarElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("--boe-nav-label-display: inline");
+    expect(styles).toContain(":host([collapsed])");
+    expect(styles).toContain("--boe-nav-label-display: none");
+    expect(styles).toContain("::slotted(a)");
+    expect(styles).toContain("::slotted(button)");
+    expect(styles).toContain('[data-collapsed="true"] ::slotted(a)');
+    expect(styles).toContain('[data-collapsed="true"] ::slotted(button)');
+    expect(styles).toContain("appearance: none");
+  });
 });

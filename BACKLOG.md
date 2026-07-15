@@ -6,9 +6,9 @@ This file tracks the highest-signal follow-up work that is still open. The phase
 
 Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fidelity-audit.md).
 
-- **Done (merged):** Batches 0–7 (security, BaseElement, dark mode, interaction states, ARIA/keyboard, form association, `title`→`heading`, multi-value form assoc + skeleton short-circuit).
-- **In flight:** high-signal medium/low audit nits — `cursor/medium-low-audit-nits-7eb7`.
-- **Next:** design-heavy leftovers only if needed (floating popover, slotted tooltip, explorer select-vs-activate, responsive app-shell).
+- **Done (merged):** Batches 0–7 + medium/low audit nits (#41).
+- **In flight:** design-heavy leftovers — `cursor/design-heavy-leftovers-7eb7` (floating popover, slotted tooltip, explorer select-vs-activate, responsive app-shell, nav-sidebar icon contract).
+- **Next:** after leftovers merge, fidelity program is complete (spacing/token rhythm only if needed).
 
 ## Build-out
 

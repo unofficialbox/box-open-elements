@@ -18,6 +18,8 @@ const appShellStyles = `
     background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text, #222222);
     overflow: hidden;
+    container-type: inline-size;
+    container-name: boe-app-shell;
   }
 
   [part="header"] {
@@ -108,6 +110,29 @@ const appShellStyles = `
     background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     font-size: 0.86rem;
+  }
+
+  /* Narrow shells stack nav → main → aside instead of a three-column frame. */
+  @container boe-app-shell (max-width: 48rem) {
+    [part="frame"] {
+      grid-template-columns: 1fr;
+    }
+
+    [part="frame"]:has([part="nav"]:not([hidden])):not(:has([part="aside"]:not([hidden]))),
+    [part="frame"]:not(:has([part="nav"]:not([hidden]))):has([part="aside"]:not([hidden])),
+    [part="frame"]:has([part="nav"]:not([hidden])):has([part="aside"]:not([hidden])) {
+      grid-template-columns: 1fr;
+    }
+
+    [part="nav"] {
+      border-right: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
+    }
+
+    [part="aside"] {
+      border-left: 0;
+      border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
+    }
   }
 `;
 

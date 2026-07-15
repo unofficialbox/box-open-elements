@@ -16,16 +16,16 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 
 ## Current state (as of this handoff)
 
-- **Branch tip for fidelity work:** develop from `origin/main` after this nits PR merges.
+- **Branch tip for fidelity work:** develop from `origin/main` after design-heavy leftovers merge.
 - **Live site:** GitHub Pages, `https://unofficialbox.github.io/box-open-elements/`,
   auto-deploys on push to `main` via `.github/workflows/deploy.yml`
   (build cmd `bun run site:build`, output `docs-site/dist`). The Workshop is
   **not** deployed (internal tool).
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
-- Recent merged PRs: #29 Batches 0/2/6, **#31/#32/#33** Batch 1, **#35** Batch 3,
-  **#38** Batch 4, **#39** Batch 5, **#40** Batch 7. Medium/low nits in flight on
-  `cursor/medium-low-audit-nits-7eb7`.
+-   Recent merged PRs: #29 Batches 0/2/6, **#31/#32/#33** Batch 1, **#35** Batch 3,
+  **#38** Batch 4, **#39** Batch 5, **#40** Batch 7, **#41** medium/low nits.
+  Design-heavy leftovers in flight on `cursor/design-heavy-leftovers-7eb7`.
 
 ## The active initiative: component fidelity program
 
@@ -68,16 +68,18 @@ organized into **systemic sweeps**, not per-component rewrites.
 - **Batch 7 — polish** (#40): `skeleton` update short-circuit; form association
   for multi-value / niche controls via `FormData` helpers;
   `applyInvalidStateToControls` for multi-focusable fields.
-- **Medium/low audit nits** (this branch): high-signal per-component polish
+- **Medium/low audit nits** (#41): high-signal per-component polish
   (identity size/fallback, alert/permission a11y, checkbox indeterminate,
   combobox value mapping, accordion collapse/headings, overlay/layout/explorer/
   chart/tree fixes, calendar `today` pin, etc.).
+- **Design-heavy leftovers** (this branch): floating popover (`placement` +
+  open focus), slotted tooltip trigger, explorer `item-gesture` select-vs-
+  activate split, app-shell `@container` reflow, nav-sidebar collapsed icon
+  contract (`--boe-nav-label-display`).
 
 ### Remaining (do these next, in order)
-1. After this nits PR merges: remaining design-heavy leftovers only if needed
-   (floating/anchored popover, slotted tooltip trigger, explorer
-   select-vs-activate split, app-shell responsive breakpoints, nav-sidebar
-   collapsed icon contract). Spacing/token rhythm noise is low priority.
+1. After this leftovers PR merges: spacing/token rhythm noise only if needed.
+   Fidelity program is otherwise complete.
 
 ### Deferred CodeRabbit items (intentional)
 - "add style tests" nitpicks → covered by the screenshot gate; low value.
@@ -138,6 +140,6 @@ organized into **systemic sweeps**, not per-component rewrites.
   `getMirroredFormValue(el.internals)` in tests.
 
 ## Open user-facing threads
-- Fidelity Batches **0–7 merged**; medium/low nits PR in flight on
-  `cursor/medium-low-audit-nits-7eb7`.
-- **Next:** design-heavy leftovers only if product wants them (see Remaining).
+- Fidelity Batches **0–7** + medium/low nits (#41) merged; design-heavy
+  leftovers PR in flight on `cursor/design-heavy-leftovers-7eb7`.
+- **Next:** merge leftovers (#42), then treat fidelity as complete.

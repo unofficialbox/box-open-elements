@@ -148,7 +148,7 @@ describe("BoxExplorerListElement", () => {
 
     const firstItem = element.shadowRoot?.querySelector('[part~="item"][data-item-id="marketing"]') as HTMLButtonElement | null;
     firstItem?.focus();
-    firstItem?.click();
+    firstItem?.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
     outsideButton.focus();
     await flushMicrotasks();
 
@@ -176,5 +176,52 @@ describe("BoxExplorerListElement", () => {
 
     expect(element.shadowRoot?.querySelector('[part="error"]')?.textContent).toContain("Network unavailable");
     expect(element.shadowRoot?.querySelector('[part="error"]')?.getAttribute("role")).toBe("alert");
+  });
+
+  it("splits selection (click/Space) from activation (Enter/dblclick) by default", async () => {
+    const transport: ExplorerTransport = {
+      loadFolderItems: vi
+        .fn()
+        .mockResolvedValueOnce(
+          createResult({
+            items: [{ id: "marketing", name: "Marketing", type: "folder" }],
+          }),
+        )
+        .mockResolvedValueOnce(
+          createResult({
+            breadcrumbs: [
+              { id: "0", name: "All Files", type: "folder" },
+              { id: "marketing", name: "Marketing", type: "folder" },
+            ],
+            folder: { id: "marketing", name: "Marketing", type: "folder" },
+            folderId: "marketing",
+            items: [{ id: "leaf", name: "Leaf", type: "file" }],
+          }),
+        ),
+    };
+    const controller = new ContentExplorerController({
+      rootFolderId: "0",
+      token: "token",
+      transport,
+      selectionMode: "single",
+    });
+    const element = document.createElement("box-explorer-list") as BoxExplorerListElement;
+    element.controller = controller;
+
+    document.body.append(element);
+    await controller.connect();
+    await flushMicrotasks();
+
+    const folder = element.shadowRoot?.querySelector('[part~="item"][data-item-id="marketing"]') as HTMLButtonElement;
+    folder.click();
+    await flushMicrotasks();
+
+    expect(controller.getState().selectedItemIds).toEqual(["marketing"]);
+    expect(controller.getState().currentFolder?.id).toBe("0");
+
+    folder.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    await flushMicrotasks();
+
+    expect(controller.getState().currentFolder?.id).toBe("marketing");
   });
 });

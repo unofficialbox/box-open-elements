@@ -1,12 +1,16 @@
 import { ContentExplorerController } from "./controller.js";
-import type {
-  ExplorerEvents,
-  ExplorerItemAction,
-  ExplorerItem,
-  ExplorerSessionConfig,
-  ExplorerSelectionMode,
-  ExplorerState,
-  ExplorerTransport,
+import {
+  resolveExplorerItemGesture,
+  shouldActivateOnClick,
+  shouldToggleOnEnter,
+  type ExplorerEvents,
+  type ExplorerItemAction,
+  type ExplorerItem,
+  type ExplorerSessionConfig,
+  type ExplorerItemGesture,
+  type ExplorerSelectionMode,
+  type ExplorerState,
+  type ExplorerTransport,
 } from "./types.js";
 import { BaseElement } from "../../core/index.js";
 
@@ -285,7 +289,7 @@ const elementStyles = `
 
 export class BoxContentExplorerElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["language", "page-size", "root-folder-id", "selection-mode", "token"];
+    return ["item-gesture", "language", "page-size", "root-folder-id", "selection-mode", "token"];
   }
 
   private controller: ContentExplorerController | null = null;
@@ -320,6 +324,14 @@ export class BoxContentExplorerElement extends BaseElement {
 
   set selectionMode(value: ExplorerSelectionMode | null) {
     this.updateStringAttribute("selection-mode", value);
+  }
+
+  get itemGesture(): ExplorerItemGesture {
+    return resolveExplorerItemGesture(this.getAttribute("item-gesture"));
+  }
+
+  set itemGesture(value: ExplorerItemGesture) {
+    this.setAttribute("item-gesture", value);
   }
 
   set pageSize(value: number | undefined) {
@@ -381,15 +393,17 @@ export class BoxContentExplorerElement extends BaseElement {
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-    this.scheduleStart();
-  
+    // Presentation-only: changing item-gesture must not tear down the session.
+    if (name !== "item-gesture") {
+      this.scheduleStart();
+    }
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   connectedCallback(): void {
     super.connectedCallback();
-this.scheduleStart();
-    }
+    this.scheduleStart();
+  }
 
   disconnectedCallback(): void {
     this.teardownController();
@@ -612,7 +626,7 @@ this.scheduleStart();
                 )
                 .join("");
               const itemButtonAttributes = toAttributeString({
-                "aria-label": `Open ${item.name}`,
+                "aria-label": item.name,
                 "aria-selected": isSelected ? "true" : "false",
                 "data-item-id": item.id,
                 part: "item",
@@ -682,10 +696,22 @@ this.scheduleStart();
     });
     this.shadowRoot.querySelectorAll('[part="item"]').forEach(node => {
       node.addEventListener("click", event => {
+        if ((event as MouseEvent).detail > 1) {
+          return;
+        }
         const itemId = (event.currentTarget as HTMLElement).getAttribute("data-item-id");
         if (itemId) {
           this.focusItemId = itemId;
           this.toggleSelection(itemId);
+          if (shouldActivateOnClick(this.itemGesture)) {
+            void this.activateItem(itemId);
+          }
+        }
+      });
+      node.addEventListener("dblclick", event => {
+        const itemId = (event.currentTarget as HTMLElement).getAttribute("data-item-id");
+        if (itemId) {
+          this.focusItemId = itemId;
           void this.activateItem(itemId);
         }
       });
@@ -704,9 +730,21 @@ this.scheduleStart();
           nextIndex = 0;
         } else if (keyboardEvent.key === "End") {
           nextIndex = itemIds.length - 1;
-        } else if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
+        } else if (keyboardEvent.key === " ") {
           keyboardEvent.preventDefault();
-          (event.currentTarget as HTMLButtonElement).click();
+          this.focusItemId = itemId;
+          this.toggleSelection(itemId);
+          if (shouldActivateOnClick(this.itemGesture)) {
+            void this.activateItem(itemId);
+          }
+          return;
+        } else if (keyboardEvent.key === "Enter") {
+          keyboardEvent.preventDefault();
+          this.focusItemId = itemId;
+          if (shouldToggleOnEnter(this.itemGesture)) {
+            this.toggleSelection(itemId);
+          }
+          void this.activateItem(itemId);
           return;
         } else {
           return;
@@ -717,8 +755,8 @@ this.scheduleStart();
         if (nextItemId) {
           this.focusItemId = nextItemId;
           if (this.isRendered) {
-      this.update();
-    }
+            this.update();
+          }
         }
       });
     });

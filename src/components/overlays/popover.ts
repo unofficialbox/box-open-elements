@@ -1,7 +1,17 @@
 import { BaseElement } from "../../core/index.js";
+import { FocusRestore, getTabbableElements } from "../../foundations/a11y/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-popover";
+
+export type PopoverPlacement = "bottom" | "top" | "start" | "end";
+
+const resolvePlacement = (value: string | null): PopoverPlacement => {
+  if (value === "top" || value === "start" || value === "end" || value === "bottom") {
+    return value;
+  }
+  return "bottom";
+};
 
 const popoverStyles = `
   :host {
@@ -14,7 +24,6 @@ const popoverStyles = `
     position: relative;
     display: inline-grid;
     justify-items: start;
-    gap: 0.5rem;
   }
 
   [part="trigger"] {
@@ -45,6 +54,10 @@ const popoverStyles = `
   ${boeNeutralInteractiveStyles('[part="trigger"]')}
 
   [part="surface"] {
+    position: absolute;
+    z-index: 30;
+    inset-block-start: calc(100% + 0.35rem);
+    inset-inline-start: 0;
     width: min(21rem, calc(100vw - 5rem));
     padding: 0.95rem 1rem 1rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, var(--boe-token-surface-surface, #ffffff) 14%);
@@ -62,6 +75,22 @@ const popoverStyles = `
     line-height: 1.5;
   }
 
+  :host([placement="top"]) [part="surface"] {
+    inset-block-start: auto;
+    inset-block-end: calc(100% + 0.35rem);
+  }
+
+  :host([placement="start"]) [part="surface"] {
+    inset-block-start: 0;
+    inset-inline-start: auto;
+    inset-inline-end: calc(100% + 0.35rem);
+  }
+
+  :host([placement="end"]) [part="surface"] {
+    inset-block-start: 0;
+    inset-inline-start: calc(100% + 0.35rem);
+  }
+
   [part="surface"][hidden] {
     display: none;
   }
@@ -69,25 +98,22 @@ const popoverStyles = `
 
 export class BoxPopoverElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "open"];
+    return ["disabled", "label", "open", "placement"];
   }
 
   private openValue = false;
+  private wasOpen = false;
   private documentListenersBound = false;
   private triggerEl!: HTMLButtonElement;
   private surfaceEl!: HTMLElement;
+  private readonly focusRestore = new FocusRestore();
 
   private readonly onDocumentKeydown = (event: KeyboardEvent): void => {
     if (!this.openValue || event.key !== "Escape") {
       return;
     }
     event.preventDefault();
-    const path = typeof event.composedPath === "function" ? event.composedPath() : [];
-    const originatedInside = path.some(node => node === this);
     this.hide();
-    if (originatedInside) {
-      this.triggerEl?.focus();
-    }
   };
 
   private readonly onOutsidePointer = (event: Event): void => {
@@ -134,6 +160,14 @@ export class BoxPopoverElement extends BaseElement {
 
   set label(value: string) {
     this.setAttribute("label", value);
+  }
+
+  get placement(): PopoverPlacement {
+    return resolvePlacement(this.getAttribute("placement"));
+  }
+
+  set placement(value: PopoverPlacement) {
+    this.setAttribute("placement", value);
   }
 
   get disabled(): boolean {
@@ -228,6 +262,26 @@ export class BoxPopoverElement extends BaseElement {
     }
   }
 
+  private focusSurface(): void {
+    const candidates: HTMLElement[] = [];
+    const slot = this.surfaceEl.querySelector("slot");
+    for (const node of slot?.assignedElements({ flatten: true }) ?? []) {
+      if (!(node instanceof HTMLElement)) {
+        continue;
+      }
+      candidates.push(...getTabbableElements(node));
+      if (
+        candidates.length === 0 &&
+        !node.hasAttribute("disabled") &&
+        (node.matches("button, a[href], input:not([type='hidden']), select, textarea") || node.tabIndex >= 0)
+      ) {
+        candidates.push(node);
+      }
+    }
+    candidates.push(...getTabbableElements(this.surfaceEl));
+    (candidates[0] ?? this.surfaceEl).focus();
+  }
+
   protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
@@ -237,7 +291,7 @@ export class BoxPopoverElement extends BaseElement {
       <style>${popoverStyles}</style>
       <div part="container">
         <button type="button" part="trigger" id="boe-popover-trigger" aria-haspopup="dialog" aria-controls="boe-popover-surface"></button>
-        <div part="surface" role="dialog" id="boe-popover-surface" aria-labelledby="boe-popover-trigger" hidden>
+        <div part="surface" role="dialog" id="boe-popover-surface" aria-labelledby="boe-popover-trigger" tabindex="-1" hidden>
           <slot></slot>
         </div>
       </div>
@@ -251,6 +305,13 @@ export class BoxPopoverElement extends BaseElement {
       this.toggle();
     });
     this.triggerEl.addEventListener("keydown", event => {
+      const keyboardEvent = event as KeyboardEvent;
+      if (keyboardEvent.key === "Escape") {
+        keyboardEvent.preventDefault();
+        this.hide();
+      }
+    });
+    this.surfaceEl.addEventListener("keydown", event => {
       const keyboardEvent = event as KeyboardEvent;
       if (keyboardEvent.key === "Escape") {
         keyboardEvent.preventDefault();
@@ -271,8 +332,20 @@ export class BoxPopoverElement extends BaseElement {
     } else {
       this.triggerEl.removeAttribute("disabled");
     }
+
+    const justOpened = this.openValue && !this.wasOpen;
+    const justClosed = !this.openValue && this.wasOpen;
     this.surfaceEl.hidden = !this.openValue;
     this.syncDocumentListeners();
+
+    if (justOpened) {
+      this.focusRestore.capture(this.triggerEl);
+      queueMicrotask(() => this.focusSurface());
+    } else if (justClosed) {
+      this.focusRestore.restore();
+    }
+
+    this.wasOpen = this.openValue;
   }
 }
 

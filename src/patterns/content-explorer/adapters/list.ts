@@ -1,4 +1,9 @@
 import { ContentExplorerController } from "../controller.js";
+import {
+  resolveExplorerItemGesture,
+  shouldActivateOnClick,
+  shouldToggleOnEnter,
+} from "../types.js";
 import { BaseElement } from "../../../core/index.js";
 import {
   boeFocusVisibleStyles,
@@ -186,11 +191,24 @@ const elementStyles = `
       `;
 
 export class BoxExplorerListElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["item-gesture"];
+  }
+
   private controllerValue: ContentExplorerController | null = null;
 
   private focusItemId: string | null = null;
 
   private unsubscribeFns: Array<() => void> = [];
+
+  get itemGesture(): ReturnType<typeof resolveExplorerItemGesture> {
+    return resolveExplorerItemGesture(this.getAttribute("item-gesture"));
+  }
+
+  set itemGesture(value: ReturnType<typeof resolveExplorerItemGesture>) {
+    this.setAttribute("item-gesture", value);
+  }
+
   get controller(): ContentExplorerController | null {
     return this.controllerValue;
   }
@@ -344,12 +362,29 @@ export class BoxExplorerListElement extends BaseElement {
 
       const itemButton = target.closest('[part~="item"]') as HTMLElement | null;
       if (itemButton && list.contains(itemButton)) {
+        if ((event as MouseEvent).detail > 1) {
+          return;
+        }
         const itemId = itemButton.getAttribute("data-item-id");
         if (itemId) {
           this.focusItemId = itemId;
           this.controllerValue?.toggleSelection(itemId);
-          void this.controllerValue?.activateItem(itemId);
+          if (shouldActivateOnClick(this.itemGesture)) {
+            void this.controllerValue?.activateItem(itemId);
+          }
         }
+      }
+    });
+
+    list.addEventListener("dblclick", event => {
+      const itemButton = (event.target as HTMLElement).closest('[part~="item"]') as HTMLElement | null;
+      if (!itemButton || !list.contains(itemButton)) {
+        return;
+      }
+      const itemId = itemButton.getAttribute("data-item-id");
+      if (itemId) {
+        this.focusItemId = itemId;
+        void this.controllerValue?.activateItem(itemId);
       }
     });
 
@@ -373,9 +408,21 @@ export class BoxExplorerListElement extends BaseElement {
         nextIndex = 0;
       } else if (keyboardEvent.key === "End") {
         nextIndex = itemIds.length - 1;
-      } else if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
+      } else if (keyboardEvent.key === " ") {
         keyboardEvent.preventDefault();
-        itemButton.click();
+        this.focusItemId = itemId;
+        this.controllerValue?.toggleSelection(itemId);
+        if (shouldActivateOnClick(this.itemGesture)) {
+          void this.controllerValue?.activateItem(itemId);
+        }
+        return;
+      } else if (keyboardEvent.key === "Enter") {
+        keyboardEvent.preventDefault();
+        this.focusItemId = itemId;
+        if (shouldToggleOnEnter(this.itemGesture)) {
+          this.controllerValue?.toggleSelection(itemId);
+        }
+        void this.controllerValue?.activateItem(itemId);
         return;
       } else {
         return;

@@ -357,12 +357,16 @@ export const examples: Record<string, ComponentExample> = {
   divider: { html: `<box-divider label="Shared with your team"></box-divider>` },
   "split-view": { html: `<box-split-view label="Master detail"></box-split-view>` },
   "nav-sidebar": {
-    html: `<box-nav-sidebar label="Workspace" id="demo-nav-sidebar">
+    html: `<style>
+  #demo-nav-sidebar [data-nav-label] { display: var(--boe-nav-label-display, inline); }
+  #demo-nav-sidebar [data-nav-icon] { inline-size: 1.1rem; text-align: center; }
+</style>
+<box-nav-sidebar label="Workspace" id="demo-nav-sidebar">
   <box-sidebar-toggle-button slot="header" controls="demo-nav-sidebar" label="Collapse navigation"></box-sidebar-toggle-button>
-  <a href="#">All Files</a>
-  <a href="#">Recents</a>
-  <a href="#">Synced</a>
-  <a href="#">Trash</a>
+  <a href="#" aria-label="All Files"><span data-nav-icon aria-hidden="true">⌂</span><span data-nav-label>All Files</span></a>
+  <a href="#" aria-label="Recents"><span data-nav-icon aria-hidden="true">◷</span><span data-nav-label>Recents</span></a>
+  <a href="#" aria-label="Synced"><span data-nav-icon aria-hidden="true">↻</span><span data-nav-label>Synced</span></a>
+  <a href="#" aria-label="Trash"><span data-nav-icon aria-hidden="true">⌫</span><span data-nav-label>Trash</span></a>
   <span slot="footer">2.4 GB of 10 GB used</span>
 </box-nav-sidebar>`,
     setup: root => {
@@ -374,7 +378,7 @@ export const examples: Record<string, ComponentExample> = {
         }
       });
     },
-    note: "Wire the toggle button's `toggle` event to the sidebar's `collapsed` property.",
+    note: "Wire `toggle` to `collapsed`. Hide labels with `--boe-nav-label-display` + `[data-nav-label]`.",
   },
   "sidebar-toggle-button": { html: `<box-sidebar-toggle-button label="Toggle navigation"></box-sidebar-toggle-button>` },
   section: {
@@ -406,7 +410,7 @@ export const examples: Record<string, ComponentExample> = {
   },
   dialog: { html: `<box-dialog heading="Delete file?" message="Quarterly Plan.pdf will be moved to trash." open></box-dialog>` },
   drawer: { html: `<box-drawer heading="Details" open></box-drawer>` },
-  popover: { html: `<box-popover label="More info" open>Shared links expire automatically.</box-popover>` },
+  popover: { html: `<box-popover label="More info" placement="top" open>Shared links expire automatically.</box-popover>` },
   tooltip: { html: `<box-tooltip label="Copy link" open><box-button label="Share" tone="neutral"></box-button></box-tooltip>` },
   illustration: { html: `<box-illustration asset="empty-state-folder" label="Empty folder"></box-illustration>` },
 

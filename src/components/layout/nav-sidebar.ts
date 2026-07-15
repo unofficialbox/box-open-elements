@@ -7,6 +7,12 @@ const navSidebarStyles = `
     display: block;
     color: inherit;
     font: inherit;
+    /* Consumers hide label spans with: [data-nav-label] { display: var(--boe-nav-label-display, inline); } */
+    --boe-nav-label-display: inline;
+  }
+
+  :host([collapsed]) {
+    --boe-nav-label-display: none;
   }
 
   [part="sidebar"] {
@@ -52,6 +58,42 @@ const navSidebarStyles = `
     overflow-y: auto;
   }
 
+  /* Icon-strip contract: slotted anchors/buttons lay out as nav rows. Pair with
+     [data-nav-icon] / [data-nav-label] in light DOM (see docs example). */
+  [part="body"] ::slotted(a),
+  [part="body"] ::slotted(button) {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-block-size: 2.25rem;
+    padding: 0.4rem 0.55rem;
+    border-radius: 0.65rem;
+    color: inherit;
+    text-decoration: none;
+    font: inherit;
+    box-sizing: border-box;
+  }
+
+  [part="body"] ::slotted(button) {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    text-align: start;
+    width: 100%;
+  }
+
+  [part="body"] ::slotted(a:hover),
+  [part="body"] ::slotted(button:hover) {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%);
+  }
+
+  [part="sidebar"][data-collapsed="true"] ::slotted(a),
+  [part="sidebar"][data-collapsed="true"] ::slotted(button) {
+    justify-content: center;
+    padding-inline: 0.25rem;
+  }
+
   [part="footer"] {
     padding-block-start: 0.75rem;
     border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
@@ -66,6 +108,10 @@ const navSidebarStyles = `
  * body, and footer slots) plus a reflected `collapsed` state that narrows the
  * rail to its icon strip. Pair it with `box-sidebar-toggle-button`, wiring the
  * button's `toggle` event to this element's `collapsed` property.
+ *
+ * Collapsed icon contract: slot `a`/`button` rows with an icon and a
+ * `[data-nav-label]` span. Host exposes `--boe-nav-label-display` (`none` when
+ * collapsed) so light-DOM CSS can hide labels without piercing the shadow tree.
  */
 export class BoxNavSidebarElement extends BaseElement {
   static get observedAttributes(): string[] {
