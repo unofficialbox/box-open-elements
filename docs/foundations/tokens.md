@@ -119,6 +119,34 @@ applyDesignTokens(document.documentElement, "acme");
 | keep fallback rendering in components | components still work with no design system registered |
 | apply tokens via CSS custom properties | works for both Box defaults and downstream custom themes |
 
+## Interactive state helpers
+
+Batch 3 fidelity work ships shared CSS snippets from
+`box-open-elements/foundations/tokens` so interactive parts share one
+focus/hover/active/disabled language:
+
+```ts
+import {
+  boeBrandInteractiveStyles,
+  boeNeutralInteractiveStyles,
+  boeFocusVisibleStyles,
+} from "box-open-elements/foundations/tokens";
+
+const styles = `
+  ${boeNeutralInteractiveStyles('[part="trigger"]')}
+  ${boeBrandInteractiveStyles('[part="confirm"]')}
+`;
+```
+
+| Helper | Use when |
+| --- | --- |
+| `boeNeutralInteractiveStyles(selector)` | surface buttons, chips, triggers, rows |
+| `boeBrandInteractiveStyles(selector)` | primary/confirm actions |
+| `boeFocusVisibleStyles(selector)` | controls that already own hover (native inputs) |
+| `boeFocusRingShadow` | raw box-shadow value for custom rules |
+
+The focus ring always resolves through `--boe-token-surface-surface-brand` so it adapts between `box-default` and `box-dark`.
+
 ## Follow-ups
 
 - Expand the Box default bundle only with tokens and assets actually used by components or the docs site.
