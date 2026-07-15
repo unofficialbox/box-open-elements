@@ -1,4 +1,9 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formErrorMessageMarkup,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-time-field";
 
@@ -56,16 +61,27 @@ const timeFieldStyles = `
     opacity: 0.55;
     cursor: not-allowed;
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxTimeFieldElement extends BaseElement {
+export class BoxTimeFieldElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "max", "min", "step", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "label",
+      "max",
+      "min",
+      "step",
+      "value",
+    ];
   }
 
   private valueInternal = "";
   private inputEl!: HTMLInputElement;
   private labelEl!: HTMLElement;
+  private errorEl!: HTMLElement;
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -130,8 +146,23 @@ export class BoxTimeFieldElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  protected getFormValue(): FormValue {
+    return this.valueInternal;
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const next = typeof value === "string" ? value : "";
+    this.valueInternal = next;
+    this.setAttribute("value", next);
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
   private syncValue(nextValue: string): void {
     this.valueInternal = nextValue;
+    this.setAttribute("value", nextValue);
+    this.syncFormAssociation();
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,
@@ -151,10 +182,12 @@ export class BoxTimeFieldElement extends BaseElement {
       <label part="field">
         <span part="label"></span>
         <input type="time" part="input" />
+        ${formErrorMessageMarkup()}
       </label>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -164,7 +197,7 @@ export class BoxTimeFieldElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.inputEl || !this.labelEl) {
+    if (!this.inputEl || !this.labelEl || !this.errorEl) {
       return;
     }
 
@@ -192,6 +225,8 @@ export class BoxTimeFieldElement extends BaseElement {
     } else {
       this.inputEl.removeAttribute("disabled");
     }
+
+    this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }
 

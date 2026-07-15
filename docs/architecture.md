@@ -72,6 +72,20 @@ Full rebuilds destroy focus, drop in-progress input, break drag/pointer capture,
 transitions. Dynamic lists may rebuild a dedicated list container inside `update()`; keep the
 outer shell and listeners stable. Focused inputs should not overwrite `.value` while focused.
 
+## Form-associated controls
+
+Everyday form controls extend `FormAssociatedElement` (`static formAssociated = true`) so they
+participate in native `<form>` submission via `ElementInternals`:
+
+- `name` — form field name
+- `invalid` + `error-message` — validation UI (`aria-invalid`, `aria-errormessage`,
+  `part="error-message"` alert region) styled with `--boe-token-surface-status-surface-error`
+- `syncFormAssociation()` — push the current value/validity into internals (call on value change)
+- `formResetCallback` / `formStateRestoreCallback` — restore defaults / autocomplete state
+
+Shared helpers: `boeFormFieldErrorStyles`, `formErrorMessageMarkup`, `getMirroredFormValue`
+(jsdom-friendly mirror of `setFormValue`). See [api-guidelines.md](./api-guidelines.md).
+
 ## Design principles
 
 - Keep state and business logic separate from rendering.

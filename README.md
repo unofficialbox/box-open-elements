@@ -45,7 +45,7 @@ bun run docs
 
 Phases 0–5 of the [roadmap](./docs/roadmap.md) are complete — full catalog parity with the reference repo, plus every scoped gap the research surfaced:
 
-- `src/core` — typed event emitter, controller base class, and `BaseElement` (in-place shadow DOM render contract)
+- `src/core` — typed event emitter, controller base class, `BaseElement` (in-place shadow DOM render contract), and `FormAssociatedElement` (native form participation + invalid state)
 - `src/foundations/tokens` — the design-system registry (tokens, icons, illustrations), the Box default bundle, and the Box dark bundle, retoned to Box's modernized Blueprint palette with an Inter typography baseline; shared interaction helpers (`interaction.ts`) for focus/hover/active/disabled
 - `src/foundations/icons` — the generated Box iconography manifest and alias layer
 - `src/components` — 72 components across all ten categories, including the Phase 5 gap fills (`box-chip`, `box-divider`, `box-calendar`, `box-tag-input`, `box-nav-sidebar`, `box-sidebar-toggle-button`, `box-grid-view`, `box-fieldset`, `box-section`, `box-error-mask`, `box-draggable-list`, `box-nudge`, `box-pill-cloud`, `box-pill-selector-dropdown`, `box-datalist-item`, `box-contact-datalist-item`, `box-category-selector`)
@@ -55,7 +55,7 @@ Phases 0–5 of the [roadmap](./docs/roadmap.md) are complete — full catalog p
 - `storybook/` — a Bun-native workshop: typed stories → identity-guarded extracted JSON → a self-contained, separately-deployable static site, with no Storybook/Vite runtime or consumer dependency (see [storybook/README.md](./storybook/README.md))
 - Docs site + CI — live GitHub Pages deploy, Storybook-backed variant dropdown, and a strict pixel-diff visual-regression gate in CI
 
-**Fidelity program** (see [docs/HANDOFF.md](./docs/HANDOFF.md)): Batches 0/1/2/3/4/6 done; next is Batch 5 (form association).
+**Fidelity program** (see [docs/HANDOFF.md](./docs/HANDOFF.md)): Batches 0–6 done; next is Batch 7 (polish).
 
 Everything in the [components catalog](./docs/components/catalog.md) and [patterns catalog](./docs/patterns/catalog.md) that carries a **built** marker is implemented here with dedicated tests; the remainder keeps its reference implementation in `box-open-web-components` for deliberate, phase-by-phase porting.
 

@@ -1,4 +1,9 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formErrorMessageMarkup,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-spin-button";
 
@@ -127,11 +132,21 @@ const spinButtonStyles = `
     opacity: 0.55;
     cursor: not-allowed;
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxSpinButtonElement extends BaseElement {
+export class BoxSpinButtonElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "max", "min", "step", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "label",
+      "max",
+      "min",
+      "step",
+      "value",
+    ];
   }
 
   private valueInternal = 0;
@@ -139,6 +154,7 @@ export class BoxSpinButtonElement extends BaseElement {
   private labelEl!: HTMLElement;
   private decrementEl!: HTMLButtonElement;
   private incrementEl!: HTMLButtonElement;
+  private errorEl!: HTMLElement;
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -197,9 +213,12 @@ export class BoxSpinButtonElement extends BaseElement {
   }
 
   set value(nextValue: number) {
-    const normalizedValue = Number.isFinite(nextValue) ? nextValue : 0;
+    const normalizedValue = this.clamp(Number.isFinite(nextValue) ? nextValue : 0);
     this.valueInternal = normalizedValue;
     this.setAttribute("value", String(normalizedValue));
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
@@ -207,6 +226,20 @@ export class BoxSpinButtonElement extends BaseElement {
       this.valueInternal = parseNumber(this.getAttribute("value"), 0);
     }
     super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  protected getFormValue(): FormValue {
+    return String(this.valueInternal);
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const parsed =
+      typeof value === "string" ? parseNumber(value, this.valueInternal) : this.valueInternal;
+    this.valueInternal = this.clamp(parsed);
+    this.setAttribute("value", String(this.valueInternal));
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   private clamp(nextValue: number): number {
@@ -226,6 +259,7 @@ export class BoxSpinButtonElement extends BaseElement {
     this.setAttribute("value", String(normalizedValue));
     this.inputEl.value = String(normalizedValue);
     this.syncInputAria();
+    this.syncFormAssociation();
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,
@@ -264,12 +298,14 @@ export class BoxSpinButtonElement extends BaseElement {
           <input type="number" part="input" />
           <button type="button" part="increment" aria-label="Increase value">+</button>
         </div>
+        ${formErrorMessageMarkup()}
       </div>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
     this.decrementEl = this.shadowRoot.querySelector('[part="decrement"]')!;
     this.incrementEl = this.shadowRoot.querySelector('[part="increment"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -315,7 +351,7 @@ export class BoxSpinButtonElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.inputEl || !this.labelEl) {
+    if (!this.inputEl || !this.labelEl || !this.errorEl) {
       return;
     }
 
@@ -347,6 +383,8 @@ export class BoxSpinButtonElement extends BaseElement {
         el.removeAttribute("disabled");
       }
     }
+
+    this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }
 

@@ -1,4 +1,9 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formErrorMessageMarkup,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-select";
 
@@ -65,16 +70,25 @@ const selectStyles = `
     opacity: 0.55;
     cursor: not-allowed;
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxSelectElement extends BaseElement {
+export class BoxSelectElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "options", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "label",
+      "options",
+      "value",
+    ];
   }
 
   private valueInternal = "";
   private selectEl!: HTMLSelectElement;
   private labelEl!: HTMLElement;
+  private errorEl!: HTMLElement;
 
   get value(): string {
     return this.valueInternal;
@@ -133,6 +147,19 @@ export class BoxSelectElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  protected getFormValue(): FormValue {
+    return this.valueInternal;
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const next = typeof value === "string" ? value : "";
+    this.valueInternal = next;
+    this.setAttribute("value", next);
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
   protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
@@ -143,10 +170,12 @@ export class BoxSelectElement extends BaseElement {
       <label part="field">
         <span part="label"></span>
         <select part="select"></select>
+        ${formErrorMessageMarkup()}
       </label>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.selectEl = this.shadowRoot.querySelector('[part="select"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -154,6 +183,7 @@ export class BoxSelectElement extends BaseElement {
       const nextValue = (event.currentTarget as HTMLSelectElement).value;
       this.valueInternal = nextValue;
       this.setAttribute("value", nextValue);
+      this.syncFormAssociation();
       this.dispatchEvent(
         new CustomEvent("value-changed", {
           bubbles: true,
@@ -165,7 +195,7 @@ export class BoxSelectElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.selectEl || !this.labelEl) {
+    if (!this.selectEl || !this.labelEl || !this.errorEl) {
       return;
     }
 
@@ -186,6 +216,8 @@ export class BoxSelectElement extends BaseElement {
     } else {
       this.selectEl.removeAttribute("disabled");
     }
+
+    this.applyInvalidState(this.selectEl, this.errorEl);
   }
 }
 

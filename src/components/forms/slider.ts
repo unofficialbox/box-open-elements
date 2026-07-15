@@ -1,4 +1,9 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formErrorMessageMarkup,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-slider";
@@ -64,17 +69,28 @@ const sliderStyles = `
     cursor: not-allowed;
     box-shadow: none;
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxSliderElement extends BaseElement {
+export class BoxSliderElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "max", "min", "step", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "label",
+      "max",
+      "min",
+      "step",
+      "value",
+    ];
   }
 
   private valueInternal = 0;
   private inputEl!: HTMLInputElement;
   private labelEl!: HTMLElement;
   private valueEl!: HTMLElement;
+  private errorEl!: HTMLElement;
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -125,9 +141,12 @@ export class BoxSliderElement extends BaseElement {
   }
 
   set value(nextValue: number) {
-    const normalizedValue = Number.isFinite(nextValue) ? nextValue : this.min;
+    const normalizedValue = this.clamp(Number.isFinite(nextValue) ? nextValue : this.min);
     this.valueInternal = normalizedValue;
     this.setAttribute("value", String(normalizedValue));
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
@@ -137,15 +156,38 @@ export class BoxSliderElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  protected getFormValue(): FormValue {
+    return String(this.valueInternal);
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const parsed =
+      typeof value === "string" ? parseNumber(value, this.valueInternal) : this.valueInternal;
+    this.valueInternal = this.clamp(parsed);
+    this.setAttribute("value", String(this.valueInternal));
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
+  private clamp(nextValue: number): number {
+    let normalizedValue = nextValue;
+    normalizedValue = Math.max(this.min, normalizedValue);
+    normalizedValue = Math.min(this.max, normalizedValue);
+    return normalizedValue;
+  }
+
   private syncValue(nextValue: number): void {
-    this.valueInternal = nextValue;
-    this.setAttribute("value", String(nextValue));
-    this.valueEl.textContent = String(nextValue);
+    const normalizedValue = this.clamp(nextValue);
+    this.valueInternal = normalizedValue;
+    this.setAttribute("value", String(normalizedValue));
+    this.valueEl.textContent = String(normalizedValue);
+    this.syncFormAssociation();
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,
         composed: true,
-        detail: { value: nextValue },
+        detail: { value: normalizedValue },
       }),
     );
   }
@@ -163,11 +205,13 @@ export class BoxSliderElement extends BaseElement {
           <span part="value"></span>
         </span>
         <input type="range" part="range" />
+        ${formErrorMessageMarkup()}
       </label>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.valueEl = this.shadowRoot.querySelector('[part="value"]')!;
     this.inputEl = this.shadowRoot.querySelector('[part="range"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -182,7 +226,7 @@ export class BoxSliderElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.inputEl || !this.labelEl || !this.valueEl) {
+    if (!this.inputEl || !this.labelEl || !this.valueEl || !this.errorEl) {
       return;
     }
 
@@ -201,6 +245,8 @@ export class BoxSliderElement extends BaseElement {
     } else {
       this.inputEl.removeAttribute("disabled");
     }
+
+    this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }
 

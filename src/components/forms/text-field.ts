@@ -1,4 +1,9 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formErrorMessageMarkup,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-text-field";
 
@@ -59,16 +64,25 @@ const textFieldStyles = `
     opacity: 0.55;
     cursor: not-allowed;
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxTextFieldElement extends BaseElement {
+export class BoxTextFieldElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "placeholder", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "label",
+      "placeholder",
+      "value",
+    ];
   }
 
   private valueInternal = "";
   private inputEl!: HTMLInputElement;
   private labelEl!: HTMLElement;
+  private errorEl!: HTMLElement;
 
   get value(): string {
     return this.valueInternal;
@@ -87,11 +101,7 @@ export class BoxTextFieldElement extends BaseElement {
   }
 
   set disabled(value: boolean) {
-    if (value) {
-      this.setAttribute("disabled", "");
-    } else {
-      this.removeAttribute("disabled");
-    }
+    this.toggleAttribute("disabled", Boolean(value));
   }
 
   get label(): string {
@@ -117,6 +127,19 @@ export class BoxTextFieldElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  protected getFormValue(): FormValue {
+    return this.valueInternal;
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const next = typeof value === "string" ? value : "";
+    this.valueInternal = next;
+    this.setAttribute("value", next);
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
   protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
@@ -127,16 +150,20 @@ export class BoxTextFieldElement extends BaseElement {
       <label part="field">
         <span part="label"></span>
         <input type="text" part="input" />
+        ${formErrorMessageMarkup()}
       </label>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
     this.inputEl.addEventListener("input", event => {
       const nextValue = (event.currentTarget as HTMLInputElement).value;
       this.valueInternal = nextValue;
+      this.setAttribute("value", nextValue);
+      this.syncFormAssociation();
       this.dispatchEvent(
         new CustomEvent("value-changed", {
           bubbles: true,
@@ -148,15 +175,14 @@ export class BoxTextFieldElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.inputEl || !this.labelEl) {
+    if (!this.inputEl || !this.labelEl || !this.errorEl) {
       return;
     }
 
     this.labelEl.textContent = this.label;
     this.inputEl.placeholder = this.placeholder;
 
-    // Only patch value when not focused to avoid cursor-jump
-    if (document.activeElement !== this.inputEl) {
+    if (this.shadowRoot?.activeElement !== this.inputEl) {
       this.inputEl.value = this.valueInternal;
     }
 
@@ -165,6 +191,8 @@ export class BoxTextFieldElement extends BaseElement {
     } else {
       this.inputEl.removeAttribute("disabled");
     }
+
+    this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }
 

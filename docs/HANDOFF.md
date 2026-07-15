@@ -16,16 +16,16 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 
 ## Current state (as of this handoff)
 
-- **Branch tip for fidelity work:** develop from `origin/main` after Batch 4 merges.
-  Start Batch 5 on a fresh `cursor/<name>-7eb7` branch.
+- **Branch tip for fidelity work:** develop from `origin/main` after Batch 5 merges.
+  Start Batch 7 on a fresh `cursor/<name>-7eb7` branch.
 - **Live site:** GitHub Pages, `https://unofficialbox.github.io/box-open-elements/`,
   auto-deploys on push to `main` via `.github/workflows/deploy.yml`
   (build cmd `bun run site:build`, output `docs-site/dist`). The Workshop is
   **not** deployed (internal tool).
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
-- Recent merged PRs: #29 Batches 0/2/6, **#31/#32/#33** Batch 1, **#35** Batch 3
-  (interaction states).
+- Recent merged PRs: #29 Batches 0/2/6, **#31/#32/#33** Batch 1, **#35** Batch 3,
+  **#38** Batch 4, Batch 5 in flight on `cursor/batch-5-form-association-7eb7`.
 
 ## The active initiative: component fidelity program
 
@@ -58,24 +58,22 @@ organized into **systemic sweeps**, not per-component rewrites.
   applied across catalog + pattern interactive parts, with CodeRabbit
   follow-ups (opaque focus-ring fallback, selected-state hover precedence,
   expanded action-menu focus ring, style tests).
-- **Batch 4 — ARIA/keyboard + heading semantics** (this branch / #38): shared
-  helpers in `src/foundations/a11y/` (`nextRovingIndex`, `handleRovingKeydown`,
-  `trapTabKey`, `FocusRestore`, `renderHeadingHtml`). Composite widgets gained
-  roving tabindex + Arrow/Home/End (menu, dropdown listbox, toolbars,
-  dual-listbox, saved-view-picker, rating focus-follow, segmented/category
-  Home/End). Modals trap Tab + restore focus (dialog, drawer, invite). Fake
-  `tablist`/`tab` removed from progress-steps + carousel; `role="listitem"`
-  stripped from interactive buttons. `heading` now renders as native `<h2>`
-  across heading-bearing surfaces (keep `part="title"`). Exception: titles
-  nested inside a native `<button>` (e.g. review-queue-item) stay non-heading
-  markup because headings inside buttons are invalid HTML.
+- **Batch 4 — ARIA/keyboard + heading semantics** (#38): shared helpers in
+  `src/foundations/a11y/`; composite keyboard; modal focus trap/restore;
+  heading as native `<h2 part="title">`.
+- **Batch 5 — form association + invalid state** (this branch):
+  `FormAssociatedElement` in `src/core/form-associated.ts` (`name`,
+  `invalid`, `error-message`, `ElementInternals`, error styles via
+  `SurfaceStatusSurfaceError`). Wired across 13 controls: text-field,
+  text-area, search-field, select, combobox, checkbox, switch, radio-group,
+  number-input (clamp), spin-button, slider (clamp), date-field, time-field
+  (value reflection fixed). Multi-value / niche fields deferred to Batch 7.
 
 ### Remaining (do these next, in order)
-1. **Batch 5 — form-field completeness (~13):** error/invalid state,
-   `ElementInternals`/`name` so values submit.
-2. **Batch 7 — polish:** deferred `skeleton` update short-circuit; extra
-   jsdom style-assertion tests for rating/rich-text-input/action-menu;
-   any leftover medium/low audit nits not covered by Batch 5.
+1. **Batch 7 — polish:** deferred `skeleton` update short-circuit; form-assoc
+   for multi-value controls (checkbox-group, multi-select, dual-listbox,
+   tag-input, pill-*, rating, color-picker, rich-text, range-slider, dropdown);
+   extra jsdom style-assertion tests; leftover medium/low audit nits.
 
 ### Deferred CodeRabbit items (intentional, tracked above)
 - `skeleton` update short-circuit → Batch 7.
@@ -134,10 +132,10 @@ organized into **systemic sweeps**, not per-component rewrites.
   owning subsystem docs, catalogs/migration-map when public surface moves).
 - **Always commit and push** working branches as you go; open/update the PR each
   turn that lands changes.
+- **jsdom ElementInternals** stubs omit `setFormValue` / `setValidity` — use
+  `getMirroredFormValue(el.internals)` in tests.
 
 ## Open user-facing threads
-- User-reported review points addressed: token labels ✅, dark theme ✅ (Batch 2),
-  Workshop unlink ✅, Batch 1 render contract ✅, Batch 3 interaction states ✅,
-  Batch 4 ARIA/keyboard + heading semantics ✅ (this PR).
-  Fidelity program remaining: Batches **5 / 7**.
-- **Next:** start **Batch 5** (form association + error/invalid states).
+- Fidelity Batches **0–6 done** (5 in this PR); remaining: **Batch 7** polish.
+- **Next:** start **Batch 7** (skeleton short-circuit, multi-value form assoc,
+  leftover audit nits).
