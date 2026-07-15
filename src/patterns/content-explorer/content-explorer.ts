@@ -12,6 +12,11 @@ import {
   type ExplorerState,
   type ExplorerTransport,
 } from "./types.js";
+import { formatItemMetaLine } from "./adapters/item-summary.js";
+import {
+  defineBoxSearchResultsHeaderElement,
+  type BoxSearchResultsHeaderElement,
+} from "../search/search-results-header.js";
 import { BaseElement } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-content-explorer";
@@ -247,6 +252,8 @@ const elementStyles = `
           font: inherit;
           font-size: 0.95rem;
           flex: 1;
+          display: grid;
+          gap: 0.15rem;
           text-align: left;
           padding: 0.6rem 0.5rem;
           border: none;
@@ -255,6 +262,21 @@ const elementStyles = `
           color: var(--boe-token-text-text, #222222);
           cursor: pointer;
           transition: color 140ms ease;
+        }
+
+        [part="item-name"] {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        [part="item-meta"] {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          font-size: 0.78rem;
+          font-weight: 400;
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="item"]:hover {
@@ -628,12 +650,19 @@ export class BoxContentExplorerElement extends BaseElement {
           .join('<span part="breadcrumb-separator">/</span>')}</nav>`
       : "";
     const isSearch = state?.view.mode === "search";
+    const searchResultCount = state?.pagination.totalCount ?? state?.items.length ?? 0;
+    const searchScope = state?.currentFolder?.name ?? "";
     const folderMarkup = isSearch
       ? `<header part="folder" data-view="search">
           ${breadcrumbMarkup}
-          <h2>Search results</h2>
-          <p part="search-query">Results for “${escapeHtml(state.view.searchQuery ?? "")}”</p>
-          <button type="button" part="clear-search">Clear search</button>
+          <box-search-results-header
+            part="search-results-header"
+            label="Search results"
+            query="${escapeHtml(state.view.searchQuery ?? "")}"
+            result-count="${escapeHtml(String(searchResultCount))}"
+            scope="${escapeHtml(searchScope)}"
+            actions='[{"id":"clear-search","label":"Clear search"}]'
+          ></box-search-results-header>
         </header>`
       : state?.currentFolder
         ? this.templatesValue.renderFolder
@@ -650,6 +679,7 @@ export class BoxContentExplorerElement extends BaseElement {
             item => {
               const isSelected = state.selectedItemIds.includes(item.id);
               const focusTarget = this.focusItemId ?? state.items[0]?.id ?? "";
+              const meta = formatItemMetaLine(item);
               const actions = (state.availableActionsByItemId[item.id] ?? [])
                 .map(
                   action => {
@@ -692,7 +722,9 @@ export class BoxContentExplorerElement extends BaseElement {
                     state,
                   })
                 : `<li data-item-id="${item.id}" role="presentation">
-                    <button ${itemButtonAttributes}>${escapeHtml(item.name)}</button>
+                    <button ${itemButtonAttributes}><span part="item-name">${escapeHtml(item.name)}</span>${
+                      meta ? `<span part="item-meta">${escapeHtml(meta)}</span>` : ""
+                    }</button>
                     ${actions ? `<div part="item-actions">${actions}</div>` : ""}
                   </li>`;
             },
@@ -730,8 +762,14 @@ export class BoxContentExplorerElement extends BaseElement {
     this.shadowRoot.querySelector('[part="refresh"]')?.addEventListener("click", () => {
       void this.refresh();
     });
-    this.shadowRoot.querySelector('[part="clear-search"]')?.addEventListener("click", () => {
-      void this.clearSearch();
+    const searchHeader = this.shadowRoot.querySelector(
+      '[part="search-results-header"]',
+    ) as BoxSearchResultsHeaderElement | null;
+    searchHeader?.addEventListener("action", event => {
+      const actionId = (event as CustomEvent<{ action?: string }>).detail?.action;
+      if (actionId === "clear-search") {
+        void this.clearSearch();
+      }
     });
     this.shadowRoot.querySelector('[part="load-more"]')?.addEventListener("click", () => {
       void this.loadNextPage();
@@ -837,6 +875,7 @@ export class BoxContentExplorerElement extends BaseElement {
 export const defineBoxContentExplorerElement = (
   tagName = DEFAULT_TAG_NAME,
 ): typeof BoxContentExplorerElement => {
+  defineBoxSearchResultsHeaderElement();
   const existingElement = customElements.get(tagName);
   if (existingElement) {
     return existingElement as typeof BoxContentExplorerElement;

@@ -22,6 +22,54 @@ export interface ComponentExample {
   note?: string;
 }
 
+const mockOwner = { id: "u1", name: "Morgan Lee", type: "user" as const };
+
+const mockItems = [
+  {
+    id: "42",
+    name: "Marketing",
+    type: "folder" as const,
+    modifiedAt: "2026-06-12T15:00:00.000Z",
+    owner: mockOwner,
+  },
+  {
+    id: "77",
+    name: "Legal",
+    type: "folder" as const,
+    modifiedAt: "2026-05-01T12:00:00.000Z",
+    owner: mockOwner,
+  },
+  {
+    id: "123",
+    name: "Quarterly Plan.pdf",
+    type: "file" as const,
+    size: 2_400_000,
+    modifiedAt: "2026-07-10T18:30:00.000Z",
+    extension: "pdf",
+    owner: mockOwner,
+    sharedLink: { isShared: true, access: "company" as const },
+    preview: { canPreview: true, extension: "pdf" },
+  },
+  {
+    id: "124",
+    name: "Brand Guidelines.pdf",
+    type: "file" as const,
+    size: 5_120_000,
+    modifiedAt: "2026-07-01T09:15:00.000Z",
+    extension: "pdf",
+    owner: mockOwner,
+    sharedLink: { isShared: false },
+    preview: { canPreview: true, extension: "pdf" },
+  },
+  {
+    id: "125",
+    name: "box.com/launch",
+    type: "web_link" as const,
+    modifiedAt: "2026-04-20T11:00:00.000Z",
+    owner: mockOwner,
+  },
+];
+
 export const createMockTransport = (): ExplorerTransport => ({
   async loadFolderItems({ folderId }) {
     const root = folderId === "0";
@@ -34,14 +82,33 @@ export const createMockTransport = (): ExplorerTransport => ({
             { id: "0", name: "All Files", type: "folder" },
             { id: "42", name: "Marketing", type: "folder" },
           ],
-      items: [
-        { id: "42", name: "Marketing", type: "folder" },
-        { id: "77", name: "Legal", type: "folder" },
-        { id: "123", name: "Quarterly Plan.pdf", type: "file" },
-        { id: "124", name: "Brand Guidelines.pdf", type: "file" },
-        { id: "125", name: "box.com/launch", type: "web_link" },
-      ],
+      items: mockItems.map(item => ({
+        ...item,
+        parent: root ? { id: "0", name: "All Files" } : { id: "42", name: "Marketing" },
+      })),
       pagination: { hasMoreItems: true, limit: 25, offset: 0, totalCount: 120 },
+    };
+  },
+  async searchItems({ query, ancestorFolderId, limit = 25, offset = 0 }) {
+    const normalized = query.trim().toLowerCase();
+    const matches = mockItems
+      .filter(item => item.name.toLowerCase().includes(normalized))
+      .map(item => ({
+        ...item,
+        parent: { id: ancestorFolderId ?? "0", name: ancestorFolderId === "42" ? "Marketing" : "All Files" },
+      }));
+    const page = matches.slice(offset, offset + limit);
+    return {
+      query,
+      ancestorFolderId,
+      items: page,
+      pagination: {
+        hasMoreItems: offset + page.length < matches.length,
+        limit,
+        offset,
+        totalCount: matches.length,
+        nextOffset: offset + page.length,
+      },
     };
   },
 });

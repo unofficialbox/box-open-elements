@@ -404,15 +404,21 @@ describe("BoxContentExplorerElement", () => {
     expect(searchSucceeded).toHaveBeenCalled();
     expect(viewChanged).toHaveBeenCalled();
     expect(element.searchQuery).toBe("plan");
-    expect(element.shadowRoot?.textContent).toContain("Search results");
+    const searchHeader = element.shadowRoot?.querySelector(
+      "box-search-results-header",
+    ) as HTMLElement | null;
+    expect(searchHeader?.getAttribute("query")).toBe("plan");
+    expect(searchHeader?.getAttribute("label")).toBe("Search results");
     expect(element.shadowRoot?.textContent).toContain("Quarterly Plan");
 
-    const clearButton = element.shadowRoot?.querySelector('[part="clear-search"]') as HTMLButtonElement;
-    clearButton.click();
+    const clearButton = searchHeader?.shadowRoot?.querySelector(
+      '[data-action-id="clear-search"]',
+    ) as HTMLButtonElement | null;
+    clearButton?.click();
     await flushMicrotasks();
 
     expect(element.state?.view.mode).toBe("folder");
-    expect(element.shadowRoot?.querySelector('[part="clear-search"]')).toBeNull();
+    expect(element.shadowRoot?.querySelector("box-search-results-header")).toBeNull();
   });
 
   it("honors a declarative search-query set before connect", async () => {

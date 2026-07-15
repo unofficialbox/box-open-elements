@@ -23,8 +23,8 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 ## Patterns
 
-- **In flight:** enrich `ExplorerItem` + folder\|search view-state + end-to-end search — `cursor/explorer-search-item-contract-7eb7`.
-- Defer: `recents` view mode; wire `patterns/search` chrome into the explorer shell; rich list/table metadata columns.
+- **In flight:** explorer UI follow-through on search + enriched item columns — `cursor/explorer-search-item-contract-7eb7` (#43).
+- Defer: `recents` view mode; configurable/permission-gated columns; filter-bar / saved-view wiring.
 
 ## Tooling and infrastructure
 

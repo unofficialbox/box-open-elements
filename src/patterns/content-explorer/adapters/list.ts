@@ -4,6 +4,7 @@ import {
   shouldActivateOnClick,
   shouldToggleOnEnter,
 } from "../types.js";
+import { formatItemMetaLine, itemSummarySignature } from "./item-summary.js";
 import { BaseElement } from "../../../core/index.js";
 import {
   boeFocusVisibleStyles,
@@ -72,6 +73,8 @@ const elementStyles = `
         [part~="item"] {
           flex: 1;
           min-width: 0;
+          display: grid;
+          gap: 0.15rem;
           appearance: none;
           text-align: left;
           border: 0;
@@ -83,14 +86,26 @@ const elementStyles = `
           font: inherit;
           font-size: 0.94rem;
           font-weight: 500;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
           cursor: pointer;
           transition:
             background-color 140ms ease,
             color 140ms ease,
             box-shadow 140ms ease;
+        }
+
+        [part="item-name"] {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        [part="item-meta"] {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          font-size: 0.78rem;
+          font-weight: 400;
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part~="item"]:hover:not(:disabled) {
@@ -502,7 +517,12 @@ export class BoxExplorerListElement extends BaseElement {
     }
 
     const nextSignature = JSON.stringify({
-      items: state?.items.map(item => ({ id: item.id, name: item.name })) ?? [],
+      items:
+        state?.items.map(item => ({
+          id: item.id,
+          name: item.name,
+          ...itemSummarySignature(item),
+        })) ?? [],
       actions: state?.availableActionsByItemId ?? {},
       hasMore: state?.pagination.hasMoreItems ?? false,
       loading: state?.loading ?? false,
@@ -517,6 +537,7 @@ export class BoxExplorerListElement extends BaseElement {
           ? state.items
               .map(item => {
                 const isSelected = state.selectedItemIds.includes(item.id);
+                const meta = formatItemMetaLine(item);
                 const actions = (state.availableActionsByItemId[item.id] ?? [])
                   .map(
                     action =>
@@ -538,8 +559,11 @@ export class BoxExplorerListElement extends BaseElement {
                       role="option"
                       data-item-id="${escapeHtml(item.id)}"
                       aria-selected="${isSelected ? "true" : "false"}"
+                      aria-label="${escapeHtml(item.name)}"
                       tabindex="${item.id === focusTarget ? "0" : "-1"}"
-                    >${escapeHtml(item.name)}</button>
+                    ><span part="item-name">${escapeHtml(item.name)}</span>${
+                      meta ? `<span part="item-meta">${escapeHtml(meta)}</span>` : ""
+                    }</button>
                     ${actions ? `<div part="item-actions">${actions}</div>` : ""}
                   </li>
                 `;

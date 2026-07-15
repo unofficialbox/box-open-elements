@@ -25,8 +25,8 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
 - Recent merged PRs: fidelity Batches 0–7 + #41 nits + **#42** design-heavy leftovers.
-- **Active work:** explorer item contract + search — `cursor/explorer-search-item-contract-7eb7`
-  (see `plans/explorer-search-item-contract.md`).
+- **Active work:** explorer item contract + search + UI chrome/columns —
+  `cursor/explorer-search-item-contract-7eb7` (#43; see `plans/explorer-search-item-contract.md`).
 
 ## Completed initiative: component fidelity program
 
@@ -141,5 +141,5 @@ organized into **systemic sweeps**, not per-component rewrites.
 
 ## Open user-facing threads
 - Fidelity program complete through #42.
-- **Next / in flight:** explorer enriched `ExplorerItem` + folder\|search view-state
-  + end-to-end search (`cursor/explorer-search-item-contract-7eb7`).
+- **Next / in flight:** explorer enriched `ExplorerItem` + folder\|search + toolbar
+  search field + rich list/table columns (`cursor/explorer-search-item-contract-7eb7`, #43).

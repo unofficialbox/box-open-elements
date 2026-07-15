@@ -86,6 +86,42 @@ describe("BoxExplorerListElement", () => {
     expect(element.shadowRoot?.textContent).toContain("Roadmap");
   });
 
+  it("renders a secondary meta line from enriched item fields", async () => {
+    const transport: ExplorerTransport = {
+      loadFolderItems: vi.fn().mockResolvedValue(
+        createResult({
+          items: [
+            {
+              id: "1",
+              name: "Quarterly Plan.pdf",
+              type: "file",
+              size: 2_400_000,
+              modifiedAt: "2026-07-10T18:30:00.000Z",
+              owner: { id: "u1", name: "Morgan Lee" },
+              sharedLink: { isShared: true, access: "company" },
+            },
+          ],
+        }),
+      ),
+    };
+    const controller = new ContentExplorerController({
+      rootFolderId: "0",
+      token: "token",
+      transport,
+    });
+    const element = document.createElement("box-explorer-list") as BoxExplorerListElement;
+    element.controller = controller;
+
+    document.body.append(element);
+    await controller.connect();
+    await flushMicrotasks();
+
+    const meta = element.shadowRoot?.querySelector('[part="item-meta"]');
+    expect(meta?.textContent).toContain("MB");
+    expect(meta?.textContent).toContain("Morgan Lee");
+    expect(meta?.textContent).toContain("Shared · Company");
+  });
+
   it("sets aria-multiselectable for multiple selection mode", async () => {
     const transport: ExplorerTransport = {
       loadFolderItems: vi.fn().mockResolvedValue(

@@ -37,6 +37,57 @@ describe("BoxExplorerToolbarElement", () => {
     document.body.innerHTML = "";
   });
 
+  it("searches and clears through the embedded search field", async () => {
+    const searchItems = vi.fn().mockResolvedValue({
+      query: "plan",
+      ancestorFolderId: "0",
+      items: [{ id: "9", name: "Quarterly Plan", type: "file" }],
+      pagination: { hasMoreItems: false, limit: 25, offset: 0, totalCount: 1 },
+    });
+    const transport: ExplorerTransport = {
+      loadFolderItems: vi.fn().mockResolvedValue(
+        createResult({
+          items: [{ id: "1", name: "Spec", type: "file" }],
+        }),
+      ),
+      searchItems,
+    };
+    const controller = new ContentExplorerController({
+      rootFolderId: "0",
+      token: "token",
+      transport,
+    });
+    const element = document.createElement("box-explorer-toolbar") as BoxExplorerToolbarElement;
+    element.controller = controller;
+
+    document.body.append(element);
+    await controller.connect();
+    await flushMicrotasks();
+
+    const searchField = element.shadowRoot?.querySelector("box-search-field") as HTMLElement & {
+      value: string;
+    };
+    expect(searchField).not.toBeNull();
+    searchField.value = "plan";
+    searchField.dispatchEvent(
+      new CustomEvent("search", { bubbles: true, composed: true, detail: { value: "plan" } }),
+    );
+    await flushMicrotasks();
+    await flushMicrotasks();
+
+    expect(searchItems).toHaveBeenCalled();
+    expect(controller.getState().view.mode).toBe("search");
+    expect(searchField.value).toBe("plan");
+
+    searchField.dispatchEvent(
+      new CustomEvent("clear", { bubbles: true, composed: true, detail: { value: "" } }),
+    );
+    await flushMicrotasks();
+    await flushMicrotasks();
+
+    expect(controller.getState().view.mode).toBe("folder");
+  });
+
   it("renders selection state and clears current selection", async () => {
     const transport: ExplorerTransport = {
       loadFolderItems: vi.fn().mockResolvedValue(

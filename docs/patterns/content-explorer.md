@@ -121,14 +121,20 @@ Controller API:
 
 Transport: optional `searchItems(request) → ExplorerSearchResult` (not a fake folder result). Data-source `search?` returns the same shape; HTTP path `GET /api/content-explorer/search?query=&ancestorFolderId=&limit=&offset=`.
 
-Element: `search()` / `clearSearch()`, reflective `search-query`, events `view-changed` / `search-succeeded`. Minimal search chrome shows the query + Clear search.
+Element: `search()` / `clearSearch()`, reflective `search-query`, events `view-changed` / `search-succeeded`. Search mode renders `box-search-results-header` (query, count, scope, Clear search).
 
-`recents` mode and wiring `patterns/search` UI into the shell are deferred.
+Presentation adapters:
+
+- `box-explorer-toolbar` embeds `box-search-field` and wires `search` / `clear` to the controller
+- `box-explorer-list` / composed shell show a secondary `item-meta` line (size · modified · owner · shared)
+- `box-explorer-table` columns: Name, Type, Modified, Size, Owner, Shared, Actions
+
+`recents` mode remains deferred.
 
 ## Lessons carried from the original recreation plan
 
 - **Enrich the item contract.** — done (optional summary fields above).
-- **Search belongs in the contract and the controller.** — done for folder \| search; recents deferred.
+- **Search belongs in the contract and the controller.** — done for folder \| search with toolbar + results-header chrome; recents deferred.
 - **Metadata-query browsing is a separate pattern.** Box's explorer mixes metadata-based views into the same element; keep metadata query in `patterns/metadata` with its own composed surface.
 - **Workflow state (create-folder, rename, delete, upload, share handoff, preview handoff) deserves reusable headless seams**, not element-private shell logic.
 - **Preview-platform responsibilities stay out.** Preview dialogs, preview navigation, preview sidebars, and open-with belong to the preview pattern (and historically to the sibling `box-open-preview` repo). The explorer integrates; it does not duplicate.
