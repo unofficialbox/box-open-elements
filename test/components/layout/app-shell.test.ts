@@ -24,5 +24,6 @@ describe("BoxAppShellElement", () => {
     expect(element.shadowRoot?.querySelector('[part="main"]')).toBeTruthy();
     expect(element.shadowRoot?.querySelector('[part="aside"]')).toBeTruthy();
     expect(element.shadowRoot?.querySelector('[part="footer"]')).toBeTruthy();
+    expect(element.shadowRoot?.textContent).toContain("Workspace");
   });
 });

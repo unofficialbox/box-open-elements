@@ -29,6 +29,7 @@ describe("BoxChartPanelElement", () => {
     document.body.append(element);
 
     expect(element.shadowRoot?.textContent).toContain("Weekly activity");
+    expect(element.shadowRoot?.querySelector('[part="title"]')?.textContent).toContain("Weekly activity");
     expect(element.shadowRoot?.textContent).toContain("89%");
     expect(element.shadowRoot?.textContent).toContain("Last 7 days");
     expect(element.shadowRoot?.textContent).toContain("Mon");

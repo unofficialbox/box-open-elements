@@ -32,6 +32,7 @@ describe("BoxAnnotationInspectorElement", () => {
 
     document.body.append(element);
 
+    expect(element.shadowRoot?.textContent).toContain("Annotation Inspector");
     expect(element.shadowRoot?.textContent).toContain("Morgan Lee");
     expect(element.shadowRoot?.textContent).toContain("Hero copy");
     expect(element.shadowRoot?.textContent).toContain("Page 4");

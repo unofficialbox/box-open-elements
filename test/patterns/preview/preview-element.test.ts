@@ -50,6 +50,7 @@ describe("BoxPreviewElement", () => {
     document.body.append(element);
 
     expect(element.shadowRoot?.textContent).toContain("Preview Workspace");
+    expect(element.shadowRoot?.querySelector('[part="title"]')?.textContent).toContain("Preview Workspace");
     expect(element.shadowRoot?.textContent).toContain("Box Content Preview");
     expect(element.shadowRoot?.textContent).toContain("Brand Strategy.pdf");
     expect(element.shadowRoot?.textContent).toContain("Page 2");

@@ -4,8 +4,14 @@ Multi-agent audit of the full catalog: one reviewer per component scoring five d
 (visual fidelity, states, accessibility, API, code quality) 1–5 with concrete, code-cited issues,
 then a synthesis pass ranking worst-first and grouping the work into systemic batches.
 
-**Coverage:** all **109 components** audited (108 unique scored records). Reproduce/extend:
-`scripts/fidelity-audit.workflow.js`.
+**Coverage:** all **109 components** audited (108 unique scored records).
+
+**Reproduce/extend:** the audit is a Claude Code multi-agent workflow,
+`scripts/fidelity-audit.workflow.js` (run via the Workflow tool — one reviewer per
+catalog component). It reads the component sources under `src/` and their examples in
+`docs-site/examples.ts`; no build step or services are required. Each component's scored
+result is written to the run journal, and the committed outputs are this report plus
+`component-fidelity-audit.data.json` in this directory.
 
 | Dimension | Avg (/5) |
 |---|---|

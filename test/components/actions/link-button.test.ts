@@ -42,6 +42,10 @@ describe("BoxLinkButtonElement", () => {
     expect(hrefOf(" javascript:alert(1)")).toBe("#");
     expect(hrefOf("data:text/html,<script>alert(1)</script>")).toBe("#");
     expect(hrefOf("vbscript:msgbox(1)")).toBe("#");
+    // Control chars that browsers strip on navigation must not bypass the check.
+    expect(hrefOf("java\nscript:alert(1)")).toBe("#");
+    expect(hrefOf("java\tscript:alert(1)")).toBe("#");
+    expect(hrefOf("java\rscript:alert(1)")).toBe("#");
   });
 
   it("allows safe schemes and relative/fragment URLs", () => {

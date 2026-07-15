@@ -39,6 +39,8 @@ describe("BoxDialogElement", () => {
     document.body.append(element);
     element.show();
 
+    expect(element.shadowRoot?.textContent).toContain("Delete item");
+
     const confirmButton = element.shadowRoot?.querySelector('[part="confirm"]') as HTMLButtonElement | null;
     confirmButton?.click();
 

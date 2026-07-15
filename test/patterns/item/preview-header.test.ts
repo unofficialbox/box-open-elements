@@ -16,7 +16,7 @@ describe("BoxPreviewHeaderElement", () => {
     document.body.innerHTML = "";
   });
 
-  it("renders title, status, and breadcrumbs", () => {
+  it("renders heading, status, and breadcrumbs", () => {
     const element = document.createElement("box-preview-header") as BoxPreviewHeaderElement;
     element.heading = "Brand Strategy.pdf";
     element.status = "Ready";

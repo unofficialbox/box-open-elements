@@ -61,5 +61,6 @@ describe("BoxIllustrationElement", () => {
     const art = element.shadowRoot?.querySelector('[part="art"]') as HTMLElement | null;
     expect(art?.dataset.assetSource).toBe("design-system");
     expect(art?.innerHTML).toContain("<svg");
+    expect(element.shadowRoot?.textContent).toContain("Folder empty");
   });
 });

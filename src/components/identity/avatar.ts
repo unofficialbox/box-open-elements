@@ -132,8 +132,8 @@ export class BoxAvatarElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, #16a34a 18%, var(--boe-token-surface-surface, #ffffff) 82%) 0%,
-              color-mix(in srgb, #16a34a 8%, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%) 100%
+              color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 18%, var(--boe-token-surface-surface, #ffffff) 82%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 8%, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%) 100%
             );
         }
 

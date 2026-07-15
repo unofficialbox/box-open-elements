@@ -29,6 +29,7 @@ describe("BoxReviewQueueItemElement", () => {
     document.body.append(element);
 
     expect(element.shadowRoot?.textContent).toContain("Launch Checklist");
+    expect(element.shadowRoot?.querySelector('[part="title"]')?.textContent).toContain("Launch Checklist");
     expect(element.shadowRoot?.textContent).toContain("Brand Strategy.pdf");
     expect(element.shadowRoot?.textContent).toContain("Morgan Lee");
     expect(element.shadowRoot?.textContent).toContain("Comments");

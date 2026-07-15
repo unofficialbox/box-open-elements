@@ -211,7 +211,7 @@
       "referenceRows": [
         {
           "kind": "attribute",
-          "name": "title",
+          "name": "heading",
           "type": "string",
           "description": "Banner heading."
         },

@@ -29,6 +29,7 @@ describe("BoxGovernancePanelElement", () => {
 
     document.body.append(element);
 
+    expect(element.shadowRoot?.textContent).toContain("Governance");
     expect(element.shadowRoot?.textContent).toContain("Compliant");
     expect(element.shadowRoot?.textContent).toContain("External sharing");
     expect(element.shadowRoot?.textContent).toContain("Retention policy");

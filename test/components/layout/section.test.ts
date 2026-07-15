@@ -39,6 +39,7 @@ describe("BoxSectionElement", () => {
     element.heading = "Settings";
     document.body.append(element);
 
+    expect(element.shadowRoot?.querySelector('[part~="title"]')?.textContent).toContain("Settings");
     expect(element.shadowRoot?.querySelector('[part="eyebrow"]')).toBeNull();
     expect(element.shadowRoot?.querySelector('[part="description"]')).toBeNull();
 

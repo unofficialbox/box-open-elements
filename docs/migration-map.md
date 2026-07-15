@@ -96,6 +96,15 @@ Headless modules:
 | `AGENTS.md`, `PLANS.md`, `BACKLOG.md` | same names, adapted |
 | `docs/HANDOFF.md`, `docs/codex-workflow.md`, visual-review logs, screenshot checkpoints | not carried — old-repo session mechanics; the durable ideas (screenshot regression as a guardrail, skills/subagents split) are noted in `AGENTS.md` and `docs/workshop/docs-site.md` |
 
+## API changes
+
+- **`title` → `heading`** (all headline-bearing components: alert, card, dialog, drawer,
+  empty-state, nudge, error-mask, section, app-shell, illustration, metric-card, the chart
+  components, and the pattern panels). The headline attribute/property was renamed from
+  `title` to `heading` because `title` collided with the native `HTMLElement.title` tooltip
+  property. **Consumers:** replace `title="…"` with `heading="…"` (and `el.title = …` with
+  `el.heading = …`). `part="title"` styling hooks are unchanged.
+
 ## Deliberately not carried
 
 - The 86-row conformance self-audit tables (they certified old-repo test coverage, not a component spec).

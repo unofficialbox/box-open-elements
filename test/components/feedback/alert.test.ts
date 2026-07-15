@@ -22,6 +22,7 @@ describe("BoxAlertElement", () => {
     document.body.append(element);
 
     expect(element.shadowRoot?.textContent).toContain("Heads up");
+    expect(element.shadowRoot?.querySelector('[part="title"]')?.textContent).toContain("Heads up");
     expect(element.shadowRoot?.textContent).toContain("Your session will expire soon.");
   });
 

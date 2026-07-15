@@ -115,7 +115,7 @@ export class BoxPopoverElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface, #ffffff) 8%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 20%, var(--boe-token-surface-surface, #ffffff) 80%) 100%
             );
           color: var(--boe-token-text-text, #1f1e1b);

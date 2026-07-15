@@ -28,6 +28,7 @@ describe("BoxTaskAssignmentPanelElement", () => {
 
     document.body.append(element);
 
+    expect(element.shadowRoot?.textContent).toContain("Review Task");
     expect(element.shadowRoot?.textContent).toContain("Morgan Lee");
     expect(element.shadowRoot?.textContent).toContain("Resolve annotations");
   });

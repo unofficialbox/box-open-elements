@@ -30,6 +30,7 @@ describe("BoxNudgeElement", () => {
     element.heading = "Tip";
     document.body.append(element);
 
+    expect(element.shadowRoot?.querySelector('[part~="title"]')?.textContent).toContain("Tip");
     expect(element.shadowRoot?.querySelector('[part="action"]')).toBeNull();
 
     element.actionLabel = "Show me";

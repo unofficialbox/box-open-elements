@@ -39,6 +39,8 @@ describe("BoxDrawerElement", () => {
     document.body.append(element);
     element.show();
 
+    expect(element.shadowRoot?.textContent).toContain("Share Settings");
+
     const closeButton = element.shadowRoot?.querySelector('[part="close"]') as HTMLButtonElement | null;
     closeButton?.click();
 

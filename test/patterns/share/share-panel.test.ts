@@ -31,6 +31,7 @@ describe("BoxSharePanelElement", () => {
 
     document.body.append(element);
 
+    expect(element.shadowRoot?.textContent).toContain("Share");
     expect(element.shadowRoot?.textContent).toContain("https://box.dev/s/blueprint");
     expect(element.shadowRoot?.textContent).toContain("Can download");
     expect(element.shadowRoot?.textContent).toContain("Morgan Lee");

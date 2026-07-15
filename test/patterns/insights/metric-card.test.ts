@@ -25,6 +25,7 @@ describe("BoxMetricCardElement", () => {
 
     document.body.append(element);
 
+    expect(element.shadowRoot?.textContent).toContain("External shares");
     expect(element.shadowRoot?.textContent).toContain("148");
     expect(element.shadowRoot?.textContent).toContain("Healthy");
     expect(element.shadowRoot?.textContent).toContain("+12% this week");

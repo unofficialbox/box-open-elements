@@ -294,7 +294,7 @@ export class BoxTreeElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface, #ffffff) 8%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 3%, var(--boe-token-surface-surface-secondary, #fbfbfb) 18%, var(--boe-token-surface-surface, #ffffff) 79%) 100%
             );
           color: var(--boe-token-text-text-secondary, #6f6f6f);
@@ -317,7 +317,7 @@ export class BoxTreeElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface, #ffffff) 8%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface-secondary, #fbfbfb) 18%, var(--boe-token-surface-surface, #ffffff) 78%) 100%
             );
           color: var(--boe-token-text-text-secondary, #6f6f6f);
@@ -367,7 +367,7 @@ export class BoxTreeElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface, #ffffff) 8%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%, var(--boe-token-surface-surface, #ffffff) 92%) 100%
             );
           color: var(--boe-token-text-text, #222222);

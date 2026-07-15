@@ -49,6 +49,8 @@ describe("BoxItemDetailsPanelElement", () => {
 
     document.body.append(element);
 
+    expect(element.shadowRoot?.textContent).toContain("Brand Strategy.pdf");
+
     const button = element.shadowRoot?.querySelector('[data-action-id="share"]') as HTMLButtonElement | null;
     button?.click();
 

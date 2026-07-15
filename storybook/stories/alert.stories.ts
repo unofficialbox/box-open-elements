@@ -9,7 +9,7 @@ const alert: StoryModule = {
     docsDescription: "A titled banner conveying status with a tone, and an optional message body.",
     sourceSnippet: `<box-alert heading="Upload complete" message="24 files were added." tone="success"></box-alert>`,
     referenceRows: [
-      { kind: "attribute", name: "title", type: "string", description: "Banner heading." },
+      { kind: "attribute", name: "heading", type: "string", description: "Banner heading." },
       { kind: "attribute", name: "message", type: "string", description: "Optional body text." },
       { kind: "attribute", name: "tone", type: '"info" | "success" | "warning" | "error"', description: "Status color." },
     ],

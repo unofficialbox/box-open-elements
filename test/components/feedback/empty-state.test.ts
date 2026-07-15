@@ -24,6 +24,7 @@ describe("BoxEmptyStateElement", () => {
     document.body.append(element);
 
     expect(element.shadowRoot?.textContent).toContain("No files yet");
+    expect(element.shadowRoot?.querySelector('[part="title"]')?.textContent).toContain("No files yet");
     expect(element.shadowRoot?.textContent).toContain("Upload a file to get started.");
   });
 

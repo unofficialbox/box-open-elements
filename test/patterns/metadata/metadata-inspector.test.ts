@@ -31,6 +31,7 @@ describe("BoxMetadataInspectorElement", () => {
 
     document.body.append(element);
 
+    expect(element.shadowRoot?.textContent).toContain("Metadata");
     expect(element.shadowRoot?.textContent).toContain("Classification");
     expect(element.shadowRoot?.textContent).toContain("Confidentiality");
     expect(element.shadowRoot?.textContent).toContain("Internal");
