@@ -27,7 +27,7 @@ type ReviewQueueItemMetric = {
 
 export class BoxReviewQueueItemElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["actions", "assignee", "due-date", "item-label", "message", "metrics", "priority", "status", "title"];
+    return ["actions", "assignee", "due-date", "heading", "item-label", "message", "metrics", "priority", "status"];
   }
 
   constructor() {
@@ -129,12 +129,12 @@ export class BoxReviewQueueItemElement extends HTMLElement {
     this.setAttribute("status", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Review Queue Item";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Review Queue Item";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -163,7 +163,7 @@ export class BoxReviewQueueItemElement extends HTMLElement {
       new CustomEvent("action", {
         bubbles: true,
         composed: true,
-        detail: { action: actionId, title: this.title, itemLabel: this.itemLabel },
+        detail: { action: actionId, title: this.heading, itemLabel: this.itemLabel },
       }),
     );
   }
@@ -173,7 +173,7 @@ export class BoxReviewQueueItemElement extends HTMLElement {
       new CustomEvent("selected", {
         bubbles: true,
         composed: true,
-        detail: { title: this.title, itemLabel: this.itemLabel },
+        detail: { title: this.heading, itemLabel: this.itemLabel },
       }),
     );
   }
@@ -412,10 +412,10 @@ export class BoxReviewQueueItemElement extends HTMLElement {
         }
       </style>
       <article part="item">
-        <button type="button" part="select" aria-label="Open ${escapeHtml(this.title)} review item">
+        <button type="button" part="select" aria-label="Open ${escapeHtml(this.heading)} review item">
           <header part="header">
             <div part="title-row">
-              <div part="title">${escapeHtml(this.title)}</div>
+              <div part="title">${escapeHtml(this.heading)}</div>
               ${statusMarkup}
               ${priorityMarkup}
             </div>

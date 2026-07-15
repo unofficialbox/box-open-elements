@@ -18,7 +18,7 @@ describe("BoxAnnotationThreadElement", () => {
 
   it("renders thread entries", () => {
     const element = document.createElement("box-annotation-thread") as BoxAnnotationThreadElement;
-    element.title = "Annotation Thread";
+    element.heading = "Annotation Thread";
     element.entries = [
       { id: "a1", author: "Morgan Lee", body: "Tighten the hero spacing.", toolLabel: "Comment", status: "Open" },
       { id: "a2", author: "Avery Chen", body: "Resolved after export.", toolLabel: "Highlight", status: "Resolved" },

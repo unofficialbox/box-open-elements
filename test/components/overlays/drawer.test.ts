@@ -32,7 +32,7 @@ describe("BoxDrawerElement", () => {
     const element = document.createElement("box-drawer") as BoxDrawerElement;
     const dismissed = vi.fn();
     const openChanged = vi.fn();
-    element.title = "Share Settings";
+    element.heading = "Share Settings";
     element.addEventListener("dismiss", dismissed);
     element.addEventListener("open-changed", openChanged);
 

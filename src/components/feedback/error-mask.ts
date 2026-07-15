@@ -16,7 +16,7 @@ const escapeHtml = (value: string): string =>
  */
 export class BoxErrorMaskElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["action-label", "description", "heading", "message", "title"];
+    return ["action-label", "description", "heading", "message"];
   }
 
   constructor() {
@@ -25,19 +25,11 @@ export class BoxErrorMaskElement extends HTMLElement {
   }
 
   get heading(): string {
-    return this.getAttribute("heading") ?? this.getAttribute("title") ?? "Something went wrong";
+    return this.getAttribute("heading") ?? "Something went wrong";
   }
 
   set heading(value: string) {
     this.setAttribute("heading", value);
-  }
-
-  get title(): string {
-    return this.getAttribute("title") ?? this.getAttribute("heading") ?? "Something went wrong";
-  }
-
-  set title(value: string) {
-    this.setAttribute("title", value);
   }
 
   get message(): string {

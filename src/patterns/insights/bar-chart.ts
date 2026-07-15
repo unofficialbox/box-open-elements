@@ -29,7 +29,7 @@ type BarChartPoint = {
 
 export class BoxBarChartElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["actions", "legend", "message", "points", "summary", "timeframe", "title"];
+    return ["actions", "heading", "legend", "message", "points", "summary", "timeframe"];
   }
 
   constructor() {
@@ -100,12 +100,12 @@ export class BoxBarChartElement extends HTMLElement {
     this.setAttribute("timeframe", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Bar Chart";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Bar Chart";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -176,7 +176,7 @@ export class BoxBarChartElement extends HTMLElement {
     const chartMarkup = this.points.length
       ? `
           <div part="visual">
-            <div part="chart" role="list" aria-label="${escapeHtml(this.title)} bar data">
+            <div part="chart" role="list" aria-label="${escapeHtml(this.heading)} bar data">
               <div part="grid">
                 <span part="grid-line"></span>
                 <span part="grid-line"></span>
@@ -469,7 +469,7 @@ export class BoxBarChartElement extends HTMLElement {
       <article part="panel">
         <header part="header">
           <div part="meta">
-            <div part="title">${escapeHtml(this.title)}</div>
+            <div part="title">${escapeHtml(this.heading)}</div>
             ${summaryMarkup}
             ${messageMarkup}
           </div>

@@ -15,7 +15,7 @@ describe("BoxAppShellElement", () => {
 
   it("renders named layout regions", () => {
     const element = document.createElement("box-app-shell") as BoxAppShellElement;
-    element.title = "Workspace";
+    element.heading = "Workspace";
 
     document.body.append(element);
 

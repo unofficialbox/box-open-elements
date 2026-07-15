@@ -10,7 +10,7 @@ const escapeHtml = (value: string): string =>
 
 export class BoxDrawerElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["description", "open", "position", "title"];
+    return ["description", "heading", "open", "position"];
   }
 
   private openValue = false;
@@ -59,12 +59,12 @@ export class BoxDrawerElement extends HTMLElement {
     this.setAttribute("position", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Drawer";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Drawer";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -253,7 +253,7 @@ export class BoxDrawerElement extends HTMLElement {
         <aside part="drawer" data-position="${escapeHtml(this.position)}" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
           <header part="header">
             <div part="meta">
-              <h2 id="drawer-title">${escapeHtml(this.title)}</h2>
+              <h2 id="drawer-title">${escapeHtml(this.heading)}</h2>
               ${descriptionMarkup}
             </div>
             <button type="button" part="close" aria-label="Close drawer">Close</button>

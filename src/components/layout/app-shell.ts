@@ -10,7 +10,7 @@ const escapeHtml = (value: string): string =>
 
 export class BoxAppShellElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["title"];
+    return ["heading"];
   }
 
   constructor() {
@@ -18,12 +18,12 @@ export class BoxAppShellElement extends HTMLElement {
     this.attachShadow({ mode: "open" });
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "App Shell";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "App Shell";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -130,11 +130,11 @@ export class BoxAppShellElement extends HTMLElement {
           font-size: 0.86rem;
         }
       </style>
-      <section part="shell" aria-label="${escapeHtml(this.title)}">
+      <section part="shell" aria-label="${escapeHtml(this.heading)}">
         <header part="header">
           <div part="header-main">
             <slot name="eyebrow"></slot>
-            <h2 part="title">${escapeHtml(this.title)}</h2>
+            <h2 part="title">${escapeHtml(this.heading)}</h2>
           </div>
           <div part="header-actions">
             <slot name="header-actions"></slot>

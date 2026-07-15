@@ -18,7 +18,7 @@ describe("BoxChartPanelElement", () => {
 
   it("renders summary, timeframe, and chart points", () => {
     const element = document.createElement("box-chart-panel") as BoxChartPanelElement;
-    element.title = "Weekly activity";
+    element.heading = "Weekly activity";
     element.summary = "89%";
     element.timeframe = "Last 7 days";
     element.points = [

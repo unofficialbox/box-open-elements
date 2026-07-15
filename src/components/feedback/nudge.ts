@@ -16,7 +16,7 @@ const escapeHtml = (value: string): string =>
  */
 export class BoxNudgeElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["action-label", "heading", "message", "open", "title"];
+    return ["action-label", "heading", "message", "open"];
   }
 
   private openValue = true;
@@ -46,19 +46,11 @@ export class BoxNudgeElement extends HTMLElement {
   }
 
   get heading(): string {
-    return this.getAttribute("heading") ?? this.getAttribute("title") ?? "";
+    return this.getAttribute("heading") ?? "";
   }
 
   set heading(value: string) {
     this.setAttribute("heading", value);
-  }
-
-  get title(): string {
-    return this.getAttribute("title") ?? this.getAttribute("heading") ?? "";
-  }
-
-  set title(value: string) {
-    this.setAttribute("title", value);
   }
 
   get message(): string {

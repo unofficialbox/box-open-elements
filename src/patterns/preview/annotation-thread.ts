@@ -26,7 +26,7 @@ type AnnotationThreadEntry = {
 
 export class BoxAnnotationThreadElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["actions", "entries", "message", "selected-entry-id", "title"];
+    return ["actions", "entries", "message", "selected-entry-id", "heading"];
   }
 
   constructor() {
@@ -76,12 +76,12 @@ export class BoxAnnotationThreadElement extends HTMLElement {
     this.setAttribute("selected-entry-id", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Annotation Thread";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Annotation Thread";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -153,7 +153,7 @@ export class BoxAnnotationThreadElement extends HTMLElement {
 
     const entriesMarkup = this.entries.length
       ? `
-          <div part="entries" role="list" aria-label="${escapeHtml(this.title)} entries">
+          <div part="entries" role="list" aria-label="${escapeHtml(this.heading)} entries">
             ${this.entries
               .map(entry => {
                 const selected = entry.id === this.selectedEntryId;
@@ -342,7 +342,7 @@ export class BoxAnnotationThreadElement extends HTMLElement {
       </style>
       <article part="thread">
         <header part="header">
-          <div part="title">${escapeHtml(this.title)}</div>
+          <div part="title">${escapeHtml(this.heading)}</div>
           ${messageMarkup}
         </header>
         ${entriesMarkup}

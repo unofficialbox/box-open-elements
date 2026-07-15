@@ -19,7 +19,7 @@ export class BoxIllustrationElement extends HTMLElement {
   };
 
   static get observedAttributes(): string[] {
-    return ["asset", "caption", "message", "shape", "title"];
+    return ["asset", "caption", "message", "shape", "heading"];
   }
 
   constructor() {
@@ -59,12 +59,12 @@ export class BoxIllustrationElement extends HTMLElement {
     this.setAttribute("shape", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -96,7 +96,7 @@ export class BoxIllustrationElement extends HTMLElement {
       return;
     }
 
-    const titleMarkup = this.title ? `<strong part="title">${escapeHtml(this.title)}</strong>` : "";
+    const titleMarkup = this.heading ? `<strong part="title">${escapeHtml(this.heading)}</strong>` : "";
     const message = this.message;
     const captionMarkup = message ? `<span part="message caption">${escapeHtml(message)}</span>` : "";
     const illustrationMarkup = this.asset ? resolveDesignIllustration(this.asset) : null;
@@ -291,7 +291,7 @@ export class BoxIllustrationElement extends HTMLElement {
           line-height: 1.5;
         }
       </style>
-      <figure part="illustration" data-shape="${escapeHtml(this.shape)}" role="img" aria-label="${escapeHtml(this.title || this.message || "Illustration")}">
+      <figure part="illustration" data-shape="${escapeHtml(this.shape)}" role="img" aria-label="${escapeHtml(this.heading || this.message || "Illustration")}">
         <div part="art" aria-hidden="true" data-asset-source="${illustrationMarkup ? "design-system" : "shape"}">${artMarkup}</div>
         <figcaption part="meta">
           ${titleMarkup}

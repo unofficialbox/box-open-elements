@@ -22,7 +22,7 @@ type MetricCardTrend = {
 
 export class BoxMetricCardElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["action", "eyebrow", "message", "status", "title", "trend", "value"];
+    return ["action", "eyebrow", "message", "status", "heading", "trend", "value"];
   }
 
   constructor() {
@@ -82,12 +82,12 @@ export class BoxMetricCardElement extends HTMLElement {
     this.setAttribute("status", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Metric";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Metric";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   get trend(): MetricCardTrend | null {
@@ -284,7 +284,7 @@ export class BoxMetricCardElement extends HTMLElement {
         <header part="header">
           ${eyebrowMarkup}
           <div part="title-row">
-            <div part="title">${escapeHtml(this.title)}</div>
+            <div part="title">${escapeHtml(this.heading)}</div>
             ${statusMarkup}
           </div>
         </header>

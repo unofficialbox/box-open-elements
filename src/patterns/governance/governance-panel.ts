@@ -28,7 +28,7 @@ type GovernancePanelSignal = {
 
 export class BoxGovernancePanelElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["actions", "message", "policies", "signals", "status", "title"];
+    return ["actions", "heading", "message", "policies", "signals", "status"];
   }
 
   constructor() {
@@ -81,12 +81,12 @@ export class BoxGovernancePanelElement extends HTMLElement {
     this.setAttribute("status", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Governance";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Governance";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -360,7 +360,7 @@ export class BoxGovernancePanelElement extends HTMLElement {
       <section part="panel">
         <header part="header">
           <div part="title-row">
-            <div part="title">${escapeHtml(this.title)}</div>
+            <div part="title">${escapeHtml(this.heading)}</div>
             ${statusMarkup}
           </div>
           ${messageMarkup}

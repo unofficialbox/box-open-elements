@@ -27,7 +27,7 @@ export class BoxPreviewElement extends HTMLElement {
   private providerAdapterUnsubscribe: (() => void) | null = null;
 
   static get observedAttributes(): string[] {
-    return ["actions", "adapter-state", "item-label", "message", "provider", "provider-label", "status", "title"];
+    return ["actions", "adapter-state", "item-label", "message", "provider", "provider-label", "status", "heading"];
   }
 
   constructor() {
@@ -121,12 +121,12 @@ export class BoxPreviewElement extends HTMLElement {
     this.setAttribute("status", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Preview Element";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Preview Element";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   get providerAdapter(): PreviewProviderAdapter | null {
@@ -441,7 +441,7 @@ export class BoxPreviewElement extends HTMLElement {
           ${actionsMarkup}
         </div>
         <header part="header">
-          <div part="title">${escapeHtml(this.title)}</div>
+          <div part="title">${escapeHtml(this.heading)}</div>
           ${itemMarkup}
           ${messageMarkup}
           ${adapterMarkup}

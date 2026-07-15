@@ -18,7 +18,7 @@ describe("BoxItemDetailsPanelElement", () => {
 
   it("renders title, owner, and metadata rows", () => {
     const element = document.createElement("box-item-details-panel") as BoxItemDetailsPanelElement;
-    element.title = "Brand Strategy.pdf";
+    element.heading = "Brand Strategy.pdf";
     element.owner = {
       name: "Morgan Lee",
       description: "Content Designer",
@@ -40,7 +40,7 @@ describe("BoxItemDetailsPanelElement", () => {
   it("emits action when an action button is clicked", () => {
     const element = document.createElement("box-item-details-panel") as BoxItemDetailsPanelElement;
     const action = vi.fn();
-    element.title = "Brand Strategy.pdf";
+    element.heading = "Brand Strategy.pdf";
     element.actions = [
       { id: "open", label: "Open", tone: "primary" },
       { id: "share", label: "Share" },

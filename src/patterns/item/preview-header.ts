@@ -21,7 +21,7 @@ type PreviewHeaderBreadcrumb = {
 
 export class BoxPreviewHeaderElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["actions", "breadcrumbs", "message", "status", "title"];
+    return ["actions", "breadcrumbs", "message", "status", "heading"];
   }
 
   constructor() {
@@ -61,12 +61,12 @@ export class BoxPreviewHeaderElement extends HTMLElement {
     this.setAttribute("status", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -265,7 +265,7 @@ export class BoxPreviewHeaderElement extends HTMLElement {
         ${breadcrumbsMarkup}
         <div part="main">
           <div part="title-row">
-            <div part="title">${escapeHtml(this.title)}</div>
+            <div part="title">${escapeHtml(this.heading)}</div>
             ${statusMarkup}
           </div>
           ${messageMarkup}

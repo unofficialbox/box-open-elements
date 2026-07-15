@@ -10,7 +10,7 @@ const escapeHtml = (value: string): string =>
 
 export class BoxCardElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["eyebrow", "heading", "title"];
+    return ["eyebrow", "heading"];
   }
 
   constructor() {
@@ -27,19 +27,11 @@ export class BoxCardElement extends HTMLElement {
   }
 
   get heading(): string {
-    return this.getAttribute("heading") ?? this.title;
+    return this.getAttribute("heading") ?? "";
   }
 
   set heading(value: string) {
     this.setAttribute("heading", value);
-  }
-
-  get title(): string {
-    return this.getAttribute("title") ?? this.getAttribute("heading") ?? "";
-  }
-
-  set title(value: string) {
-    this.setAttribute("title", value);
   }
 
   connectedCallback(): void {
@@ -56,8 +48,8 @@ export class BoxCardElement extends HTMLElement {
     }
 
     const eyebrowMarkup = this.eyebrow ? `<span part="eyebrow">${escapeHtml(this.eyebrow)}</span>` : "";
-    const title = this.title;
-    const headingMarkup = title ? `<strong part="title heading">${escapeHtml(title)}</strong>` : "";
+    const heading = this.heading;
+    const headingMarkup = heading ? `<strong part="title heading">${escapeHtml(heading)}</strong>` : "";
 
     this.shadowRoot.innerHTML = `
       <style>

@@ -28,7 +28,7 @@ type ItemDetailsOwner = {
 
 export class BoxItemDetailsPanelElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["actions", "eyebrow", "message", "meta", "owner", "status", "title"];
+    return ["actions", "eyebrow", "message", "meta", "owner", "status", "heading"];
   }
 
   constructor() {
@@ -89,12 +89,12 @@ export class BoxItemDetailsPanelElement extends HTMLElement {
     this.setAttribute("status", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -341,7 +341,7 @@ export class BoxItemDetailsPanelElement extends HTMLElement {
       <section part="panel">
         <header part="header">
           ${eyebrowMarkup}
-          <div part="title">${escapeHtml(this.title)}</div>
+          <div part="title">${escapeHtml(this.heading)}</div>
           ${messageMarkup}
           ${statusMarkup}
         </header>

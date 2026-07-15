@@ -18,7 +18,7 @@ describe("BoxLineChartElement", () => {
 
   it("renders summary, timeframe, and line points", () => {
     const element = document.createElement("box-line-chart") as BoxLineChartElement;
-    element.title = "Review activity";
+    element.heading = "Review activity";
     element.summary = "64 reviewed";
     element.timeframe = "Last 7 days";
     element.points = [

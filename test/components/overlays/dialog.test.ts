@@ -31,7 +31,7 @@ describe("BoxDialogElement", () => {
   it("emits confirm and closes", () => {
     const element = document.createElement("box-dialog") as BoxDialogElement;
     const confirmed = vi.fn();
-    element.title = "Delete item";
+    element.heading = "Delete item";
     element.confirmLabel = "Delete";
     element.description = "This cannot be undone.";
     element.addEventListener("confirm", confirmed);

@@ -27,7 +27,7 @@ describe("BoxSectionElement", () => {
 
   it("accepts title as an alias for heading", () => {
     const element = document.createElement("box-section") as BoxSectionElement;
-    element.title = "Overview";
+    element.heading = "Overview";
     document.body.append(element);
 
     expect(element.shadowRoot?.querySelector('[part~="title"]')?.textContent).toContain("Overview");

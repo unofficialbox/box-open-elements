@@ -10,7 +10,7 @@ const escapeHtml = (value: string): string =>
 
 export class BoxAlertElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["description", "message", "open", "title", "tone"];
+    return ["description", "heading", "message", "open", "tone"];
   }
 
   private openValue = true;
@@ -40,12 +40,12 @@ export class BoxAlertElement extends HTMLElement {
     this.render();
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   get message(): string {
@@ -99,12 +99,12 @@ export class BoxAlertElement extends HTMLElement {
       return;
     }
 
-    if (!this.openValue || (!this.title && !this.message)) {
+    if (!this.openValue || (!this.heading && !this.message)) {
       this.shadowRoot.innerHTML = "";
       return;
     }
 
-    const titleMarkup = this.title ? `<strong part="title">${escapeHtml(this.title)}</strong>` : "";
+    const titleMarkup = this.heading ? `<strong part="title">${escapeHtml(this.heading)}</strong>` : "";
     const messageMarkup = this.message ? `<span part="description message">${escapeHtml(this.message)}</span>` : "";
 
     this.shadowRoot.innerHTML = `
@@ -200,7 +200,7 @@ export class BoxAlertElement extends HTMLElement {
           outline-offset: 2px;
         }
       </style>
-      <div part="alert" data-tone="${escapeHtml(this.tone)}" role="status" aria-live="polite" aria-label="${escapeHtml(this.title || this.message)}">
+      <div part="alert" data-tone="${escapeHtml(this.tone)}" role="status" aria-live="polite" aria-label="${escapeHtml(this.heading || this.message)}">
         <div part="content">
           ${titleMarkup}
           ${messageMarkup}

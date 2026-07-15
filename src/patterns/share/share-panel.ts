@@ -38,7 +38,7 @@ type SharePanelSharedLink = {
 
 export class BoxSharePanelElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["actions", "collaborators", "message", "settings", "shared-link", "title"];
+    return ["actions", "collaborators", "message", "settings", "shared-link", "heading"];
   }
 
   constructor() {
@@ -91,12 +91,12 @@ export class BoxSharePanelElement extends HTMLElement {
     this.setAttribute("shared-link", JSON.stringify(value));
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Share";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Share";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -458,7 +458,7 @@ export class BoxSharePanelElement extends HTMLElement {
       </style>
       <section part="panel">
         <header part="header">
-          <div part="title">${escapeHtml(this.title)}</div>
+          <div part="title">${escapeHtml(this.heading)}</div>
           ${messageMarkup}
         </header>
         ${sharedLinkMarkup}

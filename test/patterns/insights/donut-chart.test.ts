@@ -18,7 +18,7 @@ describe("BoxDonutChartElement", () => {
 
   it("renders summary, timeframe, and segments", () => {
     const element = document.createElement("box-donut-chart") as BoxDonutChartElement;
-    element.title = "Share distribution";
+    element.heading = "Share distribution";
     element.summary = "18 shares";
     element.timeframe = "Last 7 days";
     element.segments = [

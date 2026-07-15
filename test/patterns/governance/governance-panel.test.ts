@@ -18,7 +18,7 @@ describe("BoxGovernancePanelElement", () => {
 
   it("renders governance signals and policies", () => {
     const element = document.createElement("box-governance-panel") as BoxGovernancePanelElement;
-    element.title = "Governance";
+    element.heading = "Governance";
     element.status = "Compliant";
     element.signals = [
       { label: "External sharing", tone: "warning" },

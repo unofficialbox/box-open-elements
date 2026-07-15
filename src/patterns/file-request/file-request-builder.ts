@@ -25,7 +25,7 @@ type FileRequestBuilderValues = Record<string, boolean | string>;
 
 export class BoxFileRequestBuilderElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["fields", "message", "settings", "title", "value"];
+    return ["fields", "heading", "message", "settings", "value"];
   }
 
   private valueInternal: FileRequestBuilderValues = {};
@@ -59,12 +59,12 @@ export class BoxFileRequestBuilderElement extends HTMLElement {
     this.setAttribute("settings", JSON.stringify(value));
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "File Request";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "File Request";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   get value(): FileRequestBuilderValues {
@@ -321,7 +321,7 @@ export class BoxFileRequestBuilderElement extends HTMLElement {
       </style>
       <section part="builder">
         <header part="header">
-          <div part="title">${escapeHtml(this.title)}</div>
+          <div part="title">${escapeHtml(this.heading)}</div>
           ${messageMarkup}
         </header>
         ${settingsMarkup}

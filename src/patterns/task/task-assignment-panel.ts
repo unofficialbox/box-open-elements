@@ -31,7 +31,7 @@ type TaskAssignmentPanelChecklistItem = {
 
 export class BoxTaskAssignmentPanelElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["actions", "assignees", "checklist", "current-assignee-id", "due-date", "message", "priority", "status", "title"];
+    return ["actions", "assignees", "checklist", "current-assignee-id", "due-date", "message", "priority", "status", "heading"];
   }
 
   constructor() {
@@ -123,12 +123,12 @@ export class BoxTaskAssignmentPanelElement extends HTMLElement {
     this.setAttribute("status", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Task Assignment";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Task Assignment";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -202,7 +202,7 @@ export class BoxTaskAssignmentPanelElement extends HTMLElement {
       ? `
           <section part="assignees">
             <div part="section-title">Assignees</div>
-            <div part="assignee-list" role="listbox" aria-label="${escapeHtml(this.title)} assignees">
+            <div part="assignee-list" role="listbox" aria-label="${escapeHtml(this.heading)} assignees">
               ${this.assignees
                 .map(
                   assignee => `
@@ -467,7 +467,7 @@ export class BoxTaskAssignmentPanelElement extends HTMLElement {
       </style>
       <section part="panel">
         <header part="header">
-          <div part="title">${escapeHtml(this.title)}</div>
+          <div part="title">${escapeHtml(this.heading)}</div>
           ${messageMarkup}
           <div part="meta">${statusMarkup}${priorityMarkup}${dueDateMarkup}</div>
         </header>

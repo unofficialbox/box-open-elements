@@ -18,7 +18,7 @@ describe("BoxBarChartElement", () => {
 
   it("renders summary, timeframe, and bar points", () => {
     const element = document.createElement("box-bar-chart") as BoxBarChartElement;
-    element.title = "Share activity";
+    element.heading = "Share activity";
     element.summary = "18 shared";
     element.timeframe = "Last 7 days";
     element.points = [

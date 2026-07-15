@@ -18,7 +18,7 @@ describe("BoxPreviewHeaderElement", () => {
 
   it("renders title, status, and breadcrumbs", () => {
     const element = document.createElement("box-preview-header") as BoxPreviewHeaderElement;
-    element.title = "Brand Strategy.pdf";
+    element.heading = "Brand Strategy.pdf";
     element.status = "Ready";
     element.breadcrumbs = [
       { id: "0", label: "All Files" },
@@ -35,7 +35,7 @@ describe("BoxPreviewHeaderElement", () => {
   it("emits action", () => {
     const element = document.createElement("box-preview-header") as BoxPreviewHeaderElement;
     const action = vi.fn();
-    element.title = "Brand Strategy.pdf";
+    element.heading = "Brand Strategy.pdf";
     element.actions = [{ id: "share", label: "Share" }];
     element.addEventListener("action", action);
 
@@ -54,7 +54,7 @@ describe("BoxPreviewHeaderElement", () => {
   it("emits breadcrumb-selected", () => {
     const element = document.createElement("box-preview-header") as BoxPreviewHeaderElement;
     const selected = vi.fn();
-    element.title = "Brand Strategy.pdf";
+    element.heading = "Brand Strategy.pdf";
     element.breadcrumbs = [
       { id: "0", label: "All Files" },
       { id: "marketing", label: "Marketing" },

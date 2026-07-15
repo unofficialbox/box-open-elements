@@ -18,7 +18,7 @@ const TITLE_ID = "box-section-title";
  */
 export class BoxSectionElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["description", "eyebrow", "heading", "title"];
+    return ["description", "eyebrow", "heading"];
   }
 
   constructor() {
@@ -27,19 +27,11 @@ export class BoxSectionElement extends HTMLElement {
   }
 
   get heading(): string {
-    return this.getAttribute("heading") ?? this.getAttribute("title") ?? "Section";
+    return this.getAttribute("heading") ?? "Section";
   }
 
   set heading(value: string) {
     this.setAttribute("heading", value);
-  }
-
-  get title(): string {
-    return this.getAttribute("title") ?? this.getAttribute("heading") ?? "Section";
-  }
-
-  set title(value: string) {
-    this.setAttribute("title", value);
   }
 
   get eyebrow(): string {

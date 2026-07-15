@@ -19,7 +19,7 @@ describe("BoxPreviewElement", () => {
 
   it("renders provider, title, and slotted regions", () => {
     const element = document.createElement("box-preview-element") as BoxPreviewElement;
-    element.title = "Preview Workspace";
+    element.heading = "Preview Workspace";
     element.provider = {
       id: "box-content-preview",
       label: "Box Content Preview",

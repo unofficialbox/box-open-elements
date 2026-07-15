@@ -76,7 +76,7 @@
 <section id="section-feedback">
   <h2>Components · Feedback &amp; Progress</h2>
   <div class="row">
-    <box-alert title="Upload complete" message="24 files were added to Marketing." tone="success"></box-alert>
+    <box-alert heading="Upload complete" message="24 files were added to Marketing." tone="success"></box-alert>
     <box-badge label="Beta"></box-badge>
     <box-badge label="Error" tone="error"></box-badge>
     <box-spinner label="Loading"></box-spinner>
@@ -88,7 +88,7 @@
     <box-progress-steps id="progress-steps" label="Migration"></box-progress-steps>
   </div>
   <div class="row">
-    <box-empty-state title="No results" message="Try a different search or clear the filters."></box-empty-state>
+    <box-empty-state heading="No results" message="Try a different search or clear the filters."></box-empty-state>
     <box-skeleton width="320px" height="18px"></box-skeleton>
   </div>
 </section>
@@ -106,7 +106,7 @@
       <box-accordion id="accordion" label="Details"></box-accordion>
     </div>
     <div class="col">
-      <box-card eyebrow="PDF · 2.4 MB" title="Quarterly Plan.pdf">Updated 2 hours ago by Morgan Lee</box-card>
+      <box-card eyebrow="PDF · 2.4 MB" heading="Quarterly Plan.pdf">Updated 2 hours ago by Morgan Lee</box-card>
       <box-pagination page="2" page-size="25" total-items="220"></box-pagination>
     </div>
   </div>
@@ -122,7 +122,7 @@
   </div>
   <div class="row">
     <div class="col">
-      <box-item-details-panel id="details-panel" title="Quarterly Plan.pdf" eyebrow="PDF · 2.4 MB" owner="Morgan Lee" status="Shared" message="Latest board-ready plan with updated forecasts."></box-item-details-panel>
+      <box-item-details-panel id="details-panel" heading="Quarterly Plan.pdf" eyebrow="PDF · 2.4 MB" owner="Morgan Lee" status="Shared" message="Latest board-ready plan with updated forecasts."></box-item-details-panel>
     </div>
     <div class="col">
       <box-bulk-action-bar id="bulk-bar" label="Selection" count="3" message="3 items selected"></box-bulk-action-bar>
@@ -140,29 +140,29 @@
 <section id="section-insights">
   <h2>Patterns · Insights Compositions</h2>
   <div class="row">
-    <box-metric-card id="metric-card" title="Active shared links" value="1,284" eyebrow="Last 30 days" message="Up from 1,102 in the prior period." status="Healthy"></box-metric-card>
-    <box-donut-chart id="donut-chart" title="Storage by type"></box-donut-chart>
+    <box-metric-card id="metric-card" heading="Active shared links" value="1,284" eyebrow="Last 30 days" message="Up from 1,102 in the prior period." status="Healthy"></box-metric-card>
+    <box-donut-chart id="donut-chart" heading="Storage by type"></box-donut-chart>
   </div>
   <div class="row">
-    <box-bar-chart id="bar-chart" title="Uploads per week" timeframe="Last 5 weeks" summary="Steady growth across the quarter."></box-bar-chart>
+    <box-bar-chart id="bar-chart" heading="Uploads per week" timeframe="Last 5 weeks" summary="Steady growth across the quarter."></box-bar-chart>
   </div>
 </section>
 
 <section id="section-share-governance">
   <h2>Patterns · Share &amp; Governance Compositions</h2>
   <div class="row">
-    <div class="col"><box-share-panel id="share-panel" title="Share Quarterly Plan.pdf" message="Anyone in the company with the link can view."></box-share-panel></div>
-    <div class="col"><box-governance-panel id="governance-panel" title="Governance" status="Compliant" message="Retention and classification policies applied."></box-governance-panel></div>
+    <div class="col"><box-share-panel id="share-panel" heading="Share Quarterly Plan.pdf" message="Anyone in the company with the link can view."></box-share-panel></div>
+    <div class="col"><box-governance-panel id="governance-panel" heading="Governance" status="Compliant" message="Retention and classification policies applied."></box-governance-panel></div>
   </div>
 </section>
 
 <section id="section-workflow">
   <h2>Patterns · Task &amp; File Request Compositions</h2>
   <div class="row">
-    <div class="col"><box-task-assignment-panel id="task-panel" title="Contract review" status="In progress" priority="High" due-date="Jul 18, 2026" message="Legal review before countersign."></box-task-assignment-panel></div>
+    <div class="col"><box-task-assignment-panel id="task-panel" heading="Contract review" status="In progress" priority="High" due-date="Jul 18, 2026" message="Legal review before countersign."></box-task-assignment-panel></div>
     <div class="col">
-      <box-review-queue-item id="review-item" title="MSA_Acme_v4.pdf" item-label="Contract" status="Awaiting review" priority="Medium" due-date="Jul 14, 2026" message="Second-pass legal review."></box-review-queue-item>
-      <box-file-request-builder id="file-request" title="Collect vendor W-9s" message="Request tax forms from onboarding vendors."></box-file-request-builder>
+      <box-review-queue-item id="review-item" heading="MSA_Acme_v4.pdf" item-label="Contract" status="Awaiting review" priority="Medium" due-date="Jul 14, 2026" message="Second-pass legal review."></box-review-queue-item>
+      <box-file-request-builder id="file-request" heading="Collect vendor W-9s" message="Request tax forms from onboarding vendors."></box-file-request-builder>
     </div>
   </div>
 </section>
@@ -173,7 +173,7 @@
     <box-annotation-toolbar id="annotation-toolbar" label="Annotate"></box-annotation-toolbar>
   </div>
   <div class="row">
-    <box-preview-element id="preview-element" title="Quarterly Plan.pdf" item-label="PDF · 2.4 MB" status="Ready" message="Rendered by the active preview provider."></box-preview-element>
+    <box-preview-element id="preview-element" heading="Quarterly Plan.pdf" item-label="PDF · 2.4 MB" status="Ready" message="Rendered by the active preview provider."></box-preview-element>
   </div>
 </section>
 

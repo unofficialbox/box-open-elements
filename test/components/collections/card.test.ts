@@ -26,9 +26,9 @@ describe("BoxCardElement", () => {
     expect(element.textContent).toContain("Body copy");
   });
 
-  it("supports title as the preferred heading alias", () => {
+  it("supports heading as the preferred heading attribute", () => {
     const element = document.createElement("box-card") as BoxCardElement;
-    element.title = "Release Notes";
+    element.heading = "Release Notes";
 
     document.body.append(element);
 

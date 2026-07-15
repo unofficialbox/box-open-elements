@@ -15,7 +15,7 @@ describe("BoxSharePanelElement", () => {
 
   it("renders shared link, settings, and collaborators", () => {
     const element = document.createElement("box-share-panel") as BoxSharePanelElement;
-    element.title = "Share";
+    element.heading = "Share";
     element.sharedLink = {
       access: "Company",
       url: "https://box.dev/s/blueprint",

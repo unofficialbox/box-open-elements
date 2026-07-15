@@ -18,7 +18,7 @@ describe("BoxMetricCardElement", () => {
 
   it("renders value, status, and trend", () => {
     const element = document.createElement("box-metric-card") as BoxMetricCardElement;
-    element.title = "External shares";
+    element.heading = "External shares";
     element.value = "148";
     element.status = "Healthy";
     element.trend = { label: "+12% this week", direction: "up" };

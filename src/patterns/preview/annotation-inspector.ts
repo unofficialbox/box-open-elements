@@ -36,7 +36,7 @@ type AnnotationInspectorAnnotation = {
 
 export class BoxAnnotationInspectorElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["actions", "annotation", "message", "title"];
+    return ["actions", "annotation", "heading", "message"];
   }
 
   constructor() {
@@ -78,12 +78,12 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
     this.setAttribute("message", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Annotation Inspector";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Annotation Inspector";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -385,7 +385,7 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
       </style>
       <article part="panel">
         <header part="header">
-          <div part="title">${escapeHtml(this.title)}</div>
+          <div part="title">${escapeHtml(this.heading)}</div>
           ${messageMarkup}
         </header>
         ${detailMarkup}

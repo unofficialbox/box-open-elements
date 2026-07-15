@@ -18,7 +18,7 @@ describe("BoxAnnotationInspectorElement", () => {
 
   it("renders the selected annotation details", () => {
     const element = document.createElement("box-annotation-inspector") as BoxAnnotationInspectorElement;
-    element.title = "Annotation Inspector";
+    element.heading = "Annotation Inspector";
     element.annotation = {
       id: "a1",
       author: "Morgan Lee",

@@ -10,7 +10,7 @@ const escapeHtml = (value: string): string =>
 
 export class BoxDialogElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["confirm-label", "description", "open", "title"];
+    return ["confirm-label", "description", "heading", "open"];
   }
 
   private openValue = false;
@@ -42,12 +42,12 @@ export class BoxDialogElement extends HTMLElement {
     this.render();
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Dialog";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Dialog";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   get description(): string {
@@ -190,7 +190,7 @@ export class BoxDialogElement extends HTMLElement {
       <div part="backdrop">
         <section part="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
           <header part="header">
-            <h2 id="dialog-title">${escapeHtml(this.title)}</h2>
+            <h2 id="dialog-title">${escapeHtml(this.heading)}</h2>
           </header>
           ${
             this.description
