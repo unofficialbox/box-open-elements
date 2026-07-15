@@ -29,7 +29,23 @@ const TOOLBAR_ACTIONS: ToolbarAction[] = [
   { command: "insertOrderedList", label: "Numbered list", text: "1." },
 ];
 
-const UNSAFE_RICH_TEXT_TAGS = new Set([
+/** Tags produced by the toolbar / common rich-text formatting. Everything else is unwrapped or dropped. */
+const ALLOWED_RICH_TEXT_TAGS = new Set([
+  "b",
+  "strong",
+  "i",
+  "em",
+  "u",
+  "ul",
+  "ol",
+  "li",
+  "p",
+  "br",
+  "div",
+  "span",
+]);
+
+const DROP_RICH_TEXT_TAGS = new Set([
   "script",
   "style",
   "iframe",
@@ -37,26 +53,57 @@ const UNSAFE_RICH_TEXT_TAGS = new Set([
   "embed",
   "link",
   "meta",
+  "base",
+  "form",
+  "input",
+  "textarea",
+  "select",
+  "button",
+  "img",
+  "svg",
+  "math",
+  "video",
+  "audio",
+  "source",
+  "track",
 ]);
 
 const sanitizeRichTextHtml = (html: string): string => {
   const doc = new DOMParser().parseFromString(html, "text/html");
-  for (const element of Array.from(doc.body.querySelectorAll("*"))) {
-    const tag = element.tagName.toLowerCase();
-    if (UNSAFE_RICH_TEXT_TAGS.has(tag)) {
-      element.remove();
-      continue;
-    }
 
-    for (const attr of Array.from(element.attributes)) {
-      const name = attr.name.toLowerCase();
-      const attrValue = attr.value.trim().toLowerCase();
-      if (name.startsWith("on") || (name === "href" && attrValue.startsWith("javascript:"))) {
-        element.removeAttribute(attr.name);
+  const sanitizeNode = (node: Node): void => {
+    const children = Array.from(node.childNodes);
+    for (const child of children) {
+      if (child.nodeType === Node.ELEMENT_NODE) {
+        const element = child as HTMLElement;
+        const tag = element.tagName.toLowerCase();
+
+        if (DROP_RICH_TEXT_TAGS.has(tag)) {
+          element.remove();
+          continue;
+        }
+
+        sanitizeNode(element);
+
+        if (!ALLOWED_RICH_TEXT_TAGS.has(tag)) {
+          while (element.firstChild) {
+            element.parentNode?.insertBefore(element.firstChild, element);
+          }
+          element.remove();
+          continue;
+        }
+
+        // Allowlist: keep the tag, drop every attribute (no href/src/on* vectors).
+        for (const attr of Array.from(element.attributes)) {
+          element.removeAttribute(attr.name);
+        }
+      } else if (child.nodeType === Node.COMMENT_NODE) {
+        child.parentNode?.removeChild(child);
       }
     }
-  }
+  };
 
+  sanitizeNode(doc.body);
   return doc.body.innerHTML;
 };
 
@@ -254,6 +301,7 @@ export class BoxRichTextInputElement extends FormAssociatedElement {
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
       this.valueInternal = sanitizeRichTextHtml(newValue ?? "");
+      this.syncFormAssociation();
     }
     super.attributeChangedCallback(name, oldValue, newValue);
   }
@@ -283,10 +331,48 @@ export class BoxRichTextInputElement extends FormAssociatedElement {
   }
 
   private handleEditorInput = (): void => {
-    this.valueInternal = sanitizeRichTextHtml(this.editor.innerHTML);
+    const cleaned = sanitizeRichTextHtml(this.editor.innerHTML);
+    if (cleaned !== this.editor.innerHTML) {
+      this.editor.innerHTML = cleaned;
+    }
+    this.valueInternal = cleaned;
     this.setAttribute("value", this.valueInternal);
     this.syncFormAssociation();
     this.emitValueChanged();
+  };
+
+  private insertSanitizedHtml(html: string, plainTextFallback: string): void {
+    const cleaned = html
+      ? sanitizeRichTextHtml(html)
+      : sanitizeRichTextHtml(escapeHtml(plainTextFallback).replaceAll("\n", "<br>"));
+    const payload = cleaned || escapeHtml(plainTextFallback);
+    this.editor.focus();
+    const inserted = document.execCommand?.("insertHTML", false, payload) ?? false;
+    if (!inserted) {
+      // jsdom and other hosts may stub execCommand; append the sanitized payload directly.
+      this.editor.innerHTML = sanitizeRichTextHtml(`${this.editor.innerHTML}${payload}`);
+    }
+    this.handleEditorInput();
+  }
+
+  private handlePaste = (event: ClipboardEvent): void => {
+    if (this.disabled) {
+      return;
+    }
+    event.preventDefault();
+    const html = event.clipboardData?.getData("text/html") ?? "";
+    const text = event.clipboardData?.getData("text/plain") ?? "";
+    this.insertSanitizedHtml(html, text);
+  };
+
+  private handleDrop = (event: DragEvent): void => {
+    if (this.disabled) {
+      return;
+    }
+    event.preventDefault();
+    const html = event.dataTransfer?.getData("text/html") ?? "";
+    const text = event.dataTransfer?.getData("text/plain") ?? "";
+    this.insertSanitizedHtml(html, text);
   };
 
   private applyCommand(command: ToolbarAction["command"]): void {
@@ -345,6 +431,8 @@ export class BoxRichTextInputElement extends FormAssociatedElement {
 
   protected setupListeners(): void {
     this.editor.addEventListener("input", this.handleEditorInput);
+    this.editor.addEventListener("paste", this.handlePaste);
+    this.editor.addEventListener("drop", this.handleDrop);
     this.toolbarButtons.forEach(button => {
       button.addEventListener("click", () => {
         const command = button.dataset.command as ToolbarAction["command"] | undefined;
