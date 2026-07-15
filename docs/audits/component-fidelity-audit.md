@@ -107,9 +107,11 @@ add the missing real tokens behind the fabricated names (or repoint). Mostly mec
 `box-dark` currently renders a third of the library light-on-dark. **Folds in the user-reported
 dark-theme complaint.**
 
-**Batch 3 — Focus-visible rings + hover/active/disabled states (~25).** Shared `:focus-visible`
-brand ring + `:hover`/`:active`/`:disabled` on all interactive parts using existing hover/pressed
-tokens; add `disabled` where missing. Targets the lowest dimension (states); fixes WCAG 2.4.7 gaps.
+**Batch 3 — Focus-visible rings + hover/active/disabled states — DONE.** Shared helpers in
+`src/foundations/tokens/interaction.ts` (`boeNeutralInteractiveStyles` /
+`boeBrandInteractiveStyles` / `boeFocusVisibleStyles`) applied across catalog components and
+pattern interactive parts; style-presence tests cover acute surfaces. Remaining state gaps that
+are ARIA/keyboard or form-association belong to Batches 4/5.
 
 **Batch 4 — ARIA correctness & keyboard interaction for composite widgets (~18).** Roving-tabindex +
 arrow/Home/End nav for `menu`/`toolbar`/`listbox`/`radiogroup`; remove `role="listitem"` from

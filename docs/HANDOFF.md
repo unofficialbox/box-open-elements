@@ -16,8 +16,9 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 
 ## Current state (as of this handoff)
 
-- **Branch tip for fidelity work:** develop from `origin/main`. Batch 1 is
-  merged; start Batch 3 on a fresh `cursor/<name>-7eb7` branch.
+- **Branch tip for fidelity work:** `cursor/batch-3-interaction-states-7eb7`
+  (Batch 3). After merge, continue from `origin/main` on a fresh
+  `cursor/<name>-7eb7` branch.
 - **Live site:** GitHub Pages, `https://unofficialbox.github.io/box-open-elements/`,
   auto-deploys on push to `main` via `.github/workflows/deploy.yml`
   (build cmd `bun run site:build`, output `docs-site/dist`). The Workshop is
@@ -53,16 +54,21 @@ organized into **systemic sweeps**, not per-component rewrites.
   metadata-filter-builder, drop-zone). See
   [architecture.md](./architecture.md#web-component-render-contract).
 
+- **Batch 3 — focus-visible + hover/active/disabled** (current PR): shared
+  helpers in `src/foundations/tokens/interaction.ts`
+  (`boeNeutralInteractiveStyles` / `boeBrandInteractiveStyles` /
+  `boeFocusVisibleStyles`) applied across catalog components and pattern
+  interactive parts. Style-presence tests cover the acute surfaces.
+
 ### Remaining (do these next, in order)
-1. **Batch 3 — focus-visible rings + hover/active/disabled states (~25).**
-2. **Batch 4 — ARIA roles + keyboard nav for composite widgets (~18).** Folds
+1. **Batch 4 — ARIA roles + keyboard nav for composite widgets (~18).** Folds
    in the deferred **heading semantics** (render `heading` as a real `<h*>` /
    `role="heading"` with `aria-level`, not a `<div part="title">`).
-3. **Batch 5 — form-field completeness (~13):** error/invalid state,
+2. **Batch 5 — form-field completeness (~13):** error/invalid state,
    `ElementInternals`/`name` so values submit.
-4. **Batch 7 — polish:** deferred `skeleton` update short-circuit; extra
+3. **Batch 7 — polish:** deferred `skeleton` update short-circuit; extra
    jsdom style-assertion tests for rating/rich-text-input/action-menu;
-   any leftover medium/low audit nits not covered by Batches 3–5.
+   any leftover medium/low audit nits not covered by Batches 4–5.
 
 ### Deferred CodeRabbit items (intentional, tracked above)
 - Heading `role="heading"` semantics → Batch 4 (systematic, not one-off).
@@ -128,5 +134,5 @@ organized into **systemic sweeps**, not per-component rewrites.
   Workshop unlink ✅, fidelity program in progress (Batches 3/4/5/7 remain).
 - **PR #33** merged to `main` (`09cb7f6`) with CodeRabbit follow-ups and
   regenerated gallery baselines.
-- **Next:** start **Batch 3** (focus-visible rings + hover/active/disabled
-  states) — lowest scoring fidelity dimension after Batch 1 landed.
+- **Next after Batch 3 merges:** start **Batch 4** (ARIA roles + keyboard nav
+  for composites, including heading semantics).
