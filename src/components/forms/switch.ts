@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-switch";
 
 const escapeHtml = (value: string): string =>
@@ -8,17 +10,115 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-export class BoxSwitchElement extends HTMLElement {
+const switchStyles = `
+  :host {
+    display: inline-block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="switch"] {
+    appearance: none;
+    border: none;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  [part="switch"]:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+  }
+
+  [part="switch"]:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  [part~="track"] {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    inline-size: 2.5rem;
+    block-size: 1.4rem;
+    padding: 0.15rem;
+    box-sizing: border-box;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, var(--boe-token-surface-surface, #ffffff) 18%);
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08);
+    transition: background 140ms ease, box-shadow 140ms ease;
+  }
+
+  [part="switch"]:hover:not(:disabled) [part~="track"][data-checked="false"] {
+    background: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+  }
+
+  [part~="track"][data-checked="true"] {
+    background: var(--boe-token-surface-surface-brand, #0061d5);
+  }
+
+  [part="switch"]:hover:not(:disabled) [part~="track"][data-checked="true"] {
+    background: var(--boe-token-surface-surface-brand-hover, #0057c0);
+  }
+
+  [part="switch"]:active:not(:disabled) [part~="track"][data-checked="true"] {
+    background: var(--boe-token-surface-surface-brand-pressed, #004eaa);
+  }
+
+  [part~="thumb"] {
+    inline-size: 1.1rem;
+    block-size: 1.1rem;
+    border-radius: 999px;
+    background: var(--boe-token-surface-surface, #ffffff);
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.18),
+      0 0 0 1px color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 45%, transparent);
+    transform: translateX(0);
+    transition: transform 140ms ease;
+  }
+
+  [part~="thumb"][data-checked="true"] {
+    transform: translateX(1.1rem);
+  }
+
+  [part="content"] {
+    display: grid;
+    gap: 0.2rem;
+    padding-block-start: 0.05rem;
+  }
+
+  [part="label"] {
+    font-weight: 600;
+    color: var(--boe-token-text-text, #222222);
+  }
+
+  [part="description"] {
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+  }
+`;
+
+export class BoxSwitchElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["checked", "description", "disabled", "label"];
   }
 
   private checkedInternal = false;
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private switchEl!: HTMLButtonElement;
+  private trackEl!: HTMLElement;
+  private thumbEl!: HTMLElement;
+  private labelEl!: HTMLElement;
+  private descriptionEl!: HTMLElement;
+  private contentEl!: HTMLElement;
 
   get checked(): boolean {
     return this.checkedInternal;
@@ -32,7 +132,9 @@ export class BoxSwitchElement extends HTMLElement {
     } else {
       this.removeAttribute("checked");
     }
-    this.render();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   get description(): string {
@@ -63,16 +165,11 @@ export class BoxSwitchElement extends HTMLElement {
     this.setAttribute("label", value);
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "checked") {
       this.checkedInternal = this.hasAttribute("checked");
     }
-
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   private toggleChecked(): void {
@@ -96,140 +193,75 @@ export class BoxSwitchElement extends HTMLElement {
       }),
     );
 
-    this.render();
+    this.update();
   }
 
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
-    const descriptionMarkup = this.description
-      ? `<span part="description">${escapeHtml(this.description)}</span>`
-      : "";
-
-    const trackPart = this.checkedInternal ? "track track-checked" : "track";
-    const thumbPart = this.checkedInternal ? "thumb thumb-checked" : "thumb";
-
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: inline-block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="switch"] {
-          appearance: none;
-          border: none;
-          background: transparent;
-          font: inherit;
-          color: inherit;
-          text-align: left;
-          display: inline-flex;
-          align-items: flex-start;
-          gap: 0.75rem;
-          padding: 0;
-          margin: 0;
-          cursor: pointer;
-        }
-
-        [part="switch"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
-          border-radius: 0.5rem;
-        }
-
-        [part="switch"]:disabled {
-          opacity: 0.55;
-          cursor: not-allowed;
-        }
-
-        [part~="track"] {
-          flex: 0 0 auto;
-          display: inline-flex;
-          align-items: center;
-          inline-size: 2.5rem;
-          block-size: 1.4rem;
-          padding: 0.15rem;
-          box-sizing: border-box;
-          border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, var(--boe-token-surface-surface, #ffffff) 18%);
-          box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08);
-          transition: background 140ms ease, box-shadow 140ms ease;
-        }
-
-        [part="switch"]:hover:not(:disabled) [part~="track"][data-checked="false"] {
-          background: var(--boe-token-stroke-stroke-hover, #bcbcbc);
-        }
-
-        [part~="track"][data-checked="true"] {
-          background: var(--boe-token-surface-surface-brand, #0061d5);
-        }
-
-        [part="switch"]:hover:not(:disabled) [part~="track"][data-checked="true"] {
-          background: var(--boe-token-surface-surface-brand-hover, #0057c0);
-        }
-
-        [part="switch"]:active:not(:disabled) [part~="track"][data-checked="true"] {
-          background: var(--boe-token-surface-surface-brand-pressed, #004eaa);
-        }
-
-        [part~="thumb"] {
-          inline-size: 1.1rem;
-          block-size: 1.1rem;
-          border-radius: 999px;
-          background: var(--boe-token-surface-surface, #ffffff);
-          box-shadow:
-            0 1px 2px rgba(15, 23, 42, 0.18),
-            0 0 0 1px color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 45%, transparent);
-          transform: translateX(0);
-          transition: transform 140ms ease;
-        }
-
-        [part~="thumb"][data-checked="true"] {
-          transform: translateX(1.1rem);
-        }
-
-        [part="content"] {
-          display: grid;
-          gap: 0.2rem;
-          padding-block-start: 0.05rem;
-        }
-
-        [part="label"] {
-          font-weight: 600;
-          color: var(--boe-token-text-text, #222222);
-        }
-
-        [part="description"] {
-          font-size: 0.9rem;
-          line-height: 1.45;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-      </style>
+      <style>${switchStyles}</style>
       <button
         type="button"
         part="switch"
         role="switch"
-        aria-label="${escapeHtml(this.label)}"
-        aria-checked="${String(this.checkedInternal)}"
-        aria-disabled="${String(this.disabled)}"
-        ${this.disabled ? "disabled" : ""}
       >
-        <span part="${trackPart}" data-checked="${String(this.checkedInternal)}">
-          <span part="${thumbPart}" data-checked="${String(this.checkedInternal)}"></span>
+        <span part="track" data-checked="false">
+          <span part="thumb" data-checked="false"></span>
         </span>
         <span part="content">
-          <span part="label">${escapeHtml(this.label)}</span>
-          ${descriptionMarkup}
+          <span part="label"></span>
+          <span part="description"></span>
         </span>
       </button>
     `;
+    this.switchEl = this.shadowRoot.querySelector('[part="switch"]')!;
+    this.trackEl = this.shadowRoot.querySelector('[part="track"]')!;
+    this.thumbEl = this.shadowRoot.querySelector('[part="thumb"]')!;
+    this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.descriptionEl = this.shadowRoot.querySelector('[part="description"]')!;
+    this.contentEl = this.shadowRoot.querySelector('[part="content"]')!;
+  }
 
-    this.shadowRoot.querySelector('[part="switch"]')?.addEventListener("click", () => {
+  protected setupListeners(): void {
+    this.switchEl.addEventListener("click", () => {
       this.toggleChecked();
     });
+  }
+
+  protected update(): void {
+    if (!this.switchEl) {
+      return;
+    }
+
+    const checkedStr = String(this.checkedInternal);
+
+    this.switchEl.setAttribute("aria-label", escapeHtml(this.label));
+    this.switchEl.setAttribute("aria-checked", checkedStr);
+    this.switchEl.setAttribute("aria-disabled", String(this.disabled));
+    if (this.disabled) {
+      this.switchEl.setAttribute("disabled", "");
+    } else {
+      this.switchEl.removeAttribute("disabled");
+    }
+
+    this.trackEl.dataset.checked = checkedStr;
+    this.trackEl.setAttribute("part", this.checkedInternal ? "track track-checked" : "track");
+    this.thumbEl.dataset.checked = checkedStr;
+    this.thumbEl.setAttribute("part", this.checkedInternal ? "thumb thumb-checked" : "thumb");
+
+    this.labelEl.textContent = this.label;
+
+    const desc = this.description;
+    if (desc) {
+      this.descriptionEl.textContent = desc;
+      this.descriptionEl.style.display = "";
+    } else {
+      this.descriptionEl.textContent = "";
+      this.descriptionEl.style.display = "none";
+    }
   }
 }
 

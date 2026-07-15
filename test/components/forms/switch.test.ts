@@ -65,4 +65,16 @@ describe("BoxSwitchElement", () => {
     expect(track?.getAttribute("part")).toContain("track-checked");
     expect(thumb?.getAttribute("part")).toContain("thumb-checked");
   });
+
+  it("does not lose focus when toggled via setter while switch is focused", () => {
+    const element = document.createElement("box-switch") as BoxSwitchElement;
+    document.body.append(element);
+
+    const button = element.shadowRoot?.querySelector('[part="switch"]') as HTMLButtonElement | null;
+    button?.focus();
+
+    element.checked = true;
+
+    expect(document.activeElement).toBe(element);
+  });
 });

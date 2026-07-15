@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-select";
 
 const escapeHtml = (value: string): string =>
@@ -8,17 +10,71 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-export class BoxSelectElement extends HTMLElement {
+const selectStyles = `
+  :host {
+    display: block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="field"] {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  [part="label"] {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+  }
+
+  [part="select"] {
+    appearance: none;
+    font: inherit;
+    color: var(--boe-token-text-text, #222222);
+    padding: 0.6rem 2.35rem 0.6rem 0.85rem;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
+    border-radius: 0.7rem;
+    background:
+      url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%2352606d' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.85rem center / 12px 8px,
+      linear-gradient(
+        180deg,
+        var(--boe-token-surface-surface, #ffffff) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
+      );
+    cursor: pointer;
+    transition:
+      border-color 140ms ease,
+      background 140ms ease,
+      box-shadow 140ms ease;
+  }
+
+  [part="select"]:hover:not(:disabled) {
+    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+  }
+
+  [part="select"]:focus-visible {
+    outline: none;
+    border-color: var(--boe-token-surface-surface-brand, #0061d5);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+  }
+
+  [part="select"]:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+`;
+
+export class BoxSelectElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["disabled", "label", "options", "value"];
   }
 
   private valueInternal = "";
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private selectEl!: HTMLSelectElement;
+  private labelEl!: HTMLElement;
 
   get value(): string {
     return this.valueInternal;
@@ -27,7 +83,9 @@ export class BoxSelectElement extends HTMLElement {
   set value(nextValue: string) {
     this.valueInternal = nextValue;
     this.setAttribute("value", nextValue);
-    this.render();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   get disabled(): boolean {
@@ -68,110 +126,65 @@ export class BoxSelectElement extends HTMLElement {
     this.setAttribute("options", JSON.stringify(value));
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
       this.valueInternal = this.getAttribute("value") ?? "";
     }
-
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
-    const optionsMarkup = this.options
+    this.shadowRoot.innerHTML = `
+      <style>${selectStyles}</style>
+      <label part="field">
+        <span part="label"></span>
+        <select part="select"></select>
+      </label>
+    `;
+    this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.selectEl = this.shadowRoot.querySelector('[part="select"]')!;
+  }
+
+  protected setupListeners(): void {
+    this.selectEl.addEventListener("change", event => {
+      const nextValue = (event.currentTarget as HTMLSelectElement).value;
+      this.valueInternal = nextValue;
+      this.setAttribute("value", nextValue);
+      this.dispatchEvent(
+        new CustomEvent("value-changed", {
+          bubbles: true,
+          composed: true,
+          detail: { value: nextValue },
+        }),
+      );
+    });
+  }
+
+  protected update(): void {
+    if (!this.selectEl || !this.labelEl) {
+      return;
+    }
+
+    this.labelEl.textContent = this.label;
+
+    // Rebuild options (the list itself may change)
+    this.selectEl.innerHTML = this.options
       .map(
         option =>
-          `<option value="${escapeHtml(option.value)}" ${option.value === this.valueInternal ? "selected" : ""}>${escapeHtml(option.label)}</option>`,
+          `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>`,
       )
       .join("");
 
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="field"] {
-          display: grid;
-          gap: 0.45rem;
-        }
-
-        [part="label"] {
-          font-size: 0.8rem;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-
-        [part="select"] {
-          appearance: none;
-          font: inherit;
-          color: var(--boe-token-text-text, #222222);
-          padding: 0.6rem 2.35rem 0.6rem 0.85rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-          border-radius: 0.7rem;
-          background:
-            url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%2352606d' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.85rem center / 12px 8px,
-            linear-gradient(
-              180deg,
-              var(--boe-token-surface-surface, #ffffff) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
-            );
-          cursor: pointer;
-          transition:
-            border-color 140ms ease,
-            background 140ms ease,
-            box-shadow 140ms ease;
-        }
-
-        [part="select"]:hover:not(:disabled) {
-          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
-        }
-
-        [part="select"]:focus-visible {
-          outline: none;
-          border-color: var(--boe-token-surface-surface-brand, #0061d5);
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-        }
-
-        [part="select"]:disabled {
-          opacity: 0.55;
-          cursor: not-allowed;
-        }
-      </style>
-      <label part="field">
-        <span part="label">${escapeHtml(this.label)}</span>
-        <select part="select" ${this.disabled ? "disabled" : ""}>
-          ${optionsMarkup}
-        </select>
-      </label>
-    `;
-
-    const select = this.shadowRoot.querySelector('[part="select"]') as HTMLSelectElement | null;
-    if (select) {
-      select.value = this.valueInternal;
-      select.addEventListener("change", event => {
-        const nextValue = (event.currentTarget as HTMLSelectElement).value;
-        this.valueInternal = nextValue;
-        this.setAttribute("value", nextValue);
-        this.dispatchEvent(
-          new CustomEvent("value-changed", {
-            bubbles: true,
-            composed: true,
-            detail: { value: nextValue },
-          }),
-        );
-      });
+    // Patch selected value and disabled after rebuilding options
+    this.selectEl.value = this.valueInternal;
+    if (this.disabled) {
+      this.selectEl.setAttribute("disabled", "");
+    } else {
+      this.selectEl.removeAttribute("disabled");
     }
   }
 }

@@ -42,4 +42,17 @@ describe("BoxTextFieldElement", () => {
 
     expect(input?.disabled).toBe(true);
   });
+
+  it("does not lose focus when label attribute changes while input is focused", () => {
+    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    element.label = "Name";
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement | null;
+    input?.focus();
+
+    element.label = "Full name";
+
+    expect(document.activeElement).toBe(element);
+  });
 });

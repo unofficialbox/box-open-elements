@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-link-button";
 
 const escapeHtml = (value: string): string =>
@@ -23,15 +25,74 @@ const safeHref = (value: string): string => {
   return ["http", "https", "mailto", "tel"].includes(scheme[1].toLowerCase()) ? trimmed : "#";
 };
 
-export class BoxLinkButtonElement extends HTMLElement {
+const linkButtonStyles = `
+  :host {
+    display: inline-block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="link"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    font: inherit;
+    font-weight: 600;
+    line-height: 1.2;
+    padding: 0.35em 0.6em;
+    margin: -0.35em -0.6em;
+    border-radius: 0.6rem;
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+    text-decoration: none;
+    text-underline-offset: 0.2em;
+    cursor: pointer;
+    transition:
+      background-color 140ms ease,
+      color 140ms ease,
+      box-shadow 140ms ease;
+  }
+
+  [part="link"]:hover {
+    text-decoration: underline;
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, transparent);
+    color: var(--boe-token-surface-surface-brand-hover, #0057c0);
+  }
+
+  [part="link"]:active {
+    color: var(--boe-token-surface-surface-brand-pressed, #004eaa);
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, transparent);
+  }
+
+  [part="link"]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+  }
+
+  [part="link"][data-tone="neutral"] {
+    color: var(--boe-token-text-text, #222222);
+  }
+
+  [part="link"][data-tone="neutral"]:hover {
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+    color: var(--boe-token-text-text, #222222);
+  }
+
+  [part="link"][data-tone="danger"] {
+    color: var(--boe-token-surface-status-surface-error, #ed3757);
+  }
+
+  [part="link"][data-tone="danger"]:hover {
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 8%, transparent);
+    color: var(--boe-token-surface-status-surface-error, #ed3757);
+  }
+`;
+
+export class BoxLinkButtonElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["href", "label", "tone"];
   }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private linkEl!: HTMLAnchorElement;
 
   get href(): string {
     return this.getAttribute("href") ?? "#";
@@ -57,90 +118,27 @@ export class BoxLinkButtonElement extends HTMLElement {
     this.setAttribute("tone", value);
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: inline-block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="link"] {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.35em;
-          font: inherit;
-          font-weight: 600;
-          line-height: 1.2;
-          padding: 0.35em 0.6em;
-          margin: -0.35em -0.6em;
-          border-radius: 0.6rem;
-          color: var(--boe-token-surface-surface-brand, #0061d5);
-          text-decoration: none;
-          text-underline-offset: 0.2em;
-          cursor: pointer;
-          transition:
-            background-color 140ms ease,
-            color 140ms ease,
-            box-shadow 140ms ease;
-        }
-
-        [part="link"]:hover {
-          text-decoration: underline;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, transparent);
-          color: var(--boe-token-surface-surface-brand-hover, #0057c0);
-        }
-
-        [part="link"]:active {
-          color: var(--boe-token-surface-surface-brand-pressed, #004eaa);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, transparent);
-        }
-
-        [part="link"]:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-        }
-
-        [part="link"][data-tone="neutral"] {
-          color: var(--boe-token-text-text, #222222);
-        }
-
-        [part="link"][data-tone="neutral"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f4f4f4);
-          color: var(--boe-token-text-text, #222222);
-        }
-
-        [part="link"][data-tone="danger"] {
-          color: var(--boe-token-surface-status-surface-error, #ed3757);
-        }
-
-        [part="link"][data-tone="danger"]:hover {
-          background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 8%, transparent);
-          color: var(--boe-token-surface-status-surface-error, #ed3757);
-        }
-      </style>
-      <a
-        part="link"
-        data-tone="${escapeHtml(this.tone)}"
-        href="${escapeHtml(safeHref(this.href))}"
-        aria-label="${escapeHtml(this.label)}"
-      >
-        ${escapeHtml(this.label)}
-      </a>
+      <style>${linkButtonStyles}</style>
+      <a part="link"></a>
     `;
+    this.linkEl = this.shadowRoot.querySelector('[part="link"]')!;
+  }
+
+  protected update(): void {
+    if (!this.linkEl) {
+      return;
+    }
+
+    this.linkEl.dataset.tone = this.tone;
+    this.linkEl.setAttribute("href", escapeHtml(safeHref(this.href)));
+    this.linkEl.setAttribute("aria-label", this.label);
+    this.linkEl.textContent = this.label;
   }
 }
 

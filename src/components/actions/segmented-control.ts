@@ -1,10 +1,6 @@
-const DEFAULT_TAG_NAME = "box-segmented-control";
+import { BaseElement } from "../../core/index.js";
 
-type SegmentedControlOption = {
-  disabled?: boolean;
-  label: string;
-  value: string;
-};
+const DEFAULT_TAG_NAME = "box-segmented-control";
 
 const escapeHtml = (value: string): string =>
   value
@@ -14,17 +10,90 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-export class BoxSegmentedControlElement extends HTMLElement {
+export interface SegmentedControlOption {
+  label: string;
+  value: string;
+  disabled?: boolean;
+}
+
+const segmentedControlStyles = `
+  :host {
+    display: inline-block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="control"] {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
+    border-radius: 0.75rem;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 2%, var(--boe-token-surface-surface-secondary, #fbfbfb) 98%) 100%
+      );
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  }
+
+  [part="control"][data-layout="attached"] {
+    gap: 0;
+  }
+
+  [part="segment"] {
+    appearance: none;
+    font: inherit;
+    font-weight: 600;
+    line-height: 1.2;
+    padding: 0.45em 1em;
+    border: 1px solid transparent;
+    border-radius: 0.55rem;
+    background: transparent;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    cursor: pointer;
+    transition:
+      background-color 140ms ease,
+      border-color 140ms ease,
+      color 140ms ease,
+      box-shadow 140ms ease;
+  }
+
+  [part="segment"]:hover:not(:disabled):not([data-selected="true"]) {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-hover, #f4f4f4) 60%, var(--boe-token-surface-surface, #ffffff) 40%);
+    color: var(--boe-token-text-text, #222222);
+  }
+
+  [part="segment"][data-selected="true"] {
+    background: var(--boe-token-surface-surface, #ffffff);
+    border-color: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, var(--boe-token-surface-surface, #ffffff) 30%);
+    color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 84%, var(--boe-token-text-text, #222222) 16%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.82),
+      0 2px 6px rgba(15, 23, 42, 0.08);
+  }
+
+  [part="segment"]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+    z-index: 1;
+  }
+
+  [part="segment"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+`;
+
+export class BoxSegmentedControlElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["disabled", "label", "layout", "options", "value"];
   }
 
   private valueInternal = "";
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private controlEl!: HTMLElement;
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -79,19 +148,16 @@ export class BoxSegmentedControlElement extends HTMLElement {
   set value(nextValue: string) {
     this.valueInternal = nextValue;
     this.setAttribute("value", nextValue);
-    this.render();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
       this.valueInternal = this.getAttribute("value") ?? "";
     }
-
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   private moveSelection(direction: number): void {
@@ -101,9 +167,10 @@ export class BoxSegmentedControlElement extends HTMLElement {
     }
 
     const currentIndex = enabledOptions.findIndex(option => option.value === this.valueInternal);
-    const nextIndex = currentIndex < 0
-      ? 0
-      : (currentIndex + direction + enabledOptions.length) % enabledOptions.length;
+    const nextIndex =
+      currentIndex < 0
+        ? 0
+        : (currentIndex + direction + enabledOptions.length) % enabledOptions.length;
     const nextValue = enabledOptions[nextIndex]?.value ?? "";
     if (!nextValue || nextValue === this.valueInternal) {
       return;
@@ -118,32 +185,52 @@ export class BoxSegmentedControlElement extends HTMLElement {
         detail: { value: nextValue },
       }),
     );
-    this.render();
+    this.update();
 
-    const nextButton = this.shadowRoot?.querySelector(`[part="segment"][data-value="${escapeHtml(nextValue)}"]`) as HTMLButtonElement | null;
+    const nextButton = this.controlEl?.querySelector(
+      `[part="segment"][data-value="${escapeHtml(nextValue)}"]`,
+    ) as HTMLButtonElement | null;
     nextButton?.focus();
   }
 
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
-    const firstEnabledValue = this.options.find(option => !option.disabled)?.value ?? "";
+    this.shadowRoot.innerHTML = `
+      <style>${segmentedControlStyles}</style>
+      <div part="control" role="radiogroup"></div>
+    `;
+    this.controlEl = this.shadowRoot.querySelector('[part="control"]')!;
+  }
+
+  protected update(): void {
+    if (!this.controlEl) {
+      return;
+    }
+
+    const options = this.options;
+    const firstEnabledValue = options.find(option => !option.disabled)?.value ?? "";
     const selectedValue = this.valueInternal || firstEnabledValue;
     if (selectedValue !== this.valueInternal) {
       this.valueInternal = selectedValue;
       this.setAttribute("value", selectedValue);
     }
 
-    const optionsMarkup = this.options
+    this.controlEl.dataset.layout = this.layout;
+    this.controlEl.setAttribute("aria-label", this.label);
+    this.controlEl.setAttribute("aria-disabled", String(this.disabled));
+
+    // Rebuild segments (count may change)
+    this.controlEl.innerHTML = options
       .map((option, index) => {
         const position =
-          this.options.length === 1
+          options.length === 1
             ? "only"
             : index === 0
               ? "first"
-              : index === this.options.length - 1
+              : index === options.length - 1
                 ? "last"
                 : "middle";
 
@@ -166,83 +253,7 @@ export class BoxSegmentedControlElement extends HTMLElement {
       })
       .join("");
 
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: inline-block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="control"] {
-          display: inline-flex;
-          align-items: stretch;
-          gap: 0.25rem;
-          padding: 0.25rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-          border-radius: 0.75rem;
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 2%, var(--boe-token-surface-surface-secondary, #fbfbfb) 98%) 100%
-            );
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
-        }
-
-        [part="control"][data-layout="attached"] {
-          gap: 0;
-        }
-
-        [part="segment"] {
-          appearance: none;
-          font: inherit;
-          font-weight: 600;
-          line-height: 1.2;
-          padding: 0.45em 1em;
-          border: 1px solid transparent;
-          border-radius: 0.55rem;
-          background: transparent;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          cursor: pointer;
-          transition:
-            background-color 140ms ease,
-            border-color 140ms ease,
-            color 140ms ease,
-            box-shadow 140ms ease;
-        }
-
-        [part="segment"]:hover:not(:disabled):not([data-selected="true"]) {
-          background: color-mix(in srgb, var(--boe-token-surface-surface-hover, #f4f4f4) 60%, var(--boe-token-surface-surface, #ffffff) 40%);
-          color: var(--boe-token-text-text, #222222);
-        }
-
-        [part="segment"][data-selected="true"] {
-          background: var(--boe-token-surface-surface, #ffffff);
-          border-color: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, var(--boe-token-surface-surface, #ffffff) 30%);
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 84%, var(--boe-token-text-text, #222222) 16%);
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.82),
-            0 2px 6px rgba(15, 23, 42, 0.08);
-        }
-
-        [part="segment"]:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-          z-index: 1;
-        }
-
-        [part="segment"]:disabled {
-          cursor: not-allowed;
-          opacity: 0.55;
-        }
-      </style>
-      <div part="control" data-layout="${this.layout}" role="radiogroup" aria-label="${escapeHtml(this.label)}" aria-disabled="${String(this.disabled)}">
-        ${optionsMarkup}
-      </div>
-    `;
-
-    this.shadowRoot.querySelectorAll('[part="segment"]').forEach(button => {
+    this.controlEl.querySelectorAll('[part="segment"]').forEach(button => {
       button.addEventListener("click", () => {
         const target = button as HTMLButtonElement;
         if (target.disabled) {
@@ -263,7 +274,7 @@ export class BoxSegmentedControlElement extends HTMLElement {
             detail: { value: nextValue },
           }),
         );
-        this.render();
+        this.update();
       });
 
       button.addEventListener("keydown", event => {

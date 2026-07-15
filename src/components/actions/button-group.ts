@@ -1,9 +1,6 @@
-const DEFAULT_TAG_NAME = "box-button-group";
+import { BaseElement } from "../../core/index.js";
 
-type ButtonGroupOption = {
-  label: string;
-  value: string;
-};
+const DEFAULT_TAG_NAME = "box-button-group";
 
 const escapeHtml = (value: string): string =>
   value
@@ -13,20 +10,119 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-export class BoxButtonGroupElement extends HTMLElement {
+export interface ButtonGroupOption {
+  label: string;
+  value: string;
+}
+
+const buttonGroupStyles = `
+  :host {
+    display: inline-block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="group"] {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  [part="group"][data-layout="attached"] {
+    gap: 0;
+  }
+
+  [part="button"] {
+    appearance: none;
+    font: inherit;
+    font-weight: 600;
+    line-height: 1.2;
+    padding: 0.55em 1.1em;
+    border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
+    border-radius: 0.75rem;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface-secondary, #fbfbfb) 6%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
+      );
+    color: var(--boe-token-text-text, #222222);
+    cursor: pointer;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.82),
+      0 1px 2px rgba(15, 23, 42, 0.04);
+    transition:
+      background-color 140ms ease,
+      border-color 140ms ease,
+      color 140ms ease,
+      box-shadow 140ms ease;
+  }
+
+  [part="button"][data-layout="attached"] {
+    border-radius: 0;
+  }
+
+  [part="button"][data-layout="attached"][data-position="first"] {
+    border-top-left-radius: 0.75rem;
+    border-bottom-left-radius: 0.75rem;
+  }
+
+  [part="button"][data-layout="attached"][data-position="last"] {
+    border-top-right-radius: 0.75rem;
+    border-bottom-right-radius: 0.75rem;
+  }
+
+  [part="button"][data-layout="attached"][data-position="only"] {
+    border-radius: 0.75rem;
+  }
+
+  [part="button"][data-layout="attached"][data-position="middle"],
+  [part="button"][data-layout="attached"][data-position="last"] {
+    margin-left: -1px;
+  }
+
+  [part="button"]:not([data-selected="true"]):hover {
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+  }
+
+  [part="button"][data-selected="true"] {
+    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, var(--boe-token-stroke-stroke, #e8e8e8) 78%);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 60%, var(--boe-token-surface-surface, #ffffff) 40%) 100%
+      );
+    color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 80%, var(--boe-token-text-text, #222222) 20%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.82),
+      0 6px 12px rgba(15, 23, 42, 0.035);
+    z-index: 1;
+  }
+
+  [part="button"]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+    z-index: 2;
+  }
+
+  [part="button"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+`;
+
+export class BoxButtonGroupElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["label", "layout", "options", "value"];
   }
 
   private valueInternal = "";
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private groupEl!: HTMLElement;
 
   get label(): string {
-    return this.getAttribute("label") ?? "Button Group";
+    return this.getAttribute("label") ?? "Button group";
   }
 
   set label(value: string) {
@@ -66,40 +162,54 @@ export class BoxButtonGroupElement extends HTMLElement {
   set value(nextValue: string) {
     this.valueInternal = nextValue;
     this.setAttribute("value", nextValue);
-    this.render();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
       this.valueInternal = this.getAttribute("value") ?? "";
     }
-
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
-    const selectedValue = this.valueInternal || this.options[0]?.value || "";
+    this.shadowRoot.innerHTML = `
+      <style>${buttonGroupStyles}</style>
+      <div part="group" role="radiogroup"></div>
+    `;
+    this.groupEl = this.shadowRoot.querySelector('[part="group"]')!;
+  }
+
+  protected update(): void {
+    if (!this.groupEl) {
+      return;
+    }
+
+    const options = this.options;
+    const selectedValue = this.valueInternal || options[0]?.value || "";
     if (selectedValue !== this.valueInternal) {
       this.valueInternal = selectedValue;
       this.setAttribute("value", selectedValue);
     }
 
-    const optionsMarkup = this.options
+    this.groupEl.dataset.layout = this.layout;
+    this.groupEl.setAttribute("aria-label", this.label);
+
+    // Rebuild the option buttons (their count may have changed)
+    this.groupEl.innerHTML = options
       .map((option, index) => {
         const position =
-          this.options.length === 1
+          options.length === 1
             ? "only"
             : index === 0
               ? "first"
-              : index === this.options.length - 1
+              : index === options.length - 1
                 ? "last"
                 : "middle";
 
@@ -121,110 +231,7 @@ export class BoxButtonGroupElement extends HTMLElement {
       })
       .join("");
 
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: inline-block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="group"] {
-          display: inline-flex;
-          align-items: stretch;
-          gap: 0.5rem;
-        }
-
-        [part="group"][data-layout="attached"] {
-          gap: 0;
-        }
-
-        [part="button"] {
-          appearance: none;
-          font: inherit;
-          font-weight: 600;
-          line-height: 1.2;
-          padding: 0.55em 1.1em;
-          border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
-          border-radius: 0.75rem;
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface-secondary, #fbfbfb) 6%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
-            );
-          color: var(--boe-token-text-text, #222222);
-          cursor: pointer;
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.82),
-            0 1px 2px rgba(15, 23, 42, 0.04);
-          transition:
-            background-color 140ms ease,
-            border-color 140ms ease,
-            color 140ms ease,
-            box-shadow 140ms ease;
-        }
-
-        [part="button"][data-layout="attached"] {
-          border-radius: 0;
-        }
-
-        [part="button"][data-layout="attached"][data-position="first"] {
-          border-top-left-radius: 0.75rem;
-          border-bottom-left-radius: 0.75rem;
-        }
-
-        [part="button"][data-layout="attached"][data-position="last"] {
-          border-top-right-radius: 0.75rem;
-          border-bottom-right-radius: 0.75rem;
-        }
-
-        [part="button"][data-layout="attached"][data-position="only"] {
-          border-radius: 0.75rem;
-        }
-
-        [part="button"][data-layout="attached"][data-position="middle"],
-        [part="button"][data-layout="attached"][data-position="last"] {
-          margin-left: -1px;
-        }
-
-        [part="button"]:not([data-selected="true"]):hover {
-          background: var(--boe-token-surface-surface-hover, #f4f4f4);
-          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
-        }
-
-        [part="button"][data-selected="true"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, var(--boe-token-stroke-stroke, #e8e8e8) 78%);
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 60%, var(--boe-token-surface-surface, #ffffff) 40%) 100%
-            );
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 80%, var(--boe-token-text-text, #222222) 20%);
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.82),
-            0 6px 12px rgba(15, 23, 42, 0.035);
-          z-index: 1;
-        }
-
-        [part="button"]:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-          z-index: 2;
-        }
-
-        [part="button"]:disabled {
-          cursor: not-allowed;
-          opacity: 0.55;
-        }
-      </style>
-      <div part="group" role="radiogroup" data-layout="${this.layout}" aria-label="${escapeHtml(this.label)}">
-        ${optionsMarkup}
-      </div>
-    `;
-
-    this.shadowRoot.querySelectorAll('[part="button"]').forEach((button, index) => {
+    this.groupEl.querySelectorAll('[part="button"]').forEach((button, index) => {
       button.addEventListener("click", () => {
         const nextValue = (button as HTMLButtonElement).dataset.value ?? "";
         if (!nextValue || nextValue === this.valueInternal) {
@@ -240,11 +247,12 @@ export class BoxButtonGroupElement extends HTMLElement {
             detail: { value: nextValue },
           }),
         );
+        this.update();
       });
 
       button.addEventListener("keydown", event => {
         const keyboardEvent = event as KeyboardEvent;
-        const lastIndex = this.options.length - 1;
+        const lastIndex = options.length - 1;
         let nextIndex = index;
 
         if (keyboardEvent.key === "ArrowRight" || keyboardEvent.key === "ArrowDown") {
@@ -260,7 +268,7 @@ export class BoxButtonGroupElement extends HTMLElement {
         }
 
         keyboardEvent.preventDefault();
-        const nextOption = this.options[nextIndex];
+        const nextOption = options[nextIndex];
         if (!nextOption) {
           return;
         }
@@ -274,9 +282,12 @@ export class BoxButtonGroupElement extends HTMLElement {
             detail: { value: nextOption.value },
           }),
         );
+        this.update();
 
         queueMicrotask(() => {
-          const nextButton = this.shadowRoot?.querySelectorAll('[part="button"]')[nextIndex] as HTMLButtonElement | undefined;
+          const nextButton = this.groupEl?.querySelectorAll('[part="button"]')[nextIndex] as
+            | HTMLButtonElement
+            | undefined;
           nextButton?.focus();
         });
       });
