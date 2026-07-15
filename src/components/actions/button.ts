@@ -1,5 +1,3 @@
-import { BaseElement } from "../../core/index.js";
-
 const DEFAULT_TAG_NAME = "box-button";
 
 const escapeHtml = (value: string): string =>
@@ -123,12 +121,15 @@ const buttonStyles = `
   }
 `;
 
-export class BoxButtonElement extends BaseElement {
+export class BoxButtonElement extends HTMLElement {
   static get observedAttributes(): string[] {
     return ["disabled", "label", "size", "tone"];
   }
 
-  private buttonEl!: HTMLButtonElement;
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+  }
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -166,31 +167,31 @@ export class BoxButtonElement extends BaseElement {
     this.setAttribute("tone", value);
   }
 
-  protected renderTemplate(): void {
+  connectedCallback(): void {
+    this.render();
+  }
+
+  attributeChangedCallback(): void {
+    this.render();
+  }
+
+  private render(): void {
     if (!this.shadowRoot) {
       return;
     }
 
     this.shadowRoot.innerHTML = `
       <style>${buttonStyles}</style>
-      <button type="button" part="button"></button>
+      <button
+        type="button"
+        part="button"
+        data-tone="${escapeHtml(this.tone)}"
+        data-size="${escapeHtml(this.size)}"
+        ${this.disabled ? "disabled" : ""}
+      >
+        ${escapeHtml(this.label)}
+      </button>
     `;
-    this.buttonEl = this.shadowRoot.querySelector('[part="button"]')!;
-  }
-
-  protected update(): void {
-    if (!this.buttonEl) {
-      return;
-    }
-
-    this.buttonEl.dataset.tone = this.tone;
-    this.buttonEl.dataset.size = this.size;
-    if (this.disabled) {
-      this.buttonEl.setAttribute("disabled", "");
-    } else {
-      this.buttonEl.removeAttribute("disabled");
-    }
-    this.buttonEl.textContent = this.label;
   }
 }
 

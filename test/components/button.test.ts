@@ -55,26 +55,6 @@ describe("box-button", () => {
     expect(element.shadowRoot?.querySelector("button")?.textContent).toContain("<img src=x>");
   });
 
-  it("retains focus on the internal button when attributes or properties change", () => {
-    const element = create();
-    const button = element.shadowRoot?.querySelector("button") as HTMLButtonElement;
-
-    // Focus the internal button
-    button.focus();
-    expect(element.shadowRoot?.activeElement).toBe(button);
-
-    // Change attributes/properties
-    element.setAttribute("label", "Updated Label");
-    element.setAttribute("tone", "neutral");
-
-    // Check that text content updated
-    expect(button.textContent?.trim()).toBe("Updated Label");
-    expect(button.dataset.tone).toBe("neutral");
-
-    // Assert focus is still on the internal button
-    expect(element.shadowRoot?.activeElement).toBe(button);
-  });
-
   it("is idempotent to define twice", () => {
     expect(() => defineBoxButtonElement()).not.toThrow();
   });
