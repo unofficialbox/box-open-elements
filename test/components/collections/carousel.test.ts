@@ -95,4 +95,23 @@ describe("BoxCarouselElement", () => {
 
     expect(element.value).toBe(2);
   });
+
+  it("does not lose focus on a control when an attribute updates", () => {
+    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    element.items = [
+      { title: "One" },
+      { title: "Two" },
+    ];
+    document.body.append(element);
+
+    const next = element.shadowRoot?.querySelector('[part="next"]') as HTMLButtonElement | null;
+    next?.focus();
+    expect(element.shadowRoot?.activeElement).toBe(next);
+
+    element.label = "Featured carousel";
+
+    expect(element.shadowRoot?.querySelector('[part="next"]')).toBe(next);
+    expect(element.shadowRoot?.activeElement).toBe(next);
+  });
 });
+

@@ -49,4 +49,23 @@ describe("BoxAccordionElement", () => {
       }),
     );
   });
+
+  it("preserves focus on a trigger when an attribute changes", () => {
+    const element = document.createElement("box-accordion") as BoxAccordionElement;
+    element.items = [
+      { label: "Details", value: "details", content: "Item details" },
+      { label: "History", value: "history", content: "Activity history" },
+    ];
+    document.body.append(element);
+
+    const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null;
+    trigger?.focus();
+    expect(element.shadowRoot?.activeElement).toBe(trigger);
+
+    element.label = "Item sections";
+
+    expect(element.shadowRoot?.querySelector('[part="trigger"]')).toBe(trigger);
+    expect(element.shadowRoot?.activeElement).toBe(trigger);
+  });
 });
+

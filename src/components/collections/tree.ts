@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-tree";
 
 const escapeHtml = (value: string): string =>
@@ -27,7 +29,196 @@ const collectBranchKeys = (items: BoxTreeItem[]): string[] => {
   return keys;
 };
 
-export class BoxTreeElement extends HTMLElement {
+const treeStyles = `
+  :host {
+    display: block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="shell"] {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    align-content: start;
+    min-height: 0;
+  }
+
+  [part="tree"] {
+    display: grid;
+    gap: 0.375rem;
+    min-height: 0;
+    align-content: start;
+  }
+
+  [part="controls"] {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.45rem;
+    margin-bottom: 0.55rem;
+    padding-bottom: 0.15rem;
+  }
+
+  [part="controls"][hidden] {
+    display: none;
+  }
+
+  [part="node"] {
+    display: grid;
+    gap: 0.375rem;
+  }
+
+  [part="row"] {
+    display: grid;
+    grid-template-columns: 1.125rem minmax(0, 1fr);
+    gap: 0.55rem;
+    align-items: center;
+    padding: 0.16rem 0.18rem;
+    border-radius: 0.9rem;
+    background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 78%, transparent);
+  }
+
+  [part="children"] {
+    display: grid;
+    gap: 0.375rem;
+    margin-left: 0.5625rem;
+    padding-left: 1.1875rem;
+    border-left: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
+  }
+
+  [part~="toggle"] {
+    width: 1.125rem;
+    height: 1.125rem;
+    display: inline-grid;
+    place-items: center;
+    appearance: none;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
+    border-radius: 0.35rem;
+    padding: 0;
+    line-height: 1;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 3%, var(--boe-token-surface-surface-secondary, #fbfbfb) 18%, var(--boe-token-surface-surface, #ffffff) 79%) 100%
+      );
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.74);
+  }
+
+  [part~="control"] {
+    width: 1.5rem;
+    height: 1.5rem;
+    display: inline-grid;
+    place-items: center;
+    appearance: none;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
+    border-radius: 0.375rem;
+    padding: 0;
+    line-height: 1;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface-secondary, #fbfbfb) 18%, var(--boe-token-surface-surface, #ffffff) 78%) 100%
+      );
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76);
+  }
+
+  [part~="toggle-expanded"] {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
+    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, transparent);
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+  }
+
+  [part~="toggle"] svg {
+    width: 0.625rem;
+    height: 0.625rem;
+    display: block;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+  }
+
+  [part~="control"] svg {
+    width: 0.75rem;
+    height: 0.75rem;
+    display: block;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  [part="spacer"] {
+    width: 1.125rem;
+    height: 1.125rem;
+    display: inline-block;
+  }
+
+  [part~="item"] {
+    appearance: none;
+    text-align: left;
+    border: 1px solid transparent;
+    border-radius: 0.85rem;
+    padding: 0.46rem 0.68rem;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%, var(--boe-token-surface-surface, #ffffff) 92%) 100%
+      );
+    color: var(--boe-token-text-text, #222222);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+      border-color 140ms ease,
+      background-color 140ms ease,
+      color 140ms ease,
+      box-shadow 140ms ease;
+  }
+
+  [part~="item"]:hover {
+    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, transparent);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 68%, var(--boe-token-surface-surface, #ffffff) 32%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-item-surface-hover, #eef4fb) 62%, var(--boe-token-surface-surface, #ffffff) 34%) 100%
+      );
+  }
+
+  [part~="item-selected"] {
+    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 78%, var(--boe-token-surface-surface, #ffffff) 22%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, var(--boe-token-surface-surface, #ffffff) 36%) 100%
+      );
+    color: var(--boe-token-text-text, #222222);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  }
+
+  [part~="item"]:focus-visible,
+  [part~="toggle"]:focus-visible,
+  [part~="control"]:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+    outline-offset: 2px;
+  }
+`;
+
+export class BoxTreeElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["items", "label", "value"];
   }
@@ -36,10 +227,10 @@ export class BoxTreeElement extends HTMLElement {
   private valueInternal = "";
   private focusKey: string | null = null;
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private controlsEl!: HTMLElement;
+  private expandAllEl!: HTMLButtonElement;
+  private collapseAllEl!: HTMLButtonElement;
+  private treeEl!: HTMLElement;
 
   get label(): string {
     return this.getAttribute("label") ?? "Tree";
@@ -75,15 +266,17 @@ export class BoxTreeElement extends HTMLElement {
   set value(nextValue: string) {
     this.valueInternal = nextValue;
     this.setAttribute("value", nextValue);
-    this.render();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   connectedCallback(): void {
     this.seedExpandedState(this.items);
-    this.render();
+    super.connectedCallback();
   }
 
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "items") {
       this.seedExpandedState(this.items);
     }
@@ -92,7 +285,7 @@ export class BoxTreeElement extends HTMLElement {
       this.valueInternal = this.getAttribute("value") ?? "";
     }
 
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   private seedExpandedState(items: BoxTreeItem[], depth = 0): void {
@@ -111,17 +304,17 @@ export class BoxTreeElement extends HTMLElement {
     } else {
       this.expandedInternal.add(key);
     }
-    this.render();
+    this.update();
   }
 
   private expandAll(): void {
     this.expandedInternal = new Set(collectBranchKeys(this.items));
-    this.render();
+    this.update();
   }
 
   private collapseAll(): void {
     this.expandedInternal.clear();
-    this.render();
+    this.update();
   }
 
   private getVisibleNodes(
@@ -219,8 +412,166 @@ export class BoxTreeElement extends HTMLElement {
       .join("");
   }
 
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${treeStyles}</style>
+      <div part="shell">
+        <div part="controls" hidden>
+          <button
+            type="button"
+            part="control control-expand-all"
+            data-action="expand-all"
+            aria-label="Expand all"
+            title="Expand all"
+          >${this.renderControlIcon("expand-all")}</button>
+          <button
+            type="button"
+            part="control control-collapse-all"
+            data-action="collapse-all"
+            aria-label="Collapse all"
+            title="Collapse all"
+          >${this.renderControlIcon("collapse-all")}</button>
+        </div>
+        <div part="tree" role="tree"></div>
+      </div>
+    `;
+
+    this.controlsEl = this.shadowRoot.querySelector('[part="controls"]')!;
+    this.expandAllEl = this.shadowRoot.querySelector('[data-action="expand-all"]')!;
+    this.collapseAllEl = this.shadowRoot.querySelector('[data-action="collapse-all"]')!;
+    this.treeEl = this.shadowRoot.querySelector('[part="tree"]')!;
+  }
+
+  protected setupListeners(): void {
+    this.controlsEl.addEventListener("click", event => {
+      const control = (event.target as HTMLElement | null)?.closest(
+        '[part~="control"]',
+      ) as HTMLButtonElement | null;
+      if (!control || !this.controlsEl.contains(control)) {
+        return;
+      }
+      const action = control.dataset.action;
+      if (action === "expand-all") {
+        this.expandAll();
+        return;
+      }
+      if (action === "collapse-all") {
+        this.collapseAll();
+      }
+    });
+
+    this.treeEl.addEventListener("click", event => {
+      const target = event.target as HTMLElement | null;
+      const toggle = target?.closest('[part~="toggle"]') as HTMLButtonElement | null;
+      if (toggle && this.treeEl.contains(toggle)) {
+        const key = toggle.dataset.key ?? "";
+        if (key) {
+          this.toggleExpanded(key);
+        }
+        return;
+      }
+
+      const item = target?.closest('[part~="item"]') as HTMLButtonElement | null;
+      if (!item || !this.treeEl.contains(item)) {
+        return;
+      }
+
+      const value = item.dataset.value ?? "";
+      const key = item.dataset.key ?? "";
+      const isBranch = item.dataset.branch === "true";
+
+      if (!value && isBranch && key) {
+        this.toggleExpanded(key);
+        return;
+      }
+
+      if (!value || value === this.valueInternal) {
+        return;
+      }
+
+      this.valueInternal = value;
+      this.setAttribute("value", value);
+      this.dispatchEvent(
+        new CustomEvent("value-changed", {
+          bubbles: true,
+          composed: true,
+          detail: { value },
+        }),
+      );
+      this.update();
+    });
+
+    this.treeEl.addEventListener("keydown", event => {
+      const keyboardEvent = event as KeyboardEvent;
+      const element = (keyboardEvent.target as HTMLElement | null)?.closest(
+        '[part~="item"]',
+      ) as HTMLButtonElement | null;
+      if (!element || !this.treeEl.contains(element)) {
+        return;
+      }
+
+      const key = element.dataset.key ?? "";
+      const isBranch = element.dataset.branch === "true";
+      const visibleNodes = this.getVisibleNodes(this.items);
+      const currentIndex = visibleNodes.findIndex(node => node.key === key);
+
+      if (keyboardEvent.key === "ArrowDown" || keyboardEvent.key === "ArrowUp") {
+        keyboardEvent.preventDefault();
+        const nextIndex =
+          keyboardEvent.key === "ArrowDown"
+            ? Math.min(visibleNodes.length - 1, currentIndex + 1)
+            : Math.max(0, currentIndex - 1);
+        const nextNode = visibleNodes[nextIndex];
+        if (nextNode) {
+          this.focusKey = nextNode.key;
+          this.update();
+        }
+        return;
+      }
+
+      if (keyboardEvent.key === "ArrowRight" && isBranch) {
+        keyboardEvent.preventDefault();
+        if (!this.expandedInternal.has(key)) {
+          this.expandedInternal.add(key);
+          this.focusKey = key;
+          this.update();
+        }
+        return;
+      }
+
+      if (keyboardEvent.key === "ArrowLeft" && isBranch) {
+        keyboardEvent.preventDefault();
+        if (this.expandedInternal.has(key)) {
+          this.expandedInternal.delete(key);
+          this.focusKey = key;
+          this.update();
+        }
+        return;
+      }
+
+      if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
+        keyboardEvent.preventDefault();
+        element.click();
+        return;
+      }
+
+      if (keyboardEvent.key === "Home" || keyboardEvent.key === "End") {
+        keyboardEvent.preventDefault();
+        const nextNode = keyboardEvent.key === "Home" ? visibleNodes[0] : visibleNodes[visibleNodes.length - 1];
+        if (nextNode) {
+          this.focusKey = nextNode.key;
+          this.update();
+        }
+      }
+    });
+  }
+
+  protected update(): void {
+    if (!this.controlsEl || !this.treeEl || !this.expandAllEl || !this.collapseAllEl) {
       return;
     }
 
@@ -228,331 +579,16 @@ export class BoxTreeElement extends HTMLElement {
     const hasBranches = branchKeys.length > 0;
     const allExpanded = hasBranches && branchKeys.every(key => this.expandedInternal.has(key));
 
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
+    this.controlsEl.hidden = !hasBranches;
+    this.expandAllEl.disabled = allExpanded;
+    this.collapseAllEl.disabled = !this.expandedInternal.size;
 
-        [part="shell"] {
-          display: grid;
-          grid-template-rows: auto minmax(0, 1fr);
-          align-content: start;
-          min-height: 0;
-        }
-
-        [part="tree"] {
-          display: grid;
-          gap: 0.375rem;
-          min-height: 0;
-          align-content: start;
-        }
-
-        [part="controls"] {
-          display: flex;
-          justify-content: flex-end;
-          gap: 0.45rem;
-          margin-bottom: 0.55rem;
-          padding-bottom: 0.15rem;
-        }
-
-        [part="node"] {
-          display: grid;
-          gap: 0.375rem;
-        }
-
-        [part="row"] {
-          display: grid;
-          grid-template-columns: 1.125rem minmax(0, 1fr);
-          gap: 0.55rem;
-          align-items: center;
-          padding: 0.16rem 0.18rem;
-          border-radius: 0.9rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 78%, transparent);
-        }
-
-        [part="children"] {
-          display: grid;
-          gap: 0.375rem;
-          margin-left: 0.5625rem;
-          padding-left: 1.1875rem;
-          border-left: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-        }
-
-        [part~="toggle"] {
-          width: 1.125rem;
-          height: 1.125rem;
-          display: inline-grid;
-          place-items: center;
-          appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
-          border-radius: 0.35rem;
-          padding: 0;
-          line-height: 1;
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 3%, var(--boe-token-surface-surface-secondary, #fbfbfb) 18%, var(--boe-token-surface-surface, #ffffff) 79%) 100%
-            );
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          font: inherit;
-          font-size: 0.85rem;
-          cursor: pointer;
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.74);
-        }
-
-        [part~="control"] {
-          width: 1.5rem;
-          height: 1.5rem;
-          display: inline-grid;
-          place-items: center;
-          appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
-          border-radius: 0.375rem;
-          padding: 0;
-          line-height: 1;
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface-secondary, #fbfbfb) 18%, var(--boe-token-surface-surface, #ffffff) 78%) 100%
-            );
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          cursor: pointer;
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76);
-        }
-
-        [part~="toggle-expanded"] {
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, transparent);
-          color: var(--boe-token-surface-surface-brand, #0061d5);
-        }
-
-        [part~="toggle"] svg {
-          width: 0.625rem;
-          height: 0.625rem;
-          display: block;
-          stroke: currentColor;
-          fill: none;
-          stroke-width: 1.6;
-          stroke-linecap: round;
-        }
-
-        [part~="control"] svg {
-          width: 0.75rem;
-          height: 0.75rem;
-          display: block;
-          stroke: currentColor;
-          fill: none;
-          stroke-width: 1.3;
-          stroke-linecap: round;
-          stroke-linejoin: round;
-        }
-
-        [part="spacer"] {
-          width: 1.125rem;
-          height: 1.125rem;
-          display: inline-block;
-        }
-
-        [part~="item"] {
-          appearance: none;
-          text-align: left;
-          border: 1px solid transparent;
-          border-radius: 0.85rem;
-          padding: 0.46rem 0.68rem;
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%, var(--boe-token-surface-surface, #ffffff) 92%) 100%
-            );
-          color: var(--boe-token-text-text, #222222);
-          font: inherit;
-          font-size: 0.9rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition:
-            border-color 140ms ease,
-            background-color 140ms ease,
-            color 140ms ease,
-            box-shadow 140ms ease;
-        }
-
-        [part~="item"]:hover {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, transparent);
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 68%, var(--boe-token-surface-surface, #ffffff) 32%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-item-surface-hover, #eef4fb) 62%, var(--boe-token-surface-surface, #ffffff) 34%) 100%
-            );
-        }
-
-        [part~="item-selected"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 78%, var(--boe-token-surface-surface, #ffffff) 22%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, var(--boe-token-surface-surface, #ffffff) 36%) 100%
-            );
-          color: var(--boe-token-text-text, #222222);
-          box-shadow:
-            inset 0 0 0 1px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, transparent),
-            inset 0 1px 0 rgba(255, 255, 255, 0.72);
-        }
-
-        [part~="item"]:focus-visible,
-        [part~="toggle"]:focus-visible,
-        [part~="control"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
-        }
-      </style>
-      <div part="shell">
-        ${hasBranches
-          ? `<div part="controls">
-            <button
-              type="button"
-              part="control control-expand-all"
-              data-action="expand-all"
-              aria-label="Expand all"
-              title="Expand all"
-              ${allExpanded ? "disabled" : ""}
-            >${this.renderControlIcon("expand-all")}</button>
-            <button
-              type="button"
-              part="control control-collapse-all"
-              data-action="collapse-all"
-              aria-label="Collapse all"
-              title="Collapse all"
-              ${!this.expandedInternal.size ? "disabled" : ""}
-            >${this.renderControlIcon("collapse-all")}</button>
-          </div>`
-          : ""}
-        <div part="tree" role="tree" aria-label="${escapeHtml(this.label)}">
-          ${this.renderItems(this.items)}
-        </div>
-      </div>
-      </div>
-    `;
-
-    this.shadowRoot.querySelectorAll('[part~="control"]').forEach(control => {
-      control.addEventListener("click", () => {
-        const action = (control as HTMLButtonElement).dataset.action;
-        if (action === "expand-all") {
-          this.expandAll();
-          return;
-        }
-
-        if (action === "collapse-all") {
-          this.collapseAll();
-        }
-      });
-    });
-
-    this.shadowRoot.querySelectorAll('[part~="toggle"]').forEach(toggle => {
-      toggle.addEventListener("click", () => {
-        const key = (toggle as HTMLButtonElement).dataset.key ?? "";
-        if (key) {
-          this.toggleExpanded(key);
-        }
-      });
-    });
-
-    this.shadowRoot.querySelectorAll('[part~="item"]').forEach(item => {
-      item.addEventListener("click", () => {
-        const element = item as HTMLButtonElement;
-        const value = element.dataset.value ?? "";
-        const key = element.dataset.key ?? "";
-        const isBranch = element.dataset.branch === "true";
-
-        if (!value && isBranch && key) {
-          this.toggleExpanded(key);
-          return;
-        }
-
-        if (!value || value === this.valueInternal) {
-          return;
-        }
-
-        this.valueInternal = value;
-        this.setAttribute("value", value);
-        this.dispatchEvent(
-          new CustomEvent("value-changed", {
-            bubbles: true,
-            composed: true,
-            detail: { value },
-          }),
-        );
-      });
-
-      item.addEventListener("keydown", event => {
-        const keyboardEvent = event as KeyboardEvent;
-        const element = item as HTMLButtonElement;
-        const key = element.dataset.key ?? "";
-        const isBranch = element.dataset.branch === "true";
-        const visibleNodes = this.getVisibleNodes(this.items);
-        const currentIndex = visibleNodes.findIndex(node => node.key === key);
-
-        if (keyboardEvent.key === "ArrowDown" || keyboardEvent.key === "ArrowUp") {
-          keyboardEvent.preventDefault();
-          const nextIndex =
-            keyboardEvent.key === "ArrowDown"
-              ? Math.min(visibleNodes.length - 1, currentIndex + 1)
-              : Math.max(0, currentIndex - 1);
-          const nextNode = visibleNodes[nextIndex];
-          if (nextNode) {
-            this.focusKey = nextNode.key;
-            this.render();
-          }
-          return;
-        }
-
-        if (keyboardEvent.key === "ArrowRight" && isBranch) {
-          keyboardEvent.preventDefault();
-          if (!this.expandedInternal.has(key)) {
-            this.expandedInternal.add(key);
-            this.focusKey = key;
-            this.render();
-          }
-          return;
-        }
-
-        if (keyboardEvent.key === "ArrowLeft" && isBranch) {
-          keyboardEvent.preventDefault();
-          if (this.expandedInternal.has(key)) {
-            this.expandedInternal.delete(key);
-            this.focusKey = key;
-            this.render();
-          }
-          return;
-        }
-
-        if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
-          keyboardEvent.preventDefault();
-          element.click();
-          return;
-        }
-
-        if (keyboardEvent.key === "Home" || keyboardEvent.key === "End") {
-          keyboardEvent.preventDefault();
-          const nextNode = keyboardEvent.key === "Home" ? visibleNodes[0] : visibleNodes[visibleNodes.length - 1];
-          if (nextNode) {
-            this.focusKey = nextNode.key;
-            this.render();
-          }
-        }
-      });
-    });
+    this.treeEl.setAttribute("aria-label", this.label);
+    this.treeEl.innerHTML = this.renderItems(this.items);
 
     if (this.focusKey) {
       queueMicrotask(() => {
-        const target = Array.from(this.shadowRoot?.querySelectorAll('[part~="item"]') ?? []).find(
+        const target = Array.from(this.treeEl.querySelectorAll('[part~="item"]')).find(
           node => (node as HTMLButtonElement).dataset.key === this.focusKey,
         ) as HTMLButtonElement | undefined;
         target?.focus();

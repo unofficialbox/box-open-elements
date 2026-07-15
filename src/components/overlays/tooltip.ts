@@ -1,26 +1,78 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-tooltip";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+const tooltipStyles = `
+  :host {
+    display: inline-block;
+    color: inherit;
+    font: inherit;
+  }
 
-export class BoxTooltipElement extends HTMLElement {
+  [part="container"] {
+    position: relative;
+    display: inline-grid;
+    gap: 0.5rem;
+  }
+
+  [part="trigger"] {
+    width: 1.7rem;
+    height: 1.7rem;
+    display: inline-grid;
+    place-items: center;
+    appearance: none;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 80%, var(--boe-token-surface-surface, #ffffff) 20%);
+    border-radius: 0.75rem;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 14%, var(--boe-token-surface-surface, #ffffff) 86%) 100%
+      );
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    font: inherit;
+    padding: 0;
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
+  }
+
+  [part="trigger"]:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+    outline-offset: 2px;
+  }
+
+  [part="tooltip"] {
+    width: min(13.75rem, calc(100vw - 6rem));
+    padding: 0.65rem 0.8rem;
+    border-radius: 0.9rem;
+    border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, rgba(255, 255, 255, 0.08));
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-tooltip-surface, #222222) 88%, var(--boe-token-surface-surface-brand, #0061d5) 12%) 0%,
+        var(--boe-token-surface-tooltip-surface, #222222) 100%
+      );
+    color: rgba(255, 255, 255, 0.94);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 16px 28px rgba(16, 24, 32, 0.18);
+    line-height: 1.45;
+  }
+
+  [part="tooltip"][hidden] {
+    display: none;
+  }
+`;
+
+export class BoxTooltipElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["label", "open"];
   }
 
   private openValue = false;
-
   private tooltipId = `box-tooltip-${Math.random().toString(36).slice(2, 10)}`;
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private triggerEl!: HTMLButtonElement;
+  private tooltipEl!: HTMLElement;
 
   get label(): string {
     return this.getAttribute("label") ?? "Helpful context";
@@ -47,19 +99,16 @@ export class BoxTooltipElement extends HTMLElement {
       this.removeAttribute("open");
     }
     this.dispatchEvent(new CustomEvent("open-changed", { bubbles: true, composed: true, detail: { open: nextValue } }));
-    this.render();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "open") {
       this.openValue = this.hasAttribute("open");
     }
-
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   show(): void {
@@ -70,103 +119,58 @@ export class BoxTooltipElement extends HTMLElement {
     this.open = false;
   }
 
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
-    const tooltipMarkup = this.openValue
-      ? `<div id="${this.tooltipId}" part="tooltip" role="tooltip">${escapeHtml(this.label)}</div>`
-      : "";
-
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: inline-block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="container"] {
-          position: relative;
-          display: inline-grid;
-          gap: 0.5rem;
-        }
-
-        [part="trigger"] {
-          width: 1.7rem;
-          height: 1.7rem;
-          display: inline-grid;
-          place-items: center;
-          appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 80%, var(--boe-token-surface-surface, #ffffff) 20%);
-          border-radius: 0.75rem;
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 14%, var(--boe-token-surface-surface, #ffffff) 86%) 100%
-            );
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          font: inherit;
-          padding: 0;
-          cursor: pointer;
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
-        }
-
-        [part="trigger"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
-        }
-
-        [part="tooltip"] {
-          width: min(13.75rem, calc(100vw - 6rem));
-          padding: 0.65rem 0.8rem;
-          border-radius: 0.9rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, rgba(255, 255, 255, 0.08));
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-tooltip-surface, #222222) 88%, var(--boe-token-surface-surface-brand, #0061d5) 12%) 0%,
-              var(--boe-token-surface-tooltip-surface, #222222) 100%
-            );
-          color: rgba(255, 255, 255, 0.94);
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.08),
-            0 16px 28px rgba(16, 24, 32, 0.18);
-          line-height: 1.45;
-        }
-      </style>
+      <style>${tooltipStyles}</style>
       <span part="container">
-        <button
-          type="button"
-          part="trigger"
-          aria-label="${escapeHtml(this.label)}"
-          ${this.openValue ? `aria-describedby="${this.tooltipId}"` : ""}
-        >?</button>
-        ${tooltipMarkup}
+        <button type="button" part="trigger">?</button>
+        <div id="${this.tooltipId}" part="tooltip" role="tooltip" hidden></div>
       </span>
     `;
+    this.triggerEl = this.shadowRoot.querySelector('[part="trigger"]')!;
+    this.tooltipEl = this.shadowRoot.querySelector('[part="tooltip"]')!;
+  }
 
-    const trigger = this.shadowRoot.querySelector('[part="trigger"]');
-    trigger?.addEventListener("mouseenter", () => this.show());
-    trigger?.addEventListener("mouseleave", () => this.hide());
-    trigger?.addEventListener("focus", () => this.show());
-    trigger?.addEventListener("blur", () => this.hide());
-    trigger?.addEventListener("click", () => {
+  protected setupListeners(): void {
+    this.triggerEl.addEventListener("mouseenter", () => this.show());
+    this.triggerEl.addEventListener("mouseleave", () => this.hide());
+    this.triggerEl.addEventListener("focus", () => this.show());
+    this.triggerEl.addEventListener("blur", () => this.hide());
+    this.triggerEl.addEventListener("click", () => {
       if (this.openValue) {
         this.hide();
       } else {
         this.show();
       }
     });
-    trigger?.addEventListener("keydown", event => {
+    this.triggerEl.addEventListener("keydown", event => {
       const keyboardEvent = event as KeyboardEvent;
       if (keyboardEvent.key === "Escape") {
         keyboardEvent.preventDefault();
         this.hide();
       }
     });
+  }
+
+  protected update(): void {
+    if (!this.triggerEl || !this.tooltipEl) {
+      return;
+    }
+
+    const label = this.label;
+    this.triggerEl.setAttribute("aria-label", label);
+    this.tooltipEl.textContent = label;
+    this.tooltipEl.hidden = !this.openValue;
+
+    if (this.openValue) {
+      this.triggerEl.setAttribute("aria-describedby", this.tooltipId);
+    } else {
+      this.triggerEl.removeAttribute("aria-describedby");
+    }
   }
 }
 

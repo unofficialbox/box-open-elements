@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-accordion";
 
 const escapeHtml = (value: string): string =>
@@ -14,17 +16,94 @@ type BoxAccordionItem = {
   value: string;
 };
 
-export class BoxAccordionElement extends HTMLElement {
+const accordionStyles = `
+  :host {
+    display: block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="accordion"] {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  [part="item"] {
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
+    border-radius: 1rem;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%) 100%
+      );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.82),
+      0 12px 24px rgba(15, 23, 42, 0.04);
+  }
+
+  [part="trigger"] {
+    inline-size: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.95rem 1rem;
+    border: none;
+    background: transparent;
+    color: var(--boe-token-text-text, #222222);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  [part="heading"] {
+    font-weight: 600;
+  }
+
+  [part="indicator"] {
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 80%, var(--boe-token-surface-surface, #ffffff) 20%);
+    border-radius: 0.7rem;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface-secondary, #fbfbfb) 6%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%, var(--boe-token-surface-surface, #ffffff) 86%) 100%
+      );
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+    font-weight: 700;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
+  }
+
+  [part="panel"] {
+    padding: 0 1rem 1rem;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    line-height: 1.55;
+  }
+
+  [part="panel"][hidden] {
+    display: none;
+  }
+
+  [part="trigger"]:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+    outline-offset: 3px;
+    border-radius: 1rem;
+  }
+`;
+
+export class BoxAccordionElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["items", "label", "value"];
   }
 
   private valueInternal = "";
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private lastItemsJson = "";
+  private accordionEl!: HTMLElement;
 
   get label(): string {
     return this.getAttribute("label") ?? "Accordion";
@@ -59,42 +138,27 @@ export class BoxAccordionElement extends HTMLElement {
   set value(nextValue: string) {
     this.valueInternal = nextValue;
     this.setAttribute("value", nextValue);
-    this.render();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
       this.valueInternal = this.getAttribute("value") ?? "";
     }
-
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const items = this.items;
-    const selectedValue = this.valueInternal || items[0]?.value || "";
-
-    if (selectedValue !== this.valueInternal) {
-      this.valueInternal = selectedValue;
-      this.setAttribute("value", selectedValue);
-    }
-
-    const markup = items
+  private renderItemsMarkup(items: BoxAccordionItem[], selectedValue: string): string {
+    return items
       .map(item => {
         const isOpen = item.value === selectedValue;
         const panelId = `panel-${escapeHtml(item.value)}`;
         const triggerId = `trigger-${escapeHtml(item.value)}`;
 
         return `
-          <section part="item" data-open="${String(isOpen)}">
+          <section part="item" data-open="${String(isOpen)}" data-value="${escapeHtml(item.value)}">
             <button
               type="button"
               part="trigger"
@@ -106,119 +170,99 @@ export class BoxAccordionElement extends HTMLElement {
               <span part="heading">${escapeHtml(item.label)}</span>
               <span part="indicator" aria-hidden="true">${isOpen ? "−" : "+"}</span>
             </button>
-            ${
-              isOpen
-                ? `<div
-                    part="panel"
-                    id="${panelId}"
-                    role="region"
-                    aria-labelledby="${triggerId}"
-                  >${escapeHtml(item.content ?? "")}</div>`
-                : ""
-            }
+            <div
+              part="panel"
+              id="${panelId}"
+              role="region"
+              aria-labelledby="${triggerId}"
+              ${isOpen ? "" : "hidden"}
+            >${escapeHtml(item.content ?? "")}</div>
           </section>
         `;
       })
       .join("");
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
 
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="accordion"] {
-          display: grid;
-          gap: 0.75rem;
-        }
-
-        [part="item"] {
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-          border-radius: 1rem;
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%) 100%
-            );
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.82),
-            0 12px 24px rgba(15, 23, 42, 0.04);
-        }
-
-        [part="trigger"] {
-          inline-size: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 1rem;
-          padding: 0.95rem 1rem;
-          border: none;
-          background: transparent;
-          color: var(--boe-token-text-text, #222222);
-          font: inherit;
-          text-align: left;
-          cursor: pointer;
-        }
-
-        [part="heading"] {
-          font-weight: 600;
-        }
-
-        [part="indicator"] {
-          inline-size: 1.75rem;
-          block-size: 1.75rem;
-          display: inline-grid;
-          place-items: center;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 80%, var(--boe-token-surface-surface, #ffffff) 20%);
-          border-radius: 0.7rem;
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface-secondary, #fbfbfb) 6%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%, var(--boe-token-surface-surface, #ffffff) 86%) 100%
-            );
-          color: var(--boe-token-surface-surface-brand, #0061d5);
-          font-weight: 700;
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
-        }
-
-        [part="panel"] {
-          padding: 0 1rem 1rem;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          line-height: 1.55;
-        }
-
-        [part="trigger"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 3px;
-          border-radius: 1rem;
-        }
-      </style>
-      <div part="accordion" aria-label="${escapeHtml(this.label)}">
-        ${markup}
-      </div>
+      <style>${accordionStyles}</style>
+      <div part="accordion"></div>
     `;
+    this.accordionEl = this.shadowRoot.querySelector('[part="accordion"]')!;
+  }
 
-    this.shadowRoot.querySelectorAll('[part="trigger"]').forEach(trigger => {
-      trigger.addEventListener("click", () => {
-        const nextValue = (trigger as HTMLButtonElement).dataset.value ?? "";
-        if (!nextValue || nextValue === this.valueInternal) {
-          return;
-        }
+  protected setupListeners(): void {
+    this.accordionEl.addEventListener("click", event => {
+      const trigger = (event.target as HTMLElement | null)?.closest(
+        '[part="trigger"]',
+      ) as HTMLButtonElement | null;
+      if (!trigger || !this.accordionEl.contains(trigger)) {
+        return;
+      }
 
-        this.valueInternal = nextValue;
-        this.setAttribute("value", nextValue);
-        this.dispatchEvent(
-          new CustomEvent("value-changed", {
-            bubbles: true,
-            composed: true,
-            detail: { value: nextValue },
-          }),
-        );
-      });
+      const nextValue = trigger.dataset.value ?? "";
+      if (!nextValue || nextValue === this.valueInternal) {
+        return;
+      }
+
+      this.valueInternal = nextValue;
+      this.setAttribute("value", nextValue);
+      this.dispatchEvent(
+        new CustomEvent("value-changed", {
+          bubbles: true,
+          composed: true,
+          detail: { value: nextValue },
+        }),
+      );
+      this.update();
+    });
+  }
+
+  protected update(): void {
+    if (!this.accordionEl) {
+      return;
+    }
+
+    const items = this.items;
+    const itemsJson = this.getAttribute("items") ?? "";
+    const selectedValue = this.valueInternal || items[0]?.value || "";
+
+    if (selectedValue !== this.valueInternal) {
+      this.valueInternal = selectedValue;
+      this.setAttribute("value", selectedValue);
+    }
+
+    this.accordionEl.setAttribute("aria-label", this.label);
+
+    if (itemsJson !== this.lastItemsJson) {
+      this.accordionEl.innerHTML = this.renderItemsMarkup(items, selectedValue);
+      this.lastItemsJson = itemsJson;
+      return;
+    }
+
+    this.accordionEl.querySelectorAll('[part="item"]').forEach(node => {
+      const section = node as HTMLElement;
+      const value = section.dataset.value ?? "";
+      const isOpen = value === selectedValue;
+      section.dataset.open = String(isOpen);
+
+      const trigger = section.querySelector('[part="trigger"]') as HTMLButtonElement | null;
+      const indicator = section.querySelector('[part="indicator"]') as HTMLElement | null;
+      const panel = section.querySelector('[part="panel"]') as HTMLElement | null;
+
+      if (trigger) {
+        trigger.setAttribute("aria-expanded", String(isOpen));
+      }
+      if (indicator) {
+        indicator.textContent = isOpen ? "−" : "+";
+      }
+      if (panel) {
+        panel.hidden = !isOpen;
+      }
     });
   }
 }

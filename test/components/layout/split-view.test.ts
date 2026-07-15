@@ -50,4 +50,31 @@ describe("BoxSplitViewElement", () => {
 
     expect(element.ratio).toBe(0.7);
   });
+
+  it("keeps the same separator node when ratio changes during a drag", () => {
+    const element = document.createElement("box-split-view") as BoxSplitViewElement;
+    element.resizable = true;
+    element.ratio = 0.4;
+    document.body.append(element);
+
+    Object.defineProperty(element, "getBoundingClientRect", {
+      value: () =>
+        ({
+          left: 0,
+          width: 1000,
+        }) as DOMRect,
+    });
+
+    const separator = element.shadowRoot?.querySelector('[part="separator"]') as HTMLElement | null;
+    expect(separator).toBeTruthy();
+
+    separator?.dispatchEvent(new PointerEvent("pointerdown", { pointerId: 1, bubbles: true }));
+    separator?.dispatchEvent(new PointerEvent("pointermove", { pointerId: 1, clientX: 550, bubbles: true }));
+
+    expect(element.shadowRoot?.querySelector('[part="separator"]')).toBe(separator);
+    expect(element.ratio).toBe(0.55);
+
+    separator?.dispatchEvent(new PointerEvent("pointerup", { pointerId: 1, bubbles: true }));
+  });
 });
+

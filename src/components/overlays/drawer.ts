@@ -1,14 +1,119 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-drawer";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+const drawerStyles = `
+  :host {
+    color: inherit;
+    font: inherit;
+  }
 
-export class BoxDrawerElement extends HTMLElement {
+  [part="backdrop"] {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    z-index: 1200;
+    background: rgba(15, 23, 42, 0.24);
+    backdrop-filter: blur(6px);
+  }
+
+  [part="drawer"] {
+    width: min(26.25rem, calc(100vw - 2rem));
+    height: 100%;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 78%, var(--boe-token-surface-surface-secondary, #fbfbfb) 22%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 100%
+      );
+    color: var(--boe-token-text-text, #1f1e1b);
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.82),
+      0 26px 52px rgba(15, 23, 42, 0.14);
+  }
+
+  [part="drawer"][data-position="left"] {
+    border-left: 0;
+    border-top-right-radius: 1.35rem;
+    border-bottom-right-radius: 1.35rem;
+  }
+
+  [part="drawer"][data-position="right"] {
+    border-right: 0;
+    border-top-left-radius: 1.35rem;
+    border-bottom-left-radius: 1.35rem;
+  }
+
+  [part="drawer"][data-position="bottom"] {
+    width: 100%;
+    max-width: none;
+    height: min(20rem, calc(100vh - 3rem));
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+    border-top-left-radius: 1.35rem;
+    border-top-right-radius: 1.35rem;
+  }
+
+  [part="header"] {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.35rem 1.35rem 1.1rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+  }
+
+  [part="meta"] {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  [part="meta"] h2 {
+    margin: 0;
+    font: inherit;
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+
+  [part="description"] {
+    margin: 0;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    line-height: 1.5;
+  }
+
+  [part="description"][hidden] {
+    display: none;
+  }
+
+  [part="close"] {
+    appearance: none;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+    border-radius: 0.9rem;
+    background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%);
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    font: inherit;
+    min-height: 2rem;
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  }
+
+  [part="close"]:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+    outline-offset: 2px;
+  }
+
+  [part="body"] {
+    padding: 1.35rem;
+    overflow: auto;
+  }
+`;
+
+export class BoxDrawerElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["description", "heading", "open", "position"];
   }
@@ -16,11 +121,11 @@ export class BoxDrawerElement extends HTMLElement {
   private openValue = false;
   private placeholder: Comment | null = null;
   private portaled = false;
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private hostEl!: HTMLElement;
+  private backdropEl: HTMLElement | null = null;
+  private drawerEl: HTMLElement | null = null;
+  private titleEl: HTMLElement | null = null;
+  private descriptionEl: HTMLElement | null = null;
 
   get description(): string {
     return this.getAttribute("description") ?? "";
@@ -48,7 +153,9 @@ export class BoxDrawerElement extends HTMLElement {
     }
 
     this.dispatchEvent(new CustomEvent("open-changed", { bubbles: true, composed: true, detail: { open: nextOpen } }));
-    this.render();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   get position(): string {
@@ -71,10 +178,10 @@ export class BoxDrawerElement extends HTMLElement {
     if (this.openValue) {
       this.portalToBody();
     }
-    this.render();
+    super.connectedCallback();
   }
 
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "open") {
       this.openValue = this.hasAttribute("open");
       if (this.openValue) {
@@ -83,8 +190,7 @@ export class BoxDrawerElement extends HTMLElement {
         this.restoreFromPortal();
       }
     }
-
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   show(): void {
@@ -123,165 +229,104 @@ export class BoxDrawerElement extends HTMLElement {
     this.portaled = false;
   }
 
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
-    if (!this.openValue) {
-      this.shadowRoot.innerHTML = "";
-      return;
-    }
+    // Keep styles inside the host so a closed drawer has empty textContent.
+    this.shadowRoot.innerHTML = `<div part="host"></div>`;
+    this.hostEl = this.shadowRoot.querySelector('[part="host"]')!;
+  }
 
-    const descriptionMarkup = this.description
-      ? `<p part="description">${escapeHtml(this.description)}</p>`
-      : "";
-    const isLeft = this.position === "left";
-    const isBottom = this.position === "bottom";
-    const backdropStyle = isBottom
-      ? "align-items:end;justify-items:stretch;"
-      : `justify-items:${isLeft ? "start" : "end"};`;
-
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="backdrop"] {
-          position: fixed;
-          inset: 0;
-          display: grid;
-          z-index: 1200;
-          background: rgba(15, 23, 42, 0.24);
-          backdrop-filter: blur(6px);
-        }
-
-        [part="drawer"] {
-          width: min(26.25rem, calc(100vw - 2rem));
-          height: 100%;
-          display: grid;
-          grid-template-rows: auto minmax(0, 1fr);
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 78%, var(--boe-token-surface-surface-secondary, #fbfbfb) 22%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 100%
-            );
-          color: var(--boe-token-text-text, #1f1e1b);
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.82),
-            0 26px 52px rgba(15, 23, 42, 0.14);
-        }
-
-        [part="drawer"][data-position="left"] {
-          border-left: 0;
-          border-top-right-radius: 1.35rem;
-          border-bottom-right-radius: 1.35rem;
-        }
-
-        [part="drawer"][data-position="right"] {
-          border-right: 0;
-          border-top-left-radius: 1.35rem;
-          border-bottom-left-radius: 1.35rem;
-        }
-
-        [part="drawer"][data-position="bottom"] {
-          width: 100%;
-          max-width: none;
-          height: min(20rem, calc(100vh - 3rem));
-          border-left: 0;
-          border-right: 0;
-          border-bottom: 0;
-          border-top-left-radius: 1.35rem;
-          border-top-right-radius: 1.35rem;
-        }
-
-        [part="header"] {
-          display: flex;
-          align-items: start;
-          justify-content: space-between;
-          gap: 1rem;
-          padding: 1.35rem 1.35rem 1.1rem;
-          border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-        }
-
-        [part="meta"] {
-          display: grid;
-          gap: 0.35rem;
-        }
-
-        [part="meta"] h2 {
-          margin: 0;
-          font: inherit;
-          font-size: 1.2rem;
-          font-weight: 700;
-        }
-
-        [part="description"] {
-          margin: 0;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          line-height: 1.5;
-        }
-
-        [part="close"] {
-          appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.9rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%);
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          font: inherit;
-          min-height: 2rem;
-          padding: 0.35rem 0.8rem;
-          cursor: pointer;
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
-        }
-
-        [part="close"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
-        }
-
-        [part="body"] {
-          padding: 1.35rem;
-          overflow: auto;
-        }
-      </style>
-      <div part="backdrop" style="${backdropStyle}">
-        <aside part="drawer" data-position="${escapeHtml(this.position)}" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
-          <header part="header">
-            <div part="meta">
-              <h2 id="drawer-title">${escapeHtml(this.heading)}</h2>
-              ${descriptionMarkup}
-            </div>
-            <button type="button" part="close" aria-label="Close drawer">Close</button>
-          </header>
-          <div part="body">
-            <slot></slot>
-          </div>
-        </aside>
-      </div>
-    `;
-
-    this.shadowRoot.querySelector('[part="backdrop"]')?.addEventListener("click", event => {
-      if (event.target === event.currentTarget) {
-        this.close();
+  protected setupListeners(): void {
+    this.hostEl.addEventListener("click", event => {
+      const target = event.target as HTMLElement | null;
+      if (!target) {
+        return;
       }
-    });
-    this.shadowRoot.querySelector('[part="close"]')?.addEventListener("click", () => {
-      this.dispatchEvent(new CustomEvent("dismiss", { bubbles: true, composed: true }));
-      this.close();
-    });
-    this.shadowRoot.querySelector('[part="drawer"]')?.addEventListener("keydown", event => {
-      const keyboardEvent = event as KeyboardEvent;
-      if (keyboardEvent.key === "Escape") {
-        keyboardEvent.preventDefault();
+
+      if (target.getAttribute("part") === "backdrop") {
+        this.close();
+        return;
+      }
+
+      if (target.closest('[part="close"]')) {
         this.dispatchEvent(new CustomEvent("dismiss", { bubbles: true, composed: true }));
         this.close();
       }
     });
+
+    this.hostEl.addEventListener("keydown", event => {
+      const keyboardEvent = event as KeyboardEvent;
+      if (keyboardEvent.key !== "Escape") {
+        return;
+      }
+      if (!(keyboardEvent.target as HTMLElement | null)?.closest('[part="drawer"]')) {
+        return;
+      }
+      keyboardEvent.preventDefault();
+      this.dispatchEvent(new CustomEvent("dismiss", { bubbles: true, composed: true }));
+      this.close();
+    });
+  }
+
+  protected update(): void {
+    if (!this.hostEl) {
+      return;
+    }
+
+    if (!this.openValue) {
+      this.hostEl.innerHTML = "";
+      this.backdropEl = null;
+      this.drawerEl = null;
+      this.titleEl = null;
+      this.descriptionEl = null;
+      return;
+    }
+
+    if (!this.hostEl.querySelector('[part="drawer"]')) {
+      this.hostEl.innerHTML = `
+        <style>${drawerStyles}</style>
+        <div part="backdrop">
+          <aside part="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+            <header part="header">
+              <div part="meta">
+                <h2 id="drawer-title"></h2>
+                <p part="description" hidden></p>
+              </div>
+              <button type="button" part="close" aria-label="Close drawer">Close</button>
+            </header>
+            <div part="body">
+              <slot></slot>
+            </div>
+          </aside>
+        </div>
+      `;
+    }
+
+    this.backdropEl = this.hostEl.querySelector('[part="backdrop"]');
+    this.drawerEl = this.hostEl.querySelector('[part="drawer"]');
+    this.titleEl = this.hostEl.querySelector("#drawer-title");
+    this.descriptionEl = this.hostEl.querySelector('[part="description"]');
+
+    const isLeft = this.position === "left";
+    const isBottom = this.position === "bottom";
+    if (this.backdropEl) {
+      this.backdropEl.style.alignItems = isBottom ? "end" : "";
+      this.backdropEl.style.justifyItems = isBottom ? "stretch" : isLeft ? "start" : "end";
+    }
+    if (this.drawerEl) {
+      this.drawerEl.dataset.position = this.position;
+    }
+    if (this.titleEl) {
+      this.titleEl.textContent = this.heading;
+    }
+    if (this.descriptionEl) {
+      const description = this.description;
+      this.descriptionEl.textContent = description;
+      this.descriptionEl.hidden = !description;
+    }
   }
 }
 

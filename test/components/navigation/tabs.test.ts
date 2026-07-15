@@ -88,4 +88,23 @@ describe("BoxTabsElement", () => {
     expect((tabs[1] as HTMLElement | undefined)?.dataset.position).toBe("middle");
     expect((tabs[2] as HTMLElement | undefined)?.dataset.position).toBe("last");
   });
+
+  it("preserves focus on a tab when an attribute changes", () => {
+    const element = document.createElement("box-tabs") as BoxTabsElement;
+    element.options = [
+      { label: "Overview", value: "overview" },
+      { label: "Activity", value: "activity" },
+    ];
+    document.body.append(element);
+
+    const tab = element.shadowRoot?.querySelector('[part="tab"]') as HTMLButtonElement | null;
+    tab?.focus();
+    expect(element.shadowRoot?.activeElement).toBe(tab);
+
+    element.label = "Workspace tabs";
+
+    expect(element.shadowRoot?.querySelector('[part="tab"]')).toBe(tab);
+    expect(element.shadowRoot?.activeElement).toBe(tab);
+  });
 });
+

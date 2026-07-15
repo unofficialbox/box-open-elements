@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-menu";
 
 const escapeHtml = (value: string): string =>
@@ -14,15 +16,69 @@ type BoxMenuItem = {
   label: string;
 };
 
-export class BoxMenuElement extends HTMLElement {
+const menuStyles = `
+  :host {
+    display: inline-block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="menu"] {
+    min-width: 11rem;
+    margin: 0;
+    padding: 0.45rem;
+    display: grid;
+    gap: 0.2rem;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
+    border-radius: 0.75rem;
+    background: var(--boe-token-surface-surface, #ffffff);
+    box-shadow: 0 12px 30px color-mix(in srgb, #0b1e33 14%, transparent);
+  }
+
+  [part="menu-item"] {
+    width: 100%;
+    appearance: none;
+    text-align: left;
+    border: 0;
+    border-radius: 0.6rem;
+    background: transparent;
+    color: var(--boe-token-text-text, #222222);
+    font: inherit;
+    font-size: 0.92rem;
+    padding: 0.6rem 0.7rem;
+    cursor: pointer;
+    transition:
+      background-color 140ms ease,
+      color 140ms ease,
+      box-shadow 140ms ease;
+  }
+
+  [part="menu-item"]:hover:not(:disabled) {
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+  }
+
+  [part="menu-item"]:active:not(:disabled) {
+    background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, var(--boe-token-surface-surface, #ffffff) 36%);
+  }
+
+  [part="menu-item"]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+  }
+
+  [part="menu-item"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+`;
+
+export class BoxMenuElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["disabled", "items", "label"];
   }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private menuEl!: HTMLElement;
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -62,20 +118,50 @@ export class BoxMenuElement extends HTMLElement {
     this.setAttribute("items", JSON.stringify(value));
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
-    const itemsMarkup = this.items
+    this.shadowRoot.innerHTML = `
+      <style>${menuStyles}</style>
+      <div part="menu" role="menu"></div>
+    `;
+    this.menuEl = this.shadowRoot.querySelector('[part="menu"]')!;
+  }
+
+  protected setupListeners(): void {
+    this.menuEl.addEventListener("click", event => {
+      const button = (event.target as HTMLElement | null)?.closest(
+        '[part="menu-item"]',
+      ) as HTMLButtonElement | null;
+      if (!button || !this.menuEl.contains(button) || button.disabled) {
+        return;
+      }
+
+      const itemId = button.getAttribute("data-item-id");
+      const item = this.items.find(entry => entry.id === itemId);
+      if (!item || this.disabled || item.disabled) {
+        return;
+      }
+
+      this.dispatchEvent(
+        new CustomEvent("item-selected", {
+          bubbles: true,
+          composed: true,
+          detail: item,
+        }),
+      );
+    });
+  }
+
+  protected update(): void {
+    if (!this.menuEl) {
+      return;
+    }
+
+    this.menuEl.setAttribute("aria-label", this.label);
+    this.menuEl.innerHTML = this.items
       .map(
         item => `
           <button type="button" part="menu-item" role="menuitem" data-item-id="${escapeHtml(item.id)}" ${this.disabled || item.disabled ? "disabled" : ""}>
@@ -84,86 +170,6 @@ export class BoxMenuElement extends HTMLElement {
         `,
       )
       .join("");
-
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: inline-block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="menu"] {
-          min-width: 11rem;
-          margin: 0;
-          padding: 0.45rem;
-          display: grid;
-          gap: 0.2rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-          border-radius: 0.75rem;
-          background: var(--boe-token-surface-surface, #ffffff);
-          box-shadow: 0 12px 30px color-mix(in srgb, #0b1e33 14%, transparent);
-        }
-
-        [part="menu-item"] {
-          width: 100%;
-          appearance: none;
-          text-align: left;
-          border: 0;
-          border-radius: 0.6rem;
-          background: transparent;
-          color: var(--boe-token-text-text, #222222);
-          font: inherit;
-          font-size: 0.92rem;
-          padding: 0.6rem 0.7rem;
-          cursor: pointer;
-          transition:
-            background-color 140ms ease,
-            color 140ms ease,
-            box-shadow 140ms ease;
-        }
-
-        [part="menu-item"]:hover:not(:disabled) {
-          background: var(--boe-token-surface-surface-hover, #f4f4f4);
-          color: var(--boe-token-surface-surface-brand, #0061d5);
-        }
-
-        [part="menu-item"]:active:not(:disabled) {
-          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, var(--boe-token-surface-surface, #ffffff) 36%);
-        }
-
-        [part="menu-item"]:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-        }
-
-        [part="menu-item"]:disabled {
-          cursor: not-allowed;
-          opacity: 0.55;
-        }
-      </style>
-      <div part="menu" role="menu" aria-label="${escapeHtml(this.label)}">
-        ${itemsMarkup}
-      </div>
-    `;
-
-    this.shadowRoot.querySelectorAll('[part="menu-item"]').forEach(node => {
-      node.addEventListener("click", event => {
-        const itemId = (event.currentTarget as HTMLElement).getAttribute("data-item-id");
-        const item = this.items.find(entry => entry.id === itemId);
-        if (!item || this.disabled || item.disabled) {
-          return;
-        }
-
-        this.dispatchEvent(
-          new CustomEvent("item-selected", {
-            bubbles: true,
-            composed: true,
-            detail: item,
-          }),
-        );
-      });
-    });
   }
 }
 
