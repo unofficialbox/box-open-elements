@@ -28,6 +28,16 @@ Components expose accessible semantics as part of the default contract, not as o
 - `Enter` and `Space` should activate the currently focused item when activation is expected
 - `Escape` should dismiss transient surfaces such as dialogs, drawers, popovers, tooltips, and menus
 
+Shared helpers live in `box-open-elements/foundations/a11y`:
+
+| Helper | Use when |
+|---|---|
+| `nextRovingIndex` / `handleRovingKeydown` / `applyRovingTabindex` | menu, toolbar, listbox, radiogroup composites |
+| `trapTabKey` / `FocusRestore` | modal dialogs and drawers (`aria-modal`) |
+| `renderHeadingHtml` / `headingOpenTag` | rendering a `heading` attribute as a real `<h*>` |
+
+Prefer native `<h2 part="title">` (with `margin: 0; font: inherit`) over `<div>` / `<strong>` for headline text. Keep `part="title"` for `::part` styling. Do **not** put `role="listitem"` on a native `<button>` — that strips interactive semantics. Use `role="tablist"` / `role="tab"` only when panels + `aria-selected` are also present.
+
 ## Focus visibility
 
 - every interactive control shows a visible focus indicator on `:focus-visible`, driven by the design-system brand token (`--boe-token-surface-surface-brand`) rather than a hardcoded color, so the ring matches the active theme and adapts between light and dark

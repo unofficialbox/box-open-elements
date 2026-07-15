@@ -70,6 +70,8 @@ const elementStyles = `
         }
 
         [part="title"] {
+          margin: 0;
+          font: inherit;
           font-size: 1.05rem;
           font-weight: 700;
           color: var(--boe-token-text-text, #1f1e1b);
@@ -410,7 +412,6 @@ export class BoxChartPanelElement extends BaseElement {
                   <button
                     type="button"
                     part="point"
-                    role="listitem"
                     data-point-id="${escapeHtml(point.id)}"
                     aria-label="${escapeHtml(`${point.label}: ${point.value}`)}"
                     data-tone="${escapeHtml(point.tone ?? "neutral")}"
@@ -452,7 +453,7 @@ export class BoxChartPanelElement extends BaseElement {
       <article part="panel">
         <header part="header">
           <div part="meta">
-            <div part="title">${escapeHtml(this.heading)}</div>
+            <h2 part="title">${escapeHtml(this.heading)}</h2>
             ${summaryMarkup}
             ${messageMarkup}
           </div>

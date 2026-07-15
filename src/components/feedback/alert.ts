@@ -50,6 +50,8 @@ const alertStyles = `
   }
 
   [part="title"] {
+          margin: 0;
+          font: inherit;
     font-weight: 700;
     color: var(--boe-token-text-text, #222222);
   }
@@ -196,7 +198,7 @@ export class BoxAlertElement extends BaseElement {
       <style>${alertStyles}</style>
       <div part="alert" role="status" aria-live="polite">
         <div part="content">
-          <strong part="title" hidden></strong>
+          <h2 part="title" hidden></h2>
           <span part="description message" hidden></span>
         </div>
         <button type="button" part="dismiss" aria-label="Dismiss alert">Dismiss</button>

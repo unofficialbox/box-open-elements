@@ -171,8 +171,28 @@ export class BoxSegmentedControlElement extends BaseElement {
       currentIndex < 0
         ? 0
         : (currentIndex + direction + enabledOptions.length) % enabledOptions.length;
+    this.moveSelectionTo(nextIndex, enabledOptions);
+  }
+
+  private moveSelectionTo(
+    index: number,
+    enabledOptions = this.options.filter(option => !option.disabled),
+  ): void {
+    if (enabledOptions.length === 0) {
+      return;
+    }
+
+    const nextIndex = Math.max(0, Math.min(enabledOptions.length - 1, index));
     const nextValue = enabledOptions[nextIndex]?.value ?? "";
+    const focusSegment = (value: string): void => {
+      const nextButton = Array.from(
+        this.controlEl?.querySelectorAll<HTMLButtonElement>('[part="segment"]') ?? [],
+      ).find(button => button.dataset.value === value);
+      nextButton?.focus();
+    };
+
     if (!nextValue || nextValue === this.valueInternal) {
+      focusSegment(nextValue);
       return;
     }
 
@@ -186,11 +206,7 @@ export class BoxSegmentedControlElement extends BaseElement {
       }),
     );
     this.update();
-
-    const nextButton = this.controlEl?.querySelector(
-      `[part="segment"][data-value="${escapeHtml(nextValue)}"]`,
-    ) as HTMLButtonElement | null;
-    nextButton?.focus();
+    focusSegment(nextValue);
   }
 
   protected renderTemplate(): void {
@@ -282,11 +298,24 @@ export class BoxSegmentedControlElement extends BaseElement {
         if (keyboardEvent.key === "ArrowRight" || keyboardEvent.key === "ArrowDown") {
           keyboardEvent.preventDefault();
           this.moveSelection(1);
+          return;
         }
 
         if (keyboardEvent.key === "ArrowLeft" || keyboardEvent.key === "ArrowUp") {
           keyboardEvent.preventDefault();
           this.moveSelection(-1);
+          return;
+        }
+
+        if (keyboardEvent.key === "Home") {
+          keyboardEvent.preventDefault();
+          this.moveSelectionTo(0);
+          return;
+        }
+
+        if (keyboardEvent.key === "End") {
+          keyboardEvent.preventDefault();
+          this.moveSelectionTo(this.options.length - 1);
         }
       });
     });

@@ -104,6 +104,8 @@ const carouselStyles = `
   }
 
   [part="title"] {
+          margin: 0;
+          font: inherit;
     font-size: 1.52rem;
     font-weight: 700;
     line-height: 1.12;
@@ -336,7 +338,7 @@ export class BoxCarouselElement extends BaseElement {
             <div part="media"></div>
             <div part="content">
               <div part="eyebrow" hidden></div>
-              <div part="title"></div>
+              <h2 part="title"></h2>
               <div part="description" hidden></div>
             </div>
           </div>
@@ -346,7 +348,7 @@ export class BoxCarouselElement extends BaseElement {
             <button type="button" part="previous" aria-label="Previous slide">‹</button>
             <button type="button" part="next" aria-label="Next slide">›</button>
           </div>
-          <div part="pagination" role="tablist"></div>
+          <div part="pagination" role="group" aria-label="Slides"></div>
         </div>
         <div part="empty" hidden>No items</div>
       </section>
@@ -376,6 +378,19 @@ export class BoxCarouselElement extends BaseElement {
       }
       const index = Number(target.dataset.index ?? "0");
       this.setIndex(index);
+    });
+
+    this.carouselEl.addEventListener("keydown", event => {
+      const keyboardEvent = event as KeyboardEvent;
+      if (keyboardEvent.key === "ArrowLeft") {
+        keyboardEvent.preventDefault();
+        this.changeBy(-1);
+        return;
+      }
+      if (keyboardEvent.key === "ArrowRight") {
+        keyboardEvent.preventDefault();
+        this.changeBy(1);
+      }
     });
   }
 
@@ -425,9 +440,8 @@ export class BoxCarouselElement extends BaseElement {
             <button
               type="button"
               part="${dotPart}"
-              role="tab"
               aria-label="Go to slide ${index + 1}: ${escapeHtml(item.title)}"
-              aria-current="${String(index === this.valueInternal)}"
+              aria-current="${index === this.valueInternal ? "true" : "false"}"
               data-index="${index}"
             ></button>
           `;

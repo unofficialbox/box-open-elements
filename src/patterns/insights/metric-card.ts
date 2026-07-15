@@ -64,6 +64,8 @@ const elementStyles = `
         }
 
         [part="title"] {
+          margin: 0;
+          font: inherit;
           font-size: 0.98rem;
           font-weight: 700;
           color: var(--boe-token-text-text, #1f1e1b);
@@ -301,7 +303,7 @@ export class BoxMetricCardElement extends BaseElement {
         <header part="header">
           ${eyebrowMarkup}
           <div part="title-row">
-            <div part="title">${escapeHtml(this.heading)}</div>
+            <h2 part="title">${escapeHtml(this.heading)}</h2>
             ${statusMarkup}
           </div>
         </header>

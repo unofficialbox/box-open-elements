@@ -54,7 +54,7 @@ describe("BoxProgressStepsElement", () => {
     );
   });
 
-  it("uses tab semantics and supports arrow key navigation", () => {
+  it("uses step semantics and supports arrow key navigation", () => {
     const element = document.createElement("box-progress-steps") as BoxProgressStepsElement;
     element.items = [
       { label: "Draft", value: "draft" },
@@ -68,8 +68,9 @@ describe("BoxProgressStepsElement", () => {
     const steps = element.shadowRoot?.querySelectorAll('[part="step"]') ?? [];
     const firstStep = steps[0] as HTMLButtonElement | undefined;
 
-    expect(element.shadowRoot?.querySelector('[part="steps"]')?.getAttribute("role")).toBe("tablist");
-    expect(firstStep?.getAttribute("role")).toBe("tab");
+    expect(element.shadowRoot?.querySelector('[part="steps"]')?.getAttribute("role")).toBe("group");
+    expect(firstStep?.getAttribute("role")).toBeNull();
+    expect(firstStep?.getAttribute("aria-current")).toBe("step");
 
     firstStep?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
 

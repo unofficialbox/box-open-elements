@@ -33,6 +33,8 @@ describe("BoxCardElement", () => {
     document.body.append(element);
 
     expect(element.heading).toBe("Release Notes");
-    expect(element.shadowRoot?.querySelector('[part~="title"]')?.textContent).toContain("Release Notes");
+    const title = element.shadowRoot?.querySelector('[part~="title"]');
+    expect(title?.textContent).toContain("Release Notes");
+    expect(title?.tagName).toBe("H2");
   });
 });

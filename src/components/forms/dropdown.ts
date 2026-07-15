@@ -1,5 +1,11 @@
 import { BaseElement } from "../../core/index.js";
 import {
+  FocusRestore,
+  applyRovingTabindex,
+  focusRovingItem,
+  nextRovingIndex,
+} from "../../foundations/a11y/index.js";
+import {
   boeFocusVisibleStyles,
   boeNeutralInteractiveStyles,
 } from "../../foundations/tokens/index.js";
@@ -112,7 +118,8 @@ const dropdownStyles = `
 
   ${boeNeutralInteractiveStyles('[part="item"]')}
 
-  [part="item"][data-selected="true"] {
+  [part="item"][data-selected="true"],
+  [part="item"][aria-selected="true"] {
     background: var(--boe-token-surface-item-surface-selected, #f2f7fd);
     color: var(--boe-token-surface-surface-brand, #0061d5);
   }
@@ -128,6 +135,14 @@ export class BoxDropdownElement extends BaseElement {
   private rootEl!: HTMLElement;
   private triggerEl!: HTMLButtonElement;
   private menuEl: HTMLElement | null = null;
+  private readonly focusRestore = new FocusRestore();
+  private readonly onDocumentPointerDown = (event: PointerEvent): void => {
+    const path = event.composedPath();
+    if (path.includes(this)) {
+      return;
+    }
+    this.closeMenu(true);
+  };
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -186,6 +201,68 @@ export class BoxDropdownElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  disconnectedCallback(): void {
+    document.removeEventListener("pointerdown", this.onDocumentPointerDown);
+    super.disconnectedCallback();
+  }
+
+  private openMenu(): void {
+    if (this.disabled || this.open) {
+      return;
+    }
+    this.focusRestore.capture(this.triggerEl);
+    this.open = true;
+    document.addEventListener("pointerdown", this.onDocumentPointerDown);
+    this.update();
+    queueMicrotask(() => {
+      const items = this.menuItems();
+      const selectedIndex = Math.max(
+        0,
+        items.findIndex(button => button.getAttribute("data-item-id") === this.valueInternal),
+      );
+      focusRovingItem(items, selectedIndex >= 0 ? selectedIndex : 0);
+    });
+  }
+
+  private closeMenu(restoreFocus: boolean): void {
+    if (!this.open) {
+      return;
+    }
+    this.open = false;
+    document.removeEventListener("pointerdown", this.onDocumentPointerDown);
+    this.update();
+    if (restoreFocus) {
+      this.focusRestore.restore();
+    } else {
+      this.focusRestore.clear();
+    }
+  }
+
+  private selectItem(itemId: string): void {
+    const item = this.items.find(entry => entry.id === itemId);
+    if (!item || this.disabled) {
+      return;
+    }
+
+    this.valueInternal = item.id;
+    this.setAttribute("value", item.id);
+    this.dispatchEvent(
+      new CustomEvent("value-changed", {
+        bubbles: true,
+        composed: true,
+        detail: { value: item.id, item },
+      }),
+    );
+    this.closeMenu(true);
+  }
+
+  private menuItems(): HTMLButtonElement[] {
+    if (!this.menuEl) {
+      return [];
+    }
+    return Array.from(this.menuEl.querySelectorAll<HTMLButtonElement>('[part="item"]'));
+  }
+
   protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
@@ -194,7 +271,7 @@ export class BoxDropdownElement extends BaseElement {
     this.shadowRoot.innerHTML = `
       <style>${dropdownStyles}</style>
       <div part="dropdown">
-        <button type="button" part="trigger" aria-haspopup="menu"></button>
+        <button type="button" part="trigger" aria-haspopup="listbox"></button>
       </div>
     `;
     this.rootEl = this.shadowRoot.querySelector('[part="dropdown"]')!;
@@ -206,9 +283,11 @@ export class BoxDropdownElement extends BaseElement {
       if (this.disabled) {
         return;
       }
-
-      this.open = !this.open;
-      this.update();
+      if (this.open) {
+        this.closeMenu(true);
+      } else {
+        this.openMenu();
+      }
     });
 
     this.triggerEl.addEventListener("keydown", event => {
@@ -219,8 +298,13 @@ export class BoxDropdownElement extends BaseElement {
 
       if (keyboardEvent.key === "ArrowDown" || keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
         keyboardEvent.preventDefault();
-        this.open = true;
-        this.update();
+        this.openMenu();
+        return;
+      }
+
+      if (keyboardEvent.key === "Escape" && this.open) {
+        keyboardEvent.preventDefault();
+        this.closeMenu(true);
       }
     });
 
@@ -229,24 +313,40 @@ export class BoxDropdownElement extends BaseElement {
       if (!itemButton || !this.rootEl.contains(itemButton)) {
         return;
       }
+      this.selectItem(itemButton.getAttribute("data-item-id") ?? "");
+    });
 
-      const itemId = itemButton.getAttribute("data-item-id") ?? "";
-      const item = this.items.find(entry => entry.id === itemId);
-      if (!item || this.disabled) {
+    this.rootEl.addEventListener("keydown", event => {
+      const keyboardEvent = event as KeyboardEvent;
+      const itemButton = (keyboardEvent.target as HTMLElement).closest(
+        '[part="item"]',
+      ) as HTMLButtonElement | null;
+      if (!itemButton || !this.rootEl.contains(itemButton)) {
         return;
       }
 
-      this.valueInternal = item.id;
-      this.setAttribute("value", item.id);
-      this.dispatchEvent(
-        new CustomEvent("value-changed", {
-          bubbles: true,
-          composed: true,
-          detail: { value: item.id, item },
-        }),
-      );
-      this.open = false;
-      this.update();
+      if (keyboardEvent.key === "Escape") {
+        keyboardEvent.preventDefault();
+        this.closeMenu(true);
+        return;
+      }
+
+      if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
+        keyboardEvent.preventDefault();
+        this.selectItem(itemButton.getAttribute("data-item-id") ?? "");
+        return;
+      }
+
+      const items = this.menuItems();
+      const currentIndex = items.indexOf(itemButton);
+      const nextIndex = nextRovingIndex(keyboardEvent.key, currentIndex, items.length, {
+        orientation: "vertical",
+      });
+      if (nextIndex == null) {
+        return;
+      }
+      keyboardEvent.preventDefault();
+      focusRovingItem(items, nextIndex);
     });
   }
 
@@ -270,6 +370,8 @@ export class BoxDropdownElement extends BaseElement {
       if (!this.menuEl) {
         this.menuEl = document.createElement("div");
         this.menuEl.setAttribute("part", "menu");
+        this.menuEl.setAttribute("role", "listbox");
+        this.menuEl.setAttribute("aria-label", this.label);
         this.rootEl.append(this.menuEl);
       }
       this.menuEl.innerHTML = this.items
@@ -278,14 +380,22 @@ export class BoxDropdownElement extends BaseElement {
             <button
               type="button"
               part="item"
+              role="option"
               data-item-id="${escapeHtml(item.id)}"
               data-selected="${String(item.id === this.valueInternal)}"
+              aria-selected="${String(item.id === this.valueInternal)}"
             >
               ${escapeHtml(item.label)}
             </button>
           `,
         )
         .join("");
+      const items = this.menuItems();
+      const selectedIndex = Math.max(
+        0,
+        items.findIndex(button => button.getAttribute("data-item-id") === this.valueInternal),
+      );
+      applyRovingTabindex(items, selectedIndex);
     } else if (this.menuEl) {
       this.menuEl.remove();
       this.menuEl = null;

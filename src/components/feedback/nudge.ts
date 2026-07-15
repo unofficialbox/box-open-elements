@@ -248,7 +248,7 @@ export class BoxNudgeElement extends BaseElement {
           </svg>
         </span>
         <div part="content">
-          <strong part="heading title" hidden></strong>
+          <h2 part="heading title" hidden></h2>
           <span part="message" hidden></span>
         </div>
         <button type="button" part="dismiss" aria-label="Dismiss">

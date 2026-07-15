@@ -171,7 +171,7 @@ export class BoxProgressStepsElement extends BaseElement {
 
     this.shadowRoot.innerHTML = `
       <style>${progressStepsStyles}</style>
-      <div part="steps" role="tablist"></div>
+      <div part="steps" role="group"></div>
     `;
     this.stepsEl = this.shadowRoot.querySelector('[part="steps"]')!;
   }
@@ -279,11 +279,9 @@ export class BoxProgressStepsElement extends BaseElement {
             <button
               type="button"
               part="step"
-              role="tab"
               data-state="${state}"
               data-value="${escapeHtml(item.value)}"
               aria-current="${state === "current" ? "step" : "false"}"
-              aria-selected="${String(index === activeIndex)}"
               tabindex="${index === activeIndex ? "0" : "-1"}"
             >
               <span part="marker">${index + 1}</span>

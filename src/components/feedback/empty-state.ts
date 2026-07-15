@@ -22,6 +22,8 @@ const emptyStateStyles = `
   }
 
   [part="title"] {
+          margin: 0;
+          font: inherit;
     font-size: 1.05rem;
     font-weight: 700;
     color: var(--boe-token-text-text, #222222);
@@ -103,7 +105,7 @@ export class BoxEmptyStateElement extends BaseElement {
     this.shadowRoot.innerHTML = `
       <style>${emptyStateStyles}</style>
       <section part="empty-state" role="status" aria-live="polite">
-        <strong part="title"></strong>
+        <h2 part="title"></h2>
         <span part="message description"></span>
         <button type="button" part="action" hidden></button>
       </section>

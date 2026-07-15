@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { applyRovingTabindex, handleRovingKeydown } from "../../foundations/a11y/index.js";
 
 const DEFAULT_TAG_NAME = "box-rich-text-input";
 
@@ -289,6 +290,11 @@ export class BoxRichTextInputElement extends BaseElement {
         }
       });
     });
+    this.toolbarEl.addEventListener("keydown", event => {
+      handleRovingKeydown(event as KeyboardEvent, this.toolbarButtons, {
+        orientation: "horizontal",
+      });
+    });
   }
 
   protected update(): void {
@@ -306,6 +312,7 @@ export class BoxRichTextInputElement extends BaseElement {
     this.toolbarButtons.forEach(button => {
       button.disabled = this.disabled;
     });
+    applyRovingTabindex(this.toolbarButtons, 0);
 
     // Only patch editor HTML when not focused to avoid cursor-jump
     if (document.activeElement !== this.editor && this.editor.innerHTML !== this.valueInternal) {

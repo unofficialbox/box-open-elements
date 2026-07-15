@@ -74,6 +74,42 @@ describe("BoxDialogElement", () => {
     expect(element.open).toBe(false);
   });
 
+  it("restores focus to the previously focused element on close", async () => {
+    const opener = document.createElement("button");
+    opener.textContent = "Open";
+    document.body.append(opener);
+    opener.focus();
+
+    const element = document.createElement("box-dialog") as BoxDialogElement;
+    document.body.append(element);
+    element.show();
+    await Promise.resolve();
+
+    element.close();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(document.activeElement).toBe(opener);
+  });
+
+  it("traps Tab focus inside the dialog", () => {
+    const element = document.createElement("box-dialog") as BoxDialogElement;
+    document.body.append(element);
+    element.show();
+
+    const dialog = element.shadowRoot?.querySelector('[part="dialog"]') as HTMLElement;
+    const cancel = element.shadowRoot?.querySelector('[part="cancel"]') as HTMLButtonElement;
+    const confirm = element.shadowRoot?.querySelector('[part="confirm"]') as HTMLButtonElement;
+    confirm.focus();
+
+    const tab = new KeyboardEvent("keydown", { key: "Tab", bubbles: true });
+    const prevent = vi.spyOn(tab, "preventDefault");
+    dialog.dispatchEvent(tab);
+
+    expect(prevent).toHaveBeenCalled();
+    expect(element.shadowRoot?.activeElement).toBe(cancel);
+  });
+
   it("includes focus-visible and hover styles for cancel and confirm", () => {
     const element = document.createElement("box-dialog") as BoxDialogElement;
     document.body.append(element);

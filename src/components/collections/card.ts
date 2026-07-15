@@ -40,6 +40,8 @@ const cardStyles = `
   }
 
   [part~="title"] {
+    margin: 0;
+    font: inherit;
     font-size: 1.04rem;
     font-weight: 700;
     line-height: 1.25;
@@ -91,7 +93,7 @@ export class BoxCardElement extends BaseElement {
       <article part="card">
         <header part="header">
           <span part="eyebrow" hidden></span>
-          <strong part="title heading" hidden></strong>
+          <h2 part="title heading" hidden></h2>
         </header>
         <div part="body">
           <slot></slot>

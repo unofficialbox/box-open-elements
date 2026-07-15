@@ -1,5 +1,6 @@
 import { ContentExplorerController } from "../controller.js";
 import { BaseElement } from "../../../core/index.js";
+import { applyRovingTabindex, handleRovingKeydown } from "../../../foundations/a11y/index.js";
 import {
   boeFocusRingShadow,
   boeNeutralInteractiveStyles,
@@ -273,14 +274,24 @@ export class BoxExplorerActionMenuElement extends BaseElement {
         return;
       }
       const menuItem = target.closest('[part="menu-item"]') as HTMLElement | null;
-      if (menuItem && this.shadowRoot?.contains(menuItem) && keyboardEvent.key === "Escape") {
+      if (!menuItem || !this.shadowRoot?.contains(menuItem)) {
+        return;
+      }
+
+      if (keyboardEvent.key === "Escape") {
         keyboardEvent.preventDefault();
         this.open = false;
         this.update();
         queueMicrotask(() => {
           (this.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null)?.focus();
         });
+        return;
       }
+
+      const menuItems = Array.from(
+        this.shadowRoot.querySelectorAll<HTMLButtonElement>('[part="menu-item"]'),
+      );
+      handleRovingKeydown(keyboardEvent, menuItems, { orientation: "vertical" });
     });
   }
 
@@ -324,6 +335,13 @@ export class BoxExplorerActionMenuElement extends BaseElement {
         ${menuMarkup}
       </div>
     `;
+
+    if (this.open) {
+      const menuItems = Array.from(
+        this.shadowRoot?.querySelectorAll<HTMLButtonElement>('[part="menu-item"]') ?? [],
+      );
+      applyRovingTabindex(menuItems, 0);
+    }
 
     if (justOpened) {
       queueMicrotask(() => {

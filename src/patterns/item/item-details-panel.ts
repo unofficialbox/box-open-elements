@@ -376,7 +376,7 @@ export class BoxItemDetailsPanelElement extends BaseElement {
       <section part="panel">
         <header part="header">
           <div part="eyebrow" hidden></div>
-          <div part="title"></div>
+          <h2 part="title"></h2>
           <div part="message" hidden></div>
           <div part="status" hidden></div>
         </header>

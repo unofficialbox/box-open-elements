@@ -264,7 +264,7 @@ export class BoxMetadataInspectorElement extends BaseElement {
       <section part="inspector">
         <header part="header">
           ${eyebrowMarkup}
-          <div part="title">${escapeHtml(this.heading)}</div>
+          <h2 part="title">${escapeHtml(this.heading)}</h2>
           ${messageMarkup}
         </header>
         ${this.renderSections()}

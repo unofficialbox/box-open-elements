@@ -16,8 +16,8 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 
 ## Current state (as of this handoff)
 
-- **Branch tip for fidelity work:** develop from `origin/main`. Batches 0–3 and 6
-  are merged; start Batch 4 on a fresh `cursor/<name>-7eb7` branch.
+- **Branch tip for fidelity work:** develop from `origin/main` after Batch 4 merges.
+  Start Batch 5 on a fresh `cursor/<name>-7eb7` branch.
 - **Live site:** GitHub Pages, `https://unofficialbox.github.io/box-open-elements/`,
   auto-deploys on push to `main` via `.github/workflows/deploy.yml`
   (build cmd `bun run site:build`, output `docs-site/dist`). The Workshop is
@@ -58,19 +58,26 @@ organized into **systemic sweeps**, not per-component rewrites.
   applied across catalog + pattern interactive parts, with CodeRabbit
   follow-ups (opaque focus-ring fallback, selected-state hover precedence,
   expanded action-menu focus ring, style tests).
+- **Batch 4 — ARIA/keyboard + heading semantics** (this branch / #38): shared
+  helpers in `src/foundations/a11y/` (`nextRovingIndex`, `handleRovingKeydown`,
+  `trapTabKey`, `FocusRestore`, `renderHeadingHtml`). Composite widgets gained
+  roving tabindex + Arrow/Home/End (menu, dropdown listbox, toolbars,
+  dual-listbox, saved-view-picker, rating focus-follow, segmented/category
+  Home/End). Modals trap Tab + restore focus (dialog, drawer, invite). Fake
+  `tablist`/`tab` removed from progress-steps + carousel; `role="listitem"`
+  stripped from interactive buttons. `heading` now renders as native `<h2>`
+  across heading-bearing surfaces (keep `part="title"`). Exception: titles
+  nested inside a native `<button>` (e.g. review-queue-item) stay non-heading
+  markup because headings inside buttons are invalid HTML.
 
 ### Remaining (do these next, in order)
-1. **Batch 4 — ARIA roles + keyboard nav for composite widgets (~18).** Folds
-   in the deferred **heading semantics** (render `heading` as a real `<h*>` /
-   `role="heading"` with `aria-level`, not a `<div part="title">`).
-2. **Batch 5 — form-field completeness (~13):** error/invalid state,
+1. **Batch 5 — form-field completeness (~13):** error/invalid state,
    `ElementInternals`/`name` so values submit.
-3. **Batch 7 — polish:** deferred `skeleton` update short-circuit; extra
+2. **Batch 7 — polish:** deferred `skeleton` update short-circuit; extra
    jsdom style-assertion tests for rating/rich-text-input/action-menu;
-   any leftover medium/low audit nits not covered by Batches 4–5.
+   any leftover medium/low audit nits not covered by Batch 5.
 
 ### Deferred CodeRabbit items (intentional, tracked above)
-- Heading `role="heading"` semantics → Batch 4 (systematic, not one-off).
 - `skeleton` update short-circuit → Batch 7.
 - "add style tests" nitpicks → covered by the screenshot gate; low value.
 
@@ -130,7 +137,7 @@ organized into **systemic sweeps**, not per-component rewrites.
 
 ## Open user-facing threads
 - User-reported review points addressed: token labels ✅, dark theme ✅ (Batch 2),
-  Workshop unlink ✅, Batch 1 render contract ✅, Batch 3 interaction states ✅.
-  Fidelity program remaining: Batches **4 / 5 / 7**.
-- **Next:** start **Batch 4** (ARIA roles + keyboard nav for composites,
-  including heading semantics).
+  Workshop unlink ✅, Batch 1 render contract ✅, Batch 3 interaction states ✅,
+  Batch 4 ARIA/keyboard + heading semantics ✅ (this PR).
+  Fidelity program remaining: Batches **5 / 7**.
+- **Next:** start **Batch 5** (form association + error/invalid states).

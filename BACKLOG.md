@@ -6,8 +6,8 @@ This file tracks the highest-signal follow-up work that is still open. The phase
 
 Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fidelity-audit.md).
 
-- **Done:** Batches 0 (security), 1 (`BaseElement` in-place render), 2 (dark mode), 3 (focus/hover/active/disabled), 6 (`title`→`heading` + docs fixes).
-- **Next:** Batch 4 (ARIA/keyboard + heading semantics) → Batch 5 (form association) → Batch 7 (polish).
+- **Done:** Batches 0 (security), 1 (`BaseElement` in-place render), 2 (dark mode), 3 (focus/hover/active/disabled), 4 (ARIA/keyboard + heading semantics), 6 (`title`→`heading` + docs fixes).
+- **Next:** Batch 5 (form association) → Batch 7 (polish).
 
 ## Build-out
 

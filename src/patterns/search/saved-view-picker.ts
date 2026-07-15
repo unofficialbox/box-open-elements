@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { applyRovingTabindex, handleRovingKeydown } from "../../foundations/a11y/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-saved-view-picker";
@@ -212,19 +213,65 @@ export class BoxSavedViewPickerElement extends BaseElement {
       </section>
     `;
 
-    this.shadowRoot.querySelectorAll<HTMLElement>('[part="view"]').forEach(button => {
-      button.addEventListener("click", () => {
-        const nextValue = button.getAttribute("data-view-id") ?? "";
-        if (!nextValue || nextValue === this.valueInternal) {
-          return;
-        }
+    const views = Array.from(this.shadowRoot.querySelectorAll<HTMLButtonElement>('[part="view"]'));
+    const selectedIndex = Math.max(
+      0,
+      views.findIndex(button => button.getAttribute("data-view-id") === this.valueInternal),
+    );
+    applyRovingTabindex(views, selectedIndex);
 
-        this.valueInternal = nextValue;
-        this.setAttribute("value", nextValue);
-        this.emitValueChanged();
+    const focusView = (viewId: string): void => {
+      queueMicrotask(() => {
+        const match = Array.from(
+          this.shadowRoot?.querySelectorAll<HTMLButtonElement>('[part="view"]') ?? [],
+        ).find(button => button.getAttribute("data-view-id") === viewId);
+        match?.focus();
+      });
+    };
+
+    const selectView = (nextValue: string, restoreFocus = false): void => {
+      if (!nextValue || nextValue === this.valueInternal) {
+        if (restoreFocus) {
+          focusView(nextValue);
+        }
+        return;
+      }
+      this.valueInternal = nextValue;
+      this.setAttribute("value", nextValue);
+      this.emitValueChanged();
+      // `update()` rebuilds the view buttons; restore focus onto the new node.
+      if (restoreFocus) {
+        focusView(nextValue);
+      }
+    };
+
+    views.forEach(button => {
+      button.addEventListener("click", () => {
+        selectView(button.getAttribute("data-view-id") ?? "");
       });
     });
-  
+
+    this.shadowRoot.querySelector('[part="views"]')?.addEventListener("keydown", event => {
+      const keyboardEvent = event as KeyboardEvent;
+      // APG radiogroup: Arrow/Home/End move focus and select the newly focused view.
+      if (handleRovingKeydown(keyboardEvent, views, { orientation: "both" })) {
+        const focused = views.find(button => button.tabIndex === 0);
+        selectView(focused?.getAttribute("data-view-id") ?? "", true);
+        return;
+      }
+
+      if (keyboardEvent.key !== "Enter" && keyboardEvent.key !== " ") {
+        return;
+      }
+      const button = (keyboardEvent.target as HTMLElement).closest(
+        '[part="view"]',
+      ) as HTMLButtonElement | null;
+      if (!button) {
+        return;
+      }
+      keyboardEvent.preventDefault();
+      selectView(button.getAttribute("data-view-id") ?? "", true);
+    });
   }
 }
 

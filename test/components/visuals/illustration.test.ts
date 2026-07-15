@@ -40,15 +40,19 @@ describe("BoxIllustrationElement", () => {
     expect(element.shadowRoot?.querySelector('[part~="message"]')?.textContent).toContain("A reusable ambient note");
   });
 
-  it("exposes an accessible illustration label", () => {
+  it("exposes the heading outside the image role", () => {
     const element = document.createElement("box-illustration") as BoxIllustrationElement;
     element.heading = "No recent activity";
 
     document.body.append(element);
 
     const figure = element.shadowRoot?.querySelector('[part="illustration"]') as HTMLElement | null;
-    expect(figure?.getAttribute("role")).toBe("img");
-    expect(figure?.getAttribute("aria-label")).toBe("No recent activity");
+    const art = element.shadowRoot?.querySelector('[part="art"]') as HTMLElement | null;
+    const title = element.shadowRoot?.querySelector('[part="title"]') as HTMLElement | null;
+    expect(figure?.getAttribute("role")).toBeNull();
+    expect(art?.getAttribute("aria-hidden")).toBe("true");
+    expect(title?.tagName).toBe("H2");
+    expect(title?.textContent).toBe("No recent activity");
   });
 
   it("renders a registered Box illustration asset when requested", () => {

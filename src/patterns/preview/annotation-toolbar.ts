@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { applyRovingTabindex, handleRovingKeydown } from "../../foundations/a11y/index.js";
 import {
   boeBrandInteractiveStyles,
   boeNeutralInteractiveStyles,
@@ -416,7 +417,22 @@ export class BoxAnnotationToolbarElement extends BaseElement {
         }
       });
     });
-  
+
+    const bindToolbar = (selector: string): void => {
+      const toolbar = this.shadowRoot?.querySelector(selector);
+      if (!toolbar) {
+        return;
+      }
+      const buttons = Array.from(toolbar.querySelectorAll<HTMLButtonElement>("button")).filter(
+        button => !button.disabled,
+      );
+      applyRovingTabindex(buttons, 0);
+      toolbar.addEventListener("keydown", event => {
+        handleRovingKeydown(event as KeyboardEvent, buttons, { orientation: "horizontal" });
+      });
+    };
+    bindToolbar('[part="tools"]');
+    bindToolbar('[part="colors"]');
   }
 }
 

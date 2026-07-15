@@ -58,4 +58,32 @@ describe("BoxMenuElement", () => {
 
     expect(item?.disabled).toBe(true);
   });
+
+  it("uses roving tabindex and ArrowDown/Home/End between menuitems", async () => {
+    const element = document.createElement("box-menu") as BoxMenuElement;
+    element.items = [
+      { id: "rename", label: "Rename" },
+      { id: "share", label: "Share" },
+      { id: "archive", label: "Archive" },
+    ];
+    document.body.append(element);
+
+    const items = Array.from(
+      element.shadowRoot?.querySelectorAll<HTMLButtonElement>('[part="menu-item"]') ?? [],
+    );
+    expect(items.map(item => item.tabIndex)).toEqual([0, -1, -1]);
+
+    items[0]?.focus();
+    items[0]?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    await Promise.resolve();
+    expect(element.shadowRoot?.activeElement).toBe(items[1]);
+
+    items[1]?.dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true }));
+    await Promise.resolve();
+    expect(element.shadowRoot?.activeElement).toBe(items[2]);
+
+    items[2]?.dispatchEvent(new KeyboardEvent("keydown", { key: "Home", bubbles: true }));
+    await Promise.resolve();
+    expect(element.shadowRoot?.activeElement).toBe(items[0]);
+  });
 });
