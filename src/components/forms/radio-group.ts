@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-radio-group";
 
 const escapeHtml = (value: string): string =>
@@ -8,17 +10,17 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-export class BoxRadioGroupElement extends HTMLElement {
+export class BoxRadioGroupElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["disabled", "label", "options", "value"];
   }
 
   private valueInternal = "";
+  private groupName = "radio-group-" + Math.random().toString(36).slice(2);
+  private lastOptionsJson = "";
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private legendEl!: HTMLLegendElement;
+  private optionsContainerEl!: HTMLDivElement;
 
   get value(): string {
     return this.valueInternal;
@@ -27,7 +29,6 @@ export class BoxRadioGroupElement extends HTMLElement {
   set value(nextValue: string) {
     this.valueInternal = nextValue;
     this.setAttribute("value", nextValue);
-    this.render();
   }
 
   get disabled(): boolean {
@@ -68,34 +69,21 @@ export class BoxRadioGroupElement extends HTMLElement {
     this.setAttribute("options", JSON.stringify(value));
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(
+    name: string,
+    oldValue: string | null,
+    newValue: string | null,
+  ): void {
     if (name === "value") {
       this.valueInternal = this.getAttribute("value") ?? "";
     }
-
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
-
-    const groupName = `radio-${this.localName}-${Math.random().toString(36).slice(2)}`;
-    const optionsMarkup = this.options
-      .map(
-        option => `
-          <label part="option${option.value === this.valueInternal ? " option-selected" : ""}" data-selected="${String(option.value === this.valueInternal)}">
-            <input type="radio" part="input" name="${groupName}" value="${escapeHtml(option.value)}" ${option.value === this.valueInternal ? "checked" : ""} ${this.disabled ? "disabled" : ""} />
-            <span part="option-label">${escapeHtml(option.label)}</span>
-          </label>
-        `,
-      )
-      .join("");
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -186,27 +174,73 @@ export class BoxRadioGroupElement extends HTMLElement {
         }
       </style>
       <fieldset part="group">
-        <legend part="label">${escapeHtml(this.label)}</legend>
-        <div part="options">${optionsMarkup}</div>
+        <legend part="label"></legend>
+        <div part="options"></div>
       </fieldset>
     `;
 
-    this.shadowRoot.querySelectorAll('[part="input"]').forEach(node => {
-      node.addEventListener("change", event => {
-        if (this.disabled) {
-          return;
-        }
-        const nextValue = (event.currentTarget as HTMLInputElement).value;
-        this.valueInternal = nextValue;
-        this.setAttribute("value", nextValue);
-        this.dispatchEvent(
-          new CustomEvent("value-changed", {
-            bubbles: true,
-            composed: true,
-            detail: { value: nextValue },
-          }),
-        );
+    this.legendEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.optionsContainerEl = this.shadowRoot.querySelector('[part="options"]')!;
+  }
+
+  protected update(): void {
+    if (!this.legendEl || !this.optionsContainerEl) {
+      return;
+    }
+
+    this.legendEl.textContent = this.label;
+
+    const currentOptionsJson = JSON.stringify(this.options);
+    if (currentOptionsJson !== this.lastOptionsJson) {
+      const groupName = this.groupName;
+      this.optionsContainerEl.innerHTML = this.options
+        .map(
+          option => `
+            <label part="option" data-value="${escapeHtml(option.value)}">
+              <input type="radio" part="input" name="${groupName}" value="${escapeHtml(option.value)}" />
+              <span part="option-label">${escapeHtml(option.label)}</span>
+            </label>
+          `,
+        )
+        .join("");
+      this.lastOptionsJson = currentOptionsJson;
+
+      this.optionsContainerEl.querySelectorAll('[part="input"]').forEach(node => {
+        node.addEventListener("change", event => {
+          if (this.disabled) {
+            return;
+          }
+          const nextValue = (event.currentTarget as HTMLInputElement).value;
+          this.valueInternal = nextValue;
+          this.setAttribute("value", nextValue);
+          this.dispatchEvent(
+            new CustomEvent("value-changed", {
+              bubbles: true,
+              composed: true,
+              detail: { value: nextValue },
+            }),
+          );
+        });
       });
+    }
+
+    this.optionsContainerEl.querySelectorAll('[part="option"]').forEach(labelNode => {
+      const label = labelNode as HTMLLabelElement;
+      const val = label.dataset.value;
+      const isSelected = val === this.valueInternal;
+
+      label.dataset.selected = String(isSelected);
+      label.setAttribute("part", `option${isSelected ? " option-selected" : ""}`);
+
+      const input = label.querySelector('[part="input"]') as HTMLInputElement | null;
+      if (input) {
+        input.checked = isSelected;
+        if (this.disabled) {
+          input.setAttribute("disabled", "");
+        } else {
+          input.removeAttribute("disabled");
+        }
+      }
     });
   }
 }
