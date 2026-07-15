@@ -95,10 +95,13 @@ organized into **systemic sweeps**, not per-component rewrites.
 - **Never** put the model identifier (`claude-opus-4-8`) in commits/PRs/code.
   Commit footer: `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>` +
   `Claude-Session: …`.
-- **PR flow:** open **draft** PRs; CodeRabbit skips drafts and reviews on
-  "ready". CI success does **not** fire a webhook — poll check-runs (a short
-  background `sleep` timer works) to know when to merge. After merge, reset:
+- **PR flow:** open **draft** PRs first, then mark **ready for review** so
+  CodeRabbit runs (it skips drafts). Poll until the CodeRabbit commit status is
+  `Review completed` / success (large diffs can stall — a small push retriggers).
+  CI success does **not** fire a webhook — poll check-runs. After merge, reset:
   `git fetch origin main && git checkout -B <branch> origin/main`.
+- **Always create/update the PR** for the working branch, then **wait for
+  CodeRabbit to finish** before treating the turn as done.
 - **Baselines regen needs Docker.** In this sandbox: `sudo -n dockerd &` then
   `bun run baselines:regen`. The proxy blocks `bun.sh`/`github.io`, so
   `container-run.sh` mounts the host Bun binary and forwards the CA bundle; you
