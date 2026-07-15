@@ -95,11 +95,11 @@ number of systemic sweeps** rather than per-component rewrites.
 **Batch 0 — Security (do first).** Scheme-check `link-button` href, escape `skeleton`
 `width`/`height` before injecting into `style`, `escapeHtml` the `content-explorer` error message.
 
-**Batch 1 — Replace full-innerHTML render with in-place patching (highest impact, ~55).** Build the
-shadow DOM once in `connectedCallback`; on state change, mutate text/classes/`aria-*` instead of
-reassigning `innerHTML`; preserve/restore focus where a rebuild is unavoidable. Root cause of the
-states + much of the accessibility shortfall; fixing it also revives every dead CSS transition.
-Introduce a shared base helper so it's one pattern, applied across the interactive set.
+**Batch 1 — Replace full-innerHTML render with in-place patching — DONE.** Shared `BaseElement`
+(`src/core/element.ts`) builds the shadow DOM once via `renderTemplate()`, attaches listeners once
+via `setupListeners()`, and patches via `update()`. Applied across the full catalog and pattern
+surfaces (components + patterns; ~107 elements). Dynamic lists rebuild only their list container;
+focused inputs skip value overwrites while focused. Remaining medium/low polish stays in Batch 7.
 
 **Batch 2 — Tokenize color for dark-mode correctness (~35).** Replace `color-mix(…, white N%)` with
 mixes against surface tokens; replace hardcoded status/accent hex with `--boe-token-surface-status-*`;

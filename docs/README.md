@@ -4,11 +4,17 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 
 ## Start here
 
+- [Handoff](./HANDOFF.md) — current fidelity-program status for the next agent
 - [Taxonomy](./taxonomy.md) — the canonical tier model and category map
-- [Architecture](./architecture.md) — layers, headless-first design, transport boundary
+- [Architecture](./architecture.md) — layers, headless-first design, transport boundary, `BaseElement` render contract
 - [API Guidelines](./api-guidelines.md) — shared attribute/event/schema vocabulary
 - [Roadmap](./roadmap.md) — the phased build-out plan
 - [Migration Map](./migration-map.md) — everything in `box-open-web-components` mapped onto this repo
+
+## Audits
+
+- [Component Fidelity Audit](./audits/component-fidelity-audit.md) — active work driver for the systemic batch program
+- [Audit data](./audits/component-fidelity-audit.data.json) — per-component scores and issues
 
 ## Foundations
 

@@ -16,17 +16,18 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 
 ## Current state (as of this handoff)
 
-- **Branch:** `claude/box-design-system-rebuild-dsi468` — develop here, always.
-  It currently points at `origin/main` tip (everything below is merged).
+- **Branch tip for fidelity work:** land on `main` via PR, then continue batches
+  from `origin/main`. Active Batch 1 completion branch:
+  `cursor/batch-1-base-element-complete-7eb7`.
 - **Live site:** GitHub Pages, `https://unofficialbox.github.io/box-open-elements/`,
   auto-deploys on push to `main` via `.github/workflows/deploy.yml`
   (build cmd `bun run site:build`, output `docs-site/dist`). The Workshop is
   **not** deployed (internal tool).
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
-- Recent merged PRs: #25 render-health→pixel gate, #26 docs-site polish,
-  #27 containerized pixel gate, #28 Pages deployment, **#29 fidelity audit +
-  Batches 0/2/6** (the big one).
+- Recent merged PRs: #29 fidelity audit + Batches 0/2/6, **#31** Batch 1 starter
+  (`BaseElement` + button/checkbox/radio-group), **#32** Batch 1 forms/actions
+  wave. Batch 1 catalog-wide completion is in flight on the branch above.
 
 ## The active initiative: component fidelity program
 
@@ -35,38 +36,39 @@ A multi-agent audit scored all 109 components (avg **2.78/5**, 51 below 3/5,
 `docs/audits/component-fidelity-audit.md` and `…-audit.data.json`. Work is
 organized into **systemic sweeps**, not per-component rewrites.
 
-### Done (merged in #29)
-- **Batch 0 — security:** fixed 3 injection holes (link-button scheme
+### Done
+- **Batch 0 — security** (#29): fixed 3 injection holes (link-button scheme
   validation incl. tab/newline bypass, skeleton CSSOM sizing, content-explorer
   error escaping).
-- **Batch 2 — dark mode:** replaced `color-mix(…, white)` with
-  `var(--boe-token-surface-surface,#ffffff)` (flips in dark; no-op in light)
-  across 94 files; added tokens `SurfaceItemSurfaceHover`, `TextTextDanger`.
-- **Batch 6:** renamed the heading attribute `title`→`heading` across 26
-  components (collided with native `HTMLElement.title`), fixed crashing/blank
-  docs examples, humanized the Design-Tokens labels, unlinked the Workshop.
+- **Batch 2 — dark mode** (#29): replaced `color-mix(…, white)` with
+  `var(--boe-token-surface-surface,#ffffff)` across 94 files; added tokens
+  `SurfaceItemSurfaceHover`, `TextTextDanger`.
+- **Batch 6** (#29): renamed heading attribute `title`→`heading` across 26
+  components, fixed crashing/blank docs examples, humanized Design-Tokens
+  labels, unlinked the Workshop.
+- **Batch 1 — render-pattern / `BaseElement`** (#31, #32, current PR): every
+  catalog component and pattern custom element extends `BaseElement`
+  (`renderTemplate` / `setupListeners` / `update`). No remaining
+  `attributeChangedCallback → shadowRoot.innerHTML` rebuild loop in
+  `src/components` or `src/patterns`. Focus/input/drag fidelity tests added for
+  acute surfaces (forms, split-view, carousel, accordion/tabs,
+  metadata-filter-builder, drop-zone). See
+  [architecture.md](./architecture.md#web-component-render-contract).
 
 ### Remaining (do these next, in order)
-1. **Batch 1 — the render-pattern fix (highest impact, ~55 components).** Most
-   interactive components do `attributeChangedCallback → render()` that
-   reassigns `shadowRoot.innerHTML`, which **destroys focus, drops in-progress
-   input, and breaks drag** (acute: checkbox, radio-group, combobox,
-   split-view, tree-grid, carousel). Introduce a shared in-place-update helper
-   (build shadow DOM once in `connectedCallback`; on change, mutate
-   text/classes/`aria-*`; preserve/restore focus). Architecturally significant —
-   confirm the base-helper approach before fanning out.
-2. **Batch 3 — focus-visible rings + hover/active/disabled states (~25).**
-3. **Batch 4 — ARIA roles + keyboard nav for composite widgets (~18).** Folds
+1. **Batch 3 — focus-visible rings + hover/active/disabled states (~25).**
+2. **Batch 4 — ARIA roles + keyboard nav for composite widgets (~18).** Folds
    in the deferred **heading semantics** (render `heading` as a real `<h*>` /
    `role="heading"` with `aria-level`, not a `<div part="title">`).
-4. **Batch 5 — form-field completeness (~13):** error/invalid state,
+3. **Batch 5 — form-field completeness (~13):** error/invalid state,
    `ElementInternals`/`name` so values submit.
-5. **Batch 7 — polish:** deferred `skeleton` render short-circuit; extra
-   jsdom style-assertion tests for rating/rich-text-input/action-menu.
+4. **Batch 7 — polish:** deferred `skeleton` update short-circuit; extra
+   jsdom style-assertion tests for rating/rich-text-input/action-menu;
+   any leftover medium/low audit nits not covered by Batches 3–5.
 
 ### Deferred CodeRabbit items (intentional, tracked above)
 - Heading `role="heading"` semantics → Batch 4 (systematic, not one-off).
-- `skeleton` attributeChangedCallback short-circuit → Batch 1/7.
+- `skeleton` update short-circuit → Batch 7.
 - "add style tests" nitpicks → covered by the screenshot gate; low value.
 
 ## How to run things
@@ -115,10 +117,13 @@ organized into **systemic sweeps**, not per-component rewrites.
   and the gallery mirror in `tools/preview/gallery.html` (keep both in sync).
 - **Repo scope:** GitHub access is limited to `unofficialbox/box-open-elements`.
   Use the `mcp__github__*` tools (no `gh` CLI).
+- **Always update docs** when behavior/architecture/status changes (`HANDOFF.md`,
+  owning subsystem docs, catalogs/migration-map when public surface moves).
+- **Always commit and push** working branches as you go; open/update the PR each
+  turn that lands changes.
 
 ## Open user-facing threads
-- The user's original review points are all addressed: token labels ✅,
-  dark theme ✅ (Batch 2), Workshop question ✅ (unlinked), "components not very
-  good" → the audit + batch program (Batches 1/3/4/5/7 remain).
-- Next decision the user was weighing: start **Batch 1** vs pause to review the
-  merged result + redeployed site.
+- User-reported review points addressed: token labels ✅, dark theme ✅ (Batch 2),
+  Workshop unlink ✅, fidelity program in progress (Batches 3/4/5/7 remain).
+- **Next:** start **Batch 3** (focus-visible + hover/active/disabled) after Batch 1
+  merges.

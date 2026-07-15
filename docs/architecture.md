@@ -3,7 +3,8 @@
 `box-open-elements` is a framework-agnostic design system and web component library. It uses a layered structure:
 
 1. `src/core`
-   Shared runtime: typed event emitter and the controller base class.
+   Shared runtime: typed event emitter, controller base class, and `BaseElement`
+   (the Web Component base that builds shadow DOM once and patches in place).
 2. `src/foundations`
    Design decisions as data: the design-token registry, token bundles, iconography, and theming APIs.
 3. `src/components`
@@ -58,6 +59,19 @@ For the recommended server-side Box boundary and data-source contract model, see
 
 Workflow patterns should begin as headless behavior (controllers plus contracts) and then gain presentation adapters. The content explorer decomposition in [patterns/content-explorer.md](./patterns/content-explorer.md) is the reference example: session, navigation, collection, selection, and actions are independent headless blocks that any UI can consume.
 
+## Web Component render contract
+
+Catalog and pattern custom elements extend `BaseElement` from `box-open-elements/core`:
+
+- `renderTemplate()` — build the shadow DOM (styles + structure) once on first connect
+- `setupListeners()` — attach listeners once to stable nodes (prefer event delegation for lists)
+- `update()` — mutate text, classes, attributes, and `aria-*` in place on state change
+
+Do **not** reassign `shadowRoot.innerHTML` from `attributeChangedCallback` or property setters.
+Full rebuilds destroy focus, drop in-progress input, break drag/pointer capture, and kill CSS
+transitions. Dynamic lists may rebuild a dedicated list container inside `update()`; keep the
+outer shell and listeners stable. Focused inputs should not overwrite `.value` while focused.
+
 ## Design principles
 
 - Keep state and business logic separate from rendering.
@@ -66,6 +80,7 @@ Workflow patterns should begin as headless behavior (controllers plus contracts)
 - Prefer boring, guessable APIs over clever ones.
 - Keep collection primitives compatible with pagination, infinite scroll, and future windowing.
 - Treat accessibility semantics and keyboard support as part of the component contract.
+- Prefer in-place shadow DOM updates (`BaseElement`) over full `innerHTML` rebuilds.
 
 ## Non-goals for the first phase
 
