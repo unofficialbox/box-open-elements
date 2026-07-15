@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-metric-card";
 
 const escapeHtml = (value: string): string =>
@@ -20,147 +22,8 @@ type MetricCardTrend = {
   tone?: string;
 };
 
-export class BoxMetricCardElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["action", "eyebrow", "message", "status", "heading", "trend", "value"];
-  }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get action(): MetricCardAction | null {
-    return this.parseJsonAttribute<MetricCardAction | null>("action", null);
-  }
-
-  set action(value: MetricCardAction | null) {
-    if (!value) {
-      this.removeAttribute("action");
-      return;
-    }
-
-    this.setAttribute("action", JSON.stringify(value));
-  }
-
-  get eyebrow(): string {
-    return this.getAttribute("eyebrow") ?? "";
-  }
-
-  set eyebrow(value: string) {
-    if (!value) {
-      this.removeAttribute("eyebrow");
-      return;
-    }
-
-    this.setAttribute("eyebrow", value);
-  }
-
-  get message(): string {
-    return this.getAttribute("message") ?? "";
-  }
-
-  set message(value: string) {
-    if (!value) {
-      this.removeAttribute("message");
-      return;
-    }
-
-    this.setAttribute("message", value);
-  }
-
-  get status(): string {
-    return this.getAttribute("status") ?? "";
-  }
-
-  set status(value: string) {
-    if (!value) {
-      this.removeAttribute("status");
-      return;
-    }
-
-    this.setAttribute("status", value);
-  }
-
-  get heading(): string {
-    return this.getAttribute("heading") ?? "Metric";
-  }
-
-  set heading(value: string) {
-    this.setAttribute("heading", value);
-  }
-
-  get trend(): MetricCardTrend | null {
-    return this.parseJsonAttribute<MetricCardTrend | null>("trend", null);
-  }
-
-  set trend(value: MetricCardTrend | null) {
-    if (!value) {
-      this.removeAttribute("trend");
-      return;
-    }
-
-    this.setAttribute("trend", JSON.stringify(value));
-  }
-
-  get value(): string {
-    return this.getAttribute("value") ?? "";
-  }
-
-  set value(value: string) {
-    this.setAttribute("value", value);
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private parseJsonAttribute<T>(name: string, fallback: T): T {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return fallback;
-    }
-
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
-  }
-
-  private emitAction(action: MetricCardAction): void {
-    this.dispatchEvent(
-      new CustomEvent("action", {
-        bubbles: true,
-        composed: true,
-        detail: action,
-      }),
-    );
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const action = this.action;
-    const trend = this.trend;
-    const eyebrowMarkup = this.eyebrow ? `<div part="eyebrow">${escapeHtml(this.eyebrow)}</div>` : "";
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const statusMarkup = this.status ? `<span part="status">${escapeHtml(this.status)}</span>` : "";
-    const trendMarkup = trend
-      ? `<div part="trend" data-direction="${escapeHtml(trend.direction ?? "flat")}" data-tone="${escapeHtml(trend.tone ?? "neutral")}">${escapeHtml(trend.label)}</div>`
-      : "";
-    const actionMarkup = action
-      ? `<button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">${escapeHtml(action.label)}</button>`
-      : "";
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -279,7 +142,159 @@ export class BoxMetricCardElement extends HTMLElement {
           outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
           outline-offset: 2px;
         }
-      </style>
+      `;
+
+export class BoxMetricCardElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["action", "eyebrow", "message", "status", "heading", "trend", "value"];
+  }
+  get action(): MetricCardAction | null {
+    return this.parseJsonAttribute<MetricCardAction | null>("action", null);
+  }
+
+  set action(value: MetricCardAction | null) {
+    if (!value) {
+      this.removeAttribute("action");
+      return;
+    }
+
+    this.setAttribute("action", JSON.stringify(value));
+  }
+
+  get eyebrow(): string {
+    return this.getAttribute("eyebrow") ?? "";
+  }
+
+  set eyebrow(value: string) {
+    if (!value) {
+      this.removeAttribute("eyebrow");
+      return;
+    }
+
+    this.setAttribute("eyebrow", value);
+  }
+
+  get message(): string {
+    return this.getAttribute("message") ?? "";
+  }
+
+  set message(value: string) {
+    if (!value) {
+      this.removeAttribute("message");
+      return;
+    }
+
+    this.setAttribute("message", value);
+  }
+
+  get status(): string {
+    return this.getAttribute("status") ?? "";
+  }
+
+  set status(value: string) {
+    if (!value) {
+      this.removeAttribute("status");
+      return;
+    }
+
+    this.setAttribute("status", value);
+  }
+
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Metric";
+  }
+
+  set heading(value: string) {
+    this.setAttribute("heading", value);
+  }
+
+  get trend(): MetricCardTrend | null {
+    return this.parseJsonAttribute<MetricCardTrend | null>("trend", null);
+  }
+
+  set trend(value: MetricCardTrend | null) {
+    if (!value) {
+      this.removeAttribute("trend");
+      return;
+    }
+
+    this.setAttribute("trend", JSON.stringify(value));
+  }
+
+  get value(): string {
+    return this.getAttribute("value") ?? "";
+  }
+
+  set value(value: string) {
+    this.setAttribute("value", value);
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private emitAction(action: MetricCardAction): void {
+    this.dispatchEvent(
+      new CustomEvent("action", {
+        bubbles: true,
+        composed: true,
+        detail: action,
+      }),
+    );
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const action = this.action;
+    const trend = this.trend;
+    const eyebrowMarkup = this.eyebrow ? `<div part="eyebrow">${escapeHtml(this.eyebrow)}</div>` : "";
+    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
+    const statusMarkup = this.status ? `<span part="status">${escapeHtml(this.status)}</span>` : "";
+    const trendMarkup = trend
+      ? `<div part="trend" data-direction="${escapeHtml(trend.direction ?? "flat")}" data-tone="${escapeHtml(trend.tone ?? "neutral")}">${escapeHtml(trend.label)}</div>`
+      : "";
+    const actionMarkup = action
+      ? `<button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">${escapeHtml(action.label)}</button>`
+      : "";
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <article part="card">
         <header part="header">
           ${eyebrowMarkup}
@@ -302,6 +317,7 @@ export class BoxMetricCardElement extends HTMLElement {
         this.emitAction(action);
       });
     }
+  
   }
 }
 

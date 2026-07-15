@@ -1,12 +1,6 @@
-const DEFAULT_TAG_NAME = "box-avatar";
+import { BaseElement } from "../../core/index.js";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+const DEFAULT_TAG_NAME = "box-avatar";
 
 const initialsFromName = (name: string): string =>
   name
@@ -17,15 +11,67 @@ const initialsFromName = (name: string): string =>
     .join("")
     .toUpperCase();
 
-export class BoxAvatarElement extends HTMLElement {
+const avatarStyles = `
+  :host {
+    display: inline-block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="avatar"] {
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 76%, var(--boe-token-surface-surface, #ffffff) 24%);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 84%, var(--boe-token-surface-surface-secondary, #fbfbfb) 16%) 100%
+      );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      0 10px 20px rgba(15, 23, 42, 0.05);
+  }
+
+  [part="avatar"][data-tone="informative"] {
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, var(--boe-token-surface-surface, #ffffff) 82%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%) 100%
+      );
+  }
+
+  [part="avatar"][data-tone="success"] {
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 18%, var(--boe-token-surface-surface, #ffffff) 82%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 8%, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%) 100%
+      );
+  }
+
+  [part="image"] {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+
+  [part="fallback"] {
+    font-weight: 700;
+    color: var(--boe-token-text-text, #222222);
+    letter-spacing: 0.02em;
+  }
+`;
+
+export class BoxAvatarElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["alt", "initials", "name", "size", "src", "tone"];
   }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private avatarEl!: HTMLElement;
 
   get alt(): string {
     return this.getAttribute("alt") ?? this.name;
@@ -75,89 +121,56 @@ export class BoxAvatarElement extends HTMLElement {
     this.setAttribute("tone", value);
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${avatarStyles}</style>
+      <div part="avatar"></div>
+    `;
+    this.avatarEl = this.shadowRoot.querySelector('[part="avatar"]')!;
+  }
+
+  protected update(): void {
+    if (!this.avatarEl) {
       return;
     }
 
     const size = Math.max(24, this.size);
     const fallback = this.initials || "?";
-    const imageMarkup = this.src
-      ? `<img part="image" src="${escapeHtml(this.src)}" alt="${escapeHtml(this.alt)}" />`
-      : `<span part="fallback">${escapeHtml(fallback)}</span>`;
 
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: inline-block;
-          color: inherit;
-          font: inherit;
-        }
+    this.avatarEl.dataset.tone = this.tone;
+    this.avatarEl.setAttribute("aria-label", this.alt || fallback);
+    this.avatarEl.style.width = `${size}px`;
+    this.avatarEl.style.height = `${size}px`;
 
-        [part="avatar"] {
-          display: grid;
-          place-items: center;
-          overflow: hidden;
-          border-radius: 999px;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 76%, var(--boe-token-surface-surface, #ffffff) 24%);
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 84%, var(--boe-token-surface-surface-secondary, #fbfbfb) 16%) 100%
-            );
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.8),
-            0 10px 20px rgba(15, 23, 42, 0.05);
-        }
+    const existingImage = this.avatarEl.querySelector('[part="image"]') as HTMLImageElement | null;
+    const existingFallback = this.avatarEl.querySelector('[part="fallback"]') as HTMLElement | null;
 
-        [part="avatar"][data-tone="informative"] {
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, var(--boe-token-surface-surface, #ffffff) 82%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%) 100%
-            );
-        }
-
-        [part="avatar"][data-tone="success"] {
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 18%, var(--boe-token-surface-surface, #ffffff) 82%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 8%, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%) 100%
-            );
-        }
-
-        [part="image"] {
-          inline-size: 100%;
-          block-size: 100%;
-          object-fit: cover;
-        }
-
-        [part="fallback"] {
-          font-weight: 700;
-          color: var(--boe-token-text-text, #222222);
-          letter-spacing: 0.02em;
-        }
-      </style>
-      <div
-        part="avatar"
-        data-tone="${escapeHtml(this.tone)}"
-        aria-label="${escapeHtml(this.alt || fallback)}"
-        style="width:${size}px;height:${size}px;"
-      >
-        ${imageMarkup}
-      </div>
-    `;
+    if (this.src) {
+      if (existingFallback) {
+        existingFallback.remove();
+      }
+      const image = existingImage ?? document.createElement("img");
+      image.setAttribute("part", "image");
+      image.src = this.src;
+      image.alt = this.alt;
+      if (!existingImage) {
+        this.avatarEl.append(image);
+      }
+    } else {
+      if (existingImage) {
+        existingImage.remove();
+      }
+      const fallbackEl = existingFallback ?? document.createElement("span");
+      fallbackEl.setAttribute("part", "fallback");
+      fallbackEl.textContent = fallback;
+      if (!existingFallback) {
+        this.avatarEl.append(fallbackEl);
+      }
+    }
   }
 }
 

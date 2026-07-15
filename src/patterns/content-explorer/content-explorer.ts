@@ -8,6 +8,7 @@ import type {
   ExplorerState,
   ExplorerTransport,
 } from "./types.js";
+import { BaseElement } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-content-explorer";
 
@@ -71,360 +72,8 @@ export interface BoxContentExplorerTemplates {
   renderItemAction?: (args: BoxContentExplorerItemActionTemplateArgs) => string;
 }
 
-export class BoxContentExplorerElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["language", "page-size", "root-folder-id", "selection-mode", "token"];
-  }
 
-  private controller: ContentExplorerController | null = null;
-
-  private pendingStart = false;
-
-  private focusItemId: string | null = null;
-
-  private unsubscribeFns: Array<() => void> = [];
-
-  private transportValue: ExplorerTransport | null = null;
-
-  private itemActionsValue: ExplorerItemAction[] = [];
-
-  private templatesValue: BoxContentExplorerTemplates = {};
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get language(): string | null {
-    return this.getAttribute("language");
-  }
-
-  set language(value: string | null) {
-    this.updateStringAttribute("language", value);
-  }
-
-  get pageSize(): number | undefined {
-    return readPositiveNumber(this.getAttribute("page-size"));
-  }
-
-  get selectionMode(): ExplorerSelectionMode | null {
-    const value = this.getAttribute("selection-mode");
-    return value === "single" || value === "multiple" ? value : null;
-  }
-
-  set selectionMode(value: ExplorerSelectionMode | null) {
-    this.updateStringAttribute("selection-mode", value);
-  }
-
-  set pageSize(value: number | undefined) {
-    if (typeof value === "number" && value > 0) {
-      this.setAttribute("page-size", String(value));
-      return;
-    }
-
-    this.removeAttribute("page-size");
-  }
-
-  get rootFolderId(): string | null {
-    return this.getAttribute("root-folder-id");
-  }
-
-  set rootFolderId(value: string | null) {
-    this.updateStringAttribute("root-folder-id", value);
-  }
-
-  get token(): string | null {
-    return this.getAttribute("token");
-  }
-
-  set token(value: string | null) {
-    this.updateStringAttribute("token", value);
-  }
-
-  get transport(): ExplorerTransport | null {
-    return this.transportValue;
-  }
-
-  set transport(value: ExplorerTransport | null) {
-    this.transportValue = value;
-    this.scheduleStart();
-  }
-
-  get itemActions(): ExplorerItemAction[] {
-    return this.itemActionsValue;
-  }
-
-  set itemActions(value: ExplorerItemAction[]) {
-    this.itemActionsValue = value;
-    this.scheduleStart();
-  }
-
-  get templates(): BoxContentExplorerTemplates {
-    return this.templatesValue;
-  }
-
-  set templates(value: BoxContentExplorerTemplates) {
-    this.templatesValue = value;
-    this.render();
-  }
-
-  get state(): Readonly<ExplorerState> | null {
-    return this.controller?.getState() ?? null;
-  }
-
-  attributeChangedCallback(): void {
-    this.scheduleStart();
-  }
-
-  connectedCallback(): void {
-    this.render();
-    this.scheduleStart();
-  }
-
-  disconnectedCallback(): void {
-    this.teardownController();
-  }
-
-  async loadNextPage(): Promise<void> {
-    await this.controller?.loadNextPage();
-  }
-
-  async refresh(): Promise<void> {
-    await this.controller?.refresh();
-  }
-
-  async activateItem(itemId: string): Promise<void> {
-    await this.controller?.activateItem(itemId);
-  }
-
-  async navigateTo(folderId: string): Promise<void> {
-    await this.controller?.navigateTo(folderId);
-  }
-
-  select(itemIds: string[]): void {
-    this.controller?.select(itemIds);
-  }
-
-  toggleSelection(itemId: string): void {
-    this.controller?.toggleSelection(itemId);
-  }
-
-  clearSelection(): void {
-    this.controller?.clearSelection();
-  }
-
-  invokeItemAction(itemId: string, actionId: string): void {
-    this.controller?.invokeItemAction(itemId, actionId);
-  }
-
-  private updateStringAttribute(name: string, value: string | null): void {
-    if (value === null || value === "") {
-      this.removeAttribute(name);
-      return;
-    }
-
-    this.setAttribute(name, value);
-  }
-
-  private scheduleStart(): void {
-    if (this.pendingStart) {
-      return;
-    }
-
-    this.pendingStart = true;
-    queueMicrotask(() => {
-      this.pendingStart = false;
-      void this.startController();
-    });
-  }
-
-  private async startController(): Promise<void> {
-    if (!this.isConnected) {
-      return;
-    }
-
-    const config = this.readConfig();
-    if (!config) {
-      this.teardownController();
-      this.render();
-      return;
-    }
-
-    this.teardownController();
-    this.controller = new ContentExplorerController(config);
-    this.subscribeToController(this.controller);
-    this.render();
-    await this.controller.connect();
-  }
-
-  private readConfig(): ExplorerSessionConfig | null {
-    if (!this.transportValue || !this.rootFolderId || !this.token) {
-      return null;
-    }
-
-    return {
-      language: this.language ?? undefined,
-      pageSize: this.pageSize,
-      rootFolderId: this.rootFolderId,
-      selectionMode: this.selectionMode ?? undefined,
-      token: this.token,
-      itemActions: this.itemActionsValue,
-      transport: this.transportValue,
-    };
-  }
-
-  private subscribeToController(controller: ContentExplorerController): void {
-    const eventNames: Array<keyof ExplorerEvents> = [
-      "breadcrumbsChanged",
-      "connected",
-      "disconnected",
-      "folderChanged",
-      "folderLoaded",
-      "itemActivated",
-      "itemActionInvoked",
-      "itemsChanged",
-      "loadFailed",
-      "loadSucceeded",
-      "loadingChanged",
-      "paginationChanged",
-      "selectionChanged",
-    ];
-
-    this.unsubscribeFns = eventNames.map(eventName =>
-      controller.subscribe(eventName, payload => {
-        this.dispatchEvent(
-          new CustomEvent(toKebabCase(String(eventName)), {
-            bubbles: true,
-            composed: true,
-            detail: payload,
-          }),
-        );
-        this.render();
-      }),
-    );
-  }
-
-  private teardownController(): void {
-    for (const unsubscribe of this.unsubscribeFns) {
-      unsubscribe();
-    }
-    this.unsubscribeFns = [];
-
-    this.controller?.destroy();
-    this.controller = null;
-  }
-
-  private getFocusableItemIds(): string[] {
-    return this.controller?.getState().items.map(item => item.id) ?? [];
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const state = this.controller?.getState();
-    const breadcrumbMarkup = state?.breadcrumbs.length
-      ? `<nav part="breadcrumbs" aria-label="Breadcrumbs">${state.breadcrumbs
-          .map(
-            crumb => {
-              const buttonAttributes = toAttributeString({
-                "aria-label": `Open ${crumb.name}`,
-                "data-folder-id": crumb.id,
-                part: "breadcrumb",
-                type: "button",
-              });
-              return this.templatesValue.renderBreadcrumb
-                ? this.templatesValue.renderBreadcrumb({
-                    buttonAttributes,
-                    element: this,
-                    id: crumb.id,
-                    name: crumb.name,
-                    state,
-                  })
-                : `<button ${buttonAttributes}>${escapeHtml(crumb.name)}</button>`;
-            },
-          )
-          .join('<span part="breadcrumb-separator">/</span>')}</nav>`
-      : "";
-    const folderMarkup = state?.currentFolder
-      ? this.templatesValue.renderFolder
-        ? this.templatesValue.renderFolder({
-            breadcrumbsMarkup: breadcrumbMarkup,
-            element: this,
-            state,
-          })
-        : `<header part="folder">${breadcrumbMarkup}<h2>${escapeHtml(state.currentFolder.name)}</h2><p>${escapeHtml(state.currentFolder.id)}</p></header>`
-      : `<header part="folder"><h2>No folder loaded</h2></header>`;
-    const itemsMarkup = state?.items.length
-      ? state.items
-          .map(
-            item => {
-              const isSelected = state.selectedItemIds.includes(item.id);
-              const focusTarget = this.focusItemId ?? state.items[0]?.id ?? "";
-              const actions = (state.availableActionsByItemId[item.id] ?? [])
-                .map(
-                  action => {
-                    const buttonAttributes = toAttributeString({
-                      "aria-label": `${action.label} ${item.name}`,
-                      "data-action-id": action.id,
-                      "data-item-id": item.id,
-                      part: "item-action",
-                      type: "button",
-                    });
-                    return this.templatesValue.renderItemAction
-                      ? this.templatesValue.renderItemAction({
-                          action,
-                          buttonAttributes,
-                          element: this,
-                          item,
-                          state,
-                        })
-                      : `<button ${buttonAttributes}>${escapeHtml(action.label)}</button>`;
-                  },
-                )
-                .join("");
-              const itemButtonAttributes = toAttributeString({
-                "aria-label": `Open ${item.name}`,
-                "aria-selected": isSelected ? "true" : "false",
-                "data-item-id": item.id,
-                part: "item",
-                role: "option",
-                tabindex: item.id === focusTarget ? "0" : "-1",
-                type: "button",
-              });
-
-              return this.templatesValue.renderItem
-                ? this.templatesValue.renderItem({
-                    element: this,
-                    isSelected,
-                    item,
-                    itemActionsMarkup: actions ? `<div part="item-actions">${actions}</div>` : "",
-                    itemButtonAttributes,
-                    state,
-                  })
-                : `<li data-item-id="${item.id}" role="presentation">
-                    <button ${itemButtonAttributes}>${escapeHtml(item.name)}</button>
-                    ${actions ? `<div part="item-actions">${actions}</div>` : ""}
-                  </li>`;
-            },
-          )
-          .join("")
-      : `<li role="presentation">No items loaded</li>`;
-    const loadMoreMarkup =
-      state?.pagination.hasMoreItems && !state.loading
-        ? `<button type="button" part="load-more">Load more</button>`
-        : "";
-    const refreshDisabled = state?.loading ? "disabled" : "";
-    const errorMarkup = state?.error ? `<p part="error">${escapeHtml(state.error.message)}</p>` : "";
-    const statusText = state
-      ? state.loading
-        ? "loading"
-        : "ready"
-      : "idle";
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -632,7 +281,381 @@ export class BoxContentExplorerElement extends HTMLElement {
           display: flex;
           justify-content: center;
         }
-      </style>
+      `;
+
+export class BoxContentExplorerElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["language", "page-size", "root-folder-id", "selection-mode", "token"];
+  }
+
+  private controller: ContentExplorerController | null = null;
+
+  private pendingStart = false;
+
+  private focusItemId: string | null = null;
+
+  private unsubscribeFns: Array<() => void> = [];
+
+  private transportValue: ExplorerTransport | null = null;
+
+  private itemActionsValue: ExplorerItemAction[] = [];
+
+  private templatesValue: BoxContentExplorerTemplates = {};
+  get language(): string | null {
+    return this.getAttribute("language");
+  }
+
+  set language(value: string | null) {
+    this.updateStringAttribute("language", value);
+  }
+
+  get pageSize(): number | undefined {
+    return readPositiveNumber(this.getAttribute("page-size"));
+  }
+
+  get selectionMode(): ExplorerSelectionMode | null {
+    const value = this.getAttribute("selection-mode");
+    return value === "single" || value === "multiple" ? value : null;
+  }
+
+  set selectionMode(value: ExplorerSelectionMode | null) {
+    this.updateStringAttribute("selection-mode", value);
+  }
+
+  set pageSize(value: number | undefined) {
+    if (typeof value === "number" && value > 0) {
+      this.setAttribute("page-size", String(value));
+      return;
+    }
+
+    this.removeAttribute("page-size");
+  }
+
+  get rootFolderId(): string | null {
+    return this.getAttribute("root-folder-id");
+  }
+
+  set rootFolderId(value: string | null) {
+    this.updateStringAttribute("root-folder-id", value);
+  }
+
+  get token(): string | null {
+    return this.getAttribute("token");
+  }
+
+  set token(value: string | null) {
+    this.updateStringAttribute("token", value);
+  }
+
+  get transport(): ExplorerTransport | null {
+    return this.transportValue;
+  }
+
+  set transport(value: ExplorerTransport | null) {
+    this.transportValue = value;
+    this.scheduleStart();
+  }
+
+  get itemActions(): ExplorerItemAction[] {
+    return this.itemActionsValue;
+  }
+
+  set itemActions(value: ExplorerItemAction[]) {
+    this.itemActionsValue = value;
+    this.scheduleStart();
+  }
+
+  get templates(): BoxContentExplorerTemplates {
+    return this.templatesValue;
+  }
+
+  set templates(value: BoxContentExplorerTemplates) {
+    this.templatesValue = value;
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
+  get state(): Readonly<ExplorerState> | null {
+    return this.controller?.getState() ?? null;
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    this.scheduleStart();
+  
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+this.scheduleStart();
+    }
+
+  disconnectedCallback(): void {
+    this.teardownController();
+  }
+
+  async loadNextPage(): Promise<void> {
+    await this.controller?.loadNextPage();
+  }
+
+  async refresh(): Promise<void> {
+    await this.controller?.refresh();
+  }
+
+  async activateItem(itemId: string): Promise<void> {
+    await this.controller?.activateItem(itemId);
+  }
+
+  async navigateTo(folderId: string): Promise<void> {
+    await this.controller?.navigateTo(folderId);
+  }
+
+  select(itemIds: string[]): void {
+    this.controller?.select(itemIds);
+  }
+
+  toggleSelection(itemId: string): void {
+    this.controller?.toggleSelection(itemId);
+  }
+
+  clearSelection(): void {
+    this.controller?.clearSelection();
+  }
+
+  invokeItemAction(itemId: string, actionId: string): void {
+    this.controller?.invokeItemAction(itemId, actionId);
+  }
+
+  private updateStringAttribute(name: string, value: string | null): void {
+    if (value === null || value === "") {
+      this.removeAttribute(name);
+      return;
+    }
+
+    this.setAttribute(name, value);
+  }
+
+  private scheduleStart(): void {
+    if (this.pendingStart) {
+      return;
+    }
+
+    this.pendingStart = true;
+    queueMicrotask(() => {
+      this.pendingStart = false;
+      void this.startController();
+    });
+  }
+
+  private async startController(): Promise<void> {
+    if (!this.isConnected) {
+      return;
+    }
+
+    const config = this.readConfig();
+    if (!config) {
+      this.teardownController();
+      if (this.isRendered) {
+      this.update();
+    }
+      return;
+    }
+
+    this.teardownController();
+    this.controller = new ContentExplorerController(config);
+    this.subscribeToController(this.controller);
+    if (this.isRendered) {
+      this.update();
+    }
+    await this.controller.connect();
+  }
+
+  private readConfig(): ExplorerSessionConfig | null {
+    if (!this.transportValue || !this.rootFolderId || !this.token) {
+      return null;
+    }
+
+    return {
+      language: this.language ?? undefined,
+      pageSize: this.pageSize,
+      rootFolderId: this.rootFolderId,
+      selectionMode: this.selectionMode ?? undefined,
+      token: this.token,
+      itemActions: this.itemActionsValue,
+      transport: this.transportValue,
+    };
+  }
+
+  private subscribeToController(controller: ContentExplorerController): void {
+    const eventNames: Array<keyof ExplorerEvents> = [
+      "breadcrumbsChanged",
+      "connected",
+      "disconnected",
+      "folderChanged",
+      "folderLoaded",
+      "itemActivated",
+      "itemActionInvoked",
+      "itemsChanged",
+      "loadFailed",
+      "loadSucceeded",
+      "loadingChanged",
+      "paginationChanged",
+      "selectionChanged",
+    ];
+
+    this.unsubscribeFns = eventNames.map(eventName =>
+      controller.subscribe(eventName, payload => {
+        this.dispatchEvent(
+          new CustomEvent(toKebabCase(String(eventName)), {
+            bubbles: true,
+            composed: true,
+            detail: payload,
+          }),
+        );
+        if (this.isRendered) {
+      this.update();
+    }
+      }),
+    );
+  }
+
+  private teardownController(): void {
+    for (const unsubscribe of this.unsubscribeFns) {
+      unsubscribe();
+    }
+    this.unsubscribeFns = [];
+
+    this.controller?.destroy();
+    this.controller = null;
+  }
+
+  private getFocusableItemIds(): string[] {
+    return this.controller?.getState().items.map(item => item.id) ?? [];
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const state = this.controller?.getState();
+    const breadcrumbMarkup = state?.breadcrumbs.length
+      ? `<nav part="breadcrumbs" aria-label="Breadcrumbs">${state.breadcrumbs
+          .map(
+            crumb => {
+              const buttonAttributes = toAttributeString({
+                "aria-label": `Open ${crumb.name}`,
+                "data-folder-id": crumb.id,
+                part: "breadcrumb",
+                type: "button",
+              });
+              return this.templatesValue.renderBreadcrumb
+                ? this.templatesValue.renderBreadcrumb({
+                    buttonAttributes,
+                    element: this,
+                    id: crumb.id,
+                    name: crumb.name,
+                    state,
+                  })
+                : `<button ${buttonAttributes}>${escapeHtml(crumb.name)}</button>`;
+            },
+          )
+          .join('<span part="breadcrumb-separator">/</span>')}</nav>`
+      : "";
+    const folderMarkup = state?.currentFolder
+      ? this.templatesValue.renderFolder
+        ? this.templatesValue.renderFolder({
+            breadcrumbsMarkup: breadcrumbMarkup,
+            element: this,
+            state,
+          })
+        : `<header part="folder">${breadcrumbMarkup}<h2>${escapeHtml(state.currentFolder.name)}</h2><p>${escapeHtml(state.currentFolder.id)}</p></header>`
+      : `<header part="folder"><h2>No folder loaded</h2></header>`;
+    const itemsMarkup = state?.items.length
+      ? state.items
+          .map(
+            item => {
+              const isSelected = state.selectedItemIds.includes(item.id);
+              const focusTarget = this.focusItemId ?? state.items[0]?.id ?? "";
+              const actions = (state.availableActionsByItemId[item.id] ?? [])
+                .map(
+                  action => {
+                    const buttonAttributes = toAttributeString({
+                      "aria-label": `${action.label} ${item.name}`,
+                      "data-action-id": action.id,
+                      "data-item-id": item.id,
+                      part: "item-action",
+                      type: "button",
+                    });
+                    return this.templatesValue.renderItemAction
+                      ? this.templatesValue.renderItemAction({
+                          action,
+                          buttonAttributes,
+                          element: this,
+                          item,
+                          state,
+                        })
+                      : `<button ${buttonAttributes}>${escapeHtml(action.label)}</button>`;
+                  },
+                )
+                .join("");
+              const itemButtonAttributes = toAttributeString({
+                "aria-label": `Open ${item.name}`,
+                "aria-selected": isSelected ? "true" : "false",
+                "data-item-id": item.id,
+                part: "item",
+                role: "option",
+                tabindex: item.id === focusTarget ? "0" : "-1",
+                type: "button",
+              });
+
+              return this.templatesValue.renderItem
+                ? this.templatesValue.renderItem({
+                    element: this,
+                    isSelected,
+                    item,
+                    itemActionsMarkup: actions ? `<div part="item-actions">${actions}</div>` : "",
+                    itemButtonAttributes,
+                    state,
+                  })
+                : `<li data-item-id="${item.id}" role="presentation">
+                    <button ${itemButtonAttributes}>${escapeHtml(item.name)}</button>
+                    ${actions ? `<div part="item-actions">${actions}</div>` : ""}
+                  </li>`;
+            },
+          )
+          .join("")
+      : `<li role="presentation">No items loaded</li>`;
+    const loadMoreMarkup =
+      state?.pagination.hasMoreItems && !state.loading
+        ? `<button type="button" part="load-more">Load more</button>`
+        : "";
+    const refreshDisabled = state?.loading ? "disabled" : "";
+    const errorMarkup = state?.error ? `<p part="error">${escapeHtml(state.error.message)}</p>` : "";
+    const statusText = state
+      ? state.loading
+        ? "loading"
+        : "ready"
+      : "idle";
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <section aria-busy="${state?.loading ? "true" : "false"}">
         ${folderMarkup}
         <p part="status" data-status="${statusText}" role="status" aria-live="polite">${statusText}</p>
@@ -693,7 +716,9 @@ export class BoxContentExplorerElement extends HTMLElement {
         const nextItemId = itemIds[nextIndex];
         if (nextItemId) {
           this.focusItemId = nextItemId;
-          this.render();
+          if (this.isRendered) {
+      this.update();
+    }
         }
       });
     });
@@ -717,6 +742,7 @@ export class BoxContentExplorerElement extends HTMLElement {
         target?.focus();
       });
     }
+  
   }
 }
 

@@ -1,4 +1,5 @@
 import { ContentExplorerController } from "../controller.js";
+import { BaseElement } from "../../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-explorer-list";
 
@@ -13,126 +14,8 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-export class BoxExplorerListElement extends HTMLElement {
-  private controllerValue: ContentExplorerController | null = null;
 
-  private focusItemId: string | null = null;
-
-  private unsubscribeFns: Array<() => void> = [];
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get controller(): ContentExplorerController | null {
-    return this.controllerValue;
-  }
-
-  set controller(value: ContentExplorerController | null) {
-    this.controllerValue = value;
-    this.bindController();
-    this.render();
-  }
-
-  connectedCallback(): void {
-    this.bindController();
-    this.render();
-  }
-
-  disconnectedCallback(): void {
-    this.teardownSubscriptions();
-  }
-
-  private bindController(): void {
-    this.teardownSubscriptions();
-
-    if (!this.isConnected || !this.controllerValue) {
-      return;
-    }
-
-    for (const eventName of [
-      "itemsChanged",
-      "itemActivated",
-      "itemActionInvoked",
-      "loadingChanged",
-      "paginationChanged",
-      "selectionChanged",
-    ] as const) {
-      this.unsubscribeFns.push(
-        this.controllerValue.subscribe(eventName, payload => {
-          this.dispatchEvent(
-            new CustomEvent(toKebabCase(String(eventName)), {
-              bubbles: true,
-              composed: true,
-              detail: payload,
-            }),
-          );
-          this.render();
-        }),
-      );
-    }
-  }
-
-  private teardownSubscriptions(): void {
-    for (const unsubscribe of this.unsubscribeFns) {
-      unsubscribe();
-    }
-    this.unsubscribeFns = [];
-  }
-
-  private getFocusableItemIds(): string[] {
-    return this.controllerValue?.getState().items.map(item => item.id) ?? [];
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const state = this.controllerValue?.getState();
-    const itemsMarkup =
-      state?.items.length
-        ? state.items
-            .map(item => {
-              const isSelected = state.selectedItemIds.includes(item.id);
-              const focusTarget = this.focusItemId ?? state.items[0]?.id ?? "";
-              const actions = (state.availableActionsByItemId[item.id] ?? [])
-                .map(
-                  action =>
-                    `<button
-                      type="button"
-                      part="item-action"
-                      data-item-id="${escapeHtml(item.id)}"
-                      data-action-id="${escapeHtml(action.id)}"
-                      aria-label="${escapeHtml(`${action.label} ${item.name}`)}"
-                    >${escapeHtml(action.label)}</button>`,
-                )
-                .join("");
-
-              return `
-                <li part="item-row${isSelected ? " item-row-selected" : ""}" data-item-id="${escapeHtml(item.id)}" role="presentation">
-                  <button
-                    type="button"
-                    part="item${isSelected ? " item-selected" : ""}"
-                    role="option"
-                    data-item-id="${escapeHtml(item.id)}"
-                    aria-selected="${isSelected ? "true" : "false"}"
-                    tabindex="${item.id === focusTarget ? "0" : "-1"}"
-                  >${escapeHtml(item.name)}</button>
-                  ${actions ? `<div part="item-actions">${actions}</div>` : ""}
-                </li>
-              `;
-            })
-            .join("")
-        : `<li part="empty">No items loaded</li>`;
-    const loadMoreMarkup =
-      state?.pagination.hasMoreItems && !state.loading
-        ? `<button type="button" part="load-more">Load more</button>`
-        : "";
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -295,76 +178,276 @@ export class BoxExplorerListElement extends HTMLElement {
           outline: none;
           box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
         }
-      </style>
-      <section part="list-shell" aria-busy="${state?.loading ? "true" : "false"}">
-        <ul part="list" role="listbox" aria-label="Items">${itemsMarkup}</ul>
-        ${loadMoreMarkup ? `<div part="load-more-region">${loadMoreMarkup}</div>` : ""}
+      `;
+
+export class BoxExplorerListElement extends BaseElement {
+  private controllerValue: ContentExplorerController | null = null;
+
+  private focusItemId: string | null = null;
+
+  private unsubscribeFns: Array<() => void> = [];
+  get controller(): ContentExplorerController | null {
+    return this.controllerValue;
+  }
+
+  set controller(value: ContentExplorerController | null) {
+    this.controllerValue = value;
+    this.bindController();
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
+  connectedCallback(): void {
+    this.bindController();
+    super.connectedCallback();
+  }
+
+  disconnectedCallback(): void {
+    this.teardownSubscriptions();
+  }
+
+  private bindController(): void {
+    this.teardownSubscriptions();
+
+    if (!this.isConnected || !this.controllerValue) {
+      return;
+    }
+
+    for (const eventName of [
+      "itemsChanged",
+      "itemActivated",
+      "itemActionInvoked",
+      "loadingChanged",
+      "paginationChanged",
+      "selectionChanged",
+    ] as const) {
+      this.unsubscribeFns.push(
+        this.controllerValue.subscribe(eventName, payload => {
+          this.dispatchEvent(
+            new CustomEvent(toKebabCase(String(eventName)), {
+              bubbles: true,
+              composed: true,
+              detail: payload,
+            }),
+          );
+          if (this.isRendered) {
+      this.update();
+    }
+        }),
+      );
+    }
+  }
+
+  private teardownSubscriptions(): void {
+    for (const unsubscribe of this.unsubscribeFns) {
+      unsubscribe();
+    }
+    this.unsubscribeFns = [];
+  }
+
+  private getFocusableItemIds(): string[] {
+    return this.controllerValue?.getState().items.map(item => item.id) ?? [];
+  }
+
+  private itemsSignature = "";
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <section part="list-shell">
+        <ul part="list" role="listbox" aria-label="Items"></ul>
+        <div part="load-more-region" hidden></div>
       </section>
     `;
+  }
 
-    this.shadowRoot.querySelectorAll('[part~="item"]').forEach(node => {
-      node.addEventListener("click", event => {
-        const itemId = (event.currentTarget as HTMLElement).getAttribute("data-item-id");
+  protected setupListeners(): void {
+    const list = this.shadowRoot?.querySelector('[part="list"]');
+    const loadMoreRegion = this.shadowRoot?.querySelector('[part="load-more-region"]');
+    if (!list || !loadMoreRegion) {
+      return;
+    }
+
+    list.addEventListener("click", event => {
+      const target = event.target as HTMLElement;
+      const actionButton = target.closest('[part~="item-action"]') as HTMLElement | null;
+      if (actionButton && list.contains(actionButton)) {
+        event.stopPropagation();
+        const itemId = actionButton.getAttribute("data-item-id");
+        const actionId = actionButton.getAttribute("data-action-id");
+        if (itemId && actionId) {
+          this.controllerValue?.invokeItemAction(itemId, actionId);
+        }
+        return;
+      }
+
+      const itemButton = target.closest('[part~="item"]') as HTMLElement | null;
+      if (itemButton && list.contains(itemButton)) {
+        const itemId = itemButton.getAttribute("data-item-id");
         if (itemId) {
           this.focusItemId = itemId;
           this.controllerValue?.toggleSelection(itemId);
           void this.controllerValue?.activateItem(itemId);
         }
-      });
-      node.addEventListener("keydown", event => {
-        const keyboardEvent = event as KeyboardEvent;
-        const itemId = (event.currentTarget as HTMLElement).getAttribute("data-item-id") ?? "";
-        const itemIds = this.getFocusableItemIds();
-        const currentIndex = itemIds.indexOf(itemId);
-        let nextIndex = currentIndex;
+      }
+    });
 
-        if (keyboardEvent.key === "ArrowDown") {
-          nextIndex = Math.min(itemIds.length - 1, currentIndex + 1);
-        } else if (keyboardEvent.key === "ArrowUp") {
-          nextIndex = Math.max(0, currentIndex - 1);
-        } else if (keyboardEvent.key === "Home") {
-          nextIndex = 0;
-        } else if (keyboardEvent.key === "End") {
-          nextIndex = itemIds.length - 1;
-        } else if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
-          keyboardEvent.preventDefault();
-          (event.currentTarget as HTMLButtonElement).click();
-          return;
-        } else {
-          return;
-        }
+    list.addEventListener("keydown", event => {
+      const keyboardEvent = event as KeyboardEvent;
+      const itemButton = (keyboardEvent.target as HTMLElement).closest('[part~="item"]') as HTMLElement | null;
+      if (!itemButton || !list.contains(itemButton)) {
+        return;
+      }
 
+      const itemId = itemButton.getAttribute("data-item-id") ?? "";
+      const itemIds = this.getFocusableItemIds();
+      const currentIndex = itemIds.indexOf(itemId);
+      let nextIndex = currentIndex;
+
+      if (keyboardEvent.key === "ArrowDown") {
+        nextIndex = Math.min(itemIds.length - 1, currentIndex + 1);
+      } else if (keyboardEvent.key === "ArrowUp") {
+        nextIndex = Math.max(0, currentIndex - 1);
+      } else if (keyboardEvent.key === "Home") {
+        nextIndex = 0;
+      } else if (keyboardEvent.key === "End") {
+        nextIndex = itemIds.length - 1;
+      } else if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
         keyboardEvent.preventDefault();
-        const nextItemId = itemIds[nextIndex];
-        if (nextItemId) {
-          this.focusItemId = nextItemId;
-          this.render();
-        }
-      });
-    });
-    this.shadowRoot.querySelectorAll('[part~="item-action"]').forEach(node => {
-      node.addEventListener("click", event => {
-        event.stopPropagation();
-        const currentTarget = event.currentTarget as HTMLElement;
-        const itemId = currentTarget.getAttribute("data-item-id");
-        const actionId = currentTarget.getAttribute("data-action-id");
-        if (itemId && actionId) {
-          this.controllerValue?.invokeItemAction(itemId, actionId);
-        }
-      });
-    });
-    this.shadowRoot.querySelector('[part="load-more"]')?.addEventListener("click", () => {
-      void this.controllerValue?.loadNextPage();
+        itemButton.click();
+        return;
+      } else {
+        return;
+      }
+
+      keyboardEvent.preventDefault();
+      const nextItemId = itemIds[nextIndex];
+      if (nextItemId) {
+        this.focusItemId = nextItemId;
+        this.patchFocusAndSelection();
+        queueMicrotask(() => {
+          const target = list.querySelector(`[part~="item"][data-item-id="${nextItemId}"]`) as HTMLButtonElement | null;
+          target?.focus();
+        });
+      }
     });
 
-    if (this.focusItemId) {
-      queueMicrotask(() => {
-        const target = Array.from(this.shadowRoot?.querySelectorAll('[part~="item"]') ?? []).find(
-          node => (node as HTMLButtonElement).dataset.itemId === this.focusItemId,
-        ) as HTMLButtonElement | undefined;
-        target?.focus();
-      });
+    loadMoreRegion.addEventListener("click", event => {
+      if ((event.target as HTMLElement).closest('[part="load-more"]')) {
+        void this.controllerValue?.loadNextPage();
+      }
+    });
+  }
+
+  private patchFocusAndSelection(): void {
+    const state = this.controllerValue?.getState();
+    const list = this.shadowRoot?.querySelector('[part="list"]');
+    if (!state || !list) {
+      return;
     }
+
+    const focusTarget = this.focusItemId ?? state.items[0]?.id ?? "";
+    list.querySelectorAll('[part~="item-row"]').forEach(row => {
+      const itemId = (row as HTMLElement).dataset.itemId ?? "";
+      const isSelected = state.selectedItemIds.includes(itemId);
+      row.setAttribute("part", isSelected ? "item-row item-row-selected" : "item-row");
+      const button = row.querySelector('[part~="item"]') as HTMLButtonElement | null;
+      if (button) {
+        button.setAttribute("part", isSelected ? "item item-selected" : "item");
+        button.setAttribute("aria-selected", isSelected ? "true" : "false");
+        button.tabIndex = itemId === focusTarget ? 0 : -1;
+      }
+    });
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const state = this.controllerValue?.getState();
+    const shell = this.shadowRoot.querySelector('[part="list-shell"]') as HTMLElement | null;
+    const list = this.shadowRoot.querySelector('[part="list"]') as HTMLElement | null;
+    const loadMoreRegion = this.shadowRoot.querySelector('[part="load-more-region"]') as HTMLElement | null;
+    if (!shell || !list || !loadMoreRegion) {
+      return;
+    }
+
+    shell.setAttribute("aria-busy", state?.loading ? "true" : "false");
+
+    const nextSignature = JSON.stringify({
+      items: state?.items.map(item => ({ id: item.id, name: item.name })) ?? [],
+      actions: state?.availableActionsByItemId ?? {},
+      hasMore: state?.pagination.hasMoreItems ?? false,
+      loading: state?.loading ?? false,
+    });
+
+    if (nextSignature !== this.itemsSignature) {
+      this.itemsSignature = nextSignature;
+      const itemsMarkup =
+        state?.items.length
+          ? state.items
+              .map(item => {
+                const isSelected = state.selectedItemIds.includes(item.id);
+                const focusTarget = this.focusItemId ?? state.items[0]?.id ?? "";
+                const actions = (state.availableActionsByItemId[item.id] ?? [])
+                  .map(
+                    action =>
+                      `<button
+                        type="button"
+                        part="item-action"
+                        data-item-id="${escapeHtml(item.id)}"
+                        data-action-id="${escapeHtml(action.id)}"
+                        aria-label="${escapeHtml(`${action.label} ${item.name}`)}"
+                      >${escapeHtml(action.label)}</button>`,
+                  )
+                  .join("");
+
+                return `
+                  <li part="item-row${isSelected ? " item-row-selected" : ""}" data-item-id="${escapeHtml(item.id)}" role="presentation">
+                    <button
+                      type="button"
+                      part="item${isSelected ? " item-selected" : ""}"
+                      role="option"
+                      data-item-id="${escapeHtml(item.id)}"
+                      aria-selected="${isSelected ? "true" : "false"}"
+                      tabindex="${item.id === focusTarget ? "0" : "-1"}"
+                    >${escapeHtml(item.name)}</button>
+                    ${actions ? `<div part="item-actions">${actions}</div>` : ""}
+                  </li>
+                `;
+              })
+              .join("")
+          : `<li part="empty">No items loaded</li>`;
+
+      list.innerHTML = itemsMarkup;
+
+      if (state?.pagination.hasMoreItems && !state.loading) {
+        loadMoreRegion.hidden = false;
+        loadMoreRegion.innerHTML = `<button type="button" part="load-more">Load more</button>`;
+      } else {
+        loadMoreRegion.hidden = true;
+        loadMoreRegion.innerHTML = "";
+      }
+
+      if (this.focusItemId) {
+        queueMicrotask(() => {
+          const target = list.querySelector(
+            `[part~="item"][data-item-id="${this.focusItemId}"]`,
+          ) as HTMLButtonElement | null;
+          target?.focus();
+        });
+      }
+      return;
+    }
+
+    // Item list unchanged: patch selection/focus in place so keyboard focus survives.
+    this.patchFocusAndSelection();
   }
 }
 

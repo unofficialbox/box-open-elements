@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-share-panel";
 
 const escapeHtml = (value: string): string =>
@@ -7,6 +9,9 @@ const escapeHtml = (value: string): string =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+
+const escapeSelectorValue = (value: string): string =>
+  value.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
 
 type SharePanelAction = {
   id: string;
@@ -36,204 +41,8 @@ type SharePanelSharedLink = {
   url: string;
 };
 
-export class BoxSharePanelElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["actions", "collaborators", "message", "settings", "shared-link", "heading"];
-  }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get actions(): SharePanelAction[] {
-    return this.parseJsonAttribute<SharePanelAction[]>("actions", []);
-  }
-
-  set actions(value: SharePanelAction[]) {
-    this.setAttribute("actions", JSON.stringify(value));
-  }
-
-  get collaborators(): SharePanelCollaborator[] {
-    return this.parseJsonAttribute<SharePanelCollaborator[]>("collaborators", []);
-  }
-
-  set collaborators(value: SharePanelCollaborator[]) {
-    this.setAttribute("collaborators", JSON.stringify(value));
-  }
-
-  get message(): string {
-    return this.getAttribute("message") ?? "";
-  }
-
-  set message(value: string) {
-    this.setAttribute("message", value);
-  }
-
-  get settings(): SharePanelSetting[] {
-    return this.parseJsonAttribute<SharePanelSetting[]>("settings", []);
-  }
-
-  set settings(value: SharePanelSetting[]) {
-    this.setAttribute("settings", JSON.stringify(value));
-  }
-
-  get sharedLink(): SharePanelSharedLink | null {
-    return this.parseJsonAttribute<SharePanelSharedLink | null>("shared-link", null);
-  }
-
-  set sharedLink(value: SharePanelSharedLink | null) {
-    if (!value) {
-      this.removeAttribute("shared-link");
-      return;
-    }
-
-    this.setAttribute("shared-link", JSON.stringify(value));
-  }
-
-  get heading(): string {
-    return this.getAttribute("heading") ?? "Share";
-  }
-
-  set heading(value: string) {
-    this.setAttribute("heading", value);
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private parseJsonAttribute<T>(name: string, fallback: T): T {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return fallback;
-    }
-
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
-  }
-
-  private emitAction(actionId: string): void {
-    this.dispatchEvent(
-      new CustomEvent("action", {
-        bubbles: true,
-        composed: true,
-        detail: { action: actionId },
-      }),
-    );
-  }
-
-  private emitCollaboratorSelected(collaborator: SharePanelCollaborator): void {
-    this.dispatchEvent(
-      new CustomEvent("collaborator-selected", {
-        bubbles: true,
-        composed: true,
-        detail: collaborator,
-      }),
-    );
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const sharedLink = this.sharedLink;
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const sharedLinkMarkup = sharedLink
-      ? `
-          <section part="shared-link">
-            <div part="shared-link-header">
-              <div part="shared-link-label">${escapeHtml(sharedLink.label ?? "Shared link")}</div>
-              <div part="shared-link-access">${escapeHtml(sharedLink.access)}</div>
-            </div>
-            <button type="button" part="shared-link-url" data-action-id="copy-link">${escapeHtml(sharedLink.url)}</button>
-            <div part="shared-link-meta">
-              ${sharedLink.status ? `<span part="shared-link-status">${escapeHtml(sharedLink.status)}</span>` : ""}
-              ${sharedLink.expiresAt ? `<span part="shared-link-expiry">Expires ${escapeHtml(sharedLink.expiresAt)}</span>` : ""}
-            </div>
-          </section>
-        `
-      : "";
-    const settingsMarkup = this.settings.length
-      ? `
-          <section part="settings">
-            <div part="section-title">Settings</div>
-            <dl part="settings-list">
-              ${this.settings
-                .map(
-                  setting => `
-                    <div part="setting">
-                      <dt part="setting-label">${escapeHtml(setting.label)}</dt>
-                      <dd part="setting-value" data-tone="${escapeHtml(setting.tone ?? "neutral")}">${escapeHtml(setting.value)}</dd>
-                    </div>
-                  `,
-                )
-                .join("")}
-            </dl>
-          </section>
-        `
-      : "";
-    const collaboratorsMarkup = this.collaborators.length
-      ? `
-          <section part="collaborators">
-            <div part="section-title">Collaborators</div>
-            <div part="collaborator-list">
-              ${this.collaborators
-                .map(
-                  collaborator => `
-                    <button
-                      type="button"
-                      part="collaborator"
-                      data-collaborator-name="${escapeHtml(collaborator.name)}"
-                      data-collaborator-role="${escapeHtml(collaborator.role)}"
-                      data-collaborator-description="${escapeHtml(collaborator.description ?? "")}"
-                      data-collaborator-id="${escapeHtml(collaborator.id ?? "")}"
-                    >
-                      <span part="collaborator-avatar">${escapeHtml(collaborator.initials ?? collaborator.name.slice(0, 2).toUpperCase())}</span>
-                      <span part="collaborator-meta">
-                        <span part="collaborator-name">${escapeHtml(collaborator.name)}</span>
-                        <span part="collaborator-role">${escapeHtml(collaborator.role)}</span>
-                        ${collaborator.description ? `<span part="collaborator-description">${escapeHtml(collaborator.description)}</span>` : ""}
-                      </span>
-                    </button>
-                  `,
-                )
-                .join("")}
-            </div>
-          </section>
-        `
-      : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button
-                    type="button"
-                    part="action"
-                    data-action-id="${escapeHtml(action.id)}"
-                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
-                  >
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -455,38 +264,394 @@ export class BoxSharePanelElement extends HTMLElement {
           border-color: var(--boe-token-text-text, #1f1e1b);
           color: var(--boe-token-text-text-on-brand, #ffffff);
         }
-      </style>
+      `;
+
+export class BoxSharePanelElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["actions", "collaborators", "message", "settings", "shared-link", "heading"];
+  }
+
+  private titleEl!: HTMLElement;
+  private messageEl!: HTMLElement;
+  private sharedLinkEl!: HTMLElement;
+  private sharedLinkLabelEl!: HTMLElement;
+  private sharedLinkAccessEl!: HTMLElement;
+  private sharedLinkUrlEl!: HTMLButtonElement;
+  private sharedLinkStatusEl!: HTMLElement;
+  private sharedLinkExpiryEl!: HTMLElement;
+  private settingsSectionEl!: HTMLElement;
+  private settingsListEl!: HTMLElement;
+  private collaboratorsSectionEl!: HTMLElement;
+  private collaboratorListEl!: HTMLElement;
+  private actionsEl!: HTMLElement;
+  private settingsSignature = "";
+  private collaboratorsSignature = "";
+  private actionsSignature = "";
+
+  get actions(): SharePanelAction[] {
+    return this.parseJsonAttribute<SharePanelAction[]>("actions", []);
+  }
+
+  set actions(value: SharePanelAction[]) {
+    this.setAttribute("actions", JSON.stringify(value));
+  }
+
+  get collaborators(): SharePanelCollaborator[] {
+    return this.parseJsonAttribute<SharePanelCollaborator[]>("collaborators", []);
+  }
+
+  set collaborators(value: SharePanelCollaborator[]) {
+    this.setAttribute("collaborators", JSON.stringify(value));
+  }
+
+  get message(): string {
+    return this.getAttribute("message") ?? "";
+  }
+
+  set message(value: string) {
+    this.setAttribute("message", value);
+  }
+
+  get settings(): SharePanelSetting[] {
+    return this.parseJsonAttribute<SharePanelSetting[]>("settings", []);
+  }
+
+  set settings(value: SharePanelSetting[]) {
+    this.setAttribute("settings", JSON.stringify(value));
+  }
+
+  get sharedLink(): SharePanelSharedLink | null {
+    return this.parseJsonAttribute<SharePanelSharedLink | null>("shared-link", null);
+  }
+
+  set sharedLink(value: SharePanelSharedLink | null) {
+    if (!value) {
+      this.removeAttribute("shared-link");
+      return;
+    }
+
+    this.setAttribute("shared-link", JSON.stringify(value));
+  }
+
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Share";
+  }
+
+  set heading(value: string) {
+    this.setAttribute("heading", value);
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private emitAction(actionId: string): void {
+    this.dispatchEvent(
+      new CustomEvent("action", {
+        bubbles: true,
+        composed: true,
+        detail: { action: actionId },
+      }),
+    );
+  }
+
+  private emitCollaboratorSelected(collaborator: SharePanelCollaborator): void {
+    this.dispatchEvent(
+      new CustomEvent("collaborator-selected", {
+        bubbles: true,
+        composed: true,
+        detail: collaborator,
+      }),
+    );
+  }
+
+  private settingsKey(): string {
+    return JSON.stringify(this.settings.map(setting => setting.label));
+  }
+
+  private collaboratorsKey(): string {
+    return JSON.stringify(
+      this.collaborators.map(collaborator => collaborator.id ?? collaborator.name),
+    );
+  }
+
+  private actionsKey(): string {
+    return JSON.stringify(this.actions.map(action => ({ id: action.id, tone: action.tone ?? "neutral" })));
+  }
+
+  private rebuildSettings(): void {
+    this.settingsListEl.innerHTML = this.settings
+      .map(
+        setting => `
+          <div part="setting">
+            <dt part="setting-label">${escapeHtml(setting.label)}</dt>
+            <dd part="setting-value" data-tone="${escapeHtml(setting.tone ?? "neutral")}">${escapeHtml(setting.value)}</dd>
+          </div>
+        `,
+      )
+      .join("");
+  }
+
+  private patchSettings(): void {
+    const rows = this.settingsListEl.querySelectorAll('[part="setting"]');
+    this.settings.forEach((setting, index) => {
+      const row = rows[index];
+      if (!row) {
+        return;
+      }
+      const labelEl = row.querySelector('[part="setting-label"]');
+      const valueEl = row.querySelector('[part="setting-value"]') as HTMLElement | null;
+      if (labelEl) {
+        labelEl.textContent = setting.label;
+      }
+      if (valueEl) {
+        valueEl.textContent = setting.value;
+        valueEl.dataset.tone = setting.tone ?? "neutral";
+      }
+    });
+  }
+
+  private rebuildCollaborators(): void {
+    this.collaboratorListEl.innerHTML = this.collaborators
+      .map(
+        collaborator => `
+          <button
+            type="button"
+            part="collaborator"
+            data-collaborator-name="${escapeHtml(collaborator.name)}"
+            data-collaborator-role="${escapeHtml(collaborator.role)}"
+            data-collaborator-description="${escapeHtml(collaborator.description ?? "")}"
+            data-collaborator-id="${escapeHtml(collaborator.id ?? "")}"
+          >
+            <span part="collaborator-avatar">${escapeHtml(collaborator.initials ?? collaborator.name.slice(0, 2).toUpperCase())}</span>
+            <span part="collaborator-meta">
+              <span part="collaborator-name">${escapeHtml(collaborator.name)}</span>
+              <span part="collaborator-role">${escapeHtml(collaborator.role)}</span>
+              <span part="collaborator-description" ${collaborator.description ? "" : "hidden"}>${escapeHtml(collaborator.description ?? "")}</span>
+            </span>
+          </button>
+        `,
+      )
+      .join("");
+  }
+
+  private patchCollaborators(): void {
+    this.collaborators.forEach(collaborator => {
+      const button = this.collaboratorListEl.querySelector(
+        collaborator.id
+          ? `[data-collaborator-id="${escapeSelectorValue(collaborator.id)}"]`
+          : `[data-collaborator-name="${escapeSelectorValue(collaborator.name)}"]`,
+      ) as HTMLButtonElement | null;
+      if (!button) {
+        return;
+      }
+
+      button.dataset.collaboratorName = collaborator.name;
+      button.dataset.collaboratorRole = collaborator.role;
+      button.dataset.collaboratorDescription = collaborator.description ?? "";
+      button.dataset.collaboratorId = collaborator.id ?? "";
+
+      const avatar = button.querySelector('[part="collaborator-avatar"]');
+      const nameEl = button.querySelector('[part="collaborator-name"]');
+      const roleEl = button.querySelector('[part="collaborator-role"]');
+      const descriptionEl = button.querySelector('[part="collaborator-description"]') as HTMLElement | null;
+      if (avatar) {
+        avatar.textContent = collaborator.initials ?? collaborator.name.slice(0, 2).toUpperCase();
+      }
+      if (nameEl) {
+        nameEl.textContent = collaborator.name;
+      }
+      if (roleEl) {
+        roleEl.textContent = collaborator.role;
+      }
+      if (descriptionEl) {
+        descriptionEl.hidden = !collaborator.description;
+        descriptionEl.textContent = collaborator.description ?? "";
+      }
+    });
+  }
+
+  private rebuildActions(): void {
+    this.actionsEl.innerHTML = this.actions
+      .map(
+        action => `
+          <button
+            type="button"
+            part="action"
+            data-action-id="${escapeHtml(action.id)}"
+            data-tone="${escapeHtml(action.tone ?? "neutral")}"
+          >
+            ${escapeHtml(action.label)}
+          </button>
+        `,
+      )
+      .join("");
+  }
+
+  private patchActionLabels(): void {
+    this.actions.forEach(action => {
+      const button = this.actionsEl.querySelector(
+        `[data-action-id="${escapeSelectorValue(action.id)}"]`,
+      ) as HTMLButtonElement | null;
+      if (!button) {
+        return;
+      }
+      button.textContent = action.label;
+      button.dataset.tone = action.tone ?? "neutral";
+    });
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
       <section part="panel">
         <header part="header">
-          <div part="title">${escapeHtml(this.heading)}</div>
-          ${messageMarkup}
+          <div part="title"></div>
+          <div part="message" hidden></div>
         </header>
-        ${sharedLinkMarkup}
-        ${settingsMarkup}
-        ${collaboratorsMarkup}
-        ${actionsMarkup}
+        <section part="shared-link" hidden>
+          <div part="shared-link-header">
+            <div part="shared-link-label"></div>
+            <div part="shared-link-access"></div>
+          </div>
+          <button type="button" part="shared-link-url" data-action-id="copy-link"></button>
+          <div part="shared-link-meta">
+            <span part="shared-link-status" hidden></span>
+            <span part="shared-link-expiry" hidden></span>
+          </div>
+        </section>
+        <section part="settings" hidden>
+          <div part="section-title">Settings</div>
+          <dl part="settings-list"></dl>
+        </section>
+        <section part="collaborators" hidden>
+          <div part="section-title">Collaborators</div>
+          <div part="collaborator-list"></div>
+        </section>
+        <div part="actions" hidden></div>
       </section>
     `;
+    this.titleEl = this.shadowRoot.querySelector('[part="title"]')!;
+    this.messageEl = this.shadowRoot.querySelector('[part="message"]')!;
+    this.sharedLinkEl = this.shadowRoot.querySelector('[part="shared-link"]')!;
+    this.sharedLinkLabelEl = this.shadowRoot.querySelector('[part="shared-link-label"]')!;
+    this.sharedLinkAccessEl = this.shadowRoot.querySelector('[part="shared-link-access"]')!;
+    this.sharedLinkUrlEl = this.shadowRoot.querySelector('[part="shared-link-url"]')!;
+    this.sharedLinkStatusEl = this.shadowRoot.querySelector('[part="shared-link-status"]')!;
+    this.sharedLinkExpiryEl = this.shadowRoot.querySelector('[part="shared-link-expiry"]')!;
+    this.settingsSectionEl = this.shadowRoot.querySelector('[part="settings"]')!;
+    this.settingsListEl = this.shadowRoot.querySelector('[part="settings-list"]')!;
+    this.collaboratorsSectionEl = this.shadowRoot.querySelector('[part="collaborators"]')!;
+    this.collaboratorListEl = this.shadowRoot.querySelector('[part="collaborator-list"]')!;
+    this.actionsEl = this.shadowRoot.querySelector('[part="actions"]')!;
+  }
 
-    this.shadowRoot.querySelectorAll<HTMLElement>("[data-action-id]").forEach(button => {
-      button.addEventListener("click", () => {
-        const actionId = button.dataset.actionId;
-        if (actionId) {
-          this.emitAction(actionId);
-        }
-      });
+  protected setupListeners(): void {
+    this.sharedLinkUrlEl.addEventListener("click", () => {
+      this.emitAction("copy-link");
     });
 
-    this.shadowRoot.querySelectorAll<HTMLElement>("[data-collaborator-name]").forEach(button => {
-      button.addEventListener("click", () => {
-        this.emitCollaboratorSelected({
-          id: button.dataset.collaboratorId || undefined,
-          name: button.dataset.collaboratorName ?? "",
-          role: button.dataset.collaboratorRole ?? "",
-          description: button.dataset.collaboratorDescription || undefined,
-        });
+    this.actionsEl.addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest('[part="action"]') as HTMLButtonElement | null;
+      if (!button || !this.actionsEl.contains(button)) {
+        return;
+      }
+
+      const actionId = button.dataset.actionId ?? "";
+      if (actionId) {
+        this.emitAction(actionId);
+      }
+    });
+
+    this.collaboratorListEl.addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest('[part="collaborator"]') as HTMLButtonElement | null;
+      if (!button || !this.collaboratorListEl.contains(button)) {
+        return;
+      }
+
+      this.emitCollaboratorSelected({
+        id: button.dataset.collaboratorId || undefined,
+        name: button.dataset.collaboratorName ?? "",
+        role: button.dataset.collaboratorRole ?? "",
+        description: button.dataset.collaboratorDescription || undefined,
       });
     });
+  }
+
+  protected update(): void {
+    if (!this.titleEl || !this.actionsEl) {
+      return;
+    }
+
+    this.titleEl.textContent = this.heading;
+    this.messageEl.hidden = !this.message;
+    this.messageEl.textContent = this.message;
+
+    const sharedLink = this.sharedLink;
+    this.sharedLinkEl.hidden = !sharedLink;
+    if (sharedLink) {
+      this.sharedLinkLabelEl.textContent = sharedLink.label ?? "Shared link";
+      this.sharedLinkAccessEl.textContent = sharedLink.access;
+      this.sharedLinkUrlEl.textContent = sharedLink.url;
+      this.sharedLinkStatusEl.hidden = !sharedLink.status;
+      this.sharedLinkStatusEl.textContent = sharedLink.status ?? "";
+      this.sharedLinkExpiryEl.hidden = !sharedLink.expiresAt;
+      this.sharedLinkExpiryEl.textContent = sharedLink.expiresAt ? `Expires ${sharedLink.expiresAt}` : "";
+    }
+
+    const settings = this.settings;
+    this.settingsSectionEl.hidden = settings.length === 0;
+    const nextSettings = this.settingsKey();
+    if (nextSettings !== this.settingsSignature || this.settingsListEl.childElementCount === 0) {
+      this.settingsSignature = nextSettings;
+      this.rebuildSettings();
+    } else {
+      this.patchSettings();
+    }
+
+    const collaborators = this.collaborators;
+    this.collaboratorsSectionEl.hidden = collaborators.length === 0;
+    const nextCollaborators = this.collaboratorsKey();
+    if (
+      nextCollaborators !== this.collaboratorsSignature ||
+      this.collaboratorListEl.childElementCount === 0
+    ) {
+      this.collaboratorsSignature = nextCollaborators;
+      this.rebuildCollaborators();
+    } else {
+      this.patchCollaborators();
+    }
+
+    const actions = this.actions;
+    this.actionsEl.hidden = actions.length === 0;
+    const nextActions = this.actionsKey();
+    if (nextActions !== this.actionsSignature || this.actionsEl.childElementCount === 0) {
+      this.actionsSignature = nextActions;
+      this.rebuildActions();
+    } else {
+      this.patchActionLabels();
+    }
   }
 }
 

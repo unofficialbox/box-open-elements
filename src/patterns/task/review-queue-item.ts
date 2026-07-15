@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-review-queue-item";
 
 const escapeHtml = (value: string): string =>
@@ -25,215 +27,8 @@ type ReviewQueueItemMetric = {
   value: string;
 };
 
-export class BoxReviewQueueItemElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["actions", "assignee", "due-date", "heading", "item-label", "message", "metrics", "priority", "status"];
-  }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get actions(): ReviewQueueItemAction[] {
-    return this.parseJsonAttribute<ReviewQueueItemAction[]>("actions", []);
-  }
-
-  set actions(value: ReviewQueueItemAction[]) {
-    this.setAttribute("actions", JSON.stringify(value));
-  }
-
-  get assignee(): ReviewQueueItemAssignee | null {
-    return this.parseJsonAttribute<ReviewQueueItemAssignee | null>("assignee", null);
-  }
-
-  set assignee(value: ReviewQueueItemAssignee | null) {
-    if (!value) {
-      this.removeAttribute("assignee");
-      return;
-    }
-
-    this.setAttribute("assignee", JSON.stringify(value));
-  }
-
-  get dueDate(): string {
-    return this.getAttribute("due-date") ?? "";
-  }
-
-  set dueDate(value: string) {
-    if (!value) {
-      this.removeAttribute("due-date");
-      return;
-    }
-
-    this.setAttribute("due-date", value);
-  }
-
-  get itemLabel(): string {
-    return this.getAttribute("item-label") ?? "";
-  }
-
-  set itemLabel(value: string) {
-    if (!value) {
-      this.removeAttribute("item-label");
-      return;
-    }
-
-    this.setAttribute("item-label", value);
-  }
-
-  get message(): string {
-    return this.getAttribute("message") ?? "";
-  }
-
-  set message(value: string) {
-    if (!value) {
-      this.removeAttribute("message");
-      return;
-    }
-
-    this.setAttribute("message", value);
-  }
-
-  get metrics(): ReviewQueueItemMetric[] {
-    return this.parseJsonAttribute<ReviewQueueItemMetric[]>("metrics", []);
-  }
-
-  set metrics(value: ReviewQueueItemMetric[]) {
-    this.setAttribute("metrics", JSON.stringify(value));
-  }
-
-  get priority(): string {
-    return this.getAttribute("priority") ?? "";
-  }
-
-  set priority(value: string) {
-    if (!value) {
-      this.removeAttribute("priority");
-      return;
-    }
-
-    this.setAttribute("priority", value);
-  }
-
-  get status(): string {
-    return this.getAttribute("status") ?? "";
-  }
-
-  set status(value: string) {
-    if (!value) {
-      this.removeAttribute("status");
-      return;
-    }
-
-    this.setAttribute("status", value);
-  }
-
-  get heading(): string {
-    return this.getAttribute("heading") ?? "Review Queue Item";
-  }
-
-  set heading(value: string) {
-    this.setAttribute("heading", value);
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private parseJsonAttribute<T>(name: string, fallback: T): T {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return fallback;
-    }
-
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
-  }
-
-  private emitAction(actionId: string): void {
-    this.dispatchEvent(
-      new CustomEvent("action", {
-        bubbles: true,
-        composed: true,
-        detail: { action: actionId, title: this.heading, itemLabel: this.itemLabel },
-      }),
-    );
-  }
-
-  private emitSelected(): void {
-    this.dispatchEvent(
-      new CustomEvent("selected", {
-        bubbles: true,
-        composed: true,
-        detail: { title: this.heading, itemLabel: this.itemLabel },
-      }),
-    );
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const assignee = this.assignee;
-    const itemMarkup = this.itemLabel ? `<div part="item-label">${escapeHtml(this.itemLabel)}</div>` : "";
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const statusMarkup = this.status ? `<span part="status">${escapeHtml(this.status)}</span>` : "";
-    const priorityMarkup = this.priority ? `<span part="priority">${escapeHtml(this.priority)}</span>` : "";
-    const dueDateMarkup = this.dueDate ? `<span part="due-date">Due ${escapeHtml(this.dueDate)}</span>` : "";
-    const assigneeMarkup = assignee
-      ? `
-          <div part="assignee">
-            <span part="assignee-avatar">${escapeHtml(assignee.initials ?? assignee.name.slice(0, 2).toUpperCase())}</span>
-            <span part="assignee-meta">
-              <span part="assignee-name">${escapeHtml(assignee.name)}</span>
-              ${assignee.role ? `<span part="assignee-role">${escapeHtml(assignee.role)}</span>` : ""}
-            </span>
-          </div>
-        `
-      : "";
-    const metricsMarkup = this.metrics.length
-      ? `
-          <div part="metrics">
-            ${this.metrics
-              .map(
-                metric => `
-                  <div part="metric">
-                    <span part="metric-label">${escapeHtml(metric.label)}</span>
-                    <span part="metric-value">${escapeHtml(metric.value)}</span>
-                  </div>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -410,7 +205,227 @@ export class BoxReviewQueueItemElement extends HTMLElement {
           outline: 2px solid rgba(0, 97, 213, 0.28);
           outline-offset: 2px;
         }
-      </style>
+      `;
+
+export class BoxReviewQueueItemElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["actions", "assignee", "due-date", "heading", "item-label", "message", "metrics", "priority", "status"];
+  }
+  get actions(): ReviewQueueItemAction[] {
+    return this.parseJsonAttribute<ReviewQueueItemAction[]>("actions", []);
+  }
+
+  set actions(value: ReviewQueueItemAction[]) {
+    this.setAttribute("actions", JSON.stringify(value));
+  }
+
+  get assignee(): ReviewQueueItemAssignee | null {
+    return this.parseJsonAttribute<ReviewQueueItemAssignee | null>("assignee", null);
+  }
+
+  set assignee(value: ReviewQueueItemAssignee | null) {
+    if (!value) {
+      this.removeAttribute("assignee");
+      return;
+    }
+
+    this.setAttribute("assignee", JSON.stringify(value));
+  }
+
+  get dueDate(): string {
+    return this.getAttribute("due-date") ?? "";
+  }
+
+  set dueDate(value: string) {
+    if (!value) {
+      this.removeAttribute("due-date");
+      return;
+    }
+
+    this.setAttribute("due-date", value);
+  }
+
+  get itemLabel(): string {
+    return this.getAttribute("item-label") ?? "";
+  }
+
+  set itemLabel(value: string) {
+    if (!value) {
+      this.removeAttribute("item-label");
+      return;
+    }
+
+    this.setAttribute("item-label", value);
+  }
+
+  get message(): string {
+    return this.getAttribute("message") ?? "";
+  }
+
+  set message(value: string) {
+    if (!value) {
+      this.removeAttribute("message");
+      return;
+    }
+
+    this.setAttribute("message", value);
+  }
+
+  get metrics(): ReviewQueueItemMetric[] {
+    return this.parseJsonAttribute<ReviewQueueItemMetric[]>("metrics", []);
+  }
+
+  set metrics(value: ReviewQueueItemMetric[]) {
+    this.setAttribute("metrics", JSON.stringify(value));
+  }
+
+  get priority(): string {
+    return this.getAttribute("priority") ?? "";
+  }
+
+  set priority(value: string) {
+    if (!value) {
+      this.removeAttribute("priority");
+      return;
+    }
+
+    this.setAttribute("priority", value);
+  }
+
+  get status(): string {
+    return this.getAttribute("status") ?? "";
+  }
+
+  set status(value: string) {
+    if (!value) {
+      this.removeAttribute("status");
+      return;
+    }
+
+    this.setAttribute("status", value);
+  }
+
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Review Queue Item";
+  }
+
+  set heading(value: string) {
+    this.setAttribute("heading", value);
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private emitAction(actionId: string): void {
+    this.dispatchEvent(
+      new CustomEvent("action", {
+        bubbles: true,
+        composed: true,
+        detail: { action: actionId, title: this.heading, itemLabel: this.itemLabel },
+      }),
+    );
+  }
+
+  private emitSelected(): void {
+    this.dispatchEvent(
+      new CustomEvent("selected", {
+        bubbles: true,
+        composed: true,
+        detail: { title: this.heading, itemLabel: this.itemLabel },
+      }),
+    );
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const assignee = this.assignee;
+    const itemMarkup = this.itemLabel ? `<div part="item-label">${escapeHtml(this.itemLabel)}</div>` : "";
+    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
+    const statusMarkup = this.status ? `<span part="status">${escapeHtml(this.status)}</span>` : "";
+    const priorityMarkup = this.priority ? `<span part="priority">${escapeHtml(this.priority)}</span>` : "";
+    const dueDateMarkup = this.dueDate ? `<span part="due-date">Due ${escapeHtml(this.dueDate)}</span>` : "";
+    const assigneeMarkup = assignee
+      ? `
+          <div part="assignee">
+            <span part="assignee-avatar">${escapeHtml(assignee.initials ?? assignee.name.slice(0, 2).toUpperCase())}</span>
+            <span part="assignee-meta">
+              <span part="assignee-name">${escapeHtml(assignee.name)}</span>
+              ${assignee.role ? `<span part="assignee-role">${escapeHtml(assignee.role)}</span>` : ""}
+            </span>
+          </div>
+        `
+      : "";
+    const metricsMarkup = this.metrics.length
+      ? `
+          <div part="metrics">
+            ${this.metrics
+              .map(
+                metric => `
+                  <div part="metric">
+                    <span part="metric-label">${escapeHtml(metric.label)}</span>
+                    <span part="metric-value">${escapeHtml(metric.value)}</span>
+                  </div>
+                `,
+              )
+              .join("")}
+          </div>
+        `
+      : "";
+    const actionsMarkup = this.actions.length
+      ? `
+          <div part="actions">
+            ${this.actions
+              .map(
+                action => `
+                  <button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">
+                    ${escapeHtml(action.label)}
+                  </button>
+                `,
+              )
+              .join("")}
+          </div>
+        `
+      : "";
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <article part="item">
         <button type="button" part="select" aria-label="Open ${escapeHtml(this.heading)} review item">
           <header part="header">
@@ -445,6 +460,7 @@ export class BoxReviewQueueItemElement extends HTMLElement {
         }
       });
     });
+  
   }
 }
 

@@ -31,4 +31,17 @@ describe("BoxSliderElement", () => {
       }),
     );
   });
+
+  it("does not lose focus when label attribute changes while input is focused", () => {
+    const element = document.createElement("box-slider") as BoxSliderElement;
+    element.label = "Density";
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="range"]') as HTMLInputElement | null;
+    input?.focus();
+
+    element.label = "Opacity";
+
+    expect(document.activeElement).toBe(element);
+  });
 });

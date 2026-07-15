@@ -50,4 +50,21 @@ describe("BoxSpinButtonElement", () => {
     expect(input?.getAttribute("aria-valuemin")).toBe("0");
     expect(input?.getAttribute("aria-valuemax")).toBe("10");
   });
+
+  it("does not lose focus when label attribute changes while input is focused", () => {
+    const element = document.createElement("box-spin-button") as BoxSpinButtonElement;
+    element.label = "Quantity";
+    element.value = 4;
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement | null;
+    input?.focus();
+    input!.value = "77";
+
+    element.label = "Count";
+
+    expect(document.activeElement).toBe(element);
+    expect(element.shadowRoot?.activeElement).toBe(input);
+    expect(input?.value).toBe("77");
+  });
 });

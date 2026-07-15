@@ -47,6 +47,19 @@ describe("BoxTooltipElement", () => {
     );
   });
 
+  it("does not immediately close when click follows focus-open", () => {
+    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    document.body.append(element);
+
+    const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null;
+    trigger?.dispatchEvent(new Event("focus"));
+    expect(element.open).toBe(true);
+
+    trigger?.click();
+
+    expect(element.open).toBe(true);
+  });
+
   it("closes on Escape", () => {
     const element = document.createElement("box-tooltip") as BoxTooltipElement;
 

@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-metadata-inspector";
 
 const escapeHtml = (value: string): string =>
@@ -20,122 +22,8 @@ type MetadataInspectorSection = {
   title: string;
 };
 
-export class BoxMetadataInspectorElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["eyebrow", "heading", "message", "sections"];
-  }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get eyebrow(): string {
-    return this.getAttribute("eyebrow") ?? "";
-  }
-
-  set eyebrow(value: string) {
-    this.setAttribute("eyebrow", value);
-  }
-
-  get message(): string {
-    return this.getAttribute("message") ?? "";
-  }
-
-  set message(value: string) {
-    this.setAttribute("message", value);
-  }
-
-  get sections(): MetadataInspectorSection[] {
-    return this.parseJsonAttribute<MetadataInspectorSection[]>("sections", []);
-  }
-
-  set sections(value: MetadataInspectorSection[]) {
-    this.setAttribute("sections", JSON.stringify(value));
-  }
-
-  get heading(): string {
-    return this.getAttribute("heading") ?? "Metadata Inspector";
-  }
-
-  set heading(value: string) {
-    this.setAttribute("heading", value);
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private parseJsonAttribute<T>(name: string, fallback: T): T {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return fallback;
-    }
-
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
-  }
-
-  private emitFieldSelected(label: string, value: string, section: string): void {
-    this.dispatchEvent(
-      new CustomEvent("field-selected", {
-        bubbles: true,
-        composed: true,
-        detail: { label, section, value },
-      }),
-    );
-  }
-
-  private renderSections(): string {
-    return this.sections
-      .map(
-        section => `
-          <section part="section">
-            <div part="section-title">${escapeHtml(section.title)}</div>
-            <dl part="section-fields">
-              ${section.fields
-                .map(
-                  field => `
-                    <button
-                      type="button"
-                      part="field"
-                      data-field-label="${escapeHtml(field.label)}"
-                      data-field-value="${escapeHtml(field.value)}"
-                      data-field-section="${escapeHtml(section.title)}"
-                    >
-                      <div part="field-header">
-                        <dt part="field-label">${escapeHtml(field.label)}</dt>
-                        <dd part="field-value" data-tone="${escapeHtml(field.tone ?? "neutral")}">${escapeHtml(field.value)}</dd>
-                      </div>
-                      ${field.description ? `<div part="field-description">${escapeHtml(field.description)}</div>` : ""}
-                    </button>
-                  `,
-                )
-                .join("")}
-            </dl>
-          </section>
-        `,
-      )
-      .join("");
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const eyebrowMarkup = this.eyebrow ? `<div part="eyebrow">${escapeHtml(this.eyebrow)}</div>` : "";
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -252,7 +140,134 @@ export class BoxMetadataInspectorElement extends HTMLElement {
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           line-height: 1.5;
         }
-      </style>
+      `;
+
+export class BoxMetadataInspectorElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["eyebrow", "heading", "message", "sections"];
+  }
+  get eyebrow(): string {
+    return this.getAttribute("eyebrow") ?? "";
+  }
+
+  set eyebrow(value: string) {
+    this.setAttribute("eyebrow", value);
+  }
+
+  get message(): string {
+    return this.getAttribute("message") ?? "";
+  }
+
+  set message(value: string) {
+    this.setAttribute("message", value);
+  }
+
+  get sections(): MetadataInspectorSection[] {
+    return this.parseJsonAttribute<MetadataInspectorSection[]>("sections", []);
+  }
+
+  set sections(value: MetadataInspectorSection[]) {
+    this.setAttribute("sections", JSON.stringify(value));
+  }
+
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Metadata Inspector";
+  }
+
+  set heading(value: string) {
+    this.setAttribute("heading", value);
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private emitFieldSelected(label: string, value: string, section: string): void {
+    this.dispatchEvent(
+      new CustomEvent("field-selected", {
+        bubbles: true,
+        composed: true,
+        detail: { label, section, value },
+      }),
+    );
+  }
+
+  private renderSections(): string {
+    return this.sections
+      .map(
+        section => `
+          <section part="section">
+            <div part="section-title">${escapeHtml(section.title)}</div>
+            <dl part="section-fields">
+              ${section.fields
+                .map(
+                  field => `
+                    <button
+                      type="button"
+                      part="field"
+                      data-field-label="${escapeHtml(field.label)}"
+                      data-field-value="${escapeHtml(field.value)}"
+                      data-field-section="${escapeHtml(section.title)}"
+                    >
+                      <div part="field-header">
+                        <dt part="field-label">${escapeHtml(field.label)}</dt>
+                        <dd part="field-value" data-tone="${escapeHtml(field.tone ?? "neutral")}">${escapeHtml(field.value)}</dd>
+                      </div>
+                      ${field.description ? `<div part="field-description">${escapeHtml(field.description)}</div>` : ""}
+                    </button>
+                  `,
+                )
+                .join("")}
+            </dl>
+          </section>
+        `,
+      )
+      .join("");
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const eyebrowMarkup = this.eyebrow ? `<div part="eyebrow">${escapeHtml(this.eyebrow)}</div>` : "";
+    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <section part="inspector">
         <header part="header">
           ${eyebrowMarkup}
@@ -272,6 +287,7 @@ export class BoxMetadataInspectorElement extends HTMLElement {
         );
       });
     });
+  
   }
 }
 

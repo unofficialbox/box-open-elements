@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-annotation-thread";
 
 const escapeHtml = (value: string): string =>
@@ -24,167 +26,8 @@ type AnnotationThreadEntry = {
   toolLabel?: string;
 };
 
-export class BoxAnnotationThreadElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["actions", "entries", "message", "selected-entry-id", "heading"];
-  }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get actions(): AnnotationThreadAction[] {
-    return this.parseJsonAttribute<AnnotationThreadAction[]>("actions", []);
-  }
-
-  set actions(value: AnnotationThreadAction[]) {
-    this.setAttribute("actions", JSON.stringify(value));
-  }
-
-  get entries(): AnnotationThreadEntry[] {
-    return this.parseJsonAttribute<AnnotationThreadEntry[]>("entries", []);
-  }
-
-  set entries(value: AnnotationThreadEntry[]) {
-    this.setAttribute("entries", JSON.stringify(value));
-  }
-
-  get message(): string {
-    return this.getAttribute("message") ?? "";
-  }
-
-  set message(value: string) {
-    if (!value) {
-      this.removeAttribute("message");
-      return;
-    }
-
-    this.setAttribute("message", value);
-  }
-
-  get selectedEntryId(): string {
-    return this.getAttribute("selected-entry-id") ?? "";
-  }
-
-  set selectedEntryId(value: string) {
-    if (!value) {
-      this.removeAttribute("selected-entry-id");
-      return;
-    }
-
-    this.setAttribute("selected-entry-id", value);
-  }
-
-  get heading(): string {
-    return this.getAttribute("heading") ?? "Annotation Thread";
-  }
-
-  set heading(value: string) {
-    this.setAttribute("heading", value);
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private parseJsonAttribute<T>(name: string, fallback: T): T {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return fallback;
-    }
-
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
-  }
-
-  private emitAction(actionId: string): void {
-    this.dispatchEvent(
-      new CustomEvent("action", {
-        bubbles: true,
-        composed: true,
-        detail: {
-          action: actionId,
-          selectedEntryId: this.selectedEntryId || null,
-        },
-      }),
-    );
-  }
-
-  private emitEntrySelected(entry: AnnotationThreadEntry): void {
-    this.selectedEntryId = entry.id;
-    this.dispatchEvent(
-      new CustomEvent("entry-selected", {
-        bubbles: true,
-        composed: true,
-        detail: entry,
-      }),
-    );
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    const entriesMarkup = this.entries.length
-      ? `
-          <div part="entries" role="list" aria-label="${escapeHtml(this.heading)} entries">
-            ${this.entries
-              .map(entry => {
-                const selected = entry.id === this.selectedEntryId;
-                return `
-                  <button
-                    type="button"
-                    part="entry"
-                    role="listitem"
-                    data-entry-id="${escapeHtml(entry.id)}"
-                    aria-pressed="${selected ? "true" : "false"}"
-                  >
-                    <span part="entry-avatar">${escapeHtml(entry.initials ?? entry.author.slice(0, 2).toUpperCase())}</span>
-                    <span part="entry-copy">
-                      <span part="entry-topline">
-                        <span part="entry-author">${escapeHtml(entry.author)}</span>
-                        ${entry.toolLabel ? `<span part="entry-tool">${escapeHtml(entry.toolLabel)}</span>` : ""}
-                        ${entry.status ? `<span part="entry-status">${escapeHtml(entry.status)}</span>` : ""}
-                      </span>
-                      <span part="entry-body">${escapeHtml(entry.body)}</span>
-                      ${entry.createdAt ? `<span part="entry-time">${escapeHtml(entry.createdAt)}</span>` : ""}
-                    </span>
-                  </button>
-                `;
-              })
-              .join("")}
-          </div>
-        `
-      : `<div part="empty">No annotation thread entries available.</div>`;
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -339,7 +182,179 @@ export class BoxAnnotationThreadElement extends HTMLElement {
           border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
-      </style>
+      `;
+
+export class BoxAnnotationThreadElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["actions", "entries", "message", "selected-entry-id", "heading"];
+  }
+  get actions(): AnnotationThreadAction[] {
+    return this.parseJsonAttribute<AnnotationThreadAction[]>("actions", []);
+  }
+
+  set actions(value: AnnotationThreadAction[]) {
+    this.setAttribute("actions", JSON.stringify(value));
+  }
+
+  get entries(): AnnotationThreadEntry[] {
+    return this.parseJsonAttribute<AnnotationThreadEntry[]>("entries", []);
+  }
+
+  set entries(value: AnnotationThreadEntry[]) {
+    this.setAttribute("entries", JSON.stringify(value));
+  }
+
+  get message(): string {
+    return this.getAttribute("message") ?? "";
+  }
+
+  set message(value: string) {
+    if (!value) {
+      this.removeAttribute("message");
+      return;
+    }
+
+    this.setAttribute("message", value);
+  }
+
+  get selectedEntryId(): string {
+    return this.getAttribute("selected-entry-id") ?? "";
+  }
+
+  set selectedEntryId(value: string) {
+    if (!value) {
+      this.removeAttribute("selected-entry-id");
+      return;
+    }
+
+    this.setAttribute("selected-entry-id", value);
+  }
+
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Annotation Thread";
+  }
+
+  set heading(value: string) {
+    this.setAttribute("heading", value);
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private emitAction(actionId: string): void {
+    this.dispatchEvent(
+      new CustomEvent("action", {
+        bubbles: true,
+        composed: true,
+        detail: {
+          action: actionId,
+          selectedEntryId: this.selectedEntryId || null,
+        },
+      }),
+    );
+  }
+
+  private emitEntrySelected(entry: AnnotationThreadEntry): void {
+    this.selectedEntryId = entry.id;
+    this.dispatchEvent(
+      new CustomEvent("entry-selected", {
+        bubbles: true,
+        composed: true,
+        detail: entry,
+      }),
+    );
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
+    const actionsMarkup = this.actions.length
+      ? `
+          <div part="actions">
+            ${this.actions
+              .map(
+                action => `
+                  <button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">
+                    ${escapeHtml(action.label)}
+                  </button>
+                `,
+              )
+              .join("")}
+          </div>
+        `
+      : "";
+
+    const entriesMarkup = this.entries.length
+      ? `
+          <div part="entries" role="list" aria-label="${escapeHtml(this.heading)} entries">
+            ${this.entries
+              .map(entry => {
+                const selected = entry.id === this.selectedEntryId;
+                return `
+                  <button
+                    type="button"
+                    part="entry"
+                    role="listitem"
+                    data-entry-id="${escapeHtml(entry.id)}"
+                    aria-pressed="${selected ? "true" : "false"}"
+                  >
+                    <span part="entry-avatar">${escapeHtml(entry.initials ?? entry.author.slice(0, 2).toUpperCase())}</span>
+                    <span part="entry-copy">
+                      <span part="entry-topline">
+                        <span part="entry-author">${escapeHtml(entry.author)}</span>
+                        ${entry.toolLabel ? `<span part="entry-tool">${escapeHtml(entry.toolLabel)}</span>` : ""}
+                        ${entry.status ? `<span part="entry-status">${escapeHtml(entry.status)}</span>` : ""}
+                      </span>
+                      <span part="entry-body">${escapeHtml(entry.body)}</span>
+                      ${entry.createdAt ? `<span part="entry-time">${escapeHtml(entry.createdAt)}</span>` : ""}
+                    </span>
+                  </button>
+                `;
+              })
+              .join("")}
+          </div>
+        `
+      : `<div part="empty">No annotation thread entries available.</div>`;
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <article part="thread">
         <header part="header">
           <div part="title">${escapeHtml(this.heading)}</div>
@@ -368,6 +383,7 @@ export class BoxAnnotationThreadElement extends HTMLElement {
         }
       });
     });
+  
   }
 }
 

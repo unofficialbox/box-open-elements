@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-access-stats";
 
 const escapeHtml = (value: string): string =>
@@ -44,71 +46,8 @@ const isAccessStat = (candidate: unknown): candidate is AccessStat => {
  * sits in a tile inside a labelled `role="group"` so assistive tech reads the
  * value and its label together. Large counts abbreviate to `k`.
  */
-export class BoxAccessStatsElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["label", "stats"];
-  }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get label(): string {
-    return this.getAttribute("label")?.trim() || "Access stats";
-  }
-
-  set label(value: string) {
-    this.setAttribute("label", value);
-  }
-
-  get stats(): AccessStat[] {
-    const raw = this.getAttribute("stats");
-    if (!raw) {
-      return [];
-    }
-
-    try {
-      const parsed: unknown = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed.filter(isAccessStat) : [];
-    } catch {
-      return [];
-    }
-  }
-
-  set stats(value: AccessStat[]) {
-    this.setAttribute("stats", JSON.stringify(value));
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const stats = this.stats;
-    const tiles = stats
-      .map(stat => {
-        const iconMarkup = stat.icon ? `<span part="tile-icon" aria-hidden="true">${escapeHtml(stat.icon)}</span>` : "";
-        return `
-          <div part="tile">
-            ${iconMarkup}
-            <span part="tile-value">${escapeHtml(formatCount(stat.value))}</span>
-            <span part="tile-label">${escapeHtml(stat.label)}</span>
-          </div>
-        `;
-      })
-      .join("");
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -173,7 +112,83 @@ export class BoxAccessStatsElement extends HTMLElement {
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.9rem;
         }
-      </style>
+      `;
+
+export class BoxAccessStatsElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["label", "stats"];
+  }
+  get label(): string {
+    return this.getAttribute("label")?.trim() || "Access stats";
+  }
+
+  set label(value: string) {
+    this.setAttribute("label", value);
+  }
+
+  get stats(): AccessStat[] {
+    const raw = this.getAttribute("stats");
+    if (!raw) {
+      return [];
+    }
+
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.filter(isAccessStat) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  set stats(value: AccessStat[]) {
+    this.setAttribute("stats", JSON.stringify(value));
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const stats = this.stats;
+    const tiles = stats
+      .map(stat => {
+        const iconMarkup = stat.icon ? `<span part="tile-icon" aria-hidden="true">${escapeHtml(stat.icon)}</span>` : "";
+        return `
+          <div part="tile">
+            ${iconMarkup}
+            <span part="tile-value">${escapeHtml(formatCount(stat.value))}</span>
+            <span part="tile-label">${escapeHtml(stat.label)}</span>
+          </div>
+        `;
+      })
+      .join("");
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       ${
         `<section part="stats" role="group" aria-label="${escapeHtml(this.label)}">
               <p part="title">${escapeHtml(this.label)}</p>
@@ -181,6 +196,7 @@ export class BoxAccessStatsElement extends HTMLElement {
             </section>`
       }
     `;
+  
   }
 }
 

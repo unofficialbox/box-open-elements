@@ -1,14 +1,50 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-skeleton";
 
-export class BoxSkeletonElement extends HTMLElement {
+const skeletonStyles = `
+  :host {
+    display: inline-block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="skeleton"] {
+    border-radius: 0.5rem;
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 55%, var(--boe-token-stroke-stroke, #e8e8e8) 45%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 50%,
+        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 55%, var(--boe-token-stroke-stroke, #e8e8e8) 45%) 100%
+      );
+    background-size: 200% 100%;
+    animation: boe-skeleton-shimmer 1.4s ease infinite;
+  }
+
+  @keyframes boe-skeleton-shimmer {
+    0% {
+      background-position: 100% 0;
+    }
+
+    100% {
+      background-position: -100% 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [part="skeleton"] {
+      animation: none;
+    }
+  }
+`;
+
+export class BoxSkeletonElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["height", "width"];
   }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private skeletonEl!: HTMLElement;
 
   get width(): string {
     return this.getAttribute("width") ?? "100%";
@@ -26,67 +62,28 @@ export class BoxSkeletonElement extends HTMLElement {
     this.setAttribute("height", value);
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: inline-block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="skeleton"] {
-          border-radius: 0.5rem;
-          background:
-            linear-gradient(
-              90deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 55%, var(--boe-token-stroke-stroke, #e8e8e8) 45%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 50%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 55%, var(--boe-token-stroke-stroke, #e8e8e8) 45%) 100%
-            );
-          background-size: 200% 100%;
-          animation: boe-skeleton-shimmer 1.4s ease infinite;
-        }
-
-        @keyframes boe-skeleton-shimmer {
-          0% {
-            background-position: 100% 0;
-          }
-
-          100% {
-            background-position: -100% 0;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          [part="skeleton"] {
-            animation: none;
-          }
-        }
-      </style>
+      <style>${skeletonStyles}</style>
       <span part="skeleton" style="display:inline-block;" aria-hidden="true"></span>
     `;
+    this.skeletonEl = this.shadowRoot.querySelector('[part="skeleton"]')!;
+  }
+
+  protected update(): void {
+    if (!this.skeletonEl) {
+      return;
+    }
 
     // Apply size via the CSSOM, not string interpolation: setProperty validates
     // the value and silently drops anything invalid, so attribute-supplied
     // width/height can't break out of the style attribute and inject markup.
-    const node = this.shadowRoot.querySelector<HTMLElement>('[part="skeleton"]');
-    if (node) {
-      node.style.setProperty("width", this.width);
-      node.style.setProperty("height", this.height);
-    }
+    this.skeletonEl.style.setProperty("width", this.width);
+    this.skeletonEl.style.setProperty("height", this.height);
   }
 }
 

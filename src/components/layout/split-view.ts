@@ -1,24 +1,50 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-split-view";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+const splitViewStyles = `
+  :host {
+    display: block;
+  }
 
-export class BoxSplitViewElement extends HTMLElement {
+  [part="split-view"] {
+    display: grid;
+    align-items: stretch;
+  }
+
+  [part="primary"],
+  [part="secondary"] {
+    min-width: 0;
+  }
+
+  [part="separator"] {
+    position: relative;
+    display: grid;
+    place-items: center;
+    cursor: col-resize;
+    touch-action: none;
+  }
+
+  [part="separator"][hidden] {
+    display: none;
+  }
+
+  [part="separator"]::before {
+    content: "";
+    width: 1px;
+    height: 100%;
+    background: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+  }
+`;
+
+export class BoxSplitViewElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["label", "ratio", "resizable"];
   }
 
   private isResizing = false;
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private splitViewEl!: HTMLElement;
+  private separatorEl!: HTMLElement;
 
   get label(): string {
     return this.getAttribute("label") ?? "Split View";
@@ -48,79 +74,54 @@ export class BoxSplitViewElement extends HTMLElement {
     this.toggleAttribute("resizable", value);
   }
 
-  connectedCallback(): void {
-    this.render();
+  private stopResize(pointerId?: number): void {
+    this.isResizing = false;
+    if (typeof pointerId === "number") {
+      (
+        this.separatorEl as HTMLElement & {
+          releasePointerCapture?: (nextPointerId: number) => void;
+        }
+      ).releasePointerCapture?.(pointerId);
+    }
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
   }
 
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
-    const ratioPercent = `${Math.round(this.ratio * 100)}%`;
-    const splitColumns = this.resizable
-      ? `minmax(180px, ${ratioPercent}) 12px minmax(0, 1fr)`
-      : `minmax(180px, ${ratioPercent}) minmax(0, 1fr)`;
-
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-        }
-
-        [part="split-view"] {
-          display: grid;
-          grid-template-columns: ${splitColumns};
-          align-items: stretch;
-        }
-
-        [part="primary"],
-        [part="secondary"] {
-          min-width: 0;
-        }
-
-        [part="separator"] {
-          position: relative;
-          display: grid;
-          place-items: center;
-          cursor: col-resize;
-          touch-action: none;
-        }
-
-        [part="separator"]::before {
-          content: "";
-          width: 1px;
-          height: 100%;
-          background: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-        }
-      </style>
-      <section part="split-view" aria-label="${escapeHtml(this.label)}">
+      <style>${splitViewStyles}</style>
+      <section part="split-view">
         <div part="primary">
           <slot name="primary"></slot>
         </div>
-        ${this.resizable ? `<div part="separator" role="separator" aria-orientation="vertical" aria-label="Resize panels"></div>` : ""}
+        <div part="separator" role="separator" aria-orientation="vertical" aria-label="Resize panels" hidden></div>
         <div part="secondary">
           <slot></slot>
         </div>
       </section>
     `;
+    this.splitViewEl = this.shadowRoot.querySelector('[part="split-view"]')!;
+    this.separatorEl = this.shadowRoot.querySelector('[part="separator"]')!;
+  }
 
-    this.shadowRoot.querySelector('[part="separator"]')?.addEventListener("pointerdown", event => {
+  protected setupListeners(): void {
+    this.separatorEl.addEventListener("pointerdown", event => {
       const pointerEvent = event as PointerEvent;
       this.isResizing = true;
-      const target = event.currentTarget as HTMLElement & {
-        setPointerCapture?: (pointerId: number) => void;
-      };
-      target.setPointerCapture?.(pointerEvent.pointerId);
+      (
+        this.separatorEl as HTMLElement & {
+          setPointerCapture?: (pointerId: number) => void;
+        }
+      ).setPointerCapture?.(pointerEvent.pointerId);
       document.body.style.cursor = "col-resize";
       document.body.style.userSelect = "none";
     });
 
-    this.shadowRoot.querySelector('[part="separator"]')?.addEventListener("pointermove", event => {
+    this.separatorEl.addEventListener("pointermove", event => {
       const pointerEvent = event as PointerEvent;
       if (!this.isResizing) {
         return;
@@ -135,25 +136,29 @@ export class BoxSplitViewElement extends HTMLElement {
       this.ratio = nextRatio;
     });
 
-    const stopResize = (pointerId?: number) => {
-      this.isResizing = false;
-      const separator = this.shadowRoot?.querySelector('[part="separator"]') as HTMLElement | null;
-      if (separator && typeof pointerId === "number") {
-        (separator as HTMLElement & {
-          releasePointerCapture?: (nextPointerId: number) => void;
-        }).releasePointerCapture?.(pointerId);
-      }
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-    };
-
-    this.shadowRoot.querySelector('[part="separator"]')?.addEventListener("pointerup", event => {
-      stopResize((event as PointerEvent).pointerId);
+    this.separatorEl.addEventListener("pointerup", event => {
+      this.stopResize((event as PointerEvent).pointerId);
     });
 
-    this.shadowRoot.querySelector('[part="separator"]')?.addEventListener("pointercancel", event => {
-      stopResize((event as PointerEvent).pointerId);
+    this.separatorEl.addEventListener("pointercancel", event => {
+      this.stopResize((event as PointerEvent).pointerId);
     });
+  }
+
+  protected update(): void {
+    if (!this.splitViewEl || !this.separatorEl) {
+      return;
+    }
+
+    const ratioPercent = `${Math.round(this.ratio * 100)}%`;
+    const resizable = this.resizable;
+    const splitColumns = resizable
+      ? `minmax(180px, ${ratioPercent}) 12px minmax(0, 1fr)`
+      : `minmax(180px, ${ratioPercent}) minmax(0, 1fr)`;
+
+    this.splitViewEl.style.gridTemplateColumns = splitColumns;
+    this.splitViewEl.setAttribute("aria-label", this.label);
+    this.separatorEl.hidden = !resizable;
   }
 }
 

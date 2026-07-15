@@ -116,4 +116,23 @@ describe("BoxInviteCollaboratorsModalElement", () => {
     expect(onCancel).toHaveBeenCalledTimes(1);
     expect(element.open).toBe(false);
   });
+
+  it("regenerates role options when roles change after open", () => {
+    const element = openModal(createTransport());
+    const role = () => element.shadowRoot?.querySelector('[part="role"]') as HTMLSelectElement;
+
+    expect([...role().options].map(option => option.value)).toEqual([
+      "co-owner",
+      "editor",
+      "viewer",
+    ]);
+
+    element.roles = [
+      { value: "uploader", label: "Uploader" },
+      { value: "previewer", label: "Previewer" },
+    ];
+
+    expect([...role().options].map(option => option.value)).toEqual(["uploader", "previewer"]);
+    expect(role().value).toBe("uploader");
+  });
 });

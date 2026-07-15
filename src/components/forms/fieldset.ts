@@ -1,14 +1,48 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-fieldset";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-
 const DESCRIPTION_ID = "box-fieldset-description";
+
+const fieldsetStyles = `
+  :host {
+    display: block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="fieldset"] {
+    margin: 0;
+    padding: 0;
+    border: none;
+    min-inline-size: 0;
+  }
+
+  [part="fieldset"][data-disabled="true"] {
+    opacity: 0.6;
+  }
+
+  [part="legend"] {
+    margin: 0 0 0.35rem;
+    padding: 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+  }
+
+  [part="description"] {
+    margin: 0 0 0.85rem;
+    font-size: 0.86rem;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+  }
+
+  [part="body"] {
+    display: grid;
+    gap: 0.75rem;
+  }
+`;
 
 /**
  * A generic form grouping: a `<legend>`, an optional description, and slotted
@@ -17,15 +51,15 @@ const DESCRIPTION_ID = "box-fieldset-description";
  * `disabled` is mirrored onto the light-DOM controls directly. Groups arbitrary
  * fields; use `box-checkbox-group`/`box-radio-group` for option lists.
  */
-export class BoxFieldsetElement extends HTMLElement {
+export class BoxFieldsetElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["description", "disabled", "label"];
   }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private fieldsetEl!: HTMLFieldSetElement;
+  private bodyEl!: HTMLElement;
+  private legendEl: HTMLLegendElement | null = null;
+  private descriptionEl: HTMLParagraphElement | null = null;
 
   get label(): string {
     return this.getAttribute("label") ?? "";
@@ -51,14 +85,13 @@ export class BoxFieldsetElement extends HTMLElement {
     this.toggleAttribute("disabled", value);
   }
 
-  connectedCallback(): void {
-    this.render();
-    this.syncDisabledControls();
-  }
-
-  attributeChangedCallback(name: string): void {
-    this.render();
-    if (name === "disabled") {
+  attributeChangedCallback(
+    name: string,
+    oldValue: string | null,
+    newValue: string | null,
+  ): void {
+    super.attributeChangedCallback(name, oldValue, newValue);
+    if (name === "disabled" && this.isRendered) {
       this.syncDisabledControls();
     }
   }
@@ -70,7 +103,9 @@ export class BoxFieldsetElement extends HTMLElement {
    * disabled on its own.
    */
   private syncDisabledControls(): void {
-    const controls = this.querySelectorAll<HTMLElement>("input, select, textarea, button, [disabled], [aria-disabled]");
+    const controls = this.querySelectorAll<HTMLElement>(
+      "input, select, textarea, button, [disabled], [aria-disabled]",
+    );
     for (const control of Array.from(controls)) {
       if (this.disabled) {
         if (!control.hasAttribute("disabled")) {
@@ -84,71 +119,66 @@ export class BoxFieldsetElement extends HTMLElement {
     }
   }
 
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
-    const label = this.label;
-    const description = this.description;
-    const legendMarkup = label ? `<legend part="legend">${escapeHtml(label)}</legend>` : "";
-    const descriptionMarkup = description
-      ? `<p part="description" id="${DESCRIPTION_ID}">${escapeHtml(description)}</p>`
-      : "";
-
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="fieldset"] {
-          margin: 0;
-          padding: 0;
-          border: none;
-          min-inline-size: 0;
-        }
-
-        [part="fieldset"][data-disabled="true"] {
-          opacity: 0.6;
-        }
-
-        [part="legend"] {
-          margin: 0 0 0.35rem;
-          padding: 0;
-          font-size: 0.8rem;
-          font-weight: 700;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-
-        [part="description"] {
-          margin: 0 0 0.85rem;
-          font-size: 0.86rem;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-
-        [part="body"] {
-          display: grid;
-          gap: 0.75rem;
-        }
-      </style>
-      <fieldset
-        part="fieldset"
-        data-disabled="${this.disabled ? "true" : "false"}"
-        ${this.disabled ? "disabled" : ""}
-        ${description ? `aria-describedby="${DESCRIPTION_ID}"` : ""}
-      >
-        ${legendMarkup}
-        ${descriptionMarkup}
+      <style>${fieldsetStyles}</style>
+      <fieldset part="fieldset">
         <div part="body">
           <slot></slot>
         </div>
       </fieldset>
     `;
+    this.fieldsetEl = this.shadowRoot.querySelector('[part="fieldset"]')!;
+    this.bodyEl = this.shadowRoot.querySelector('[part="body"]')!;
+  }
+
+  protected update(): void {
+    if (!this.fieldsetEl || !this.bodyEl) {
+      return;
+    }
+
+    const label = this.label;
+    const description = this.description;
+
+    if (label) {
+      if (!this.legendEl) {
+        this.legendEl = document.createElement("legend");
+        this.legendEl.setAttribute("part", "legend");
+        this.fieldsetEl.insertBefore(this.legendEl, this.bodyEl);
+      }
+      this.legendEl.textContent = label;
+    } else if (this.legendEl) {
+      this.legendEl.remove();
+      this.legendEl = null;
+    }
+
+    if (description) {
+      if (!this.descriptionEl) {
+        this.descriptionEl = document.createElement("p");
+        this.descriptionEl.setAttribute("part", "description");
+        this.descriptionEl.id = DESCRIPTION_ID;
+        this.fieldsetEl.insertBefore(this.descriptionEl, this.bodyEl);
+      }
+      this.descriptionEl.textContent = description;
+      this.fieldsetEl.setAttribute("aria-describedby", DESCRIPTION_ID);
+    } else {
+      this.descriptionEl?.remove();
+      this.descriptionEl = null;
+      this.fieldsetEl.removeAttribute("aria-describedby");
+    }
+
+    this.fieldsetEl.dataset.disabled = this.disabled ? "true" : "false";
+    if (this.disabled) {
+      this.fieldsetEl.setAttribute("disabled", "");
+    } else {
+      this.fieldsetEl.removeAttribute("disabled");
+    }
+
+    this.syncDisabledControls();
   }
 }
 

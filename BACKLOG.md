@@ -1,11 +1,18 @@
 # Backlog
 
-This file tracks the highest-signal follow-up work that is still open. The phased build-out itself lives in [docs/roadmap.md](./docs/roadmap.md); this file is for cross-cutting follow-ups and known debts.
+This file tracks the highest-signal follow-up work that is still open. The phased build-out itself lives in [docs/roadmap.md](./docs/roadmap.md); this file is for cross-cutting follow-ups and known debts. Session status for the fidelity program lives in [docs/HANDOFF.md](./docs/HANDOFF.md).
+
+## Component fidelity program
+
+Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fidelity-audit.md).
+
+- **Done:** Batches 0 (security), 1 (`BaseElement` in-place render), 2 (dark mode), 6 (`title`→`heading` + docs fixes).
+- **Next:** Batch 3 (focus-visible + hover/active/disabled) → Batch 4 (ARIA/keyboard + heading semantics) → Batch 5 (form association) → Batch 7 (polish).
 
 ## Build-out
 
-- Execute Phase 1 (explorer foundation) of `docs/roadmap.md` — the button component and selection controller set the conventions; the rest of the phase follows them.
-- Write the Phase 1 ExecPlan per `PLANS.md` before starting the port.
+- Phases 0–5 of `docs/roadmap.md` are complete for catalog parity; further ports are gap-driven, not phase-gated.
+- Keep catalogs / migration-map status markers honest as surfaces change.
 
 ## Foundations
 

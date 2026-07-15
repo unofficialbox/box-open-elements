@@ -38,4 +38,76 @@ describe("BoxPopoverElement", () => {
 
     expect(element.open).toBe(false);
   });
+
+  it("closes on document-level Escape while open", () => {
+    const element = document.createElement("box-popover") as BoxPopoverElement;
+    element.innerHTML = "<p>Popover content</p>";
+
+    document.body.append(element);
+    element.show();
+    expect(element.open).toBe(true);
+
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+
+    expect(element.open).toBe(false);
+  });
+
+  it("closes on outside pointerdown while open", () => {
+    const element = document.createElement("box-popover") as BoxPopoverElement;
+    element.innerHTML = "<p>Popover content</p>";
+
+    document.body.append(element);
+    element.show();
+    expect(element.open).toBe(true);
+
+    document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+
+    expect(element.open).toBe(false);
+  });
+
+  it("does not bind document listeners while detached", () => {
+    const element = document.createElement("box-popover") as BoxPopoverElement;
+    element.innerHTML = "<p>Popover content</p>";
+    element.show();
+
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(element.open).toBe(true);
+
+    document.body.append(element);
+    expect(element.open).toBe(true);
+
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(element.open).toBe(false);
+  });
+
+  it("restores focus to the trigger when Escape closes from inside", () => {
+    const element = document.createElement("box-popover") as BoxPopoverElement;
+    const content = document.createElement("button");
+    content.textContent = "Inside";
+    element.append(content);
+
+    document.body.append(element);
+    element.show();
+
+    const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement;
+    content.focus();
+    expect(document.activeElement).toBe(content);
+
+    content.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, composed: true }));
+
+    expect(element.open).toBe(false);
+    expect(element.shadowRoot?.activeElement).toBe(trigger);
+  });
+
+  it("associates the trigger and dialog surface for assistive tech", () => {
+    const element = document.createElement("box-popover") as BoxPopoverElement;
+    document.body.append(element);
+
+    const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null;
+    const surface = element.shadowRoot?.querySelector('[part="surface"]') as HTMLElement | null;
+
+    expect(trigger?.getAttribute("aria-haspopup")).toBe("dialog");
+    expect(trigger?.getAttribute("aria-controls")).toBe(surface?.id);
+    expect(surface?.getAttribute("aria-labelledby")).toBe(trigger?.id);
+  });
 });

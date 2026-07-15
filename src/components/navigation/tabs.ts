@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-tabs";
 
 const escapeHtml = (value: string): string =>
@@ -13,17 +15,116 @@ type BoxTabOption = {
   value: string;
 };
 
-export class BoxTabsElement extends HTMLElement {
+const tabsStyles = `
+  :host {
+    display: block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="tabs"] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+  }
+
+  [part="tabs"][data-layout="attached"] {
+    gap: 0;
+    padding: 0.125rem;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
+    border-radius: 999px;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 2%, var(--boe-token-surface-surface-secondary, #fbfbfb) 86%, var(--boe-token-surface-surface, #ffffff) 12%) 100%
+      );
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  }
+
+  [part="tab"] {
+    appearance: none;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
+    border-radius: 999px;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface-secondary, #fbfbfb) 6%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 10%, var(--boe-token-surface-surface, #ffffff) 90%) 100%
+      );
+    color: var(--boe-token-text-text, #222222);
+    font: inherit;
+    min-height: 2.125rem;
+    padding: 0.1875rem 0.75rem;
+    cursor: pointer;
+    transition:
+      background-color 140ms ease,
+      color 140ms ease,
+      border-color 140ms ease,
+      box-shadow 140ms ease;
+  }
+
+  [part="tab"][data-layout="attached"] {
+    border-radius: 0;
+  }
+
+  [part="tab"][data-layout="attached"][data-position="first"] {
+    border-top-left-radius: 999px;
+    border-bottom-left-radius: 999px;
+  }
+
+  [part="tab"][data-layout="attached"][data-position="last"] {
+    border-top-right-radius: 999px;
+    border-bottom-right-radius: 999px;
+  }
+
+  [part="tab"][data-layout="attached"][data-position="middle"],
+  [part="tab"][data-layout="attached"][data-position="last"] {
+    margin-left: -1px;
+  }
+
+  [part="tab"][data-layout="attached"][data-position="only"] {
+    border-radius: 999px;
+  }
+
+  [part="tab"][data-selected="true"] {
+    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, var(--boe-token-stroke-stroke, #e8e8e8) 86%);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 42%, var(--boe-token-surface-surface, #ffffff) 58%) 100%
+      );
+    color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 78%, var(--boe-token-text-text, #222222) 22%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.82),
+      0 6px 12px rgba(15, 23, 42, 0.035);
+  }
+
+  [part="tab"]:not([data-selected="true"]):hover {
+    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-stroke-stroke, #e8e8e8) 90%);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 28%, var(--boe-token-surface-surface, #ffffff) 72%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, var(--boe-token-surface-item-surface-hover, #eef4fb) 10%) 100%
+      );
+  }
+
+  [part="tab"]:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+    outline-offset: 2px;
+  }
+`;
+
+export class BoxTabsElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["label", "layout", "options", "value"];
   }
 
   private valueInternal = "";
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private lastOptionsJson = "";
+  private tabsEl!: HTMLElement;
 
   get label(): string {
     return this.getAttribute("label") ?? "Tabs";
@@ -66,35 +167,46 @@ export class BoxTabsElement extends HTMLElement {
   set value(nextValue: string) {
     this.valueInternal = nextValue;
     this.setAttribute("value", nextValue);
-    this.render();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
       this.valueInternal = this.getAttribute("value") ?? "";
     }
-
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
-  private render(): void {
-    if (!this.shadowRoot) {
+  private selectValue(nextValue: string, focusIndex?: number): void {
+    if (!nextValue || nextValue === this.valueInternal) {
       return;
     }
 
-    const options = this.options;
-    const selectedValue = this.valueInternal || options[0]?.value || "";
+    this.valueInternal = nextValue;
+    this.setAttribute("value", nextValue);
+    this.dispatchEvent(
+      new CustomEvent("value-changed", {
+        bubbles: true,
+        composed: true,
+        detail: { value: nextValue },
+      }),
+    );
+    this.update();
 
-    if (selectedValue !== this.valueInternal) {
-      this.valueInternal = selectedValue;
-      this.setAttribute("value", selectedValue);
+    if (typeof focusIndex === "number") {
+      queueMicrotask(() => {
+        const nextTab = this.tabsEl.querySelectorAll('[part="tab"]')[focusIndex] as
+          | HTMLButtonElement
+          | undefined;
+        nextTab?.focus();
+      });
     }
+  }
 
-    const tabsMarkup = options
+  private renderTabsMarkup(options: BoxTabOption[], selectedValue: string): string {
+    return options
       .map((option, index) => {
         const position =
           options.length === 1
@@ -122,170 +234,111 @@ export class BoxTabsElement extends HTMLElement {
         `;
       })
       .join("");
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
 
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="tabs"] {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.625rem;
-        }
-
-        [part="tabs"][data-layout="attached"] {
-          gap: 0;
-          padding: 0.125rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-          border-radius: 999px;
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 2%, var(--boe-token-surface-surface-secondary, #fbfbfb) 86%, var(--boe-token-surface-surface, #ffffff) 12%) 100%
-            );
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
-        }
-
-        [part="tab"] {
-          appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-          border-radius: 999px;
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface-secondary, #fbfbfb) 6%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 10%, var(--boe-token-surface-surface, #ffffff) 90%) 100%
-            );
-          color: var(--boe-token-text-text, #222222);
-          font: inherit;
-          min-height: 2.125rem;
-          padding: 0.1875rem 0.75rem;
-          cursor: pointer;
-          transition:
-            background-color 140ms ease,
-            color 140ms ease,
-            border-color 140ms ease,
-            box-shadow 140ms ease;
-        }
-
-        [part="tab"][data-layout="attached"] {
-          border-radius: 0;
-        }
-
-        [part="tab"][data-layout="attached"][data-position="first"] {
-          border-top-left-radius: 999px;
-          border-bottom-left-radius: 999px;
-        }
-
-        [part="tab"][data-layout="attached"][data-position="last"] {
-          border-top-right-radius: 999px;
-          border-bottom-right-radius: 999px;
-        }
-
-        [part="tab"][data-layout="attached"][data-position="middle"],
-        [part="tab"][data-layout="attached"][data-position="last"] {
-          margin-left: -1px;
-        }
-
-        [part="tab"][data-layout="attached"][data-position="only"] {
-          border-radius: 999px;
-        }
-
-        [part="tab"][data-selected="true"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, var(--boe-token-stroke-stroke, #e8e8e8) 86%);
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 42%, var(--boe-token-surface-surface, #ffffff) 58%) 100%
-            );
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 78%, var(--boe-token-text-text, #222222) 22%);
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.82),
-            0 6px 12px rgba(15, 23, 42, 0.035);
-        }
-
-        [part="tab"]:not([data-selected="true"]):hover {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-stroke-stroke, #e8e8e8) 90%);
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 28%, var(--boe-token-surface-surface, #ffffff) 72%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, var(--boe-token-surface-item-surface-hover, #eef4fb) 10%) 100%
-            );
-        }
-
-        [part="tab"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
-        }
-      </style>
-      <div part="tabs" data-layout="${this.layout}" role="tablist" aria-label="${escapeHtml(this.label)}">
-        ${tabsMarkup}
-      </div>
+      <style>${tabsStyles}</style>
+      <div part="tabs" role="tablist"></div>
     `;
+    this.tabsEl = this.shadowRoot.querySelector('[part="tabs"]')!;
+  }
 
-    this.shadowRoot.querySelectorAll('[part="tab"]').forEach((tab, index) => {
-      tab.addEventListener("click", () => {
-        const nextValue = (tab as HTMLButtonElement).dataset.value ?? "";
-        if (!nextValue || nextValue === this.valueInternal) {
-          return;
-        }
+  protected setupListeners(): void {
+    this.tabsEl.addEventListener("click", event => {
+      const tab = (event.target as HTMLElement | null)?.closest('[part="tab"]') as HTMLButtonElement | null;
+      if (!tab || !this.tabsEl.contains(tab)) {
+        return;
+      }
+      this.selectValue(tab.dataset.value ?? "");
+    });
 
-        this.valueInternal = nextValue;
-        this.setAttribute("value", nextValue);
-        this.dispatchEvent(
-          new CustomEvent("value-changed", {
-            bubbles: true,
-            composed: true,
-            detail: { value: nextValue },
-          }),
-        );
-      });
+    this.tabsEl.addEventListener("keydown", event => {
+      const keyboardEvent = event as KeyboardEvent;
+      const tab = (keyboardEvent.target as HTMLElement | null)?.closest(
+        '[part="tab"]',
+      ) as HTMLButtonElement | null;
+      if (!tab || !this.tabsEl.contains(tab)) {
+        return;
+      }
 
-      tab.addEventListener("keydown", event => {
-        const keyboardEvent = event as KeyboardEvent;
-        const lastIndex = options.length - 1;
-        let nextIndex = index;
+      const options = this.options;
+      const tabs = Array.from(this.tabsEl.querySelectorAll('[part="tab"]'));
+      const index = tabs.indexOf(tab);
+      const lastIndex = options.length - 1;
+      let nextIndex = index;
 
-        if (keyboardEvent.key === "ArrowRight" || keyboardEvent.key === "ArrowDown") {
-          nextIndex = index >= lastIndex ? 0 : index + 1;
-        } else if (keyboardEvent.key === "ArrowLeft" || keyboardEvent.key === "ArrowUp") {
-          nextIndex = index <= 0 ? lastIndex : index - 1;
-        } else if (keyboardEvent.key === "Home") {
-          nextIndex = 0;
-        } else if (keyboardEvent.key === "End") {
-          nextIndex = lastIndex;
-        } else {
-          return;
-        }
+      if (keyboardEvent.key === "ArrowRight" || keyboardEvent.key === "ArrowDown") {
+        nextIndex = index >= lastIndex ? 0 : index + 1;
+      } else if (keyboardEvent.key === "ArrowLeft" || keyboardEvent.key === "ArrowUp") {
+        nextIndex = index <= 0 ? lastIndex : index - 1;
+      } else if (keyboardEvent.key === "Home") {
+        nextIndex = 0;
+      } else if (keyboardEvent.key === "End") {
+        nextIndex = lastIndex;
+      } else {
+        return;
+      }
 
-        keyboardEvent.preventDefault();
-        const nextOption = options[nextIndex];
-        if (!nextOption) {
-          return;
-        }
+      keyboardEvent.preventDefault();
+      const nextOption = options[nextIndex];
+      if (!nextOption) {
+        return;
+      }
 
-        this.valueInternal = nextOption.value;
-        this.setAttribute("value", nextOption.value);
-        this.dispatchEvent(
-          new CustomEvent("value-changed", {
-            bubbles: true,
-            composed: true,
-            detail: { value: nextOption.value },
-          }),
-        );
+      this.selectValue(nextOption.value, nextIndex);
+    });
+  }
 
-        queueMicrotask(() => {
-          const nextTab = this.shadowRoot?.querySelectorAll('[part="tab"]')[nextIndex] as HTMLButtonElement | undefined;
-          nextTab?.focus();
-        });
-      });
+  protected update(): void {
+    if (!this.tabsEl) {
+      return;
+    }
+
+    const options = this.options;
+    const optionsJson = this.getAttribute("options") ?? "";
+    const selectedValue = this.valueInternal || options[0]?.value || "";
+
+    if (selectedValue !== this.valueInternal) {
+      this.valueInternal = selectedValue;
+      this.setAttribute("value", selectedValue);
+    }
+
+    this.tabsEl.dataset.layout = this.layout;
+    this.tabsEl.setAttribute("aria-label", this.label);
+
+    if (optionsJson !== this.lastOptionsJson) {
+      this.tabsEl.innerHTML = this.renderTabsMarkup(options, selectedValue);
+      this.lastOptionsJson = optionsJson;
+      return;
+    }
+
+    this.tabsEl.querySelectorAll('[part="tab"]').forEach((node, index) => {
+      const tab = node as HTMLButtonElement;
+      const option = options[index];
+      if (!option) {
+        return;
+      }
+
+      const position =
+        options.length === 1
+          ? "only"
+          : index === 0
+            ? "first"
+            : index === options.length - 1
+              ? "last"
+              : "middle";
+      const selected = option.value === selectedValue;
+
+      tab.dataset.layout = this.layout;
+      tab.dataset.position = position;
+      tab.dataset.selected = String(selected);
+      tab.setAttribute("aria-selected", String(selected));
+      tab.tabIndex = selected ? 0 : -1;
     });
   }
 }

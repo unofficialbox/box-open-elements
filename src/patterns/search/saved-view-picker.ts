@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-saved-view-picker";
 
 const escapeHtml = (value: string): string =>
@@ -15,86 +17,8 @@ type SavedView = {
   resultCount?: number;
 };
 
-export class BoxSavedViewPickerElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["label", "value", "views"];
-  }
 
-  private valueInternal = "";
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get label(): string {
-    return this.getAttribute("label") ?? "Saved Views";
-  }
-
-  set label(value: string) {
-    this.setAttribute("label", value);
-  }
-
-  get value(): string {
-    return this.valueInternal;
-  }
-
-  set value(value: string) {
-    this.valueInternal = value;
-    this.setAttribute("value", value);
-    this.render();
-  }
-
-  get views(): SavedView[] {
-    return this.parseJsonAttribute<SavedView[]>("views", []);
-  }
-
-  set views(value: SavedView[]) {
-    this.setAttribute("views", JSON.stringify(value));
-  }
-
-  connectedCallback(): void {
-    this.valueInternal = this.getAttribute("value") ?? "";
-    this.render();
-  }
-
-  attributeChangedCallback(name: string): void {
-    if (name === "value") {
-      this.valueInternal = this.getAttribute("value") ?? "";
-    }
-    this.render();
-  }
-
-  private parseJsonAttribute<T>(name: string, fallback: T): T {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return fallback;
-    }
-
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
-  }
-
-  private emitValueChanged(): void {
-    this.dispatchEvent(
-      new CustomEvent("value-changed", {
-        bubbles: true,
-        composed: true,
-        detail: { value: this.valueInternal },
-      }),
-    );
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -167,7 +91,103 @@ export class BoxSavedViewPickerElement extends HTMLElement {
           color: var(--_obp-text-muted);
           font-size: 0.88rem;
         }
-      </style>
+      `;
+
+export class BoxSavedViewPickerElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["label", "value", "views"];
+  }
+
+  private valueInternal = "";
+  get label(): string {
+    return this.getAttribute("label") ?? "Saved Views";
+  }
+
+  set label(value: string) {
+    this.setAttribute("label", value);
+  }
+
+  get value(): string {
+    return this.valueInternal;
+  }
+
+  set value(value: string) {
+    this.valueInternal = value;
+    this.setAttribute("value", value);
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
+  get views(): SavedView[] {
+    return this.parseJsonAttribute<SavedView[]>("views", []);
+  }
+
+  set views(value: SavedView[]) {
+    this.setAttribute("views", JSON.stringify(value));
+  }
+
+  connectedCallback(): void {
+    this.valueInternal = this.getAttribute("value") ?? "";
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    if (name === "value") {
+      this.valueInternal = this.getAttribute("value") ?? "";
+    
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private emitValueChanged(): void {
+    this.dispatchEvent(
+      new CustomEvent("value-changed", {
+        bubbles: true,
+        composed: true,
+        detail: { value: this.valueInternal },
+      }),
+    );
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <section part="picker" role="radiogroup" aria-label="${escapeHtml(this.label)}">
         <div part="label">${escapeHtml(this.label)}</div>
         <div part="views">
@@ -205,6 +225,7 @@ export class BoxSavedViewPickerElement extends HTMLElement {
         this.emitValueChanged();
       });
     });
+  
   }
 }
 

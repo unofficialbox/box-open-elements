@@ -84,4 +84,29 @@ describe("BoxDualListboxElement", () => {
     const moveRight = element.shadowRoot?.querySelector('[part="move-right"]') as HTMLButtonElement | null;
     expect(moveRight?.disabled).toBe(true);
   });
+
+  it("keeps option focus when toggling selection", () => {
+    const element = document.createElement("box-dual-listbox") as BoxDualListboxElement;
+    element.options = [
+      { label: "Preview", value: "preview" },
+      { label: "Download", value: "download" },
+    ];
+    document.body.append(element);
+
+    const option = element.shadowRoot?.querySelector(
+      '[part="option"][data-list="available"][data-value="preview"]',
+    ) as HTMLButtonElement;
+    option.focus();
+    option.click();
+
+    expect(option.getAttribute("aria-selected")).toBe("true");
+    expect(element.shadowRoot?.activeElement).toBe(option);
+    expect(
+      element.shadowRoot?.querySelector('[part="option"][data-list="available"][data-value="preview"]'),
+    ).toBe(option);
+
+    option.click();
+    expect(option.getAttribute("aria-selected")).toBe("false");
+    expect(element.shadowRoot?.activeElement).toBe(option);
+  });
 });

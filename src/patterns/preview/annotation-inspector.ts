@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-annotation-inspector";
 
 const escapeHtml = (value: string): string =>
@@ -34,175 +36,8 @@ type AnnotationInspectorAnnotation = {
   toolLabel?: string;
 };
 
-export class BoxAnnotationInspectorElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["actions", "annotation", "heading", "message"];
-  }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get actions(): AnnotationInspectorAction[] {
-    return this.parseJsonAttribute<AnnotationInspectorAction[]>("actions", []);
-  }
-
-  set actions(value: AnnotationInspectorAction[]) {
-    this.setAttribute("actions", JSON.stringify(value));
-  }
-
-  get annotation(): AnnotationInspectorAnnotation | null {
-    return this.parseJsonAttribute<AnnotationInspectorAnnotation | null>("annotation", null);
-  }
-
-  set annotation(value: AnnotationInspectorAnnotation | null) {
-    if (!value) {
-      this.removeAttribute("annotation");
-      return;
-    }
-
-    this.setAttribute("annotation", JSON.stringify(value));
-  }
-
-  get message(): string {
-    return this.getAttribute("message") ?? "";
-  }
-
-  set message(value: string) {
-    if (!value) {
-      this.removeAttribute("message");
-      return;
-    }
-
-    this.setAttribute("message", value);
-  }
-
-  get heading(): string {
-    return this.getAttribute("heading") ?? "Annotation Inspector";
-  }
-
-  set heading(value: string) {
-    this.setAttribute("heading", value);
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private parseJsonAttribute<T>(name: string, fallback: T): T {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return fallback;
-    }
-
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
-  }
-
-  private emitAction(actionId: string): void {
-    this.dispatchEvent(
-      new CustomEvent("action", {
-        bubbles: true,
-        composed: true,
-        detail: { action: actionId, annotationId: this.annotation?.id ?? null },
-      }),
-    );
-  }
-
-  private emitReplySelected(reply: AnnotationInspectorReply, index: number): void {
-    this.dispatchEvent(
-      new CustomEvent("reply-selected", {
-        bubbles: true,
-        composed: true,
-        detail: { ...reply, index, annotationId: this.annotation?.id ?? null },
-      }),
-    );
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const annotation = this.annotation;
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button
-                    type="button"
-                    part="action"
-                    data-action-id="${escapeHtml(action.id)}"
-                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
-                  >
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    const detailMarkup = annotation
-      ? `
-          <section part="annotation">
-            <div part="annotation-header">
-              <div part="avatar">${escapeHtml(annotation.initials ?? annotation.author.slice(0, 2).toUpperCase())}</div>
-              <div part="author-copy">
-                <div part="author">${escapeHtml(annotation.author)}</div>
-                <div part="meta">
-                  ${annotation.toolLabel ? `<span part="tool">${escapeHtml(annotation.toolLabel)}</span>` : ""}
-                  ${annotation.status ? `<span part="status">${escapeHtml(annotation.status)}</span>` : ""}
-                  ${annotation.pageLabel ? `<span part="page">${escapeHtml(annotation.pageLabel)}</span>` : ""}
-                </div>
-              </div>
-              ${annotation.color ? `<span part="color-chip" style="--annotation-color:${escapeHtml(annotation.color)};"></span>` : ""}
-            </div>
-            ${annotation.subject ? `<div part="subject">${escapeHtml(annotation.subject)}</div>` : ""}
-            <div part="body">${escapeHtml(annotation.body)}</div>
-            ${annotation.createdAt ? `<div part="timestamp">${escapeHtml(annotation.createdAt)}</div>` : ""}
-            ${
-              annotation.replies?.length
-                ? `
-                  <div part="replies">
-                    <div part="section-title">Replies</div>
-                    <div part="reply-list">
-                      ${annotation.replies
-                        .map(
-                          (reply, index) => `
-                            <button type="button" part="reply" data-reply-index="${String(index)}">
-                              <span part="reply-avatar">${escapeHtml(reply.initials ?? reply.author.slice(0, 2).toUpperCase())}</span>
-                              <span part="reply-copy">
-                                <span part="reply-author">${escapeHtml(reply.author)}</span>
-                                <span part="reply-body">${escapeHtml(reply.body)}</span>
-                              </span>
-                            </button>
-                          `,
-                        )
-                        .join("")}
-                    </div>
-                  </div>
-                `
-                : ""
-            }
-          </section>
-        `
-      : `<div part="empty">No annotation selected.</div>`;
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -382,7 +217,187 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
           border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
-      </style>
+      `;
+
+export class BoxAnnotationInspectorElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["actions", "annotation", "heading", "message"];
+  }
+  get actions(): AnnotationInspectorAction[] {
+    return this.parseJsonAttribute<AnnotationInspectorAction[]>("actions", []);
+  }
+
+  set actions(value: AnnotationInspectorAction[]) {
+    this.setAttribute("actions", JSON.stringify(value));
+  }
+
+  get annotation(): AnnotationInspectorAnnotation | null {
+    return this.parseJsonAttribute<AnnotationInspectorAnnotation | null>("annotation", null);
+  }
+
+  set annotation(value: AnnotationInspectorAnnotation | null) {
+    if (!value) {
+      this.removeAttribute("annotation");
+      return;
+    }
+
+    this.setAttribute("annotation", JSON.stringify(value));
+  }
+
+  get message(): string {
+    return this.getAttribute("message") ?? "";
+  }
+
+  set message(value: string) {
+    if (!value) {
+      this.removeAttribute("message");
+      return;
+    }
+
+    this.setAttribute("message", value);
+  }
+
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Annotation Inspector";
+  }
+
+  set heading(value: string) {
+    this.setAttribute("heading", value);
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private emitAction(actionId: string): void {
+    this.dispatchEvent(
+      new CustomEvent("action", {
+        bubbles: true,
+        composed: true,
+        detail: { action: actionId, annotationId: this.annotation?.id ?? null },
+      }),
+    );
+  }
+
+  private emitReplySelected(reply: AnnotationInspectorReply, index: number): void {
+    this.dispatchEvent(
+      new CustomEvent("reply-selected", {
+        bubbles: true,
+        composed: true,
+        detail: { ...reply, index, annotationId: this.annotation?.id ?? null },
+      }),
+    );
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const annotation = this.annotation;
+    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
+    const actionsMarkup = this.actions.length
+      ? `
+          <div part="actions">
+            ${this.actions
+              .map(
+                action => `
+                  <button
+                    type="button"
+                    part="action"
+                    data-action-id="${escapeHtml(action.id)}"
+                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
+                  >
+                    ${escapeHtml(action.label)}
+                  </button>
+                `,
+              )
+              .join("")}
+          </div>
+        `
+      : "";
+
+    const detailMarkup = annotation
+      ? `
+          <section part="annotation">
+            <div part="annotation-header">
+              <div part="avatar">${escapeHtml(annotation.initials ?? annotation.author.slice(0, 2).toUpperCase())}</div>
+              <div part="author-copy">
+                <div part="author">${escapeHtml(annotation.author)}</div>
+                <div part="meta">
+                  ${annotation.toolLabel ? `<span part="tool">${escapeHtml(annotation.toolLabel)}</span>` : ""}
+                  ${annotation.status ? `<span part="status">${escapeHtml(annotation.status)}</span>` : ""}
+                  ${annotation.pageLabel ? `<span part="page">${escapeHtml(annotation.pageLabel)}</span>` : ""}
+                </div>
+              </div>
+              ${annotation.color ? `<span part="color-chip" style="--annotation-color:${escapeHtml(annotation.color)};"></span>` : ""}
+            </div>
+            ${annotation.subject ? `<div part="subject">${escapeHtml(annotation.subject)}</div>` : ""}
+            <div part="body">${escapeHtml(annotation.body)}</div>
+            ${annotation.createdAt ? `<div part="timestamp">${escapeHtml(annotation.createdAt)}</div>` : ""}
+            ${
+              annotation.replies?.length
+                ? `
+                  <div part="replies">
+                    <div part="section-title">Replies</div>
+                    <div part="reply-list">
+                      ${annotation.replies
+                        .map(
+                          (reply, index) => `
+                            <button type="button" part="reply" data-reply-index="${String(index)}">
+                              <span part="reply-avatar">${escapeHtml(reply.initials ?? reply.author.slice(0, 2).toUpperCase())}</span>
+                              <span part="reply-copy">
+                                <span part="reply-author">${escapeHtml(reply.author)}</span>
+                                <span part="reply-body">${escapeHtml(reply.body)}</span>
+                              </span>
+                            </button>
+                          `,
+                        )
+                        .join("")}
+                    </div>
+                  </div>
+                `
+                : ""
+            }
+          </section>
+        `
+      : `<div part="empty">No annotation selected.</div>`;
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <article part="panel">
         <header part="header">
           <div part="title">${escapeHtml(this.heading)}</div>
@@ -411,6 +426,7 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
         }
       });
     });
+  
   }
 }
 

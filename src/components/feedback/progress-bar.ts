@@ -1,25 +1,71 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-progress-bar";
 
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(max, Math.max(min, value));
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+const progressBarStyles = `
+  :host {
+    display: block;
+    color: inherit;
+    font: inherit;
+  }
 
-export class BoxProgressBarElement extends HTMLElement {
+  [part="progress"] {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  [part="meta"] {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.65rem;
+  }
+
+  [part="label"] {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+  }
+
+  [part="value"] {
+    font-size: 0.86rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--boe-token-text-text, #222222);
+  }
+
+  [part="track"] {
+    display: block;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 55%, var(--boe-token-stroke-stroke, #e8e8e8) 45%);
+    overflow: hidden;
+  }
+
+  [part="indicator"] {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--boe-token-surface-surface-brand, #0061d5);
+    transition: width 140ms ease;
+  }
+`;
+
+export class BoxProgressBarElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["label", "max", "value"];
   }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private progressEl!: HTMLElement;
+  private labelEl!: HTMLElement;
+  private valueEl!: HTMLElement;
+  private trackEl!: HTMLElement;
+  private indicatorEl!: HTMLElement;
 
   get label(): string {
     return this.getAttribute("label") ?? "Progress";
@@ -45,16 +91,32 @@ export class BoxProgressBarElement extends HTMLElement {
     this.setAttribute("value", String(value));
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${progressBarStyles}</style>
+      <div part="progress" role="group">
+        <div part="meta">
+          <span part="label"></span>
+          <span part="value"></span>
+        </div>
+        <div part="track" role="progressbar" aria-valuemin="0">
+          <span part="indicator"></span>
+        </div>
+      </div>
+    `;
+    this.progressEl = this.shadowRoot.querySelector('[part="progress"]')!;
+    this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.valueEl = this.shadowRoot.querySelector('[part="value"]')!;
+    this.trackEl = this.shadowRoot.querySelector('[part="track"]')!;
+    this.indicatorEl = this.shadowRoot.querySelector('[part="indicator"]')!;
+  }
+
+  protected update(): void {
+    if (!this.progressEl) {
       return;
     }
 
@@ -62,75 +124,14 @@ export class BoxProgressBarElement extends HTMLElement {
     const value = clamp(this.value, 0, max);
     const percentage = Math.round((value / max) * 100);
 
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="progress"] {
-          display: grid;
-          gap: 0.45rem;
-        }
-
-        [part="meta"] {
-          display: flex;
-          align-items: baseline;
-          justify-content: space-between;
-          gap: 0.65rem;
-        }
-
-        [part="label"] {
-          font-size: 0.8rem;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-
-        [part="value"] {
-          font-size: 0.86rem;
-          font-weight: 700;
-          font-variant-numeric: tabular-nums;
-          color: var(--boe-token-text-text, #222222);
-        }
-
-        [part="track"] {
-          display: block;
-          height: 0.5rem;
-          border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 55%, var(--boe-token-stroke-stroke, #e8e8e8) 45%);
-          overflow: hidden;
-        }
-
-        [part="indicator"] {
-          display: block;
-          height: 100%;
-          border-radius: 999px;
-          background: var(--boe-token-surface-surface-brand, #0061d5);
-          transition: width 140ms ease;
-        }
-      </style>
-      <div part="progress" role="group" aria-label="${escapeHtml(this.label)} progress">
-        <div part="meta">
-          <span part="label">${escapeHtml(this.label)}</span>
-          <span part="value">${percentage}%</span>
-        </div>
-        <div
-          part="track"
-          role="progressbar"
-          aria-label="${escapeHtml(this.label)}"
-          aria-valuemin="0"
-          aria-valuemax="${max}"
-          aria-valuenow="${value}"
-          aria-valuetext="${percentage}%"
-        >
-          <span part="indicator" style="width:${percentage}%"></span>
-        </div>
-      </div>
-    `;
+    this.progressEl.setAttribute("aria-label", `${this.label} progress`);
+    this.labelEl.textContent = this.label;
+    this.valueEl.textContent = `${percentage}%`;
+    this.trackEl.setAttribute("aria-label", this.label);
+    this.trackEl.setAttribute("aria-valuemax", String(max));
+    this.trackEl.setAttribute("aria-valuenow", String(value));
+    this.trackEl.setAttribute("aria-valuetext", `${percentage}%`);
+    this.indicatorEl.style.width = `${percentage}%`;
   }
 }
 

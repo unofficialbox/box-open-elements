@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-bulk-action-bar";
 
 const escapeHtml = (value: string): string =>
@@ -20,175 +22,8 @@ type BulkActionItem = {
   label: string;
 };
 
-export class BoxBulkActionBarElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["actions", "clear-label", "count", "items", "label", "message"];
-  }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get actions(): BulkAction[] {
-    return this.parseJsonAttribute<BulkAction[]>("actions", []);
-  }
-
-  set actions(value: BulkAction[]) {
-    this.setAttribute("actions", JSON.stringify(value));
-  }
-
-  get clearLabel(): string {
-    return this.getAttribute("clear-label") ?? "Clear selection";
-  }
-
-  set clearLabel(value: string) {
-    this.setAttribute("clear-label", value);
-  }
-
-  get count(): number {
-    const raw = this.getAttribute("count");
-    if (!raw) {
-      return this.items.length;
-    }
-
-    const parsed = Number.parseInt(raw, 10);
-    return Number.isFinite(parsed) ? Math.max(parsed, 0) : this.items.length;
-  }
-
-  set count(value: number) {
-    this.setAttribute("count", String(value));
-  }
-
-  get items(): BulkActionItem[] {
-    return this.parseJsonAttribute<BulkActionItem[]>("items", []);
-  }
-
-  set items(value: BulkActionItem[]) {
-    this.setAttribute("items", JSON.stringify(value));
-  }
-
-  get label(): string {
-    return this.getAttribute("label") ?? "Bulk actions";
-  }
-
-  set label(value: string) {
-    this.setAttribute("label", value);
-  }
-
-  get message(): string {
-    return this.getAttribute("message") ?? "";
-  }
-
-  set message(value: string) {
-    this.setAttribute("message", value);
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private parseJsonAttribute<T>(name: string, fallback: T): T {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return fallback;
-    }
-
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
-  }
-
-  private emitAction(actionId: string): void {
-    this.dispatchEvent(
-      new CustomEvent("action", {
-        bubbles: true,
-        composed: true,
-        detail: {
-          action: actionId,
-          count: this.count,
-          items: this.items,
-        },
-      }),
-    );
-  }
-
-  private emitClear(): void {
-    this.dispatchEvent(
-      new CustomEvent("clear", {
-        bubbles: true,
-        composed: true,
-        detail: {
-          count: this.count,
-          items: this.items,
-        },
-      }),
-    );
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const count = this.count;
-    const summaryText = `${count} selected`;
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const itemsMarkup = this.items.length
-      ? `
-          <div part="items">
-            ${this.items
-              .map(
-                item => `
-                  <div part="item">
-                    <span part="item-label">${escapeHtml(item.label)}</span>
-                    ${item.description ? `<span part="item-description">${escapeHtml(item.description)}</span>` : ""}
-                  </div>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions" role="toolbar" aria-label="${escapeHtml(this.label)}">
-            ${this.actions
-              .map(
-                action => `
-                  <button
-                    type="button"
-                    part="action"
-                    data-action-id="${escapeHtml(action.id)}"
-                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
-                    aria-label="${escapeHtml(action.label)}"
-                  >
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-            <button type="button" part="clear" data-action-id="clear-selection">
-              ${escapeHtml(this.clearLabel)}
-            </button>
-          </div>
-        `
-      : `
-          <div part="actions" role="toolbar" aria-label="${escapeHtml(this.label)}">
-            <button type="button" part="clear" data-action-id="clear-selection">
-              ${escapeHtml(this.clearLabel)}
-            </button>
-          </div>
-        `;
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -316,7 +151,187 @@ export class BoxBulkActionBarElement extends HTMLElement {
             justify-content: start;
           }
         }
-      </style>
+      `;
+
+export class BoxBulkActionBarElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["actions", "clear-label", "count", "items", "label", "message"];
+  }
+  get actions(): BulkAction[] {
+    return this.parseJsonAttribute<BulkAction[]>("actions", []);
+  }
+
+  set actions(value: BulkAction[]) {
+    this.setAttribute("actions", JSON.stringify(value));
+  }
+
+  get clearLabel(): string {
+    return this.getAttribute("clear-label") ?? "Clear selection";
+  }
+
+  set clearLabel(value: string) {
+    this.setAttribute("clear-label", value);
+  }
+
+  get count(): number {
+    const raw = this.getAttribute("count");
+    if (!raw) {
+      return this.items.length;
+    }
+
+    const parsed = Number.parseInt(raw, 10);
+    return Number.isFinite(parsed) ? Math.max(parsed, 0) : this.items.length;
+  }
+
+  set count(value: number) {
+    this.setAttribute("count", String(value));
+  }
+
+  get items(): BulkActionItem[] {
+    return this.parseJsonAttribute<BulkActionItem[]>("items", []);
+  }
+
+  set items(value: BulkActionItem[]) {
+    this.setAttribute("items", JSON.stringify(value));
+  }
+
+  get label(): string {
+    return this.getAttribute("label") ?? "Bulk actions";
+  }
+
+  set label(value: string) {
+    this.setAttribute("label", value);
+  }
+
+  get message(): string {
+    return this.getAttribute("message") ?? "";
+  }
+
+  set message(value: string) {
+    this.setAttribute("message", value);
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private emitAction(actionId: string): void {
+    this.dispatchEvent(
+      new CustomEvent("action", {
+        bubbles: true,
+        composed: true,
+        detail: {
+          action: actionId,
+          count: this.count,
+          items: this.items,
+        },
+      }),
+    );
+  }
+
+  private emitClear(): void {
+    this.dispatchEvent(
+      new CustomEvent("clear", {
+        bubbles: true,
+        composed: true,
+        detail: {
+          count: this.count,
+          items: this.items,
+        },
+      }),
+    );
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const count = this.count;
+    const summaryText = `${count} selected`;
+    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
+    const itemsMarkup = this.items.length
+      ? `
+          <div part="items">
+            ${this.items
+              .map(
+                item => `
+                  <div part="item">
+                    <span part="item-label">${escapeHtml(item.label)}</span>
+                    ${item.description ? `<span part="item-description">${escapeHtml(item.description)}</span>` : ""}
+                  </div>
+                `,
+              )
+              .join("")}
+          </div>
+        `
+      : "";
+    const actionsMarkup = this.actions.length
+      ? `
+          <div part="actions" role="toolbar" aria-label="${escapeHtml(this.label)}">
+            ${this.actions
+              .map(
+                action => `
+                  <button
+                    type="button"
+                    part="action"
+                    data-action-id="${escapeHtml(action.id)}"
+                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
+                    aria-label="${escapeHtml(action.label)}"
+                  >
+                    ${escapeHtml(action.label)}
+                  </button>
+                `,
+              )
+              .join("")}
+            <button type="button" part="clear" data-action-id="clear-selection">
+              ${escapeHtml(this.clearLabel)}
+            </button>
+          </div>
+        `
+      : `
+          <div part="actions" role="toolbar" aria-label="${escapeHtml(this.label)}">
+            <button type="button" part="clear" data-action-id="clear-selection">
+              ${escapeHtml(this.clearLabel)}
+            </button>
+          </div>
+        `;
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <section part="bar">
         <div part="topline">
           <div part="summary">
@@ -342,6 +357,7 @@ export class BoxBulkActionBarElement extends HTMLElement {
     this.shadowRoot.querySelector<HTMLElement>('[part="clear"]')?.addEventListener("click", () => {
       this.emitClear();
     });
+  
   }
 }
 

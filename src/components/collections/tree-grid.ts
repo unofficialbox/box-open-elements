@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-tree-grid";
 
 const escapeHtml = (value: string): string =>
@@ -32,7 +34,58 @@ const collectBranchValues = (items: BoxTreeGridItem[]): string[] => {
   return values;
 };
 
-export class BoxTreeGridElement extends HTMLElement {
+const treeGridStyles = `
+  :host {
+    display: block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="controls"] {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-bottom: 0.625rem;
+  }
+
+  [part="controls"][hidden] {
+    display: none;
+  }
+
+  [part~="control"] {
+    width: 1.5rem;
+    height: 1.5rem;
+    display: inline-grid;
+    place-items: center;
+    appearance: none;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
+    border-radius: 0.375rem;
+    padding: 0;
+    line-height: 1;
+    background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, #eef4fb 6%);
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  }
+
+  [part~="control"] svg {
+    width: 0.75rem;
+    height: 0.75rem;
+    display: block;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  [part~="control"]:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+    outline-offset: 2px;
+  }
+`;
+
+export class BoxTreeGridElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["columns", "items", "label", "value"];
   }
@@ -41,10 +94,12 @@ export class BoxTreeGridElement extends HTMLElement {
   private valueInternal = "";
   private focusValue: string | null = null;
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private controlsEl!: HTMLElement;
+  private expandAllEl!: HTMLButtonElement;
+  private collapseAllEl!: HTMLButtonElement;
+  private treeGridEl!: HTMLElement;
+  private headerRowEl!: HTMLElement;
+  private bodyEl!: HTMLElement;
 
   get columns(): BoxTreeGridColumn[] {
     const raw = this.getAttribute("columns");
@@ -98,15 +153,17 @@ export class BoxTreeGridElement extends HTMLElement {
   set value(nextValue: string) {
     this.valueInternal = nextValue;
     this.setAttribute("value", nextValue);
-    this.render();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   connectedCallback(): void {
     this.seedExpandedState(this.items);
-    this.render();
+    super.connectedCallback();
   }
 
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "items") {
       this.seedExpandedState(this.items);
     }
@@ -115,7 +172,7 @@ export class BoxTreeGridElement extends HTMLElement {
       this.valueInternal = this.getAttribute("value") ?? "";
     }
 
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   private seedExpandedState(items: BoxTreeGridItem[], depth = 0): void {
@@ -134,17 +191,17 @@ export class BoxTreeGridElement extends HTMLElement {
       this.expandedInternal.add(value);
     }
 
-    this.render();
+    this.update();
   }
 
   private expandAll(): void {
     this.expandedInternal = new Set(collectBranchValues(this.items));
-    this.render();
+    this.update();
   }
 
   private collapseAll(): void {
     this.expandedInternal.clear();
-    this.render();
+    this.update();
   }
 
   private getVisibleRows(
@@ -252,8 +309,161 @@ export class BoxTreeGridElement extends HTMLElement {
       .join("");
   }
 
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${treeGridStyles}</style>
+      <div part="controls" hidden>
+        <button
+          type="button"
+          part="control control-expand-all"
+          data-action="expand-all"
+          aria-label="Expand all"
+          title="Expand all"
+        >${this.renderControlIcon("expand-all")}</button>
+        <button
+          type="button"
+          part="control control-collapse-all"
+          data-action="collapse-all"
+          aria-label="Collapse all"
+          title="Collapse all"
+        >${this.renderControlIcon("collapse-all")}</button>
+      </div>
+      <section part="tree-grid" role="treegrid">
+        <div part="header-row" role="row"></div>
+        <div part="body" role="rowgroup"></div>
+      </section>
+    `;
+
+    this.controlsEl = this.shadowRoot.querySelector('[part="controls"]')!;
+    this.expandAllEl = this.shadowRoot.querySelector('[data-action="expand-all"]')!;
+    this.collapseAllEl = this.shadowRoot.querySelector('[data-action="collapse-all"]')!;
+    this.treeGridEl = this.shadowRoot.querySelector('[part="tree-grid"]')!;
+    this.headerRowEl = this.shadowRoot.querySelector('[part="header-row"]')!;
+    this.bodyEl = this.shadowRoot.querySelector('[part="body"]')!;
+  }
+
+  protected setupListeners(): void {
+    this.controlsEl.addEventListener("click", event => {
+      const control = (event.target as HTMLElement | null)?.closest(
+        '[part~="control"]',
+      ) as HTMLButtonElement | null;
+      if (!control || !this.controlsEl.contains(control)) {
+        return;
+      }
+      const action = control.dataset.action;
+      if (action === "expand-all") {
+        this.expandAll();
+        return;
+      }
+      if (action === "collapse-all") {
+        this.collapseAll();
+      }
+    });
+
+    this.bodyEl.addEventListener("click", event => {
+      const target = event.target as HTMLElement | null;
+      const toggle = target?.closest('[part~="toggle"]') as HTMLButtonElement | null;
+      if (toggle && this.bodyEl.contains(toggle)) {
+        const value = toggle.dataset.value ?? "";
+        if (value) {
+          this.toggleExpanded(value);
+        }
+        return;
+      }
+
+      const item = target?.closest('[part~="item"]') as HTMLButtonElement | null;
+      if (!item || !this.bodyEl.contains(item)) {
+        return;
+      }
+
+      const value = item.dataset.value ?? "";
+      if (!value || value === this.valueInternal) {
+        return;
+      }
+
+      this.valueInternal = value;
+      this.setAttribute("value", value);
+      this.dispatchEvent(
+        new CustomEvent("value-changed", {
+          bubbles: true,
+          composed: true,
+          detail: { value },
+        }),
+      );
+      this.update();
+    });
+
+    this.bodyEl.addEventListener("keydown", event => {
+      const keyboardEvent = event as KeyboardEvent;
+      const element = (keyboardEvent.target as HTMLElement | null)?.closest(
+        '[part~="item"]',
+      ) as HTMLButtonElement | null;
+      if (!element || !this.bodyEl.contains(element)) {
+        return;
+      }
+
+      const value = element.dataset.value ?? "";
+      const isBranch = element.dataset.branch === "true";
+      const visibleRows = this.getVisibleRows(this.items);
+      const currentIndex = visibleRows.findIndex(row => row.value === value);
+
+      if (keyboardEvent.key === "ArrowDown" || keyboardEvent.key === "ArrowUp") {
+        keyboardEvent.preventDefault();
+        const nextIndex =
+          keyboardEvent.key === "ArrowDown"
+            ? Math.min(visibleRows.length - 1, currentIndex + 1)
+            : Math.max(0, currentIndex - 1);
+        const nextRow = visibleRows[nextIndex];
+        if (nextRow) {
+          this.focusValue = nextRow.value;
+          this.update();
+        }
+        return;
+      }
+
+      if (keyboardEvent.key === "ArrowRight" && isBranch) {
+        keyboardEvent.preventDefault();
+        if (!this.expandedInternal.has(value)) {
+          this.expandedInternal.add(value);
+          this.focusValue = value;
+          this.update();
+        }
+        return;
+      }
+
+      if (keyboardEvent.key === "ArrowLeft" && isBranch) {
+        keyboardEvent.preventDefault();
+        if (this.expandedInternal.has(value)) {
+          this.expandedInternal.delete(value);
+          this.focusValue = value;
+          this.update();
+        }
+        return;
+      }
+
+      if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
+        keyboardEvent.preventDefault();
+        element.click();
+        return;
+      }
+
+      if (keyboardEvent.key === "Home" || keyboardEvent.key === "End") {
+        keyboardEvent.preventDefault();
+        const nextRow = keyboardEvent.key === "Home" ? visibleRows[0] : visibleRows[visibleRows.length - 1];
+        if (nextRow) {
+          this.focusValue = nextRow.value;
+          this.update();
+        }
+      }
+    });
+  }
+
+  protected update(): void {
+    if (!this.controlsEl || !this.treeGridEl || !this.headerRowEl || !this.bodyEl) {
       return;
     }
 
@@ -262,7 +472,15 @@ export class BoxTreeGridElement extends HTMLElement {
     const hasBranches = branchValues.length > 0;
     const allExpanded = hasBranches && branchValues.every(value => this.expandedInternal.has(value));
     const columnTemplate = ["minmax(260px, 1.5fr)", ...columns.slice(1).map(() => "minmax(120px, 1fr)")].join(" ");
-    const headers = columns
+
+    this.controlsEl.hidden = !hasBranches;
+    this.expandAllEl.disabled = allExpanded;
+    this.collapseAllEl.disabled = !this.expandedInternal.size;
+
+    this.treeGridEl.style.setProperty("--tree-grid-columns", columnTemplate);
+    this.treeGridEl.setAttribute("aria-label", this.label);
+
+    this.headerRowEl.innerHTML = columns
       .map(
         (column, index) => `
           <div part="header-cell" role="columnheader" data-column-index="${index}">
@@ -272,185 +490,16 @@ export class BoxTreeGridElement extends HTMLElement {
       )
       .join("");
 
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="controls"] {
-          display: flex;
-          justify-content: flex-end;
-          gap: 0.5rem;
-          margin-bottom: 0.625rem;
-        }
-
-        [part~="control"] {
-          width: 1.5rem;
-          height: 1.5rem;
-          display: inline-grid;
-          place-items: center;
-          appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
-          border-radius: 0.375rem;
-          padding: 0;
-          line-height: 1;
-          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, #eef4fb 6%);
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          cursor: pointer;
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
-        }
-
-        [part~="control"] svg {
-          width: 0.75rem;
-          height: 0.75rem;
-          display: block;
-          stroke: currentColor;
-          fill: none;
-          stroke-width: 1.3;
-          stroke-linecap: round;
-          stroke-linejoin: round;
-        }
-
-        [part~="control"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
-        }
-      </style>
-      ${hasBranches
-        ? `<div part="controls">
-            <button
-              type="button"
-              part="control control-expand-all"
-              data-action="expand-all"
-              aria-label="Expand all"
-              title="Expand all"
-              ${allExpanded ? "disabled" : ""}
-            >${this.renderControlIcon("expand-all")}</button>
-            <button
-              type="button"
-              part="control control-collapse-all"
-              data-action="collapse-all"
-              aria-label="Collapse all"
-              title="Collapse all"
-              ${!this.expandedInternal.size ? "disabled" : ""}
-            >${this.renderControlIcon("collapse-all")}</button>
-          </div>`
-        : ""}
-      <section part="tree-grid" role="treegrid" style="--tree-grid-columns:${columnTemplate};" aria-label="${escapeHtml(this.label)}">
-        <div part="header-row" role="row">${headers}</div>
-        <div part="body" role="rowgroup">
-          ${this.items.length ? this.renderRows(this.items) : `<div part="empty">No items loaded</div>`}
-        </div>
-      </section>
-    `;
-
-    this.shadowRoot.querySelectorAll('[part~="control"]').forEach(control => {
-      control.addEventListener("click", () => {
-        const action = (control as HTMLButtonElement).dataset.action;
-        if (action === "expand-all") {
-          this.expandAll();
-          return;
-        }
-
-        if (action === "collapse-all") {
-          this.collapseAll();
-        }
-      });
-    });
-
-    this.shadowRoot.querySelectorAll('[part~="toggle"]').forEach(toggle => {
-      toggle.addEventListener("click", () => {
-        const value = (toggle as HTMLButtonElement).dataset.value ?? "";
-        if (value) {
-          this.toggleExpanded(value);
-        }
-      });
-    });
-
-    this.shadowRoot.querySelectorAll('[part~="item"]').forEach(item => {
-      item.addEventListener("click", () => {
-        const value = (item as HTMLButtonElement).dataset.value ?? "";
-        if (!value || value === this.valueInternal) {
-          return;
-        }
-
-        this.valueInternal = value;
-        this.setAttribute("value", value);
-        this.dispatchEvent(
-          new CustomEvent("value-changed", {
-            bubbles: true,
-            composed: true,
-            detail: { value },
-          }),
-        );
-      });
-
-      item.addEventListener("keydown", event => {
-        const keyboardEvent = event as KeyboardEvent;
-        const element = item as HTMLButtonElement;
-        const value = element.dataset.value ?? "";
-        const isBranch = element.dataset.branch === "true";
-        const visibleRows = this.getVisibleRows(this.items);
-        const currentIndex = visibleRows.findIndex(row => row.value === value);
-
-        if (keyboardEvent.key === "ArrowDown" || keyboardEvent.key === "ArrowUp") {
-          keyboardEvent.preventDefault();
-          const nextIndex =
-            keyboardEvent.key === "ArrowDown"
-              ? Math.min(visibleRows.length - 1, currentIndex + 1)
-              : Math.max(0, currentIndex - 1);
-          const nextRow = visibleRows[nextIndex];
-          if (nextRow) {
-            this.focusValue = nextRow.value;
-            this.render();
-          }
-          return;
-        }
-
-        if (keyboardEvent.key === "ArrowRight" && isBranch) {
-          keyboardEvent.preventDefault();
-          if (!this.expandedInternal.has(value)) {
-            this.expandedInternal.add(value);
-            this.focusValue = value;
-            this.render();
-          }
-          return;
-        }
-
-        if (keyboardEvent.key === "ArrowLeft" && isBranch) {
-          keyboardEvent.preventDefault();
-          if (this.expandedInternal.has(value)) {
-            this.expandedInternal.delete(value);
-            this.focusValue = value;
-            this.render();
-          }
-          return;
-        }
-
-        if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
-          keyboardEvent.preventDefault();
-          element.click();
-          return;
-        }
-
-        if (keyboardEvent.key === "Home" || keyboardEvent.key === "End") {
-          keyboardEvent.preventDefault();
-          const nextRow = keyboardEvent.key === "Home" ? visibleRows[0] : visibleRows[visibleRows.length - 1];
-          if (nextRow) {
-            this.focusValue = nextRow.value;
-            this.render();
-          }
-        }
-      });
-    });
+    this.bodyEl.innerHTML = this.items.length
+      ? this.renderRows(this.items)
+      : `<div part="empty">No items loaded</div>`;
 
     if (this.focusValue) {
+      const valueToFocus = this.focusValue;
+      this.focusValue = null;
       queueMicrotask(() => {
-        const target = Array.from(this.shadowRoot?.querySelectorAll('[part~="item"]') ?? []).find(
-          node => (node as HTMLButtonElement).dataset.value === this.focusValue,
+        const target = Array.from(this.bodyEl.querySelectorAll('[part~="item"]')).find(
+          node => (node as HTMLButtonElement).dataset.value === valueToFocus,
         ) as HTMLButtonElement | undefined;
         target?.focus();
       });

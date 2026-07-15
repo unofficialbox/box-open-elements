@@ -1,24 +1,79 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-drop-zone";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+const dropZoneStyles = `
+  :host {
+    display: block;
+    color: inherit;
+    font: inherit;
+  }
 
-export class BoxDropZoneElement extends HTMLElement {
+  [part="zone"] {
+    position: relative;
+    display: grid;
+    gap: 0.55rem;
+    justify-items: start;
+    padding: 1.35rem 1.4rem;
+    border: 1.5px dashed color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-stroke-stroke, #e8e8e8) 84%);
+    border-radius: 1.2rem;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 86%, var(--boe-token-surface-surface, #ffffff) 14%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 100%
+      );
+    cursor: pointer;
+    transition:
+      border-color 140ms ease,
+      background 140ms ease,
+      box-shadow 140ms ease;
+  }
+
+  [part="zone"][data-dragging="true"] {
+    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 76%, var(--boe-token-surface-surface, #ffffff) 24%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-item-surface-selected, #f2f7fd) 72%, var(--boe-token-surface-surface, #ffffff) 18%) 100%
+      );
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent),
+      0 14px 28px rgba(15, 23, 42, 0.05);
+  }
+
+  [part="input"] {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  [part="label"] {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  [part~="description"] {
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    line-height: 1.5;
+    max-width: 34ch;
+  }
+`;
+
+export class BoxDropZoneElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["description", "label", "message"];
   }
 
   private dragging = false;
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private zoneEl!: HTMLLabelElement;
+  private inputEl!: HTMLInputElement;
+  private labelEl!: HTMLElement;
+  private messageEl!: HTMLElement;
 
   get label(): string {
     return this.getAttribute("label") ?? "Upload files";
@@ -44,107 +99,42 @@ export class BoxDropZoneElement extends HTMLElement {
     this.setAttribute("description", value);
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="zone"] {
-          position: relative;
-          display: grid;
-          gap: 0.55rem;
-          justify-items: start;
-          padding: 1.35rem 1.4rem;
-          border: 1.5px dashed color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-stroke-stroke, #e8e8e8) 84%);
-          border-radius: 1.2rem;
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 86%, var(--boe-token-surface-surface, #ffffff) 14%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 100%
-            );
-          cursor: pointer;
-          transition:
-            border-color 140ms ease,
-            background 140ms ease,
-            box-shadow 140ms ease;
-        }
-
-        [part="zone"][data-dragging="true"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 76%, var(--boe-token-surface-surface, #ffffff) 24%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-item-surface-selected, #f2f7fd) 72%, var(--boe-token-surface-surface, #ffffff) 18%) 100%
-            );
-          box-shadow:
-            inset 0 0 0 1px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent),
-            0 14px 28px rgba(15, 23, 42, 0.05);
-        }
-
-        [part="input"] {
-          position: absolute;
-          inline-size: 1px;
-          block-size: 1px;
-          opacity: 0;
-          pointer-events: none;
-        }
-
-        [part="label"] {
-          font-size: 1rem;
-          font-weight: 700;
-          line-height: 1.25;
-        }
-
-        [part~="description"] {
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          line-height: 1.5;
-          max-width: 34ch;
-        }
-      </style>
-      <label part="zone" data-dragging="${String(this.dragging)}">
+      <style>${dropZoneStyles}</style>
+      <label part="zone">
         <input type="file" part="input" multiple />
-        <strong part="label">${escapeHtml(this.label)}</strong>
-        <span part="description message">${escapeHtml(this.message)}</span>
+        <strong part="label"></strong>
+        <span part="description message"></span>
       </label>
     `;
+    this.zoneEl = this.shadowRoot.querySelector('[part="zone"]')!;
+    this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
+    this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.messageEl = this.shadowRoot.querySelector('[part~="description"]')!;
+  }
 
-    const zone = this.shadowRoot.querySelector('[part="zone"]') as HTMLLabelElement | null;
-    const input = this.shadowRoot.querySelector('[part="input"]') as HTMLInputElement | null;
-
-    zone?.addEventListener("dragenter", event => {
+  protected setupListeners(): void {
+    this.zoneEl.addEventListener("dragenter", event => {
       event.preventDefault();
       this.dragging = true;
-      this.render();
+      this.update();
     });
-    zone?.addEventListener("dragover", event => {
+    this.zoneEl.addEventListener("dragover", event => {
       event.preventDefault();
     });
-    zone?.addEventListener("dragleave", event => {
+    this.zoneEl.addEventListener("dragleave", event => {
       event.preventDefault();
-      if (event.target === zone) {
+      if (event.target === this.zoneEl) {
         this.dragging = false;
-        this.render();
+        this.update();
       }
     });
-    zone?.addEventListener("drop", event => {
+    this.zoneEl.addEventListener("drop", event => {
       event.preventDefault();
       this.dragging = false;
       const files = Array.from(event.dataTransfer?.files ?? []);
@@ -155,10 +145,10 @@ export class BoxDropZoneElement extends HTMLElement {
           detail: { files },
         }),
       );
-      this.render();
+      this.update();
     });
-    input?.addEventListener("change", () => {
-      const files = Array.from(input.files ?? []);
+    this.inputEl.addEventListener("change", () => {
+      const files = Array.from(this.inputEl.files ?? []);
       this.dispatchEvent(
         new CustomEvent("files-selected", {
           bubbles: true,
@@ -167,6 +157,16 @@ export class BoxDropZoneElement extends HTMLElement {
         }),
       );
     });
+  }
+
+  protected update(): void {
+    if (!this.zoneEl) {
+      return;
+    }
+
+    this.zoneEl.dataset.dragging = String(this.dragging);
+    this.labelEl.textContent = this.label;
+    this.messageEl.textContent = this.message;
   }
 }
 

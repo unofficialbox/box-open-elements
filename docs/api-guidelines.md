@@ -189,6 +189,17 @@ Guidance:
 
 Accessibility semantics and keyboard behavior are part of the component contract, not optional polish. The full conventions live in [foundations/accessibility.md](./foundations/accessibility.md).
 
+## Render lifecycle
+
+Web Components in this package extend `BaseElement` (`box-open-elements/core`):
+
+- build the shadow tree once in `renderTemplate()`
+- attach listeners once in `setupListeners()`
+- patch state in `update()` — never reassign `shadowRoot.innerHTML` on attribute/property changes
+
+See [architecture.md](./architecture.md#web-component-render-contract) for the full contract
+(list-container rebuilds, focused-input value guarding).
+
 ## Styling hooks
 
 Shadow DOM components expose named internal styling targets with the `part` attribute. In docs and the docs site, refer to these as `Styling Hooks`: they let consumers style internal surfaces from outside the component without breaking encapsulation.

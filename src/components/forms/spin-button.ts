@@ -1,12 +1,6 @@
-const DEFAULT_TAG_NAME = "box-spin-button";
+import { BaseElement } from "../../core/index.js";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+const DEFAULT_TAG_NAME = "box-spin-button";
 
 const parseNumber = (value: string | null, fallback: number): number => {
   if (value == null || value === "") {
@@ -17,17 +11,134 @@ const parseNumber = (value: string | null, fallback: number): number => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-export class BoxSpinButtonElement extends HTMLElement {
+const spinButtonStyles = `
+  :host {
+    display: inline-block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="field"] {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  [part="label"] {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+  }
+
+  [part="control"] {
+    display: inline-flex;
+    align-items: stretch;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
+    border-radius: 0.7rem;
+    background:
+      linear-gradient(
+        180deg,
+        var(--boe-token-surface-surface, #ffffff) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
+      );
+    overflow: hidden;
+    transition:
+      border-color 140ms ease,
+      background 140ms ease,
+      box-shadow 140ms ease;
+  }
+
+  [part="control"]:hover {
+    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+  }
+
+  [part="control"]:focus-within {
+    border-color: var(--boe-token-surface-surface-brand, #0061d5);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+  }
+
+  [part="decrement"],
+  [part="increment"] {
+    appearance: none;
+    border: none;
+    background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    font: inherit;
+    font-weight: 700;
+    inline-size: 2.25rem;
+    cursor: pointer;
+    transition:
+      background 140ms ease,
+      color 140ms ease;
+  }
+
+  [part="decrement"] {
+    border-inline-end: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
+  }
+
+  [part="increment"] {
+    border-inline-start: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
+  }
+
+  [part="decrement"]:hover:not(:disabled),
+  [part="increment"]:hover:not(:disabled) {
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+  }
+
+  [part="decrement"]:active:not(:disabled),
+  [part="increment"]:active:not(:disabled) {
+    background: var(--boe-token-surface-item-surface-selected, #f2f7fd);
+  }
+
+  [part="decrement"]:focus-visible,
+  [part="increment"]:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+    outline-offset: -2px;
+  }
+
+  [part="input"] {
+    appearance: textfield;
+    border: none;
+    background: transparent;
+    font: inherit;
+    color: var(--boe-token-text-text, #222222);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    padding: 0.6rem 0.5rem;
+    inline-size: 4.5rem;
+    min-inline-size: 0;
+  }
+
+  [part="input"]::-webkit-outer-spin-button,
+  [part="input"]::-webkit-inner-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+
+  [part="input"]:focus {
+    outline: none;
+  }
+
+  [part="decrement"]:disabled,
+  [part="increment"]:disabled,
+  [part="input"]:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+`;
+
+export class BoxSpinButtonElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["disabled", "label", "max", "min", "step", "value"];
   }
 
   private valueInternal = 0;
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private inputEl!: HTMLInputElement;
+  private labelEl!: HTMLElement;
+  private decrementEl!: HTMLButtonElement;
+  private incrementEl!: HTMLButtonElement;
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -89,19 +200,13 @@ export class BoxSpinButtonElement extends HTMLElement {
     const normalizedValue = Number.isFinite(nextValue) ? nextValue : 0;
     this.valueInternal = normalizedValue;
     this.setAttribute("value", String(normalizedValue));
-    this.render();
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
       this.valueInternal = parseNumber(this.getAttribute("value"), 0);
     }
-
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   private clamp(nextValue: number): number {
@@ -118,11 +223,9 @@ export class BoxSpinButtonElement extends HTMLElement {
   private syncValue(nextValue: number): void {
     const normalizedValue = this.clamp(nextValue);
     this.valueInternal = normalizedValue;
-    const input = this.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement | null;
-    if (input) {
-      input.value = String(normalizedValue);
-    }
-    this.syncInputAria(input);
+    this.setAttribute("value", String(normalizedValue));
+    this.inputEl.value = String(normalizedValue);
+    this.syncInputAria();
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,
@@ -132,167 +235,45 @@ export class BoxSpinButtonElement extends HTMLElement {
     );
   }
 
-  private syncInputAria(input: HTMLInputElement | null): void {
-    if (!input) {
-      return;
-    }
-
-    input.setAttribute("role", "spinbutton");
-    input.setAttribute("aria-valuenow", String(this.valueInternal));
+  private syncInputAria(): void {
+    this.inputEl.setAttribute("role", "spinbutton");
+    this.inputEl.setAttribute("aria-valuenow", String(this.valueInternal));
     if (this.min != null) {
-      input.setAttribute("aria-valuemin", String(this.min));
+      this.inputEl.setAttribute("aria-valuemin", String(this.min));
+    } else {
+      this.inputEl.removeAttribute("aria-valuemin");
     }
     if (this.max != null) {
-      input.setAttribute("aria-valuemax", String(this.max));
+      this.inputEl.setAttribute("aria-valuemax", String(this.max));
+    } else {
+      this.inputEl.removeAttribute("aria-valuemax");
     }
   }
 
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
-    const minAttribute = this.min == null ? "" : `min="${escapeHtml(String(this.min))}"`;
-    const maxAttribute = this.max == null ? "" : `max="${escapeHtml(String(this.max))}"`;
-
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: inline-block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="field"] {
-          display: grid;
-          gap: 0.45rem;
-        }
-
-        [part="label"] {
-          font-size: 0.8rem;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-
-        [part="control"] {
-          display: inline-flex;
-          align-items: stretch;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-          border-radius: 0.7rem;
-          background:
-            linear-gradient(
-              180deg,
-              var(--boe-token-surface-surface, #ffffff) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
-            );
-          overflow: hidden;
-          transition:
-            border-color 140ms ease,
-            background 140ms ease,
-            box-shadow 140ms ease;
-        }
-
-        [part="control"]:hover {
-          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
-        }
-
-        [part="control"]:focus-within {
-          border-color: var(--boe-token-surface-surface-brand, #0061d5);
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-        }
-
-        [part="decrement"],
-        [part="increment"] {
-          appearance: none;
-          border: none;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          font: inherit;
-          font-weight: 700;
-          inline-size: 2.25rem;
-          cursor: pointer;
-          transition:
-            background 140ms ease,
-            color 140ms ease;
-        }
-
-        [part="decrement"] {
-          border-inline-end: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-        }
-
-        [part="increment"] {
-          border-inline-start: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-        }
-
-        [part="decrement"]:hover:not(:disabled),
-        [part="increment"]:hover:not(:disabled) {
-          background: var(--boe-token-surface-surface-hover, #f4f4f4);
-          color: var(--boe-token-surface-surface-brand, #0061d5);
-        }
-
-        [part="decrement"]:active:not(:disabled),
-        [part="increment"]:active:not(:disabled) {
-          background: var(--boe-token-surface-item-surface-selected, #f2f7fd);
-        }
-
-        [part="decrement"]:focus-visible,
-        [part="increment"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: -2px;
-        }
-
-        [part="input"] {
-          appearance: textfield;
-          border: none;
-          background: transparent;
-          font: inherit;
-          color: var(--boe-token-text-text, #222222);
-          text-align: center;
-          font-variant-numeric: tabular-nums;
-          padding: 0.6rem 0.5rem;
-          inline-size: 4.5rem;
-          min-inline-size: 0;
-        }
-
-        [part="input"]::-webkit-outer-spin-button,
-        [part="input"]::-webkit-inner-spin-button {
-          appearance: none;
-          margin: 0;
-        }
-
-        [part="input"]:focus {
-          outline: none;
-        }
-
-        [part="decrement"]:disabled,
-        [part="increment"]:disabled,
-        [part="input"]:disabled {
-          opacity: 0.55;
-          cursor: not-allowed;
-        }
-      </style>
+      <style>${spinButtonStyles}</style>
       <div part="field">
-        <span part="label">${escapeHtml(this.label)}</span>
+        <span part="label"></span>
         <div part="control">
-          <button type="button" part="decrement" aria-label="Decrease value" ${this.disabled ? "disabled" : ""}>-</button>
-          <input
-            type="number"
-            part="input"
-            value="${escapeHtml(String(this.valueInternal))}"
-            step="${escapeHtml(String(this.step))}"
-            ${minAttribute}
-            ${maxAttribute}
-            ${this.disabled ? "disabled" : ""}
-          />
-          <button type="button" part="increment" aria-label="Increase value" ${this.disabled ? "disabled" : ""}>+</button>
+          <button type="button" part="decrement" aria-label="Decrease value">-</button>
+          <input type="number" part="input" />
+          <button type="button" part="increment" aria-label="Increase value">+</button>
         </div>
       </div>
     `;
+    this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
+    this.decrementEl = this.shadowRoot.querySelector('[part="decrement"]')!;
+    this.incrementEl = this.shadowRoot.querySelector('[part="increment"]')!;
+  }
 
-    const input = this.shadowRoot.querySelector('[part="input"]') as HTMLInputElement | null;
-    input?.addEventListener("input", event => {
+  protected setupListeners(): void {
+    this.inputEl.addEventListener("input", event => {
       const nextValue = Number((event.currentTarget as HTMLInputElement).value);
       if (!Number.isFinite(nextValue)) {
         return;
@@ -301,7 +282,7 @@ export class BoxSpinButtonElement extends HTMLElement {
       this.syncValue(nextValue);
     });
 
-    input?.addEventListener("keydown", event => {
+    this.inputEl.addEventListener("keydown", event => {
       const keyboardEvent = event as KeyboardEvent;
       if (keyboardEvent.key === "ArrowUp") {
         keyboardEvent.preventDefault();
@@ -324,15 +305,48 @@ export class BoxSpinButtonElement extends HTMLElement {
       }
     });
 
-    this.syncInputAria(input);
-
-    this.shadowRoot.querySelector('[part="decrement"]')?.addEventListener("click", () => {
+    this.decrementEl.addEventListener("click", () => {
       this.syncValue(this.valueInternal - this.step);
     });
 
-    this.shadowRoot.querySelector('[part="increment"]')?.addEventListener("click", () => {
+    this.incrementEl.addEventListener("click", () => {
       this.syncValue(this.valueInternal + this.step);
     });
+  }
+
+  protected update(): void {
+    if (!this.inputEl || !this.labelEl) {
+      return;
+    }
+
+    this.labelEl.textContent = this.label;
+    this.inputEl.step = String(this.step);
+
+    if (this.min == null) {
+      this.inputEl.removeAttribute("min");
+    } else {
+      this.inputEl.min = String(this.min);
+    }
+
+    if (this.max == null) {
+      this.inputEl.removeAttribute("max");
+    } else {
+      this.inputEl.max = String(this.max);
+    }
+
+    if (this.shadowRoot?.activeElement !== this.inputEl) {
+      this.inputEl.value = String(this.valueInternal);
+    }
+
+    this.syncInputAria();
+
+    for (const el of [this.inputEl, this.decrementEl, this.incrementEl]) {
+      if (this.disabled) {
+        el.setAttribute("disabled", "");
+      } else {
+        el.removeAttribute("disabled");
+      }
+    }
   }
 }
 

@@ -28,6 +28,17 @@ describe("BoxDrawerElement", () => {
     expect(element.shadowRoot?.textContent ?? "").toBe("");
   });
 
+  it("focuses the close button when it opens", async () => {
+    const element = document.createElement("box-drawer") as BoxDrawerElement;
+    document.body.append(element);
+    element.show();
+    await Promise.resolve();
+
+    const closeButton = element.shadowRoot?.querySelector('[part="close"]') as HTMLButtonElement | null;
+    expect(closeButton).not.toBeNull();
+    expect(element.shadowRoot?.activeElement).toBe(closeButton);
+  });
+
   it("emits dismiss and open-changed when closed from the button", () => {
     const element = document.createElement("box-drawer") as BoxDrawerElement;
     const dismissed = vi.fn();

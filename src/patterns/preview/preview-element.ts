@@ -4,6 +4,7 @@ import type {
   PreviewProviderActionDetail,
   PreviewProviderAdapter,
 } from "./provider-adapter.js";
+import { BaseElement } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-preview-element";
 
@@ -21,258 +22,8 @@ export type PreviewElementAction = {
   tone?: string;
 };
 
-export class BoxPreviewElement extends HTMLElement {
-  private providerAdapterValue: PreviewProviderAdapter | null = null;
 
-  private providerAdapterUnsubscribe: (() => void) | null = null;
-
-  static get observedAttributes(): string[] {
-    return ["actions", "adapter-state", "item-label", "message", "provider", "provider-label", "status", "heading"];
-  }
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get actions(): PreviewElementAction[] {
-    return this.parseJsonAttribute<PreviewElementAction[]>("actions", []);
-  }
-
-  set actions(value: PreviewElementAction[]) {
-    this.setAttribute("actions", JSON.stringify(value));
-  }
-
-  get adapterState(): PreviewAdapterState | null {
-    return this.parseJsonAttribute<PreviewAdapterState | null>("adapter-state", null);
-  }
-
-  set adapterState(value: PreviewAdapterState | null) {
-    if (!value) {
-      this.removeAttribute("adapter-state");
-      return;
-    }
-
-    this.setAttribute("adapter-state", JSON.stringify(value));
-  }
-
-  get itemLabel(): string {
-    return this.getAttribute("item-label") ?? "";
-  }
-
-  set itemLabel(value: string) {
-    if (!value) {
-      this.removeAttribute("item-label");
-      return;
-    }
-
-    this.setAttribute("item-label", value);
-  }
-
-  get message(): string {
-    return this.getAttribute("message") ?? "";
-  }
-
-  set message(value: string) {
-    if (!value) {
-      this.removeAttribute("message");
-      return;
-    }
-
-    this.setAttribute("message", value);
-  }
-
-  get provider(): PreviewProvider | null {
-    return this.parseJsonAttribute<PreviewProvider | null>("provider", null);
-  }
-
-  set provider(value: PreviewProvider | null) {
-    if (!value) {
-      this.removeAttribute("provider");
-      return;
-    }
-
-    this.setAttribute("provider", JSON.stringify(value));
-  }
-
-  get providerLabel(): string {
-    return this.getAttribute("provider-label") ?? "";
-  }
-
-  set providerLabel(value: string) {
-    if (!value) {
-      this.removeAttribute("provider-label");
-      return;
-    }
-
-    this.setAttribute("provider-label", value);
-  }
-
-  get status(): string {
-    return this.getAttribute("status") ?? "";
-  }
-
-  set status(value: string) {
-    if (!value) {
-      this.removeAttribute("status");
-      return;
-    }
-
-    this.setAttribute("status", value);
-  }
-
-  get heading(): string {
-    return this.getAttribute("heading") ?? "Preview Element";
-  }
-
-  set heading(value: string) {
-    this.setAttribute("heading", value);
-  }
-
-  get providerAdapter(): PreviewProviderAdapter | null {
-    return this.providerAdapterValue;
-  }
-
-  set providerAdapter(value: PreviewProviderAdapter | null) {
-    this.teardownProviderAdapter();
-    this.providerAdapterValue = value;
-    if (value?.subscribe) {
-      this.providerAdapterUnsubscribe = value.subscribe(() => {
-        this.render();
-      });
-    }
-    this.render();
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  disconnectedCallback(): void {
-    this.teardownProviderAdapter();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private parseJsonAttribute<T>(name: string, fallback: T): T {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return fallback;
-    }
-
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
-  }
-
-  private teardownProviderAdapter(): void {
-    this.providerAdapterUnsubscribe?.();
-    this.providerAdapterUnsubscribe = null;
-  }
-
-  private getActiveProvider(): PreviewProvider | null {
-    return this.providerAdapterValue?.getProvider() ?? this.provider;
-  }
-
-  private getActiveAdapterState(): PreviewAdapterState | null {
-    return this.providerAdapterValue?.getState() ?? this.adapterState;
-  }
-
-  private emitAction(actionId: string): void {
-    const provider = this.getActiveProvider();
-    const adapterState = this.getActiveAdapterState();
-    const detail: PreviewProviderActionDetail = {
-      action: actionId,
-      adapterState,
-      provider,
-      providerId: provider?.id ?? null,
-    };
-
-    void this.providerAdapterValue?.performAction?.(detail);
-
-    this.dispatchEvent(
-      new CustomEvent("action", {
-        bubbles: true,
-        composed: true,
-        detail,
-      }),
-    );
-    this.dispatchEvent(
-      new CustomEvent("provider-action", {
-        bubbles: true,
-        composed: true,
-        detail,
-      }),
-    );
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const provider = this.getActiveProvider();
-    const adapterState = this.getActiveAdapterState();
-    const providerLabel = provider?.label ?? this.providerLabel;
-    const providerStatus = provider?.status ?? this.status;
-    const statusMarkup = providerStatus ? `<span part="status">${escapeHtml(providerStatus)}</span>` : "";
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const providerMarkup = providerLabel ? `<span part="provider">${escapeHtml(providerLabel)}</span>` : "";
-    const itemMarkup = this.itemLabel ? `<div part="item-label">${escapeHtml(this.itemLabel)}</div>` : "";
-    const adapterMarkup = adapterState
-      ? `
-          <div part="adapter-meta" aria-label="Preview adapter state">
-            ${adapterState.mode ? `<span part="adapter-chip">${escapeHtml(adapterState.mode)}</span>` : ""}
-            ${adapterState.pageLabel ? `<span part="adapter-chip">${escapeHtml(adapterState.pageLabel)}</span>` : ""}
-            ${adapterState.zoomLabel ? `<span part="adapter-chip">${escapeHtml(adapterState.zoomLabel)}</span>` : ""}
-            ${adapterState.selectionLabel ? `<span part="adapter-chip">${escapeHtml(adapterState.selectionLabel)}</span>` : ""}
-            ${
-              adapterState.currentAnnotationId
-                ? `<span part="adapter-chip">${escapeHtml(`Annotation ${adapterState.currentAnnotationId}`)}</span>`
-                : ""
-            }
-            ${
-              typeof adapterState.ready === "boolean"
-                ? `<span part="adapter-chip">${adapterState.ready ? "Ready" : "Connecting"}</span>`
-                : ""
-            }
-          </div>
-        `
-      : "";
-    const capabilityMarkup = provider?.capabilities?.length
-      ? `
-          <div part="capabilities" aria-label="Preview provider capabilities">
-            ${provider.capabilities.map(capability => `<span part="capability">${escapeHtml(capability)}</span>`).join("")}
-          </div>
-        `
-      : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button
-                    type="button"
-                    part="action"
-                    data-action-id="${escapeHtml(action.id)}"
-                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
-                  >
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -431,7 +182,274 @@ export class BoxPreviewElement extends HTMLElement {
             grid-template-columns: 1fr;
           }
         }
-      </style>
+      `;
+
+export class BoxPreviewElement extends BaseElement {
+  private providerAdapterValue: PreviewProviderAdapter | null = null;
+
+  private providerAdapterUnsubscribe: (() => void) | null = null;
+
+  static get observedAttributes(): string[] {
+    return ["actions", "adapter-state", "item-label", "message", "provider", "provider-label", "status", "heading"];
+  }
+  get actions(): PreviewElementAction[] {
+    return this.parseJsonAttribute<PreviewElementAction[]>("actions", []);
+  }
+
+  set actions(value: PreviewElementAction[]) {
+    this.setAttribute("actions", JSON.stringify(value));
+  }
+
+  get adapterState(): PreviewAdapterState | null {
+    return this.parseJsonAttribute<PreviewAdapterState | null>("adapter-state", null);
+  }
+
+  set adapterState(value: PreviewAdapterState | null) {
+    if (!value) {
+      this.removeAttribute("adapter-state");
+      return;
+    }
+
+    this.setAttribute("adapter-state", JSON.stringify(value));
+  }
+
+  get itemLabel(): string {
+    return this.getAttribute("item-label") ?? "";
+  }
+
+  set itemLabel(value: string) {
+    if (!value) {
+      this.removeAttribute("item-label");
+      return;
+    }
+
+    this.setAttribute("item-label", value);
+  }
+
+  get message(): string {
+    return this.getAttribute("message") ?? "";
+  }
+
+  set message(value: string) {
+    if (!value) {
+      this.removeAttribute("message");
+      return;
+    }
+
+    this.setAttribute("message", value);
+  }
+
+  get provider(): PreviewProvider | null {
+    return this.parseJsonAttribute<PreviewProvider | null>("provider", null);
+  }
+
+  set provider(value: PreviewProvider | null) {
+    if (!value) {
+      this.removeAttribute("provider");
+      return;
+    }
+
+    this.setAttribute("provider", JSON.stringify(value));
+  }
+
+  get providerLabel(): string {
+    return this.getAttribute("provider-label") ?? "";
+  }
+
+  set providerLabel(value: string) {
+    if (!value) {
+      this.removeAttribute("provider-label");
+      return;
+    }
+
+    this.setAttribute("provider-label", value);
+  }
+
+  get status(): string {
+    return this.getAttribute("status") ?? "";
+  }
+
+  set status(value: string) {
+    if (!value) {
+      this.removeAttribute("status");
+      return;
+    }
+
+    this.setAttribute("status", value);
+  }
+
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Preview Element";
+  }
+
+  set heading(value: string) {
+    this.setAttribute("heading", value);
+  }
+
+  get providerAdapter(): PreviewProviderAdapter | null {
+    return this.providerAdapterValue;
+  }
+
+  set providerAdapter(value: PreviewProviderAdapter | null) {
+    this.teardownProviderAdapter();
+    this.providerAdapterValue = value;
+    if (value?.subscribe) {
+      this.providerAdapterUnsubscribe = value.subscribe(() => {
+        if (this.isRendered) {
+      this.update();
+    }
+      });
+    }
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  disconnectedCallback(): void {
+    this.teardownProviderAdapter();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private teardownProviderAdapter(): void {
+    this.providerAdapterUnsubscribe?.();
+    this.providerAdapterUnsubscribe = null;
+  }
+
+  private getActiveProvider(): PreviewProvider | null {
+    return this.providerAdapterValue?.getProvider() ?? this.provider;
+  }
+
+  private getActiveAdapterState(): PreviewAdapterState | null {
+    return this.providerAdapterValue?.getState() ?? this.adapterState;
+  }
+
+  private emitAction(actionId: string): void {
+    const provider = this.getActiveProvider();
+    const adapterState = this.getActiveAdapterState();
+    const detail: PreviewProviderActionDetail = {
+      action: actionId,
+      adapterState,
+      provider,
+      providerId: provider?.id ?? null,
+    };
+
+    void this.providerAdapterValue?.performAction?.(detail);
+
+    this.dispatchEvent(
+      new CustomEvent("action", {
+        bubbles: true,
+        composed: true,
+        detail,
+      }),
+    );
+    this.dispatchEvent(
+      new CustomEvent("provider-action", {
+        bubbles: true,
+        composed: true,
+        detail,
+      }),
+    );
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const provider = this.getActiveProvider();
+    const adapterState = this.getActiveAdapterState();
+    const providerLabel = provider?.label ?? this.providerLabel;
+    const providerStatus = provider?.status ?? this.status;
+    const statusMarkup = providerStatus ? `<span part="status">${escapeHtml(providerStatus)}</span>` : "";
+    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
+    const providerMarkup = providerLabel ? `<span part="provider">${escapeHtml(providerLabel)}</span>` : "";
+    const itemMarkup = this.itemLabel ? `<div part="item-label">${escapeHtml(this.itemLabel)}</div>` : "";
+    const adapterMarkup = adapterState
+      ? `
+          <div part="adapter-meta" aria-label="Preview adapter state">
+            ${adapterState.mode ? `<span part="adapter-chip">${escapeHtml(adapterState.mode)}</span>` : ""}
+            ${adapterState.pageLabel ? `<span part="adapter-chip">${escapeHtml(adapterState.pageLabel)}</span>` : ""}
+            ${adapterState.zoomLabel ? `<span part="adapter-chip">${escapeHtml(adapterState.zoomLabel)}</span>` : ""}
+            ${adapterState.selectionLabel ? `<span part="adapter-chip">${escapeHtml(adapterState.selectionLabel)}</span>` : ""}
+            ${
+              adapterState.currentAnnotationId
+                ? `<span part="adapter-chip">${escapeHtml(`Annotation ${adapterState.currentAnnotationId}`)}</span>`
+                : ""
+            }
+            ${
+              typeof adapterState.ready === "boolean"
+                ? `<span part="adapter-chip">${adapterState.ready ? "Ready" : "Connecting"}</span>`
+                : ""
+            }
+          </div>
+        `
+      : "";
+    const capabilityMarkup = provider?.capabilities?.length
+      ? `
+          <div part="capabilities" aria-label="Preview provider capabilities">
+            ${provider.capabilities.map(capability => `<span part="capability">${escapeHtml(capability)}</span>`).join("")}
+          </div>
+        `
+      : "";
+    const actionsMarkup = this.actions.length
+      ? `
+          <div part="actions">
+            ${this.actions
+              .map(
+                action => `
+                  <button
+                    type="button"
+                    part="action"
+                    data-action-id="${escapeHtml(action.id)}"
+                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
+                  >
+                    ${escapeHtml(action.label)}
+                  </button>
+                `,
+              )
+              .join("")}
+          </div>
+        `
+      : "";
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <article part="shell">
         <div part="topline">
           <div part="topline-meta">
@@ -469,6 +487,7 @@ export class BoxPreviewElement extends HTMLElement {
         }
       });
     });
+  
   }
 }
 

@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-annotation-toolbar";
 
 const escapeHtml = (value: string): string =>
@@ -27,198 +29,8 @@ type AnnotationToolbarColor = {
   value: string;
 };
 
-export class BoxAnnotationToolbarElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["actions", "active-tool-id", "color-options", "current-color", "label", "tools"];
-  }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get actions(): AnnotationToolbarAction[] {
-    return this.parseJsonAttribute<AnnotationToolbarAction[]>("actions", []);
-  }
-
-  set actions(value: AnnotationToolbarAction[]) {
-    this.setAttribute("actions", JSON.stringify(value));
-  }
-
-  get activeToolId(): string {
-    return this.getAttribute("active-tool-id") ?? "";
-  }
-
-  set activeToolId(value: string) {
-    if (!value) {
-      this.removeAttribute("active-tool-id");
-      return;
-    }
-
-    this.setAttribute("active-tool-id", value);
-  }
-
-  get colorOptions(): AnnotationToolbarColor[] {
-    return this.parseJsonAttribute<AnnotationToolbarColor[]>("color-options", []);
-  }
-
-  set colorOptions(value: AnnotationToolbarColor[]) {
-    this.setAttribute("color-options", JSON.stringify(value));
-  }
-
-  get currentColor(): string {
-    return this.getAttribute("current-color") ?? "";
-  }
-
-  set currentColor(value: string) {
-    if (!value) {
-      this.removeAttribute("current-color");
-      return;
-    }
-
-    this.setAttribute("current-color", value);
-  }
-
-  get label(): string {
-    return this.getAttribute("label") ?? "Annotation Toolbar";
-  }
-
-  set label(value: string) {
-    if (!value) {
-      this.removeAttribute("label");
-      return;
-    }
-
-    this.setAttribute("label", value);
-  }
-
-  get tools(): AnnotationToolbarTool[] {
-    return this.parseJsonAttribute<AnnotationToolbarTool[]>("tools", []);
-  }
-
-  set tools(value: AnnotationToolbarTool[]) {
-    this.setAttribute("tools", JSON.stringify(value));
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private parseJsonAttribute<T>(name: string, fallback: T): T {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return fallback;
-    }
-
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
-  }
-
-  private emitAction(actionId: string): void {
-    this.dispatchEvent(
-      new CustomEvent("action", {
-        bubbles: true,
-        composed: true,
-        detail: { action: actionId },
-      }),
-    );
-  }
-
-  private emitToolSelected(tool: AnnotationToolbarTool): void {
-    this.activeToolId = tool.id;
-    this.dispatchEvent(
-      new CustomEvent("tool-selected", {
-        bubbles: true,
-        composed: true,
-        detail: tool,
-      }),
-    );
-  }
-
-  private emitColorSelected(color: AnnotationToolbarColor): void {
-    this.currentColor = color.value;
-    this.dispatchEvent(
-      new CustomEvent("color-selected", {
-        bubbles: true,
-        composed: true,
-        detail: color,
-      }),
-    );
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const toolMarkup = this.tools.length
-      ? this.tools
-          .map(tool => {
-            const isActive = tool.id === this.activeToolId;
-            return `
-              <button
-                type="button"
-                part="tool"
-                data-tool-id="${escapeHtml(tool.id)}"
-                ${tool.disabled ? "disabled" : ""}
-                aria-pressed="${isActive ? "true" : "false"}"
-              >
-                <span part="tool-icon">${escapeHtml(tool.icon ?? "")}</span>
-                <span part="tool-label">${escapeHtml(tool.label)}</span>
-              </button>
-            `;
-          })
-          .join("")
-      : `<div part="empty">No annotation tools configured.</div>`;
-
-    const colorMarkup = this.colorOptions.length
-      ? this.colorOptions
-          .map(color => {
-            const selected = color.value === this.currentColor;
-            return `
-              <button
-                type="button"
-                part="color"
-                data-color-id="${escapeHtml(color.id)}"
-                data-color-value="${escapeHtml(color.value)}"
-                aria-pressed="${selected ? "true" : "false"}"
-                aria-label="${escapeHtml(color.label)}"
-                title="${escapeHtml(color.label)}"
-                style="--annotation-color:${escapeHtml(color.value)};"
-              >
-                <span part="color-swatch"></span>
-              </button>
-            `;
-          })
-          .join("")
-      : `<div part="empty">No colors configured.</div>`;
-
-    const actionMarkup = this.actions.length
-      ? this.actions
-          .map(
-            action => `
-              <button
-                type="button"
-                part="action"
-                data-action-id="${escapeHtml(action.id)}"
-                data-tone="${escapeHtml(action.tone ?? "neutral")}"
-              >
-                ${escapeHtml(action.label)}
-              </button>
-            `,
-          )
-          .join("")
-      : "";
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -337,7 +149,210 @@ export class BoxAnnotationToolbarElement extends HTMLElement {
         [part="empty"] {
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
-      </style>
+      `;
+
+export class BoxAnnotationToolbarElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["actions", "active-tool-id", "color-options", "current-color", "label", "tools"];
+  }
+  get actions(): AnnotationToolbarAction[] {
+    return this.parseJsonAttribute<AnnotationToolbarAction[]>("actions", []);
+  }
+
+  set actions(value: AnnotationToolbarAction[]) {
+    this.setAttribute("actions", JSON.stringify(value));
+  }
+
+  get activeToolId(): string {
+    return this.getAttribute("active-tool-id") ?? "";
+  }
+
+  set activeToolId(value: string) {
+    if (!value) {
+      this.removeAttribute("active-tool-id");
+      return;
+    }
+
+    this.setAttribute("active-tool-id", value);
+  }
+
+  get colorOptions(): AnnotationToolbarColor[] {
+    return this.parseJsonAttribute<AnnotationToolbarColor[]>("color-options", []);
+  }
+
+  set colorOptions(value: AnnotationToolbarColor[]) {
+    this.setAttribute("color-options", JSON.stringify(value));
+  }
+
+  get currentColor(): string {
+    return this.getAttribute("current-color") ?? "";
+  }
+
+  set currentColor(value: string) {
+    if (!value) {
+      this.removeAttribute("current-color");
+      return;
+    }
+
+    this.setAttribute("current-color", value);
+  }
+
+  get label(): string {
+    return this.getAttribute("label") ?? "Annotation Toolbar";
+  }
+
+  set label(value: string) {
+    if (!value) {
+      this.removeAttribute("label");
+      return;
+    }
+
+    this.setAttribute("label", value);
+  }
+
+  get tools(): AnnotationToolbarTool[] {
+    return this.parseJsonAttribute<AnnotationToolbarTool[]>("tools", []);
+  }
+
+  set tools(value: AnnotationToolbarTool[]) {
+    this.setAttribute("tools", JSON.stringify(value));
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private emitAction(actionId: string): void {
+    this.dispatchEvent(
+      new CustomEvent("action", {
+        bubbles: true,
+        composed: true,
+        detail: { action: actionId },
+      }),
+    );
+  }
+
+  private emitToolSelected(tool: AnnotationToolbarTool): void {
+    this.activeToolId = tool.id;
+    this.dispatchEvent(
+      new CustomEvent("tool-selected", {
+        bubbles: true,
+        composed: true,
+        detail: tool,
+      }),
+    );
+  }
+
+  private emitColorSelected(color: AnnotationToolbarColor): void {
+    this.currentColor = color.value;
+    this.dispatchEvent(
+      new CustomEvent("color-selected", {
+        bubbles: true,
+        composed: true,
+        detail: color,
+      }),
+    );
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const toolMarkup = this.tools.length
+      ? this.tools
+          .map(tool => {
+            const isActive = tool.id === this.activeToolId;
+            return `
+              <button
+                type="button"
+                part="tool"
+                data-tool-id="${escapeHtml(tool.id)}"
+                ${tool.disabled ? "disabled" : ""}
+                aria-pressed="${isActive ? "true" : "false"}"
+              >
+                <span part="tool-icon">${escapeHtml(tool.icon ?? "")}</span>
+                <span part="tool-label">${escapeHtml(tool.label)}</span>
+              </button>
+            `;
+          })
+          .join("")
+      : `<div part="empty">No annotation tools configured.</div>`;
+
+    const colorMarkup = this.colorOptions.length
+      ? this.colorOptions
+          .map(color => {
+            const selected = color.value === this.currentColor;
+            return `
+              <button
+                type="button"
+                part="color"
+                data-color-id="${escapeHtml(color.id)}"
+                data-color-value="${escapeHtml(color.value)}"
+                aria-pressed="${selected ? "true" : "false"}"
+                aria-label="${escapeHtml(color.label)}"
+                title="${escapeHtml(color.label)}"
+                style="--annotation-color:${escapeHtml(color.value)};"
+              >
+                <span part="color-swatch"></span>
+              </button>
+            `;
+          })
+          .join("")
+      : `<div part="empty">No colors configured.</div>`;
+
+    const actionMarkup = this.actions.length
+      ? this.actions
+          .map(
+            action => `
+              <button
+                type="button"
+                part="action"
+                data-action-id="${escapeHtml(action.id)}"
+                data-tone="${escapeHtml(action.tone ?? "neutral")}"
+              >
+                ${escapeHtml(action.label)}
+              </button>
+            `,
+          )
+          .join("")
+      : "";
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <article part="toolbar">
         <div part="header">${escapeHtml(this.label)}</div>
         <div part="body">
@@ -395,6 +410,7 @@ export class BoxAnnotationToolbarElement extends HTMLElement {
         }
       });
     });
+  
   }
 }
 

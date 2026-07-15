@@ -1,12 +1,79 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-datalist-item";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+const datalistItemStyles = `
+  :host {
+    display: block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="item"] {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: 0.6rem;
+    cursor: pointer;
+    color: var(--boe-token-text-text, #222222);
+    transition: background 140ms ease;
+  }
+
+  [part="item"]:hover {
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+  }
+
+  [part="item"][data-selected="true"] {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface, #ffffff) 90%);
+  }
+
+  [part="item"][data-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  [part="item"]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, transparent);
+  }
+
+  [part="thumb"] {
+    flex: none;
+    display: grid;
+    place-items: center;
+    inline-size: 1.9rem;
+    block-size: 1.9rem;
+    border-radius: 0.45rem;
+    background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 82%, var(--boe-token-surface-surface, #ffffff) 18%);
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  [part="body"] {
+    min-inline-size: 0;
+    display: grid;
+    gap: 0.1rem;
+  }
+
+  [part="label"] {
+    font-size: 0.9rem;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  [part="meta"] {
+    font-size: 0.78rem;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+  }
+
+  [part="meta"][hidden] {
+    display: none;
+  }
+`;
 
 /**
  * A single selectable row for a picker/typeahead list — a leading glyph, a
@@ -15,15 +82,15 @@ const escapeHtml = (value: string): string =>
  * Enter/Space; `selected` reflects to `aria-selected`. The host owns the list
  * and its roving focus.
  */
-export class BoxDatalistItemElement extends HTMLElement {
+export class BoxDatalistItemElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["disabled", "icon", "label", "meta", "selected", "value"];
   }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private itemEl!: HTMLElement;
+  private thumbEl!: HTMLElement;
+  private labelEl!: HTMLElement;
+  private metaEl!: HTMLElement;
 
   get label(): string {
     return this.getAttribute("label") ?? "";
@@ -73,14 +140,6 @@ export class BoxDatalistItemElement extends HTMLElement {
     this.toggleAttribute("disabled", value);
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
   private choose(): void {
     if (this.disabled) {
       return;
@@ -94,108 +153,61 @@ export class BoxDatalistItemElement extends HTMLElement {
     );
   }
 
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
-    const iconMarkup = this.icon ? escapeHtml(this.icon) : "";
-    const metaMarkup = this.meta ? `<span part="meta">${escapeHtml(this.meta)}</span>` : "";
-
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="item"] {
-          display: flex;
-          align-items: center;
-          gap: 0.7rem;
-          padding: 0.5rem 0.65rem;
-          border-radius: 0.6rem;
-          cursor: pointer;
-          color: var(--boe-token-text-text, #222222);
-          transition: background 140ms ease;
-        }
-
-        [part="item"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f4f4f4);
-        }
-
-        [part="item"][data-selected="true"] {
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface, #ffffff) 90%);
-        }
-
-        [part="item"][data-disabled="true"] {
-          opacity: 0.55;
-          cursor: not-allowed;
-        }
-
-        [part="item"]:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, transparent);
-        }
-
-        [part="thumb"] {
-          flex: none;
-          display: grid;
-          place-items: center;
-          inline-size: 1.9rem;
-          block-size: 1.9rem;
-          border-radius: 0.45rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 82%, var(--boe-token-surface-surface, #ffffff) 18%);
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          font-weight: 700;
-          font-size: 0.85rem;
-        }
-
-        [part="body"] {
-          min-inline-size: 0;
-          display: grid;
-          gap: 0.1rem;
-        }
-
-        [part="label"] {
-          font-size: 0.9rem;
-          font-weight: 600;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        [part="meta"] {
-          font-size: 0.78rem;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-      </style>
-      <div
-        part="item"
-        role="option"
-        aria-selected="${this.selected ? "true" : "false"}"
-        ${this.disabled ? 'aria-disabled="true"' : ""}
-        data-selected="${this.selected ? "true" : "false"}"
-        data-disabled="${this.disabled ? "true" : "false"}"
-        tabindex="${this.disabled ? "-1" : "0"}"
-      >
-        <span part="thumb" aria-hidden="true">${iconMarkup}</span>
+      <style>${datalistItemStyles}</style>
+      <div part="item" role="option">
+        <span part="thumb" aria-hidden="true"></span>
         <span part="body">
-          <span part="label">${escapeHtml(this.label)}</span>
-          ${metaMarkup}
+          <span part="label"></span>
+          <span part="meta" hidden></span>
         </span>
       </div>
     `;
+    this.itemEl = this.shadowRoot.querySelector('[part="item"]')!;
+    this.thumbEl = this.shadowRoot.querySelector('[part="thumb"]')!;
+    this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.metaEl = this.shadowRoot.querySelector('[part="meta"]')!;
+  }
 
-    const item = this.shadowRoot.querySelector('[part="item"]') as HTMLElement | null;
-    item?.addEventListener("click", () => this.choose());
-    item?.addEventListener("keydown", event => {
+  protected setupListeners(): void {
+    this.itemEl.addEventListener("click", () => this.choose());
+    this.itemEl.addEventListener("keydown", event => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         this.choose();
       }
     });
+  }
+
+  protected update(): void {
+    if (!this.itemEl || !this.thumbEl || !this.labelEl || !this.metaEl) {
+      return;
+    }
+
+    const selected = this.selected;
+    const disabled = this.disabled;
+    const meta = this.meta;
+
+    this.itemEl.setAttribute("aria-selected", selected ? "true" : "false");
+    this.itemEl.dataset.selected = selected ? "true" : "false";
+    this.itemEl.dataset.disabled = disabled ? "true" : "false";
+    this.itemEl.tabIndex = disabled ? -1 : 0;
+
+    if (disabled) {
+      this.itemEl.setAttribute("aria-disabled", "true");
+    } else {
+      this.itemEl.removeAttribute("aria-disabled");
+    }
+
+    this.thumbEl.textContent = this.icon;
+    this.labelEl.textContent = this.label;
+    this.metaEl.textContent = meta;
+    this.metaEl.hidden = !meta;
   }
 }
 

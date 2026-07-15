@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-file-request-builder";
 
 const escapeHtml = (value: string): string =>
@@ -23,172 +25,8 @@ type FileRequestBuilderSetting = {
 
 type FileRequestBuilderValues = Record<string, boolean | string>;
 
-export class BoxFileRequestBuilderElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["fields", "heading", "message", "settings", "value"];
-  }
 
-  private valueInternal: FileRequestBuilderValues = {};
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get fields(): FileRequestBuilderField[] {
-    return this.parseJsonAttribute<FileRequestBuilderField[]>("fields", []);
-  }
-
-  set fields(value: FileRequestBuilderField[]) {
-    this.setAttribute("fields", JSON.stringify(value));
-  }
-
-  get message(): string {
-    return this.getAttribute("message") ?? "";
-  }
-
-  set message(value: string) {
-    this.setAttribute("message", value);
-  }
-
-  get settings(): FileRequestBuilderSetting[] {
-    return this.parseJsonAttribute<FileRequestBuilderSetting[]>("settings", []);
-  }
-
-  set settings(value: FileRequestBuilderSetting[]) {
-    this.setAttribute("settings", JSON.stringify(value));
-  }
-
-  get heading(): string {
-    return this.getAttribute("heading") ?? "File Request";
-  }
-
-  set heading(value: string) {
-    this.setAttribute("heading", value);
-  }
-
-  get value(): FileRequestBuilderValues {
-    return { ...this.valueInternal };
-  }
-
-  set value(value: FileRequestBuilderValues) {
-    this.valueInternal = { ...value };
-    this.setAttribute("value", JSON.stringify(value));
-    this.render();
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(name: string): void {
-    if (name === "value") {
-      const raw = this.getAttribute("value");
-      if (!raw) {
-        this.valueInternal = {};
-      } else {
-        try {
-          const parsed = JSON.parse(raw) as FileRequestBuilderValues;
-          this.valueInternal = parsed && typeof parsed === "object" ? parsed : {};
-        } catch {
-          this.valueInternal = {};
-        }
-      }
-    }
-
-    this.render();
-  }
-
-  private parseJsonAttribute<T>(name: string, fallback: T): T {
-    const raw = this.getAttribute(name);
-    if (!raw) {
-      return fallback;
-    }
-
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return fallback;
-    }
-  }
-
-  private emitValueChanged(): void {
-    this.dispatchEvent(
-      new CustomEvent("value-changed", {
-        bubbles: true,
-        composed: true,
-        detail: { value: { ...this.valueInternal } },
-      }),
-    );
-  }
-
-  private updateValue(key: string, nextValue: boolean | string): void {
-    this.valueInternal = {
-      ...this.valueInternal,
-      [key]: nextValue,
-    };
-    this.setAttribute("value", JSON.stringify(this.valueInternal));
-    this.emitValueChanged();
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const settingsMarkup = this.settings.length
-      ? `
-          <section part="settings">
-            <div part="section-title">Request settings</div>
-            <div part="settings-list">
-              ${this.settings
-                .map(
-                  setting => `
-                    <label part="setting">
-                      <input
-                        type="checkbox"
-                        part="checkbox"
-                        data-setting-id="${escapeHtml(setting.id)}"
-                        ${this.valueInternal[setting.id] ? "checked" : ""}
-                      />
-                      <span part="setting-content">
-                        <span part="setting-label">${escapeHtml(setting.label)}</span>
-                        ${setting.description ? `<span part="setting-description">${escapeHtml(setting.description)}</span>` : ""}
-                      </span>
-                    </label>
-                  `,
-                )
-                .join("")}
-            </div>
-          </section>
-        `
-      : "";
-    const fieldsMarkup = this.fields.length
-      ? `
-          <section part="fields">
-            <div part="section-title">Upload form fields</div>
-            <div part="field-list">
-              ${this.fields
-                .map(
-                  field => `
-                    <div part="field">
-                      <div part="field-header">
-                        <span part="field-label">${escapeHtml(field.label)}</span>
-                        ${field.required ? `<span part="field-required">Required</span>` : ""}
-                      </div>
-                      ${field.description ? `<div part="field-description">${escapeHtml(field.description)}</div>` : ""}
-                    </div>
-                  `,
-                )
-                .join("")}
-            </div>
-          </section>
-        `
-      : "";
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: block;
           color: inherit;
@@ -318,7 +156,185 @@ export class BoxFileRequestBuilderElement extends HTMLElement {
           border-color: var(--boe-token-text-text, #1f1e1b);
           color: var(--boe-token-text-text-on-brand, #ffffff);
         }
-      </style>
+      `;
+
+export class BoxFileRequestBuilderElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["fields", "heading", "message", "settings", "value"];
+  }
+
+  private valueInternal: FileRequestBuilderValues = {};
+  get fields(): FileRequestBuilderField[] {
+    return this.parseJsonAttribute<FileRequestBuilderField[]>("fields", []);
+  }
+
+  set fields(value: FileRequestBuilderField[]) {
+    this.setAttribute("fields", JSON.stringify(value));
+  }
+
+  get message(): string {
+    return this.getAttribute("message") ?? "";
+  }
+
+  set message(value: string) {
+    this.setAttribute("message", value);
+  }
+
+  get settings(): FileRequestBuilderSetting[] {
+    return this.parseJsonAttribute<FileRequestBuilderSetting[]>("settings", []);
+  }
+
+  set settings(value: FileRequestBuilderSetting[]) {
+    this.setAttribute("settings", JSON.stringify(value));
+  }
+
+  get heading(): string {
+    return this.getAttribute("heading") ?? "File Request";
+  }
+
+  set heading(value: string) {
+    this.setAttribute("heading", value);
+  }
+
+  get value(): FileRequestBuilderValues {
+    return { ...this.valueInternal };
+  }
+
+  set value(value: FileRequestBuilderValues) {
+    this.valueInternal = { ...value };
+    this.setAttribute("value", JSON.stringify(value));
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    if (name === "value") {
+      const raw = this.getAttribute("value");
+      if (!raw) {
+        this.valueInternal = {};
+      } else {
+        try {
+          const parsed = JSON.parse(raw) as FileRequestBuilderValues;
+          this.valueInternal = parsed && typeof parsed === "object" ? parsed : {};
+        } catch {
+          this.valueInternal = {};
+        }
+      }
+    }
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private parseJsonAttribute<T>(name: string, fallback: T): T {
+    const raw = this.getAttribute(name);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
+  private emitValueChanged(): void {
+    this.dispatchEvent(
+      new CustomEvent("value-changed", {
+        bubbles: true,
+        composed: true,
+        detail: { value: { ...this.valueInternal } },
+      }),
+    );
+  }
+
+  private updateValue(key: string, nextValue: boolean | string): void {
+    this.valueInternal = {
+      ...this.valueInternal,
+      [key]: nextValue,
+    };
+    this.setAttribute("value", JSON.stringify(this.valueInternal));
+    this.emitValueChanged();
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
+    const settingsMarkup = this.settings.length
+      ? `
+          <section part="settings">
+            <div part="section-title">Request settings</div>
+            <div part="settings-list">
+              ${this.settings
+                .map(
+                  setting => `
+                    <label part="setting">
+                      <input
+                        type="checkbox"
+                        part="checkbox"
+                        data-setting-id="${escapeHtml(setting.id)}"
+                        ${this.valueInternal[setting.id] ? "checked" : ""}
+                      />
+                      <span part="setting-content">
+                        <span part="setting-label">${escapeHtml(setting.label)}</span>
+                        ${setting.description ? `<span part="setting-description">${escapeHtml(setting.description)}</span>` : ""}
+                      </span>
+                    </label>
+                  `,
+                )
+                .join("")}
+            </div>
+          </section>
+        `
+      : "";
+    const fieldsMarkup = this.fields.length
+      ? `
+          <section part="fields">
+            <div part="section-title">Upload form fields</div>
+            <div part="field-list">
+              ${this.fields
+                .map(
+                  field => `
+                    <div part="field">
+                      <div part="field-header">
+                        <span part="field-label">${escapeHtml(field.label)}</span>
+                        ${field.required ? `<span part="field-required">Required</span>` : ""}
+                      </div>
+                      ${field.description ? `<div part="field-description">${escapeHtml(field.description)}</div>` : ""}
+                    </div>
+                  `,
+                )
+                .join("")}
+            </div>
+          </section>
+        `
+      : "";
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       <section part="builder">
         <header part="header">
           <div part="title">${escapeHtml(this.heading)}</div>
@@ -361,6 +377,7 @@ export class BoxFileRequestBuilderElement extends HTMLElement {
         );
       });
     });
+  
   }
 }
 

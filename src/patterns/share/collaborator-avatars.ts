@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-collaborator-avatars";
 
 const escapeHtml = (value: string): string =>
@@ -44,97 +46,8 @@ const isCollaborator = (value: unknown): value is Collaborator => {
  * emits `select`; the overflow chip emits `overflow`. The group is labelled for
  * assistive tech and the hidden count is announced.
  */
-export class BoxCollaboratorAvatarsElement extends HTMLElement {
-  static get observedAttributes(): string[] {
-    return ["collaborators", "label", "max"];
-  }
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
-
-  get collaborators(): Collaborator[] {
-    const raw = this.getAttribute("collaborators");
-    if (!raw) {
-      return [];
-    }
-
-    try {
-      const parsed: unknown = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed.filter(isCollaborator) : [];
-    } catch {
-      return [];
-    }
-  }
-
-  set collaborators(value: Collaborator[]) {
-    this.setAttribute("collaborators", JSON.stringify(value));
-  }
-
-  get label(): string {
-    return this.getAttribute("label")?.trim() || "Collaborators";
-  }
-
-  set label(value: string) {
-    this.setAttribute("label", value);
-  }
-
-  get max(): number {
-    const raw = Number(this.getAttribute("max") ?? "5");
-    if (!Number.isFinite(raw) || raw < 1) {
-      return 5;
-    }
-    return Math.floor(raw);
-  }
-
-  set max(value: number) {
-    this.setAttribute("max", String(value));
-  }
-
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
-    this.render();
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const collaborators = this.collaborators;
-    const max = this.max;
-    const visible = collaborators.slice(0, max);
-    const overflow = Math.max(0, collaborators.length - visible.length);
-
-    const avatarsMarkup = visible
-      .map((collaborator, index) => {
-        const initials = collaborator.initials || initialsFromName(collaborator.name) || "?";
-        const inner = collaborator.src
-          ? `<img part="avatar-image" src="${escapeHtml(collaborator.src)}" alt="" />`
-          : escapeHtml(initials);
-        return `
-          <button
-            type="button"
-            part="avatar"
-            data-index="${index}"
-            style="z-index:${visible.length - index};"
-            aria-label="${escapeHtml(collaborator.name)}"
-            title="${escapeHtml(collaborator.name)}"
-          >${inner}</button>
-        `;
-      })
-      .join("");
-
-    const overflowMarkup = overflow
-      ? `<button type="button" part="overflow" aria-label="${overflow} more" title="${overflow} more">+${overflow}</button>`
-      : "";
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host {
           display: inline-block;
           color: inherit;
@@ -195,7 +108,109 @@ export class BoxCollaboratorAvatarsElement extends HTMLElement {
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.86rem;
         }
-      </style>
+      `;
+
+export class BoxCollaboratorAvatarsElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["collaborators", "label", "max"];
+  }
+  get collaborators(): Collaborator[] {
+    const raw = this.getAttribute("collaborators");
+    if (!raw) {
+      return [];
+    }
+
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.filter(isCollaborator) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  set collaborators(value: Collaborator[]) {
+    this.setAttribute("collaborators", JSON.stringify(value));
+  }
+
+  get label(): string {
+    return this.getAttribute("label")?.trim() || "Collaborators";
+  }
+
+  set label(value: string) {
+    this.setAttribute("label", value);
+  }
+
+  get max(): number {
+    const raw = Number(this.getAttribute("max") ?? "5");
+    if (!Number.isFinite(raw) || raw < 1) {
+      return 5;
+    }
+    return Math.floor(raw);
+  }
+
+  set max(value: number) {
+    this.setAttribute("max", String(value));
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
+      <div part="content-host"></div>
+    `;
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    const collaborators = this.collaborators;
+    const max = this.max;
+    const visible = collaborators.slice(0, max);
+    const overflow = Math.max(0, collaborators.length - visible.length);
+
+    const avatarsMarkup = visible
+      .map((collaborator, index) => {
+        const initials = collaborator.initials || initialsFromName(collaborator.name) || "?";
+        const inner = collaborator.src
+          ? `<img part="avatar-image" src="${escapeHtml(collaborator.src)}" alt="" />`
+          : escapeHtml(initials);
+        return `
+          <button
+            type="button"
+            part="avatar"
+            data-index="${index}"
+            style="z-index:${visible.length - index};"
+            aria-label="${escapeHtml(collaborator.name)}"
+            title="${escapeHtml(collaborator.name)}"
+          >${inner}</button>
+        `;
+      })
+      .join("");
+
+    const overflowMarkup = overflow
+      ? `<button type="button" part="overflow" aria-label="${overflow} more" title="${overflow} more">+${overflow}</button>`
+      : "";
+
+    const host = this.shadowRoot.querySelector('[part="content-host"]');
+    if (!host) {
+      return;
+    }
+
+    host.innerHTML = `
       ${
         collaborators.length
           ? `<div part="group" role="group" aria-label="${escapeHtml(this.label)}">${avatarsMarkup}${overflowMarkup}</div>`
@@ -228,6 +243,7 @@ export class BoxCollaboratorAvatarsElement extends HTMLElement {
         }),
       );
     });
+  
   }
 }
 

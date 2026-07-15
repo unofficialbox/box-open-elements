@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-rich-text-input";
 
 const escapeHtml = (value: string): string =>
@@ -21,20 +23,146 @@ const TOOLBAR_ACTIONS: ToolbarAction[] = [
   { command: "insertOrderedList", label: "Numbered list", text: "1." },
 ];
 
-export class BoxRichTextInputElement extends HTMLElement {
+const richTextStyles = `
+  :host {
+    display: block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="field"] {
+    margin: 0;
+    padding: 0;
+    border: none;
+    min-inline-size: 0;
+  }
+
+  [part="label"] {
+    margin: 0 0 0.9rem;
+    padding: 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  [part="surface"] {
+    display: grid;
+    gap: 0.9rem;
+    padding: 1rem;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+    border-radius: 1.05rem;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%, var(--boe-token-surface-surface, #ffffff) 10%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 82%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%) 100%
+      );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.82),
+      0 14px 28px rgba(15, 23, 42, 0.04);
+  }
+
+  [part="toolbar"] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    padding: 0.25rem;
+    border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-stroke-stroke, #e8e8e8) 92%);
+    border-radius: 1rem;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface-secondary, #fbfbfb) 6%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
+      );
+  }
+
+  [part="tool-button"] {
+    min-inline-size: 2.6rem;
+    block-size: 2.6rem;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 74%, transparent);
+    border-radius: 0.9rem;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
+      );
+    color: inherit;
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+      border-color 140ms ease,
+      background 140ms ease,
+      transform 140ms ease;
+  }
+
+  [part="tool-button"]:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, transparent);
+    background: color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 72%, var(--boe-token-surface-surface, #ffffff) 28%);
+  }
+
+  [part="editor"] {
+    min-block-size: 12rem;
+    padding: 1rem;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
+    border-radius: 0.95rem;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 97%, var(--boe-token-surface-surface-secondary, #fbfbfb) 3%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 2%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%, var(--boe-token-surface-surface, #ffffff) 90%) 100%
+      );
+    line-height: 1.6;
+    outline: none;
+    overflow: auto;
+    white-space: normal;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84);
+  }
+
+  [part="editor"]:empty::before {
+    content: attr(data-placeholder);
+    color: var(--boe-token-text-text-placeholder, #909090);
+  }
+
+  [part="editor"]:focus-visible,
+  [part="tool-button"]:focus-visible {
+    outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
+    outline-offset: 2px;
+  }
+
+  [part="editor"][aria-disabled="true"],
+  [part="tool-button"]:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  [part="editor"] p:first-child,
+  [part="editor"] ul:first-child,
+  [part="editor"] ol:first-child {
+    margin-top: 0;
+  }
+
+  [part="editor"] p:last-child,
+  [part="editor"] ul:last-child,
+  [part="editor"] ol:last-child {
+    margin-bottom: 0;
+  }
+`;
+
+export class BoxRichTextInputElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["disabled", "label", "placeholder", "value"];
   }
 
-  private editor: HTMLDivElement | null = null;
-  private labelElement: HTMLLegendElement | null = null;
+  private editor!: HTMLDivElement;
+  private labelElement!: HTMLLegendElement;
+  private toolbarEl!: HTMLElement;
   private toolbarButtons: HTMLButtonElement[] = [];
   private valueInternal = "";
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -71,22 +199,16 @@ export class BoxRichTextInputElement extends HTMLElement {
   set value(value: string) {
     this.valueInternal = value;
     this.setAttribute("value", value);
-    this.syncValue();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
-  connectedCallback(): void {
-    this.render();
-    this.syncState();
-  }
-
-  attributeChangedCallback(name: string, _oldValue: string | null, newValue: string | null): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
       this.valueInternal = newValue ?? "";
-      this.syncValue();
-      return;
     }
-
-    this.syncState();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   private emitValueChanged(): void {
@@ -100,17 +222,13 @@ export class BoxRichTextInputElement extends HTMLElement {
   }
 
   private handleEditorInput = (): void => {
-    if (!this.editor) {
-      return;
-    }
-
     this.valueInternal = this.editor.innerHTML;
     this.setAttribute("value", this.valueInternal);
     this.emitValueChanged();
   };
 
   private applyCommand(command: ToolbarAction["command"]): void {
-    if (this.disabled || !this.editor) {
+    if (this.disabled) {
       return;
     }
 
@@ -119,172 +237,17 @@ export class BoxRichTextInputElement extends HTMLElement {
     this.handleEditorInput();
   }
 
-  private syncValue(): void {
-    if (!this.editor) {
-      return;
-    }
-
-    if (this.editor.innerHTML !== this.valueInternal) {
-      this.editor.innerHTML = this.valueInternal;
-    }
-  }
-
-  private syncState(): void {
-    if (this.labelElement) {
-      this.labelElement.textContent = this.label;
-    }
-
-    if (this.editor) {
-      this.editor.setAttribute("aria-label", this.label);
-      this.editor.setAttribute("data-placeholder", this.placeholder);
-      this.editor.contentEditable = this.disabled ? "false" : "true";
-      this.editor.setAttribute("aria-disabled", String(this.disabled));
-    }
-
-    this.toolbarButtons.forEach(button => {
-      button.disabled = this.disabled;
-    });
-  }
-
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="field"] {
-          margin: 0;
-          padding: 0;
-          border: none;
-          min-inline-size: 0;
-        }
-
-        [part="label"] {
-          margin: 0 0 0.9rem;
-          padding: 0;
-          font-size: 0.9rem;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-        }
-
-        [part="surface"] {
-          display: grid;
-          gap: 0.9rem;
-          padding: 1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 1.05rem;
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%, var(--boe-token-surface-surface, #ffffff) 10%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 82%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%) 100%
-            );
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.82),
-            0 14px 28px rgba(15, 23, 42, 0.04);
-        }
-
-        [part="toolbar"] {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.6rem;
-          padding: 0.25rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-stroke-stroke, #e8e8e8) 92%);
-          border-radius: 1rem;
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface-secondary, #fbfbfb) 6%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
-            );
-        }
-
-        [part="tool-button"] {
-          min-inline-size: 2.6rem;
-          block-size: 2.6rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 74%, transparent);
-          border-radius: 0.9rem;
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
-            );
-          color: inherit;
-          font: inherit;
-          font-size: 0.95rem;
-          font-weight: 700;
-          cursor: pointer;
-          transition:
-            border-color 140ms ease,
-            background 140ms ease,
-            transform 140ms ease;
-        }
-
-        [part="tool-button"]:hover:not(:disabled) {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 72%, var(--boe-token-surface-surface, #ffffff) 28%);
-        }
-
-        [part="editor"] {
-          min-block-size: 12rem;
-          padding: 1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
-          border-radius: 0.95rem;
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 97%, var(--boe-token-surface-surface-secondary, #fbfbfb) 3%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 2%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%, var(--boe-token-surface-surface, #ffffff) 90%) 100%
-            );
-          line-height: 1.6;
-          outline: none;
-          overflow: auto;
-          white-space: normal;
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84);
-        }
-
-        [part="editor"]:empty::before {
-          content: attr(data-placeholder);
-          color: var(--boe-token-text-text-placeholder, #909090);
-        }
-
-        [part="editor"]:focus-visible,
-        [part="tool-button"]:focus-visible {
-          outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
-          outline-offset: 2px;
-        }
-
-        [part="editor"][aria-disabled="true"],
-        [part="tool-button"]:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        [part="editor"] p:first-child,
-        [part="editor"] ul:first-child,
-        [part="editor"] ol:first-child {
-          margin-top: 0;
-        }
-
-        [part="editor"] p:last-child,
-        [part="editor"] ul:last-child,
-        [part="editor"] ol:last-child {
-          margin-bottom: 0;
-        }
-      </style>
+      <style>${richTextStyles}</style>
       <fieldset part="field">
-        <legend part="label">${escapeHtml(this.label)}</legend>
+        <legend part="label"></legend>
         <div part="surface">
-          <div part="toolbar" role="toolbar" aria-label="${escapeHtml(this.label)} formatting toolbar">
+          <div part="toolbar" role="toolbar">
             ${TOOLBAR_ACTIONS.map(
               action => `
                 <button
@@ -303,20 +266,21 @@ export class BoxRichTextInputElement extends HTMLElement {
             part="editor"
             role="textbox"
             aria-multiline="true"
-            aria-label="${escapeHtml(this.label)}"
-            data-placeholder="${escapeHtml(this.placeholder)}"
           ></div>
         </div>
       </fieldset>
     `;
 
-    this.labelElement = this.shadowRoot.querySelector('[part="label"]');
-    this.editor = this.shadowRoot.querySelector('[part="editor"]');
+    this.labelElement = this.shadowRoot.querySelector('[part="label"]')!;
+    this.editor = this.shadowRoot.querySelector('[part="editor"]')!;
+    this.toolbarEl = this.shadowRoot.querySelector('[part="toolbar"]')!;
     this.toolbarButtons = Array.from(
       this.shadowRoot.querySelectorAll('[part="tool-button"]'),
     ) as HTMLButtonElement[];
+  }
 
-    this.editor?.addEventListener("input", this.handleEditorInput);
+  protected setupListeners(): void {
+    this.editor.addEventListener("input", this.handleEditorInput);
     this.toolbarButtons.forEach(button => {
       button.addEventListener("click", () => {
         const command = button.dataset.command as ToolbarAction["command"] | undefined;
@@ -325,8 +289,28 @@ export class BoxRichTextInputElement extends HTMLElement {
         }
       });
     });
+  }
 
-    this.syncValue();
+  protected update(): void {
+    if (!this.editor || !this.labelElement) {
+      return;
+    }
+
+    this.labelElement.textContent = this.label;
+    this.toolbarEl.setAttribute("aria-label", `${this.label} formatting toolbar`);
+    this.editor.setAttribute("aria-label", this.label);
+    this.editor.setAttribute("data-placeholder", this.placeholder);
+    this.editor.contentEditable = this.disabled ? "false" : "true";
+    this.editor.setAttribute("aria-disabled", String(this.disabled));
+
+    this.toolbarButtons.forEach(button => {
+      button.disabled = this.disabled;
+    });
+
+    // Only patch editor HTML when not focused to avoid cursor-jump
+    if (document.activeElement !== this.editor && this.editor.innerHTML !== this.valueInternal) {
+      this.editor.innerHTML = this.valueInternal;
+    }
   }
 }
 

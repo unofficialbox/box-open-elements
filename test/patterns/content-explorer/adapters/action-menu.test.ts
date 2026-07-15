@@ -78,4 +78,40 @@ describe("BoxExplorerActionMenuElement", () => {
       item: { id: "1", name: "Spec", type: "file" },
     });
   });
+
+  it("preserves trigger focus across unrelated refreshes", async () => {
+    const transport: ExplorerTransport = {
+      loadFolderItems: vi.fn().mockResolvedValue(
+        createResult({
+          items: [{ id: "1", name: "Spec", type: "file" }],
+        }),
+      ),
+    };
+    const controller = new ContentExplorerController({
+      itemActions: [
+        { id: "preview", label: "Preview", itemTypes: ["file"] },
+        { id: "share", label: "Share", itemTypes: ["file"] },
+      ],
+      rootFolderId: "0",
+      token: "token",
+      transport,
+    });
+    const element = document.createElement("box-explorer-action-menu") as BoxExplorerActionMenuElement;
+    element.controller = controller;
+    element.itemId = "1";
+    document.body.append(element);
+    await controller.connect();
+    await flushMicrotasks();
+
+    const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement;
+    trigger.focus();
+    expect(element.shadowRoot?.activeElement).toBe(trigger);
+
+    controller.select(["1"]);
+    await flushMicrotasks();
+
+    expect(element.shadowRoot?.activeElement).toBe(
+      element.shadowRoot?.querySelector('[part="trigger"]'),
+    );
+  });
 });

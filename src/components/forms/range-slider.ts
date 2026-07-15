@@ -1,12 +1,6 @@
-const DEFAULT_TAG_NAME = "box-range-slider";
+import { BaseElement } from "../../core/index.js";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+const DEFAULT_TAG_NAME = "box-range-slider";
 
 const parseNumber = (value: string | null, fallback: number): number => {
   if (value == null || value === "") {
@@ -22,19 +16,84 @@ type RangeValue = {
   start: number;
 };
 
-export class BoxRangeSliderElement extends HTMLElement {
+const rangeSliderStyles = `
+  :host {
+    display: block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="field"] {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  [part="header"] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+  }
+
+  [part="label"] {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+  }
+
+  [part="value"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+    font-size: 0.85rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  [part="ranges"] {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  [part="range-start"],
+  [part="range-end"] {
+    inline-size: 100%;
+    margin: 0;
+    accent-color: var(--boe-token-surface-surface-brand, #0061d5);
+    cursor: pointer;
+  }
+
+  [part="range-start"]:focus-visible,
+  [part="range-end"]:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+    outline-offset: 2px;
+  }
+
+  [part="range-start"]:disabled,
+  [part="range-end"]:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+`;
+
+export class BoxRangeSliderElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["disabled", "end", "label", "max", "min", "start", "step"];
   }
 
   private startInternal = 20;
-
   private endInternal = 80;
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private labelEl!: HTMLElement;
+  private startValueEl!: HTMLElement;
+  private endValueEl!: HTMLElement;
+  private startInputEl!: HTMLInputElement;
+  private endInputEl!: HTMLInputElement;
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -87,7 +146,9 @@ export class BoxRangeSliderElement extends HTMLElement {
   set start(value: number) {
     this.startInternal = value;
     this.setAttribute("start", String(value));
-    this.render();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   get end(): number {
@@ -97,14 +158,12 @@ export class BoxRangeSliderElement extends HTMLElement {
   set end(value: number) {
     this.endInternal = value;
     this.setAttribute("end", String(value));
-    this.render();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "start") {
       this.startInternal = parseNumber(this.getAttribute("start"), this.min);
     }
@@ -113,7 +172,7 @@ export class BoxRangeSliderElement extends HTMLElement {
       this.endInternal = parseNumber(this.getAttribute("end"), this.max);
     }
 
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   private clamp(nextValue: number): number {
@@ -130,22 +189,10 @@ export class BoxRangeSliderElement extends HTMLElement {
     this.endInternal = normalizedEnd;
     this.setAttribute("start", String(normalizedStart));
     this.setAttribute("end", String(normalizedEnd));
-    const startValue = this.shadowRoot?.querySelector('[part="start-value"]');
-    const endValue = this.shadowRoot?.querySelector('[part="end-value"]');
-    if (startValue) {
-      startValue.textContent = String(normalizedStart);
-    }
-    if (endValue) {
-      endValue.textContent = String(normalizedEnd);
-    }
-    const startInput = this.shadowRoot?.querySelector('[part="range-start"]') as HTMLInputElement | null;
-    const endInput = this.shadowRoot?.querySelector('[part="range-end"]') as HTMLInputElement | null;
-    if (startInput) {
-      startInput.value = String(normalizedStart);
-    }
-    if (endInput) {
-      endInput.value = String(normalizedEnd);
-    }
+    this.startValueEl.textContent = String(normalizedStart);
+    this.endValueEl.textContent = String(normalizedEnd);
+    this.startInputEl.value = String(normalizedStart);
+    this.endInputEl.value = String(normalizedEnd);
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,
@@ -155,116 +202,37 @@ export class BoxRangeSliderElement extends HTMLElement {
     );
   }
 
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
-    const start = Math.min(this.startInternal, this.endInternal);
-    const end = Math.max(this.startInternal, this.endInternal);
-
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="field"] {
-          display: grid;
-          gap: 0.6rem;
-        }
-
-        [part="header"] {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 0.8rem;
-        }
-
-        [part="label"] {
-          font-size: 0.8rem;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-
-        [part="value"] {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.3rem;
-          padding: 0.25rem 0.6rem;
-          border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
-          color: var(--boe-token-surface-surface-brand, #0061d5);
-          font-size: 0.85rem;
-          font-weight: 700;
-          font-variant-numeric: tabular-nums;
-        }
-
-        [part="ranges"] {
-          display: grid;
-          gap: 0.35rem;
-        }
-
-        [part="range-start"],
-        [part="range-end"] {
-          inline-size: 100%;
-          margin: 0;
-          accent-color: var(--boe-token-surface-surface-brand, #0061d5);
-          cursor: pointer;
-        }
-
-        [part="range-start"]:focus-visible,
-        [part="range-end"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
-        }
-
-        [part="range-start"]:disabled,
-        [part="range-end"]:disabled {
-          opacity: 0.55;
-          cursor: not-allowed;
-        }
-      </style>
+      <style>${rangeSliderStyles}</style>
       <label part="field">
         <span part="header">
-          <span part="label">${escapeHtml(this.label)}</span>
+          <span part="label"></span>
           <span part="value">
-            <span part="start-value">${escapeHtml(String(start))}</span>
+            <span part="start-value"></span>
             <span part="separator">-</span>
-            <span part="end-value">${escapeHtml(String(end))}</span>
+            <span part="end-value"></span>
           </span>
         </span>
         <div part="ranges">
-          <input
-            type="range"
-            part="range-start"
-            min="${escapeHtml(String(this.min))}"
-            max="${escapeHtml(String(this.max))}"
-            step="${escapeHtml(String(this.step))}"
-            value="${escapeHtml(String(start))}"
-            ${this.disabled ? "disabled" : ""}
-          />
-          <input
-            type="range"
-            part="range-end"
-            min="${escapeHtml(String(this.min))}"
-            max="${escapeHtml(String(this.max))}"
-            step="${escapeHtml(String(this.step))}"
-            value="${escapeHtml(String(end))}"
-            ${this.disabled ? "disabled" : ""}
-          />
+          <input type="range" part="range-start" />
+          <input type="range" part="range-end" />
         </div>
       </label>
     `;
+    this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.startValueEl = this.shadowRoot.querySelector('[part="start-value"]')!;
+    this.endValueEl = this.shadowRoot.querySelector('[part="end-value"]')!;
+    this.startInputEl = this.shadowRoot.querySelector('[part="range-start"]')!;
+    this.endInputEl = this.shadowRoot.querySelector('[part="range-end"]')!;
+  }
 
-    const startInput = this.shadowRoot.querySelector('[part="range-start"]') as HTMLInputElement | null;
-    const endInput = this.shadowRoot.querySelector('[part="range-end"]') as HTMLInputElement | null;
-
-    startInput?.addEventListener("input", event => {
+  protected setupListeners(): void {
+    this.startInputEl.addEventListener("input", event => {
       const nextStart = Number((event.currentTarget as HTMLInputElement).value);
       if (!Number.isFinite(nextStart)) {
         return;
@@ -273,7 +241,7 @@ export class BoxRangeSliderElement extends HTMLElement {
       this.syncValue({ start: nextStart, end: this.endInternal });
     });
 
-    endInput?.addEventListener("input", event => {
+    this.endInputEl.addEventListener("input", event => {
       const nextEnd = Number((event.currentTarget as HTMLInputElement).value);
       if (!Number.isFinite(nextEnd)) {
         return;
@@ -281,6 +249,37 @@ export class BoxRangeSliderElement extends HTMLElement {
 
       this.syncValue({ start: this.startInternal, end: nextEnd });
     });
+  }
+
+  protected update(): void {
+    if (!this.startInputEl || !this.endInputEl || !this.labelEl) {
+      return;
+    }
+
+    const start = Math.min(this.startInternal, this.endInternal);
+    const end = Math.max(this.startInternal, this.endInternal);
+
+    this.labelEl.textContent = this.label;
+    this.startValueEl.textContent = String(start);
+    this.endValueEl.textContent = String(end);
+
+    for (const input of [this.startInputEl, this.endInputEl]) {
+      input.min = String(this.min);
+      input.max = String(this.max);
+      input.step = String(this.step);
+      if (this.disabled) {
+        input.setAttribute("disabled", "");
+      } else {
+        input.removeAttribute("disabled");
+      }
+    }
+
+    if (this.shadowRoot?.activeElement !== this.startInputEl) {
+      this.startInputEl.value = String(start);
+    }
+    if (this.shadowRoot?.activeElement !== this.endInputEl) {
+      this.endInputEl.value = String(end);
+    }
   }
 }
 

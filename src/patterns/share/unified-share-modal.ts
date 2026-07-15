@@ -1,6 +1,7 @@
 import { UnifiedShareController } from "./unified-share-controller.js";
 import type { UnifiedShareState, UnifiedShareTab } from "./unified-share-controller.js";
 import type { CollaboratorSummary, ShareDataSource, SharedLinkState } from "./contracts.js";
+import { BaseElement } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-unified-share-modal";
 
@@ -46,7 +47,7 @@ const initials = (name: string): string => {
  * `linkcopied` after a successful copy, and `close` on dismissal. Structure is
  * built once per open so the tab controls keep focus while the body re-renders.
  */
-export class BoxUnifiedShareModalElement extends HTMLElement {
+export class BoxUnifiedShareModalElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["heading", "item-id", "item-type", "open"];
   }
@@ -58,10 +59,6 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
   // (re)build so the next updateDynamic renders fresh. See updateDynamic().
   private bodySignature: string | null = null;
 
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
 
   get open(): boolean {
     return this.hasAttribute("open");
@@ -102,12 +99,13 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
   set dataSource(value: ShareDataSource | null) {
     this.dataSourceValue = value;
     this.ensureController(true);
-    this.render();
+    this.refresh();
   }
 
   connectedCallback(): void {
+    super.connectedCallback();
     this.ensureController(false);
-    this.render();
+    this.refresh();
   }
 
   disconnectedCallback(): void {
@@ -125,7 +123,7 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
       // Kick off a fresh load whenever the modal is (re)opened.
       void this.controller?.load();
     }
-    this.render();
+    this.refresh();
   }
 
   private ensureController(recreate: boolean): void {
@@ -154,7 +152,23 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
     this.controller = null;
   }
 
-  private render(): void {
+
+  private refresh(): void {
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+    // Styles and open content are owned by update()/buildStructure so closed
+    // state can clear the dialog without dropping the BaseElement lifecycle.
+    this.shadowRoot.innerHTML = "";
+  }
+
+  protected update(): void {
     if (!this.shadowRoot) {
       return;
     }

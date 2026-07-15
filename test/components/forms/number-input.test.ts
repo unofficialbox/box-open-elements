@@ -31,4 +31,22 @@ describe("BoxNumberInputElement", () => {
       }),
     );
   });
+
+  it("does not lose focus when label attribute changes while input is focused", () => {
+    const element = document.createElement("box-number-input") as BoxNumberInputElement;
+    element.label = "Version";
+    element.value = 3;
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement | null;
+    input?.focus();
+    // Mid-edit value that has not been committed yet.
+    input!.value = "99";
+
+    element.label = "Build";
+
+    expect(document.activeElement).toBe(element);
+    expect(element.shadowRoot?.activeElement).toBe(input);
+    expect(input?.value).toBe("99");
+  });
 });
