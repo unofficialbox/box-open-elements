@@ -1,7 +1,7 @@
 # Handoff — box-open-elements
 
 Snapshot for the next agent picking up this work. Read this first, then
-`plans/explorer-search-item-contract.md` (active explorer search/item work) and
+`plans/docs-site-guidance-cards.md` (active docs-site guidance work) and
 `docs/audits/component-fidelity-audit.md` (completed fidelity program).
 
 ## What this repo is
@@ -24,9 +24,10 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
   **not** deployed (internal tool).
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
-- Recent merged PRs: fidelity Batches 0–7 + #41 nits + **#42** design-heavy leftovers.
-- **Active work:** explorer item contract + search + UI chrome/columns —
-  `cursor/explorer-search-item-contract-7eb7` (#43; see `plans/explorer-search-item-contract.md`).
+- Recent merged PRs: fidelity Batches 0–7 + #41 nits + **#42** design-heavy leftovers
+  + **#43** explorer search/item contract + UI chrome.
+- **Active work:** docs-site Usage / Best-practices / Keyboard guidance cards —
+  `cursor/docs-site-usage-cards-7eb7` (see `plans/docs-site-guidance-cards.md`).
 
 ## Completed initiative: component fidelity program
 
@@ -141,5 +142,5 @@ organized into **systemic sweeps**, not per-component rewrites.
 
 ## Open user-facing threads
 - Fidelity program complete through #42.
-- **Next / in flight:** explorer enriched `ExplorerItem` + folder\|search + toolbar
-  search field + rich list/table columns (`cursor/explorer-search-item-contract-7eb7`, #43).
+- **Next / in flight:** docs-site guidance cards from workshop meta + role-mapped
+  a11y bullets (`cursor/docs-site-usage-cards-7eb7`).

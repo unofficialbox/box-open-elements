@@ -1,6 +1,11 @@
 import * as lib from "box-open-elements";
 import { catalog, titleOf, type CatalogEntry } from "./registry.js";
 import { examples } from "./examples.js";
+import {
+  hasUsageCard,
+  resolvePreviewGuidance,
+  type PreviewGuidance,
+} from "./guidance.js";
 import { lessons, lessonById } from "./lessons.js";
 import { renderLessonPage } from "./lesson-page.js";
 import { applyRailVersion } from "./rail-version.js";
@@ -83,8 +88,61 @@ const escapeHtml = (value: string): string =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 
+/** Escape HTML then promote `` `code` `` spans (trusted authored guidance). */
+const renderInlineCode = (value: string): string =>
+  escapeHtml(value).replace(/`([^`]+)`/g, "<code>$1</code>");
+
 const toKebab = (value: string): string =>
   value.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+
+const renderBulletList = (bullets: string[]): string =>
+  `<ul class="guidance-list">${bullets.map(bullet => `<li>${renderInlineCode(bullet)}</li>`).join("")}</ul>`;
+
+const renderGuidanceCards = (guidance: PreviewGuidance): string => {
+  const cards: string[] = [];
+
+  if (hasUsageCard(guidance)) {
+    const lead = guidance.usage
+      ? `<p class="guidance-lead">${renderInlineCode(guidance.usage.shortDescription)}</p>
+         <p>${renderInlineCode(guidance.usage.docsDescription)}</p>`
+      : "";
+    const note = guidance.usageNote
+      ? `<p class="guidance-note"><strong>Note.</strong> ${renderInlineCode(guidance.usageNote)}</p>`
+      : "";
+    cards.push(`
+      <article class="guidance-card" data-guidance="usage">
+        <h3 class="guidance-title">Usage</h3>
+        ${lead}
+        ${note}
+      </article>`);
+  }
+
+  if (guidance.bestPractices.length) {
+    cards.push(`
+      <article class="guidance-card" data-guidance="best-practices">
+        <h3 class="guidance-title">Best practices</h3>
+        ${renderBulletList(guidance.bestPractices)}
+      </article>`);
+  }
+
+  if (guidance.keyboard.length) {
+    cards.push(`
+      <article class="guidance-card" data-guidance="keyboard">
+        <h3 class="guidance-title">Keyboard</h3>
+        ${renderBulletList(guidance.keyboard)}
+      </article>`);
+  }
+
+  if (!cards.length) {
+    return "";
+  }
+
+  return `
+    <section class="guidance-section" aria-label="Usage guidance">
+      <p class="section-label">Guidance</p>
+      <div class="guidance-grid">${cards.join("")}</div>
+    </section>`;
+};
 
 // Minimal, dependency-free markdown → HTML for the foundation docs (trusted,
 // repo-owned content). Handles headings, lists, code fences, inline code/bold/
@@ -278,6 +336,7 @@ const renderComponentPage = (entry: CatalogEntry): void => {
           </div>
           <div class="preview-canvas" id="preview-canvas" data-preview-size="full"></div>
           ${example.note ? `<p class="preview-note">${escapeHtml(example.note)}</p>` : ""}
+          <div id="guidance-section"></div>
           <div id="related-section"></div>
         </div>
         <aside class="inspector">
@@ -306,6 +365,8 @@ const renderComponentPage = (entry: CatalogEntry): void => {
       <div class="prose">
         <p class="section-label">Roles detected in this preview</p>
         <div id="a11y-roles"></div>
+        <p class="section-label">Keyboard for these roles</p>
+        <div id="a11y-keyboard"></div>
         <p>Shared keyboard and ARIA conventions for the whole system live in
         <a href="https://github.com/unofficialbox/box-open-elements/blob/main/docs/foundations/accessibility.md" target="_blank" rel="noreferrer">docs/foundations/accessibility.md</a>.</p>
       </div>
@@ -366,6 +427,8 @@ const renderComponentPage = (entry: CatalogEntry): void => {
   const propList = stageBody.querySelector<HTMLElement>("#prop-list")!;
   const partsTarget = stageBody.querySelector<HTMLElement>("#api-parts")!;
   const rolesTarget = stageBody.querySelector<HTMLElement>("#a11y-roles")!;
+  const keyboardTarget = stageBody.querySelector<HTMLElement>("#a11y-keyboard")!;
+  const guidanceTarget = stageBody.querySelector<HTMLElement>("#guidance-section")!;
   let observer: MutationObserver | null = null;
   const renderProps = (primary: HTMLElement | null): void => {
     const rows = primary
@@ -385,20 +448,69 @@ const renderComponentPage = (entry: CatalogEntry): void => {
     }
     const parts = new Set<string>();
     const roles = new Set<string>();
-    canvas.querySelectorAll<HTMLElement>("*").forEach(node => {
-      node.shadowRoot?.querySelectorAll<HTMLElement>("[part]").forEach(inner => {
+    const guidanceRoles = new Set<string>();
+    const collectFromRoot = (root: ParentNode): void => {
+      root.querySelectorAll<HTMLElement>("[part]").forEach(inner => {
         inner.getAttribute("part")!.split(/\s+/).forEach(part => parts.add(part));
       });
-      node.shadowRoot?.querySelectorAll<HTMLElement>("[role]").forEach(inner => {
-        roles.add(inner.getAttribute("role")!);
+      root.querySelectorAll<HTMLElement>("[role]").forEach(inner => {
+        const role = inner.getAttribute("role");
+        if (role) {
+          roles.add(role);
+          guidanceRoles.add(role);
+        }
       });
+      // Native interactive semantics feed guidance when no explicit role is set.
+      root.querySelectorAll<HTMLElement>("button, [type='button'], [type='submit']").forEach(node => {
+        if (!node.getAttribute("role")) {
+          guidanceRoles.add("button");
+        }
+      });
+      root.querySelectorAll<HTMLInputElement>("input[type='checkbox']").forEach(node => {
+        if (!node.getAttribute("role")) {
+          guidanceRoles.add("checkbox");
+        }
+      });
+      root.querySelectorAll<HTMLInputElement>("input[type='radio']").forEach(node => {
+        if (!node.getAttribute("role")) {
+          guidanceRoles.add("radio");
+        }
+      });
+      root.querySelectorAll<HTMLElement>("input:not([type]), input[type='text'], input[type='search'], textarea").forEach(
+        node => {
+          if (!node.getAttribute("role")) {
+            guidanceRoles.add(node.getAttribute("type") === "search" ? "searchbox" : "textbox");
+          }
+        },
+      );
+    };
+    canvas.querySelectorAll<HTMLElement>("*").forEach(node => {
+      const hostRole = node.getAttribute("role");
+      if (hostRole) {
+        roles.add(hostRole);
+        guidanceRoles.add(hostRole);
+      }
+      if (node.shadowRoot) {
+        collectFromRoot(node.shadowRoot);
+      }
     });
+    collectFromRoot(canvas);
     partsTarget.innerHTML = parts.size
       ? `<table class="api-table"><tr><th>Part</th><th>Selector</th></tr>${[...parts].sort().map(part => `<tr><td><code>${escapeHtml(part)}</code></td><td><code>${entry.tag}::part(${escapeHtml(part)})</code></td></tr>`).join("")}</table>`
       : '<p class="inspector-empty">No parts exposed in this preview.</p>';
     rolesTarget.innerHTML = roles.size
       ? `<table class="api-table"><tr><th>Role</th></tr>${[...roles].sort().map(role => `<tr><td><code>${escapeHtml(role)}</code></td></tr>`).join("")}</table>`
       : '<p class="inspector-empty">No explicit ARIA roles in this preview (native semantics).</p>';
+
+    const guidance = resolvePreviewGuidance({
+      catalogId: entry.id,
+      roles: guidanceRoles,
+      exampleNote: example.note,
+    });
+    guidanceTarget.innerHTML = renderGuidanceCards(guidance);
+    keyboardTarget.innerHTML = guidance.keyboard.length
+      ? renderBulletList(guidance.keyboard)
+      : '<p class="inspector-empty">No role-mapped keyboard guidance for this preview — see the shared accessibility conventions.</p>';
   };
   const mount = (html: string, runSetup: boolean): void => {
     canvas.innerHTML = html;
