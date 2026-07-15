@@ -60,4 +60,18 @@ describe("BoxComboboxElement", () => {
 
     expect(document.activeElement).toBe(element);
   });
+
+  it("supports disabled attribute on the input", () => {
+    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    element.disabled = true;
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement | null;
+    expect(input?.disabled).toBe(true);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="input"]:focus-visible');
+    expect(styles).toContain('[part="input"]:hover:not(:disabled)');
+    expect(styles).toContain('[part="input"]:disabled');
+  });
 });

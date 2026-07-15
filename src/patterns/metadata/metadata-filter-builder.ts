@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-metadata-filter-builder";
 
@@ -87,16 +88,22 @@ const builderStyles = `
     cursor: pointer;
   }
 
-  [part="add"] {
+  [part="empty"] {
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    line-height: 1.5;
+  }
+
+  ${boeNeutralInteractiveStyles('[part="select"]')}
+  ${boeNeutralInteractiveStyles('[part="input"]')}
+  ${boeNeutralInteractiveStyles('[part="add"]')}
+  ${boeNeutralInteractiveStyles('[part="remove"]')}
+
+  [part="add"],
+  [part="add"]:hover:not(:disabled) {
     width: fit-content;
     border-color: rgba(0, 97, 213, 0.28);
     background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
     color: var(--boe-token-surface-surface-brand, #0061d5);
-  }
-
-  [part="empty"] {
-    color: var(--boe-token-text-text-secondary, #6f6f6f);
-    line-height: 1.5;
   }
 
   @media (max-width: 860px) {

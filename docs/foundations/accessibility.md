@@ -31,6 +31,7 @@ Components expose accessible semantics as part of the default contract, not as o
 ## Focus visibility
 
 - every interactive control shows a visible focus indicator on `:focus-visible`, driven by the design-system brand token (`--boe-token-surface-surface-brand`) rather than a hardcoded color, so the ring matches the active theme and adapts between light and dark
+- interactive controls also expose `:hover` / `:active` / `:disabled` using `--boe-token-surface-*` hover and pressed tokens (see `boeNeutralInteractiveStyles` / `boeBrandInteractiveStyles` in [tokens.md](./tokens.md))
 - status and other semantic colors resolve through design tokens (`--boe-token-surface-status-*`) and `color-mix` against the surface/text tokens, so contrast holds when the theme changes instead of leaving light-on-light or dark-on-dark patches
 
 ## State guidance

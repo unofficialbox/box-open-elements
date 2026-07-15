@@ -39,4 +39,20 @@ describe("BoxMultiSelectElement", () => {
       }),
     );
   });
+
+  it("renders option-level disabled state through the public options API", () => {
+    const element = document.createElement("box-multi-select") as BoxMultiSelectElement;
+    element.options = [
+      { label: "Preview", value: "preview" },
+      { label: "Download", value: "download", disabled: true },
+    ];
+    document.body.append(element);
+
+    const inputs = element.shadowRoot?.querySelectorAll('[part="input"]') ?? [];
+    expect((inputs[0] as HTMLInputElement).disabled).toBe(false);
+    expect((inputs[1] as HTMLInputElement).disabled).toBe(true);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="option"]:has([part="input"]:disabled)');
+  });
 });

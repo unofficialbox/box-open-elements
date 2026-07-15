@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-tooltip";
 
@@ -36,10 +37,7 @@ const tooltipStyles = `
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
   }
 
-  [part="trigger"]:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-    outline-offset: 2px;
-  }
+  ${boeNeutralInteractiveStyles('[part="trigger"]')}
 
   [part="tooltip"] {
     width: min(13.75rem, calc(100vw - 6rem));

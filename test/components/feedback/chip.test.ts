@@ -131,4 +131,16 @@ describe("BoxChipElement", () => {
     expect(element.selectable).toBe(false);
     expect(element.hasAttribute("selectable")).toBe(false);
   });
+
+  it("preserves selected chip surface on hover and active", () => {
+    const element = document.createElement("box-chip") as BoxChipElement;
+    element.label = "PDF";
+    element.selectable = true;
+    element.selected = true;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="chip"][data-selected="true"]:hover:not([data-disabled="true"])');
+    expect(styles).toContain('[part="chip"][data-selected="true"]:active:not([data-disabled="true"])');
+  });
 });

@@ -1,4 +1,8 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeFocusVisibleStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-tabs";
 
@@ -101,20 +105,8 @@ const tabsStyles = `
       0 6px 12px rgba(15, 23, 42, 0.035);
   }
 
-  [part="tab"]:not([data-selected="true"]):hover {
-    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-stroke-stroke, #e8e8e8) 90%);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 28%, var(--boe-token-surface-surface, #ffffff) 72%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, var(--boe-token-surface-item-surface-hover, #eef4fb) 10%) 100%
-      );
-  }
-
-  [part="tab"]:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-    outline-offset: 2px;
-  }
+  ${boeNeutralInteractiveStyles('[part="tab"]:not([data-selected="true"])')}
+  ${boeFocusVisibleStyles('[part="tab"]')}
 `;
 
 export class BoxTabsElement extends BaseElement {

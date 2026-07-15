@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-accordion";
 
@@ -50,6 +51,7 @@ const accordionStyles = `
     gap: 1rem;
     padding: 0.95rem 1rem;
     border: none;
+    border-radius: 1rem;
     background: transparent;
     color: var(--boe-token-text-text, #222222);
     font: inherit;
@@ -89,11 +91,7 @@ const accordionStyles = `
     display: none;
   }
 
-  [part="trigger"]:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-    outline-offset: 3px;
-    border-radius: 1rem;
-  }
+  ${boeNeutralInteractiveStyles('[part="trigger"]')}
 `;
 
 export class BoxAccordionElement extends BaseElement {

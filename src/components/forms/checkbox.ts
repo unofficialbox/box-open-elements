@@ -1,14 +1,52 @@
 import { BaseElement } from "../../core/index.js";
+import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-checkbox";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+const checkboxStyles = `
+  :host {
+    display: inline-block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="field"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    color: var(--boe-token-text-text, #222222);
+    transition: color 140ms ease;
+  }
+
+  [part="field"]:hover:not(:has([part="input"]:disabled)) {
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+  }
+
+  [part="field"]:active:not(:has([part="input"]:disabled)) {
+    color: var(--boe-token-surface-surface-brand-pressed, #004eaa);
+  }
+
+  [part="input"] {
+    inline-size: 1rem;
+    block-size: 1rem;
+    margin: 0;
+    flex: 0 0 auto;
+    accent-color: var(--boe-token-surface-surface-brand, #0061d5);
+    cursor: inherit;
+  }
+
+  ${boeFocusVisibleStyles('[part="input"]')}
+
+  [part="label"] {
+    font-weight: 500;
+  }
+
+  :host([disabled]) [part="field"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+`;
 
 export class BoxCheckboxElement extends BaseElement {
   static get observedAttributes(): string[] {
@@ -70,45 +108,7 @@ export class BoxCheckboxElement extends BaseElement {
     }
 
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: inline-block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="field"] {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.6rem;
-          cursor: pointer;
-          color: var(--boe-token-text-text, #222222);
-          transition: color 140ms ease;
-        }
-
-        [part="input"] {
-          inline-size: 1rem;
-          block-size: 1rem;
-          margin: 0;
-          flex: 0 0 auto;
-          accent-color: var(--boe-token-surface-surface-brand, #0061d5);
-          cursor: inherit;
-        }
-
-        [part="input"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
-        }
-
-        [part="label"] {
-          font-weight: 500;
-        }
-
-        :host([disabled]) [part="field"] {
-          opacity: 0.55;
-          cursor: not-allowed;
-        }
-      </style>
+      <style>${checkboxStyles}</style>
       <label part="field">
         <input
           type="checkbox"

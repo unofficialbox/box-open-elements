@@ -1,5 +1,6 @@
 import { ContentExplorerController } from "../controller.js";
 import { BaseElement } from "../../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-explorer-toolbar";
 
@@ -55,24 +56,8 @@ const elementStyles = `
             box-shadow 140ms ease;
         }
 
-        [part="refresh"]:hover:not(:disabled),
-        [part="clear-selection"]:hover:not(:disabled) {
-          background: var(--boe-token-surface-surface-hover, #f4f4f4);
-          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
-        }
-
-        [part="refresh"]:focus-visible,
-        [part="clear-selection"]:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-        }
-
-        [part="refresh"]:disabled,
-        [part="clear-selection"]:disabled {
-          color: color-mix(in srgb, var(--boe-token-text-text-secondary, #6f6f6f) 60%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 70%, var(--boe-token-surface-surface, #ffffff) 30%);
-          cursor: not-allowed;
-        }
+        ${boeNeutralInteractiveStyles('[part="refresh"]')}
+        ${boeNeutralInteractiveStyles('[part="clear-selection"]')}
       `;
 
 export class BoxExplorerToolbarElement extends BaseElement {

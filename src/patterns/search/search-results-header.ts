@@ -1,4 +1,8 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeBrandInteractiveStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-search-results-header";
 
@@ -91,12 +95,6 @@ const elementStyles = `
           cursor: pointer;
         }
 
-        [part="action"][data-tone="primary"] {
-          border-color: var(--_obp-brand);
-          background: var(--_obp-brand);
-          color: var(--boe-token-text-text-on-brand, #ffffff);
-        }
-
         [part="filters"] {
           display: flex;
           flex-wrap: wrap;
@@ -106,6 +104,16 @@ const elementStyles = `
         [part="filter-chip"]::after {
           content: " ×";
           color: var(--_obp-text-muted);
+        }
+
+        ${boeNeutralInteractiveStyles('[part="action"]')}
+        ${boeNeutralInteractiveStyles('[part="filter-chip"]')}
+        ${boeBrandInteractiveStyles('[part="action"][data-tone="primary"]')}
+
+        [part="action"][data-tone="primary"] {
+          border-color: var(--_obp-brand);
+          background: var(--_obp-brand);
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
       `;
 

@@ -1,5 +1,9 @@
 import { ContentExplorerController } from "../controller.js";
 import { BaseElement } from "../../../core/index.js";
+import {
+  boeFocusVisibleStyles,
+  boeNeutralInteractiveStyles,
+} from "../../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-explorer-list";
 
@@ -84,14 +88,21 @@ const elementStyles = `
             box-shadow 140ms ease;
         }
 
-        [part~="item"]:hover {
+        [part~="item"]:hover:not(:disabled) {
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
         }
 
-        [part~="item"]:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        [part~="item"]:active:not(:disabled) {
+          background: color-mix(in srgb, var(--boe-token-surface-surface-hover, #f4f4f4) 70%, var(--boe-token-surface-surface-secondary, #fbfbfb) 30%);
+        }
+
+        ${boeFocusVisibleStyles('[part~="item"]')}
+
+        [part~="item"]:disabled {
+          cursor: not-allowed;
+          opacity: 0.55;
+          box-shadow: none;
         }
 
         [part~="item-selected"] {
@@ -124,20 +135,13 @@ const elementStyles = `
             box-shadow 140ms ease;
         }
 
-        [part~="item-action"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f4f4f4);
-          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
-          color: var(--boe-token-text-text, #222222);
-        }
-
-        [part~="item-action"]:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-        }
+        ${boeNeutralInteractiveStyles('[part~="item-action"]')}
 
         input[type="checkbox"] {
           accent-color: var(--boe-token-surface-surface-brand, #0061d5);
         }
+
+        ${boeFocusVisibleStyles('input[type="checkbox"]')}
 
         [part="empty"] {
           padding: 0.9rem 0.8rem;
@@ -169,15 +173,7 @@ const elementStyles = `
             box-shadow 140ms ease;
         }
 
-        [part="load-more"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f4f4f4);
-          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
-        }
-
-        [part="load-more"]:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-        }
+        ${boeNeutralInteractiveStyles('[part="load-more"]')}
       `;
 
 export class BoxExplorerListElement extends BaseElement {

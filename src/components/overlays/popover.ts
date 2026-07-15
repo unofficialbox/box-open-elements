@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-popover";
 
@@ -41,20 +42,7 @@ const popoverStyles = `
       box-shadow 140ms ease;
   }
 
-  [part="trigger"]:hover {
-    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 48%, var(--boe-token-surface-surface, #ffffff) 52%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 84%, var(--boe-token-surface-item-surface-hover, #eef4fb) 16%) 100%
-      );
-  }
-
-  [part="trigger"]:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-    outline-offset: 2px;
-  }
+  ${boeNeutralInteractiveStyles('[part="trigger"]')}
 
   [part="surface"] {
     width: min(21rem, calc(100vw - 5rem));

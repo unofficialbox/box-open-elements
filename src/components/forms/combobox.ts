@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-combobox";
 
@@ -58,31 +59,34 @@ const comboboxStyles = `
     color: var(--boe-token-text-text-placeholder, #909090);
   }
 
-  [part="input"]:hover:not(:disabled) {
-    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
-  }
+  ${boeNeutralInteractiveStyles('[part="input"]')}
 
   [part="input"]:focus-visible {
-    outline: none;
     border-color: var(--boe-token-surface-surface-brand, #0061d5);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-  }
-
-  [part="input"]:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
   }
 `;
 
 export class BoxComboboxElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["label", "options", "placeholder", "value"];
+    return ["disabled", "label", "options", "placeholder", "value"];
   }
 
   private valueInternal = "";
   private inputEl!: HTMLInputElement;
   private labelEl!: HTMLElement;
   private datalistEl!: HTMLDataListElement;
+
+  get disabled(): boolean {
+    return this.hasAttribute("disabled");
+  }
+
+  set disabled(value: boolean) {
+    if (value) {
+      this.setAttribute("disabled", "");
+    } else {
+      this.removeAttribute("disabled");
+    }
+  }
 
   get label(): string {
     return this.getAttribute("label") ?? "Combobox";
@@ -187,6 +191,12 @@ export class BoxComboboxElement extends BaseElement {
 
     if (document.activeElement !== this.inputEl) {
       this.inputEl.value = this.valueInternal;
+    }
+
+    if (this.disabled) {
+      this.inputEl.setAttribute("disabled", "");
+    } else {
+      this.inputEl.removeAttribute("disabled");
     }
   }
 }

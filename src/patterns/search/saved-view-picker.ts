@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-saved-view-picker";
 
@@ -68,14 +69,12 @@ const elementStyles = `
           cursor: pointer;
         }
 
-        [part="view"][data-selected="true"] {
+        ${boeNeutralInteractiveStyles('[part="view"]')}
+
+        [part="view"][data-selected="true"],
+        [part="view"][data-selected="true"]:hover:not(:disabled) {
           border-color: color-mix(in srgb, var(--_obp-brand) 34%, transparent);
           background: var(--_obp-brand-soft);
-        }
-
-        [part="view"]:focus-visible {
-          outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
-          outline-offset: 2px;
         }
 
         [part="view-label"] {

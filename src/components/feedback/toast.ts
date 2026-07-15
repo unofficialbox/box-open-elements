@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-toast";
 
@@ -59,14 +60,21 @@ const toastStyles = `
     transition: background 140ms ease, color 140ms ease;
   }
 
-  [part="dismiss"]:hover {
+  [part="dismiss"]:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.12);
     color: #ffffff;
   }
 
-  [part="dismiss"]:focus-visible {
-    outline: 2px solid rgba(255, 255, 255, 0.55);
-    outline-offset: 2px;
+  [part="dismiss"]:active:not(:disabled) {
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  ${boeFocusVisibleStyles('[part="dismiss"]')}
+
+  [part="dismiss"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    box-shadow: none;
   }
 `;
 

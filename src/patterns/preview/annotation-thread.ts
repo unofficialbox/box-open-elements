@@ -1,4 +1,9 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeBrandInteractiveStyles,
+  boeFocusRingShadow,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-annotation-thread";
 
@@ -84,23 +89,6 @@ const elementStyles = `
             box-shadow 120ms ease;
         }
 
-        [part="entry"]:hover {
-          transform: translateY(-1px);
-          border-color: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 74%, transparent);
-          box-shadow: 0 10px 18px rgba(15, 23, 42, 0.05);
-        }
-
-        [part="entry"][aria-pressed="true"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          box-shadow: 0 0 0 2px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, transparent);
-        }
-
-        [part="entry"]:focus-visible,
-        [part="action"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
-        }
-
         [part="entry-avatar"] {
           display: inline-grid;
           place-items: center;
@@ -170,17 +158,27 @@ const elementStyles = `
           cursor: pointer;
         }
 
-        [part="action"][data-tone="primary"] {
-          border-color: transparent;
-          background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: var(--boe-token-text-text-on-brand, #ffffff);
-        }
-
         [part="empty"] {
           padding: 1rem;
           border-radius: 0.9rem;
           border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
+        }
+
+        ${boeNeutralInteractiveStyles('[part="entry"]')}
+        ${boeNeutralInteractiveStyles('[part="action"]')}
+        ${boeBrandInteractiveStyles('[part="action"][data-tone="primary"]')}
+
+        [part="entry"][aria-pressed="true"],
+        [part="entry"][aria-pressed="true"]:hover:not(:disabled) {
+          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+          box-shadow: ${boeFocusRingShadow};
+        }
+
+        [part="action"][data-tone="primary"] {
+          border-color: transparent;
+          background: var(--boe-token-surface-surface-brand, #0061d5);
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
       `;
 

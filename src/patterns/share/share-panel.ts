@@ -1,4 +1,8 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeBrandInteractiveStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-share-panel";
 
@@ -129,12 +133,6 @@ const elementStyles = `
           cursor: pointer;
         }
 
-        [part="shared-link-url"]:hover,
-        [part="shared-link-url"]:focus-visible {
-          border-color: rgba(0, 97, 213, 0.24);
-          outline: none;
-        }
-
         [part="shared-link-meta"] {
           display: flex;
           flex-wrap: wrap;
@@ -206,12 +204,6 @@ const elementStyles = `
           cursor: pointer;
         }
 
-        [part="collaborator"]:hover,
-        [part="collaborator"]:focus-visible {
-          border-color: rgba(0, 97, 213, 0.22);
-          outline: none;
-        }
-
         [part="collaborator-avatar"] {
           inline-size: 2.5rem;
           block-size: 2.5rem;
@@ -258,6 +250,11 @@ const elementStyles = `
           padding: 0.72rem 1rem;
           cursor: pointer;
         }
+
+        ${boeNeutralInteractiveStyles('[part="shared-link-url"]')}
+        ${boeNeutralInteractiveStyles('[part="collaborator"]')}
+        ${boeNeutralInteractiveStyles('[part="action"]')}
+        ${boeBrandInteractiveStyles('[part="action"][data-tone="primary"]')}
 
         [part="action"][data-tone="primary"] {
           background: var(--boe-token-surface-surface-brand, #0061d5);

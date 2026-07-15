@@ -113,4 +113,15 @@ describe("BoxGridViewElement", () => {
     expect(element.value).toBe("3");
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ detail: { value: "3" } }));
   });
+
+  it("includes focus-visible and interactive styles for tiles", () => {
+    const element = createGridView();
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part~="tile"]:focus-visible');
+    expect(styles).toContain('[part~="tile"]:hover:not(:disabled)');
+    expect(styles).toContain('[part~="tile"]:active:not(:disabled)');
+    expect(styles).toContain('[part~="tile"]:disabled');
+    expect(styles).toContain("--boe-token-surface-surface-hover");
+  });
 });

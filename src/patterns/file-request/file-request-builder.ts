@@ -1,4 +1,9 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeBrandInteractiveStyles,
+  boeFocusVisibleStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-file-request-builder";
 
@@ -150,6 +155,10 @@ const elementStyles = `
           padding: 0.72rem 1rem;
           cursor: pointer;
         }
+
+        ${boeNeutralInteractiveStyles('[part="action"]')}
+        ${boeFocusVisibleStyles('[part="checkbox"]')}
+        ${boeBrandInteractiveStyles('[part="action"][data-tone="primary"]')}
 
         [part="action"][data-tone="primary"] {
           background: var(--boe-token-surface-surface-brand, #0061d5);

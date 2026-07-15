@@ -82,4 +82,16 @@ describe("BoxAnnotationToolbarElement", () => {
     );
     expect(element.currentColor).toBe("#f59e0b");
   });
+
+  it("includes brand focus-visible and interactive states for tools", () => {
+    const element = document.createElement("box-annotation-toolbar") as BoxAnnotationToolbarElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="tool"]:focus-visible');
+    expect(styles).toContain('[part="action"]:hover:not(:disabled)');
+    expect(styles).toContain('[part="color"]:active:not(:disabled)');
+    expect(styles).toContain('[part="tool"]:disabled');
+    expect(styles).toContain("--boe-token-surface-surface-brand");
+  });
 });

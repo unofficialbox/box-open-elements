@@ -2,6 +2,10 @@ import { UnifiedShareController } from "./unified-share-controller.js";
 import type { UnifiedShareState, UnifiedShareTab } from "./unified-share-controller.js";
 import type { CollaboratorSummary, ShareDataSource, SharedLinkState } from "./contracts.js";
 import { BaseElement } from "../../core/index.js";
+import {
+  boeBrandInteractiveStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-unified-share-modal";
 
@@ -28,172 +32,7 @@ const ACCESS_OPTIONS: AccessOption[] = [
 const accessLabel = (access: SharedLinkState["access"]): string =>
   ACCESS_OPTIONS.find(option => option.value === access)?.label ?? "Invited people only";
 
-const initials = (name: string): string => {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) {
-    return "?";
-  }
-  const first = parts[0]?.charAt(0) ?? "";
-  const last = parts.length > 1 ? parts[parts.length - 1]?.charAt(0) ?? "" : "";
-  return (first + last).toUpperCase() || "?";
-};
-
-/**
- * The unified share surface: a modal that loads an item's shared link and
- * collaborators through a `ShareDataSource` (via a `UnifiedShareController` it
- * owns), then presents them across a "Shared link" tab (copyable URL + access
- * level) and a "People" tab (collaborator roster + an invite affordance). Emits
- * `invite` when the user asks to add people (host delegates to the invite modal),
- * `linkcopied` after a successful copy, and `close` on dismissal. Structure is
- * built once per open so the tab controls keep focus while the body re-renders.
- */
-export class BoxUnifiedShareModalElement extends BaseElement {
-  static get observedAttributes(): string[] {
-    return ["heading", "item-id", "item-type", "open"];
-  }
-
-  private controller: UnifiedShareController | null = null;
-  private controllerUnsubscribe: (() => void) | null = null;
-  private dataSourceValue: ShareDataSource | null = null;
-  // Structural signature of the currently-rendered body; null after a shell
-  // (re)build so the next updateDynamic renders fresh. See updateDynamic().
-  private bodySignature: string | null = null;
-
-
-  get open(): boolean {
-    return this.hasAttribute("open");
-  }
-
-  set open(value: boolean) {
-    this.toggleAttribute("open", value);
-  }
-
-  get itemId(): string {
-    return this.getAttribute("item-id") ?? "";
-  }
-
-  set itemId(value: string) {
-    this.setAttribute("item-id", value);
-  }
-
-  get itemType(): "file" | "folder" {
-    return this.getAttribute("item-type") === "folder" ? "folder" : "file";
-  }
-
-  set itemType(value: "file" | "folder") {
-    this.setAttribute("item-type", value);
-  }
-
-  get heading(): string {
-    return this.getAttribute("heading") ?? "Share";
-  }
-
-  set heading(value: string) {
-    this.setAttribute("heading", value);
-  }
-
-  get dataSource(): ShareDataSource | null {
-    return this.dataSourceValue;
-  }
-
-  set dataSource(value: ShareDataSource | null) {
-    this.dataSourceValue = value;
-    this.ensureController(true);
-    this.refresh();
-  }
-
-  connectedCallback(): void {
-    super.connectedCallback();
-    this.ensureController(false);
-    this.refresh();
-  }
-
-  disconnectedCallback(): void {
-    this.teardownController();
-  }
-
-  attributeChangedCallback(name: string, previous: string | null, next: string | null): void {
-    if (previous === next) {
-      return;
-    }
-    if (name === "item-id" || name === "item-type") {
-      this.ensureController(true);
-    }
-    if (name === "open" && this.open) {
-      // Kick off a fresh load whenever the modal is (re)opened.
-      void this.controller?.load();
-    }
-    this.refresh();
-  }
-
-  private ensureController(recreate: boolean): void {
-    if (recreate) {
-      this.teardownController();
-    }
-    if (this.controller || !this.dataSourceValue || !this.itemId) {
-      return;
-    }
-
-    this.controller = new UnifiedShareController({
-      itemId: this.itemId,
-      itemType: this.itemType,
-      dataSource: this.dataSourceValue,
-    });
-    this.controllerUnsubscribe = this.controller.subscribe("stateChanged", () => this.updateDynamic());
-    if (this.open) {
-      void this.controller.load();
-    }
-  }
-
-  private teardownController(): void {
-    this.controllerUnsubscribe?.();
-    this.controllerUnsubscribe = null;
-    this.controller?.destroy();
-    this.controller = null;
-  }
-
-
-  private refresh(): void {
-    if (this.isRendered) {
-      this.update();
-    }
-  }
-
-  protected renderTemplate(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-    // Styles and open content are owned by update()/buildStructure so closed
-    // state can clear the dialog without dropping the BaseElement lifecycle.
-    this.shadowRoot.innerHTML = "";
-  }
-
-  protected update(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    if (!this.open) {
-      this.shadowRoot.innerHTML = "";
-      return;
-    }
-
-    const built = this.shadowRoot.querySelector('[part="dialog"]');
-    if (!built) {
-      this.bodySignature = null;
-      this.buildStructure();
-      (this.shadowRoot.querySelector('[part="tab-link"]') as HTMLButtonElement | null)?.focus();
-    }
-    this.updateDynamic();
-  }
-
-  private buildStructure(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    this.shadowRoot.innerHTML = `
-      <style>
+const elementStyles = `
         :host { display: contents; color: inherit; font: inherit; }
 
         [part="backdrop"] {
@@ -408,16 +247,189 @@ export class BoxUnifiedShareModalElement extends BaseElement {
           cursor: pointer;
         }
 
-        [part^="tab-"]:focus-visible,
-        [part="copy"]:focus-visible,
-        [part="invite"]:focus-visible,
-        [part="done"]:focus-visible,
-        [part="close"]:focus-visible,
-        [part="access"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
+        ${boeNeutralInteractiveStyles('[part^="tab-"]')}
+        ${boeNeutralInteractiveStyles('[part="close"]')}
+        ${boeNeutralInteractiveStyles('[part="invite"]')}
+        ${boeNeutralInteractiveStyles('[part="access"]')}
+        ${boeNeutralInteractiveStyles('[part="link-url"]')}
+        ${boeBrandInteractiveStyles('[part="copy"]')}
+        ${boeBrandInteractiveStyles('[part="done"]')}
+
+        [part^="tab-"][aria-selected="true"],
+        [part^="tab-"][aria-selected="true"]:hover:not(:disabled) {
+          background: var(--boe-token-surface-surface, #ffffff);
+          color: var(--boe-token-text-text, #222222);
+          box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
         }
-      </style>
+
+`;
+
+const initials = (name: string): string => {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return "?";
+  }
+  const first = parts[0]?.charAt(0) ?? "";
+  const last = parts.length > 1 ? parts[parts.length - 1]?.charAt(0) ?? "" : "";
+  return (first + last).toUpperCase() || "?";
+};
+
+/**
+ * The unified share surface: a modal that loads an item's shared link and
+ * collaborators through a `ShareDataSource` (via a `UnifiedShareController` it
+ * owns), then presents them across a "Shared link" tab (copyable URL + access
+ * level) and a "People" tab (collaborator roster + an invite affordance). Emits
+ * `invite` when the user asks to add people (host delegates to the invite modal),
+ * `linkcopied` after a successful copy, and `close` on dismissal. Structure is
+ * built once per open so the tab controls keep focus while the body re-renders.
+ */
+export class BoxUnifiedShareModalElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["heading", "item-id", "item-type", "open"];
+  }
+
+  private controller: UnifiedShareController | null = null;
+  private controllerUnsubscribe: (() => void) | null = null;
+  private dataSourceValue: ShareDataSource | null = null;
+  // Structural signature of the currently-rendered body; null after a shell
+  // (re)build so the next updateDynamic renders fresh. See updateDynamic().
+  private bodySignature: string | null = null;
+
+
+  get open(): boolean {
+    return this.hasAttribute("open");
+  }
+
+  set open(value: boolean) {
+    this.toggleAttribute("open", value);
+  }
+
+  get itemId(): string {
+    return this.getAttribute("item-id") ?? "";
+  }
+
+  set itemId(value: string) {
+    this.setAttribute("item-id", value);
+  }
+
+  get itemType(): "file" | "folder" {
+    return this.getAttribute("item-type") === "folder" ? "folder" : "file";
+  }
+
+  set itemType(value: "file" | "folder") {
+    this.setAttribute("item-type", value);
+  }
+
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Share";
+  }
+
+  set heading(value: string) {
+    this.setAttribute("heading", value);
+  }
+
+  get dataSource(): ShareDataSource | null {
+    return this.dataSourceValue;
+  }
+
+  set dataSource(value: ShareDataSource | null) {
+    this.dataSourceValue = value;
+    this.ensureController(true);
+    this.refresh();
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.ensureController(false);
+    this.refresh();
+  }
+
+  disconnectedCallback(): void {
+    this.teardownController();
+  }
+
+  attributeChangedCallback(name: string, previous: string | null, next: string | null): void {
+    if (previous === next) {
+      return;
+    }
+    if (name === "item-id" || name === "item-type") {
+      this.ensureController(true);
+    }
+    if (name === "open" && this.open) {
+      // Kick off a fresh load whenever the modal is (re)opened.
+      void this.controller?.load();
+    }
+    this.refresh();
+  }
+
+  private ensureController(recreate: boolean): void {
+    if (recreate) {
+      this.teardownController();
+    }
+    if (this.controller || !this.dataSourceValue || !this.itemId) {
+      return;
+    }
+
+    this.controller = new UnifiedShareController({
+      itemId: this.itemId,
+      itemType: this.itemType,
+      dataSource: this.dataSourceValue,
+    });
+    this.controllerUnsubscribe = this.controller.subscribe("stateChanged", () => this.updateDynamic());
+    if (this.open) {
+      void this.controller.load();
+    }
+  }
+
+  private teardownController(): void {
+    this.controllerUnsubscribe?.();
+    this.controllerUnsubscribe = null;
+    this.controller?.destroy();
+    this.controller = null;
+  }
+
+
+  private refresh(): void {
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+    // Styles and open content are owned by update()/buildStructure so closed
+    // state can clear the dialog without dropping the BaseElement lifecycle.
+    this.shadowRoot.innerHTML = "";
+  }
+
+  protected update(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    if (!this.open) {
+      this.shadowRoot.innerHTML = "";
+      return;
+    }
+
+    const built = this.shadowRoot.querySelector('[part="dialog"]');
+    if (!built) {
+      this.bodySignature = null;
+      this.buildStructure();
+      (this.shadowRoot.querySelector('[part="tab-link"]') as HTMLButtonElement | null)?.focus();
+    }
+    this.updateDynamic();
+  }
+
+  private buildStructure(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${elementStyles}</style>
       <div part="backdrop">
         <section part="dialog" role="dialog" aria-modal="true" aria-labelledby="unified-share-title">
           <div part="header">

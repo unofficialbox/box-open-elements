@@ -1,4 +1,8 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeBrandInteractiveStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-review-queue-item";
 
@@ -182,12 +186,6 @@ const elementStyles = `
           cursor: pointer;
         }
 
-        [part="action"][data-tone="primary"] {
-          border-color: transparent;
-          background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: var(--boe-token-text-text-on-brand, #ffffff);
-        }
-
         [part="select"] {
           width: 100%;
           appearance: none;
@@ -200,10 +198,14 @@ const elementStyles = `
           cursor: pointer;
         }
 
-        [part="select"]:focus-visible,
-        [part="action"]:focus-visible {
-          outline: 2px solid rgba(0, 97, 213, 0.28);
-          outline-offset: 2px;
+        ${boeNeutralInteractiveStyles('[part="action"]')}
+        ${boeNeutralInteractiveStyles('[part="select"]')}
+        ${boeBrandInteractiveStyles('[part="action"][data-tone="primary"]')}
+
+        [part="action"][data-tone="primary"] {
+          border-color: transparent;
+          background: var(--boe-token-surface-surface-brand, #0061d5);
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
       `;
 

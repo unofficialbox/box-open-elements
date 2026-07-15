@@ -121,4 +121,13 @@ describe("BoxDraggableListElement", () => {
 
     expect(element.shadowRoot?.activeElement).toBe(otherHandle);
   });
+
+  it("includes focus-visible and hover styles for handles", () => {
+    const element = createList();
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="handle"]:focus-visible');
+    expect(styles).toContain('[part="handle"]:hover:not(:disabled)');
+    expect(styles).toContain("--boe-token-surface-surface-brand");
+  });
 });

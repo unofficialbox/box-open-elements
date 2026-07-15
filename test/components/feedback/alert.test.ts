@@ -72,4 +72,18 @@ describe("BoxAlertElement", () => {
     expect(alert?.getAttribute("aria-label")).toBe("Heads up");
     expect(dismiss?.getAttribute("aria-label")).toBe("Dismiss alert");
   });
+
+  it("includes focus-visible and interactive styles for dismiss", () => {
+    const element = document.createElement("box-alert") as BoxAlertElement;
+    element.heading = "Heads up";
+    element.message = "Storage is almost full.";
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="dismiss"]:focus-visible');
+    expect(styles).toContain('[part="dismiss"]:hover:not(:disabled)');
+    expect(styles).toContain('[part="dismiss"]:active:not(:disabled)');
+    expect(styles).toContain('[part="dismiss"]:disabled');
+    expect(styles).toContain("--boe-token-surface-surface-hover");
+  });
 });

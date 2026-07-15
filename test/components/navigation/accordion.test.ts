@@ -67,5 +67,17 @@ describe("BoxAccordionElement", () => {
     expect(element.shadowRoot?.querySelector('[part="trigger"]')).toBe(trigger);
     expect(element.shadowRoot?.activeElement).toBe(trigger);
   });
+
+  it("includes brand focus-visible and hover styles for triggers", () => {
+    const element = document.createElement("box-accordion") as BoxAccordionElement;
+    element.items = [{ label: "Details", value: "details", content: "Item details" }];
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="trigger"]:focus-visible');
+    expect(styles).toContain('[part="trigger"]:hover:not(:disabled)');
+    expect(styles).toContain("--boe-token-surface-surface-hover");
+    expect(styles).toContain("--boe-token-stroke-stroke-hover");
+  });
 });
 

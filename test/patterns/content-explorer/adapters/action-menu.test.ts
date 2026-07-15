@@ -79,6 +79,35 @@ describe("BoxExplorerActionMenuElement", () => {
     });
   });
 
+  it("preserves the shared focus ring while the trigger is expanded", async () => {
+    const transport: ExplorerTransport = {
+      loadFolderItems: vi.fn().mockResolvedValue(
+        createResult({
+          items: [{ id: "1", name: "Spec", type: "file" }],
+        }),
+      ),
+    };
+    const controller = new ContentExplorerController({
+      itemActions: [{ id: "preview", label: "Preview", itemTypes: ["file"] }],
+      rootFolderId: "0",
+      token: "token",
+      transport,
+    });
+    const element = document.createElement("box-explorer-action-menu") as BoxExplorerActionMenuElement;
+    element.controller = controller;
+    element.itemId = "1";
+    document.body.append(element);
+    await controller.connect();
+    await flushMicrotasks();
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="trigger"][aria-expanded="true"]:focus-visible');
+    expect(styles).toContain("--boe-token-surface-surface-brand");
+    expect(styles).toMatch(
+      /\[part="trigger"\]\[aria-expanded="true"\]:focus-visible[\s\S]*box-shadow:[\s\S]*0 0 0 3px/,
+    );
+  });
+
   it("preserves trigger focus across unrelated refreshes", async () => {
     const transport: ExplorerTransport = {
       loadFolderItems: vi.fn().mockResolvedValue(

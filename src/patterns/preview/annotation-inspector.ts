@@ -1,4 +1,8 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeBrandInteractiveStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-annotation-inspector";
 
@@ -205,17 +209,21 @@ const elementStyles = `
           cursor: pointer;
         }
 
-        [part="action"][data-tone="primary"] {
-          border-color: transparent;
-          background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: #fff;
-        }
-
         [part="empty"] {
           padding: 1rem;
           border-radius: 0.9rem;
           border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
+        }
+
+        ${boeNeutralInteractiveStyles('[part="reply"]')}
+        ${boeNeutralInteractiveStyles('[part="action"]')}
+        ${boeBrandInteractiveStyles('[part="action"][data-tone="primary"]')}
+
+        [part="action"][data-tone="primary"] {
+          border-color: transparent;
+          background: var(--boe-token-surface-surface-brand, #0061d5);
+          color: #fff;
         }
       `;
 

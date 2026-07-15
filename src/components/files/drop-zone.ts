@@ -1,4 +1,8 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeFocusRingShadow,
+  boeFocusVisibleStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-drop-zone";
 
@@ -30,6 +34,20 @@ const dropZoneStyles = `
       box-shadow 140ms ease;
   }
 
+  [part="zone"]:hover {
+    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+  }
+
+  [part="zone"]:active {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-hover, #f4f4f4) 70%, var(--boe-token-surface-surface-secondary, #fbfbfb) 30%);
+  }
+
+  [part="zone"]:focus-within {
+    outline: none;
+    box-shadow: ${boeFocusRingShadow};
+  }
+
   [part="zone"][data-dragging="true"] {
     border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
     background:
@@ -50,6 +68,8 @@ const dropZoneStyles = `
     opacity: 0;
     pointer-events: none;
   }
+
+  ${boeFocusVisibleStyles('[part="input"]')}
 
   [part="label"] {
     font-size: 1rem;

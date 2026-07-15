@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeFocusRingShadow } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-permission-matrix";
 
@@ -146,7 +147,22 @@ const matrixStyles = `
     border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 46%, var(--boe-token-stroke-stroke, #e8e8e8) 54%);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.82),
-      0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent 82%);
+      ${boeFocusRingShadow};
+  }
+
+  [part="select-shell"]:has([part="select"]:active:not(:disabled)) {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-hover, #f4f4f4) 70%, var(--boe-token-surface-surface-secondary, #fbfbfb) 30%);
+  }
+
+  [part="select"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  [part="select-shell"]:has([part="select"]:disabled) {
+    cursor: not-allowed;
+    opacity: 0.55;
+    box-shadow: none;
   }
 
   [part="select-icon"] {

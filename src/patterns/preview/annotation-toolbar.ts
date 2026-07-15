@@ -1,4 +1,8 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeBrandInteractiveStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-annotation-toolbar";
 
@@ -99,17 +103,6 @@ const elementStyles = `
           gap: 0.42rem;
         }
 
-        [part="tool"][aria-pressed="true"] {
-          border-color: transparent;
-          background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: var(--boe-token-text-text-on-brand, #ffffff);
-        }
-
-        [part="tool"]:disabled {
-          opacity: 0.45;
-          cursor: not-allowed;
-        }
-
         [part="tool-icon"] {
           font-size: 0.8rem;
           line-height: 1;
@@ -126,11 +119,6 @@ const elementStyles = `
           cursor: pointer;
         }
 
-        [part="color"][aria-pressed="true"] {
-          border-color: var(--boe-token-surface-surface-brand, #0061d5);
-          box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.12);
-        }
-
         [part="color-swatch"] {
           display: block;
           inline-size: 100%;
@@ -140,14 +128,32 @@ const elementStyles = `
           transform: scale(0.62);
         }
 
-        [part="action"][data-tone="primary"] {
+        [part="empty"] {
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
+        }
+
+        ${boeNeutralInteractiveStyles('[part="tool"]')}
+        ${boeNeutralInteractiveStyles('[part="action"]')}
+        ${boeNeutralInteractiveStyles('[part="color"]')}
+        ${boeBrandInteractiveStyles('[part="tool"][aria-pressed="true"]')}
+        ${boeBrandInteractiveStyles('[part="action"][data-tone="primary"]')}
+
+        [part="tool"][aria-pressed="true"] {
           border-color: transparent;
           background: var(--boe-token-surface-surface-brand, #0061d5);
           color: var(--boe-token-text-text-on-brand, #ffffff);
         }
 
-        [part="empty"] {
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
+        [part="color"][aria-pressed="true"],
+        [part="color"][aria-pressed="true"]:hover:not(:disabled) {
+          border-color: var(--boe-token-surface-surface-brand, #0061d5);
+          box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.12);
+        }
+
+        [part="action"][data-tone="primary"] {
+          border-color: transparent;
+          background: var(--boe-token-surface-surface-brand, #0061d5);
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
       `;
 

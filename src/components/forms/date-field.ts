@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-date-field";
 
@@ -42,19 +43,10 @@ const dateFieldStyles = `
       box-shadow 140ms ease;
   }
 
-  [part="input"]:hover:not(:disabled) {
-    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
-  }
+  ${boeNeutralInteractiveStyles('[part="input"]')}
 
   [part="input"]:focus-visible {
-    outline: none;
     border-color: var(--boe-token-surface-surface-brand, #0061d5);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-  }
-
-  [part="input"]:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
   }
 `;
 

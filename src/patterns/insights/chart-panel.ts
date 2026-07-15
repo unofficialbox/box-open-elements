@@ -1,4 +1,8 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeBrandInteractiveStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-chart-panel";
 
@@ -110,12 +114,6 @@ const elementStyles = `
           cursor: pointer;
         }
 
-        [part="action"][data-tone="primary"] {
-          border-color: transparent;
-          background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: var(--boe-token-text-text-on-brand, #ffffff);
-        }
-
         [part="visual"] {
           padding: 0.8rem;
           border-radius: 1rem;
@@ -154,11 +152,6 @@ const elementStyles = `
         [part="point"][data-tone="success"] {
           border-color: color-mix(in srgb, #26c281 22%, var(--boe-token-stroke-stroke, #e8e8e8) 78%);
           background: color-mix(in srgb, #26c281 8%, var(--boe-token-surface-surface, #ffffff) 92%);
-        }
-
-        [part="point"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
         }
 
         [part="bar"] {
@@ -243,6 +236,16 @@ const elementStyles = `
           border-radius: 0.9rem;
           border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
+        }
+
+        ${boeNeutralInteractiveStyles('[part="action"]')}
+        ${boeNeutralInteractiveStyles('[part="point"]')}
+        ${boeBrandInteractiveStyles('[part="action"][data-tone="primary"]')}
+
+        [part="action"][data-tone="primary"] {
+          border-color: transparent;
+          background: var(--boe-token-surface-surface-brand, #0061d5);
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
       `;
 
