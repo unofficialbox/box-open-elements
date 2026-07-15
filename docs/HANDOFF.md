@@ -27,7 +27,7 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
 - Recent merged PRs: fidelity Batches 0–7 + #41 nits + **#42** design-heavy leftovers
   + **#43** explorer search/item contract + UI chrome + **#44** docs-site guidance cards.
-- **In flight:** token consumption vs shell guidance + API-tab token inventory —
+- **Open PR #46:** token consumption vs shell guidance + API-tab token inventory —
   `cursor/token-vs-shell-guidance-7eb7`. **Open PR #45** (if still open): iconography
   generator tooling (`cursor/iconography-generator-7eb7`).
 

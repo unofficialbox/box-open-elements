@@ -17,7 +17,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 ## Foundations
 
 - Port the iconography generator (`tools/iconography/`) and generate the full icon manifest once the catalog needs more than the curated set (see `docs/foundations/iconography.md`). **Open PR #45** when still open: generator tooling only (`cursor/iconography-generator-7eb7`) — does not replace the vendored manifest.
-- Token consumption vs shell / consumer overrides documented in `docs/foundations/tokens.md`; docs-site API tab lists derived `--boe-token-*` usage from live preview shadow styles. No per-component strategy fields — source-level styling is the contract.
+- Token consumption vs shell / consumer overrides documented in `docs/foundations/tokens.md`; docs-site API tab lists derived `--boe-token-*` usage from live preview shadow styles (**open PR #46**). No per-component strategy fields — source-level styling is the contract.
 - Review the Box brand imagery Figma frame — imagery guidance has been open since the original brand review (see `docs/foundations/brand.md`).
 - Add Theming and Motion foundation docs when there is real content for them (do not create placeholder pages).
 
