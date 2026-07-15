@@ -24,4 +24,4 @@ Foundations (icons) + tooling.
 ## Progress
 
 - [x] Generator + fixture tests
-- [ ] Docs + verify + PR
+- [x] Docs + verify + PR
