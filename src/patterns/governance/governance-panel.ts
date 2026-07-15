@@ -62,6 +62,8 @@ const elementStyles = `
         }
 
         [part="title"] {
+          margin: 0;
+          font: inherit;
           font-size: 1.35rem;
           font-weight: 700;
           line-height: 1.15;
@@ -372,7 +374,7 @@ export class BoxGovernancePanelElement extends BaseElement {
       <section part="panel">
         <header part="header">
           <div part="title-row">
-            <div part="title">${escapeHtml(this.heading)}</div>
+            <h2 part="title">${escapeHtml(this.heading)}</h2>
             ${statusMarkup}
           </div>
           ${messageMarkup}

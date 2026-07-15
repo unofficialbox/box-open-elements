@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { FocusRestore, trapTabKey } from "../../foundations/a11y/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-drawer";
@@ -118,6 +119,7 @@ export class BoxDrawerElement extends BaseElement {
 
   private openValue = false;
   private wasOpen = false;
+  private readonly focusRestore = new FocusRestore();
   private placeholder: Comment | null = null;
   private portaled = false;
   private hostEl!: HTMLElement;
@@ -255,15 +257,23 @@ export class BoxDrawerElement extends BaseElement {
 
     this.hostEl.addEventListener("keydown", event => {
       const keyboardEvent = event as KeyboardEvent;
-      if (keyboardEvent.key !== "Escape") {
+      const drawer = (keyboardEvent.target as HTMLElement | null)?.closest(
+        '[part="drawer"]',
+      ) as HTMLElement | null;
+      if (!drawer || !this.hostEl.contains(drawer)) {
         return;
       }
-      if (!(keyboardEvent.target as HTMLElement | null)?.closest('[part="drawer"]')) {
+
+      if (keyboardEvent.key === "Escape") {
+        keyboardEvent.preventDefault();
+        this.dispatchEvent(new CustomEvent("dismiss", { bubbles: true, composed: true }));
+        this.close();
         return;
       }
-      keyboardEvent.preventDefault();
-      this.dispatchEvent(new CustomEvent("dismiss", { bubbles: true, composed: true }));
-      this.close();
+
+      if (keyboardEvent.key === "Tab") {
+        trapTabKey(keyboardEvent, drawer);
+      }
     });
   }
 
@@ -273,17 +283,24 @@ export class BoxDrawerElement extends BaseElement {
     }
 
     if (!this.openValue) {
+      const wasOpen = this.wasOpen;
       this.hostEl.innerHTML = "";
       this.backdropEl = null;
       this.drawerEl = null;
       this.titleEl = null;
       this.descriptionEl = null;
       this.wasOpen = false;
+      if (wasOpen) {
+        this.focusRestore.restore();
+      }
       return;
     }
 
     const justOpened = !this.wasOpen;
     this.wasOpen = true;
+    if (justOpened) {
+      this.focusRestore.capture();
+    }
 
     if (!this.hostEl.querySelector('[part="drawer"]')) {
       this.hostEl.innerHTML = `

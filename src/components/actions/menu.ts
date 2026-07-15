@@ -1,4 +1,9 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  applyRovingTabindex,
+  focusRovingItem,
+  nextRovingIndex,
+} from "../../foundations/a11y/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-menu";
@@ -141,6 +146,36 @@ export class BoxMenuElement extends BaseElement {
         }),
       );
     });
+
+    this.menuEl.addEventListener("keydown", event => {
+      const keyboardEvent = event as KeyboardEvent;
+      const buttons = this.enabledMenuItems();
+      if (buttons.length === 0) {
+        return;
+      }
+
+      const active = keyboardEvent.target as HTMLElement | null;
+      const currentIndex = buttons.indexOf(active as HTMLButtonElement);
+      if (currentIndex < 0) {
+        return;
+      }
+
+      const nextIndex = nextRovingIndex(keyboardEvent.key, currentIndex, buttons.length, {
+        orientation: "vertical",
+      });
+      if (nextIndex == null) {
+        return;
+      }
+
+      keyboardEvent.preventDefault();
+      focusRovingItem(buttons, nextIndex);
+    });
+  }
+
+  private enabledMenuItems(): HTMLButtonElement[] {
+    return Array.from(this.menuEl.querySelectorAll<HTMLButtonElement>('[part="menu-item"]')).filter(
+      button => !button.disabled,
+    );
   }
 
   protected update(): void {
@@ -158,6 +193,9 @@ export class BoxMenuElement extends BaseElement {
         `,
       )
       .join("");
+
+    const buttons = this.enabledMenuItems();
+    applyRovingTabindex(buttons, 0);
   }
 }
 

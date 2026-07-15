@@ -61,6 +61,8 @@ const elementStyles = `
         }
 
         [part="title"] {
+          margin: 0;
+          font: inherit;
           font-size: 1.08rem;
           font-weight: 700;
           color: var(--boe-token-text-text, #1f1e1b);
@@ -432,7 +434,7 @@ export class BoxReviewQueueItemElement extends BaseElement {
         <button type="button" part="select" aria-label="Open ${escapeHtml(this.heading)} review item">
           <header part="header">
             <div part="title-row">
-              <div part="title">${escapeHtml(this.heading)}</div>
+              <h2 part="title">${escapeHtml(this.heading)}</h2>
               ${statusMarkup}
               ${priorityMarkup}
             </div>

@@ -59,6 +59,8 @@ const elementStyles = `
         }
 
         [part="title"] {
+          margin: 0;
+          font: inherit;
           font-size: 1.35rem;
           font-weight: 700;
           line-height: 1.15;
@@ -486,7 +488,7 @@ export class BoxTaskAssignmentPanelElement extends BaseElement {
     host.innerHTML = `
       <section part="panel">
         <header part="header">
-          <div part="title">${escapeHtml(this.heading)}</div>
+          <h2 part="title">${escapeHtml(this.heading)}</h2>
           ${messageMarkup}
           <div part="meta">${statusMarkup}${priorityMarkup}${dueDateMarkup}</div>
         </header>

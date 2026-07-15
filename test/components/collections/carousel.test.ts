@@ -65,6 +65,28 @@ describe("BoxCarouselElement", () => {
     expect(element.value).toBe(2);
   });
 
+  it("exposes slide titles as headings and avoids fake tab roles on dots", () => {
+    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    element.items = [{ title: "One" }, { title: "Two" }];
+    document.body.append(element);
+
+    expect(element.shadowRoot?.querySelector('[part="title"]')?.tagName).toBe("H2");
+    expect(element.shadowRoot?.querySelector('[part="pagination"]')?.getAttribute("role")).toBe("group");
+    expect(element.shadowRoot?.querySelector('[part~="dot"]')?.getAttribute("role")).toBeNull();
+  });
+
+  it("navigates with ArrowLeft/ArrowRight on the carousel", () => {
+    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    element.items = [{ title: "One" }, { title: "Two" }, { title: "Three" }];
+    document.body.append(element);
+
+    const carousel = element.shadowRoot?.querySelector('[part="carousel"]') as HTMLElement;
+    carousel.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    expect(element.value).toBe(1);
+    carousel.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+    expect(element.value).toBe(0);
+  });
+
   it("marks the active dot with a selected part", () => {
     const element = document.createElement("box-carousel") as BoxCarouselElement;
     element.items = [

@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { applyRovingTabindex, handleRovingKeydown } from "../../foundations/a11y/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-bulk-action-bar";
@@ -357,7 +358,17 @@ export class BoxBulkActionBarElement extends BaseElement {
     this.shadowRoot.querySelector<HTMLElement>('[part="clear"]')?.addEventListener("click", () => {
       this.emitClear();
     });
-  
+
+    const toolbar = this.shadowRoot.querySelector('[part="actions"]');
+    if (toolbar) {
+      const toolbarButtons = Array.from(
+        toolbar.querySelectorAll<HTMLButtonElement>('button[part="action"], button[part="clear"]'),
+      );
+      applyRovingTabindex(toolbarButtons, 0);
+      toolbar.addEventListener("keydown", event => {
+        handleRovingKeydown(event as KeyboardEvent, toolbarButtons, { orientation: "horizontal" });
+      });
+    }
   }
 }
 

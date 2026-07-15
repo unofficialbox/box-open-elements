@@ -63,6 +63,8 @@ const elementStyles = `
         }
 
         [part="title"] {
+          margin: 0;
+          font: inherit;
           font-size: 1.15rem;
           font-weight: 700;
           color: var(--boe-token-text-text, #1f1e1b);
@@ -408,7 +410,7 @@ export class BoxAnnotationInspectorElement extends BaseElement {
     host.innerHTML = `
       <article part="panel">
         <header part="header">
-          <div part="title">${escapeHtml(this.heading)}</div>
+          <h2 part="title">${escapeHtml(this.heading)}</h2>
           ${messageMarkup}
         </header>
         ${detailMarkup}

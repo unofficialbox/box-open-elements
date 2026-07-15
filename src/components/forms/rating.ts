@@ -211,26 +211,39 @@ export class BoxRatingElement extends BaseElement {
     if (event.key === "ArrowRight" || event.key === "ArrowUp") {
       event.preventDefault();
       this.updateValue(this.valueInternal >= this.max ? this.max : this.valueInternal + 1);
+      this.focusActiveStar();
       return;
     }
 
     if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
       event.preventDefault();
       this.updateValue(this.valueInternal <= 1 ? 0 : this.valueInternal - 1);
+      this.focusActiveStar();
       return;
     }
 
     if (event.key === "Home") {
       event.preventDefault();
       this.updateValue(0);
+      this.focusActiveStar();
       return;
     }
 
     if (event.key === "End") {
       event.preventDefault();
       this.updateValue(this.max);
+      this.focusActiveStar();
     }
   };
+
+  private focusActiveStar(): void {
+    queueMicrotask(() => {
+      const active = this.controlEl?.querySelector<HTMLButtonElement>(
+        '[part="star"][tabindex="0"]',
+      );
+      active?.focus();
+    });
+  }
 
   protected renderTemplate(): void {
     if (!this.shadowRoot) {

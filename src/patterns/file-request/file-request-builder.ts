@@ -53,6 +53,8 @@ const elementStyles = `
         }
 
         [part="title"] {
+          margin: 0;
+          font: inherit;
           font-size: 1.35rem;
           font-weight: 700;
           line-height: 1.15;
@@ -346,7 +348,7 @@ export class BoxFileRequestBuilderElement extends BaseElement {
     host.innerHTML = `
       <section part="builder">
         <header part="header">
-          <div part="title">${escapeHtml(this.heading)}</div>
+          <h2 part="title">${escapeHtml(this.heading)}</h2>
           ${messageMarkup}
         </header>
         ${settingsMarkup}

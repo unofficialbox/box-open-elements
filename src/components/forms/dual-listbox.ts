@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { applyRovingTabindex, handleRovingKeydown } from "../../foundations/a11y/index.js";
 
 const DEFAULT_TAG_NAME = "box-dual-listbox";
 
@@ -434,10 +435,46 @@ export class BoxDualListboxElement extends BaseElement {
       this.toggleSelection(list, value);
     };
 
+    const handleListKeydown = (event: Event) => {
+      const keyboardEvent = event as KeyboardEvent;
+      const listEl = keyboardEvent.currentTarget as HTMLElement;
+      const options = Array.from(
+        listEl.querySelectorAll<HTMLButtonElement>('[part="option"]:not([disabled])'),
+      );
+      if (handleRovingKeydown(keyboardEvent, options, { orientation: "vertical" })) {
+        return;
+      }
+      if (keyboardEvent.key !== " " && keyboardEvent.key !== "Enter") {
+        return;
+      }
+      const button = (keyboardEvent.target as HTMLElement).closest(
+        '[part="option"]',
+      ) as HTMLButtonElement | null;
+      if (!button || button.disabled || this.disabled) {
+        return;
+      }
+      keyboardEvent.preventDefault();
+      const list = (button.dataset.list as "available" | "selected") ?? "available";
+      this.toggleSelection(list, button.dataset.value ?? "");
+    };
+
     this.availableListEl.addEventListener("click", handleListClick);
     this.selectedListEl.addEventListener("click", handleListClick);
+    this.availableListEl.addEventListener("keydown", handleListKeydown);
+    this.selectedListEl.addEventListener("keydown", handleListKeydown);
     this.moveRightEl.addEventListener("click", () => this.moveSelected("to-selected"));
     this.moveLeftEl.addEventListener("click", () => this.moveSelected("to-available"));
+  }
+
+  private syncListRoving(listEl: HTMLElement): void {
+    const options = Array.from(
+      listEl.querySelectorAll<HTMLButtonElement>('[part="option"]:not([disabled])'),
+    );
+    const selectedIndex = Math.max(
+      0,
+      options.findIndex(button => button.getAttribute("aria-selected") === "true"),
+    );
+    applyRovingTabindex(options, selectedIndex);
   }
 
   protected update(): void {
@@ -464,6 +501,9 @@ export class BoxDualListboxElement extends BaseElement {
     } else {
       this.patchSelectionState();
     }
+
+    this.syncListRoving(this.availableListEl);
+    this.syncListRoving(this.selectedListEl);
 
     if (this.disabled) {
       this.moveRightEl.setAttribute("disabled", "");

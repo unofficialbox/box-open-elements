@@ -217,6 +217,23 @@ export class BoxCategorySelectorElement extends BaseElement {
           keyboardEvent.preventDefault();
           this.moveSelection(value, -1);
           break;
+        case "Home": {
+          keyboardEvent.preventDefault();
+          const first = this.selectableOptions()[0]?.value;
+          if (first) {
+            this.select(first);
+          }
+          break;
+        }
+        case "End": {
+          keyboardEvent.preventDefault();
+          const options = this.selectableOptions();
+          const last = options[options.length - 1]?.value;
+          if (last) {
+            this.select(last);
+          }
+          break;
+        }
         case " ":
         case "Enter":
           keyboardEvent.preventDefault();

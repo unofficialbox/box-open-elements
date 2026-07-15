@@ -1,6 +1,7 @@
 import { InviteCollaboratorsController } from "./invite-collaborators-controller.js";
 import type { InviteCollaboratorsTransport, InviteRole } from "./invite-collaborators-contracts.js";
 import { BaseElement } from "../../core/index.js";
+import { FocusRestore, trapTabKey } from "../../foundations/a11y/index.js";
 import {
   boeBrandInteractiveStyles,
   boeFocusVisibleStyles,
@@ -185,7 +186,8 @@ export class BoxInviteCollaboratorsModalElement extends BaseElement {
   private transportValue: InviteCollaboratorsTransport | null = null;
   private rolesValue: InviteRole[] = DEFAULT_ROLES;
   private rolesSignature = "";
-
+  private readonly focusRestore = new FocusRestore();
+  private wasOpen = false;
 
   get open(): boolean {
     return this.hasAttribute("open");
@@ -300,9 +302,20 @@ export class BoxInviteCollaboratorsModalElement extends BaseElement {
     }
 
     if (!this.open) {
+      const wasOpen = this.wasOpen;
       this.shadowRoot.innerHTML = "";
       this.rolesSignature = "";
+      this.wasOpen = false;
+      if (wasOpen) {
+        this.focusRestore.restore();
+      }
       return;
+    }
+
+    const justOpened = !this.wasOpen;
+    this.wasOpen = true;
+    if (justOpened) {
+      this.focusRestore.capture();
     }
 
     const built = this.shadowRoot.querySelector('[part="dialog"]');
@@ -395,6 +408,21 @@ export class BoxInviteCollaboratorsModalElement extends BaseElement {
       button.addEventListener("click", () => {
         this.controller?.removeRecipient((button as HTMLButtonElement).dataset.value ?? "");
       });
+    });
+
+    this.shadowRoot.querySelector('[part="dialog"]')?.addEventListener("keydown", event => {
+      const keyboardEvent = event as KeyboardEvent;
+      if (keyboardEvent.key === "Escape") {
+        keyboardEvent.stopPropagation();
+        this.close("cancel");
+        return;
+      }
+      if (keyboardEvent.key === "Tab") {
+        const dialog = this.shadowRoot?.querySelector('[part="dialog"]');
+        if (dialog) {
+          trapTabKey(keyboardEvent, dialog);
+        }
+      }
     });
   }
 

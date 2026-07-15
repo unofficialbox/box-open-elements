@@ -24,8 +24,8 @@ result is written to the run journal, and the committed outputs are this report 
 
 **51 components score below 3/5; 229 high-severity issues logged.**
 
-> **Program status (live):** Batches **0, 1, 2, 3, 6 are DONE** (merged). Remaining in order:
-> **4** (ARIA/keyboard + heading semantics) → **5** (form association) → **7** (polish).
+> **Program status (live):** Batches **0, 1, 2, 3, 4, 6 are DONE** (merged or in flight). Remaining
+> in order: **5** (form association) → **7** (polish).
 > Session status: [HANDOFF.md](../HANDOFF.md). Scores and issue lists below are the **original
 > audit snapshot** — they are not re-scored after each batch; track completion in the prioritized
 > plan and HANDOFF.
@@ -54,12 +54,12 @@ Status markers reflect post-audit sweeps. The original findings stay listed so t
   Replaced with surface tokens; added `SurfaceItemSurfaceHover` / `TextTextDanger`.
 - **Missing focus-visible rings + hover/active/disabled (~25 components). — DONE (Batch 3).**
   Shared helpers in `src/foundations/tokens/interaction.ts`.
-- **`title` overrides native `HTMLElement.title` (~20 components). — DONE (Batch 6).**
-  Renamed to `heading`; docs examples repaired. Heading *semantics* (`<h*>` / `role="heading"`)
-  remain for Batch 4.
-- **ARIA role misuse (~15 components). — OPEN (Batch 4).** `role="listitem"` on `<button>` strips
-  interactive semantics; tab/tablist used for non-tab widgets; `menu`/`toolbar`/`listbox` roles
-  declared with no roving-tabindex keyboard nav.
+- **`title` overrides native `HTMLElement.title` (~20 components). — DONE (Batch 6 + 4).**
+  Renamed to `heading`; docs examples repaired; heading semantics now use native `<h2>`
+  (Batch 4) while keeping `part="title"`.
+- **ARIA role misuse (~15 components). — DONE (Batch 4).** Shared helpers in
+  `src/foundations/a11y/`; composites gained roving keyboard; fake tab roles removed; `listitem`
+  stripped from buttons; modal Tab trap + focus restore.
 - **Form fields incomplete (~13 components). — OPEN (Batch 5).** No error/invalid state and not
   form-associated (no `ElementInternals`/`name`), so values never submit. E.g. `select`,
   `text-field`, `date-field`, `number-input`, `checkbox`, `radio-group`.
@@ -112,12 +112,11 @@ with `--boe-token-surface-status-*`; added missing tokens (`SurfaceItemSurfaceHo
 pattern interactive parts; style-presence tests cover acute surfaces. Remaining state gaps that
 are ARIA/keyboard or form-association belong to Batches 4/5.
 
-**Batch 4 — ARIA correctness & keyboard interaction for composite widgets (~18). — NEXT.**
-Roving-tabindex + arrow/Home/End nav for `menu`/`toolbar`/`listbox`/`radiogroup`; remove
-`role="listitem"` from buttons; fix tab/tablist misuse; focus trap/restore on modals. Also folds in
-heading semantics: render `heading` as a real `<h*>` / `role="heading"` with `aria-level`, not a
-`<div part="title">`. Several widgets announce a role they don't behaviorally fulfill — AT users
-can open but not operate them.
+**Batch 4 — ARIA correctness & keyboard interaction for composite widgets — DONE (#38).**
+Shared `src/foundations/a11y/` helpers; roving-tabindex + Arrow/Home/End for menu/toolbar/listbox/
+radiogroup composites; removed `role="listitem"` from buttons; fixed tab/tablist misuse on
+progress-steps + carousel; Tab trap + focus restore on dialog/drawer/invite; `heading` renders as
+native `<h2 part="title">`.
 
 **Batch 5 — Form-field completeness (~13). — OPEN.** Add `error`/`invalid` (attribute +
 `aria-invalid` + `SurfaceStatusSurfaceError` + message region) and make controls form-associated via

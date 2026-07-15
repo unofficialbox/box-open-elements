@@ -55,7 +55,7 @@ Phases 0–5 of the [roadmap](./docs/roadmap.md) are complete — full catalog p
 - `storybook/` — a Bun-native workshop: typed stories → identity-guarded extracted JSON → a self-contained, separately-deployable static site, with no Storybook/Vite runtime or consumer dependency (see [storybook/README.md](./storybook/README.md))
 - Docs site + CI — live GitHub Pages deploy, Storybook-backed variant dropdown, and a strict pixel-diff visual-regression gate in CI
 
-**Fidelity program** (see [docs/HANDOFF.md](./docs/HANDOFF.md)): Batches 0/1/2/3/6 done; next is Batch 4 (ARIA/keyboard + heading semantics).
+**Fidelity program** (see [docs/HANDOFF.md](./docs/HANDOFF.md)): Batches 0/1/2/3/4/6 done; next is Batch 5 (form association).
 
 Everything in the [components catalog](./docs/components/catalog.md) and [patterns catalog](./docs/patterns/catalog.md) that carries a **built** marker is implemented here with dedicated tests; the remainder keeps its reference implementation in `box-open-web-components` for deliberate, phase-by-phase porting.
 

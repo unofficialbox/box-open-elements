@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { FocusRestore, trapTabKey } from "../../foundations/a11y/index.js";
 import {
   boeBrandInteractiveStyles,
   boeNeutralInteractiveStyles,
@@ -109,6 +110,7 @@ export class BoxDialogElement extends BaseElement {
   private titleEl: HTMLElement | null = null;
   private descriptionEl: HTMLElement | null = null;
   private confirmEl: HTMLButtonElement | null = null;
+  private readonly focusRestore = new FocusRestore();
 
   get open(): boolean {
     return this.openValue;
@@ -206,15 +208,23 @@ export class BoxDialogElement extends BaseElement {
 
     this.hostEl.addEventListener("keydown", event => {
       const keyboardEvent = event as KeyboardEvent;
-      if (keyboardEvent.key !== "Escape") {
+      const dialog = (keyboardEvent.target as HTMLElement | null)?.closest(
+        '[part="dialog"]',
+      ) as HTMLElement | null;
+      if (!dialog || !this.hostEl.contains(dialog)) {
         return;
       }
-      if (!(keyboardEvent.target as HTMLElement | null)?.closest('[part="dialog"]')) {
+
+      if (keyboardEvent.key === "Escape") {
+        keyboardEvent.preventDefault();
+        this.dispatchEvent(new CustomEvent("cancel", { bubbles: true, composed: true }));
+        this.close();
         return;
       }
-      keyboardEvent.preventDefault();
-      this.dispatchEvent(new CustomEvent("cancel", { bubbles: true, composed: true }));
-      this.close();
+
+      if (keyboardEvent.key === "Tab") {
+        trapTabKey(keyboardEvent, dialog);
+      }
     });
   }
 
@@ -224,16 +234,23 @@ export class BoxDialogElement extends BaseElement {
     }
 
     if (!this.openValue) {
+      const wasOpen = this.wasOpen;
       this.hostEl.innerHTML = "";
       this.titleEl = null;
       this.descriptionEl = null;
       this.confirmEl = null;
       this.wasOpen = false;
+      if (wasOpen) {
+        this.focusRestore.restore();
+      }
       return;
     }
 
     const justOpened = !this.wasOpen;
     this.wasOpen = true;
+    if (justOpened) {
+      this.focusRestore.capture();
+    }
 
     if (!this.hostEl.querySelector('[part="dialog"]')) {
       this.hostEl.innerHTML = `

@@ -21,7 +21,7 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 - [Design Tokens and Theming](./foundations/tokens.md)
 - [Iconography](./foundations/iconography.md)
 - [Box Brand Reference](./foundations/brand.md)
-- [Accessibility](./foundations/accessibility.md)
+- [Accessibility](./foundations/accessibility.md) — keyboard/ARIA contract + `foundations/a11y` helpers
 
 ## Components
 

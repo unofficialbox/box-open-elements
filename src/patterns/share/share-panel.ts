@@ -524,7 +524,7 @@ export class BoxSharePanelElement extends BaseElement {
       <style>${elementStyles}</style>
       <section part="panel">
         <header part="header">
-          <div part="title"></div>
+          <h2 part="title"></h2>
           <div part="message" hidden></div>
         </header>
         <section part="shared-link" hidden>

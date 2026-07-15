@@ -288,7 +288,7 @@ export class BoxIllustrationElement extends BaseElement {
       <figure part="illustration" role="img">
         <div part="art" aria-hidden="true"></div>
         <figcaption part="meta">
-          <strong part="title" hidden></strong>
+          <h2 part="title" hidden></h2>
           <span part="message caption" hidden></span>
         </figcaption>
       </figure>

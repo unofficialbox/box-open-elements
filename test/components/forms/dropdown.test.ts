@@ -71,6 +71,33 @@ describe("BoxDropdownElement", () => {
     expect(element.shadowRoot?.querySelector('[part="menu"]')).not.toBeNull();
   });
 
+  it("exposes listbox/option roles and moves focus with ArrowDown", async () => {
+    const element = document.createElement("box-dropdown") as BoxDropdownElement;
+    element.items = [
+      { id: "list", label: "List" },
+      { id: "table", label: "Table" },
+    ];
+    document.body.append(element);
+
+    const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement;
+    trigger.click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const menu = element.shadowRoot?.querySelector('[part="menu"]');
+    expect(menu?.getAttribute("role")).toBe("listbox");
+    const items = Array.from(
+      element.shadowRoot?.querySelectorAll<HTMLButtonElement>('[part="item"]') ?? [],
+    );
+    expect(items[0]?.getAttribute("role")).toBe("option");
+    items[0]?.focus();
+    expect(element.shadowRoot?.activeElement).toBe(items[0]);
+
+    items[0]?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    await Promise.resolve();
+    expect(element.shadowRoot?.activeElement).toBe(items[1]);
+  });
+
   it("includes focus-visible and hover styles for trigger and items", () => {
     const element = document.createElement("box-dropdown") as BoxDropdownElement;
     element.items = [

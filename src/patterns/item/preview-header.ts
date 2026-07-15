@@ -85,6 +85,8 @@ const elementStyles = `
         }
 
         [part="title"] {
+          margin: 0;
+          font: inherit;
           font-size: 1.6rem;
           font-weight: 700;
           line-height: 1.15;
@@ -301,7 +303,7 @@ export class BoxPreviewHeaderElement extends BaseElement {
         <nav part="breadcrumbs" aria-label="Preview breadcrumbs" hidden></nav>
         <div part="main">
           <div part="title-row">
-            <div part="title"></div>
+            <h2 part="title"></h2>
             <div part="status" hidden></div>
           </div>
           <div part="message" hidden></div>
