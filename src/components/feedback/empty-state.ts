@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeBrandInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-empty-state";
 
@@ -46,14 +47,7 @@ const emptyStateStyles = `
     transition: background 140ms ease, transform 140ms ease;
   }
 
-  [part="action"]:hover {
-    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 88%, black 12%);
-  }
-
-  [part="action"]:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-    outline-offset: 2px;
-  }
+  ${boeBrandInteractiveStyles('[part="action"]')}
 
   [part="action"][hidden] {
     display: none;

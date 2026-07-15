@@ -65,4 +65,14 @@ describe("BoxCheckboxElement", () => {
     // Assert focus is still on the internal input
     expect(element.shadowRoot?.activeElement).toBe(input);
   });
+
+  it("includes focus-visible styles for the input", () => {
+    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="input"]:focus-visible');
+    expect(styles).toContain('[part="field"]:hover');
+    expect(styles).toContain("--boe-token-surface-surface-brand");
+  });
 });

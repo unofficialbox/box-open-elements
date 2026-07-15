@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-drawer";
 
@@ -102,10 +103,7 @@ const drawerStyles = `
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
   }
 
-  [part="close"]:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-    outline-offset: 2px;
-  }
+  ${boeNeutralInteractiveStyles('[part="close"]')}
 
   [part="body"] {
     padding: 1.35rem;

@@ -73,4 +73,14 @@ describe("BoxDropZoneElement", () => {
     expect(zone.dataset.dragging).toBe("true");
     expect(element.shadowRoot?.querySelector('[part="label"]')?.textContent).toBe("Drop to upload");
   });
+
+  it("includes focus-visible and hover styles for the drop zone", () => {
+    const element = document.createElement("box-drop-zone") as BoxDropZoneElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain(":focus-visible");
+    expect(styles).toContain('[part="zone"]:hover');
+    expect(styles).toContain("--boe-token-surface-surface-brand");
+  });
 });

@@ -70,4 +70,22 @@ describe("BoxDropdownElement", () => {
 
     expect(element.shadowRoot?.querySelector('[part="menu"]')).not.toBeNull();
   });
+
+  it("includes focus-visible and hover styles for trigger and items", () => {
+    const element = document.createElement("box-dropdown") as BoxDropdownElement;
+    element.items = [
+      { id: "list", label: "List" },
+      { id: "table", label: "Table" },
+    ];
+    document.body.append(element);
+
+    const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null;
+    trigger?.click();
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="trigger"]:focus-visible');
+    expect(styles).toContain('[part="trigger"]:hover:not(:disabled)');
+    expect(styles).toContain('[part="item"]:focus-visible');
+    expect(styles).toContain('[part="item"]:hover:not(:disabled)');
+  });
 });

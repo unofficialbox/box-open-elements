@@ -1,4 +1,8 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeFocusRingShadow,
+  boeFocusVisibleStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-radio-group";
 
@@ -9,6 +13,102 @@ const escapeHtml = (value: string): string =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+
+const radioGroupStyles = `
+  :host {
+    display: block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="group"] {
+    margin: 0;
+    padding: 0;
+    border: none;
+    min-inline-size: 0;
+  }
+
+  [part="label"] {
+    margin: 0 0 0.8rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  [part="options"] {
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  [part="option"] {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.82rem 0.9rem;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
+    border-radius: 0.95rem;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
+      );
+    cursor: pointer;
+    transition:
+      border-color 140ms ease,
+      background 140ms ease,
+      box-shadow 140ms ease;
+  }
+
+  [part="option"]:hover:not(:has([part="input"]:disabled)) {
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+  }
+
+  [part="option"]:active:not(:has([part="input"]:disabled)) {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-hover, #f4f4f4) 70%, var(--boe-token-surface-surface-secondary, #fbfbfb) 30%);
+  }
+
+  [part="option"][data-selected="true"] {
+    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 20%, var(--boe-token-stroke-stroke, #e8e8e8) 80%);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 9%, var(--boe-token-surface-surface, #ffffff) 91%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 58%, var(--boe-token-surface-surface, #ffffff) 42%) 100%
+      );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.82),
+      0 10px 20px rgba(15, 23, 42, 0.04);
+  }
+
+  [part="option"]:focus-within {
+    outline: none;
+    box-shadow: ${boeFocusRingShadow};
+  }
+
+  [part="option"]:has([part="input"]:disabled) {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  [part="input"] {
+    inline-size: 1rem;
+    block-size: 1rem;
+    accent-color: var(--boe-token-surface-surface-brand, #0061d5);
+    margin: 0;
+    flex: 0 0 auto;
+  }
+
+  ${boeFocusVisibleStyles('[part="input"]')}
+
+  [part="option-label"] {
+    font-weight: 500;
+    color: var(--boe-token-text-text, #222222);
+  }
+`;
 
 export class BoxRadioGroupElement extends BaseElement {
   static get observedAttributes(): string[] {
@@ -86,93 +186,7 @@ export class BoxRadioGroupElement extends BaseElement {
     }
 
     this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="group"] {
-          margin: 0;
-          padding: 0;
-          border: none;
-          min-inline-size: 0;
-        }
-
-        [part="label"] {
-          margin: 0 0 0.8rem;
-          font-size: 0.9rem;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-        }
-
-        [part="options"] {
-          display: grid;
-          gap: 0.65rem;
-        }
-
-        [part="option"] {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          padding: 0.82rem 0.9rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-          border-radius: 0.95rem;
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
-            );
-          transition:
-            border-color 140ms ease,
-            background 140ms ease,
-            box-shadow 140ms ease;
-        }
-
-        [part="option"]:hover {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-stroke-stroke, #e8e8e8) 84%);
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 44%, var(--boe-token-surface-surface, #ffffff) 56%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, var(--boe-token-surface-item-surface-hover, #eef4fb) 14%) 100%
-            );
-        }
-
-        [part="option"][data-selected="true"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 20%, var(--boe-token-stroke-stroke, #e8e8e8) 80%);
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 9%, var(--boe-token-surface-surface, #ffffff) 91%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 58%, var(--boe-token-surface-surface, #ffffff) 42%) 100%
-            );
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.82),
-            0 10px 20px rgba(15, 23, 42, 0.04);
-        }
-
-        [part="option"]:focus-within {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, transparent);
-          outline-offset: 2px;
-        }
-
-        [part="input"] {
-          inline-size: 1rem;
-          block-size: 1rem;
-          accent-color: var(--boe-token-surface-surface-brand, #0061d5);
-          margin: 0;
-          flex: 0 0 auto;
-        }
-
-        [part="option-label"] {
-          font-weight: 500;
-          color: var(--boe-token-text-text, #222222);
-        }
-      </style>
+      <style>${radioGroupStyles}</style>
       <fieldset part="group">
         <legend part="label"></legend>
         <div part="options"></div>

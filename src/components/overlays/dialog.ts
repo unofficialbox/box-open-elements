@@ -1,4 +1,8 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeBrandInteractiveStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-dialog";
 
@@ -90,11 +94,8 @@ const dialogStyles = `
     color: var(--boe-token-text-text-on-brand, #ffffff);
   }
 
-  [part="cancel"]:focus-visible,
-  [part="confirm"]:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-    outline-offset: 2px;
-  }
+  ${boeNeutralInteractiveStyles('[part="cancel"]')}
+  ${boeBrandInteractiveStyles('[part="confirm"]')}
 `;
 
 export class BoxDialogElement extends BaseElement {

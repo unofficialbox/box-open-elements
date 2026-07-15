@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-grid-view";
 
@@ -46,20 +47,12 @@ const gridViewStyles = `
     transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
   }
 
-  [part~="tile"]:hover {
-    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
-    background: var(--boe-token-surface-surface-hover, #f4f4f4);
-  }
-
   [part~="tile-selected"] {
     border-color: var(--boe-token-surface-surface-brand, #0061d5);
     background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface, #ffffff) 90%);
   }
 
-  [part~="tile"]:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, transparent);
-  }
+  ${boeNeutralInteractiveStyles('[part~="tile"]')}
 
   [part="thumb"] {
     display: grid;

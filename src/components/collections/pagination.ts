@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-pagination";
 
@@ -43,29 +44,12 @@ const paginationStyles = `
       box-shadow 140ms ease;
   }
 
+  ${boeNeutralInteractiveStyles('[part="previous"]')}
+  ${boeNeutralInteractiveStyles('[part="next"]')}
+
   [part="previous"]:hover:not(:disabled),
   [part="next"]:hover:not(:disabled) {
-    background: var(--boe-token-surface-surface-hover, #f4f4f4);
-    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
     color: var(--boe-token-surface-surface-brand, #0061d5);
-  }
-
-  [part="previous"]:active:not(:disabled),
-  [part="next"]:active:not(:disabled) {
-    background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, var(--boe-token-surface-surface, #ffffff) 36%);
-  }
-
-  [part="previous"]:focus-visible,
-  [part="next"]:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-  }
-
-  [part="previous"]:disabled,
-  [part="next"]:disabled {
-    cursor: not-allowed;
-    opacity: 0.55;
-    box-shadow: none;
   }
 
   [part="summary"] {

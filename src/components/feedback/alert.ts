@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-alert";
 
@@ -97,14 +98,7 @@ const alertStyles = `
     transition: background 140ms ease, border-color 140ms ease;
   }
 
-  [part="dismiss"]:hover {
-    background: var(--boe-token-surface-surface-hover, #f4f4f4);
-  }
-
-  [part="dismiss"]:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-    outline-offset: 2px;
-  }
+  ${boeNeutralInteractiveStyles('[part="dismiss"]')}
 `;
 
 export class BoxAlertElement extends BaseElement {

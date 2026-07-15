@@ -1,4 +1,8 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeFocusVisibleStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-chip";
 
@@ -33,9 +37,13 @@ const chipStyles = `
     cursor: pointer;
   }
 
-  [part="chip"][data-interactive="true"]:hover {
+  [part="chip"][data-interactive="true"]:hover:not([data-disabled="true"]) {
     border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
     background: var(--boe-token-surface-surface-hover, #f4f4f4);
+  }
+
+  [part="chip"][data-interactive="true"]:active:not([data-disabled="true"]) {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-hover, #f4f4f4) 70%, var(--boe-token-surface-surface-secondary, #fbfbfb) 30%);
   }
 
   [part="chip"][data-tone="brand"] {
@@ -53,12 +61,10 @@ const chipStyles = `
   [part="chip"][data-disabled="true"] {
     opacity: 0.55;
     cursor: not-allowed;
+    box-shadow: none;
   }
 
-  [part="chip"]:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, transparent);
-  }
+  ${boeFocusVisibleStyles('[part="chip"]')}
 
   [part="remove"] {
     appearance: none;
@@ -81,19 +87,7 @@ const chipStyles = `
     block-size: 0.7rem;
   }
 
-  [part="remove"]:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, transparent);
-    color: var(--boe-token-text-text, #222222);
-  }
-
-  [part="remove"]:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 30%, transparent);
-  }
-
-  [part="remove"]:disabled {
-    cursor: not-allowed;
-  }
+  ${boeNeutralInteractiveStyles('[part="remove"]')}
 `;
 
 /**

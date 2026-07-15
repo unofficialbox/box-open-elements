@@ -1,4 +1,8 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeFocusVisibleStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-nudge";
 
@@ -74,10 +78,20 @@ const nudgeStyles = `
     text-underline-offset: 2px;
   }
 
-  [part="action"]:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-    outline-offset: 2px;
-    border-radius: 0.2rem;
+  [part="action"]:hover:not(:disabled) {
+    color: var(--boe-token-surface-surface-brand-hover, #0057c0);
+  }
+
+  [part="action"]:active:not(:disabled) {
+    color: var(--boe-token-surface-surface-brand-pressed, #004eaa);
+  }
+
+  ${boeFocusVisibleStyles('[part="action"]')}
+
+  [part="action"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    box-shadow: none;
   }
 
   [part="dismiss"] {
@@ -98,14 +112,7 @@ const nudgeStyles = `
     block-size: 0.8rem;
   }
 
-  [part="dismiss"]:hover {
-    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, transparent);
-  }
-
-  [part="dismiss"]:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-    outline-offset: 2px;
-  }
+  ${boeNeutralInteractiveStyles('[part="dismiss"]')}
 `;
 
 /**

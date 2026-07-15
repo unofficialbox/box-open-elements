@@ -1,4 +1,8 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeFocusVisibleStyles,
+  boeNeutralInteractiveStyles,
+} from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-dropdown";
 
@@ -54,10 +58,14 @@ const dropdownStyles = `
     border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
   }
 
+  [part="trigger"]:active:not(:disabled) {
+    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+  }
+
+  ${boeFocusVisibleStyles('[part="trigger"]')}
+
   [part="trigger"]:focus-visible {
-    outline: none;
     border-color: var(--boe-token-surface-surface-brand, #0061d5);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
   }
 
   [part="trigger"][aria-expanded="true"] {
@@ -67,6 +75,7 @@ const dropdownStyles = `
   [part="trigger"]:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+    box-shadow: none;
   }
 
   [part="menu"] {
@@ -101,14 +110,7 @@ const dropdownStyles = `
       color 140ms ease;
   }
 
-  [part="item"]:hover {
-    background: var(--boe-token-surface-surface-hover, #f4f4f4);
-  }
-
-  [part="item"]:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, transparent);
-    outline-offset: -2px;
-  }
+  ${boeNeutralInteractiveStyles('[part="item"]')}
 
   [part="item"][data-selected="true"] {
     background: var(--boe-token-surface-item-surface-selected, #f2f7fd);

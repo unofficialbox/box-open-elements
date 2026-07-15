@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-slider";
 
@@ -56,14 +57,12 @@ const sliderStyles = `
     cursor: pointer;
   }
 
-  [part="range"]:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-    outline-offset: 2px;
-  }
+  ${boeFocusVisibleStyles('[part="range"]')}
 
   [part="range"]:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+    box-shadow: none;
   }
 `;
 

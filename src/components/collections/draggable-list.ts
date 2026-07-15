@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-draggable-list";
 
@@ -69,10 +70,7 @@ const draggableListStyles = `
     block-size: 1rem;
   }
 
-  [part="handle"]:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, transparent);
-  }
+  ${boeNeutralInteractiveStyles('[part="handle"]')}
 
   [part="item-label"] {
     font-size: 0.9rem;

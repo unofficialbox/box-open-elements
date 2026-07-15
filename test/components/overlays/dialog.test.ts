@@ -73,4 +73,16 @@ describe("BoxDialogElement", () => {
     expect(cancelled).toHaveBeenCalled();
     expect(element.open).toBe(false);
   });
+
+  it("includes focus-visible and hover styles for cancel and confirm", () => {
+    const element = document.createElement("box-dialog") as BoxDialogElement;
+    document.body.append(element);
+    element.show();
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('[part="cancel"]:focus-visible');
+    expect(styles).toContain('[part="cancel"]:hover:not(:disabled)');
+    expect(styles).toContain('[part="confirm"]:focus-visible');
+    expect(styles).toContain('[part="confirm"]:hover:not(:disabled)');
+  });
 });

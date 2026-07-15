@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-menu";
 
@@ -53,23 +54,10 @@ const menuStyles = `
       box-shadow 140ms ease;
   }
 
+  ${boeNeutralInteractiveStyles('[part="menu-item"]')}
+
   [part="menu-item"]:hover:not(:disabled) {
-    background: var(--boe-token-surface-surface-hover, #f4f4f4);
     color: var(--boe-token-surface-surface-brand, #0061d5);
-  }
-
-  [part="menu-item"]:active:not(:disabled) {
-    background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, var(--boe-token-surface-surface, #ffffff) 36%);
-  }
-
-  [part="menu-item"]:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-  }
-
-  [part="menu-item"]:disabled {
-    cursor: not-allowed;
-    opacity: 0.55;
   }
 `;
 

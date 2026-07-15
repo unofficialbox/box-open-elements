@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-menu-item";
 
@@ -27,25 +28,16 @@ const menuItemStyles = `
       box-shadow 140ms ease;
   }
 
-  [part="item"]:hover:not(:disabled) {
-    background: var(--boe-token-surface-surface-hover, #f4f4f4);
-    color: var(--boe-token-surface-surface-brand, #0061d5);
-  }
-
   [part="item"][data-selected="true"] {
     background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, var(--boe-token-surface-surface, #ffffff) 36%);
     color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 80%, var(--boe-token-text-text, #222222) 20%);
     font-weight: 600;
   }
 
-  [part="item"]:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-  }
+  ${boeNeutralInteractiveStyles('[part="item"]')}
 
-  [part="item"]:disabled {
-    cursor: not-allowed;
-    opacity: 0.55;
+  [part="item"]:hover:not(:disabled) {
+    color: var(--boe-token-surface-surface-brand, #0061d5);
   }
 `;
 

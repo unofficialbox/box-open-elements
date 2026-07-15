@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-carousel";
 
@@ -152,18 +153,6 @@ const carouselStyles = `
       color 140ms ease;
   }
 
-  [part="previous"]:hover,
-  [part="next"]:hover {
-    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 74%, var(--boe-token-surface-surface, #ffffff) 26%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 6%, var(--boe-token-surface-item-surface-hover, #eef4fb) 68%, var(--boe-token-surface-surface, #ffffff) 26%) 100%
-      );
-    color: var(--boe-token-surface-surface-brand, #0061d5);
-  }
-
   [part="pagination"] {
     display: flex;
     flex-wrap: wrap;
@@ -195,11 +184,13 @@ const carouselStyles = `
     border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, transparent);
   }
 
-  [part="previous"]:focus-visible,
-  [part="next"]:focus-visible,
-  [part~="dot"]:focus-visible {
-    outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
-    outline-offset: 2px;
+  ${boeNeutralInteractiveStyles('[part="previous"]')}
+  ${boeNeutralInteractiveStyles('[part="next"]')}
+  ${boeNeutralInteractiveStyles('[part~="dot"]')}
+
+  [part="previous"]:hover:not(:disabled),
+  [part="next"]:hover:not(:disabled) {
+    color: var(--boe-token-surface-surface-brand, #0061d5);
   }
 
   [part="empty"],
