@@ -29,7 +29,7 @@ result is written to the run journal, and the committed outputs are this report 
 > Session status: [HANDOFF.md](../HANDOFF.md). Scores and issue lists below are the **original
 > audit snapshot** — they are not re-scored after each batch; track completion in the prioritized
 > plan and HANDOFF.
-
+>
 > ✅ **Batch 0 (security) done:** the three injection holes called out at audit time
 > (`link-button` href scheme check, `skeleton` CSSOM sizing, `content-explorer` error escaping)
 > were fixed in #29.
