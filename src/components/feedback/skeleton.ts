@@ -45,6 +45,8 @@ export class BoxSkeletonElement extends BaseElement {
   }
 
   private skeletonEl!: HTMLElement;
+  private appliedWidth = "";
+  private appliedHeight = "";
 
   get width(): string {
     return this.getAttribute("width") ?? "100%";
@@ -72,6 +74,8 @@ export class BoxSkeletonElement extends BaseElement {
       <span part="skeleton" style="display:inline-block;" aria-hidden="true"></span>
     `;
     this.skeletonEl = this.shadowRoot.querySelector('[part="skeleton"]')!;
+    this.appliedWidth = "";
+    this.appliedHeight = "";
   }
 
   protected update(): void {
@@ -82,8 +86,16 @@ export class BoxSkeletonElement extends BaseElement {
     // Apply size via the CSSOM, not string interpolation: setProperty validates
     // the value and silently drops anything invalid, so attribute-supplied
     // width/height can't break out of the style attribute and inject markup.
-    this.skeletonEl.style.setProperty("width", this.width);
-    this.skeletonEl.style.setProperty("height", this.height);
+    // Short-circuit when dimensions are unchanged to avoid redundant CSSOM writes.
+    const nextWidth = this.width;
+    const nextHeight = this.height;
+    if (nextWidth === this.appliedWidth && nextHeight === this.appliedHeight) {
+      return;
+    }
+    this.skeletonEl.style.setProperty("width", nextWidth);
+    this.skeletonEl.style.setProperty("height", nextHeight);
+    this.appliedWidth = nextWidth;
+    this.appliedHeight = nextHeight;
   }
 }
 

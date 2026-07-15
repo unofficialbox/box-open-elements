@@ -37,4 +37,34 @@ describe("BoxSkeletonElement", () => {
     const skeleton = element.shadowRoot?.querySelector('[part="skeleton"]') as HTMLSpanElement | null;
     expect(skeleton?.style.width).toBe("");
   });
+
+  it("keeps correct styles when width and height are set to the same values again", () => {
+    const element = document.createElement("box-skeleton") as BoxSkeletonElement;
+    element.width = "100px";
+    element.height = "16px";
+    document.body.append(element);
+
+    const skeleton = element.shadowRoot?.querySelector('[part="skeleton"]') as HTMLSpanElement | null;
+    expect(skeleton?.style.width).toBe("100px");
+    expect(skeleton?.style.height).toBe("16px");
+
+    element.width = "100px";
+    element.height = "16px";
+
+    expect(skeleton?.style.width).toBe("100px");
+    expect(skeleton?.style.height).toBe("16px");
+  });
+
+  it("updates styles when width changes", () => {
+    const element = document.createElement("box-skeleton") as BoxSkeletonElement;
+    element.width = "100px";
+    element.height = "16px";
+    document.body.append(element);
+
+    const skeleton = element.shadowRoot?.querySelector('[part="skeleton"]') as HTMLSpanElement | null;
+    element.width = "200px";
+
+    expect(skeleton?.style.width).toBe("200px");
+    expect(skeleton?.style.height).toBe("16px");
+  });
 });

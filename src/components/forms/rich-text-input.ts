@@ -1,4 +1,9 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formErrorMessageMarkup,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 import { applyRovingTabindex, handleRovingKeydown } from "../../foundations/a11y/index.js";
 
 const DEFAULT_TAG_NAME = "box-rich-text-input";
@@ -152,16 +157,25 @@ const richTextStyles = `
   [part="editor"] ol:last-child {
     margin-bottom: 0;
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxRichTextInputElement extends BaseElement {
+export class BoxRichTextInputElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "placeholder", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "label",
+      "placeholder",
+      "value",
+    ];
   }
 
   private editor!: HTMLDivElement;
   private labelElement!: HTMLLegendElement;
   private toolbarEl!: HTMLElement;
+  private errorEl!: HTMLElement;
   private toolbarButtons: HTMLButtonElement[] = [];
   private valueInternal = "";
 
@@ -212,6 +226,19 @@ export class BoxRichTextInputElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  protected getFormValue(): FormValue {
+    return this.valueInternal;
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const next = typeof value === "string" ? value : "";
+    this.valueInternal = next;
+    this.setAttribute("value", next);
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
   private emitValueChanged(): void {
     this.dispatchEvent(
       new CustomEvent("value-changed", {
@@ -225,6 +252,7 @@ export class BoxRichTextInputElement extends BaseElement {
   private handleEditorInput = (): void => {
     this.valueInternal = this.editor.innerHTML;
     this.setAttribute("value", this.valueInternal);
+    this.syncFormAssociation();
     this.emitValueChanged();
   };
 
@@ -269,12 +297,14 @@ export class BoxRichTextInputElement extends BaseElement {
             aria-multiline="true"
           ></div>
         </div>
+        ${formErrorMessageMarkup()}
       </fieldset>
     `;
 
     this.labelElement = this.shadowRoot.querySelector('[part="label"]')!;
     this.editor = this.shadowRoot.querySelector('[part="editor"]')!;
     this.toolbarEl = this.shadowRoot.querySelector('[part="toolbar"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
     this.toolbarButtons = Array.from(
       this.shadowRoot.querySelectorAll('[part="tool-button"]'),
     ) as HTMLButtonElement[];
@@ -298,7 +328,7 @@ export class BoxRichTextInputElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.editor || !this.labelElement) {
+    if (!this.editor || !this.labelElement || !this.errorEl) {
       return;
     }
 
@@ -315,9 +345,11 @@ export class BoxRichTextInputElement extends BaseElement {
     applyRovingTabindex(this.toolbarButtons, 0);
 
     // Only patch editor HTML when not focused to avoid cursor-jump
-    if (document.activeElement !== this.editor && this.editor.innerHTML !== this.valueInternal) {
+    if (this.shadowRoot?.activeElement !== this.editor && this.editor.innerHTML !== this.valueInternal) {
       this.editor.innerHTML = this.valueInternal;
     }
+
+    this.applyInvalidState(this.editor, this.errorEl);
   }
 }
 

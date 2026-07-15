@@ -1,4 +1,9 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formErrorMessageMarkup,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 import {
   FocusRestore,
   applyRovingTabindex,
@@ -123,17 +128,35 @@ const dropdownStyles = `
     background: var(--boe-token-surface-item-surface-selected, #f2f7fd);
     color: var(--boe-token-surface-surface-brand, #0061d5);
   }
+
+  ${boeFormFieldErrorStyles}
+
+  :host([invalid]) [part="trigger"] {
+    border-color: var(--boe-token-surface-status-surface-error, #ed3757);
+  }
+
+  :host([invalid]) [part="trigger"]:focus-visible {
+    border-color: var(--boe-token-surface-status-surface-error, #ed3757);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 22%, transparent);
+  }
 `;
 
-export class BoxDropdownElement extends BaseElement {
+export class BoxDropdownElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "items", "label", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "items",
+      "label",
+      "value",
+    ];
   }
 
   private open = false;
   private valueInternal = "";
   private rootEl!: HTMLElement;
   private triggerEl!: HTMLButtonElement;
+  private errorEl!: HTMLElement;
   private menuEl: HTMLElement | null = null;
   private readonly focusRestore = new FocusRestore();
   private readonly onDocumentPointerDown = (event: PointerEvent): void => {
@@ -201,6 +224,19 @@ export class BoxDropdownElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  protected getFormValue(): FormValue {
+    return this.valueInternal;
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const next = typeof value === "string" ? value : "";
+    this.valueInternal = next;
+    this.setAttribute("value", next);
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
   disconnectedCallback(): void {
     document.removeEventListener("pointerdown", this.onDocumentPointerDown);
     super.disconnectedCallback();
@@ -246,6 +282,7 @@ export class BoxDropdownElement extends BaseElement {
 
     this.valueInternal = item.id;
     this.setAttribute("value", item.id);
+    this.syncFormAssociation();
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,
@@ -272,10 +309,12 @@ export class BoxDropdownElement extends BaseElement {
       <style>${dropdownStyles}</style>
       <div part="dropdown">
         <button type="button" part="trigger" aria-haspopup="listbox"></button>
+        ${formErrorMessageMarkup()}
       </div>
     `;
     this.rootEl = this.shadowRoot.querySelector('[part="dropdown"]')!;
     this.triggerEl = this.shadowRoot.querySelector('[part="trigger"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -351,7 +390,7 @@ export class BoxDropdownElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.triggerEl || !this.rootEl) {
+    if (!this.triggerEl || !this.rootEl || !this.errorEl) {
       return;
     }
 
@@ -400,6 +439,8 @@ export class BoxDropdownElement extends BaseElement {
       this.menuEl.remove();
       this.menuEl = null;
     }
+
+    this.applyInvalidState(this.triggerEl, this.errorEl);
   }
 }
 

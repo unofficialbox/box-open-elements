@@ -2,11 +2,40 @@
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { getMirroredFormValue } from "../../src/core/index.js";
+import {
+  formDataFromNamedValues,
+  formDataFromRange,
+  getMirroredFormValue,
+  rangeFromFormValue,
+  stringValuesFromFormValue,
+} from "../../src/core/index.js";
 import {
   BoxTextFieldElement,
   defineBoxTextFieldElement,
 } from "../../src/components/forms/text-field.js";
+
+describe("form value helpers", () => {
+  it("builds and restores named multi-value FormData", () => {
+    expect(formDataFromNamedValues("tags", [])).toBeNull();
+
+    const data = formDataFromNamedValues("tags", ["a", "b"]);
+    expect(data).toBeInstanceOf(FormData);
+    expect(data!.getAll("tags")).toEqual(["a", "b"]);
+    expect(stringValuesFromFormValue(data, "tags")).toEqual(["a", "b"]);
+    expect(stringValuesFromFormValue('["x","y"]', "tags")).toEqual(["x", "y"]);
+    expect(stringValuesFromFormValue("one, two", "tags")).toEqual(["one", "two"]);
+  });
+
+  it("builds and restores range FormData", () => {
+    const data = formDataFromRange("budget", 10, 40);
+    expect(data.get("budget-start")).toBe("10");
+    expect(data.get("budget-end")).toBe("40");
+    expect(rangeFromFormValue(data, "budget", { start: 0, end: 100 })).toEqual({
+      start: 10,
+      end: 40,
+    });
+  });
+});
 
 describe("FormAssociatedElement", () => {
   beforeEach(() => {

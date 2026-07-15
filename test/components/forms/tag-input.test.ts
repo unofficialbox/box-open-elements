@@ -3,6 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BoxTagInputElement, defineBoxTagInputElement } from "../../../src/components/forms/tag-input.js";
+import { getMirroredFormValue } from "../../../src/core/index.js";
 
 const inputOf = (element: BoxTagInputElement): HTMLInputElement =>
   element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
@@ -103,5 +104,20 @@ describe("BoxTagInputElement", () => {
 
     expect(element.getAttribute("value")).toBe("q3");
     expect(element.value).toBe("q3");
+  });
+
+  it("mirrors tags as FormData entries", () => {
+    const element = document.createElement("box-tag-input") as BoxTagInputElement;
+    element.name = "tags";
+    document.body.append(element);
+
+    expect(getMirroredFormValue(element.internals)).toBeNull();
+
+    element.addTag("marketing");
+    element.addTag("legal");
+
+    const mirrored = getMirroredFormValue(element.internals);
+    expect(mirrored).toBeInstanceOf(FormData);
+    expect((mirrored as FormData).getAll("tags")).toEqual(["marketing", "legal"]);
   });
 });

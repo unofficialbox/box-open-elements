@@ -1,4 +1,11 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formDataFromNamedValues,
+  formErrorMessageMarkup,
+  stringValuesFromFormValue,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-pill-selector-dropdown";
 
@@ -141,6 +148,8 @@ const pillSelectorStyles = `
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     font-size: 0.82rem;
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
 /**
@@ -151,9 +160,15 @@ const pillSelectorStyles = `
  * opening focuses the first item; ArrowUp/Down/Home/End move focus, Escape (or
  * moving focus outside) closes and returns focus to the trigger.
  */
-export class BoxPillSelectorDropdownElement extends BaseElement {
+export class BoxPillSelectorDropdownElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["label", "options", "placeholder", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "label",
+      "options",
+      "placeholder",
+      "value",
+    ];
   }
 
   private valueInternal: string[] = [];
@@ -166,6 +181,7 @@ export class BoxPillSelectorDropdownElement extends BaseElement {
   private dropdownEl!: HTMLElement;
   private triggerEl!: HTMLButtonElement;
   private menuEl: HTMLUListElement | null = null;
+  private errorEl!: HTMLElement;
 
   // Close the open menu when a pointer press lands outside this element. Bound
   // once so it can be added/removed cleanly; a focusout listener can't be used
@@ -247,6 +263,19 @@ export class BoxPillSelectorDropdownElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  protected getFormValue(): FormValue {
+    return formDataFromNamedValues(this.name, this.valueInternal);
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const next = stringValuesFromFormValue(value, this.name);
+    this.valueInternal = next;
+    this.setAttribute("value", JSON.stringify(next));
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
   private availableOptions(): PillOption[] {
     return this.options.filter(option => !this.valueInternal.includes(option.value));
   }
@@ -267,6 +296,7 @@ export class BoxPillSelectorDropdownElement extends BaseElement {
     } else {
       this.setAttribute("value", serialized);
     }
+    this.syncFormAssociation();
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,
@@ -374,12 +404,14 @@ export class BoxPillSelectorDropdownElement extends BaseElement {
         <div part="dropdown">
           <button type="button" part="trigger" aria-haspopup="menu"></button>
         </div>
+        ${formErrorMessageMarkup()}
       </div>
     `;
     this.fieldEl = this.shadowRoot.querySelector('[part="field"]')!;
     this.pillsEl = this.shadowRoot.querySelector('[part="pills"]')!;
     this.dropdownEl = this.shadowRoot.querySelector('[part="dropdown"]')!;
     this.triggerEl = this.shadowRoot.querySelector('[part="trigger"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -457,7 +489,7 @@ export class BoxPillSelectorDropdownElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.fieldEl || !this.pillsEl || !this.triggerEl) {
+    if (!this.fieldEl || !this.pillsEl || !this.triggerEl || !this.errorEl) {
       return;
     }
 
@@ -508,6 +540,17 @@ export class BoxPillSelectorDropdownElement extends BaseElement {
       this.menuEl.remove();
       this.menuEl = null;
     }
+
+    const focusableControls: HTMLElement[] = [
+      this.triggerEl,
+      ...Array.from(this.pillsEl.querySelectorAll<HTMLButtonElement>('[part="pill-remove"]')),
+    ];
+    if (this.menuEl) {
+      focusableControls.push(
+        ...Array.from(this.menuEl.querySelectorAll<HTMLButtonElement>('[part="option"]')),
+      );
+    }
+    this.applyInvalidStateToControls(focusableControls, this.errorEl);
 
     this.applyPendingFocus();
   }

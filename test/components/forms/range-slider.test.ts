@@ -3,6 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BoxRangeSliderElement, defineBoxRangeSliderElement } from "../../../src/components/forms/range-slider.js";
+import { getMirroredFormValue } from "../../../src/core/index.js";
 
 describe("BoxRangeSliderElement", () => {
   beforeEach(() => {
@@ -41,5 +42,20 @@ describe("BoxRangeSliderElement", () => {
 
     expect(element.start).toBe(10);
     expect(element.end).toBe(20);
+  });
+
+  it("mirrors start and end values as FormData entries", () => {
+    const element = document.createElement("box-range-slider") as BoxRangeSliderElement;
+    element.name = "budget";
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="range-start"]') as HTMLInputElement | null;
+    input!.value = "32";
+    input?.dispatchEvent(new Event("input", { bubbles: true }));
+
+    const formValue = getMirroredFormValue(element.internals);
+    expect(formValue).toBeInstanceOf(FormData);
+    expect((formValue as FormData).get("budget-start")).toBe("32");
+    expect((formValue as FormData).get("budget-end")).toBe("80");
   });
 });

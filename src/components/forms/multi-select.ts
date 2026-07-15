@@ -1,4 +1,11 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formDataFromNamedValues,
+  formErrorMessageMarkup,
+  stringValuesFromFormValue,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 import {
   boeFocusRingShadow,
   boeFocusVisibleStyles,
@@ -121,11 +128,18 @@ const multiSelectStyles = `
   [part="option-label"] {
     font-weight: 500;
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxMultiSelectElement extends BaseElement {
+export class BoxMultiSelectElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["label", "options", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "label",
+      "options",
+      "value",
+    ];
   }
 
   private valueInternal: string[] = [];
@@ -133,6 +147,7 @@ export class BoxMultiSelectElement extends BaseElement {
   private legendEl!: HTMLLegendElement;
   private summaryEl!: HTMLElement;
   private optionsContainerEl!: HTMLDivElement;
+  private errorEl!: HTMLElement;
 
   get label(): string {
     return this.getAttribute("label") ?? "Multi Select";
@@ -189,6 +204,19 @@ export class BoxMultiSelectElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  protected getFormValue(): FormValue {
+    return formDataFromNamedValues(this.name, this.valueInternal);
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const next = stringValuesFromFormValue(value, this.name);
+    this.valueInternal = next;
+    this.setAttribute("value", JSON.stringify(next));
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
   protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
@@ -200,11 +228,13 @@ export class BoxMultiSelectElement extends BaseElement {
         <legend part="label"></legend>
         <span part="summary"></span>
         <div part="options"></div>
+        ${formErrorMessageMarkup()}
       </fieldset>
     `;
     this.legendEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.summaryEl = this.shadowRoot.querySelector('[part="summary"]')!;
     this.optionsContainerEl = this.shadowRoot.querySelector('[part="options"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -222,6 +252,7 @@ export class BoxMultiSelectElement extends BaseElement {
       this.setAttribute("value", JSON.stringify(selected));
       this.summaryEl.textContent =
         selected.length === 0 ? "No selections" : `${selected.length} selected`;
+      this.syncFormAssociation();
       this.dispatchEvent(
         new CustomEvent("value-changed", {
           bubbles: true,
@@ -233,7 +264,7 @@ export class BoxMultiSelectElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.legendEl || !this.summaryEl || !this.optionsContainerEl) {
+    if (!this.legendEl || !this.summaryEl || !this.optionsContainerEl || !this.errorEl) {
       return;
     }
 
@@ -260,6 +291,11 @@ export class BoxMultiSelectElement extends BaseElement {
       const input = node as HTMLInputElement;
       input.checked = this.valueInternal.includes(input.value);
     });
+
+    this.applyInvalidStateToControls(
+      Array.from(this.optionsContainerEl.querySelectorAll<HTMLInputElement>('[part="input"]')),
+      this.errorEl,
+    );
   }
 }
 

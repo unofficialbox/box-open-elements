@@ -6,8 +6,12 @@ export {
   FORM_ERROR_MESSAGE_ID,
   FormAssociatedElement,
   boeFormFieldErrorStyles,
+  formDataFromNamedValues,
+  formDataFromRange,
   formErrorMessageMarkup,
   getMirroredFormValue,
+  rangeFromFormValue,
+  stringValuesFromFormValue,
 } from "./form-associated.js";
 export type { FormValue } from "./form-associated.js";
 
