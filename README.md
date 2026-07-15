@@ -45,14 +45,17 @@ bun run docs
 
 Phases 0–5 of the [roadmap](./docs/roadmap.md) are complete — full catalog parity with the reference repo, plus every scoped gap the research surfaced:
 
-- `src/core` — typed event emitter and controller base class
-- `src/foundations/tokens` — the design-system registry (tokens, icons, illustrations), the Box default bundle, and the Box dark bundle, retoned to Box's modernized Blueprint palette with an Inter typography baseline
+- `src/core` — typed event emitter, controller base class, and `BaseElement` (in-place shadow DOM render contract)
+- `src/foundations/tokens` — the design-system registry (tokens, icons, illustrations), the Box default bundle, and the Box dark bundle, retoned to Box's modernized Blueprint palette with an Inter typography baseline; shared interaction helpers (`interaction.ts`) for focus/hover/active/disabled
 - `src/foundations/icons` — the generated Box iconography manifest and alias layer
 - `src/components` — 72 components across all ten categories, including the Phase 5 gap fills (`box-chip`, `box-divider`, `box-calendar`, `box-tag-input`, `box-nav-sidebar`, `box-sidebar-toggle-button`, `box-grid-view`, `box-fieldset`, `box-section`, `box-error-mask`, `box-draggable-list`, `box-nudge`, `box-pill-cloud`, `box-pill-selector-dropdown`, `box-datalist-item`, `box-contact-datalist-item`, `box-category-selector`)
 - `src/patterns/content-explorer` — the full headless explorer stack (collection, navigation, selection, actions, facade controller, data-source contracts, Box transport, wire schemas) plus the `box-explorer-*` presentation adapters and the composed `box-content-explorer` surface
 - `src/patterns/{search,item,metadata,share,preview,file-request,task,governance,insights}` — all nine composition/workflow areas, including contracts and wire schemas for metadata and share, the provider-neutral preview adapter stack, the pluggable `box-preview-element`, and the share workflows (`box-presence`, `box-invite-collaborators-modal`, `box-unified-share-modal`, `box-access-stats`, `box-collaborator-avatars`)
 - `packages/box-server` — a dependency-free server-side adapter: CCG auth + REST client, Box-backed explorer/share/metadata data sources, DTO mappers, and framework-neutral route handlers (see [docs/integration/box-server.md](./docs/integration/box-server.md))
 - `storybook/` — a Bun-native workshop: typed stories → identity-guarded extracted JSON → a self-contained, separately-deployable static site, with no Storybook/Vite runtime or consumer dependency (see [storybook/README.md](./storybook/README.md))
+- Docs site + CI — live GitHub Pages deploy, Storybook-backed variant dropdown, and a strict pixel-diff visual-regression gate in CI
+
+**Fidelity program** (see [docs/HANDOFF.md](./docs/HANDOFF.md)): Batches 0/1/2/3/6 done; next is Batch 4 (ARIA/keyboard + heading semantics).
 
 Everything in the [components catalog](./docs/components/catalog.md) and [patterns catalog](./docs/patterns/catalog.md) that carries a **built** marker is implemented here with dedicated tests; the remainder keeps its reference implementation in `box-open-web-components` for deliberate, phase-by-phase porting.
 
@@ -107,6 +110,8 @@ New exports follow the wildcard contract by default instead of adding explicit `
 
 The docs index is at [docs/README.md](./docs/README.md). The most important entries:
 
+- [Handoff](./docs/HANDOFF.md) — live fidelity-program status
+- [Component Fidelity Audit](./docs/audits/component-fidelity-audit.md)
 - [Taxonomy](./docs/taxonomy.md)
 - [Architecture](./docs/architecture.md)
 - [API Guidelines](./docs/api-guidelines.md)

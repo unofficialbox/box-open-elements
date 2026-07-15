@@ -39,7 +39,7 @@ X-Request-Id: req-123
 }
 ```
 
-Schema home: `src/patterns/content-explorer/schemas.ts` (to be ported).
+Schema home: `src/patterns/content-explorer/schemas.ts` (built).
 
 ## Metadata
 
@@ -128,7 +128,7 @@ Content-Type: application/json
 }
 ```
 
-Schema home: `src/patterns/metadata/schemas.ts` (to be ported).
+Schema home: `src/patterns/metadata/schemas.ts` (built).
 
 ## Share
 
@@ -183,7 +183,7 @@ Content-Type: application/json
 }
 ```
 
-Schema home: `src/patterns/share/schemas.ts` (to be ported).
+Schema home: `src/patterns/share/schemas.ts` (built).
 
 ## Integration rule
 

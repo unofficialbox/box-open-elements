@@ -8,17 +8,24 @@ Currently, state mutations trigger a complete rewrite of `shadowRoot.innerHTML`,
 
 ## Progress
 
-- [ ] Define the `BaseElement` class in `src/core/element.ts` and export it from `src/core/index.ts`
-- [ ] Refactor `box-button` (`src/components/actions/button.ts`) to use `BaseElement` and add/update Vitest component tests
-- [ ] Refactor `box-checkbox` (`src/components/forms/checkbox.ts`) to use `BaseElement` and add/update Vitest component tests
-- [ ] Refactor `box-radio-group` (`src/components/forms/radio-group.ts`) to use `BaseElement` and add/update Vitest component tests
-- [ ] Verify focus persistence and keyboard interaction behavior with automated Vitest assertions
-- [ ] Ensure `bun run verify` is green (typecheck, tests, build)
-- [ ] Recapture screenshot gallery and ensure no visual regression in light/dark themes
+**Status: complete** (merged as fidelity Batch 1 — PRs #31, #32, #33). The pilot below
+expanded into a full catalog + patterns migration onto `BaseElement`; see
+[docs/HANDOFF.md](../docs/HANDOFF.md) and
+[docs/architecture.md](../docs/architecture.md#web-component-render-contract).
+
+- [x] Define the `BaseElement` class in `src/core/element.ts` and export it from `src/core/index.ts`
+- [x] Refactor `box-button` (`src/components/actions/button.ts`) to use `BaseElement` and add/update Vitest component tests
+- [x] Refactor `box-checkbox` (`src/components/forms/checkbox.ts`) to use `BaseElement` and add/update Vitest component tests
+- [x] Refactor `box-radio-group` (`src/components/forms/radio-group.ts`) to use `BaseElement` and add/update Vitest component tests
+- [x] Verify focus persistence and keyboard interaction behavior with automated Vitest assertions
+- [x] Ensure `bun run verify` is green (typecheck, tests, build)
+- [x] Recapture screenshot gallery and ensure no visual regression in light/dark themes
 
 ## Surprises & Discoveries
 
-*(To be populated as work progresses)*
+- The pilot of three components became a systemic sweep: essentially every catalog and pattern
+  custom element now extends `BaseElement`. Focus/input/drag fidelity tests cover the acute
+  surfaces (forms, split-view, carousel, accordion/tabs, metadata-filter-builder, drop-zone).
 
 ## Decision Log
 
@@ -32,7 +39,11 @@ Currently, state mutations trigger a complete rewrite of `shadowRoot.innerHTML`,
 
 ## Outcomes & Retrospective
 
-*(To be populated after execution finishes)*
+Shipped via PRs #31/#32/#33: `BaseElement` is the shared render contract for catalog and
+pattern custom elements. Attribute/property changes patch in place; listeners attach once;
+focused inputs are not overwritten while focused. Gallery baselines regenerated for
+intentional visual deltas. Remaining fidelity work (ARIA/keyboard, form association, polish)
+is tracked in [docs/HANDOFF.md](../docs/HANDOFF.md), not this plan.
 
 ## Context and Orientation
 
