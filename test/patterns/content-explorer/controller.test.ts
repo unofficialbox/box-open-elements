@@ -342,4 +342,100 @@ describe("ContentExplorerController", () => {
       item: { id: "1", name: "One", type: "file" },
     });
   });
+
+  it("searches through transport.searchItems and restores folder mode on clear", async () => {
+    const transport: ExplorerTransport = {
+      loadFolderItems: vi.fn().mockResolvedValue(
+        createResult({
+          items: [{ id: "1", name: "Folder File", type: "file" }],
+        }),
+      ),
+      searchItems: vi.fn().mockResolvedValue({
+        query: "plan",
+        ancestorFolderId: "0",
+        items: [{ id: "9", name: "Quarterly Plan", type: "file" }],
+        pagination: {
+          hasMoreItems: false,
+          limit: 100,
+          offset: 0,
+          totalCount: 1,
+        },
+      }),
+    };
+    const controller = new ContentExplorerController({
+      rootFolderId: "0",
+      token: "token",
+      transport,
+    });
+    const viewChanged = vi.fn();
+    const searchSucceeded = vi.fn();
+    controller.subscribe("viewChanged", viewChanged);
+    controller.subscribe("searchSucceeded", searchSucceeded);
+
+    await controller.connect();
+    await controller.search(" plan ");
+
+    expect(transport.searchItems).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: "plan",
+        ancestorFolderId: "0",
+        offset: 0,
+      }),
+    );
+    expect(controller.getState().view).toEqual({
+      mode: "search",
+      searchQuery: "plan",
+      searchAncestorFolderId: "0",
+    });
+    expect(controller.getState().items).toEqual([{ id: "9", name: "Quarterly Plan", type: "file" }]);
+    expect(searchSucceeded).toHaveBeenCalled();
+    expect(viewChanged).toHaveBeenCalled();
+
+    await controller.clearSearch();
+
+    expect(controller.getState().view.mode).toBe("folder");
+    expect(controller.getState().items).toEqual([{ id: "1", name: "Folder File", type: "file" }]);
+    expect(transport.loadFolderItems).toHaveBeenCalledTimes(2);
+  });
+
+  it("exits search when navigating to a folder", async () => {
+    const transport: ExplorerTransport = {
+      loadFolderItems: vi
+        .fn()
+        .mockResolvedValueOnce(
+          createResult({
+            items: [{ id: "marketing", name: "Marketing", type: "folder" }],
+          }),
+        )
+        .mockResolvedValueOnce(
+          createResult({
+            breadcrumbs: [
+              { id: "0", name: "All Files", type: "folder" },
+              { id: "marketing", name: "Marketing", type: "folder" },
+            ],
+            folder: { id: "marketing", name: "Marketing", type: "folder" },
+            folderId: "marketing",
+            items: [{ id: "leaf", name: "Leaf", type: "file" }],
+          }),
+        ),
+      searchItems: vi.fn().mockResolvedValue({
+        query: "q",
+        items: [{ id: "hit", name: "Hit", type: "file" }],
+        pagination: { hasMoreItems: false, limit: 100, offset: 0, totalCount: 1 },
+      }),
+    };
+    const controller = new ContentExplorerController({
+      rootFolderId: "0",
+      token: "token",
+      transport,
+    });
+
+    await controller.connect();
+    await controller.search("q");
+    await controller.navigateTo("marketing");
+
+    expect(controller.getState().view.mode).toBe("folder");
+    expect(controller.getState().currentFolderId).toBe("marketing");
+    expect(controller.getState().items).toEqual([{ id: "leaf", name: "Leaf", type: "file" }]);
+  });
 });

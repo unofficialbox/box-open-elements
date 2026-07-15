@@ -33,6 +33,42 @@ describe("createBoxExplorerDataSource", () => {
     expect(result.breadcrumbs).toHaveLength(2);
     // As-User is threaded to the REST client.
     expect(request.mock.calls[0][2]).toMatchObject({ asUser: "u1" });
+    expect(request.mock.calls[1][2]).toMatchObject({
+      query: expect.objectContaining({ fields: expect.stringContaining("modified_at") }),
+    });
+  });
+
+  it("searches via Box /2.0/search and maps the contract", async () => {
+    const { client, request } = stubClient(() => ({
+      total_count: 1,
+      offset: 0,
+      limit: 25,
+      entries: [{ id: "9", type: "file", name: "Hit.pdf" }],
+    }));
+
+    const dataSource = createBoxExplorerDataSource(client);
+    const result = await dataSource.search!({
+      query: "hit",
+      ancestorFolderId: "0",
+      limit: 25,
+      offset: 0,
+    });
+
+    expect(result).toMatchObject({
+      query: "hit",
+      ancestorFolderId: "0",
+      items: [{ id: "9", name: "Hit.pdf", type: "file" }],
+    });
+    expect(request).toHaveBeenCalledWith(
+      "GET",
+      "/2.0/search",
+      expect.objectContaining({
+        query: expect.objectContaining({
+          query: "hit",
+          ancestor_folder_ids: "0",
+        }),
+      }),
+    );
   });
 });
 

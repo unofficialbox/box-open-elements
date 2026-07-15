@@ -44,6 +44,47 @@ describe("createExplorerTransportFromDataSource", () => {
         signal: controllerSignal,
       },
     });
+    expect(transport.searchItems).toBeUndefined();
+  });
+
+  it("bridges search when the data source supports it", async () => {
+    const searchResult = {
+      query: "plan",
+      ancestorFolderId: "0",
+      items: [{ id: "1", name: "Quarterly Plan", type: "file" as const }],
+      pagination: {
+        hasMoreItems: false,
+        limit: 25,
+        offset: 0,
+        totalCount: 1,
+      },
+    };
+    const dataSource = {
+      listFolderItems: vi.fn(),
+      search: vi.fn().mockResolvedValue(searchResult),
+    };
+    const transport = createExplorerTransportFromDataSource(dataSource);
+
+    const response = await transport.searchItems!({
+      query: "plan",
+      ancestorFolderId: "0",
+      limit: 25,
+      offset: 0,
+      token: "server-owned-token",
+      language: "en-US",
+    });
+
+    expect(response).toBe(searchResult);
+    expect(dataSource.search).toHaveBeenCalledWith({
+      query: "plan",
+      ancestorFolderId: "0",
+      limit: 25,
+      offset: 0,
+      context: {
+        locale: "en-US",
+        signal: undefined,
+      },
+    });
   });
 });
 
@@ -148,6 +189,43 @@ describe("createHttpContentExplorerDataSource", () => {
         },
         signal: undefined,
       },
+    );
+  });
+
+  it("loads search results from the HTTP search endpoint", async () => {
+    const result = {
+      query: "plan",
+      ancestorFolderId: "0",
+      items: [{ id: "1", name: "Quarterly Plan", type: "file" as const }],
+      pagination: {
+        hasMoreItems: false,
+        limit: 25,
+        offset: 0,
+        totalCount: 1,
+      },
+    };
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify(result), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    const dataSource = createHttpContentExplorerDataSource({
+      baseUrl: "https://app.example.com/api/content-explorer",
+      fetch: fetchMock,
+    });
+
+    const response = await dataSource.search!({
+      query: "plan",
+      ancestorFolderId: "0",
+      limit: 25,
+      offset: 0,
+    });
+
+    expect(response).toEqual(result);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://app.example.com/api/content-explorer/search?query=plan&ancestorFolderId=0&limit=25&offset=0",
+      expect.objectContaining({ method: "GET" }),
     );
   });
 });

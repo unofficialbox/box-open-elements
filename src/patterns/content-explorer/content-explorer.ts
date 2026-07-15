@@ -289,7 +289,7 @@ const elementStyles = `
 
 export class BoxContentExplorerElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["item-gesture", "language", "page-size", "root-folder-id", "selection-mode", "token"];
+    return ["item-gesture", "language", "page-size", "root-folder-id", "search-query", "selection-mode", "token"];
   }
 
   private controller: ContentExplorerController | null = null;
@@ -392,10 +392,26 @@ export class BoxContentExplorerElement extends BaseElement {
     return this.controller?.getState() ?? null;
   }
 
+  get searchQuery(): string | null {
+    return this.getAttribute("search-query");
+  }
+
+  set searchQuery(value: string | null) {
+    this.updateStringAttribute("search-query", value);
+  }
+
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-    // Presentation-only: changing item-gesture must not tear down the session.
-    if (name !== "item-gesture") {
+    // Presentation-only attrs must not tear down the session.
+    if (name !== "item-gesture" && name !== "search-query") {
       this.scheduleStart();
+    }
+    if (name === "search-query" && this.controller && oldValue !== newValue) {
+      const query = newValue?.trim() ?? "";
+      const current = this.controller.getState().view.searchQuery?.trim() ?? "";
+      const inFolder = this.controller.getState().view.mode === "folder";
+      if (query !== current && !(query === "" && inFolder)) {
+        void (query ? this.controller.search(query) : this.controller.clearSearch());
+      }
     }
     super.attributeChangedCallback(name, oldValue, newValue);
   }
@@ -423,6 +439,14 @@ export class BoxContentExplorerElement extends BaseElement {
 
   async navigateTo(folderId: string): Promise<void> {
     await this.controller?.navigateTo(folderId);
+  }
+
+  async search(query: string): Promise<void> {
+    await this.controller?.search(query);
+  }
+
+  async clearSearch(): Promise<void> {
+    await this.controller?.clearSearch();
   }
 
   select(itemIds: string[]): void {
@@ -515,11 +539,21 @@ export class BoxContentExplorerElement extends BaseElement {
       "loadSucceeded",
       "loadingChanged",
       "paginationChanged",
+      "searchSucceeded",
       "selectionChanged",
+      "viewChanged",
     ];
 
     this.unsubscribeFns = eventNames.map(eventName =>
       controller.subscribe(eventName, payload => {
+        if (eventName === "viewChanged" || eventName === "searchSucceeded" || eventName === "loadSucceeded") {
+          const query = controller.getState().view.searchQuery;
+          if (query) {
+            this.setAttribute("search-query", query);
+          } else if (this.hasAttribute("search-query")) {
+            this.removeAttribute("search-query");
+          }
+        }
         this.dispatchEvent(
           new CustomEvent(toKebabCase(String(eventName)), {
             bubbles: true,
@@ -528,8 +562,8 @@ export class BoxContentExplorerElement extends BaseElement {
           }),
         );
         if (this.isRendered) {
-      this.update();
-    }
+          this.update();
+        }
       }),
     );
   }
@@ -588,15 +622,23 @@ export class BoxContentExplorerElement extends BaseElement {
           )
           .join('<span part="breadcrumb-separator">/</span>')}</nav>`
       : "";
-    const folderMarkup = state?.currentFolder
-      ? this.templatesValue.renderFolder
-        ? this.templatesValue.renderFolder({
-            breadcrumbsMarkup: breadcrumbMarkup,
-            element: this,
-            state,
-          })
-        : `<header part="folder">${breadcrumbMarkup}<h2>${escapeHtml(state.currentFolder.name)}</h2><p>${escapeHtml(state.currentFolder.id)}</p></header>`
-      : `<header part="folder"><h2>No folder loaded</h2></header>`;
+    const isSearch = state?.view.mode === "search";
+    const folderMarkup = isSearch
+      ? `<header part="folder" data-view="search">
+          ${breadcrumbMarkup}
+          <h2>Search results</h2>
+          <p part="search-query">Results for “${escapeHtml(state.view.searchQuery ?? "")}”</p>
+          <button type="button" part="clear-search">Clear search</button>
+        </header>`
+      : state?.currentFolder
+        ? this.templatesValue.renderFolder
+          ? this.templatesValue.renderFolder({
+              breadcrumbsMarkup: breadcrumbMarkup,
+              element: this,
+              state,
+            })
+          : `<header part="folder">${breadcrumbMarkup}<h2>${escapeHtml(state.currentFolder.name)}</h2><p>${escapeHtml(state.currentFolder.id)}</p></header>`
+        : `<header part="folder"><h2>No folder loaded</h2></header>`;
     const itemsMarkup = state?.items.length
       ? state.items
           .map(
@@ -682,6 +724,9 @@ export class BoxContentExplorerElement extends BaseElement {
 
     this.shadowRoot.querySelector('[part="refresh"]')?.addEventListener("click", () => {
       void this.refresh();
+    });
+    this.shadowRoot.querySelector('[part="clear-search"]')?.addEventListener("click", () => {
+      void this.clearSearch();
     });
     this.shadowRoot.querySelector('[part="load-more"]')?.addEventListener("click", () => {
       void this.loadNextPage();

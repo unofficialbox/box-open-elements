@@ -6,11 +6,14 @@ import { ExplorerSelectionController } from "./selection/controller.js";
 import type {
   ExplorerEvents,
   ExplorerItem,
+  ExplorerSearchResult,
   ExplorerSelectionMode,
   ExplorerSessionConfig,
   ExplorerState,
   ExplorerTransportResult,
+  ExplorerViewState,
 } from "./types.js";
+import { createInitialExplorerViewState } from "./types.js";
 
 const createInitialState = (config: ExplorerSessionConfig): ExplorerState => ({
   availableActionsByItemId: {},
@@ -28,6 +31,7 @@ const createInitialState = (config: ExplorerSessionConfig): ExplorerState => ({
     totalCount: null,
   },
   selectedItemIds: [],
+  view: createInitialExplorerViewState(),
 });
 
 export class ContentExplorerController extends Controller<ExplorerState, ExplorerEvents> {
@@ -135,15 +139,86 @@ export class ContentExplorerController extends Controller<ExplorerState, Explore
       loading: false,
       pagination: this.collectionController.getState().pagination,
       selectedItemIds: [],
+      view: createInitialExplorerViewState(),
     });
 
     this.activeLoadRequestId += 1;
     this.collectionController.reset();
     this.navigationController.reset();
+    this.emit("viewChanged", { view: this.state.view });
     this.emit("disconnected", undefined);
   }
 
+  private setView(view: ExplorerViewState): void {
+    this.setState({
+      ...this.state,
+      view,
+    });
+    this.emit("viewChanged", { view });
+  }
+
+  async search(query: string, options?: { ancestorFolderId?: string }): Promise<void> {
+    const trimmed = query.trim();
+    if (!trimmed) {
+      await this.clearSearch();
+      return;
+    }
+
+    if (!this.config.transport.searchItems) {
+      throw new Error("Explorer transport does not support search");
+    }
+
+    if (!this.state.connected) {
+      return;
+    }
+
+    const ancestorFolderId = options?.ancestorFolderId ?? this.state.currentFolderId;
+    this.setView({
+      mode: "search",
+      searchQuery: trimmed,
+      searchAncestorFolderId: ancestorFolderId,
+    });
+    this.setState({
+      ...this.state,
+      error: null,
+      items: [],
+      selectedItemIds: [],
+      availableActionsByItemId: {},
+      pagination: this.collectionController.getState().pagination,
+    });
+    this.collectionController.reset();
+    this.actionsController.setItems([]);
+    this.selectionController.setItems([]);
+    await this.reload();
+  }
+
+  async clearSearch(): Promise<void> {
+    if (this.state.view.mode === "folder" && !this.state.view.searchQuery) {
+      return;
+    }
+
+    this.setView(createInitialExplorerViewState());
+    this.setState({
+      ...this.state,
+      error: null,
+      items: [],
+      selectedItemIds: [],
+      availableActionsByItemId: {},
+    });
+    this.collectionController.reset();
+    this.actionsController.setItems([]);
+    this.selectionController.setItems([]);
+
+    if (this.state.connected) {
+      await this.reload();
+    }
+  }
+
   async navigateTo(folderId: string): Promise<void> {
+    if (this.state.view.mode === "search") {
+      this.setView(createInitialExplorerViewState());
+    }
+
     const nextFolder = this.navigationController.navigateTo(folderId);
     if (!nextFolder) {
       return;
@@ -270,6 +345,24 @@ export class ContentExplorerController extends Controller<ExplorerState, Explore
     this.collectionController.startLoading();
 
     try {
+      if (this.state.view.mode === "search") {
+        const searchItems = this.config.transport.searchItems;
+        if (!searchItems) {
+          throw new Error("Explorer transport does not support search");
+        }
+        const query = this.state.view.searchQuery ?? "";
+        const result = await searchItems({
+          query,
+          ancestorFolderId: this.state.view.searchAncestorFolderId ?? undefined,
+          limit: this.collectionController.getState().pagination.limit,
+          offset: append ? this.collectionController.getState().items.length : 0,
+          token: this.config.token,
+          language: this.config.language,
+        });
+        this.applyLoadedSearch(requestId, result, append);
+        return;
+      }
+
       const result = await this.config.transport.loadFolderItems({
         folderId: this.state.currentFolderId,
         limit: this.collectionController.getState().pagination.limit,
@@ -282,6 +375,41 @@ export class ContentExplorerController extends Controller<ExplorerState, Explore
     } catch (error) {
       this.applyLoadFailure(requestId, error, append);
     }
+  }
+
+  private applyLoadedSearch(requestId: number, result: ExplorerSearchResult, append: boolean): void {
+    if (requestId !== this.activeLoadRequestId) {
+      return;
+    }
+
+    this.collectionController.applyLoadResult(result, append);
+    const items = this.collectionController.getState().items;
+    this.actionsController.setItems(items);
+    this.selectionController.setItems(items);
+    this.selectionController.select(this.state.selectedItemIds);
+    const selectedItemIds = this.selectionController.getState().selectedItemIds;
+
+    this.setState({
+      ...this.state,
+      availableActionsByItemId: this.actionsController.getState().availableActionsByItemId,
+      error: null,
+      items,
+      loading: this.collectionController.getState().loading,
+      pagination: this.collectionController.getState().pagination,
+      selectedItemIds,
+      view: {
+        mode: "search",
+        searchQuery: result.query,
+        searchAncestorFolderId: result.ancestorFolderId ?? this.state.view.searchAncestorFolderId,
+      },
+    });
+
+    this.emit("selectionChanged", { selectedItemIds });
+    this.emit("searchSucceeded", {
+      query: result.query,
+      items,
+      pagination: this.collectionController.getState().pagination,
+    });
   }
 
   private applyLoadedFolder(requestId: number, result: ExplorerTransportResult, append: boolean): void {

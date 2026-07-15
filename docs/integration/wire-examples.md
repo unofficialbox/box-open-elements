@@ -27,7 +27,19 @@ X-Request-Id: req-123
   },
   "folderId": "0",
   "items": [
-    { "id": "123", "name": "Quarterly Plan.pdf", "type": "file" },
+    {
+      "id": "123",
+      "name": "Quarterly Plan.pdf",
+      "type": "file",
+      "size": 248320,
+      "modifiedAt": "2026-07-01T12:00:00.000Z",
+      "extension": "pdf",
+      "owner": { "id": "u_1", "name": "Morgan Lee", "type": "user" },
+      "permissions": { "canPreview": true, "canDownload": true, "canShare": true },
+      "sharedLink": { "isShared": true, "access": "company", "url": "https://app.box.com/s/example" },
+      "preview": { "canPreview": true, "extension": "pdf" },
+      "parent": { "id": "0", "name": "All Files" }
+    },
     { "id": "456", "name": "Marketing", "type": "folder" }
   ],
   "pagination": {
@@ -39,7 +51,36 @@ X-Request-Id: req-123
 }
 ```
 
-Schema home: `src/patterns/content-explorer/schemas.ts` (built).
+Optional summary fields on items are additive; three-field items remain valid.
+
+### Search request
+
+```http
+GET /api/content-explorer/search?query=plan&ancestorFolderId=0&limit=25&offset=0
+Accept: application/json
+Accept-Language: en-US
+X-Request-Id: req-124
+```
+
+### Search response
+
+```json
+{
+  "query": "plan",
+  "ancestorFolderId": "0",
+  "items": [
+    { "id": "123", "name": "Quarterly Plan.pdf", "type": "file" }
+  ],
+  "pagination": {
+    "hasMoreItems": false,
+    "limit": 25,
+    "offset": 0,
+    "totalCount": 1
+  }
+}
+```
+
+Schema home: `src/patterns/content-explorer/schemas.ts` (`explorerTransportResultSchema`, `explorerSearchResultSchema`).
 
 ## Metadata
 

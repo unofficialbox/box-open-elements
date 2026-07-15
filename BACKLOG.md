@@ -6,9 +6,8 @@ This file tracks the highest-signal follow-up work that is still open. The phase
 
 Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fidelity-audit.md).
 
-- **Done (merged):** Batches 0–7 + medium/low audit nits (#41).
-- **In flight:** design-heavy leftovers — `cursor/design-heavy-leftovers-7eb7` (floating popover, slotted tooltip, explorer select-vs-activate, responsive app-shell, nav-sidebar icon contract).
-- **Next:** after leftovers merge, fidelity program is complete (spacing/token rhythm only if needed).
+- **Done (merged):** Batches 0–7 + medium/low audit nits (#41) + design-heavy leftovers (#42).
+- **Complete** for the fidelity program (spacing/token rhythm only if needed).
 
 ## Build-out
 
@@ -24,9 +23,8 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 ## Patterns
 
-- Enrich the `ExplorerItem` contract with optional server-neutral summary fields (permissions, ownership, modified date, size, shared-link state) — the thin contract was a known limitation in the reference repo.
-- Wire search through the explorer transport/controller end-to-end (contract exists; composition wiring is incomplete).
-- Design the explorer view-state model (folder / search / recents) explicitly.
+- **In flight:** enrich `ExplorerItem` + folder\|search view-state + end-to-end search — `cursor/explorer-search-item-contract-7eb7`.
+- Defer: `recents` view mode; wire `patterns/search` chrome into the explorer shell; rich list/table metadata columns.
 
 ## Tooling and infrastructure
 

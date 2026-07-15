@@ -122,6 +122,7 @@ Suggested wire contracts:
 
 - explorer
   - `GET /api/content-explorer/folders/:folderId/items` → `ExplorerTransportResult`
+  - `GET /api/content-explorer/search?query=&ancestorFolderId=&limit=&offset=` → `ExplorerSearchResult` (`createContentExplorerSearchRouteHandler`)
 - metadata
   - `GET /api/metadata/templates`
   - `GET /api/metadata/items/:itemType/:itemId/instances`
