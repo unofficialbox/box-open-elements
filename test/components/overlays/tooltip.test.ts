@@ -135,4 +135,31 @@ describe("BoxTooltipElement", () => {
     expect(element.open).toBe(true);
     expect(trigger.getAttribute("aria-describedby")).toBeTruthy();
   });
+
+  it("keeps the tooltip open when focus moves within a compound slotted trigger", () => {
+    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    element.label = "Compound trigger help";
+    const wrapper = document.createElement("span");
+    const first = document.createElement("button");
+    first.textContent = "Icon";
+    const second = document.createElement("a");
+    second.href = "#";
+    second.textContent = "Label";
+    wrapper.append(first, second);
+    element.append(wrapper);
+    document.body.append(element);
+
+    first.focus();
+    expect(element.open).toBe(true);
+
+    const host = element.shadowRoot?.querySelector('[part="trigger-host"]') as HTMLElement;
+    host.dispatchEvent(
+      new FocusEvent("focusout", {
+        bubbles: true,
+        relatedTarget: second,
+      }),
+    );
+
+    expect(element.open).toBe(true);
+  });
 });

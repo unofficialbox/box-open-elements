@@ -70,6 +70,9 @@ describe("BoxNavSidebarElement", () => {
     expect(styles).toContain(":host([collapsed])");
     expect(styles).toContain("--boe-nav-label-display: none");
     expect(styles).toContain("::slotted(a)");
+    expect(styles).toContain("::slotted(button)");
     expect(styles).toContain('[data-collapsed="true"] ::slotted(a)');
+    expect(styles).toContain('[data-collapsed="true"] ::slotted(button)');
+    expect(styles).toContain("appearance: none");
   });
 });

@@ -1,5 +1,9 @@
 import { ContentExplorerController } from "../controller.js";
-import { resolveExplorerItemGesture } from "../types.js";
+import {
+  resolveExplorerItemGesture,
+  shouldActivateOnClick,
+  shouldToggleOnEnter,
+} from "../types.js";
 import { BoxExplorerActionMenuElement } from "./action-menu.js";
 import { BaseElement } from "../../../core/index.js";
 import {
@@ -303,10 +307,13 @@ export class BoxExplorerTableElement extends BaseElement {
       if (!rowItem || !tbody.contains(rowItem)) {
         return;
       }
+      if ((event as MouseEvent).detail > 1) {
+        return;
+      }
       const itemId = rowItem.getAttribute("data-item-id");
       if (itemId) {
         this.controllerValue?.toggleSelection(itemId);
-        if (this.itemGesture === "legacy") {
+        if (shouldActivateOnClick(this.itemGesture)) {
           void this.controllerValue?.activateItem(itemId);
         }
       }
@@ -337,7 +344,7 @@ export class BoxExplorerTableElement extends BaseElement {
       if (keyboardEvent.key === " ") {
         keyboardEvent.preventDefault();
         this.controllerValue?.toggleSelection(itemId);
-        if (this.itemGesture === "legacy") {
+        if (shouldActivateOnClick(this.itemGesture)) {
           void this.controllerValue?.activateItem(itemId);
         }
         return;
@@ -345,7 +352,7 @@ export class BoxExplorerTableElement extends BaseElement {
 
       if (keyboardEvent.key === "Enter") {
         keyboardEvent.preventDefault();
-        if (this.itemGesture === "legacy") {
+        if (shouldToggleOnEnter(this.itemGesture)) {
           this.controllerValue?.toggleSelection(itemId);
         }
         void this.controllerValue?.activateItem(itemId);

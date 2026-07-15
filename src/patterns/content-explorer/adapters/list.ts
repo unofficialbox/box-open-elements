@@ -1,5 +1,9 @@
 import { ContentExplorerController } from "../controller.js";
-import { resolveExplorerItemGesture } from "../types.js";
+import {
+  resolveExplorerItemGesture,
+  shouldActivateOnClick,
+  shouldToggleOnEnter,
+} from "../types.js";
 import { BaseElement } from "../../../core/index.js";
 import {
   boeFocusVisibleStyles,
@@ -358,11 +362,14 @@ export class BoxExplorerListElement extends BaseElement {
 
       const itemButton = target.closest('[part~="item"]') as HTMLElement | null;
       if (itemButton && list.contains(itemButton)) {
+        if ((event as MouseEvent).detail > 1) {
+          return;
+        }
         const itemId = itemButton.getAttribute("data-item-id");
         if (itemId) {
           this.focusItemId = itemId;
           this.controllerValue?.toggleSelection(itemId);
-          if (this.itemGesture === "legacy") {
+          if (shouldActivateOnClick(this.itemGesture)) {
             void this.controllerValue?.activateItem(itemId);
           }
         }
@@ -405,14 +412,14 @@ export class BoxExplorerListElement extends BaseElement {
         keyboardEvent.preventDefault();
         this.focusItemId = itemId;
         this.controllerValue?.toggleSelection(itemId);
-        if (this.itemGesture === "legacy") {
+        if (shouldActivateOnClick(this.itemGesture)) {
           void this.controllerValue?.activateItem(itemId);
         }
         return;
       } else if (keyboardEvent.key === "Enter") {
         keyboardEvent.preventDefault();
         this.focusItemId = itemId;
-        if (this.itemGesture === "legacy") {
+        if (shouldToggleOnEnter(this.itemGesture)) {
           this.controllerValue?.toggleSelection(itemId);
         }
         void this.controllerValue?.activateItem(itemId);

@@ -1,6 +1,8 @@
 import { ContentExplorerController } from "./controller.js";
 import {
   resolveExplorerItemGesture,
+  shouldActivateOnClick,
+  shouldToggleOnEnter,
   type ExplorerEvents,
   type ExplorerItemAction,
   type ExplorerItem,
@@ -391,15 +393,17 @@ export class BoxContentExplorerElement extends BaseElement {
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-    this.scheduleStart();
-  
+    // Presentation-only: changing item-gesture must not tear down the session.
+    if (name !== "item-gesture") {
+      this.scheduleStart();
+    }
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   connectedCallback(): void {
     super.connectedCallback();
-this.scheduleStart();
-    }
+    this.scheduleStart();
+  }
 
   disconnectedCallback(): void {
     this.teardownController();
@@ -622,7 +626,7 @@ this.scheduleStart();
                 )
                 .join("");
               const itemButtonAttributes = toAttributeString({
-                "aria-label": `Open ${item.name}`,
+                "aria-label": item.name,
                 "aria-selected": isSelected ? "true" : "false",
                 "data-item-id": item.id,
                 part: "item",
@@ -692,11 +696,14 @@ this.scheduleStart();
     });
     this.shadowRoot.querySelectorAll('[part="item"]').forEach(node => {
       node.addEventListener("click", event => {
+        if ((event as MouseEvent).detail > 1) {
+          return;
+        }
         const itemId = (event.currentTarget as HTMLElement).getAttribute("data-item-id");
         if (itemId) {
           this.focusItemId = itemId;
           this.toggleSelection(itemId);
-          if (this.itemGesture === "legacy") {
+          if (shouldActivateOnClick(this.itemGesture)) {
             void this.activateItem(itemId);
           }
         }
@@ -727,14 +734,14 @@ this.scheduleStart();
           keyboardEvent.preventDefault();
           this.focusItemId = itemId;
           this.toggleSelection(itemId);
-          if (this.itemGesture === "legacy") {
+          if (shouldActivateOnClick(this.itemGesture)) {
             void this.activateItem(itemId);
           }
           return;
         } else if (keyboardEvent.key === "Enter") {
           keyboardEvent.preventDefault();
           this.focusItemId = itemId;
-          if (this.itemGesture === "legacy") {
+          if (shouldToggleOnEnter(this.itemGesture)) {
             this.toggleSelection(itemId);
           }
           void this.activateItem(itemId);

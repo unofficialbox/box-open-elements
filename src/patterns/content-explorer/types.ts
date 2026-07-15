@@ -16,6 +16,12 @@ export type ExplorerItemGesture = "split" | "legacy";
 export const resolveExplorerItemGesture = (value: string | null | undefined): ExplorerItemGesture =>
   value === "legacy" ? "legacy" : "split";
 
+/** Legacy click/Space also activates; split mode selects only. */
+export const shouldActivateOnClick = (gesture: ExplorerItemGesture): boolean => gesture === "legacy";
+
+/** Legacy Enter also toggles selection before activate; split mode activates only. */
+export const shouldToggleOnEnter = (gesture: ExplorerItemGesture): boolean => gesture === "legacy";
+
 export interface ExplorerItemAction {
   id: string;
   itemTypes?: ExplorerItem["type"][];

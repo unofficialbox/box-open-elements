@@ -113,6 +113,14 @@ describe("BoxPopoverElement", () => {
     expect(element.placement).toBe("top");
   });
 
+  it("falls back to bottom placement for unsupported values", () => {
+    const element = document.createElement("box-popover") as BoxPopoverElement;
+    element.setAttribute("placement", "diagonal");
+    document.body.append(element);
+
+    expect(element.placement).toBe("bottom");
+  });
+
   it("moves focus into the surface when opened", async () => {
     const element = document.createElement("box-popover") as BoxPopoverElement;
     const content = document.createElement("button");

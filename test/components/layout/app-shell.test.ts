@@ -75,7 +75,14 @@ describe("BoxAppShellElement", () => {
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("container-type: inline-size");
     expect(styles).toContain("container-name: boe-app-shell");
-    expect(styles).toContain("@container boe-app-shell (max-width: 48rem)");
-    expect(styles).toContain("grid-template-columns: 1fr");
+
+    const containerRule = styles.match(
+      /@container boe-app-shell \(max-width: 48rem\) \{([\s\S]*?)\n  \}/,
+    )?.[1] ?? "";
+    expect(containerRule).toContain("grid-template-columns: 1fr");
+    expect(containerRule).toContain("border-right: 0");
+    expect(containerRule).toContain("border-left: 0");
+    expect(containerRule).toContain("border-bottom:");
+    expect(containerRule).toContain("border-top:");
   });
 });

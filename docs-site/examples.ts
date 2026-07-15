@@ -410,7 +410,7 @@ export const examples: Record<string, ComponentExample> = {
   },
   dialog: { html: `<box-dialog heading="Delete file?" message="Quarterly Plan.pdf will be moved to trash." open></box-dialog>` },
   drawer: { html: `<box-drawer heading="Details" open></box-drawer>` },
-  popover: { html: `<box-popover label="More info" placement="bottom" open>Shared links expire automatically.</box-popover>` },
+  popover: { html: `<box-popover label="More info" placement="top" open>Shared links expire automatically.</box-popover>` },
   tooltip: { html: `<box-tooltip label="Copy link" open><box-button label="Share" tone="neutral"></box-button></box-tooltip>` },
   illustration: { html: `<box-illustration asset="empty-state-folder" label="Empty folder"></box-illustration>` },
 

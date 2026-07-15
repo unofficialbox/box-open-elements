@@ -346,7 +346,7 @@ describe("BoxContentExplorerElement", () => {
     const breadcrumbButton = element.shadowRoot?.querySelector('[part="breadcrumb"]') as HTMLButtonElement | null;
 
     expect(refreshButton?.getAttribute("aria-label")).toBe("Refresh items");
-    expect(itemButton?.getAttribute("aria-label")).toBe("Open Spec");
+    expect(itemButton?.getAttribute("aria-label")).toBe("Spec");
     expect(actionButton?.getAttribute("aria-label")).toBe("Preview Spec");
     expect(breadcrumbButton?.getAttribute("aria-label")).toBe("Open All Files");
   });

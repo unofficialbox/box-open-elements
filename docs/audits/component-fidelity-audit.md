@@ -24,8 +24,8 @@ result is written to the run journal, and the committed outputs are this report 
 
 **51 components score below 3/5; 229 high-severity issues logged.**
 
-> **Program status (live):** Batches **0–7 merged**. High-signal medium/low
-> audit nits in flight (`cursor/medium-low-audit-nits-7eb7`).
+> **Program status (live):** Batches **0–7** and medium/low nits (#41) **merged**.
+> Design-heavy leftovers in flight (`cursor/design-heavy-leftovers-7eb7`, #42).
 > Session status: [HANDOFF.md](../HANDOFF.md). Scores and issue lists below are the **original
 > audit snapshot** — they are not re-scored after each batch; track completion in the prioritized
 > plan and HANDOFF.

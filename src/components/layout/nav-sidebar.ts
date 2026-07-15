@@ -74,6 +74,15 @@ const navSidebarStyles = `
     box-sizing: border-box;
   }
 
+  [part="body"] ::slotted(button) {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    text-align: start;
+    width: 100%;
+  }
+
   [part="body"] ::slotted(a:hover),
   [part="body"] ::slotted(button:hover) {
     background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%);

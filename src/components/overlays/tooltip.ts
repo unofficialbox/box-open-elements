@@ -183,7 +183,8 @@ export class BoxTooltipElement extends BaseElement {
     this.triggerHostEl.addEventListener("focusin", () => this.show());
     this.triggerHostEl.addEventListener("focusout", event => {
       const next = (event as FocusEvent).relatedTarget as Node | null;
-      if (next && this.triggerHostEl.contains(next)) {
+      // Slotted light-DOM nodes are not descendants of the shadow trigger host.
+      if (next && (this.triggerHostEl.contains(next) || this.contains(next))) {
         return;
       }
       this.hide();
