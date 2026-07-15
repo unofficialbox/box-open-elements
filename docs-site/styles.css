@@ -257,6 +257,60 @@ body {
 .related-card:hover { border-color: #0061d5; background: #f4f4f4; }
 .related-card code { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #6f6f6f; }
 
+.guidance-section { margin-top: 8px; }
+
+.guidance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
+  gap: 10px;
+}
+
+.guidance-card {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  min-width: 0;
+  padding: 12px 14px;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  color: #222222;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.guidance-title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6f6f6f;
+}
+
+.guidance-lead {
+  margin: 0;
+  font-weight: 600;
+  color: #222222;
+}
+
+.guidance-card p { margin: 0; }
+.guidance-note { color: #6f6f6f; }
+.guidance-card code,
+.guidance-list code {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 11.5px;
+  overflow-wrap: anywhere;
+}
+
+.guidance-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 6px;
+  color: #222222;
+}
+
 .inspector { display: grid; gap: 14px; align-content: start; }
 
 .inspector-panel {
@@ -394,6 +448,8 @@ table.api-table code { font-family: ui-monospace, Menlo, monospace; font-size: 1
 :root[data-theme="dark"] .inspector-panel h3,
 :root[data-theme="dark"] .inspector-empty,
 :root[data-theme="dark"] .preview-note,
+:root[data-theme="dark"] .guidance-title,
+:root[data-theme="dark"] .guidance-note,
 :root[data-theme="dark"] .related-card code,
 :root[data-theme="dark"] .token-meta code,
 :root[data-theme="dark"] .token-meta .token-value,
@@ -426,11 +482,15 @@ table.api-table code { font-family: ui-monospace, Menlo, monospace; font-size: 1
 :root[data-theme="dark"] .token-card,
 :root[data-theme="dark"] .icon-card,
 :root[data-theme="dark"] .related-card,
+:root[data-theme="dark"] .guidance-card,
 :root[data-theme="dark"] table.api-table { background: #1c1c1c; border-color: #3a3a3a; }
 
 :root[data-theme="dark"] #copy-link,
 :root[data-theme="dark"] #theme-toggle,
 :root[data-theme="dark"] .related-card,
+:root[data-theme="dark"] .guidance-card,
+:root[data-theme="dark"] .guidance-lead,
+:root[data-theme="dark"] .guidance-list,
 :root[data-theme="dark"] .icon-card .glyph,
 :root[data-theme="dark"] table.api-table code { color: #f4f4f4; }
 

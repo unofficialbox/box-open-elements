@@ -23,12 +23,12 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 ## Patterns
 
-- **In flight:** explorer UI follow-through on search + enriched item columns — `cursor/explorer-search-item-contract-7eb7` (#43).
+- Explorer search + enriched item columns + UI chrome shipped (#43).
 - Defer: `recents` view mode; configurable/permission-gated columns; filter-bar / saved-view wiring.
 
 ## Tooling and infrastructure
 
-- Docs site shell + shipped follow-ons (`bun run docs`, variant dropdown from Storybook extraction, dark theme, markdown foundation docs in-shell, GitHub Pages deploy). Still open per [docs/workshop/docs-site.md](./docs/workshop/docs-site.md): **Usage/Best-practices guidance cards** — need real per-component keyboard/usage content first (content rule forbids invented placeholders).
+- Docs site shell + shipped follow-ons (`bun run docs`, variant dropdown from Storybook extraction, dark theme, markdown foundation docs in-shell, GitHub Pages deploy). **Open PR #44:** Usage/Best-practices/Keyboard guidance cards (workshop meta + role-mapped a11y bullets). Grow coverage by authoring more workshop stories / example notes; do not invent placeholder cards.
 - Screenshot pixel-diff CI shipped (`visual-regression` job in `.github/workflows/ci.yml` via pinned Playwright container). Local: `bun run test:regression:pixel` / `bun run baselines:regen`. Latent: `components-calendar.png` is date-dependent (pin the demo date someday).
 - Storybook workshop shipped (`storybook/`, see `docs/workshop/storybook.md`) — extraction backend for docs-site variants; not deployed publicly.
 - `packages/box-server` shipped (see `docs/integration/box-server.md`).

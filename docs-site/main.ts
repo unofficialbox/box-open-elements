@@ -1,6 +1,12 @@
 import * as lib from "box-open-elements";
 import { catalog, titleOf, type CatalogEntry } from "./registry.js";
 import { examples } from "./examples.js";
+import {
+  renderBulletList,
+  renderGuidanceCards,
+  resolvePreviewGuidance,
+} from "./guidance.js";
+import { inspectPreviewTree } from "./preview-inspect.js";
 import { lessons, lessonById } from "./lessons.js";
 import { renderLessonPage } from "./lesson-page.js";
 import { applyRailVersion } from "./rail-version.js";
@@ -277,7 +283,7 @@ const renderComponentPage = (entry: CatalogEntry): void => {
             </div>
           </div>
           <div class="preview-canvas" id="preview-canvas" data-preview-size="full"></div>
-          ${example.note ? `<p class="preview-note">${escapeHtml(example.note)}</p>` : ""}
+          <div id="guidance-section"></div>
           <div id="related-section"></div>
         </div>
         <aside class="inspector">
@@ -306,6 +312,8 @@ const renderComponentPage = (entry: CatalogEntry): void => {
       <div class="prose">
         <p class="section-label">Roles detected in this preview</p>
         <div id="a11y-roles"></div>
+        <p class="section-label">Keyboard for these roles</p>
+        <div id="a11y-keyboard"></div>
         <p>Shared keyboard and ARIA conventions for the whole system live in
         <a href="https://github.com/unofficialbox/box-open-elements/blob/main/docs/foundations/accessibility.md" target="_blank" rel="noreferrer">docs/foundations/accessibility.md</a>.</p>
       </div>
@@ -366,6 +374,8 @@ const renderComponentPage = (entry: CatalogEntry): void => {
   const propList = stageBody.querySelector<HTMLElement>("#prop-list")!;
   const partsTarget = stageBody.querySelector<HTMLElement>("#api-parts")!;
   const rolesTarget = stageBody.querySelector<HTMLElement>("#a11y-roles")!;
+  const keyboardTarget = stageBody.querySelector<HTMLElement>("#a11y-keyboard")!;
+  const guidanceTarget = stageBody.querySelector<HTMLElement>("#guidance-section")!;
   let observer: MutationObserver | null = null;
   const renderProps = (primary: HTMLElement | null): void => {
     const rows = primary
@@ -383,22 +393,23 @@ const renderComponentPage = (entry: CatalogEntry): void => {
       observer = new MutationObserver(() => renderProps(primary));
       observer.observe(primary, { attributes: true });
     }
-    const parts = new Set<string>();
-    const roles = new Set<string>();
-    canvas.querySelectorAll<HTMLElement>("*").forEach(node => {
-      node.shadowRoot?.querySelectorAll<HTMLElement>("[part]").forEach(inner => {
-        inner.getAttribute("part")!.split(/\s+/).forEach(part => parts.add(part));
-      });
-      node.shadowRoot?.querySelectorAll<HTMLElement>("[role]").forEach(inner => {
-        roles.add(inner.getAttribute("role")!);
-      });
-    });
-    partsTarget.innerHTML = parts.size
-      ? `<table class="api-table"><tr><th>Part</th><th>Selector</th></tr>${[...parts].sort().map(part => `<tr><td><code>${escapeHtml(part)}</code></td><td><code>${entry.tag}::part(${escapeHtml(part)})</code></td></tr>`).join("")}</table>`
+    const inspection = inspectPreviewTree(canvas, { primaryTag: entry.tag });
+    partsTarget.innerHTML = inspection.parts.length
+      ? `<table class="api-table"><tr><th>Part</th><th>Selector</th></tr>${inspection.parts.map(part => `<tr><td><code>${escapeHtml(part)}</code></td><td><code>${entry.tag}::part(${escapeHtml(part)})</code></td></tr>`).join("")}</table>`
       : '<p class="inspector-empty">No parts exposed in this preview.</p>';
-    rolesTarget.innerHTML = roles.size
-      ? `<table class="api-table"><tr><th>Role</th></tr>${[...roles].sort().map(role => `<tr><td><code>${escapeHtml(role)}</code></td></tr>`).join("")}</table>`
+    rolesTarget.innerHTML = inspection.roles.length
+      ? `<table class="api-table"><tr><th>Role</th></tr>${inspection.roles.map(role => `<tr><td><code>${escapeHtml(role)}</code></td></tr>`).join("")}</table>`
       : '<p class="inspector-empty">No explicit ARIA roles in this preview (native semantics).</p>';
+
+    const guidance = resolvePreviewGuidance({
+      catalogId: entry.id,
+      roles: inspection.guidanceRoles,
+      exampleNote: example.note,
+    });
+    guidanceTarget.innerHTML = renderGuidanceCards(guidance);
+    keyboardTarget.innerHTML = guidance.keyboard.length
+      ? renderBulletList(guidance.keyboard)
+      : '<p class="inspector-empty">No role-mapped keyboard guidance for this preview — see the shared accessibility conventions.</p>';
   };
   const mount = (html: string, runSetup: boolean): void => {
     canvas.innerHTML = html;

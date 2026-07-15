@@ -4,7 +4,7 @@ The primary documentation experience for `box-open-elements` is a component-docu
 
 The predecessor repo built this shell (through Phase 6 of its docs-site ExecPlan) and the decisions below were validated there.
 
-**Status: v1 shipped** — `docs-site/` implements the rail (three taxonomy tabs, search, counts, version footer), tabbed component pages with live Events/Properties inspectors and runtime-derived API tables, and live tokens/iconography foundations pages (`bun run docs`; tracked by `plans/docs-site-v1-execplan.md`). The component page also has a device-size preview toolbar (Full/Tablet/Mobile) and a Related-links section, and the rail footer has a real dark-mode toggle backed by the `box-dark` token bundle. Landed since v1: the **variant dropdown** (real extracted variants from the storybook workshop `generated/workshop.json`, for the components with authored stories — the intended storybook→docs-site extraction path), **markdown foundation docs in-shell** (Accessibility + Brand pages, plus the token/iconography guides appended to their live pages), **containerized screenshot pixel-diff gating**, and a **host-agnostic static build with GitHub Pages deployment** (`bun run site:build`; see Deployment below). Still open: **Usage/Best-practices guidance cards** — deferred, because no real per-component guidance content exists yet and the content rule below forbids invented placeholder copy; they need authored per-component guidance first.
+**Status: v1 shipped** — `docs-site/` implements the rail (three taxonomy tabs, search, counts, version footer), tabbed component pages with live Events/Properties inspectors and runtime-derived API tables, and live tokens/iconography foundations pages (`bun run docs`; tracked by `plans/docs-site-v1-execplan.md`). The component page also has a device-size preview toolbar (Full/Tablet/Mobile) and a Related-links section, and the rail footer has a real dark-mode toggle backed by the `box-dark` token bundle. Landed since v1: the **variant dropdown** (real extracted variants from the storybook workshop `generated/workshop.json`, for the components with authored stories — the intended storybook→docs-site extraction path), **markdown foundation docs in-shell** (Accessibility + Brand pages, plus the token/iconography guides appended to their live pages), **containerized screenshot pixel-diff gating**, a **host-agnostic static build with GitHub Pages deployment** (`bun run site:build`; see Deployment below), and **Usage / Best-practices / Keyboard guidance cards** (see below).
 
 ## Deployment
 
@@ -36,7 +36,11 @@ The docs-site ships as a **host-agnostic static build** and deploys to a live UR
 - Four real, mutually exclusive tabs: `Preview`, `Code`, `API` (attributes/events/styling hooks reference), `Accessibility` (keyboard interaction plus a link to the shared conventions).
 - Preview toolbar: variant select, desktop/tablet/mobile device-size toggle, and a dark-mode toggle scoped to just the preview canvas (independent of the shell theme).
 - On the Preview tab: a right-side `Events` panel showing the component's real logged events (bounded history, live badge count, clear action) and a `Properties` panel reflecting the component's actual current attributes live (driven by `observedAttributes` + a `MutationObserver` — the attribute-reflection convention every component follows).
-- Below the preview: `Usage`, `Best practices`, and `Related` guidance cards, each populated from real catalog data.
+- Below the preview: `Usage`, `Best practices`, `Keyboard`, and `Related` guidance cards, each populated from real data and **omitted when empty**:
+  - **Usage** — workshop `shortDescription` / `docsDescription` (storybook surfaces) and/or the curated `examples.ts` `note`
+  - **Best practices** / **Keyboard** — bullets from `docs/foundations/accessibility.md` filtered by roles detected in the live preview (plus native interactive semantics when no explicit `role` is set)
+  - **Related** — sibling catalog entries in the same category
+- The Accessibility tab lists detected roles and the same role-mapped keyboard bullets, with a link to the shared conventions.
 
 ## Content rules
 
