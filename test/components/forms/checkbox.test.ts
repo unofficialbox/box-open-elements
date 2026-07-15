@@ -43,4 +43,26 @@ describe("BoxCheckboxElement", () => {
     expect(input?.disabled).toBe(true);
     expect(input?.getAttribute("aria-label")).toBe("Remember choice");
   });
+
+  it("retains focus on the internal input when attributes or properties change", () => {
+    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
+
+    // Focus the internal input
+    input.focus();
+    expect(element.shadowRoot?.activeElement).toBe(input);
+
+    // Change attributes/properties
+    element.label = "Remember me";
+    element.checked = true;
+
+    // Check that label and checked updated in DOM
+    expect(input.checked).toBe(true);
+    expect(input.getAttribute("aria-label")).toBe("Remember me");
+
+    // Assert focus is still on the internal input
+    expect(element.shadowRoot?.activeElement).toBe(input);
+  });
 });

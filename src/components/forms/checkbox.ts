@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-checkbox";
 
 const escapeHtml = (value: string): string =>
@@ -8,17 +10,14 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-export class BoxCheckboxElement extends HTMLElement {
+export class BoxCheckboxElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["checked", "disabled", "label"];
   }
 
   private checkedInternal = false;
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private inputEl!: HTMLInputElement;
+  private labelEl!: HTMLSpanElement;
 
   get checked(): boolean {
     return this.checkedInternal;
@@ -32,7 +31,6 @@ export class BoxCheckboxElement extends HTMLElement {
     } else {
       this.removeAttribute("checked");
     }
-    this.render();
   }
 
   get disabled(): boolean {
@@ -55,19 +53,18 @@ export class BoxCheckboxElement extends HTMLElement {
     this.setAttribute("label", value);
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(
+    name: string,
+    oldValue: string | null,
+    newValue: string | null,
+  ): void {
     if (name === "checked") {
       this.checkedInternal = this.hasAttribute("checked");
     }
-
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
-  private render(): void {
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
@@ -116,16 +113,17 @@ export class BoxCheckboxElement extends HTMLElement {
         <input
           type="checkbox"
           part="input"
-          aria-label="${escapeHtml(this.label)}"
-          ${this.checkedInternal ? "checked" : ""}
-          ${this.disabled ? "disabled" : ""}
         />
-        <span part="label">${escapeHtml(this.label)}</span>
+        <span part="label"></span>
       </label>
     `;
 
-    const input = this.shadowRoot.querySelector('[part="input"]') as HTMLInputElement | null;
-    input?.addEventListener("change", event => {
+    this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
+    this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+  }
+
+  protected setupListeners(): void {
+    this.inputEl.addEventListener("change", event => {
       if (this.disabled) {
         return;
       }
@@ -144,6 +142,21 @@ export class BoxCheckboxElement extends HTMLElement {
         }),
       );
     });
+  }
+
+  protected update(): void {
+    if (!this.inputEl) {
+      return;
+    }
+
+    this.inputEl.checked = this.checkedInternal;
+    if (this.disabled) {
+      this.inputEl.setAttribute("disabled", "");
+    } else {
+      this.inputEl.removeAttribute("disabled");
+    }
+    this.inputEl.setAttribute("aria-label", this.label);
+    this.labelEl.textContent = this.label;
   }
 }
 
