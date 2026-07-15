@@ -285,8 +285,8 @@ export class BoxIllustrationElement extends BaseElement {
 
     this.shadowRoot.innerHTML = `
       <style>${illustrationStyles}</style>
-      <figure part="illustration" role="img">
-        <div part="art" aria-hidden="true"></div>
+      <figure part="illustration">
+        <div part="art"></div>
         <figcaption part="meta">
           <h2 part="title" hidden></h2>
           <span part="message caption" hidden></span>
@@ -309,7 +309,6 @@ export class BoxIllustrationElement extends BaseElement {
     const signature = `${this.asset}|${this.shape}|${illustrationMarkup ?? ""}`;
 
     this.figureEl.dataset.shape = this.shape;
-    this.figureEl.setAttribute("aria-label", this.heading || this.message || "Illustration");
     this.artEl.dataset.assetSource = illustrationMarkup ? "design-system" : "shape";
 
     if (signature !== this.artSignature) {
@@ -331,6 +330,18 @@ export class BoxIllustrationElement extends BaseElement {
     } else {
       this.captionEl.hidden = true;
       this.captionEl.textContent = "";
+    }
+
+    // Keep image role on the art node only when there is no visible text alternative,
+    // so a heading in figcaption is not swallowed by presentational descendants.
+    if (this.heading || this.message) {
+      this.artEl.setAttribute("aria-hidden", "true");
+      this.artEl.removeAttribute("role");
+      this.artEl.removeAttribute("aria-label");
+    } else {
+      this.artEl.removeAttribute("aria-hidden");
+      this.artEl.setAttribute("role", "img");
+      this.artEl.setAttribute("aria-label", "Illustration");
     }
   }
 }

@@ -423,7 +423,9 @@ export class BoxAnnotationToolbarElement extends BaseElement {
       if (!toolbar) {
         return;
       }
-      const buttons = Array.from(toolbar.querySelectorAll<HTMLButtonElement>("button"));
+      const buttons = Array.from(toolbar.querySelectorAll<HTMLButtonElement>("button")).filter(
+        button => !button.disabled,
+      );
       applyRovingTabindex(buttons, 0);
       toolbar.addEventListener("keydown", event => {
         handleRovingKeydown(event as KeyboardEvent, buttons, { orientation: "horizontal" });

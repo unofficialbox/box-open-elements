@@ -184,11 +184,15 @@ export class BoxSegmentedControlElement extends BaseElement {
 
     const nextIndex = Math.max(0, Math.min(enabledOptions.length - 1, index));
     const nextValue = enabledOptions[nextIndex]?.value ?? "";
-    if (!nextValue || nextValue === this.valueInternal) {
-      const nextButton = this.controlEl?.querySelector(
-        `[part="segment"][data-value="${escapeHtml(nextValue)}"]`,
-      ) as HTMLButtonElement | null;
+    const focusSegment = (value: string): void => {
+      const nextButton = Array.from(
+        this.controlEl?.querySelectorAll<HTMLButtonElement>('[part="segment"]') ?? [],
+      ).find(button => button.dataset.value === value);
       nextButton?.focus();
+    };
+
+    if (!nextValue || nextValue === this.valueInternal) {
+      focusSegment(nextValue);
       return;
     }
 
@@ -202,11 +206,7 @@ export class BoxSegmentedControlElement extends BaseElement {
       }),
     );
     this.update();
-
-    const nextButton = this.controlEl?.querySelector(
-      `[part="segment"][data-value="${escapeHtml(nextValue)}"]`,
-    ) as HTMLButtonElement | null;
-    nextButton?.focus();
+    focusSegment(nextValue);
   }
 
   protected renderTemplate(): void {

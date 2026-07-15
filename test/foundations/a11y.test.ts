@@ -55,6 +55,24 @@ describe("foundations/a11y focus", () => {
     container.remove();
   });
 
+  it("excludes CSS-hidden and disabled controls from the tab trap set", () => {
+    const container = document.createElement("div");
+    const visible = document.createElement("button");
+    const hidden = document.createElement("button");
+    const disabled = document.createElement("button");
+    visible.textContent = "Visible";
+    hidden.textContent = "Hidden";
+    hidden.style.display = "none";
+    disabled.textContent = "Disabled";
+    disabled.disabled = true;
+    disabled.tabIndex = 0;
+    container.append(visible, hidden, disabled);
+    document.body.append(container);
+
+    expect(getTabbableElements(container)).toEqual([visible]);
+    container.remove();
+  });
+
   it("restores previously captured focus", async () => {
     const a = document.createElement("button");
     const b = document.createElement("button");

@@ -220,13 +220,29 @@ export class BoxSavedViewPickerElement extends BaseElement {
     );
     applyRovingTabindex(views, selectedIndex);
 
-    const selectView = (nextValue: string): void => {
+    const focusView = (viewId: string): void => {
+      queueMicrotask(() => {
+        const match = Array.from(
+          this.shadowRoot?.querySelectorAll<HTMLButtonElement>('[part="view"]') ?? [],
+        ).find(button => button.getAttribute("data-view-id") === viewId);
+        match?.focus();
+      });
+    };
+
+    const selectView = (nextValue: string, restoreFocus = false): void => {
       if (!nextValue || nextValue === this.valueInternal) {
+        if (restoreFocus) {
+          focusView(nextValue);
+        }
         return;
       }
       this.valueInternal = nextValue;
       this.setAttribute("value", nextValue);
       this.emitValueChanged();
+      // `update()` rebuilds the view buttons; restore focus onto the new node.
+      if (restoreFocus) {
+        focusView(nextValue);
+      }
     };
 
     views.forEach(button => {
@@ -239,10 +255,8 @@ export class BoxSavedViewPickerElement extends BaseElement {
       const keyboardEvent = event as KeyboardEvent;
       // APG radiogroup: Arrow/Home/End move focus and select the newly focused view.
       if (handleRovingKeydown(keyboardEvent, views, { orientation: "both" })) {
-        queueMicrotask(() => {
-          const focused = views.find(button => button.tabIndex === 0);
-          selectView(focused?.getAttribute("data-view-id") ?? "");
-        });
+        const focused = views.find(button => button.tabIndex === 0);
+        selectView(focused?.getAttribute("data-view-id") ?? "", true);
         return;
       }
 
@@ -256,7 +270,7 @@ export class BoxSavedViewPickerElement extends BaseElement {
         return;
       }
       keyboardEvent.preventDefault();
-      selectView(button.getAttribute("data-view-id") ?? "");
+      selectView(button.getAttribute("data-view-id") ?? "", true);
     });
   }
 }

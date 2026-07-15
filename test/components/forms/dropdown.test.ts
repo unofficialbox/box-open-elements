@@ -96,6 +96,34 @@ describe("BoxDropdownElement", () => {
     items[0]?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
     await Promise.resolve();
     expect(element.shadowRoot?.activeElement).toBe(items[1]);
+
+    items[1]?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    await Promise.resolve();
+    expect(element.value).toBe("table");
+    expect(element.shadowRoot?.querySelector('[part="menu"]')).toBeNull();
+  });
+
+  it("closes on Escape and restores focus to the trigger", async () => {
+    const element = document.createElement("box-dropdown") as BoxDropdownElement;
+    element.items = [
+      { id: "list", label: "List" },
+      { id: "table", label: "Table" },
+    ];
+    document.body.append(element);
+
+    const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement;
+    trigger.focus();
+    trigger.click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const item = element.shadowRoot?.querySelector('[part="item"]') as HTMLButtonElement;
+    item?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(element.shadowRoot?.querySelector('[part="menu"]')).toBeNull();
+    expect(element.shadowRoot?.activeElement).toBe(trigger);
   });
 
   it("includes focus-visible and hover styles for trigger and items", () => {

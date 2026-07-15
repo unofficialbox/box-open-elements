@@ -11,20 +11,39 @@ const TABBABLE_SELECTOR = [
   "[tabindex]:not([tabindex='-1'])",
 ].join(", ");
 
+const isDisabled = (element: HTMLElement): boolean =>
+  element.hasAttribute("disabled") ||
+  (element as HTMLButtonElement).disabled === true ||
+  element.getAttribute("aria-disabled") === "true";
+
+const isVisible = (element: HTMLElement): boolean => {
+  if (element.hidden || element.getAttribute("aria-hidden") === "true") {
+    return false;
+  }
+  // Closest [hidden] ancestor (common pattern for closed panels).
+  if (element.closest("[hidden]")) {
+    return false;
+  }
+  const style = element.ownerDocument.defaultView?.getComputedStyle(element);
+  if (!style) {
+    return true;
+  }
+  if (style.display === "none" || style.visibility === "hidden") {
+    return false;
+  }
+  return true;
+};
+
 /** Visible, enabled tabbable controls inside `container` (light or shadow). */
 export const getTabbableElements = (container: ParentNode): HTMLElement[] => {
   return Array.from(container.querySelectorAll<HTMLElement>(TABBABLE_SELECTOR)).filter(element => {
-    if (element.hasAttribute("disabled") || element.getAttribute("aria-hidden") === "true") {
+    if (isDisabled(element)) {
       return false;
     }
     if (element.tabIndex < 0) {
       return false;
     }
-    // Hidden via attribute or CSS — approximate with offsetParent / getClientRects.
-    if (element.hidden) {
-      return false;
-    }
-    return true;
+    return isVisible(element);
   });
 };
 

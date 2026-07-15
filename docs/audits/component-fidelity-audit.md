@@ -39,9 +39,9 @@ result is written to the run journal, and the committed outputs are this report 
 At audit time the library averaged **2.78/5** across 108 scored components (51 under 3.0), with
 **states (2.52)** and **accessibility (2.62)** weakest. Two defects dominated: a **full
 `shadowRoot.innerHTML` rebuild on every state change** and **hardcoded `white` inside
-`color-mix()`**. Those systemic themes (plus focus/hover states, `title`→`heading`, and the
-security holes) have since been swept — see the prioritized plan. Remaining work is primarily
-**ARIA/keyboard behavior**, **form association**, and leftover polish.
+`color-mix()`**. Those systemic themes (plus focus/hover states, ARIA/keyboard, `title`→`heading`,
+and the security holes) have since been swept — see the prioritized plan. Remaining work is
+primarily **form association** (Batch 5) and leftover polish (Batch 7).
 
 ## Systemic themes
 

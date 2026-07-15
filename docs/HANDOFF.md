@@ -66,7 +66,9 @@ organized into **systemic sweeps**, not per-component rewrites.
   Home/End). Modals trap Tab + restore focus (dialog, drawer, invite). Fake
   `tablist`/`tab` removed from progress-steps + carousel; `role="listitem"`
   stripped from interactive buttons. `heading` now renders as native `<h2>`
-  across heading-bearing surfaces (keep `part="title"`).
+  across heading-bearing surfaces (keep `part="title"`). Exception: titles
+  nested inside a native `<button>` (e.g. review-queue-item) stay non-heading
+  markup because headings inside buttons are invalid HTML.
 
 ### Remaining (do these next, in order)
 1. **Batch 5 — form-field completeness (~13):** error/invalid state,

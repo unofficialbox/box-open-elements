@@ -434,7 +434,7 @@ export class BoxReviewQueueItemElement extends BaseElement {
         <button type="button" part="select" aria-label="Open ${escapeHtml(this.heading)} review item">
           <header part="header">
             <div part="title-row">
-              <h2 part="title">${escapeHtml(this.heading)}</h2>
+              <div part="title">${escapeHtml(this.heading)}</div>
               ${statusMarkup}
               ${priorityMarkup}
             </div>
