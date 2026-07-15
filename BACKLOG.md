@@ -16,7 +16,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 ## Foundations
 
-- Iconography generator ported (`tools/iconography/`, `bun run icons:generate`) — full 472-icon manifest already vendored; regenerate from the external pack when the inventory updates (see `docs/foundations/iconography.md`).
+- **Open PR #45:** iconography generator (`tools/iconography/`, `bun run icons:generate`) — full 472-icon manifest already vendored; regenerate from the external pack when the inventory updates (see `docs/foundations/iconography.md`).
 - Add explicit per-component guidance for consuming design tokens directly versus relying on shell styling.
 - Review the Box brand imagery Figma frame — imagery guidance has been open since the original brand review (see `docs/foundations/brand.md`).
 - Add Theming and Motion foundation docs when there is real content for them (do not create placeholder pages).

@@ -1,8 +1,8 @@
 # Handoff — box-open-elements
 
 Snapshot for the next agent picking up this work. Read this first, then
-`plans/iconography-generator.md` (active iconography generator work) and
-`docs/audits/component-fidelity-audit.md` (completed fidelity program).
+`BACKLOG.md` and `docs/audits/component-fidelity-audit.md` (completed fidelity
+program). Iconography generator: `plans/iconography-generator.md`.
 
 ## What this repo is
 
@@ -26,8 +26,8 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
 - Recent merged PRs: fidelity Batches 0–7 + #41–**#44** (explorer search/UI, docs-site
   guidance cards).
-- **Active work:** iconography generator port —
-  `cursor/iconography-generator-7eb7` (see `plans/iconography-generator.md`).
+- **Open PR:** iconography generator —
+  `cursor/iconography-generator-7eb7` (#45; see `plans/iconography-generator.md`).
 
 ## Completed initiative: component fidelity program
 
@@ -142,6 +142,7 @@ organized into **systemic sweeps**, not per-component rewrites.
 
 ## Open user-facing threads
 - Fidelity program complete through #42.
-- **In flight:** iconography generator (`cursor/iconography-generator-7eb7`) —
-  path/env-driven pack → `box-iconography.generated.ts`; fixture tests; no pack
-  vendored in-repo.
+- **Open PR #45:** iconography generator (`bun run icons:generate` /
+  `BOX_ICONOGRAPHY_SOURCE`). Full 472-icon manifest already vendored; regenerate
+  from the external pack when the inventory updates. Next after merge: per-component
+  token-vs-shell guidance or brand imagery review (see BACKLOG).

@@ -276,47 +276,53 @@ const parseArgs = (argv: string[]): { source?: string; out: string; dryRun: bool
 };
 
 export const main = (argv = process.argv.slice(2)): number => {
-  const args = parseArgs(argv);
-  if (args.help) {
-    printHelp();
-    return 0;
-  }
+  try {
+    const args = parseArgs(argv);
+    if (args.help) {
+      printHelp();
+      return 0;
+    }
 
-  if (!args.source) {
-    printHelp();
-    console.error("\nerror: --source or BOX_ICONOGRAPHY_SOURCE is required");
-    return 1;
-  }
+    if (!args.source) {
+      printHelp();
+      console.error("\nerror: --source or BOX_ICONOGRAPHY_SOURCE is required");
+      return 1;
+    }
 
-  const icons = generateIconsFromSource(args.source);
-  const manifest = renderGeneratedManifest(icons);
+    const icons = generateIconsFromSource(args.source);
+    const manifest = renderGeneratedManifest(icons);
 
-  if (args.dryRun) {
+    if (args.dryRun) {
+      console.log(
+        JSON.stringify(
+          {
+            source: resolve(args.source),
+            total: icons.length,
+            blue: icons.filter(icon => icon.tone === "blue").length,
+            white: icons.filter(icon => icon.tone === "white").length,
+            sampleKeys: icons.slice(0, 8).map(icon => icon.key),
+            out: args.out,
+          },
+          null,
+          2,
+        ),
+      );
+      return 0;
+    }
+
+    mkdirSync(join(args.out, ".."), { recursive: true });
+    writeFileSync(args.out, manifest, "utf8");
     console.log(
-      JSON.stringify(
-        {
-          source: resolve(args.source),
-          total: icons.length,
-          blue: icons.filter(icon => icon.tone === "blue").length,
-          white: icons.filter(icon => icon.tone === "white").length,
-          sampleKeys: icons.slice(0, 8).map(icon => icon.key),
-          out: args.out,
-        },
-        null,
-        2,
-      ),
+      `Wrote ${icons.length} icons → ${relative(ROOT, args.out)} ` +
+        `(blue=${icons.filter(icon => icon.tone === "blue").length}, ` +
+        `white=${icons.filter(icon => icon.tone === "white").length})`,
     );
     return 0;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`error: ${message}`);
+    return 1;
   }
-
-  mkdirSync(join(args.out, ".."), { recursive: true });
-  writeFileSync(args.out, manifest, "utf8");
-  console.log(
-    `Wrote ${icons.length} icons → ${relative(ROOT, args.out)} ` +
-      `(blue=${icons.filter(icon => icon.tone === "blue").length}, ` +
-      `white=${icons.filter(icon => icon.tone === "white").length})`,
-  );
-  return 0;
 };
 
 if (import.meta.main) {
