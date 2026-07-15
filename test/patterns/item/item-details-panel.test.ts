@@ -60,4 +60,25 @@ describe("BoxItemDetailsPanelElement", () => {
       }),
     );
   });
+
+  it("preserves action focus across unrelated attribute updates", () => {
+    const element = document.createElement("box-item-details-panel") as BoxItemDetailsPanelElement;
+    element.heading = "Brand Strategy.pdf";
+    element.actions = [
+      { id: "open", label: "Open", tone: "primary" },
+      { id: "share", label: "Share" },
+    ];
+    document.body.append(element);
+
+    const button = element.shadowRoot?.querySelector('[data-action-id="share"]') as HTMLButtonElement;
+    button.focus();
+
+    element.heading = "Updated Title.pdf";
+    element.message = "Refreshed metadata";
+    element.status = "Ready";
+
+    expect(element.shadowRoot?.activeElement).toBe(button);
+    expect(element.shadowRoot?.querySelector('[data-action-id="share"]')).toBe(button);
+    expect(element.shadowRoot?.textContent).toContain("Updated Title.pdf");
+  });
 });

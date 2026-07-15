@@ -85,8 +85,27 @@ export class BoxPopoverElement extends BaseElement {
   }
 
   private openValue = false;
+  private documentListenersBound = false;
   private triggerEl!: HTMLButtonElement;
   private surfaceEl!: HTMLElement;
+
+  private readonly onDocumentKeydown = (event: KeyboardEvent): void => {
+    if (!this.openValue || event.key !== "Escape") {
+      return;
+    }
+    event.preventDefault();
+    this.hide();
+  };
+
+  private readonly onOutsidePointer = (event: Event): void => {
+    if (!this.openValue) {
+      return;
+    }
+    const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+    if (!path.some(node => node === this)) {
+      this.hide();
+    }
+  };
 
   get open(): boolean {
     return this.openValue;
@@ -106,6 +125,7 @@ export class BoxPopoverElement extends BaseElement {
       this.removeAttribute("open");
     }
 
+    this.syncDocumentListeners();
     this.dispatchEvent(new CustomEvent("open-changed", { bubbles: true, composed: true, detail: { open: nextOpen } }));
     if (this.isRendered) {
       this.update();
@@ -120,9 +140,14 @@ export class BoxPopoverElement extends BaseElement {
     this.setAttribute("label", value);
   }
 
+  disconnectedCallback(): void {
+    this.unbindDocumentListeners();
+  }
+
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "open") {
       this.openValue = this.hasAttribute("open");
+      this.syncDocumentListeners();
     }
     super.attributeChangedCallback(name, oldValue, newValue);
   }
@@ -140,6 +165,32 @@ export class BoxPopoverElement extends BaseElement {
       this.hide();
     } else {
       this.show();
+    }
+  }
+
+  private bindDocumentListeners(): void {
+    if (this.documentListenersBound) {
+      return;
+    }
+    document.addEventListener("keydown", this.onDocumentKeydown);
+    document.addEventListener("pointerdown", this.onOutsidePointer);
+    this.documentListenersBound = true;
+  }
+
+  private unbindDocumentListeners(): void {
+    if (!this.documentListenersBound) {
+      return;
+    }
+    document.removeEventListener("keydown", this.onDocumentKeydown);
+    document.removeEventListener("pointerdown", this.onOutsidePointer);
+    this.documentListenersBound = false;
+  }
+
+  private syncDocumentListeners(): void {
+    if (this.openValue) {
+      this.bindDocumentListeners();
+    } else {
+      this.unbindDocumentListeners();
     }
   }
 
@@ -182,6 +233,7 @@ export class BoxPopoverElement extends BaseElement {
     this.triggerEl.textContent = this.label;
     this.triggerEl.setAttribute("aria-expanded", this.openValue ? "true" : "false");
     this.surfaceEl.hidden = !this.openValue;
+    this.syncDocumentListeners();
   }
 }
 

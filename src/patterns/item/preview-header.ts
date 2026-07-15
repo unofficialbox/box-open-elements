@@ -10,6 +10,9 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
+const escapeSelectorValue = (value: string): string =>
+  value.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
+
 type PreviewHeaderAction = {
   id: string;
   label: string;
@@ -134,6 +137,15 @@ export class BoxPreviewHeaderElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["actions", "breadcrumbs", "message", "status", "heading"];
   }
+
+  private breadcrumbsEl!: HTMLElement;
+  private titleEl!: HTMLElement;
+  private statusEl!: HTMLElement;
+  private messageEl!: HTMLElement;
+  private actionsEl!: HTMLElement;
+  private breadcrumbsSignature = "";
+  private actionsSignature = "";
+
   get actions(): PreviewHeaderAction[] {
     return this.parseJsonAttribute<PreviewHeaderAction[]>("actions", []);
   }
@@ -179,7 +191,6 @@ export class BoxPreviewHeaderElement extends BaseElement {
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
@@ -216,6 +227,67 @@ export class BoxPreviewHeaderElement extends BaseElement {
     );
   }
 
+  private breadcrumbsKey(): string {
+    return JSON.stringify(this.breadcrumbs.map(crumb => crumb.id));
+  }
+
+  private actionsKey(): string {
+    return JSON.stringify(this.actions.map(action => ({ id: action.id, tone: action.tone ?? "neutral" })));
+  }
+
+  private rebuildBreadcrumbs(): void {
+    this.breadcrumbsEl.innerHTML = this.breadcrumbs
+      .map(
+        crumb => `
+          <button type="button" part="breadcrumb" data-crumb-id="${escapeHtml(crumb.id)}">
+            ${escapeHtml(crumb.label)}
+          </button>
+        `,
+      )
+      .join('<span part="separator">/</span>');
+  }
+
+  private patchBreadcrumbLabels(): void {
+    this.breadcrumbs.forEach(crumb => {
+      const button = this.breadcrumbsEl.querySelector(
+        `[data-crumb-id="${escapeSelectorValue(crumb.id)}"]`,
+      ) as HTMLButtonElement | null;
+      if (button) {
+        button.textContent = crumb.label;
+      }
+    });
+  }
+
+  private rebuildActions(): void {
+    this.actionsEl.innerHTML = this.actions
+      .map(
+        action => `
+          <button
+            type="button"
+            part="action"
+            data-action-id="${escapeHtml(action.id)}"
+            data-tone="${escapeHtml(action.tone ?? "neutral")}"
+          >
+            ${escapeHtml(action.label)}
+          </button>
+        `,
+      )
+      .join("");
+  }
+
+  private patchActionLabels(): void {
+    this.actions.forEach(action => {
+      const button = this.actionsEl.querySelector(
+        `[data-action-id="${escapeSelectorValue(action.id)}"]`,
+      ) as HTMLButtonElement | null;
+      if (!button) {
+        return;
+      }
+      button.textContent = action.label;
+      button.dataset.tone = action.tone ?? "neutral";
+    });
+  }
+
   protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
@@ -223,90 +295,81 @@ export class BoxPreviewHeaderElement extends BaseElement {
 
     this.shadowRoot.innerHTML = `
       <style>${elementStyles}</style>
-      <div part="content-host"></div>
+      <section part="header">
+        <nav part="breadcrumbs" aria-label="Preview breadcrumbs" hidden></nav>
+        <div part="main">
+          <div part="title-row">
+            <div part="title"></div>
+            <div part="status" hidden></div>
+          </div>
+          <div part="message" hidden></div>
+        </div>
+        <div part="actions" hidden></div>
+      </section>
     `;
+    this.breadcrumbsEl = this.shadowRoot.querySelector('[part="breadcrumbs"]')!;
+    this.titleEl = this.shadowRoot.querySelector('[part="title"]')!;
+    this.statusEl = this.shadowRoot.querySelector('[part="status"]')!;
+    this.messageEl = this.shadowRoot.querySelector('[part="message"]')!;
+    this.actionsEl = this.shadowRoot.querySelector('[part="actions"]')!;
+  }
+
+  protected setupListeners(): void {
+    this.actionsEl.addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest('[part="action"]') as HTMLButtonElement | null;
+      if (!button || !this.actionsEl.contains(button)) {
+        return;
+      }
+
+      const actionId = button.dataset.actionId ?? "";
+      if (actionId) {
+        this.emitAction(actionId);
+      }
+    });
+
+    this.breadcrumbsEl.addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest('[part="breadcrumb"]') as HTMLButtonElement | null;
+      if (!button || !this.breadcrumbsEl.contains(button)) {
+        return;
+      }
+
+      const id = button.dataset.crumbId ?? "";
+      if (id) {
+        this.emitBreadcrumbSelected(id);
+      }
+    });
   }
 
   protected update(): void {
-    if (!this.shadowRoot) {
+    if (!this.titleEl || !this.actionsEl) {
       return;
     }
 
-    const breadcrumbsMarkup = this.breadcrumbs.length
-      ? `
-          <nav part="breadcrumbs" aria-label="Preview breadcrumbs">
-            ${this.breadcrumbs
-              .map(
-                crumb => `
-                  <button type="button" part="breadcrumb" data-crumb-id="${escapeHtml(crumb.id)}">
-                    ${escapeHtml(crumb.label)}
-                  </button>
-                `,
-              )
-              .join('<span part="separator">/</span>')}
-          </nav>
-        `
-      : "";
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const statusMarkup = this.status ? `<div part="status">${escapeHtml(this.status)}</div>` : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button
-                    type="button"
-                    part="action"
-                    data-action-id="${escapeHtml(action.id)}"
-                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
-                  >
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
+    this.titleEl.textContent = this.heading;
+    this.statusEl.hidden = !this.status;
+    this.statusEl.textContent = this.status;
+    this.messageEl.hidden = !this.message;
+    this.messageEl.textContent = this.message;
 
-    const host = this.shadowRoot.querySelector('[part="content-host"]');
-    if (!host) {
-      return;
+    const breadcrumbs = this.breadcrumbs;
+    this.breadcrumbsEl.hidden = breadcrumbs.length === 0;
+    const nextBreadcrumbs = this.breadcrumbsKey();
+    if (nextBreadcrumbs !== this.breadcrumbsSignature || this.breadcrumbsEl.childElementCount === 0) {
+      this.breadcrumbsSignature = nextBreadcrumbs;
+      this.rebuildBreadcrumbs();
+    } else {
+      this.patchBreadcrumbLabels();
     }
 
-    host.innerHTML = `
-      <section part="header">
-        ${breadcrumbsMarkup}
-        <div part="main">
-          <div part="title-row">
-            <div part="title">${escapeHtml(this.heading)}</div>
-            ${statusMarkup}
-          </div>
-          ${messageMarkup}
-        </div>
-        ${actionsMarkup}
-      </section>
-    `;
-
-    this.shadowRoot.querySelectorAll('[part="action"]').forEach(button => {
-      button.addEventListener("click", () => {
-        const actionId = (button as HTMLButtonElement).dataset.actionId ?? "";
-        if (actionId) {
-          this.emitAction(actionId);
-        }
-      });
-    });
-
-    this.shadowRoot.querySelectorAll('[part="breadcrumb"]').forEach(button => {
-      button.addEventListener("click", () => {
-        const id = (button as HTMLButtonElement).dataset.crumbId ?? "";
-        if (id) {
-          this.emitBreadcrumbSelected(id);
-        }
-      });
-    });
-  
+    const actions = this.actions;
+    this.actionsEl.hidden = actions.length === 0;
+    const nextActions = this.actionsKey();
+    if (nextActions !== this.actionsSignature || this.actionsEl.childElementCount === 0) {
+      this.actionsSignature = nextActions;
+      this.rebuildActions();
+    } else {
+      this.patchActionLabels();
+    }
   }
 }
 

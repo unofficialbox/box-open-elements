@@ -10,6 +10,9 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
+const escapeSelectorValue = (value: string): string =>
+  value.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
+
 type ItemDetailsAction = {
   id: string;
   label: string;
@@ -185,6 +188,21 @@ export class BoxItemDetailsPanelElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["actions", "eyebrow", "message", "meta", "owner", "status", "heading"];
   }
+
+  private eyebrowEl!: HTMLElement;
+  private titleEl!: HTMLElement;
+  private messageEl!: HTMLElement;
+  private statusEl!: HTMLElement;
+  private ownerEl!: HTMLElement;
+  private ownerAvatarEl!: HTMLElement;
+  private ownerNameEl!: HTMLElement;
+  private ownerDescriptionEl!: HTMLElement;
+  private ownerStatusEl!: HTMLElement;
+  private metaEl!: HTMLElement;
+  private actionsEl!: HTMLElement;
+  private metaSignature = "";
+  private actionsSignature = "";
+
   get actions(): ItemDetailsAction[] {
     return this.parseJsonAttribute<ItemDetailsAction[]>("actions", []);
   }
@@ -251,7 +269,6 @@ export class BoxItemDetailsPanelElement extends BaseElement {
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
@@ -278,6 +295,75 @@ export class BoxItemDetailsPanelElement extends BaseElement {
     );
   }
 
+  private metaKey(): string {
+    return JSON.stringify(this.meta.map(item => item.label));
+  }
+
+  private actionsKey(): string {
+    return JSON.stringify(this.actions.map(action => ({ id: action.id, tone: action.tone ?? "neutral" })));
+  }
+
+  private rebuildMeta(): void {
+    this.metaEl.innerHTML = this.meta
+      .map(
+        item => `
+          <div part="meta-row">
+            <dt part="meta-label">${escapeHtml(item.label)}</dt>
+            <dd part="meta-value">${escapeHtml(item.value)}</dd>
+          </div>
+        `,
+      )
+      .join("");
+  }
+
+  private patchMetaValues(): void {
+    const rows = this.metaEl.querySelectorAll('[part="meta-row"]');
+    this.meta.forEach((item, index) => {
+      const row = rows[index];
+      if (!row) {
+        return;
+      }
+      const labelEl = row.querySelector('[part="meta-label"]');
+      const valueEl = row.querySelector('[part="meta-value"]');
+      if (labelEl) {
+        labelEl.textContent = item.label;
+      }
+      if (valueEl) {
+        valueEl.textContent = item.value;
+      }
+    });
+  }
+
+  private rebuildActions(): void {
+    this.actionsEl.innerHTML = this.actions
+      .map(
+        action => `
+          <button
+            type="button"
+            part="action"
+            data-tone="${escapeHtml(action.tone ?? "neutral")}"
+            data-action-id="${escapeHtml(action.id)}"
+          >
+            ${escapeHtml(action.label)}
+          </button>
+        `,
+      )
+      .join("");
+  }
+
+  private patchActionLabels(): void {
+    this.actions.forEach(action => {
+      const button = this.actionsEl.querySelector(
+        `[data-action-id="${escapeSelectorValue(action.id)}"]`,
+      ) as HTMLButtonElement | null;
+      if (!button) {
+        return;
+      }
+      button.textContent = action.label;
+      button.dataset.tone = action.tone ?? "neutral";
+    });
+  }
+
   protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
@@ -285,96 +371,95 @@ export class BoxItemDetailsPanelElement extends BaseElement {
 
     this.shadowRoot.innerHTML = `
       <style>${elementStyles}</style>
-      <div part="content-host"></div>
+      <section part="panel">
+        <header part="header">
+          <div part="eyebrow" hidden></div>
+          <div part="title"></div>
+          <div part="message" hidden></div>
+          <div part="status" hidden></div>
+        </header>
+        <section part="owner" hidden>
+          <div part="owner-avatar"></div>
+          <div part="owner-meta">
+            <div part="owner-name"></div>
+            <div part="owner-description" hidden></div>
+            <div part="owner-status" hidden></div>
+          </div>
+        </section>
+        <dl part="meta" hidden></dl>
+        <div part="actions" hidden></div>
+      </section>
     `;
+    this.eyebrowEl = this.shadowRoot.querySelector('[part="eyebrow"]')!;
+    this.titleEl = this.shadowRoot.querySelector('[part="title"]')!;
+    this.messageEl = this.shadowRoot.querySelector('[part="message"]')!;
+    this.statusEl = this.shadowRoot.querySelector('[part="status"]')!;
+    this.ownerEl = this.shadowRoot.querySelector('[part="owner"]')!;
+    this.ownerAvatarEl = this.shadowRoot.querySelector('[part="owner-avatar"]')!;
+    this.ownerNameEl = this.shadowRoot.querySelector('[part="owner-name"]')!;
+    this.ownerDescriptionEl = this.shadowRoot.querySelector('[part="owner-description"]')!;
+    this.ownerStatusEl = this.shadowRoot.querySelector('[part="owner-status"]')!;
+    this.metaEl = this.shadowRoot.querySelector('[part="meta"]')!;
+    this.actionsEl = this.shadowRoot.querySelector('[part="actions"]')!;
+  }
+
+  protected setupListeners(): void {
+    this.actionsEl.addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest('[part="action"]') as HTMLButtonElement | null;
+      if (!button || !this.actionsEl.contains(button)) {
+        return;
+      }
+
+      const actionId = button.dataset.actionId ?? "";
+      if (actionId) {
+        this.emitAction(actionId);
+      }
+    });
   }
 
   protected update(): void {
-    if (!this.shadowRoot) {
+    if (!this.titleEl || !this.actionsEl) {
       return;
     }
 
-    const eyebrowMarkup = this.eyebrow ? `<div part="eyebrow">${escapeHtml(this.eyebrow)}</div>` : "";
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const statusMarkup = this.status ? `<div part="status">${escapeHtml(this.status)}</div>` : "";
+    this.eyebrowEl.hidden = !this.eyebrow;
+    this.eyebrowEl.textContent = this.eyebrow;
+    this.titleEl.textContent = this.heading;
+    this.messageEl.hidden = !this.message;
+    this.messageEl.textContent = this.message;
+    this.statusEl.hidden = !this.status;
+    this.statusEl.textContent = this.status;
+
     const owner = this.owner;
-    const ownerMarkup = owner
-      ? `
-          <section part="owner">
-            <div part="owner-avatar">${escapeHtml(owner.initials ?? owner.name.slice(0, 2).toUpperCase())}</div>
-            <div part="owner-meta">
-              <div part="owner-name">${escapeHtml(owner.name)}</div>
-              ${owner.description ? `<div part="owner-description">${escapeHtml(owner.description)}</div>` : ""}
-              ${owner.status ? `<div part="owner-status">${escapeHtml(owner.status)}</div>` : ""}
-            </div>
-          </section>
-        `
-      : "";
-    const metaMarkup = this.meta.length
-      ? `
-          <dl part="meta">
-            ${this.meta
-              .map(
-                item => `
-                  <div part="meta-row">
-                    <dt part="meta-label">${escapeHtml(item.label)}</dt>
-                    <dd part="meta-value">${escapeHtml(item.value)}</dd>
-                  </div>
-                `,
-              )
-              .join("")}
-          </dl>
-        `
-      : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button
-                    type="button"
-                    part="action"
-                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
-                    data-action-id="${escapeHtml(action.id)}"
-                  >
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    const host = this.shadowRoot.querySelector('[part="content-host"]');
-    if (!host) {
-      return;
+    this.ownerEl.hidden = !owner;
+    if (owner) {
+      this.ownerAvatarEl.textContent = owner.initials ?? owner.name.slice(0, 2).toUpperCase();
+      this.ownerNameEl.textContent = owner.name;
+      this.ownerDescriptionEl.hidden = !owner.description;
+      this.ownerDescriptionEl.textContent = owner.description ?? "";
+      this.ownerStatusEl.hidden = !owner.status;
+      this.ownerStatusEl.textContent = owner.status ?? "";
     }
 
-    host.innerHTML = `
-      <section part="panel">
-        <header part="header">
-          ${eyebrowMarkup}
-          <div part="title">${escapeHtml(this.heading)}</div>
-          ${messageMarkup}
-          ${statusMarkup}
-        </header>
-        ${ownerMarkup}
-        ${metaMarkup}
-        ${actionsMarkup}
-      </section>
-    `;
+    const meta = this.meta;
+    this.metaEl.hidden = meta.length === 0;
+    const nextMeta = this.metaKey();
+    if (nextMeta !== this.metaSignature || this.metaEl.childElementCount === 0) {
+      this.metaSignature = nextMeta;
+      this.rebuildMeta();
+    } else {
+      this.patchMetaValues();
+    }
 
-    this.shadowRoot.querySelectorAll('[part="action"]').forEach(button => {
-      button.addEventListener("click", () => {
-        const actionId = (button as HTMLButtonElement).dataset.actionId ?? "";
-        if (actionId) {
-          this.emitAction(actionId);
-        }
-      });
-    });
-  
+    const actions = this.actions;
+    this.actionsEl.hidden = actions.length === 0;
+    const nextActions = this.actionsKey();
+    if (nextActions !== this.actionsSignature || this.actionsEl.childElementCount === 0) {
+      this.actionsSignature = nextActions;
+      this.rebuildActions();
+    } else {
+      this.patchActionLabels();
+    }
   }
 }
 

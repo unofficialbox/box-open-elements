@@ -77,4 +77,26 @@ describe("BoxSharePanelElement", () => {
       }),
     );
   });
+
+  it("preserves shared-link focus across unrelated attribute updates", () => {
+    const element = document.createElement("box-share-panel") as BoxSharePanelElement;
+    element.sharedLink = {
+      access: "Open",
+      url: "https://box.dev/s/share",
+    };
+    element.actions = [{ id: "invite", label: "Invite people", tone: "primary" }];
+    element.collaborators = [{ id: "1", name: "Avery Chen", role: "Viewer" }];
+    document.body.append(element);
+
+    const linkButton = element.shadowRoot?.querySelector('[part="shared-link-url"]') as HTMLButtonElement;
+    linkButton.focus();
+
+    element.heading = "Share folder";
+    element.message = "People with access";
+    element.settings = [{ label: "Can download", value: "Enabled" }];
+
+    expect(element.shadowRoot?.activeElement).toBe(linkButton);
+    expect(element.shadowRoot?.querySelector('[part="shared-link-url"]')).toBe(linkButton);
+    expect(element.shadowRoot?.textContent).toContain("Share folder");
+  });
 });

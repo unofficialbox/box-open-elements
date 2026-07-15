@@ -38,4 +38,30 @@ describe("BoxPopoverElement", () => {
 
     expect(element.open).toBe(false);
   });
+
+  it("closes on document-level Escape while open", () => {
+    const element = document.createElement("box-popover") as BoxPopoverElement;
+    element.innerHTML = "<p>Popover content</p>";
+
+    document.body.append(element);
+    element.show();
+    expect(element.open).toBe(true);
+
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+
+    expect(element.open).toBe(false);
+  });
+
+  it("closes on outside pointerdown while open", () => {
+    const element = document.createElement("box-popover") as BoxPopoverElement;
+    element.innerHTML = "<p>Popover content</p>";
+
+    document.body.append(element);
+    element.show();
+    expect(element.open).toBe(true);
+
+    document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+
+    expect(element.open).toBe(false);
+  });
 });
