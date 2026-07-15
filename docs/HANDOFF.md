@@ -133,4 +133,6 @@ organized into **systemic sweeps**, not per-component rewrites.
   Batch 1 review (item-form, filter-bar, dual-listbox, metadata-filter-builder,
   action-menu, overlays, collections, remaining pattern panels).
   Regenerated gallery screenshot baselines for intentional layout/render diffs.
+  Addressed the second CodeRabbit pass (popover connected listeners, item panel
+  action tone patching, item-form disabled/value sync).
 - **Next:** merge #33, then start **Batch 3** (focus-visible + hover/active/disabled).
