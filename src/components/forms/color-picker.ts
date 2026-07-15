@@ -258,7 +258,7 @@ export class BoxColorPickerElement extends BaseElement {
     this.inputEl.setAttribute("aria-label", this.label);
     this.valueEl.textContent = this.valueInternal;
 
-    if (document.activeElement !== this.inputEl) {
+    if (this.shadowRoot?.activeElement !== this.inputEl) {
       this.inputEl.value = this.valueInternal;
     }
 
@@ -277,7 +277,7 @@ export class BoxColorPickerElement extends BaseElement {
       if (this.swatches.length) {
         const container = document.createElement("div");
         container.setAttribute("part", "swatches");
-        container.setAttribute("role", "list");
+        container.setAttribute("role", "group");
         container.setAttribute("aria-label", `${this.label} swatches`);
         container.innerHTML = this.swatches
           .map(
@@ -285,7 +285,6 @@ export class BoxColorPickerElement extends BaseElement {
               <button
                 type="button"
                 part="swatch"
-                role="listitem"
                 data-value="${escapeHtml(normalizeHex(swatch.value))}"
                 aria-label="${escapeHtml(swatch.label ?? normalizeHex(swatch.value))}"
                 style="--swatch-color:${escapeHtml(normalizeHex(swatch.value))};"

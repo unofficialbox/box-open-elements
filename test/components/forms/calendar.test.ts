@@ -50,6 +50,18 @@ describe("BoxCalendarElement", () => {
     expect(element.value).toBe("2026-07-10");
   });
 
+  it("restores roving focus on the selected day after click", () => {
+    const element = create({ month: "2026-07" });
+
+    const day = element.shadowRoot?.querySelector('[data-date="2026-07-10"]') as HTMLButtonElement | null;
+    day?.click();
+
+    expect(element.shadowRoot?.activeElement?.getAttribute("data-date")).toBe("2026-07-10");
+    expect(
+      element.shadowRoot?.querySelector('[part~="day"][tabindex="0"]')?.getAttribute("data-date"),
+    ).toBe("2026-07-10");
+  });
+
   it("advances the month with the next-month control", () => {
     const element = create({ month: "2026-12" });
     const changed = vi.fn();

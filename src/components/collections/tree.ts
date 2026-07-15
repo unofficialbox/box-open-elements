@@ -266,9 +266,6 @@ export class BoxTreeElement extends BaseElement {
   set value(nextValue: string) {
     this.valueInternal = nextValue;
     this.setAttribute("value", nextValue);
-    if (this.isRendered) {
-      this.update();
-    }
   }
 
   connectedCallback(): void {
@@ -470,6 +467,7 @@ export class BoxTreeElement extends BaseElement {
       if (toggle && this.treeEl.contains(toggle)) {
         const key = toggle.dataset.key ?? "";
         if (key) {
+          this.focusKey = key;
           this.toggleExpanded(key);
         }
         return;
@@ -485,6 +483,7 @@ export class BoxTreeElement extends BaseElement {
       const isBranch = item.dataset.branch === "true";
 
       if (!value && isBranch && key) {
+        this.focusKey = key;
         this.toggleExpanded(key);
         return;
       }
@@ -493,6 +492,7 @@ export class BoxTreeElement extends BaseElement {
         return;
       }
 
+      this.focusKey = key;
       this.valueInternal = value;
       this.setAttribute("value", value);
       this.dispatchEvent(
@@ -587,9 +587,11 @@ export class BoxTreeElement extends BaseElement {
     this.treeEl.innerHTML = this.renderItems(this.items);
 
     if (this.focusKey) {
+      const keyToFocus = this.focusKey;
+      this.focusKey = null;
       queueMicrotask(() => {
         const target = Array.from(this.treeEl.querySelectorAll('[part~="item"]')).find(
-          node => (node as HTMLButtonElement).dataset.key === this.focusKey,
+          node => (node as HTMLButtonElement).dataset.key === keyToFocus,
         ) as HTMLButtonElement | undefined;
         target?.focus();
       });

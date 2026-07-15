@@ -140,12 +140,10 @@ export class BoxTooltipElement extends BaseElement {
     this.triggerEl.addEventListener("mouseleave", () => this.hide());
     this.triggerEl.addEventListener("focus", () => this.show());
     this.triggerEl.addEventListener("blur", () => this.hide());
+    // Idempotent show: pointer activation focuses first (which opens), then click
+    // must not toggle closed again in the same gesture.
     this.triggerEl.addEventListener("click", () => {
-      if (this.openValue) {
-        this.hide();
-      } else {
-        this.show();
-      }
+      this.show();
     });
     this.triggerEl.addEventListener("keydown", event => {
       const keyboardEvent = event as KeyboardEvent;

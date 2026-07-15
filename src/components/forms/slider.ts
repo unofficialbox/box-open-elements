@@ -129,9 +129,6 @@ export class BoxSliderElement extends BaseElement {
     const normalizedValue = Number.isFinite(nextValue) ? nextValue : this.min;
     this.valueInternal = normalizedValue;
     this.setAttribute("value", String(normalizedValue));
-    if (this.isRendered) {
-      this.update();
-    }
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
@@ -143,6 +140,7 @@ export class BoxSliderElement extends BaseElement {
 
   private syncValue(nextValue: number): void {
     this.valueInternal = nextValue;
+    this.setAttribute("value", String(nextValue));
     this.valueEl.textContent = String(nextValue);
     this.dispatchEvent(
       new CustomEvent("value-changed", {
@@ -195,7 +193,7 @@ export class BoxSliderElement extends BaseElement {
     this.inputEl.max = String(this.max);
     this.inputEl.step = String(this.step);
 
-    if (document.activeElement !== this.inputEl) {
+    if (this.shadowRoot?.activeElement !== this.inputEl) {
       this.inputEl.value = String(this.valueInternal);
     }
 

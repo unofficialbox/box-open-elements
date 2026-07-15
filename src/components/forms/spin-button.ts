@@ -200,9 +200,6 @@ export class BoxSpinButtonElement extends BaseElement {
     const normalizedValue = Number.isFinite(nextValue) ? nextValue : 0;
     this.valueInternal = normalizedValue;
     this.setAttribute("value", String(normalizedValue));
-    if (this.isRendered) {
-      this.update();
-    }
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
@@ -226,6 +223,7 @@ export class BoxSpinButtonElement extends BaseElement {
   private syncValue(nextValue: number): void {
     const normalizedValue = this.clamp(nextValue);
     this.valueInternal = normalizedValue;
+    this.setAttribute("value", String(normalizedValue));
     this.inputEl.value = String(normalizedValue);
     this.syncInputAria();
     this.dispatchEvent(
@@ -336,7 +334,7 @@ export class BoxSpinButtonElement extends BaseElement {
       this.inputEl.max = String(this.max);
     }
 
-    if (document.activeElement !== this.inputEl) {
+    if (this.shadowRoot?.activeElement !== this.inputEl) {
       this.inputEl.value = String(this.valueInternal);
     }
 

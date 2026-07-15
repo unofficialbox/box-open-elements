@@ -60,9 +60,11 @@ describe("BoxColorPickerElement", () => {
     document.body.append(element);
 
     const swatches = element.shadowRoot?.querySelectorAll('[part="swatch"]') ?? [];
+    expect(swatches[0]?.getAttribute("role")).toBeNull();
     (swatches[1] as HTMLButtonElement | undefined)?.click();
 
     expect(element.value).toBe("#22c55e");
+    expect((swatches[1] as HTMLButtonElement).getAttribute("aria-pressed")).toBe("true");
   });
 
   it("supports disabled state", () => {

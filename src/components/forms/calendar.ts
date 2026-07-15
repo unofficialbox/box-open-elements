@@ -316,10 +316,13 @@ export class BoxCalendarElement extends BaseElement {
     if (this.disabled || this.isOutOfRange(iso)) {
       return;
     }
-    this.activeDate = date;
     this.setAttribute("value", iso);
     // Keep the grid on the month of the chosen day.
     this.setAttribute("month", `${date.y}-${pad(date.m)}`);
+    // `setAttribute` nulls activeDate via attributeChangedCallback — restore after.
+    this.activeDate = date;
+    this.update();
+    this.focusActive();
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,

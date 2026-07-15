@@ -103,6 +103,7 @@ export class BoxDialogElement extends BaseElement {
   }
 
   private openValue = false;
+  private wasOpen = false;
   private hostEl!: HTMLElement;
   private titleEl: HTMLElement | null = null;
   private descriptionEl: HTMLElement | null = null;
@@ -127,9 +128,6 @@ export class BoxDialogElement extends BaseElement {
     }
 
     this.dispatchEvent(new CustomEvent("open-changed", { bubbles: true, composed: true, detail: { open: nextOpen } }));
-    if (this.isRendered) {
-      this.update();
-    }
   }
 
   get heading(): string {
@@ -229,14 +227,18 @@ export class BoxDialogElement extends BaseElement {
       this.titleEl = null;
       this.descriptionEl = null;
       this.confirmEl = null;
+      this.wasOpen = false;
       return;
     }
+
+    const justOpened = !this.wasOpen;
+    this.wasOpen = true;
 
     if (!this.hostEl.querySelector('[part="dialog"]')) {
       this.hostEl.innerHTML = `
         <style>${dialogStyles}</style>
         <div part="backdrop">
-          <section part="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+          <section part="dialog" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="dialog-title">
             <header part="header">
               <h2 id="dialog-title"></h2>
             </header>
@@ -265,6 +267,12 @@ export class BoxDialogElement extends BaseElement {
     }
     if (this.confirmEl) {
       this.confirmEl.textContent = this.confirmLabel;
+    }
+
+    if (justOpened) {
+      queueMicrotask(() => {
+        (this.hostEl.querySelector('[part="dialog"]') as HTMLElement | null)?.focus();
+      });
     }
   }
 }

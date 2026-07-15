@@ -52,6 +52,31 @@ describe("BoxTreeElement", () => {
     );
   });
 
+  it("preserves focus on the clicked item after selection", async () => {
+    const element = document.createElement("box-tree") as BoxTreeElement;
+    element.items = [
+      {
+        label: "Navigation",
+        children: [
+          { label: "Breadcrumbs", value: "breadcrumbs" },
+          { label: "Toolbar", value: "toolbar" },
+        ],
+      },
+    ];
+
+    document.body.append(element);
+
+    const leaf = element.shadowRoot?.querySelector(
+      '[part~="item"][data-value="toolbar"]',
+    ) as HTMLButtonElement | null;
+    leaf?.click();
+    await Promise.resolve();
+
+    const focused = element.shadowRoot?.activeElement as HTMLButtonElement | null;
+    expect(focused?.dataset.value).toBe("toolbar");
+    expect(element.value).toBe("toolbar");
+  });
+
   it("uses tree semantics and supports keyboard navigation", async () => {
     const element = document.createElement("box-tree") as BoxTreeElement;
     element.items = [

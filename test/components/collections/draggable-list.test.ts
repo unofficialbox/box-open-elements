@@ -105,4 +105,20 @@ describe("BoxDraggableListElement", () => {
     const active = element.shadowRoot?.activeElement?.closest('[part="item"]') as HTMLElement | null;
     expect(active?.dataset.value).toBe("a");
   });
+
+  it("does not re-steal focus when label changes after a reorder", () => {
+    const element = createList();
+
+    handleFor(element, "a").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    const moved = element.shadowRoot?.activeElement?.closest('[part="item"]') as HTMLElement | null;
+    expect(moved?.dataset.value).toBe("a");
+
+    const otherHandle = handleFor(element, "b");
+    otherHandle.focus();
+    expect(element.shadowRoot?.activeElement).toBe(otherHandle);
+
+    element.label = "Updated list";
+
+    expect(element.shadowRoot?.activeElement).toBe(otherHandle);
+  });
 });

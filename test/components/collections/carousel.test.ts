@@ -113,5 +113,23 @@ describe("BoxCarouselElement", () => {
     expect(element.shadowRoot?.querySelector('[part="next"]')).toBe(next);
     expect(element.shadowRoot?.activeElement).toBe(next);
   });
+
+  it("clamps the active index when items shrink", () => {
+    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    element.items = [
+      { title: "One" },
+      { title: "Two" },
+      { title: "Three" },
+    ];
+    element.value = 2;
+    document.body.append(element);
+
+    expect(element.value).toBe(2);
+
+    element.items = [{ title: "One" }, { title: "Two" }];
+
+    expect(element.value).toBe(1);
+    expect(element.shadowRoot?.querySelector('[part="title"]')?.textContent).toBe("Two");
+  });
 });
 

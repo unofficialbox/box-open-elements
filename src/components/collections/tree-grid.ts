@@ -495,9 +495,11 @@ export class BoxTreeGridElement extends BaseElement {
       : `<div part="empty">No items loaded</div>`;
 
     if (this.focusValue) {
+      const valueToFocus = this.focusValue;
+      this.focusValue = null;
       queueMicrotask(() => {
         const target = Array.from(this.bodyEl.querySelectorAll('[part~="item"]')).find(
-          node => (node as HTMLButtonElement).dataset.value === this.focusValue,
+          node => (node as HTMLButtonElement).dataset.value === valueToFocus,
         ) as HTMLButtonElement | undefined;
         target?.focus();
       });

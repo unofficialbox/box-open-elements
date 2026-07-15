@@ -90,13 +90,18 @@ describe("BoxSearchFieldElement", () => {
   it("does not lose focus when label attribute changes while input is focused", () => {
     const element = document.createElement("box-search-field") as BoxSearchFieldElement;
     element.label = "Search";
+    element.value = "report";
     document.body.append(element);
 
     const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement | null;
     input?.focus();
+    // Mid-edit value that has not been committed yet.
+    input!.value = "drafting";
 
     element.label = "Find files";
 
     expect(document.activeElement).toBe(element);
+    expect(element.shadowRoot?.activeElement).toBe(input);
+    expect(input?.value).toBe("drafting");
   });
 });

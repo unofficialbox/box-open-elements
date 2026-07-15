@@ -28,6 +28,17 @@ describe("BoxDialogElement", () => {
     expect(element.shadowRoot?.textContent ?? "").toBe("");
   });
 
+  it("focuses the dialog surface when it opens", async () => {
+    const element = document.createElement("box-dialog") as BoxDialogElement;
+    document.body.append(element);
+    element.show();
+    await Promise.resolve();
+
+    const dialog = element.shadowRoot?.querySelector('[part="dialog"]') as HTMLElement | null;
+    expect(dialog?.getAttribute("tabindex")).toBe("-1");
+    expect(element.shadowRoot?.activeElement).toBe(dialog);
+  });
+
   it("emits confirm and closes", () => {
     const element = document.createElement("box-dialog") as BoxDialogElement;
     const confirmed = vi.fn();

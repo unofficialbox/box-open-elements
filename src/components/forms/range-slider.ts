@@ -274,10 +274,10 @@ export class BoxRangeSliderElement extends BaseElement {
       }
     }
 
-    if (document.activeElement !== this.startInputEl) {
+    if (this.shadowRoot?.activeElement !== this.startInputEl) {
       this.startInputEl.value = String(start);
     }
-    if (document.activeElement !== this.endInputEl) {
+    if (this.shadowRoot?.activeElement !== this.endInputEl) {
       this.endInputEl.value = String(end);
     }
   }

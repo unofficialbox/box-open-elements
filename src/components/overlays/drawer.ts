@@ -119,6 +119,7 @@ export class BoxDrawerElement extends BaseElement {
   }
 
   private openValue = false;
+  private wasOpen = false;
   private placeholder: Comment | null = null;
   private portaled = false;
   private hostEl!: HTMLElement;
@@ -153,9 +154,6 @@ export class BoxDrawerElement extends BaseElement {
     }
 
     this.dispatchEvent(new CustomEvent("open-changed", { bubbles: true, composed: true, detail: { open: nextOpen } }));
-    if (this.isRendered) {
-      this.update();
-    }
   }
 
   get position(): string {
@@ -282,8 +280,12 @@ export class BoxDrawerElement extends BaseElement {
       this.drawerEl = null;
       this.titleEl = null;
       this.descriptionEl = null;
+      this.wasOpen = false;
       return;
     }
+
+    const justOpened = !this.wasOpen;
+    this.wasOpen = true;
 
     if (!this.hostEl.querySelector('[part="drawer"]')) {
       this.hostEl.innerHTML = `
@@ -326,6 +328,12 @@ export class BoxDrawerElement extends BaseElement {
       const description = this.description;
       this.descriptionEl.textContent = description;
       this.descriptionEl.hidden = !description;
+    }
+
+    if (justOpened) {
+      queueMicrotask(() => {
+        (this.hostEl.querySelector('[part="close"]') as HTMLButtonElement | null)?.focus();
+      });
     }
   }
 }

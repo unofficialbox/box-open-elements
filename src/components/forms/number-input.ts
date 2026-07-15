@@ -146,9 +146,6 @@ export class BoxNumberInputElement extends BaseElement {
     const normalizedValue = Number.isFinite(nextValue) ? nextValue : 0;
     this.valueInternal = normalizedValue;
     this.setAttribute("value", String(normalizedValue));
-    if (this.isRendered) {
-      this.update();
-    }
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
@@ -160,6 +157,7 @@ export class BoxNumberInputElement extends BaseElement {
 
   private syncValue(nextValue: number): void {
     this.valueInternal = nextValue;
+    this.setAttribute("value", String(nextValue));
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,
@@ -217,7 +215,7 @@ export class BoxNumberInputElement extends BaseElement {
       this.inputEl.max = String(this.max);
     }
 
-    if (document.activeElement !== this.inputEl) {
+    if (this.shadowRoot?.activeElement !== this.inputEl) {
       this.inputEl.value = String(this.valueInternal);
     }
 

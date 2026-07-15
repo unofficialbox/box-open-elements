@@ -311,6 +311,7 @@ export class BoxDraggableListElement extends BaseElement {
         node => (node as HTMLElement).dataset.value === this.focusValue,
       );
       (target?.querySelector('[part="handle"]') as HTMLButtonElement | undefined)?.focus();
+      this.focusValue = null;
     }
   }
 }

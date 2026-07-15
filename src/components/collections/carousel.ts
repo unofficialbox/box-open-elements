@@ -278,14 +278,14 @@ export class BoxCarouselElement extends BaseElement {
   set value(value: number) {
     this.valueInternal = this.normalizeIndex(value);
     this.setAttribute("value", String(this.valueInternal));
-    if (this.isRendered) {
-      this.update();
-    }
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
       this.valueInternal = this.normalizeIndex(Number(this.getAttribute("value") ?? "0"));
+    }
+    if (name === "items") {
+      this.valueInternal = this.normalizeIndex(this.valueInternal);
     }
     super.attributeChangedCallback(name, oldValue, newValue);
   }
@@ -314,9 +314,6 @@ export class BoxCarouselElement extends BaseElement {
     this.valueInternal = nextIndex;
     this.setAttribute("value", String(nextIndex));
     this.emitValueChanged(nextIndex);
-    if (this.isRendered) {
-      this.update();
-    }
   }
 
   private changeBy(delta: number): void {

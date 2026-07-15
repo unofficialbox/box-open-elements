@@ -82,6 +82,7 @@ describe("BoxTagInputElement", () => {
     button?.click();
 
     expect(element.tags).toEqual(["two"]);
+    expect(element.shadowRoot?.activeElement).toBe(inputOf(element));
   });
 
   it("honors the max attribute", () => {

@@ -376,6 +376,7 @@ export class BoxTagInputElement extends BaseElement {
         return;
       }
       this.removeTag(button.dataset.tag ?? "");
+      this.restoreFocus();
     });
   }
 
@@ -419,7 +420,7 @@ export class BoxTagInputElement extends BaseElement {
     });
 
     this.inputEl.placeholder = atMax ? "" : this.placeholder;
-    if (document.activeElement !== this.inputEl) {
+    if (this.shadowRoot?.activeElement !== this.inputEl) {
       this.inputEl.value = this.draft;
     }
 
