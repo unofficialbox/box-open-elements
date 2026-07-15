@@ -3,6 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BoxTextFieldElement, defineBoxTextFieldElement } from "../../../src/components/forms/text-field.js";
+import { getMirroredFormValue } from "../../../src/core/index.js";
 
 describe("BoxTextFieldElement", () => {
   beforeEach(() => {
@@ -54,5 +55,30 @@ describe("BoxTextFieldElement", () => {
     element.label = "Full name";
 
     expect(document.activeElement).toBe(element);
+  });
+
+  it("mirrors typed value for form submission", () => {
+    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    element.name = "title";
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement | null;
+    input!.value = "Release notes";
+    input?.dispatchEvent(new Event("input", { bubbles: true }));
+
+    expect(getMirroredFormValue(element.internals)).toBe("Release notes");
+  });
+
+  it("exposes invalid state on the internal input", () => {
+    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    element.invalid = true;
+    element.errorMessage = "Too short";
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement | null;
+    const error = element.shadowRoot?.querySelector('[part="error-message"]') as HTMLElement | null;
+
+    expect(input?.getAttribute("aria-invalid")).toBe("true");
+    expect(error?.textContent).toBe("Too short");
   });
 });

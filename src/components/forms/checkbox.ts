@@ -1,7 +1,13 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formErrorMessageMarkup,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-checkbox";
+const DEFAULT_VALUE = "on";
 
 const checkboxStyles = `
   :host {
@@ -46,16 +52,26 @@ const checkboxStyles = `
     opacity: 0.55;
     cursor: not-allowed;
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxCheckboxElement extends BaseElement {
+export class BoxCheckboxElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["checked", "disabled", "label"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "checked",
+      "disabled",
+      "label",
+      "value",
+    ];
   }
 
   private checkedInternal = false;
+  private valueInternal = DEFAULT_VALUE;
   private inputEl!: HTMLInputElement;
   private labelEl!: HTMLSpanElement;
+  private errorEl!: HTMLElement;
 
   get checked(): boolean {
     return this.checkedInternal;
@@ -68,6 +84,9 @@ export class BoxCheckboxElement extends BaseElement {
       this.setAttribute("checked", "");
     } else {
       this.removeAttribute("checked");
+    }
+    if (this.isRendered) {
+      this.update();
     }
   }
 
@@ -91,6 +110,18 @@ export class BoxCheckboxElement extends BaseElement {
     this.setAttribute("label", value);
   }
 
+  get value(): string {
+    return this.valueInternal;
+  }
+
+  set value(nextValue: string) {
+    this.valueInternal = nextValue || DEFAULT_VALUE;
+    this.setAttribute("value", this.valueInternal);
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
   attributeChangedCallback(
     name: string,
     oldValue: string | null,
@@ -99,7 +130,31 @@ export class BoxCheckboxElement extends BaseElement {
     if (name === "checked") {
       this.checkedInternal = this.hasAttribute("checked");
     }
+    if (name === "value") {
+      this.valueInternal = this.getAttribute("value") ?? DEFAULT_VALUE;
+    }
     super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  protected getFormValue(): FormValue {
+    return this.checkedInternal ? this.valueInternal : null;
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    if (value == null) {
+      this.checkedInternal = false;
+      this.removeAttribute("checked");
+    } else {
+      this.checkedInternal = true;
+      this.setAttribute("checked", "");
+      if (typeof value === "string") {
+        this.valueInternal = value;
+        this.setAttribute("value", value);
+      }
+    }
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   protected renderTemplate(): void {
@@ -116,10 +171,12 @@ export class BoxCheckboxElement extends BaseElement {
         />
         <span part="label"></span>
       </label>
+      ${formErrorMessageMarkup()}
     `;
 
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -134,6 +191,7 @@ export class BoxCheckboxElement extends BaseElement {
       } else {
         this.removeAttribute("checked");
       }
+      this.syncFormAssociation();
       this.dispatchEvent(
         new CustomEvent("checked-changed", {
           bubbles: true,
@@ -145,11 +203,12 @@ export class BoxCheckboxElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.inputEl) {
+    if (!this.inputEl || !this.errorEl) {
       return;
     }
 
     this.inputEl.checked = this.checkedInternal;
+    this.inputEl.value = this.valueInternal;
     if (this.disabled) {
       this.inputEl.setAttribute("disabled", "");
     } else {
@@ -157,6 +216,8 @@ export class BoxCheckboxElement extends BaseElement {
     }
     this.inputEl.setAttribute("aria-label", this.label);
     this.labelEl.textContent = this.label;
+
+    this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }
 

@@ -36,6 +36,11 @@ Shared helpers live in `box-open-elements/foundations/a11y`:
 | `trapTabKey` / `FocusRestore` | modal dialogs and drawers (`aria-modal`) |
 | `renderHeadingHtml` / `headingOpenTag` | rendering a `heading` attribute as a real `<h*>` |
 
+Form controls that submit values extend `FormAssociatedElement` (`box-open-elements/core`): set
+`name`, toggle `invalid` + `error-message` for validation UI (`aria-invalid` /
+`aria-errormessage` + `part="error-message"`), and keep `syncFormAssociation()` in sync with the
+control value.
+
 Prefer native `<h2 part="title">` (with `margin: 0; font: inherit`) over `<div>` / `<strong>` for headline text. Keep `part="title"` for `::part` styling. Do **not** put `role="listitem"` on a native `<button>` — that strips interactive semantics. Use `role="tablist"` / `role="tab"` only when panels + `aria-selected` are also present.
 
 ## Focus visibility

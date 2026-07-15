@@ -1,4 +1,10 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FORM_ERROR_MESSAGE_ID,
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formErrorMessageMarkup,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 import {
   boeFocusRingShadow,
   boeFocusVisibleStyles,
@@ -108,11 +114,19 @@ const radioGroupStyles = `
     font-weight: 500;
     color: var(--boe-token-text-text, #222222);
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxRadioGroupElement extends BaseElement {
+export class BoxRadioGroupElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "options", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "label",
+      "options",
+      "value",
+    ];
   }
 
   private valueInternal = "";
@@ -121,6 +135,7 @@ export class BoxRadioGroupElement extends BaseElement {
 
   private legendEl!: HTMLLegendElement;
   private optionsContainerEl!: HTMLDivElement;
+  private errorEl!: HTMLElement;
 
   get value(): string {
     return this.valueInternal;
@@ -180,6 +195,24 @@ export class BoxRadioGroupElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  protected getFormValue(): FormValue {
+    const selected = this.options.some(option => option.value === this.valueInternal);
+    return selected ? this.valueInternal : null;
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const next = typeof value === "string" ? value : "";
+    this.valueInternal = next;
+    this.setAttribute("value", next);
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
+  private getRadioGroupName(): string {
+    return this.name || this.groupName;
+  }
+
   protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
@@ -190,28 +223,30 @@ export class BoxRadioGroupElement extends BaseElement {
       <fieldset part="group">
         <legend part="label"></legend>
         <div part="options"></div>
+        ${formErrorMessageMarkup()}
       </fieldset>
     `;
 
     this.legendEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.optionsContainerEl = this.shadowRoot.querySelector('[part="options"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected update(): void {
-    if (!this.legendEl || !this.optionsContainerEl) {
+    if (!this.legendEl || !this.optionsContainerEl || !this.errorEl) {
       return;
     }
 
     this.legendEl.textContent = this.label;
 
     const currentOptionsJson = JSON.stringify(this.options);
+    const radioGroupName = this.getRadioGroupName();
     if (currentOptionsJson !== this.lastOptionsJson) {
-      const groupName = this.groupName;
       this.optionsContainerEl.innerHTML = this.options
         .map(
           option => `
             <label part="option" data-value="${escapeHtml(option.value)}">
-              <input type="radio" part="input" name="${groupName}" value="${escapeHtml(option.value)}" />
+              <input type="radio" part="input" name="${escapeHtml(radioGroupName)}" value="${escapeHtml(option.value)}" />
               <span part="option-label">${escapeHtml(option.label)}</span>
             </label>
           `,
@@ -227,6 +262,7 @@ export class BoxRadioGroupElement extends BaseElement {
           const nextValue = (event.currentTarget as HTMLInputElement).value;
           this.valueInternal = nextValue;
           this.setAttribute("value", nextValue);
+          this.syncFormAssociation();
           this.dispatchEvent(
             new CustomEvent("value-changed", {
               bubbles: true,
@@ -235,6 +271,13 @@ export class BoxRadioGroupElement extends BaseElement {
             }),
           );
         });
+      });
+    } else {
+      this.optionsContainerEl.querySelectorAll('[part="input"]').forEach(node => {
+        const input = node as HTMLInputElement;
+        if (input.name !== radioGroupName) {
+          input.name = radioGroupName;
+        }
       });
     }
 
@@ -256,6 +299,20 @@ export class BoxRadioGroupElement extends BaseElement {
         }
       }
     });
+
+    const invalid = this.invalid;
+    const message = this.errorMessage;
+    this.optionsContainerEl.querySelectorAll<HTMLInputElement>('[part="input"]').forEach(input => {
+      input.setAttribute("aria-invalid", String(invalid));
+      if (invalid && message) {
+        input.setAttribute("aria-errormessage", FORM_ERROR_MESSAGE_ID);
+      } else {
+        input.removeAttribute("aria-errormessage");
+      }
+    });
+    this.errorEl.textContent = message;
+    this.errorEl.hidden = !(invalid && Boolean(message));
+    this.syncFormAssociation();
   }
 }
 

@@ -3,6 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BoxCheckboxElement, defineBoxCheckboxElement } from "../../../src/components/forms/checkbox.js";
+import { getMirroredFormValue } from "../../../src/core/index.js";
 
 describe("BoxCheckboxElement", () => {
   beforeEach(() => {
@@ -76,5 +77,29 @@ describe("BoxCheckboxElement", () => {
     expect(styles).toContain('[part="field"]:active:not(:has([part="input"]:disabled))');
     expect(styles).toContain("--boe-token-surface-surface-brand");
     expect(styles).toContain("--boe-token-surface-surface-brand-pressed");
+  });
+
+  it("submits the value attribute when checked and null when unchecked", () => {
+    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    element.value = "remember";
+    document.body.append(element);
+
+    expect(getMirroredFormValue(element.internals)).toBeNull();
+
+    element.checked = true;
+    expect(getMirroredFormValue(element.internals)).toBe("remember");
+
+    element.checked = false;
+    expect(getMirroredFormValue(element.internals)).toBeNull();
+  });
+
+  it("defaults form value to on when checked without a custom value", () => {
+    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    document.body.append(element);
+
+    element.checked = true;
+
+    expect(element.value).toBe("on");
+    expect(getMirroredFormValue(element.internals)).toBe("on");
   });
 });

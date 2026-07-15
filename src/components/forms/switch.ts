@@ -1,6 +1,12 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formErrorMessageMarkup,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-switch";
+const DEFAULT_VALUE = "on";
 
 const escapeHtml = (value: string): string =>
   value
@@ -105,20 +111,31 @@ const switchStyles = `
     line-height: 1.45;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxSwitchElement extends BaseElement {
+export class BoxSwitchElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["checked", "description", "disabled", "label"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "checked",
+      "description",
+      "disabled",
+      "label",
+      "value",
+    ];
   }
 
   private checkedInternal = false;
+  private valueInternal = DEFAULT_VALUE;
   private switchEl!: HTMLButtonElement;
   private trackEl!: HTMLElement;
   private thumbEl!: HTMLElement;
   private labelEl!: HTMLElement;
   private descriptionEl!: HTMLElement;
   private contentEl!: HTMLElement;
+  private errorEl!: HTMLElement;
 
   get checked(): boolean {
     return this.checkedInternal;
@@ -165,11 +182,47 @@ export class BoxSwitchElement extends BaseElement {
     this.setAttribute("label", value);
   }
 
+  get value(): string {
+    return this.valueInternal;
+  }
+
+  set value(nextValue: string) {
+    this.valueInternal = nextValue || DEFAULT_VALUE;
+    this.setAttribute("value", this.valueInternal);
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "checked") {
       this.checkedInternal = this.hasAttribute("checked");
     }
+    if (name === "value") {
+      this.valueInternal = this.getAttribute("value") ?? DEFAULT_VALUE;
+    }
     super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  protected getFormValue(): FormValue {
+    return this.checkedInternal ? this.valueInternal : null;
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    if (value == null) {
+      this.checkedInternal = false;
+      this.removeAttribute("checked");
+    } else {
+      this.checkedInternal = true;
+      this.setAttribute("checked", "");
+      if (typeof value === "string") {
+        this.valueInternal = value;
+        this.setAttribute("value", value);
+      }
+    }
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   private toggleChecked(): void {
@@ -185,6 +238,7 @@ export class BoxSwitchElement extends BaseElement {
       this.removeAttribute("checked");
     }
 
+    this.syncFormAssociation();
     this.dispatchEvent(
       new CustomEvent("checked-changed", {
         bubbles: true,
@@ -216,6 +270,7 @@ export class BoxSwitchElement extends BaseElement {
           <span part="description"></span>
         </span>
       </button>
+      ${formErrorMessageMarkup()}
     `;
     this.switchEl = this.shadowRoot.querySelector('[part="switch"]')!;
     this.trackEl = this.shadowRoot.querySelector('[part="track"]')!;
@@ -223,6 +278,7 @@ export class BoxSwitchElement extends BaseElement {
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.descriptionEl = this.shadowRoot.querySelector('[part="description"]')!;
     this.contentEl = this.shadowRoot.querySelector('[part="content"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -232,7 +288,7 @@ export class BoxSwitchElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.switchEl) {
+    if (!this.switchEl || !this.errorEl) {
       return;
     }
 
@@ -262,6 +318,8 @@ export class BoxSwitchElement extends BaseElement {
       this.descriptionEl.textContent = "";
       this.descriptionEl.style.display = "none";
     }
+
+    this.applyInvalidState(this.switchEl, this.errorEl);
   }
 }
 

@@ -1,4 +1,9 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formErrorMessageMarkup,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-text-area";
 
@@ -61,16 +66,26 @@ const textAreaStyles = `
     opacity: 0.55;
     cursor: not-allowed;
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxTextAreaElement extends BaseElement {
+export class BoxTextAreaElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "placeholder", "rows", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "label",
+      "placeholder",
+      "rows",
+      "value",
+    ];
   }
 
   private valueInternal = "";
   private textareaEl!: HTMLTextAreaElement;
   private labelEl!: HTMLElement;
+  private errorEl!: HTMLElement;
 
   get value(): string {
     return this.valueInternal;
@@ -127,6 +142,19 @@ export class BoxTextAreaElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  protected getFormValue(): FormValue {
+    return this.valueInternal;
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const next = typeof value === "string" ? value : "";
+    this.valueInternal = next;
+    this.setAttribute("value", next);
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
   protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
@@ -137,16 +165,20 @@ export class BoxTextAreaElement extends BaseElement {
       <label part="field">
         <span part="label"></span>
         <textarea part="textarea"></textarea>
+        ${formErrorMessageMarkup()}
       </label>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.textareaEl = this.shadowRoot.querySelector('[part="textarea"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
     this.textareaEl.addEventListener("input", event => {
       const nextValue = (event.currentTarget as HTMLTextAreaElement).value;
       this.valueInternal = nextValue;
+      this.setAttribute("value", nextValue);
+      this.syncFormAssociation();
       this.dispatchEvent(
         new CustomEvent("value-changed", {
           bubbles: true,
@@ -158,7 +190,7 @@ export class BoxTextAreaElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.textareaEl || !this.labelEl) {
+    if (!this.textareaEl || !this.labelEl || !this.errorEl) {
       return;
     }
 
@@ -166,8 +198,7 @@ export class BoxTextAreaElement extends BaseElement {
     this.textareaEl.placeholder = this.placeholder;
     this.textareaEl.rows = this.rows;
 
-    // Only patch value when not focused to avoid disrupting active composition
-    if (document.activeElement !== this.textareaEl) {
+    if (this.shadowRoot?.activeElement !== this.textareaEl) {
       this.textareaEl.value = this.valueInternal;
     }
 
@@ -176,6 +207,8 @@ export class BoxTextAreaElement extends BaseElement {
     } else {
       this.textareaEl.removeAttribute("disabled");
     }
+
+    this.applyInvalidState(this.textareaEl, this.errorEl);
   }
 }
 

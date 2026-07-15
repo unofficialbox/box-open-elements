@@ -60,7 +60,10 @@ Use these names when the concept applies:
 
 - `label` — primary accessible/display label for controls and compact components
 - `value` — current selected or entered value for stateful components
+- `name` — form field name for form-associated controls (`FormAssociatedElement`)
 - `disabled` — disables interaction when the component is interactive
+- `invalid` — marks a form control as invalid (sets `aria-invalid` and error chrome)
+- `error-message` — validation message shown in `part="error-message"` when `invalid`
 - `open` — visibility state for overlays and transient UI
 - `tone` — visual semantic variant such as `primary`, `warning`, or `success`
 - `size` — visual size when the component has a non-content-based footprint
@@ -70,6 +73,11 @@ Use these names when the concept applies:
 - `description` — longer supporting copy when `message` would be ambiguous or too short
 - `items` — structured collection data for rich hierarchical or menu-like inputs
 - `options` — simpler choice data for flat selection controls
+
+Form-associated controls (`text-field`, `text-area`, `select`, `combobox`, `search-field`,
+`checkbox`, `switch`, `radio-group`, `number-input`, `spin-button`, `slider`, `date-field`,
+`time-field`) extend `FormAssociatedElement` and submit through `ElementInternals`. Boolean
+controls also accept `value` (default `"on"`) as the submitted string when checked.
 
 ## Naming preferences
 

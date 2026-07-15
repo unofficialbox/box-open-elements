@@ -24,8 +24,8 @@ result is written to the run journal, and the committed outputs are this report 
 
 **51 components score below 3/5; 229 high-severity issues logged.**
 
-> **Program status (live):** Batches **0, 1, 2, 3, 4, 6 are DONE** (merged or in flight). Remaining
-> in order: **5** (form association) → **7** (polish).
+> **Program status (live):** Batches **0, 1, 2, 3, 4, 6 merged**; **5** implemented
+> (PR #39, pending merge). Remaining: **7** (polish).
 > Session status: [HANDOFF.md](../HANDOFF.md). Scores and issue lists below are the **original
 > audit snapshot** — they are not re-scored after each batch; track completion in the prioritized
 > plan and HANDOFF.
@@ -39,9 +39,9 @@ result is written to the run journal, and the committed outputs are this report 
 At audit time the library averaged **2.78/5** across 108 scored components (51 under 3.0), with
 **states (2.52)** and **accessibility (2.62)** weakest. Two defects dominated: a **full
 `shadowRoot.innerHTML` rebuild on every state change** and **hardcoded `white` inside
-`color-mix()`**. Those systemic themes (plus focus/hover states, ARIA/keyboard, `title`→`heading`,
-and the security holes) have since been swept — see the prioritized plan. Remaining work is
-primarily **form association** (Batch 5) and leftover polish (Batch 7).
+`color-mix()`**. Those systemic themes (plus focus/hover states, ARIA/keyboard, form association,
+`title`→`heading`, and the security holes) have since been swept — see the prioritized plan.
+Remaining work is primarily leftover polish (Batch 7), including multi-value form controls.
 
 ## Systemic themes
 
@@ -60,9 +60,9 @@ Status markers reflect post-audit sweeps. The original findings stay listed so t
 - **ARIA role misuse (~15 components). — DONE (Batch 4).** Shared helpers in
   `src/foundations/a11y/`; composites gained roving keyboard; fake tab roles removed; `listitem`
   stripped from buttons; modal Tab trap + focus restore.
-- **Form fields incomplete (~13 components). — OPEN (Batch 5).** No error/invalid state and not
-  form-associated (no `ElementInternals`/`name`), so values never submit. E.g. `select`,
-  `text-field`, `date-field`, `number-input`, `checkbox`, `radio-group`.
+- **Form fields incomplete (~13 components). — DONE (Batch 5).** Core controls extend
+  `FormAssociatedElement` with `name` / `invalid` / `error-message` and `ElementInternals`.
+  Multi-value / niche fields remain for Batch 7.
 - **Fabricated/nonexistent tokens fall back to hardcoded hex (~9 components). — DONE (Batch 2).**
   Tokens now exist / are repointed.
 - **Broken docs examples (~11 components). — DONE (Batch 6).** Examples repaired as part of the
@@ -118,10 +118,9 @@ radiogroup composites; removed `role="listitem"` from buttons; fixed tab/tablist
 progress-steps + carousel; Tab trap + focus restore on dialog/drawer/invite; `heading` renders as
 native `<h2 part="title">`.
 
-**Batch 5 — Form-field completeness (~13). — OPEN.** Add `error`/`invalid` (attribute +
-`aria-invalid` + `SurfaceStatusSurfaceError` + message region) and make controls form-associated via
-`ElementInternals`/`name`; fix reflection drift and min/max clamping. Form components that can't show
-validation or submit their value aren't usable in real forms.
+**Batch 5 — Form-field completeness — DONE.** `FormAssociatedElement` + `name` / `invalid` /
+`error-message` / `ElementInternals` on 13 everyday controls; number/slider clamping; date/time
+value reflection. Multi-value form association deferred to Batch 7.
 
 **Batch 6 — `title` collision + docs repair — DONE (#29).** Renamed the `title` heading attribute
 to `heading` across the offenders; fixed broken shipped examples; humanized Design-Tokens labels;

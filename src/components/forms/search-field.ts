@@ -1,4 +1,9 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formErrorMessageMarkup,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-search-field";
 
@@ -125,11 +130,19 @@ const searchFieldStyles = `
     opacity: 0.55;
     cursor: not-allowed;
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxSearchFieldElement extends BaseElement {
+export class BoxSearchFieldElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "placeholder", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "label",
+      "placeholder",
+      "value",
+    ];
   }
 
   private valueInternal = "";
@@ -137,6 +150,7 @@ export class BoxSearchFieldElement extends BaseElement {
   private labelEl!: HTMLElement;
   private submitEl!: HTMLButtonElement;
   private clearEl!: HTMLButtonElement;
+  private errorEl!: HTMLElement;
 
   get value(): string {
     return this.valueInternal;
@@ -191,8 +205,22 @@ export class BoxSearchFieldElement extends BaseElement {
     }
 
     this.value = "";
+    this.syncFormAssociation();
     this.dispatchEvent(new CustomEvent("clear", { bubbles: true, composed: true, detail: { value: "" } }));
     this.dispatchEvent(new CustomEvent("value-changed", { bubbles: true, composed: true, detail: { value: "" } }));
+  }
+
+  protected getFormValue(): FormValue {
+    return this.valueInternal;
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const next = typeof value === "string" ? value : "";
+    this.valueInternal = next;
+    this.setAttribute("value", next);
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   protected renderTemplate(): void {
@@ -209,12 +237,14 @@ export class BoxSearchFieldElement extends BaseElement {
           <button type="button" part="submit">Search</button>
           <button type="button" part="clear">Clear</button>
         </div>
+        ${formErrorMessageMarkup()}
       </label>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
     this.submitEl = this.shadowRoot.querySelector('[part="submit"]')!;
     this.clearEl = this.shadowRoot.querySelector('[part="clear"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -224,6 +254,8 @@ export class BoxSearchFieldElement extends BaseElement {
       }
       const nextValue = (event.currentTarget as HTMLInputElement).value;
       this.valueInternal = nextValue;
+      this.setAttribute("value", nextValue);
+      this.syncFormAssociation();
       this.clearEl.disabled = this.disabled || nextValue.length === 0;
       this.dispatchEvent(
         new CustomEvent("value-changed", {
@@ -265,7 +297,7 @@ export class BoxSearchFieldElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.inputEl || !this.labelEl || !this.submitEl || !this.clearEl) {
+    if (!this.inputEl || !this.labelEl || !this.submitEl || !this.clearEl || !this.errorEl) {
       return;
     }
 
@@ -285,6 +317,8 @@ export class BoxSearchFieldElement extends BaseElement {
     }
 
     this.clearEl.disabled = this.disabled || this.valueInternal.length === 0;
+
+    this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }
 

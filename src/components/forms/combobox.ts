@@ -1,4 +1,9 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formErrorMessageMarkup,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-combobox";
@@ -64,17 +69,27 @@ const comboboxStyles = `
   [part="input"]:focus-visible {
     border-color: var(--boe-token-surface-surface-brand, #0061d5);
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxComboboxElement extends BaseElement {
+export class BoxComboboxElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "options", "placeholder", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "label",
+      "options",
+      "placeholder",
+      "value",
+    ];
   }
 
   private valueInternal = "";
   private inputEl!: HTMLInputElement;
   private labelEl!: HTMLElement;
   private datalistEl!: HTMLDataListElement;
+  private errorEl!: HTMLElement;
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -141,6 +156,19 @@ export class BoxComboboxElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  protected getFormValue(): FormValue {
+    return this.valueInternal;
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const next = typeof value === "string" ? value : "";
+    this.valueInternal = next;
+    this.setAttribute("value", next);
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
   protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
@@ -152,11 +180,13 @@ export class BoxComboboxElement extends BaseElement {
         <span part="label"></span>
         <input type="text" part="input" list="combobox-options" />
         <datalist id="combobox-options"></datalist>
+        ${formErrorMessageMarkup()}
       </label>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
     this.datalistEl = this.shadowRoot.querySelector("datalist")!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -164,6 +194,7 @@ export class BoxComboboxElement extends BaseElement {
       const nextValue = (event.currentTarget as HTMLInputElement).value;
       this.valueInternal = nextValue;
       this.setAttribute("value", nextValue);
+      this.syncFormAssociation();
       this.dispatchEvent(
         new CustomEvent("value-changed", {
           bubbles: true,
@@ -175,7 +206,7 @@ export class BoxComboboxElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.inputEl || !this.labelEl || !this.datalistEl) {
+    if (!this.inputEl || !this.labelEl || !this.datalistEl || !this.errorEl) {
       return;
     }
 
@@ -189,7 +220,7 @@ export class BoxComboboxElement extends BaseElement {
       )
       .join("");
 
-    if (document.activeElement !== this.inputEl) {
+    if (this.shadowRoot?.activeElement !== this.inputEl) {
       this.inputEl.value = this.valueInternal;
     }
 
@@ -198,6 +229,8 @@ export class BoxComboboxElement extends BaseElement {
     } else {
       this.inputEl.removeAttribute("disabled");
     }
+
+    this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }
 

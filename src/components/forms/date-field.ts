@@ -1,4 +1,9 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formErrorMessageMarkup,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-date-field";
@@ -48,16 +53,26 @@ const dateFieldStyles = `
   [part="input"]:focus-visible {
     border-color: var(--boe-token-surface-surface-brand, #0061d5);
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxDateFieldElement extends BaseElement {
+export class BoxDateFieldElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "max", "min", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "label",
+      "max",
+      "min",
+      "value",
+    ];
   }
 
   private valueInternal = "";
   private inputEl!: HTMLInputElement;
   private labelEl!: HTMLElement;
+  private errorEl!: HTMLElement;
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -114,8 +129,23 @@ export class BoxDateFieldElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  protected getFormValue(): FormValue {
+    return this.valueInternal;
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const next = typeof value === "string" ? value : "";
+    this.valueInternal = next;
+    this.setAttribute("value", next);
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
   private syncValue(nextValue: string): void {
     this.valueInternal = nextValue;
+    this.setAttribute("value", nextValue);
+    this.syncFormAssociation();
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,
@@ -135,10 +165,12 @@ export class BoxDateFieldElement extends BaseElement {
       <label part="field">
         <span part="label"></span>
         <input type="date" part="input" />
+        ${formErrorMessageMarkup()}
       </label>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -148,7 +180,7 @@ export class BoxDateFieldElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.inputEl || !this.labelEl) {
+    if (!this.inputEl || !this.labelEl || !this.errorEl) {
       return;
     }
 
@@ -166,7 +198,7 @@ export class BoxDateFieldElement extends BaseElement {
       this.inputEl.removeAttribute("max");
     }
 
-    if (document.activeElement !== this.inputEl) {
+    if (this.shadowRoot?.activeElement !== this.inputEl) {
       this.inputEl.value = this.valueInternal;
     }
 
@@ -175,6 +207,8 @@ export class BoxDateFieldElement extends BaseElement {
     } else {
       this.inputEl.removeAttribute("disabled");
     }
+
+    this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }
 

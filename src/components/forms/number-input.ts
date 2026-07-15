@@ -1,4 +1,9 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formErrorMessageMarkup,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-number-input";
@@ -59,16 +64,28 @@ const numberInputStyles = `
   [part="input"]:focus-visible {
     border-color: var(--boe-token-surface-surface-brand, #0061d5);
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxNumberInputElement extends BaseElement {
+export class BoxNumberInputElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "max", "min", "placeholder", "step", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "label",
+      "max",
+      "min",
+      "placeholder",
+      "step",
+      "value",
+    ];
   }
 
   private valueInternal = 0;
   private inputEl!: HTMLInputElement;
   private labelEl!: HTMLElement;
+  private errorEl!: HTMLElement;
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -135,26 +152,62 @@ export class BoxNumberInputElement extends BaseElement {
   }
 
   set value(nextValue: number) {
-    const normalizedValue = Number.isFinite(nextValue) ? nextValue : 0;
+    const normalizedValue = this.clamp(Number.isFinite(nextValue) ? nextValue : 0);
     this.valueInternal = normalizedValue;
     this.setAttribute("value", String(normalizedValue));
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
-      this.valueInternal = parseNumber(this.getAttribute("value"), 0);
+      this.valueInternal = this.clamp(parseNumber(newValue, this.valueInternal));
+    } else if (name === "min" || name === "max") {
+      const clamped = this.clamp(this.valueInternal);
+      this.valueInternal = clamped;
+      if (this.getAttribute("value") !== String(clamped)) {
+        this.setAttribute("value", String(clamped));
+      }
     }
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  protected getFormValue(): FormValue {
+    return String(this.valueInternal);
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const parsed =
+      typeof value === "string" ? parseNumber(value, this.valueInternal) : this.valueInternal;
+    this.valueInternal = this.clamp(parsed);
+    this.setAttribute("value", String(this.valueInternal));
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
+  private clamp(nextValue: number): number {
+    let normalizedValue = nextValue;
+    if (this.min != null) {
+      normalizedValue = Math.max(this.min, normalizedValue);
+    }
+    if (this.max != null) {
+      normalizedValue = Math.min(this.max, normalizedValue);
+    }
+    return normalizedValue;
+  }
+
   private syncValue(nextValue: number): void {
-    this.valueInternal = nextValue;
-    this.setAttribute("value", String(nextValue));
+    const normalizedValue = this.clamp(nextValue);
+    this.valueInternal = normalizedValue;
+    this.setAttribute("value", String(normalizedValue));
+    this.syncFormAssociation();
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,
         composed: true,
-        detail: { value: nextValue },
+        detail: { value: normalizedValue },
       }),
     );
   }
@@ -169,10 +222,12 @@ export class BoxNumberInputElement extends BaseElement {
       <label part="field">
         <span part="label"></span>
         <input type="number" part="input" />
+        ${formErrorMessageMarkup()}
       </label>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -187,7 +242,7 @@ export class BoxNumberInputElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.inputEl || !this.labelEl) {
+    if (!this.inputEl || !this.labelEl || !this.errorEl) {
       return;
     }
 
@@ -216,6 +271,8 @@ export class BoxNumberInputElement extends BaseElement {
     } else {
       this.inputEl.removeAttribute("disabled");
     }
+
+    this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }
 
