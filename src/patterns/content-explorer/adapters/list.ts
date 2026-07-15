@@ -149,6 +149,15 @@ const elementStyles = `
           font-size: 0.9rem;
         }
 
+        [part="error"] {
+          margin: 0;
+          padding: 0.75rem 0.8rem;
+          border-bottom: 1px solid color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 34%, transparent);
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, var(--boe-token-surface-surface, #ffffff));
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 72%, black 28%);
+          font-size: 0.88rem;
+        }
+
         [part="load-more-region"] {
           display: flex;
           justify-content: center;
@@ -211,15 +220,21 @@ export class BoxExplorerListElement extends BaseElement {
     }
 
     for (const eventName of [
+      "folderChanged",
       "itemsChanged",
       "itemActivated",
       "itemActionInvoked",
+      "loadFailed",
       "loadingChanged",
       "paginationChanged",
       "selectionChanged",
     ] as const) {
       this.unsubscribeFns.push(
         this.controllerValue.subscribe(eventName, payload => {
+          if (eventName === "folderChanged") {
+            this.focusItemId = null;
+          }
+
           this.dispatchEvent(
             new CustomEvent(toKebabCase(String(eventName)), {
               bubbles: true,
@@ -228,8 +243,8 @@ export class BoxExplorerListElement extends BaseElement {
             }),
           );
           if (this.isRendered) {
-      this.update();
-    }
+            this.update();
+          }
         }),
       );
     }
@@ -244,6 +259,40 @@ export class BoxExplorerListElement extends BaseElement {
 
   private getFocusableItemIds(): string[] {
     return this.controllerValue?.getState().items.map(item => item.id) ?? [];
+  }
+
+  private isFocusInsideHost(): boolean {
+    const active = document.activeElement;
+    if (!active) {
+      return false;
+    }
+
+    return active === this || (this.shadowRoot?.contains(active) ?? false);
+  }
+
+  private resolveFocusItemId(itemIds: string[]): string | null {
+    if (this.focusItemId && itemIds.includes(this.focusItemId)) {
+      return this.focusItemId;
+    }
+
+    if (this.isFocusInsideHost()) {
+      return this.focusItemId ?? itemIds[0] ?? null;
+    }
+
+    return null;
+  }
+
+  private restoreFocus(list: HTMLElement, focusItemId: string | null): void {
+    if (!focusItemId || !this.isFocusInsideHost()) {
+      return;
+    }
+
+    queueMicrotask(() => {
+      const target = list.querySelector(
+        `[part~="item"][data-item-id="${focusItemId}"]`,
+      ) as HTMLButtonElement | null;
+      target?.focus();
+    });
   }
 
   private itemsSignature = "";
@@ -347,7 +396,7 @@ export class BoxExplorerListElement extends BaseElement {
       return;
     }
 
-    const focusTarget = this.focusItemId ?? state.items[0]?.id ?? "";
+    const focusTarget = this.resolveFocusItemId(state.items.map(item => item.id)) ?? "";
     list.querySelectorAll('[part~="item-row"]').forEach(row => {
       const itemId = (row as HTMLElement).dataset.itemId ?? "";
       const isSelected = state.selectedItemIds.includes(itemId);
@@ -376,11 +425,32 @@ export class BoxExplorerListElement extends BaseElement {
 
     shell.setAttribute("aria-busy", state?.loading ? "true" : "false");
 
+    const itemIds = state?.items.map(item => item.id) ?? [];
+    const focusTarget = this.resolveFocusItemId(itemIds) ?? "";
+    const isMultiple = this.controllerValue?.selectionMode === "multiple";
+    list.setAttribute("aria-multiselectable", isMultiple ? "true" : "false");
+
+    const errorMarkup = state?.error
+      ? `<p part="error" role="alert">${escapeHtml(state.error.message)}</p>`
+      : "";
+    const existingError = shell.querySelector('[part="error"]');
+    if (errorMarkup) {
+      if (existingError) {
+        existingError.outerHTML = errorMarkup;
+      } else {
+        list.insertAdjacentHTML("beforebegin", errorMarkup);
+      }
+    } else if (existingError) {
+      existingError.remove();
+    }
+
     const nextSignature = JSON.stringify({
       items: state?.items.map(item => ({ id: item.id, name: item.name })) ?? [],
       actions: state?.availableActionsByItemId ?? {},
       hasMore: state?.pagination.hasMoreItems ?? false,
       loading: state?.loading ?? false,
+      error: state?.error?.message ?? null,
+      selectionMode: this.controllerValue?.selectionMode ?? "multiple",
     });
 
     if (nextSignature !== this.itemsSignature) {
@@ -390,7 +460,6 @@ export class BoxExplorerListElement extends BaseElement {
           ? state.items
               .map(item => {
                 const isSelected = state.selectedItemIds.includes(item.id);
-                const focusTarget = this.focusItemId ?? state.items[0]?.id ?? "";
                 const actions = (state.availableActionsByItemId[item.id] ?? [])
                   .map(
                     action =>
@@ -419,7 +488,7 @@ export class BoxExplorerListElement extends BaseElement {
                 `;
               })
               .join("")
-          : `<li part="empty">No items loaded</li>`;
+          : `<li part="empty">${state?.error ? "Unable to load items" : "No items loaded"}</li>`;
 
       list.innerHTML = itemsMarkup;
 
@@ -431,14 +500,7 @@ export class BoxExplorerListElement extends BaseElement {
         loadMoreRegion.innerHTML = "";
       }
 
-      if (this.focusItemId) {
-        queueMicrotask(() => {
-          const target = list.querySelector(
-            `[part~="item"][data-item-id="${this.focusItemId}"]`,
-          ) as HTMLButtonElement | null;
-          target?.focus();
-        });
-      }
+      this.restoreFocus(list, focusTarget || null);
       return;
     }
 

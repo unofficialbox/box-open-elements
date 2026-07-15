@@ -84,4 +84,25 @@ describe("BoxTooltipElement", () => {
     expect(styles).toContain("--boe-token-surface-surface-hover");
     expect(styles).toContain("--boe-token-surface-surface-brand");
   });
+
+  it("positions the tooltip panel absolutely without duplicating trigger and description text", () => {
+    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    element.label = "Retention policy details";
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("position: relative");
+    expect(styles).toContain('[part="tooltip"]');
+    expect(styles).toContain("position: absolute");
+
+    const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement;
+    expect(trigger.getAttribute("aria-label")).toBe("More information");
+    expect(trigger.getAttribute("aria-label")).not.toBe(element.label);
+
+    trigger.dispatchEvent(new Event("mouseenter"));
+    expect(trigger.getAttribute("aria-describedby")).toBeTruthy();
+    expect(element.shadowRoot?.querySelector('[part="tooltip"]')?.textContent).toBe(
+      "Retention policy details",
+    );
+  });
 });

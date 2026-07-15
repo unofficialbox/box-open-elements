@@ -84,6 +84,24 @@ const appShellStyles = `
     background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
   }
 
+  [part="nav"][hidden],
+  [part="aside"][hidden],
+  [part="footer"][hidden] {
+    display: none;
+  }
+
+  [part="frame"]:not(:has([part="nav"]:not([hidden]))):not(:has([part="aside"]:not([hidden]))) {
+    grid-template-columns: 1fr;
+  }
+
+  [part="frame"]:has([part="nav"]:not([hidden])):not(:has([part="aside"]:not([hidden]))) {
+    grid-template-columns: minmax(11rem, auto) 1fr;
+  }
+
+  [part="frame"]:not(:has([part="nav"]:not([hidden]))):has([part="aside"]:not([hidden])) {
+    grid-template-columns: 1fr minmax(11rem, auto);
+  }
+
   [part="footer"] {
     padding: 0.75rem 1.15rem;
     border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
@@ -95,11 +113,17 @@ const appShellStyles = `
 
 export class BoxAppShellElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["heading"];
+    return ["heading", "nav-label", "aside-label"];
   }
 
   private shellEl!: HTMLElement;
   private titleEl!: HTMLElement;
+  private navEl!: HTMLElement;
+  private asideEl!: HTMLElement;
+  private footerEl!: HTMLElement;
+  private navSlot!: HTMLSlotElement;
+  private asideSlot!: HTMLSlotElement;
+  private footerSlot!: HTMLSlotElement;
 
   get heading(): string {
     return this.getAttribute("heading") ?? "App Shell";
@@ -107,6 +131,22 @@ export class BoxAppShellElement extends BaseElement {
 
   set heading(value: string) {
     this.setAttribute("heading", value);
+  }
+
+  get navLabel(): string {
+    return this.getAttribute("nav-label") ?? "Primary";
+  }
+
+  set navLabel(value: string) {
+    this.setAttribute("nav-label", value);
+  }
+
+  get asideLabel(): string {
+    return this.getAttribute("aside-label") ?? "Context";
+  }
+
+  set asideLabel(value: string) {
+    this.setAttribute("aside-label", value);
   }
 
   protected renderTemplate(): void {
@@ -144,16 +184,53 @@ export class BoxAppShellElement extends BaseElement {
     `;
     this.shellEl = this.shadowRoot.querySelector('[part="shell"]')!;
     this.titleEl = this.shadowRoot.querySelector('[part="title"]')!;
+    this.navEl = this.shadowRoot.querySelector('[part="nav"]')!;
+    this.asideEl = this.shadowRoot.querySelector('[part="aside"]')!;
+    this.footerEl = this.shadowRoot.querySelector('[part="footer"]')!;
+    this.navSlot = this.shadowRoot.querySelector('slot[name="nav"]')!;
+    this.asideSlot = this.shadowRoot.querySelector('slot[name="aside"]')!;
+    this.footerSlot = this.shadowRoot.querySelector('slot[name="footer"]')!;
+  }
+
+  protected setupListeners(): void {
+    this.navSlot.addEventListener("slotchange", () => this.syncLandmarkVisibility());
+    this.asideSlot.addEventListener("slotchange", () => this.syncLandmarkVisibility());
+    this.footerSlot.addEventListener("slotchange", () => this.syncLandmarkVisibility());
+    // Cover hosts (incl. jsdom) that do not emit slotchange for light-DOM appends.
+    new MutationObserver(() => this.syncLandmarkVisibility()).observe(this, {
+      childList: true,
+    });
+  }
+
+  private hasNamedSlotContent(name: string, slot: HTMLSlotElement): boolean {
+    // Prefer light-DOM query — jsdom often leaves slot.assignedNodes() empty
+    // even when slotted children are present.
+    if (this.querySelector(`[slot="${name}"]`) != null) {
+      return true;
+    }
+    return slot.assignedNodes({ flatten: true }).length > 0;
+  }
+
+  private syncLandmarkVisibility(): void {
+    if (!this.navEl || !this.asideEl || !this.footerEl) {
+      return;
+    }
+    this.navEl.hidden = !this.hasNamedSlotContent("nav", this.navSlot);
+    this.asideEl.hidden = !this.hasNamedSlotContent("aside", this.asideSlot);
+    this.footerEl.hidden = !this.hasNamedSlotContent("footer", this.footerSlot);
   }
 
   protected update(): void {
-    if (!this.shellEl || !this.titleEl) {
+    if (!this.shellEl || !this.titleEl || !this.navEl || !this.asideEl) {
       return;
     }
 
     const heading = this.heading;
     this.shellEl.setAttribute("aria-label", heading);
     this.titleEl.textContent = heading;
+    this.navEl.setAttribute("aria-label", this.navLabel);
+    this.asideEl.setAttribute("aria-label", this.asideLabel);
+    this.syncLandmarkVisibility();
   }
 }
 

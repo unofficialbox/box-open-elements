@@ -10,13 +10,31 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
+const formatFullCount = (value: number): string => {
+  if (!Number.isFinite(value)) {
+    return "0";
+  }
+  return String(value);
+};
+
 const formatCount = (value: number): string => {
   if (!Number.isFinite(value)) {
     return "0";
   }
-  if (Math.abs(value) >= 1000) {
-    return `${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}k`;
+
+  const sign = value < 0 ? "-" : "";
+  const abs = Math.abs(value);
+
+  if (abs >= 1_000_000_000) {
+    return `${sign}${(abs / 1_000_000_000).toFixed(abs % 1_000_000_000 === 0 ? 0 : 1)}B`;
   }
+  if (abs >= 1_000_000) {
+    return `${sign}${(abs / 1_000_000).toFixed(abs % 1_000_000 === 0 ? 0 : 1)}M`;
+  }
+  if (abs >= 1000) {
+    return `${sign}${(abs / 1000).toFixed(abs % 1000 === 0 ? 0 : 1)}k`;
+  }
+
   return String(value);
 };
 
@@ -173,11 +191,12 @@ export class BoxAccessStatsElement extends BaseElement {
     const tiles = stats
       .map(stat => {
         const iconMarkup = stat.icon ? `<span part="tile-icon" aria-hidden="true">${escapeHtml(stat.icon)}</span>` : "";
+        const accessibleLabel = `${formatFullCount(stat.value)} ${stat.label}`;
         return `
-          <div part="tile">
+          <div part="tile" role="group" aria-label="${escapeHtml(accessibleLabel)}">
             ${iconMarkup}
-            <span part="tile-value">${escapeHtml(formatCount(stat.value))}</span>
-            <span part="tile-label">${escapeHtml(stat.label)}</span>
+            <span part="tile-value" aria-hidden="true">${escapeHtml(formatCount(stat.value))}</span>
+            <span part="tile-label" aria-hidden="true">${escapeHtml(stat.label)}</span>
           </div>
         `;
       })
@@ -190,8 +209,8 @@ export class BoxAccessStatsElement extends BaseElement {
 
     host.innerHTML = `
       ${
-        `<section part="stats" role="group" aria-label="${escapeHtml(this.label)}">
-              <p part="title">${escapeHtml(this.label)}</p>
+        `<section part="stats" aria-labelledby="access-stats-title">
+              <p part="title" id="access-stats-title">${escapeHtml(this.label)}</p>
               ${stats.length ? `<div part="grid">${tiles}</div>` : `<div part="empty">No access data</div>`}
             </section>`
       }

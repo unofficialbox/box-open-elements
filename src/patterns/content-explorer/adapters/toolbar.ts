@@ -37,6 +37,10 @@ const elementStyles = `
           margin-right: auto;
         }
 
+        [part="status"][data-status="failed"] {
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 72%, black 28%);
+        }
+
         [part="refresh"],
         [part="clear-selection"] {
           appearance: none;
@@ -136,6 +140,8 @@ export class BoxExplorerToolbarElement extends BaseElement {
     const state = this.controllerValue?.getState();
     const loading = state?.loading ?? false;
     const selectedCount = state?.selectedItemIds.length ?? 0;
+    const hasError = Boolean(state?.error);
+    const statusText = loading ? "loading" : hasError ? "failed" : "ready";
 
     const host = this.shadowRoot.querySelector('[part="content-host"]');
     if (!host) {
@@ -143,8 +149,8 @@ export class BoxExplorerToolbarElement extends BaseElement {
     }
 
     host.innerHTML = `
-      <div part="toolbar">
-        <span part="status">${loading ? "loading" : "ready"}</span>
+      <div part="toolbar" role="toolbar" aria-label="Explorer toolbar">
+        <span part="status" data-status="${statusText}" role="status" aria-live="polite">${statusText}</span>
         <span part="selection-count">${selectedCount} selected</span>
         <button type="button" part="refresh" ${loading ? "disabled" : ""}>Refresh</button>
         <button type="button" part="clear-selection" ${selectedCount === 0 ? "disabled" : ""}>Clear Selection</button>

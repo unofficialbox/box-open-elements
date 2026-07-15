@@ -91,6 +91,41 @@ export class BoxComboboxElement extends FormAssociatedElement {
   private datalistEl!: HTMLDataListElement;
   private errorEl!: HTMLElement;
 
+  private findOptionByLabel(label: string): BoxComboboxOption | undefined {
+    return this.options.find(option => option.label === label);
+  }
+
+  private findOptionByValue(value: string): BoxComboboxOption | undefined {
+    return this.options.find(option => option.value === value);
+  }
+
+  private getDisplayValue(): string {
+    const matched = this.findOptionByValue(this.valueInternal);
+    return matched?.label ?? this.valueInternal;
+  }
+
+  private resolveInputValue(rawValue: string): string {
+    const matched = this.findOptionByLabel(rawValue);
+    return matched?.value ?? rawValue;
+  }
+
+  private commitInputValue(rawValue: string): void {
+    const resolvedValue = this.resolveInputValue(rawValue);
+    this.valueInternal = resolvedValue;
+    this.setAttribute("value", resolvedValue);
+    this.syncFormAssociation();
+    this.dispatchEvent(
+      new CustomEvent("value-changed", {
+        bubbles: true,
+        composed: true,
+        detail: { value: resolvedValue },
+      }),
+    );
+    if (this.shadowRoot?.activeElement !== this.inputEl) {
+      this.inputEl.value = this.getDisplayValue();
+    }
+  }
+
   get disabled(): boolean {
     return this.hasAttribute("disabled");
   }
@@ -191,17 +226,23 @@ export class BoxComboboxElement extends FormAssociatedElement {
 
   protected setupListeners(): void {
     this.inputEl.addEventListener("input", event => {
-      const nextValue = (event.currentTarget as HTMLInputElement).value;
-      this.valueInternal = nextValue;
-      this.setAttribute("value", nextValue);
-      this.syncFormAssociation();
-      this.dispatchEvent(
-        new CustomEvent("value-changed", {
-          bubbles: true,
-          composed: true,
-          detail: { value: nextValue },
-        }),
-      );
+      const rawValue = (event.currentTarget as HTMLInputElement).value;
+      this.commitInputValue(rawValue);
+    });
+
+    this.inputEl.addEventListener("change", event => {
+      const rawValue = (event.currentTarget as HTMLInputElement).value;
+      this.commitInputValue(rawValue);
+    });
+
+    this.inputEl.addEventListener("blur", () => {
+      const rawValue = this.inputEl.value;
+      const resolvedValue = this.resolveInputValue(rawValue);
+      if (resolvedValue !== this.valueInternal) {
+        this.commitInputValue(rawValue);
+      } else if (rawValue !== this.getDisplayValue()) {
+        this.inputEl.value = this.getDisplayValue();
+      }
     });
   }
 
@@ -221,7 +262,7 @@ export class BoxComboboxElement extends FormAssociatedElement {
       .join("");
 
     if (this.shadowRoot?.activeElement !== this.inputEl) {
-      this.inputEl.value = this.valueInternal;
+      this.inputEl.value = this.getDisplayValue();
     }
 
     if (this.disabled) {

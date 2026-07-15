@@ -79,5 +79,46 @@ describe("BoxAccordionElement", () => {
     expect(styles).toContain("--boe-token-surface-surface-hover");
     expect(styles).toContain("--boe-token-stroke-stroke-hover");
   });
+
+  it("collapses the open panel when its trigger is clicked again", () => {
+    const element = document.createElement("box-accordion") as BoxAccordionElement;
+    const changed = vi.fn();
+    element.items = [
+      { label: "Details", value: "details", content: "Item details" },
+      { label: "History", value: "history", content: "Activity history" },
+    ];
+    element.addEventListener("value-changed", changed);
+    document.body.append(element);
+
+    const openTrigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement;
+    openTrigger.click();
+
+    expect(element.value).toBe("");
+    expect(changed).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        detail: { value: "" },
+      }),
+    );
+
+    const panels = element.shadowRoot?.querySelectorAll('[part="panel"]') ?? [];
+    panels.forEach(panel => {
+      expect((panel as HTMLElement).hidden).toBe(true);
+    });
+  });
+
+  it("wraps triggers in heading elements and exposes a labeled region", () => {
+    const element = document.createElement("box-accordion") as BoxAccordionElement;
+    element.label = "Item sections";
+    element.items = [{ label: "Details", value: "details", content: "Item details" }];
+    document.body.append(element);
+
+    const accordion = element.shadowRoot?.querySelector('[part="accordion"]') as HTMLElement;
+    expect(accordion.getAttribute("role")).toBe("region");
+    expect(accordion.getAttribute("aria-label")).toBe("Item sections");
+
+    const heading = element.shadowRoot?.querySelector('[part="heading"]');
+    expect(heading?.tagName).toBe("H3");
+    expect(heading?.querySelector('[part="trigger"]')).toBeTruthy();
+  });
 });
 

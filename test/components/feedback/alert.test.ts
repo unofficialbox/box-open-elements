@@ -69,8 +69,24 @@ describe("BoxAlertElement", () => {
 
     const alert = element.shadowRoot?.querySelector('[part="alert"]') as HTMLElement | null;
     const dismiss = element.shadowRoot?.querySelector('[part="dismiss"]') as HTMLButtonElement | null;
-    expect(alert?.getAttribute("aria-label")).toBe("Heads up");
+    expect(alert?.getAttribute("aria-labelledby")).toBe("alert-title");
+    expect(alert?.hasAttribute("aria-label")).toBe(false);
     expect(dismiss?.getAttribute("aria-label")).toBe("Dismiss alert");
+  });
+
+  it("announces tone with visually hidden text", () => {
+    const element = document.createElement("box-alert") as BoxAlertElement;
+    element.heading = "Heads up";
+    element.message = "Storage is almost full.";
+    element.tone = "warning";
+
+    document.body.append(element);
+
+    const toneLabel = element.shadowRoot?.querySelector('[part="tone-label"]') as HTMLElement | null;
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(toneLabel?.textContent).toBe("Warning");
+    expect(toneLabel?.classList.contains("sr-only")).toBe(true);
+    expect(styles).toContain(".sr-only");
   });
 
   it("includes focus-visible and interactive styles for dismiss", () => {

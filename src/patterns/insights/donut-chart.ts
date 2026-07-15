@@ -26,10 +26,13 @@ type DonutChartSegment = {
 type DonutSegmentArc = {
   displayEnd: number;
   displayStart: number;
+  index: number;
   segment: DonutChartSegment;
   start: number;
   end: number;
 };
+
+const SEGMENT_PALETTE = ["#0061d5", "#5a7cf7", "#26c281", "#f59e0b", "#8b5cf6", "#ec4899"];
 
 
 const elementStyles = `
@@ -227,6 +230,12 @@ const elementStyles = `
           color: var(--boe-token-text-text, #1f1e1b);
         }
 
+        [part="legend-item"][data-pressed="true"] {
+          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%);
+          box-shadow: 0 10px 18px rgba(15, 23, 42, 0.06);
+        }
+
         [part="legend-value"] {
           font-size: 0.76rem;
           color: var(--boe-token-text-text-secondary, #6f6f6f);
@@ -250,6 +259,8 @@ export class BoxDonutChartElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["actions", "heading", "message", "segments", "summary", "timeframe"];
   }
+
+  private selectedSegmentId: string | null = null;
   get actions(): DonutChartAction[] {
     return this.parseJsonAttribute<DonutChartAction[]>("actions", []);
   }
@@ -368,6 +379,18 @@ export class BoxDonutChartElement extends BaseElement {
     }
   }
 
+  private segmentColor(segment: DonutChartSegment, index: number): string {
+    if (segment.tone) {
+      return this.toneColor(segment.tone);
+    }
+
+    return SEGMENT_PALETTE[index % SEGMENT_PALETTE.length] ?? "#0061d5";
+  }
+
+  private describeSegmentSummary(arcs: DonutSegmentArc[]): string {
+    return arcs.map(({ segment }) => `${segment.label}: ${segment.value}`).join(", ");
+  }
+
   private polarToCartesian(centerX: number, centerY: number, radius: number, angleInDegrees: number) {
     const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180;
     return {
@@ -377,6 +400,12 @@ export class BoxDonutChartElement extends BaseElement {
   }
 
   private describeSegmentPath(startAngle: number, endAngle: number, outerRadius = 44, innerRadius = 31): string {
+    const sweep = endAngle - startAngle;
+    if (sweep >= 359.9) {
+      const midpoint = startAngle + sweep / 2;
+      return `${this.describeSegmentPath(startAngle, midpoint, outerRadius, innerRadius)} ${this.describeSegmentPath(midpoint, endAngle, outerRadius, innerRadius)}`;
+    }
+
     const center = 50;
     const outerStart = this.polarToCartesian(center, center, outerRadius, startAngle);
     const outerEnd = this.polarToCartesian(center, center, outerRadius, endAngle);
@@ -416,13 +445,14 @@ export class BoxDonutChartElement extends BaseElement {
     const total = positiveSegments.reduce((sum, segment) => sum + segment.value, 0) || 1;
     const gap = positiveSegments.length > 1 ? 2.4 : 0;
     let current = 0;
-    return positiveSegments.map(segment => {
+    return positiveSegments.map((segment, index) => {
       const start = current;
       const sweep = (segment.value / total) * 360;
       current += sweep;
       const safeGap = sweep > gap ? gap : 0;
       return {
         segment,
+        index,
         start,
         end: current,
         displayStart: start + safeGap / 2,
@@ -448,6 +478,10 @@ export class BoxDonutChartElement extends BaseElement {
     }
 
     const arcs = this.getArcs();
+    const segmentSummary = this.describeSegmentSummary(arcs);
+    const chartAriaLabel = segmentSummary
+      ? `${this.heading}. ${segmentSummary}`
+      : this.heading;
     const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
     const summaryMarkup = this.summary ? `<div part="summary">${escapeHtml(this.summary)}</div>` : "";
     const timeframeMarkup = this.timeframe ? `<div part="timeframe">${escapeHtml(this.timeframe)}</div>` : "";
@@ -470,17 +504,17 @@ export class BoxDonutChartElement extends BaseElement {
       ? `
           <div part="visual">
             <div part="donut-wrap">
-              <svg part="chart" viewBox="0 0 100 100" role="img" aria-label="${escapeHtml(this.heading)} segment distribution">
+              <svg part="chart" viewBox="0 0 100 100" role="img" aria-label="${escapeHtml(chartAriaLabel)}">
                 <circle part="track" cx="50" cy="50" r="37.5"></circle>
                 ${arcs
                   .map(
-                    ({ segment, displayStart, displayEnd }) => `
+                    ({ segment, displayStart, displayEnd, index }) => `
                       <path
                         part="segment"
                         data-segment-id="${escapeHtml(segment.id)}"
                         data-tone="${escapeHtml(segment.tone ?? "neutral")}"
                         d="${this.describeSegmentPath(displayStart, displayEnd)}"
-                        fill="${this.toneColor(segment.tone)}"
+                        fill="${this.segmentColor(segment, index)}"
                       ></path>
                     `,
                   )
@@ -494,21 +528,26 @@ export class BoxDonutChartElement extends BaseElement {
             <div part="legend" role="list" aria-label="${escapeHtml(this.heading)} segments">
               ${arcs
                 .map(
-                  ({ segment }) => `
+                  ({ segment, index }) => {
+                    const isPressed = this.selectedSegmentId === segment.id;
+                    return `
                     <button
                       type="button"
                       part="legend-item"
                       data-segment-id="${escapeHtml(segment.id)}"
                       data-tone="${escapeHtml(segment.tone ?? "neutral")}"
+                      data-pressed="${String(isPressed)}"
+                      aria-pressed="${String(isPressed)}"
                       aria-label="${escapeHtml(`${segment.label}: ${segment.value}`)}"
                     >
-                      <span part="legend-swatch" style="--segment-color:${this.toneColor(segment.tone)};"></span>
+                      <span part="legend-swatch" style="--segment-color:${this.segmentColor(segment, index)};"></span>
                       <span part="legend-copy">
                         <span part="legend-label">${escapeHtml(segment.label)}</span>
                         <span part="legend-value">${escapeHtml(String(segment.value))}</span>
                       </span>
                     </button>
-                  `,
+                  `;
+                  },
                 )
                 .join("")}
             </div>
@@ -550,7 +589,9 @@ export class BoxDonutChartElement extends BaseElement {
         const segmentId = button.getAttribute("data-segment-id");
         const segment = this.segments.find(item => item.id === segmentId);
         if (segment) {
+          this.selectedSegmentId = segment.id;
           this.emitSegmentSelected(segment);
+          this.update();
         }
       });
     });

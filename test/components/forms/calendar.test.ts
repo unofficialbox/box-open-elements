@@ -36,6 +36,12 @@ describe("BoxCalendarElement", () => {
     expect(selected?.getAttribute("data-date")).toBe("2026-07-18");
   });
 
+  it("pins the today highlight via the today attribute", () => {
+    const element = create({ month: "2026-07", today: "2026-07-15" });
+    const today = element.shadowRoot?.querySelector('[data-today="true"]');
+    expect(today?.getAttribute("data-date")).toBe("2026-07-15");
+  });
+
   it("emits value-changed when a day is clicked", () => {
     const element = create({ month: "2026-07" });
     const changed = vi.fn();

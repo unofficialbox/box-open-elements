@@ -1,6 +1,12 @@
 import { BaseElement } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-avatar";
+const DEFAULT_SIZE = 52;
+
+const resolveSize = (raw: string | null, fallback = DEFAULT_SIZE): number => {
+  const parsed = Number(raw ?? String(fallback));
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
 
 const initialsFromName = (name: string): string =>
   name
@@ -63,6 +69,11 @@ const avatarStyles = `
     font-weight: 700;
     color: var(--boe-token-text-text, #222222);
     letter-spacing: 0.02em;
+    font-size: calc(var(--avatar-size, ${DEFAULT_SIZE}px) * 0.4);
+  }
+
+  [part="image"][hidden] {
+    display: none;
   }
 `;
 
@@ -98,7 +109,7 @@ export class BoxAvatarElement extends BaseElement {
   }
 
   get size(): number {
-    return Number(this.getAttribute("size") ?? "52");
+    return resolveSize(this.getAttribute("size"));
   }
 
   set size(value: number) {
@@ -138,11 +149,12 @@ export class BoxAvatarElement extends BaseElement {
       return;
     }
 
-    const size = Math.max(24, this.size);
+    const size = this.size;
     const fallback = this.initials || "?";
 
     this.avatarEl.dataset.tone = this.tone;
     this.avatarEl.setAttribute("aria-label", this.alt || fallback);
+    this.avatarEl.style.setProperty("--avatar-size", `${size}px`);
     this.avatarEl.style.width = `${size}px`;
     this.avatarEl.style.height = `${size}px`;
 
@@ -150,13 +162,19 @@ export class BoxAvatarElement extends BaseElement {
     const existingFallback = this.avatarEl.querySelector('[part="fallback"]') as HTMLElement | null;
 
     if (this.src) {
-      if (existingFallback) {
-        existingFallback.remove();
-      }
       const image = existingImage ?? document.createElement("img");
       image.setAttribute("part", "image");
       image.src = this.src;
       image.alt = this.alt;
+      image.hidden = false;
+      image.onerror = () => {
+        image.hidden = true;
+        this.showAvatarFallback(existingFallback, fallback);
+      };
+      image.onload = () => {
+        image.hidden = false;
+        this.avatarEl.querySelector('[part="fallback"]')?.remove();
+      };
       if (!existingImage) {
         this.avatarEl.append(image);
       }
@@ -164,12 +182,16 @@ export class BoxAvatarElement extends BaseElement {
       if (existingImage) {
         existingImage.remove();
       }
-      const fallbackEl = existingFallback ?? document.createElement("span");
-      fallbackEl.setAttribute("part", "fallback");
-      fallbackEl.textContent = fallback;
-      if (!existingFallback) {
-        this.avatarEl.append(fallbackEl);
-      }
+      this.showAvatarFallback(existingFallback, fallback);
+    }
+  }
+
+  private showAvatarFallback(existingFallback: HTMLElement | null, fallback: string): void {
+    const fallbackEl = existingFallback ?? document.createElement("span");
+    fallbackEl.setAttribute("part", "fallback");
+    fallbackEl.textContent = fallback;
+    if (!existingFallback) {
+      this.avatarEl.append(fallbackEl);
     }
   }
 }

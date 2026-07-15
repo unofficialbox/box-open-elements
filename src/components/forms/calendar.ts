@@ -208,7 +208,7 @@ const calendarStyles = `
 
 export class BoxCalendarElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "max", "min", "month", "value"];
+    return ["disabled", "max", "min", "month", "today", "value"];
   }
 
   /** The date the roving tabindex currently points at. */
@@ -259,6 +259,19 @@ export class BoxCalendarElement extends BaseElement {
     this.toggleAttribute("disabled", next);
   }
 
+  /** Optional ISO date used as "today" for highlighting / fallback month (pin for demos). */
+  get today(): string {
+    return this.getAttribute("today") ?? "";
+  }
+
+  set today(next: string) {
+    if (next) {
+      this.setAttribute("today", next);
+    } else {
+      this.removeAttribute("today");
+    }
+  }
+
   attributeChangedCallback(
     name: string,
     oldValue: string | null,
@@ -266,6 +279,15 @@ export class BoxCalendarElement extends BaseElement {
   ): void {
     this.activeDate = null;
     super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private resolveToday(): CalendarDate {
+    const pinned = parseISO(this.today);
+    if (pinned) {
+      return pinned;
+    }
+    const now = new Date();
+    return { y: now.getFullYear(), m: now.getMonth() + 1, d: now.getDate() };
   }
 
   /** The year/month currently displayed: explicit `month`, else `value`'s month, else today. */
@@ -278,8 +300,8 @@ export class BoxCalendarElement extends BaseElement {
     if (selected) {
       return { y: selected.y, m: selected.m };
     }
-    const today = new Date();
-    return { y: today.getFullYear(), m: today.getMonth() + 1 };
+    const today = this.resolveToday();
+    return { y: today.y, m: today.m };
   }
 
   private isOutOfRange(iso: string): boolean {
@@ -390,11 +412,8 @@ export class BoxCalendarElement extends BaseElement {
     if (selected && selected.y === y && selected.m === m) {
       candidate = selected;
     } else {
-      const today = new Date();
-      candidate =
-        today.getFullYear() === y && today.getMonth() + 1 === m
-          ? { y, m, d: today.getDate() }
-          : { y, m, d: 1 };
+      const today = this.resolveToday();
+      candidate = today.y === y && today.m === m ? today : { y, m, d: 1 };
     }
     return this.clampToEnabled(candidate);
   }
@@ -492,8 +511,7 @@ export class BoxCalendarElement extends BaseElement {
     const selected = parseISO(this.value);
     const active = this.resolveActiveDate();
     const activeIso = toISO({ y, m, d: clampDay(y, m, active.d) });
-    const today = new Date();
-    const todayIso = toISO({ y: today.getFullYear(), m: today.getMonth() + 1, d: today.getDate() });
+    const todayIso = toISO(this.resolveToday());
 
     this.titleEl.textContent = `${MONTH_NAMES[m - 1]} ${y}`;
     this.gridEl.setAttribute("aria-label", `${MONTH_NAMES[m - 1]} ${y}`);

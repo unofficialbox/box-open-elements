@@ -26,4 +26,32 @@ describe("BoxAppShellElement", () => {
     expect(element.shadowRoot?.querySelector('[part="footer"]')).toBeTruthy();
     expect(element.shadowRoot?.textContent).toContain("Workspace");
   });
+
+  it("hides empty nav/aside/footer landmarks and accepts custom labels", () => {
+    const element = document.createElement("box-app-shell") as BoxAppShellElement;
+    element.heading = "Workspace";
+    element.navLabel = "Browse";
+    element.asideLabel = "Details";
+    document.body.append(element);
+
+    const nav = element.shadowRoot?.querySelector('[part="nav"]') as HTMLElement;
+    const aside = element.shadowRoot?.querySelector('[part="aside"]') as HTMLElement;
+    const footer = element.shadowRoot?.querySelector('[part="footer"]') as HTMLElement;
+
+    expect(nav.hidden).toBe(true);
+    expect(aside.hidden).toBe(true);
+    expect(footer.hidden).toBe(true);
+    expect(nav.getAttribute("aria-label")).toBe("Browse");
+    expect(aside.getAttribute("aria-label")).toBe("Details");
+
+    const navContent = document.createElement("div");
+    navContent.slot = "nav";
+    navContent.textContent = "Nav";
+    element.append(navContent);
+    // Force an update pass (same heading string would not re-enter attributeChanged).
+    element.heading = "Workspace updated";
+
+    expect(nav.hidden).toBe(false);
+    expect(aside.hidden).toBe(true);
+  });
 });

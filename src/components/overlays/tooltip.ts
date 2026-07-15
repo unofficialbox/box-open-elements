@@ -3,17 +3,18 @@ import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-tooltip";
 
+const DEFAULT_TRIGGER_LABEL = "More information";
+
 const tooltipStyles = `
   :host {
     display: inline-block;
+    position: relative;
     color: inherit;
     font: inherit;
   }
 
   [part="container"] {
-    position: relative;
     display: inline-grid;
-    gap: 0.5rem;
   }
 
   [part="trigger"] {
@@ -40,6 +41,11 @@ const tooltipStyles = `
   ${boeNeutralInteractiveStyles('[part="trigger"]')}
 
   [part="tooltip"] {
+    position: absolute;
+    inset-block-start: calc(100% + 0.5rem);
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
     width: min(13.75rem, calc(100vw - 6rem));
     padding: 0.65rem 0.8rem;
     border-radius: 0.9rem;
@@ -64,7 +70,7 @@ const tooltipStyles = `
 
 export class BoxTooltipElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["label", "open"];
+    return ["label", "open", "trigger-label"];
   }
 
   private openValue = false;
@@ -78,6 +84,14 @@ export class BoxTooltipElement extends BaseElement {
 
   set label(value: string) {
     this.setAttribute("label", value);
+  }
+
+  get triggerLabel(): string {
+    return this.getAttribute("trigger-label") ?? DEFAULT_TRIGGER_LABEL;
+  }
+
+  set triggerLabel(value: string) {
+    this.setAttribute("trigger-label", value);
   }
 
   get open(): boolean {
@@ -158,7 +172,7 @@ export class BoxTooltipElement extends BaseElement {
     }
 
     const label = this.label;
-    this.triggerEl.setAttribute("aria-label", label);
+    this.triggerEl.setAttribute("aria-label", this.triggerLabel);
     this.tooltipEl.textContent = label;
     this.tooltipEl.hidden = !this.openValue;
 

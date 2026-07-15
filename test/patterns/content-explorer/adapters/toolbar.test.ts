@@ -68,4 +68,29 @@ describe("BoxExplorerToolbarElement", () => {
 
     expect(controller.getState().selectedItemIds).toHaveLength(0);
   });
+
+  it("exposes toolbar semantics and failed status", async () => {
+    const transport: ExplorerTransport = {
+      loadFolderItems: vi.fn().mockRejectedValue(new Error("Network unavailable")),
+    };
+    const controller = new ContentExplorerController({
+      rootFolderId: "0",
+      token: "token",
+      transport,
+    });
+    const element = document.createElement("box-explorer-toolbar") as BoxExplorerToolbarElement;
+    element.controller = controller;
+
+    document.body.append(element);
+    await controller.connect();
+    await flushMicrotasks();
+
+    const toolbar = element.shadowRoot?.querySelector('[part="toolbar"]');
+    const status = element.shadowRoot?.querySelector('[part="status"]');
+
+    expect(toolbar?.getAttribute("role")).toBe("toolbar");
+    expect(toolbar?.getAttribute("aria-label")).toBe("Explorer toolbar");
+    expect(status?.getAttribute("data-status")).toBe("failed");
+    expect(status?.textContent).toBe("failed");
+  });
 });

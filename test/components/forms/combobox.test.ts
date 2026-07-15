@@ -6,6 +6,7 @@ import {
   BoxComboboxElement,
   defineBoxComboboxElement,
 } from "../../../src/components/forms/combobox.js";
+import { getMirroredFormValue } from "../../../src/core/index.js";
 
 describe("BoxComboboxElement", () => {
   beforeEach(() => {
@@ -27,6 +28,59 @@ describe("BoxComboboxElement", () => {
 
     const options = element.shadowRoot?.querySelectorAll("datalist option") ?? [];
     expect(options).toHaveLength(2);
+    expect(options[0]?.getAttribute("data-option-value")).toBe("marketing");
+  });
+
+  it("resolves option labels to option values on selection", () => {
+    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    const changed = vi.fn();
+    element.options = [
+      { label: "Marketing", value: "marketing" },
+      { label: "Finance", value: "finance" },
+    ];
+    element.addEventListener("value-changed", changed);
+
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement | null;
+    input!.value = "Marketing";
+    input?.dispatchEvent(new Event("input", { bubbles: true }));
+
+    expect(element.value).toBe("marketing");
+    expect(changed).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: { value: "marketing" },
+      }),
+    );
+    expect(getMirroredFormValue(element.internals)).toBe("marketing");
+  });
+
+  it("displays the option label when value is set programmatically", () => {
+    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    element.options = [
+      { label: "Marketing", value: "marketing" },
+      { label: "Finance", value: "finance" },
+    ];
+    document.body.append(element);
+
+    element.value = "finance";
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement | null;
+    expect(input?.value).toBe("Finance");
+    expect(element.value).toBe("finance");
+  });
+
+  it("resolves labels to values on blur", () => {
+    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    element.options = [{ label: "Marketing", value: "marketing" }];
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement | null;
+    input!.value = "Marketing";
+    input?.dispatchEvent(new Event("blur", { bubbles: true }));
+
+    expect(element.value).toBe("marketing");
+    expect(input?.value).toBe("Marketing");
   });
 
   it("emits value changes as the input changes", () => {
@@ -37,13 +91,13 @@ describe("BoxComboboxElement", () => {
     document.body.append(element);
 
     const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement | null;
-    input!.value = "Marketing";
+    input!.value = "custom-entry";
     input?.dispatchEvent(new Event("input", { bubbles: true }));
 
-    expect(element.value).toBe("Marketing");
+    expect(element.value).toBe("custom-entry");
     expect(changed).toHaveBeenCalledWith(
       expect.objectContaining({
-        detail: { value: "Marketing" },
+        detail: { value: "custom-entry" },
       }),
     );
   });

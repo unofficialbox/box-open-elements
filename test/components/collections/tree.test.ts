@@ -150,4 +150,56 @@ describe("BoxTreeElement", () => {
 
     expect(element.shadowRoot?.querySelector('[part~="item"][data-value="tree"]')).toBeTruthy();
   });
+
+  it("reseeds expanded state when items change", () => {
+    const element = document.createElement("box-tree") as BoxTreeElement;
+    element.items = [
+      {
+        label: "Navigation",
+        value: "navigation",
+        children: [{ label: "Breadcrumbs", value: "breadcrumbs" }],
+      },
+    ];
+
+    document.body.append(element);
+
+    const collapseAll = element.shadowRoot?.querySelector(
+      '[part~="control-collapse-all"]',
+    ) as HTMLButtonElement | null;
+    collapseAll?.click();
+    expect(element.shadowRoot?.querySelector('[part~="item"][data-value="breadcrumbs"]')).toBeFalsy();
+
+    element.items = [
+      {
+        label: "Components",
+        value: "components",
+        children: [{ label: "Tree", value: "tree" }],
+      },
+    ];
+
+    expect(element.shadowRoot?.querySelector('[part~="item"][data-value="tree"]')).toBeTruthy();
+    expect(element.shadowRoot?.querySelector('[part~="item"][data-value="breadcrumbs"]')).toBeFalsy();
+  });
+
+  it("does not auto-expand nested branches", () => {
+    const element = document.createElement("box-tree") as BoxTreeElement;
+    element.items = [
+      {
+        label: "Navigation",
+        value: "navigation",
+        children: [
+          {
+            label: "Collections",
+            value: "collections",
+            children: [{ label: "Tree", value: "tree" }],
+          },
+        ],
+      },
+    ];
+
+    document.body.append(element);
+
+    expect(element.shadowRoot?.querySelector('[part~="item"][data-value="collections"]')).toBeTruthy();
+    expect(element.shadowRoot?.querySelector('[part~="item"][data-value="tree"]')).toBeFalsy();
+  });
 });

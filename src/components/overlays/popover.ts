@@ -69,7 +69,7 @@ const popoverStyles = `
 
 export class BoxPopoverElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["label", "open"];
+    return ["disabled", "label", "open"];
   }
 
   private openValue = false;
@@ -106,6 +106,9 @@ export class BoxPopoverElement extends BaseElement {
 
   set open(value: boolean) {
     const nextOpen = Boolean(value);
+    if (this.disabled && nextOpen) {
+      return;
+    }
     if (this.openValue === nextOpen) {
       return;
     }
@@ -133,6 +136,21 @@ export class BoxPopoverElement extends BaseElement {
     this.setAttribute("label", value);
   }
 
+  get disabled(): boolean {
+    return this.hasAttribute("disabled");
+  }
+
+  set disabled(value: boolean) {
+    if (value) {
+      this.setAttribute("disabled", "");
+      if (this.openValue) {
+        this.hide();
+      }
+    } else {
+      this.removeAttribute("disabled");
+    }
+  }
+
   connectedCallback(): void {
     super.connectedCallback();
     this.syncDocumentListeners();
@@ -147,10 +165,16 @@ export class BoxPopoverElement extends BaseElement {
       this.openValue = this.hasAttribute("open");
       this.syncDocumentListeners();
     }
+    if (name === "disabled" && this.disabled && this.openValue) {
+      this.hide();
+    }
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   show(): void {
+    if (this.disabled) {
+      return;
+    }
     this.open = true;
   }
 
@@ -159,6 +183,9 @@ export class BoxPopoverElement extends BaseElement {
   }
 
   toggle(): void {
+    if (this.disabled) {
+      return;
+    }
     if (this.openValue) {
       this.hide();
     } else {
@@ -230,6 +257,11 @@ export class BoxPopoverElement extends BaseElement {
 
     this.triggerEl.textContent = this.label;
     this.triggerEl.setAttribute("aria-expanded", this.openValue ? "true" : "false");
+    if (this.disabled) {
+      this.triggerEl.setAttribute("disabled", "");
+    } else {
+      this.triggerEl.removeAttribute("disabled");
+    }
     this.surfaceEl.hidden = !this.openValue;
     this.syncDocumentListeners();
   }

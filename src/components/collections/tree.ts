@@ -285,12 +285,12 @@ export class BoxTreeElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
-  private seedExpandedState(items: BoxTreeItem[], depth = 0): void {
+  private seedExpandedState(items: BoxTreeItem[]): void {
+    this.expandedInternal.clear();
     for (const item of items) {
-      if ((item.children?.length ?? 0) > 0 && depth === 0) {
+      if ((item.children?.length ?? 0) > 0) {
         const key = item.value ?? item.label;
         this.expandedInternal.add(key);
-        this.seedExpandedState(item.children ?? [], depth + 1);
       }
     }
   }

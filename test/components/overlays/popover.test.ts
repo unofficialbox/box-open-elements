@@ -110,4 +110,33 @@ describe("BoxPopoverElement", () => {
     expect(trigger?.getAttribute("aria-controls")).toBe(surface?.id);
     expect(surface?.getAttribute("aria-labelledby")).toBe(trigger?.id);
   });
+
+  it("disables the trigger and prevents opening when disabled", () => {
+    const element = document.createElement("box-popover") as BoxPopoverElement;
+    element.label = "Open details";
+    element.disabled = true;
+    document.body.append(element);
+
+    const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null;
+    expect(trigger?.disabled).toBe(true);
+
+    trigger?.click();
+    expect(element.open).toBe(false);
+
+    element.show();
+    expect(element.open).toBe(false);
+  });
+
+  it("closes when disabled while open", () => {
+    const element = document.createElement("box-popover") as BoxPopoverElement;
+    document.body.append(element);
+    element.show();
+    expect(element.open).toBe(true);
+
+    element.disabled = true;
+
+    expect(element.open).toBe(false);
+    const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null;
+    expect(trigger?.disabled).toBe(true);
+  });
 });

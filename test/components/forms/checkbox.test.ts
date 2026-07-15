@@ -102,4 +102,45 @@ describe("BoxCheckboxElement", () => {
     expect(element.value).toBe("on");
     expect(getMirroredFormValue(element.internals)).toBe("on");
   });
+
+  it("reflects indeterminate state to the input and aria-checked", () => {
+    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    document.body.append(element);
+
+    element.indeterminate = true;
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
+    expect(element.indeterminate).toBe(true);
+    expect(element.hasAttribute("indeterminate")).toBe(true);
+    expect(input.indeterminate).toBe(true);
+    expect(input.getAttribute("aria-checked")).toBe("mixed");
+    expect(getMirroredFormValue(element.internals)).toBeNull();
+  });
+
+  it("clears indeterminate and checks when clicked", () => {
+    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    document.body.append(element);
+
+    element.indeterminate = true;
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
+    input.click();
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+
+    expect(element.indeterminate).toBe(false);
+    expect(element.checked).toBe(true);
+    expect(input.getAttribute("aria-checked")).toBe("true");
+    expect(getMirroredFormValue(element.internals)).toBe("on");
+  });
+
+  it("clears indeterminate when checked is set programmatically", () => {
+    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    element.indeterminate = true;
+    document.body.append(element);
+
+    element.checked = true;
+
+    expect(element.indeterminate).toBe(false);
+    expect(element.hasAttribute("indeterminate")).toBe(false);
+  });
 });
