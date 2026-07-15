@@ -342,10 +342,11 @@ export class BoxRichTextInputElement extends FormAssociatedElement {
   };
 
   private insertSanitizedHtml(html: string, plainTextFallback: string): void {
-    const cleaned = html
-      ? sanitizeRichTextHtml(html)
-      : sanitizeRichTextHtml(escapeHtml(plainTextFallback).replaceAll("\n", "<br>"));
-    const payload = cleaned || escapeHtml(plainTextFallback);
+    const plainTextHtml = sanitizeRichTextHtml(
+      escapeHtml(plainTextFallback).replaceAll("\n", "<br>"),
+    );
+    const cleaned = html ? sanitizeRichTextHtml(html) : plainTextHtml;
+    const payload = cleaned || plainTextHtml;
     this.editor.focus();
     const inserted = document.execCommand?.("insertHTML", false, payload) ?? false;
     if (!inserted) {
