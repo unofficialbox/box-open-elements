@@ -254,7 +254,7 @@ Recommended styling hook names stay structural and reusable:
 
 Avoid overly presentational names unless the structure is unique to the component.
 
-Components should also consume foundation tokens (`--boe-token-*`) with safe fallbacks, so they work with no design system registered and restyle automatically when one is active. See [foundations/tokens.md](./foundations/tokens.md).
+Components should also consume foundation tokens (`--boe-token-*`) with safe fallbacks, so they work with no design system registered and restyle automatically when one is active. Components **consume** tokens; shells and consumers **register / override** — do not invent per-component styling strategies. See [Token consumption vs shell / consumer overrides](./foundations/tokens.md#token-consumption-vs-shell--consumer-overrides).
 
 ## AI-friendly authoring rules
 
