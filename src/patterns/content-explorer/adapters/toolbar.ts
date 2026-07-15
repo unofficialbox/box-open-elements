@@ -138,6 +138,8 @@ export class BoxExplorerToolbarElement extends BaseElement {
       return;
     }
 
+    const activePart = this.shadowRoot.activeElement?.getAttribute("part") ?? null;
+
     const state = this.controllerValue?.getState();
     const loading = state?.loading ?? false;
     const selectedCount = state?.selectedItemIds.length ?? 0;
@@ -169,7 +171,13 @@ export class BoxExplorerToolbarElement extends BaseElement {
     const buttons = Array.from(
       this.shadowRoot.querySelectorAll<HTMLButtonElement>('[part="refresh"], [part="clear-selection"]'),
     ).filter(button => !button.disabled);
-    applyRovingTabindex(buttons, 0);
+    const restoreIndex = activePart
+      ? buttons.findIndex(button => button.getAttribute("part") === activePart)
+      : -1;
+    applyRovingTabindex(buttons, restoreIndex >= 0 ? restoreIndex : 0);
+    if (restoreIndex >= 0) {
+      buttons[restoreIndex]?.focus();
+    }
     toolbar?.addEventListener("keydown", event => {
       handleRovingKeydown(event as KeyboardEvent, buttons, { orientation: "horizontal" });
     });

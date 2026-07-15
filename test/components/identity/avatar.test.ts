@@ -92,7 +92,8 @@ describe("BoxAvatarElement", () => {
     element.tone = "success";
     element.size = 64;
 
-    expect(image?.hidden).toBe(true);
+    const updatedImage = element.shadowRoot?.querySelector('[part="image"]') as HTMLImageElement | null;
+    expect(updatedImage?.hidden).toBe(true);
     expect(element.shadowRoot?.querySelector('[part="fallback"]')?.textContent).toBe("ML");
   });
 });
