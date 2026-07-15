@@ -283,7 +283,6 @@ const renderComponentPage = (entry: CatalogEntry): void => {
             </div>
           </div>
           <div class="preview-canvas" id="preview-canvas" data-preview-size="full"></div>
-          ${example.note ? `<p class="preview-note">${escapeHtml(example.note)}</p>` : ""}
           <div id="guidance-section"></div>
           <div id="related-section"></div>
         </div>
