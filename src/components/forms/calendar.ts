@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-calendar";
 
 const escapeHtml = (value: string): string =>
@@ -63,18 +65,159 @@ const addDays = ({ y, m, d }: CalendarDate, delta: number): CalendarDate => {
 
 const clampDay = (y: number, m: number, d: number): number => Math.min(d, daysInMonth(y, m));
 
-export class BoxCalendarElement extends HTMLElement {
+const calendarStyles = `
+  :host {
+    display: inline-block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="calendar"] {
+    display: grid;
+    gap: 0.75rem;
+    inline-size: 17.5rem;
+    max-inline-size: 100%;
+    padding: 0.85rem;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
+    border-radius: 0.9rem;
+    background:
+      linear-gradient(
+        180deg,
+        var(--boe-token-surface-surface, #ffffff) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 100%
+      );
+  }
+
+  [part="header"] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  [part="title"] {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--boe-token-text-text, #222222);
+  }
+
+  [part~="nav"] {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2rem;
+    block-size: 2rem;
+    padding: 0;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
+    border-radius: 0.6rem;
+    background: var(--boe-token-surface-surface, #ffffff);
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    cursor: pointer;
+    transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+  }
+
+  [part~="nav"] svg {
+    inline-size: 0.85rem;
+    block-size: 0.85rem;
+  }
+
+  [part~="nav"]:hover {
+    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+  }
+
+  [part~="nav"]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 20%, transparent);
+  }
+
+  [part="weekdays"],
+  [part="week"] {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.15rem;
+  }
+
+  [part="grid"] {
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  [part="weekday"] {
+    text-align: center;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    padding-block: 0.2rem;
+  }
+
+  [part="day-blank"] {
+    block-size: 2.1rem;
+  }
+
+  [part~="day"] {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    block-size: 2.1rem;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 0.55rem;
+    background: transparent;
+    font: inherit;
+    font-size: 0.82rem;
+    color: var(--boe-token-text-text, #222222);
+    cursor: pointer;
+    transition: background 120ms ease, color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  }
+
+  [part~="day"]:hover:not(:disabled) {
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+  }
+
+  [part~="day"][data-today="true"] {
+    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 40%, transparent);
+    font-weight: 700;
+  }
+
+  [part~="day"][data-selected="true"] {
+    background: var(--boe-token-surface-surface-brand, #0061d5);
+    border-color: var(--boe-token-surface-surface-brand, #0061d5);
+    color: var(--boe-token-text-text-on-brand, #ffffff);
+    font-weight: 700;
+  }
+
+  [part~="day"][data-selected="true"]:hover:not(:disabled) {
+    background: var(--boe-token-surface-surface-brand-hover, #0057c0);
+  }
+
+  [part~="day"]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, transparent);
+  }
+
+  [part~="day"]:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+`;
+
+export class BoxCalendarElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["disabled", "max", "min", "month", "value"];
   }
 
   /** The date the roving tabindex currently points at. */
   private activeDate: CalendarDate | null = null;
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
+  private titleEl!: HTMLElement;
+  private gridEl!: HTMLElement;
+  private weekdayCells = WEEKDAYS.map(
+    label => `<span part="weekday" role="columnheader" aria-label="${escapeHtml(label)}">${label}</span>`,
+  ).join("");
 
   get value(): string {
     return this.getAttribute("value") ?? "";
@@ -116,13 +259,13 @@ export class BoxCalendarElement extends HTMLElement {
     this.toggleAttribute("disabled", next);
   }
 
-  connectedCallback(): void {
-    this.render();
-  }
-
-  attributeChangedCallback(): void {
+  attributeChangedCallback(
+    name: string,
+    oldValue: string | null,
+    newValue: string | null,
+  ): void {
     this.activeDate = null;
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   /** The year/month currently displayed: explicit `month`, else `value`'s month, else today. */
@@ -197,7 +340,7 @@ export class BoxCalendarElement extends HTMLElement {
       this.setAttribute("month", `${next.y}-${pad(next.m)}`);
     }
     this.activeDate = next;
-    this.render();
+    this.update();
     this.focusActive();
   }
 
@@ -229,7 +372,7 @@ export class BoxCalendarElement extends HTMLElement {
       return;
     }
     const iso = toISO(this.activeDate);
-    const button = this.shadowRoot?.querySelector(`[data-date="${iso}"]`) as HTMLButtonElement | null;
+    const button = this.gridEl?.querySelector(`[data-date="${iso}"]`) as HTMLButtonElement | null;
     button?.focus();
   }
 
@@ -251,237 +394,6 @@ export class BoxCalendarElement extends HTMLElement {
           : { y, m, d: 1 };
     }
     return this.clampToEnabled(candidate);
-  }
-
-  private render(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const { y, m } = this.displayedMonth();
-    const selected = parseISO(this.value);
-    const active = this.resolveActiveDate();
-    const activeIso = toISO({ y, m, d: clampDay(y, m, active.d) });
-    const today = new Date();
-    const todayIso = toISO({ y: today.getFullYear(), m: today.getMonth() + 1, d: today.getDate() });
-
-    const leading = firstWeekday(y, m);
-    const total = daysInMonth(y, m);
-
-    const cells: string[] = [];
-    for (let i = 0; i < leading; i += 1) {
-      cells.push(`<span part="day-blank" aria-hidden="true"></span>`);
-    }
-    for (let day = 1; day <= total; day += 1) {
-      const iso = toISO({ y, m, d: day });
-      const isSelected = selected ? toISO(selected) === iso : false;
-      const isToday = iso === todayIso;
-      const isActive = iso === activeIso;
-      const outOfRange = this.isOutOfRange(iso);
-      const disabled = this.disabled || outOfRange;
-      cells.push(
-        `<button
-          type="button"
-          part="day${isSelected ? " day-selected" : ""}${isToday ? " day-today" : ""}"
-          role="gridcell"
-          data-date="${iso}"
-          data-selected="${isSelected ? "true" : "false"}"
-          data-today="${isToday ? "true" : "false"}"
-          tabindex="${isActive && !disabled ? "0" : "-1"}"
-          aria-selected="${isSelected ? "true" : "false"}"
-          aria-label="${escapeHtml(`${MONTH_NAMES[m - 1]} ${day}, ${y}`)}"
-          ${disabled ? "disabled" : ""}
-        >${day}</button>`,
-      );
-    }
-    // Pad the trailing partial week so every row owns exactly seven cells.
-    while (cells.length % 7 !== 0) {
-      cells.push(`<span part="day-blank" aria-hidden="true"></span>`);
-    }
-
-    // The ARIA grid pattern requires role="gridcell" to be owned by role="row",
-    // so group the day cells into one row per week.
-    const rows: string[] = [];
-    for (let i = 0; i < cells.length; i += 7) {
-      rows.push(`<div part="week" role="row">${cells.slice(i, i + 7).join("")}</div>`);
-    }
-
-    const weekdayCells = WEEKDAYS.map(
-      label => `<span part="weekday" role="columnheader" aria-label="${escapeHtml(label)}">${label}</span>`,
-    ).join("");
-
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: inline-block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="calendar"] {
-          display: grid;
-          gap: 0.75rem;
-          inline-size: 17.5rem;
-          max-inline-size: 100%;
-          padding: 0.85rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-          border-radius: 0.9rem;
-          background:
-            linear-gradient(
-              180deg,
-              var(--boe-token-surface-surface, #ffffff) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 100%
-            );
-        }
-
-        [part="header"] {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 0.5rem;
-        }
-
-        [part="title"] {
-          font-weight: 700;
-          font-size: 0.95rem;
-          color: var(--boe-token-text-text, #222222);
-        }
-
-        [part~="nav"] {
-          appearance: none;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          inline-size: 2rem;
-          block-size: 2rem;
-          padding: 0;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-          border-radius: 0.6rem;
-          background: var(--boe-token-surface-surface, #ffffff);
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          cursor: pointer;
-          transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
-        }
-
-        [part~="nav"] svg {
-          inline-size: 0.85rem;
-          block-size: 0.85rem;
-        }
-
-        [part~="nav"]:hover {
-          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
-          background: var(--boe-token-surface-surface-hover, #f4f4f4);
-        }
-
-        [part~="nav"]:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 20%, transparent);
-        }
-
-        [part="weekdays"],
-        [part="week"] {
-          display: grid;
-          grid-template-columns: repeat(7, 1fr);
-          gap: 0.15rem;
-        }
-
-        [part="grid"] {
-          display: grid;
-          gap: 0.15rem;
-        }
-
-        [part="weekday"] {
-          text-align: center;
-          font-size: 0.68rem;
-          font-weight: 700;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          padding-block: 0.2rem;
-        }
-
-        [part="day-blank"] {
-          block-size: 2.1rem;
-        }
-
-        [part~="day"] {
-          appearance: none;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          block-size: 2.1rem;
-          padding: 0;
-          border: 1px solid transparent;
-          border-radius: 0.55rem;
-          background: transparent;
-          font: inherit;
-          font-size: 0.82rem;
-          color: var(--boe-token-text-text, #222222);
-          cursor: pointer;
-          transition: background 120ms ease, color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
-        }
-
-        [part~="day"]:hover:not(:disabled) {
-          background: var(--boe-token-surface-surface-hover, #f4f4f4);
-        }
-
-        [part~="day"][data-today="true"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 40%, transparent);
-          font-weight: 700;
-        }
-
-        [part~="day"][data-selected="true"] {
-          background: var(--boe-token-surface-surface-brand, #0061d5);
-          border-color: var(--boe-token-surface-surface-brand, #0061d5);
-          color: var(--boe-token-text-text-on-brand, #ffffff);
-          font-weight: 700;
-        }
-
-        [part~="day"][data-selected="true"]:hover:not(:disabled) {
-          background: var(--boe-token-surface-surface-brand-hover, #0057c0);
-        }
-
-        [part~="day"]:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, transparent);
-        }
-
-        [part~="day"]:disabled {
-          opacity: 0.4;
-          cursor: not-allowed;
-        }
-      </style>
-      <div part="calendar" role="group" aria-label="Calendar">
-        <div part="header">
-          <button type="button" part="nav nav-prev" aria-label="Previous month">
-            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <span part="title" aria-live="polite">${escapeHtml(`${MONTH_NAMES[m - 1]} ${y}`)}</span>
-          <button type="button" part="nav nav-next" aria-label="Next month">
-            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
-        <div part="grid" role="grid" aria-label="${escapeHtml(`${MONTH_NAMES[m - 1]} ${y}`)}">
-          <div part="weekdays" role="row">${weekdayCells}</div>
-          ${rows.join("")}
-        </div>
-      </div>
-    `;
-
-    this.shadowRoot.querySelector('[part~="nav-prev"]')?.addEventListener("click", () => this.shiftMonth(-1));
-    this.shadowRoot.querySelector('[part~="nav-next"]')?.addEventListener("click", () => this.shiftMonth(1));
-
-    for (const button of Array.from(this.shadowRoot.querySelectorAll<HTMLButtonElement>('[part~="day"]'))) {
-      button.addEventListener("click", () => {
-        const date = parseISO(button.dataset.date ?? "");
-        if (date) {
-          this.selectDate(date);
-        }
-      });
-    }
-
-    const grid = this.shadowRoot.querySelector('[part="grid"]') as HTMLElement | null;
-    grid?.addEventListener("keydown", event => this.handleGridKeydown(event));
   }
 
   private handleGridKeydown(event: KeyboardEvent): void {
@@ -524,6 +436,107 @@ export class BoxCalendarElement extends HTMLElement {
       const active = this.activeDate ?? this.resolveActiveDate();
       this.selectDate(active);
     }
+  }
+
+  protected renderTemplate(): void {
+    if (!this.shadowRoot) {
+      return;
+    }
+
+    this.shadowRoot.innerHTML = `
+      <style>${calendarStyles}</style>
+      <div part="calendar" role="group" aria-label="Calendar">
+        <div part="header">
+          <button type="button" part="nav nav-prev" aria-label="Previous month">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span part="title" aria-live="polite"></span>
+          <button type="button" part="nav nav-next" aria-label="Next month">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div part="grid" role="grid"></div>
+      </div>
+    `;
+    this.titleEl = this.shadowRoot.querySelector('[part="title"]')!;
+    this.gridEl = this.shadowRoot.querySelector('[part="grid"]')!;
+  }
+
+  protected setupListeners(): void {
+    this.shadowRoot?.querySelector('[part~="nav-prev"]')?.addEventListener("click", () => this.shiftMonth(-1));
+    this.shadowRoot?.querySelector('[part~="nav-next"]')?.addEventListener("click", () => this.shiftMonth(1));
+
+    this.gridEl.addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest('[part~="day"]') as HTMLButtonElement | null;
+      if (!button || !this.gridEl.contains(button)) {
+        return;
+      }
+      const date = parseISO(button.dataset.date ?? "");
+      if (date) {
+        this.selectDate(date);
+      }
+    });
+
+    this.gridEl.addEventListener("keydown", event => this.handleGridKeydown(event as KeyboardEvent));
+  }
+
+  protected update(): void {
+    if (!this.titleEl || !this.gridEl) {
+      return;
+    }
+
+    const { y, m } = this.displayedMonth();
+    const selected = parseISO(this.value);
+    const active = this.resolveActiveDate();
+    const activeIso = toISO({ y, m, d: clampDay(y, m, active.d) });
+    const today = new Date();
+    const todayIso = toISO({ y: today.getFullYear(), m: today.getMonth() + 1, d: today.getDate() });
+
+    this.titleEl.textContent = `${MONTH_NAMES[m - 1]} ${y}`;
+    this.gridEl.setAttribute("aria-label", `${MONTH_NAMES[m - 1]} ${y}`);
+
+    const leading = firstWeekday(y, m);
+    const total = daysInMonth(y, m);
+
+    const cells: string[] = [];
+    for (let i = 0; i < leading; i += 1) {
+      cells.push(`<span part="day-blank" aria-hidden="true"></span>`);
+    }
+    for (let day = 1; day <= total; day += 1) {
+      const iso = toISO({ y, m, d: day });
+      const isSelected = selected ? toISO(selected) === iso : false;
+      const isToday = iso === todayIso;
+      const isActive = iso === activeIso;
+      const outOfRange = this.isOutOfRange(iso);
+      const disabled = this.disabled || outOfRange;
+      cells.push(
+        `<button
+          type="button"
+          part="day${isSelected ? " day-selected" : ""}${isToday ? " day-today" : ""}"
+          role="gridcell"
+          data-date="${iso}"
+          data-selected="${isSelected ? "true" : "false"}"
+          data-today="${isToday ? "true" : "false"}"
+          tabindex="${isActive && !disabled ? "0" : "-1"}"
+          aria-selected="${isSelected ? "true" : "false"}"
+          aria-label="${escapeHtml(`${MONTH_NAMES[m - 1]} ${day}, ${y}`)}"
+          ${disabled ? "disabled" : ""}
+        >${day}</button>`,
+      );
+    }
+    while (cells.length % 7 !== 0) {
+      cells.push(`<span part="day-blank" aria-hidden="true"></span>`);
+    }
+
+    const rows: string[] = [];
+    for (let i = 0; i < cells.length; i += 7) {
+      rows.push(`<div part="week" role="row">${cells.slice(i, i + 7).join("")}</div>`);
+    }
+
+    this.gridEl.innerHTML = `
+      <div part="weekdays" role="row">${this.weekdayCells}</div>
+      ${rows.join("")}
+    `;
   }
 }
 

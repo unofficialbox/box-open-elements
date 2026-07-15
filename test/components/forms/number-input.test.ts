@@ -31,4 +31,17 @@ describe("BoxNumberInputElement", () => {
       }),
     );
   });
+
+  it("does not lose focus when label attribute changes while input is focused", () => {
+    const element = document.createElement("box-number-input") as BoxNumberInputElement;
+    element.label = "Version";
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement | null;
+    input?.focus();
+
+    element.label = "Build";
+
+    expect(document.activeElement).toBe(element);
+  });
 });

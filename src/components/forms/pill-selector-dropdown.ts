@@ -1,3 +1,5 @@
+import { BaseElement } from "../../core/index.js";
+
 const DEFAULT_TAG_NAME = "box-pill-selector-dropdown";
 
 const escapeHtml = (value: string): string =>
@@ -13,6 +15,134 @@ type PillOption = {
   label: string;
 };
 
+const pillSelectorStyles = `
+  :host {
+    display: block;
+    color: inherit;
+    font: inherit;
+  }
+
+  [part="field"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+    border-radius: 0.7rem;
+    background: var(--boe-token-surface-surface, #ffffff);
+  }
+
+  [part="pill"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.3rem 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 70%, var(--boe-token-surface-surface, #ffffff) 30%);
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  [part="pill-remove"] {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.1rem;
+    block-size: 1.1rem;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    cursor: pointer;
+  }
+
+  [part="pill-remove"] svg {
+    inline-size: 0.65rem;
+    block-size: 0.65rem;
+  }
+
+  [part="pill-remove"]:hover {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, transparent);
+    color: var(--boe-token-text-text, #222222);
+  }
+
+  [part="dropdown"] {
+    position: relative;
+    display: inline-block;
+  }
+
+  [part="trigger"] {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.6rem;
+    border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  [part="trigger"]:hover {
+    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+    color: var(--boe-token-text-text, #222222);
+  }
+
+  [part="trigger"]:focus-visible,
+  [part="option"]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, transparent);
+  }
+
+  [part="menu"] {
+    position: absolute;
+    z-index: 10;
+    inset-block-start: calc(100% + 0.25rem);
+    inset-inline-start: 0;
+    min-inline-size: 11rem;
+    margin: 0;
+    padding: 0.3rem;
+    list-style: none;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+    border-radius: 0.6rem;
+    background: var(--boe-token-surface-surface, #ffffff);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  }
+
+  [part="option"] {
+    appearance: none;
+    display: block;
+    inline-size: 100%;
+    text-align: start;
+    padding: 0.4rem 0.55rem;
+    border: 0;
+    border-radius: 0.4rem;
+    background: transparent;
+    color: var(--boe-token-text-text, #222222);
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  [part="option"]:hover {
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+  }
+
+  [part="option-empty"] {
+    padding: 0.4rem 0.55rem;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    font-size: 0.82rem;
+  }
+`;
+
 /**
  * A multi-select pill field: the current selection shows as removable pills, and
  * an "Add" dropdown offers the remaining options. Data arrives via `options`;
@@ -21,7 +151,7 @@ type PillOption = {
  * opening focuses the first item; ArrowUp/Down/Home/End move focus, Escape (or
  * moving focus outside) closes and returns focus to the trigger.
  */
-export class BoxPillSelectorDropdownElement extends HTMLElement {
+export class BoxPillSelectorDropdownElement extends BaseElement {
   static get observedAttributes(): string[] {
     return ["label", "options", "placeholder", "value"];
   }
@@ -30,6 +160,12 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
   private open = false;
   private menuFocusValue: string | null = null;
   private pendingFocus: "menu" | "trigger" | null = null;
+
+  private fieldEl!: HTMLElement;
+  private pillsEl!: HTMLElement;
+  private dropdownEl!: HTMLElement;
+  private triggerEl!: HTMLButtonElement;
+  private menuEl: HTMLUListElement | null = null;
 
   // Close the open menu when a pointer press lands outside this element. Bound
   // once so it can be added/removed cleanly; a focusout listener can't be used
@@ -43,11 +179,6 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
       this.closeMenu(false);
     }
   };
-
-  constructor() {
-    super();
-    this.attachShadow({ mode: "open" });
-  }
 
   get label(): string {
     return this.getAttribute("label") ?? "Selection";
@@ -90,18 +221,16 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
   set value(nextValue: string[]) {
     this.valueInternal = [...nextValue];
     this.setAttribute("value", JSON.stringify(nextValue));
-    this.render();
-  }
-
-  connectedCallback(): void {
-    this.render();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   disconnectedCallback(): void {
     document.removeEventListener("pointerdown", this.onOutsidePointer);
   }
 
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
       const raw = this.getAttribute("value");
       if (!raw) {
@@ -115,8 +244,7 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
         }
       }
     }
-
-    this.render();
+    super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   private availableOptions(): PillOption[] {
@@ -131,10 +259,11 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
     this.valueInternal = next;
     const serialized = JSON.stringify(next);
     // Render exactly once: setAttribute already triggers attributeChangedCallback
-    // (which renders), so only render manually when the attribute is unchanged.
-    // A double render would replace and un-focus the item we just moved focus to.
+    // (which updates), so only update manually when the attribute is unchanged.
     if (this.getAttribute("value") === serialized) {
-      this.render();
+      if (this.isRendered) {
+        this.update();
+      }
     } else {
       this.setAttribute("value", serialized);
     }
@@ -153,11 +282,7 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
     }
 
     const next = [...this.valueInternal, value];
-    // Keep the menu open so several options can be added in a row; move focus to
-    // the next remaining option, or back to the trigger once none remain.
-    const remaining = this.options.filter(
-      option => !next.includes(option.value),
-    );
+    const remaining = this.options.filter(option => !next.includes(option.value));
     this.menuFocusValue = remaining[0]?.value ?? null;
     this.pendingFocus = remaining.length ? "menu" : "trigger";
     this.commit(next);
@@ -167,8 +292,6 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
     if (!this.valueInternal.includes(value)) {
       return;
     }
-    // The clicked remove button is destroyed by the re-render; move focus to the
-    // trigger so keyboard/AT users stay inside the widget.
     this.pendingFocus = "trigger";
     this.commit(this.valueInternal.filter(item => item !== value));
   }
@@ -181,7 +304,7 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
     this.menuFocusValue = this.availableOptions()[0]?.value ?? null;
     this.pendingFocus = this.menuFocusValue ? "menu" : null;
     document.addEventListener("pointerdown", this.onOutsidePointer);
-    this.render();
+    this.update();
   }
 
   private closeMenu(focusTrigger: boolean): void {
@@ -192,7 +315,7 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
     this.menuFocusValue = null;
     this.pendingFocus = focusTrigger ? "trigger" : null;
     document.removeEventListener("pointerdown", this.onOutsidePointer);
-    this.render();
+    this.update();
   }
 
   private moveMenuFocus(delta: number): void {
@@ -205,7 +328,7 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
     const nextIndex = Math.max(0, Math.min(available.length - 1, currentIndex + delta));
     this.menuFocusValue = available[nextIndex]?.value ?? null;
     this.pendingFocus = "menu";
-    this.render();
+    this.update();
   }
 
   private moveMenuFocusTo(edge: "first" | "last"): void {
@@ -215,17 +338,134 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
     }
     this.menuFocusValue = (edge === "first" ? available[0] : available[available.length - 1])?.value ?? null;
     this.pendingFocus = "menu";
-    this.render();
+    this.update();
   }
 
-  private render(): void {
+  private applyPendingFocus(): void {
+    if (!this.pendingFocus) {
+      return;
+    }
+
+    const pending = this.pendingFocus;
+    this.pendingFocus = null;
+
+    if (pending === "trigger") {
+      this.triggerEl.focus();
+      return;
+    }
+
+    if (pending === "menu" && this.menuFocusValue && this.menuEl) {
+      const target = Array.from(this.menuEl.querySelectorAll('[part="option"]')).find(
+        node => (node as HTMLButtonElement).dataset.value === this.menuFocusValue,
+      ) as HTMLButtonElement | undefined;
+      target?.focus();
+    }
+  }
+
+  protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
     }
 
-    const available = this.availableOptions();
+    this.shadowRoot.innerHTML = `
+      <style>${pillSelectorStyles}</style>
+      <div part="field" role="group">
+        <span part="pills"></span>
+        <div part="dropdown">
+          <button type="button" part="trigger" aria-haspopup="menu"></button>
+        </div>
+      </div>
+    `;
+    this.fieldEl = this.shadowRoot.querySelector('[part="field"]')!;
+    this.pillsEl = this.shadowRoot.querySelector('[part="pills"]')!;
+    this.dropdownEl = this.shadowRoot.querySelector('[part="dropdown"]')!;
+    this.triggerEl = this.shadowRoot.querySelector('[part="trigger"]')!;
+  }
 
-    const pillsMarkup = this.valueInternal
+  protected setupListeners(): void {
+    this.triggerEl.addEventListener("click", () => {
+      if (this.open) {
+        this.closeMenu(true);
+      } else {
+        this.openMenu();
+      }
+    });
+    this.triggerEl.addEventListener("keydown", event => {
+      const key = (event as KeyboardEvent).key;
+      if ((key === "ArrowDown" || key === "Enter" || key === " ") && !this.open) {
+        event.preventDefault();
+        this.openMenu();
+      } else if (key === "Escape" && this.open) {
+        event.preventDefault();
+        this.closeMenu(true);
+      }
+    });
+
+    this.pillsEl.addEventListener("click", event => {
+      const remove = (event.target as HTMLElement).closest(
+        '[part="pill-remove"]',
+      ) as HTMLButtonElement | null;
+      if (!remove || !this.pillsEl.contains(remove)) {
+        return;
+      }
+      this.removeValue(remove.dataset.value ?? "");
+    });
+
+    this.dropdownEl.addEventListener("click", event => {
+      const option = (event.target as HTMLElement).closest(
+        '[part="option"]',
+      ) as HTMLButtonElement | null;
+      if (!option || !this.dropdownEl.contains(option)) {
+        return;
+      }
+      this.addValue(option.dataset.value ?? "");
+    });
+
+    this.dropdownEl.addEventListener("keydown", event => {
+      const option = (event.target as HTMLElement).closest(
+        '[part="option"]',
+      ) as HTMLButtonElement | null;
+      if (!option || !this.dropdownEl.contains(option)) {
+        return;
+      }
+      const keyboardEvent = event as KeyboardEvent;
+      switch (keyboardEvent.key) {
+        case "ArrowDown":
+          keyboardEvent.preventDefault();
+          this.moveMenuFocus(1);
+          break;
+        case "ArrowUp":
+          keyboardEvent.preventDefault();
+          this.moveMenuFocus(-1);
+          break;
+        case "Home":
+          keyboardEvent.preventDefault();
+          this.moveMenuFocusTo("first");
+          break;
+        case "End":
+          keyboardEvent.preventDefault();
+          this.moveMenuFocusTo("last");
+          break;
+        case "Escape":
+          keyboardEvent.preventDefault();
+          this.closeMenu(true);
+          break;
+        default:
+          break;
+      }
+    });
+  }
+
+  protected update(): void {
+    if (!this.fieldEl || !this.pillsEl || !this.triggerEl) {
+      return;
+    }
+
+    this.fieldEl.setAttribute("aria-label", this.label);
+    this.triggerEl.textContent = `+ ${this.placeholder}`;
+    this.triggerEl.setAttribute("aria-expanded", String(this.open));
+
+    this.pillsEl.innerHTML = this.valueInternal
       .map(
         value => `
           <span part="pill" data-value="${escapeHtml(value)}">
@@ -238,262 +478,38 @@ export class BoxPillSelectorDropdownElement extends HTMLElement {
       )
       .join("");
 
-    const optionsMarkup = available.length
-      ? available
-          .map(
-            option => `
-              <li part="option-row" role="none">
-                <button
-                  type="button"
-                  part="option"
-                  role="menuitem"
-                  data-value="${escapeHtml(option.value)}"
-                  tabindex="${option.value === this.menuFocusValue ? "0" : "-1"}"
-                >${escapeHtml(option.label)}</button>
-              </li>
-            `,
-          )
-          .join("")
-      : `<li part="option-empty" role="none">No more options</li>`;
+    const available = this.availableOptions();
+    if (this.open) {
+      if (!this.menuEl) {
+        this.menuEl = document.createElement("ul");
+        this.menuEl.setAttribute("part", "menu");
+        this.menuEl.setAttribute("role", "menu");
+        this.dropdownEl.append(this.menuEl);
+      }
+      this.menuEl.setAttribute("aria-label", `${this.label} options`);
+      this.menuEl.innerHTML = available.length
+        ? available
+            .map(
+              option => `
+                <li part="option-row" role="none">
+                  <button
+                    type="button"
+                    part="option"
+                    role="menuitem"
+                    data-value="${escapeHtml(option.value)}"
+                    tabindex="${option.value === this.menuFocusValue ? "0" : "-1"}"
+                  >${escapeHtml(option.label)}</button>
+                </li>
+              `,
+            )
+            .join("")
+        : `<li part="option-empty" role="none">No more options</li>`;
+    } else if (this.menuEl) {
+      this.menuEl.remove();
+      this.menuEl = null;
+    }
 
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
-
-        [part="field"] {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          gap: 0.4rem;
-          padding: 0.4rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.7rem;
-          background: var(--boe-token-surface-surface, #ffffff);
-        }
-
-        [part="pill"] {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.3rem;
-          padding: 0.2rem 0.3rem 0.2rem 0.6rem;
-          border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 70%, var(--boe-token-surface-surface, #ffffff) 30%);
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          font-size: 0.82rem;
-          font-weight: 600;
-        }
-
-        [part="pill-remove"] {
-          appearance: none;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          inline-size: 1.1rem;
-          block-size: 1.1rem;
-          padding: 0;
-          border: 0;
-          border-radius: 999px;
-          background: transparent;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          cursor: pointer;
-        }
-
-        [part="pill-remove"] svg {
-          inline-size: 0.65rem;
-          block-size: 0.65rem;
-        }
-
-        [part="pill-remove"]:hover {
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, transparent);
-          color: var(--boe-token-text-text, #222222);
-        }
-
-        [part="dropdown"] {
-          position: relative;
-          display: inline-block;
-        }
-
-        [part="trigger"] {
-          appearance: none;
-          display: inline-flex;
-          align-items: center;
-          gap: 0.3rem;
-          padding: 0.3rem 0.6rem;
-          border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 999px;
-          background: transparent;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          font: inherit;
-          font-size: 0.82rem;
-          font-weight: 600;
-          cursor: pointer;
-        }
-
-        [part="trigger"]:hover {
-          border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
-          color: var(--boe-token-text-text, #222222);
-        }
-
-        [part="trigger"]:focus-visible,
-        [part="option"]:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, transparent);
-        }
-
-        [part="menu"] {
-          position: absolute;
-          z-index: 10;
-          inset-block-start: calc(100% + 0.25rem);
-          inset-inline-start: 0;
-          min-inline-size: 11rem;
-          margin: 0;
-          padding: 0.3rem;
-          list-style: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.6rem;
-          background: var(--boe-token-surface-surface, #ffffff);
-          box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
-        }
-
-        [part="option"] {
-          appearance: none;
-          display: block;
-          inline-size: 100%;
-          text-align: start;
-          padding: 0.4rem 0.55rem;
-          border: 0;
-          border-radius: 0.4rem;
-          background: transparent;
-          color: var(--boe-token-text-text, #222222);
-          font: inherit;
-          font-size: 0.85rem;
-          cursor: pointer;
-        }
-
-        [part="option"]:hover {
-          background: var(--boe-token-surface-surface-hover, #f4f4f4);
-        }
-
-        [part="option-empty"] {
-          padding: 0.4rem 0.55rem;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          font-size: 0.82rem;
-        }
-      </style>
-      <div part="field" role="group" aria-label="${escapeHtml(this.label)}">
-        ${pillsMarkup}
-        <div part="dropdown">
-          <button
-            type="button"
-            part="trigger"
-            aria-haspopup="menu"
-            aria-expanded="${String(this.open)}"
-          >+ ${escapeHtml(this.placeholder)}</button>
-          ${
-            this.open
-              ? `<ul part="menu" role="menu" aria-label="${escapeHtml(this.label)} options">${optionsMarkup}</ul>`
-              : ""
-          }
-        </div>
-      </div>
-    `;
-
-    this.attachListeners();
     this.applyPendingFocus();
-  }
-
-  private attachListeners(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const trigger = this.shadowRoot.querySelector('[part="trigger"]') as HTMLButtonElement | null;
-    trigger?.addEventListener("click", () => {
-      if (this.open) {
-        // Re-render recreates the trigger, so ask to refocus it after closing.
-        this.closeMenu(true);
-      } else {
-        this.openMenu();
-      }
-    });
-    trigger?.addEventListener("keydown", event => {
-      const key = (event as KeyboardEvent).key;
-      if ((key === "ArrowDown" || key === "Enter" || key === " ") && !this.open) {
-        event.preventDefault();
-        this.openMenu();
-      } else if (key === "Escape" && this.open) {
-        // Focus can rest on the trigger while the menu is open (e.g. after adding
-        // the last option); Escape must still close it.
-        event.preventDefault();
-        this.closeMenu(true);
-      }
-    });
-
-    for (const remove of Array.from(this.shadowRoot.querySelectorAll('[part="pill-remove"]'))) {
-      remove.addEventListener("click", () => {
-        this.removeValue((remove as HTMLButtonElement).dataset.value ?? "");
-      });
-    }
-
-    for (const option of Array.from(this.shadowRoot.querySelectorAll('[part="option"]'))) {
-      const button = option as HTMLButtonElement;
-      button.addEventListener("click", () => {
-        this.addValue(button.dataset.value ?? "");
-      });
-      button.addEventListener("keydown", event => {
-        const keyboardEvent = event as KeyboardEvent;
-        switch (keyboardEvent.key) {
-          case "ArrowDown":
-            keyboardEvent.preventDefault();
-            this.moveMenuFocus(1);
-            break;
-          case "ArrowUp":
-            keyboardEvent.preventDefault();
-            this.moveMenuFocus(-1);
-            break;
-          case "Home":
-            keyboardEvent.preventDefault();
-            this.moveMenuFocusTo("first");
-            break;
-          case "End":
-            keyboardEvent.preventDefault();
-            this.moveMenuFocusTo("last");
-            break;
-          case "Escape":
-            keyboardEvent.preventDefault();
-            this.closeMenu(true);
-            break;
-          default:
-            break;
-        }
-      });
-    }
-
-  }
-
-  private applyPendingFocus(): void {
-    if (!this.shadowRoot || !this.pendingFocus) {
-      return;
-    }
-
-    const pending = this.pendingFocus;
-    this.pendingFocus = null;
-
-    if (pending === "trigger") {
-      (this.shadowRoot.querySelector('[part="trigger"]') as HTMLButtonElement | null)?.focus();
-      return;
-    }
-
-    if (pending === "menu" && this.menuFocusValue) {
-      const target = Array.from(this.shadowRoot.querySelectorAll('[part="option"]')).find(
-        node => (node as HTMLButtonElement).dataset.value === this.menuFocusValue,
-      ) as HTMLButtonElement | undefined;
-      target?.focus();
-    }
   }
 }
 

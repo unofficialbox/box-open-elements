@@ -47,4 +47,17 @@ describe("BoxComboboxElement", () => {
       }),
     );
   });
+
+  it("does not lose focus when label attribute changes while input is focused", () => {
+    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    element.label = "Department";
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement | null;
+    input?.focus();
+
+    element.label = "Team";
+
+    expect(document.activeElement).toBe(element);
+  });
 });
