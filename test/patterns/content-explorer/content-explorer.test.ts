@@ -210,7 +210,7 @@ describe("BoxContentExplorerElement", () => {
     await flushMicrotasks();
 
     const itemButton = element.shadowRoot?.querySelector('[part="item"]') as HTMLButtonElement | null;
-    itemButton?.click();
+    itemButton?.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
     await flushMicrotasks();
 
     expect(activated).toHaveBeenCalled();

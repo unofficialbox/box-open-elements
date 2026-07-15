@@ -67,4 +67,15 @@ describe("BoxAppShellElement", () => {
     expect(disconnect).toHaveBeenCalled();
     expect((element as unknown as { slotObserver: MutationObserver | null }).slotObserver).toBeNull();
   });
+
+  it("stacks the frame at narrow container widths", () => {
+    const element = document.createElement("box-app-shell") as BoxAppShellElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("container-type: inline-size");
+    expect(styles).toContain("container-name: boe-app-shell");
+    expect(styles).toContain("@container boe-app-shell (max-width: 48rem)");
+    expect(styles).toContain("grid-template-columns: 1fr");
+  });
 });

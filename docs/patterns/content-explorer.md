@@ -64,6 +64,17 @@ Responsibility: render the blocks, wire DOM events to headless commands, expose 
 
 Examples: `breadcrumbs`, `list`, `table`, `toolbar`, `action-menu` — all generic components from the `components` tier, not explorer-prefixed wrappers.
 
+### Item gestures (select vs activate)
+
+`box-content-explorer`, `box-explorer-list`, and `box-explorer-table` expose `item-gesture`:
+
+| Value | Click / Space | Enter / double-click |
+|---|---|---|
+| `split` (default) | toggle selection only | activate (open folder / emit `item-activated`) |
+| `legacy` | select **and** activate | select **and** activate |
+
+Use `legacy` only when a host app still expects single-click folder navigation.
+
 ## Composition root
 
 `ContentExplorerController` composes session, navigation, collection, selection, and actions into an explorer-oriented facade for shipping quickly, while each block remains independently consumable.

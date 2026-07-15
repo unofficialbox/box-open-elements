@@ -22,8 +22,8 @@ describe("BoxTooltipElement", () => {
 
     document.body.append(element);
 
-    const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null;
-    trigger?.dispatchEvent(new Event("mouseenter"));
+    const host = element.shadowRoot?.querySelector('[part="trigger-host"]') as HTMLElement | null;
+    host?.dispatchEvent(new Event("mouseenter"));
 
     expect(element.shadowRoot?.textContent).toContain("Helpful context");
     const openTrigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null;
@@ -52,7 +52,7 @@ describe("BoxTooltipElement", () => {
     document.body.append(element);
 
     const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null;
-    trigger?.dispatchEvent(new Event("focus"));
+    trigger?.focus();
     expect(element.open).toBe(true);
 
     trigger?.click();
@@ -110,10 +110,29 @@ describe("BoxTooltipElement", () => {
     expect(trigger.getAttribute("aria-label")).toBe("More information");
     expect(trigger.getAttribute("aria-label")).not.toBe(element.label);
 
-    trigger.dispatchEvent(new Event("mouseenter"));
+    const host = element.shadowRoot?.querySelector('[part="trigger-host"]') as HTMLElement;
+    host.dispatchEvent(new Event("mouseenter"));
     expect(trigger.getAttribute("aria-describedby")).toBeTruthy();
     expect(element.shadowRoot?.querySelector('[part="tooltip"]')?.textContent).toBe(
       "Retention policy details",
     );
+  });
+
+  it("uses a slotted trigger and associates aria-describedby with it", () => {
+    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    element.label = "Copy link";
+    const trigger = document.createElement("button");
+    trigger.textContent = "Share";
+    element.append(trigger);
+    document.body.append(element);
+
+    const slot = element.shadowRoot?.querySelector("slot") as HTMLSlotElement;
+    expect(slot.assignedElements()[0]).toBe(trigger);
+
+    const host = element.shadowRoot?.querySelector('[part="trigger-host"]') as HTMLElement;
+    host.dispatchEvent(new Event("mouseenter"));
+
+    expect(element.open).toBe(true);
+    expect(trigger.getAttribute("aria-describedby")).toBeTruthy();
   });
 });

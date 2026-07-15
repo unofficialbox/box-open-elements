@@ -41,8 +41,9 @@ At audit time the library averaged **2.78/5** across 108 scored components (51 u
 `shadowRoot.innerHTML` rebuild on every state change** and **hardcoded `white` inside
 `color-mix()`**. Those systemic themes (plus focus/hover states, ARIA/keyboard, form association,
 `title`→`heading`, and the security holes) have since been swept — see the prioritized plan.
-Remaining work is primarily optional design-heavy leftovers after Batches 0–7 and the
-medium/low nits pass (floating popover, slotted tooltip, explorer select-vs-activate).
+Remaining work is the design-heavy leftovers pass in flight after Batches 0–7 and the
+medium/low nits pass (floating popover, slotted tooltip, explorer select-vs-activate,
+responsive app-shell, nav-sidebar icon contract).
 
 ## Systemic themes
 
@@ -130,7 +131,9 @@ unlinked the Workshop from the public site.
 **Batch 7 — Per-component polish. — DONE (#40).** `skeleton` update short-circuit; form association
 for multi-value / niche controls (`FormData` helpers).
 
-**Medium/low audit nits — IN FLIGHT.** High-signal pure-code polish across identity, forms,
+**Medium/low audit nits — DONE (#41).** High-signal pure-code polish across identity, forms,
 overlays, layout, explorer adapters, charts, tree/tree-grid, calendar `today` pin, etc.
-Design-heavy leftovers (floating popover, slotted tooltip, explorer select-vs-activate) remain
-optional after this pass.
+
+**Design-heavy leftovers — IN FLIGHT.** Floating/anchored popover, slotted tooltip trigger,
+explorer `item-gesture` select-vs-activate, app-shell `@container` reflow, nav-sidebar
+collapsed icon contract.

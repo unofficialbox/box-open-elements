@@ -337,7 +337,7 @@ describe("Explorer primitive web components", () => {
     const rowItem = element.shadowRoot?.querySelector('[part="row-item"]') as HTMLButtonElement | null;
 
     expect(selection?.getAttribute("aria-label")).toBe("Select Spec");
-    expect(rowItem?.getAttribute("aria-label")).toBe("Open Spec");
+    expect(rowItem?.getAttribute("aria-label")).toBe("Spec");
   });
 
   it("renders a standalone action menu primitive for a specific item", async () => {

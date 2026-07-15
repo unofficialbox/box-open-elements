@@ -6,6 +6,16 @@ export interface ExplorerItem {
 
 export type ExplorerSelectionMode = "multiple" | "single";
 
+/**
+ * Presentation gesture mapping for explorer item rows:
+ * - `split` (default): click/Space select; Enter/dblclick activate
+ * - `legacy`: click/Enter/Space both select and activate
+ */
+export type ExplorerItemGesture = "split" | "legacy";
+
+export const resolveExplorerItemGesture = (value: string | null | undefined): ExplorerItemGesture =>
+  value === "legacy" ? "legacy" : "split";
+
 export interface ExplorerItemAction {
   id: string;
   itemTypes?: ExplorerItem["type"][];

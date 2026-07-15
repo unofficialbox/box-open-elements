@@ -80,7 +80,7 @@ describe("BoxPopoverElement", () => {
     expect(element.open).toBe(false);
   });
 
-  it("restores focus to the trigger when Escape closes from inside", () => {
+  it("restores focus to the trigger when Escape closes from inside", async () => {
     const element = document.createElement("box-popover") as BoxPopoverElement;
     const content = document.createElement("button");
     content.textContent = "Inside";
@@ -88,6 +88,7 @@ describe("BoxPopoverElement", () => {
 
     document.body.append(element);
     element.show();
+    await Promise.resolve();
 
     const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement;
     content.focus();
@@ -96,7 +97,33 @@ describe("BoxPopoverElement", () => {
     content.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, composed: true }));
 
     expect(element.open).toBe(false);
+    await Promise.resolve();
     expect(element.shadowRoot?.activeElement).toBe(trigger);
+  });
+
+  it("floats the surface with absolute positioning and optional placement", () => {
+    const element = document.createElement("box-popover") as BoxPopoverElement;
+    element.placement = "top";
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("position: absolute");
+    expect(styles).toContain("z-index: 30");
+    expect(styles).toContain(':host([placement="top"])');
+    expect(element.placement).toBe("top");
+  });
+
+  it("moves focus into the surface when opened", async () => {
+    const element = document.createElement("box-popover") as BoxPopoverElement;
+    const content = document.createElement("button");
+    content.textContent = "Inside";
+    element.append(content);
+    document.body.append(element);
+
+    element.show();
+    await Promise.resolve();
+
+    expect(document.activeElement).toBe(content);
   });
 
   it("associates the trigger and dialog surface for assistive tech", () => {

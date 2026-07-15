@@ -1,12 +1,14 @@
 import { ContentExplorerController } from "./controller.js";
-import type {
-  ExplorerEvents,
-  ExplorerItemAction,
-  ExplorerItem,
-  ExplorerSessionConfig,
-  ExplorerSelectionMode,
-  ExplorerState,
-  ExplorerTransport,
+import {
+  resolveExplorerItemGesture,
+  type ExplorerEvents,
+  type ExplorerItemAction,
+  type ExplorerItem,
+  type ExplorerSessionConfig,
+  type ExplorerItemGesture,
+  type ExplorerSelectionMode,
+  type ExplorerState,
+  type ExplorerTransport,
 } from "./types.js";
 import { BaseElement } from "../../core/index.js";
 
@@ -285,7 +287,7 @@ const elementStyles = `
 
 export class BoxContentExplorerElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["language", "page-size", "root-folder-id", "selection-mode", "token"];
+    return ["item-gesture", "language", "page-size", "root-folder-id", "selection-mode", "token"];
   }
 
   private controller: ContentExplorerController | null = null;
@@ -320,6 +322,14 @@ export class BoxContentExplorerElement extends BaseElement {
 
   set selectionMode(value: ExplorerSelectionMode | null) {
     this.updateStringAttribute("selection-mode", value);
+  }
+
+  get itemGesture(): ExplorerItemGesture {
+    return resolveExplorerItemGesture(this.getAttribute("item-gesture"));
+  }
+
+  set itemGesture(value: ExplorerItemGesture) {
+    this.setAttribute("item-gesture", value);
   }
 
   set pageSize(value: number | undefined) {
@@ -686,6 +696,15 @@ this.scheduleStart();
         if (itemId) {
           this.focusItemId = itemId;
           this.toggleSelection(itemId);
+          if (this.itemGesture === "legacy") {
+            void this.activateItem(itemId);
+          }
+        }
+      });
+      node.addEventListener("dblclick", event => {
+        const itemId = (event.currentTarget as HTMLElement).getAttribute("data-item-id");
+        if (itemId) {
+          this.focusItemId = itemId;
           void this.activateItem(itemId);
         }
       });
@@ -704,9 +723,21 @@ this.scheduleStart();
           nextIndex = 0;
         } else if (keyboardEvent.key === "End") {
           nextIndex = itemIds.length - 1;
-        } else if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
+        } else if (keyboardEvent.key === " ") {
           keyboardEvent.preventDefault();
-          (event.currentTarget as HTMLButtonElement).click();
+          this.focusItemId = itemId;
+          this.toggleSelection(itemId);
+          if (this.itemGesture === "legacy") {
+            void this.activateItem(itemId);
+          }
+          return;
+        } else if (keyboardEvent.key === "Enter") {
+          keyboardEvent.preventDefault();
+          this.focusItemId = itemId;
+          if (this.itemGesture === "legacy") {
+            this.toggleSelection(itemId);
+          }
+          void this.activateItem(itemId);
           return;
         } else {
           return;
@@ -717,8 +748,8 @@ this.scheduleStart();
         if (nextItemId) {
           this.focusItemId = nextItemId;
           if (this.isRendered) {
-      this.update();
-    }
+            this.update();
+          }
         }
       });
     });

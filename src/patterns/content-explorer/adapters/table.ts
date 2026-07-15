@@ -1,4 +1,5 @@
 import { ContentExplorerController } from "../controller.js";
+import { resolveExplorerItemGesture } from "../types.js";
 import { BoxExplorerActionMenuElement } from "./action-menu.js";
 import { BaseElement } from "../../../core/index.js";
 import {
@@ -185,9 +186,22 @@ const elementStyles = `
       `;
 
 export class BoxExplorerTableElement extends BaseElement {
+  static get observedAttributes(): string[] {
+    return ["item-gesture"];
+  }
+
   private controllerValue: ContentExplorerController | null = null;
 
   private unsubscribeFns: Array<() => void> = [];
+
+  get itemGesture(): ReturnType<typeof resolveExplorerItemGesture> {
+    return resolveExplorerItemGesture(this.getAttribute("item-gesture"));
+  }
+
+  set itemGesture(value: ReturnType<typeof resolveExplorerItemGesture>) {
+    this.setAttribute("item-gesture", value);
+  }
+
   get controller(): ContentExplorerController | null {
     return this.controllerValue;
   }
@@ -292,6 +306,48 @@ export class BoxExplorerTableElement extends BaseElement {
       const itemId = rowItem.getAttribute("data-item-id");
       if (itemId) {
         this.controllerValue?.toggleSelection(itemId);
+        if (this.itemGesture === "legacy") {
+          void this.controllerValue?.activateItem(itemId);
+        }
+      }
+    });
+
+    tbody.addEventListener("dblclick", event => {
+      const rowItem = (event.target as HTMLElement).closest('[part="row-item"]') as HTMLElement | null;
+      if (!rowItem || !tbody.contains(rowItem)) {
+        return;
+      }
+      const itemId = rowItem.getAttribute("data-item-id");
+      if (itemId) {
+        void this.controllerValue?.activateItem(itemId);
+      }
+    });
+
+    tbody.addEventListener("keydown", event => {
+      const keyboardEvent = event as KeyboardEvent;
+      const rowItem = (keyboardEvent.target as HTMLElement).closest('[part="row-item"]') as HTMLElement | null;
+      if (!rowItem || !tbody.contains(rowItem)) {
+        return;
+      }
+      const itemId = rowItem.getAttribute("data-item-id");
+      if (!itemId) {
+        return;
+      }
+
+      if (keyboardEvent.key === " ") {
+        keyboardEvent.preventDefault();
+        this.controllerValue?.toggleSelection(itemId);
+        if (this.itemGesture === "legacy") {
+          void this.controllerValue?.activateItem(itemId);
+        }
+        return;
+      }
+
+      if (keyboardEvent.key === "Enter") {
+        keyboardEvent.preventDefault();
+        if (this.itemGesture === "legacy") {
+          this.controllerValue?.toggleSelection(itemId);
+        }
         void this.controllerValue?.activateItem(itemId);
       }
     });
@@ -389,7 +445,7 @@ export class BoxExplorerTableElement extends BaseElement {
                       type="button"
                       part="row-item"
                       data-item-id="${escapeHtml(item.id)}"
-                      aria-label="${escapeHtml(`Open ${item.name}`)}"
+                      aria-label="${escapeHtml(item.name)}"
                     >${escapeHtml(item.name)}</button>
                   </td>
                   <td part="type-cell">${escapeHtml(item.type)}</td>

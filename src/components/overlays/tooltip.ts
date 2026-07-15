@@ -17,6 +17,10 @@ const tooltipStyles = `
     display: inline-grid;
   }
 
+  [part="trigger-host"] {
+    display: inline-grid;
+  }
+
   [part="trigger"] {
     width: 1.7rem;
     height: 1.7rem;
@@ -75,8 +79,11 @@ export class BoxTooltipElement extends BaseElement {
 
   private openValue = false;
   private tooltipId = `box-tooltip-${Math.random().toString(36).slice(2, 10)}`;
-  private triggerEl!: HTMLButtonElement;
+  private triggerHostEl!: HTMLElement;
+  private triggerSlot!: HTMLSlotElement;
+  private fallbackTriggerEl!: HTMLButtonElement;
   private tooltipEl!: HTMLElement;
+  private describedTrigger: HTMLElement | null = null;
 
   get label(): string {
     return this.getAttribute("label") ?? "Helpful context";
@@ -131,6 +138,25 @@ export class BoxTooltipElement extends BaseElement {
     this.open = false;
   }
 
+  private resolveDescribedTrigger(): HTMLElement {
+    const slotted = this.triggerSlot.assignedElements({ flatten: true })[0] as HTMLElement | undefined;
+    if (!slotted) {
+      return this.fallbackTriggerEl;
+    }
+
+    const nestedFocusable = slotted.matches("button, a[href], input, select, textarea, [tabindex]")
+      ? slotted
+      : (slotted.querySelector<HTMLElement>("button, a[href], input, select, textarea, [tabindex]") ?? null);
+    return nestedFocusable ?? slotted;
+  }
+
+  private clearDescribedBy(): void {
+    if (this.describedTrigger?.hasAttribute("aria-describedby")) {
+      this.describedTrigger.removeAttribute("aria-describedby");
+    }
+    this.describedTrigger = null;
+  }
+
   protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
@@ -139,47 +165,66 @@ export class BoxTooltipElement extends BaseElement {
     this.shadowRoot.innerHTML = `
       <style>${tooltipStyles}</style>
       <span part="container">
-        <button type="button" part="trigger">?</button>
+        <span part="trigger-host">
+          <slot><button type="button" part="trigger">?</button></slot>
+        </span>
         <div id="${this.tooltipId}" part="tooltip" role="tooltip" hidden></div>
       </span>
     `;
-    this.triggerEl = this.shadowRoot.querySelector('[part="trigger"]')!;
+    this.triggerHostEl = this.shadowRoot.querySelector('[part="trigger-host"]')!;
+    this.triggerSlot = this.shadowRoot.querySelector("slot")!;
+    this.fallbackTriggerEl = this.shadowRoot.querySelector('[part="trigger"]')!;
     this.tooltipEl = this.shadowRoot.querySelector('[part="tooltip"]')!;
   }
 
   protected setupListeners(): void {
-    this.triggerEl.addEventListener("mouseenter", () => this.show());
-    this.triggerEl.addEventListener("mouseleave", () => this.hide());
-    this.triggerEl.addEventListener("focus", () => this.show());
-    this.triggerEl.addEventListener("blur", () => this.hide());
+    this.triggerHostEl.addEventListener("mouseenter", () => this.show());
+    this.triggerHostEl.addEventListener("mouseleave", () => this.hide());
+    this.triggerHostEl.addEventListener("focusin", () => this.show());
+    this.triggerHostEl.addEventListener("focusout", event => {
+      const next = (event as FocusEvent).relatedTarget as Node | null;
+      if (next && this.triggerHostEl.contains(next)) {
+        return;
+      }
+      this.hide();
+    });
     // Idempotent show: pointer activation focuses first (which opens), then click
     // must not toggle closed again in the same gesture.
-    this.triggerEl.addEventListener("click", () => {
+    this.triggerHostEl.addEventListener("click", () => {
       this.show();
     });
-    this.triggerEl.addEventListener("keydown", event => {
+    this.triggerHostEl.addEventListener("keydown", event => {
       const keyboardEvent = event as KeyboardEvent;
       if (keyboardEvent.key === "Escape") {
         keyboardEvent.preventDefault();
         this.hide();
       }
     });
+    this.triggerSlot.addEventListener("slotchange", () => {
+      if (this.isRendered) {
+        this.update();
+      }
+    });
   }
 
   protected update(): void {
-    if (!this.triggerEl || !this.tooltipEl) {
+    if (!this.triggerHostEl || !this.tooltipEl || !this.triggerSlot) {
       return;
     }
 
     const label = this.label;
-    this.triggerEl.setAttribute("aria-label", this.triggerLabel);
     this.tooltipEl.textContent = label;
     this.tooltipEl.hidden = !this.openValue;
 
+    const trigger = this.resolveDescribedTrigger();
+    if (trigger === this.fallbackTriggerEl) {
+      this.fallbackTriggerEl.setAttribute("aria-label", this.triggerLabel);
+    }
+
+    this.clearDescribedBy();
     if (this.openValue) {
-      this.triggerEl.setAttribute("aria-describedby", this.tooltipId);
-    } else {
-      this.triggerEl.removeAttribute("aria-describedby");
+      trigger.setAttribute("aria-describedby", this.tooltipId);
+      this.describedTrigger = trigger;
     }
   }
 }
