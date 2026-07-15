@@ -129,5 +129,7 @@ organized into **systemic sweeps**, not per-component rewrites.
 ## Open user-facing threads
 - User-reported review points addressed: token labels ✅, dark theme ✅ (Batch 2),
   Workshop unlink ✅, fidelity program in progress (Batches 3/4/5/7 remain).
-- **Next:** start **Batch 3** (focus-visible + hover/active/disabled) after Batch 1
-  merges.
+- **PR #33 CodeRabbit follow-ups:** addressed focus/list-rebuild findings from the
+  Batch 1 review (item-form, filter-bar, dual-listbox, metadata-filter-builder,
+  action-menu, overlays, collections, remaining pattern panels).
+- **Next:** merge #33, then start **Batch 3** (focus-visible + hover/active/disabled).
