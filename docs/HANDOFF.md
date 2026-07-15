@@ -27,7 +27,8 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
 - Recent merged PRs: #29 fidelity audit + Batches 0/2/6, **#31** Batch 1 starter
   (`BaseElement` + button/checkbox/radio-group), **#32** Batch 1 forms/actions
-  wave. Batch 1 catalog-wide completion is in flight on the branch above.
+  wave. Batch 1 catalog-wide completion: **PR #33**
+  (`cursor/batch-1-base-element-complete-7eb7`).
 
 ## The active initiative: component fidelity program
 
