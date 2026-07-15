@@ -132,4 +132,5 @@ organized into **systemic sweeps**, not per-component rewrites.
 - **PR #33 CodeRabbit follow-ups:** addressed focus/list-rebuild findings from the
   Batch 1 review (item-form, filter-bar, dual-listbox, metadata-filter-builder,
   action-menu, overlays, collections, remaining pattern panels).
+  Regenerated gallery screenshot baselines for intentional layout/render diffs.
 - **Next:** merge #33, then start **Batch 3** (focus-visible + hover/active/disabled).
