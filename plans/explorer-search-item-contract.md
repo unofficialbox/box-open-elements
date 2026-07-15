@@ -31,4 +31,4 @@ Patterns (`content-explorer`) + server integration (`packages/box-server`) + doc
 - [x] Element API + minimal search chrome
 - [x] box-server mapper/DS/route
 - [x] Tests + docs
-- [ ] `bun run verify` + PR
+- [x] `bun run verify` + PR (#43)
