@@ -1,4 +1,11 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formDataFromRange,
+  formErrorMessageMarkup,
+  rangeFromFormValue,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-range-slider";
@@ -79,11 +86,27 @@ const rangeSliderStyles = `
     cursor: not-allowed;
     box-shadow: none;
   }
+
+  ${boeFormFieldErrorStyles}
+
+  :host([invalid]) [part="range-start"],
+  :host([invalid]) [part="range-end"] {
+    accent-color: var(--boe-token-surface-status-surface-error, #ed3757);
+  }
 `;
 
-export class BoxRangeSliderElement extends BaseElement {
+export class BoxRangeSliderElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "end", "label", "max", "min", "start", "step"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "end",
+      "label",
+      "max",
+      "min",
+      "start",
+      "step",
+    ];
   }
 
   private startInternal = 20;
@@ -93,6 +116,7 @@ export class BoxRangeSliderElement extends BaseElement {
   private endValueEl!: HTMLElement;
   private startInputEl!: HTMLInputElement;
   private endInputEl!: HTMLInputElement;
+  private errorEl!: HTMLElement;
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -145,6 +169,7 @@ export class BoxRangeSliderElement extends BaseElement {
   set start(value: number) {
     this.startInternal = value;
     this.setAttribute("start", String(value));
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -157,6 +182,7 @@ export class BoxRangeSliderElement extends BaseElement {
   set end(value: number) {
     this.endInternal = value;
     this.setAttribute("end", String(value));
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -172,6 +198,29 @@ export class BoxRangeSliderElement extends BaseElement {
     }
 
     super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  protected getFormValue(): FormValue {
+    const start = Math.min(this.startInternal, this.endInternal);
+    const end = Math.max(this.startInternal, this.endInternal);
+    return formDataFromRange(this.name, start, end);
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const restored = rangeFromFormValue(value, this.name, {
+      start: this.startInternal,
+      end: this.endInternal,
+    });
+    const start = this.clamp(Math.min(restored.start, restored.end));
+    const end = this.clamp(Math.max(restored.start, restored.end));
+    this.startInternal = start;
+    this.endInternal = end;
+    this.setAttribute("start", String(start));
+    this.setAttribute("end", String(end));
+    this.syncFormAssociation();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   private clamp(nextValue: number): number {
@@ -192,6 +241,7 @@ export class BoxRangeSliderElement extends BaseElement {
     this.endValueEl.textContent = String(normalizedEnd);
     this.startInputEl.value = String(normalizedStart);
     this.endInputEl.value = String(normalizedEnd);
+    this.syncFormAssociation();
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,
@@ -221,6 +271,7 @@ export class BoxRangeSliderElement extends BaseElement {
           <input type="range" part="range-start" />
           <input type="range" part="range-end" />
         </div>
+        ${formErrorMessageMarkup()}
       </label>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
@@ -228,6 +279,7 @@ export class BoxRangeSliderElement extends BaseElement {
     this.endValueEl = this.shadowRoot.querySelector('[part="end-value"]')!;
     this.startInputEl = this.shadowRoot.querySelector('[part="range-start"]')!;
     this.endInputEl = this.shadowRoot.querySelector('[part="range-end"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -251,7 +303,7 @@ export class BoxRangeSliderElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.startInputEl || !this.endInputEl || !this.labelEl) {
+    if (!this.startInputEl || !this.endInputEl || !this.labelEl || !this.errorEl) {
       return;
     }
 
@@ -279,6 +331,8 @@ export class BoxRangeSliderElement extends BaseElement {
     if (this.shadowRoot?.activeElement !== this.endInputEl) {
       this.endInputEl.value = String(end);
     }
+
+    this.applyInvalidStateToControls([this.startInputEl, this.endInputEl], this.errorEl);
   }
 }
 

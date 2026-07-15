@@ -1,4 +1,11 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formDataFromNamedValues,
+  formErrorMessageMarkup,
+  stringValuesFromFormValue,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-tag-input";
 
@@ -145,6 +152,8 @@ const tagInputStyles = `
     white-space: nowrap;
     border: 0;
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
 /**
@@ -153,9 +162,16 @@ const tagInputStyles = `
  * available as the `tags` array property and mirrored to the `value` attribute
  * as a comma-separated list.
  */
-export class BoxTagInputElement extends BaseElement {
+export class BoxTagInputElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "max", "placeholder", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "label",
+      "max",
+      "placeholder",
+      "value",
+    ];
   }
 
   private tagsInternal: string[] = [];
@@ -165,6 +181,7 @@ export class BoxTagInputElement extends BaseElement {
   private controlEl!: HTMLElement;
   private tagsEl!: HTMLElement;
   private inputEl!: HTMLInputElement;
+  private errorEl!: HTMLElement;
 
   get tags(): string[] {
     return [...this.tagsInternal];
@@ -185,6 +202,7 @@ export class BoxTagInputElement extends BaseElement {
   set value(next: string) {
     this.tagsInternal = this.dedupe(parseList(next));
     this.reflectValue();
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -234,6 +252,20 @@ export class BoxTagInputElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  protected getFormValue(): FormValue {
+    return formDataFromNamedValues(this.name, this.tagsInternal);
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const next = stringValuesFromFormValue(value, this.name);
+    this.tagsInternal = this.dedupe(next);
+    this.reflectValue();
+    this.syncFormAssociation();
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
   private dedupe(list: string[]): string[] {
     const seen = new Set<string>();
     const result: string[] = [];
@@ -253,6 +285,7 @@ export class BoxTagInputElement extends BaseElement {
     if (this.getAttribute("value") !== serialized) {
       this.setAttribute("value", serialized);
     }
+    this.syncFormAssociation();
   }
 
   addTag(rawTag: string): boolean {
@@ -352,12 +385,14 @@ export class BoxTagInputElement extends BaseElement {
           />
         </div>
         <span part="hint" id="tag-input-hint">Press Enter or comma to add a tag; Backspace removes the last tag.</span>
+        ${formErrorMessageMarkup()}
       </div>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.controlEl = this.shadowRoot.querySelector('[part="control"]')!;
     this.tagsEl = this.shadowRoot.querySelector('[part="tags"]')!;
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -381,7 +416,7 @@ export class BoxTagInputElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.labelEl || !this.controlEl || !this.tagsEl || !this.inputEl) {
+    if (!this.labelEl || !this.controlEl || !this.tagsEl || !this.inputEl || !this.errorEl) {
       return;
     }
 
@@ -429,6 +464,8 @@ export class BoxTagInputElement extends BaseElement {
     } else {
       this.inputEl.removeAttribute("disabled");
     }
+
+    this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }
 

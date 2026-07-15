@@ -6,6 +6,7 @@ import {
   BoxColorPickerElement,
   defineBoxColorPickerElement,
 } from "../../../src/components/forms/color-picker.js";
+import { getMirroredFormValue } from "../../../src/core/index.js";
 
 describe("BoxColorPickerElement", () => {
   beforeEach(() => {
@@ -75,5 +76,19 @@ describe("BoxColorPickerElement", () => {
 
     const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement | null;
     expect(input?.disabled).toBe(true);
+  });
+
+  it("mirrors the hex form value and invalid state", () => {
+    const element = document.createElement("box-color-picker") as BoxColorPickerElement;
+    element.name = "accent";
+    element.value = "#22c55e";
+    element.invalid = true;
+    element.errorMessage = "Pick a brand color";
+    document.body.append(element);
+
+    expect(getMirroredFormValue(element.internals)).toBe("#22c55e");
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement | null;
+    expect(input?.getAttribute("aria-invalid")).toBe("true");
+    expect(input?.getAttribute("aria-errormessage")).toBe("boe-field-error");
   });
 });

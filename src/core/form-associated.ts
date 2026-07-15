@@ -19,6 +19,92 @@ const mirroredFormValues = new WeakMap<ElementInternals, FormValue>();
 export const getMirroredFormValue = (internals: ElementInternals): FormValue =>
   mirroredFormValues.get(internals) ?? null;
 
+/** Build a multi-entry FormData payload (empty selection → `null`). */
+export const formDataFromNamedValues = (
+  name: string,
+  values: readonly string[],
+): FormData | null => {
+  if (values.length === 0) {
+    return null;
+  }
+  const key = name || "value";
+  const data = new FormData();
+  for (const value of values) {
+    data.append(key, value);
+  }
+  return data;
+};
+
+/** Restore string[] from FormData / JSON / comma-separated / single string. */
+export const stringValuesFromFormValue = (value: FormValue, name: string): string[] => {
+  if (value instanceof FormData) {
+    const key = name || "value";
+    return value.getAll(key).map(entry => String(entry));
+  }
+  if (typeof value !== "string" || value === "") {
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (Array.isArray(parsed)) {
+      return parsed.map(entry => String(entry));
+    }
+  } catch {
+    // fall through
+  }
+  if (value.includes(",")) {
+    return value
+      .split(",")
+      .map(entry => entry.trim())
+      .filter(entry => entry.length > 0);
+  }
+  return [value];
+};
+
+/** Range pair as FormData (`${name}-start` / `${name}-end`). */
+export const formDataFromRange = (
+  name: string,
+  start: number,
+  end: number,
+): FormData => {
+  const base = name || "range";
+  const data = new FormData();
+  data.append(`${base}-start`, String(start));
+  data.append(`${base}-end`, String(end));
+  return data;
+};
+
+export const rangeFromFormValue = (
+  value: FormValue,
+  name: string,
+  fallback: { start: number; end: number },
+): { start: number; end: number } => {
+  if (value instanceof FormData) {
+    const base = name || "range";
+    const startRaw = value.get(`${base}-start`);
+    const endRaw = value.get(`${base}-end`);
+    const start = startRaw == null ? fallback.start : Number(startRaw);
+    const end = endRaw == null ? fallback.end : Number(endRaw);
+    return {
+      start: Number.isFinite(start) ? start : fallback.start,
+      end: Number.isFinite(end) ? end : fallback.end,
+    };
+  }
+  if (typeof value === "string" && value) {
+    try {
+      const parsed = JSON.parse(value) as { start?: unknown; end?: unknown };
+      const start = Number(parsed.start);
+      const end = Number(parsed.end);
+      if (Number.isFinite(start) && Number.isFinite(end)) {
+        return { start, end };
+      }
+    } catch {
+      // fall through
+    }
+  }
+  return fallback;
+};
+
 const writeFormValue = (internals: ElementInternals, value: FormValue): void => {
   mirroredFormValues.set(internals, value);
   const setFormValue = (
@@ -174,10 +260,21 @@ export abstract class FormAssociatedElement extends BaseElement {
     control: HTMLElement | null | undefined,
     messageEl: HTMLElement | null | undefined,
   ): void {
+    this.applyInvalidStateToControls(control ? [control] : [], messageEl);
+  }
+
+  /** Apply invalid ARIA to every focusable control in a multi-option field. */
+  protected applyInvalidStateToControls(
+    controls: Iterable<HTMLElement | null | undefined>,
+    messageEl: HTMLElement | null | undefined,
+  ): void {
     const invalid = this.invalid;
     const message = this.errorMessage;
 
-    if (control) {
+    for (const control of controls) {
+      if (!control) {
+        continue;
+      }
       control.setAttribute("aria-invalid", String(invalid));
       if (invalid && message) {
         control.setAttribute("aria-errormessage", FORM_ERROR_MESSAGE_ID);

@@ -6,6 +6,7 @@ import {
   BoxDropdownElement,
   defineBoxDropdownElement,
 } from "../../../src/components/forms/dropdown.js";
+import { getMirroredFormValue } from "../../../src/core/index.js";
 
 describe("BoxDropdownElement", () => {
   beforeEach(() => {
@@ -142,5 +143,35 @@ describe("BoxDropdownElement", () => {
     expect(styles).toContain('[part="trigger"]:hover:not(:disabled)');
     expect(styles).toContain('[part="item"]:focus-visible');
     expect(styles).toContain('[part="item"]:hover:not(:disabled)');
+  });
+
+  it("mirrors selected item id for form submission", () => {
+    const element = document.createElement("box-dropdown") as BoxDropdownElement;
+    element.name = "view";
+    element.items = [
+      { id: "list", label: "List" },
+      { id: "table", label: "Table" },
+    ];
+    document.body.append(element);
+
+    const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement;
+    trigger.click();
+    const item = element.shadowRoot?.querySelector('[part="item"][data-item-id="table"]') as HTMLButtonElement;
+    item.click();
+
+    expect(getMirroredFormValue(element.internals)).toBe("table");
+  });
+
+  it("exposes invalid state on the trigger button", () => {
+    const element = document.createElement("box-dropdown") as BoxDropdownElement;
+    element.invalid = true;
+    element.errorMessage = "Choose a view";
+    document.body.append(element);
+
+    const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null;
+    const error = element.shadowRoot?.querySelector('[part="error-message"]') as HTMLElement | null;
+
+    expect(trigger?.getAttribute("aria-invalid")).toBe("true");
+    expect(error?.textContent).toBe("Choose a view");
   });
 });

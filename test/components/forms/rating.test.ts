@@ -3,6 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BoxRatingElement, defineBoxRatingElement } from "../../../src/components/forms/rating.js";
+import { getMirroredFormValue } from "../../../src/core/index.js";
 
 describe("BoxRatingElement", () => {
   beforeEach(() => {
@@ -68,5 +69,16 @@ describe("BoxRatingElement", () => {
     thirdStar?.click();
 
     expect(element.value).toBe(0);
+  });
+
+  it("mirrors rating as a string form value", () => {
+    const element = document.createElement("box-rating") as BoxRatingElement;
+    element.name = "score";
+    document.body.append(element);
+
+    const thirdStar = element.shadowRoot?.querySelector('[data-value="3"]') as HTMLButtonElement | null;
+    thirdStar?.click();
+
+    expect(getMirroredFormValue(element.internals)).toBe("3");
   });
 });

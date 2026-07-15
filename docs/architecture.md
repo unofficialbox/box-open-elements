@@ -96,7 +96,10 @@ participate in native `<form>` submission via `ElementInternals`:
 - `formResetCallback` / `formStateRestoreCallback` — restore defaults / autocomplete state
 
 Shared helpers: `boeFormFieldErrorStyles`, `formErrorMessageMarkup`, `getMirroredFormValue`
-(jsdom-friendly mirror of `setFormValue`). See [api-guidelines.md](./api-guidelines.md).
+(jsdom-friendly mirror of `setFormValue`), `formDataFromNamedValues` / `stringValuesFromFormValue`
+(multi-select), `formDataFromRange` / `rangeFromFormValue` (range pairs), and
+`applyInvalidStateToControls` for multi-focusable fields. See
+[api-guidelines.md](./api-guidelines.md).
 
 ## Design principles
 

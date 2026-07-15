@@ -1,4 +1,11 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formDataFromNamedValues,
+  formErrorMessageMarkup,
+  stringValuesFromFormValue,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-pill-cloud";
 
@@ -68,6 +75,8 @@ const pillCloudStyles = `
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     font-size: 0.86rem;
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
 /**
@@ -76,14 +85,20 @@ const pillCloudStyles = `
  * announced with `value-changed`. Each pill is a toggle button with
  * `aria-pressed`; the group is a labelled `role="group"`.
  */
-export class BoxPillCloudElement extends BaseElement {
+export class BoxPillCloudElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["label", "options", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "label",
+      "options",
+      "value",
+    ];
   }
 
   private valueInternal: string[] = [];
   private lastOptionsJson = "";
   private rootEl!: HTMLElement;
+  private errorEl!: HTMLElement;
 
   get label(): string {
     return this.getAttribute("label") ?? "Filters";
@@ -118,6 +133,7 @@ export class BoxPillCloudElement extends BaseElement {
   set value(nextValue: string[]) {
     this.valueInternal = [...nextValue];
     this.setAttribute("value", JSON.stringify(nextValue));
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -140,6 +156,20 @@ export class BoxPillCloudElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  protected getFormValue(): FormValue {
+    return formDataFromNamedValues(this.name, this.valueInternal);
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const next = stringValuesFromFormValue(value, this.name);
+    this.valueInternal = next;
+    this.setAttribute("value", JSON.stringify(next));
+    this.syncFormAssociation();
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
   private toggle(value: string): void {
     const next = this.valueInternal.includes(value)
       ? this.valueInternal.filter(item => item !== value)
@@ -150,6 +180,7 @@ export class BoxPillCloudElement extends BaseElement {
     if (this.isRendered) {
       this.update();
     }
+    this.syncFormAssociation();
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,
@@ -167,8 +198,10 @@ export class BoxPillCloudElement extends BaseElement {
     this.shadowRoot.innerHTML = `
       <style>${pillCloudStyles}</style>
       <div part="root"></div>
+      ${formErrorMessageMarkup()}
     `;
     this.rootEl = this.shadowRoot.querySelector('[part="root"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -182,13 +215,14 @@ export class BoxPillCloudElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.rootEl) {
+    if (!this.rootEl || !this.errorEl) {
       return;
     }
 
     if (!this.options.length) {
       this.rootEl.innerHTML = `<div part="empty">No options</div>`;
       this.lastOptionsJson = "";
+      this.applyInvalidStateToControls([], this.errorEl);
       return;
     }
 
@@ -222,6 +256,11 @@ export class BoxPillCloudElement extends BaseElement {
       button.setAttribute("part", isSelected ? "pill pill-selected" : "pill");
       button.setAttribute("aria-pressed", String(isSelected));
     });
+
+    this.applyInvalidStateToControls(
+      Array.from(this.rootEl.querySelectorAll<HTMLButtonElement>('[part~="pill"]')),
+      this.errorEl,
+    );
   }
 }
 

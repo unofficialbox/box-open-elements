@@ -1,4 +1,9 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formErrorMessageMarkup,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-color-picker";
 
@@ -123,11 +128,19 @@ const colorPickerStyles = `
     cursor: not-allowed;
     opacity: 0.55;
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxColorPickerElement extends BaseElement {
+export class BoxColorPickerElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "swatches", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "label",
+      "swatches",
+      "value",
+    ];
   }
 
   private valueInternal = "#3b82f6";
@@ -136,6 +149,7 @@ export class BoxColorPickerElement extends BaseElement {
   private inputEl!: HTMLInputElement;
   private valueEl!: HTMLElement;
   private fieldEl!: HTMLElement;
+  private errorEl!: HTMLElement;
   private swatchesEl: HTMLElement | null = null;
 
   get disabled(): boolean {
@@ -184,6 +198,7 @@ export class BoxColorPickerElement extends BaseElement {
     const normalized = normalizeHex(nextValue);
     this.valueInternal = normalized;
     this.setAttribute("value", normalized);
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -196,6 +211,20 @@ export class BoxColorPickerElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  protected getFormValue(): FormValue {
+    return this.valueInternal;
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const next = typeof value === "string" ? normalizeHex(value) : "#3b82f6";
+    this.valueInternal = next;
+    this.setAttribute("value", next);
+    this.syncFormAssociation();
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
   private emitValueChanged(nextValue: string): void {
     if (this.disabled || nextValue === this.valueInternal) {
       return;
@@ -203,6 +232,7 @@ export class BoxColorPickerElement extends BaseElement {
 
     this.valueInternal = nextValue;
     this.setAttribute("value", nextValue);
+    this.syncFormAssociation();
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,
@@ -225,12 +255,14 @@ export class BoxColorPickerElement extends BaseElement {
           <input type="color" part="input" />
           <span part="value"></span>
         </div>
+        ${formErrorMessageMarkup()}
       </label>
     `;
     this.fieldEl = this.shadowRoot.querySelector('[part="field"]')!;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
     this.valueEl = this.shadowRoot.querySelector('[part="value"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -250,7 +282,7 @@ export class BoxColorPickerElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.inputEl || !this.labelEl || !this.valueEl) {
+    if (!this.inputEl || !this.labelEl || !this.valueEl || !this.errorEl) {
       return;
     }
 
@@ -310,6 +342,8 @@ export class BoxColorPickerElement extends BaseElement {
         }
       });
     }
+
+    this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }
 

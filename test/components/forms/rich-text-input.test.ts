@@ -6,6 +6,7 @@ import {
   BoxRichTextInputElement,
   defineBoxRichTextInputElement,
 } from "../../../src/components/forms/rich-text-input.js";
+import { getMirroredFormValue } from "../../../src/core/index.js";
 
 describe("BoxRichTextInputElement", () => {
   beforeEach(() => {
@@ -79,5 +80,42 @@ describe("BoxRichTextInputElement", () => {
 
     expect(editor?.contentEditable).toBe("false");
     expect([...buttons].every(button => (button as HTMLButtonElement).disabled)).toBe(true);
+  });
+
+  it("allowlists formatting tags and strips unsafe markup on restore", () => {
+    const element = document.createElement("box-rich-text-input") as BoxRichTextInputElement;
+    document.body.append(element);
+
+    element.formStateRestoreCallback(
+      '<p onclick="alert(1)">Hi</p><img src="x" onerror="alert(1)"><script>x</script>',
+    );
+
+    expect(element.value).toBe("<p>Hi</p>");
+    expect(element.value).not.toContain("onerror");
+    expect(element.value).not.toContain("script");
+    expect(getMirroredFormValue(element.internals)).toBe("<p>Hi</p>");
+    const editor = element.shadowRoot?.querySelector('[part="editor"]') as HTMLDivElement | null;
+    expect(editor?.innerHTML).toBe("<p>Hi</p>");
+  });
+
+  it("sanitizes pasted HTML before insertion", () => {
+    const element = document.createElement("box-rich-text-input") as BoxRichTextInputElement;
+    document.body.append(element);
+
+    const editor = element.shadowRoot?.querySelector('[part="editor"]') as HTMLDivElement;
+    const execCommand = vi.fn();
+    (document as Document & { execCommand?: typeof execCommand }).execCommand = execCommand;
+
+    const pasteEvent = new Event("paste", { bubbles: true, cancelable: true }) as Event & {
+      clipboardData: { getData: (type: string) => string };
+    };
+    pasteEvent.clipboardData = {
+      getData: (type: string) =>
+        type === "text/html" ? '<p onclick="alert(1)">Pasted</p><img src=x onerror=alert(1)>' : "",
+    };
+    editor.dispatchEvent(pasteEvent);
+
+    expect(execCommand).toHaveBeenCalledWith("insertHTML", false, "<p>Pasted</p>");
+    expect(element.value).toBe("<p>Pasted</p>");
   });
 });

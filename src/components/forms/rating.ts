@@ -1,4 +1,9 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formErrorMessageMarkup,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-rating";
 
@@ -101,11 +106,19 @@ const ratingStyles = `
     font-size: 0.95rem;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxRatingElement extends BaseElement {
+export class BoxRatingElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "max", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "label",
+      "max",
+      "value",
+    ];
   }
 
   private valueInternal = 0;
@@ -113,6 +126,7 @@ export class BoxRatingElement extends BaseElement {
   private labelEl!: HTMLElement;
   private controlEl!: HTMLElement;
   private valueEl!: HTMLElement;
+  private errorEl!: HTMLElement;
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -151,6 +165,7 @@ export class BoxRatingElement extends BaseElement {
     const nextValue = this.normalizeValue(value);
     this.valueInternal = nextValue;
     this.setAttribute("value", String(nextValue));
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -167,6 +182,20 @@ export class BoxRatingElement extends BaseElement {
     }
 
     super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  protected getFormValue(): FormValue {
+    return String(this.valueInternal);
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const parsed = typeof value === "string" ? Number(value) : 0;
+    this.valueInternal = this.normalizeValue(parsed);
+    this.setAttribute("value", String(this.valueInternal));
+    this.syncFormAssociation();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   private normalizeValue(value: number): number {
@@ -195,6 +224,7 @@ export class BoxRatingElement extends BaseElement {
     const normalized = this.normalizeValue(nextValue);
     this.valueInternal = normalized;
     this.setAttribute("value", String(normalized));
+    this.syncFormAssociation();
     this.emitValueChanged(normalized);
     if (this.isRendered) {
       this.update();
@@ -257,11 +287,13 @@ export class BoxRatingElement extends BaseElement {
         <div part="control" role="radiogroup">
           <span part="value"></span>
         </div>
+        ${formErrorMessageMarkup()}
       </div>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.controlEl = this.shadowRoot.querySelector('[part="control"]')!;
     this.valueEl = this.shadowRoot.querySelector('[part="value"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -277,7 +309,7 @@ export class BoxRatingElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.labelEl || !this.controlEl || !this.valueEl) {
+    if (!this.labelEl || !this.controlEl || !this.valueEl || !this.errorEl) {
       return;
     }
 
@@ -321,6 +353,8 @@ export class BoxRatingElement extends BaseElement {
         button.removeAttribute("disabled");
       }
     });
+
+    this.applyInvalidState(this.controlEl, this.errorEl);
   }
 }
 

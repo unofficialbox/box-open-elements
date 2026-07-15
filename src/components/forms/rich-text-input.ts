@@ -1,4 +1,9 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formErrorMessageMarkup,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 import { applyRovingTabindex, handleRovingKeydown } from "../../foundations/a11y/index.js";
 
 const DEFAULT_TAG_NAME = "box-rich-text-input";
@@ -23,6 +28,84 @@ const TOOLBAR_ACTIONS: ToolbarAction[] = [
   { command: "insertUnorderedList", label: "Bulleted list", text: "•" },
   { command: "insertOrderedList", label: "Numbered list", text: "1." },
 ];
+
+/** Tags produced by the toolbar / common rich-text formatting. Everything else is unwrapped or dropped. */
+const ALLOWED_RICH_TEXT_TAGS = new Set([
+  "b",
+  "strong",
+  "i",
+  "em",
+  "u",
+  "ul",
+  "ol",
+  "li",
+  "p",
+  "br",
+  "div",
+  "span",
+]);
+
+const DROP_RICH_TEXT_TAGS = new Set([
+  "script",
+  "style",
+  "iframe",
+  "object",
+  "embed",
+  "link",
+  "meta",
+  "base",
+  "form",
+  "input",
+  "textarea",
+  "select",
+  "button",
+  "img",
+  "svg",
+  "math",
+  "video",
+  "audio",
+  "source",
+  "track",
+]);
+
+const sanitizeRichTextHtml = (html: string): string => {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+
+  const sanitizeNode = (node: Node): void => {
+    const children = Array.from(node.childNodes);
+    for (const child of children) {
+      if (child.nodeType === Node.ELEMENT_NODE) {
+        const element = child as HTMLElement;
+        const tag = element.tagName.toLowerCase();
+
+        if (DROP_RICH_TEXT_TAGS.has(tag)) {
+          element.remove();
+          continue;
+        }
+
+        sanitizeNode(element);
+
+        if (!ALLOWED_RICH_TEXT_TAGS.has(tag)) {
+          while (element.firstChild) {
+            element.parentNode?.insertBefore(element.firstChild, element);
+          }
+          element.remove();
+          continue;
+        }
+
+        // Allowlist: keep the tag, drop every attribute (no href/src/on* vectors).
+        for (const attr of Array.from(element.attributes)) {
+          element.removeAttribute(attr.name);
+        }
+      } else if (child.nodeType === Node.COMMENT_NODE) {
+        child.parentNode?.removeChild(child);
+      }
+    }
+  };
+
+  sanitizeNode(doc.body);
+  return doc.body.innerHTML;
+};
 
 const richTextStyles = `
   :host {
@@ -152,16 +235,25 @@ const richTextStyles = `
   [part="editor"] ol:last-child {
     margin-bottom: 0;
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxRichTextInputElement extends BaseElement {
+export class BoxRichTextInputElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "placeholder", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "label",
+      "placeholder",
+      "value",
+    ];
   }
 
   private editor!: HTMLDivElement;
   private labelElement!: HTMLLegendElement;
   private toolbarEl!: HTMLElement;
+  private errorEl!: HTMLElement;
   private toolbarButtons: HTMLButtonElement[] = [];
   private valueInternal = "";
 
@@ -198,8 +290,9 @@ export class BoxRichTextInputElement extends BaseElement {
   }
 
   set value(value: string) {
-    this.valueInternal = value;
-    this.setAttribute("value", value);
+    this.valueInternal = sanitizeRichTextHtml(value);
+    this.setAttribute("value", this.valueInternal);
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -207,9 +300,24 @@ export class BoxRichTextInputElement extends BaseElement {
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
-      this.valueInternal = newValue ?? "";
+      this.valueInternal = sanitizeRichTextHtml(newValue ?? "");
+      this.syncFormAssociation();
     }
     super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  protected getFormValue(): FormValue {
+    return this.valueInternal;
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const next = typeof value === "string" ? sanitizeRichTextHtml(value) : "";
+    this.valueInternal = next;
+    this.setAttribute("value", next);
+    this.syncFormAssociation();
+    if (this.isRendered) {
+      this.update();
+    }
   }
 
   private emitValueChanged(): void {
@@ -223,9 +331,49 @@ export class BoxRichTextInputElement extends BaseElement {
   }
 
   private handleEditorInput = (): void => {
-    this.valueInternal = this.editor.innerHTML;
+    const cleaned = sanitizeRichTextHtml(this.editor.innerHTML);
+    if (cleaned !== this.editor.innerHTML) {
+      this.editor.innerHTML = cleaned;
+    }
+    this.valueInternal = cleaned;
     this.setAttribute("value", this.valueInternal);
+    this.syncFormAssociation();
     this.emitValueChanged();
+  };
+
+  private insertSanitizedHtml(html: string, plainTextFallback: string): void {
+    const plainTextHtml = sanitizeRichTextHtml(
+      escapeHtml(plainTextFallback).replaceAll("\n", "<br>"),
+    );
+    const cleaned = html ? sanitizeRichTextHtml(html) : plainTextHtml;
+    const payload = cleaned || plainTextHtml;
+    this.editor.focus();
+    const inserted = document.execCommand?.("insertHTML", false, payload) ?? false;
+    if (!inserted) {
+      // jsdom and other hosts may stub execCommand; append the sanitized payload directly.
+      this.editor.innerHTML = sanitizeRichTextHtml(`${this.editor.innerHTML}${payload}`);
+    }
+    this.handleEditorInput();
+  }
+
+  private handlePaste = (event: ClipboardEvent): void => {
+    if (this.disabled) {
+      return;
+    }
+    event.preventDefault();
+    const html = event.clipboardData?.getData("text/html") ?? "";
+    const text = event.clipboardData?.getData("text/plain") ?? "";
+    this.insertSanitizedHtml(html, text);
+  };
+
+  private handleDrop = (event: DragEvent): void => {
+    if (this.disabled) {
+      return;
+    }
+    event.preventDefault();
+    const html = event.dataTransfer?.getData("text/html") ?? "";
+    const text = event.dataTransfer?.getData("text/plain") ?? "";
+    this.insertSanitizedHtml(html, text);
   };
 
   private applyCommand(command: ToolbarAction["command"]): void {
@@ -269,12 +417,14 @@ export class BoxRichTextInputElement extends BaseElement {
             aria-multiline="true"
           ></div>
         </div>
+        ${formErrorMessageMarkup()}
       </fieldset>
     `;
 
     this.labelElement = this.shadowRoot.querySelector('[part="label"]')!;
     this.editor = this.shadowRoot.querySelector('[part="editor"]')!;
     this.toolbarEl = this.shadowRoot.querySelector('[part="toolbar"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
     this.toolbarButtons = Array.from(
       this.shadowRoot.querySelectorAll('[part="tool-button"]'),
     ) as HTMLButtonElement[];
@@ -282,6 +432,8 @@ export class BoxRichTextInputElement extends BaseElement {
 
   protected setupListeners(): void {
     this.editor.addEventListener("input", this.handleEditorInput);
+    this.editor.addEventListener("paste", this.handlePaste);
+    this.editor.addEventListener("drop", this.handleDrop);
     this.toolbarButtons.forEach(button => {
       button.addEventListener("click", () => {
         const command = button.dataset.command as ToolbarAction["command"] | undefined;
@@ -298,7 +450,7 @@ export class BoxRichTextInputElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.editor || !this.labelElement) {
+    if (!this.editor || !this.labelElement || !this.errorEl) {
       return;
     }
 
@@ -315,9 +467,11 @@ export class BoxRichTextInputElement extends BaseElement {
     applyRovingTabindex(this.toolbarButtons, 0);
 
     // Only patch editor HTML when not focused to avoid cursor-jump
-    if (document.activeElement !== this.editor && this.editor.innerHTML !== this.valueInternal) {
-      this.editor.innerHTML = this.valueInternal;
+    if (this.shadowRoot?.activeElement !== this.editor && this.editor.innerHTML !== this.valueInternal) {
+      this.editor.innerHTML = sanitizeRichTextHtml(this.valueInternal);
     }
+
+    this.applyInvalidState(this.editor, this.errorEl);
   }
 }
 

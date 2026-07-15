@@ -1,4 +1,11 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formDataFromNamedValues,
+  formErrorMessageMarkup,
+  stringValuesFromFormValue,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 import { applyRovingTabindex, handleRovingKeydown } from "../../foundations/a11y/index.js";
 
 const DEFAULT_TAG_NAME = "box-dual-listbox";
@@ -204,11 +211,19 @@ const dualListboxStyles = `
       padding-block: 0;
     }
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxDualListboxElement extends BaseElement {
+export class BoxDualListboxElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "options", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "label",
+      "options",
+      "value",
+    ];
   }
 
   private availableSelection = new Set<string>();
@@ -219,6 +234,7 @@ export class BoxDualListboxElement extends BaseElement {
   private selectedListEl!: HTMLElement;
   private moveRightEl!: HTMLButtonElement;
   private moveLeftEl!: HTMLButtonElement;
+  private errorEl!: HTMLElement;
   private listsSignature = "";
   private selectionOnlyUpdate = false;
 
@@ -267,6 +283,7 @@ export class BoxDualListboxElement extends BaseElement {
   set value(nextValue: string[]) {
     this.valueInternal = [...nextValue];
     this.setAttribute("value", JSON.stringify(nextValue));
+    this.syncFormAssociation();
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
@@ -286,9 +303,24 @@ export class BoxDualListboxElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  protected getFormValue(): FormValue {
+    return formDataFromNamedValues(this.name, this.valueInternal);
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const next = stringValuesFromFormValue(value, this.name);
+    this.valueInternal = next;
+    this.setAttribute("value", JSON.stringify(next));
+    this.syncFormAssociation();
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
   private emitValueChanged(nextValue: string[]): void {
     this.valueInternal = [...nextValue];
     this.setAttribute("value", JSON.stringify(nextValue));
+    this.syncFormAssociation();
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,
@@ -412,6 +444,7 @@ export class BoxDualListboxElement extends BaseElement {
             <div part="list" role="listbox" aria-label="Chosen" aria-multiselectable="true" data-list="selected"></div>
           </div>
         </div>
+        ${formErrorMessageMarkup()}
       </fieldset>
     `;
     this.legendEl = this.shadowRoot.querySelector('[part="label"]')!;
@@ -419,6 +452,7 @@ export class BoxDualListboxElement extends BaseElement {
     this.selectedListEl = this.shadowRoot.querySelector('[data-list="selected"]')!;
     this.moveRightEl = this.shadowRoot.querySelector('[part="move-right"]')!;
     this.moveLeftEl = this.shadowRoot.querySelector('[part="move-left"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -478,7 +512,7 @@ export class BoxDualListboxElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.legendEl || !this.availableListEl || !this.selectedListEl) {
+    if (!this.legendEl || !this.availableListEl || !this.selectedListEl || !this.errorEl) {
       return;
     }
 
@@ -512,6 +546,14 @@ export class BoxDualListboxElement extends BaseElement {
       this.moveRightEl.removeAttribute("disabled");
       this.moveLeftEl.removeAttribute("disabled");
     }
+
+    const focusableControls = [
+      ...Array.from(this.availableListEl.querySelectorAll<HTMLButtonElement>('[part="option"]')),
+      ...Array.from(this.selectedListEl.querySelectorAll<HTMLButtonElement>('[part="option"]')),
+      this.moveRightEl,
+      this.moveLeftEl,
+    ];
+    this.applyInvalidStateToControls(focusableControls, this.errorEl);
   }
 }
 

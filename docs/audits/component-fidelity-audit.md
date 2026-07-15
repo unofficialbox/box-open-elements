@@ -24,8 +24,8 @@ result is written to the run journal, and the committed outputs are this report 
 
 **51 components score below 3/5; 229 high-severity issues logged.**
 
-> **Program status (live):** Batches **0, 1, 2, 3, 4, 6 merged**; **5** implemented
-> (PR #39, pending merge). Remaining: **7** (polish).
+> **Program status (live):** Batches **0–6 merged**; **7** in flight (polish —
+> skeleton short-circuit + multi-value form association).
 > Session status: [HANDOFF.md](../HANDOFF.md). Scores and issue lists below are the **original
 > audit snapshot** — they are not re-scored after each batch; track completion in the prioritized
 > plan and HANDOFF.
@@ -62,7 +62,7 @@ Status markers reflect post-audit sweeps. The original findings stay listed so t
   stripped from buttons; modal Tab trap + focus restore.
 - **Form fields incomplete (~13 components). — DONE (Batch 5).** Core controls extend
   `FormAssociatedElement` with `name` / `invalid` / `error-message` and `ElementInternals`.
-  Multi-value / niche fields remain for Batch 7.
+  Multi-value / niche fields covered in Batch 7.
 - **Fabricated/nonexistent tokens fall back to hardcoded hex (~9 components). — DONE (Batch 2).**
   Tokens now exist / are repointed.
 - **Broken docs examples (~11 components). — DONE (Batch 6).** Examples repaired as part of the
@@ -118,13 +118,13 @@ radiogroup composites; removed `role="listitem"` from buttons; fixed tab/tablist
 progress-steps + carousel; Tab trap + focus restore on dialog/drawer/invite; `heading` renders as
 native `<h2 part="title">`.
 
-**Batch 5 — Form-field completeness — DONE.** `FormAssociatedElement` + `name` / `invalid` /
+**Batch 5 — Form-field completeness — DONE (#39).** `FormAssociatedElement` + `name` / `invalid` /
 `error-message` / `ElementInternals` on 13 everyday controls; number/slider clamping; date/time
-value reflection. Multi-value form association deferred to Batch 7.
+value reflection.
 
 **Batch 6 — `title` collision + docs repair — DONE (#29).** Renamed the `title` heading attribute
 to `heading` across the offenders; fixed broken shipped examples; humanized Design-Tokens labels;
 unlinked the Workshop from the public site.
 
-**Batch 7 — Per-component polish. — OPEN.** Remaining medium/low issues not covered by the sweeps
-(e.g. deferred `skeleton` update short-circuit; leftover audit nits after Batches 4–5).
+**Batch 7 — Per-component polish. — IN FLIGHT.** `skeleton` update short-circuit; form association
+for multi-value / niche controls (`FormData` helpers); leftover medium/low audit nits after merge.

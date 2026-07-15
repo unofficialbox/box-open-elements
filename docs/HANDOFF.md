@@ -16,8 +16,7 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 
 ## Current state (as of this handoff)
 
-- **Branch tip for fidelity work:** develop from `origin/main` after Batch 5 merges.
-  Start Batch 7 on a fresh `cursor/<name>-7eb7` branch.
+- **Branch tip for fidelity work:** develop from `origin/main` after Batch 7 merges.
 - **Live site:** GitHub Pages, `https://unofficialbox.github.io/box-open-elements/`,
   auto-deploys on push to `main` via `.github/workflows/deploy.yml`
   (build cmd `bun run site:build`, output `docs-site/dist`). The Workshop is
@@ -25,8 +24,8 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
 - Recent merged PRs: #29 Batches 0/2/6, **#31/#32/#33** Batch 1, **#35** Batch 3,
-  **#38** Batch 4. **Batch 5** implemented on `cursor/batch-5-form-association-7eb7`
-  (PR #39 — await merge before starting Batch 7).
+  **#38** Batch 4, **#39** Batch 5. **Batch 7** in flight on
+  `cursor/batch-7-polish-7eb7`.
 
 ## The active initiative: component fidelity program
 
@@ -62,22 +61,22 @@ organized into **systemic sweeps**, not per-component rewrites.
 - **Batch 4 — ARIA/keyboard + heading semantics** (#38): shared helpers in
   `src/foundations/a11y/`; composite keyboard; modal focus trap/restore;
   heading as native `<h2 part="title">`.
-- **Batch 5 — form association + invalid state** (this branch):
+- **Batch 5 — form association + invalid state** (#39):
   `FormAssociatedElement` in `src/core/form-associated.ts` (`name`,
   `invalid`, `error-message`, `ElementInternals`, error styles via
-  `SurfaceStatusSurfaceError`). Wired across 13 controls: text-field,
-  text-area, search-field, select, combobox, checkbox, switch, radio-group,
-  number-input (clamp), spin-button, slider (clamp), date-field, time-field
-  (value reflection fixed). Multi-value / niche fields deferred to Batch 7.
+  `SurfaceStatusSurfaceError`). Wired across 13 everyday controls.
+- **Batch 7 — polish** (this branch): `skeleton` update short-circuit;
+  form association for multi-value / niche controls (checkbox-group,
+  multi-select, dual-listbox, tag-input, pill-cloud, pill-selector-dropdown,
+  rating, color-picker, rich-text-input, range-slider, dropdown) via
+  `FormData` helpers (`formDataFromNamedValues`, `formDataFromRange`);
+  `applyInvalidStateToControls` for multi-focusable fields.
 
 ### Remaining (do these next, in order)
-1. **Batch 7 — polish:** deferred `skeleton` update short-circuit; form-assoc
-   for multi-value controls (checkbox-group, multi-select, dual-listbox,
-   tag-input, pill-*, rating, color-picker, rich-text, range-slider, dropdown);
-   extra jsdom style-assertion tests; leftover medium/low audit nits.
+1. After Batch 7 merges: leftover medium/low audit nits not covered by the
+   fidelity sweeps (per-component polish only — no further systemic batches).
 
-### Deferred CodeRabbit items (intentional, tracked above)
-- `skeleton` update short-circuit → Batch 7.
+### Deferred CodeRabbit items (intentional)
 - "add style tests" nitpicks → covered by the screenshot gate; low value.
 
 ## How to run things
@@ -137,7 +136,6 @@ organized into **systemic sweeps**, not per-component rewrites.
   `getMirroredFormValue(el.internals)` in tests.
 
 ## Open user-facing threads
-- Fidelity Batches **0–4 and 6 merged**; **Batch 5** complete in code on PR #39
-  (pending merge). Remaining: **Batch 7** polish after #39 lands.
-- **Next (after #39 merges):** start **Batch 7** (skeleton short-circuit,
-  multi-value form assoc, leftover audit nits).
+- Fidelity Batches **0–6 merged**; **Batch 7** in flight on
+  `cursor/batch-7-polish-7eb7` (skeleton short-circuit + multi-value form assoc).
+- **Next (after Batch 7 merges):** leftover medium/low audit nits only.

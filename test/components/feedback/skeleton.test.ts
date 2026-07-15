@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BoxSkeletonElement, defineBoxSkeletonElement } from "../../../src/components/feedback/skeleton.js";
 
@@ -36,5 +36,39 @@ describe("BoxSkeletonElement", () => {
     // The malformed value was rejected by the CSSOM rather than reflected.
     const skeleton = element.shadowRoot?.querySelector('[part="skeleton"]') as HTMLSpanElement | null;
     expect(skeleton?.style.width).toBe("");
+  });
+
+  it("skips CSSOM writes when dimensions are unchanged", () => {
+    const element = document.createElement("box-skeleton") as BoxSkeletonElement;
+    element.width = "100px";
+    element.height = "16px";
+    document.body.append(element);
+
+    const skeleton = element.shadowRoot?.querySelector('[part="skeleton"]') as HTMLSpanElement;
+    const setProperty = vi.spyOn(skeleton.style, "setProperty");
+
+    element.width = "100px";
+    element.height = "16px";
+
+    expect(setProperty).not.toHaveBeenCalled();
+    expect(skeleton.style.width).toBe("100px");
+    expect(skeleton.style.height).toBe("16px");
+  });
+
+  it("writes only the changed dimension", () => {
+    const element = document.createElement("box-skeleton") as BoxSkeletonElement;
+    element.width = "100px";
+    element.height = "16px";
+    document.body.append(element);
+
+    const skeleton = element.shadowRoot?.querySelector('[part="skeleton"]') as HTMLSpanElement;
+    const setProperty = vi.spyOn(skeleton.style, "setProperty");
+
+    element.width = "200px";
+
+    expect(setProperty).toHaveBeenCalledTimes(1);
+    expect(setProperty).toHaveBeenCalledWith("width", "200px");
+    expect(skeleton.style.width).toBe("200px");
+    expect(skeleton.style.height).toBe("16px");
   });
 });

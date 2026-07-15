@@ -1,4 +1,11 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  FormAssociatedElement,
+  boeFormFieldErrorStyles,
+  formDataFromNamedValues,
+  formErrorMessageMarkup,
+  stringValuesFromFormValue,
+} from "../../core/index.js";
+import type { FormValue } from "../../core/index.js";
 import {
   boeFocusRingShadow,
   boeFocusVisibleStyles,
@@ -117,17 +124,26 @@ const checkboxGroupStyles = `
     font-weight: 500;
     color: var(--boe-token-text-text, #222222);
   }
+
+  ${boeFormFieldErrorStyles}
 `;
 
-export class BoxCheckboxGroupElement extends BaseElement {
+export class BoxCheckboxGroupElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "options", "value"];
+    return [
+      ...FormAssociatedElement.formObservedAttributes,
+      "disabled",
+      "label",
+      "options",
+      "value",
+    ];
   }
 
   private valueInternal: string[] = [];
   private lastOptionsJson = "";
   private legendEl!: HTMLLegendElement;
   private optionsContainerEl!: HTMLDivElement;
+  private errorEl!: HTMLElement;
 
   get label(): string {
     return this.getAttribute("label") ?? "Options";
@@ -174,6 +190,7 @@ export class BoxCheckboxGroupElement extends BaseElement {
   set value(nextValue: string[]) {
     this.valueInternal = [...nextValue];
     this.setAttribute("value", JSON.stringify(nextValue));
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -196,6 +213,20 @@ export class BoxCheckboxGroupElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  protected getFormValue(): FormValue {
+    return formDataFromNamedValues(this.name, this.valueInternal);
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const next = stringValuesFromFormValue(value, this.name);
+    this.valueInternal = next;
+    this.setAttribute("value", JSON.stringify(next));
+    this.syncFormAssociation();
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
   protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
@@ -206,10 +237,12 @@ export class BoxCheckboxGroupElement extends BaseElement {
       <fieldset part="group">
         <legend part="label"></legend>
         <div part="options"></div>
+        ${formErrorMessageMarkup()}
       </fieldset>
     `;
     this.legendEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.optionsContainerEl = this.shadowRoot.querySelector('[part="options"]')!;
+    this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
   protected setupListeners(): void {
@@ -228,6 +261,7 @@ export class BoxCheckboxGroupElement extends BaseElement {
 
       this.valueInternal = selected;
       this.setAttribute("value", JSON.stringify(selected));
+      this.syncFormAssociation();
       this.dispatchEvent(
         new CustomEvent("value-changed", {
           bubbles: true,
@@ -239,7 +273,7 @@ export class BoxCheckboxGroupElement extends BaseElement {
   }
 
   protected update(): void {
-    if (!this.legendEl || !this.optionsContainerEl) {
+    if (!this.legendEl || !this.optionsContainerEl || !this.errorEl) {
       return;
     }
 
@@ -275,6 +309,11 @@ export class BoxCheckboxGroupElement extends BaseElement {
         input.removeAttribute("disabled");
       }
     });
+
+    this.applyInvalidStateToControls(
+      Array.from(this.optionsContainerEl.querySelectorAll<HTMLInputElement>('[part="input"]')),
+      this.errorEl,
+    );
   }
 }
 

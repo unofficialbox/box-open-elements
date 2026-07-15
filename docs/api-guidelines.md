@@ -74,10 +74,24 @@ Use these names when the concept applies:
 - `items` — structured collection data for rich hierarchical or menu-like inputs
 - `options` — simpler choice data for flat selection controls
 
-Form-associated controls (`text-field`, `text-area`, `select`, `combobox`, `search-field`,
-`checkbox`, `switch`, `radio-group`, `number-input`, `spin-button`, `slider`, `date-field`,
-`time-field`) extend `FormAssociatedElement` and submit through `ElementInternals`. Boolean
-controls also accept `value` (default `"on"`) as the submitted string when checked.
+Form-associated controls extend `FormAssociatedElement` and submit through `ElementInternals`:
+
+- Everyday string/boolean/number fields: `text-field`, `text-area`, `select`, `combobox`,
+  `search-field`, `checkbox`, `switch`, `radio-group`, `number-input`, `spin-button`,
+  `slider`, `date-field`, `time-field`, `dropdown`, `rating`, `color-picker`,
+  `rich-text-input`
+- Multi-value fields submit `FormData` via `formDataFromNamedValues` (one entry per selected
+  value under `name`, or under `"value"` when `name` is empty): `checkbox-group`,
+  `multi-select`, `dual-listbox`, `tag-input`, `pill-cloud`, `pill-selector-dropdown`
+- Range pairs submit `FormData` via `formDataFromRange` (`${name}-start` / `${name}-end`,
+  or `range-start` / `range-end` when `name` is empty): `range-slider`
+
+Boolean controls also accept `value` (default `"on"`) as the submitted string when checked.
+Empty multi-selections omit the control (`null`).
+
+**Empty-name fallback keys.** When `name` is omitted, multi-value controls submit each
+selected entry under `"value"`; range controls use `"range"` as the base for
+`${base}-start` / `${base}-end` (that is, `range-start` and `range-end`).
 
 ## Naming preferences
 
