@@ -29,6 +29,37 @@ const TOOLBAR_ACTIONS: ToolbarAction[] = [
   { command: "insertOrderedList", label: "Numbered list", text: "1." },
 ];
 
+const UNSAFE_RICH_TEXT_TAGS = new Set([
+  "script",
+  "style",
+  "iframe",
+  "object",
+  "embed",
+  "link",
+  "meta",
+]);
+
+const sanitizeRichTextHtml = (html: string): string => {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  for (const element of Array.from(doc.body.querySelectorAll("*"))) {
+    const tag = element.tagName.toLowerCase();
+    if (UNSAFE_RICH_TEXT_TAGS.has(tag)) {
+      element.remove();
+      continue;
+    }
+
+    for (const attr of Array.from(element.attributes)) {
+      const name = attr.name.toLowerCase();
+      const attrValue = attr.value.trim().toLowerCase();
+      if (name.startsWith("on") || (name === "href" && attrValue.startsWith("javascript:"))) {
+        element.removeAttribute(attr.name);
+      }
+    }
+  }
+
+  return doc.body.innerHTML;
+};
+
 const richTextStyles = `
   :host {
     display: block;
@@ -212,8 +243,9 @@ export class BoxRichTextInputElement extends FormAssociatedElement {
   }
 
   set value(value: string) {
-    this.valueInternal = value;
-    this.setAttribute("value", value);
+    this.valueInternal = sanitizeRichTextHtml(value);
+    this.setAttribute("value", this.valueInternal);
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -221,7 +253,7 @@ export class BoxRichTextInputElement extends FormAssociatedElement {
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
-      this.valueInternal = newValue ?? "";
+      this.valueInternal = sanitizeRichTextHtml(newValue ?? "");
     }
     super.attributeChangedCallback(name, oldValue, newValue);
   }
@@ -231,9 +263,10 @@ export class BoxRichTextInputElement extends FormAssociatedElement {
   }
 
   protected restoreFormValue(value: FormValue): void {
-    const next = typeof value === "string" ? value : "";
+    const next = typeof value === "string" ? sanitizeRichTextHtml(value) : "";
     this.valueInternal = next;
     this.setAttribute("value", next);
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -250,7 +283,7 @@ export class BoxRichTextInputElement extends FormAssociatedElement {
   }
 
   private handleEditorInput = (): void => {
-    this.valueInternal = this.editor.innerHTML;
+    this.valueInternal = sanitizeRichTextHtml(this.editor.innerHTML);
     this.setAttribute("value", this.valueInternal);
     this.syncFormAssociation();
     this.emitValueChanged();
@@ -346,7 +379,7 @@ export class BoxRichTextInputElement extends FormAssociatedElement {
 
     // Only patch editor HTML when not focused to avoid cursor-jump
     if (this.shadowRoot?.activeElement !== this.editor && this.editor.innerHTML !== this.valueInternal) {
-      this.editor.innerHTML = this.valueInternal;
+      this.editor.innerHTML = sanitizeRichTextHtml(this.valueInternal);
     }
 
     this.applyInvalidState(this.editor, this.errorEl);

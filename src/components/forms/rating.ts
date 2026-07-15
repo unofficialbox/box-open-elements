@@ -165,6 +165,7 @@ export class BoxRatingElement extends FormAssociatedElement {
     const nextValue = this.normalizeValue(value);
     this.valueInternal = nextValue;
     this.setAttribute("value", String(nextValue));
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -191,6 +192,7 @@ export class BoxRatingElement extends FormAssociatedElement {
     const parsed = typeof value === "string" ? Number(value) : 0;
     this.valueInternal = this.normalizeValue(parsed);
     this.setAttribute("value", String(this.valueInternal));
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }

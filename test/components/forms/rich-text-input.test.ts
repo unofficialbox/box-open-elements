@@ -6,6 +6,7 @@ import {
   BoxRichTextInputElement,
   defineBoxRichTextInputElement,
 } from "../../../src/components/forms/rich-text-input.js";
+import { getMirroredFormValue } from "../../../src/core/index.js";
 
 describe("BoxRichTextInputElement", () => {
   beforeEach(() => {
@@ -79,5 +80,17 @@ describe("BoxRichTextInputElement", () => {
 
     expect(editor?.contentEditable).toBe("false");
     expect([...buttons].every(button => (button as HTMLButtonElement).disabled)).toBe(true);
+  });
+
+  it("strips unsafe attributes when restoring form value", () => {
+    const element = document.createElement("box-rich-text-input") as BoxRichTextInputElement;
+    document.body.append(element);
+
+    element.formStateRestoreCallback('<img src="x" onerror="alert(1)">');
+
+    expect(element.value).not.toContain("onerror");
+    expect(getMirroredFormValue(element.internals)).toBe('<img src="x">');
+    const editor = element.shadowRoot?.querySelector('[part="editor"]') as HTMLDivElement | null;
+    expect(editor?.innerHTML).not.toContain("onerror");
   });
 });

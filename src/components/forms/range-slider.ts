@@ -169,6 +169,7 @@ export class BoxRangeSliderElement extends FormAssociatedElement {
   set start(value: number) {
     this.startInternal = value;
     this.setAttribute("start", String(value));
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -181,6 +182,7 @@ export class BoxRangeSliderElement extends FormAssociatedElement {
   set end(value: number) {
     this.endInternal = value;
     this.setAttribute("end", String(value));
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -205,14 +207,17 @@ export class BoxRangeSliderElement extends FormAssociatedElement {
   }
 
   protected restoreFormValue(value: FormValue): void {
-    const { start, end } = rangeFromFormValue(value, this.name, {
+    const restored = rangeFromFormValue(value, this.name, {
       start: this.startInternal,
       end: this.endInternal,
     });
+    const start = this.clamp(Math.min(restored.start, restored.end));
+    const end = this.clamp(Math.max(restored.start, restored.end));
     this.startInternal = start;
     this.endInternal = end;
     this.setAttribute("start", String(start));
     this.setAttribute("end", String(end));
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }

@@ -90,6 +90,22 @@ describe("BoxCheckboxGroupElement", () => {
     expect((updated as FormData).getAll("permissions")).toEqual(["preview"]);
   });
 
+  it("mirrors programmatic value assignment to FormData", () => {
+    const element = document.createElement("box-checkbox-group") as BoxCheckboxGroupElement;
+    element.name = "permissions";
+    element.options = [
+      { label: "Preview", value: "preview" },
+      { label: "Download", value: "download" },
+    ];
+    document.body.append(element);
+
+    element.value = ["preview", "download"];
+
+    const formValue = getMirroredFormValue(element.internals);
+    expect(formValue).toBeInstanceOf(FormData);
+    expect((formValue as FormData).getAll("permissions")).toEqual(["preview", "download"]);
+  });
+
   it("propagates invalid ARIA state to every checkbox option", () => {
     const element = document.createElement("box-checkbox-group") as BoxCheckboxGroupElement;
     element.options = [

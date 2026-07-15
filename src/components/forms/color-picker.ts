@@ -198,6 +198,7 @@ export class BoxColorPickerElement extends FormAssociatedElement {
     const normalized = normalizeHex(nextValue);
     this.valueInternal = normalized;
     this.setAttribute("value", normalized);
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -218,6 +219,7 @@ export class BoxColorPickerElement extends FormAssociatedElement {
     const next = typeof value === "string" ? normalizeHex(value) : "#3b82f6";
     this.valueInternal = next;
     this.setAttribute("value", next);
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }

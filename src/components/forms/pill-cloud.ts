@@ -133,6 +133,7 @@ export class BoxPillCloudElement extends FormAssociatedElement {
   set value(nextValue: string[]) {
     this.valueInternal = [...nextValue];
     this.setAttribute("value", JSON.stringify(nextValue));
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -163,6 +164,7 @@ export class BoxPillCloudElement extends FormAssociatedElement {
     const next = stringValuesFromFormValue(value, this.name);
     this.valueInternal = next;
     this.setAttribute("value", JSON.stringify(next));
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -220,6 +222,7 @@ export class BoxPillCloudElement extends FormAssociatedElement {
     if (!this.options.length) {
       this.rootEl.innerHTML = `<div part="empty">No options</div>`;
       this.lastOptionsJson = "";
+      this.applyInvalidStateToControls([], this.errorEl);
       return;
     }
 

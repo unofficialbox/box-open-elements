@@ -212,6 +212,7 @@ export class BoxDropdownElement extends FormAssociatedElement {
   set value(nextValue: string) {
     this.valueInternal = nextValue;
     this.setAttribute("value", nextValue);
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -232,6 +233,7 @@ export class BoxDropdownElement extends FormAssociatedElement {
     const next = typeof value === "string" ? value : "";
     this.valueInternal = next;
     this.setAttribute("value", next);
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }

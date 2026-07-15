@@ -283,6 +283,7 @@ export class BoxDualListboxElement extends FormAssociatedElement {
   set value(nextValue: string[]) {
     this.valueInternal = [...nextValue];
     this.setAttribute("value", JSON.stringify(nextValue));
+    this.syncFormAssociation();
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
@@ -310,6 +311,7 @@ export class BoxDualListboxElement extends FormAssociatedElement {
     const next = stringValuesFromFormValue(value, this.name);
     this.valueInternal = next;
     this.setAttribute("value", JSON.stringify(next));
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }

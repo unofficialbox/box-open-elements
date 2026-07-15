@@ -86,16 +86,17 @@ export class BoxSkeletonElement extends BaseElement {
     // Apply size via the CSSOM, not string interpolation: setProperty validates
     // the value and silently drops anything invalid, so attribute-supplied
     // width/height can't break out of the style attribute and inject markup.
-    // Short-circuit when dimensions are unchanged to avoid redundant CSSOM writes.
+    // Skip per-dimension when unchanged to avoid redundant CSSOM writes.
     const nextWidth = this.width;
     const nextHeight = this.height;
-    if (nextWidth === this.appliedWidth && nextHeight === this.appliedHeight) {
-      return;
+    if (nextWidth !== this.appliedWidth) {
+      this.skeletonEl.style.setProperty("width", nextWidth);
+      this.appliedWidth = nextWidth;
     }
-    this.skeletonEl.style.setProperty("width", nextWidth);
-    this.skeletonEl.style.setProperty("height", nextHeight);
-    this.appliedWidth = nextWidth;
-    this.appliedHeight = nextHeight;
+    if (nextHeight !== this.appliedHeight) {
+      this.skeletonEl.style.setProperty("height", nextHeight);
+      this.appliedHeight = nextHeight;
+    }
   }
 }
 

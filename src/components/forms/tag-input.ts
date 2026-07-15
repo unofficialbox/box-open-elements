@@ -202,6 +202,7 @@ export class BoxTagInputElement extends FormAssociatedElement {
   set value(next: string) {
     this.tagsInternal = this.dedupe(parseList(next));
     this.reflectValue();
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -259,6 +260,7 @@ export class BoxTagInputElement extends FormAssociatedElement {
     const next = stringValuesFromFormValue(value, this.name);
     this.tagsInternal = this.dedupe(next);
     this.reflectValue();
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
