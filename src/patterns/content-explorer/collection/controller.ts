@@ -1,10 +1,15 @@
 import { Controller } from "../../../core/controller.js";
-import type { ExplorerTransportResult } from "../types.js";
+import type { ExplorerItem, ExplorerPaginationState } from "../types.js";
 import type {
   ExplorerCollectionControllerOptions,
   ExplorerCollectionEvents,
   ExplorerCollectionState,
 } from "./types.js";
+
+export interface ExplorerCollectionLoadResult {
+  items: ExplorerItem[];
+  pagination: ExplorerPaginationState;
+}
 
 const DEFAULT_PAGE_SIZE = 100;
 
@@ -63,7 +68,7 @@ export class ExplorerCollectionController extends Controller<
     this.emit("loadingChanged", { loading: true });
   }
 
-  applyLoadResult(result: ExplorerTransportResult, append: boolean): void {
+  applyLoadResult(result: ExplorerCollectionLoadResult, append: boolean): void {
     const items = append ? [...this.state.items, ...result.items] : result.items;
 
     this.setState({

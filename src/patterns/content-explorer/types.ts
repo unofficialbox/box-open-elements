@@ -1,7 +1,45 @@
+export interface ExplorerItemPermissions {
+  canDownload?: boolean;
+  canPreview?: boolean;
+  canShare?: boolean;
+  canDelete?: boolean;
+  canRename?: boolean;
+  canUpload?: boolean;
+}
+
+export interface ExplorerItemOwner {
+  id: string;
+  name: string;
+  type?: "user" | "group";
+}
+
+/** Lightweight list-row signal; full share state stays in patterns/share. */
+export interface ExplorerItemSharedLinkSummary {
+  isShared: boolean;
+  access?: "open" | "company" | "collaborators";
+  url?: string;
+}
+
+export interface ExplorerItemPreviewAffordance {
+  canPreview?: boolean;
+  extension?: string | null;
+  mimeType?: string | null;
+}
+
 export interface ExplorerItem {
   id: string;
   name: string;
   type: "file" | "folder" | "web_link";
+  size?: number | null;
+  modifiedAt?: string | null;
+  createdAt?: string | null;
+  extension?: string | null;
+  owner?: ExplorerItemOwner | null;
+  permissions?: ExplorerItemPermissions;
+  sharedLink?: ExplorerItemSharedLinkSummary | null;
+  preview?: ExplorerItemPreviewAffordance;
+  /** Useful in search results; omit in folder listing when redundant. */
+  parent?: { id: string; name?: string } | null;
 }
 
 export type ExplorerSelectionMode = "multiple" | "single";
@@ -21,6 +59,22 @@ export const shouldActivateOnClick = (gesture: ExplorerItemGesture): boolean => 
 
 /** Legacy Enter also toggles selection before activate; split mode activates only. */
 export const shouldToggleOnEnter = (gesture: ExplorerItemGesture): boolean => gesture === "legacy";
+
+export type ExplorerViewMode = "folder" | "search";
+
+export interface ExplorerViewState {
+  mode: ExplorerViewMode;
+  /** Non-null when mode === "search". */
+  searchQuery: string | null;
+  /** Folder scope for search; defaults to current folder when entering search. */
+  searchAncestorFolderId: string | null;
+}
+
+export const createInitialExplorerViewState = (): ExplorerViewState => ({
+  mode: "folder",
+  searchQuery: null,
+  searchAncestorFolderId: null,
+});
 
 export interface ExplorerItemAction {
   id: string;
@@ -53,11 +107,27 @@ export interface ExplorerTransportRequest {
   signal?: AbortSignal;
 }
 
+export interface ExplorerSearchRequest {
+  query: string;
+  ancestorFolderId?: string;
+  limit?: number;
+  offset?: number;
+  token: string;
+  language?: string;
+  signal?: AbortSignal;
+}
+
 export interface ExplorerPaginationState {
   hasMoreItems: boolean;
   limit: number;
   offset: number;
   totalCount: number | null;
+  /**
+   * Upstream cursor for the next page when client-side filtering shrinks `items`
+   * (e.g. unsupported Box entry types). Controllers should prefer this over
+   * `items.length` when requesting the next page.
+   */
+  nextOffset?: number;
 }
 
 export interface ExplorerTransportResult {
@@ -68,8 +138,16 @@ export interface ExplorerTransportResult {
   pagination: ExplorerPaginationState;
 }
 
+export interface ExplorerSearchResult {
+  query: string;
+  ancestorFolderId?: string;
+  items: ExplorerItem[];
+  pagination: ExplorerPaginationState;
+}
+
 export interface ExplorerTransport {
   loadFolderItems(request: ExplorerTransportRequest): Promise<ExplorerTransportResult>;
+  searchItems?(request: ExplorerSearchRequest): Promise<ExplorerSearchResult>;
 }
 
 export interface ExplorerFetchLike {
@@ -103,6 +181,7 @@ export interface ExplorerState {
   loading: boolean;
   pagination: ExplorerPaginationState;
   selectedItemIds: string[];
+  view: ExplorerViewState;
 }
 
 export interface ExplorerEvents {
@@ -124,4 +203,10 @@ export interface ExplorerEvents {
   itemActionInvoked: { action: ExplorerItemAction; item: ExplorerItem };
   paginationChanged: { pagination: ExplorerPaginationState };
   selectionChanged: { selectedItemIds: string[] };
+  viewChanged: { view: ExplorerViewState };
+  searchSucceeded: {
+    query: string;
+    items: ExplorerItem[];
+    pagination: ExplorerPaginationState;
+  };
 }

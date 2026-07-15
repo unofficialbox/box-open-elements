@@ -39,6 +39,47 @@ describe("BoxExplorerTableElement", () => {
     document.body.innerHTML = "";
   });
 
+  it("renders enriched metadata columns", async () => {
+    const transport: ExplorerTransport = {
+      loadFolderItems: vi.fn().mockResolvedValue(
+        createResult({
+          items: [
+            {
+              id: "1",
+              name: "Spec",
+              type: "file",
+              size: 2048,
+              modifiedAt: "2026-07-10T18:30:00.000Z",
+              owner: { id: "u1", name: "Morgan Lee" },
+              sharedLink: { isShared: true, access: "open" },
+            },
+          ],
+        }),
+      ),
+    };
+    const controller = new ContentExplorerController({
+      rootFolderId: "0",
+      token: "token",
+      transport,
+    });
+    const element = document.createElement("box-explorer-table") as BoxExplorerTableElement;
+    element.controller = controller;
+
+    document.body.append(element);
+    await controller.connect();
+    await flushMicrotasks();
+
+    expect(element.shadowRoot?.querySelector('[part="header-modified"]')?.textContent).toBe(
+      "Modified",
+    );
+    expect(element.shadowRoot?.querySelector('[part="size-cell"]')?.textContent).toContain("KB");
+    expect(element.shadowRoot?.querySelector('[part="owner-cell"]')?.textContent).toBe("Morgan Lee");
+    expect(element.shadowRoot?.querySelector('[part="shared-cell"]')?.textContent).toBe(
+      "Shared · Open",
+    );
+    expect(element.shadowRoot?.querySelector('[part="modified-cell"]')?.textContent).toMatch(/Jul/);
+  });
+
   it("renders table rows, toggles selection, and mounts row action menus", async () => {
     const transport: ExplorerTransport = {
       loadFolderItems: vi.fn().mockResolvedValue(

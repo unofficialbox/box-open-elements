@@ -51,7 +51,9 @@ export * as metadataMappers from "./mappers/metadata.js";
 // Framework-neutral route handlers (Request → Response)
 export {
   createContentExplorerRouteHandler,
+  createContentExplorerSearchRouteHandler,
   type ContentExplorerRouteOptions,
+  type ContentExplorerSearchRouteOptions,
 } from "./routes/content-explorer.js";
 export { createShareRouteHandler, type ShareRouteOptions } from "./routes/share.js";
 export { createMetadataRouteHandler, type MetadataRouteOptions } from "./routes/metadata.js";

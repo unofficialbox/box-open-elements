@@ -5,6 +5,13 @@ import {
   shouldToggleOnEnter,
 } from "../types.js";
 import { BoxExplorerActionMenuElement } from "./action-menu.js";
+import {
+  formatItemDate,
+  formatItemOwner,
+  formatItemShared,
+  formatItemSize,
+  itemSummarySignature,
+} from "./item-summary.js";
 import { BaseElement } from "../../../core/index.js";
 import {
   boeFocusVisibleStyles,
@@ -150,10 +157,22 @@ const elementStyles = `
           box-shadow: none;
         }
 
-        [part="type-cell"] {
+        [part="type-cell"],
+        [part="modified-cell"],
+        [part="size-cell"],
+        [part="owner-cell"],
+        [part="shared-cell"] {
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.85rem;
+          white-space: nowrap;
+        }
+
+        [part="type-cell"] {
           text-transform: capitalize;
+        }
+
+        [part="size-cell"] {
+          font-variant-numeric: tabular-nums;
         }
 
         [part="empty"] {
@@ -285,6 +304,10 @@ export class BoxExplorerTableElement extends BaseElement {
               <th part="header-selection" scope="col">Select</th>
               <th part="header-name" scope="col">Name</th>
               <th part="header-type" scope="col">Type</th>
+              <th part="header-modified" scope="col">Modified</th>
+              <th part="header-size" scope="col">Size</th>
+              <th part="header-owner" scope="col">Owner</th>
+              <th part="header-shared" scope="col">Shared</th>
               <th part="header-actions" scope="col">Actions</th>
             </tr>
           </thead>
@@ -420,7 +443,13 @@ export class BoxExplorerTableElement extends BaseElement {
     shell.setAttribute("aria-busy", state?.loading ? "true" : "false");
 
     const nextSignature = JSON.stringify({
-      items: state?.items.map(item => ({ id: item.id, name: item.name, type: item.type })) ?? [],
+      items:
+        state?.items.map(item => ({
+          id: item.id,
+          name: item.name,
+          type: item.type,
+          ...itemSummarySignature(item),
+        })) ?? [],
       actions: state?.availableActionsByItemId ?? {},
       hasMore: state?.pagination.hasMoreItems ?? false,
       loading: state?.loading ?? false,
@@ -435,6 +464,10 @@ export class BoxExplorerTableElement extends BaseElement {
               const actions = (state.availableActionsByItemId[item.id] ?? []).length
                 ? `<box-explorer-action-menu part="row-action-menu" data-item-id="${escapeHtml(item.id)}"></box-explorer-action-menu>`
                 : "";
+              const sizeLabel = item.type === "file" ? formatItemSize(item.size) : "";
+              const modifiedLabel = formatItemDate(item.modifiedAt);
+              const ownerLabel = formatItemOwner(item);
+              const sharedLabel = formatItemShared(item.sharedLink);
 
               return `
                 <tr part="row" data-item-id="${escapeHtml(item.id)}" aria-selected="${isSelected ? "true" : "false"}">
@@ -456,12 +489,16 @@ export class BoxExplorerTableElement extends BaseElement {
                     >${escapeHtml(item.name)}</button>
                   </td>
                   <td part="type-cell">${escapeHtml(item.type)}</td>
+                  <td part="modified-cell">${escapeHtml(modifiedLabel)}</td>
+                  <td part="size-cell">${escapeHtml(sizeLabel)}</td>
+                  <td part="owner-cell">${escapeHtml(ownerLabel)}</td>
+                  <td part="shared-cell">${escapeHtml(sharedLabel)}</td>
                   <td part="actions-cell">${actions}</td>
                 </tr>
               `;
             })
             .join("")
-        : `<tr part="empty-row"><td colspan="4" part="empty">No items loaded</td></tr>`;
+        : `<tr part="empty-row"><td colspan="8" part="empty">No items loaded</td></tr>`;
 
       tbody.innerHTML = rowsMarkup;
 

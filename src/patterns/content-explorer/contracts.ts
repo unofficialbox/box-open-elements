@@ -1,4 +1,9 @@
-import type { ExplorerFetchLike, ExplorerTransport, ExplorerTransportResult } from "./types.js";
+import type {
+  ExplorerFetchLike,
+  ExplorerSearchResult,
+  ExplorerTransport,
+  ExplorerTransportResult,
+} from "./types.js";
 
 export interface ContentExplorerRequestContext {
   locale?: string;
@@ -23,7 +28,7 @@ export interface ContentExplorerSearchInput {
 
 export interface ContentExplorerDataSource {
   listFolderItems(input: ContentExplorerListFolderInput): Promise<ExplorerTransportResult>;
-  search?(input: ContentExplorerSearchInput): Promise<ExplorerTransportResult>;
+  search?(input: ContentExplorerSearchInput): Promise<ExplorerSearchResult>;
 }
 
 export interface ContentExplorerHttpDataSourceOptions {
@@ -31,6 +36,7 @@ export interface ContentExplorerHttpDataSourceOptions {
   fetch?: ExplorerFetchLike;
   headers?: Record<string, string>;
   buildListFolderUrl?: (input: ContentExplorerListFolderInput) => string;
+  buildSearchUrl?: (input: ContentExplorerSearchInput) => string;
 }
 
 const resolveFetch = (providedFetch?: ExplorerFetchLike): ExplorerFetchLike => {
@@ -65,6 +71,22 @@ const defaultListFolderUrl = (baseUrl: string, input: ContentExplorerListFolderI
   return url.toString();
 };
 
+const defaultSearchUrl = (baseUrl: string, input: ContentExplorerSearchInput): string => {
+  const root = baseUrl.replace(/\/$/, "");
+  const url = new URL(`${root}/search`, resolveUrlBase());
+  url.searchParams.set("query", input.query);
+  if (input.ancestorFolderId) {
+    url.searchParams.set("ancestorFolderId", input.ancestorFolderId);
+  }
+  if (typeof input.limit === "number") {
+    url.searchParams.set("limit", String(input.limit));
+  }
+  if (typeof input.offset === "number") {
+    url.searchParams.set("offset", String(input.offset));
+  }
+  return url.toString();
+};
+
 const getErrorMessage = async (response: Response): Promise<string> => {
   try {
     const payload = (await response.json()) as { message?: string; code?: string };
@@ -80,19 +102,38 @@ const getErrorMessage = async (response: Response): Promise<string> => {
 
 export const createExplorerTransportFromDataSource = (
   dataSource: ContentExplorerDataSource,
-): ExplorerTransport => ({
-  loadFolderItems(request) {
-    return dataSource.listFolderItems({
-      folderId: request.folderId,
-      limit: request.limit,
-      offset: request.offset,
-      context: {
-        locale: request.language,
-        signal: request.signal,
-      },
-    });
-  },
-});
+): ExplorerTransport => {
+  const transport: ExplorerTransport = {
+    loadFolderItems(request) {
+      return dataSource.listFolderItems({
+        folderId: request.folderId,
+        limit: request.limit,
+        offset: request.offset,
+        context: {
+          locale: request.language,
+          signal: request.signal,
+        },
+      });
+    },
+  };
+
+  if (dataSource.search) {
+    const search = dataSource.search.bind(dataSource);
+    transport.searchItems = request =>
+      search({
+        query: request.query,
+        ancestorFolderId: request.ancestorFolderId,
+        limit: request.limit,
+        offset: request.offset,
+        context: {
+          locale: request.language,
+          signal: request.signal,
+        },
+      });
+  }
+
+  return transport;
+};
 
 export const createHttpContentExplorerDataSource = (
   options: ContentExplorerHttpDataSourceOptions = {},
@@ -100,27 +141,35 @@ export const createHttpContentExplorerDataSource = (
   const fetchImpl = resolveFetch(options.fetch);
   const baseUrl = options.baseUrl ?? "/api/content-explorer";
 
+  const requestJson = async <T>(url: string, input: { context?: ContentExplorerRequestContext }): Promise<T> => {
+    const response = await fetchImpl(url, {
+      method: "GET",
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: {
+        accept: "application/json",
+        ...(input.context?.locale ? { "accept-language": input.context.locale } : {}),
+        ...(input.context?.requestId ? { "x-request-id": input.context.requestId } : {}),
+        ...options.headers,
+      },
+      signal: input.context?.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(await getErrorMessage(response));
+    }
+
+    return (await response.json()) as T;
+  };
+
   return {
     async listFolderItems(input) {
       const url = options.buildListFolderUrl?.(input) ?? defaultListFolderUrl(baseUrl, input);
-      const response = await fetchImpl(url, {
-        method: "GET",
-        credentials: "same-origin",
-        cache: "no-store",
-        headers: {
-          accept: "application/json",
-          ...(input.context?.locale ? { "accept-language": input.context.locale } : {}),
-          ...(input.context?.requestId ? { "x-request-id": input.context.requestId } : {}),
-          ...options.headers,
-        },
-        signal: input.context?.signal,
-      });
-
-      if (!response.ok) {
-        throw new Error(await getErrorMessage(response));
-      }
-
-      return (await response.json()) as ExplorerTransportResult;
+      return requestJson<ExplorerTransportResult>(url, input);
+    },
+    async search(input) {
+      const url = options.buildSearchUrl?.(input) ?? defaultSearchUrl(baseUrl, input);
+      return requestJson<ExplorerSearchResult>(url, input);
     },
   };
 };

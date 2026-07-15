@@ -1,11 +1,13 @@
 import type {
   ContentExplorerDataSource,
   ContentExplorerListFolderInput,
+  ContentExplorerSearchInput,
 } from "../../../../src/patterns/content-explorer/contracts.js";
-import type { ExplorerTransportResult } from "../../../../src/patterns/content-explorer/types.js";
+import type { ExplorerSearchResult, ExplorerTransportResult } from "../../../../src/patterns/content-explorer/types.js";
 import type { BoxRestClient } from "../auth/client.js";
 import {
   buildExplorerResult,
+  buildExplorerSearchResult,
   type BoxRawFolder,
   type BoxRawItemCollection,
 } from "../mappers/explorer.js";
@@ -19,7 +21,8 @@ export interface BoxExplorerDataSourceOptions {
 
 const DEFAULT_LIMIT = 25;
 const FOLDER_FIELDS = "name,path_collection";
-const ITEM_FIELDS = "name,type";
+const ITEM_FIELDS =
+  "name,type,size,modified_at,created_at,extension,owned_by,shared_link,permissions,parent";
 
 /**
  * A {@link ContentExplorerDataSource} backed by the Box REST API. It fetches
@@ -55,5 +58,31 @@ export const createBoxExplorerDataSource = (
     return buildExplorerResult(folder, collection, { limit, offset });
   };
 
-  return { listFolderItems };
+  const search = async (input: ContentExplorerSearchInput): Promise<ExplorerSearchResult> => {
+    const limit = input.limit ?? defaultLimit;
+    const offset = input.offset ?? 0;
+    const requestId = input.context?.requestId;
+    const signal = input.context?.signal;
+
+    const collection = await client.request<BoxRawItemCollection>("GET", "/2.0/search", {
+      query: {
+        query: input.query,
+        fields: ITEM_FIELDS,
+        limit,
+        offset,
+        ...(input.ancestorFolderId ? { ancestor_folder_ids: input.ancestorFolderId } : {}),
+      },
+      asUser,
+      requestId,
+      signal,
+    });
+
+    return buildExplorerSearchResult(input.query, collection, {
+      limit,
+      offset,
+      ancestorFolderId: input.ancestorFolderId,
+    });
+  };
+
+  return { listFolderItems, search };
 };

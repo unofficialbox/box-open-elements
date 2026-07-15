@@ -2,7 +2,10 @@
 
 import { describe, expect, it, vi } from "vitest";
 
-import { createContentExplorerRouteHandler } from "../src/routes/content-explorer.js";
+import {
+  createContentExplorerRouteHandler,
+  createContentExplorerSearchRouteHandler,
+} from "../src/routes/content-explorer.js";
 import { createShareRouteHandler } from "../src/routes/share.js";
 import { createMetadataRouteHandler } from "../src/routes/metadata.js";
 import { BoxApiError } from "../src/http.js";
@@ -48,6 +51,73 @@ describe("content-explorer route", () => {
     const response = await handler(new Request("https://app.test/api/content-explorer/folders/9/items"));
     expect(response.status).toBe(404);
     expect(await response.json()).toMatchObject({ code: "not_found", message: "gone" });
+  });
+});
+
+describe("content-explorer search route", () => {
+  it("maps a GET search to the data source", async () => {
+    const search = vi.fn(async () => ({
+      query: "plan",
+      ancestorFolderId: "0",
+      items: [{ id: "1", name: "Plan", type: "file" as const }],
+      pagination: { hasMoreItems: false, limit: 25, offset: 0, totalCount: 1 },
+    }));
+    const handler = createContentExplorerSearchRouteHandler({
+      listFolderItems: vi.fn(),
+      search,
+    } as ContentExplorerDataSource);
+
+    const response = await handler(
+      new Request(
+        "https://app.test/api/content-explorer/search?query=plan&ancestorFolderId=0&limit=25&offset=50",
+        { headers: { "accept-language": "en-US", "x-request-id": "req-s" } },
+      ),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ query: "plan", ancestorFolderId: "0" });
+    expect(search).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: "plan",
+        ancestorFolderId: "0",
+        limit: 25,
+        offset: 50,
+        context: { locale: "en-US", requestId: "req-s" },
+      }),
+    );
+  });
+
+  it("requires a query and search support", async () => {
+    const withoutSearch = createContentExplorerSearchRouteHandler({
+      listFolderItems: vi.fn(),
+    } as ContentExplorerDataSource);
+    expect(
+      (await withoutSearch(new Request("https://app.test/api/content-explorer/search?query=x"))).status,
+    ).toBe(501);
+
+    const withSearch = createContentExplorerSearchRouteHandler({
+      listFolderItems: vi.fn(),
+      search: vi.fn(),
+    } as unknown as ContentExplorerDataSource);
+    expect((await withSearch(new Request("https://app.test/api/content-explorer/search"))).status).toBe(400);
+  });
+
+  it("returns 405/404 and maps thrown errors", async () => {
+    const handler = createContentExplorerSearchRouteHandler({
+      listFolderItems: vi.fn(),
+      search: vi.fn(async () => {
+        throw new BoxApiError("boom", { status: 503, code: "unavailable" });
+      }),
+    } as unknown as ContentExplorerDataSource);
+
+    expect(
+      (await handler(new Request("https://app.test/api/content-explorer/search?query=x", { method: "POST" }))).status,
+    ).toBe(405);
+    expect((await handler(new Request("https://app.test/api/content-explorer/nope"))).status).toBe(404);
+
+    const failed = await handler(new Request("https://app.test/api/content-explorer/search?query=x"));
+    expect(failed.status).toBe(503);
+    expect(await failed.json()).toMatchObject({ code: "unavailable", message: "boom" });
   });
 });
 

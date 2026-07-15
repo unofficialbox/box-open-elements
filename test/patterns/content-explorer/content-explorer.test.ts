@@ -369,4 +369,94 @@ describe("BoxContentExplorerElement", () => {
     expect(error?.textContent).toContain("<img src=x onerror=alert(1)>");
     expect(element.shadowRoot?.querySelector("img")).toBeNull();
   });
+
+  it("searches and clears search through the element API", async () => {
+    const transport: ExplorerTransport = {
+      loadFolderItems: vi.fn().mockResolvedValue(
+        createResult({
+          items: [{ id: "1", name: "Spec", type: "file" }],
+        }),
+      ),
+      searchItems: vi.fn().mockResolvedValue({
+        query: "plan",
+        ancestorFolderId: "0",
+        items: [{ id: "9", name: "Quarterly Plan", type: "file" }],
+        pagination: { hasMoreItems: false, limit: 25, offset: 0, totalCount: 1 },
+      }),
+    };
+    const element = document.createElement("box-content-explorer") as BoxContentExplorerElement;
+    const searchSucceeded = vi.fn();
+    const viewChanged = vi.fn();
+    element.transport = transport;
+    element.rootFolderId = "0";
+    element.token = "token";
+    element.pageSize = 25;
+    element.addEventListener("search-succeeded", searchSucceeded);
+    element.addEventListener("view-changed", viewChanged);
+
+    document.body.append(element);
+    await flushMicrotasks();
+    await flushMicrotasks();
+
+    await element.search("plan");
+    await flushMicrotasks();
+
+    expect(searchSucceeded).toHaveBeenCalled();
+    expect(viewChanged).toHaveBeenCalled();
+    expect(element.searchQuery).toBe("plan");
+    const searchHeader = element.shadowRoot?.querySelector(
+      "box-search-results-header",
+    ) as HTMLElement | null;
+    expect(searchHeader?.getAttribute("query")).toBe("plan");
+    expect(searchHeader?.getAttribute("label")).toBe("Search results");
+    expect(element.shadowRoot?.textContent).toContain("Quarterly Plan");
+
+    const clearButton = searchHeader?.shadowRoot?.querySelector(
+      '[data-action-id="clear-search"]',
+    ) as HTMLButtonElement | null;
+    clearButton?.click();
+    await flushMicrotasks();
+
+    expect(element.state?.view.mode).toBe("folder");
+    expect(element.shadowRoot?.querySelector("box-search-results-header")).toBeNull();
+  });
+
+  it("honors a declarative search-query set before connect", async () => {
+    const transport: ExplorerTransport = {
+      loadFolderItems: vi.fn().mockResolvedValue(
+        createResult({
+          items: [{ id: "1", name: "Spec", type: "file" }],
+        }),
+      ),
+      searchItems: vi.fn().mockResolvedValue({
+        query: "plan",
+        ancestorFolderId: "0",
+        items: [{ id: "9", name: "Quarterly Plan", type: "file" }],
+        pagination: { hasMoreItems: false, limit: 25, offset: 0, totalCount: 1 },
+      }),
+    };
+    const element = document.createElement("box-content-explorer") as BoxContentExplorerElement;
+    element.transport = transport;
+    element.rootFolderId = "0";
+    element.token = "token";
+    element.pageSize = 25;
+    element.setAttribute("search-query", "plan");
+
+    document.body.append(element);
+    await flushMicrotasks();
+    await flushMicrotasks();
+    await flushMicrotasks();
+
+    expect(transport.searchItems).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: "plan",
+        ancestorFolderId: "0",
+        limit: 25,
+        offset: 0,
+        token: "token",
+      }),
+    );
+    expect(element.state?.view.mode).toBe("search");
+    expect(element.shadowRoot?.textContent).toContain("Quarterly Plan");
+  });
 });

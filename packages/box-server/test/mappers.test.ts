@@ -2,7 +2,13 @@
 
 import { describe, expect, it } from "vitest";
 
-import { buildExplorerResult, mapBreadcrumbs, mapPagination } from "../src/mappers/explorer.js";
+import {
+  buildExplorerResult,
+  buildExplorerSearchResult,
+  mapBreadcrumbs,
+  mapExplorerItem,
+  mapPagination,
+} from "../src/mappers/explorer.js";
 import { buildShareState, mapSharedLink, toBoxSharedLinkPayload } from "../src/mappers/share.js";
 import { buildMetadataQueryPage, mapInstance, mapTemplates } from "../src/mappers/metadata.js";
 
@@ -44,6 +50,42 @@ describe("explorer mappers", () => {
       { id: "1", name: "Plan.pdf", type: "file" },
       { id: "2", name: "Untitled", type: "folder" },
     ]);
+  });
+
+  it("maps optional summary fields and search results", () => {
+    expect(
+      mapExplorerItem({
+        id: "1",
+        type: "file",
+        name: "Plan.pdf",
+        size: 10,
+        modified_at: "2026-07-01T00:00:00Z",
+        extension: "pdf",
+        owned_by: { id: "u1", name: "Morgan", type: "user" },
+        shared_link: { url: "https://box.com/s/x", access: "open" },
+        permissions: { can_preview: true },
+        parent: { id: "0", name: "All Files" },
+      }),
+    ).toMatchObject({
+      size: 10,
+      modifiedAt: "2026-07-01T00:00:00Z",
+      owner: { id: "u1", name: "Morgan", type: "user" },
+      sharedLink: { isShared: true, access: "open" },
+      preview: { canPreview: true, extension: "pdf" },
+      parent: { id: "0", name: "All Files" },
+    });
+
+    expect(
+      buildExplorerSearchResult(
+        "plan",
+        { total_count: 1, offset: 0, limit: 25, entries: [{ id: "1", type: "file", name: "Plan.pdf" }] },
+        { limit: 25, offset: 0, ancestorFolderId: "0" },
+      ),
+    ).toMatchObject({
+      query: "plan",
+      ancestorFolderId: "0",
+      items: [{ id: "1", name: "Plan.pdf", type: "file" }],
+    });
   });
 });
 

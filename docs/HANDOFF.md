@@ -1,7 +1,8 @@
 # Handoff — box-open-elements
 
 Snapshot for the next agent picking up this work. Read this first, then
-`docs/audits/component-fidelity-audit.md` (the active work driver).
+`plans/explorer-search-item-contract.md` (active explorer search/item work) and
+`docs/audits/component-fidelity-audit.md` (completed fidelity program).
 
 ## What this repo is
 
@@ -16,18 +17,18 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 
 ## Current state (as of this handoff)
 
-- **Branch tip for fidelity work:** develop from `origin/main` after design-heavy leftovers merge.
+- **Branch tip:** develop from `origin/main` (fidelity complete through #42).
 - **Live site:** GitHub Pages, `https://unofficialbox.github.io/box-open-elements/`,
   auto-deploys on push to `main` via `.github/workflows/deploy.yml`
   (build cmd `bun run site:build`, output `docs-site/dist`). The Workshop is
   **not** deployed (internal tool).
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
--   Recent merged PRs: #29 Batches 0/2/6, **#31/#32/#33** Batch 1, **#35** Batch 3,
-  **#38** Batch 4, **#39** Batch 5, **#40** Batch 7, **#41** medium/low nits.
-  Design-heavy leftovers in flight on `cursor/design-heavy-leftovers-7eb7`.
+- Recent merged PRs: fidelity Batches 0–7 + #41 nits + **#42** design-heavy leftovers.
+- **Active work:** explorer item contract + search + UI chrome/columns —
+  `cursor/explorer-search-item-contract-7eb7` (#43; see `plans/explorer-search-item-contract.md`).
 
-## The active initiative: component fidelity program
+## Completed initiative: component fidelity program
 
 A multi-agent audit scored all 109 components (avg **2.78/5**, 51 below 3/5,
 229 high-severity issues). Full report + per-component data:
@@ -72,14 +73,13 @@ organized into **systemic sweeps**, not per-component rewrites.
   (identity size/fallback, alert/permission a11y, checkbox indeterminate,
   combobox value mapping, accordion collapse/headings, overlay/layout/explorer/
   chart/tree fixes, calendar `today` pin, etc.).
-- **Design-heavy leftovers** (this branch): floating popover (`placement` +
+- **Design-heavy leftovers** (#42): floating popover (`placement` +
   open focus), slotted tooltip trigger, explorer `item-gesture` select-vs-
   activate split, app-shell `@container` reflow, nav-sidebar collapsed icon
   contract (`--boe-nav-label-display`).
 
-### Remaining (do these next, in order)
-1. After this leftovers PR merges: spacing/token rhythm noise only if needed.
-   Fidelity program is otherwise complete.
+### Remaining (fidelity)
+1. Spacing/token rhythm noise only if needed. Fidelity program is otherwise complete.
 
 ### Deferred CodeRabbit items (intentional)
 - "add style tests" nitpicks → covered by the screenshot gate; low value.
@@ -140,6 +140,6 @@ organized into **systemic sweeps**, not per-component rewrites.
   `getMirroredFormValue(el.internals)` in tests.
 
 ## Open user-facing threads
-- Fidelity Batches **0–7** + medium/low nits (#41) merged; design-heavy
-  leftovers PR in flight on `cursor/design-heavy-leftovers-7eb7`.
-- **Next:** merge leftovers (#42), then treat fidelity as complete.
+- Fidelity program complete through #42.
+- **Next / in flight:** explorer enriched `ExplorerItem` + folder\|search + toolbar
+  search field + rich list/table columns (`cursor/explorer-search-item-contract-7eb7`, #43).
