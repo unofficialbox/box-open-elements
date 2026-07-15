@@ -441,7 +441,15 @@ describe("BoxContentExplorerElement", () => {
     await flushMicrotasks();
     await flushMicrotasks();
 
-    expect(transport.searchItems).toHaveBeenCalled();
+    expect(transport.searchItems).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: "plan",
+        ancestorFolderId: "0",
+        limit: 25,
+        offset: 0,
+        token: "token",
+      }),
+    );
     expect(element.state?.view.mode).toBe("search");
     expect(element.shadowRoot?.textContent).toContain("Quarterly Plan");
   });
