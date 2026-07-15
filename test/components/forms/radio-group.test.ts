@@ -140,6 +140,62 @@ describe("BoxRadioGroupElement", () => {
     expect((error as HTMLElement | null)?.hidden).toBe(false);
   });
 
+  it("mirrors form value when a radio change is dispatched", () => {
+    const element = document.createElement("box-radio-group") as BoxRadioGroupElement;
+    element.name = "choice";
+    element.options = [
+      { label: "Single", value: "single" },
+      { label: "Multiple", value: "multiple" },
+    ];
+    document.body.append(element);
+
+    const inputs = element.shadowRoot?.querySelectorAll('[part="input"]') ?? [];
+    const second = inputs[1] as HTMLInputElement;
+    second.checked = true;
+    second.dispatchEvent(new Event("change", { bubbles: true }));
+
+    expect(element.value).toBe("multiple");
+    expect(getMirroredFormValue(element.internals)).toBe("multiple");
+  });
+
+  it("restores form value via formStateRestoreCallback", () => {
+    const element = document.createElement("box-radio-group") as BoxRadioGroupElement;
+    element.options = [
+      { label: "Single", value: "single" },
+      { label: "Multiple", value: "multiple" },
+    ];
+    element.value = "single";
+    document.body.append(element);
+
+    element.formStateRestoreCallback("multiple");
+
+    expect(element.value).toBe("multiple");
+    expect(getMirroredFormValue(element.internals)).toBe("multiple");
+    const inputs = Array.from(
+      element.shadowRoot?.querySelectorAll('[part="input"]') ?? [],
+    ) as HTMLInputElement[];
+    expect(inputs[0]?.checked).toBe(false);
+    expect(inputs[1]?.checked).toBe(true);
+  });
+
+  it("updates every internal radio name when host name changes after render", () => {
+    const element = document.createElement("box-radio-group") as BoxRadioGroupElement;
+    element.name = "before";
+    element.options = [
+      { label: "Single", value: "single" },
+      { label: "Multiple", value: "multiple" },
+    ];
+    document.body.append(element);
+
+    element.name = "after";
+
+    const inputs = Array.from(
+      element.shadowRoot?.querySelectorAll('[part="input"]') ?? [],
+    ) as HTMLInputElement[];
+    expect(inputs).toHaveLength(2);
+    expect(inputs.every(input => input.name === "after")).toBe(true);
+  });
+
   it("includes focus-within, hover, active, and disabled option styles", () => {
     const element = document.createElement("box-radio-group") as BoxRadioGroupElement;
     element.options = [
