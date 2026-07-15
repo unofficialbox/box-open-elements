@@ -36,4 +36,4 @@ Patterns (`content-explorer`) + server integration (`packages/box-server`) + doc
 - [x] Docs mock transport
 - [x] box-server mapper/DS/route
 - [x] Tests + docs
-- [ ] `bun run verify` + PR (#43) tip green
+- [x] `bun run verify` + PR (#43) tip green
