@@ -10,7 +10,7 @@ const escapeHtml = (value: string): string =>
 
 export class BoxDialogElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["confirm-label", "description", "open", "title"];
+    return ["confirm-label", "description", "heading", "open"];
   }
 
   private openValue = false;
@@ -42,12 +42,12 @@ export class BoxDialogElement extends HTMLElement {
     this.render();
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Dialog";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Dialog";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   get description(): string {
@@ -120,7 +120,7 @@ export class BoxDialogElement extends HTMLElement {
             linear-gradient(
               180deg,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 78%, var(--boe-token-surface-surface-secondary, #fbfbfb) 22%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, white 8%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 100%
             );
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1.35rem;
@@ -178,7 +178,7 @@ export class BoxDialogElement extends HTMLElement {
         [part="confirm"] {
           border-color: transparent;
           background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: white;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
 
         [part="cancel"]:focus-visible,
@@ -190,7 +190,7 @@ export class BoxDialogElement extends HTMLElement {
       <div part="backdrop">
         <section part="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
           <header part="header">
-            <h2 id="dialog-title">${escapeHtml(this.title)}</h2>
+            <h2 id="dialog-title">${escapeHtml(this.heading)}</h2>
           </header>
           ${
             this.description

@@ -130,12 +130,12 @@ export class BoxRadioGroupElement extends HTMLElement {
           align-items: center;
           gap: 0.75rem;
           padding: 0.82rem 0.9rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, white 22%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
           border-radius: 0.95rem;
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, white 12%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
             );
           transition:
@@ -149,7 +149,7 @@ export class BoxRadioGroupElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 44%, white 56%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 44%, var(--boe-token-surface-surface, #ffffff) 56%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, var(--boe-token-surface-item-surface-hover, #eef4fb) 14%) 100%
             );
         }
@@ -159,8 +159,8 @@ export class BoxRadioGroupElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 9%, white 91%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 58%, white 42%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 9%, var(--boe-token-surface-surface, #ffffff) 91%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 58%, var(--boe-token-surface-surface, #ffffff) 42%) 100%
             );
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.82),

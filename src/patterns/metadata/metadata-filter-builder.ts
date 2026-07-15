@@ -216,7 +216,7 @@ export class BoxMetadataFilterBuilderElement extends HTMLElement {
           padding: 1rem 1.1rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
         [part="label"] {
@@ -266,7 +266,7 @@ export class BoxMetadataFilterBuilderElement extends HTMLElement {
         [part="add"] {
           width: fit-content;
           border-color: rgba(0, 97, 213, 0.28);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
         }
 

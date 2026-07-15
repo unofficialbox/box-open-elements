@@ -10,7 +10,7 @@ const escapeHtml = (value: string): string =>
 
 export class BoxEmptyStateElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["action-label", "description", "message", "title"];
+    return ["action-label", "description", "heading", "message"];
   }
 
   constructor() {
@@ -18,12 +18,12 @@ export class BoxEmptyStateElement extends HTMLElement {
     this.attachShadow({ mode: "open" });
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Nothing here yet";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Nothing here yet";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   get message(): string {
@@ -82,7 +82,7 @@ export class BoxEmptyStateElement extends HTMLElement {
           padding: 2rem 1.5rem;
           border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 0.95rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
           text-align: center;
         }
 
@@ -122,7 +122,7 @@ export class BoxEmptyStateElement extends HTMLElement {
         }
       </style>
       <section part="empty-state" role="status" aria-live="polite">
-        <strong part="title">${escapeHtml(this.title)}</strong>
+        <strong part="title">${escapeHtml(this.heading)}</strong>
         <span part="message description">${escapeHtml(this.message)}</span>
         ${actionMarkup}
       </section>

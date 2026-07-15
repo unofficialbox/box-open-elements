@@ -15,13 +15,14 @@ describe("BoxAlertElement", () => {
 
   it("renders title and message", () => {
     const element = document.createElement("box-alert") as BoxAlertElement;
-    element.title = "Heads up";
+    element.heading = "Heads up";
     element.message = "Your session will expire soon.";
     element.tone = "warning";
 
     document.body.append(element);
 
     expect(element.shadowRoot?.textContent).toContain("Heads up");
+    expect(element.shadowRoot?.querySelector('[part="title"]')?.textContent).toContain("Heads up");
     expect(element.shadowRoot?.textContent).toContain("Your session will expire soon.");
   });
 
@@ -29,7 +30,7 @@ describe("BoxAlertElement", () => {
     const element = document.createElement("box-alert") as BoxAlertElement;
     const dismissed = vi.fn();
     const openChanged = vi.fn();
-    element.title = "Saved";
+    element.heading = "Saved";
     element.message = "Settings updated.";
     element.addEventListener("dismiss", dismissed);
     element.addEventListener("open-changed", openChanged);
@@ -50,7 +51,7 @@ describe("BoxAlertElement", () => {
 
   it("supports description as a compatible alias for message", () => {
     const element = document.createElement("box-alert") as BoxAlertElement;
-    element.title = "Heads up";
+    element.heading = "Heads up";
     element.description = "Storage is almost full.";
 
     document.body.append(element);
@@ -61,7 +62,7 @@ describe("BoxAlertElement", () => {
 
   it("exposes accessible alert and dismiss labels", () => {
     const element = document.createElement("box-alert") as BoxAlertElement;
-    element.title = "Heads up";
+    element.heading = "Heads up";
     element.message = "Storage is almost full.";
 
     document.body.append(element);

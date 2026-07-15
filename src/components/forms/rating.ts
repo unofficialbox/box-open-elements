@@ -195,7 +195,7 @@ export class BoxRatingElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%, white 10%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%, var(--boe-token-surface-surface, #ffffff) 10%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 84%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
             );
           box-shadow:
@@ -230,8 +230,8 @@ export class BoxRatingElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, white 86%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 74%, white 26%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, var(--boe-token-surface-surface, #ffffff) 86%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 74%, var(--boe-token-surface-surface, #ffffff) 26%) 100%
             );
         }
 
@@ -241,8 +241,8 @@ export class BoxRatingElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 74%, white 26%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 5%, var(--boe-token-surface-item-surface-hover, #eef4fb) 69%, white 26%) 100%
+              color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 74%, var(--boe-token-surface-surface, #ffffff) 26%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 5%, var(--boe-token-surface-item-surface-hover, #eef4fb) 69%, var(--boe-token-surface-surface, #ffffff) 26%) 100%
             );
         }
 

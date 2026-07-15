@@ -15,7 +15,7 @@ describe("BoxAppShellElement", () => {
 
   it("renders named layout regions", () => {
     const element = document.createElement("box-app-shell") as BoxAppShellElement;
-    element.title = "Workspace";
+    element.heading = "Workspace";
 
     document.body.append(element);
 
@@ -24,5 +24,6 @@ describe("BoxAppShellElement", () => {
     expect(element.shadowRoot?.querySelector('[part="main"]')).toBeTruthy();
     expect(element.shadowRoot?.querySelector('[part="aside"]')).toBeTruthy();
     expect(element.shadowRoot?.querySelector('[part="footer"]')).toBeTruthy();
+    expect(element.shadowRoot?.textContent).toContain("Workspace");
   });
 });

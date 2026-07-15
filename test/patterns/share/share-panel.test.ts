@@ -15,7 +15,7 @@ describe("BoxSharePanelElement", () => {
 
   it("renders shared link, settings, and collaborators", () => {
     const element = document.createElement("box-share-panel") as BoxSharePanelElement;
-    element.title = "Share";
+    element.heading = "Share";
     element.sharedLink = {
       access: "Company",
       url: "https://box.dev/s/blueprint",
@@ -31,6 +31,7 @@ describe("BoxSharePanelElement", () => {
 
     document.body.append(element);
 
+    expect(element.shadowRoot?.textContent).toContain("Share");
     expect(element.shadowRoot?.textContent).toContain("https://box.dev/s/blueprint");
     expect(element.shadowRoot?.textContent).toContain("Can download");
     expect(element.shadowRoot?.textContent).toContain("Morgan Lee");

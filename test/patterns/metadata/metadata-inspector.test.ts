@@ -18,7 +18,7 @@ describe("BoxMetadataInspectorElement", () => {
 
   it("renders sections and field values", () => {
     const element = document.createElement("box-metadata-inspector") as BoxMetadataInspectorElement;
-    element.title = "Metadata";
+    element.heading = "Metadata";
     element.sections = [
       {
         title: "Classification",
@@ -31,6 +31,7 @@ describe("BoxMetadataInspectorElement", () => {
 
     document.body.append(element);
 
+    expect(element.shadowRoot?.textContent).toContain("Metadata");
     expect(element.shadowRoot?.textContent).toContain("Classification");
     expect(element.shadowRoot?.textContent).toContain("Confidentiality");
     expect(element.shadowRoot?.textContent).toContain("Internal");

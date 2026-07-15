@@ -451,6 +451,15 @@ const renderComponentPage = (entry: CatalogEntry): void => {
 
 // ── Foundations pages ────────────────────────────────────────────────────────
 
+// Token keys are Box's canonical taxonomy (e.g. "SurfaceSurfaceHover"). For the
+// swatch label, drop the redundant leading group word and space out the rest so
+// it reads "Surface Hover" under the Surface group — the exact --boe-token-* name
+// is still shown verbatim on the line below for accuracy.
+const humanizeToken = (name: string, group: string): string => {
+  const withoutGroup = name.startsWith(group) ? name.slice(group.length) || group : name;
+  return withoutGroup.replace(/([a-z0-9])([A-Z])/g, "$1 $2").trim();
+};
+
 const renderTokensPage = (): void => {
   breadcrumb.innerHTML = `Foundations / <b>Design Tokens</b>`;
   const tokens = lib.boxDefaultDesignSystem.tokens ?? {};
@@ -473,7 +482,7 @@ const renderTokensPage = (): void => {
                 <div class="token-card">
                   <div class="token-swatch" style="background:${escapeHtml(value)}"></div>
                   <div class="token-meta">
-                    <strong>${escapeHtml(name)}</strong>
+                    <strong>${escapeHtml(humanizeToken(name, group))}</strong>
                     <code>--boe-token-${escapeHtml(toKebab(name))}</code>
                     <span class="token-value">${escapeHtml(value)}</span>
                   </div>

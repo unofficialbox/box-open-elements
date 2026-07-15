@@ -35,9 +35,9 @@ describe("BoxErrorMaskElement", () => {
     );
   });
 
-  it("accepts title as an alias for heading", () => {
+  it("accepts a heading via the heading property", () => {
     const element = document.createElement("box-error-mask") as BoxErrorMaskElement;
-    element.title = "Access denied";
+    element.heading = "Access denied";
     document.body.append(element);
 
     expect(element.shadowRoot?.querySelector('[part="title"]')?.textContent).toContain("Access denied");

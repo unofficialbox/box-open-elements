@@ -18,7 +18,7 @@ describe("BoxGovernancePanelElement", () => {
 
   it("renders governance signals and policies", () => {
     const element = document.createElement("box-governance-panel") as BoxGovernancePanelElement;
-    element.title = "Governance";
+    element.heading = "Governance";
     element.status = "Compliant";
     element.signals = [
       { label: "External sharing", tone: "warning" },
@@ -29,6 +29,7 @@ describe("BoxGovernancePanelElement", () => {
 
     document.body.append(element);
 
+    expect(element.shadowRoot?.textContent).toContain("Governance");
     expect(element.shadowRoot?.textContent).toContain("Compliant");
     expect(element.shadowRoot?.textContent).toContain("External sharing");
     expect(element.shadowRoot?.textContent).toContain("Retention policy");

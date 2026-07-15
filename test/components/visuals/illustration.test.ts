@@ -21,7 +21,7 @@ describe("BoxIllustrationElement", () => {
 
   it("renders title and caption", () => {
     const element = document.createElement("box-illustration") as BoxIllustrationElement;
-    element.title = "No recent activity";
+    element.heading = "No recent activity";
     element.caption = "This illustration can support empty states and onboarding moments.";
 
     document.body.append(element);
@@ -42,7 +42,7 @@ describe("BoxIllustrationElement", () => {
 
   it("exposes an accessible illustration label", () => {
     const element = document.createElement("box-illustration") as BoxIllustrationElement;
-    element.title = "No recent activity";
+    element.heading = "No recent activity";
 
     document.body.append(element);
 
@@ -54,12 +54,13 @@ describe("BoxIllustrationElement", () => {
   it("renders a registered Box illustration asset when requested", () => {
     const element = document.createElement("box-illustration") as BoxIllustrationElement;
     element.asset = "empty-state-folder";
-    element.title = "Folder empty";
+    element.heading = "Folder empty";
 
     document.body.append(element);
 
     const art = element.shadowRoot?.querySelector('[part="art"]') as HTMLElement | null;
     expect(art?.dataset.assetSource).toBe("design-system");
     expect(art?.innerHTML).toContain("<svg");
+    expect(element.shadowRoot?.textContent).toContain("Folder empty");
   });
 });

@@ -28,7 +28,7 @@ type ItemDetailsOwner = {
 
 export class BoxItemDetailsPanelElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["actions", "eyebrow", "message", "meta", "owner", "status", "title"];
+    return ["actions", "eyebrow", "message", "meta", "owner", "status", "heading"];
   }
 
   constructor() {
@@ -89,12 +89,12 @@ export class BoxItemDetailsPanelElement extends HTMLElement {
     this.setAttribute("status", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -198,7 +198,7 @@ export class BoxItemDetailsPanelElement extends HTMLElement {
           --_obp-border-subtle: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
           --_obp-text-muted: var(--boe-token-text-text-secondary, #6f6f6f);
           --_obp-brand: var(--boe-token-surface-surface-brand, #0061d5);
-          --_obp-brand-soft: color-mix(in srgb, var(--_obp-brand) 12%, white 88%);
+          --_obp-brand-soft: color-mix(in srgb, var(--_obp-brand) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
         }
 
         [part="panel"] {
@@ -264,7 +264,7 @@ export class BoxItemDetailsPanelElement extends HTMLElement {
           display: grid;
           place-items: center;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--_obp-brand) 14%, white 86%);
+          background: color-mix(in srgb, var(--_obp-brand) 14%, var(--boe-token-surface-surface, #ffffff) 86%);
           color: var(--_obp-brand);
           font-weight: 700;
         }
@@ -330,7 +330,7 @@ export class BoxItemDetailsPanelElement extends HTMLElement {
         [part="action"][data-tone="primary"] {
           background: var(--_obp-brand);
           border-color: var(--_obp-brand);
-          color: #fff;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
 
         [part="action"]:focus-visible {
@@ -341,7 +341,7 @@ export class BoxItemDetailsPanelElement extends HTMLElement {
       <section part="panel">
         <header part="header">
           ${eyebrowMarkup}
-          <div part="title">${escapeHtml(this.title)}</div>
+          <div part="title">${escapeHtml(this.heading)}</div>
           ${messageMarkup}
           ${statusMarkup}
         </header>

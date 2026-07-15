@@ -18,7 +18,7 @@ describe("BoxAnnotationInspectorElement", () => {
 
   it("renders the selected annotation details", () => {
     const element = document.createElement("box-annotation-inspector") as BoxAnnotationInspectorElement;
-    element.title = "Annotation Inspector";
+    element.heading = "Annotation Inspector";
     element.annotation = {
       id: "a1",
       author: "Morgan Lee",
@@ -32,6 +32,7 @@ describe("BoxAnnotationInspectorElement", () => {
 
     document.body.append(element);
 
+    expect(element.shadowRoot?.textContent).toContain("Annotation Inspector");
     expect(element.shadowRoot?.textContent).toContain("Morgan Lee");
     expect(element.shadowRoot?.textContent).toContain("Hero copy");
     expect(element.shadowRoot?.textContent).toContain("Page 4");

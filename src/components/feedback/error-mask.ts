@@ -16,7 +16,7 @@ const escapeHtml = (value: string): string =>
  */
 export class BoxErrorMaskElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["action-label", "description", "heading", "message", "title"];
+    return ["action-label", "description", "heading", "message"];
   }
 
   constructor() {
@@ -25,19 +25,11 @@ export class BoxErrorMaskElement extends HTMLElement {
   }
 
   get heading(): string {
-    return this.getAttribute("heading") ?? this.getAttribute("title") ?? "Something went wrong";
+    return this.getAttribute("heading") ?? "Something went wrong";
   }
 
   set heading(value: string) {
     this.setAttribute("heading", value);
-  }
-
-  get title(): string {
-    return this.getAttribute("title") ?? this.getAttribute("heading") ?? "Something went wrong";
-  }
-
-  set title(value: string) {
-    this.setAttribute("title", value);
   }
 
   get message(): string {
@@ -98,7 +90,7 @@ export class BoxErrorMaskElement extends HTMLElement {
           padding: 2rem 1.5rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke-danger, #f0b7b2) 82%, transparent);
           border-radius: 0.95rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-danger, #fdecea) 60%, white 40%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-danger, #fdecea) 60%, var(--boe-token-surface-surface, #ffffff) 40%);
           text-align: center;
         }
 
@@ -108,7 +100,7 @@ export class BoxErrorMaskElement extends HTMLElement {
           inline-size: 2.75rem;
           block-size: 2.75rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-danger, #fdecea) 55%, white 45%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-danger, #fdecea) 55%, var(--boe-token-surface-surface, #ffffff) 45%);
           color: var(--boe-token-text-text-danger, #b3261e);
         }
 

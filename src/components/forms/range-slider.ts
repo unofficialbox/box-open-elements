@@ -197,7 +197,7 @@ export class BoxRangeSliderElement extends HTMLElement {
           gap: 0.3rem;
           padding: 0.25rem 0.6rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
           font-size: 0.85rem;
           font-weight: 700;

@@ -18,7 +18,7 @@ describe("BoxAnnotationThreadElement", () => {
 
   it("renders thread entries", () => {
     const element = document.createElement("box-annotation-thread") as BoxAnnotationThreadElement;
-    element.title = "Annotation Thread";
+    element.heading = "Annotation Thread";
     element.entries = [
       { id: "a1", author: "Morgan Lee", body: "Tighten the hero spacing.", toolLabel: "Comment", status: "Open" },
       { id: "a2", author: "Avery Chen", body: "Resolved after export.", toolLabel: "Highlight", status: "Resolved" },
@@ -26,6 +26,7 @@ describe("BoxAnnotationThreadElement", () => {
 
     document.body.append(element);
 
+    expect(element.shadowRoot?.textContent).toContain("Annotation Thread");
     expect(element.shadowRoot?.textContent).toContain("Morgan Lee");
     expect(element.shadowRoot?.textContent).toContain("Resolved after export.");
   });

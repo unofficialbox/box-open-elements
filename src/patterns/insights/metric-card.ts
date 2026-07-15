@@ -22,7 +22,7 @@ type MetricCardTrend = {
 
 export class BoxMetricCardElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["action", "eyebrow", "message", "status", "title", "trend", "value"];
+    return ["action", "eyebrow", "message", "status", "heading", "trend", "value"];
   }
 
   constructor() {
@@ -82,12 +82,12 @@ export class BoxMetricCardElement extends HTMLElement {
     this.setAttribute("status", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Metric";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Metric";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   get trend(): MetricCardTrend | null {
@@ -173,7 +173,7 @@ export class BoxMetricCardElement extends HTMLElement {
           padding: 0.95rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, white 4%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, var(--boe-token-surface-surface, #ffffff) 4%);
         }
 
         [part="header"] {
@@ -207,7 +207,7 @@ export class BoxMetricCardElement extends HTMLElement {
           align-items: center;
           padding: 0.22rem 0.5rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, white 90%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface, #ffffff) 90%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
           font-size: 0.74rem;
           font-weight: 700;
@@ -242,19 +242,19 @@ export class BoxMetricCardElement extends HTMLElement {
           gap: 0.35rem;
           padding: 0.22rem 0.48rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-tertiary, #e8e8e8) 72%, white 28%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-tertiary, #e8e8e8) 72%, var(--boe-token-surface-surface, #ffffff) 28%);
           color: var(--boe-token-text-text, #222222);
           font-size: 0.76rem;
           font-weight: 700;
         }
 
         [part="trend"][data-direction="up"] {
-          background: color-mix(in srgb, #26c281 14%, white 86%);
+          background: color-mix(in srgb, #26c281 14%, var(--boe-token-surface-surface, #ffffff) 86%);
           color: #138a58;
         }
 
         [part="trend"][data-direction="down"] {
-          background: color-mix(in srgb, #ed3757 14%, white 86%);
+          background: color-mix(in srgb, #ed3757 14%, var(--boe-token-surface-surface, #ffffff) 86%);
           color: #bf2340;
         }
 
@@ -272,7 +272,7 @@ export class BoxMetricCardElement extends HTMLElement {
         [part="action"][data-tone="primary"] {
           border-color: transparent;
           background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: white;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
 
         [part="action"]:focus-visible {
@@ -284,7 +284,7 @@ export class BoxMetricCardElement extends HTMLElement {
         <header part="header">
           ${eyebrowMarkup}
           <div part="title-row">
-            <div part="title">${escapeHtml(this.title)}</div>
+            <div part="title">${escapeHtml(this.heading)}</div>
             ${statusMarkup}
           </div>
         </header>

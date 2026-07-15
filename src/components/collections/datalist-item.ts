@@ -126,7 +126,7 @@ export class BoxDatalistItemElement extends HTMLElement {
         }
 
         [part="item"][data-selected="true"] {
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, white 90%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface, #ffffff) 90%);
         }
 
         [part="item"][data-disabled="true"] {
@@ -146,7 +146,7 @@ export class BoxDatalistItemElement extends HTMLElement {
           inline-size: 1.9rem;
           block-size: 1.9rem;
           border-radius: 0.45rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 82%, white 18%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 82%, var(--boe-token-surface-surface, #ffffff) 18%);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-weight: 700;
           font-size: 0.85rem;

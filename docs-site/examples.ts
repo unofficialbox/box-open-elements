@@ -107,7 +107,7 @@ export const examples: Record<string, ComponentExample> = {
       value: "comfortable",
     }),
   },
-  card: { html: `<box-card eyebrow="PDF · 2.4 MB" title="Quarterly Plan.pdf">Updated 2 hours ago by Morgan Lee</box-card>` },
+  card: { html: `<box-card eyebrow="PDF · 2.4 MB" heading="Quarterly Plan.pdf">Updated 2 hours ago by Morgan Lee</box-card>` },
   carousel: {
     html: `<box-carousel label="Featured"></box-carousel>`,
     setup: root => set(root, "box-carousel", {
@@ -167,18 +167,18 @@ export const examples: Record<string, ComponentExample> = {
         { key: "owner", label: "Owner" },
       ],
       items: [
-        { id: "marketing", cells: { name: "Marketing", owner: "Morgan Lee" }, children: [
-          { id: "brand", cells: { name: "Brand", owner: "Alex Kim" } },
+        { value: "marketing", label: "Marketing", cells: ["Morgan Lee"], children: [
+          { value: "brand", label: "Brand", cells: ["Alex Kim"] },
         ] },
-        { id: "finance", cells: { name: "Finance", owner: "Sam Rivera" } },
+        { value: "finance", label: "Finance", cells: ["Sam Rivera"] },
       ],
     }),
     note: "Column/item shapes follow the component's `columns` and `items` properties.",
   },
-  alert: { html: `<box-alert title="Upload complete" message="24 files were added to Marketing." tone="success"></box-alert>` },
+  alert: { html: `<box-alert heading="Upload complete" message="24 files were added to Marketing." tone="success"></box-alert>` },
   badge: { html: `<box-badge label="Beta"></box-badge>\n<box-badge label="Error" tone="error"></box-badge>` },
   chip: { html: `<box-chip label="Marketing" tone="brand" removable value="marketing"></box-chip>\n<box-chip label="Legal" removable value="legal"></box-chip>` },
-  "empty-state": { html: `<box-empty-state title="No results" message="Try a different search or clear the filters."></box-empty-state>` },
+  "empty-state": { html: `<box-empty-state heading="No results" message="Try a different search or clear the filters."></box-empty-state>` },
   "error-mask": { html: `<box-error-mask heading="Couldn't load files" message="Something went wrong while loading this folder." action-label="Retry"></box-error-mask>` },
   "help-text": { html: `<box-help-text label="Shared links" message="Shared links expire after 30 days."></box-help-text>` },
   nudge: { html: `<box-nudge heading="Try grid view" message="Preview files as thumbnails from the view switcher." action-label="Show me"></box-nudge>` },
@@ -197,7 +197,7 @@ export const examples: Record<string, ComponentExample> = {
   },
   skeleton: { html: `<box-skeleton width="320px" height="18px"></box-skeleton>` },
   spinner: { html: `<box-spinner label="Loading"></box-spinner>` },
-  toast: { html: `<box-toast title="Link copied" message="Anyone in the company can view." open></box-toast>` },
+  toast: { html: `<box-toast message="Link copied — anyone in the company can view." open></box-toast>` },
   "drop-zone": { html: `<box-drop-zone label="Upload files" message="Drag files here or browse."></box-drop-zone>` },
   checkbox: { html: `<box-checkbox label="Enable shared links" checked></box-checkbox>` },
   "checkbox-group": {
@@ -237,10 +237,10 @@ export const examples: Record<string, ComponentExample> = {
   dropdown: {
     html: `<box-dropdown label="Sort by"></box-dropdown>`,
     setup: root => set(root, "box-dropdown", {
-      options: [
-        { label: "Name", value: "name" },
-        { label: "Modified", value: "modified" },
-        { label: "Size", value: "size" },
+      items: [
+        { id: "name", label: "Name" },
+        { id: "modified", label: "Modified" },
+        { id: "size", label: "Size" },
       ],
       value: "modified",
     }),
@@ -351,7 +351,7 @@ export const examples: Record<string, ComponentExample> = {
   "contact-datalist-item": {
     html: `<box-contact-datalist-item name="Morgan Lee" email="morgan@box.com" value="morgan" selected></box-contact-datalist-item>\n<box-contact-datalist-item name="Alex Kim" email="alex@box.com" value="alex"></box-contact-datalist-item>`,
   },
-  "app-shell": { html: `<box-app-shell title="Box Admin"></box-app-shell>` },
+  "app-shell": { html: `<box-app-shell heading="Box Admin"></box-app-shell>` },
   divider: { html: `<box-divider label="Shared with your team"></box-divider>` },
   "split-view": { html: `<box-split-view label="Master detail"></box-split-view>` },
   "nav-sidebar": {
@@ -402,8 +402,8 @@ export const examples: Record<string, ComponentExample> = {
       value: "all",
     }),
   },
-  dialog: { html: `<box-dialog title="Delete file?" message="Quarterly Plan.pdf will be moved to trash." open></box-dialog>` },
-  drawer: { html: `<box-drawer title="Details" open></box-drawer>` },
+  dialog: { html: `<box-dialog heading="Delete file?" message="Quarterly Plan.pdf will be moved to trash." open></box-dialog>` },
+  drawer: { html: `<box-drawer heading="Details" open></box-drawer>` },
   popover: { html: `<box-popover label="More info" open>Shared links expire automatically.</box-popover>` },
   tooltip: { html: `<box-tooltip label="Copy link" open><box-button label="Share" tone="neutral"></box-button></box-tooltip>` },
   illustration: { html: `<box-illustration asset="empty-state-folder" label="Empty folder"></box-illustration>` },
@@ -457,7 +457,7 @@ export const examples: Record<string, ComponentExample> = {
     }),
   },
   "item-form": {
-    html: `<box-item-form title="File properties"></box-item-form>`,
+    html: `<box-item-form label="File properties"></box-item-form>`,
     setup: root => set(root, "box-item-form", {
       fields: [
         { id: "name", label: "Name", type: "string", value: "Quarterly Plan.pdf" },
@@ -466,7 +466,7 @@ export const examples: Record<string, ComponentExample> = {
     }),
   },
   "item-details-panel": {
-    html: `<box-item-details-panel title="Quarterly Plan.pdf" eyebrow="PDF · 2.4 MB" owner="Morgan Lee" status="Shared" message="Latest board-ready plan with updated forecasts."></box-item-details-panel>`,
+    html: `<box-item-details-panel heading="Quarterly Plan.pdf" eyebrow="PDF · 2.4 MB" owner="Morgan Lee" status="Shared" message="Latest board-ready plan with updated forecasts."></box-item-details-panel>`,
     setup: root => set(root, "box-item-details-panel", {
       actions: [
         { id: "share", label: "Share" },
@@ -488,11 +488,11 @@ export const examples: Record<string, ComponentExample> = {
       ],
     }),
   },
-  "preview-header": { html: `<box-preview-header title="Quarterly Plan.pdf" eyebrow="PDF · 2.4 MB" status="Shared"></box-preview-header>` },
-  "metadata-filter-builder": { html: `<box-metadata-filter-builder title="Metadata filters"></box-metadata-filter-builder>` },
-  "metadata-inspector": { html: `<box-metadata-inspector title="Metadata"></box-metadata-inspector>` },
+  "preview-header": { html: `<box-preview-header heading="Quarterly Plan.pdf" eyebrow="PDF · 2.4 MB" status="Shared"></box-preview-header>` },
+  "metadata-filter-builder": { html: `<box-metadata-filter-builder label="Metadata filters"></box-metadata-filter-builder>` },
+  "metadata-inspector": { html: `<box-metadata-inspector heading="Metadata"></box-metadata-inspector>` },
   "share-panel": {
-    html: `<box-share-panel title="Share Quarterly Plan.pdf" message="Anyone in the company with the link can view."></box-share-panel>`,
+    html: `<box-share-panel heading="Share Quarterly Plan.pdf" message="Anyone in the company with the link can view."></box-share-panel>`,
     setup: root => set(root, "box-share-panel", {
       sharedLink: { url: "https://box.com/s/example", access: "company", label: "Company link", status: "Active" },
       collaborators: [
@@ -506,7 +506,7 @@ export const examples: Record<string, ComponentExample> = {
       actions: [{ id: "copy", label: "Copy link" }],
     }),
   },
-  "permission-matrix": { html: `<box-permission-matrix title="Permissions"></box-permission-matrix>` },
+  "permission-matrix": { html: `<box-permission-matrix label="Permissions"></box-permission-matrix>` },
   "collaborator-avatars": {
     html: `<box-collaborator-avatars label="Collaborators" max="4"></box-collaborator-avatars>`,
     setup: root => set(root, "box-collaborator-avatars", {
@@ -643,17 +643,17 @@ export const examples: Record<string, ComponentExample> = {
       ],
     }),
   },
-  "annotation-inspector": { html: `<box-annotation-inspector title="Annotation"></box-annotation-inspector>` },
-  "annotation-thread": { html: `<box-annotation-thread title="Discussion"></box-annotation-thread>` },
+  "annotation-inspector": { html: `<box-annotation-inspector heading="Annotation"></box-annotation-inspector>` },
+  "annotation-thread": { html: `<box-annotation-thread heading="Discussion"></box-annotation-thread>` },
   "preview-element": {
-    html: `<box-preview-element title="Quarterly Plan.pdf" item-label="PDF · 2.4 MB" status="Ready" message="Rendered by the active preview provider."></box-preview-element>`,
+    html: `<box-preview-element heading="Quarterly Plan.pdf" item-label="PDF · 2.4 MB" status="Ready" message="Rendered by the active preview provider."></box-preview-element>`,
     setup: root => set(root, "box-preview-element", {
       provider: { id: "content-preview", label: "Box Content Preview", engine: "pdf.js", status: "ready" },
       adapterState: { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%" },
     }),
   },
   "file-request-builder": {
-    html: `<box-file-request-builder title="Collect vendor W-9s" message="Request tax forms from onboarding vendors."></box-file-request-builder>`,
+    html: `<box-file-request-builder heading="Collect vendor W-9s" message="Request tax forms from onboarding vendors."></box-file-request-builder>`,
     setup: root => set(root, "box-file-request-builder", {
       fields: [
         { id: "company", label: "Company name", required: true },
@@ -666,7 +666,7 @@ export const examples: Record<string, ComponentExample> = {
     }),
   },
   "task-assignment-panel": {
-    html: `<box-task-assignment-panel title="Contract review" status="In progress" priority="High" due-date="Jul 18, 2026" message="Legal review before countersign."></box-task-assignment-panel>`,
+    html: `<box-task-assignment-panel heading="Contract review" status="In progress" priority="High" due-date="Jul 18, 2026" message="Legal review before countersign."></box-task-assignment-panel>`,
     setup: root => {
       set(root, "box-task-assignment-panel", {
         assignees: [
@@ -686,7 +686,7 @@ export const examples: Record<string, ComponentExample> = {
     },
   },
   "review-queue-item": {
-    html: `<box-review-queue-item title="MSA_Acme_v4.pdf" item-label="Contract" status="Awaiting review" priority="Medium" due-date="Jul 14, 2026" message="Second-pass legal review."></box-review-queue-item>`,
+    html: `<box-review-queue-item heading="MSA_Acme_v4.pdf" item-label="Contract" status="Awaiting review" priority="Medium" due-date="Jul 14, 2026" message="Second-pass legal review."></box-review-queue-item>`,
     setup: root => set(root, "box-review-queue-item", {
       assignee: { name: "Morgan Lee", role: "Legal" },
       metrics: [
@@ -700,7 +700,7 @@ export const examples: Record<string, ComponentExample> = {
     }),
   },
   "governance-panel": {
-    html: `<box-governance-panel title="Governance" status="Compliant" message="Retention and classification policies applied."></box-governance-panel>`,
+    html: `<box-governance-panel heading="Governance" status="Compliant" message="Retention and classification policies applied."></box-governance-panel>`,
     setup: root => set(root, "box-governance-panel", {
       policies: [
         { label: "Retention", value: "7 years", description: "Finance default" },
@@ -711,12 +711,12 @@ export const examples: Record<string, ComponentExample> = {
     }),
   },
   "metric-card": {
-    html: `<box-metric-card title="Active shared links" value="1,284" eyebrow="Last 30 days" message="Up from 1,102 in the prior period." status="Healthy"></box-metric-card>`,
+    html: `<box-metric-card heading="Active shared links" value="1,284" eyebrow="Last 30 days" message="Up from 1,102 in the prior period." status="Healthy"></box-metric-card>`,
     setup: root => set(root, "box-metric-card", { trend: { label: "+16.5%", tone: "success" } }),
   },
-  "chart-panel": { html: `<box-chart-panel title="Usage" message="Weekly rollups across the enterprise."></box-chart-panel>` },
+  "chart-panel": { html: `<box-chart-panel heading="Usage" message="Weekly rollups across the enterprise."></box-chart-panel>` },
   "bar-chart": {
-    html: `<box-bar-chart title="Uploads per week" timeframe="Last 5 weeks" summary="Steady growth across the quarter."></box-bar-chart>`,
+    html: `<box-bar-chart heading="Uploads per week" timeframe="Last 5 weeks" summary="Steady growth across the quarter."></box-bar-chart>`,
     setup: root => set(root, "box-bar-chart", {
       points: [
         { id: "w1", label: "W1", value: 42 },
@@ -729,7 +729,7 @@ export const examples: Record<string, ComponentExample> = {
     }),
   },
   "line-chart": {
-    html: `<box-line-chart title="Active users" timeframe="Last 5 weeks"></box-line-chart>`,
+    html: `<box-line-chart heading="Active users" timeframe="Last 5 weeks"></box-line-chart>`,
     setup: root => set(root, "box-line-chart", {
       points: [
         { id: "w1", label: "W1", value: 310 },
@@ -741,7 +741,7 @@ export const examples: Record<string, ComponentExample> = {
     }),
   },
   "donut-chart": {
-    html: `<box-donut-chart title="Storage by type"></box-donut-chart>`,
+    html: `<box-donut-chart heading="Storage by type"></box-donut-chart>`,
     setup: root => set(root, "box-donut-chart", {
       segments: [
         { id: "docs", label: "Documents", value: 46 },

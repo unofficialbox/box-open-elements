@@ -105,7 +105,7 @@ export class BoxIconButtonElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, white 6%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface-secondary, #fbfbfb) 6%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
             );
           color: var(--boe-token-text-text-secondary, #6f6f6f);
@@ -127,7 +127,7 @@ export class BoxIconButtonElement extends HTMLElement {
         }
 
         [part="button"]:active:not(:disabled) {
-          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 70%, white 30%);
+          background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 70%, var(--boe-token-surface-surface, #ffffff) 30%);
         }
 
         [part="button"][data-tone="primary"] {
@@ -157,7 +157,7 @@ export class BoxIconButtonElement extends HTMLElement {
         }
 
         [part="button"][data-tone="danger"]:hover:not(:disabled) {
-          background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 90%, white 10%);
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 90%, var(--boe-token-surface-surface, #ffffff) 10%);
           color: var(--boe-token-text-text-on-brand, #ffffff);
         }
 

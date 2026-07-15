@@ -350,4 +350,23 @@ describe("BoxContentExplorerElement", () => {
     expect(actionButton?.getAttribute("aria-label")).toBe("Preview Spec");
     expect(breadcrumbButton?.getAttribute("aria-label")).toBe("Open All Files");
   });
+
+  it("escapes error messages rather than injecting them as markup", async () => {
+    const transport: ExplorerTransport = {
+      loadFolderItems: vi.fn().mockRejectedValue(new Error('<img src=x onerror=alert(1)>')),
+    };
+
+    const element = document.createElement("box-content-explorer") as BoxContentExplorerElement;
+    element.transport = transport;
+    element.rootFolderId = "0";
+    element.token = "token";
+    document.body.append(element);
+    await flushMicrotasks();
+    await flushMicrotasks();
+
+    const error = element.shadowRoot?.querySelector('[part="error"]');
+    // The message text is present but as text, not parsed markup — no <img> injected.
+    expect(error?.textContent).toContain("<img src=x onerror=alert(1)>");
+    expect(element.shadowRoot?.querySelector("img")).toBeNull();
+  });
 });

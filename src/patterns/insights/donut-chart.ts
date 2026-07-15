@@ -31,7 +31,7 @@ type DonutSegmentArc = {
 
 export class BoxDonutChartElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["actions", "message", "segments", "summary", "timeframe", "title"];
+    return ["actions", "heading", "message", "segments", "summary", "timeframe"];
   }
 
   constructor() {
@@ -94,12 +94,12 @@ export class BoxDonutChartElement extends HTMLElement {
     this.setAttribute("timeframe", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Donut Chart";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Donut Chart";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -247,7 +247,7 @@ export class BoxDonutChartElement extends HTMLElement {
       ? `
           <div part="visual">
             <div part="donut-wrap">
-              <svg part="chart" viewBox="0 0 100 100" role="img" aria-label="${escapeHtml(this.title)} segment distribution">
+              <svg part="chart" viewBox="0 0 100 100" role="img" aria-label="${escapeHtml(this.heading)} segment distribution">
                 <circle part="track" cx="50" cy="50" r="37.5"></circle>
                 ${arcs
                   .map(
@@ -268,7 +268,7 @@ export class BoxDonutChartElement extends HTMLElement {
                 ${timeframeMarkup}
               </div>
             </div>
-            <div part="legend" role="list" aria-label="${escapeHtml(this.title)} segments">
+            <div part="legend" role="list" aria-label="${escapeHtml(this.heading)} segments">
               ${arcs
                 .map(
                   ({ segment }) => `
@@ -308,7 +308,7 @@ export class BoxDonutChartElement extends HTMLElement {
           padding: 0.95rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, white 4%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, var(--boe-token-surface-surface, #ffffff) 4%);
         }
 
         [part="header"] {
@@ -378,7 +378,7 @@ export class BoxDonutChartElement extends HTMLElement {
         [part="action"][data-tone="primary"] {
           border-color: transparent;
           background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: white;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
 
         [part="visual"] {
@@ -509,7 +509,7 @@ export class BoxDonutChartElement extends HTMLElement {
       <article part="panel">
         <header part="header">
           <div part="meta">
-            <div part="title">${escapeHtml(this.title)}</div>
+            <div part="title">${escapeHtml(this.heading)}</div>
             ${messageMarkup}
           </div>
           <div part="header-side">

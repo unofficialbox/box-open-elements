@@ -27,7 +27,7 @@ export class BoxPreviewElement extends HTMLElement {
   private providerAdapterUnsubscribe: (() => void) | null = null;
 
   static get observedAttributes(): string[] {
-    return ["actions", "adapter-state", "item-label", "message", "provider", "provider-label", "status", "title"];
+    return ["actions", "adapter-state", "item-label", "message", "provider", "provider-label", "status", "heading"];
   }
 
   constructor() {
@@ -121,12 +121,12 @@ export class BoxPreviewElement extends HTMLElement {
     this.setAttribute("status", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Preview Element";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Preview Element";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   get providerAdapter(): PreviewProviderAdapter | null {
@@ -283,7 +283,7 @@ export class BoxPreviewElement extends HTMLElement {
           --_obp-border-subtle: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 52%, transparent);
           --_obp-text-muted: var(--boe-token-text-text-secondary, #6f6f6f);
           --_obp-brand: var(--boe-token-surface-surface-brand, #0061d5);
-          --_obp-brand-soft: color-mix(in srgb, var(--_obp-brand) 12%, white 88%);
+          --_obp-brand-soft: color-mix(in srgb, var(--_obp-brand) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
         }
 
         [part="shell"] {
@@ -383,7 +383,7 @@ export class BoxPreviewElement extends HTMLElement {
         [part="action"][data-tone="primary"] {
           border-color: transparent;
           background: var(--_obp-brand);
-          color: #fff;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
 
         [part="toolbar"] {
@@ -403,7 +403,7 @@ export class BoxPreviewElement extends HTMLElement {
           border-radius: 1rem;
           background:
             radial-gradient(circle at top left, color-mix(in srgb, var(--_obp-brand) 10%, transparent), transparent 32%),
-            linear-gradient(180deg, color-mix(in srgb, var(--_obp-surface) 86%, white 14%) 0%, var(--_obp-surface-muted) 100%);
+            linear-gradient(180deg, color-mix(in srgb, var(--_obp-surface) 86%, var(--boe-token-surface-surface, #ffffff) 14%) 0%, var(--_obp-surface-muted) 100%);
           overflow: hidden;
         }
 
@@ -441,7 +441,7 @@ export class BoxPreviewElement extends HTMLElement {
           ${actionsMarkup}
         </div>
         <header part="header">
-          <div part="title">${escapeHtml(this.title)}</div>
+          <div part="title">${escapeHtml(this.heading)}</div>
           ${itemMarkup}
           ${messageMarkup}
           ${adapterMarkup}

@@ -22,7 +22,7 @@ type MetadataInspectorSection = {
 
 export class BoxMetadataInspectorElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["eyebrow", "message", "sections", "title"];
+    return ["eyebrow", "heading", "message", "sections"];
   }
 
   constructor() {
@@ -54,12 +54,12 @@ export class BoxMetadataInspectorElement extends HTMLElement {
     this.setAttribute("sections", JSON.stringify(value));
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Metadata Inspector";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Metadata Inspector";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -148,7 +148,7 @@ export class BoxMetadataInspectorElement extends HTMLElement {
           padding: 1.1rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
         [part="header"] {
@@ -256,7 +256,7 @@ export class BoxMetadataInspectorElement extends HTMLElement {
       <section part="inspector">
         <header part="header">
           ${eyebrowMarkup}
-          <div part="title">${escapeHtml(this.title)}</div>
+          <div part="title">${escapeHtml(this.heading)}</div>
           ${messageMarkup}
         </header>
         ${this.renderSections()}

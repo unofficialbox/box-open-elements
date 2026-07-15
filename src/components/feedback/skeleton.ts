@@ -53,7 +53,7 @@ export class BoxSkeletonElement extends HTMLElement {
             linear-gradient(
               90deg,
               color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 55%, var(--boe-token-stroke-stroke, #e8e8e8) 45%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, white 12%) 50%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 50%,
               color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 55%, var(--boe-token-stroke-stroke, #e8e8e8) 45%) 100%
             );
           background-size: 200% 100%;
@@ -76,12 +76,17 @@ export class BoxSkeletonElement extends HTMLElement {
           }
         }
       </style>
-      <span
-        part="skeleton"
-        style="display:inline-block;width:${this.width};height:${this.height};"
-        aria-hidden="true"
-      ></span>
+      <span part="skeleton" style="display:inline-block;" aria-hidden="true"></span>
     `;
+
+    // Apply size via the CSSOM, not string interpolation: setProperty validates
+    // the value and silently drops anything invalid, so attribute-supplied
+    // width/height can't break out of the style attribute and inject markup.
+    const node = this.shadowRoot.querySelector<HTMLElement>('[part="skeleton"]');
+    if (node) {
+      node.style.setProperty("width", this.width);
+      node.style.setProperty("height", this.height);
+    }
   }
 }
 

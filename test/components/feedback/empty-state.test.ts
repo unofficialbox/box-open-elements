@@ -18,12 +18,13 @@ describe("BoxEmptyStateElement", () => {
 
   it("renders title and message", () => {
     const element = document.createElement("box-empty-state") as BoxEmptyStateElement;
-    element.title = "No files yet";
+    element.heading = "No files yet";
     element.message = "Upload a file to get started.";
 
     document.body.append(element);
 
     expect(element.shadowRoot?.textContent).toContain("No files yet");
+    expect(element.shadowRoot?.querySelector('[part="title"]')?.textContent).toContain("No files yet");
     expect(element.shadowRoot?.textContent).toContain("Upload a file to get started.");
   });
 

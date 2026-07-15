@@ -18,7 +18,7 @@ describe("BoxChartPanelElement", () => {
 
   it("renders summary, timeframe, and chart points", () => {
     const element = document.createElement("box-chart-panel") as BoxChartPanelElement;
-    element.title = "Weekly activity";
+    element.heading = "Weekly activity";
     element.summary = "89%";
     element.timeframe = "Last 7 days";
     element.points = [
@@ -29,6 +29,7 @@ describe("BoxChartPanelElement", () => {
     document.body.append(element);
 
     expect(element.shadowRoot?.textContent).toContain("Weekly activity");
+    expect(element.shadowRoot?.querySelector('[part="title"]')?.textContent).toContain("Weekly activity");
     expect(element.shadowRoot?.textContent).toContain("89%");
     expect(element.shadowRoot?.textContent).toContain("Last 7 days");
     expect(element.shadowRoot?.textContent).toContain("Mon");

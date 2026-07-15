@@ -27,7 +27,7 @@ type ReviewQueueItemMetric = {
 
 export class BoxReviewQueueItemElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["actions", "assignee", "due-date", "item-label", "message", "metrics", "priority", "status", "title"];
+    return ["actions", "assignee", "due-date", "heading", "item-label", "message", "metrics", "priority", "status"];
   }
 
   constructor() {
@@ -129,12 +129,12 @@ export class BoxReviewQueueItemElement extends HTMLElement {
     this.setAttribute("status", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Review Queue Item";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Review Queue Item";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -163,7 +163,7 @@ export class BoxReviewQueueItemElement extends HTMLElement {
       new CustomEvent("action", {
         bubbles: true,
         composed: true,
-        detail: { action: actionId, title: this.title, itemLabel: this.itemLabel },
+        detail: { action: actionId, title: this.heading, itemLabel: this.itemLabel },
       }),
     );
   }
@@ -173,7 +173,7 @@ export class BoxReviewQueueItemElement extends HTMLElement {
       new CustomEvent("selected", {
         bubbles: true,
         composed: true,
-        detail: { title: this.title, itemLabel: this.itemLabel },
+        detail: { title: this.heading, itemLabel: this.itemLabel },
       }),
     );
   }
@@ -246,7 +246,7 @@ export class BoxReviewQueueItemElement extends HTMLElement {
           padding: 1rem 1.05rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, white 4%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, var(--boe-token-surface-surface, #ffffff) 4%);
         }
 
         [part="header"] {
@@ -290,7 +290,7 @@ export class BoxReviewQueueItemElement extends HTMLElement {
           align-items: center;
           padding: 0.28rem 0.55rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
           font-size: 0.78rem;
           font-weight: 700;
@@ -330,7 +330,7 @@ export class BoxReviewQueueItemElement extends HTMLElement {
           place-items: center;
           border-radius: 999px;
           background: linear-gradient(180deg, #2b7de9 0%, #0057c2 100%);
-          color: white;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
           font-weight: 700;
           letter-spacing: 0.04em;
         }
@@ -390,7 +390,7 @@ export class BoxReviewQueueItemElement extends HTMLElement {
         [part="action"][data-tone="primary"] {
           border-color: transparent;
           background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: white;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
 
         [part="select"] {
@@ -412,10 +412,10 @@ export class BoxReviewQueueItemElement extends HTMLElement {
         }
       </style>
       <article part="item">
-        <button type="button" part="select" aria-label="Open ${escapeHtml(this.title)} review item">
+        <button type="button" part="select" aria-label="Open ${escapeHtml(this.heading)} review item">
           <header part="header">
             <div part="title-row">
-              <div part="title">${escapeHtml(this.title)}</div>
+              <div part="title">${escapeHtml(this.heading)}</div>
               ${statusMarkup}
               ${priorityMarkup}
             </div>

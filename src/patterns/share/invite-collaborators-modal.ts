@@ -212,7 +212,7 @@ export class BoxInviteCollaboratorsModalElement extends HTMLElement {
           gap: 0.3rem;
           padding: 0.2rem 0.3rem 0.2rem 0.55rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 70%, white 30%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 70%, var(--boe-token-surface-surface, #ffffff) 30%);
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           font-size: 0.8rem;
           font-weight: 600;

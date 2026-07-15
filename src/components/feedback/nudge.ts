@@ -16,7 +16,7 @@ const escapeHtml = (value: string): string =>
  */
 export class BoxNudgeElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["action-label", "heading", "message", "open", "title"];
+    return ["action-label", "heading", "message", "open"];
   }
 
   private openValue = true;
@@ -46,19 +46,11 @@ export class BoxNudgeElement extends HTMLElement {
   }
 
   get heading(): string {
-    return this.getAttribute("heading") ?? this.getAttribute("title") ?? "";
+    return this.getAttribute("heading") ?? "";
   }
 
   set heading(value: string) {
     this.setAttribute("heading", value);
-  }
-
-  get title(): string {
-    return this.getAttribute("title") ?? this.getAttribute("heading") ?? "";
-  }
-
-  set title(value: string) {
-    this.setAttribute("title", value);
   }
 
   get message(): string {
@@ -131,9 +123,9 @@ export class BoxNudgeElement extends HTMLElement {
           align-items: flex-start;
           gap: 0.65rem;
           padding: 0.7rem 0.8rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, white);
+          border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, var(--boe-token-surface-surface, #ffffff));
           border-radius: 0.8rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 7%, white);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 7%, var(--boe-token-surface-surface, #ffffff));
           color: var(--boe-token-text-text, #222222);
         }
 

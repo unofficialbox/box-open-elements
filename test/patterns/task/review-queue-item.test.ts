@@ -18,7 +18,7 @@ describe("BoxReviewQueueItemElement", () => {
 
   it("renders task summary, assignee, and metrics", () => {
     const element = document.createElement("box-review-queue-item") as BoxReviewQueueItemElement;
-    element.title = "Launch Checklist";
+    element.heading = "Launch Checklist";
     element.itemLabel = "Brand Strategy.pdf";
     element.assignee = { name: "Morgan Lee", role: "Owner" };
     element.metrics = [
@@ -29,6 +29,7 @@ describe("BoxReviewQueueItemElement", () => {
     document.body.append(element);
 
     expect(element.shadowRoot?.textContent).toContain("Launch Checklist");
+    expect(element.shadowRoot?.querySelector('[part="title"]')?.textContent).toContain("Launch Checklist");
     expect(element.shadowRoot?.textContent).toContain("Brand Strategy.pdf");
     expect(element.shadowRoot?.textContent).toContain("Morgan Lee");
     expect(element.shadowRoot?.textContent).toContain("Comments");
@@ -37,7 +38,7 @@ describe("BoxReviewQueueItemElement", () => {
   it("emits selected when the row is opened", () => {
     const element = document.createElement("box-review-queue-item") as BoxReviewQueueItemElement;
     const selected = vi.fn();
-    element.title = "Launch Checklist";
+    element.heading = "Launch Checklist";
     element.itemLabel = "Brand Strategy.pdf";
     element.addEventListener("selected", selected);
 
@@ -59,7 +60,7 @@ describe("BoxReviewQueueItemElement", () => {
   it("emits action for task controls", () => {
     const element = document.createElement("box-review-queue-item") as BoxReviewQueueItemElement;
     const action = vi.fn();
-    element.title = "Launch Checklist";
+    element.heading = "Launch Checklist";
     element.itemLabel = "Brand Strategy.pdf";
     element.actions = [
       { id: "open", label: "Open", tone: "primary" },

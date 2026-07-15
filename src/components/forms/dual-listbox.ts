@@ -240,7 +240,7 @@ export class BoxDualListboxElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, white 12%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 82%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%) 100%
             );
           box-shadow:
@@ -273,7 +273,7 @@ export class BoxDualListboxElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, white 6%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface-secondary, #fbfbfb) 6%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 10%, var(--boe-token-surface-surface, #ffffff) 90%) 100%
             );
           color: inherit;
@@ -289,7 +289,7 @@ export class BoxDualListboxElement extends HTMLElement {
 
         [part="option"]:hover:not(:disabled) {
           border-color: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 100%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 52%, white 48%);
+          background: color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 52%, var(--boe-token-surface-surface, #ffffff) 48%);
         }
 
         [part="option"][aria-selected="true"] {
@@ -297,8 +297,8 @@ export class BoxDualListboxElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, white 86%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 72%, white 28%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, var(--boe-token-surface-surface, #ffffff) 86%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 72%, var(--boe-token-surface-surface, #ffffff) 28%) 100%
             );
           box-shadow: inset 0 0 0 1px rgba(0, 97, 213, 0.06);
         }
@@ -336,8 +336,8 @@ export class BoxDualListboxElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 84%, white 16%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface-secondary, #fbfbfb) 80%, white 16%) 100%
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 84%, var(--boe-token-surface-surface, #ffffff) 16%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface-secondary, #fbfbfb) 80%, var(--boe-token-surface-surface, #ffffff) 16%) 100%
             );
           color: inherit;
           font: inherit;
@@ -356,8 +356,8 @@ export class BoxDualListboxElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 74%, white 26%) 0%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 6%, var(--boe-token-surface-item-surface-hover, #eef4fb) 68%, white 26%) 100%
+              color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 74%, var(--boe-token-surface-surface, #ffffff) 26%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 6%, var(--boe-token-surface-item-surface-hover, #eef4fb) 68%, var(--boe-token-surface-surface, #ffffff) 26%) 100%
             );
         }
 

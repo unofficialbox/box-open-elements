@@ -31,13 +31,15 @@ describe("BoxDialogElement", () => {
   it("emits confirm and closes", () => {
     const element = document.createElement("box-dialog") as BoxDialogElement;
     const confirmed = vi.fn();
-    element.title = "Delete item";
+    element.heading = "Delete item";
     element.confirmLabel = "Delete";
     element.description = "This cannot be undone.";
     element.addEventListener("confirm", confirmed);
 
     document.body.append(element);
     element.show();
+
+    expect(element.shadowRoot?.textContent).toContain("Delete item");
 
     const confirmButton = element.shadowRoot?.querySelector('[part="confirm"]') as HTMLButtonElement | null;
     confirmButton?.click();

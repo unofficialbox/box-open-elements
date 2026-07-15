@@ -179,7 +179,7 @@ export class BoxSpinButtonElement extends HTMLElement {
         [part="control"] {
           display: inline-flex;
           align-items: stretch;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, white 22%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
           border-radius: 0.7rem;
           background:
             linear-gradient(
@@ -207,7 +207,7 @@ export class BoxSpinButtonElement extends HTMLElement {
         [part="increment"] {
           appearance: none;
           border: none;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, white 12%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           font: inherit;
           font-weight: 700;
@@ -219,11 +219,11 @@ export class BoxSpinButtonElement extends HTMLElement {
         }
 
         [part="decrement"] {
-          border-inline-end: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, white 22%);
+          border-inline-end: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
         }
 
         [part="increment"] {
-          border-inline-start: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, white 22%);
+          border-inline-start: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
         }
 
         [part="decrement"]:hover:not(:disabled),

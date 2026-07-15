@@ -36,7 +36,7 @@ type AnnotationInspectorAnnotation = {
 
 export class BoxAnnotationInspectorElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["actions", "annotation", "message", "title"];
+    return ["actions", "annotation", "heading", "message"];
   }
 
   constructor() {
@@ -78,12 +78,12 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
     this.setAttribute("message", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Annotation Inspector";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Annotation Inspector";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -215,7 +215,7 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
           padding: 1rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
         [part="header"] {
@@ -257,7 +257,7 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
           inline-size: 2rem;
           block-size: 2rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
           font-size: 0.72rem;
           font-weight: 700;
@@ -292,7 +292,7 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
           display: inline-flex;
           padding: 0.2rem 0.45rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, white 92%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%);
         }
 
         [part="color-chip"] {
@@ -340,7 +340,7 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
           padding: 0.7rem 0.75rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 42%, transparent);
           border-radius: 0.9rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, white 12%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
           color: inherit;
           font: inherit;
           text-align: left;
@@ -385,7 +385,7 @@ export class BoxAnnotationInspectorElement extends HTMLElement {
       </style>
       <article part="panel">
         <header part="header">
-          <div part="title">${escapeHtml(this.title)}</div>
+          <div part="title">${escapeHtml(this.heading)}</div>
           ${messageMarkup}
         </header>
         ${detailMarkup}

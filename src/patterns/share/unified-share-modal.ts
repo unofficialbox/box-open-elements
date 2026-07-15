@@ -235,7 +235,7 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
           gap: 0.25rem;
           padding: 0.25rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 70%, white 30%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 70%, var(--boe-token-surface-surface, #ffffff) 30%);
         }
 
         [part^="tab-"] {
@@ -327,7 +327,7 @@ export class BoxUnifiedShareModalElement extends HTMLElement {
           display: inline-grid;
           place-items: center;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, white 84%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-surface-surface, #ffffff) 84%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
           font-size: 0.72rem;
           font-weight: 700;

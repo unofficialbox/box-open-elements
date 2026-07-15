@@ -29,7 +29,7 @@ type BarChartPoint = {
 
 export class BoxBarChartElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["actions", "legend", "message", "points", "summary", "timeframe", "title"];
+    return ["actions", "heading", "legend", "message", "points", "summary", "timeframe"];
   }
 
   constructor() {
@@ -100,12 +100,12 @@ export class BoxBarChartElement extends HTMLElement {
     this.setAttribute("timeframe", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Bar Chart";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Bar Chart";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -176,7 +176,7 @@ export class BoxBarChartElement extends HTMLElement {
     const chartMarkup = this.points.length
       ? `
           <div part="visual">
-            <div part="chart" role="list" aria-label="${escapeHtml(this.title)} bar data">
+            <div part="chart" role="list" aria-label="${escapeHtml(this.heading)} bar data">
               <div part="grid">
                 <span part="grid-line"></span>
                 <span part="grid-line"></span>
@@ -239,7 +239,7 @@ export class BoxBarChartElement extends HTMLElement {
           padding: 0.95rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, white 4%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, var(--boe-token-surface-surface, #ffffff) 4%);
         }
 
         [part="header"] {
@@ -309,7 +309,7 @@ export class BoxBarChartElement extends HTMLElement {
         [part="action"][data-tone="primary"] {
           border-color: transparent;
           background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: white;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
 
         [part="visual"] {
@@ -359,12 +359,12 @@ export class BoxBarChartElement extends HTMLElement {
 
         [part="point"][data-tone="accent"] {
           border-color: color-mix(in srgb, #5a7cf7 22%, var(--boe-token-stroke-stroke, #e8e8e8) 78%);
-          background: color-mix(in srgb, #5a7cf7 8%, white 92%);
+          background: color-mix(in srgb, #5a7cf7 8%, var(--boe-token-surface-surface, #ffffff) 92%);
         }
 
         [part="point"][data-tone="success"] {
           border-color: color-mix(in srgb, #26c281 22%, var(--boe-token-stroke-stroke, #e8e8e8) 78%);
-          background: color-mix(in srgb, #26c281 8%, white 92%);
+          background: color-mix(in srgb, #26c281 8%, var(--boe-token-surface-surface, #ffffff) 92%);
         }
 
         [part="point"]:focus-visible {
@@ -385,7 +385,7 @@ export class BoxBarChartElement extends HTMLElement {
           min-block-size: 0.45rem;
           block-size: calc(6.5rem * var(--point-ratio));
           border-radius: 0.8rem 0.8rem 0.5rem 0.5rem;
-          background: linear-gradient(180deg, color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 84%, white 16%) 0%, var(--boe-token-surface-surface-brand, #0061d5) 100%);
+          background: linear-gradient(180deg, color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 84%, var(--boe-token-surface-surface, #ffffff) 16%) 0%, var(--boe-token-surface-surface-brand, #0061d5) 100%);
           box-shadow: 0 10px 18px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, transparent);
         }
 
@@ -428,19 +428,19 @@ export class BoxBarChartElement extends HTMLElement {
 
         [part="legend-item"][data-tone="accent"] {
           border-color: color-mix(in srgb, #5a7cf7 18%, var(--boe-token-stroke-stroke, #e8e8e8) 82%);
-          background: color-mix(in srgb, #5a7cf7 7%, white 93%);
+          background: color-mix(in srgb, #5a7cf7 7%, var(--boe-token-surface-surface, #ffffff) 93%);
         }
 
         [part="legend-item"][data-tone="success"] {
           border-color: color-mix(in srgb, #26c281 18%, var(--boe-token-stroke-stroke, #e8e8e8) 82%);
-          background: color-mix(in srgb, #26c281 7%, white 93%);
+          background: color-mix(in srgb, #26c281 7%, var(--boe-token-surface-surface, #ffffff) 93%);
         }
 
         [part="legend-swatch"] {
           inline-size: 0.7rem;
           block-size: 0.7rem;
           border-radius: 999px;
-          background: linear-gradient(180deg, color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 84%, white 16%) 0%, var(--boe-token-surface-surface-brand, #0061d5) 100%);
+          background: linear-gradient(180deg, color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 84%, var(--boe-token-surface-surface, #ffffff) 16%) 0%, var(--boe-token-surface-surface-brand, #0061d5) 100%);
         }
 
         [part="legend-item"][data-tone="accent"] [part="legend-swatch"] {
@@ -469,7 +469,7 @@ export class BoxBarChartElement extends HTMLElement {
       <article part="panel">
         <header part="header">
           <div part="meta">
-            <div part="title">${escapeHtml(this.title)}</div>
+            <div part="title">${escapeHtml(this.heading)}</div>
             ${summaryMarkup}
             ${messageMarkup}
           </div>

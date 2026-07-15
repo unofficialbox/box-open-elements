@@ -10,7 +10,7 @@ const escapeHtml = (value: string): string =>
 
 export class BoxAppShellElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["title"];
+    return ["heading"];
   }
 
   constructor() {
@@ -18,12 +18,12 @@ export class BoxAppShellElement extends HTMLElement {
     this.attachShadow({ mode: "open" });
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "App Shell";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "App Shell";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -66,7 +66,7 @@ export class BoxAppShellElement extends HTMLElement {
           gap: 0.85rem;
           padding: 0.95rem 1.15rem;
           border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
         [part="header-main"] {
@@ -107,7 +107,7 @@ export class BoxAppShellElement extends HTMLElement {
         [part="nav"] {
           padding: 1rem 0.95rem;
           border-right: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
         [part="main"] {
@@ -119,22 +119,22 @@ export class BoxAppShellElement extends HTMLElement {
         [part="aside"] {
           padding: 1rem 0.95rem;
           border-left: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
         [part="footer"] {
           padding: 0.75rem 1.15rem;
           border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.86rem;
         }
       </style>
-      <section part="shell" aria-label="${escapeHtml(this.title)}">
+      <section part="shell" aria-label="${escapeHtml(this.heading)}">
         <header part="header">
           <div part="header-main">
             <slot name="eyebrow"></slot>
-            <h2 part="title">${escapeHtml(this.title)}</h2>
+            <h2 part="title">${escapeHtml(this.heading)}</h2>
           </div>
           <div part="header-actions">
             <slot name="header-actions"></slot>

@@ -64,7 +64,8 @@ Use these names when the concept applies:
 - `open` — visibility state for overlays and transient UI
 - `tone` — visual semantic variant such as `primary`, `warning`, or `success`
 - `size` — visual size when the component has a non-content-based footprint
-- `title` — short headline for content or status surfaces
+- `heading` — short headline for content or status surfaces (named `heading`, not
+  `title`, to avoid colliding with the native `HTMLElement.title` tooltip property)
 - `message` — supporting descriptive copy
 - `description` — longer supporting copy when `message` would be ambiguous or too short
 - `items` — structured collection data for rich hierarchical or menu-like inputs
@@ -73,7 +74,7 @@ Use these names when the concept applies:
 ## Naming preferences
 
 - Prefer `label` for controls.
-- Prefer `title` plus `message` for status and empty-state surfaces.
+- Prefer `heading` plus `message` for status and empty-state surfaces.
 - Prefer `description` for longer secondary copy.
 - Prefer `items` for rich objects and `options` for flat choices.
 - Prefer `value-changed` for selection/input updates.

@@ -184,7 +184,7 @@ export class BoxRichTextInputElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%, white 10%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%, var(--boe-token-surface-surface, #ffffff) 10%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 82%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%) 100%
             );
           box-shadow:
@@ -202,7 +202,7 @@ export class BoxRichTextInputElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, white 6%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface-secondary, #fbfbfb) 6%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
             );
         }
@@ -215,7 +215,7 @@ export class BoxRichTextInputElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, white 8%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
             );
           color: inherit;
@@ -231,7 +231,7 @@ export class BoxRichTextInputElement extends HTMLElement {
 
         [part="tool-button"]:hover:not(:disabled) {
           border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 72%, white 28%);
+          background: color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 72%, var(--boe-token-surface-surface, #ffffff) 28%);
         }
 
         [part="editor"] {
@@ -242,7 +242,7 @@ export class BoxRichTextInputElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 97%, white 3%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 97%, var(--boe-token-surface-surface-secondary, #fbfbfb) 3%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 2%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%, var(--boe-token-surface-surface, #ffffff) 90%) 100%
             );
           line-height: 1.6;

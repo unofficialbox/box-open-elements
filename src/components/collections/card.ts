@@ -10,7 +10,7 @@ const escapeHtml = (value: string): string =>
 
 export class BoxCardElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["eyebrow", "heading", "title"];
+    return ["eyebrow", "heading"];
   }
 
   constructor() {
@@ -27,19 +27,11 @@ export class BoxCardElement extends HTMLElement {
   }
 
   get heading(): string {
-    return this.getAttribute("heading") ?? this.title;
+    return this.getAttribute("heading") ?? "";
   }
 
   set heading(value: string) {
     this.setAttribute("heading", value);
-  }
-
-  get title(): string {
-    return this.getAttribute("title") ?? this.getAttribute("heading") ?? "";
-  }
-
-  set title(value: string) {
-    this.setAttribute("title", value);
   }
 
   connectedCallback(): void {
@@ -56,8 +48,8 @@ export class BoxCardElement extends HTMLElement {
     }
 
     const eyebrowMarkup = this.eyebrow ? `<span part="eyebrow">${escapeHtml(this.eyebrow)}</span>` : "";
-    const title = this.title;
-    const headingMarkup = title ? `<strong part="title heading">${escapeHtml(title)}</strong>` : "";
+    const heading = this.heading;
+    const headingMarkup = heading ? `<strong part="title heading">${escapeHtml(heading)}</strong>` : "";
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -71,12 +63,12 @@ export class BoxCardElement extends HTMLElement {
           display: grid;
           gap: 0.9rem;
           padding: 1rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, white 18%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, var(--boe-token-surface-surface, #ffffff) 18%);
           border-radius: 1.1rem;
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, white 12%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%) 100%
             );
           box-shadow:

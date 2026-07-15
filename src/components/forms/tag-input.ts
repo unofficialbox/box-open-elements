@@ -212,7 +212,7 @@ export class BoxTagInputElement extends HTMLElement {
           align-items: center;
           gap: 0.4rem;
           padding: 0.4rem 0.5rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, white 22%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
           border-radius: 0.7rem;
           background:
             linear-gradient(
@@ -239,7 +239,7 @@ export class BoxTagInputElement extends HTMLElement {
           gap: 0.3rem;
           padding: 0.2rem 0.3rem 0.2rem 0.55rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, white 90%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface, #ffffff) 90%);
           color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 72%, var(--boe-token-text-text, #222222));
           font-size: 0.8rem;
           font-weight: 600;

@@ -19,7 +19,7 @@ export class BoxIllustrationElement extends HTMLElement {
   };
 
   static get observedAttributes(): string[] {
-    return ["asset", "caption", "message", "shape", "title"];
+    return ["asset", "caption", "message", "shape", "heading"];
   }
 
   constructor() {
@@ -59,12 +59,12 @@ export class BoxIllustrationElement extends HTMLElement {
     this.setAttribute("shape", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -96,7 +96,7 @@ export class BoxIllustrationElement extends HTMLElement {
       return;
     }
 
-    const titleMarkup = this.title ? `<strong part="title">${escapeHtml(this.title)}</strong>` : "";
+    const titleMarkup = this.heading ? `<strong part="title">${escapeHtml(this.heading)}</strong>` : "";
     const message = this.message;
     const captionMarkup = message ? `<span part="message caption">${escapeHtml(message)}</span>` : "";
     const illustrationMarkup = this.asset ? resolveDesignIllustration(this.asset) : null;
@@ -135,7 +135,7 @@ export class BoxIllustrationElement extends HTMLElement {
           background:
             radial-gradient(
               circle at 50% 50%,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, white 90%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface, #ffffff) 90%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, transparent) 58%,
               transparent 100%
             );
@@ -176,7 +176,7 @@ export class BoxIllustrationElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, white 66%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, var(--boe-token-surface-surface, #ffffff) 66%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-surface-surface-secondary, #fbfbfb) 84%) 100%
             );
           border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, transparent);
@@ -221,7 +221,7 @@ export class BoxIllustrationElement extends HTMLElement {
           background:
             linear-gradient(
               180deg,
-              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, white 10%) 0%,
+              color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, var(--boe-token-surface-surface-secondary, #fbfbfb) 10%) 0%,
               color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%) 100%
             );
           border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, transparent);
@@ -291,7 +291,7 @@ export class BoxIllustrationElement extends HTMLElement {
           line-height: 1.5;
         }
       </style>
-      <figure part="illustration" data-shape="${escapeHtml(this.shape)}" role="img" aria-label="${escapeHtml(this.title || this.message || "Illustration")}">
+      <figure part="illustration" data-shape="${escapeHtml(this.shape)}" role="img" aria-label="${escapeHtml(this.heading || this.message || "Illustration")}">
         <div part="art" aria-hidden="true" data-asset-source="${illustrationMarkup ? "design-system" : "shape"}">${artMarkup}</div>
         <figcaption part="meta">
           ${titleMarkup}

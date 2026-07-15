@@ -28,7 +28,7 @@ type GovernancePanelSignal = {
 
 export class BoxGovernancePanelElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["actions", "message", "policies", "signals", "status", "title"];
+    return ["actions", "heading", "message", "policies", "signals", "status"];
   }
 
   constructor() {
@@ -81,12 +81,12 @@ export class BoxGovernancePanelElement extends HTMLElement {
     this.setAttribute("status", value);
   }
 
-  get title(): string {
-    return this.getAttribute("title") ?? "Governance";
+  get heading(): string {
+    return this.getAttribute("heading") ?? "Governance";
   }
 
-  set title(value: string) {
-    this.setAttribute("title", value);
+  set heading(value: string) {
+    this.setAttribute("heading", value);
   }
 
   connectedCallback(): void {
@@ -209,7 +209,7 @@ export class BoxGovernancePanelElement extends HTMLElement {
           padding: 1.1rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
         [part="header"] {
@@ -243,7 +243,7 @@ export class BoxGovernancePanelElement extends HTMLElement {
           gap: 0.25rem;
           padding: 0.28rem 0.55rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
           font-size: 0.78rem;
           font-weight: 700;
@@ -354,13 +354,13 @@ export class BoxGovernancePanelElement extends HTMLElement {
         [part="action"][data-tone="primary"] {
           border-color: transparent;
           background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: white;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
       </style>
       <section part="panel">
         <header part="header">
           <div part="title-row">
-            <div part="title">${escapeHtml(this.title)}</div>
+            <div part="title">${escapeHtml(this.heading)}</div>
             ${statusMarkup}
           </div>
           ${messageMarkup}

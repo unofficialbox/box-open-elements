@@ -131,7 +131,7 @@ export class BoxPermissionMatrixElement extends HTMLElement {
           padding: 1.1rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 1rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, white 6%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
         [part="label"] {
@@ -179,7 +179,7 @@ export class BoxPermissionMatrixElement extends HTMLElement {
           margin-top: 0.45rem;
           padding: 0.25rem 0.5rem;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, white 88%);
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
           font-size: 0.78rem;
           font-weight: 700;
@@ -206,7 +206,7 @@ export class BoxPermissionMatrixElement extends HTMLElement {
           display: inline-grid;
           width: min(100%, 13rem);
           min-width: 10rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 76%, white 24%);
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 76%, var(--boe-token-surface-surface, #ffffff) 24%);
           border-radius: 0.9rem;
           background: linear-gradient(
             180deg,

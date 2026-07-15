@@ -18,7 +18,7 @@ describe("BoxTaskAssignmentPanelElement", () => {
 
   it("renders assignees and checklist items", () => {
     const element = document.createElement("box-task-assignment-panel") as BoxTaskAssignmentPanelElement;
-    element.title = "Review Task";
+    element.heading = "Review Task";
     element.assignees = [
       { id: "morgan", name: "Morgan Lee", description: "Content Designer" },
     ];
@@ -28,6 +28,7 @@ describe("BoxTaskAssignmentPanelElement", () => {
 
     document.body.append(element);
 
+    expect(element.shadowRoot?.textContent).toContain("Review Task");
     expect(element.shadowRoot?.textContent).toContain("Morgan Lee");
     expect(element.shadowRoot?.textContent).toContain("Resolve annotations");
   });

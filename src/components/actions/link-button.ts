@@ -8,6 +8,21 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
+/**
+ * Reject dangerous URL schemes (javascript:, data:, vbscript:) before the href
+ * reaches the DOM. `escapeHtml` prevents attribute breakout but does NOT stop a
+ * scheme from executing on click, so navigable URLs must be scheme-validated.
+ * Relative URLs, fragments, and query strings have no scheme and are allowed.
+ */
+const safeHref = (value: string): string => {
+  // Strip tab/newline/CR first: browsers ignore them in URLs, so "java\nscript:"
+  // normalizes back to the javascript: scheme on navigation and must not slip past.
+  const trimmed = value.replace(/[\t\n\r]/g, "").trim();
+  const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(trimmed);
+  if (!scheme) return trimmed; // relative / fragment / query — no scheme to abuse
+  return ["http", "https", "mailto", "tel"].includes(scheme[1].toLowerCase()) ? trimmed : "#";
+};
+
 export class BoxLinkButtonElement extends HTMLElement {
   static get observedAttributes(): string[] {
     return ["href", "label", "tone"];
@@ -120,7 +135,7 @@ export class BoxLinkButtonElement extends HTMLElement {
       <a
         part="link"
         data-tone="${escapeHtml(this.tone)}"
-        href="${escapeHtml(this.href)}"
+        href="${escapeHtml(safeHref(this.href))}"
         aria-label="${escapeHtml(this.label)}"
       >
         ${escapeHtml(this.label)}
