@@ -16,7 +16,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 ## Foundations
 
-- Port the iconography generator (`tools/iconography/`) and generate the full icon manifest once the catalog needs more than the curated set (see `docs/foundations/iconography.md`).
+- Iconography generator ported (`tools/iconography/`, `bun run icons:generate`) — full 472-icon manifest already vendored; regenerate from the external pack when the inventory updates (see `docs/foundations/iconography.md`).
 - Add explicit per-component guidance for consuming design tokens directly versus relying on shell styling.
 - Review the Box brand imagery Figma frame — imagery guidance has been open since the original brand review (see `docs/foundations/brand.md`).
 - Add Theming and Motion foundation docs when there is real content for them (do not create placeholder pages).
@@ -28,7 +28,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 ## Tooling and infrastructure
 
-- Docs site shell + shipped follow-ons (`bun run docs`, variant dropdown from Storybook extraction, dark theme, markdown foundation docs in-shell, GitHub Pages deploy). **Open PR #44:** Usage/Best-practices/Keyboard guidance cards (workshop meta + role-mapped a11y bullets). Grow coverage by authoring more workshop stories / example notes; do not invent placeholder cards.
+- Docs site shell + shipped follow-ons (`bun run docs`, variant dropdown, dark theme, markdown foundation docs, GitHub Pages, Usage/Best-practices/Keyboard guidance cards — #44). Grow guidance coverage by authoring more workshop stories / example notes; do not invent placeholder cards.
 - Screenshot pixel-diff CI shipped (`visual-regression` job in `.github/workflows/ci.yml` via pinned Playwright container). Local: `bun run test:regression:pixel` / `bun run baselines:regen`. Latent: `components-calendar.png` is date-dependent (pin the demo date someday).
 - Storybook workshop shipped (`storybook/`, see `docs/workshop/storybook.md`) — extraction backend for docs-site variants; not deployed publicly.
 - `packages/box-server` shipped (see `docs/integration/box-server.md`).

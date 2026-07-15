@@ -1,7 +1,7 @@
 # Handoff — box-open-elements
 
 Snapshot for the next agent picking up this work. Read this first, then
-`plans/docs-site-guidance-cards.md` (docs-site guidance cards — open PR) and
+`plans/iconography-generator.md` (active iconography generator work) and
 `docs/audits/component-fidelity-audit.md` (completed fidelity program).
 
 ## What this repo is
@@ -24,10 +24,10 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
   **not** deployed (internal tool).
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
-- Recent merged PRs: fidelity Batches 0–7 + #41 nits + **#42** design-heavy leftovers
-  + **#43** explorer search/item contract + UI chrome.
-- **Open PR:** docs-site Usage / Best-practices / Keyboard guidance cards —
-  `cursor/docs-site-usage-cards-7eb7` (#44; see `plans/docs-site-guidance-cards.md`).
+- Recent merged PRs: fidelity Batches 0–7 + #41–**#44** (explorer search/UI, docs-site
+  guidance cards).
+- **Active work:** iconography generator port —
+  `cursor/iconography-generator-7eb7` (see `plans/iconography-generator.md`).
 
 ## Completed initiative: component fidelity program
 
@@ -142,6 +142,6 @@ organized into **systemic sweeps**, not per-component rewrites.
 
 ## Open user-facing threads
 - Fidelity program complete through #42.
-- **Open PR:** docs-site guidance cards from workshop meta + role-mapped a11y
-  bullets (`cursor/docs-site-usage-cards-7eb7`, #44). Next after merge: iconography
-  generator port (`tools/iconography/`) per BACKLOG.
+- **In flight:** iconography generator (`cursor/iconography-generator-7eb7`) —
+  path/env-driven pack → `box-iconography.generated.ts`; fixture tests; no pack
+  vendored in-repo.
