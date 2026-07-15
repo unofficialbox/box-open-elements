@@ -142,4 +142,4 @@ organized into **systemic sweeps**, not per-component rewrites.
 ## Open user-facing threads
 - Fidelity Batches **0–7** + medium/low nits (#41) merged; design-heavy
   leftovers PR in flight on `cursor/design-heavy-leftovers-7eb7`.
-- **Next:** close leftovers, then treat fidelity as complete.
+- **Next:** merge leftovers (#42), then treat fidelity as complete.
