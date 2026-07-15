@@ -80,6 +80,19 @@ const draggableListStyles = `
   [part="empty"] {
     color: var(--boe-token-text-text-secondary, #6f6f6f);
   }
+
+  [part="status"] {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
 `;
 
 /**
@@ -98,6 +111,7 @@ export class BoxDraggableListElement extends BaseElement {
   private focusValue: string | null = null;
   private lastItemsJson = "";
   private contentEl!: HTMLElement;
+  private statusEl!: HTMLElement;
 
   get items(): BoxDraggableListItem[] {
     const raw = this.getAttribute("items");
@@ -140,6 +154,9 @@ export class BoxDraggableListElement extends BaseElement {
     this.setAttribute("items", JSON.stringify(next));
     if (this.isRendered) {
       this.update();
+    }
+    if (this.statusEl) {
+      this.statusEl.textContent = `${moved.label} moved to position ${to + 1} of ${next.length}`;
     }
     this.dispatchEvent(
       new CustomEvent("reorder", {
@@ -191,8 +208,10 @@ export class BoxDraggableListElement extends BaseElement {
     this.shadowRoot.innerHTML = `
       <style>${draggableListStyles}</style>
       <div part="content"></div>
+      <div part="status" role="status" aria-live="polite" aria-atomic="true"></div>
     `;
     this.contentEl = this.shadowRoot.querySelector('[part="content"]')!;
+    this.statusEl = this.shadowRoot.querySelector('[part="status"]')!;
   }
 
   protected setupListeners(): void {

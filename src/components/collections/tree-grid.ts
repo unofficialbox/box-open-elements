@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-tree-grid";
 
@@ -82,6 +83,140 @@ const treeGridStyles = `
   [part~="control"]:focus-visible {
     outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
     outline-offset: 2px;
+  }
+
+  [part="tree-grid"] {
+    display: grid;
+    gap: 0;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
+    border-radius: 0.9rem;
+    overflow: hidden;
+    background: var(--boe-token-surface-surface, #ffffff);
+  }
+
+  [part="header-row"],
+  [part="row"] {
+    display: grid;
+    grid-template-columns: var(--tree-grid-columns, minmax(260px, 1.5fr));
+    align-items: center;
+  }
+
+  [part="header-cell"],
+  [part="cell"],
+  [part="tree-cell"] {
+    padding: 0.55rem 0.75rem;
+    min-width: 0;
+  }
+
+  [part="header-cell"] {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
+    border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, transparent);
+  }
+
+  [part="row"] {
+    border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
+    background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, transparent);
+    transition:
+      background-color 140ms ease,
+      box-shadow 140ms ease;
+  }
+
+  [part="row"]:hover {
+    background: color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 68%, var(--boe-token-surface-surface, #ffffff) 32%);
+  }
+
+  [part="row-selected"],
+  [part="row-selected"]:hover {
+    background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
+    box-shadow: inset 3px 0 0 var(--boe-token-surface-surface-brand, #0061d5);
+  }
+
+  [part="tree-content"] {
+    display: grid;
+    grid-template-columns: 1.125rem minmax(0, 1fr);
+    gap: 0.55rem;
+    align-items: center;
+    padding-left: calc(var(--tree-grid-depth, 0) * 1.25rem);
+  }
+
+  [part~="toggle"] {
+    width: 1.125rem;
+    height: 1.125rem;
+    display: inline-grid;
+    place-items: center;
+    appearance: none;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
+    border-radius: 0.35rem;
+    padding: 0;
+    line-height: 1;
+    background: var(--boe-token-surface-surface, #ffffff);
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  [part~="toggle-expanded"] {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
+    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, transparent);
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+  }
+
+  [part~="toggle"] svg {
+    width: 0.625rem;
+    height: 0.625rem;
+    display: block;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+  }
+
+  [part="spacer"] {
+    width: 1.125rem;
+    height: 1.125rem;
+    display: inline-block;
+  }
+
+  [part~="item"] {
+    appearance: none;
+    text-align: left;
+    border: 1px solid transparent;
+    border-radius: 0.65rem;
+    padding: 0.35rem 0.5rem;
+    background: transparent;
+    color: var(--boe-token-text-text, #222222);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+      border-color 140ms ease,
+      background-color 140ms ease,
+      color 140ms ease;
+  }
+
+  [part~="item"]:hover {
+    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, transparent);
+    background: color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 62%, var(--boe-token-surface-surface, #ffffff) 38%);
+  }
+
+  [part~="item-selected"] {
+    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+    background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 72%, var(--boe-token-surface-surface, #ffffff) 28%);
+    color: var(--boe-token-text-text, #222222);
+  }
+
+  ${boeFocusVisibleStyles('[part~="item"]')}
+  ${boeFocusVisibleStyles('[part~="toggle"]')}
+
+  [part="empty"] {
+    padding: 0.9rem 0.75rem;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
   }
 `;
 
@@ -175,22 +310,34 @@ export class BoxTreeGridElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
-  private seedExpandedState(items: BoxTreeGridItem[], depth = 0): void {
+  private seedExpandedState(items: BoxTreeGridItem[]): void {
+    this.expandedInternal.clear();
     for (const item of items) {
-      if ((item.children?.length ?? 0) > 0 && depth === 0) {
+      if ((item.children?.length ?? 0) > 0) {
         this.expandedInternal.add(item.value);
-        this.seedExpandedState(item.children ?? [], depth + 1);
       }
     }
   }
 
+  private emitExpandChanged(value: string, expanded: boolean): void {
+    this.dispatchEvent(
+      new CustomEvent("expand-changed", {
+        bubbles: true,
+        composed: true,
+        detail: { value, expanded },
+      }),
+    );
+  }
+
   private toggleExpanded(value: string): void {
-    if (this.expandedInternal.has(value)) {
-      this.expandedInternal.delete(value);
-    } else {
+    const expanded = !this.expandedInternal.has(value);
+    if (expanded) {
       this.expandedInternal.add(value);
+    } else {
+      this.expandedInternal.delete(value);
     }
 
+    this.emitExpandChanged(value, expanded);
     this.update();
   }
 
@@ -370,6 +517,7 @@ export class BoxTreeGridElement extends BaseElement {
       if (toggle && this.bodyEl.contains(toggle)) {
         const value = toggle.dataset.value ?? "";
         if (value) {
+          this.focusValue = value;
           this.toggleExpanded(value);
         }
         return;
@@ -429,6 +577,7 @@ export class BoxTreeGridElement extends BaseElement {
         keyboardEvent.preventDefault();
         if (!this.expandedInternal.has(value)) {
           this.expandedInternal.add(value);
+          this.emitExpandChanged(value, true);
           this.focusValue = value;
           this.update();
         }
@@ -439,6 +588,7 @@ export class BoxTreeGridElement extends BaseElement {
         keyboardEvent.preventDefault();
         if (this.expandedInternal.has(value)) {
           this.expandedInternal.delete(value);
+          this.emitExpandChanged(value, false);
           this.focusValue = value;
           this.update();
         }

@@ -26,13 +26,17 @@ describe("BoxAccessStatsElement", () => {
     document.body.innerHTML = "";
   });
 
-  it("renders a labelled group with one tile per stat", () => {
+  it("renders per-tile groups with accessible full values", () => {
     const element = create();
 
-    const group = element.shadowRoot?.querySelector('[part="stats"]');
-    expect(group?.getAttribute("role")).toBe("group");
-    expect(group?.getAttribute("aria-label")).toBe("Access stats");
-    expect(element.shadowRoot?.querySelectorAll('[part="tile"]').length).toBe(3);
+    const tiles = Array.from(element.shadowRoot?.querySelectorAll('[part="tile"]') ?? []);
+    expect(tiles).toHaveLength(3);
+    expect(tiles.every(tile => tile.getAttribute("role") === "group")).toBe(true);
+
+    const views = tiles.find(t => t.getAttribute("aria-label")?.includes("Views"));
+    expect(views?.getAttribute("aria-label")).toBe("1280 Views");
+    expect(views?.querySelector('[part="tile-value"]')?.textContent).toBe("1.3k");
+    expect(views?.querySelector('[part="tile-value"]')?.getAttribute("aria-hidden")).toBe("true");
   });
 
   it("renders each stat's label and value", () => {
@@ -57,13 +61,41 @@ describe("BoxAccessStatsElement", () => {
     expect(element.shadowRoot?.querySelector('[part="tile-icon"]')?.textContent).toContain("👁");
   });
 
-  it("keeps the labelled group and shows an empty affordance with no stats", () => {
+  it("abbreviates millions and billions without producing 1000k", () => {
+    const element = document.createElement("box-access-stats") as BoxAccessStatsElement;
+    element.stats = [
+      { label: "Views", value: 1_000_000 },
+      { label: "Downloads", value: 2_500_000_000 },
+    ];
+    document.body.append(element);
+
+    const tiles = Array.from(element.shadowRoot?.querySelectorAll('[part="tile"]') ?? []);
+    const views = tiles.find(t => t.querySelector('[part="tile-label"]')?.textContent === "Views");
+    const downloads = tiles.find(t => t.querySelector('[part="tile-label"]')?.textContent === "Downloads");
+
+    expect(views?.querySelector('[part="tile-value"]')?.textContent).toBe("1M");
+    expect(downloads?.querySelector('[part="tile-value"]')?.textContent).toBe("2.5B");
+    expect(views?.getAttribute("aria-label")).toBe("1000000 Views");
+    expect(downloads?.getAttribute("aria-label")).toBe("2500000000 Downloads");
+  });
+
+  it("promotes near-million counts to M instead of 1000k", () => {
+    const element = document.createElement("box-access-stats") as BoxAccessStatsElement;
+    element.stats = [{ label: "Views", value: 999_950 }];
+    document.body.append(element);
+
+    const tile = element.shadowRoot?.querySelector('[part="tile"]');
+    expect(tile?.querySelector('[part="tile-value"]')?.textContent).toBe("1M");
+    expect(tile?.getAttribute("aria-label")).toBe("999950 Views");
+  });
+
+  it("keeps the labelled section and shows an empty affordance with no stats", () => {
     const element = document.createElement("box-access-stats") as BoxAccessStatsElement;
     document.body.append(element);
 
-    const group = element.shadowRoot?.querySelector('[part="stats"]');
-    expect(group?.getAttribute("role")).toBe("group");
-    expect(group?.getAttribute("aria-label")).toBe("Access stats");
+    const section = element.shadowRoot?.querySelector('[part="stats"]');
+    expect(section?.getAttribute("aria-labelledby")).toBe("access-stats-title");
+    expect(element.shadowRoot?.querySelector('[part="title"]')?.id).toBe("access-stats-title");
     expect(element.shadowRoot?.querySelector('[part="empty"]')?.textContent).toContain("No access data");
   });
 

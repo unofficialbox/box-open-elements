@@ -156,6 +156,24 @@ const elementStyles = `
           background: var(--boe-token-surface-surface-brand, #0061d5);
           color: var(--boe-token-text-text-on-brand, #ffffff);
         }
+
+        [part="action"][data-tone="danger"],
+        [part="action"][data-tone="destructive"],
+        [part="action"][data-tone="error"] {
+          border-color: transparent;
+          background: var(--boe-token-surface-status-surface-error, #ed3757);
+          color: var(--boe-token-text-text-on-brand, #ffffff);
+        }
+
+        [part="action"][data-tone="danger"]:hover:not(:disabled),
+        [part="action"][data-tone="destructive"]:hover:not(:disabled),
+        [part="action"][data-tone="error"]:hover:not(:disabled) {
+          background: color-mix(
+            in srgb,
+            var(--boe-token-surface-status-surface-error, #ed3757) 88%,
+            #000000 12%
+          );
+        }
       `;
 
 export class BoxAnnotationToolbarElement extends BaseElement {

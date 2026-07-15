@@ -232,7 +232,9 @@ export const examples: Record<string, ComponentExample> = {
       ],
     }),
   },
-  calendar: { html: `<box-calendar value="2026-07-18" month="2026-07"></box-calendar>` },
+  calendar: {
+    html: `<box-calendar value="2026-07-18" month="2026-07" today="2026-07-15"></box-calendar>`,
+  },
   "date-field": { html: `<box-date-field label="Due date" value="2026-07-18"></box-date-field>` },
   dropdown: {
     html: `<box-dropdown label="Sort by"></box-dropdown>`,

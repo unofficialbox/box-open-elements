@@ -65,6 +65,9 @@ describe("BoxDraggableListElement", () => {
     expect(onReorder).toHaveBeenCalledWith(
       expect.objectContaining({ detail: expect.objectContaining({ value: "a", from: 0, to: 1 }) }),
     );
+    const status = element.shadowRoot?.querySelector('[part="status"]');
+    expect(status?.getAttribute("aria-live")).toBe("polite");
+    expect(status?.textContent).toContain("Alpha moved to position 2");
   });
 
   it("moves an item up with ArrowUp", () => {

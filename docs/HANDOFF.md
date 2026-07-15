@@ -16,7 +16,7 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 
 ## Current state (as of this handoff)
 
-- **Branch tip for fidelity work:** develop from `origin/main` after Batch 7 merges.
+- **Branch tip for fidelity work:** develop from `origin/main` after this nits PR merges.
 - **Live site:** GitHub Pages, `https://unofficialbox.github.io/box-open-elements/`,
   auto-deploys on push to `main` via `.github/workflows/deploy.yml`
   (build cmd `bun run site:build`, output `docs-site/dist`). The Workshop is
@@ -24,8 +24,8 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
 - Recent merged PRs: #29 Batches 0/2/6, **#31/#32/#33** Batch 1, **#35** Batch 3,
-  **#38** Batch 4, **#39** Batch 5. **Batch 7** in flight on
-  `cursor/batch-7-polish-7eb7`.
+  **#38** Batch 4, **#39** Batch 5, **#40** Batch 7. Medium/low nits in flight on
+  `cursor/medium-low-audit-nits-7eb7`.
 
 ## The active initiative: component fidelity program
 
@@ -65,16 +65,19 @@ organized into **systemic sweeps**, not per-component rewrites.
   `FormAssociatedElement` in `src/core/form-associated.ts` (`name`,
   `invalid`, `error-message`, `ElementInternals`, error styles via
   `SurfaceStatusSurfaceError`). Wired across 13 everyday controls.
-- **Batch 7 — polish** (this branch): `skeleton` update short-circuit;
-  form association for multi-value / niche controls (checkbox-group,
-  multi-select, dual-listbox, tag-input, pill-cloud, pill-selector-dropdown,
-  rating, color-picker, rich-text-input, range-slider, dropdown) via
-  `FormData` helpers (`formDataFromNamedValues`, `formDataFromRange`);
+- **Batch 7 — polish** (#40): `skeleton` update short-circuit; form association
+  for multi-value / niche controls via `FormData` helpers;
   `applyInvalidStateToControls` for multi-focusable fields.
+- **Medium/low audit nits** (this branch): high-signal per-component polish
+  (identity size/fallback, alert/permission a11y, checkbox indeterminate,
+  combobox value mapping, accordion collapse/headings, overlay/layout/explorer/
+  chart/tree fixes, calendar `today` pin, etc.).
 
 ### Remaining (do these next, in order)
-1. After Batch 7 merges: leftover medium/low audit nits not covered by the
-   fidelity sweeps (per-component polish only — no further systemic batches).
+1. After this nits PR merges: remaining design-heavy leftovers only if needed
+   (floating/anchored popover, slotted tooltip trigger, explorer
+   select-vs-activate split, app-shell responsive breakpoints, nav-sidebar
+   collapsed icon contract). Spacing/token rhythm noise is low priority.
 
 ### Deferred CodeRabbit items (intentional)
 - "add style tests" nitpicks → covered by the screenshot gate; low value.
@@ -116,9 +119,8 @@ organized into **systemic sweeps**, not per-component rewrites.
   deploy failure).
 - **Light vs dark screenshots:** most baselines are light-mode; `surface-surface`
   = `#ffffff` in light, so token-for-white swaps are pixel-identical in light —
-  only dark shots change. `components-calendar.png` is **date-dependent** (renders
-  "today"); it drifts across days — a latent determinism bug to fix someday
-  (pin the demo date).
+  only dark shots change. Calendar demos can pin `today="YYYY-MM-DD"` (docs-site
+  example uses `today="2026-07-15"`) so pixel baselines stay deterministic.
 - **Self-mixing `color-mix` trap:** when tokenizing white, never end up with the
   same token on both operands (`color-mix(surface X%, surface Y%)` is a no-op).
   Use `surface-secondary` for the minority operand. (Caused a regression in #29;
@@ -136,6 +138,6 @@ organized into **systemic sweeps**, not per-component rewrites.
   `getMirroredFormValue(el.internals)` in tests.
 
 ## Open user-facing threads
-- Fidelity Batches **0–6 merged**; **Batch 7** in flight on
-  `cursor/batch-7-polish-7eb7` (skeleton short-circuit + multi-value form assoc).
-- **Next (after Batch 7 merges):** leftover medium/low audit nits only.
+- Fidelity Batches **0–7 merged**; medium/low nits PR in flight on
+  `cursor/medium-low-audit-nits-7eb7`.
+- **Next:** design-heavy leftovers only if product wants them (see Remaining).

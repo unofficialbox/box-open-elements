@@ -43,6 +43,11 @@ const accordionStyles = `
       0 12px 24px rgba(15, 23, 42, 0.04);
   }
 
+  [part="heading"] {
+    margin: 0;
+    font: inherit;
+  }
+
   [part="trigger"] {
     inline-size: 100%;
     display: flex;
@@ -157,17 +162,19 @@ export class BoxAccordionElement extends BaseElement {
 
         return `
           <section part="item" data-open="${String(isOpen)}" data-value="${escapeHtml(item.value)}">
-            <button
-              type="button"
-              part="trigger"
-              id="${triggerId}"
-              data-value="${escapeHtml(item.value)}"
-              aria-expanded="${String(isOpen)}"
-              aria-controls="${panelId}"
-            >
-              <span part="heading">${escapeHtml(item.label)}</span>
-              <span part="indicator" aria-hidden="true">${isOpen ? "−" : "+"}</span>
-            </button>
+            <h3 part="heading">
+              <button
+                type="button"
+                part="trigger"
+                id="${triggerId}"
+                data-value="${escapeHtml(item.value)}"
+                aria-expanded="${String(isOpen)}"
+                aria-controls="${panelId}"
+              >
+                ${escapeHtml(item.label)}
+                <span part="indicator" aria-hidden="true">${isOpen ? "−" : "+"}</span>
+              </button>
+            </h3>
             <div
               part="panel"
               id="${panelId}"
@@ -203,7 +210,21 @@ export class BoxAccordionElement extends BaseElement {
       }
 
       const nextValue = trigger.dataset.value ?? "";
-      if (!nextValue || nextValue === this.valueInternal) {
+      if (!nextValue) {
+        return;
+      }
+
+      if (nextValue === this.valueInternal) {
+        this.valueInternal = "";
+        this.setAttribute("value", "");
+        this.dispatchEvent(
+          new CustomEvent("value-changed", {
+            bubbles: true,
+            composed: true,
+            detail: { value: "" },
+          }),
+        );
+        this.update();
         return;
       }
 
@@ -227,13 +248,15 @@ export class BoxAccordionElement extends BaseElement {
 
     const items = this.items;
     const itemsJson = this.getAttribute("items") ?? "";
-    const selectedValue = this.valueInternal || items[0]?.value || "";
 
-    if (selectedValue !== this.valueInternal) {
-      this.valueInternal = selectedValue;
-      this.setAttribute("value", selectedValue);
+    if (!this.hasAttribute("value") && items.length > 0 && this.valueInternal === "") {
+      this.valueInternal = items[0]!.value;
+      this.setAttribute("value", this.valueInternal);
     }
 
+    const selectedValue = this.valueInternal;
+
+    this.accordionEl.setAttribute("role", "region");
     this.accordionEl.setAttribute("aria-label", this.label);
 
     if (itemsJson !== this.lastItemsJson) {

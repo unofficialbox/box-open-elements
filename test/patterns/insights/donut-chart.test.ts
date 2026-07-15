@@ -77,4 +77,88 @@ describe("BoxDonutChartElement", () => {
       }),
     );
   });
+
+  it("renders a full single-segment arc without collapsing", () => {
+    const element = document.createElement("box-donut-chart") as BoxDonutChartElement;
+    element.segments = [{ id: "only", label: "Only", value: 100 }];
+
+    document.body.append(element);
+
+    const onlyPath = element.shadowRoot?.querySelector('[data-segment-id="only"]') as SVGPathElement | null;
+    expect(onlyPath?.getAttribute("d")).toBeTruthy();
+    expect((onlyPath?.getAttribute("d")?.match(/A/g) ?? []).length).toBeGreaterThan(2);
+  });
+
+  it("cycles distinct default colors for untuned segments", () => {
+    const element = document.createElement("box-donut-chart") as BoxDonutChartElement;
+    element.segments = [
+      { id: "alpha", label: "Alpha", value: 40 },
+      { id: "beta", label: "Beta", value: 30 },
+      { id: "gamma", label: "Gamma", value: 30 },
+    ];
+
+    document.body.append(element);
+
+    const fills = Array.from(element.shadowRoot?.querySelectorAll('[part="segment"]') ?? []).map(node =>
+      node.getAttribute("fill"),
+    );
+    expect(new Set(fills).size).toBe(3);
+  });
+
+  it("exposes a numeric segment summary on the chart aria-label", () => {
+    const element = document.createElement("box-donut-chart") as BoxDonutChartElement;
+    element.heading = "Share distribution";
+    element.segments = [
+      { id: "internal", label: "Internal", value: 10 },
+      { id: "external", label: "External", value: 8 },
+    ];
+
+    document.body.append(element);
+
+    const chart = element.shadowRoot?.querySelector('[part="chart"]');
+    expect(chart?.getAttribute("aria-label")).toBe("Share distribution. Internal: 10, External: 8");
+  });
+
+  it("tracks pressed legend state after segment selection", () => {
+    const element = document.createElement("box-donut-chart") as BoxDonutChartElement;
+    element.segments = [
+      { id: "internal", label: "Internal", value: 10 },
+      { id: "external", label: "External", value: 8 },
+    ];
+
+    document.body.append(element);
+
+    const external = element.shadowRoot?.querySelector(
+      '[part="legend-item"][data-segment-id="external"]',
+    ) as HTMLButtonElement | null;
+    external?.click();
+
+    const pressed = element.shadowRoot?.querySelector(
+      '[part="legend-item"][data-segment-id="external"]',
+    ) as HTMLButtonElement | null;
+    expect(pressed?.getAttribute("aria-pressed")).toBe("true");
+    expect(pressed?.getAttribute("data-pressed")).toBe("true");
+  });
+
+  it("clears pressed legend state when the selected segment is clicked again", () => {
+    const element = document.createElement("box-donut-chart") as BoxDonutChartElement;
+    element.segments = [
+      { id: "internal", label: "Internal", value: 10 },
+      { id: "external", label: "External", value: 8 },
+    ];
+
+    document.body.append(element);
+
+    const external = element.shadowRoot?.querySelector(
+      '[part="legend-item"][data-segment-id="external"]',
+    ) as HTMLButtonElement | null;
+    external?.click();
+    external?.click();
+
+    const pressed = element.shadowRoot?.querySelector(
+      '[part="legend-item"][data-segment-id="external"]',
+    ) as HTMLButtonElement | null;
+    expect(pressed?.getAttribute("aria-pressed")).toBe("false");
+    expect(pressed?.getAttribute("data-pressed")).toBe("false");
+  });
 });

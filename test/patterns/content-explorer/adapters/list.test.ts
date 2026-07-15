@@ -85,4 +85,96 @@ describe("BoxExplorerListElement", () => {
 
     expect(element.shadowRoot?.textContent).toContain("Roadmap");
   });
+
+  it("sets aria-multiselectable for multiple selection mode", async () => {
+    const transport: ExplorerTransport = {
+      loadFolderItems: vi.fn().mockResolvedValue(
+        createResult({
+          items: [{ id: "1", name: "Spec", type: "file" }],
+        }),
+      ),
+    };
+    const controller = new ContentExplorerController({
+      rootFolderId: "0",
+      token: "token",
+      transport,
+      selectionMode: "multiple",
+    });
+    const element = document.createElement("box-explorer-list") as BoxExplorerListElement;
+    element.controller = controller;
+
+    document.body.append(element);
+    await controller.connect();
+    await flushMicrotasks();
+
+    const list = element.shadowRoot?.querySelector('[part="list"]');
+    expect(list?.getAttribute("aria-multiselectable")).toBe("true");
+  });
+
+  it("does not steal focus after folder navigation when focus is outside the list", async () => {
+    const transport: ExplorerTransport = {
+      loadFolderItems: vi
+        .fn()
+        .mockResolvedValueOnce(
+          createResult({
+            items: [{ id: "marketing", name: "Marketing", type: "folder" }],
+          }),
+        )
+        .mockResolvedValueOnce(
+          createResult({
+            breadcrumbs: [
+              { id: "0", name: "All Files", type: "folder" },
+              { id: "marketing", name: "Marketing", type: "folder" },
+            ],
+            folder: { id: "marketing", name: "Marketing", type: "folder" },
+            folderId: "marketing",
+            items: [{ id: "leaf", name: "Leaf", type: "file" }],
+          }),
+        ),
+    };
+    const controller = new ContentExplorerController({
+      rootFolderId: "0",
+      token: "token",
+      transport,
+    });
+    const element = document.createElement("box-explorer-list") as BoxExplorerListElement;
+    const outsideButton = document.createElement("button");
+    outsideButton.textContent = "Outside";
+    element.controller = controller;
+
+    document.body.append(outsideButton, element);
+    await controller.connect();
+    await flushMicrotasks();
+
+    const firstItem = element.shadowRoot?.querySelector('[part~="item"][data-item-id="marketing"]') as HTMLButtonElement | null;
+    firstItem?.focus();
+    firstItem?.click();
+    outsideButton.focus();
+    await flushMicrotasks();
+
+    expect(document.activeElement).toBe(outsideButton);
+    expect(element.shadowRoot?.querySelector('[part~="item"][tabindex="0"]')).toBeNull();
+    expect(element.shadowRoot?.querySelector('[part~="item"][data-item-id="leaf"]')).toBeTruthy();
+    expect(element.shadowRoot?.querySelector('[part~="item"][data-item-id="marketing"]')).toBeNull();
+  });
+
+  it("surfaces load failures in the list shell", async () => {
+    const transport: ExplorerTransport = {
+      loadFolderItems: vi.fn().mockRejectedValue(new Error("Network unavailable")),
+    };
+    const controller = new ContentExplorerController({
+      rootFolderId: "0",
+      token: "token",
+      transport,
+    });
+    const element = document.createElement("box-explorer-list") as BoxExplorerListElement;
+    element.controller = controller;
+
+    document.body.append(element);
+    await controller.connect();
+    await flushMicrotasks();
+
+    expect(element.shadowRoot?.querySelector('[part="error"]')?.textContent).toContain("Network unavailable");
+    expect(element.shadowRoot?.querySelector('[part="error"]')?.getAttribute("role")).toBe("alert");
+  });
 });

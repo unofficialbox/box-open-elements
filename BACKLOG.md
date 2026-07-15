@@ -6,9 +6,9 @@ This file tracks the highest-signal follow-up work that is still open. The phase
 
 Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fidelity-audit.md).
 
-- **Done (merged):** Batches 0 (security), 1 (`BaseElement` in-place render), 2 (dark mode), 3 (focus/hover/active/disabled), 4 (ARIA/keyboard + heading semantics), 5 (form association + invalid state), 6 (`title`→`heading` + docs fixes).
-- **In flight:** Batch 7 (polish — skeleton short-circuit, multi-value form assoc) — `cursor/batch-7-polish-7eb7`.
-- **Next (after Batch 7):** leftover medium/low audit nits only (no further systemic batches).
+- **Done (merged):** Batches 0–7 (security, BaseElement, dark mode, interaction states, ARIA/keyboard, form association, `title`→`heading`, multi-value form assoc + skeleton short-circuit).
+- **In flight:** high-signal medium/low audit nits — `cursor/medium-low-audit-nits-7eb7`.
+- **Next:** design-heavy leftovers only if needed (floating popover, slotted tooltip, explorer select-vs-activate, responsive app-shell).
 
 ## Build-out
 

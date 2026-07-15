@@ -149,4 +149,67 @@ describe("BoxTreeGridElement", () => {
 
     expect(element.shadowRoot?.querySelector('[part~="item"][data-value="brand-guide"]')).toBeTruthy();
   });
+
+  it("applies grid column and depth custom properties", () => {
+    const element = document.createElement("box-tree-grid") as BoxTreeGridElement;
+    element.columns = [
+      { key: "name", label: "Name" },
+      { key: "type", label: "Type" },
+    ];
+    element.items = [
+      {
+        label: "Marketing",
+        value: "marketing",
+        cells: ["Folder"],
+        children: [{ label: "Brand Guide.pdf", value: "brand-guide", cells: ["File"] }],
+      },
+    ];
+
+    document.body.append(element);
+
+    const treeGrid = element.shadowRoot?.querySelector('[part="tree-grid"]') as HTMLElement | null;
+    expect(treeGrid?.style.getPropertyValue("--tree-grid-columns")).toContain("minmax(260px, 1.5fr)");
+
+    const childContent = element.shadowRoot?.querySelector(
+      '[part="tree-content"][style*="--tree-grid-depth:1"]',
+    );
+    expect(childContent).toBeTruthy();
+  });
+
+  it("emits expand-changed when a branch is toggled", () => {
+    const element = document.createElement("box-tree-grid") as BoxTreeGridElement;
+    const expandChanged = vi.fn();
+    element.columns = [{ key: "name", label: "Name" }];
+    element.items = [
+      {
+        label: "Marketing",
+        value: "marketing",
+        children: [{ label: "Brand Guide.pdf", value: "brand-guide" }],
+      },
+    ];
+    element.addEventListener("expand-changed", expandChanged);
+
+    document.body.append(element);
+
+    const toggle = element.shadowRoot?.querySelector('[part~="toggle"][data-value="marketing"]') as HTMLButtonElement | null;
+    toggle?.click();
+
+    expect(expandChanged).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: { value: "marketing", expanded: false },
+      }),
+    );
+  });
+
+  it("exposes selected and hoverable row parts", () => {
+    const element = document.createElement("box-tree-grid") as BoxTreeGridElement;
+    element.columns = [{ key: "name", label: "Name" }];
+    element.items = [{ label: "Marketing", value: "marketing", cells: ["Folder"] }];
+    element.value = "marketing";
+
+    document.body.append(element);
+
+    expect(element.shadowRoot?.querySelector('[part~="row-selected"]')).toBeTruthy();
+    expect(element.shadowRoot?.querySelector('[part~="item-selected"]')).toBeTruthy();
+  });
 });

@@ -1,6 +1,12 @@
 import { BaseElement } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-persona";
+const DEFAULT_SIZE = 48;
+
+const resolveSize = (raw: string | null, fallback = DEFAULT_SIZE): number => {
+  const parsed = Number(raw ?? String(fallback));
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
 
 const initialsFromName = (name: string): string =>
   name
@@ -58,6 +64,29 @@ const personaStyles = `
   [part="fallback"] {
     font-weight: 700;
     color: var(--boe-token-text-text, #222222);
+    font-size: calc(var(--avatar-size, ${DEFAULT_SIZE}px) * 0.4);
+  }
+
+  [part="image"][hidden] {
+    display: none;
+  }
+
+  [part="avatar"][data-tone="informative"] {
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, var(--boe-token-surface-surface, #ffffff) 82%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%) 100%
+      );
+  }
+
+  [part="avatar"][data-tone="success"] {
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 18%, var(--boe-token-surface-surface, #ffffff) 82%) 0%,
+        color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 8%, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%) 100%
+      );
   }
 
   [part="meta"] {
@@ -92,6 +121,28 @@ const personaStyles = `
   [part="status"][hidden] {
     display: none;
   }
+
+  [part="status"][data-tone="info"],
+  [part="status"][data-tone="informative"] {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+  }
+
+  [part="status"][data-tone="success"] {
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 14%, var(--boe-token-surface-surface, #ffffff) 86%);
+    color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 72%, var(--boe-token-text-text, #222222) 28%);
+  }
+
+  [part="status"][data-tone="error"] {
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
+    color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 72%, var(--boe-token-text-text, #222222) 28%);
+  }
+
+  [part="status"][data-tone="warning"],
+  [part="status"][data-tone="inprogress"] {
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 16%, var(--boe-token-surface-surface, #ffffff) 84%);
+    color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 58%, var(--boe-token-text-text, #222222) 42%);
+  }
 `;
 
 export class BoxPersonaElement extends BaseElement {
@@ -121,7 +172,7 @@ export class BoxPersonaElement extends BaseElement {
   }
 
   get size(): number {
-    return Number(this.getAttribute("size") ?? "48");
+    return resolveSize(this.getAttribute("size"));
   }
 
   set size(value: number) {
@@ -195,31 +246,42 @@ export class BoxPersonaElement extends BaseElement {
       return;
     }
 
-    const size = Math.max(32, this.size);
+    const size = this.size;
+    const fallback = this.initials || "?";
     this.avatarEl.dataset.tone = this.tone;
+    this.avatarEl.style.setProperty("--avatar-size", `${size}px`);
     this.avatarEl.style.width = `${size}px`;
     this.avatarEl.style.height = `${size}px`;
 
     const existingImage = this.avatarEl.querySelector('[part="image"]') as HTMLImageElement | null;
     const existingFallback = this.avatarEl.querySelector('[part="fallback"]') as HTMLElement | null;
+    const nextSrc = this.src;
 
-    if (this.src) {
-      existingFallback?.remove();
+    if (nextSrc) {
       const image = existingImage ?? document.createElement("img");
       image.setAttribute("part", "image");
-      image.src = this.src;
       image.alt = this.name;
+
+      const currentSrc = image.getAttribute("src");
+      if (currentSrc !== nextSrc) {
+        image.src = nextSrc;
+        image.hidden = false;
+        image.onerror = () => {
+          image.hidden = true;
+          this.showAvatarFallback(existingFallback, fallback);
+        };
+        image.onload = () => {
+          image.hidden = false;
+          this.avatarEl.querySelector('[part="fallback"]')?.remove();
+        };
+      }
+
       if (!existingImage) {
         this.avatarEl.append(image);
       }
     } else {
       existingImage?.remove();
-      const fallbackEl = existingFallback ?? document.createElement("span");
-      fallbackEl.setAttribute("part", "fallback");
-      fallbackEl.textContent = this.initials || "?";
-      if (!existingFallback) {
-        this.avatarEl.append(fallbackEl);
-      }
+      this.showAvatarFallback(existingFallback, fallback);
     }
 
     this.nameEl.textContent = this.name;
@@ -232,12 +294,23 @@ export class BoxPersonaElement extends BaseElement {
       this.descriptionEl.textContent = "";
     }
 
+    this.statusEl.dataset.tone = this.tone;
+
     if (this.status) {
       this.statusEl.hidden = false;
       this.statusEl.textContent = this.status;
     } else {
       this.statusEl.hidden = true;
       this.statusEl.textContent = "";
+    }
+  }
+
+  private showAvatarFallback(existingFallback: HTMLElement | null, fallback: string): void {
+    const fallbackEl = existingFallback ?? document.createElement("span");
+    fallbackEl.setAttribute("part", "fallback");
+    fallbackEl.textContent = fallback;
+    if (!existingFallback) {
+      this.avatarEl.append(fallbackEl);
     }
   }
 }

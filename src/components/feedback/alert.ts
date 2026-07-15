@@ -3,6 +3,23 @@ import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-alert";
 
+const toneAccessibleLabel = (tone: string): string => {
+  switch (tone) {
+    case "success":
+      return "Success";
+    case "error":
+      return "Error";
+    case "warning":
+      return "Warning";
+    case "inprogress":
+      return "In progress";
+    case "info":
+      return "Info";
+    default:
+      return tone.charAt(0).toUpperCase() + tone.slice(1);
+  }
+};
+
 const alertStyles = `
   :host {
     display: block;
@@ -85,6 +102,19 @@ const alertStyles = `
     display: none;
   }
 
+  .sr-only {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
   [part="dismiss"] {
     appearance: none;
     flex: none;
@@ -110,6 +140,7 @@ export class BoxAlertElement extends BaseElement {
 
   private openValue = true;
   private alertEl!: HTMLElement;
+  private toneLabelEl!: HTMLElement;
   private titleEl!: HTMLElement;
   private messageEl!: HTMLElement;
   private dismissEl!: HTMLButtonElement;
@@ -198,13 +229,15 @@ export class BoxAlertElement extends BaseElement {
       <style>${alertStyles}</style>
       <div part="alert" role="status" aria-live="polite">
         <div part="content">
-          <h2 part="title" hidden></h2>
+          <span part="tone-label" class="sr-only"></span>
+          <h2 part="title" id="alert-title" hidden></h2>
           <span part="description message" hidden></span>
         </div>
         <button type="button" part="dismiss" aria-label="Dismiss alert">Dismiss</button>
       </div>
     `;
     this.alertEl = this.shadowRoot.querySelector('[part="alert"]')!;
+    this.toneLabelEl = this.shadowRoot.querySelector('[part="tone-label"]')!;
     this.titleEl = this.shadowRoot.querySelector('[part="title"]')!;
     this.messageEl = this.shadowRoot.querySelector('[part~="description"]')!;
     this.dismissEl = this.shadowRoot.querySelector('[part="dismiss"]')!;
@@ -228,12 +261,19 @@ export class BoxAlertElement extends BaseElement {
     }
 
     this.alertEl.dataset.tone = this.tone;
-    this.alertEl.setAttribute("aria-label", this.heading || this.message);
+    this.toneLabelEl.textContent = toneAccessibleLabel(this.tone);
 
     if (this.heading) {
+      this.alertEl.setAttribute("aria-labelledby", "alert-title");
+      this.alertEl.removeAttribute("aria-label");
       this.titleEl.hidden = false;
       this.titleEl.textContent = this.heading;
     } else {
+      this.alertEl.removeAttribute("aria-labelledby");
+      const accessibleName = this.message
+        ? `${toneAccessibleLabel(this.tone)}: ${this.message}`
+        : toneAccessibleLabel(this.tone);
+      this.alertEl.setAttribute("aria-label", accessibleName);
       this.titleEl.hidden = true;
       this.titleEl.textContent = "";
     }

@@ -24,8 +24,8 @@ result is written to the run journal, and the committed outputs are this report 
 
 **51 components score below 3/5; 229 high-severity issues logged.**
 
-> **Program status (live):** Batches **0–6 merged**; **7** in flight (polish —
-> skeleton short-circuit + multi-value form association).
+> **Program status (live):** Batches **0–7 merged**. High-signal medium/low
+> audit nits in flight (`cursor/medium-low-audit-nits-7eb7`).
 > Session status: [HANDOFF.md](../HANDOFF.md). Scores and issue lists below are the **original
 > audit snapshot** — they are not re-scored after each batch; track completion in the prioritized
 > plan and HANDOFF.
@@ -41,7 +41,8 @@ At audit time the library averaged **2.78/5** across 108 scored components (51 u
 `shadowRoot.innerHTML` rebuild on every state change** and **hardcoded `white` inside
 `color-mix()`**. Those systemic themes (plus focus/hover states, ARIA/keyboard, form association,
 `title`→`heading`, and the security holes) have since been swept — see the prioritized plan.
-Remaining work is primarily leftover polish (Batch 7), including multi-value form controls.
+Remaining work is primarily optional design-heavy leftovers after Batches 0–7 and the
+medium/low nits pass (floating popover, slotted tooltip, explorer select-vs-activate).
 
 ## Systemic themes
 
@@ -126,5 +127,10 @@ value reflection.
 to `heading` across the offenders; fixed broken shipped examples; humanized Design-Tokens labels;
 unlinked the Workshop from the public site.
 
-**Batch 7 — Per-component polish. — IN FLIGHT.** `skeleton` update short-circuit; form association
-for multi-value / niche controls (`FormData` helpers); leftover medium/low audit nits after merge.
+**Batch 7 — Per-component polish. — DONE (#40).** `skeleton` update short-circuit; form association
+for multi-value / niche controls (`FormData` helpers).
+
+**Medium/low audit nits — IN FLIGHT.** High-signal pure-code polish across identity, forms,
+overlays, layout, explorer adapters, charts, tree/tree-grid, calendar `today` pin, etc.
+Design-heavy leftovers (floating popover, slotted tooltip, explorer select-vs-activate) remain
+optional after this pass.

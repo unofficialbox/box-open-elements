@@ -72,4 +72,18 @@ describe("BoxPermissionMatrixElement", () => {
       }),
     );
   });
+
+  it("defines sr-only styles for visually hidden select labels", () => {
+    const element = document.createElement("box-permission-matrix") as BoxPermissionMatrixElement;
+    element.options = [{ label: "Viewer", value: "viewer" }];
+    element.subjects = [{ id: "1", name: "Morgan Lee" }];
+
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    const srOnly = element.shadowRoot?.querySelector(".sr-only") as HTMLElement | null;
+    expect(styles).toContain(".sr-only");
+    expect(styles).toContain("clip: rect(0, 0, 0, 0)");
+    expect(srOnly?.textContent).toContain("Access for Morgan Lee");
+  });
 });

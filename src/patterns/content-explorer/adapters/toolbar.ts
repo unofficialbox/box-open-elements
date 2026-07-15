@@ -1,5 +1,6 @@
 import { ContentExplorerController } from "../controller.js";
 import { BaseElement } from "../../../core/index.js";
+import { applyRovingTabindex, handleRovingKeydown } from "../../../foundations/a11y/index.js";
 import { boeNeutralInteractiveStyles } from "../../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-explorer-toolbar";
@@ -35,6 +36,10 @@ const elementStyles = `
 
         [part="selection-count"] {
           margin-right: auto;
+        }
+
+        [part="status"][data-status="failed"] {
+          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 72%, black 28%);
         }
 
         [part="refresh"],
@@ -133,9 +138,13 @@ export class BoxExplorerToolbarElement extends BaseElement {
       return;
     }
 
+    const activePart = this.shadowRoot.activeElement?.getAttribute("part") ?? null;
+
     const state = this.controllerValue?.getState();
     const loading = state?.loading ?? false;
     const selectedCount = state?.selectedItemIds.length ?? 0;
+    const hasError = Boolean(state?.error);
+    const statusText = loading ? "loading" : hasError ? "failed" : "ready";
 
     const host = this.shadowRoot.querySelector('[part="content-host"]');
     if (!host) {
@@ -143,8 +152,8 @@ export class BoxExplorerToolbarElement extends BaseElement {
     }
 
     host.innerHTML = `
-      <div part="toolbar">
-        <span part="status">${loading ? "loading" : "ready"}</span>
+      <div part="toolbar" role="toolbar" aria-label="Explorer toolbar">
+        <span part="status" data-status="${statusText}" role="status" aria-live="polite">${statusText}</span>
         <span part="selection-count">${selectedCount} selected</span>
         <button type="button" part="refresh" ${loading ? "disabled" : ""}>Refresh</button>
         <button type="button" part="clear-selection" ${selectedCount === 0 ? "disabled" : ""}>Clear Selection</button>
@@ -157,7 +166,21 @@ export class BoxExplorerToolbarElement extends BaseElement {
     this.shadowRoot.querySelector('[part="clear-selection"]')?.addEventListener("click", () => {
       this.controllerValue?.clearSelection();
     });
-  
+
+    const toolbar = this.shadowRoot.querySelector('[part="toolbar"]');
+    const buttons = Array.from(
+      this.shadowRoot.querySelectorAll<HTMLButtonElement>('[part="refresh"], [part="clear-selection"]'),
+    ).filter(button => !button.disabled);
+    const restoreIndex = activePart
+      ? buttons.findIndex(button => button.getAttribute("part") === activePart)
+      : -1;
+    applyRovingTabindex(buttons, restoreIndex >= 0 ? restoreIndex : 0);
+    if (restoreIndex >= 0) {
+      buttons[restoreIndex]?.focus();
+    }
+    toolbar?.addEventListener("keydown", event => {
+      handleRovingKeydown(event as KeyboardEvent, buttons, { orientation: "horizontal" });
+    });
   }
 }
 

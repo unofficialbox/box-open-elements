@@ -62,12 +62,14 @@ export class BoxCheckboxElement extends FormAssociatedElement {
       ...FormAssociatedElement.formObservedAttributes,
       "checked",
       "disabled",
+      "indeterminate",
       "label",
       "value",
     ];
   }
 
   private checkedInternal = false;
+  private indeterminateInternal = false;
   private valueInternal = DEFAULT_VALUE;
   private inputEl!: HTMLInputElement;
   private labelEl!: HTMLSpanElement;
@@ -82,8 +84,29 @@ export class BoxCheckboxElement extends FormAssociatedElement {
     this.checkedInternal = nextValue;
     if (nextValue) {
       this.setAttribute("checked", "");
+      this.indeterminateInternal = false;
+      this.removeAttribute("indeterminate");
     } else {
       this.removeAttribute("checked");
+      this.indeterminateInternal = false;
+      this.removeAttribute("indeterminate");
+    }
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
+  get indeterminate(): boolean {
+    return this.indeterminateInternal;
+  }
+
+  set indeterminate(value: boolean) {
+    const nextValue = Boolean(value);
+    this.indeterminateInternal = nextValue;
+    if (nextValue) {
+      this.setAttribute("indeterminate", "");
+    } else {
+      this.removeAttribute("indeterminate");
     }
     if (this.isRendered) {
       this.update();
@@ -130,6 +153,9 @@ export class BoxCheckboxElement extends FormAssociatedElement {
     if (name === "checked") {
       this.checkedInternal = this.hasAttribute("checked");
     }
+    if (name === "indeterminate") {
+      this.indeterminateInternal = this.hasAttribute("indeterminate");
+    }
     if (name === "value") {
       this.valueInternal = this.getAttribute("value") ?? DEFAULT_VALUE;
     }
@@ -143,10 +169,14 @@ export class BoxCheckboxElement extends FormAssociatedElement {
   protected restoreFormValue(value: FormValue): void {
     if (value == null) {
       this.checkedInternal = false;
+      this.indeterminateInternal = false;
       this.removeAttribute("checked");
+      this.removeAttribute("indeterminate");
     } else {
       this.checkedInternal = true;
+      this.indeterminateInternal = false;
       this.setAttribute("checked", "");
+      this.removeAttribute("indeterminate");
       if (typeof value === "string") {
         this.valueInternal = value;
         this.setAttribute("value", value);
@@ -184,12 +214,19 @@ export class BoxCheckboxElement extends FormAssociatedElement {
       if (this.disabled) {
         return;
       }
-      const nextValue = (event.currentTarget as HTMLInputElement).checked;
+      const input = event.currentTarget as HTMLInputElement;
+      const nextValue = input.checked;
       this.checkedInternal = nextValue;
+      this.indeterminateInternal = input.indeterminate;
       if (nextValue) {
         this.setAttribute("checked", "");
       } else {
         this.removeAttribute("checked");
+      }
+      if (this.indeterminateInternal) {
+        this.setAttribute("indeterminate", "");
+      } else {
+        this.removeAttribute("indeterminate");
       }
       this.syncFormAssociation();
       this.dispatchEvent(
@@ -208,7 +245,13 @@ export class BoxCheckboxElement extends FormAssociatedElement {
     }
 
     this.inputEl.checked = this.checkedInternal;
+    this.inputEl.indeterminate = this.indeterminateInternal;
     this.inputEl.value = this.valueInternal;
+    const ariaChecked = this.indeterminateInternal
+      ? "mixed"
+      : String(this.checkedInternal);
+    this.inputEl.setAttribute("aria-checked", ariaChecked);
+    this.setAttribute("aria-checked", ariaChecked);
     if (this.disabled) {
       this.inputEl.setAttribute("disabled", "");
     } else {

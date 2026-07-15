@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BoxSplitViewElement, defineBoxSplitViewElement } from "../../../src/components/layout/split-view.js";
 
@@ -49,6 +49,37 @@ describe("BoxSplitViewElement", () => {
     separator?.dispatchEvent(new PointerEvent("pointerup", { pointerId: 1, bubbles: true }));
 
     expect(element.ratio).toBe(0.7);
+  });
+
+  it("emits ratio-changed while resizing via pointer", () => {
+    const element = document.createElement("box-split-view") as BoxSplitViewElement;
+    element.resizable = true;
+    element.ratio = 0.4;
+    const changed = vi.fn();
+    element.addEventListener("ratio-changed", changed);
+
+    document.body.append(element);
+
+    Object.defineProperty(element, "getBoundingClientRect", {
+      value: () =>
+        ({
+          left: 0,
+          width: 1000,
+        }) as DOMRect,
+    });
+
+    const separator = element.shadowRoot?.querySelector('[part="separator"]') as HTMLElement | null;
+    separator?.dispatchEvent(new PointerEvent("pointerdown", { pointerId: 1, bubbles: true }));
+    separator?.dispatchEvent(new PointerEvent("pointermove", { pointerId: 1, clientX: 600, bubbles: true }));
+    separator?.dispatchEvent(new PointerEvent("pointerup", { pointerId: 1, bubbles: true }));
+
+    expect(changed).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bubbles: true,
+        composed: true,
+        detail: { ratio: 0.6 },
+      }),
+    );
   });
 
   it("keeps the same separator node when ratio changes during a drag", () => {

@@ -74,6 +74,26 @@ export class BoxSplitViewElement extends BaseElement {
     this.toggleAttribute("resizable", value);
   }
 
+  private setRatioFromResize(nextRatio: number): void {
+    const clamped = Math.max(0.2, Math.min(0.8, nextRatio));
+    const previous = this.ratio;
+    if (previous === clamped) {
+      return;
+    }
+
+    this.setAttribute("ratio", String(clamped));
+    this.dispatchEvent(
+      new CustomEvent("ratio-changed", {
+        bubbles: true,
+        composed: true,
+        detail: { ratio: clamped },
+      }),
+    );
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
   private stopResize(pointerId?: number): void {
     this.isResizing = false;
     if (typeof pointerId === "number") {
@@ -133,7 +153,7 @@ export class BoxSplitViewElement extends BaseElement {
       }
 
       const nextRatio = Math.max(0.2, Math.min(0.8, (pointerEvent.clientX - rect.left) / rect.width));
-      this.ratio = nextRatio;
+      this.setRatioFromResize(nextRatio);
     });
 
     this.separatorEl.addEventListener("pointerup", event => {

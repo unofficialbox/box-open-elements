@@ -36,4 +36,64 @@ describe("BoxAvatarElement", () => {
     expect(image?.getAttribute("src")).toBe("https://example.com/avatar.png");
     expect(image?.getAttribute("alt")).toBe("Profile photo");
   });
+
+  it("falls back to the default size for invalid size values", () => {
+    const element = document.createElement("box-avatar") as BoxAvatarElement;
+    element.name = "Morgan Lee";
+    element.setAttribute("size", "0");
+
+    document.body.append(element);
+
+    const avatar = element.shadowRoot?.querySelector('[part="avatar"]') as HTMLElement | null;
+    expect(element.size).toBe(52);
+    expect(avatar?.style.width).toBe("52px");
+    expect(avatar?.style.height).toBe("52px");
+  });
+
+  it("scales initials font size with avatar size", () => {
+    const element = document.createElement("box-avatar") as BoxAvatarElement;
+    element.name = "Morgan Lee";
+    element.size = 80;
+
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    const avatar = element.shadowRoot?.querySelector('[part="avatar"]') as HTMLElement | null;
+    expect(styles).toContain("calc(var(--avatar-size");
+    expect(avatar?.style.getPropertyValue("--avatar-size")).toBe("80px");
+  });
+
+  it("shows initials when the image fails to load", () => {
+    const element = document.createElement("box-avatar") as BoxAvatarElement;
+    element.name = "Morgan Lee";
+    element.src = "https://example.com/missing.png";
+
+    document.body.append(element);
+
+    const image = element.shadowRoot?.querySelector('[part="image"]') as HTMLImageElement | null;
+    image?.dispatchEvent(new Event("error"));
+
+    expect(image?.hidden).toBe(true);
+    expect(element.shadowRoot?.querySelector('[part="fallback"]')?.textContent).toBe("ML");
+  });
+
+  it("preserves errored image state when unrelated attributes change", () => {
+    const element = document.createElement("box-avatar") as BoxAvatarElement;
+    element.name = "Morgan Lee";
+    element.src = "https://example.com/missing.png";
+
+    document.body.append(element);
+
+    const image = element.shadowRoot?.querySelector('[part="image"]') as HTMLImageElement | null;
+    image?.dispatchEvent(new Event("error"));
+    expect(image?.hidden).toBe(true);
+    expect(element.shadowRoot?.querySelector('[part="fallback"]')?.textContent).toBe("ML");
+
+    element.tone = "success";
+    element.size = 64;
+
+    const updatedImage = element.shadowRoot?.querySelector('[part="image"]') as HTMLImageElement | null;
+    expect(updatedImage?.hidden).toBe(true);
+    expect(element.shadowRoot?.querySelector('[part="fallback"]')?.textContent).toBe("ML");
+  });
 });
