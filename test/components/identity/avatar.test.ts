@@ -45,9 +45,24 @@ describe("BoxAvatarElement", () => {
     document.body.append(element);
 
     const avatar = element.shadowRoot?.querySelector('[part="avatar"]') as HTMLElement | null;
-    expect(element.size).toBe(52);
-    expect(avatar?.style.width).toBe("52px");
-    expect(avatar?.style.height).toBe("52px");
+    expect(element.size).toBe(32);
+    expect(avatar?.style.width).toBe("32px");
+    expect(avatar?.style.height).toBe("32px");
+  });
+
+  it("uses solid BUE avatar initials chrome by default", () => {
+    const element = document.createElement("box-avatar") as BoxAvatarElement;
+    element.name = "Morgan Lee";
+
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    const avatar = element.shadowRoot?.querySelector('[part="avatar"]') as HTMLElement | null;
+    expect(element.size).toBe(32);
+    expect(styles).toContain("border-radius: 100%");
+    expect(styles).toContain("color: #ffffff;");
+    expect(styles).not.toContain("linear-gradient");
+    expect(avatar?.style.getPropertyValue("--avatar-bg")).toMatch(/^#[0-9a-f]{6}$/i);
   });
 
   it("scales initials font size with avatar size", () => {

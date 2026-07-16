@@ -4,6 +4,7 @@ import {
   focusRovingItem,
   nextRovingIndex,
 } from "../../foundations/a11y/index.js";
+import { boeControl, boeOverlay } from "../../foundations/geometry/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
@@ -33,26 +34,30 @@ const menuStyles = `
   [part="menu"] {
     min-width: 11rem;
     margin: 0;
-    padding: 0.4rem;
+    padding: ${boeOverlay.padding};
     display: grid;
-    gap: 0.2rem;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-    border-radius: 0.7rem;
+    gap: 0;
+    border: ${boeOverlay.border};
+    border-radius: ${boeOverlay.radius};
     background: var(--boe-token-surface-surface, #ffffff);
-    box-shadow: 0 12px 30px color-mix(in srgb, #0b1e33 14%, transparent);
+    box-shadow: ${boeOverlay.shadow};
   }
 
   [part="menu-item"] {
     width: 100%;
     appearance: none;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    min-height: ${boeOverlay.itemMinHeight};
     text-align: left;
     border: 0;
-    border-radius: 0.55rem;
+    border-radius: ${boeOverlay.itemRadius};
     background: transparent;
     color: var(--boe-token-text-text, #222222);
     font: inherit;
-    font-size: 0.92rem;
-    padding: 0.5rem 0.7rem;
+    font-size: ${boeControl.fontSize};
+    padding: ${boeOverlay.itemPadding};
     cursor: pointer;
     transition:
       background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
@@ -62,8 +67,14 @@ const menuStyles = `
 
   ${boeNeutralInteractiveStyles('[part="menu-item"]')}
 
-  [part="menu-item"]:hover:not(:disabled) {
-    color: var(--boe-token-surface-surface-brand, #0061d5);
+  [part="menu-item"]:hover:not(:disabled),
+  [part="menu-item"]:focus-visible:not(:disabled) {
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+    color: var(--boe-token-text-text, #222222);
+  }
+
+  [part="menu-item"]:disabled {
+    opacity: ${boeControl.disabledOpacity};
   }
 `;
 

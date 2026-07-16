@@ -23,6 +23,32 @@ export const boeSpace = {
   6: "24px",
   /** 8 × grid — modal-ish pad / control height */
   8: "32px",
+  /** 10 × grid */
+  10: "40px",
+  /** 12 × grid — menu-item trailing pad */
+  12: "48px",
+} as const;
+
+/**
+ * Overlay / menu / flyout chrome — `mixins/_overlay.scss` + Menu.scss.
+ */
+export const boeOverlay = {
+  /** Container pad — 3 × grid */
+  padding: "12px",
+  radius: "8px",
+  shadow: "0 4px 12px 0 rgb(0 0 0 / 10%)",
+  border: "1px solid var(--boe-token-stroke-stroke, #e8e8e8)",
+  /** Menu item — 8 48 8 8, min-height 30, radius 8 */
+  itemPadding: "8px 48px 8px 8px",
+  itemMinHeight: "30px",
+  itemRadius: "8px",
+  /** Modal — Modal.scss */
+  modalPadding: "30px",
+  modalWidth: "460px",
+  modalRadius: "12px",
+  modalShadow: "0 1px 1px 1px rgb(0 0 0 / 5%)",
+  modalTitleSize: "16px",
+  modalBackdrop: "rgba(0, 0, 0, 0.75)",
 } as const;
 
 /**

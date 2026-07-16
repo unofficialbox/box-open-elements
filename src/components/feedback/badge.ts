@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-badge";
@@ -11,40 +12,47 @@ const badgeStyles = `
   }
 
   [part="badge"] {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.22rem 0.55rem;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface, #ffffff) 90%);
-    color: var(--boe-token-surface-surface-brand, #0061d5);
-    font-size: 0.74rem;
+    display: inline-block;
+    padding: 2px 4px 3px;
+    border-radius: ${boeRadius.size};
+    background: var(--boe-token-surface-surface-secondary, #f4f4f4);
+    color: var(--boe-token-text-text, #222222);
+    font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    line-height: 12px;
+    letter-spacing: 0;
+    text-align: center;
+    text-transform: none;
+    text-decoration: none;
     white-space: nowrap;
     transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="badge"][data-tone="neutral"] {
-    background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 62%, var(--boe-token-stroke-stroke, #e8e8e8) 38%);
-    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    background: var(--boe-token-surface-surface-secondary, #f4f4f4);
+    color: var(--boe-token-text-text, #222222);
+  }
+
+  [part="badge"][data-tone="info"],
+  [part="badge"][data-tone="brand"] {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 50%, #fff);
+    color: #ffffff;
   }
 
   [part="badge"][data-tone="success"] {
-    background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 14%, var(--boe-token-surface-surface, #ffffff) 86%);
-    color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 62%, var(--boe-token-text-text, #222222));
+    background: var(--boe-token-surface-status-surface-success, #26c281);
+    color: #ffffff;
   }
 
   [part="badge"][data-tone="error"] {
-    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
-    color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 70%, var(--boe-token-text-text, #222222));
+    background: var(--boe-token-surface-status-surface-error, #ed3757);
+    color: #ffffff;
   }
 
   [part="badge"][data-tone="warning"],
   [part="badge"][data-tone="inprogress"] {
-    background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 16%, var(--boe-token-surface-surface, #ffffff) 84%);
-    color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 50%, var(--boe-token-text-text, #222222));
+    background: var(--boe-token-surface-status-surface-inprogress, #f5b31b);
+    color: #ffffff;
   }
 `;
 

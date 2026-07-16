@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
@@ -20,59 +21,63 @@ const toastStyles = `
   [part="toast"] {
     display: inline-flex;
     align-items: center;
-    gap: 0.55rem;
-    padding: 0.55rem 0.7rem;
-    border-radius: 0.65rem;
-    border-left: 3px solid var(--boe-token-surface-surface-brand, #0061d5);
-    background: var(--boe-token-surface-tooltip-surface, #222222);
-    color: #ffffff;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
-    max-inline-size: min(100%, 24rem);
+    gap: ${boeSpace[3]};
+    min-height: 48px;
+    max-inline-size: min(100%, 572px);
+    padding: 10px 10px 10px 20px;
+    border: 2px solid var(--boe-token-text-text, #222222);
+    border-radius: ${boeRadius.large};
+    background: var(--boe-token-surface-surface-secondary, #f4f4f4);
+    color: var(--boe-token-text-text, #222222);
+    box-shadow: 0 2px 6px rgb(0 0 0 / 15%);
   }
 
   [part="toast"][data-tone="success"] {
-    border-left-color: var(--boe-token-surface-status-surface-success, #26c281);
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 20%, #fff);
+    border-color: var(--boe-token-surface-status-surface-success, #26c281);
   }
 
   [part="toast"][data-tone="error"] {
-    border-left-color: var(--boe-token-surface-status-surface-error, #ed3757);
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 20%, #fff);
+    border-color: var(--boe-token-surface-status-surface-error, #ed3757);
   }
 
   [part="toast"][data-tone="warning"],
   [part="toast"][data-tone="inprogress"] {
-    border-left-color: var(--boe-token-surface-status-surface-inprogress, #f5b31b);
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 20%, #fff);
+    border-color: var(--boe-token-surface-status-surface-inprogress, #f5b31b);
   }
 
   [part="message"] {
     flex: 1 1 auto;
     min-inline-size: 0;
-    font-size: 0.88rem;
-    font-weight: 600;
+    padding-inline-end: ${boeSpace[3]};
+    font-size: 15px;
+    font-weight: 700;
     line-height: 1.35;
   }
 
   [part="dismiss"] {
     appearance: none;
     flex: 0 0 auto;
-    border: 1px solid rgba(255, 255, 255, 0.24);
-    border-radius: 999px;
+    border: 1px solid var(--boe-token-text-text, #222222);
+    border-radius: ${boeRadius.med};
     background: transparent;
-    color: rgba(255, 255, 255, 0.86);
+    color: var(--boe-token-text-text, #222222);
     font: inherit;
-    font-size: 0.72rem;
-    font-weight: 600;
-    padding: 0.2rem 0.5rem;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 7px 13px;
     cursor: pointer;
     transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="dismiss"]:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
+    background: rgb(0 0 0 / 6%);
   }
 
   [part="dismiss"]:active:not(:disabled) {
-    background: rgba(255, 255, 255, 0.18);
+    background: rgb(0 0 0 / 10%);
   }
 
   ${boeFocusVisibleStyles('[part="dismiss"]')}

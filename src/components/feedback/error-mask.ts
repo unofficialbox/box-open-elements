@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeControl, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-error-mask";
@@ -11,13 +12,15 @@ const errorMaskStyles = `
   }
 
   [part="error-mask"] {
-    display: grid;
-    justify-items: center;
-    gap: 0.55rem;
-    padding: 0.75rem;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke-danger, #f0b7b2) 82%, transparent);
-    border-radius: 0.7rem;
-    background: color-mix(in srgb, var(--boe-token-surface-surface-danger, #fdecea) 60%, var(--boe-token-surface-surface, #ffffff) 40%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: ${boeSpace[3]};
+    padding: ${boeSpace[10]};
+    overflow: hidden;
+    border: 1px dashed var(--boe-token-text-text-secondary, #6f6f6f);
+    border-radius: ${boeRadius.med};
+    background: transparent;
     text-align: center;
   }
 
@@ -26,9 +29,10 @@ const errorMaskStyles = `
     place-items: center;
     inline-size: 2.75rem;
     block-size: 2.75rem;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--boe-token-surface-surface-danger, #fdecea) 55%, var(--boe-token-surface-surface, #ffffff) 45%);
-    color: var(--boe-token-text-text-danger, #b3261e);
+    margin-block-end: ${boeSpace[2]};
+    border-radius: 0;
+    background: transparent;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
   }
 
   [part="icon"] svg {
@@ -37,16 +41,17 @@ const errorMaskStyles = `
   }
 
   [part="title"] {
-          margin: 0;
-          font: inherit;
-    font-size: 1.05rem;
+    margin: 0;
+    font: inherit;
+    font-size: 16px;
     font-weight: 700;
-    color: var(--boe-token-text-text, #222222);
+    color: color-mix(in srgb, var(--boe-token-text-text, #222222) 65%, #fff);
   }
 
   [part~="message"] {
     max-width: 32rem;
-    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    margin: 0;
+    color: color-mix(in srgb, var(--boe-token-text-text, #222222) 65%, #fff);
     line-height: 1.5;
   }
 
@@ -56,24 +61,28 @@ const errorMaskStyles = `
 
   [part="action"] {
     appearance: none;
-    margin-top: 0.4rem;
-    border: 1px solid transparent;
-    border-radius: 999px;
+    box-sizing: border-box;
+    margin-top: ${boeSpace[2]};
+    border: 1px solid var(--boe-token-surface-surface-brand, #0061d5);
+    border-radius: ${boeRadius.med};
     background: var(--boe-token-surface-surface-brand, #0061d5);
     color: var(--boe-token-text-text-on-brand, #ffffff);
     font: inherit;
-    font-weight: 600;
-    padding: 0.45rem 0.75rem;
+    font-size: ${boeControl.fontSize};
+    font-weight: 700;
+    letter-spacing: ${boeControl.letterSpacing};
+    min-height: ${boeControl.height};
+    padding: 0 ${boeControl.paddingInline};
     cursor: pointer;
-    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, transform ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
+    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="action"]:hover {
-    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 88%, black 12%);
+    background: var(--boe-token-surface-surface-brand-hover, #0057c0);
   }
 
   [part="action"]:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+    outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
     outline-offset: 2px;
   }
 

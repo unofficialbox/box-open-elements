@@ -67,13 +67,14 @@ describe("BoxErrorMaskElement", () => {
     expect(onRetry).toHaveBeenCalledWith(expect.objectContaining({ detail: { label: "Try again" } }));
   });
 
-  it("uses compact error-mask shell styles", () => {
+  it("uses BUE error-mask shell styles", () => {
     const element = document.createElement("box-error-mask") as BoxErrorMaskElement;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("padding: 0.75rem;");
-    expect(styles).toContain("border-radius: 0.7rem;");
-    expect(styles).toContain("padding: 0.45rem 0.75rem;");
+    expect(styles).toContain("padding: 40px;");
+    expect(styles).toContain("border-radius: 6px;");
+    expect(styles).toContain("border: 1px dashed");
+    expect(styles).toContain("min-height: 32px;");
   });
 });

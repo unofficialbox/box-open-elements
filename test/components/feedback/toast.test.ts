@@ -32,16 +32,17 @@ describe("BoxToastElement", () => {
     expect(element.open).toBe(false);
   });
 
-  it("uses compact stacking-friendly toast styles", () => {
+  it("uses BUE notification toast styles", () => {
     const element = document.createElement("box-toast") as BoxToastElement;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("inline-size: fit-content;");
-    expect(styles).toContain("gap: 0.55rem;");
-    expect(styles).toContain("padding: 0.55rem 0.7rem;");
-    expect(styles).toContain("border-radius: 0.65rem;");
-    expect(styles).toContain("padding: 0.2rem 0.5rem;");
+    expect(styles).toContain("min-height: 48px;");
+    expect(styles).toContain("padding: 10px 10px 10px 20px;");
+    expect(styles).toContain("border-radius: 8px;");
+    expect(styles).toContain("border: 2px solid");
+    expect(styles).toContain("font-size: 15px;");
   });
 
   it("auto-hides after the provided duration", () => {

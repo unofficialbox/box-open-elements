@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
@@ -36,40 +37,46 @@ const alertStyles = `
     display: flex;
     align-items: start;
     justify-content: space-between;
-    gap: 0.55rem;
-    padding: 0.75rem;
-    border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, var(--boe-token-surface-surface, #ffffff));
-    border-radius: 0.7rem;
-    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff));
+    gap: ${boeSpace[3]};
+    margin: ${boeSpace[3]} 0;
+    padding: 14px 10px;
+    border: 1px solid var(--boe-token-text-text-secondary, #6f6f6f);
+    border-radius: ${boeRadius.med};
+    background: var(--boe-token-surface-surface-secondary, #f4f4f4);
     color: var(--boe-token-text-text, #222222);
     transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
+  [part="alert"][data-tone="info"] {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, #fff);
+    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 50%, #fff);
+  }
+
   [part="alert"][data-tone="success"] {
-    border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 34%, var(--boe-token-surface-surface, #ffffff));
-    background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 12%, var(--boe-token-surface-surface, #ffffff));
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 10%, #fff);
+    border-color: var(--boe-token-surface-status-surface-success, #26c281);
   }
 
   [part="alert"][data-tone="error"] {
-    border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 30%, var(--boe-token-surface-surface, #ffffff));
-    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, var(--boe-token-surface-surface, #ffffff));
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, #fff);
+    border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 50%, #fff);
   }
 
   [part="alert"][data-tone="warning"],
   [part="alert"][data-tone="inprogress"] {
-    border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 40%, var(--boe-token-surface-surface, #ffffff));
-    background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 14%, var(--boe-token-surface-surface, #ffffff));
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 10%, #fff);
+    border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 50%, #fff);
   }
 
   [part="content"] {
     display: grid;
-    gap: 0.25rem;
+    gap: ${boeSpace[1]};
     line-height: 1.45;
   }
 
   [part="title"] {
-          margin: 0;
-          font: inherit;
+    margin: 0;
+    font: inherit;
     font-weight: 700;
     color: var(--boe-token-text-text, #222222);
   }
@@ -78,25 +85,8 @@ const alertStyles = `
     display: none;
   }
 
-  [part="alert"][data-tone="info"] [part="title"] {
-    color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 78%, var(--boe-token-text-text, #222222));
-  }
-
-  [part="alert"][data-tone="success"] [part="title"] {
-    color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 58%, var(--boe-token-text-text, #222222));
-  }
-
-  [part="alert"][data-tone="error"] [part="title"] {
-    color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 64%, var(--boe-token-text-text, #222222));
-  }
-
-  [part="alert"][data-tone="warning"] [part="title"],
-  [part="alert"][data-tone="inprogress"] [part="title"] {
-    color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 46%, var(--boe-token-text-text, #222222));
-  }
-
   [part~="description"] {
-    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    color: var(--boe-token-text-text, #222222);
   }
 
   [part~="description"][hidden] {
@@ -119,16 +109,16 @@ const alertStyles = `
   [part="dismiss"] {
     appearance: none;
     flex: none;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 999px;
-    background: var(--boe-token-surface-surface, #ffffff);
+    border: 0;
+    border-radius: ${boeRadius.med};
+    background: transparent;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     font: inherit;
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 0.3rem 0.7rem;
+    font-size: 13px;
+    font-weight: 700;
+    padding: ${boeSpace[1]} ${boeSpace[2]};
     cursor: pointer;
-    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
+    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   ${boeNeutralInteractiveStyles('[part="dismiss"]')}

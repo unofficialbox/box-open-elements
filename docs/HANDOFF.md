@@ -147,8 +147,7 @@ organized into **systemic sweeps**, not per-component rewrites.
 ## Open user-facing threads
 - Fidelity program complete; workshop at **108** extracted stories; explorer metadata host chrome shipped.
 - Density peer-consistency + Foundations GFM tables shipped.
-- **BUE visual conformance P0** in flight: `foundations/geometry` + button/text-field/select/checkbox/switch aligned to BDL (32px / 6px radius / flat fills).
-- Next conformance slices: overlays, tabs, toast/alert, badge/avatar.
+- **BUE visual conformance**: P0 controls shipped; overlays (menu/dropdown/popover/dialog), tabs (underline), toast/alert, badge/avatar/error-mask aligned via `boeOverlay` + geometry tokens.
 - Motion literals migrated to `boeMotionDuration` / `interactive`.
 - Explorer Folder host chrome swaps list/table adapters via filter-bar `onViewChange`.
 - `recents` still needs a transport contract; configurable columns remain open.
