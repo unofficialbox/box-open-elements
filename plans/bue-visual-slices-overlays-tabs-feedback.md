@@ -11,7 +11,7 @@ Finish the remaining BUE visual conformance slices after P0 everyday controls: o
 - [x] Restyle menu / dropdown / popover / dialog
 - [x] Restyle tabs (underline), toast, alert
 - [x] Restyle badge, avatar (32px solid), error-mask
-- [ ] Tests + docs + `bun run verify` + baselines + PR
+- [x] Tests + docs + `bun run verify` + baselines + PR
 
 ## Decision Log
 
