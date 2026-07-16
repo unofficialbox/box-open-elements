@@ -49,7 +49,7 @@ const dropdownStyles = `
     font: inherit;
     color: var(--boe-token-text-text, #222222);
     text-align: left;
-    padding: 0.4rem 2.1rem 0.4rem 0.7rem;
+    padding: 0.45rem 2.1rem 0.45rem 0.7rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
     border-radius: 0.7rem;
     background:
@@ -98,7 +98,7 @@ const dropdownStyles = `
     min-inline-size: 100%;
     display: grid;
     gap: 0.15rem;
-    padding: 0.35rem;
+    padding: 0.4rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
     border-radius: 0.75rem;
     background: var(--boe-token-surface-surface, #ffffff);
@@ -113,8 +113,8 @@ const dropdownStyles = `
     color: var(--boe-token-text-text, #222222);
     text-align: left;
     white-space: nowrap;
-    padding: 0.55rem 0.7rem;
-    border-radius: 0.5rem;
+    padding: 0.5rem 0.7rem;
+    border-radius: 0.55rem;
     background: transparent;
     cursor: pointer;
     transition:

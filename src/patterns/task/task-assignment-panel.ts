@@ -47,9 +47,9 @@ const elementStyles = `
         [part="panel"] {
           display: grid;
           gap: 0.6rem;
-          padding: 0.6rem;
+          padding: 0.7rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.65rem;
+          border-radius: 0.7rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
@@ -61,7 +61,7 @@ const elementStyles = `
         [part="title"] {
           margin: 0;
           font: inherit;
-          font-size: 1.05rem;
+          font-size: 1.1rem;
           font-weight: 700;
           line-height: 1.15;
         }
@@ -131,7 +131,7 @@ const elementStyles = `
           align-items: center;
           padding: 0.65rem 0.75rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
-          border-radius: 0.65rem;
+          border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
           font: inherit;
@@ -180,7 +180,7 @@ const elementStyles = `
           align-items: start;
           padding: 0.65rem 0.75rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
-          border-radius: 0.65rem;
+          border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
         }
 
@@ -206,7 +206,7 @@ const elementStyles = `
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
           font: inherit;
-          padding: 0.45rem 0.75rem;
+          padding: 0.4rem 0.7rem;
           cursor: pointer;
         }
 

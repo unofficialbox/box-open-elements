@@ -58,7 +58,7 @@ const elementStyles = `
           align-items: center;
           gap: 0.5rem;
           padding: 0.15rem 0.35rem;
-          border-radius: 0.7rem;
+          border-radius: 0.6rem;
           transition: background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
 
@@ -80,12 +80,12 @@ const elementStyles = `
           text-align: left;
           border: 0;
           margin: 0;
-          padding: 0.55rem 0.6rem;
+          padding: 0.5rem 0.65rem;
           border-radius: 0.6rem;
           background: transparent;
           color: var(--boe-token-text-text, #222222);
           font: inherit;
-          font-size: 0.94rem;
+          font-size: 0.9rem;
           font-weight: 500;
           cursor: pointer;
           transition:

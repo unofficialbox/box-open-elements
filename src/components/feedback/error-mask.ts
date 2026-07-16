@@ -14,9 +14,9 @@ const errorMaskStyles = `
     display: grid;
     justify-items: center;
     gap: 0.55rem;
-    padding: 1.1rem 1rem;
+    padding: 0.75rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke-danger, #f0b7b2) 82%, transparent);
-    border-radius: 0.75rem;
+    border-radius: 0.7rem;
     background: color-mix(in srgb, var(--boe-token-surface-surface-danger, #fdecea) 60%, var(--boe-token-surface-surface, #ffffff) 40%);
     text-align: center;
   }
@@ -63,7 +63,7 @@ const errorMaskStyles = `
     color: var(--boe-token-text-text-on-brand, #ffffff);
     font: inherit;
     font-weight: 600;
-    padding: 0.5rem 0.9rem;
+    padding: 0.45rem 0.75rem;
     cursor: pointer;
     transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, transform ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }

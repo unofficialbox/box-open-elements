@@ -43,7 +43,7 @@ const elementStyles = `
           place-items: center;
           appearance: none;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, var(--boe-token-surface-surface, #ffffff) 14%);
-          border-radius: 0.75rem;
+          border-radius: 0.7rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, #eef4fb 6%);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           font: inherit;

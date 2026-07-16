@@ -31,7 +31,7 @@ Components expose accessible semantics as part of the default contract, not as o
 Shared helpers live in `box-open-elements/foundations/a11y`:
 
 | Helper | Use when |
-|---|---|
+| --- | --- |
 | `nextRovingIndex` / `handleRovingKeydown` / `applyRovingTabindex` | menu, toolbar, listbox, radiogroup composites |
 | `trapTabKey` / `FocusRestore` | modal dialogs and drawers (`aria-modal`) |
 | `renderHeadingHtml` / `headingOpenTag` | rendering a `heading` attribute as a real `<h*>` |

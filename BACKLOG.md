@@ -54,6 +54,6 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 ## Density
 
-- **Full catalog density audit** shipped (`tools/density-audit.ts`, `plans/full-catalog-density-audit.md`, `plans/density-audit-report.json`). Chrome bands target segmented-control (shell pad/radius ~0.65–0.75rem, gaps ~0.55rem, titles ≤1.15rem). Dialog/empty-state may stay slightly airier (≤1.1rem). Re-run `bun tools/density-audit.ts` after density-affecting style edits.
+- **Full catalog density audit** shipped (`tools/density-audit.ts`, `plans/density-audit-report.json`). Absolute fat highs cleared; peer-variance pass aligns same-role chrome (overlay/feedback shells `0.75rem`, pattern shells `0.7rem`, list rows `0.5×0.65 / r0.6`, form text `0.45×0.7 / r0.7`). Maintainer helpers: `bun tools/density-audit.ts` (fat + peer camps), `bun tools/apply-density-consistency.ts` (surgical rewrites). Re-run after density-affecting style edits.
 
 Do **not** invent placeholder docs, cards, or lessons — only real/derived content.

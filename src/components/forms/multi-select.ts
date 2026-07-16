@@ -41,7 +41,7 @@ const multiSelectStyles = `
     border: none;
     min-inline-size: 0;
     display: grid;
-    gap: 0.6rem;
+    gap: 0.45rem;
   }
 
   [part="label"] {
@@ -80,7 +80,7 @@ const multiSelectStyles = `
   [part="option"] {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.45rem;
     padding: 0.55rem 0.7rem;
     border-radius: 0.5rem;
     cursor: pointer;

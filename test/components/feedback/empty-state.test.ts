@@ -61,8 +61,8 @@ describe("BoxEmptyStateElement", () => {
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("padding: 1.1rem 1rem;");
-    expect(styles).toContain("border-radius: 0.75rem;");
-    expect(styles).toContain("padding: 0.5rem 0.9rem;");
+    expect(styles).toContain("padding: 0.75rem;");
+    expect(styles).toContain("border-radius: 0.7rem;");
+    expect(styles).toContain("padding: 0.45rem 0.75rem;");
   });
 });

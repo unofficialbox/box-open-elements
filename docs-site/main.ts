@@ -17,6 +17,7 @@ import tokensMd from "../docs/foundations/tokens.md";
 import iconographyMd from "../docs/foundations/iconography.md";
 import themingMd from "../docs/foundations/theming.md";
 import motionMd from "../docs/foundations/motion.md";
+import { renderMarkdown } from "./markdown.js";
 
 // Real, extracted variant states per component (storybook workshop → docs site).
 // Only the components with authored stories have these; everything else keeps
@@ -98,74 +99,6 @@ const escapeHtml = (value: string): string =>
 
 const toKebab = (value: string): string =>
   value.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-
-// Minimal, dependency-free markdown → HTML for the foundation docs (trusted,
-// repo-owned content). Handles headings, lists, code fences, inline code/bold/
-// links, rules, and paragraphs; anything else degrades to a paragraph.
-const renderMarkdown = (md: string): string => {
-  const inline = (text: string): string =>
-    escapeHtml(text)
-      .replace(/`([^`]+)`/g, "<code>$1</code>")
-      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, label, url) => `<a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">${label}</a>`);
-
-  const out: string[] = [];
-  let inList = false;
-  let inCode = false;
-  let code: string[] = [];
-  const closeList = (): void => {
-    if (inList) {
-      out.push("</ul>");
-      inList = false;
-    }
-  };
-  for (const line of md.replace(/\r\n/g, "\n").split("\n")) {
-    if (line.trim().startsWith("```")) {
-      if (inCode) {
-        out.push(`<pre class="code-block"><code>${escapeHtml(code.join("\n"))}</code></pre>`);
-        code = [];
-        inCode = false;
-      } else {
-        closeList();
-        inCode = true;
-      }
-      continue;
-    }
-    if (inCode) {
-      code.push(line);
-      continue;
-    }
-    if (!line.trim()) {
-      closeList();
-      continue;
-    }
-    const heading = line.match(/^(#{1,4})\s+(.*)$/);
-    if (heading) {
-      closeList();
-      out.push(`<h${heading[1].length}>${inline(heading[2])}</h${heading[1].length}>`);
-      continue;
-    }
-    if (line.trim() === "---") {
-      closeList();
-      out.push("<hr />");
-      continue;
-    }
-    const item = line.match(/^\s*[-*]\s+(.*)$/);
-    if (item) {
-      if (!inList) {
-        out.push("<ul>");
-        inList = true;
-      }
-      out.push(`<li>${inline(item[1])}</li>`);
-      continue;
-    }
-    closeList();
-    out.push(`<p>${inline(line.trim())}</p>`);
-  }
-  closeList();
-  if (inCode) out.push(`<pre class="code-block"><code>${escapeHtml(code.join("\n"))}</code></pre>`);
-  return out.join("\n");
-};
 
 // ── State + routing ──────────────────────────────────────────────────────────
 

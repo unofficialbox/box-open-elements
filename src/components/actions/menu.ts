@@ -33,11 +33,11 @@ const menuStyles = `
   [part="menu"] {
     min-width: 11rem;
     margin: 0;
-    padding: 0.45rem;
+    padding: 0.4rem;
     display: grid;
     gap: 0.2rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-    border-radius: 0.75rem;
+    border-radius: 0.7rem;
     background: var(--boe-token-surface-surface, #ffffff);
     box-shadow: 0 12px 30px color-mix(in srgb, #0b1e33 14%, transparent);
   }
@@ -47,12 +47,12 @@ const menuStyles = `
     appearance: none;
     text-align: left;
     border: 0;
-    border-radius: 0.6rem;
+    border-radius: 0.55rem;
     background: transparent;
     color: var(--boe-token-text-text, #222222);
     font: inherit;
     font-size: 0.92rem;
-    padding: 0.6rem 0.7rem;
+    padding: 0.5rem 0.7rem;
     cursor: pointer;
     transition:
       background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},

@@ -24,8 +24,8 @@ const iconButtonStyles = `
 
   [part="button"] {
     appearance: none;
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 2rem;
+    height: 2rem;
     display: inline-grid;
     place-items: center;
     padding: 0;

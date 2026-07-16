@@ -112,7 +112,7 @@ const spinButtonStyles = `
     color: var(--boe-token-text-text, #222222);
     text-align: center;
     font-variant-numeric: tabular-nums;
-    padding: 0.6rem 0.5rem;
+    padding: 0.45rem 0.5rem;
     inline-size: 4.5rem;
     min-inline-size: 0;
   }

@@ -1,7 +1,8 @@
 #!/usr/bin/env bun
 /**
- * Full-catalog density audit vs segmented-control bands.
- * Target: shell pad 0.65–0.75, radius 0.65–0.75, gaps 0.5–0.6, titles ≤1.15rem.
+ * Full-catalog density audit.
+ * 1) Absolute fat thresholds vs segmented-control bands
+ * 2) Peer-variance summary for same-role chrome (pad/radius/gap/title)
  */
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -22,22 +23,28 @@ const walk = (dir: string, out: string[] = []): string[] => {
 const files = [
   ...walk(join(SRC, "components")),
   ...walk(join(SRC, "patterns")),
-].filter(f => !f.endsWith("/index.ts") && !f.includes("/types.ts") && !f.includes("/contracts.ts") && !f.includes("/controller.ts") && !f.includes("/host-bindings.ts") && !f.includes("/provider-adapter.ts") && !f.includes("/content-preview-adapter.ts"));
+].filter(
+  f =>
+    !f.endsWith("/index.ts") &&
+    !f.includes("/types.ts") &&
+    !f.includes("/contracts.ts") &&
+    !f.includes("/controller.ts") &&
+    !f.includes("/host-bindings.ts") &&
+    !f.includes("/provider-adapter.ts") &&
+    !f.includes("/content-preview-adapter.ts") &&
+    !f.includes("/box-transport.ts"),
+);
 
 type Hit = { prop: string; val: string; max: number; severity: "high" | "med" | "low" };
 
 const classify = (prop: string, val: string, max: number): Hit["severity"] | null => {
   const pill = val.includes("999");
-  // Content geometry / intentional airy / reference-matched controls — not chrome fat.
   if (prop === "min-block-size" || prop === "min-height" || prop === "block-size") {
-    // Chart stages, list panes, illustration art, editor floors.
     return null;
   }
-  // Segmented/button em pads use ~1em horizontal — matches reference, not fat.
   if (["padding", "padding-block", "padding-inline"].includes(prop) && /em\b/.test(val) && !/rem\b/.test(val)) {
     return null;
   }
-  // Select/dropdown: large trailing pad is chevron gutter, not shell chrome.
   if (
     ["padding", "padding-block", "padding-inline"].includes(prop) &&
     /2(?:\.\d+)?rem/.test(val) &&
@@ -46,7 +53,6 @@ const classify = (prop: string, val: string, max: number): Hit["severity"] | nul
     return null;
   }
   if (["padding", "padding-block", "padding-inline"].includes(prop)) {
-    // Dialog/empty-state intentional airy band ≤1.1rem → low only above 1.1
     if (max > 1.1) return "high";
     if (max > 1.0) return "med";
     if (max > 0.75) return "low";
@@ -59,7 +65,6 @@ const classify = (prop: string, val: string, max: number): Hit["severity"] | nul
     if (max >= 0.85) return "med";
     if (max > 0.65) return "low";
   } else if (prop === "font-size") {
-    // Metric/summary display cap is 1.35rem (in-band). Titles should be ≤1.15.
     if (max > 1.5) return "high";
     if (max > 1.35) return "med";
     if (max > 1.15) return "low";
@@ -114,7 +119,95 @@ for (const file of files) {
 
 findings.sort((a, b) => b.score - a.score || a.file.localeCompare(b.file));
 
-const clean = findings.filter(f => f.score === 0);
+// ── Peer variance (same-role distinct value camps) ───────────────────────────
+
+type Role = "overlay-shell" | "feedback-shell" | "form-control" | "pattern-shell" | "list-row" | "menu-item";
+
+const roleOf = (file: string): Role | null => {
+  if (/overlays\/(dialog|drawer|popover)\.ts$/.test(file)) return "overlay-shell";
+  if (/feedback\/(empty-state|error-mask|alert|toast|nudge)\.ts$/.test(file)) return "feedback-shell";
+  if (/forms\/(text-field|text-area|number-input|select|dropdown|combobox|search-field|spin-button|date-field|time-field)\.ts$/.test(file)) {
+    return "form-control";
+  }
+  if (/patterns\/.+\.ts$/.test(file) && !/adapters\//.test(file) && !/controller|contracts|types|box-transport/.test(file)) {
+    return "pattern-shell";
+  }
+  if (/content-explorer\/content-explorer\.ts$/.test(file)) return "pattern-shell";
+  if (/(datalist-item|contact-datalist-item|adapters\/list|collections\/tree|draggable-list)\.ts$/.test(file)) {
+    return "list-row";
+  }
+  if (/(actions\/menu-item|forms\/dropdown|adapters\/action-menu)\.ts$/.test(file)) return "menu-item";
+  return null;
+};
+
+const extractShellPad = (text: string): string | null => {
+  // Prefer :host or first prominent padding on a part shell.
+  const host = text.match(/:host\s*\{[^}]*?padding:\s*([^;]+);/s);
+  if (host) return host[1].trim();
+  const part = text.match(/\[part="(?:panel|dialog|drawer|shell|surface|card|root)"\]\s*\{[^}]*?padding:\s*([^;]+);/s);
+  if (part) return part[1].trim();
+  const any = text.match(/padding:\s*([^;]+);/);
+  return any ? any[1].trim() : null;
+};
+
+const extractShellRadius = (text: string): string | null => {
+  const host = text.match(/:host\s*\{[^}]*?border-radius:\s*([^;]+);/s);
+  if (host && !host[1].includes("999")) return host[1].trim();
+  const part = text.match(/\[part="(?:panel|dialog|drawer|shell|surface|card|root)"\]\s*\{[^}]*?border-radius:\s*([^;]+);/s);
+  if (part && !part[1].includes("999")) return part[1].trim();
+  const any = text.match(/border-radius:\s*([^;]+);/);
+  if (any && !any[1].includes("999")) return any[1].trim();
+  return null;
+};
+
+type PeerCamp = { role: Role; prop: "padding" | "border-radius"; values: Record<string, string[]> };
+
+const peerCamps: PeerCamp[] = [];
+const byRole: Record<Role, { file: string; pad: string | null; radius: string | null }[]> = {
+  "overlay-shell": [],
+  "feedback-shell": [],
+  "form-control": [],
+  "pattern-shell": [],
+  "list-row": [],
+  "menu-item": [],
+};
+
+for (const file of files) {
+  const rel = relative(ROOT, file);
+  const role = roleOf(rel);
+  if (!role) continue;
+  const text = readFileSync(file, "utf8");
+  byRole[role].push({
+    file: rel,
+    pad: extractShellPad(text),
+    radius: extractShellRadius(text),
+  });
+}
+
+const variance: Array<{
+  role: Role;
+  prop: "padding" | "border-radius";
+  distinct: number;
+  camps: Record<string, string[]>;
+}> = [];
+
+for (const role of Object.keys(byRole) as Role[]) {
+  for (const prop of ["padding", "border-radius"] as const) {
+    const camps: Record<string, string[]> = {};
+    for (const entry of byRole[role]) {
+      const val = prop === "padding" ? entry.pad : entry.radius;
+      if (!val) continue;
+      (camps[val] ??= []).push(entry.file);
+    }
+    const distinct = Object.keys(camps).length;
+    if (distinct > 1) {
+      variance.push({ role, prop, distinct, camps });
+    }
+  }
+}
+
+variance.sort((a, b) => b.distinct - a.distinct || a.role.localeCompare(b.role));
+
 const report = {
   generatedAt: new Date().toISOString(),
   reference: "segmented-control: control pad/gap 0.25rem, radius 0.75rem; segment pad 0.45em 1em, radius 0.55rem",
@@ -125,11 +218,14 @@ const report = {
     titles: "≤1.15rem",
     optionPad: "~0.4–0.55rem",
     controlMinHeight: "≤2.1rem preferred",
+    overlayShellPad: "0.75rem",
+    patternShellPad: "0.7rem",
+    listRowPad: "0.5rem 0.65rem",
   },
   thresholds: {
-    high: "pad≥1 / radius≥1 / gap≥1 / title≥1.35 / minH≥3",
-    med: "pad≥0.85 / radius≥0.9 / gap≥0.85 / title≥1.2 / minH≥2.5",
-    low: "pad>0.75 / radius>0.75 / gap>0.65 / title>1.15 / minH>2.2",
+    high: "pad>1.1 / radius≥1 / gap≥1 / title>1.5",
+    med: "pad>1.0 / radius≥0.9 / gap≥0.85 / title>1.35",
+    low: "pad>0.75 / radius>0.75 / gap>0.65 / title>1.15",
   },
   scannedFiles: files.length,
   fatFiles: findings.length,
@@ -138,6 +234,7 @@ const report = {
     med: findings.reduce((s, f) => s + f.med, 0),
     low: findings.reduce((s, f) => s + f.low, 0),
   },
+  peerVariance: variance,
   files: findings.map(f => ({
     file: f.file,
     score: f.score,
@@ -153,10 +250,18 @@ writeFileSync(outPath, JSON.stringify(report, null, 2));
 
 console.log(`Scanned ${files.length} element files; ${findings.length} with fat tokens`);
 console.log(`Totals: high=${report.totals.high} med=${report.totals.med} low=${report.totals.low}`);
+console.log(`Peer-variance camps: ${variance.length} role/prop pairs with >1 distinct value`);
 console.log(`Wrote ${relative(ROOT, outPath)}\n`);
-console.log("TOP 40 by score:");
+console.log("TOP 40 by fat score:");
 for (const f of findings.slice(0, 40)) {
   console.log(`${String(f.score).padStart(3)} H${f.high}M${f.med}L${f.low}  ${f.file}`);
   console.log(`    ${f.hits.slice(0, 6).map(h => `${h.severity}:${h.prop}=${h.val}`).join(" | ")}`);
+}
+console.log("\nPeer variance (distinct camps > 1):");
+for (const v of variance.slice(0, 20)) {
+  console.log(`  ${v.role} ${v.prop}: ${v.distinct} camps`);
+  for (const [val, filesForVal] of Object.entries(v.camps).sort((a, b) => b[1].length - a[1].length)) {
+    console.log(`    ${val}  (${filesForVal.length}) ${filesForVal.slice(0, 4).join(", ")}${filesForVal.length > 4 ? "…" : ""}`);
+  }
 }
 console.log(`\nClean (no fat hits): ${files.length - findings.length}`);

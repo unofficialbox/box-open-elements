@@ -16,12 +16,12 @@ const menuItemStyles = `
     appearance: none;
     text-align: left;
     border: 0;
-    border-radius: 0.6rem;
+    border-radius: 0.55rem;
     background: transparent;
     color: var(--boe-token-text-text, #222222);
     font: inherit;
     font-size: 0.92rem;
-    padding: 0.6rem 0.7rem;
+    padding: 0.5rem 0.7rem;
     cursor: pointer;
     transition:
       background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
