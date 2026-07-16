@@ -106,6 +106,45 @@
       ]
     },
     {
+      "id": "link-button",
+      "tag": "box-link-button",
+      "title": "Components/Actions/Link Button",
+      "category": "Actions",
+      "shortDescription": "A button-styled link for navigation actions.",
+      "docsDescription": "Renders an anchor with Box button tones. Requires a safe `href`; the accessible name comes from `label`.",
+      "sourceSnippet": "<box-link-button label=\"Open docs\" href=\"https://developer.box.com\" tone=\"primary\"></box-link-button>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Visible link text / accessible name."
+        },
+        {
+          "kind": "attribute",
+          "name": "href",
+          "type": "string",
+          "description": "Destination URL (http(s), mailto, or relative)."
+        },
+        {
+          "kind": "attribute",
+          "name": "tone",
+          "type": "\"primary\" | \"neutral\" | \"danger\"",
+          "description": "Visual emphasis."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Primary",
+          "html": "<box-link-button label=\"Open docs\" href=\"https://developer.box.com\" tone=\"primary\"></box-link-button>"
+        },
+        {
+          "name": "Neutral",
+          "html": "<box-link-button label=\"Learn more\" href=\"/docs\" tone=\"neutral\"></box-link-button>"
+        }
+      ]
+    },
+    {
       "id": "badge",
       "tag": "box-badge",
       "title": "Components/Feedback/Badge",
@@ -248,6 +287,84 @@
       ]
     },
     {
+      "id": "empty-state",
+      "tag": "box-empty-state",
+      "title": "Components/Feedback/Empty State",
+      "category": "Feedback",
+      "shortDescription": "A heading + message for empty result surfaces.",
+      "docsDescription": "Use when a list or panel has nothing to show. Prefer `heading` + `message`; optional `action-label` for a recovery CTA.",
+      "sourceSnippet": "<box-empty-state heading=\"No results\" message=\"Try a different search.\"></box-empty-state>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Primary empty-state title."
+        },
+        {
+          "kind": "attribute",
+          "name": "message",
+          "type": "string",
+          "description": "Supporting guidance."
+        },
+        {
+          "kind": "attribute",
+          "name": "action-label",
+          "type": "string",
+          "description": "Optional recovery action label."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-empty-state heading=\"No results\" message=\"Try a different search or clear the filters.\"></box-empty-state>"
+        },
+        {
+          "name": "With action",
+          "html": "<box-empty-state heading=\"Folder empty\" message=\"Upload a file to get started.\" action-label=\"Upload\"></box-empty-state>"
+        }
+      ]
+    },
+    {
+      "id": "help-text",
+      "tag": "box-help-text",
+      "title": "Components/Feedback/Help Text",
+      "category": "Feedback",
+      "shortDescription": "Inline supporting guidance for a field or section.",
+      "docsDescription": "Passive help copy with optional `tone`. Pair near the control it explains; keep messages short.",
+      "sourceSnippet": "<box-help-text label=\"Shared links\" message=\"Shared links expire after 30 days.\"></box-help-text>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Short help title."
+        },
+        {
+          "kind": "attribute",
+          "name": "message",
+          "type": "string",
+          "description": "Supporting guidance body."
+        },
+        {
+          "kind": "attribute",
+          "name": "tone",
+          "type": "string",
+          "description": "Optional emphasis."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-help-text label=\"Shared links\" message=\"Shared links expire after 30 days.\"></box-help-text>"
+        },
+        {
+          "name": "Warning",
+          "html": "<box-help-text label=\"Permissions\" message=\"Editors can reshare this folder.\" tone=\"warning\"></box-help-text>"
+        }
+      ]
+    },
+    {
       "id": "spinner",
       "tag": "box-spinner",
       "title": "Components/Feedback/Spinner",
@@ -308,6 +425,49 @@
         {
           "name": "Complete",
           "html": "<box-progress-bar label=\"Storage used\" value=\"100\"></box-progress-bar>"
+        }
+      ]
+    },
+    {
+      "id": "toast",
+      "tag": "box-toast",
+      "title": "Components/Feedback/Toast",
+      "category": "Feedback",
+      "shortDescription": "A transient status message.",
+      "docsDescription": "Shows a short `message` with an optional tone. Toggle visibility with `open`.",
+      "sourceSnippet": "<box-toast open message=\"Upload complete\" tone=\"success\"></box-toast>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "message",
+          "type": "string",
+          "description": "Toast body copy."
+        },
+        {
+          "kind": "attribute",
+          "name": "open",
+          "type": "boolean",
+          "description": "Whether the toast is visible."
+        },
+        {
+          "kind": "attribute",
+          "name": "tone",
+          "type": "string",
+          "description": "Status emphasis (e.g. success, error)."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Success",
+          "html": "<box-toast open message=\"Upload complete\" tone=\"success\"></box-toast>"
+        },
+        {
+          "name": "Error",
+          "html": "<box-toast open message=\"Upload failed\" tone=\"error\"></box-toast>"
+        },
+        {
+          "name": "Closed",
+          "html": "<box-toast message=\"Hidden until open\" tone=\"success\"></box-toast>"
         }
       ]
     },
@@ -404,6 +564,253 @@
         {
           "name": "Disabled",
           "html": "<box-checkbox label=\"Managed by admin\" checked disabled></box-checkbox>"
+        }
+      ]
+    },
+    {
+      "id": "search-field",
+      "tag": "box-search-field",
+      "title": "Components/Forms/Search Field",
+      "category": "Forms",
+      "shortDescription": "A labelled search input with clear affordance.",
+      "docsDescription": "Form-associated search field for queries. Use `label` for the accessible name; clear resets the value.",
+      "sourceSnippet": "<box-search-field label=\"Search files\" placeholder=\"Type to search\"></box-search-field>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible field label."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Current query."
+        },
+        {
+          "kind": "attribute",
+          "name": "placeholder",
+          "type": "string",
+          "description": "Hint shown when empty."
+        },
+        {
+          "kind": "attribute",
+          "name": "disabled",
+          "type": "boolean",
+          "description": "Makes the field inert."
+        },
+        {
+          "kind": "event",
+          "name": "input",
+          "description": "Fired as the query changes."
+        },
+        {
+          "kind": "event",
+          "name": "change",
+          "description": "Fired when the query is committed."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Empty",
+          "html": "<box-search-field label=\"Search files\" placeholder=\"Type to search\"></box-search-field>"
+        },
+        {
+          "name": "Filled",
+          "html": "<box-search-field label=\"Search files\" value=\"contracts\"></box-search-field>"
+        }
+      ]
+    },
+    {
+      "id": "text-field",
+      "tag": "box-text-field",
+      "title": "Components/Forms/Text Field",
+      "category": "Forms",
+      "shortDescription": "A single-line labelled text input.",
+      "docsDescription": "Form-associated text input with label, optional placeholder, and validation hooks (`invalid`, `error-message`).",
+      "sourceSnippet": "<box-text-field label=\"Folder name\" placeholder=\"Marketing\"></box-text-field>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible field label."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Current text value."
+        },
+        {
+          "kind": "attribute",
+          "name": "placeholder",
+          "type": "string",
+          "description": "Hint shown when empty."
+        },
+        {
+          "kind": "attribute",
+          "name": "disabled",
+          "type": "boolean",
+          "description": "Makes the field inert."
+        },
+        {
+          "kind": "attribute",
+          "name": "invalid",
+          "type": "boolean",
+          "description": "Marks the field invalid."
+        },
+        {
+          "kind": "event",
+          "name": "input",
+          "description": "Fired as the value changes."
+        },
+        {
+          "kind": "event",
+          "name": "change",
+          "description": "Fired when the value is committed."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-text-field label=\"Folder name\" placeholder=\"Marketing\"></box-text-field>"
+        },
+        {
+          "name": "Filled",
+          "html": "<box-text-field label=\"Folder name\" value=\"Q3 Plans\"></box-text-field>"
+        },
+        {
+          "name": "Disabled",
+          "html": "<box-text-field label=\"Folder name\" value=\"Locked\" disabled></box-text-field>"
+        },
+        {
+          "name": "Invalid",
+          "html": "<box-text-field label=\"Folder name\" value=\"\" invalid error-message=\"Name is required\"></box-text-field>"
+        }
+      ]
+    },
+    {
+      "id": "dialog",
+      "tag": "box-dialog",
+      "title": "Components/Overlays/Dialog",
+      "category": "Overlays",
+      "shortDescription": "A modal dialog for confirmations and focused tasks.",
+      "docsDescription": "Toggle with `open`. Provide `heading` and optional `description` / `confirm-label` for the primary action.",
+      "sourceSnippet": "<box-dialog open heading=\"Delete item?\" description=\"This cannot be undone.\" confirm-label=\"Delete\"></box-dialog>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "open",
+          "type": "boolean",
+          "description": "Whether the dialog is shown."
+        },
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Dialog title."
+        },
+        {
+          "kind": "attribute",
+          "name": "description",
+          "type": "string",
+          "description": "Supporting body copy."
+        },
+        {
+          "kind": "attribute",
+          "name": "confirm-label",
+          "type": "string",
+          "description": "Primary action label."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Open",
+          "html": "<box-dialog open heading=\"Delete item?\" description=\"This cannot be undone.\" confirm-label=\"Delete\"></box-dialog>"
+        },
+        {
+          "name": "Closed",
+          "html": "<box-dialog heading=\"Delete item?\" description=\"This cannot be undone.\" confirm-label=\"Delete\"></box-dialog>"
+        }
+      ]
+    },
+    {
+      "id": "tooltip",
+      "tag": "box-tooltip",
+      "title": "Components/Overlays/Tooltip",
+      "category": "Overlays",
+      "shortDescription": "A short hover/focus hint for a control.",
+      "docsDescription": "Associates a concise `label` tip with a trigger. Use `open` to force visibility in demos.",
+      "sourceSnippet": "<box-tooltip label=\"Rename\" open trigger-label=\"More\"></box-tooltip>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Tooltip text."
+        },
+        {
+          "kind": "attribute",
+          "name": "trigger-label",
+          "type": "string",
+          "description": "Accessible name for the demo trigger."
+        },
+        {
+          "kind": "attribute",
+          "name": "open",
+          "type": "boolean",
+          "description": "Forces the tooltip open."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Open",
+          "html": "<box-tooltip label=\"Rename this item\" open trigger-label=\"More actions\"></box-tooltip>"
+        },
+        {
+          "name": "Closed",
+          "html": "<box-tooltip label=\"Rename this item\" trigger-label=\"More actions\"></box-tooltip>"
+        }
+      ]
+    },
+    {
+      "id": "illustration",
+      "tag": "box-illustration",
+      "title": "Components/Visuals/Illustration",
+      "category": "Visuals",
+      "shortDescription": "A registered empty/education illustration with optional copy.",
+      "docsDescription": "Resolves `asset` from the active design system (e.g. `empty-state-folder`). Pair with `heading` + `message` for empty states.",
+      "sourceSnippet": "<box-illustration asset=\"empty-state-folder\" heading=\"Nothing here yet\" message=\"Upload a file to get started.\"></box-illustration>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "asset",
+          "type": "string",
+          "description": "Registered illustration key."
+        },
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Optional title below the art."
+        },
+        {
+          "kind": "attribute",
+          "name": "message",
+          "type": "string",
+          "description": "Optional supporting copy."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Empty folder",
+          "html": "<box-illustration asset=\"empty-state-folder\" heading=\"Nothing here yet\" message=\"Upload a file to get started.\"></box-illustration>"
+        },
+        {
+          "name": "Files information",
+          "html": "<box-illustration asset=\"files-information\" heading=\"About these files\" message=\"Details appear when you select an item.\"></box-illustration>"
         }
       ]
     }

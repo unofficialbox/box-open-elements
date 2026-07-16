@@ -28,7 +28,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 ## Tooling and infrastructure
 
-- Docs site shell + shipped follow-ons (`bun run docs`, variant dropdown from Storybook extraction, dark theme, markdown foundation docs in-shell, GitHub Pages deploy). Guidance cards shipped (#44). Grow coverage by authoring more workshop stories / example notes; do not invent placeholder cards.
+- Docs site shell + shipped follow-ons (`bun run docs`, variant dropdown from Storybook extraction, dark theme, markdown foundation docs in-shell, GitHub Pages deploy). Guidance cards shipped (#44). Grow coverage by authoring more workshop stories / example notes; do not invent placeholder cards. **In flight:** workshop story expansion (`cursor/workshop-guidance-stories-7eb7`).
 - Screenshot pixel-diff CI shipped (`visual-regression` job in `.github/workflows/ci.yml` via pinned Playwright container). Local: `bun run test:regression:pixel` / `bun run baselines:regen`. Latent: `components-calendar.png` is date-dependent (pin the demo date someday).
 - Storybook workshop shipped (`storybook/`, see `docs/workshop/storybook.md`) — extraction backend for docs-site variants; not deployed publicly.
 - `packages/box-server` shipped (see `docs/integration/box-server.md`).
