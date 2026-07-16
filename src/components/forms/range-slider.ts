@@ -33,7 +33,7 @@ const rangeSliderStyles = `
 
   [part="field"] {
     display: grid;
-    gap: 0.6rem;
+    gap: 0.45rem;
   }
 
   [part="header"] {

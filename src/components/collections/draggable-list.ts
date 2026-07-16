@@ -34,10 +34,10 @@ const draggableListStyles = `
   [part="item"] {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
-    padding: 0.55rem 0.7rem;
+    gap: 0.55rem;
+    padding: 0.5rem 0.65rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.7rem;
+    border-radius: 0.6rem;
     background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text, #222222);
   }

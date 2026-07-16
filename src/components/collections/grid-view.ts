@@ -37,7 +37,7 @@ const gridViewStyles = `
     display: grid;
     justify-items: center;
     gap: 0.5rem;
-    padding: 0.7rem 0.65rem;
+    padding: 0.6rem 0.65rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
     border-radius: 0.7rem;
     background: var(--boe-token-surface-surface, #ffffff);

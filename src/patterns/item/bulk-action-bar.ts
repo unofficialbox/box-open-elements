@@ -43,7 +43,7 @@ const elementStyles = `
         [part="bar"] {
           display: grid;
           gap: 0.55rem;
-          padding: 0.65rem 0.75rem;
+          padding: 0.7rem;
           border: 1px solid var(--_obp-border);
           border-radius: 0.7rem;
           background: var(--_obp-surface-muted);

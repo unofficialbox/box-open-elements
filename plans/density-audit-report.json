@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T16:54:28.286Z",
+  "generatedAt": "2026-07-16T18:16:51.499Z",
   "reference": "segmented-control: control pad/gap 0.25rem, radius 0.75rem; segment pad 0.45em 1em, radius 0.55rem",
   "bands": {
     "shellPadding": "0.65–0.75rem",
@@ -7,76 +7,203 @@
     "gaps": "0.5–0.6rem",
     "titles": "≤1.15rem",
     "optionPad": "~0.4–0.55rem",
-    "controlMinHeight": "≤2.1rem preferred"
+    "controlMinHeight": "≤2.1rem preferred",
+    "overlayShellPad": "0.75rem",
+    "patternShellPad": "0.7rem",
+    "listRowPad": "0.5rem 0.65rem"
   },
   "thresholds": {
-    "high": "pad≥1 / radius≥1 / gap≥1 / title≥1.35 / minH≥3",
-    "med": "pad≥0.85 / radius≥0.9 / gap≥0.85 / title≥1.2 / minH≥2.5",
-    "low": "pad>0.75 / radius>0.75 / gap>0.65 / title>1.15 / minH>2.2"
+    "high": "pad>1.1 / radius≥1 / gap≥1 / title>1.5",
+    "med": "pad>1.0 / radius≥0.9 / gap≥0.85 / title>1.35",
+    "low": "pad>0.75 / radius>0.75 / gap>0.65 / title>1.15"
   },
-  "scannedFiles": 118,
-  "fatFiles": 14,
+  "scannedFiles": 117,
+  "fatFiles": 8,
   "totals": {
     "high": 0,
-    "med": 5,
-    "low": 14
+    "med": 0,
+    "low": 8
   },
+  "peerVariance": [
+    {
+      "role": "form-control",
+      "prop": "padding",
+      "distinct": 4,
+      "camps": {
+        "0.25rem 0.25rem 0.25rem 0.65rem": [
+          "src/components/forms/search-field.ts"
+        ],
+        "0.45rem 0.7rem": [
+          "src/components/forms/time-field.ts",
+          "src/components/forms/combobox.ts",
+          "src/components/forms/text-field.ts",
+          "src/components/forms/text-area.ts",
+          "src/components/forms/number-input.ts",
+          "src/components/forms/date-field.ts"
+        ],
+        "0.45rem 0.5rem": [
+          "src/components/forms/spin-button.ts"
+        ],
+        "0.45rem 2.1rem 0.45rem 0.7rem": [
+          "src/components/forms/select.ts",
+          "src/components/forms/dropdown.ts"
+        ]
+      }
+    },
+    {
+      "role": "list-row",
+      "prop": "padding",
+      "distinct": 4,
+      "camps": {
+        "0": [
+          "src/components/collections/draggable-list.ts"
+        ],
+        "0.16rem 0.18rem": [
+          "src/components/collections/tree.ts"
+        ],
+        "0.5rem 0.65rem": [
+          "src/components/collections/datalist-item.ts",
+          "src/components/identity/contact-datalist-item.ts"
+        ],
+        "0.4rem": [
+          "src/patterns/content-explorer/adapters/list.ts"
+        ]
+      }
+    },
+    {
+      "role": "overlay-shell",
+      "prop": "padding",
+      "distinct": 3,
+      "camps": {
+        "0.75rem 0.75rem 0.65rem": [
+          "src/components/overlays/drawer.ts"
+        ],
+        "0.75rem": [
+          "src/components/overlays/dialog.ts"
+        ],
+        "0.7rem": [
+          "src/components/overlays/popover.ts"
+        ]
+      }
+    },
+    {
+      "role": "pattern-shell",
+      "prop": "padding",
+      "distinct": 3,
+      "camps": {
+        "0": [
+          "src/patterns/share/collaborator-avatars.ts"
+        ],
+        "0.7rem": [
+          "src/patterns/file-request/file-request-builder.ts",
+          "src/patterns/search/search-results-header.ts",
+          "src/patterns/search/saved-view-picker.ts",
+          "src/patterns/search/filter-bar.ts",
+          "src/patterns/item/preview-header.ts",
+          "src/patterns/item/bulk-action-bar.ts",
+          "src/patterns/item/item-details-panel.ts",
+          "src/patterns/item/item-form.ts",
+          "src/patterns/share/permission-matrix.ts",
+          "src/patterns/share/share-panel.ts",
+          "src/patterns/share/access-stats.ts",
+          "src/patterns/preview/annotation-thread.ts",
+          "src/patterns/preview/annotation-inspector.ts",
+          "src/patterns/preview/annotation-toolbar.ts",
+          "src/patterns/preview/preview-element.ts",
+          "src/patterns/governance/governance-panel.ts",
+          "src/patterns/content-explorer/content-explorer.ts",
+          "src/patterns/metadata/metadata-inspector.ts",
+          "src/patterns/metadata/metadata-filter-builder.ts",
+          "src/patterns/task/task-assignment-panel.ts",
+          "src/patterns/task/review-queue-item.ts",
+          "src/patterns/insights/metric-card.ts",
+          "src/patterns/insights/bar-chart.ts",
+          "src/patterns/insights/donut-chart.ts",
+          "src/patterns/insights/chart-panel.ts",
+          "src/patterns/insights/line-chart.ts"
+        ],
+        "0.75rem": [
+          "src/patterns/share/invite-collaborators-modal.ts",
+          "src/patterns/share/unified-share-modal.ts"
+        ]
+      }
+    },
+    {
+      "role": "feedback-shell",
+      "prop": "padding",
+      "distinct": 2,
+      "camps": {
+        "0.75rem": [
+          "src/components/feedback/alert.ts",
+          "src/components/feedback/empty-state.ts",
+          "src/components/feedback/error-mask.ts"
+        ],
+        "0.55rem 0.7rem": [
+          "src/components/feedback/toast.ts",
+          "src/components/feedback/nudge.ts"
+        ]
+      }
+    },
+    {
+      "role": "feedback-shell",
+      "prop": "border-radius",
+      "distinct": 2,
+      "camps": {
+        "0.7rem": [
+          "src/components/feedback/alert.ts",
+          "src/components/feedback/empty-state.ts",
+          "src/components/feedback/error-mask.ts"
+        ],
+        "0.65rem": [
+          "src/components/feedback/toast.ts",
+          "src/components/feedback/nudge.ts"
+        ]
+      }
+    },
+    {
+      "role": "list-row",
+      "prop": "border-radius",
+      "distinct": 2,
+      "camps": {
+        "0.6rem": [
+          "src/components/collections/tree.ts",
+          "src/components/collections/draggable-list.ts",
+          "src/components/collections/datalist-item.ts",
+          "src/components/identity/contact-datalist-item.ts"
+        ],
+        "0.7rem": [
+          "src/patterns/content-explorer/adapters/list.ts"
+        ]
+      }
+    },
+    {
+      "role": "menu-item",
+      "prop": "padding",
+      "distinct": 2,
+      "camps": {
+        "0": [
+          "src/patterns/content-explorer/adapters/action-menu.ts"
+        ],
+        "0.5rem 0.7rem": [
+          "src/components/actions/menu-item.ts"
+        ]
+      }
+    },
+    {
+      "role": "menu-item",
+      "prop": "border-radius",
+      "distinct": 2,
+      "camps": {
+        "0.55rem": [
+          "src/components/actions/menu-item.ts"
+        ],
+        "0.7rem": [
+          "src/patterns/content-explorer/adapters/action-menu.ts"
+        ]
+      }
+    }
+  ],
   "files": [
-    {
-      "file": "src/components/overlays/drawer.ts",
-      "score": 5,
-      "high": 0,
-      "med": 2,
-      "low": 1,
-      "hits": [
-        "med:padding=1.05rem 1.05rem 0.85rem",
-        "low:padding=0.35rem 0.8rem",
-        "med:padding=1.05rem"
-      ]
-    },
-    {
-      "file": "src/components/feedback/empty-state.ts",
-      "score": 3,
-      "high": 0,
-      "med": 1,
-      "low": 1,
-      "hits": [
-        "med:padding=1.1rem 1rem",
-        "low:padding=0.5rem 0.9rem"
-      ]
-    },
-    {
-      "file": "src/components/feedback/error-mask.ts",
-      "score": 3,
-      "high": 0,
-      "med": 1,
-      "low": 1,
-      "hits": [
-        "med:padding=1.1rem 1rem",
-        "low:padding=0.5rem 0.9rem"
-      ]
-    },
-    {
-      "file": "src/components/overlays/dialog.ts",
-      "score": 3,
-      "high": 0,
-      "med": 1,
-      "low": 1,
-      "hits": [
-        "low:padding=1rem",
-        "med:padding=1.05rem"
-      ]
-    },
-    {
-      "file": "src/components/overlays/popover.ts",
-      "score": 1,
-      "high": 0,
-      "med": 0,
-      "low": 1,
-      "hits": [
-        "low:padding=0.4rem 0.78rem"
-      ]
-    },
     {
       "file": "src/patterns/insights/bar-chart.ts",
       "score": 1,
@@ -155,16 +282,6 @@
       "low": 1,
       "hits": [
         "low:font-size=1.35rem"
-      ]
-    },
-    {
-      "file": "src/patterns/task/review-queue-item.ts",
-      "score": 1,
-      "high": 0,
-      "med": 0,
-      "low": 1,
-      "hits": [
-        "low:gap=0.6rem 0.75rem"
       ]
     }
   ]

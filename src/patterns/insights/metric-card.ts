@@ -66,7 +66,7 @@ const elementStyles = `
         [part="title"] {
           margin: 0;
           font: inherit;
-          font-size: 0.98rem;
+          font-size: 1.05rem;
           font-weight: 700;
           color: var(--boe-token-text-text, #1f1e1b);
         }

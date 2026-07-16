@@ -21,7 +21,7 @@ const dialogStyles = `
     backdrop-filter: blur(6px);
     display: grid;
     place-items: center;
-    padding: 1rem;
+    padding: 0.75rem;
   }
 
   [part="dialog"] {
@@ -33,11 +33,11 @@ const dialogStyles = `
         color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 100%
       );
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.75rem;
+    border-radius: 0.7rem;
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.82),
       0 24px 48px rgba(15, 23, 42, 0.16);
-    padding: 1.05rem;
+    padding: 0.75rem;
     display: grid;
     gap: 0.55rem;
     color: var(--boe-token-text-text, #1f1e1b);

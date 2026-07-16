@@ -42,7 +42,7 @@ const linkButtonStyles = `
     line-height: 1.2;
     padding: 0.35em 0.6em;
     margin: -0.35em -0.6em;
-    border-radius: 0.6rem;
+    border-radius: 0.55rem;
     color: var(--boe-token-surface-surface-brand, #0061d5);
     text-decoration: none;
     text-underline-offset: 0.2em;

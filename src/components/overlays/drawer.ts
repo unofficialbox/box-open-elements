@@ -65,7 +65,7 @@ const drawerStyles = `
     align-items: start;
     justify-content: space-between;
     gap: 0.55rem;
-    padding: 1.05rem 1.05rem 0.85rem;
+    padding: 0.75rem 0.75rem 0.65rem;
     border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
   }
 
@@ -99,7 +99,7 @@ const drawerStyles = `
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     font: inherit;
     min-height: 2rem;
-    padding: 0.35rem 0.8rem;
+    padding: 0.35rem 0.7rem;
     cursor: pointer;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
   }
@@ -107,7 +107,7 @@ const drawerStyles = `
   ${boeNeutralInteractiveStyles('[part="close"]')}
 
   [part="body"] {
-    padding: 1.05rem;
+    padding: 0.75rem;
     overflow: auto;
   }
 `;

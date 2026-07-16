@@ -24,8 +24,8 @@ const elementStyles = `
           display: flex;
           flex-wrap: wrap;
           align-items: end;
-          gap: 0.6rem;
-          padding: 0.5rem 0.65rem;
+          gap: 0.55rem;
+          padding: 0.55rem 0.65rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
           border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);

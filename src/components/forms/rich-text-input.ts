@@ -136,7 +136,7 @@ const richTextStyles = `
     gap: 0.45rem;
     padding: 0.5rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.75rem;
+    border-radius: 0.7rem;
     background:
       linear-gradient(
         180deg,

@@ -116,9 +116,8 @@ describe("BoxDialogElement", () => {
     element.show();
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("padding: 1rem;");
-    expect(styles).toContain("padding: 1.05rem;");
-    expect(styles).toContain("border-radius: 0.75rem;");
+    expect(styles).toContain("padding: 0.75rem;");
+    expect(styles).toContain("border-radius: 0.7rem;");
     expect(styles).toContain("gap: 0.55rem;");
     expect(styles).toContain("font-size: 1.1rem;");
   });

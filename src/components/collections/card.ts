@@ -14,7 +14,7 @@ const cardStyles = `
     gap: 0.55rem;
     padding: 0.7rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, var(--boe-token-surface-surface, #ffffff) 18%);
-    border-radius: 0.75rem;
+    border-radius: 0.7rem;
     background:
       linear-gradient(
         180deg,

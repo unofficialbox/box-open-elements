@@ -76,7 +76,7 @@ const colorPickerStyles = `
     height: 2.1rem;
     padding: 0;
     border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
-    border-radius: 0.55rem;
+    border-radius: 0.7rem;
     background: transparent;
     cursor: pointer;
   }

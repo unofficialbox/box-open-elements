@@ -105,7 +105,7 @@ const treeGridStyles = `
   [part="header-cell"],
   [part="cell"],
   [part="tree-cell"] {
-    padding: 0.55rem 0.75rem;
+    padding: 0.5rem 0.65rem;
     min-width: 0;
   }
 
@@ -187,7 +187,7 @@ const treeGridStyles = `
     appearance: none;
     text-align: left;
     border: 1px solid transparent;
-    border-radius: 0.65rem;
+    border-radius: 0.6rem;
     padding: 0.35rem 0.5rem;
     background: transparent;
     color: var(--boe-token-text-text, #222222);
@@ -216,7 +216,7 @@ const treeGridStyles = `
   ${boeFocusVisibleStyles('[part~="toggle"]')}
 
   [part="empty"] {
-    padding: 0.7rem 0.65rem;
+    padding: 0.6rem 0.65rem;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
   }
 `;

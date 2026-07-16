@@ -43,9 +43,9 @@ describe("BoxSelectElement", () => {
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("gap: 0.35rem;");
-    expect(styles).toContain("padding: 0.4rem 2rem 0.4rem 0.6rem;");
-    expect(styles).toContain("border-radius: 0.65rem;");
+    expect(styles).toContain("gap: 0.45rem;");
+    expect(styles).toContain("padding: 0.45rem 2.1rem 0.45rem 0.7rem;");
+    expect(styles).toContain("border-radius: 0.7rem;");
   });
 
   it("forwards disabled state to the select", () => {

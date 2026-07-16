@@ -40,9 +40,9 @@ const elementStyles = `
         [part="shell"] {
           display: grid;
           gap: 0.6rem;
-          padding: 0.6rem;
+          padding: 0.7rem;
           border: 1px solid var(--_obp-border);
-          border-radius: 0.65rem;
+          border-radius: 0.7rem;
           background: var(--_obp-surface-muted);
         }
 
@@ -100,7 +100,7 @@ const elementStyles = `
         [part="title"] {
           margin: 0;
           font: inherit;
-          font-size: 1.05rem;
+          font-size: 1.1rem;
           font-weight: 700;
           color: inherit;
         }
@@ -124,7 +124,7 @@ const elementStyles = `
         [part="action"] {
           appearance: none;
           min-height: 2rem;
-          padding: 0.45rem 0.75rem;
+          padding: 0.4rem 0.7rem;
           border: 1px solid var(--_obp-border-subtle);
           border-radius: 999px;
           background: var(--_obp-surface);
@@ -153,7 +153,7 @@ const elementStyles = `
         [part="stage"] {
           min-block-size: 13rem;
           border: 1px solid var(--_obp-border-subtle);
-          border-radius: 0.65rem;
+          border-radius: 0.7rem;
           background:
             radial-gradient(circle at top left, color-mix(in srgb, var(--_obp-brand) 10%, transparent), transparent 32%),
             linear-gradient(180deg, color-mix(in srgb, var(--_obp-surface) 86%, var(--boe-token-surface-surface, #ffffff) 14%) 0%, var(--_obp-surface-muted) 100%);

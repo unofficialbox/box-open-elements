@@ -106,10 +106,9 @@ describe("BoxPopoverElement", () => {
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("border-radius: 0.7rem;");
-    expect(styles).toContain("padding: 0.7rem 0.75rem;");
-    expect(styles).toContain("border-radius: 0.75rem;");
-    expect(styles).toContain("padding: 0.4rem 0.78rem;");
+    expect(styles).toMatch(/\[part="surface"\][\s\S]*?padding:\s*0\.7rem;/);
+    expect(styles).toMatch(/\[part="surface"\][\s\S]*?border-radius:\s*0\.7rem;/);
+    expect(styles).toMatch(/\[part="trigger"\][\s\S]*?padding:\s*0\.4rem 0\.7rem;/);
   });
 
   it("floats the surface with absolute positioning and optional placement", () => {

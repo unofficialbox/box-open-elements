@@ -33,7 +33,7 @@ const fieldsetStyles = `
   }
 
   [part="description"] {
-    margin: 0 0 0.85rem;
+    margin: 0 0 0.5rem;
     font-size: 0.86rem;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
   }
