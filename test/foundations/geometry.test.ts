@@ -1,0 +1,31 @@
+import { describe, expect, it } from "vitest";
+
+import {
+  boeControl,
+  boeInputControlStyles,
+  boeRadius,
+  boeSpace,
+} from "../../src/foundations/geometry/index.js";
+
+describe("geometry foundation (BDL)", () => {
+  it("exposes the BUE 4px grid and radius ladder", () => {
+    expect(boeSpace.unit).toBe("4px");
+    expect(boeSpace[4]).toBe("16px");
+    expect(boeRadius.size).toBe("4px");
+    expect(boeRadius.med).toBe("6px");
+    expect(boeRadius.large).toBe("8px");
+    expect(boeRadius.xlarge).toBe("12px");
+  });
+
+  it("exposes 32px control height and input chrome helpers", () => {
+    expect(boeControl.height).toBe("32px");
+    expect(boeControl.heightLarge).toBe("40px");
+    expect(boeControl.inputPadding).toBe("7px");
+    expect(boeControl.disabledOpacity).toBe("0.4");
+
+    const css = boeInputControlStyles('[part="input"]');
+    expect(css).toContain("min-height: 32px");
+    expect(css).toContain("border-radius: 6px");
+    expect(css).toContain("inset 0 2px 4px");
+  });
+});

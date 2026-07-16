@@ -1,16 +1,15 @@
 import { BaseElement } from "../../core/index.js";
+import { boeControl, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-button";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-
+/**
+ * Visual language tracks box-ui-elements `.btn` / `.btn-primary`
+ * (`src/styles/common/_buttons.scss` + constants/_buttons.scss).
+ * Default tone remains `primary` for API stability; `neutral` is the
+ * secondary/bordered BUE default look.
+ */
 const buttonStyles = `
   :host {
     display: inline-block;
@@ -20,106 +19,107 @@ const buttonStyles = `
 
   button {
     appearance: none;
+    box-sizing: border-box;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.4em;
-    font: inherit;
-    font-weight: 600;
-    line-height: 1.2;
-    padding: 0.45em 1em;
-    border-radius: 0.75rem;
-    border: 1px solid transparent;
+    gap: ${boeSpace[2]};
+    min-height: ${boeControl.height};
+    padding: 0 ${boeControl.paddingInline};
+    font-family: inherit;
+    font-size: ${boeControl.fontSize};
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: ${boeControl.letterSpacing};
+    white-space: nowrap;
+    border-radius: ${boeRadius.med};
+    border: 1px solid var(--boe-token-surface-surface-brand, #0061d5);
     cursor: pointer;
-    background:
-      linear-gradient(
-        180deg,
-        var(--boe-token-surface-surface-brand, #0061d5) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 88%, #003c86 12%) 100%
-      );
+    background: var(--boe-token-surface-surface-brand, #0061d5);
     color: var(--boe-token-text-text-on-brand, #ffffff);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.16),
-      0 1px 2px rgba(15, 23, 42, 0.08);
+    box-shadow: none;
     transition:
-      background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
-      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
-      color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
-      box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
+      background-color ${boeMotionDuration.fast} ${boeMotionEasing.standard},
+      border-color ${boeMotionDuration.fast} ${boeMotionEasing.standard},
+      color ${boeMotionDuration.fast} ${boeMotionEasing.standard},
+      box-shadow ${boeMotionDuration.fast} ${boeMotionEasing.standard};
   }
 
   button:hover:not(:disabled) {
     background: var(--boe-token-surface-surface-brand-hover, #0057c0);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.2),
-      0 6px 14px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, transparent);
+    border-color: var(--boe-token-surface-surface-brand-hover, #0057c0);
   }
 
   button:active:not(:disabled) {
     background: var(--boe-token-surface-surface-brand-pressed, #004eaa);
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+    border-color: var(--boe-token-surface-surface-brand-pressed, #004eaa);
+    box-shadow: none;
   }
 
   button:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+    background: var(--boe-token-surface-surface-brand-hover, #0057c0);
+    border-color: var(--boe-token-surface-surface-brand, #0061d5);
+    box-shadow: ${boeControl.primaryFocusShadow};
   }
 
   button[data-tone="neutral"] {
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface-secondary, #fbfbfb) 6%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
-      );
-    color: var(--boe-token-text-text, #222222);
-    border-color: var(--boe-token-stroke-stroke, #e8e8e8);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.82),
-      0 1px 2px rgba(15, 23, 42, 0.04);
+    background: var(--boe-token-surface-surface, #ffffff);
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    border-color: ${boeControl.buttonBorder};
+    box-shadow: none;
   }
 
-  button[data-tone="neutral"]:hover:not(:disabled),
+  button[data-tone="neutral"]:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 97%, black 3%);
+    border-color: ${boeControl.buttonBorder};
+  }
+
   button[data-tone="neutral"]:active:not(:disabled) {
-    background: var(--boe-token-surface-surface-hover, #f4f4f4);
-    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+    background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, black 8%);
+    border-color: ${boeControl.buttonBorder};
   }
 
   button[data-tone="neutral"]:focus-visible {
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+    border-color: var(--boe-token-text-text, #222222);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 10%);
   }
 
   button[data-tone="danger"] {
-    background:
-      linear-gradient(
-        180deg,
-        var(--boe-token-surface-status-surface-error, #ed3757) 0%,
-        color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 88%, #9c1230 12%) 100%
-      );
+    background: var(--boe-token-surface-status-surface-error, #ed3757);
+    border-color: var(--boe-token-surface-status-surface-error, #ed3757);
     color: var(--boe-token-text-text-on-brand, #ffffff);
   }
 
   button[data-tone="danger"]:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 90%, var(--boe-token-surface-surface, #ffffff) 10%);
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 92%, white 8%);
+    border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 92%, white 8%);
   }
 
   button[data-tone="danger"]:active:not(:disabled) {
-    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 84%, black 16%);
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 88%, black 12%);
+    border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 88%, black 12%);
   }
 
   button[data-tone="danger"]:focus-visible {
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 22%, transparent);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 80%), 0 1px 2px rgb(0 0 0 / 10%);
   }
 
   button[data-size="small"] {
-    padding: 0.35em 0.8em;
-    font-size: 0.875em;
-    border-radius: 0.6rem;
+    min-height: 28px;
+    padding: 0 ${boeSpace[3]};
+    font-size: 12px;
+    border-radius: ${boeRadius.med};
+  }
+
+  button[data-size="large"] {
+    min-height: ${boeControl.heightLarge};
+    padding: 0 ${boeSpace[5]};
   }
 
   button:disabled {
-    cursor: not-allowed;
-    opacity: 0.55;
+    cursor: default;
+    opacity: ${boeControl.disabledOpacity};
     box-shadow: none;
   }
 `;

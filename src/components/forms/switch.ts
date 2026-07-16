@@ -4,6 +4,7 @@ import {
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
+import { boeControl, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-switch";
@@ -17,6 +18,7 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
+/** Track/thumb sized toward BUE `.toggle-simple` 40×20. */
 const switchStyles = `
   :host {
     display: inline-block;
@@ -29,11 +31,12 @@ const switchStyles = `
     border: none;
     background: transparent;
     font: inherit;
+    font-size: ${boeControl.fontSize};
     color: inherit;
     text-align: left;
     display: inline-flex;
     align-items: flex-start;
-    gap: 0.55rem;
+    gap: ${boeSpace[2]};
     padding: 0;
     margin: 0;
     cursor: pointer;
@@ -42,11 +45,11 @@ const switchStyles = `
   [part="switch"]:focus-visible {
     outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
     outline-offset: 2px;
-    border-radius: 0.5rem;
+    border-radius: ${boeRadius.med};
   }
 
   [part="switch"]:disabled {
-    opacity: 0.55;
+    opacity: ${boeControl.disabledOpacity};
     cursor: not-allowed;
   }
 
@@ -54,18 +57,18 @@ const switchStyles = `
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
-    inline-size: 2.5rem;
-    block-size: 1.4rem;
-    padding: 0.15rem;
+    inline-size: 40px;
+    block-size: 20px;
+    padding: 2px;
     box-sizing: border-box;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, var(--boe-token-surface-surface, #ffffff) 18%);
-    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08);
-    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
+    border-radius: ${boeRadius.pill};
+    background: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+    box-shadow: none;
+    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="switch"]:hover:not(:disabled) [part~="track"][data-checked="false"] {
-    background: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+    background: color-mix(in srgb, var(--boe-token-stroke-stroke-hover, #bcbcbc) 85%, black 15%);
   }
 
   [part~="track"][data-checked="true"] {
@@ -81,19 +84,19 @@ const switchStyles = `
   }
 
   [part~="thumb"] {
-    inline-size: 1.1rem;
-    block-size: 1.1rem;
-    border-radius: 999px;
+    inline-size: 16px;
+    block-size: 16px;
+    border-radius: ${boeRadius.pill};
     background: var(--boe-token-surface-surface, #ffffff);
-    box-shadow:
-      0 1px 2px rgba(15, 23, 42, 0.18),
-      0 0 0 1px color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 45%, transparent);
+    border: 1px solid var(--boe-token-stroke-stroke-hover, #bcbcbc);
+    box-shadow: none;
     transform: translateX(0);
     transition: transform ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part~="thumb"][data-checked="true"] {
-    transform: translateX(1.1rem);
+    transform: translateX(20px);
+    border-color: transparent;
   }
 
   [part="content"] {

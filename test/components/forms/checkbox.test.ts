@@ -172,4 +172,14 @@ describe("BoxCheckboxElement", () => {
     element.checked = false;
     expect(element.getAttribute("aria-checked")).toBe("false");
   });
+
+  it("uses BUE-sized checkbox geometry", () => {
+    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("inline-size: 14px");
+    expect(styles).toContain("block-size: 14px");
+    expect(styles).toContain("opacity: 0.4");
+  });
 });

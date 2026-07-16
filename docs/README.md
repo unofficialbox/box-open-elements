@@ -20,6 +20,7 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 
 - [Design Tokens](./foundations/tokens.md)
 - [Theming](./foundations/theming.md) — register / activate / apply / observe
+- [Geometry](./foundations/geometry.md) — BDL space / radius / control-height (BUE-aligned)
 - [Motion](./foundations/motion.md) — shared durations, easing, reduced-motion
 - [Iconography](./foundations/iconography.md)
 - [Box Brand Reference](./foundations/brand.md)
