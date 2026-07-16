@@ -34,7 +34,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 ## Tooling and infrastructure
 
-- Docs site shell + shipped follow-ons (`bun run docs`, variant dropdown from Storybook extraction, dark theme, markdown foundation docs in-shell, GitHub Pages deploy). Guidance cards shipped (#44). Workshop stories at **64** surfaces through #56. Grow coverage by authoring more workshop stories / example notes; do not invent placeholder cards.
+- Docs site shell + shipped follow-ons (`bun run docs`, variant dropdown from Storybook extraction, dark theme, markdown foundation docs in-shell, GitHub Pages deploy). Guidance cards shipped (#44). Workshop stories at **101** attribute-stable surfaces (catalog parity minus hand-curated `content-explorer` and controller-bound explorer adapters). Do not invent placeholder cards.
 - Screenshot pixel-diff CI shipped (`visual-regression` job in `.github/workflows/ci.yml` via pinned Playwright container). Local: `bun run test:regression:pixel` / `bun run baselines:regen`. Calendar docs demo already pins `today` / `month` / `value` (see `docs-site/examples.ts`).
 - Storybook workshop shipped (`storybook/`, see `docs/workshop/storybook.md`) — extraction backend for docs-site variants; not deployed publicly.
 - `packages/box-server` shipped (see `docs/integration/box-server.md`).
@@ -49,6 +49,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 | Framework adapters | Thin React wrapper PoC for one everyday control (e.g. `box-button`) | Optional layer; do not block Web Component work |
 | Preview / Box AI | Keep annotation + provider-adapter seams provider-neutral; document AI-specific UI only when contract-stable | See `docs/patterns/preview.md` |
 | Build-along lessons | Author next lesson only when a new workflow needs guided teaching | Explorer + Share + Preview lessons ship; keep scaffolding lesson-generic |
+| Workshop / explorer adapters | Optional host-demo stories for controller-bound explorer chrome | Skip attribute extraction — adapters need a live controller |
 | Explorer recents | Transport + controller `recents` mode after contract exists | Host filter-bar / saved-view binding already available |
 | Motion migration | Opportunistic replacement of hard-coded `120ms`/`140ms` literals | Foundation vocabulary already exists |
 | Style-bridge configs | First real third-party stylesheet mapping | Engine/CLI already ship |
