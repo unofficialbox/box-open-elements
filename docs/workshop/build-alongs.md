@@ -77,6 +77,19 @@ The content-explorer build-along, revised to the build-it-yourself contract:
 
 Deliberately scoped to folder browsing only; metadata query, preview, uploader, share, interceptors, and theming are follow-up lessons.
 
+## Second lesson: Share
+
+The share-panel build-along, on the same lesson infra:
+
+- **Step 0 — Setup.** Blank running app: Box design system registered, `<box-share-panel>` defined, nothing mounted.
+- **Step 1 — render the shell.** Mount the panel with a heading.
+- **Step 2 — shared link.** Wire the `sharedLink` JSON property (url, access, label, status).
+- **Step 3 — people with access.** Set `collaborators`.
+- **Step 4 — message + settings.** Add supporting copy and download/expiration rows.
+- **Step 5 — actions + events.** Host-owned action buttons; listen for `action` and `collaborator-selected`.
+
+Deliberately scoped to the attribute/JSON-driven panel — no invite modal, no explorer selection wiring, no transport.
+
 ## Authoring boundary
 
 - Build-alongs are hand-curated guided lessons and stay **outside** the Storybook extraction path (see [storybook.md](./storybook.md)) — they are workflows, not flat reference pages.
