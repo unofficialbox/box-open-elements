@@ -95,7 +95,8 @@ describe("docs-site content-explorer chrome demo", () => {
         detail: { value: { query: "Plan", sort: "name", view: "table", filters: [] } },
       }),
     );
-    expect(presentation.textContent).toContain("table");
+    expect(presentation.querySelector("strong")?.textContent).toBe("table");
+    expect(presentation.getAttribute("aria-live")).toBe("polite");
 
     cleanup?.();
     search.mockClear();

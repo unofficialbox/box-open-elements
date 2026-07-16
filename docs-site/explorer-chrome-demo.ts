@@ -12,7 +12,7 @@ import type { ExplorerTransport } from "../src/patterns/content-explorer/types.j
 export const contentExplorerChromeHtml = `<div class="explorer-host" style="display:grid;gap:0.85rem">
   <box-saved-view-picker label="Saved views"></box-saved-view-picker>
   <box-filter-bar label="Filters"></box-filter-bar>
-  <p data-host-presentation style="margin:0;font-size:0.85rem;color:var(--boe-token-text-text-secondary,#6f6f6f)">Host presentation: <strong>list</strong> (explorer shell stays list; host owns list/table swap)</p>
+  <p data-host-presentation aria-live="polite" style="margin:0;font-size:0.85rem;color:var(--boe-token-text-text-secondary,#6f6f6f)">Host presentation: <strong>list</strong> (explorer shell stays list; host owns list/table swap)</p>
   <box-content-explorer root-folder-id="0" token="…" page-size="25"></box-content-explorer>
 </div>`;
 
@@ -78,10 +78,11 @@ export const setupContentExplorerChrome = (
     return undefined;
   }
 
+  const presentationValue = presentation?.querySelector("strong") ?? null;
   const unbindFilter = bindFilterBarToExplorer(filterBar, explorer, {
     onViewChange: view => {
-      if (presentation) {
-        presentation.innerHTML = `Host presentation: <strong>${view || "list"}</strong> (explorer shell stays list; host owns list/table swap)`;
+      if (presentationValue) {
+        presentationValue.textContent = view || "list";
       }
     },
   });
