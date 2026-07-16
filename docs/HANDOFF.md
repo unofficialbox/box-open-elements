@@ -1,9 +1,9 @@
 # Handoff — box-open-elements
 
 Snapshot for the next agent picking up this work. Read this first, then
-`docs/foundations/tokens.md` (token consumption vs shell contract),
+`BACKLOG.md`, `docs/foundations/tokens.md` (token consumption vs shell contract),
 `docs/audits/component-fidelity-audit.md` (completed fidelity program), and
-`BACKLOG.md`.
+`plans/iconography-generator.md` (open PR #45).
 
 ## What this repo is
 
@@ -26,10 +26,10 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
 - Recent merged PRs: fidelity Batches 0–7 + #41 nits + **#42** design-heavy leftovers
-  + **#43** explorer search/item contract + UI chrome + **#44** docs-site guidance cards.
-- **Open PR #46:** token consumption vs shell guidance + API-tab token inventory —
-  `cursor/token-vs-shell-guidance-7eb7`. **Open PR #45** (if still open): iconography
-  generator tooling (`cursor/iconography-generator-7eb7`).
+  + **#43** explorer search/item contract + UI chrome + **#44** docs-site guidance cards
+  + **#46** token consumption vs shell guidance / API-tab token inventory.
+- **Open PR #45:** iconography generator tooling —
+  `cursor/iconography-generator-7eb7` (see `plans/iconography-generator.md`).
 
 ## Completed initiative: component fidelity program
 
@@ -143,7 +143,9 @@ organized into **systemic sweeps**, not per-component rewrites.
   `getMirroredFormValue(el.internals)` in tests.
 
 ## Open user-facing threads
-- Fidelity program complete through #42; guidance cards #44 merged.
-- Token-vs-shell contract + derived API-tab token list (this branch).
-- Next: brand imagery Figma review; iconography generator (#45) when ready;
-  Theming/Motion foundation docs only with real content.
+- Fidelity program complete through #42; guidance cards #44 and token-vs-shell #46 merged.
+- **Open PR #45:** iconography generator (`bun run icons:generate` /
+  `BOX_ICONOGRAPHY_SOURCE`). Full 472-icon manifest already vendored; regenerate
+  from the external pack when the inventory updates.
+- Next after #45: brand imagery Figma review; Theming/Motion foundation docs only
+  with real content.

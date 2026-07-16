@@ -14,10 +14,29 @@ The Box design system adapts an external icon inventory (the `2023-Icon-collecti
 
 The generated manifest and its alias layer are vendored at `src/foundations/icons/` (`box-iconography.generated.ts` + `box-iconography.ts`) and wired into `boxDefaultDesignSystem.icons`. The bundle also keeps a few bespoke assets (`info`, `alert`, `folder-shared`, `file-pdf`) because they are not clean one-to-one matches in the source icon pack.
 
-The generator itself (`tools/iconography/generate-box-iconography.mjs` in `box-open-web-components`) has not been ported; port it when the manifest next needs regeneration from an updated source pack:
+The generator lives at `tools/iconography/generate-box-iconography.ts`. Fixture coverage is under `test/fixtures/iconography/` and `test/tools/iconography-generator.test.ts`. The committed 472-icon manifest stays until someone regenerates from an updated pack.
 
-- Command shape: `bun tools/iconography/generate-box-iconography.mjs`
-- Output: the generated manifest under `src/foundations/icons/`
+### Regenerate from a source pack
+
+```bash
+# Preferred: env var
+BOX_ICONOGRAPHY_SOURCE=/path/to/pack bun run icons:generate
+
+# Or flag
+bun run icons:generate -- --source /path/to/pack
+
+# Dry-run (counts + sample keys, no write)
+bun run icons:generate -- --source /path/to/pack --dry-run
+```
+
+Accepted source layouts:
+
+- `pack/2023-Icon-collection-blue-svg/*.svg` and `pack/2023-Icon-collection-white-svg/*.svg`
+- Any directory tree containing `Icon_*_{blue|white}*.svg` files
+
+Output: `src/foundations/icons/box-iconography.generated.ts` (aliases and bespoke assets are left alone).
+
+Key allocation: process blue filenames first (sorted), then white; slug from the name segment; on collision append `-2`, `-3`, ….
 
 ## Usage
 
