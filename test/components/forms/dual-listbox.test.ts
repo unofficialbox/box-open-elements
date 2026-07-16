@@ -40,8 +40,8 @@ describe("BoxDualListboxElement", () => {
     expect(styles).toContain("padding: 0.55rem;");
     expect(styles).toContain("border-radius: 0.75rem;");
     expect(styles).toContain("padding: 0.5rem 0.65rem;");
-    expect(styles).toContain("inline-size: 2rem;");
-    expect(styles).toContain("block-size: 2rem;");
+    expect(styles).toContain("inline-size: 1.65rem;");
+    expect(styles).toContain("block-size: 1.65rem;");
   });
 
   it("moves selected available options to the chosen list", () => {
