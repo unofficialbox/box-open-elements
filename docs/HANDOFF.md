@@ -28,7 +28,7 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
   Coverage floors: [docs/coverage-baseline.md](./coverage-baseline.md).
 - Recent merged PRs: fidelity Batches 0–7 + #41–**#55** (explorer host chrome demo #55; coverage/theming/motion/style-bridge #54).
 - Foundations: theming + motion docs; `src/foundations/motion`; style bridge CLI; explorer host bindings for filter-bar / saved views.
-- **Open PR:** workshop stories batch 4 (49 → 64) — `cursor/workshop-stories-batch4-7eb7`.
+- **Open PR #56:** workshop stories batch 4 (49 → 64) — `cursor/workshop-stories-batch4-7eb7`.
 
 ## Completed initiative: component fidelity program
 
@@ -143,6 +143,6 @@ organized into **systemic sweeps**, not per-component rewrites.
 
 ## Open user-facing threads
 - Fidelity program complete; #44–**#55** merged (workshop was **49** surfaces; coverage gate; theming/motion; style bridge; explorer chrome demo).
-- Workshop stories batch 4 in flight (49 → **64**): collections/forms/patterns attribute-stable stories.
+- Workshop stories batch 4 in flight as **Open PR #56** (49 → **64**): collections/forms/patterns attribute-stable stories.
 - `recents` still needs a transport contract; list/table presentation swap remains host-owned.
 - Next after batch 4: more workshop stories; next build-along lesson; React adapter PoC; opportunistic motion-literal migration.
