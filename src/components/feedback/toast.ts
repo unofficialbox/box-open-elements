@@ -6,6 +6,8 @@ const DEFAULT_TAG_NAME = "box-toast";
 const toastStyles = `
   :host {
     display: block;
+    inline-size: fit-content;
+    max-inline-size: 100%;
     color: inherit;
     font: inherit;
   }
@@ -17,13 +19,14 @@ const toastStyles = `
   [part="toast"] {
     display: inline-flex;
     align-items: center;
-    gap: 0.85rem;
-    padding: 0.72rem 0.95rem;
-    border-radius: 0.75rem;
+    gap: 0.55rem;
+    padding: 0.55rem 0.7rem;
+    border-radius: 0.65rem;
     border-left: 3px solid var(--boe-token-surface-surface-brand, #0061d5);
     background: var(--boe-token-surface-tooltip-surface, #222222);
     color: #ffffff;
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.28);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
+    max-inline-size: min(100%, 24rem);
   }
 
   [part="toast"][data-tone="success"] {
@@ -40,22 +43,24 @@ const toastStyles = `
   }
 
   [part="message"] {
-    font-size: 0.92rem;
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    font-size: 0.88rem;
     font-weight: 600;
-    line-height: 1.45;
+    line-height: 1.35;
   }
 
   [part="dismiss"] {
     appearance: none;
-    flex: none;
+    flex: 0 0 auto;
     border: 1px solid rgba(255, 255, 255, 0.24);
     border-radius: 999px;
     background: transparent;
     color: rgba(255, 255, 255, 0.86);
     font: inherit;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 600;
-    padding: 0.28rem 0.65rem;
+    padding: 0.2rem 0.5rem;
     cursor: pointer;
     transition: background 140ms ease, color 140ms ease;
   }

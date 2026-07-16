@@ -57,9 +57,19 @@ describe("BoxPersonaElement", () => {
     document.body.append(element);
 
     const avatar = element.shadowRoot?.querySelector('[part="avatar"]') as HTMLElement | null;
-    expect(element.size).toBe(48);
-    expect(avatar?.style.width).toBe("48px");
-    expect(avatar?.style.height).toBe("48px");
+    expect(element.size).toBe(40);
+    expect(avatar?.style.width).toBe("40px");
+    expect(avatar?.style.height).toBe("40px");
+  });
+
+  it("uses compact card spacing by default", () => {
+    const element = document.createElement("box-persona") as BoxPersonaElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("gap: 0.5rem;");
+    expect(styles).toContain("padding: 0.4rem 0.5rem;");
+    expect(styles).toContain("border-radius: 0.6rem;");
   });
 
   it("scales initials font size with avatar size", () => {

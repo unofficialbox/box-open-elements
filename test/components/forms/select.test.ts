@@ -38,6 +38,16 @@ describe("BoxSelectElement", () => {
     );
   });
 
+  it("uses tighter select control padding", () => {
+    const element = document.createElement("box-select") as BoxSelectElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("gap: 0.35rem;");
+    expect(styles).toContain("padding: 0.4rem 2rem 0.4rem 0.6rem;");
+    expect(styles).toContain("border-radius: 0.65rem;");
+  });
+
   it("forwards disabled state to the select", () => {
     const element = document.createElement("box-select") as BoxSelectElement;
     element.disabled = true;

@@ -25,6 +25,16 @@ describe("BoxSectionElement", () => {
     expect(section?.getAttribute("aria-labelledby")).toBe(title?.id);
   });
 
+  it("uses compact section spacing and title scale", () => {
+    const element = document.createElement("box-section") as BoxSectionElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("gap: 0.6rem;");
+    expect(styles).toContain("gap: 0.5rem;");
+    expect(styles).toContain("font-size: 1.05rem;");
+  });
+
   it("accepts title as an alias for heading", () => {
     const element = document.createElement("box-section") as BoxSectionElement;
     element.heading = "Overview";

@@ -32,6 +32,18 @@ describe("BoxDualListboxElement", () => {
     expect(element.shadowRoot?.textContent).toContain("Download");
   });
 
+  it("uses compact panel, option, and move button styles", () => {
+    const element = document.createElement("box-dual-listbox") as BoxDualListboxElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("padding: 0.55rem;");
+    expect(styles).toContain("border-radius: 0.75rem;");
+    expect(styles).toContain("padding: 0.5rem 0.65rem;");
+    expect(styles).toContain("inline-size: 1.65rem;");
+    expect(styles).toContain("block-size: 1.65rem;");
+  });
+
   it("moves selected available options to the chosen list", () => {
     const element = document.createElement("box-dual-listbox") as BoxDualListboxElement;
     const changed = vi.fn();

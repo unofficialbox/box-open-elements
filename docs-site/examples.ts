@@ -189,7 +189,32 @@ export const examples: Record<string, ComponentExample> = {
   },
   skeleton: { html: `<box-skeleton width="320px" height="18px"></box-skeleton>` },
   spinner: { html: `<box-spinner label="Loading"></box-spinner>` },
-  toast: { html: `<box-toast message="Link copied — anyone in the company can view." open></box-toast>` },
+  toast: {
+    html: `<div style="display:grid;gap:0.5rem;justify-items:start;max-inline-size:min(100%,24rem)">
+  <box-toast open tone="info" message="Link copied — anyone in the company can view."></box-toast>
+  <box-toast open tone="success" message="Upload complete."></box-toast>
+  <box-toast open tone="warning" message="Connection is slow — retrying."></box-toast>
+</div>`,
+    variants: [
+      {
+        name: "Stacked",
+        html: `<div style="display:grid;gap:0.5rem;justify-items:start;max-inline-size:min(100%,24rem)">
+  <box-toast open tone="info" message="Link copied — anyone in the company can view."></box-toast>
+  <box-toast open tone="success" message="Upload complete."></box-toast>
+  <box-toast open tone="warning" message="Connection is slow — retrying."></box-toast>
+</div>`,
+        note: "Host stacks toasts in normal flow — the element is not position:fixed.",
+      },
+      {
+        name: "Success",
+        html: `<box-toast open message="Upload complete" tone="success"></box-toast>`,
+      },
+      {
+        name: "Error",
+        html: `<box-toast open message="Upload failed" tone="error"></box-toast>`,
+      },
+    ],
+  },
   "drop-zone": { html: `<box-drop-zone label="Upload files" message="Drag files here or browse."></box-drop-zone>` },
   checkbox: { html: `<box-checkbox label="Enable shared links" checked></box-checkbox>` },
   "checkbox-group": {
@@ -345,9 +370,63 @@ export const examples: Record<string, ComponentExample> = {
   "contact-datalist-item": {
     html: `<box-contact-datalist-item name="Morgan Lee" email="morgan@box.com" value="morgan" selected></box-contact-datalist-item>\n<box-contact-datalist-item name="Alex Kim" email="alex@box.com" value="alex"></box-contact-datalist-item>`,
   },
-  "app-shell": { html: `<box-app-shell heading="Box Admin"></box-app-shell>` },
-  divider: { html: `<box-divider label="Shared with your team"></box-divider>` },
-  "split-view": { html: `<box-split-view label="Master detail"></box-split-view>` },
+  "app-shell": {
+    html: `<box-app-shell heading="Box Admin" nav-label="Workspace navigation" aside-label="File context">
+  <span slot="eyebrow">Enterprise</span>
+  <box-button slot="header-actions" label="Invite" tone="primary"></box-button>
+  <box-nav-sidebar slot="nav" label="Workspace">
+    <button type="button" aria-label="All Files">All Files</button>
+    <button type="button" aria-label="Recents">Recents</button>
+    <button type="button" aria-label="Trash">Trash</button>
+  </box-nav-sidebar>
+  <box-card eyebrow="PDF · 2.4 MB" heading="Quarterly Plan.pdf">Updated 2 hours ago by Morgan Lee</box-card>
+  <box-item-details-panel slot="aside" heading="Quarterly Plan.pdf" eyebrow="PDF · 2.4 MB" owner='{"name":"Morgan Lee","description":"Enterprise Admin"}' meta='[{"label":"Modified","value":"Jul 10, 2026"}]'></box-item-details-panel>
+  <span slot="footer">2.4 GB of 10 GB used</span>
+</box-app-shell>`,
+  },
+  divider: {
+    html: `<div style="display:grid;gap:0.75rem;width:min(100%,22rem)">
+  <div>
+    <strong>Metadata</strong>
+    <p style="margin:0.35rem 0 0;color:#6f6f6f;font-size:0.9rem">Owner, shared status, and last activity.</p>
+  </div>
+  <box-divider label="Activity"></box-divider>
+  <div>
+    <strong>Recent comments</strong>
+    <p style="margin:0.35rem 0 0;color:#6f6f6f;font-size:0.9rem">Version history and discussion sit below the rule.</p>
+  </div>
+</div>`,
+    variants: [
+      {
+        name: "In context",
+        html: `<div style="display:grid;gap:0.75rem;width:min(100%,22rem)">
+  <div>
+    <strong>Metadata</strong>
+    <p style="margin:0.35rem 0 0;color:#6f6f6f;font-size:0.9rem">Owner, shared status, and last activity.</p>
+  </div>
+  <box-divider label="Activity"></box-divider>
+  <div>
+    <strong>Recent comments</strong>
+    <p style="margin:0.35rem 0 0;color:#6f6f6f;font-size:0.9rem">Version history and discussion sit below the rule.</p>
+  </div>
+</div>`,
+      },
+      {
+        name: "Labelled",
+        html: `<box-divider label="Shared with your team"></box-divider>`,
+      },
+      {
+        name: "Plain",
+        html: `<div style="width:min(100%,22rem)"><box-divider></box-divider></div>`,
+      },
+    ],
+  },
+  "split-view": {
+    html: `<box-split-view label="Master detail" ratio="0.4" resizable>
+  <box-grid-view slot="primary" label="Files" value="123" items='[{"value":"123","label":"Quarterly Plan.pdf","meta":"PDF · 2.1 MB","icon":"P"},{"value":"124","label":"Brand Guidelines.pdf","meta":"PDF · 5.4 MB","icon":"P"},{"value":"42","label":"Marketing","meta":"Folder · 18 items","icon":"M"}]'></box-grid-view>
+  <box-item-details-panel heading="Quarterly Plan.pdf" eyebrow="PDF · 2.4 MB" owner='{"name":"Morgan Lee","description":"Enterprise Admin"}' meta='[{"label":"Modified","value":"Jul 10, 2026"},{"label":"Status","value":"Shared"}]'></box-item-details-panel>
+</box-split-view>`,
+  },
   "nav-sidebar": {
     html: `<style>
   #demo-nav-sidebar [data-nav-label] { display: var(--boe-nav-label-display, inline); }
@@ -355,10 +434,10 @@ export const examples: Record<string, ComponentExample> = {
 </style>
 <box-nav-sidebar label="Workspace" id="demo-nav-sidebar">
   <box-sidebar-toggle-button slot="header" controls="demo-nav-sidebar" label="Collapse navigation"></box-sidebar-toggle-button>
-  <a href="#" aria-label="All Files"><span data-nav-icon aria-hidden="true">⌂</span><span data-nav-label>All Files</span></a>
-  <a href="#" aria-label="Recents"><span data-nav-icon aria-hidden="true">◷</span><span data-nav-label>Recents</span></a>
-  <a href="#" aria-label="Synced"><span data-nav-icon aria-hidden="true">↻</span><span data-nav-label>Synced</span></a>
-  <a href="#" aria-label="Trash"><span data-nav-icon aria-hidden="true">⌫</span><span data-nav-label>Trash</span></a>
+  <button type="button" aria-label="All Files"><span data-nav-icon aria-hidden="true">A</span><span data-nav-label>All Files</span></button>
+  <button type="button" aria-label="Recents"><span data-nav-icon aria-hidden="true">R</span><span data-nav-label>Recents</span></button>
+  <button type="button" aria-label="Synced"><span data-nav-icon aria-hidden="true">S</span><span data-nav-label>Synced</span></button>
+  <button type="button" aria-label="Trash"><span data-nav-icon aria-hidden="true">T</span><span data-nav-label>Trash</span></button>
   <span slot="footer">2.4 GB of 10 GB used</span>
 </box-nav-sidebar>`,
     setup: root => {
@@ -370,9 +449,29 @@ export const examples: Record<string, ComponentExample> = {
         }
       });
     },
-    note: "Wire `toggle` to `collapsed`. Hide labels with `--boe-nav-label-display` + `[data-nav-label]`.",
+    note: "Use buttons (not href=\"#\") so SPA hash routing stays put. Wire `toggle` to `collapsed`.",
   },
-  "sidebar-toggle-button": { html: `<box-sidebar-toggle-button label="Toggle navigation"></box-sidebar-toggle-button>` },
+  "sidebar-toggle-button": {
+    html: `<div style="display:grid;gap:0.65rem;width:min(100%,16rem)">
+  <box-sidebar-toggle-button label="Toggle navigation" controls="demo-sidebar-toggle"></box-sidebar-toggle-button>
+  <box-nav-sidebar label="Workspace" id="demo-sidebar-toggle">
+    <button type="button">Home</button>
+    <button type="button">Files</button>
+    <button type="button">Shared</button>
+    <span slot="footer">2.4 GB of 10 GB used</span>
+  </box-nav-sidebar>
+</div>`,
+    setup: root => {
+      const sidebar = root.querySelector("box-nav-sidebar") as (HTMLElement & { collapsed: boolean }) | null;
+      const toggle = root.querySelector("box-sidebar-toggle-button");
+      toggle?.addEventListener("toggle", event => {
+        if (sidebar) {
+          sidebar.collapsed = !(event as CustomEvent<{ expanded: boolean }>).detail.expanded;
+        }
+      });
+    },
+    note: "Standalone toggle needs a host-wired sidebar — click to collapse the rail below.",
+  },
   section: {
     html: `<box-section eyebrow="Workspace" heading="Members" description="People with access to this workspace.">
   <box-button slot="actions" label="Invite" tone="primary"></box-button>
@@ -390,7 +489,7 @@ export const examples: Record<string, ComponentExample> = {
     }),
   },
   tabs: {
-    html: `<box-tabs label="Views"></box-tabs>`,
+    html: `<box-tabs label="Views" layout="attached"></box-tabs>`,
     setup: root => set(root, "box-tabs", {
       options: [
         { label: "All files", value: "all" },
@@ -399,6 +498,16 @@ export const examples: Record<string, ComponentExample> = {
       ],
       value: "all",
     }),
+    variants: [
+      {
+        name: "Attached",
+        html: `<box-tabs label="Views" layout="attached" options='[{"label":"All files","value":"all"},{"label":"Recents","value":"recents"},{"label":"Shared","value":"shared"}]' value="all"></box-tabs>`,
+      },
+      {
+        name: "Separated",
+        html: `<box-tabs label="Views" layout="separated" options='[{"label":"All files","value":"all"},{"label":"Recents","value":"recents"},{"label":"Shared","value":"shared"}]' value="all"></box-tabs>`,
+      },
+    ],
   },
   dialog: { html: `<box-dialog heading="Delete file?" message="Quarterly Plan.pdf will be moved to trash." open></box-dialog>` },
   drawer: { html: `<box-drawer heading="Details" open></box-drawer>` },
@@ -643,24 +752,16 @@ export const examples: Record<string, ComponentExample> = {
     }),
   },
   "annotation-toolbar": {
-    html: `<box-annotation-toolbar label="Annotate"></box-annotation-toolbar>`,
-    setup: root => set(root, "box-annotation-toolbar", {
-      tools: [
-        { id: "comment", label: "Comment" },
-        { id: "highlight", label: "Highlight" },
-        { id: "draw", label: "Draw" },
-        { id: "redact", label: "Redact", disabled: true },
-      ],
-    }),
+    html: `<box-annotation-toolbar label="Annotate" active-tool-id="comment" current-color="#f59e0b" tools='[{"id":"comment","label":"Comment"},{"id":"highlight","label":"Highlight"},{"id":"draw","label":"Draw"},{"id":"redact","label":"Redact","disabled":true}]' color-options='[{"id":"amber","label":"Amber","value":"#f59e0b"},{"id":"blue","label":"Blue","value":"#3b82f6"},{"id":"red","label":"Red","value":"#ed3757"}]' actions='[{"id":"undo","label":"Undo"},{"id":"save","label":"Save","tone":"primary"}]'></box-annotation-toolbar>`,
   },
   "annotation-inspector": { html: `<box-annotation-inspector heading="Annotation"></box-annotation-inspector>` },
   "annotation-thread": { html: `<box-annotation-thread heading="Discussion"></box-annotation-thread>` },
   "preview-element": {
-    html: `<box-preview-element heading="Quarterly Plan.pdf" item-label="PDF · 2.4 MB" status="Ready" message="Rendered by the active preview provider."></box-preview-element>`,
-    setup: root => set(root, "box-preview-element", {
-      provider: { id: "content-preview", label: "Box Content Preview", engine: "pdf.js", status: "ready" },
-      adapterState: { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%" },
-    }),
+    html: `<box-preview-element heading="Quarterly Plan.pdf" item-label="PDF · 2.4 MB" status="Ready" message="Rendered by the active preview provider." provider='{"id":"content-preview","label":"Box Content Preview","engine":"pdf.js","status":"ready","capabilities":["annotations","downloads"]}' adapter-state='{"ready":true,"pageLabel":"Page 2 of 34","zoomLabel":"100%","mode":"Review"}' actions='[{"id":"download","label":"Download"}]'>
+  <box-annotation-toolbar slot="toolbar" label="Annotate" active-tool-id="comment" current-color="#f59e0b" tools='[{"id":"comment","label":"Comment"},{"id":"highlight","label":"Highlight"}]' color-options='[{"id":"amber","label":"Amber","value":"#f59e0b"},{"id":"blue","label":"Blue","value":"#3b82f6"}]'></box-annotation-toolbar>
+  <div slot="stage" style="display:grid;place-items:center;min-block-size:12rem;padding:1rem;color:#6f6f6f;border:1px dashed #e8e8e8;border-radius:0.65rem;background:#fff">Page canvas · Q3 forecast table</div>
+  <box-annotation-thread slot="sidebar" heading="Discussion" entries='[{"id":"a1","author":"Morgan Lee","body":"Tighten the hero spacing.","toolLabel":"Comment","status":"Open"}]'></box-annotation-thread>
+</box-preview-element>`,
   },
   "file-request-builder": {
     html: `<box-file-request-builder heading="Collect vendor W-9s" message="Request tax forms from onboarding vendors."></box-file-request-builder>`,
@@ -724,7 +825,9 @@ export const examples: Record<string, ComponentExample> = {
     html: `<box-metric-card heading="Active shared links" value="1,284" eyebrow="Last 30 days" message="Up from 1,102 in the prior period." status="Healthy"></box-metric-card>`,
     setup: root => set(root, "box-metric-card", { trend: { label: "+16.5%", tone: "success" } }),
   },
-  "chart-panel": { html: `<box-chart-panel heading="Usage" message="Weekly rollups across the enterprise."></box-chart-panel>` },
+  "chart-panel": {
+    html: `<box-chart-panel heading="Usage" summary="89%" timeframe="Last 7 days" message="Weekly rollups across the enterprise." points='[{"id":"mon","label":"Mon","value":12},{"id":"tue","label":"Tue","value":18},{"id":"wed","label":"Wed","value":24,"tone":"accent"},{"id":"thu","label":"Thu","value":21},{"id":"fri","label":"Fri","value":28}]' legend='[{"label":"Usage","tone":"brand","value":"89%"}]' actions='[{"id":"open-report","label":"Open report","tone":"primary"}]'></box-chart-panel>`,
+  },
   "bar-chart": {
     html: `<box-bar-chart heading="Uploads per week" timeframe="Last 5 weeks" summary="Steady growth across the quarter."></box-bar-chart>`,
     setup: root => set(root, "box-bar-chart", {

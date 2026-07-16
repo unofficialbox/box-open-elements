@@ -39,10 +39,10 @@ const elementStyles = `
 
         [part="shell"] {
           display: grid;
-          gap: 1rem;
-          padding: 1rem;
+          gap: 0.6rem;
+          padding: 0.6rem;
           border: 1px solid var(--_obp-border);
-          border-radius: 1rem;
+          border-radius: 0.65rem;
           background: var(--_obp-surface-muted);
         }
 
@@ -100,7 +100,7 @@ const elementStyles = `
         [part="title"] {
           margin: 0;
           font: inherit;
-          font-size: 1.35rem;
+          font-size: 1.05rem;
           font-weight: 700;
           color: inherit;
         }
@@ -124,7 +124,7 @@ const elementStyles = `
         [part="action"] {
           appearance: none;
           min-height: 2rem;
-          padding: 0.35rem 0.72rem;
+          padding: 0.45rem 0.75rem;
           border: 1px solid var(--_obp-border-subtle);
           border-radius: 999px;
           background: var(--_obp-surface);
@@ -146,14 +146,14 @@ const elementStyles = `
         [part="workspace"] {
           display: grid;
           grid-template-columns: minmax(0, 1fr) minmax(14rem, 18rem);
-          gap: 1rem;
+          gap: 0.6rem;
           align-items: start;
         }
 
         [part="stage"] {
-          min-block-size: 19rem;
+          min-block-size: 13rem;
           border: 1px solid var(--_obp-border-subtle);
-          border-radius: 1rem;
+          border-radius: 0.65rem;
           background:
             radial-gradient(circle at top left, color-mix(in srgb, var(--_obp-brand) 10%, transparent), transparent 32%),
             linear-gradient(180deg, color-mix(in srgb, var(--_obp-surface) 86%, var(--boe-token-surface-surface, #ffffff) 14%) 0%, var(--_obp-surface-muted) 100%);
@@ -162,7 +162,7 @@ const elementStyles = `
 
         [part="sidebar"] {
           display: grid;
-          gap: 1rem;
+          gap: 0.6rem;
         }
 
         ::slotted([slot="toolbar"]) {

@@ -21,7 +21,7 @@ const sectionStyles = `
 
   [part="section"] {
     display: grid;
-    gap: 0.85rem;
+    gap: 0.6rem;
   }
 
   [part="header"] {
@@ -29,16 +29,16 @@ const sectionStyles = `
     flex-wrap: wrap;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 0.85rem;
+    gap: 0.5rem;
   }
 
   [part="header-main"] {
     display: grid;
-    gap: 0.25rem;
+    gap: 0.18rem;
   }
 
   [part="eyebrow"] {
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -48,7 +48,7 @@ const sectionStyles = `
   [part="title"] {
     margin: 0;
     font: inherit;
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     font-weight: 700;
     line-height: 1.25;
     color: var(--boe-token-text-text, #222222);
@@ -56,7 +56,7 @@ const sectionStyles = `
 
   [part="description"] {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
   }
 
@@ -64,7 +64,7 @@ const sectionStyles = `
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.35rem;
   }
 
   [part="body"] {

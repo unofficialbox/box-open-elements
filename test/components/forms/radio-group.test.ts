@@ -78,6 +78,8 @@ describe("BoxRadioGroupElement", () => {
     const secondInput = inputs[1] as HTMLInputElement;
     expect(firstInput.checked).toBe(false);
     expect(secondInput.checked).toBe(true);
+    expect(element.shadowRoot?.querySelectorAll('[part~="option"]')).toHaveLength(2);
+    expect(element.shadowRoot?.querySelector('[part~="option-selected"] input')).toBe(secondInput);
 
     const legend = element.shadowRoot?.querySelector('[part="label"]');
     expect(legend?.textContent).toBe("Select one option");
@@ -205,11 +207,14 @@ describe("BoxRadioGroupElement", () => {
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain('[part="option"]:focus-within');
+    expect(styles).toContain('[part~="option"]:focus-within');
+    expect(styles).toContain('[part~="option-selected"]');
+    expect(styles).toContain("padding: 0.4rem 0.55rem;");
+    expect(styles).toContain("border-radius: 0.55rem;");
     expect(styles).toContain("--boe-token-surface-surface-brand");
-    expect(styles).toContain('[part="option"]:hover:not(:has([part="input"]:disabled))');
-    expect(styles).toContain('[part="option"]:active:not(:has([part="input"]:disabled))');
-    expect(styles).toContain('[part="option"]:has([part="input"]:disabled)');
+    expect(styles).toContain('[part~="option"]:hover:not(:has([part="input"]:disabled))');
+    expect(styles).toContain('[part~="option"]:active:not(:has([part="input"]:disabled))');
+    expect(styles).toContain('[part~="option"]:has([part="input"]:disabled)');
     expect(styles).toContain("cursor: not-allowed");
     expect(styles).toContain("opacity: 0.55");
   });

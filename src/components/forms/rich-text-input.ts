@@ -122,9 +122,9 @@ const richTextStyles = `
   }
 
   [part="label"] {
-    margin: 0 0 0.9rem;
+    margin: 0 0 0.55rem;
     padding: 0;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -132,10 +132,10 @@ const richTextStyles = `
 
   [part="surface"] {
     display: grid;
-    gap: 0.9rem;
-    padding: 1rem;
+    gap: 0.45rem;
+    padding: 0.5rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 1.05rem;
+    border-radius: 0.75rem;
     background:
       linear-gradient(
         180deg,
@@ -150,10 +150,10 @@ const richTextStyles = `
   [part="toolbar"] {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.6rem;
-    padding: 0.25rem;
+    gap: 0.35rem;
+    padding: 0.2rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-stroke-stroke, #e8e8e8) 92%);
-    border-radius: 1rem;
+    border-radius: 0.65rem;
     background:
       linear-gradient(
         180deg,
@@ -163,19 +163,14 @@ const richTextStyles = `
   }
 
   [part="tool-button"] {
-    min-inline-size: 2.6rem;
-    block-size: 2.6rem;
+    min-inline-size: 2rem;
+    block-size: 2rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 74%, transparent);
-    border-radius: 0.9rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
-      );
+    border-radius: 0.55rem;
+    background: var(--boe-token-surface-surface, #ffffff);
     color: inherit;
     font: inherit;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     font-weight: 700;
     cursor: pointer;
     transition:
@@ -190,21 +185,15 @@ const richTextStyles = `
   }
 
   [part="editor"] {
-    min-block-size: 12rem;
-    padding: 1rem;
+    min-block-size: 8.5rem;
+    padding: 0.5rem 0.55rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
-    border-radius: 0.95rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 97%, var(--boe-token-surface-surface-secondary, #fbfbfb) 3%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 2%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%, var(--boe-token-surface-surface, #ffffff) 90%) 100%
-      );
-    line-height: 1.6;
+    border-radius: 0.55rem;
+    background: var(--boe-token-surface-surface, #ffffff);
+    line-height: 1.5;
     outline: none;
     overflow: auto;
     white-space: normal;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84);
   }
 
   [part="editor"]:empty::before {

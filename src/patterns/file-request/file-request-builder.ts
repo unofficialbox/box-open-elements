@@ -40,10 +40,10 @@ const elementStyles = `
 
         [part="builder"] {
           display: grid;
-          gap: 1rem;
-          padding: 1.1rem;
+          gap: 0.6rem;
+          padding: 0.6rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 1rem;
+          border-radius: 0.65rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
@@ -55,7 +55,7 @@ const elementStyles = `
         [part="title"] {
           margin: 0;
           font: inherit;
-          font-size: 1.35rem;
+          font-size: 1.05rem;
           font-weight: 700;
           line-height: 1.15;
         }
@@ -76,28 +76,28 @@ const elementStyles = `
         [part="settings"],
         [part="fields"] {
           display: grid;
-          gap: 0.7rem;
+          gap: 0.55rem;
         }
 
         [part="settings-list"],
         [part="field-list"] {
           display: grid;
-          gap: 0.75rem;
+          gap: 0.55rem;
         }
 
         [part="setting"],
         [part="field"] {
           display: grid;
           gap: 0.35rem;
-          padding: 0.85rem 0.9rem;
-          border-radius: 0.9rem;
+          padding: 0.65rem 0.75rem;
+          border-radius: 0.65rem;
           background: var(--boe-token-surface-surface, #ffffff);
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
         }
 
         [part="setting"] {
           grid-template-columns: auto 1fr;
-          gap: 0.75rem;
+          gap: 0.55rem;
           align-items: start;
         }
 
@@ -123,7 +123,7 @@ const elementStyles = `
 
         [part="field-header"] {
           display: flex;
-          gap: 0.75rem;
+          gap: 0.55rem;
           align-items: center;
           justify-content: space-between;
         }
@@ -143,7 +143,7 @@ const elementStyles = `
         [part="actions"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.7rem;
+          gap: 0.55rem;
         }
 
         [part="action"] {
@@ -154,7 +154,7 @@ const elementStyles = `
           color: inherit;
           font: inherit;
           font-weight: 600;
-          padding: 0.72rem 1rem;
+          padding: 0.45rem 0.75rem;
           cursor: pointer;
         }
 

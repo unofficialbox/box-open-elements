@@ -26,21 +26,23 @@ const accordionStyles = `
 
   [part="accordion"] {
     display: grid;
-    gap: 0.75rem;
+    gap: 0;
+    padding: 0;
+    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
+    border-radius: 0.65rem;
+    background: var(--boe-token-surface-surface, #ffffff);
+    overflow: hidden;
   }
 
   [part="item"] {
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-    border-radius: 1rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%) 100%
-      );
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.82),
-      0 12px 24px rgba(15, 23, 42, 0.04);
+    border: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
+    border-radius: 0;
+    background: transparent;
+  }
+
+  [part="item"]:last-child {
+    border-bottom: none;
   }
 
   [part="heading"] {
@@ -53,10 +55,10 @@ const accordionStyles = `
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    padding: 0.95rem 1rem;
+    gap: 0.5rem;
+    padding: 0.5rem 0.65rem;
     border: none;
-    border-radius: 1rem;
+    border-radius: 0;
     background: transparent;
     color: var(--boe-token-text-text, #222222);
     font: inherit;
@@ -69,27 +71,22 @@ const accordionStyles = `
   }
 
   [part="indicator"] {
-    inline-size: 1.75rem;
-    block-size: 1.75rem;
+    inline-size: 1.35rem;
+    block-size: 1.35rem;
     display: inline-grid;
     place-items: center;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 80%, var(--boe-token-surface-surface, #ffffff) 20%);
-    border-radius: 0.7rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface-secondary, #fbfbfb) 6%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%, var(--boe-token-surface-surface, #ffffff) 86%) 100%
-      );
+    border-radius: 0.45rem;
+    background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-surface-surface-brand, #0061d5);
     font-weight: 700;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
   }
 
   [part="panel"] {
-    padding: 0 1rem 1rem;
+    padding: 0 0.65rem 0.65rem;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
-    line-height: 1.55;
+    line-height: 1.45;
   }
 
   [part="panel"][hidden] {

@@ -64,9 +64,10 @@ document.getElementById("theme-toggle")?.addEventListener("click", () => {
 
 const SHARED_EVENTS = [
   "value-changed", "open-changed", "checked-changed", "selected-changed",
-  "action", "confirm", "cancel", "dismiss", "search", "clear",
+  "action", "confirm", "cancel", "dismiss", "search", "clear", "toggle",
   "item-selected", "item-invoked", "item-activated", "provider-action",
-  "filter-changed", "page-changed", "navigate", "select",
+  "filter-changed", "page-changed", "navigate", "select", "ratio-changed",
+  "tool-selected", "color-selected", "point-selected",
 ];
 
 // ── Foundations entries ──────────────────────────────────────────────────────
@@ -257,12 +258,19 @@ const renderComponentPage = (entry: CatalogEntry): void => {
   const exampleVariants = example.variants ?? [];
   const workshopVariants = variantsById[entry.id] ?? [];
   // Prefer live example variants (with setup) over extracted workshop HTML shells.
+  // For single-surface pages, prefer the richer of curated example vs workshop Default
+  // (bare curated tags are shorter; slotted/JSON demos win on either side).
   const useExampleVariants = exampleVariants.length >= 2;
   const variants = useExampleVariants
     ? exampleVariants.map(variant => ({ name: variant.name, html: variant.html, note: variant.note }))
     : workshopVariants;
   const hasVariants = variants.length >= 2;
-  const initialHtml = hasVariants ? variants[0].html : example.html;
+  const workshopDefaultHtml = workshopVariants[0]?.html;
+  const initialHtml = hasVariants
+    ? variants[0].html
+    : example.setup || !workshopDefaultHtml || example.html.length >= workshopDefaultHtml.length
+      ? example.html
+      : workshopDefaultHtml;
   const constructor = customElements.get(entry.tag) as (CustomElementConstructor & { observedAttributes?: string[] }) | undefined;
   const observed = constructor?.observedAttributes ?? [];
 

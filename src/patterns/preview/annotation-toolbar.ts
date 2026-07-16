@@ -44,10 +44,10 @@ const elementStyles = `
 
         [part="toolbar"] {
           display: grid;
-          gap: 0.9rem;
-          padding: 1rem;
+          gap: 0.5rem;
+          padding: 0.55rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 1rem;
+          border-radius: 0.65rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
@@ -61,7 +61,7 @@ const elementStyles = `
 
         [part="body"] {
           display: grid;
-          gap: 0.85rem;
+          gap: 0.6rem;
         }
 
         [part="section"] {
@@ -88,10 +88,10 @@ const elementStyles = `
         [part="tool"],
         [part="action"] {
           appearance: none;
-          min-height: 2rem;
-          padding: 0.35rem 0.72rem;
+          min-height: 1.75rem;
+          padding: 0.3rem 0.65rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 60%, transparent);
-          border-radius: 999px;
+          border-radius: 0.5rem;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
           font: inherit;

@@ -32,6 +32,18 @@ describe("BoxRichTextInputElement", () => {
     expect(editor?.innerHTML).toBe("<p>Quarterly update</p>");
   });
 
+  it("uses compact surface, toolbar, button, and editor styles", () => {
+    const element = document.createElement("box-rich-text-input") as BoxRichTextInputElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("gap: 0.45rem;");
+    expect(styles).toContain("padding: 0.5rem;");
+    expect(styles).toContain("min-inline-size: 2rem;");
+    expect(styles).toContain("block-size: 2rem;");
+    expect(styles).toContain("border-radius: 0.55rem;");
+  });
+
   it("emits value-changed when the editor content changes", () => {
     const element = document.createElement("box-rich-text-input") as BoxRichTextInputElement;
     const changed = vi.fn();

@@ -80,6 +80,20 @@ describe("BoxAccordionElement", () => {
     expect(styles).toContain("--boe-token-stroke-stroke-hover");
   });
 
+  it("uses compact grouped item styles", () => {
+    const element = document.createElement("box-accordion") as BoxAccordionElement;
+    element.items = [{ label: "Details", value: "details", content: "Item details" }];
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("gap: 0;");
+    expect(styles).toContain("padding: 0;");
+    expect(styles).toContain("border-radius: 0.65rem;");
+    expect(styles).toContain("padding: 0.5rem 0.65rem;");
+    expect(styles).toContain("overflow: hidden;");
+    expect(styles).toContain("inline-size: 1.35rem;");
+  });
+
   it("collapses the open panel when its trigger is clicked again", () => {
     const element = document.createElement("box-accordion") as BoxAccordionElement;
     const changed = vi.fn();

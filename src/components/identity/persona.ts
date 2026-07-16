@@ -1,7 +1,7 @@
 import { BaseElement } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-persona";
-const DEFAULT_SIZE = 48;
+const DEFAULT_SIZE = 40;
 
 const resolveSize = (raw: string | null, fallback = DEFAULT_SIZE): number => {
   const parsed = Number(raw ?? String(fallback));
@@ -28,16 +28,11 @@ const personaStyles = `
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 0.85rem;
-    padding: 0.8rem 0.9rem;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 80%, var(--boe-token-surface-surface, #ffffff) 20%);
-    border-radius: 1rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%) 100%
-      );
+    border-radius: 0.6rem;
+    background: var(--boe-token-surface-surface, #ffffff);
   }
 
   [part="avatar"] {
@@ -92,17 +87,17 @@ const personaStyles = `
   [part="meta"] {
     min-inline-size: 0;
     display: grid;
-    gap: 0.2rem;
+    gap: 0.12rem;
   }
 
   [part="name"] {
-    font-size: 0.98rem;
+    font-size: 0.94rem;
     line-height: 1.25;
   }
 
   [part~="description"] {
     color: var(--boe-token-text-text-secondary, #6f6f6f);
-    line-height: 1.45;
+    line-height: 1.35;
   }
 
   [part~="description"][hidden] {
@@ -110,11 +105,11 @@ const personaStyles = `
   }
 
   [part="status"] {
-    padding: 0.22rem 0.55rem;
+    padding: 0.16rem 0.45rem;
     border-radius: 999px;
     background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
     color: var(--boe-token-surface-surface-brand, #0061d5);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 700;
   }
 
