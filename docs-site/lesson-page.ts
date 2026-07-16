@@ -92,7 +92,7 @@ const mountSharePanel = (
     panel.setAttribute("message", "Anyone in the company with the link can view.");
     panel.settings = [
       { label: "Downloads", value: "Allowed" },
-      { label: "Expiration", value: "Jun 1, 2026" },
+      { label: "Expiration", value: "Jun 1, 2027" },
     ];
   }
   if (options.actions) {

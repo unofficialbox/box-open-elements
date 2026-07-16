@@ -19,7 +19,7 @@ export type PreviewKey =
   | "empty" // setup done, nothing mounted yet
   | "shell" // explorer element mounted, not yet connected
   | "connected" // transport + session wired; data loads
-  | "navigate" // + folder-changed listener updating a "you are here" line
+  | "navigate" // + folder-loaded listener updating a "you are here" line
   | "select" // + selection-changed / item-activated listeners
   | "multiselect" // + multi-select production option
   | "share-shell" // share panel mounted with heading only
@@ -251,7 +251,7 @@ export const explorerLesson: Lesson = {
       title: "React to selection",
       goal: "Respond when the user highlights or opens an item.",
       file: "app.js",
-      anchor: "after the folder-changed listener",
+      anchor: "after the folder-loaded listener",
       code: EXPLORER_STEP4,
       why: "selection-changed and item-activated are plain DOM CustomEvents carrying the selected ids and the activated item, so your app reacts without reaching inside the explorer.",
       result: "Selecting a row and opening a file log to the Events panel (and the console).",
@@ -323,7 +323,7 @@ const SHARE_STEP4 = `${SHARE_STEP3}
 panel.setAttribute("message", "Anyone in the company with the link can view.");
 panel.settings = [
   { label: "Downloads", value: "Allowed" },
-  { label: "Expiration", value: "Jun 1, 2026" },
+  { label: "Expiration", value: "Jun 1, 2027" },
 ];`;
 
 const SHARE_STEP5 = `${SHARE_STEP4}
