@@ -121,7 +121,7 @@ describe("BoxGridViewElement", () => {
     expect(styles).toContain("gap: 0.55rem;");
     expect(styles).toContain("padding: 0.7rem 0.65rem;");
     expect(styles).toContain("border-radius: 0.7rem;");
-    expect(styles).toContain("padding: 0.85rem;");
+    expect(styles).toContain("padding: 0.7rem;");
   });
 
   it("includes focus-visible and interactive styles for tiles", () => {

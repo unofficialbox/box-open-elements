@@ -12,7 +12,7 @@ See live: docs-site previews across the rail; `bun tools/density-audit.ts` shoul
 - [x] Inventory script `tools/density-audit.ts` + report `plans/density-audit-report.json`
 - [x] Apply chrome density pass (components + patterns), excluding intentional content geometry
 - [x] Update BACKLOG / HANDOFF; chrome-aware audit thresholds
-- [ ] `bun run verify` + `bun run baselines:regen` + PR
+- [x] `bun run verify` + `bun run baselines:regen` + PR (#62)
 
 ## Surprises & Discoveries
 
