@@ -27,7 +27,7 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
 - Recent merged PRs: fidelity Batches 0–7 + #41–**#46** (through iconography generator
   #45 and token-vs-shell guidance #46).
-- **In flight:** brand imagery docs — product-illustration contract from shipped
+- **Open PR #47:** brand imagery docs — product-illustration contract from shipped
   assets; Figma Imagery frame still needs a file URL + access
   (`cursor/brand-imagery-review-7eb7`).
 
