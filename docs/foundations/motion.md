@@ -25,7 +25,7 @@ Use `interactive` for catalog control paint transitions (background / border / c
 ## Policy
 
 - **Purposeful only** — motion signals state (loading, expand/collapse, hover feedback), not decoration.
-- **Short by default** — interactive paint transitions use `fast` / `medium`; longer cycles are for continuous indicators (spinner, skeleton).
+- **Short by default** — control paint transitions use `interactive` (or `fast` for accents); layout/panel motion uses `medium` / `slow`; longer cycles are for continuous indicators (spinner, skeleton).
 - **Honor reduced motion** — continuous animations must degrade under `prefers-reduced-motion: reduce` (disable shimmer; slow or pause spin). Use `boeReducedMotionStyles` so the media query is consistent.
 
 ## Example (shadow styles)

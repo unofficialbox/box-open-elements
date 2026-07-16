@@ -1,8 +1,9 @@
 #!/usr/bin/env bun
 /**
  * Opportunistic motion-literal migration.
- * Replaces hard-coded 120/140/160/240ms (+ ease) in style template strings
- * with foundations/motion constants. Adds imports when missing.
+ * Replaces hard-coded 120/140/160/240ms (+ ease) inside backtick CSS template
+ * strings with foundations/motion constants. Adds imports when missing.
+ * Quoted strings and comments outside templates are left unchanged.
  */
 import { readFileSync, writeFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, dirname } from "node:path";
@@ -34,17 +35,8 @@ const relImport = (fromFile: string): string => {
   return rel;
 };
 
-let changedFiles = 0;
-let replacements = 0;
-
-for (const file of files) {
-  let text = readFileSync(file, "utf8");
-  const original = text;
-
-  // Skip files with no duration literals
-  if (!/\b(120|140|160|240)ms\b/.test(text)) continue;
-
-  const before = text;
+const migrateTemplate = (template: string): string => {
+  let text = template;
   // Prefer multi-property transition lines first
   text = text.replaceAll("140ms ease", "${boeMotionDuration.interactive} ${boeMotionEasing.standard}");
   text = text.replaceAll("120ms ease", "${boeMotionDuration.fast} ${boeMotionEasing.standard}");
@@ -55,10 +47,104 @@ for (const file of files) {
   text = text.replaceAll("120ms", "${boeMotionDuration.fast}");
   text = text.replaceAll("160ms", "${boeMotionDuration.medium}");
   text = text.replaceAll("240ms", "${boeMotionDuration.slow}");
+  return text;
+};
 
-  if (text === before) continue;
+/**
+ * Rewrite duration literals only inside backtick-delimited template literals.
+ * Skips escaped backticks (\`) and does not touch "..." / '...' strings or comments.
+ */
+const migrateTemplateLiterals = (source: string): { text: string; count: number } => {
+  let out = "";
+  let i = 0;
+  let count = 0;
 
-  const count = (before.match(/\b(120|140|160|240)ms\b/g) ?? []).length;
+  while (i < source.length) {
+    const ch = source[i];
+
+    // Skip line comments
+    if (ch === "/" && source[i + 1] === "/") {
+      const end = source.indexOf("\n", i);
+      const sliceEnd = end === -1 ? source.length : end + 1;
+      out += source.slice(i, sliceEnd);
+      i = sliceEnd;
+      continue;
+    }
+
+    // Skip block comments
+    if (ch === "/" && source[i + 1] === "*") {
+      const end = source.indexOf("*/", i + 2);
+      const sliceEnd = end === -1 ? source.length : end + 2;
+      out += source.slice(i, sliceEnd);
+      i = sliceEnd;
+      continue;
+    }
+
+    // Skip single-quoted strings
+    if (ch === "'" || ch === '"') {
+      const quote = ch;
+      let j = i + 1;
+      while (j < source.length) {
+        if (source[j] === "\\") {
+          j += 2;
+          continue;
+        }
+        if (source[j] === quote) {
+          j += 1;
+          break;
+        }
+        j += 1;
+      }
+      out += source.slice(i, j);
+      i = j;
+      continue;
+    }
+
+    // Migrate backtick template literals
+    if (ch === "`") {
+      let j = i + 1;
+      while (j < source.length) {
+        if (source[j] === "\\") {
+          j += 2;
+          continue;
+        }
+        if (source[j] === "`") {
+          j += 1;
+          break;
+        }
+        j += 1;
+      }
+      const raw = source.slice(i, j);
+      const inner = raw.slice(1, -1);
+      const migratedInner = migrateTemplate(inner);
+      const hits = (inner.match(/\b(120|140|160|240)ms\b/g) ?? []).length;
+      count += hits;
+      out += `\`${migratedInner}\``;
+      i = j;
+      continue;
+    }
+
+    out += ch;
+    i += 1;
+  }
+
+  return { text: out, count };
+};
+
+let changedFiles = 0;
+let replacements = 0;
+
+for (const file of files) {
+  let text = readFileSync(file, "utf8");
+  const original = text;
+
+  // Skip files with no duration literals
+  if (!/\b(120|140|160|240)ms\b/.test(text)) continue;
+
+  const { text: migrated, count } = migrateTemplateLiterals(text);
+  if (migrated === text || count === 0) continue;
+
+  text = migrated;
   replacements += count;
 
   const needsDuration = text.includes("boeMotionDuration.");

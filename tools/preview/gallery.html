@@ -198,9 +198,9 @@
     <box-saved-view-picker id="explorer-saved-views" label="Saved views"></box-saved-view-picker>
     <box-filter-bar id="explorer-filter-bar" label="Filters"></box-filter-bar>
     <p id="explorer-presentation" aria-live="polite" style="margin:0;font-size:0.85rem;color:var(--boe-token-text-text-secondary,#6f6f6f)">Host presentation: <strong>list</strong></p>
-    <box-explorer-breadcrumbs id="explorer-breadcrumbs"></box-explorer-breadcrumbs>
-    <box-explorer-list id="explorer-list" item-gesture="split"></box-explorer-list>
-    <box-explorer-table id="explorer-table" item-gesture="split" hidden></box-explorer-table>
+    <box-explorer-breadcrumbs id="explorer-host-breadcrumbs"></box-explorer-breadcrumbs>
+    <box-explorer-list id="explorer-host-list" item-gesture="split"></box-explorer-list>
+    <box-explorer-table id="explorer-host-table" item-gesture="split" hidden></box-explorer-table>
   </div>
 </section>
 
@@ -543,9 +543,9 @@
   explorerFilterBar.viewValue = "list";
   const explorerPresentation = byId("explorer-presentation");
   const explorerPresentationValue = explorerPresentation.querySelector("strong");
-  const explorerBreadcrumbs = byId("explorer-breadcrumbs");
-  const explorerList = byId("explorer-list");
-  const explorerTable = byId("explorer-table");
+  const explorerBreadcrumbs = byId("explorer-host-breadcrumbs");
+  const explorerList = byId("explorer-host-list");
+  const explorerTable = byId("explorer-host-table");
   const explorerController = new ContentExplorerController({
     rootFolderId: "0",
     token: "preview-token",

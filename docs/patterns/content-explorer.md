@@ -147,7 +147,7 @@ const unbindFilter = bindFilterBarToExplorer(filterBar, controller, {
   },
 });
 
-const unbindViews = bindSavedViewPickerToExplorer(picker, explorer, {
+const unbindViews = bindSavedViewPickerToExplorer(picker, controller, {
   resolvePreset: id => localPresets.find(p => p.id === id),
 });
 ```

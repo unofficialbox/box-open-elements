@@ -6,6 +6,7 @@ import {
   BoxLinkButtonElement,
   defineBoxLinkButtonElement,
 } from "../../../src/components/actions/link-button.js";
+import { boeMotionDuration, boeMotionEasing } from "../../../src/foundations/motion/index.js";
 
 describe("BoxLinkButtonElement", () => {
   beforeEach(() => {
@@ -27,6 +28,17 @@ describe("BoxLinkButtonElement", () => {
     expect(link?.textContent).toContain("Open docs");
     expect(link?.getAttribute("href")).toBe("/docs");
     expect(link?.getAttribute("aria-label")).toBe("Open docs");
+  });
+
+  it("uses shared motion vocabulary for paint transitions", () => {
+    const element = document.createElement("box-link-button") as BoxLinkButtonElement;
+    document.body.append(element);
+
+    const styleText = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    const timing = `${boeMotionDuration.interactive} ${boeMotionEasing.standard}`;
+    expect(styleText).toContain(`background-color ${timing}`);
+    expect(styleText).toContain(`color ${timing}`);
+    expect(styleText).toContain(`box-shadow ${timing}`);
   });
 
   const hrefOf = (value: string): string | null => {
