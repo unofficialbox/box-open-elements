@@ -7,6 +7,7 @@ import {
   lessonById,
   explorerLesson,
   shareLesson,
+  previewLesson,
   type Lesson,
   type PreviewKey,
 } from "../../docs-site/lessons.js";
@@ -22,6 +23,14 @@ const SHARE_PREVIEW_KEYS: PreviewKey[] = [
   "share-people",
   "share-settings",
   "share-actions",
+];
+const CONTENT_PREVIEW_KEYS: PreviewKey[] = [
+  "empty",
+  "preview-shell",
+  "preview-meta",
+  "preview-provider",
+  "preview-adapter",
+  "preview-actions",
 ];
 
 /** Lines that carry real content (skip blanks and pure-brace lines). */
@@ -82,12 +91,14 @@ const assertLessonShape = (lesson: Lesson, previewKeys: PreviewKey[]): void => {
 };
 
 describe("build-along lessons", () => {
-  it("exposes Explorer and Share lessons", () => {
-    expect(lessons).toHaveLength(2);
+  it("exposes Explorer, Share, and Preview lessons", () => {
+    expect(lessons).toHaveLength(3);
     expect(lessons[0]).toBe(explorerLesson);
     expect(lessons[1]).toBe(shareLesson);
+    expect(lessons[2]).toBe(previewLesson);
     expect(lessonById("explorer")).toBe(explorerLesson);
     expect(lessonById("share")).toBe(shareLesson);
+    expect(lessonById("preview")).toBe(previewLesson);
     expect(lessonById("nope")).toBeUndefined();
   });
 
@@ -132,6 +143,25 @@ describe("build-along lessons", () => {
       "actions",
       'addEventListener("action"',
       'addEventListener("collaborator-selected"',
+    ]) {
+      expect(finalCode).toContain(token);
+    }
+  });
+
+  it("keeps Preview lesson shape and public API surface", () => {
+    assertLessonShape(previewLesson, CONTENT_PREVIEW_KEYS);
+    const finalCode = previewLesson.steps[previewLesson.steps.length - 1].code;
+    for (const token of [
+      'from "box-open-elements"',
+      "registerBoxDefaultDesignSystem",
+      "defineBoxPreviewElement",
+      "box-preview-element",
+      "item-label",
+      "provider",
+      "adapterState",
+      "actions",
+      'addEventListener("action"',
+      'addEventListener("provider-action"',
     ]) {
       expect(finalCode).toContain(token);
     }

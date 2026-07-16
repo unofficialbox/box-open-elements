@@ -26,7 +26,12 @@ export type PreviewKey =
   | "share-link" // + shared link
   | "share-people" // + collaborators
   | "share-settings" // + message + settings
-  | "share-actions"; // + actions + event listeners
+  | "share-actions" // + actions + event listeners
+  | "preview-shell" // preview element mounted with heading only
+  | "preview-meta" // + item label, status, message
+  | "preview-provider" // + provider JSON
+  | "preview-adapter" // + adapter state (page/zoom)
+  | "preview-actions"; // + actions + event listeners
 
 export interface LessonStep {
   /** 0 is the mandatory Setup step; 1..n are teaching steps. */
@@ -349,7 +354,7 @@ export const shareLesson: Lesson = {
   why: "Share is the workflow users hit right after they find a file. Wiring the panel with real JSON props and listening for action events is the fastest way to see how pattern surfaces stay host-driven — no transport required for this lesson.",
   outcomePreview: "share-actions",
   wrapup:
-    "You have a share panel that shows the shared link, people with access, link settings, and actions — and reports action and collaborator-selected events to your app. Next: open invite from the invite action, or feed this panel from explorer selection events from the Explorer build-along.",
+    "You have a share panel that shows the shared link, people with access, link settings, and actions — and reports action and collaborator-selected events to your app. Next: continue with the Preview build-along, open invite from the invite action, or feed this panel from explorer selection events.",
   starterHtml: starterHtml("Box Share — build along", "The share panel mounts here."),
   install:
     "Save index.html and app.js together and serve the folder with any static server (e.g. `npx serve`), then open index.html. The import map pulls box-open-elements from a CDN, so there is nothing to install and no build step; no Box account is needed — the lesson wires properties and events only.",
@@ -423,6 +428,157 @@ export const shareLesson: Lesson = {
   ],
 };
 
-export const lessons: Lesson[] = [explorerLesson, shareLesson];
+// ── Preview lesson source, built up cumulatively ─────────────────────────────
+
+const PREVIEW_STEP0 = `import {
+  registerBoxDefaultDesignSystem,
+  applyDesignTokens,
+  defineBoxPreviewElement,
+} from "box-open-elements";
+
+// Register the Box design system and paint its tokens onto the page.
+registerBoxDefaultDesignSystem({ setActive: true });
+applyDesignTokens(document.documentElement, "box-default");
+
+// Teach the browser about the <box-preview-element> element.
+defineBoxPreviewElement();`;
+
+const PREVIEW_STEP1 = `${PREVIEW_STEP0}
+
+// Create the preview shell and add it to the page.
+const preview = document.createElement("box-preview-element");
+preview.setAttribute("heading", "Quarterly Plan.pdf");
+document.getElementById("app").append(preview);`;
+
+const PREVIEW_STEP2 = `${PREVIEW_STEP0}
+
+// Create the preview shell and add it to the page.
+const preview = document.createElement("box-preview-element");
+preview.setAttribute("heading", "Quarterly Plan.pdf");
+
+// Item chrome: label, status, and a short host message.
+preview.setAttribute("item-label", "PDF · 2.4 MB");
+preview.setAttribute("status", "Ready");
+preview.setAttribute("message", "Rendered by the active preview provider.");
+
+document.getElementById("app").append(preview);`;
+
+const PREVIEW_STEP3 = `${PREVIEW_STEP2}
+
+// Provider metadata is JSON — id/label plus optional engine/status.
+preview.provider = {
+  id: "content-preview",
+  label: "Box Content Preview",
+  engine: "pdf.js",
+  status: "ready",
+};`;
+
+const PREVIEW_STEP4 = `${PREVIEW_STEP3}
+
+// Adapter state mirrors what a real provider adapter would publish.
+preview.adapterState = {
+  ready: true,
+  pageLabel: "Page 2 of 34",
+  zoomLabel: "100%",
+};`;
+
+const PREVIEW_STEP5 = `${PREVIEW_STEP4}
+
+// Host-owned actions; listen for action (and provider-action with context).
+preview.actions = [
+  { id: "open-provider", label: "Open provider", tone: "primary" },
+  { id: "download", label: "Download" },
+];
+preview.addEventListener("action", event => {
+  console.log("action", event.detail.action);
+});
+preview.addEventListener("provider-action", event => {
+  console.log("provider-action", event.detail.action, event.detail.providerId);
+});`;
+
+export const previewLesson: Lesson = {
+  id: "preview",
+  title: "Preview",
+  area: "Build Alongs",
+  outcome:
+    "Embed a working content preview shell — item chrome, provider metadata, adapter state, and actions — in under 15 minutes.",
+  why: "Preview is where users open a file after they find it. Wiring the preview element with provider JSON and adapter state shows how the pattern stays provider-neutral — the host owns chrome and events; a real adapter can replace the static props later.",
+  outcomePreview: "preview-actions",
+  wrapup:
+    "You have a preview shell that shows item chrome, provider metadata, adapter page/zoom state, and host actions — and reports action and provider-action events to your app. Next: slot a real toolbar/stage, or wire selection from the Explorer build-along into this heading.",
+  starterHtml: starterHtml("Box Preview — build along", "The preview element mounts here."),
+  install:
+    "Save index.html and app.js together and serve the folder with any static server (e.g. `npx serve`), then open index.html. The import map pulls box-open-elements from a CDN, so there is nothing to install and no build step; no Box account is needed — the lesson wires properties and events only.",
+  steps: [
+    {
+      n: 0,
+      title: "Setup",
+      goal: "Get a blank, running app with the Box design system registered.",
+      file: "app.js",
+      anchor: "the whole starter — index.html plus app.js",
+      code: PREVIEW_STEP0,
+      why: "Registering the design system applies the token custom properties every element reads, and defining the element teaches the browser the <box-preview-element> tag before you use it.",
+      result: "On the live site the lesson is already running — nothing to install. Locally: an empty page with the Box tokens applied.",
+      preview: "empty",
+    },
+    {
+      n: 1,
+      title: "Render the shell",
+      goal: "Put the preview element on the page with a heading.",
+      file: "app.js",
+      anchor: "after defineBoxPreviewElement()",
+      code: PREVIEW_STEP1,
+      why: "The element renders its workspace chrome from observed attributes; with only a heading it shows an empty preview shell — proof the custom element is alive.",
+      result: "The preview heading appears; no provider, page state, or actions yet.",
+      preview: "preview-shell",
+    },
+    {
+      n: 2,
+      title: "Describe the item",
+      goal: "Add the file label, status, and host message.",
+      file: "app.js",
+      anchor: "between creating the preview and appending it",
+      code: PREVIEW_STEP2,
+      why: "item-label, status, and message are plain attributes the shell paints into its header — no provider required yet.",
+      result: "PDF · 2.4 MB, Ready, and the host message appear under the heading.",
+      preview: "preview-meta",
+    },
+    {
+      n: 3,
+      title: "Name the provider",
+      goal: "Show which preview engine is active.",
+      file: "app.js",
+      anchor: "after setting message",
+      code: PREVIEW_STEP3,
+      why: "provider is a JSON-backed property (also the provider attribute); the shell paints label/engine/status without importing a concrete viewer.",
+      result: "Box Content Preview / pdf.js appears as the active provider.",
+      preview: "preview-provider",
+    },
+    {
+      n: 4,
+      title: "Mirror adapter state",
+      goal: "Show page and zoom labels from the adapter.",
+      file: "app.js",
+      anchor: "after setting provider",
+      code: PREVIEW_STEP4,
+      why: "adapterState is JSON the host (or a providerAdapter) publishes; the shell stays provider-neutral while still showing live page/zoom chrome.",
+      result: "Page 2 of 34 and 100% appear in the preview chrome.",
+      preview: "preview-adapter",
+    },
+    {
+      n: 5,
+      title: "Wire actions and events",
+      goal: "Add host-owned buttons and listen for what the user chooses.",
+      file: "app.js",
+      anchor: "at the end of app.js",
+      code: PREVIEW_STEP5,
+      why: "actions are host-defined buttons; action and provider-action are plain DOM CustomEvents (provider-action includes provider context), so your app reacts without reaching inside the shell.",
+      result: "Open provider and Download appear; clicks log to the Events panel (and the console).",
+      preview: "preview-actions",
+    },
+  ],
+};
+
+export const lessons: Lesson[] = [explorerLesson, shareLesson, previewLesson];
 
 export const lessonById = (id: string): Lesson | undefined => lessons.find(lesson => lesson.id === id);
