@@ -129,12 +129,38 @@ Presentation adapters:
 - `box-explorer-list` / composed shell show a secondary `item-meta` line (size · modified · owner · shared)
 - `box-explorer-table` columns: Name, Type, Modified, Size, Owner, Shared, Actions
 
-`recents` mode remains deferred.
+## Host chrome: filter bar and saved views
+
+`box-filter-bar` and `box-saved-view-picker` are standalone pattern components. Wire them at the **host** layer with helpers from `box-open-elements/patterns/content-explorer`:
+
+```ts
+import {
+  bindFilterBarToExplorer,
+  bindSavedViewPickerToExplorer,
+} from "box-open-elements/patterns/content-explorer";
+
+const unbindFilter = bindFilterBarToExplorer(filterBar, explorer, {
+  onViewChange: view => {
+    // host switches list/table (or other) presentation — explorer does not
+  },
+});
+
+const unbindViews = bindSavedViewPickerToExplorer(picker, explorer, {
+  resolvePreset: id => localPresets.find(p => p.id === id),
+});
+```
+
+| Concern | Owner |
+| --- | --- |
+| Search query → `search` / `clearSearch` | `bindFilterBarToExplorer` / `bindSavedViewPickerToExplorer` |
+| Presentation mode (list/table) | Host (`onViewChange`) |
+| Saved-view persistence / server schema | Host (local presets first) |
+| `recents` transport mode | Next slice — needs a real transport contract before controller mode |
 
 ## Lessons carried from the original recreation plan
 
 - **Enrich the item contract.** — done (optional summary fields above).
-- **Search belongs in the contract and the controller.** — done for folder \| search with toolbar + results-header chrome; recents deferred.
+- **Search belongs in the contract and the controller.** — done for folder \| search with toolbar + results-header chrome; host filter-bar / saved-view binding shipped.
 - **Metadata-query browsing is a separate pattern.** Box's explorer mixes metadata-based views into the same element; keep metadata query in `patterns/metadata` with its own composed surface.
 - **Workflow state (create-folder, rename, delete, upload, share handoff, preview handoff) deserves reusable headless seams**, not element-private shell logic.
 - **Preview-platform responsibilities stay out.** Preview dialogs, preview navigation, preview sidebars, and open-with belong to the preview pattern (and historically to the sibling `box-open-preview` repo). The explorer integrates; it does not duplicate.

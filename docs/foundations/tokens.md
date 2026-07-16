@@ -1,6 +1,8 @@
-# Design Tokens and Theming
+# Design Tokens
 
 Foundations express design decisions as data. The token layer is a framework-neutral registry that lets any design language — Box's own or a downstream team's — restyle the component catalog without forking component implementations.
+
+Runtime theme switching, `boe:design-system-change`, and when to use theming vs token authoring are documented in [theming.md](./theming.md).
 
 ## Model
 
@@ -127,7 +129,7 @@ Source-level Box styling is the default: every catalog surface carries its look 
 | One-off visual tweak for a single embedding | `tag::part(name) { … }` from outside | Fork the component or restyle via brittle deep selectors |
 | Documented structural host knobs (e.g. collapsed nav label visibility) | Component-owned custom properties such as `--boe-nav-label-display` | Invent undocumented `--boe-*` vars on the host |
 | Whole-app light/dark or white-label theme | `registerDesignSystem` / `setActiveDesignSystem` + `applyDesignTokens` | Per-page shell CSS that paints over every control |
-| Third-party SCSS → token vocabulary | Style bridge (planned — [../integration/style-bridge.md](../integration/style-bridge.md)) | Hand-copy third-party rules into shadow trees |
+| Third-party SCSS → token vocabulary | Style bridge (`bun run style-bridge` — [../integration/style-bridge.md](../integration/style-bridge.md)) | Hand-copy third-party rules into shadow trees |
 
 `:host { color: inherit; font: inherit; }` is intentional so typography can follow the embedding page while **paint** (background, border, status, brand) still comes from tokens.
 
@@ -184,4 +186,3 @@ The focus ring always resolves through `--boe-token-surface-surface-brand` (opaq
 
 - Expand the Box default bundle only with tokens and assets actually used by components or the docs site.
 - Add a build-time extraction script if we want to mirror more of `@box/blueprint-web-assets` automatically.
-- Port the style-bridge tool for translating third-party CSS/SCSS into token-driven output — see [../integration/style-bridge.md](../integration/style-bridge.md).

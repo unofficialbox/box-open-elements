@@ -23,10 +23,12 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
   auto-deploys on push to `main` via `.github/workflows/deploy.yml`
   (build cmd `bun run site:build`, output `docs-site/dist`). The Workshop is
   **not** deployed (internal tool).
-- **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
+- **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + **coverage-gated** tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
-- Recent merged PRs: fidelity Batches 0–7 + #41–**#52** (workshop stories through #52 at **49** surfaces).
-- No open PRs at this handoff.
+  Coverage floors: [docs/coverage-baseline.md](./coverage-baseline.md).
+- Recent merged PRs: fidelity Batches 0–7 + #41–**#53** (workshop stories through #52 at **49** surfaces).
+- Foundations: theming + motion docs; `src/foundations/motion`; style bridge CLI; explorer host bindings for filter-bar / saved views.
+- **Open PR #54:** coverage baseline + deferred-items pull-back — `cursor/coverage-baseline-deferred-7eb7`.
 
 ## Completed initiative: component fidelity program
 
@@ -140,8 +142,7 @@ organized into **systemic sweeps**, not per-component rewrites.
   `getMirroredFormValue(el.internals)` in tests.
 
 ## Open user-facing threads
-- Fidelity program complete; #44–#51 merged (workshop stories at **34** surfaces;
-  `AGENTS.md` CI polling / stuck-run retry rules).
-- Workshop story batch 3 in flight as **Open PR #52** (JSON `options`/`items` surfaces → 49).
-- Next after batch 3: more workshop coverage / example notes; coverage baseline;
-  Theming/Motion docs only with real content.
+- Fidelity program complete; #44–**#53** merged (workshop at **49** surfaces; CI watch rules).
+- Coverage baseline measured + hard-gated; theming/motion foundations and style bridge pulled active.
+- Explorer host bindings for filter-bar / saved-view shipped; `recents` still needs a transport contract.
+- Next: more workshop stories; docs-site explorer chrome demo; framework-adapter PoC; next build-along lesson; opportunistic motion-literal migration.

@@ -40,7 +40,7 @@ This file applies to this repository. It adds repo-specific guidance for AI codi
 - For headless controller, contract, transport, and foundations changes, add or update focused unit tests.
 - For Web Component changes, add or update component tests (jsdom-based via Vitest).
 - Run targeted tests first, then `bun run verify` before finishing.
-- Aim for strong coverage on changed behavior; treat `85%+` as the target for substantial new or changed logic.
+- Aim for strong coverage on changed behavior; treat `85%+` as the target for substantial new or changed logic. Repo-wide CI floors (regression guards) are documented in `docs/coverage-baseline.md` and enforced via Vitest thresholds in `verify`.
 
 ## CI and PR monitoring
 
@@ -67,7 +67,8 @@ Run from the repository root:
 | full test run | `bun run test` |
 | coverage report | `bun run test:coverage` |
 | build package | `bun run build` |
-| broad repo verification | `bun run verify` |
+| broad repo verification | `bun run verify` (typecheck + **coverage-gated** tests + build) |
+| style bridge | `bun run style-bridge -- --config … --input …` |
 | PR checks | `gh pr checks <n>` |
 | cancel stuck Actions run | `gh run cancel <run-id>` |
 | retry failed Actions jobs | `gh run rerun <run-id> --failed` |

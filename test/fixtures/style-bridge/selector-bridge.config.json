@@ -1,0 +1,16 @@
+{
+  "mode": "selector-bridge",
+  "variableMap": {
+    "explorer-min-width": "300px",
+    "brand": "#0061d5"
+  },
+  "selectorMap": {
+    ".be.bce .bcpr": "box-content-explorer::part(preview)",
+    ".be.bce": "box-content-explorer",
+    ".be": "box-content-explorer"
+  },
+  "declarationMap": {
+    "300px": "var(--boe-content-explorer-min-width, 300px)",
+    "#0061d5": "var(--boe-token-surface-surface-brand, #0061d5)"
+  }
+}

@@ -39,7 +39,7 @@ bun run docs
 
 `bun run docs` builds the library and serves the component-documentation site at `http://localhost:4600` — browse the full catalog with live previews, events/properties inspectors, and foundations pages.
 
-`bun run verify` is the main safety check and runs typecheck, tests, and build in sequence.
+`bun run verify` is the main safety check and runs typecheck, **coverage-gated** tests (`test:coverage`), and build in sequence. Floors and the measured baseline live in [docs/coverage-baseline.md](./docs/coverage-baseline.md).
 
 ## Current state
 
@@ -47,7 +47,9 @@ Phases 0–5 of the [roadmap](./docs/roadmap.md) are complete — full catalog p
 
 - `src/core` — typed event emitter, controller base class, `BaseElement` (in-place shadow DOM render contract), and `FormAssociatedElement` (native form participation + invalid state)
 - `src/foundations/tokens` — the design-system registry (tokens, icons, illustrations), the Box default bundle, and the Box dark bundle, retoned to Box's modernized Blueprint palette with an Inter typography baseline; shared interaction helpers (`interaction.ts`) for focus/hover/active/disabled
+- `src/foundations/motion` — shared duration/easing vocabulary and reduced-motion CSS helper
 - `src/foundations/icons` — the generated Box iconography manifest and alias layer
+- `tools/style-bridge` — CSS/SCSS → BOE token/selector bridge (`bun run style-bridge`)
 - `src/components` — 72 components across all ten categories, including the Phase 5 gap fills (`box-chip`, `box-divider`, `box-calendar`, `box-tag-input`, `box-nav-sidebar`, `box-sidebar-toggle-button`, `box-grid-view`, `box-fieldset`, `box-section`, `box-error-mask`, `box-draggable-list`, `box-nudge`, `box-pill-cloud`, `box-pill-selector-dropdown`, `box-datalist-item`, `box-contact-datalist-item`, `box-category-selector`)
 - `src/patterns/content-explorer` — the full headless explorer stack (collection, navigation, selection, actions, facade controller, data-source contracts, Box transport, wire schemas) plus the `box-explorer-*` presentation adapters and the composed `box-content-explorer` surface
 - `src/patterns/{search,item,metadata,share,preview,file-request,task,governance,insights}` — all nine composition/workflow areas, including contracts and wire schemas for metadata and share, the provider-neutral preview adapter stack, the pluggable `box-preview-element`, and the share workflows (`box-presence`, `box-invite-collaborators-modal`, `box-unified-share-modal`, `box-access-stats`, `box-collaborator-avatars`)

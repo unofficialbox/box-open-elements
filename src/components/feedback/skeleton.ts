@@ -1,4 +1,9 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeMotionDuration,
+  boeMotionEasing,
+  boeReducedMotionStyles,
+} from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-skeleton";
 
@@ -19,7 +24,7 @@ const skeletonStyles = `
         color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 55%, var(--boe-token-stroke-stroke, #e8e8e8) 45%) 100%
       );
     background-size: 200% 100%;
-    animation: boe-skeleton-shimmer 1.4s ease infinite;
+    animation: boe-skeleton-shimmer ${boeMotionDuration.shimmer} ${boeMotionEasing.standard} infinite;
   }
 
   @keyframes boe-skeleton-shimmer {
@@ -32,11 +37,7 @@ const skeletonStyles = `
     }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    [part="skeleton"] {
-      animation: none;
-    }
-  }
+  ${boeReducedMotionStyles('[part="skeleton"]', "animation: none;")}
 `;
 
 export class BoxSkeletonElement extends BaseElement {

@@ -3,6 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BoxSkeletonElement, defineBoxSkeletonElement } from "../../../src/components/feedback/skeleton.js";
+import { boeMotionDuration, boeMotionEasing } from "../../../src/foundations/motion/index.js";
 
 describe("BoxSkeletonElement", () => {
   beforeEach(() => {
@@ -53,6 +54,19 @@ describe("BoxSkeletonElement", () => {
     expect(setProperty).not.toHaveBeenCalled();
     expect(skeleton.style.width).toBe("100px");
     expect(skeleton.style.height).toBe("16px");
+  });
+
+  it("uses shared motion vocabulary for shimmer and reduced-motion", () => {
+    const element = document.createElement("box-skeleton") as BoxSkeletonElement;
+    document.body.append(element);
+
+    const styleText = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styleText).toContain(
+      `animation: boe-skeleton-shimmer ${boeMotionDuration.shimmer} ${boeMotionEasing.standard} infinite`,
+    );
+    expect(styleText).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(styleText).toContain('[part="skeleton"]');
+    expect(styleText).toContain("animation: none;");
   });
 
   it("writes only the changed dimension", () => {

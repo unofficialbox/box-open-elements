@@ -18,10 +18,16 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 
 ## Foundations
 
-- [Design Tokens and Theming](./foundations/tokens.md)
+- [Design Tokens](./foundations/tokens.md)
+- [Theming](./foundations/theming.md) — register / activate / apply / observe
+- [Motion](./foundations/motion.md) — shared durations, easing, reduced-motion
 - [Iconography](./foundations/iconography.md)
 - [Box Brand Reference](./foundations/brand.md)
 - [Accessibility](./foundations/accessibility.md) — keyboard/ARIA contract + `foundations/a11y` helpers
+
+## Verification
+
+- [Coverage baseline](./coverage-baseline.md) — measured totals + CI floors
 
 ## Components
 

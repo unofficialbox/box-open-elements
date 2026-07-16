@@ -24,3 +24,6 @@ export * from "./adapters/item-summary.js";
 
 // Composed workflow surface
 export * from "./content-explorer.js";
+
+// Host-level chrome bindings (filter-bar / saved-view → search)
+export * from "./host-bindings.js";
