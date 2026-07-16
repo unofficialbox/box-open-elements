@@ -25,9 +25,8 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
   **not** deployed (internal tool).
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
-- Recent merged PRs: fidelity Batches 0–7 + #41–**#50** (brand imagery #47, workshop
-  stories through #49 at 34 surfaces, agent CI-watch guidance #50).
-- No open PRs at this handoff.
+- Recent merged PRs: fidelity Batches 0–7 + #41–**#51** (status-doc sync #51).
+- **Open PR #52:** workshop story batch 3 (JSON `options`/`items`, 34 → 49) — `cursor/workshop-stories-batch3-7eb7`.
 
 ## Completed initiative: component fidelity program
 
@@ -141,7 +140,8 @@ organized into **systemic sweeps**, not per-component rewrites.
   `getMirroredFormValue(el.internals)` in tests.
 
 ## Open user-facing threads
-- Fidelity program complete; #44–#48 merged (guidance cards, token-vs-shell, iconography,
-  brand imagery, workshop story expansion to 18 surfaces).
-- Workshop story batch 2 in flight (target 34 surfaces).
-- Next: more workshop stories / example notes; Theming/Motion docs only with real content.
+- Fidelity program complete; #44–#51 merged (workshop stories at **34** surfaces;
+  `AGENTS.md` CI polling / stuck-run retry rules).
+- Workshop story batch 3 in flight as **Open PR #52** (JSON `options`/`items` surfaces → 49).
+- Next after batch 3: more workshop coverage / example notes; coverage baseline;
+  Theming/Motion docs only with real content.
