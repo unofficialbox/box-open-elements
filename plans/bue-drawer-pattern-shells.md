@@ -10,7 +10,7 @@ Close the last called-out BUE visual conformance leftovers: restyle `box-drawer`
 - [x] Add `boePanel` geometry token
 - [x] Restyle `box-drawer`
 - [x] Migrate pattern shell pad/radius/gap (+ flat panel fills where the soft 94/6 mix was used)
-- [ ] Tests + docs + verify + baselines + PR
+- [x] Tests + docs + verify + baselines + PR
 
 ## Decision Log
 
