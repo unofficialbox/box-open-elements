@@ -32,7 +32,7 @@ const switchStyles = `
     text-align: left;
     display: inline-flex;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: 0.55rem;
     padding: 0;
     margin: 0;
     cursor: pointer;

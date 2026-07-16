@@ -110,6 +110,19 @@ describe("BoxDialogElement", () => {
     expect(element.shadowRoot?.activeElement).toBe(cancel);
   });
 
+  it("uses compact dialog shell styles", () => {
+    const element = document.createElement("box-dialog") as BoxDialogElement;
+    document.body.append(element);
+    element.show();
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("padding: 1rem;");
+    expect(styles).toContain("padding: 1.05rem;");
+    expect(styles).toContain("border-radius: 0.75rem;");
+    expect(styles).toContain("gap: 0.55rem;");
+    expect(styles).toContain("font-size: 1.1rem;");
+  });
+
   it("includes focus-visible and hover styles for cancel and confirm", () => {
     const element = document.createElement("box-dialog") as BoxDialogElement;
     document.body.append(element);

@@ -74,6 +74,15 @@ describe("BoxDropZoneElement", () => {
     expect(element.shadowRoot?.querySelector('[part="label"]')?.textContent).toBe("Drop to upload");
   });
 
+  it("uses compact drop-zone shell styles", () => {
+    const element = document.createElement("box-drop-zone") as BoxDropZoneElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("padding: 0.75rem;");
+    expect(styles).toContain("border-radius: 0.75rem;");
+  });
+
   it("includes focus-visible and hover styles for the drop zone", () => {
     const element = document.createElement("box-drop-zone") as BoxDropZoneElement;
     document.body.append(element);

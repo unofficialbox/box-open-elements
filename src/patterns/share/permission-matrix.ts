@@ -34,10 +34,10 @@ const matrixStyles = `
 
   [part="matrix"] {
     display: grid;
-    gap: 1rem;
-    padding: 1.1rem;
+    gap: 0.55rem;
+    padding: 0.7rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 1rem;
+    border-radius: 0.7rem;
     background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
   }
 
@@ -58,7 +58,7 @@ const matrixStyles = `
   [part="table"] th,
   [part="table"] td {
     text-align: left;
-    padding: 0.85rem 0.9rem;
+    padding: 0.5rem 0.65rem;
     border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
     vertical-align: top;
   }
@@ -104,7 +104,7 @@ const matrixStyles = `
     font-size: 0.94rem;
     font-weight: 600;
     line-height: 1.3;
-    padding: 0.72rem 2.5rem 0.72rem 0.95rem;
+    padding: 0.4rem 2.25rem 0.4rem 0.7rem;
     cursor: pointer;
   }
 
@@ -114,7 +114,7 @@ const matrixStyles = `
     width: min(100%, 13rem);
     min-width: 10rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 76%, var(--boe-token-surface-surface, #ffffff) 24%);
-    border-radius: 0.9rem;
+    border-radius: 0.55rem;
     background: linear-gradient(
       180deg,
       color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,

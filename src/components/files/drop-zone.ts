@@ -18,9 +18,9 @@ const dropZoneStyles = `
     display: grid;
     gap: 0.55rem;
     justify-items: start;
-    padding: 1.35rem 1.4rem;
+    padding: 0.75rem;
     border: 1.5px dashed color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-stroke-stroke, #e8e8e8) 84%);
-    border-radius: 1.2rem;
+    border-radius: 0.75rem;
     background:
       linear-gradient(
         180deg,

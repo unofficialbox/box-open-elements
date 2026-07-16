@@ -15,7 +15,7 @@ const illustrationStyles = `
 
   [part="illustration"] {
     display: grid;
-    gap: 1rem;
+    gap: 0.55rem;
     justify-items: center;
     margin: 0;
     text-align: center;
@@ -34,7 +34,7 @@ const illustrationStyles = `
     content: "";
     position: absolute;
     inset: 18% 14%;
-    border-radius: 2rem;
+    border-radius: 0.75rem;
     background:
       radial-gradient(
         circle at 50% 50%,
@@ -120,7 +120,7 @@ const illustrationStyles = `
     display: block;
     inline-size: 6.6rem;
     block-size: 4.8rem;
-    border-radius: 1rem;
+    border-radius: 0.75rem;
     background:
       linear-gradient(
         180deg,

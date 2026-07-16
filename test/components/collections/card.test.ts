@@ -26,6 +26,16 @@ describe("BoxCardElement", () => {
     expect(element.textContent).toContain("Body copy");
   });
 
+  it("uses compact card shell styles", () => {
+    const element = document.createElement("box-card") as BoxCardElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("gap: 0.55rem;");
+    expect(styles).toContain("padding: 0.7rem;");
+    expect(styles).toContain("border-radius: 0.75rem;");
+  });
+
   it("renders the heading", () => {
     const element = document.createElement("box-card") as BoxCardElement;
     element.heading = "Release Notes";

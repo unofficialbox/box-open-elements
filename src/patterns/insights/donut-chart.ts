@@ -44,17 +44,17 @@ const elementStyles = `
 
         [part="panel"] {
           display: grid;
-          gap: 0.875rem;
-          padding: 0.95rem;
+          gap: 0.55rem;
+          padding: 0.7rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 1rem;
+          border-radius: 0.7rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, var(--boe-token-surface-surface, #ffffff) 4%);
         }
 
         [part="header"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.75rem;
+          gap: 0.55rem;
           justify-content: space-between;
           align-items: start;
         }
@@ -79,7 +79,7 @@ const elementStyles = `
         }
 
         [part="summary"] {
-          font-size: 1.65rem;
+          font-size: 1.35rem;
           font-weight: 700;
           line-height: 1;
           letter-spacing: -0.04em;
@@ -113,7 +113,7 @@ const elementStyles = `
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
           font: inherit;
-          padding: 0.58rem 0.9rem;
+          padding: 0.4rem 0.7rem;
           cursor: pointer;
         }
 
@@ -126,10 +126,10 @@ const elementStyles = `
         [part="visual"] {
           display: grid;
           grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
-          gap: 0.95rem;
+          gap: 0.55rem;
           align-items: center;
-          padding: 0.85rem;
-          border-radius: 1rem;
+          padding: 0.65rem;
+          border-radius: 0.7rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, #eef4fb 12%);
         }
@@ -186,9 +186,9 @@ const elementStyles = `
           grid-template-columns: auto 1fr;
           gap: 0.55rem;
           align-items: center;
-          padding: 0.54rem 0.68rem;
+          padding: 0.4rem 0.55rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
-          border-radius: 0.95rem;
+          border-radius: 0.65rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, #eef4fb 10%);
           color: inherit;
           font: inherit;
@@ -242,8 +242,8 @@ const elementStyles = `
         }
 
         [part="empty"] {
-          padding: 1rem;
-          border-radius: 0.9rem;
+          padding: 0.7rem;
+          border-radius: 0.7rem;
           border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }

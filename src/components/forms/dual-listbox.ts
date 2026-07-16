@@ -140,7 +140,7 @@ const dualListboxStyles = `
     flex-direction: column;
     justify-content: center;
     gap: 0.45rem;
-    padding-block: 1.75rem 0;
+    padding-block: 0.55rem 0;
     padding-inline: 0;
   }
 

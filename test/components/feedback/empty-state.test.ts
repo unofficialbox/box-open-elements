@@ -55,4 +55,14 @@ describe("BoxEmptyStateElement", () => {
     expect(element.message).toBe("Use filters or create a new item to get started.");
     expect(element.shadowRoot?.querySelector('[part~="description"]')?.textContent).toContain("get started");
   });
+
+  it("uses compact empty-state shell styles", () => {
+    const element = document.createElement("box-empty-state") as BoxEmptyStateElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("padding: 1.1rem 1rem;");
+    expect(styles).toContain("border-radius: 0.75rem;");
+    expect(styles).toContain("padding: 0.5rem 0.9rem;");
+  });
 });

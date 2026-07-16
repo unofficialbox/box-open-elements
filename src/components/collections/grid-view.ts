@@ -28,7 +28,7 @@ const gridViewStyles = `
   [part="grid"] {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
-    gap: 0.75rem;
+    gap: 0.55rem;
   }
 
   [part~="tile"] {
@@ -36,9 +36,9 @@ const gridViewStyles = `
     display: grid;
     justify-items: center;
     gap: 0.5rem;
-    padding: 1rem 0.85rem;
+    padding: 0.7rem 0.65rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.85rem;
+    border-radius: 0.7rem;
     background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text, #222222);
     font: inherit;
@@ -79,7 +79,7 @@ const gridViewStyles = `
   }
 
   [part="empty"] {
-    padding: 1.5rem;
+    padding: 0.7rem;
     text-align: center;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     font-size: 0.9rem;

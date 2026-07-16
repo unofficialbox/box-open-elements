@@ -103,6 +103,16 @@ describe("BoxAlertElement", () => {
     expect(styles).toContain(".sr-only");
   });
 
+  it("uses compact alert shell styles", () => {
+    const element = document.createElement("box-alert") as BoxAlertElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("gap: 0.55rem;");
+    expect(styles).toContain("padding: 0.7rem 0.75rem;");
+    expect(styles).toContain("border-radius: 0.75rem;");
+  });
+
   it("includes focus-visible and interactive styles for dismiss", () => {
     const element = document.createElement("box-alert") as BoxAlertElement;
     element.heading = "Heads up";

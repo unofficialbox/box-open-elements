@@ -85,14 +85,14 @@ const elementStyles = `
 
         [part="stats"] {
           margin: 0;
-          padding: 0.9rem;
+          padding: 0.7rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.95rem;
+          border-radius: 0.7rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
         [part="title"] {
-          margin: 0 0 0.7rem;
+          margin: 0 0 0.5rem;
           font-size: 0.8rem;
           font-weight: 700;
           letter-spacing: 0.08em;
@@ -110,8 +110,8 @@ const elementStyles = `
           display: grid;
           justify-items: center;
           gap: 0.15rem;
-          padding: 0.7rem 0.5rem;
-          border-radius: 0.7rem;
+          padding: 0.5rem 0.45rem;
+          border-radius: 0.65rem;
           background: var(--boe-token-surface-surface, #ffffff);
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
           text-align: center;
@@ -136,7 +136,7 @@ const elementStyles = `
         }
 
         [part="empty"] {
-          padding: 1rem;
+          padding: 0.7rem;
           text-align: center;
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.9rem;

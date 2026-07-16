@@ -73,7 +73,7 @@ const treeStyles = `
     gap: 0.55rem;
     align-items: center;
     padding: 0.16rem 0.18rem;
-    border-radius: 0.9rem;
+    border-radius: 0.7rem;
     background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 78%, transparent);
   }
 
@@ -166,7 +166,7 @@ const treeStyles = `
     appearance: none;
     text-align: left;
     border: 1px solid transparent;
-    border-radius: 0.85rem;
+    border-radius: 0.65rem;
     padding: 0.46rem 0.68rem;
     background:
       linear-gradient(

@@ -18,7 +18,7 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 
 ## Current state (as of this handoff)
 
-- **Branch tip:** develop from `origin/main` (fidelity complete through #42).
+- **Branch tip:** develop from `origin/main` (density audit + #61 demo fidelity on main).
 - **Live site:** GitHub Pages, `https://unofficialbox.github.io/box-open-elements/`,
   auto-deploys on push to `main` via `.github/workflows/deploy.yml`
   (build cmd `bun run site:build`, output `docs-site/dist`). The Workshop is
@@ -26,11 +26,12 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + **coverage-gated** tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
   Coverage floors: [docs/coverage-baseline.md](./coverage-baseline.md).
-- Recent merged PRs: fidelity Batches 0–7 + #41–**#58** (Preview build-along #58; Share #57; workshop batch 4 → 64 #56).
+- Recent merged PRs: fidelity Batches 0–7 + #41–**#61** (density + demo fidelity #61; workshop → 108 #59–#60).
 - Workshop stories: **108** extracted surfaces (full catalog). Workshop UI runs live `setup()` for controller-bound explorer demos; extraction still strips `setup`.
 - Content explorer: folder host chrome + **Metadata query chrome** docs-site variant (`docs-site/explorer-metadata-demo.ts`) — host-owned, not a controller view mode.
 - Foundations: theming + motion docs; `src/foundations/motion`; style bridge CLI; explorer host bindings for filter-bar / saved views.
 - Build-alongs: Explorer + Share + Preview lessons in `docs-site/lessons.ts` (Share/Preview are attribute/JSON + events; Explorer uses mock transport).
+- **Density:** full-catalog chrome pass + maintainer audit (`bun tools/density-audit.ts`). Reference = segmented-control.
 
 ## Completed initiative: component fidelity program
 
@@ -145,5 +146,6 @@ organized into **systemic sweeps**, not per-component rewrites.
 
 ## Open user-facing threads
 - Fidelity program complete; workshop at **108** extracted stories; explorer metadata host chrome shipped.
+- Full catalog density audit landed (chrome highs cleared; dialog/empty-state may stay slightly airier).
 - `recents` still needs a transport contract; list/table presentation swap remains host-owned.
 - Next: React adapter PoC; opportunistic motion-literal migration.

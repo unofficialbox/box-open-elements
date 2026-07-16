@@ -18,7 +18,7 @@ const elementStyles = `
           inset: 0;
           display: grid;
           place-items: center;
-          padding: 1rem;
+          padding: 0.75rem;
           background: rgba(15, 23, 42, 0.45);
           z-index: 1000;
         }
@@ -28,15 +28,15 @@ const elementStyles = `
           max-block-size: calc(100vh - 2rem);
           overflow: auto;
           display: grid;
-          gap: 0.85rem;
-          padding: 1.25rem;
-          border-radius: 1rem;
+          gap: 0.55rem;
+          padding: 0.75rem;
+          border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
           color: var(--boe-token-text-text, #222222);
           box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
         }
 
-        [part="title"] { margin: 0; font-size: 1.2rem; font-weight: 700; }
+        [part="title"] { margin: 0; font-size: 1.1rem; font-weight: 700; }
 
         [part="field"] { display: grid; gap: 0.35rem; }
 
@@ -130,7 +130,7 @@ const elementStyles = `
           border-radius: 999px;
           font: inherit;
           font-weight: 600;
-          padding: 0.55rem 1rem;
+          padding: 0.4rem 0.7rem;
           cursor: pointer;
         }
 

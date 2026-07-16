@@ -40,10 +40,10 @@ const elementStyles = `
 
         [part="bar"] {
           display: grid;
-          gap: 0.9rem;
-          padding: 1rem;
+          gap: 0.55rem;
+          padding: 0.7rem;
           border: 1px solid var(--_obp-border);
-          border-radius: 1rem;
+          border-radius: 0.7rem;
           background: var(--_obp-surface-muted);
         }
 
@@ -57,7 +57,7 @@ const elementStyles = `
         [part="controls"] {
           display: grid;
           grid-template-columns: minmax(14rem, 1.4fr) repeat(2, minmax(10rem, 0.8fr));
-          gap: 0.85rem;
+          gap: 0.55rem;
           align-items: center;
         }
 
@@ -79,9 +79,9 @@ const elementStyles = `
         [part="select"] {
           width: 100%;
           min-width: 0;
-          padding: 0.8rem 0.9rem;
+          padding: 0.45rem 0.7rem;
           border: 1px solid var(--_obp-border-subtle);
-          border-radius: 0.85rem;
+          border-radius: 0.55rem;
           background: var(--_obp-surface);
           color: inherit;
           font: inherit;
@@ -97,7 +97,7 @@ const elementStyles = `
         [part="filter-chip"] {
           border: 1px solid var(--_obp-border-subtle);
           border-radius: 999px;
-          padding: 0.65rem 0.95rem;
+          padding: 0.4rem 0.7rem;
           background: var(--_obp-surface);
           color: inherit;
           font: inherit;

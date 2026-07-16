@@ -102,6 +102,20 @@ describe("BoxCarouselElement", () => {
     expect(activeDot?.dataset.index).toBe("1");
   });
 
+  it("uses compact shell chrome styles", () => {
+    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    element.items = [{ title: "One" }];
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("padding: 0.7rem;");
+    expect(styles).toContain("border-radius: 0.75rem;");
+    expect(styles).toContain("gap: 0.55rem;");
+    expect(styles).toContain("font-size: 1.15rem;");
+    expect(styles).toContain("padding: 0.7rem 0.75rem;");
+    expect(styles).toContain("border-radius: 0.7rem;");
+  });
+
   it("preserves selected-dot styles on hover and active", () => {
     const element = document.createElement("box-carousel") as BoxCarouselElement;
     element.items = [{ title: "One" }, { title: "Two" }];

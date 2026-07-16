@@ -36,10 +36,10 @@ const elementStyles = `
 
         [part="card"] {
           display: grid;
-          gap: 0.75rem;
-          padding: 0.95rem;
+          gap: 0.55rem;
+          padding: 0.7rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 1rem;
+          border-radius: 0.7rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, var(--boe-token-surface-surface, #ffffff) 4%);
         }
 
@@ -85,7 +85,7 @@ const elementStyles = `
         }
 
         [part="value"] {
-          font-size: 1.95rem;
+          font-size: 1.35rem;
           font-weight: 700;
           line-height: 1;
           letter-spacing: -0.04em;
@@ -102,7 +102,7 @@ const elementStyles = `
           flex-wrap: wrap;
           align-items: center;
           justify-content: space-between;
-          gap: 0.65rem;
+          gap: 0.55rem;
         }
 
         [part="trend"] {
@@ -134,7 +134,7 @@ const elementStyles = `
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
           font: inherit;
-          padding: 0.58rem 0.9rem;
+          padding: 0.4rem 0.7rem;
           cursor: pointer;
         }
 

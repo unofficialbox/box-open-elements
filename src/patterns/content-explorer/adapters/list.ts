@@ -34,7 +34,7 @@ const elementStyles = `
 
         [part="list-shell"] {
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-          border-radius: 0.95rem;
+          border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
           box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
           overflow: hidden;
@@ -164,14 +164,14 @@ const elementStyles = `
         ${boeFocusVisibleStyles('input[type="checkbox"]')}
 
         [part="empty"] {
-          padding: 0.9rem 0.8rem;
+          padding: 0.6rem 0.65rem;
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.9rem;
         }
 
         [part="error"] {
           margin: 0;
-          padding: 0.75rem 0.8rem;
+          padding: 0.55rem 0.65rem;
           border-bottom: 1px solid color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 34%, transparent);
           background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, var(--boe-token-surface-surface, #ffffff));
           color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 72%, black 28%);
@@ -190,7 +190,7 @@ const elementStyles = `
           font: inherit;
           font-size: 0.88rem;
           font-weight: 500;
-          padding: 0.42rem 0.9rem;
+          padding: 0.35rem 0.7rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, var(--boe-token-surface-surface, #ffffff) 14%);
           border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);

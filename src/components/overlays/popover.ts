@@ -31,7 +31,7 @@ const popoverStyles = `
     min-height: 2rem;
     padding: 0.4rem 0.78rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, var(--boe-token-surface-surface, #ffffff) 14%);
-    border-radius: 0.85rem;
+    border-radius: 0.7rem;
     background:
       linear-gradient(
         180deg,
@@ -59,9 +59,9 @@ const popoverStyles = `
     inset-block-start: calc(100% + 0.35rem);
     inset-inline-start: 0;
     width: min(21rem, calc(100vw - 5rem));
-    padding: 0.95rem 1rem 1rem;
+    padding: 0.7rem 0.75rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, var(--boe-token-surface-surface, #ffffff) 14%);
-    border-radius: 1.1rem;
+    border-radius: 0.75rem;
     background:
       linear-gradient(
         180deg,

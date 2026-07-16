@@ -52,10 +52,10 @@ const elementStyles = `
 
         [part="panel"] {
           display: grid;
-          gap: 1rem;
-          padding: 1.1rem;
+          gap: 0.55rem;
+          padding: 0.7rem;
           border: 1px solid var(--_obp-border);
-          border-radius: 1rem;
+          border-radius: 0.7rem;
           background: var(--_obp-surface-muted);
         }
 
@@ -73,7 +73,7 @@ const elementStyles = `
         }
 
         [part="title"] {
-          font-size: 1.5rem;
+          font-size: 1.1rem;
           font-weight: 700;
           line-height: 1.15;
         }
@@ -99,10 +99,10 @@ const elementStyles = `
         [part="owner"] {
           display: grid;
           grid-template-columns: auto 1fr;
-          gap: 0.8rem;
+          gap: 0.55rem;
           align-items: center;
-          padding: 0.9rem;
-          border-radius: 0.9rem;
+          padding: 0.65rem;
+          border-radius: 0.7rem;
           background: color-mix(in srgb, var(--_obp-surface) 76%, transparent);
           border: 1px solid var(--_obp-border-subtle);
         }
@@ -141,10 +141,10 @@ const elementStyles = `
         [part="meta-row"] {
           display: grid;
           grid-template-columns: minmax(8rem, 0.85fr) minmax(0, 1fr);
-          gap: 0.8rem;
+          gap: 0.55rem;
           margin: 0;
-          padding: 0.75rem 0.85rem;
-          border-radius: 0.85rem;
+          padding: 0.5rem 0.65rem;
+          border-radius: 0.65rem;
           background: color-mix(in srgb, var(--_obp-surface) 76%, transparent);
           border: 1px solid var(--_obp-border-subtle);
         }
@@ -162,13 +162,13 @@ const elementStyles = `
         [part="actions"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.75rem;
+          gap: 0.55rem;
         }
 
         [part="action"] {
           border: 1px solid var(--_obp-border-subtle);
           border-radius: 999px;
-          padding: 0.75rem 1rem;
+          padding: 0.4rem 0.7rem;
           background: var(--_obp-surface);
           color: inherit;
           font: inherit;

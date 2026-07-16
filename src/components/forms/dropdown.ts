@@ -48,7 +48,7 @@ const dropdownStyles = `
     font: inherit;
     color: var(--boe-token-text-text, #222222);
     text-align: left;
-    padding: 0.6rem 2.35rem 0.6rem 0.85rem;
+    padding: 0.4rem 2.1rem 0.4rem 0.7rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
     border-radius: 0.7rem;
     background:

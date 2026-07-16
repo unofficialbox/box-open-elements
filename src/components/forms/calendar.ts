@@ -74,12 +74,12 @@ const calendarStyles = `
 
   [part="calendar"] {
     display: grid;
-    gap: 0.75rem;
+    gap: 0.55rem;
     inline-size: 17.5rem;
     max-inline-size: 100%;
-    padding: 0.85rem;
+    padding: 0.7rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-    border-radius: 0.9rem;
+    border-radius: 0.7rem;
     background:
       linear-gradient(
         180deg,

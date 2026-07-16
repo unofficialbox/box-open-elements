@@ -27,10 +27,10 @@ const carouselStyles = `
 
   [part="carousel"] {
     display: grid;
-    gap: 1rem;
-    padding: 1.15rem;
+    gap: 0.55rem;
+    padding: 0.7rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-    border-radius: 1.2rem;
+    border-radius: 0.75rem;
     background:
       linear-gradient(
         180deg,
@@ -52,7 +52,7 @@ const carouselStyles = `
   [part="viewport"] {
     display: grid;
     grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
-    gap: 1.15rem;
+    gap: 0.55rem;
     align-items: stretch;
   }
 
@@ -61,7 +61,7 @@ const carouselStyles = `
     inline-size: 100%;
     block-size: 100%;
     min-block-size: 12rem;
-    border-radius: 1.05rem;
+    border-radius: 0.7rem;
     object-fit: cover;
     background:
       linear-gradient(
@@ -79,11 +79,11 @@ const carouselStyles = `
 
   [part="content"] {
     display: grid;
-    gap: 0.8rem;
+    gap: 0.55rem;
     align-content: center;
-    padding: 1rem 1.05rem;
+    padding: 0.7rem 0.75rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-stroke-stroke, #e8e8e8) 90%);
-    border-radius: 1.05rem;
+    border-radius: 0.7rem;
     background:
       linear-gradient(
         180deg,
@@ -106,7 +106,7 @@ const carouselStyles = `
   [part="title"] {
           margin: 0;
           font: inherit;
-    font-size: 1.52rem;
+    font-size: 1.15rem;
     font-weight: 700;
     line-height: 1.12;
     letter-spacing: -0.03em;
@@ -122,7 +122,7 @@ const carouselStyles = `
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 0.55rem;
     padding-top: 0.2rem;
   }
 
@@ -136,7 +136,7 @@ const carouselStyles = `
     inline-size: 2.45rem;
     block-size: 2.45rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 76%, var(--boe-token-surface-surface, #ffffff) 24%);
-    border-radius: 0.95rem;
+    border-radius: 0.7rem;
     background:
       linear-gradient(
         180deg,

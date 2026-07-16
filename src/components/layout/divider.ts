@@ -29,7 +29,7 @@ const dividerStyles = `
   [part="divider"] {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.55rem;
     inline-size: 100%;
   }
 

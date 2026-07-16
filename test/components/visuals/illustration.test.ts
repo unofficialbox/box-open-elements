@@ -67,4 +67,13 @@ describe("BoxIllustrationElement", () => {
     expect(art?.innerHTML).toContain("<svg");
     expect(element.shadowRoot?.textContent).toContain("Folder empty");
   });
+
+  it("uses compact illustration shell styles", () => {
+    const element = document.createElement("box-illustration") as BoxIllustrationElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("gap: 0.55rem;");
+    expect(styles).toContain("border-radius: 0.75rem;");
+  });
 });

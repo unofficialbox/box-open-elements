@@ -40,7 +40,7 @@ const fieldsetStyles = `
 
   [part="body"] {
     display: grid;
-    gap: 0.75rem;
+    gap: 0.55rem;
   }
 `;
 

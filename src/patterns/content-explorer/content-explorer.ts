@@ -91,10 +91,10 @@ const elementStyles = `
 
         section {
           display: grid;
-          gap: 0.85rem;
-          padding: 1.1rem;
+          gap: 0.55rem;
+          padding: 0.7rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.95rem;
+          border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
           transition: opacity 140ms ease;
         }
@@ -110,7 +110,7 @@ const elementStyles = `
 
         [part="folder"] h2 {
           margin: 0;
-          font-size: 1.2rem;
+          font-size: 1.1rem;
           font-weight: 700;
           line-height: 1.2;
           color: var(--boe-token-text-text, #222222);
@@ -168,8 +168,8 @@ const elementStyles = `
 
         [part="error"] {
           margin: 0;
-          padding: 0.7rem 0.9rem;
-          border-radius: 0.7rem;
+          padding: 0.55rem 0.7rem;
+          border-radius: 0.65rem;
           font-size: 0.9rem;
           background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, var(--boe-token-surface-surface, #ffffff));
           border: 1px solid color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 34%, transparent);
@@ -183,8 +183,8 @@ const elementStyles = `
           font: inherit;
           font-size: 0.875rem;
           font-weight: 600;
-          padding: 0.45em 1em;
-          border-radius: 0.7rem;
+          padding: 0.4rem 0.7rem;
+          border-radius: 0.55rem;
           border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
           background: var(--boe-token-surface-surface, #ffffff);
           color: var(--boe-token-text-text, #222222);
@@ -221,7 +221,7 @@ const elementStyles = `
           padding: 0;
           display: grid;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 62%, transparent);
-          border-radius: 0.8rem;
+          border-radius: 0.7rem;
           overflow: hidden;
         }
 
@@ -229,8 +229,8 @@ const elementStyles = `
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 0.8rem;
-          padding: 0.2rem 0.6rem;
+          gap: 0.55rem;
+          padding: 0.15rem 0.45rem;
           background: var(--boe-token-surface-surface, #ffffff);
           transition: background 140ms ease;
         }
@@ -255,7 +255,7 @@ const elementStyles = `
           display: grid;
           gap: 0.15rem;
           text-align: left;
-          padding: 0.6rem 0.5rem;
+          padding: 0.45rem 0.45rem;
           border: none;
           border-radius: 0.55rem;
           background: transparent;
@@ -300,7 +300,7 @@ const elementStyles = `
 
         [part="item-action"] {
           font-size: 0.8rem;
-          padding: 0.35em 0.8em;
+          padding: 0.35rem 0.7rem;
         }
 
         [part="load-more-region"] {

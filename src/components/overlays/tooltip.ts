@@ -51,8 +51,8 @@ const tooltipStyles = `
     transform: translateX(-50%);
     z-index: 1;
     width: min(13.75rem, calc(100vw - 6rem));
-    padding: 0.65rem 0.8rem;
-    border-radius: 0.9rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: 0.75rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, rgba(255, 255, 255, 0.08));
     background:
       linear-gradient(

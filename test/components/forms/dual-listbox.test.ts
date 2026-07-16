@@ -32,7 +32,7 @@ describe("BoxDualListboxElement", () => {
     expect(element.shadowRoot?.textContent).toContain("Download");
   });
 
-  it("uses compact panel, option, and move button styles", () => {
+  it("uses compact transfer column spacing", () => {
     const element = document.createElement("box-dual-listbox") as BoxDualListboxElement;
     document.body.append(element);
 
@@ -40,6 +40,7 @@ describe("BoxDualListboxElement", () => {
     expect(styles).toContain("padding: 0.55rem;");
     expect(styles).toContain("border-radius: 0.75rem;");
     expect(styles).toContain("padding: 0.5rem 0.65rem;");
+    expect(styles).toContain("padding-block: 0.55rem 0;");
     expect(styles).toContain("inline-size: 1.65rem;");
     expect(styles).toContain("block-size: 1.65rem;");
   });

@@ -41,7 +41,7 @@ const elementStyles = `
 
         [part="table-shell"] {
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-          border-radius: 0.95rem;
+          border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
           box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
           overflow: hidden;
@@ -63,7 +63,7 @@ const elementStyles = `
         }
 
         [part="header-row"] th {
-          padding: 0.6rem 0.8rem;
+          padding: 0.5rem 0.65rem;
           text-align: left;
           font-size: 0.75rem;
           font-weight: 700;
@@ -84,7 +84,7 @@ const elementStyles = `
         }
 
         [part="row"] td {
-          padding: 0.45rem 0.8rem;
+          padding: 0.4rem 0.65rem;
           border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 55%, transparent);
         }
 
@@ -176,7 +176,7 @@ const elementStyles = `
         }
 
         [part="empty"] {
-          padding: 0.9rem 0.8rem;
+          padding: 0.6rem 0.65rem;
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.9rem;
         }
@@ -193,7 +193,7 @@ const elementStyles = `
           font: inherit;
           font-size: 0.88rem;
           font-weight: 500;
-          padding: 0.42rem 0.9rem;
+          padding: 0.35rem 0.7rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, var(--boe-token-surface-surface, #ffffff) 14%);
           border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);

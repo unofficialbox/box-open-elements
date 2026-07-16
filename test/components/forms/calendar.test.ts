@@ -143,4 +143,13 @@ describe("BoxCalendarElement", () => {
     expect(tabbable?.getAttribute("data-date")).toBe("2027-03-15");
     expect(tabbable?.disabled).toBe(false);
   });
+
+  it("uses compact calendar shell styles", () => {
+    const element = create({ month: "2026-02" });
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("gap: 0.55rem;");
+    expect(styles).toContain("padding: 0.7rem;");
+    expect(styles).toContain("border-radius: 0.7rem;");
+  });
 });

@@ -35,10 +35,10 @@ const alertStyles = `
     display: flex;
     align-items: start;
     justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0.85rem 0.95rem;
+    gap: 0.55rem;
+    padding: 0.7rem 0.75rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, var(--boe-token-surface-surface, #ffffff));
-    border-radius: 0.95rem;
+    border-radius: 0.75rem;
     background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff));
     color: var(--boe-token-text-text, #222222);
     transition: background 140ms ease, border-color 140ms ease;

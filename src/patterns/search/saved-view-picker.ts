@@ -36,10 +36,10 @@ const elementStyles = `
 
         [part="picker"] {
           display: grid;
-          gap: 0.9rem;
-          padding: 1rem 1.1rem;
+          gap: 0.55rem;
+          padding: 0.7rem;
           border: 1px solid var(--_obp-border);
-          border-radius: 1rem;
+          border-radius: 0.7rem;
           background: var(--_obp-surface-muted);
         }
 
@@ -53,7 +53,7 @@ const elementStyles = `
 
         [part="views"] {
           display: grid;
-          gap: 0.75rem;
+          gap: 0.55rem;
         }
 
         [part="view"] {
@@ -62,8 +62,8 @@ const elementStyles = `
           width: 100%;
           text-align: left;
           border: 1px solid var(--_obp-border-subtle);
-          border-radius: 0.9rem;
-          padding: 0.85rem 0.95rem;
+          border-radius: 0.65rem;
+          padding: 0.55rem 0.7rem;
           background: var(--_obp-surface);
           color: inherit;
           font: inherit;

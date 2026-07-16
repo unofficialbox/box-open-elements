@@ -13,7 +13,7 @@ const paginationStyles = `
   [part="pagination"] {
     display: inline-flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.55rem;
   }
 
   [part="previous"],

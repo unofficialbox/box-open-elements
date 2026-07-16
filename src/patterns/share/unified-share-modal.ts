@@ -40,7 +40,7 @@ const elementStyles = `
           inset: 0;
           display: grid;
           place-items: center;
-          padding: 1rem;
+          padding: 0.75rem;
           background: rgba(15, 23, 42, 0.45);
           z-index: 1000;
         }
@@ -50,9 +50,9 @@ const elementStyles = `
           max-block-size: calc(100vh - 2rem);
           overflow: auto;
           display: grid;
-          gap: 0.85rem;
-          padding: 1.25rem;
-          border-radius: 1rem;
+          gap: 0.55rem;
+          padding: 0.75rem;
+          border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
           color: var(--boe-token-text-text, #222222);
           box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
@@ -62,10 +62,10 @@ const elementStyles = `
           display: flex;
           align-items: flex-start;
           justify-content: space-between;
-          gap: 0.75rem;
+          gap: 0.55rem;
         }
 
-        [part="title"] { margin: 0; font-size: 1.2rem; font-weight: 700; }
+        [part="title"] { margin: 0; font-size: 1.1rem; font-weight: 700; }
 
         [part="close"] {
           appearance: none;
@@ -95,7 +95,7 @@ const elementStyles = `
           appearance: none;
           border: 0;
           border-radius: 999px;
-          padding: 0.4rem 0.9rem;
+          padding: 0.35rem 0.75rem;
           font: inherit;
           font-weight: 600;
           background: transparent;
@@ -109,7 +109,7 @@ const elementStyles = `
           box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
         }
 
-        [part="body"] { display: grid; gap: 0.85rem; min-block-size: 6rem; }
+        [part="body"] { display: grid; gap: 0.55rem; min-block-size: 6rem; }
 
         [part="label"] {
           font-size: 0.78rem;
@@ -141,7 +141,7 @@ const elementStyles = `
           color: var(--boe-token-text-text-on-brand, #ffffff);
           font: inherit;
           font-weight: 600;
-          padding: 0.55rem 0.9rem;
+          padding: 0.4rem 0.7rem;
           cursor: pointer;
           white-space: nowrap;
         }
@@ -210,7 +210,7 @@ const elementStyles = `
           color: var(--boe-token-surface-surface-brand, #0061d5);
           font: inherit;
           font-weight: 600;
-          padding: 0.5rem 0.9rem;
+          padding: 0.4rem 0.7rem;
           cursor: pointer;
         }
 
@@ -243,7 +243,7 @@ const elementStyles = `
           color: var(--boe-token-text-text-on-brand, #ffffff);
           font: inherit;
           font-weight: 600;
-          padding: 0.55rem 1rem;
+          padding: 0.4rem 0.7rem;
           cursor: pointer;
         }
 
