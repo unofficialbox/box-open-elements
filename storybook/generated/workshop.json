@@ -63,6 +63,41 @@
       ]
     },
     {
+      "id": "button-group",
+      "tag": "box-button-group",
+      "title": "Components/Actions/Button Group",
+      "category": "Actions",
+      "shortDescription": "A grouped set of related action buttons.",
+      "docsDescription": "Pass button definitions as JSON `options`; `value` marks the active option when used as a toggle group.",
+      "sourceSnippet": "<box-button-group label=\"Item actions\" options='[{\"label\":\"Share\",\"value\":\"share\"},{\"label\":\"Download\",\"value\":\"download\"}]' value=\"share\"></box-button-group>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible group label."
+        },
+        {
+          "kind": "attribute",
+          "name": "options",
+          "type": "json",
+          "description": "Array of { label, value }."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Active option value."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-button-group label=\"Item actions\" options='[{\"label\":\"Share\",\"value\":\"share\"},{\"label\":\"Download\",\"value\":\"download\"},{\"label\":\"Delete\",\"value\":\"delete\"}]' value=\"share\"></box-button-group>"
+        }
+      ]
+    },
+    {
       "id": "icon-button",
       "tag": "box-icon-button",
       "title": "Components/Actions/Icon Button",
@@ -141,6 +176,113 @@
         {
           "name": "Neutral",
           "html": "<box-link-button label=\"Learn more\" href=\"/docs\" tone=\"neutral\"></box-link-button>"
+        }
+      ]
+    },
+    {
+      "id": "menu",
+      "tag": "box-menu",
+      "title": "Components/Actions/Menu",
+      "category": "Actions",
+      "shortDescription": "An action menu driven by a JSON item list.",
+      "docsDescription": "Provide menu entries as JSON `items` (`id`/`label`, optional `disabled`).",
+      "sourceSnippet": "<box-menu label=\"File actions\" items='[{\"id\":\"open\",\"label\":\"Open\"},{\"id\":\"rename\",\"label\":\"Rename\"}]'></box-menu>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible menu label."
+        },
+        {
+          "kind": "attribute",
+          "name": "items",
+          "type": "json",
+          "description": "Array of { id, label, disabled? }."
+        },
+        {
+          "kind": "attribute",
+          "name": "disabled",
+          "type": "boolean",
+          "description": "Disables the menu."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-menu label=\"File actions\" items='[{\"id\":\"open\",\"label\":\"Open\"},{\"id\":\"rename\",\"label\":\"Rename\"},{\"id\":\"move\",\"label\":\"Move or copy\",\"disabled\":true}]'></box-menu>"
+        }
+      ]
+    },
+    {
+      "id": "menu-item",
+      "tag": "box-menu-item",
+      "title": "Components/Actions/Menu Item",
+      "category": "Actions",
+      "shortDescription": "A single menu row for composed menus.",
+      "docsDescription": "Use inside custom menu compositions when you are not driving `box-menu` from JSON `items`.",
+      "sourceSnippet": "<box-menu-item label=\"Rename\"></box-menu-item>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Visible item label."
+        },
+        {
+          "kind": "attribute",
+          "name": "disabled",
+          "type": "boolean",
+          "description": "Makes the item inert."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-menu-item label=\"Rename\"></box-menu-item>"
+        },
+        {
+          "name": "Disabled",
+          "html": "<box-menu-item label=\"Move or copy\" disabled></box-menu-item>"
+        }
+      ]
+    },
+    {
+      "id": "segmented-control",
+      "tag": "box-segmented-control",
+      "title": "Components/Actions/Segmented Control",
+      "category": "Actions",
+      "shortDescription": "A compact mutually exclusive choice control.",
+      "docsDescription": "Provide segment definitions as JSON `options` and the selected `value`.",
+      "sourceSnippet": "<box-segmented-control label=\"Density\" options='[{\"label\":\"Comfortable\",\"value\":\"comfortable\"},{\"label\":\"Compact\",\"value\":\"compact\"}]' value=\"comfortable\"></box-segmented-control>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible name for the control."
+        },
+        {
+          "kind": "attribute",
+          "name": "options",
+          "type": "json",
+          "description": "Array of { label, value }."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Selected segment value."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Comfortable",
+          "html": "<box-segmented-control label=\"Density\" options='[{\"label\":\"Comfortable\",\"value\":\"comfortable\"},{\"label\":\"Compact\",\"value\":\"compact\"}]' value=\"comfortable\"></box-segmented-control>"
+        },
+        {
+          "name": "Compact",
+          "html": "<box-segmented-control label=\"Density\" options='[{\"label\":\"Comfortable\",\"value\":\"comfortable\"},{\"label\":\"Compact\",\"value\":\"compact\"}]' value=\"compact\"></box-segmented-control>"
         }
       ]
     },
@@ -730,6 +872,76 @@
       ]
     },
     {
+      "id": "checkbox-group",
+      "tag": "box-checkbox-group",
+      "title": "Components/Forms/Checkbox Group",
+      "category": "Forms",
+      "shortDescription": "A labelled set of multi-select checkboxes.",
+      "docsDescription": "Form-associated checkbox group. `options` is JSON; `value` is a JSON array of selected values.",
+      "sourceSnippet": "<box-checkbox-group label=\"Permissions\" options='[{\"label\":\"Can view\",\"value\":\"view\"}]' value='[\"view\"]'></box-checkbox-group>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible group label."
+        },
+        {
+          "kind": "attribute",
+          "name": "options",
+          "type": "json",
+          "description": "Array of { label, value }."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "json",
+          "description": "JSON array of selected values."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-checkbox-group label=\"Permissions\" options='[{\"label\":\"Can view\",\"value\":\"view\"},{\"label\":\"Can edit\",\"value\":\"edit\"},{\"label\":\"Can share\",\"value\":\"share\"}]' value='[\"view\",\"edit\"]'></box-checkbox-group>"
+        }
+      ]
+    },
+    {
+      "id": "radio-group",
+      "tag": "box-radio-group",
+      "title": "Components/Forms/Radio Group",
+      "category": "Forms",
+      "shortDescription": "A labelled set of mutually exclusive choices.",
+      "docsDescription": "Form-associated radio group. Provide choices as JSON `options` and the selected `value`.",
+      "sourceSnippet": "<box-radio-group label=\"Access level\" options='[{\"label\":\"Company\",\"value\":\"company\"}]' value=\"company\"></box-radio-group>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible group label."
+        },
+        {
+          "kind": "attribute",
+          "name": "options",
+          "type": "json",
+          "description": "Array of { label, value }."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Selected option value."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-radio-group label=\"Access level\" options='[{\"label\":\"Company\",\"value\":\"company\"},{\"label\":\"Invited people only\",\"value\":\"invited\"}]' value=\"company\"></box-radio-group>"
+        }
+      ]
+    },
+    {
       "id": "search-field",
       "tag": "box-search-field",
       "title": "Components/Forms/Search Field",
@@ -1007,6 +1219,160 @@
       ]
     },
     {
+      "id": "select",
+      "tag": "box-select",
+      "title": "Components/Forms/Select",
+      "category": "Forms",
+      "shortDescription": "A single-select dropdown field.",
+      "docsDescription": "Form-associated select. Provide choices as JSON `options` and the current `value`.",
+      "sourceSnippet": "<box-select label=\"Owner\" options='[{\"label\":\"Morgan Lee\",\"value\":\"morgan\"}]' value=\"morgan\"></box-select>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible field label."
+        },
+        {
+          "kind": "attribute",
+          "name": "options",
+          "type": "json",
+          "description": "Array of { label, value }."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Selected option value."
+        },
+        {
+          "kind": "attribute",
+          "name": "disabled",
+          "type": "boolean",
+          "description": "Makes the field inert."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-select label=\"Owner\" options='[{\"label\":\"Morgan Lee\",\"value\":\"morgan\"},{\"label\":\"Alex Kim\",\"value\":\"alex\"}]' value=\"morgan\"></box-select>"
+        },
+        {
+          "name": "Disabled",
+          "html": "<box-select label=\"Owner\" options='[{\"label\":\"Morgan Lee\",\"value\":\"morgan\"},{\"label\":\"Alex Kim\",\"value\":\"alex\"}]' value=\"morgan\" disabled></box-select>"
+        }
+      ]
+    },
+    {
+      "id": "combobox",
+      "tag": "box-combobox",
+      "title": "Components/Forms/Combobox",
+      "category": "Forms",
+      "shortDescription": "A filterable single-select combobox.",
+      "docsDescription": "Form-associated combobox. Provide choices as JSON `options`.",
+      "sourceSnippet": "<box-combobox label=\"File type\" options='[{\"label\":\"PDF\",\"value\":\"pdf\"}]'></box-combobox>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible field label."
+        },
+        {
+          "kind": "attribute",
+          "name": "options",
+          "type": "json",
+          "description": "Array of { label, value }."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Selected value when set."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-combobox label=\"File type\" options='[{\"label\":\"PDF\",\"value\":\"pdf\"},{\"label\":\"Document\",\"value\":\"doc\"},{\"label\":\"Spreadsheet\",\"value\":\"xls\"}]'></box-combobox>"
+        },
+        {
+          "name": "Selected",
+          "html": "<box-combobox label=\"File type\" options='[{\"label\":\"PDF\",\"value\":\"pdf\"},{\"label\":\"Document\",\"value\":\"doc\"},{\"label\":\"Spreadsheet\",\"value\":\"xls\"}]' value=\"pdf\"></box-combobox>"
+        }
+      ]
+    },
+    {
+      "id": "multi-select",
+      "tag": "box-multi-select",
+      "title": "Components/Forms/Multi Select",
+      "category": "Forms",
+      "shortDescription": "A multi-value select field.",
+      "docsDescription": "Form-associated multi-select. `options` is JSON; `value` is a JSON array of selected values.",
+      "sourceSnippet": "<box-multi-select label=\"Collaborators\" options='[{\"label\":\"Morgan Lee\",\"value\":\"morgan\"}]' value='[\"morgan\"]'></box-multi-select>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible field label."
+        },
+        {
+          "kind": "attribute",
+          "name": "options",
+          "type": "json",
+          "description": "Array of { label, value }."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "json",
+          "description": "JSON array of selected values."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-multi-select label=\"Collaborators\" options='[{\"label\":\"Morgan Lee\",\"value\":\"morgan\"},{\"label\":\"Alex Kim\",\"value\":\"alex\"},{\"label\":\"Sam Rivera\",\"value\":\"sam\"}]' value='[\"morgan\",\"alex\"]'></box-multi-select>"
+        }
+      ]
+    },
+    {
+      "id": "dropdown",
+      "tag": "box-dropdown",
+      "title": "Components/Forms/Dropdown",
+      "category": "Forms",
+      "shortDescription": "A labelled menu button for choosing one item.",
+      "docsDescription": "Provide entries as JSON `items` (`id`/`label`) and the selected `value` (item id).",
+      "sourceSnippet": "<box-dropdown label=\"Sort by\" items='[{\"id\":\"name\",\"label\":\"Name\"}]' value=\"name\"></box-dropdown>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible control label."
+        },
+        {
+          "kind": "attribute",
+          "name": "items",
+          "type": "json",
+          "description": "Array of { id, label }."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Selected item id."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-dropdown label=\"Sort by\" items='[{\"id\":\"name\",\"label\":\"Name\"},{\"id\":\"modified\",\"label\":\"Modified\"},{\"id\":\"size\",\"label\":\"Size\"}]' value=\"modified\"></box-dropdown>"
+        }
+      ]
+    },
+    {
       "id": "rating",
       "tag": "box-rating",
       "title": "Components/Forms/Rating",
@@ -1099,6 +1465,123 @@
         {
           "name": "Disabled",
           "html": "<box-slider label=\"Density\" value=\"40\" min=\"0\" max=\"100\" disabled></box-slider>"
+        }
+      ]
+    },
+    {
+      "id": "spin-button",
+      "tag": "box-spin-button",
+      "title": "Components/Forms/Spin Button",
+      "category": "Forms",
+      "shortDescription": "A numeric stepper control.",
+      "docsDescription": "Form-associated spinbutton with `value` between optional `min` / `max`.",
+      "sourceSnippet": "<box-spin-button label=\"Quota (GB)\" value=\"50\" min=\"0\" max=\"500\"></box-spin-button>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible field label."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "number",
+          "description": "Current value."
+        },
+        {
+          "kind": "attribute",
+          "name": "min",
+          "type": "number",
+          "description": "Lower bound."
+        },
+        {
+          "kind": "attribute",
+          "name": "max",
+          "type": "number",
+          "description": "Upper bound."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-spin-button label=\"Quota (GB)\" value=\"50\" min=\"0\" max=\"500\"></box-spin-button>"
+        }
+      ]
+    },
+    {
+      "id": "calendar",
+      "tag": "box-calendar",
+      "title": "Components/Forms/Calendar",
+      "category": "Forms",
+      "shortDescription": "A standalone month calendar grid.",
+      "docsDescription": "Pin demos with `value`, `month`, and `today` ISO dates so rendering stays deterministic.",
+      "sourceSnippet": "<box-calendar value=\"2026-07-18\" month=\"2026-07\" today=\"2026-07-15\"></box-calendar>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Selected ISO date."
+        },
+        {
+          "kind": "attribute",
+          "name": "month",
+          "type": "string",
+          "description": "Displayed month (YYYY-MM)."
+        },
+        {
+          "kind": "attribute",
+          "name": "today",
+          "type": "string",
+          "description": "Pinned today for demos/tests."
+        },
+        {
+          "kind": "attribute",
+          "name": "disabled",
+          "type": "boolean",
+          "description": "Makes the calendar inert."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-calendar value=\"2026-07-18\" month=\"2026-07\" today=\"2026-07-15\"></box-calendar>"
+        }
+      ]
+    },
+    {
+      "id": "category-selector",
+      "tag": "box-category-selector",
+      "title": "Components/Forms/Category Selector",
+      "category": "Forms",
+      "shortDescription": "A compact category filter control.",
+      "docsDescription": "Provide categories as JSON `options` and the selected `value`.",
+      "sourceSnippet": "<box-category-selector label=\"Filter by type\" options='[{\"value\":\"all\",\"label\":\"All\"}]' value=\"all\"></box-category-selector>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible control label."
+        },
+        {
+          "kind": "attribute",
+          "name": "options",
+          "type": "json",
+          "description": "Array of { label, value }."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Selected category value."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-category-selector label=\"Filter by type\" options='[{\"value\":\"all\",\"label\":\"All\"},{\"value\":\"docs\",\"label\":\"Documents\"},{\"value\":\"media\",\"label\":\"Media\"},{\"value\":\"links\",\"label\":\"Links\"}]' value=\"all\"></box-category-selector>"
         }
       ]
     },
@@ -1519,6 +2002,80 @@
         {
           "name": "Plain",
           "html": "<box-divider></box-divider>"
+        }
+      ]
+    },
+    {
+      "id": "tabs",
+      "tag": "box-tabs",
+      "title": "Components/Navigation/Tabs",
+      "category": "Navigation",
+      "shortDescription": "A labelled tablist for switching views.",
+      "docsDescription": "Pass tab definitions as a JSON `options` attribute (`label`/`value`) and the selected `value`.",
+      "sourceSnippet": "<box-tabs label=\"Views\" options='[{\"label\":\"All files\",\"value\":\"all\"},{\"label\":\"Recents\",\"value\":\"recents\"}]' value=\"all\"></box-tabs>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible name for the tablist."
+        },
+        {
+          "kind": "attribute",
+          "name": "options",
+          "type": "json",
+          "description": "Array of { label, value }."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Selected tab value."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-tabs label=\"Views\" options='[{\"label\":\"All files\",\"value\":\"all\"},{\"label\":\"Recents\",\"value\":\"recents\"},{\"label\":\"Shared\",\"value\":\"shared\"}]' value=\"all\"></box-tabs>"
+        },
+        {
+          "name": "Shared selected",
+          "html": "<box-tabs label=\"Views\" options='[{\"label\":\"All files\",\"value\":\"all\"},{\"label\":\"Recents\",\"value\":\"recents\"},{\"label\":\"Shared\",\"value\":\"shared\"}]' value=\"shared\"></box-tabs>"
+        }
+      ]
+    },
+    {
+      "id": "accordion",
+      "tag": "box-accordion",
+      "title": "Components/Navigation/Accordion",
+      "category": "Navigation",
+      "shortDescription": "An expandable section list.",
+      "docsDescription": "Pass panels as JSON `items` (`label`/`value`/`content`) and the open panel `value`.",
+      "sourceSnippet": "<box-accordion label=\"Details\" items='[{\"label\":\"Properties\",\"value\":\"props\",\"content\":\"Owner and size.\"}]' value=\"props\"></box-accordion>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible accordion label."
+        },
+        {
+          "kind": "attribute",
+          "name": "items",
+          "type": "json",
+          "description": "Array of { label, value, content? }."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Expanded item value."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-accordion label=\"Details\" items='[{\"label\":\"Properties\",\"value\":\"props\",\"content\":\"Owner, size, and classification.\"},{\"label\":\"Activity\",\"value\":\"activity\",\"content\":\"Recent comments and versions.\"}]' value=\"props\"></box-accordion>"
         }
       ]
     }
