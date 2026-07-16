@@ -16,6 +16,7 @@ import nudge from "./stories/nudge.stories.js";
 import spinner from "./stories/spinner.stories.js";
 import progressBar from "./stories/progress-bar.stories.js";
 import progressRing from "./stories/progress-ring.stories.js";
+import progressSteps from "./stories/progress-steps.stories.js";
 import skeleton from "./stories/skeleton.stories.js";
 import toast from "./stories/toast.stories.js";
 import switchStory from "./stories/switch.stories.js";
@@ -36,6 +37,10 @@ import slider from "./stories/slider.stories.js";
 import spinButton from "./stories/spin-button.stories.js";
 import calendar from "./stories/calendar.stories.js";
 import categorySelector from "./stories/category-selector.stories.js";
+import dualListbox from "./stories/dual-listbox.stories.js";
+import rangeSlider from "./stories/range-slider.stories.js";
+import tagInput from "./stories/tag-input.stories.js";
+import timeField from "./stories/time-field.stories.js";
 import dialog from "./stories/dialog.stories.js";
 import drawer from "./stories/drawer.stories.js";
 import popover from "./stories/popover.stories.js";
@@ -43,11 +48,21 @@ import tooltip from "./stories/tooltip.stories.js";
 import illustration from "./stories/illustration.stories.js";
 import avatar from "./stories/avatar.stories.js";
 import persona from "./stories/persona.stories.js";
+import contactDatalistItem from "./stories/contact-datalist-item.stories.js";
 import card from "./stories/card.stories.js";
+import carousel from "./stories/carousel.stories.js";
+import datalistItem from "./stories/datalist-item.stories.js";
 import pagination from "./stories/pagination.stories.js";
+import tree from "./stories/tree.stories.js";
 import divider from "./stories/divider.stories.js";
+import dropZone from "./stories/drop-zone.stories.js";
+import section from "./stories/section.stories.js";
 import tabs from "./stories/tabs.stories.js";
 import accordion from "./stories/accordion.stories.js";
+import sharePanel from "./stories/share-panel.stories.js";
+import fileRequestBuilder from "./stories/file-request-builder.stories.js";
+import reviewQueueItem from "./stories/review-queue-item.stories.js";
+import metricCard from "./stories/metric-card.stories.js";
 
 /**
  * The authored story set. Add a story module here to include it in the
@@ -72,6 +87,7 @@ export const storyModules: StoryModule[] = [
   spinner,
   progressBar,
   progressRing,
+  progressSteps,
   skeleton,
   toast,
   switchStory,
@@ -92,6 +108,10 @@ export const storyModules: StoryModule[] = [
   spinButton,
   calendar,
   categorySelector,
+  dualListbox,
+  rangeSlider,
+  tagInput,
+  timeField,
   dialog,
   drawer,
   popover,
@@ -99,9 +119,19 @@ export const storyModules: StoryModule[] = [
   illustration,
   avatar,
   persona,
+  contactDatalistItem,
   card,
+  carousel,
+  datalistItem,
   pagination,
+  tree,
   divider,
+  dropZone,
+  section,
   tabs,
   accordion,
+  sharePanel,
+  fileRequestBuilder,
+  reviewQueueItem,
+  metricCard,
 ];

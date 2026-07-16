@@ -26,9 +26,9 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + **coverage-gated** tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
   Coverage floors: [docs/coverage-baseline.md](./coverage-baseline.md).
-- Recent merged PRs: fidelity Batches 0–7 + #41–**#54** (coverage baseline gate, theming/motion, style bridge, explorer host bindings).
+- Recent merged PRs: fidelity Batches 0–7 + #41–**#55** (explorer host chrome demo #55; coverage/theming/motion/style-bridge #54).
 - Foundations: theming + motion docs; `src/foundations/motion`; style bridge CLI; explorer host bindings for filter-bar / saved views.
-- **Open PR #55:** docs-site explorer chrome demo + status sync — `cursor/explorer-chrome-demo-7eb7`.
+- **Open PR #56:** workshop stories batch 4 (49 → 64) — `cursor/workshop-stories-batch4-7eb7`.
 
 ## Completed initiative: component fidelity program
 
@@ -142,7 +142,7 @@ organized into **systemic sweeps**, not per-component rewrites.
   `getMirroredFormValue(el.internals)` in tests.
 
 ## Open user-facing threads
-- Fidelity program complete; #44–**#54** merged (workshop at **49** surfaces; coverage gate; theming/motion; style bridge).
-- Docs-site explorer chrome demo in flight as **Open PR #55**: filter-bar + saved-view + explorer host composition.
+- Fidelity program complete; #44–**#55** merged (workshop was **49** surfaces; coverage gate; theming/motion; style bridge; explorer chrome demo).
+- Workshop stories batch 4 in flight as **Open PR #56** (49 → **64**): collections/forms/patterns attribute-stable stories.
 - `recents` still needs a transport contract; list/table presentation swap remains host-owned.
-- Next after chrome demo: more workshop stories; next build-along lesson; React adapter PoC; opportunistic motion-literal migration.
+- Next after batch 4: more workshop stories; next build-along lesson; React adapter PoC; opportunistic motion-literal migration.
