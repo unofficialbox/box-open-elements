@@ -193,8 +193,13 @@
 </section>
 
 <section id="section-explorer-element">
-  <h2>Patterns · Composed box-content-explorer (mock transport)</h2>
-  <div class="row"><box-content-explorer id="content-explorer" root-folder-id="0" token="preview-token" page-size="25"></box-content-explorer></div>
+  <h2>Patterns · Content explorer host chrome (filter-bar + saved views + explorer)</h2>
+  <div class="row" style="display:grid;gap:0.85rem;width:100%">
+    <box-saved-view-picker id="explorer-saved-views" label="Saved views"></box-saved-view-picker>
+    <box-filter-bar id="explorer-filter-bar" label="Filters"></box-filter-bar>
+    <p id="explorer-presentation" aria-live="polite" style="margin:0;font-size:0.85rem;color:var(--boe-token-text-text-secondary,#6f6f6f)">Host presentation: <strong>list</strong></p>
+    <box-content-explorer id="content-explorer" root-folder-id="0" token="preview-token" page-size="25"></box-content-explorer>
+  </div>
 </section>
 
 <script type="module">
@@ -202,6 +207,8 @@
     applyDesignTokens,
     registerBoxDefaultDesignSystem,
     ContentExplorerController,
+    bindFilterBarToExplorer,
+    bindSavedViewPickerToExplorer,
     defineBoxButtonElement,
     defineBoxIconButtonElement,
     defineBoxLinkButtonElement,
@@ -233,6 +240,7 @@
     defineBoxAvatarElement,
     defineBoxPersonaElement,
     defineBoxFilterBarElement,
+    defineBoxSavedViewPickerElement,
     defineBoxSearchResultsHeaderElement,
     defineBoxItemDetailsPanelElement,
     defineBoxBulkActionBarElement,
@@ -270,7 +278,7 @@
     defineBoxProgressRingElement, defineBoxProgressStepsElement, defineBoxTabsElement,
     defineBoxTreeElement, defineBoxAccordionElement, defineBoxCardElement,
     defineBoxPaginationElement, defineBoxAvatarElement, defineBoxPersonaElement,
-    defineBoxFilterBarElement, defineBoxSearchResultsHeaderElement,
+    defineBoxFilterBarElement, defineBoxSavedViewPickerElement, defineBoxSearchResultsHeaderElement,
     defineBoxItemDetailsPanelElement, defineBoxBulkActionBarElement,
     defineBoxExplorerBreadcrumbsElement, defineBoxExplorerToolbarElement,
     defineBoxExplorerTableElement, defineBoxMetricCardElement, defineBoxBarChartElement,
@@ -505,6 +513,46 @@
 
   const explorerElement = byId("content-explorer");
   explorerElement.transport = mockTransport;
+
+  const explorerPresets = [
+    { id: "plans", label: "Plans", description: "Names containing Plan", query: "Plan", resultCount: 1 },
+    { id: "pdfs", label: "PDFs", description: "Names containing pdf", query: "pdf", resultCount: 2 },
+    { id: "all-files", label: "All files", description: "Clear search", query: "", resultCount: 5 },
+  ];
+  const explorerSavedViews = byId("explorer-saved-views");
+  explorerSavedViews.views = explorerPresets.map(({ id, label, description, resultCount }) => ({
+    id,
+    label,
+    description,
+    resultCount,
+  }));
+  const explorerFilterBar = byId("explorer-filter-bar");
+  explorerFilterBar.filterOptions = [
+    { label: "Modified", value: "modified" },
+    { label: "Owner", value: "owner" },
+    { label: "Type", value: "type" },
+  ];
+  explorerFilterBar.sortOptions = [
+    { label: "Name", value: "name" },
+    { label: "Modified", value: "modified" },
+  ];
+  explorerFilterBar.viewOptions = [
+    { label: "List", value: "list" },
+    { label: "Table", value: "table" },
+  ];
+  explorerFilterBar.viewValue = "list";
+  const explorerPresentation = byId("explorer-presentation");
+  const explorerPresentationValue = explorerPresentation.querySelector("strong");
+  bindFilterBarToExplorer(explorerFilterBar, explorerElement, {
+    onViewChange: view => {
+      if (explorerPresentationValue) {
+        explorerPresentationValue.textContent = view || "list";
+      }
+    },
+  });
+  bindSavedViewPickerToExplorer(explorerSavedViews, explorerElement, {
+    resolvePreset: id => explorerPresets.find(preset => preset.id === id),
+  });
 
   document.body.dataset.galleryReady = "true";
 </script>

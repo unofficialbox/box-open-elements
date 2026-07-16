@@ -157,6 +157,8 @@ const unbindViews = bindSavedViewPickerToExplorer(picker, explorer, {
 | Saved-view persistence / server schema | Host (local presets first) |
 | `recents` transport mode | Next slice — needs a real transport contract before controller mode |
 
+The docs-site `content-explorer` preview and the screenshot gallery compose this chrome with local presets (Plans / PDFs / All files) against the mock transport.
+
 ## Lessons carried from the original recreation plan
 
 - **Enrich the item contract.** — done (optional summary fields above).

@@ -425,9 +425,17 @@ const renderComponentPage = (entry: CatalogEntry): void => {
       ? renderBulletList(guidance.keyboard)
       : '<p class="inspector-empty">No role-mapped keyboard guidance for this preview — see the shared accessibility conventions.</p>';
   };
+  let setupCleanup: (() => void) | undefined;
   const mount = (html: string, runSetup: boolean): void => {
+    setupCleanup?.();
+    setupCleanup = undefined;
     canvas.innerHTML = html;
-    if (runSetup) example.setup?.(canvas);
+    if (runSetup) {
+      const cleanup = example.setup?.(canvas);
+      if (typeof cleanup === "function") {
+        setupCleanup = cleanup;
+      }
+    }
     refreshInspectors();
   };
   mount(initialHtml, !hasVariants);
@@ -469,6 +477,8 @@ const renderComponentPage = (entry: CatalogEntry): void => {
   }
 
   teardown = () => {
+    setupCleanup?.();
+    setupCleanup = undefined;
     observer?.disconnect();
     for (const [name, listener] of listeners) canvas.removeEventListener(name, listener);
   };

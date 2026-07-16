@@ -13,8 +13,14 @@ import {
   type ShareDataSource,
   type ShareState,
 } from "box-open-elements";
+import {
+  contentExplorerChromeHtml,
+  contentExplorerChromeNote,
+  setupContentExplorerChrome,
+} from "./explorer-chrome-demo.js";
 
-type SetupFn = (root: HTMLElement) => void;
+/** Optional return value unsubscribes host listeners when the preview remounts. */
+type SetupFn = (root: HTMLElement) => void | (() => void);
 
 export interface ComponentExample {
   html: string;
@@ -485,9 +491,9 @@ export const examples: Record<string, ComponentExample> = {
 
   // Patterns
   "content-explorer": {
-    html: `<box-content-explorer root-folder-id="0" token="…" page-size="25"></box-content-explorer>`,
-    setup: root => set(root, "box-content-explorer", { transport: createMockTransport() }),
-    note: "Wired to a mock transport in this preview; inject your own ExplorerTransport or data source.",
+    html: contentExplorerChromeHtml,
+    setup: root => setupContentExplorerChrome(root, createMockTransport()),
+    note: contentExplorerChromeNote,
   },
   "explorer-breadcrumbs": { html: `<box-explorer-breadcrumbs></box-explorer-breadcrumbs>`, setup: explorerAdapterSetup("box-explorer-breadcrumbs"), note: "Driven by a shared ContentExplorerController with a mock transport." },
   "explorer-toolbar": { html: `<box-explorer-toolbar></box-explorer-toolbar>`, setup: explorerAdapterSetup("box-explorer-toolbar"), note: "Driven by a shared ContentExplorerController with a mock transport." },

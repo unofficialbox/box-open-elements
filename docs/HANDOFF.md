@@ -26,9 +26,9 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + **coverage-gated** tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
   Coverage floors: [docs/coverage-baseline.md](./coverage-baseline.md).
-- Recent merged PRs: fidelity Batches 0–7 + #41–**#53** (workshop stories through #52 at **49** surfaces).
+- Recent merged PRs: fidelity Batches 0–7 + #41–**#54** (coverage baseline gate, theming/motion, style bridge, explorer host bindings).
 - Foundations: theming + motion docs; `src/foundations/motion`; style bridge CLI; explorer host bindings for filter-bar / saved views.
-- **Open PR #54:** coverage baseline + deferred-items pull-back — `cursor/coverage-baseline-deferred-7eb7`.
+- **Open PR #55:** docs-site explorer chrome demo + status sync — `cursor/explorer-chrome-demo-7eb7`.
 
 ## Completed initiative: component fidelity program
 
@@ -142,7 +142,7 @@ organized into **systemic sweeps**, not per-component rewrites.
   `getMirroredFormValue(el.internals)` in tests.
 
 ## Open user-facing threads
-- Fidelity program complete; #44–**#53** merged (workshop at **49** surfaces; CI watch rules).
-- Coverage baseline measured + hard-gated; theming/motion foundations and style bridge pulled active.
-- Explorer host bindings for filter-bar / saved-view shipped; `recents` still needs a transport contract.
-- Next: more workshop stories; docs-site explorer chrome demo; framework-adapter PoC; next build-along lesson; opportunistic motion-literal migration.
+- Fidelity program complete; #44–**#54** merged (workshop at **49** surfaces; coverage gate; theming/motion; style bridge).
+- Docs-site explorer chrome demo in flight as **Open PR #55**: filter-bar + saved-view + explorer host composition.
+- `recents` still needs a transport contract; list/table presentation swap remains host-owned.
+- Next after chrome demo: more workshop stories; next build-along lesson; React adapter PoC; opportunistic motion-literal migration.
