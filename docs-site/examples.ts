@@ -479,7 +479,9 @@ export const examples: Record<string, ComponentExample> = {
   drawer: { html: `<box-drawer heading="Details" open></box-drawer>` },
   popover: { html: `<box-popover label="More info" placement="top" open>Shared links expire automatically.</box-popover>` },
   tooltip: { html: `<box-tooltip label="Copy link" open><box-button label="Share" tone="neutral"></box-button></box-tooltip>` },
-  illustration: { html: `<box-illustration asset="empty-state-folder" label="Empty folder"></box-illustration>` },
+  illustration: {
+    html: `<box-illustration asset="empty-state-folder" heading="Nothing here yet" message="Upload a file to get started."></box-illustration>`,
+  },
 
   // Patterns
   "content-explorer": {
