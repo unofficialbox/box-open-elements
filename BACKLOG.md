@@ -26,7 +26,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 - Explorer search + enriched item columns + UI chrome shipped (#43).
 - **Active:** host wiring for `box-filter-bar` / `box-saved-view-picker` → explorer search (`bindFilterBarToExplorer`, `bindSavedViewPickerToExplorer` in `patterns/content-explorer`).
-- **In flight:** docs-site + gallery host chrome demo (filter-bar + saved-view + explorer, local presets) — `cursor/explorer-chrome-demo-7eb7`.
+- **Open PR #55:** docs-site + gallery host chrome demo (filter-bar + saved-view + explorer, local presets).
 - **Next slices:**
   - Wire host list/table presentation adapters when swapping off the composed list shell.
   - `recents` view mode once a real transport contract exists (do not fake as a folder listing).
