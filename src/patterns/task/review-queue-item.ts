@@ -41,10 +41,10 @@ const elementStyles = `
 
         [part="item"] {
           display: grid;
-          gap: 0.95rem;
-          padding: 1rem 1.05rem;
+          gap: 0.6rem;
+          padding: 0.75rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 1rem;
+          border-radius: 0.75rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, var(--boe-token-surface-surface, #ffffff) 4%);
         }
 
@@ -57,7 +57,7 @@ const elementStyles = `
           display: flex;
           flex-wrap: wrap;
           align-items: center;
-          gap: 0.55rem;
+          gap: 0.5rem;
         }
 
         [part="title"] {
@@ -81,7 +81,7 @@ const elementStyles = `
         [part="meta"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.55rem;
+          gap: 0.5rem;
         }
 
         [part="status"],
@@ -112,7 +112,7 @@ const elementStyles = `
         [part="body"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.85rem 1rem;
+          gap: 0.6rem 0.75rem;
           align-items: center;
           justify-content: space-between;
         }
@@ -120,7 +120,7 @@ const elementStyles = `
         [part="assignee"] {
           display: inline-grid;
           grid-template-columns: auto minmax(0, 1fr);
-          gap: 0.65rem;
+          gap: 0.55rem;
           align-items: center;
         }
 
@@ -154,14 +154,14 @@ const elementStyles = `
         [part="metrics"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.7rem;
+          gap: 0.55rem;
         }
 
         [part="metric"] {
           display: grid;
           gap: 0.12rem;
-          padding: 0.5rem 0.7rem;
-          border-radius: 0.8rem;
+          padding: 0.45rem 0.6rem;
+          border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
         }
@@ -174,7 +174,7 @@ const elementStyles = `
         [part="actions"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.7rem;
+          gap: 0.55rem;
         }
 
         [part="action"] {
@@ -184,7 +184,7 @@ const elementStyles = `
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
           font: inherit;
-          padding: 0.72rem 1rem;
+          padding: 0.45rem 0.75rem;
           cursor: pointer;
         }
 

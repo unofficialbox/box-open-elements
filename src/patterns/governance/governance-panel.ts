@@ -42,10 +42,10 @@ const elementStyles = `
 
         [part="panel"] {
           display: grid;
-          gap: 1rem;
-          padding: 1.1rem;
+          gap: 0.6rem;
+          padding: 0.75rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 1rem;
+          border-radius: 0.75rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
@@ -58,13 +58,13 @@ const elementStyles = `
           display: flex;
           flex-wrap: wrap;
           align-items: center;
-          gap: 0.6rem;
+          gap: 0.5rem;
         }
 
         [part="title"] {
           margin: 0;
           font: inherit;
-          font-size: 1.35rem;
+          font-size: 1.15rem;
           font-weight: 700;
           line-height: 1.15;
         }
@@ -110,12 +110,12 @@ const elementStyles = `
         [part="signals"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.55rem;
+          gap: 0.5rem;
         }
 
         [part="policies"] {
           display: grid;
-          gap: 0.7rem;
+          gap: 0.55rem;
         }
 
         [part="section-title"] {
@@ -128,7 +128,7 @@ const elementStyles = `
 
         [part="policy-list"] {
           display: grid;
-          gap: 0.75rem;
+          gap: 0.55rem;
         }
 
         [part="policy"] {
@@ -137,8 +137,8 @@ const elementStyles = `
           gap: 0.4rem;
           text-align: left;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 56%, transparent);
-          border-radius: 0.9rem;
-          padding: 0.85rem 0.9rem;
+          border-radius: 0.75rem;
+          padding: 0.65rem 0.75rem;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
           font: inherit;
@@ -147,7 +147,7 @@ const elementStyles = `
 
         [part="policy-header"] {
           display: flex;
-          gap: 0.7rem;
+          gap: 0.55rem;
           align-items: start;
           justify-content: space-between;
         }
@@ -165,7 +165,7 @@ const elementStyles = `
         [part="actions"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.75rem;
+          gap: 0.55rem;
         }
 
         [part="action"] {
@@ -175,7 +175,7 @@ const elementStyles = `
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
           font: inherit;
-          padding: 0.72rem 1rem;
+          padding: 0.45rem 0.75rem;
           cursor: pointer;
         }
 

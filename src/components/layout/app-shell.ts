@@ -14,7 +14,7 @@ const appShellStyles = `
     grid-template-rows: auto 1fr auto;
     min-height: 100%;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.95rem;
+    border-radius: 0.75rem;
     background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text, #222222);
     overflow: hidden;
@@ -27,8 +27,8 @@ const appShellStyles = `
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 0.85rem;
-    padding: 0.95rem 1.15rem;
+    gap: 0.6rem;
+    padding: 0.75rem 0.9rem;
     border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
     background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
   }
@@ -49,7 +49,7 @@ const appShellStyles = `
   [part="title"] {
     margin: 0;
     font: inherit;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
     line-height: 1.2;
   }
@@ -69,19 +69,19 @@ const appShellStyles = `
   }
 
   [part="nav"] {
-    padding: 1rem 0.95rem;
+    padding: 0.75rem;
     border-right: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
     background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
   }
 
   [part="main"] {
     min-width: 0;
-    padding: 1.15rem;
+    padding: 0.85rem;
     background: var(--boe-token-surface-surface, #ffffff);
   }
 
   [part="aside"] {
-    padding: 1rem 0.95rem;
+    padding: 0.75rem;
     border-left: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
     background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
   }
@@ -105,7 +105,7 @@ const appShellStyles = `
   }
 
   [part="footer"] {
-    padding: 0.75rem 1.15rem;
+    padding: 0.6rem 0.9rem;
     border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
     background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
     color: var(--boe-token-text-text-secondary, #6f6f6f);
