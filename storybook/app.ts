@@ -120,9 +120,13 @@ const renderStage = (): void => {
     live.variants.forEach((variant, index) => {
       const canvas = canvases[index];
       if (!canvas || !variant.setup) return;
-      const cleanup = variant.setup(canvas);
-      if (typeof cleanup === "function") {
-        variantCleanups.push(cleanup);
+      try {
+        const cleanup = variant.setup(canvas);
+        if (typeof cleanup === "function") {
+          variantCleanups.push(cleanup);
+        }
+      } catch (error) {
+        console.error(`[workshop] setup failed for ${story.id}/${variant.name}`, error);
       }
     });
   }

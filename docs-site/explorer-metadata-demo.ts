@@ -116,14 +116,19 @@ export const createMetadataDemoDataSource = (): MetadataDataSource<MetadataHit> 
     return instance;
   },
   async query(input: MetadataQueryInput) {
-    const entries = catalog.filter(
-      hit => hit.instance.templateKey === input.templateKey && matchesFilters(hit, input.filters),
-    );
+    const limit = input.limit ?? 25;
+    const offset = input.offset ?? 0;
+    const matched = catalog.filter(hit => {
+      if (hit.instance.templateKey !== input.templateKey) return false;
+      if (input.scope && hit.instance.scope !== input.scope) return false;
+      return matchesFilters(hit, input.filters);
+    });
+    const entries = matched.slice(offset, offset + limit);
     return {
       entries,
-      limit: input.limit ?? 25,
-      offset: input.offset ?? 0,
-      totalCount: entries.length,
+      limit,
+      offset,
+      totalCount: matched.length,
     };
   },
 });
@@ -210,6 +215,8 @@ export const setupContentExplorerMetadataChrome = (
   }
 
   let currentHits: MetadataHit[] = [];
+  let disposed = false;
+  let queryGeneration = 0;
   const getItems = (): ExplorerItem[] => currentHits.map(hit => hit.item);
 
   const controller = new ContentExplorerController({
@@ -227,67 +234,63 @@ export const setupContentExplorerMetadataChrome = (
   builder.fields = template.fields.map(field => ({ id: field.key, label: field.label }));
   builder.rules = [{ field: "classification", operator: "is", value: "internal" }];
 
-  const applyQuery = async (): Promise<void> => {
-    const page = await dataSource.query({
-      templateKey: template.key,
-      scope: template.scope,
-      filters: rulesToFilters(builder.rules),
-    });
-    currentHits = page.entries;
-    if (statusStrong) statusStrong.textContent = String(page.totalCount ?? page.entries.length);
-    if (controller.getState().connected) {
-      await controller.refresh();
-    } else {
-      await controller.connect();
-    }
-    const selectedId = controller.getState().selectedItemIds[0];
-    const selected = currentHits.find(hit => hit.item.id === selectedId) ?? currentHits[0];
-    if (selected && !selectedId) {
-      controller.select([selected.item.id]);
-    }
-    const hit = currentHits.find(entry => entry.item.id === controller.getState().selectedItemIds[0]);
+  const paintInspector = (hit: MetadataHit | undefined): void => {
     inspector.heading = hit?.item.name ?? "Metadata";
     inspector.message = hit
       ? `${template.label} · ${template.scope}`
       : "Pick a row to inspect template fields.";
     inspector.sections = inspectorSectionsFor(hit);
+  };
+
+  const applyQuery = async (): Promise<void> => {
+    const generation = ++queryGeneration;
+    try {
+      const page = await dataSource.query({
+        templateKey: template.key,
+        scope: template.scope,
+        filters: rulesToFilters(builder.rules),
+      });
+      if (disposed || generation !== queryGeneration) return;
+      currentHits = page.entries;
+      if (statusStrong) statusStrong.textContent = String(page.totalCount ?? page.entries.length);
+      if (controller.getState().connected) {
+        await controller.refresh();
+      } else {
+        await controller.connect();
+      }
+      if (disposed || generation !== queryGeneration) return;
+      const selectedId = controller.getState().selectedItemIds[0];
+      const selected = currentHits.find(hit => hit.item.id === selectedId) ?? currentHits[0];
+      if (selected && !selectedId) {
+        controller.select([selected.item.id]);
+      }
+      paintInspector(currentHits.find(entry => entry.item.id === controller.getState().selectedItemIds[0]));
+    } catch {
+      if (disposed || generation !== queryGeneration) return;
+      if (statusStrong) statusStrong.textContent = "error";
+      paintInspector(undefined);
+    }
   };
 
   const onRulesChanged = (): void => {
     void applyQuery();
   };
-  const onSelectionChanged = (event: Event): void => {
-    const ids = (event as CustomEvent<{ selectedItemIds?: string[] }>).detail?.selectedItemIds ?? [];
-    const hit = currentHits.find(entry => entry.item.id === ids[0]);
-    inspector.heading = hit?.item.name ?? "Metadata";
-    inspector.message = hit
-      ? `${template.label} · ${template.scope}`
-      : "Pick a row to inspect template fields.";
-    inspector.sections = inspectorSectionsFor(hit);
-  };
 
   builder.addEventListener("value-changed", onRulesChanged);
   builder.addEventListener("rule-added", onRulesChanged);
   builder.addEventListener("rule-removed", onRulesChanged);
-  table.addEventListener("selection-changed", onSelectionChanged);
-  // Controller emits through adapter elements as DOM events in some paths;
-  // also subscribe directly for reliability.
   const unsubscribe = controller.subscribe("selectionChanged", ({ selectedItemIds }) => {
-    const hit = currentHits.find(entry => entry.item.id === selectedItemIds[0]);
-    inspector.heading = hit?.item.name ?? "Metadata";
-    inspector.message = hit
-      ? `${template.label} · ${template.scope}`
-      : "Pick a row to inspect template fields.";
-    inspector.sections = inspectorSectionsFor(hit);
+    paintInspector(currentHits.find(entry => entry.item.id === selectedItemIds[0]));
   });
 
   void applyQuery();
 
   return () => {
+    disposed = true;
+    queryGeneration += 1;
     builder.removeEventListener("value-changed", onRulesChanged);
     builder.removeEventListener("rule-added", onRulesChanged);
     builder.removeEventListener("rule-removed", onRulesChanged);
-    table.removeEventListener("selection-changed", onSelectionChanged);
     unsubscribe();
     void controller.disconnect();
   };

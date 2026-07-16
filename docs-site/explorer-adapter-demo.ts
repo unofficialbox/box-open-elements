@@ -56,36 +56,59 @@ export const explorerDemoItems: ExplorerItem[] = [
   },
 ];
 
+const folderNames: Record<string, string> = {
+  "0": "All Files",
+  "42": "Marketing",
+  "77": "Legal",
+};
+
 export const createExplorerDemoTransport = (
   items: ExplorerItem[] = explorerDemoItems,
 ): ExplorerTransport => ({
   async loadFolderItems({ folderId }) {
     const root = folderId === "0";
+    const name = folderNames[folderId] ?? "Folder";
     return {
       folderId,
-      folder: { id: folderId, name: root ? "All Files" : "Marketing", type: "folder" },
+      folder: { id: folderId, name, type: "folder" },
       breadcrumbs: root
         ? [{ id: "0", name: "All Files", type: "folder" }]
         : [
             { id: "0", name: "All Files", type: "folder" },
-            { id: "42", name: "Marketing", type: "folder" },
+            { id: folderId, name, type: "folder" },
           ],
-      items: items.map(item => ({
-        ...item,
-        parent: root ? { id: "0", name: "All Files" } : { id: "42", name: "Marketing" },
-      })),
-      pagination: { hasMoreItems: false, limit: 25, offset: 0, totalCount: items.length },
+      items: root
+        ? items.map(item => ({
+            ...item,
+            parent: { id: "0", name: "All Files" },
+          }))
+        : items
+            .filter(item => item.type === "file" || item.type === "web_link")
+            .slice(0, 2)
+            .map(item => ({
+              ...item,
+              id: `${folderId}-${item.id}`,
+              name: `${name} ${item.name}`,
+              parent: { id: folderId, name },
+            })),
+      pagination: {
+        hasMoreItems: false,
+        limit: 25,
+        offset: 0,
+        totalCount: root ? items.length : 2,
+      },
     };
   },
   async searchItems({ query, ancestorFolderId, limit = 25, offset = 0 }) {
     const normalized = query.trim().toLowerCase();
+    const ancestorName = folderNames[ancestorFolderId ?? "0"] ?? "All Files";
     const matches = items
       .filter(item => item.name.toLowerCase().includes(normalized))
       .map(item => ({
         ...item,
         parent: {
           id: ancestorFolderId ?? "0",
-          name: ancestorFolderId === "42" ? "Marketing" : "All Files",
+          name: ancestorName,
         },
       }));
     const page = matches.slice(offset, offset + limit);

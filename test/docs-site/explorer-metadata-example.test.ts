@@ -9,7 +9,10 @@ import {
 } from "../../docs-site/explorer-metadata-demo.js";
 import { defineBoxExplorerTableElement } from "../../src/patterns/content-explorer/adapters/table.js";
 import { defineBoxExplorerToolbarElement } from "../../src/patterns/content-explorer/adapters/toolbar.js";
-import { defineBoxMetadataFilterBuilderElement } from "../../src/patterns/metadata/metadata-filter-builder.js";
+import {
+  BoxMetadataFilterBuilderElement,
+  defineBoxMetadataFilterBuilderElement,
+} from "../../src/patterns/metadata/metadata-filter-builder.js";
 import { defineBoxMetadataInspectorElement } from "../../src/patterns/metadata/metadata-inspector.js";
 
 const waitForStatus = async (expected: string): Promise<void> => {
@@ -52,5 +55,25 @@ describe("docs-site content-explorer metadata chrome demo", () => {
     expect(inspector.getAttribute("heading")).toMatch(/\.pdf$/);
 
     cleanup?.();
+  });
+
+  it("updates matches when filter rules change and stops after cleanup", async () => {
+    document.body.innerHTML = contentExplorerMetadataChromeHtml;
+    const cleanup = setupContentExplorerMetadataChrome(document.body);
+    await waitForStatus("2");
+
+    const builder = document.querySelector("box-metadata-filter-builder") as BoxMetadataFilterBuilderElement;
+    builder.rules = [{ field: "classification", operator: "is", value: "confidential" }];
+    builder.dispatchEvent(new CustomEvent("value-changed", { bubbles: true, composed: true }));
+    await waitForStatus("1");
+
+    const inspector = document.querySelector("box-metadata-inspector") as HTMLElement;
+    expect(inspector.getAttribute("heading")).toBe("Vendor MSA.pdf");
+
+    cleanup?.();
+    builder.rules = [{ field: "classification", operator: "is", value: "internal" }];
+    builder.dispatchEvent(new CustomEvent("value-changed", { bubbles: true, composed: true }));
+    await new Promise(resolve => setTimeout(resolve, 50));
+    expect(document.querySelector("[data-metadata-status] strong")?.textContent).toBe("1");
   });
 });
