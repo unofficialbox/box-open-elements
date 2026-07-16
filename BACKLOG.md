@@ -16,9 +16,9 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 ## Foundations
 
-- **Open PR #45:** iconography generator (`tools/iconography/`, `bun run icons:generate`) — generator tooling only; full 472-icon manifest already vendored; regenerate from the external pack when the inventory updates (see `docs/foundations/iconography.md`).
+- Iconography generator shipped (#45): `tools/iconography/`, `bun run icons:generate`. Full 472-icon manifest already vendored; regenerate from the external pack when the inventory updates (see `docs/foundations/iconography.md`).
 - Token consumption vs shell / consumer overrides documented in `docs/foundations/tokens.md`; docs-site API tab lists derived `--boe-token-*` usage from live preview shadow styles (#46). No per-component strategy fields — source-level styling is the contract.
-- Review the Box brand imagery Figma frame — imagery guidance has been open since the original brand review (see `docs/foundations/brand.md`).
+- Brand imagery closed from Blueprint + `box-ui-elements` product illustrations (monochrome Box-blue vectors for empty/education states) — see `docs/foundations/brand.md`. No Figma dependency.
 - Add Theming and Motion foundation docs when there is real content for them (do not create placeholder pages).
 
 ## Patterns
@@ -29,7 +29,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 ## Tooling and infrastructure
 
 - Docs site shell + shipped follow-ons (`bun run docs`, variant dropdown from Storybook extraction, dark theme, markdown foundation docs in-shell, GitHub Pages deploy). Guidance cards shipped (#44). Grow coverage by authoring more workshop stories / example notes; do not invent placeholder cards.
-- Screenshot pixel-diff CI shipped (`visual-regression` job in `.github/workflows/ci.yml` via pinned Playwright container). Local: `bun run test:regression:pixel` / `bun run baselines:regen`. Latent: `components-calendar.png` is date-dependent (pin the demo date someday).
+- Screenshot pixel-diff CI shipped (`visual-regression` job in `.github/workflows/ci.yml` via pinned Playwright container). Local: `bun run test:regression:pixel` / `bun run baselines:regen`. Calendar docs demo already pins `today` / `month` / `value` (see `docs-site/examples.ts`).
 - Storybook workshop shipped (`storybook/`, see `docs/workshop/storybook.md`) — extraction backend for docs-site variants; not deployed publicly.
 - `packages/box-server` shipped (see `docs/integration/box-server.md`).
 - CI (`bun run verify` + pixel gate) shipped on pushes/PRs.
