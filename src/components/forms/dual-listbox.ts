@@ -39,9 +39,9 @@ const dualListboxStyles = `
   }
 
   [part="label"] {
-    margin: 0 0 0.9rem;
+    margin: 0 0 0.55rem;
     padding: 0;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -50,7 +50,7 @@ const dualListboxStyles = `
   [part="layout"] {
     display: flex;
     align-items: stretch;
-    gap: 1rem;
+    gap: 0.65rem;
     min-inline-size: 0;
   }
 
@@ -60,10 +60,10 @@ const dualListboxStyles = `
     min-inline-size: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    padding: 1rem;
+    gap: 0.5rem;
+    padding: 0.65rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 1.05rem;
+    border-radius: 0.75rem;
     background:
       linear-gradient(
         180deg,
@@ -77,7 +77,7 @@ const dualListboxStyles = `
 
   [part="list-label"] {
     display: block;
-    font-size: 0.85rem;
+    font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -87,7 +87,7 @@ const dualListboxStyles = `
   [part="list"] {
     display: flex;
     flex-direction: column;
-    gap: 0.55rem;
+    gap: 0.35rem;
     min-block-size: 14rem;
     max-block-size: 18rem;
     overflow: auto;
@@ -96,17 +96,12 @@ const dualListboxStyles = `
   [part="option"] {
     width: 100%;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
-    border-radius: 0.95rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface-secondary, #fbfbfb) 6%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 10%, var(--boe-token-surface-surface, #ffffff) 90%) 100%
-      );
+    border-radius: 0.65rem;
+    background: var(--boe-token-surface-surface, #ffffff);
     color: inherit;
     font: inherit;
     text-align: left;
-    padding: 0.8rem 0.95rem;
+    padding: 0.5rem 0.65rem;
     cursor: pointer;
     transition:
       border-color 140ms ease,
@@ -121,12 +116,7 @@ const dualListboxStyles = `
 
   [part="option"][aria-selected="true"] {
     border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, transparent);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, var(--boe-token-surface-surface, #ffffff) 86%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 72%, var(--boe-token-surface-surface, #ffffff) 28%) 100%
-      );
+    background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 72%, var(--boe-token-surface-surface, #ffffff) 28%);
     box-shadow: inset 0 0 0 1px rgba(0, 97, 213, 0.06);
   }
 
@@ -149,26 +139,21 @@ const dualListboxStyles = `
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 0.75rem;
-    padding-block: 2.25rem 0;
-    padding-inline: 0.15rem;
+    gap: 0.45rem;
+    padding-block: 1.75rem 0;
+    padding-inline: 0;
   }
 
   [part="move-right"],
   [part="move-left"] {
-    inline-size: 2.9rem;
-    block-size: 2.9rem;
+    inline-size: 2rem;
+    block-size: 2rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, transparent);
-    border-radius: 0.95rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 84%, var(--boe-token-surface-surface, #ffffff) 16%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface-secondary, #fbfbfb) 80%, var(--boe-token-surface-surface, #ffffff) 16%) 100%
-      );
+    border-radius: 0.65rem;
+    background: var(--boe-token-surface-surface, #ffffff);
     color: inherit;
     font: inherit;
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     font-weight: 700;
     cursor: pointer;
     transition:
@@ -193,8 +178,8 @@ const dualListboxStyles = `
     place-items: center;
     min-block-size: 100%;
     border: 1px dashed rgba(214, 224, 234, 0.72);
-    border-radius: 0.9rem;
-    padding: 1rem;
+    border-radius: 0.65rem;
+    padding: 0.65rem;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 65%, transparent);
     text-align: center;

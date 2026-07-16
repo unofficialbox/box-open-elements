@@ -30,6 +30,17 @@ describe("BoxCheckboxGroupElement", () => {
     expect(inputs).toHaveLength(2);
   });
 
+  it("uses compact plain option card styles", () => {
+    const element = document.createElement("box-checkbox-group") as BoxCheckboxGroupElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("gap: 0.4rem;");
+    expect(styles).toContain("padding: 0.5rem 0.6rem;");
+    expect(styles).toContain("border-radius: 0.6rem;");
+    expect(styles).toContain("background: var(--boe-token-surface-surface, #ffffff);");
+  });
+
   it("emits selected values when options change", () => {
     const element = document.createElement("box-checkbox-group") as BoxCheckboxGroupElement;
     const changed = vi.fn();

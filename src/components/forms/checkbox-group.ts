@@ -42,7 +42,7 @@ const checkboxGroupStyles = `
   }
 
   [part="label"] {
-    margin: 0 0 0.8rem;
+    margin: 0 0 0.5rem;
     padding: 0;
     font-size: 0.8rem;
     font-weight: 700;
@@ -53,23 +53,18 @@ const checkboxGroupStyles = `
 
   [part="options"] {
     display: grid;
-    gap: 0.65rem;
+    gap: 0.4rem;
   }
 
   [part="option"] {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.82rem 0.9rem;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-    border-radius: 0.95rem;
+    gap: 0.4rem;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
+    border-radius: 0.6rem;
     cursor: pointer;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
-      );
+    background: var(--boe-token-surface-surface, #ffffff);
     transition:
       border-color 140ms ease,
       background 140ms ease,
@@ -86,16 +81,8 @@ const checkboxGroupStyles = `
   }
 
   [part="option"]:has([part="input"]:checked) {
-    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 20%, var(--boe-token-stroke-stroke, #e8e8e8) 80%);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 9%, var(--boe-token-surface-surface, #ffffff) 91%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 58%, var(--boe-token-surface-surface, #ffffff) 42%) 100%
-      );
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.82),
-      0 10px 20px rgba(15, 23, 42, 0.04);
+    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, var(--boe-token-stroke-stroke, #e8e8e8) 76%);
+    background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 68%, var(--boe-token-surface-surface, #ffffff) 32%);
   }
 
   [part="option"]:focus-within {

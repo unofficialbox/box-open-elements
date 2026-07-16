@@ -24,7 +24,7 @@ const selectStyles = `
 
   [part="field"] {
     display: grid;
-    gap: 0.45rem;
+    gap: 0.35rem;
   }
 
   [part="label"] {
@@ -39,11 +39,11 @@ const selectStyles = `
     appearance: none;
     font: inherit;
     color: var(--boe-token-text-text, #222222);
-    padding: 0.6rem 2.35rem 0.6rem 0.85rem;
+    padding: 0.5rem 2.1rem 0.5rem 0.7rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-    border-radius: 0.7rem;
+    border-radius: 0.65rem;
     background:
-      url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%2352606d' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.85rem center / 12px 8px,
+      url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%2352606d' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.7rem center / 12px 8px,
       linear-gradient(
         180deg,
         var(--boe-token-surface-surface, #ffffff) 0%,

@@ -103,6 +103,23 @@ describe("BoxTabsElement", () => {
     expect(styles).toContain('[part="tab"]:focus-visible');
   });
 
+  it("uses compact segmented-control tab styles", () => {
+    const element = document.createElement("box-tabs") as BoxTabsElement;
+    element.layout = "attached";
+    element.options = [
+      { label: "Overview", value: "overview" },
+      { label: "Activity", value: "activity" },
+    ];
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("gap: 0.25rem;");
+    expect(styles).toContain("border-radius: 0.7rem;");
+    expect(styles).toContain("min-height: 1.9rem;");
+    expect(styles).toContain("padding: 0.2rem 0.65rem;");
+    expect(styles).toContain("box-shadow: none;");
+  });
+
   it("preserves focus on a tab when an attribute changes", () => {
     const element = document.createElement("box-tabs") as BoxTabsElement;
     element.options = [

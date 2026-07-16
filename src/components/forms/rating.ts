@@ -16,11 +16,11 @@ const ratingStyles = `
 
   [part="field"] {
     display: grid;
-    gap: 0.8rem;
+    gap: 0.5rem;
   }
 
   [part="label"] {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -29,10 +29,10 @@ const ratingStyles = `
   [part="control"] {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    padding: 0.85rem 0.95rem;
+    gap: 0.2rem;
+    padding: 0.25rem 0.35rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 1rem;
+    border-radius: 0.7rem;
     background:
       linear-gradient(
         180deg,
@@ -45,18 +45,13 @@ const ratingStyles = `
   }
 
   [part="star"] {
-    inline-size: 2.35rem;
-    block-size: 2.35rem;
+    inline-size: 1.85rem;
+    block-size: 1.85rem;
     display: grid;
     place-items: center;
     border: 1px solid transparent;
-    border-radius: 0.95rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 82%, transparent) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 16%, transparent) 100%
-      );
+    border-radius: 0.55rem;
+    background: transparent;
     color: rgba(82, 96, 109, 0.45);
     cursor: pointer;
     transition:
@@ -67,24 +62,13 @@ const ratingStyles = `
 
   [part="star"][data-filled="true"] {
     color: var(--boe-token-surface-surface-brand, #0061d5);
-    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, var(--boe-token-surface-surface, #ffffff) 86%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 74%, var(--boe-token-surface-surface, #ffffff) 26%) 100%
-      );
+    border-color: transparent;
+    background: transparent;
   }
 
   [part="star"]:hover:not(:disabled) {
     color: var(--boe-token-surface-surface-brand, #0061d5);
-    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, transparent);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 74%, var(--boe-token-surface-surface, #ffffff) 26%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 5%, var(--boe-token-surface-item-surface-hover, #eef4fb) 69%, var(--boe-token-surface-surface, #ffffff) 26%) 100%
-      );
+    background: transparent;
   }
 
   [part="star"]:focus-visible {
@@ -98,12 +82,12 @@ const ratingStyles = `
   }
 
   [part="icon"] {
-    font-size: 1.3rem;
+    font-size: 1.15rem;
     line-height: 1;
   }
 
   [part="value"] {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
   }
 
