@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { FocusRestore, trapTabKey } from "../../foundations/a11y/index.js";
+import { boeControl, boeOverlay, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
   boeNeutralInteractiveStyles,
@@ -17,43 +18,37 @@ const dialogStyles = `
     position: fixed;
     inset: 0;
     z-index: 1200;
-    background: rgba(15, 23, 42, 0.34);
-    backdrop-filter: blur(6px);
+    background: ${boeOverlay.modalBackdrop};
     display: grid;
     place-items: center;
-    padding: 0.75rem;
+    padding: ${boeOverlay.modalPadding};
   }
 
   [part="dialog"] {
-    width: min(30rem, calc(100vw - 3rem));
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 78%, var(--boe-token-surface-surface-secondary, #fbfbfb) 22%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 100%
-      );
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.7rem;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.82),
-      0 24px 48px rgba(15, 23, 42, 0.16);
-    padding: 0.75rem;
+    width: min(${boeOverlay.modalWidth}, calc(100vw - 3rem));
+    background: var(--boe-token-surface-surface, #ffffff);
+    border: 0;
+    border-radius: ${boeOverlay.modalRadius};
+    box-shadow: ${boeOverlay.modalShadow};
+    padding: ${boeOverlay.modalPadding};
     display: grid;
-    gap: 0.55rem;
-    color: var(--boe-token-text-text, #1f1e1b);
+    gap: ${boeSpace[5]};
+    color: var(--boe-token-text-text, #222222);
   }
 
   [part="header"] h2 {
     margin: 0;
     font: inherit;
-    font-size: 1.1rem;
+    font-size: ${boeOverlay.modalTitleSize};
     font-weight: 700;
+    line-height: 24px;
   }
 
   [part="description"] {
     margin: 0;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
-    line-height: 1.5;
+    font-size: 14px;
+    line-height: 20px;
   }
 
   [part="description"][hidden] {
@@ -61,36 +56,42 @@ const dialogStyles = `
   }
 
   [part="body"] {
-    color: var(--boe-token-text-text, #1f1e1b);
-    line-height: 1.55;
+    color: var(--boe-token-text-text, #222222);
+    font-size: 14px;
+    line-height: 20px;
   }
 
   [part="footer"] {
     display: flex;
     justify-content: end;
-    gap: 0.65rem;
-    padding-top: 0.15rem;
-    border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
+    gap: ${boeSpace[2]};
+    margin-top: ${boeSpace[2]};
+    padding-top: 0;
+    border-top: 0;
   }
 
   [part="cancel"],
   [part="confirm"] {
     appearance: none;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 999px;
+    box-sizing: border-box;
+    border: 1px solid ${boeControl.buttonBorder};
+    border-radius: ${boeRadius.med};
     font: inherit;
-    min-height: 2rem;
-    padding: 0.35rem 0.75rem;
+    font-size: ${boeControl.fontSize};
+    font-weight: 700;
+    letter-spacing: ${boeControl.letterSpacing};
+    min-height: ${boeControl.heightLarge};
+    padding: 0 ${boeControl.paddingInline};
     cursor: pointer;
   }
 
   [part="cancel"] {
-    background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%);
-    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    background: var(--boe-token-surface-surface, #ffffff);
+    color: var(--boe-token-text-text, #222222);
   }
 
   [part="confirm"] {
-    border-color: transparent;
+    border-color: var(--boe-token-surface-surface-brand, #0061d5);
     background: var(--boe-token-surface-surface-brand, #0061d5);
     color: var(--boe-token-text-text-on-brand, #ffffff);
   }

@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { FocusRestore, getTabbableElements } from "../../foundations/a11y/index.js";
+import { boeControl, boeOverlay, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
@@ -29,23 +30,19 @@ const popoverStyles = `
 
   [part="trigger"] {
     appearance: none;
-    min-height: 2rem;
-    padding: 0.4rem 0.7rem;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, var(--boe-token-surface-surface, #ffffff) 14%);
-    border-radius: 0.7rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 20%, var(--boe-token-surface-surface, #ffffff) 80%) 100%
-      );
-    color: var(--boe-token-text-text, #1f1e1b);
+    box-sizing: border-box;
+    min-height: ${boeControl.height};
+    padding: 0 ${boeControl.paddingInline};
+    border: 1px solid ${boeControl.buttonBorder};
+    border-radius: ${boeRadius.med};
+    background: var(--boe-token-surface-surface, #ffffff);
+    color: var(--boe-token-text-text, #222222);
     font: inherit;
-    font-weight: 600;
+    font-size: ${boeControl.fontSize};
+    font-weight: 700;
+    letter-spacing: ${boeControl.letterSpacing};
     cursor: pointer;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.74),
-      0 10px 22px rgba(15, 23, 42, 0.04);
+    box-shadow: none;
     transition:
       border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
       background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
@@ -57,39 +54,33 @@ const popoverStyles = `
   [part="surface"] {
     position: absolute;
     z-index: 30;
-    inset-block-start: calc(100% + 0.35rem);
+    inset-block-start: calc(100% + ${boeSpace[1]});
     inset-inline-start: 0;
-    width: min(21rem, calc(100vw - 5rem));
-    padding: 0.7rem;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, var(--boe-token-surface-surface, #ffffff) 14%);
-    border-radius: 0.7rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 82%, var(--boe-token-surface-surface-secondary, #fbfbfb) 18%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
-      );
-    color: var(--boe-token-text-text, #1f1e1b);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.8),
-      0 18px 38px rgba(15, 23, 42, 0.12);
+    width: min(360px, calc(100vw - 5rem));
+    min-width: 200px;
+    padding: ${boeOverlay.padding};
+    border: ${boeOverlay.border};
+    border-radius: ${boeOverlay.radius};
+    background: var(--boe-token-surface-surface, #ffffff);
+    color: var(--boe-token-text-text, #222222);
+    box-shadow: ${boeOverlay.shadow};
     line-height: 1.5;
   }
 
   :host([placement="top"]) [part="surface"] {
     inset-block-start: auto;
-    inset-block-end: calc(100% + 0.35rem);
+    inset-block-end: calc(100% + ${boeSpace[1]});
   }
 
   :host([placement="start"]) [part="surface"] {
     inset-block-start: 0;
     inset-inline-start: auto;
-    inset-inline-end: calc(100% + 0.35rem);
+    inset-inline-end: calc(100% + ${boeSpace[1]});
   }
 
   :host([placement="end"]) [part="surface"] {
     inset-block-start: 0;
-    inset-inline-start: calc(100% + 0.35rem);
+    inset-inline-start: calc(100% + ${boeSpace[1]});
   }
 
   [part="surface"][hidden] {

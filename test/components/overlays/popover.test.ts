@@ -101,14 +101,15 @@ describe("BoxPopoverElement", () => {
     expect(element.shadowRoot?.activeElement).toBe(trigger);
   });
 
-  it("uses compact popover shell styles", () => {
+  it("uses BUE overlay popover shell styles", () => {
     const element = document.createElement("box-popover") as BoxPopoverElement;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toMatch(/\[part="surface"\][\s\S]*?padding:\s*0\.7rem;/);
-    expect(styles).toMatch(/\[part="surface"\][\s\S]*?border-radius:\s*0\.7rem;/);
-    expect(styles).toMatch(/\[part="trigger"\][\s\S]*?padding:\s*0\.4rem 0\.7rem;/);
+    expect(styles).toMatch(/\[part="surface"\][\s\S]*?padding:\s*12px;/);
+    expect(styles).toMatch(/\[part="surface"\][\s\S]*?border-radius:\s*8px;/);
+    expect(styles).toMatch(/\[part="surface"\][\s\S]*?box-shadow:\s*0 4px 12px/);
+    expect(styles).toMatch(/\[part="trigger"\][\s\S]*?min-height:\s*32px;/);
   });
 
   it("floats the surface with absolute positioning and optional placement", () => {

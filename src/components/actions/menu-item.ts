@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeControl, boeOverlay } from "../../foundations/geometry/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
@@ -14,14 +15,18 @@ const menuItemStyles = `
   [part="item"] {
     width: 100%;
     appearance: none;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    min-height: ${boeOverlay.itemMinHeight};
     text-align: left;
     border: 0;
-    border-radius: 0.55rem;
+    border-radius: ${boeOverlay.itemRadius};
     background: transparent;
     color: var(--boe-token-text-text, #222222);
     font: inherit;
-    font-size: 0.92rem;
-    padding: 0.5rem 0.7rem;
+    font-size: ${boeControl.fontSize};
+    padding: ${boeOverlay.itemPadding};
     cursor: pointer;
     transition:
       background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
@@ -30,8 +35,8 @@ const menuItemStyles = `
   }
 
   [part="item"][data-selected="true"] {
-    background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, var(--boe-token-surface-surface, #ffffff) 36%);
-    color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 80%, var(--boe-token-text-text, #222222) 20%);
+    background: var(--boe-token-surface-item-surface-selected, #f2f7fd);
+    color: var(--boe-token-text-text, #222222);
     font-weight: 600;
   }
 
@@ -39,11 +44,17 @@ const menuItemStyles = `
 
   [part="item"][data-selected="true"]:hover:not(:disabled),
   [part="item"][data-selected="true"]:active:not(:disabled) {
-    background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, var(--boe-token-surface-surface, #ffffff) 36%);
+    background: var(--boe-token-surface-item-surface-selected, #f2f7fd);
   }
 
-  [part="item"]:hover:not(:disabled) {
-    color: var(--boe-token-surface-surface-brand, #0061d5);
+  [part="item"]:hover:not(:disabled),
+  [part="item"]:focus-visible:not(:disabled) {
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+    color: var(--boe-token-text-text, #222222);
+  }
+
+  [part="item"]:disabled {
+    opacity: ${boeControl.disabledOpacity};
   }
 `;
 

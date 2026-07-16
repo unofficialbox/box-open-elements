@@ -4,6 +4,7 @@ import {
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
+import { boeControl, boeOverlay, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import {
   FocusRestore,
   applyRovingTabindex,
@@ -46,19 +47,20 @@ const dropdownStyles = `
 
   [part="trigger"] {
     appearance: none;
+    box-sizing: border-box;
+    min-height: ${boeControl.height};
     font: inherit;
+    font-size: ${boeControl.fontSize};
+    font-weight: 700;
+    letter-spacing: ${boeControl.letterSpacing};
     color: var(--boe-token-text-text, #222222);
     text-align: left;
-    padding: 0.45rem 2.1rem 0.45rem 0.7rem;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-    border-radius: 0.7rem;
+    padding: 0 ${boeSpace[12]} 0 ${boeSpace[3]};
+    border: 1px solid ${boeControl.buttonBorder};
+    border-radius: ${boeRadius.med};
     background:
-      url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%2352606d' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.85rem center / 12px 8px,
-      linear-gradient(
-        180deg,
-        var(--boe-token-surface-surface, #ffffff) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
-      );
+      url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%236f6f6f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center / 12px 8px,
+      var(--boe-token-surface-surface, #ffffff);
     cursor: pointer;
     transition:
       border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
@@ -85,36 +87,41 @@ const dropdownStyles = `
   }
 
   [part="trigger"]:disabled {
-    opacity: 0.55;
+    opacity: ${boeControl.disabledOpacity};
     cursor: not-allowed;
     box-shadow: none;
   }
 
   [part="menu"] {
     position: absolute;
-    inset-block-start: calc(100% + 0.35rem);
+    inset-block-start: calc(100% + ${boeSpace[1]});
     inset-inline-start: 0;
     z-index: 20;
-    min-inline-size: 100%;
+    min-inline-size: max(100%, 200px);
     display: grid;
-    gap: 0.15rem;
-    padding: 0.4rem;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-    border-radius: 0.75rem;
+    gap: 0;
+    padding: ${boeOverlay.padding};
+    border: ${boeOverlay.border};
+    border-radius: ${boeOverlay.radius};
     background: var(--boe-token-surface-surface, #ffffff);
-    box-shadow: 0 12px 30px color-mix(in srgb, #0b1e33 14%, transparent);
+    box-shadow: ${boeOverlay.shadow};
   }
 
   [part="item"] {
     appearance: none;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    min-height: ${boeOverlay.itemMinHeight};
     border: none;
     font: inherit;
-    font-weight: 500;
+    font-size: ${boeControl.fontSize};
+    font-weight: 400;
     color: var(--boe-token-text-text, #222222);
     text-align: left;
     white-space: nowrap;
-    padding: 0.5rem 0.7rem;
-    border-radius: 0.55rem;
+    padding: ${boeOverlay.itemPadding};
+    border-radius: ${boeOverlay.itemRadius};
     background: transparent;
     cursor: pointer;
     transition:
@@ -124,10 +131,16 @@ const dropdownStyles = `
 
   ${boeNeutralInteractiveStyles('[part="item"]')}
 
+  [part="item"]:hover:not(:disabled),
+  [part="item"]:focus-visible:not(:disabled) {
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+  }
+
   [part="item"][data-selected="true"],
   [part="item"][aria-selected="true"] {
     background: var(--boe-token-surface-item-surface-selected, #f2f7fd);
     color: var(--boe-token-surface-surface-brand, #0061d5);
+    font-weight: 700;
   }
 
   ${boeFormFieldErrorStyles}

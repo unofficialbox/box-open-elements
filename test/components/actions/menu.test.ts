@@ -86,4 +86,17 @@ describe("BoxMenuElement", () => {
     await Promise.resolve();
     expect(element.shadowRoot?.activeElement).toBe(items[0]);
   });
+
+  it("uses BUE overlay menu geometry", () => {
+    const element = document.createElement("box-menu") as BoxMenuElement;
+    element.items = [{ id: "a", label: "Open" }];
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("padding: 12px;");
+    expect(styles).toContain("border-radius: 8px;");
+    expect(styles).toContain("min-height: 30px;");
+    expect(styles).toContain("padding: 8px 48px 8px 8px;");
+    expect(styles).toContain("0 4px 12px");
+  });
 });

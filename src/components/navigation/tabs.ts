@@ -1,7 +1,7 @@
 import { BaseElement } from "../../core/index.js";
+import { boeControl, boeSpace } from "../../foundations/geometry/index.js";
 import {
   boeFocusVisibleStyles,
-  boeNeutralInteractiveStyles,
 } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
@@ -29,75 +29,76 @@ const tabsStyles = `
 
   [part="tabs"] {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-  }
-
-  [part="tabs"][data-layout="attached"] {
+    flex-wrap: nowrap;
     gap: 0;
-    padding: 0.15rem;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-    border-radius: 0.7rem;
-    background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+    border-bottom: 1px solid var(--boe-token-surface-surface-secondary, #e8e8e8);
   }
 
   [part="tab"] {
+    position: relative;
     appearance: none;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-    border-radius: 0.6rem;
-    background: var(--boe-token-surface-surface, #ffffff);
-    color: var(--boe-token-text-text, #222222);
-    font: inherit;
-    min-height: 1.9rem;
-    padding: 0.2rem 0.65rem;
-    cursor: pointer;
-    transition:
-      background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
-      color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
-      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
-      box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
-  }
-
-  [part="tab"][data-layout="attached"] {
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0;
+    padding: 0 ${boeSpace[2]};
+    border: 0;
+    border-bottom: 1px solid transparent;
     border-radius: 0;
+    background: transparent;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    font: inherit;
+    font-size: ${boeControl.fontSize};
+    font-weight: 400;
+    line-height: ${boeControl.heightLarge};
+    letter-spacing: ${boeControl.letterSpacing};
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    box-shadow: none;
+    transition:
+      color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
-  [part="tab"][data-layout="attached"][data-position="first"] {
-    border-top-left-radius: 0.55rem;
-    border-bottom-left-radius: 0.55rem;
+  [part="tab"]::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 2px;
+    background: var(--boe-token-surface-surface-brand, #0061d5);
+    opacity: 0;
+    transition: opacity 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
   }
 
-  [part="tab"][data-layout="attached"][data-position="last"] {
-    border-top-right-radius: 0.55rem;
-    border-bottom-right-radius: 0.55rem;
-  }
-
-  [part="tab"][data-layout="attached"][data-position="middle"],
-  [part="tab"][data-layout="attached"][data-position="last"] {
-    margin-left: -1px;
-  }
-
-  [part="tab"][data-layout="attached"][data-position="only"] {
-    border-radius: 0.55rem;
+  [part="tab"]:hover,
+  [part="tab"]:focus-visible {
+    color: var(--boe-token-text-text, #222222);
+    background: transparent;
   }
 
   [part="tab"][data-selected="true"] {
-    border-color: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, var(--boe-token-surface-surface, #ffffff) 30%);
-    background: var(--boe-token-surface-surface, #ffffff);
-    color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 84%, var(--boe-token-text-text, #222222) 16%);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.82),
-      0 2px 6px rgba(15, 23, 42, 0.08);
+    color: var(--boe-token-text-text, #222222);
+    background: transparent;
+    box-shadow: none;
   }
 
-  [part="tabs"][data-layout="attached"] [part="tab"][data-selected="true"] {
-    border-color: transparent;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  [part="tab"][data-selected="true"]::after {
+    opacity: 1;
   }
 
-  ${boeNeutralInteractiveStyles('[part="tab"]:not([data-selected="true"])')}
+  [part="tabs"][data-layout="separated"] [part="tab"] {
+    flex: 0 1 auto;
+    padding: 0 ${boeSpace[3]};
+  }
+
   ${boeFocusVisibleStyles('[part="tab"]')}
+
+  [part="tab"]:focus-visible {
+    outline-offset: -2px;
+    box-shadow: none;
+  }
 `;
 
 export class BoxTabsElement extends BaseElement {

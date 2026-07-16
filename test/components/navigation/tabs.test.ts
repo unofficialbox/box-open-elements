@@ -89,7 +89,7 @@ describe("BoxTabsElement", () => {
     expect((tabs[2] as HTMLElement | undefined)?.dataset.position).toBe("last");
   });
 
-  it("scopes hover/active to non-selected tabs and keeps focus-visible for all", () => {
+  it("keeps transparent hover chrome and focus-visible for tabs", () => {
     const element = document.createElement("box-tabs") as BoxTabsElement;
     element.options = [
       { label: "Overview", value: "overview" },
@@ -98,12 +98,12 @@ describe("BoxTabsElement", () => {
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain('[part="tab"]:not([data-selected="true"]):hover:not(:disabled)');
-    expect(styles).toContain('[part="tab"]:not([data-selected="true"]):active:not(:disabled)');
+    expect(styles).toContain("[part=\"tab\"]:hover");
     expect(styles).toContain('[part="tab"]:focus-visible');
+    expect(styles).toContain("background: transparent");
   });
 
-  it("uses compact segmented-control tab styles", () => {
+  it("uses BUE underline tab styles", () => {
     const element = document.createElement("box-tabs") as BoxTabsElement;
     element.layout = "attached";
     element.options = [
@@ -113,12 +113,12 @@ describe("BoxTabsElement", () => {
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("gap: 0.25rem;");
-    expect(styles).toContain("border-radius: 0.7rem;");
-    expect(styles).toContain("min-height: 1.9rem;");
-    expect(styles).toContain("padding: 0.2rem 0.65rem;");
-    expect(styles).toContain('background: var(--boe-token-surface-surface, #ffffff)');
-    expect(styles).toContain('0 2px 6px rgba(15, 23, 42, 0.08)');
+    expect(styles).toContain("line-height: 40px;");
+    expect(styles).toContain("font-size: 13px;");
+    expect(styles).toContain("border-radius: 0;");
+    expect(styles).toContain("height: 2px;");
+    expect(styles).toContain("background: var(--boe-token-surface-surface-brand, #0061d5)");
+    expect(styles).toContain('[part="tab"][data-selected="true"]::after');
   });
 
   it("preserves focus on a tab when an attribute changes", () => {

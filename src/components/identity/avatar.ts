@@ -1,7 +1,18 @@
 import { BaseElement } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-avatar";
-const DEFAULT_SIZE = 52;
+/** BUE default avatar size (`Avatar.scss` `.avatar`). */
+const DEFAULT_SIZE = 32;
+
+/** BUE `$avatar-colors` / `avatarColors` from box-ui-elements variables. */
+const AVATAR_COLORS = [
+  "#0061d5",
+  "#003c84",
+  "#6f6f6f",
+  "#222222",
+  "#4826c2",
+  "#9f3fed",
+] as const;
 
 const resolveSize = (raw: string | null, fallback = DEFAULT_SIZE): number => {
   const parsed = Number(raw ?? String(fallback));
@@ -17,6 +28,17 @@ const initialsFromName = (name: string): string =>
     .join("")
     .toUpperCase();
 
+const avatarColorFor = (seed: string): string => {
+  if (!seed) {
+    return AVATAR_COLORS[0];
+  }
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash + seed.charCodeAt(i) * (i + 1)) % AVATAR_COLORS.length;
+  }
+  return AVATAR_COLORS[hash] ?? AVATAR_COLORS[0];
+};
+
 const avatarStyles = `
   :host {
     display: inline-block;
@@ -25,51 +47,37 @@ const avatarStyles = `
   }
 
   [part="avatar"] {
-    display: grid;
+    position: relative;
+    display: inline-grid;
     place-items: center;
     overflow: hidden;
-    border-radius: 999px;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 76%, var(--boe-token-surface-surface, #ffffff) 24%);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 84%, var(--boe-token-surface-surface-secondary, #fbfbfb) 16%) 100%
-      );
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.8),
-      0 10px 20px rgba(15, 23, 42, 0.05);
-  }
-
-  [part="avatar"][data-tone="informative"] {
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, var(--boe-token-surface-surface, #ffffff) 82%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%) 100%
-      );
-  }
-
-  [part="avatar"][data-tone="success"] {
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 18%, var(--boe-token-surface-surface, #ffffff) 82%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 8%, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%) 100%
-      );
+    flex-grow: 0;
+    flex-shrink: 0;
+    border-radius: 100%;
+    border: 0;
+    background: var(--avatar-bg, #0061d5);
+    box-shadow: none;
+    user-select: none;
   }
 
   [part="image"] {
+    position: absolute;
+    inset: 0;
     inline-size: 100%;
     block-size: 100%;
     object-fit: cover;
+    border-radius: 100%;
   }
 
   [part="fallback"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-weight: 700;
-    color: var(--boe-token-text-text, #222222);
-    letter-spacing: 0.02em;
-    font-size: calc(var(--avatar-size, ${DEFAULT_SIZE}px) * 0.4);
+    color: #ffffff;
+    line-height: 1;
+    letter-spacing: 0;
+    font-size: calc(var(--avatar-size, ${DEFAULT_SIZE}px) * 0.375);
   }
 
   [part="image"][hidden] {
@@ -151,10 +159,12 @@ export class BoxAvatarElement extends BaseElement {
 
     const size = this.size;
     const fallback = this.initials || "?";
+    const colorSeed = this.name || this.initials || this.alt || fallback;
 
     this.avatarEl.dataset.tone = this.tone;
     this.avatarEl.setAttribute("aria-label", this.alt || fallback);
     this.avatarEl.style.setProperty("--avatar-size", `${size}px`);
+    this.avatarEl.style.setProperty("--avatar-bg", avatarColorFor(colorSeed));
     this.avatarEl.style.width = `${size}px`;
     this.avatarEl.style.height = `${size}px`;
 
