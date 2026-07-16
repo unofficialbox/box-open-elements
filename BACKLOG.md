@@ -26,9 +26,9 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 - Explorer search + enriched item columns + UI chrome shipped (#43).
 - **Active:** host wiring for `box-filter-bar` / `box-saved-view-picker` → explorer search (`bindFilterBarToExplorer`, `bindSavedViewPickerToExplorer` in `patterns/content-explorer`).
+- **In flight:** docs-site + gallery host chrome demo (filter-bar + saved-view + explorer, local presets) — `cursor/explorer-chrome-demo-7eb7`.
 - **Next slices:**
-  - Host demo in docs-site that composes filter-bar + saved-view + explorer (local presets).
-  - Presentation switch (list/table) via filter-bar `view` + `onViewChange`.
+  - Wire host list/table presentation adapters when swapping off the composed list shell.
   - `recents` view mode once a real transport contract exists (do not fake as a folder listing).
   - Configurable / permission-gated columns.
 
@@ -39,7 +39,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 - Storybook workshop shipped (`storybook/`, see `docs/workshop/storybook.md`) — extraction backend for docs-site variants; not deployed publicly.
 - `packages/box-server` shipped (see `docs/integration/box-server.md`).
 - CI (`bun run verify` + pixel gate) shipped on pushes/PRs. Agent CI/PR monitoring rules shipped in `AGENTS.md` (#50): poll checks, fix red immediately, cancel/rerun stuck runs.
-- **Coverage baseline measured and hard-gated** (**Open PR #54**) — see [docs/coverage-baseline.md](./docs/coverage-baseline.md). `bun run verify` runs `test:coverage` with floors (lines/statements 80%, functions 85%, branches 65%). Raise floors only after a fresh measurement.
+- **Coverage baseline measured and hard-gated** (#54) — see [docs/coverage-baseline.md](./docs/coverage-baseline.md). `bun run verify` runs `test:coverage` with floors (lines/statements 80%, functions 85%, branches 65%). Raise floors only after a fresh measurement.
 - **Style bridge shipped** (`tools/style-bridge/`, `bun run style-bridge`) — selector-bridge + token-bridge for the documented CSS/SCSS subset. Add real library configs only when restyling a concrete stylesheet.
 
 ## Active follow-ups (formerly deferred)

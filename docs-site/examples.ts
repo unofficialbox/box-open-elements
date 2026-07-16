@@ -6,6 +6,8 @@
  */
 import {
   ContentExplorerController,
+  bindFilterBarToExplorer,
+  bindSavedViewPickerToExplorer,
   type ExplorerTransport,
   type InviteCollaboratorsTransport,
   type PresenceTransport,
@@ -14,7 +16,8 @@ import {
   type ShareState,
 } from "box-open-elements";
 
-type SetupFn = (root: HTMLElement) => void;
+/** Optional return value unsubscribes host listeners when the preview remounts. */
+type SetupFn = (root: HTMLElement) => void | (() => void);
 
 export interface ComponentExample {
   html: string;
@@ -485,9 +488,73 @@ export const examples: Record<string, ComponentExample> = {
 
   // Patterns
   "content-explorer": {
-    html: `<box-content-explorer root-folder-id="0" token="…" page-size="25"></box-content-explorer>`,
-    setup: root => set(root, "box-content-explorer", { transport: createMockTransport() }),
-    note: "Wired to a mock transport in this preview; inject your own ExplorerTransport or data source.",
+    html: `<div class="explorer-host" style="display:grid;gap:0.85rem">
+  <box-saved-view-picker label="Saved views"></box-saved-view-picker>
+  <box-filter-bar label="Filters"></box-filter-bar>
+  <p data-host-presentation style="margin:0;font-size:0.85rem;color:var(--boe-token-text-text-secondary,#6f6f6f)">Host presentation: <strong>list</strong> (explorer shell stays list; host owns list/table swap)</p>
+  <box-content-explorer root-folder-id="0" token="…" page-size="25"></box-content-explorer>
+</div>`,
+    setup: root => {
+      const transport = createMockTransport();
+      set(root, "box-content-explorer", { transport });
+
+      const presets = [
+        { id: "plans", label: "Plans", description: "Names containing Plan", query: "Plan", resultCount: 1 },
+        { id: "pdfs", label: "PDFs", description: "Names containing pdf", query: "pdf", resultCount: 2 },
+        { id: "all-files", label: "All files", description: "Clear search", query: "", resultCount: 5 },
+      ];
+      set(root, "box-saved-view-picker", {
+        views: presets.map(({ id, label, description, resultCount }) => ({
+          id,
+          label,
+          description,
+          resultCount,
+        })),
+        value: "",
+      });
+      set(root, "box-filter-bar", {
+        filterOptions: [
+          { label: "Modified", value: "modified" },
+          { label: "Owner", value: "owner" },
+          { label: "Type", value: "type" },
+        ],
+        sortOptions: [
+          { label: "Name", value: "name" },
+          { label: "Modified", value: "modified" },
+        ],
+        viewOptions: [
+          { label: "List", value: "list" },
+          { label: "Table", value: "table" },
+        ],
+        viewValue: "list",
+      });
+
+      const explorer = root.querySelector("box-content-explorer") as
+        | (HTMLElement & { search: (q: string) => Promise<void>; clearSearch: () => Promise<void> })
+        | null;
+      const filterBar = root.querySelector("box-filter-bar");
+      const picker = root.querySelector("box-saved-view-picker");
+      const presentation = root.querySelector<HTMLElement>("[data-host-presentation]");
+      if (!explorer || !filterBar || !picker) {
+        return;
+      }
+
+      const unbindFilter = bindFilterBarToExplorer(filterBar, explorer, {
+        onViewChange: view => {
+          if (presentation) {
+            presentation.innerHTML = `Host presentation: <strong>${view || "list"}</strong> (explorer shell stays list; host owns list/table swap)`;
+          }
+        },
+      });
+      const unbindViews = bindSavedViewPickerToExplorer(picker, explorer, {
+        resolvePreset: id => presets.find(preset => preset.id === id),
+      });
+      return () => {
+        unbindFilter();
+        unbindViews();
+      };
+    },
+    note: "Host composition: saved-view-picker + filter-bar bound to explorer search via bindFilterBarToExplorer / bindSavedViewPickerToExplorer. Mock transport; inject your own ExplorerTransport in apps.",
   },
   "explorer-breadcrumbs": { html: `<box-explorer-breadcrumbs></box-explorer-breadcrumbs>`, setup: explorerAdapterSetup("box-explorer-breadcrumbs"), note: "Driven by a shared ContentExplorerController with a mock transport." },
   "explorer-toolbar": { html: `<box-explorer-toolbar></box-explorer-toolbar>`, setup: explorerAdapterSetup("box-explorer-toolbar"), note: "Driven by a shared ContentExplorerController with a mock transport." },
