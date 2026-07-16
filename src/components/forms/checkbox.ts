@@ -5,11 +5,13 @@ import {
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
 import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
+import { boeControl, boeSpace } from "../../foundations/geometry/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-checkbox";
 const DEFAULT_VALUE = "on";
 
+/** Sized toward BUE `.checkbox-container` 14×14 / radius 2 look. */
 const checkboxStyles = `
   :host {
     display: inline-block;
@@ -20,9 +22,10 @@ const checkboxStyles = `
   [part="field"] {
     display: inline-flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: ${boeSpace[2]};
     cursor: pointer;
     color: var(--boe-token-text-text, #222222);
+    font-size: ${boeControl.fontSize};
     transition: color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
@@ -35,22 +38,23 @@ const checkboxStyles = `
   }
 
   [part="input"] {
-    inline-size: 1rem;
-    block-size: 1rem;
+    inline-size: 14px;
+    block-size: 14px;
     margin: 0;
     flex: 0 0 auto;
     accent-color: var(--boe-token-surface-surface-brand, #0061d5);
+    border-radius: 2px;
     cursor: inherit;
   }
 
   ${boeFocusVisibleStyles('[part="input"]')}
 
   [part="label"] {
-    font-weight: 500;
+    font-weight: 400;
   }
 
   :host([disabled]) [part="field"] {
-    opacity: 0.55;
+    opacity: ${boeControl.disabledOpacity};
     cursor: not-allowed;
   }
 

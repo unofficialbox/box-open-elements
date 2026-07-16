@@ -81,4 +81,15 @@ describe("BoxTextFieldElement", () => {
     expect(input?.getAttribute("aria-invalid")).toBe("true");
     expect(error?.textContent).toBe("Too short");
   });
+
+  it("uses BUE box-inputs geometry", () => {
+    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("min-height: 32px");
+    expect(styles).toContain("padding: 7px");
+    expect(styles).toContain("border-radius: 6px");
+    expect(styles).toContain("inset 0 2px 4px");
+  });
 });

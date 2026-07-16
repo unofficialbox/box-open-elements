@@ -75,13 +75,16 @@ describe("box-button", () => {
     expect(element.shadowRoot?.activeElement).toBe(button);
   });
 
-  it("uses compact default button padding", () => {
+  it("uses BUE control geometry for the default button", () => {
     const element = create();
     element.setAttribute("label", "Save");
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("padding: 0.45em 1em;");
-    expect(styles).toContain("border-radius: 0.75rem;");
+    expect(styles).toContain("min-height: 32px");
+    expect(styles).toContain("padding: 0 16px");
+    expect(styles).toContain("border-radius: 6px");
+    expect(styles).toContain("font-size: 13px");
+    expect(styles).toContain("opacity: 0.4");
   });
 
   it("is idempotent to define twice", () => {

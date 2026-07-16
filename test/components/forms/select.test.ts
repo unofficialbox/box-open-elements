@@ -38,14 +38,15 @@ describe("BoxSelectElement", () => {
     );
   });
 
-  it("uses tighter select control padding", () => {
+  it("uses BUE select control geometry", () => {
     const element = document.createElement("box-select") as BoxSelectElement;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("gap: 0.45rem;");
-    expect(styles).toContain("padding: 0.45rem 2.1rem 0.45rem 0.7rem;");
-    expect(styles).toContain("border-radius: 0.7rem;");
+    expect(styles).toContain("gap: 8px");
+    expect(styles).toContain("min-height: 34px");
+    expect(styles).toContain("padding: 5px 25px 5px 10px");
+    expect(styles).toContain("border-radius: 6px");
   });
 
   it("forwards disabled state to the select", () => {

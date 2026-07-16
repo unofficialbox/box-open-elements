@@ -4,7 +4,7 @@ import {
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
-import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeControl, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-select";
 
@@ -16,6 +16,7 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
+/** Select chrome tracks BUE select / `@mixin box-inputs` (height ~34px, radius 6). */
 const selectStyles = `
   :host {
     display: block;
@@ -25,36 +26,35 @@ const selectStyles = `
 
   [part="field"] {
     display: grid;
-    gap: 0.45rem;
+    gap: ${boeSpace[2]};
   }
 
   [part="label"] {
-    font-size: 0.8rem;
+    font-size: ${boeControl.fontSize};
     font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    color: var(--boe-token-text-text, #222222);
   }
 
   [part="select"] {
     appearance: none;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: ${boeControl.selectHeight};
+    padding: 5px 25px 5px 10px;
     font: inherit;
+    font-size: ${boeControl.fontSize};
     color: var(--boe-token-text-text, #222222);
-    padding: 0.45rem 2.1rem 0.45rem 0.7rem;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-    border-radius: 0.7rem;
+    border: 1px solid ${boeControl.inputBorder};
+    border-radius: ${boeRadius.med};
+    /* Chevron stroke matches --boe-token-text-text-secondary fallback (#6f6f6f). */
     background:
-      url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%2352606d' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.7rem center / 12px 8px,
-      linear-gradient(
-        180deg,
-        var(--boe-token-surface-surface, #ffffff) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
-      );
+      url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%236f6f6f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center / 12px 8px,
+      var(--boe-token-surface-surface, #ffffff);
+    box-shadow: 0 1px 1px 1px rgb(0 0 0 / 5%);
     cursor: pointer;
     transition:
-      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
-      background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
-      box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
+      border-color linear 0.15s,
+      box-shadow linear 0.1s;
   }
 
   [part="select"]:hover:not(:disabled) {
@@ -62,13 +62,13 @@ const selectStyles = `
   }
 
   [part="select"]:focus-visible {
-    outline: none;
+    outline: 0;
     border-color: var(--boe-token-surface-surface-brand, #0061d5);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+    box-shadow: 0 1px 1px 1px rgb(0 0 0 / 5%);
   }
 
   [part="select"]:disabled {
-    opacity: 0.55;
+    opacity: ${boeControl.disabledOpacity};
     cursor: not-allowed;
   }
 

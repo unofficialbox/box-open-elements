@@ -77,4 +77,15 @@ describe("BoxSwitchElement", () => {
 
     expect(document.activeElement).toBe(element);
   });
+
+  it("uses BUE toggle track geometry", () => {
+    const element = document.createElement("box-switch") as BoxSwitchElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("inline-size: 40px");
+    expect(styles).toContain("block-size: 20px");
+    expect(styles).toContain("inline-size: 16px");
+    expect(styles).toContain("transform: translateX(20px)");
+  });
 });

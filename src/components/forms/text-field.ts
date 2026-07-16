@@ -4,10 +4,11 @@ import {
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
-import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeControl, boeInputControlStyles, boeSpace } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-text-field";
 
+/** Input chrome tracks BUE `@mixin box-inputs` (`src/styles/_inputs.scss`). */
 const textFieldStyles = `
   :host {
     display: block;
@@ -17,53 +18,26 @@ const textFieldStyles = `
 
   [part="field"] {
     display: grid;
-    gap: 0.45rem;
+    gap: ${boeSpace[2]};
   }
 
   [part="label"] {
-    font-size: 0.8rem;
+    font-size: ${boeControl.fontSize};
     font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    color: var(--boe-token-text-text, #222222);
   }
 
   [part="input"] {
     appearance: none;
+    width: 100%;
     font: inherit;
-    color: var(--boe-token-text-text, #222222);
-    padding: 0.45rem 0.7rem;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-    border-radius: 0.7rem;
-    background:
-      linear-gradient(
-        180deg,
-        var(--boe-token-surface-surface, #ffffff) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
-      );
-    transition:
-      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
-      background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
-      box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
+    font-size: ${boeControl.fontSize};
   }
+
+  ${boeInputControlStyles('[part="input"]')}
 
   [part="input"]::placeholder {
     color: var(--boe-token-text-text-placeholder, #909090);
-  }
-
-  [part="input"]:hover:not(:disabled) {
-    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
-  }
-
-  [part="input"]:focus-visible {
-    outline: none;
-    border-color: var(--boe-token-surface-surface-brand, #0061d5);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-  }
-
-  [part="input"]:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
   }
 
   ${boeFormFieldErrorStyles}

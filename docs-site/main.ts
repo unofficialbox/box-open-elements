@@ -17,6 +17,7 @@ import tokensMd from "../docs/foundations/tokens.md";
 import iconographyMd from "../docs/foundations/iconography.md";
 import themingMd from "../docs/foundations/theming.md";
 import motionMd from "../docs/foundations/motion.md";
+import geometryMd from "../docs/foundations/geometry.md";
 import { renderMarkdown } from "./markdown.js";
 
 // Real, extracted variant states per component (storybook workshop → docs site).
@@ -76,6 +77,7 @@ const SHARED_EVENTS = [
 const FOUNDATION_PAGES = [
   { id: "tokens", label: "Design Tokens" },
   { id: "theming", label: "Theming" },
+  { id: "geometry", label: "Geometry" },
   { id: "motion", label: "Motion" },
   { id: "icons", label: "Iconography" },
   { id: "accessibility", label: "Accessibility" },
@@ -87,6 +89,7 @@ const FOUNDATION_MD: Record<string, { title: string; md: string }> = {
   accessibility: { title: "Accessibility", md: accessibilityMd },
   brand: { title: "Brand", md: brandMd },
   theming: { title: "Theming", md: themingMd },
+  geometry: { title: "Geometry", md: geometryMd },
   motion: { title: "Motion", md: motionMd },
 };
 

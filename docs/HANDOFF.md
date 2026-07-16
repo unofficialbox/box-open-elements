@@ -146,8 +146,10 @@ organized into **systemic sweeps**, not per-component rewrites.
 
 ## Open user-facing threads
 - Fidelity program complete; workshop at **108** extracted stories; explorer metadata host chrome shipped.
-- Density: absolute fat highs cleared; peer-variance consistency pass + Foundations GFM tables in docs-site.
+- Density peer-consistency + Foundations GFM tables shipped.
+- **BUE visual conformance P0** in flight: `foundations/geometry` + button/text-field/select/checkbox/switch aligned to BDL (32px / 6px radius / flat fills).
+- Next conformance slices: overlays, tabs, toast/alert, badge/avatar.
 - Motion literals migrated to `boeMotionDuration` / `interactive`.
 - Explorer Folder host chrome swaps list/table adapters via filter-bar `onViewChange`.
 - `recents` still needs a transport contract; configurable columns remain open.
-- Next: React adapter PoC.
+- After BUE P0+: React adapter PoC.

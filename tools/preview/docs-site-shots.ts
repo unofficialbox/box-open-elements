@@ -30,6 +30,7 @@ const routes: Array<[string, string, string]> = [
   ["patterns-share-panel", "#patterns/share-panel", "patterns/share-panel"],
   ["foundations-tokens", "#foundations/tokens", "foundations/tokens"],
   ["foundations-theming", "#foundations/theming", "foundations/theming"],
+  ["foundations-geometry", "#foundations/geometry", "foundations/geometry"],
   ["foundations-motion", "#foundations/motion", "foundations/motion"],
   ["foundations-icons", "#foundations/icons", "foundations/icons"],
   ["foundations-accessibility", "#foundations/accessibility", "foundations/accessibility"],
