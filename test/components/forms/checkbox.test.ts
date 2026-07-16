@@ -180,6 +180,7 @@ describe("BoxCheckboxElement", () => {
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("inline-size: 14px");
     expect(styles).toContain("block-size: 14px");
+    expect(styles).toContain("border-radius: 2px");
     expect(styles).toContain("opacity: 0.4");
   });
 });

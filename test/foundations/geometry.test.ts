@@ -27,5 +27,6 @@ describe("geometry foundation (BDL)", () => {
     expect(css).toContain("min-height: 32px");
     expect(css).toContain("border-radius: 6px");
     expect(css).toContain("inset 0 2px 4px");
+    expect(css).toContain("outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5)");
   });
 });

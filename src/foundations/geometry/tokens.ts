@@ -21,7 +21,7 @@ export const boeSpace = {
   5: "20px",
   /** 6 × grid — overlay padding */
   6: "24px",
-  /** 7.5 × grid — modal-ish pad */
+  /** 8 × grid — modal-ish pad / control height */
   8: "32px",
 } as const;
 
@@ -87,7 +87,8 @@ export const boeInputControlStyles = (selector: string): string => `
   }
 
   ${selector}:focus-visible {
-    outline: 0;
+    outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
+    outline-offset: 1px;
     border-color: var(--boe-token-surface-surface-brand, #0061d5);
     box-shadow: ${boeControl.inputInsetShadow};
   }
