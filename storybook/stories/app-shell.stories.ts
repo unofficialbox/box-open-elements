@@ -25,9 +25,9 @@ const appShell: StoryModule = {
   <span slot="eyebrow">Enterprise</span>
   <box-button slot="header-actions" label="Invite" tone="primary"></box-button>
   <box-nav-sidebar slot="nav" label="Workspace">
-    <a href="#" aria-label="All Files">All Files</a>
-    <a href="#" aria-label="Recents">Recents</a>
-    <a href="#" aria-label="Trash">Trash</a>
+    <button type="button" aria-label="All Files">All Files</button>
+    <button type="button" aria-label="Recents">Recents</button>
+    <button type="button" aria-label="Trash">Trash</button>
   </box-nav-sidebar>
   <box-card eyebrow="PDF · 2.4 MB" heading="Quarterly Plan.pdf">Updated 2 hours ago by Morgan Lee</box-card>
   <box-item-details-panel slot="aside" heading="Quarterly Plan.pdf" eyebrow="PDF · 2.4 MB" owner='{"name":"Morgan Lee","description":"Enterprise Admin"}' meta='[{"label":"Modified","value":"Jul 10, 2026"}]'></box-item-details-panel>

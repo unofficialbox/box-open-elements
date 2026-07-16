@@ -132,8 +132,8 @@ const richTextStyles = `
 
   [part="surface"] {
     display: grid;
-    gap: 0.55rem;
-    padding: 0.65rem;
+    gap: 0.45rem;
+    padding: 0.5rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
     border-radius: 0.75rem;
     background:
@@ -185,21 +185,15 @@ const richTextStyles = `
   }
 
   [part="editor"] {
-    min-block-size: 12rem;
-    padding: 0.65rem;
+    min-block-size: 8.5rem;
+    padding: 0.5rem 0.55rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
-    border-radius: 0.65rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 97%, var(--boe-token-surface-surface-secondary, #fbfbfb) 3%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 2%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%, var(--boe-token-surface-surface, #ffffff) 90%) 100%
-      );
+    border-radius: 0.55rem;
+    background: var(--boe-token-surface-surface, #ffffff);
     line-height: 1.5;
     outline: none;
     overflow: auto;
     white-space: normal;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84);
   }
 
   [part="editor"]:empty::before {

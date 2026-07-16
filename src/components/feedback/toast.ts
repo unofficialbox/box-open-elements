@@ -25,7 +25,8 @@ const toastStyles = `
     border-left: 3px solid var(--boe-token-surface-surface-brand, #0061d5);
     background: var(--boe-token-surface-tooltip-surface, #222222);
     color: #ffffff;
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.28);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
+    max-inline-size: min(100%, 24rem);
   }
 
   [part="toast"][data-tone="success"] {
@@ -42,6 +43,8 @@ const toastStyles = `
   }
 
   [part="message"] {
+    flex: 1 1 auto;
+    min-inline-size: 0;
     font-size: 0.88rem;
     font-weight: 600;
     line-height: 1.35;
@@ -49,7 +52,7 @@ const toastStyles = `
 
   [part="dismiss"] {
     appearance: none;
-    flex: none;
+    flex: 0 0 auto;
     border: 1px solid rgba(255, 255, 255, 0.24);
     border-radius: 999px;
     background: transparent;

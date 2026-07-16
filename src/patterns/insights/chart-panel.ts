@@ -44,9 +44,9 @@ const elementStyles = `
         [part="panel"] {
           display: grid;
           gap: 0.6rem;
-          padding: 0.75rem;
+          padding: 0.6rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.75rem;
+          border-radius: 0.65rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, var(--boe-token-surface-surface, #ffffff) 4%);
         }
 
@@ -72,7 +72,7 @@ const elementStyles = `
         [part="title"] {
           margin: 0;
           font: inherit;
-          font-size: 1.1rem;
+          font-size: 1.05rem;
           font-weight: 700;
           color: var(--boe-token-text-text, #1f1e1b);
         }
@@ -118,7 +118,7 @@ const elementStyles = `
 
         [part="visual"] {
           padding: 0.65rem;
-          border-radius: 0.75rem;
+          border-radius: 0.65rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, #eef4fb 12%);
         }
@@ -138,7 +138,7 @@ const elementStyles = `
           align-content: end;
           padding: 0.45rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 52%, transparent);
-          border-radius: 0.75rem;
+          border-radius: 0.65rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, #eef4fb 10%);
           cursor: pointer;
           font: inherit;
@@ -234,8 +234,8 @@ const elementStyles = `
         }
 
         [part="empty"] {
-          padding: 1rem;
-          border-radius: 0.9rem;
+          padding: 0.65rem;
+          border-radius: 0.65rem;
           border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }

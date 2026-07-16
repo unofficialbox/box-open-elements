@@ -18,13 +18,13 @@ const navSidebarStyles = `
   [part="sidebar"] {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.55rem;
     block-size: 100%;
-    inline-size: 15rem;
-    padding: 0.9rem 0.8rem;
+    inline-size: 14rem;
+    padding: 0.65rem 0.6rem;
     box-sizing: border-box;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.95rem;
+    border-radius: 0.7rem;
     background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
     color: var(--boe-token-text-text, #222222);
     overflow: hidden;
@@ -65,9 +65,9 @@ const navSidebarStyles = `
     display: flex;
     align-items: center;
     gap: 0.55rem;
-    min-block-size: 2.25rem;
-    padding: 0.4rem 0.55rem;
-    border-radius: 0.65rem;
+    min-block-size: 1.9rem;
+    padding: 0.3rem 0.45rem;
+    border-radius: 0.5rem;
     color: inherit;
     text-decoration: none;
     font: inherit;

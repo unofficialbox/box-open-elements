@@ -28,16 +28,11 @@ const personaStyles = `
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 0.6rem;
-    padding: 0.55rem 0.65rem;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 80%, var(--boe-token-surface-surface, #ffffff) 20%);
-    border-radius: 0.7rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%) 100%
-      );
+    border-radius: 0.6rem;
+    background: var(--boe-token-surface-surface, #ffffff);
   }
 
   [part="avatar"] {

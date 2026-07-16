@@ -29,28 +29,21 @@ const ratingStyles = `
   [part="control"] {
     display: inline-flex;
     align-items: center;
-    gap: 0.2rem;
-    padding: 0.25rem 0.35rem;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.7rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%, var(--boe-token-surface-surface, #ffffff) 10%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 84%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
-      );
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.82),
-      0 12px 24px rgba(15, 23, 42, 0.04);
+    gap: 0.1rem;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   [part="star"] {
-    inline-size: 1.85rem;
-    block-size: 1.85rem;
+    inline-size: 1.65rem;
+    block-size: 1.65rem;
     display: grid;
     place-items: center;
-    border: 1px solid transparent;
-    border-radius: 0.55rem;
+    border: none;
+    border-radius: 0.4rem;
     background: transparent;
     color: rgba(82, 96, 109, 0.45);
     cursor: pointer;

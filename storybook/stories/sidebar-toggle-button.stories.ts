@@ -19,7 +19,16 @@ const sidebarToggleButton: StoryModule = {
   variants: [
     {
       name: "Default",
-      html: `<box-sidebar-toggle-button label="Toggle navigation" controls="demo-nav-sidebar"></box-sidebar-toggle-button>`,
+      html: `<div style="display:grid;gap:0.65rem;width:min(100%,16rem)">
+  <box-sidebar-toggle-button label="Toggle navigation" controls="demo-sidebar-toggle"></box-sidebar-toggle-button>
+  <box-nav-sidebar label="Workspace" id="demo-sidebar-toggle">
+    <button type="button">Home</button>
+    <button type="button">Files</button>
+    <button type="button">Shared</button>
+    <span slot="footer">2.4 GB of 10 GB used</span>
+  </box-nav-sidebar>
+</div>`,
+      note: "Host listens for `toggle` and sets the sidebar `collapsed` attribute.",
     },
   ],
 };

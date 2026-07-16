@@ -36,8 +36,8 @@ describe("BoxCheckboxGroupElement", () => {
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("gap: 0.4rem;");
-    expect(styles).toContain("padding: 0.5rem 0.6rem;");
-    expect(styles).toContain("border-radius: 0.6rem;");
+    expect(styles).toContain("padding: 0.4rem 0.55rem;");
+    expect(styles).toContain("border-radius: 0.55rem;");
     expect(styles).toContain("background: var(--boe-token-surface-surface, #ffffff);");
   });
 

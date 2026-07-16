@@ -59,10 +59,10 @@ const checkboxGroupStyles = `
   [part="option"] {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.5rem 0.6rem;
+    gap: 0.45rem;
+    padding: 0.4rem 0.55rem;
     border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
-    border-radius: 0.6rem;
+    border-radius: 0.55rem;
     cursor: pointer;
     background: var(--boe-token-surface-surface, #ffffff);
     transition:

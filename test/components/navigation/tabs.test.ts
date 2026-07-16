@@ -117,7 +117,8 @@ describe("BoxTabsElement", () => {
     expect(styles).toContain("border-radius: 0.7rem;");
     expect(styles).toContain("min-height: 1.9rem;");
     expect(styles).toContain("padding: 0.2rem 0.65rem;");
-    expect(styles).toContain("box-shadow: none;");
+    expect(styles).toContain('background: var(--boe-token-surface-surface, #ffffff)');
+    expect(styles).toContain('0 2px 6px rgba(15, 23, 42, 0.08)');
   });
 
   it("preserves focus on a tab when an attribute changes", () => {

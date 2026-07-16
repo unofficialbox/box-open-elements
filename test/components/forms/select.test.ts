@@ -44,7 +44,7 @@ describe("BoxSelectElement", () => {
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("gap: 0.35rem;");
-    expect(styles).toContain("padding: 0.5rem 2.1rem 0.5rem 0.7rem;");
+    expect(styles).toContain("padding: 0.4rem 2rem 0.4rem 0.6rem;");
     expect(styles).toContain("border-radius: 0.65rem;");
   });
 

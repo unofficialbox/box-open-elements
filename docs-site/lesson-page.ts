@@ -149,8 +149,24 @@ const runExplorerPreview = (key: PreviewKey, canvas: HTMLElement, log: LogFn): (
   }
 
   if (key === "select" || key === "multiselect") {
-    const onSelect = (event: Event): void => log("selection-changed", (event as CustomEvent).detail);
-    const onActivate = (event: Event): void => log("item-activated", (event as CustomEvent).detail);
+    const status = document.createElement("p");
+    status.className = "lesson-here";
+    status.textContent = "Selected: none";
+    canvas.prepend(status);
+    const onSelect = (event: Event): void => {
+      const detail = (event as CustomEvent).detail;
+      const ids = detail?.selectedItemIds ?? [];
+      status.textContent = ids.length
+        ? `Selected: ${ids.length} item${ids.length === 1 ? "" : "s"}`
+        : "Selected: none";
+      log("selection-changed", detail);
+    };
+    const onActivate = (event: Event): void => {
+      const detail = (event as CustomEvent).detail;
+      const name = detail?.item?.name;
+      if (name) status.textContent = `Opened: ${name}`;
+      log("item-activated", detail);
+    };
     explorer.addEventListener("selection-changed", onSelect);
     explorer.addEventListener("item-activated", onActivate);
     cleanups.push(() => {

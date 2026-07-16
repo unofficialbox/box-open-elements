@@ -87,9 +87,9 @@ describe("BoxAccordionElement", () => {
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("gap: 0.2rem;");
-    expect(styles).toContain("padding: 0.2rem;");
-    expect(styles).toContain("border-radius: 0.75rem;");
-    expect(styles).toContain("padding: 0.6rem 0.65rem;");
+    expect(styles).toContain("padding: 0;");
+    expect(styles).toContain("border-radius: 0.65rem;");
+    expect(styles).toContain("padding: 0.5rem 0.65rem;");
     expect(styles).toContain("inline-size: 1.35rem;");
   });
 

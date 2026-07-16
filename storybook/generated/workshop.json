@@ -338,7 +338,7 @@
       "variants": [
         {
           "name": "Default",
-          "html": "<box-app-shell heading=\"Box Admin\" nav-label=\"Workspace navigation\" aside-label=\"File context\">\n  <span slot=\"eyebrow\">Enterprise</span>\n  <box-button slot=\"header-actions\" label=\"Invite\" tone=\"primary\"></box-button>\n  <box-nav-sidebar slot=\"nav\" label=\"Workspace\">\n    <a href=\"#\" aria-label=\"All Files\">All Files</a>\n    <a href=\"#\" aria-label=\"Recents\">Recents</a>\n    <a href=\"#\" aria-label=\"Trash\">Trash</a>\n  </box-nav-sidebar>\n  <box-card eyebrow=\"PDF · 2.4 MB\" heading=\"Quarterly Plan.pdf\">Updated 2 hours ago by Morgan Lee</box-card>\n  <box-item-details-panel slot=\"aside\" heading=\"Quarterly Plan.pdf\" eyebrow=\"PDF · 2.4 MB\" owner='{\"name\":\"Morgan Lee\",\"description\":\"Enterprise Admin\"}' meta='[{\"label\":\"Modified\",\"value\":\"Jul 10, 2026\"}]'></box-item-details-panel>\n  <span slot=\"footer\">2.4 GB of 10 GB used</span>\n</box-app-shell>"
+          "html": "<box-app-shell heading=\"Box Admin\" nav-label=\"Workspace navigation\" aside-label=\"File context\">\n  <span slot=\"eyebrow\">Enterprise</span>\n  <box-button slot=\"header-actions\" label=\"Invite\" tone=\"primary\"></box-button>\n  <box-nav-sidebar slot=\"nav\" label=\"Workspace\">\n    <button type=\"button\" aria-label=\"All Files\">All Files</button>\n    <button type=\"button\" aria-label=\"Recents\">Recents</button>\n    <button type=\"button\" aria-label=\"Trash\">Trash</button>\n  </box-nav-sidebar>\n  <box-card eyebrow=\"PDF · 2.4 MB\" heading=\"Quarterly Plan.pdf\">Updated 2 hours ago by Morgan Lee</box-card>\n  <box-item-details-panel slot=\"aside\" heading=\"Quarterly Plan.pdf\" eyebrow=\"PDF · 2.4 MB\" owner='{\"name\":\"Morgan Lee\",\"description\":\"Enterprise Admin\"}' meta='[{\"label\":\"Modified\",\"value\":\"Jul 10, 2026\"}]'></box-item-details-panel>\n  <span slot=\"footer\">2.4 GB of 10 GB used</span>\n</box-app-shell>"
         }
       ]
     },
@@ -1422,12 +1422,16 @@
       ],
       "variants": [
         {
+          "name": "In context",
+          "html": "<div style=\"display:grid;gap:0.75rem;width:min(100%,22rem)\">\n  <div>\n    <strong>Metadata</strong>\n    <p style=\"margin:0.35rem 0 0;color:#6f6f6f;font-size:0.9rem\">Owner, shared status, and last activity.</p>\n  </div>\n  <box-divider label=\"Activity\"></box-divider>\n  <div>\n    <strong>Recent comments</strong>\n    <p style=\"margin:0.35rem 0 0;color:#6f6f6f;font-size:0.9rem\">Version history and discussion sit below the rule.</p>\n  </div>\n</div>"
+        },
+        {
           "name": "Labelled",
           "html": "<box-divider label=\"Shared with your team\"></box-divider>"
         },
         {
           "name": "Plain",
-          "html": "<box-divider></box-divider>"
+          "html": "<div style=\"width:min(100%,22rem)\"><box-divider></box-divider></div>"
         }
       ]
     },
@@ -2869,7 +2873,7 @@
       "category": "Layout",
       "shortDescription": "A labelled, collapsible navigation rail for workspace shells.",
       "docsDescription": "Slot header, navigation rows, and footer content; pair icon/label spans with `data-nav-icon` and `data-nav-label` for collapsed rails.",
-      "sourceSnippet": "<box-nav-sidebar label=\"Workspace\"><a href=\"#\" aria-label=\"All Files\"><span data-nav-icon>A</span><span data-nav-label>All Files</span></a></box-nav-sidebar>",
+      "sourceSnippet": "<box-nav-sidebar label=\"Workspace\"><button type=\"button\" aria-label=\"All Files\"><span data-nav-icon>A</span><span data-nav-label>All Files</span></button></box-nav-sidebar>",
       "referenceRows": [
         {
           "kind": "attribute",
@@ -2902,7 +2906,7 @@
       "variants": [
         {
           "name": "Default",
-          "html": "<style>\n  #demo-nav-sidebar [data-nav-label] { display: var(--boe-nav-label-display, inline); }\n  #demo-nav-sidebar [data-nav-icon] { inline-size: 1.1rem; text-align: center; }\n</style>\n<box-nav-sidebar label=\"Workspace\" id=\"demo-nav-sidebar\">\n  <box-sidebar-toggle-button slot=\"header\" controls=\"demo-nav-sidebar\" label=\"Collapse navigation\"></box-sidebar-toggle-button>\n  <a href=\"#\" aria-label=\"All Files\"><span data-nav-icon aria-hidden=\"true\">A</span><span data-nav-label>All Files</span></a>\n  <a href=\"#\" aria-label=\"Recents\"><span data-nav-icon aria-hidden=\"true\">R</span><span data-nav-label>Recents</span></a>\n  <a href=\"#\" aria-label=\"Synced\"><span data-nav-icon aria-hidden=\"true\">S</span><span data-nav-label>Synced</span></a>\n  <a href=\"#\" aria-label=\"Trash\"><span data-nav-icon aria-hidden=\"true\">T</span><span data-nav-label>Trash</span></a>\n  <span slot=\"footer\">2.4 GB of 10 GB used</span>\n</box-nav-sidebar>",
+          "html": "<style>\n  #demo-nav-sidebar [data-nav-label] { display: var(--boe-nav-label-display, inline); }\n  #demo-nav-sidebar [data-nav-icon] { inline-size: 1.1rem; text-align: center; }\n</style>\n<box-nav-sidebar label=\"Workspace\" id=\"demo-nav-sidebar\">\n  <box-sidebar-toggle-button slot=\"header\" controls=\"demo-nav-sidebar\" label=\"Collapse navigation\"></box-sidebar-toggle-button>\n  <button type=\"button\" aria-label=\"All Files\"><span data-nav-icon aria-hidden=\"true\">A</span><span data-nav-label>All Files</span></button>\n  <button type=\"button\" aria-label=\"Recents\"><span data-nav-icon aria-hidden=\"true\">R</span><span data-nav-label>Recents</span></button>\n  <button type=\"button\" aria-label=\"Synced\"><span data-nav-icon aria-hidden=\"true\">S</span><span data-nav-label>Synced</span></button>\n  <button type=\"button\" aria-label=\"Trash\"><span data-nav-icon aria-hidden=\"true\">T</span><span data-nav-label>Trash</span></button>\n  <span slot=\"footer\">2.4 GB of 10 GB used</span>\n</box-nav-sidebar>",
           "note": "Wire the toggle event to `collapsed` in host code; labels hide through `--boe-nav-label-display`."
         }
       ]
@@ -4225,7 +4229,8 @@
       "variants": [
         {
           "name": "Default",
-          "html": "<box-sidebar-toggle-button label=\"Toggle navigation\" controls=\"demo-nav-sidebar\"></box-sidebar-toggle-button>"
+          "html": "<div style=\"display:grid;gap:0.65rem;width:min(100%,16rem)\">\n  <box-sidebar-toggle-button label=\"Toggle navigation\" controls=\"demo-sidebar-toggle\"></box-sidebar-toggle-button>\n  <box-nav-sidebar label=\"Workspace\" id=\"demo-sidebar-toggle\">\n    <button type=\"button\">Home</button>\n    <button type=\"button\">Files</button>\n    <button type=\"button\">Shared</button>\n    <span slot=\"footer\">2.4 GB of 10 GB used</span>\n  </box-nav-sidebar>\n</div>",
+          "note": "Host listens for `toggle` and sets the sidebar `collapsed` attribute."
         }
       ]
     },
@@ -4490,37 +4495,49 @@
       "tag": "box-tabs",
       "title": "Components/Navigation/Tabs",
       "category": "Navigation",
-      "shortDescription": "A labelled tablist for switching views.",
-      "docsDescription": "Pass tab definitions as a JSON `options` attribute (`label`/`value`) and the selected `value`.",
-      "sourceSnippet": "<box-tabs label=\"Views\" options='[{\"label\":\"All files\",\"value\":\"all\"},{\"label\":\"Recents\",\"value\":\"recents\"}]' value=\"all\"></box-tabs>",
+      "shortDescription": "A compact tablist for switching between peer views.",
+      "docsDescription": "Provide `options` and `value`. Use `layout=\"attached\"` for a segmented track; `separated` for independent tab buttons.",
+      "sourceSnippet": "<box-tabs label=\"Views\" layout=\"attached\" options='[{\"label\":\"All files\",\"value\":\"all\"},{\"label\":\"Recents\",\"value\":\"recents\"}]' value=\"all\"></box-tabs>",
       "referenceRows": [
         {
           "kind": "attribute",
           "name": "label",
           "type": "string",
-          "description": "Accessible name for the tablist."
+          "description": "Accessible tablist label."
+        },
+        {
+          "kind": "attribute",
+          "name": "layout",
+          "type": "\"attached\" | \"separated\"",
+          "description": "Visual grouping of tabs."
         },
         {
           "kind": "attribute",
           "name": "options",
-          "type": "json",
-          "description": "Array of { label, value }."
+          "type": "JSON",
+          "description": "Tab options `{ label, value }`."
         },
         {
           "kind": "attribute",
           "name": "value",
           "type": "string",
           "description": "Selected tab value."
+        },
+        {
+          "kind": "event",
+          "name": "value-changed",
+          "type": "CustomEvent",
+          "description": "Emitted when the selected tab changes."
         }
       ],
       "variants": [
         {
-          "name": "Default",
-          "html": "<box-tabs label=\"Views\" options='[{\"label\":\"All files\",\"value\":\"all\"},{\"label\":\"Recents\",\"value\":\"recents\"},{\"label\":\"Shared\",\"value\":\"shared\"}]' value=\"all\"></box-tabs>"
+          "name": "Attached",
+          "html": "<box-tabs label=\"Views\" layout=\"attached\" options='[{\"label\":\"All files\",\"value\":\"all\"},{\"label\":\"Recents\",\"value\":\"recents\"},{\"label\":\"Shared\",\"value\":\"shared\"}]' value=\"all\"></box-tabs>"
         },
         {
-          "name": "Shared selected",
-          "html": "<box-tabs label=\"Views\" options='[{\"label\":\"All files\",\"value\":\"all\"},{\"label\":\"Recents\",\"value\":\"recents\"},{\"label\":\"Shared\",\"value\":\"shared\"}]' value=\"shared\"></box-tabs>"
+          "name": "Separated",
+          "html": "<box-tabs label=\"Views\" layout=\"separated\" options='[{\"label\":\"All files\",\"value\":\"all\"},{\"label\":\"Recents\",\"value\":\"recents\"},{\"label\":\"Shared\",\"value\":\"shared\"}]' value=\"all\"></box-tabs>"
         }
       ]
     },

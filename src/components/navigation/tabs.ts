@@ -82,10 +82,17 @@ const tabsStyles = `
   }
 
   [part="tab"][data-selected="true"] {
-    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-stroke-stroke, #e8e8e8) 84%);
-    background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 72%, var(--boe-token-surface-surface, #ffffff) 28%);
-    color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 78%, var(--boe-token-text-text, #222222) 22%);
-    box-shadow: none;
+    border-color: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, var(--boe-token-surface-surface, #ffffff) 30%);
+    background: var(--boe-token-surface-surface, #ffffff);
+    color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 84%, var(--boe-token-text-text, #222222) 16%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.82),
+      0 2px 6px rgba(15, 23, 42, 0.08);
+  }
+
+  [part="tabs"][data-layout="attached"] [part="tab"][data-selected="true"] {
+    border-color: transparent;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
   }
 
   ${boeNeutralInteractiveStyles('[part="tab"]:not([data-selected="true"])')}

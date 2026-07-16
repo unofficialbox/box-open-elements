@@ -32,9 +32,9 @@ describe("BoxRatingElement", () => {
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("padding: 0.25rem 0.35rem;");
-    expect(styles).toContain("inline-size: 1.85rem;");
-    expect(styles).toContain("block-size: 1.85rem;");
+    expect(styles).toContain("padding: 0;");
+    expect(styles).toContain("inline-size: 1.65rem;");
+    expect(styles).toContain("block-size: 1.65rem;");
     expect(styles).toMatch(
       /\[part="star"\]\[data-filled="true"\]\s*\{\s*color: var\(--boe-token-surface-surface-brand, #0061d5\);\s*border-color: transparent;\s*background: transparent;\s*\}/,
     );

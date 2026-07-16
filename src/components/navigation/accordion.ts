@@ -26,17 +26,23 @@ const accordionStyles = `
 
   [part="accordion"] {
     display: grid;
-    gap: 0.2rem;
-    padding: 0.2rem;
+    gap: 0;
+    padding: 0;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-    border-radius: 0.75rem;
-    background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 72%, var(--boe-token-surface-surface, #ffffff) 28%);
+    border-radius: 0.65rem;
+    background: var(--boe-token-surface-surface, #ffffff);
+    overflow: hidden;
   }
 
   [part="item"] {
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-    border-radius: 0.6rem;
-    background: var(--boe-token-surface-surface, #ffffff);
+    border: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
+    border-radius: 0;
+    background: transparent;
+  }
+
+  [part="item"]:last-child {
+    border-bottom: none;
   }
 
   [part="heading"] {
@@ -50,9 +56,9 @@ const accordionStyles = `
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    padding: 0.6rem 0.65rem;
+    padding: 0.5rem 0.65rem;
     border: none;
-    border-radius: 0.55rem;
+    border-radius: 0;
     background: transparent;
     color: var(--boe-token-text-text, #222222);
     font: inherit;

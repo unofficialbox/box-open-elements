@@ -179,12 +179,19 @@ explorer.addEventListener("folder-loaded", event => {
 const EXPLORER_STEP4 = `${EXPLORER_STEP3}
 
 // React to what the user picks. selection-changed fires on highlight;
-// item-activated fires on open (double-click / Enter).
+// item-activated fires on open (double-click / Enter). Mirror both into
+// a visible status line so your host UI stays in sync.
+const status = document.createElement("p");
+document.getElementById("app").prepend(status);
+status.textContent = "Selected: none";
 explorer.addEventListener("selection-changed", event => {
-  console.log("selected", event.detail.selectedItemIds);
+  const ids = event.detail.selectedItemIds;
+  status.textContent = ids.length
+    ? "Selected: " + ids.length + " item" + (ids.length === 1 ? "" : "s")
+    : "Selected: none";
 });
 explorer.addEventListener("item-activated", event => {
-  console.log("opened", event.detail.item.name);
+  status.textContent = "Opened: " + event.detail.item.name;
 });`;
 
 const EXPLORER_STEP5 = `${EXPLORER_STEP4}
@@ -259,7 +266,7 @@ export const explorerLesson: Lesson = {
       anchor: "after the folder-loaded listener",
       code: EXPLORER_STEP4,
       why: "selection-changed and item-activated are plain DOM CustomEvents carrying the selected ids and the activated item, so your app reacts without reaching inside the explorer.",
-      result: "Selecting a row and opening a file log to the Events panel (and the console).",
+      result: "Selecting a row updates 'Selected: N items'; opening a file shows 'Opened: …' and both events land in the Events panel.",
       preview: "select",
     },
     {
@@ -270,7 +277,7 @@ export const explorerLesson: Lesson = {
       anchor: "at the end of app.js",
       code: EXPLORER_STEP5,
       why: "selection-mode and page-size are observed attributes, so setting them reconfigures the live explorer in place — no re-creation needed.",
-      result: "You can now select several items at once, and more load per page.",
+      result: "Shift/Cmd-click several rows — the status line counts the selection, and page-size allows more items per load.",
       preview: "multiselect",
     },
   ],

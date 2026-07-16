@@ -60,8 +60,8 @@ const dualListboxStyles = `
     min-inline-size: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.65rem;
+    gap: 0.4rem;
+    padding: 0.55rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
     border-radius: 0.75rem;
     background:
@@ -146,14 +146,14 @@ const dualListboxStyles = `
 
   [part="move-right"],
   [part="move-left"] {
-    inline-size: 2rem;
-    block-size: 2rem;
+    inline-size: 1.65rem;
+    block-size: 1.65rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, transparent);
-    border-radius: 0.65rem;
+    border-radius: 0.45rem;
     background: var(--boe-token-surface-surface, #ffffff);
     color: inherit;
     font: inherit;
-    font-size: 0.95rem;
+    font-size: 0.8rem;
     font-weight: 700;
     cursor: pointer;
     transition:

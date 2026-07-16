@@ -44,10 +44,10 @@ const elementStyles = `
 
         [part="toolbar"] {
           display: grid;
-          gap: 0.6rem;
-          padding: 0.7rem;
+          gap: 0.5rem;
+          padding: 0.55rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.75rem;
+          border-radius: 0.65rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
@@ -88,10 +88,10 @@ const elementStyles = `
         [part="tool"],
         [part="action"] {
           appearance: none;
-          min-height: 2rem;
-          padding: 0.45rem 0.75rem;
+          min-height: 1.75rem;
+          padding: 0.3rem 0.65rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 60%, transparent);
-          border-radius: 999px;
+          border-radius: 0.5rem;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
           font: inherit;

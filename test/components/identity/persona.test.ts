@@ -68,8 +68,8 @@ describe("BoxPersonaElement", () => {
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("gap: 0.6rem;");
-    expect(styles).toContain("padding: 0.55rem 0.65rem;");
-    expect(styles).toContain("border-radius: 0.7rem;");
+    expect(styles).toContain("padding: 0.4rem 0.5rem;");
+    expect(styles).toContain("border-radius: 0.6rem;");
   });
 
   it("scales initials font size with avatar size", () => {

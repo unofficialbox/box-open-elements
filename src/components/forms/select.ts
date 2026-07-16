@@ -39,7 +39,7 @@ const selectStyles = `
     appearance: none;
     font: inherit;
     color: var(--boe-token-text-text, #222222);
-    padding: 0.5rem 2.1rem 0.5rem 0.7rem;
+    padding: 0.4rem 2rem 0.4rem 0.6rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
     border-radius: 0.65rem;
     background:

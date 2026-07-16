@@ -43,9 +43,9 @@ const elementStyles = `
         [part="panel"] {
           display: grid;
           gap: 0.6rem;
-          padding: 0.75rem;
+          padding: 0.6rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.75rem;
+          border-radius: 0.65rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
@@ -64,7 +64,7 @@ const elementStyles = `
         [part="title"] {
           margin: 0;
           font: inherit;
-          font-size: 1.15rem;
+          font-size: 1.05rem;
           font-weight: 700;
           line-height: 1.15;
         }
@@ -137,7 +137,7 @@ const elementStyles = `
           gap: 0.4rem;
           text-align: left;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 56%, transparent);
-          border-radius: 0.75rem;
+          border-radius: 0.65rem;
           padding: 0.65rem 0.75rem;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;

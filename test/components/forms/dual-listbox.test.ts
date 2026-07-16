@@ -37,7 +37,7 @@ describe("BoxDualListboxElement", () => {
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("padding: 0.65rem;");
+    expect(styles).toContain("padding: 0.55rem;");
     expect(styles).toContain("border-radius: 0.75rem;");
     expect(styles).toContain("padding: 0.5rem 0.65rem;");
     expect(styles).toContain("inline-size: 2rem;");
