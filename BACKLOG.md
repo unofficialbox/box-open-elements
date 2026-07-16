@@ -39,7 +39,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 - Storybook workshop shipped (`storybook/`, see `docs/workshop/storybook.md`) — extraction backend for docs-site variants; not deployed publicly.
 - `packages/box-server` shipped (see `docs/integration/box-server.md`).
 - CI (`bun run verify` + pixel gate) shipped on pushes/PRs. Agent CI/PR monitoring rules shipped in `AGENTS.md` (#50): poll checks, fix red immediately, cancel/rerun stuck runs.
-- **Coverage baseline measured and hard-gated** (in flight on `cursor/coverage-baseline-deferred-7eb7`) — see [docs/coverage-baseline.md](./docs/coverage-baseline.md). `bun run verify` runs `test:coverage` with floors (lines/statements 80%, functions 85%, branches 65%). Raise floors only after a fresh measurement.
+- **Coverage baseline measured and hard-gated** (**Open PR #54**) — see [docs/coverage-baseline.md](./docs/coverage-baseline.md). `bun run verify` runs `test:coverage` with floors (lines/statements 80%, functions 85%, branches 65%). Raise floors only after a fresh measurement.
 - **Style bridge shipped** (`tools/style-bridge/`, `bun run style-bridge`) — selector-bridge + token-bridge for the documented CSS/SCSS subset. Add real library configs only when restyling a concrete stylesheet.
 
 ## Active follow-ups (formerly deferred)

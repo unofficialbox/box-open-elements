@@ -28,7 +28,7 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
   Coverage floors: [docs/coverage-baseline.md](./coverage-baseline.md).
 - Recent merged PRs: fidelity Batches 0–7 + #41–**#53** (workshop stories through #52 at **49** surfaces).
 - Foundations: theming + motion docs; `src/foundations/motion`; style bridge CLI; explorer host bindings for filter-bar / saved views.
-- **Open PR:** coverage baseline + deferred-items pull-back — `cursor/coverage-baseline-deferred-7eb7`.
+- **Open PR #54:** coverage baseline + deferred-items pull-back — `cursor/coverage-baseline-deferred-7eb7`.
 
 ## Completed initiative: component fidelity program
 
