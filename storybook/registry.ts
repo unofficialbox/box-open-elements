@@ -24,6 +24,7 @@ import collaboratorAvatars from "./stories/collaborator-avatars.stories.js";
 import colorPicker from "./stories/color-picker.stories.js";
 import combobox from "./stories/combobox.stories.js";
 import contactDatalistItem from "./stories/contact-datalist-item.stories.js";
+import contentExplorer from "./stories/content-explorer.stories.js";
 import datalistItem from "./stories/datalist-item.stories.js";
 import dateField from "./stories/date-field.stories.js";
 import dialog from "./stories/dialog.stories.js";
@@ -36,6 +37,12 @@ import dropdown from "./stories/dropdown.stories.js";
 import dualListbox from "./stories/dual-listbox.stories.js";
 import emptyState from "./stories/empty-state.stories.js";
 import errorMask from "./stories/error-mask.stories.js";
+import explorerActionMenu from "./stories/explorer-action-menu.stories.js";
+import explorerBreadcrumbs from "./stories/explorer-breadcrumbs.stories.js";
+import explorerItems from "./stories/explorer-items.stories.js";
+import explorerList from "./stories/explorer-list.stories.js";
+import explorerTable from "./stories/explorer-table.stories.js";
+import explorerToolbar from "./stories/explorer-toolbar.stories.js";
 import fieldset from "./stories/fieldset.stories.js";
 import fileRequestBuilder from "./stories/file-request-builder.stories.js";
 import filterBar from "./stories/filter-bar.stories.js";
@@ -105,6 +112,7 @@ import unifiedShareModal from "./stories/unified-share-modal.stories.js";
  * The authored story set. Add a story module here to include it in the
  * workshop and its extracted JSON. Expand with attribute-stable reference
  * surfaces so docs-site Usage cards stay real (see docs/workshop/storybook.md).
+ * Controller-bound explorer stories also ship live `setup()` for the workshop UI.
  */
 export const storyModules: StoryModule[] = [
   accessStats,
@@ -132,6 +140,7 @@ export const storyModules: StoryModule[] = [
   colorPicker,
   combobox,
   contactDatalistItem,
+  contentExplorer,
   datalistItem,
   dateField,
   dialog,
@@ -144,6 +153,12 @@ export const storyModules: StoryModule[] = [
   dualListbox,
   emptyState,
   errorMask,
+  explorerActionMenu,
+  explorerBreadcrumbs,
+  explorerItems,
+  explorerList,
+  explorerTable,
+  explorerToolbar,
   fieldset,
   fileRequestBuilder,
   filterBar,

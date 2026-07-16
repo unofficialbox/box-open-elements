@@ -1,6 +1,7 @@
 import * as lib from "box-open-elements";
-import type { ExtractedStory } from "./metadata.js";
+import type { ExtractedStory, StoryModule } from "./metadata.js";
 import workshopData from "./generated/workshop.json" with { type: "json" };
+import { storyModules } from "./registry.js";
 
 // ── Bootstrap: Box design systems + every custom element ────────────────────
 lib.registerBoxDefaultDesignSystem();
@@ -12,6 +13,7 @@ for (const [name, value] of Object.entries(lib)) {
 }
 
 const stories = (workshopData as { stories: ExtractedStory[] }).stories;
+const liveById = new Map<string, StoryModule>(storyModules.map(module => [module.meta.id, module]));
 
 const applyTheme = (theme: "light" | "dark"): void => {
   const system = theme === "dark" ? "box-dark" : "box-default";
@@ -31,6 +33,7 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;");
 
 let activeId = stories[0]?.id ?? "";
+const variantCleanups: Array<() => void> = [];
 
 const renderNav = (): void => {
   const nav = document.getElementById("nav");
@@ -71,6 +74,11 @@ const renderStage = (): void => {
   const story = stories.find(entry => entry.id === activeId);
   if (!stage || !story) return;
 
+  while (variantCleanups.length) {
+    variantCleanups.pop()?.();
+  }
+
+  const live = liveById.get(story.id);
   const variants = story.variants
     .map(
       variant => `
@@ -105,6 +113,23 @@ const renderStage = (): void => {
     <h2>Reference</h2>
     <table class="ref"><thead><tr><th>Name</th><th>Kind</th><th>Type</th><th>Description</th></tr></thead><tbody>${rows}</tbody></table>
   `;
+
+  // Run live setup() from authored story modules when present (not extracted).
+  if (live) {
+    const canvases = stage.querySelectorAll<HTMLElement>(".variant-canvas");
+    live.variants.forEach((variant, index) => {
+      const canvas = canvases[index];
+      if (!canvas || !variant.setup) return;
+      try {
+        const cleanup = variant.setup(canvas);
+        if (typeof cleanup === "function") {
+          variantCleanups.push(cleanup);
+        }
+      } catch (error) {
+        console.error(`[workshop] setup failed for ${story.id}/${variant.name}`, error);
+      }
+    });
+  }
 };
 
 const storedTheme = (localStorage.getItem("boe-workshop-theme") as "light" | "dark" | null) ?? "light";

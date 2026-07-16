@@ -30,7 +30,9 @@ Metadata contract minimum per component: title, short description, docs descript
 The distinction for whether a page uses extracted docs versus hand-curation is **not** "workflow vs. non-workflow tier." It is:
 
 - **Extract** when the page is primarily a reusable component reference surface: stable canonical example, clear contract, structured reference rows, limited demo-only prose. (The preview shell qualified.)
-- **Hand-curate** when the page is primarily a product/workflow teaching surface: bespoke guided structure, editorial storytelling, workflow explanation more important than the contract. (The content explorer and all build-along lessons qualify.)
+- **Hand-curate** when the page is primarily a product/workflow teaching surface: bespoke guided structure, editorial storytelling, workflow explanation more important than the contract. (Build-along lessons qualify. Content explorer may still ship a workshop story whose live `setup()` powers the workshop UI while extraction stores HTML shells only.)
+
+Workshop `variant.setup()` is stripped from `workshop.json` but executed by `storybook/app.ts` for controller-bound demos (explorer adapters). Docs-site prefers `examples.ts` variants (with setup) over extracted HTML when both exist.
 
 ## Failure signals
 

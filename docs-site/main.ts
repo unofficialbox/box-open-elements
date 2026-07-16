@@ -254,7 +254,13 @@ const renderRail = (): void => {
 
 const renderComponentPage = (entry: CatalogEntry): void => {
   const example = examples[entry.id] ?? { html: `<${entry.tag} label="${titleOf(entry.id)}"></${entry.tag}>` };
-  const variants = variantsById[entry.id] ?? [];
+  const exampleVariants = example.variants ?? [];
+  const workshopVariants = variantsById[entry.id] ?? [];
+  // Prefer live example variants (with setup) over extracted workshop HTML shells.
+  const useExampleVariants = exampleVariants.length >= 2;
+  const variants = useExampleVariants
+    ? exampleVariants.map(variant => ({ name: variant.name, html: variant.html, note: variant.note }))
+    : workshopVariants;
   const hasVariants = variants.length >= 2;
   const initialHtml = hasVariants ? variants[0].html : example.html;
   const constructor = customElements.get(entry.tag) as (CustomElementConstructor & { observedAttributes?: string[] }) | undefined;
@@ -306,7 +312,10 @@ const renderComponentPage = (entry: CatalogEntry): void => {
     </div>
     <div data-panel="code" hidden>
       <pre class="code-block"><code id="code-block">${escapeHtml(initialHtml)}</code></pre>
-      ${example.note ? `<p class="preview-note">${escapeHtml(example.note)}</p>` : ""}
+      ${(() => {
+        const note = useExampleVariants ? exampleVariants[0]?.note : example.note;
+        return note ? `<p class="preview-note">${escapeHtml(note)}</p>` : `<p class="preview-note" hidden></p>`;
+      })()}
     </div>
     <div data-panel="api" hidden>
       <p class="section-label">Attributes (observed)</p>
@@ -425,29 +434,43 @@ const renderComponentPage = (entry: CatalogEntry): void => {
       ? renderBulletList(guidance.keyboard)
       : '<p class="inspector-empty">No role-mapped keyboard guidance for this preview — see the shared accessibility conventions.</p>';
   };
+  type SetupFn = (root: HTMLElement) => void | (() => void);
   let setupCleanup: (() => void) | undefined;
-  const mount = (html: string, runSetup: boolean): void => {
+  const mount = (html: string, runSetup: SetupFn | undefined): void => {
     setupCleanup?.();
     setupCleanup = undefined;
     canvas.innerHTML = html;
     if (runSetup) {
-      const cleanup = example.setup?.(canvas);
+      const cleanup = runSetup(canvas);
       if (typeof cleanup === "function") {
         setupCleanup = cleanup;
       }
     }
     refreshInspectors();
   };
-  mount(initialHtml, !hasVariants);
+  const initialSetup: SetupFn | undefined = useExampleVariants
+    ? exampleVariants[0]?.setup
+    : hasVariants
+      ? undefined
+      : example.setup;
+  mount(initialHtml, initialSetup);
 
-  // Variant picker — swaps the preview between real extracted variant states.
+  // Variant picker — live example setups when present; otherwise extracted HTML.
   const variantSelect = stageBody.querySelector<HTMLSelectElement>("#variant-select");
   const codeBlock = stageBody.querySelector<HTMLElement>("#code-block")!;
   variantSelect?.addEventListener("change", () => {
-    const variant = variants[Number(variantSelect.value)];
+    const index = Number(variantSelect.value);
+    const variant = variants[index];
     if (!variant) return;
-    mount(variant.html, false);
+    const setup = useExampleVariants ? exampleVariants[index]?.setup : undefined;
+    mount(variant.html, setup);
     codeBlock.textContent = variant.html;
+    const note = useExampleVariants ? exampleVariants[index]?.note : example.note;
+    const noteEl = stageBody.querySelector<HTMLElement>(".preview-note");
+    if (noteEl) {
+      noteEl.textContent = note ?? "";
+      noteEl.hidden = !note;
+    }
   });
 
   // Preview width toolbar
