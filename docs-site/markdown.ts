@@ -17,8 +17,10 @@ const inline = (text: string): string =>
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(
       /\[([^\]]+)\]\(([^)]+)\)/g,
+      // `url` is already escaped by the outer escapeHtml(text) pass — do not
+      // escape again or query `&` becomes `&amp;amp;`.
       (_match, label, url) =>
-        `<a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">${label}</a>`,
+        `<a href="${url}" target="_blank" rel="noreferrer">${label}</a>`,
     );
 
 const isTableSeparator = (line: string): boolean => {

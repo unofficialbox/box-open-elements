@@ -14,9 +14,9 @@ Users still see density inconsistencies across the catalog after the absolute �
 
 ## Surprises & Discoveries
 
-- Current audit: `high=0 med=5 low=14` — leftover meds are intentional-airy dialog/drawer/empty/error.
-- Foundation `.md` tables are valid GFM; docs-site mini-parser emits each pipe row as `<p>`.
-- Peer variance (not absolute fat) is what still reads as inconsistent.
+- After peer pass: `high=0 med=0 low=8` — remaining lows are intentional `1.35rem` display metrics.
+- Foundation `.md` tables are valid GFM; docs-site mini-parser previously emitted each pipe row as `<p>` (now real `<table class="md-table">`).
+- Peer variance (not absolute fat) was what still read as inconsistent.
 
 ## Decision Log
 

@@ -35,6 +35,12 @@ describe("renderMarkdown", () => {
     expect(html).toContain("<td><code>trapTabKey</code></td>");
   });
 
+  it("escapes link URLs once (query ampersands stay valid)", () => {
+    const html = renderMarkdown("[docs](https://example.com/x?a=1&b=2)");
+    expect(html).toContain('href="https://example.com/x?a=1&amp;b=2"');
+    expect(html).not.toContain("&amp;amp;");
+  });
+
   it("still renders headings, lists, and code fences", () => {
     const html = renderMarkdown(`
 # Title
