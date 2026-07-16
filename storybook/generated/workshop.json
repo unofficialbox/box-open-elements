@@ -326,6 +326,41 @@
       ]
     },
     {
+      "id": "error-mask",
+      "tag": "box-error-mask",
+      "title": "Components/Feedback/Error Mask",
+      "category": "Feedback",
+      "shortDescription": "A full-section error recovery surface.",
+      "docsDescription": "Use when a region failed to load. Provide `heading`, `message`, and optional `action-label`.",
+      "sourceSnippet": "<box-error-mask heading=\"Couldn't load files\" message=\"Something went wrong.\" action-label=\"Retry\"></box-error-mask>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Error title."
+        },
+        {
+          "kind": "attribute",
+          "name": "message",
+          "type": "string",
+          "description": "Recovery guidance."
+        },
+        {
+          "kind": "attribute",
+          "name": "action-label",
+          "type": "string",
+          "description": "Optional retry/action label."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-error-mask heading=\"Couldn't load files\" message=\"Something went wrong while loading this folder.\" action-label=\"Retry\"></box-error-mask>"
+        }
+      ]
+    },
+    {
       "id": "help-text",
       "tag": "box-help-text",
       "title": "Components/Feedback/Help Text",
@@ -361,6 +396,51 @@
         {
           "name": "Warning",
           "html": "<box-help-text label=\"Permissions\" message=\"Editors can reshare this folder.\" tone=\"warning\"></box-help-text>"
+        }
+      ]
+    },
+    {
+      "id": "nudge",
+      "tag": "box-nudge",
+      "title": "Components/Feedback/Nudge",
+      "category": "Feedback",
+      "shortDescription": "A dismissible tip with an optional action.",
+      "docsDescription": "Inline coaching surface with `heading`, `message`, optional `action-label`, and `open`.",
+      "sourceSnippet": "<box-nudge heading=\"Try grid view\" message=\"Preview files as thumbnails.\" action-label=\"Show me\"></box-nudge>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Nudge title."
+        },
+        {
+          "kind": "attribute",
+          "name": "message",
+          "type": "string",
+          "description": "Supporting tip copy."
+        },
+        {
+          "kind": "attribute",
+          "name": "action-label",
+          "type": "string",
+          "description": "Optional CTA label."
+        },
+        {
+          "kind": "attribute",
+          "name": "open",
+          "type": "boolean",
+          "description": "Whether the nudge is visible."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-nudge open heading=\"Try grid view\" message=\"Preview files as thumbnails from the view switcher.\" action-label=\"Show me\"></box-nudge>"
+        },
+        {
+          "name": "No action",
+          "html": "<box-nudge open heading=\"Tip\" message=\"Use filters to narrow results.\"></box-nudge>"
         }
       ]
     },
@@ -425,6 +505,88 @@
         {
           "name": "Complete",
           "html": "<box-progress-bar label=\"Storage used\" value=\"100\"></box-progress-bar>"
+        }
+      ]
+    },
+    {
+      "id": "progress-ring",
+      "tag": "box-progress-ring",
+      "title": "Components/Feedback/Progress Ring",
+      "category": "Feedback",
+      "shortDescription": "A circular determinate progress indicator.",
+      "docsDescription": "Shows completion with `value` (and optional `max`) plus an accessible `label`.",
+      "sourceSnippet": "<box-progress-ring label=\"Sync\" value=\"80\"></box-progress-ring>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible name for the progress."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "number",
+          "description": "Current progress value."
+        },
+        {
+          "kind": "attribute",
+          "name": "max",
+          "type": "number",
+          "description": "Maximum value (default 100)."
+        },
+        {
+          "kind": "attribute",
+          "name": "size",
+          "type": "string",
+          "description": "Visual size variant when supported."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-progress-ring label=\"Sync\" value=\"80\"></box-progress-ring>"
+        },
+        {
+          "name": "Empty",
+          "html": "<box-progress-ring label=\"Sync\" value=\"0\"></box-progress-ring>"
+        },
+        {
+          "name": "Complete",
+          "html": "<box-progress-ring label=\"Sync\" value=\"100\"></box-progress-ring>"
+        }
+      ]
+    },
+    {
+      "id": "skeleton",
+      "tag": "box-skeleton",
+      "title": "Components/Feedback/Skeleton",
+      "category": "Feedback",
+      "shortDescription": "A placeholder block for loading layouts.",
+      "docsDescription": "Reserves space with `width` and `height` while content loads.",
+      "sourceSnippet": "<box-skeleton width=\"320px\" height=\"18px\"></box-skeleton>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "width",
+          "type": "string",
+          "description": "CSS width for the placeholder."
+        },
+        {
+          "kind": "attribute",
+          "name": "height",
+          "type": "string",
+          "description": "CSS height for the placeholder."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Line",
+          "html": "<box-skeleton width=\"320px\" height=\"18px\"></box-skeleton>"
+        },
+        {
+          "name": "Block",
+          "html": "<box-skeleton width=\"240px\" height=\"120px\"></box-skeleton>"
         }
       ]
     },
@@ -692,6 +854,255 @@
       ]
     },
     {
+      "id": "text-area",
+      "tag": "box-text-area",
+      "title": "Components/Forms/Text Area",
+      "category": "Forms",
+      "shortDescription": "A multi-line labelled text input.",
+      "docsDescription": "Form-associated textarea with `label`, optional `placeholder` / `rows`, and validation hooks.",
+      "sourceSnippet": "<box-text-area label=\"Notes\" placeholder=\"Add review notes\"></box-text-area>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible field label."
+        },
+        {
+          "kind": "attribute",
+          "name": "placeholder",
+          "type": "string",
+          "description": "Hint when empty."
+        },
+        {
+          "kind": "attribute",
+          "name": "rows",
+          "type": "number",
+          "description": "Visible row count."
+        },
+        {
+          "kind": "attribute",
+          "name": "disabled",
+          "type": "boolean",
+          "description": "Makes the field inert."
+        },
+        {
+          "kind": "attribute",
+          "name": "invalid",
+          "type": "boolean",
+          "description": "Marks the field invalid."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-text-area label=\"Notes\" placeholder=\"Add review notes\"></box-text-area>"
+        },
+        {
+          "name": "Filled",
+          "html": "<box-text-area label=\"Notes\" rows=\"4\" value=\"Looks good to merge.\"></box-text-area>"
+        }
+      ]
+    },
+    {
+      "id": "number-input",
+      "tag": "box-number-input",
+      "title": "Components/Forms/Number Input",
+      "category": "Forms",
+      "shortDescription": "A labelled numeric field with optional bounds.",
+      "docsDescription": "Form-associated number entry. Use `min` / `max` / `value` with an accessible `label`.",
+      "sourceSnippet": "<box-number-input label=\"Page size\" value=\"25\" min=\"1\" max=\"100\"></box-number-input>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible field label."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "number",
+          "description": "Current numeric value."
+        },
+        {
+          "kind": "attribute",
+          "name": "min",
+          "type": "number",
+          "description": "Lower bound."
+        },
+        {
+          "kind": "attribute",
+          "name": "max",
+          "type": "number",
+          "description": "Upper bound."
+        },
+        {
+          "kind": "attribute",
+          "name": "disabled",
+          "type": "boolean",
+          "description": "Makes the field inert."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-number-input label=\"Page size\" value=\"25\" min=\"1\" max=\"100\"></box-number-input>"
+        },
+        {
+          "name": "Disabled",
+          "html": "<box-number-input label=\"Page size\" value=\"25\" min=\"1\" max=\"100\" disabled></box-number-input>"
+        }
+      ]
+    },
+    {
+      "id": "date-field",
+      "tag": "box-date-field",
+      "title": "Components/Forms/Date Field",
+      "category": "Forms",
+      "shortDescription": "A labelled date input.",
+      "docsDescription": "Form-associated date field. Pin demo values with `value` (and optional `min` / `max`).",
+      "sourceSnippet": "<box-date-field label=\"Due date\" value=\"2026-07-18\"></box-date-field>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible field label."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "ISO date value."
+        },
+        {
+          "kind": "attribute",
+          "name": "min",
+          "type": "string",
+          "description": "Earliest allowed date."
+        },
+        {
+          "kind": "attribute",
+          "name": "max",
+          "type": "string",
+          "description": "Latest allowed date."
+        },
+        {
+          "kind": "attribute",
+          "name": "disabled",
+          "type": "boolean",
+          "description": "Makes the field inert."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-date-field label=\"Due date\" value=\"2026-07-18\"></box-date-field>"
+        },
+        {
+          "name": "Disabled",
+          "html": "<box-date-field label=\"Due date\" value=\"2026-07-18\" disabled></box-date-field>"
+        }
+      ]
+    },
+    {
+      "id": "rating",
+      "tag": "box-rating",
+      "title": "Components/Forms/Rating",
+      "category": "Forms",
+      "shortDescription": "A star-style rating control.",
+      "docsDescription": "Form-associated rating with `value` out of `max` and an accessible `label`.",
+      "sourceSnippet": "<box-rating label=\"Quality\" value=\"4\" max=\"5\"></box-rating>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible field label."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "number",
+          "description": "Current rating."
+        },
+        {
+          "kind": "attribute",
+          "name": "max",
+          "type": "number",
+          "description": "Maximum stars."
+        },
+        {
+          "kind": "attribute",
+          "name": "disabled",
+          "type": "boolean",
+          "description": "Makes the control inert."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-rating label=\"Quality\" value=\"4\" max=\"5\"></box-rating>"
+        },
+        {
+          "name": "Empty",
+          "html": "<box-rating label=\"Quality\" value=\"0\" max=\"5\"></box-rating>"
+        }
+      ]
+    },
+    {
+      "id": "slider",
+      "tag": "box-slider",
+      "title": "Components/Forms/Slider",
+      "category": "Forms",
+      "shortDescription": "A labelled range slider.",
+      "docsDescription": "Form-associated slider with `value` between `min` and `max`.",
+      "sourceSnippet": "<box-slider label=\"Density\" value=\"40\" min=\"0\" max=\"100\"></box-slider>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible field label."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "number",
+          "description": "Current value."
+        },
+        {
+          "kind": "attribute",
+          "name": "min",
+          "type": "number",
+          "description": "Lower bound."
+        },
+        {
+          "kind": "attribute",
+          "name": "max",
+          "type": "number",
+          "description": "Upper bound."
+        },
+        {
+          "kind": "attribute",
+          "name": "disabled",
+          "type": "boolean",
+          "description": "Makes the control inert."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-slider label=\"Density\" value=\"40\" min=\"0\" max=\"100\"></box-slider>"
+        },
+        {
+          "name": "Disabled",
+          "html": "<box-slider label=\"Density\" value=\"40\" min=\"0\" max=\"100\" disabled></box-slider>"
+        }
+      ]
+    },
+    {
       "id": "dialog",
       "tag": "box-dialog",
       "title": "Components/Overlays/Dialog",
@@ -733,6 +1144,101 @@
         {
           "name": "Closed",
           "html": "<box-dialog heading=\"Delete item?\" description=\"This cannot be undone.\" confirm-label=\"Delete\"></box-dialog>"
+        }
+      ]
+    },
+    {
+      "id": "drawer",
+      "tag": "box-drawer",
+      "title": "Components/Overlays/Drawer",
+      "category": "Overlays",
+      "shortDescription": "A side panel overlay for details and tasks.",
+      "docsDescription": "Toggle with `open`. Set `heading` and optional `description` / `position`.",
+      "sourceSnippet": "<box-drawer heading=\"Details\" open></box-drawer>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "open",
+          "type": "boolean",
+          "description": "Whether the drawer is shown."
+        },
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Drawer title."
+        },
+        {
+          "kind": "attribute",
+          "name": "description",
+          "type": "string",
+          "description": "Supporting copy."
+        },
+        {
+          "kind": "attribute",
+          "name": "position",
+          "type": "string",
+          "description": "Edge the drawer anchors to."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Open",
+          "html": "<box-drawer heading=\"Details\" description=\"Item metadata and activity.\" open></box-drawer>"
+        },
+        {
+          "name": "Closed",
+          "html": "<box-drawer heading=\"Details\" description=\"Item metadata and activity.\"></box-drawer>"
+        }
+      ]
+    },
+    {
+      "id": "popover",
+      "tag": "box-popover",
+      "title": "Components/Overlays/Popover",
+      "category": "Overlays",
+      "shortDescription": "A small anchored overlay for extra info or actions.",
+      "docsDescription": "Toggle with `open`. `label` names the trigger; light-DOM children are the popover body.",
+      "sourceSnippet": "<box-popover label=\"More info\" placement=\"top\" open>Shared links expire automatically.</box-popover>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Trigger label / accessible name."
+        },
+        {
+          "kind": "attribute",
+          "name": "open",
+          "type": "boolean",
+          "description": "Forces the popover open."
+        },
+        {
+          "kind": "attribute",
+          "name": "placement",
+          "type": "string",
+          "description": "Preferred placement."
+        },
+        {
+          "kind": "attribute",
+          "name": "disabled",
+          "type": "boolean",
+          "description": "Disables the trigger."
+        },
+        {
+          "kind": "slot",
+          "name": "default",
+          "description": "Popover body content."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Open",
+          "html": "<box-popover label=\"More info\" placement=\"top\" open>Shared links expire automatically.</box-popover>"
+        },
+        {
+          "name": "Closed",
+          "html": "<box-popover label=\"More info\" placement=\"top\">Shared links expire automatically.</box-popover>"
         }
       ]
     },
@@ -811,6 +1317,208 @@
         {
           "name": "Files information",
           "html": "<box-illustration asset=\"files-information\" heading=\"About these files\" message=\"Details appear when you select an item.\"></box-illustration>"
+        }
+      ]
+    },
+    {
+      "id": "avatar",
+      "tag": "box-avatar",
+      "title": "Components/Identity/Avatar",
+      "category": "Identity",
+      "shortDescription": "A compact person or entity mark.",
+      "docsDescription": "Shows initials from `name` (or explicit `initials`), optional `src` image, and size/tone variants.",
+      "sourceSnippet": "<box-avatar name=\"Morgan Lee\"></box-avatar>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "name",
+          "type": "string",
+          "description": "Display name used for initials/alt."
+        },
+        {
+          "kind": "attribute",
+          "name": "initials",
+          "type": "string",
+          "description": "Override initials."
+        },
+        {
+          "kind": "attribute",
+          "name": "src",
+          "type": "string",
+          "description": "Optional image URL."
+        },
+        {
+          "kind": "attribute",
+          "name": "size",
+          "type": "string",
+          "description": "Visual size."
+        },
+        {
+          "kind": "attribute",
+          "name": "tone",
+          "type": "string",
+          "description": "Background emphasis."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Named",
+          "html": "<box-avatar name=\"Morgan Lee\"></box-avatar>"
+        },
+        {
+          "name": "Initials",
+          "html": "<box-avatar initials=\"JD\" name=\"Jordan Diaz\"></box-avatar>"
+        }
+      ]
+    },
+    {
+      "id": "persona",
+      "tag": "box-persona",
+      "title": "Components/Identity/Persona",
+      "category": "Identity",
+      "shortDescription": "An avatar with name and supporting copy.",
+      "docsDescription": "Identity row for a person: `name` plus optional `description` / `subtitle` and avatar fields.",
+      "sourceSnippet": "<box-persona name=\"Morgan Lee\" description=\"Enterprise Admin\"></box-persona>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "name",
+          "type": "string",
+          "description": "Primary display name."
+        },
+        {
+          "kind": "attribute",
+          "name": "description",
+          "type": "string",
+          "description": "Supporting role or detail."
+        },
+        {
+          "kind": "attribute",
+          "name": "subtitle",
+          "type": "string",
+          "description": "Secondary line when needed."
+        },
+        {
+          "kind": "attribute",
+          "name": "status",
+          "type": "string",
+          "description": "Optional presence/status cue."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-persona name=\"Morgan Lee\" description=\"Enterprise Admin\"></box-persona>"
+        },
+        {
+          "name": "Subtitle",
+          "html": "<box-persona name=\"Alex Kim\" description=\"Editor\" subtitle=\"Legal\"></box-persona>"
+        }
+      ]
+    },
+    {
+      "id": "card",
+      "tag": "box-card",
+      "title": "Components/Collections/Card",
+      "category": "Collections",
+      "shortDescription": "A content card with eyebrow and heading.",
+      "docsDescription": "Surfaces a titled block; put body copy in the light DOM.",
+      "sourceSnippet": "<box-card eyebrow=\"PDF · 2.4 MB\" heading=\"Quarterly Plan.pdf\">Updated 2 hours ago.</box-card>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "eyebrow",
+          "type": "string",
+          "description": "Small meta line above the heading."
+        },
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Card title."
+        },
+        {
+          "kind": "slot",
+          "name": "default",
+          "description": "Body content."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-card eyebrow=\"PDF · 2.4 MB\" heading=\"Quarterly Plan.pdf\">Updated 2 hours ago by Morgan Lee</box-card>"
+        }
+      ]
+    },
+    {
+      "id": "pagination",
+      "tag": "box-pagination",
+      "title": "Components/Collections/Pagination",
+      "category": "Collections",
+      "shortDescription": "Previous/next paging with a summary.",
+      "docsDescription": "Drive paging with `page`, `page-size`, and `total-items`.",
+      "sourceSnippet": "<box-pagination page=\"2\" page-size=\"25\" total-items=\"220\"></box-pagination>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "page",
+          "type": "number",
+          "description": "Current 1-based page."
+        },
+        {
+          "kind": "attribute",
+          "name": "page-size",
+          "type": "number",
+          "description": "Items per page."
+        },
+        {
+          "kind": "attribute",
+          "name": "total-items",
+          "type": "number",
+          "description": "Total item count."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Middle",
+          "html": "<box-pagination page=\"2\" page-size=\"25\" total-items=\"220\"></box-pagination>"
+        },
+        {
+          "name": "First",
+          "html": "<box-pagination page=\"1\" page-size=\"25\" total-items=\"220\"></box-pagination>"
+        }
+      ]
+    },
+    {
+      "id": "divider",
+      "tag": "box-divider",
+      "title": "Components/Layout/Divider",
+      "category": "Layout",
+      "shortDescription": "A horizontal or vertical rule, optionally labelled.",
+      "docsDescription": "Separates sections. Optional `label` annotates the rule; `orientation` switches axis.",
+      "sourceSnippet": "<box-divider label=\"Shared with your team\"></box-divider>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Optional text on the divider."
+        },
+        {
+          "kind": "attribute",
+          "name": "orientation",
+          "type": "\"horizontal\" | \"vertical\"",
+          "description": "Axis of the rule."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Labelled",
+          "html": "<box-divider label=\"Shared with your team\"></box-divider>"
+        },
+        {
+          "name": "Plain",
+          "html": "<box-divider></box-divider>"
         }
       ]
     }

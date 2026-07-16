@@ -25,10 +25,9 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
   **not** deployed (internal tool).
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
-- Recent merged PRs: fidelity Batches 0–7 + #41–**#47** (through brand imagery from
-  Blueprint / UI Elements).
-- **Open PR #48:** workshop story expansion for docs-site Usage cards —
-  `cursor/workshop-guidance-stories-7eb7`.
+- Recent merged PRs: fidelity Batches 0–7 + #41–**#48** (brand imagery #47, workshop
+  guidance stories #48).
+- **Open PR #49:** workshop story batch 2 (18 → 34) — `cursor/workshop-stories-batch2-7eb7`.
 
 ## Completed initiative: component fidelity program
 
@@ -142,7 +141,7 @@ organized into **systemic sweeps**, not per-component rewrites.
   `getMirroredFormValue(el.internals)` in tests.
 
 ## Open user-facing threads
-- Fidelity program complete; #44–#46 merged (guidance cards, token-vs-shell, iconography generator).
-- Brand imagery closed from Blueprint + UI Elements product illustrations (**PR #47**).
-- Next: grow workshop guidance coverage with real stories/notes; Theming/Motion docs
-  only with real content.
+- Fidelity program complete; #44–#48 merged (guidance cards, token-vs-shell, iconography,
+  brand imagery, workshop story expansion to 18 surfaces).
+- Workshop story batch 2 in flight (target 34 surfaces).
+- Next: more workshop stories / example notes; Theming/Motion docs only with real content.
