@@ -25,10 +25,10 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
   **not** deployed (internal tool).
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
-- Recent merged PRs: fidelity Batches 0–7 + #41–**#46** (through iconography generator
-  #45 and token-vs-shell guidance #46).
-- **Open PR #47:** brand imagery inferred from `@box/blueprint-web-assets` +
-  `box-ui-elements` (no Figma) — `cursor/brand-imagery-review-7eb7`.
+- Recent merged PRs: fidelity Batches 0–7 + #41–**#47** (through brand imagery from
+  Blueprint / UI Elements).
+- **Open PR #48:** workshop story expansion for docs-site Usage cards —
+  `cursor/workshop-guidance-stories-7eb7`.
 
 ## Completed initiative: component fidelity program
 
