@@ -1,0 +1,10 @@
+{
+  "mode": "token-bridge",
+  "prefixMap": {
+    "--obp-": "--boe-"
+  },
+  "tokenFnMap": {
+    "SurfaceSurfaceBrand": "var(--boe-token-surface-surface-brand, #0061d5)"
+  },
+  "aliasBlock": ":root {\n  --boe-brand: var(--boe-token-surface-surface-brand, #0061d5);\n}"
+}

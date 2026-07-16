@@ -1,0 +1,12 @@
+@import 'variables.scss';
+
+.be {
+  &.bce {
+    min-width: $explorer-min-width;
+    color: $brand;
+
+    .bcpr {
+      padding: 8px;
+    }
+  }
+}

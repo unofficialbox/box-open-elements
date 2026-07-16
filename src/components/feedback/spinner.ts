@@ -1,4 +1,9 @@
 import { BaseElement } from "../../core/index.js";
+import {
+  boeMotionDuration,
+  boeMotionEasing,
+  boeReducedMotionStyles,
+} from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-spinner";
 
@@ -23,7 +28,7 @@ const spinnerStyles = `
     border-radius: 999px;
     border: 2.5px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, var(--boe-token-surface-surface, #ffffff) 82%);
     border-top-color: var(--boe-token-surface-surface-brand, #0061d5);
-    animation: boe-spinner-rotate 0.8s linear infinite;
+    animation: boe-spinner-rotate ${boeMotionDuration.spin} ${boeMotionEasing.linear} infinite;
   }
 
   @keyframes boe-spinner-rotate {
@@ -32,11 +37,7 @@ const spinnerStyles = `
     }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    [part="indicator"] {
-      animation-duration: 1.6s;
-    }
-  }
+  ${boeReducedMotionStyles('[part="indicator"]', "animation-duration: 1.6s;")}
 
   [part="label"] {
     font-size: 0.86rem;

@@ -48,9 +48,27 @@ Not supported: mixin expansion, loops, interpolation, advanced Sass module synta
 
 That subset was sufficient for the Box content-explorer SCSS.
 
-## Porting plan
+## Tooling (shipped)
 
-- Port `tools/style-bridge/{bridge.mjs,cli.mjs}` when the first real re-styling scenario appears here.
-- Update output prefixes from `--obp-*` to `--boe-*` and selectors to the new data attributes.
-- Add a semantic-token recommendation pass for unmatched third-party tokens.
-- Add more library configs only once real mappings exist rather than prematurely generalizing.
+Engine + CLI live under `tools/style-bridge/`:
+
+```bash
+bun run style-bridge -- \
+  --config test/fixtures/style-bridge/selector-bridge.config.json \
+  --input test/fixtures/style-bridge/content-explorer.scss \
+  --out /tmp/bridged.css \
+  --report /tmp/bridge-report.json
+```
+
+| Piece | Path |
+| --- | --- |
+| Engine | `tools/style-bridge/bridge.ts` (`bridgeStylesheet`, both modes) |
+| CLI | `tools/style-bridge/cli.ts` |
+| Fixtures / tests | `test/fixtures/style-bridge/`, `test/tools/style-bridge.test.ts` |
+
+Default prefix remap for token-bridge configs should use `--obp-` → `--boe-`. Add library-specific selector maps only when a real stylesheet is being bridged.
+
+## Follow-ups
+
+- Semantic-token recommendation pass for unmatched third-party tokens.
+- More library configs only once real mappings exist (do not generalize prematurely).

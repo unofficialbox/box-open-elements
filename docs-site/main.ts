@@ -15,6 +15,8 @@ import accessibilityMd from "../docs/foundations/accessibility.md";
 import brandMd from "../docs/foundations/brand.md";
 import tokensMd from "../docs/foundations/tokens.md";
 import iconographyMd from "../docs/foundations/iconography.md";
+import themingMd from "../docs/foundations/theming.md";
+import motionMd from "../docs/foundations/motion.md";
 
 // Real, extracted variant states per component (storybook workshop → docs site).
 // Only the components with authored stories have these; everything else keeps
@@ -71,6 +73,8 @@ const SHARED_EVENTS = [
 
 const FOUNDATION_PAGES = [
   { id: "tokens", label: "Design Tokens" },
+  { id: "theming", label: "Theming" },
+  { id: "motion", label: "Motion" },
   { id: "icons", label: "Iconography" },
   { id: "accessibility", label: "Accessibility" },
   { id: "brand", label: "Brand" },
@@ -80,6 +84,8 @@ const FOUNDATION_PAGES = [
 const FOUNDATION_MD: Record<string, { title: string; md: string }> = {
   accessibility: { title: "Accessibility", md: accessibilityMd },
   brand: { title: "Brand", md: brandMd },
+  theming: { title: "Theming", md: themingMd },
+  motion: { title: "Motion", md: motionMd },
 };
 
 const escapeHtml = (value: string): string =>

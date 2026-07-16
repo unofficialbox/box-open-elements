@@ -19,12 +19,18 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 - Iconography generator shipped (#45): `tools/iconography/`, `bun run icons:generate`. Full 472-icon manifest already vendored; regenerate from the external pack when the inventory updates (see `docs/foundations/iconography.md`).
 - Token consumption vs shell / consumer overrides documented in `docs/foundations/tokens.md`; docs-site API tab lists derived `--boe-token-*` usage from live preview shadow styles (#46). No per-component strategy fields — source-level styling is the contract.
 - Brand imagery closed from Blueprint + `box-ui-elements` product illustrations (monochrome Box-blue vectors for empty/education states) — see `docs/foundations/brand.md`. No Figma dependency.
-- Add Theming and Motion foundation docs when there is real content for them (do not create placeholder pages).
+- **Theming** foundation doc shipped (`docs/foundations/theming.md`) — runtime register/activate/apply/observe lifecycle.
+- **Motion** foundation shipped (`src/foundations/motion/`, `docs/foundations/motion.md`) — shared durations/easing + reduced-motion helper; migrate remaining hard-coded transition literals opportunistically when touching styles.
 
 ## Patterns
 
 - Explorer search + enriched item columns + UI chrome shipped (#43).
-- Defer: `recents` view mode; configurable/permission-gated columns; filter-bar / saved-view wiring.
+- **Active:** host wiring for `box-filter-bar` / `box-saved-view-picker` → explorer search (`bindFilterBarToExplorer`, `bindSavedViewPickerToExplorer` in `patterns/content-explorer`).
+- **Next slices:**
+  - Host demo in docs-site that composes filter-bar + saved-view + explorer (local presets).
+  - Presentation switch (list/table) via filter-bar `view` + `onViewChange`.
+  - `recents` view mode once a real transport contract exists (do not fake as a folder listing).
+  - Configurable / permission-gated columns.
 
 ## Tooling and infrastructure
 
@@ -33,11 +39,18 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 - Storybook workshop shipped (`storybook/`, see `docs/workshop/storybook.md`) — extraction backend for docs-site variants; not deployed publicly.
 - `packages/box-server` shipped (see `docs/integration/box-server.md`).
 - CI (`bun run verify` + pixel gate) shipped on pushes/PRs. Agent CI/PR monitoring rules shipped in `AGENTS.md` (#50): poll checks, fix red immediately, cancel/rerun stuck runs.
-- Port the style bridge per `docs/integration/style-bridge.md` when the first real re-styling scenario appears.
-- Validate and then enforce a repo-wide coverage threshold once a real baseline exists; only hard-gate after the baseline is measured and justified.
+- **Coverage baseline measured and hard-gated** (in flight on `cursor/coverage-baseline-deferred-7eb7`) — see [docs/coverage-baseline.md](./docs/coverage-baseline.md). `bun run verify` runs `test:coverage` with floors (lines/statements 80%, functions 85%, branches 65%). Raise floors only after a fresh measurement.
+- **Style bridge shipped** (`tools/style-bridge/`, `bun run style-bridge`) — selector-bridge + token-bridge for the documented CSS/SCSS subset. Add real library configs only when restyling a concrete stylesheet.
 
-## Deliberate deferrals
+## Active follow-ups (formerly deferred)
 
-- Framework adapters (React, Vue, Angular) stay optional layers on top; do not start them before the Web Component catalog stabilizes.
-- Box AI preview integrations stay deferred until the annotation contract is stable and provider-neutral (see `docs/patterns/preview.md`).
-- Further build-along lessons (preview, share, upload, metadata) wait for authored lesson content — the Explorer lesson already ships (see `docs/workshop/build-alongs.md`).
+| Area | First slice | Notes |
+| --- | --- | --- |
+| Framework adapters | Thin React wrapper PoC for one everyday control (e.g. `box-button`) | Optional layer; do not block Web Component work |
+| Preview / Box AI | Keep annotation + provider-adapter seams provider-neutral; document AI-specific UI only when contract-stable | See `docs/patterns/preview.md` |
+| Build-along lessons | Author next lesson (preview or share) on existing lesson infra | Explorer lesson already ships; no new infra needed |
+| Explorer recents | Transport + controller `recents` mode after contract exists | Host filter-bar / saved-view binding already available |
+| Motion migration | Opportunistic replacement of hard-coded `120ms`/`140ms` literals | Foundation vocabulary already exists |
+| Style-bridge configs | First real third-party stylesheet mapping | Engine/CLI already ship |
+
+Do **not** invent placeholder docs, cards, or lessons — only real/derived content.
