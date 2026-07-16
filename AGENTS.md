@@ -42,6 +42,21 @@ This file applies to this repository. It adds repo-specific guidance for AI codi
 - Run targeted tests first, then `bun run verify` before finishing.
 - Aim for strong coverage on changed behavior; treat `85%+` as the target for substantial new or changed logic.
 
+## CI and PR monitoring
+
+Do **not** leave an open PR sitting on pending/failed checks while moving on to unrelated work. After each push that should go green:
+
+1. **Poll** — check `gh pr checks <n>` (or the `ci-watcher` subagent) within ~1–2 minutes of push, then again until Verify, Visual regression, and CodeRabbit settle.
+2. **Act on red immediately** — read failed job logs (`gh run view <id> --log-failed`), fix, push, and re-poll. Pixel failures after intentional docs/UI changes usually need `bun run baselines:regen` (or targeted docs-site/gallery shots) in the Playwright container.
+3. **Stuck / long-running jobs** — if a check is still `pending`/`queued` with no progress for **~10 minutes**, or a run is clearly hung (no new log output for several minutes past its normal duration):
+   - Cancel the run: `gh run cancel <run-id>`
+   - Re-run failed jobs: `gh run rerun <run-id> --failed` (or full `gh run rerun <run-id>` if needed)
+   - If GitHub still will not start checks, push an empty commit (`git commit --allow-empty -m "ci: retry checks"` + push) and poll again
+4. **Local long commands** — same idea: if `bun run verify`, container pixel runs, or installs hang far past their usual runtime with no output, kill that process and retry once; report flake evidence if it fails twice the same way.
+5. **Done means green** — do not call a PR ready for merge (or hand off as finished) until required checks are green, or you have stated exactly which check is blocked and why.
+
+Normal durations here (rough): Verify ~3 minutes; Visual regression ~1–2 minutes once the Playwright image is warm (first pull can add a few minutes). Treat anything much longer without log progress as stuck.
+
 ## Standard commands
 
 Run from the repository root:
@@ -53,6 +68,9 @@ Run from the repository root:
 | coverage report | `bun run test:coverage` |
 | build package | `bun run build` |
 | broad repo verification | `bun run verify` |
+| PR checks | `gh pr checks <n>` |
+| cancel stuck Actions run | `gh run cancel <run-id>` |
+| retry failed Actions jobs | `gh run rerun <run-id> --failed` |
 
 ## Documentation
 
@@ -72,3 +90,4 @@ Run from the repository root:
 
 - In the final handoff, state what changed, which commands were run, what passed, and what remains.
 - If a command could not be run, say exactly why.
+- For PR work: include check status (Verify / Pixel / CodeRabbit). If anything is still pending or red, keep looping per **CI and PR monitoring** instead of stopping.
