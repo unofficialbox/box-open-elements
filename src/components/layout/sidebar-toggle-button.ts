@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-sidebar-toggle-button";
 
@@ -23,7 +24,7 @@ const sidebarToggleButtonStyles = `
     background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     cursor: pointer;
-    transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="button"] svg {

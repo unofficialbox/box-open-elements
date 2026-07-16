@@ -3,6 +3,7 @@ import {
   boeFocusRingShadow,
   boeFocusVisibleStyles,
 } from "../../foundations/tokens/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-drop-zone";
 
@@ -29,9 +30,9 @@ const dropZoneStyles = `
       );
     cursor: pointer;
     transition:
-      border-color 140ms ease,
-      background 140ms ease,
-      box-shadow 140ms ease;
+      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="zone"]:hover {

@@ -4,6 +4,7 @@ import {
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-color-picker";
 
@@ -62,7 +63,7 @@ const colorPickerStyles = `
         var(--boe-token-surface-surface, #ffffff) 0%,
         color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 42%, var(--boe-token-surface-surface, #ffffff) 58%) 100%
       );
-    transition: border-color 140ms ease, box-shadow 140ms ease;
+    transition: border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="control"]:focus-within {
@@ -106,7 +107,7 @@ const colorPickerStyles = `
     border-radius: 999px;
     background: var(--swatch-color, #ffffff);
     cursor: pointer;
-    transition: border-color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+    transition: border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, transform ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="swatch"]:hover:not(:disabled) {

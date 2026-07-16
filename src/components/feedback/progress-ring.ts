@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-progress-ring";
 
@@ -29,7 +30,7 @@ const progressRingStyles = `
   circle[part="indicator"] {
     stroke: var(--boe-token-surface-surface-brand, #0061d5);
     stroke-linecap: round;
-    transition: stroke-dashoffset 140ms ease;
+    transition: stroke-dashoffset ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="meta"] {

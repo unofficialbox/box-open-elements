@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-grid-view";
 
@@ -44,7 +45,7 @@ const gridViewStyles = `
     font: inherit;
     text-align: center;
     cursor: pointer;
-    transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+    transition: border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part~="tile-selected"] {

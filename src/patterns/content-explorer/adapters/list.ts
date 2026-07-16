@@ -10,6 +10,7 @@ import {
   boeFocusVisibleStyles,
   boeNeutralInteractiveStyles,
 } from "../../../foundations/tokens/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-explorer-list";
 
@@ -58,7 +59,7 @@ const elementStyles = `
           gap: 0.5rem;
           padding: 0.15rem 0.35rem;
           border-radius: 0.7rem;
-          transition: background-color 140ms ease;
+          transition: background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
 
         [part~="item-row"]:hover {
@@ -88,9 +89,9 @@ const elementStyles = `
           font-weight: 500;
           cursor: pointer;
           transition:
-            background-color 140ms ease,
-            color 140ms ease,
-            box-shadow 140ms ease;
+            background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+            color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+            box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
 
         [part="item-name"] {
@@ -149,10 +150,10 @@ const elementStyles = `
           font-weight: 500;
           cursor: pointer;
           transition:
-            border-color 140ms ease,
-            background-color 140ms ease,
-            color 140ms ease,
-            box-shadow 140ms ease;
+            border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+            background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+            color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+            box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
 
         ${boeNeutralInteractiveStyles('[part~="item-action"]')}
@@ -197,9 +198,9 @@ const elementStyles = `
           color: var(--boe-token-text-text, #222222);
           cursor: pointer;
           transition:
-            border-color 140ms ease,
-            background-color 140ms ease,
-            box-shadow 140ms ease;
+            border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+            background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+            box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
 
         ${boeNeutralInteractiveStyles('[part="load-more"]')}

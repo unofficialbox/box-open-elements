@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-collaborator-avatars";
 
@@ -77,7 +78,7 @@ const elementStyles = `
           font-size: 0.78rem;
           font-weight: 700;
           cursor: pointer;
-          transition: transform 120ms ease;
+          transition: transform ${boeMotionDuration.fast} ${boeMotionEasing.standard};
         }
 
         [part="group"] > :first-child {

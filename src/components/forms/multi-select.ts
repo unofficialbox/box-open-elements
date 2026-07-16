@@ -10,6 +10,7 @@ import {
   boeFocusRingShadow,
   boeFocusVisibleStyles,
 } from "../../foundations/tokens/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-multi-select";
 
@@ -85,8 +86,8 @@ const multiSelectStyles = `
     cursor: pointer;
     color: var(--boe-token-text-text, #222222);
     transition:
-      background 140ms ease,
-      color 140ms ease;
+      background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="option"]:hover:not(:has([part="input"]:disabled)) {

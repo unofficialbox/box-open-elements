@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-toast";
 
@@ -62,7 +63,7 @@ const toastStyles = `
     font-weight: 600;
     padding: 0.2rem 0.5rem;
     cursor: pointer;
-    transition: background 140ms ease, color 140ms ease;
+    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="dismiss"]:hover:not(:disabled) {

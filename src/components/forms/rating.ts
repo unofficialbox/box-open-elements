@@ -4,6 +4,7 @@ import {
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-rating";
 
@@ -48,9 +49,9 @@ const ratingStyles = `
     color: rgba(82, 96, 109, 0.45);
     cursor: pointer;
     transition:
-      color 140ms ease,
-      background 140ms ease,
-      transform 140ms ease;
+      color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      transform ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="star"][data-filled="true"] {

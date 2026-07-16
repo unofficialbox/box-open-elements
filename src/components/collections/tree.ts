@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-tree";
 
@@ -180,10 +181,10 @@ const treeStyles = `
     font-weight: 500;
     cursor: pointer;
     transition:
-      border-color 140ms ease,
-      background-color 140ms ease,
-      color 140ms ease,
-      box-shadow 140ms ease;
+      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part~="item"]:hover {

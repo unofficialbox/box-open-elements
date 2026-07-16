@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeFocusRingShadow } from "../../foundations/tokens/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-permission-matrix";
 
@@ -124,9 +125,9 @@ const matrixStyles = `
       inset 0 1px 0 rgba(255, 255, 255, 0.82),
       0 1px 2px rgba(15, 23, 42, 0.04);
     transition:
-      border-color 140ms ease,
-      box-shadow 140ms ease,
-      background-color 140ms ease;
+      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="select-shell"]:hover {

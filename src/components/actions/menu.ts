@@ -5,6 +5,7 @@ import {
   nextRovingIndex,
 } from "../../foundations/a11y/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-menu";
 
@@ -54,9 +55,9 @@ const menuStyles = `
     padding: 0.6rem 0.7rem;
     cursor: pointer;
     transition:
-      background-color 140ms ease,
-      color 140ms ease,
-      box-shadow 140ms ease;
+      background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   ${boeNeutralInteractiveStyles('[part="menu-item"]')}

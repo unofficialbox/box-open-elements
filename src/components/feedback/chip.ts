@@ -3,6 +3,7 @@ import {
   boeFocusVisibleStyles,
   boeNeutralInteractiveStyles,
 } from "../../foundations/tokens/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-chip";
 
@@ -26,7 +27,7 @@ const chipStyles = `
     font-weight: 600;
     line-height: 1.2;
     white-space: nowrap;
-    transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="chip"]:not([data-removable="true"]) {
@@ -81,7 +82,7 @@ const chipStyles = `
     background: transparent;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     cursor: pointer;
-    transition: background 140ms ease, color 140ms ease;
+    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="remove"] svg {

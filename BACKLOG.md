@@ -25,10 +25,9 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 ## Patterns
 
 - Explorer search + enriched item columns + UI chrome shipped (#43).
-- **Active:** host wiring for `box-filter-bar` / `box-saved-view-picker` → explorer search (`bindFilterBarToExplorer`, `bindSavedViewPickerToExplorer` in `patterns/content-explorer`).
-- Explorer host chrome demo shipped (#55): docs-site + gallery compose filter-bar + saved-view + explorer with local presets.
+- Host wiring for `box-filter-bar` / `box-saved-view-picker` → explorer search shipped (`bindFilterBarToExplorer`, `bindSavedViewPickerToExplorer`).
+- Explorer host chrome demo: filter-bar + saved-view + **list/table adapter swap** via `onViewChange` (docs-site Folder host chrome; no composed shell in that variant).
 - **Next slices:**
-  - Wire host list/table presentation adapters when swapping off the composed list shell.
   - `recents` view mode once a real transport contract exists (do not fake as a folder listing).
   - Configurable / permission-gated columns.
 
@@ -50,7 +49,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 | Preview / Box AI | Keep annotation + provider-adapter seams provider-neutral; document AI-specific UI only when contract-stable | See `docs/patterns/preview.md` |
 | Build-along lessons | Author next lesson only when a new workflow needs guided teaching | Explorer + Share + Preview lessons ship; keep scaffolding lesson-generic |
 | Explorer recents / columns | `recents` transport mode after contract exists; configurable table columns | Metadata-query host chrome already ships as a separate composition |
-| Motion migration | Opportunistic replacement of hard-coded `120ms`/`140ms` literals | Foundation vocabulary already exists |
+| Motion migration | Catalog styles consume `boeMotionDuration` / `interactive` (140ms) | Maintainer script: `tools/migrate-motion-literals.ts` |
 | Style-bridge configs | First real third-party stylesheet mapping | Engine/CLI already ship |
 
 ## Density
