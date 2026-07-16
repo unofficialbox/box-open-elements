@@ -10,6 +10,12 @@ export interface PreviewInspection {
    * `host::part(...)` unless forwarded via `exportparts`.
    */
   parts: string[];
+  /**
+   * `--boe-token-*` custom properties referenced in the primary host's own
+   * shadow styles (`<style>` text and `adoptedStyleSheets`). Nested custom
+   * elements are omitted — theme the host via registered bundles / `::part()`.
+   */
+  tokens: string[];
   /** Explicit `role` attributes only (what the Accessibility tab lists). */
   roles: string[];
   /**
@@ -88,6 +94,8 @@ const addNativeGuidanceRole = (node: Element, guidanceRoles: Set<string>): void 
   }
 };
 
+const TOKEN_PROPERTY_PATTERN = /--boe-token-[a-z0-9-]+/g;
+
 const collectPartsFromShadow = (root: ParentNode, parts: Set<string>): void => {
   for (const node of root.querySelectorAll<HTMLElement>("[part]")) {
     const partAttr = node.getAttribute("part");
@@ -98,6 +106,33 @@ const collectPartsFromShadow = (root: ParentNode, parts: Set<string>): void => {
       if (part) {
         parts.add(part);
       }
+    }
+  }
+};
+
+const collectTokensFromCssText = (cssText: string, tokens: Set<string>): void => {
+  for (const match of cssText.matchAll(TOKEN_PROPERTY_PATTERN)) {
+    tokens.add(match[0]);
+  }
+};
+
+const collectTokensFromShadow = (root: ShadowRoot, tokens: Set<string>): void => {
+  for (const style of root.querySelectorAll("style")) {
+    collectTokensFromCssText(style.textContent ?? "", tokens);
+  }
+
+  const sheets = root.adoptedStyleSheets;
+  if (!sheets) {
+    return;
+  }
+  for (const sheet of sheets) {
+    try {
+      const rules = sheet.cssRules;
+      for (let index = 0; index < rules.length; index += 1) {
+        collectTokensFromCssText(rules[index]?.cssText ?? "", tokens);
+      }
+    } catch {
+      // Cross-origin or otherwise unreadable sheets — skip.
     }
   }
 };
@@ -124,6 +159,7 @@ export const inspectPreviewTree = (
   options: InspectPreviewOptions,
 ): PreviewInspection => {
   const parts = new Set<string>();
+  const tokens = new Set<string>();
   const roles = new Set<string>();
   const guidanceRoles = new Set<string>();
 
@@ -146,10 +182,12 @@ export const inspectPreviewTree = (
       : canvas.querySelector<HTMLElement>(primaryTag);
   if (primary?.shadowRoot) {
     collectPartsFromShadow(primary.shadowRoot, parts);
+    collectTokensFromShadow(primary.shadowRoot, tokens);
   }
 
   return {
     parts: [...parts].sort(),
+    tokens: [...tokens].sort(),
     roles: [...roles].sort(),
     guidanceRoles: [...guidanceRoles].sort(),
   };

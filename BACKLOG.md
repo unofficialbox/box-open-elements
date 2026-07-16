@@ -16,8 +16,8 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 ## Foundations
 
-- Port the iconography generator (`tools/iconography/`) and generate the full icon manifest once the catalog needs more than the curated set (see `docs/foundations/iconography.md`).
-- Add explicit per-component guidance for consuming design tokens directly versus relying on shell styling.
+- Port the iconography generator (`tools/iconography/`) and generate the full icon manifest once the catalog needs more than the curated set (see `docs/foundations/iconography.md`). **Open PR #45** when still open: generator tooling only (`cursor/iconography-generator-7eb7`) — does not replace the vendored manifest.
+- Token consumption vs shell / consumer overrides documented in `docs/foundations/tokens.md`; docs-site API tab lists derived `--boe-token-*` usage from live preview shadow styles (**open PR #46**). No per-component strategy fields — source-level styling is the contract.
 - Review the Box brand imagery Figma frame — imagery guidance has been open since the original brand review (see `docs/foundations/brand.md`).
 - Add Theming and Motion foundation docs when there is real content for them (do not create placeholder pages).
 
@@ -28,7 +28,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 ## Tooling and infrastructure
 
-- Docs site shell + shipped follow-ons (`bun run docs`, variant dropdown from Storybook extraction, dark theme, markdown foundation docs in-shell, GitHub Pages deploy). **Open PR #44:** Usage/Best-practices/Keyboard guidance cards (workshop meta + role-mapped a11y bullets). Grow coverage by authoring more workshop stories / example notes; do not invent placeholder cards.
+- Docs site shell + shipped follow-ons (`bun run docs`, variant dropdown from Storybook extraction, dark theme, markdown foundation docs in-shell, GitHub Pages deploy). Guidance cards shipped (#44). Grow coverage by authoring more workshop stories / example notes; do not invent placeholder cards.
 - Screenshot pixel-diff CI shipped (`visual-regression` job in `.github/workflows/ci.yml` via pinned Playwright container). Local: `bun run test:regression:pixel` / `bun run baselines:regen`. Latent: `components-calendar.png` is date-dependent (pin the demo date someday).
 - Storybook workshop shipped (`storybook/`, see `docs/workshop/storybook.md`) — extraction backend for docs-site variants; not deployed publicly.
 - `packages/box-server` shipped (see `docs/integration/box-server.md`).

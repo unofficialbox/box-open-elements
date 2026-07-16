@@ -33,7 +33,7 @@ The docs-site ships as a **host-agnostic static build** and deploys to a live UR
 ## Component pages
 
 - Breadcrumb (e.g. `Components / Forms / Text Field`) plus a copy-link button; navigation writes a `#<tier>/<id>` URL hash so links deep-link back to the same page.
-- Four real, mutually exclusive tabs: `Preview`, `Code`, `API` (attributes/events/styling hooks reference), `Accessibility` (keyboard interaction plus a link to the shared conventions).
+- Four real, mutually exclusive tabs: `Preview`, `Code`, `API` (observed attributes, styling hooks / parts, and `--boe-token-*` references scanned from the primary host shadow styles), `Accessibility` (keyboard interaction plus a link to the shared conventions).
 - Preview toolbar: variant select, desktop/tablet/mobile device-size toggle, and a dark-mode toggle scoped to just the preview canvas (independent of the shell theme).
 - On the Preview tab: a right-side `Events` panel showing the component's real logged events (bounded history, live badge count, clear action) and a `Properties` panel reflecting the component's actual current attributes live (driven by `observedAttributes` + a `MutationObserver` — the attribute-reflection convention every component follows).
 - Below the preview: `Usage`, `Best practices`, `Keyboard`, and `Related` guidance cards, each populated from real data and **omitted when empty**:
