@@ -94,7 +94,12 @@ const substituteVariables = (
   if (!variableMap) {
     return source;
   }
-  return source.replace(VAR_RE, (match, name: string) => {
+  return source.replace(VAR_RE, (match, name: string, offset: number) => {
+    // Leave Sass definitions (`$name: …`) intact; only substitute references.
+    const after = source.slice(offset + match.length);
+    if (/^\s*:/.test(after)) {
+      return match;
+    }
     if (Object.prototype.hasOwnProperty.call(variableMap, name)) {
       return variableMap[name]!;
     }
@@ -104,6 +109,10 @@ const substituteVariables = (
     return match;
   });
 };
+
+/** Drop `$name: value;` lines so the flattener never treats them as selectors. */
+const stripSassDefinitions = (source: string): string =>
+  source.replace(/^\s*\$[A-Za-z_][\w-]*\s*:[^;]*;\s*$/gm, "");
 
 /**
  * Flatten one level of simple SCSS nesting: `parent { &.child { … } }` and
@@ -316,6 +325,7 @@ export const bridgeStylesheet = (
 
   if (config.mode === "selector-bridge") {
     css = substituteVariables(css, config.variableMap, report);
+    css = stripSassDefinitions(css);
     css = flattenSimpleNesting(css);
     css = applySelectorMap(css, config.selectorMap, report);
     css = applyDeclarationMap(css, config.declarationMap, report);

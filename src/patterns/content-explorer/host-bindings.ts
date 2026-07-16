@@ -30,10 +30,13 @@ export type BindFilterBarOptions = {
   /**
    * Optional hook when the filter-bar `view` select changes (list/table/etc.).
    * Explorer itself does not switch presentation modes — the host does.
+   * Fires only when `view` differs from the previous value.
    */
   onViewChange?: (view: string, state: FilterBarValue) => void;
   /** Fired for every `value-changed` (filters/sort/query/view). */
   onValueChange?: (state: FilterBarValue) => void;
+  /** Called when search/clearSearch rejects (avoids unhandled rejections). */
+  onError?: (error: unknown) => void;
 };
 
 const readFilterBarDetail = (event: Event): FilterBarValue | null => {
@@ -50,6 +53,17 @@ const readFilterBarDetail = (event: Event): FilterBarValue | null => {
   };
 };
 
+const runExplorerSearch = (
+  explorer: ExplorerSearchHost,
+  query: string,
+  onError?: (error: unknown) => void,
+): void => {
+  const result = query ? explorer.search(query) : explorer.clearSearch();
+  void Promise.resolve(result).catch(error => {
+    onError?.(error);
+  });
+};
+
 /**
  * Wire `box-filter-bar` search → explorer search/clearSearch.
  * Returns an unsubscribe function.
@@ -59,12 +73,14 @@ export const bindFilterBarToExplorer = (
   explorer: ExplorerSearchHost,
   options: BindFilterBarOptions = {},
 ): (() => void) => {
+  let lastView: string | undefined;
+
   const onSearch = (event: Event): void => {
     // filter-bar emits `search` with `detail.value` = FilterBarState
     const detail = (event as CustomEvent<{ value?: FilterBarValue; query?: string }>).detail;
     const fromState = detail?.value?.query;
     const query = (typeof fromState === "string" ? fromState : detail?.query ?? filterBar.query ?? "").trim();
-    void (query ? explorer.search(query) : explorer.clearSearch());
+    runExplorerSearch(explorer, query, options.onError);
   };
 
   const onValueChanged = (event: Event): void => {
@@ -73,7 +89,10 @@ export const bindFilterBarToExplorer = (
       return;
     }
     options.onValueChange?.(state);
-    options.onViewChange?.(state.view, state);
+    if (state.view !== lastView) {
+      lastView = state.view;
+      options.onViewChange?.(state.view, state);
+    }
   };
 
   filterBar.addEventListener("search", onSearch);
@@ -88,6 +107,8 @@ export const bindFilterBarToExplorer = (
 export type BindSavedViewOptions = {
   /** Resolve a picked view id to a preset the host owns (local, not server). */
   resolvePreset: (viewId: string) => SavedViewPreset | null | undefined;
+  /** Called when search/clearSearch rejects (avoids unhandled rejections). */
+  onError?: (error: unknown) => void;
 };
 
 /**
@@ -108,7 +129,7 @@ export const bindSavedViewPickerToExplorer = (
       return;
     }
     const query = (preset.query ?? "").trim();
-    void (query ? explorer.search(query) : explorer.clearSearch());
+    runExplorerSearch(explorer, query, options.onError);
   };
 
   picker.addEventListener("value-changed", onValueChanged);

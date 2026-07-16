@@ -43,8 +43,21 @@ describe("style bridge", () => {
     expect(css).toContain("var(--boe-content-explorer-min-width, 300px)");
     expect(css).toContain("var(--boe-token-surface-surface-brand, #0061d5)");
     expect(css).not.toContain("$explorer-min-width");
+    // No corrupted leftover definition fragments from substituting `$name:` sites.
+    expect(css).not.toMatch(/^\s*\d+px\s*:/m);
+    expect(css).not.toMatch(/^\s*#[0-9a-fA-F]{3,8}\s*:/m);
     expect(report.appliedSelectorMappings).toBeGreaterThan(0);
     expect(report.appliedDeclarationMappings).toBeGreaterThan(0);
+  });
+
+  it("substitutes references and strips Sass variable definitions", () => {
+    const { css } = bridgeStylesheet(`$brand: #0061d5;\n.x { color: $brand; }`, {
+      mode: "selector-bridge",
+      selectorMap: {},
+      variableMap: { brand: "#0061d5" },
+    });
+    expect(css).not.toContain("$brand");
+    expect(css).toContain("color: #0061d5;");
   });
 
   it("runs token-bridge prefix and token() remaps with alias block", () => {

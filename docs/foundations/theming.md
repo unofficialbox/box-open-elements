@@ -60,7 +60,7 @@ The docs-site footer theme toggle uses this exact pattern: flip the active syste
 | Event name | `boe:design-system-change` (constant `DESIGN_SYSTEM_CHANGE_EVENT`) |
 | `detail.activeDesignSystemName` | active name or `null` |
 
-Asset-driven surfaces (for example icon buttons, help icons, illustrations) listen for this event and re-resolve icons/illustrations from the newly active bundle so theme switches update glyphs without a full page reload.
+Asset-driven surfaces (for example icon buttons, help icons, illustrations) listen for this event and re-resolve icons/illustrations from the newly active bundle so theme switches update glyphs without a full-page reload.
 
 ```ts
 import { DESIGN_SYSTEM_CHANGE_EVENT } from "box-open-elements/foundations/tokens";

@@ -20,7 +20,7 @@ Measured before hard-gating so CI thresholds are justified, not aspirational.
 | Functions | 2753 | 3046 | **90.38** |
 | Lines | 9472 | 11331 | **83.59** |
 
-Scope matches Vitest's default project include (`test/**/*.test.ts`, `packages/*/test/**/*.test.ts`) over the instrumented sources those tests exercise (`src/`, `tools/`, `docs-site/`, `storybook/`, `packages/`).
+Scope follows the repository-configured `test.include` in `vitest.config.ts` (`test/**/*.test.ts`, `packages/*/test/**/*.test.ts`) over the instrumented sources those tests exercise (`src/`, `tools/`, `docs-site/`, `storybook/`, `packages/`).
 
 ## Enforced floors
 
