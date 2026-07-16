@@ -10,7 +10,7 @@ Users still see density inconsistencies across the catalog after the absolute â€
 - [x] Add GFM table support to docs-site markdown + prose table CSS + tests
 - [x] Upgrade `tools/density-audit.ts` with peer-variance / role bands reporting
 - [x] Apply P0â€“P1 density consistency rewrites (overlays, feedback, forms, actions, pattern shells, list rows)
-- [ ] Update style assertions; re-audit; `bun run verify`; regen baselines; PR
+- [x] Update style assertions; re-audit; `bun run verify`; regen baselines; PR
 
 ## Surprises & Discoveries
 
