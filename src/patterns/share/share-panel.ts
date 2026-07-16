@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
   boeNeutralInteractiveStyles,
@@ -55,11 +56,11 @@ const elementStyles = `
 
         [part="panel"] {
           display: grid;
-          gap: 0.55rem;
-          padding: 0.7rem;
+          gap: ${boePanel.gap};
+          padding: ${boePanel.padding};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.7rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
+          border-radius: ${boePanel.radius};
+          background: ${boePanel.background};
         }
 
         [part="header"] {
@@ -82,19 +83,19 @@ const elementStyles = `
         [part="settings"],
         [part="collaborators"] {
           display: grid;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="shared-link"] {
           padding: 0.65rem;
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: var(--boe-token-surface-surface, #ffffff);
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
         }
 
         [part="shared-link-header"] {
           display: flex;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           align-items: center;
           justify-content: space-between;
         }
@@ -148,13 +149,13 @@ const elementStyles = `
 
         [part="settings-list"] {
           display: grid;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           margin: 0;
         }
 
         [part="setting"] {
           display: flex;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           align-items: center;
           justify-content: space-between;
           padding: 0.55rem 0.7rem;
@@ -185,18 +186,18 @@ const elementStyles = `
 
         [part="collaborator-list"] {
           display: grid;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="collaborator"] {
           display: grid;
           grid-template-columns: auto 1fr;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           align-items: center;
           width: 100%;
           text-align: left;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 52%, transparent);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           padding: 0.55rem 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
@@ -236,7 +237,7 @@ const elementStyles = `
         [part="actions"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="action"] {

@@ -12,6 +12,7 @@ import {
   boeRadius,
   boeControl,
   boeOverlay,
+  boePanel,
   boeInputControlStyles,
 } from "box-open-elements/foundations/geometry";
 ```
@@ -22,6 +23,7 @@ import {
 | `boeRadius` | `size` 4 / `med` 6 / `large` 8 / `xlarge` 12 / `pill` |
 | `boeControl` | 32px height, 16px inline pad, input inset shadow, disabled opacity `0.4` |
 | `boeOverlay` | Menu/flyout pad 12 / radius 8 / shadow; menu item 30×`8 48 8 8`; modal 460×30 pad / radius 12 / 75% scrim |
+| `boePanel` | Pattern shell pad 12 / radius 8 / gap 12; drawer width 340 |
 | `boeInputControlStyles(selector)` | `@mixin box-inputs` chrome for text fields |
 
 ## Policy
@@ -29,6 +31,8 @@ import {
 - **Controls** use `boeRadius.med` (6px) and `boeControl.height` (32px).
 - **Menus / overlays / popovers** use `boeOverlay` (`padding` 12, `radius` 8, `shadow` `0 4px 12px`).
 - **Modals / dialogs** use `boeOverlay.modal*` (pad 30, width 460, radius 12, dark 75% scrim, no blur).
+- **Drawers** use sidebar-ish width (`boePanel.drawerWidth` 340), modal scrim, flat surface, 12px edge radius, 16px header/body pad.
+- **Pattern shells** use `boePanel` (12 / 8 / 12) instead of soft `0.7rem` rem camps.
 - **Tabs** use underline chrome (40px line-height, 13px type, 2px brand underline) — not segmented chips.
 - **Toast / notification** use light surfaces, 2px border, min-height 48, radius 8.
 - **Badge** use `boeRadius.size` (4px) and 10px type — not pills.

@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
   boeNeutralInteractiveStyles,
@@ -36,10 +37,10 @@ const elementStyles = `
 
         [part="card"] {
           display: grid;
-          gap: 0.55rem;
-          padding: 0.7rem;
+          gap: ${boePanel.gap};
+          padding: ${boePanel.padding};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, var(--boe-token-surface-surface, #ffffff) 4%);
         }
 
@@ -102,7 +103,7 @@ const elementStyles = `
           flex-wrap: wrap;
           align-items: center;
           justify-content: space-between;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="trend"] {

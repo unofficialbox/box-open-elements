@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-bar-chart";
 
@@ -40,9 +41,9 @@ const elementStyles = `
         [part="panel"] {
           display: grid;
           gap: 0.6rem;
-          padding: 0.7rem;
+          padding: ${boePanel.padding};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, var(--boe-token-surface-surface, #ffffff) 4%);
         }
 
@@ -120,7 +121,7 @@ const elementStyles = `
 
         [part="visual"] {
           padding: 0.65rem;
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, #eef4fb 12%);
         }
@@ -129,7 +130,7 @@ const elementStyles = `
           position: relative;
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(3.7rem, 1fr));
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           align-items: end;
           min-height: 8rem;
         }
@@ -155,7 +156,7 @@ const elementStyles = `
           align-content: end;
           padding: 0.4rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 42%, transparent);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, #eef4fb 10%);
           color: inherit;
           font: inherit;
@@ -219,7 +220,7 @@ const elementStyles = `
         [part="legend"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="legend-item"] {
@@ -266,8 +267,8 @@ const elementStyles = `
         }
 
         [part="empty"] {
-          padding: 0.7rem;
-          border-radius: 0.7rem;
+          padding: ${boePanel.padding};
+          border-radius: ${boePanel.radius};
           border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }

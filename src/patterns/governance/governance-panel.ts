@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
   boeNeutralInteractiveStyles,
@@ -43,10 +44,10 @@ const elementStyles = `
         [part="panel"] {
           display: grid;
           gap: 0.6rem;
-          padding: 0.7rem;
+          padding: ${boePanel.padding};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.7rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
+          border-radius: ${boePanel.radius};
+          background: ${boePanel.background};
         }
 
         [part="header"] {
@@ -115,7 +116,7 @@ const elementStyles = `
 
         [part="policies"] {
           display: grid;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="section-title"] {
@@ -128,7 +129,7 @@ const elementStyles = `
 
         [part="policy-list"] {
           display: grid;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="policy"] {
@@ -137,7 +138,7 @@ const elementStyles = `
           gap: 0.4rem;
           text-align: left;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 56%, transparent);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           padding: 0.65rem 0.75rem;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
@@ -147,7 +148,7 @@ const elementStyles = `
 
         [part="policy-header"] {
           display: flex;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           align-items: start;
           justify-content: space-between;
         }
@@ -165,7 +166,7 @@ const elementStyles = `
         [part="actions"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="action"] {

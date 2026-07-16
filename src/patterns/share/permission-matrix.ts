@@ -1,6 +1,7 @@
 import { BaseElement } from "../../core/index.js";
 import { boeFocusRingShadow } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-permission-matrix";
 
@@ -35,11 +36,11 @@ const matrixStyles = `
 
   [part="matrix"] {
     display: grid;
-    gap: 0.55rem;
-    padding: 0.7rem;
+    gap: ${boePanel.gap};
+    padding: ${boePanel.padding};
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.7rem;
-    background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
+    border-radius: ${boePanel.radius};
+    background: ${boePanel.background};
   }
 
   [part="label"] {

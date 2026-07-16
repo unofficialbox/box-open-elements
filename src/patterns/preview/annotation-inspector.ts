@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
   boeNeutralInteractiveStyles,
@@ -50,11 +51,11 @@ const elementStyles = `
 
         [part="panel"] {
           display: grid;
-          gap: 0.55rem;
-          padding: 0.7rem;
+          gap: ${boePanel.gap};
+          padding: ${boePanel.padding};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.7rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
+          border-radius: ${boePanel.radius};
+          background: ${boePanel.background};
         }
 
         [part="header"] {
@@ -77,9 +78,9 @@ const elementStyles = `
 
         [part="annotation"] {
           display: grid;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           padding: 0.65rem;
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
           background: rgba(255, 255, 255, 0.72);
         }
@@ -87,7 +88,7 @@ const elementStyles = `
         [part="annotation-header"] {
           display: grid;
           grid-template-columns: auto 1fr auto;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           align-items: center;
         }
 
@@ -156,7 +157,7 @@ const elementStyles = `
 
         [part="replies"] {
           display: grid;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="section-title"] {
@@ -212,8 +213,8 @@ const elementStyles = `
         }
 
         [part="empty"] {
-          padding: 0.7rem;
-          border-radius: 0.7rem;
+          padding: ${boePanel.padding};
+          border-radius: ${boePanel.radius};
           border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }

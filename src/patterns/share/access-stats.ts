@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-access-stats";
 
@@ -85,10 +86,10 @@ const elementStyles = `
 
         [part="stats"] {
           margin: 0;
-          padding: 0.7rem;
+          padding: ${boePanel.padding};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.7rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
+          border-radius: ${boePanel.radius};
+          background: ${boePanel.background};
         }
 
         [part="title"] {
@@ -136,7 +137,7 @@ const elementStyles = `
         }
 
         [part="empty"] {
-          padding: 0.7rem;
+          padding: ${boePanel.padding};
           text-align: center;
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.9rem;

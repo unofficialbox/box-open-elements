@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-filter-bar";
 
@@ -40,10 +41,10 @@ const elementStyles = `
 
         [part="bar"] {
           display: grid;
-          gap: 0.55rem;
-          padding: 0.7rem;
+          gap: ${boePanel.gap};
+          padding: ${boePanel.padding};
           border: 1px solid var(--_obp-border);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: var(--_obp-surface-muted);
         }
 
@@ -57,7 +58,7 @@ const elementStyles = `
         [part="controls"] {
           display: grid;
           grid-template-columns: minmax(14rem, 1.4fr) repeat(2, minmax(10rem, 0.8fr));
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           align-items: center;
         }
 

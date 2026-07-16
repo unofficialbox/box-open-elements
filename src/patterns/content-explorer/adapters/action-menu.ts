@@ -6,6 +6,7 @@ import {
   boeNeutralInteractiveStyles,
 } from "../../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../../foundations/motion/index.js";
+import { boePanel } from "../../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-explorer-action-menu";
 
@@ -43,7 +44,7 @@ const elementStyles = `
           place-items: center;
           appearance: none;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, var(--boe-token-surface-surface, #ffffff) 14%);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, #eef4fb 6%);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           font: inherit;
@@ -105,7 +106,7 @@ const elementStyles = `
           display: grid;
           gap: 0.2rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: var(--boe-token-surface-surface, #ffffff);
           box-shadow: 0 18px 32px rgba(0, 67, 146, 0.12);
         }
@@ -115,7 +116,7 @@ const elementStyles = `
           appearance: none;
           text-align: left;
           border: 0;
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: transparent;
           color: var(--boe-token-text-text, #222222);
           font: inherit;

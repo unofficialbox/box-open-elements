@@ -1,6 +1,7 @@
 import { BaseElement } from "../../core/index.js";
 import { applyRovingTabindex, handleRovingKeydown } from "../../foundations/a11y/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-saved-view-picker";
 
@@ -36,10 +37,10 @@ const elementStyles = `
 
         [part="picker"] {
           display: grid;
-          gap: 0.55rem;
-          padding: 0.7rem;
+          gap: ${boePanel.gap};
+          padding: ${boePanel.padding};
           border: 1px solid var(--_obp-border);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: var(--_obp-surface-muted);
         }
 
@@ -53,7 +54,7 @@ const elementStyles = `
 
         [part="views"] {
           display: grid;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="view"] {

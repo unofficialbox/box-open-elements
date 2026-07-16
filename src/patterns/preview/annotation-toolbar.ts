@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { applyRovingTabindex, handleRovingKeydown } from "../../foundations/a11y/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
   boeNeutralInteractiveStyles,
@@ -45,10 +46,10 @@ const elementStyles = `
         [part="toolbar"] {
           display: grid;
           gap: 0.5rem;
-          padding: 0.7rem;
+          padding: ${boePanel.padding};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.7rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
+          border-radius: ${boePanel.radius};
+          background: ${boePanel.background};
         }
 
         [part="header"] {

@@ -5,6 +5,7 @@ import type {
   PreviewProviderAdapter,
 } from "./provider-adapter.js";
 import { BaseElement } from "../../core/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-preview-element";
 
@@ -40,9 +41,9 @@ const elementStyles = `
         [part="shell"] {
           display: grid;
           gap: 0.6rem;
-          padding: 0.7rem;
+          padding: ${boePanel.padding};
           border: 1px solid var(--_obp-border);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: var(--_obp-surface-muted);
         }
 
@@ -153,7 +154,7 @@ const elementStyles = `
         [part="stage"] {
           min-block-size: 13rem;
           border: 1px solid var(--_obp-border-subtle);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background:
             radial-gradient(circle at top left, color-mix(in srgb, var(--_obp-brand) 10%, transparent), transparent 32%),
             linear-gradient(180deg, color-mix(in srgb, var(--_obp-surface) 86%, var(--boe-token-surface-surface, #ffffff) 14%) 0%, var(--_obp-surface-muted) 100%);

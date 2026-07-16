@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
   boeFocusVisibleStyles,
@@ -47,10 +48,10 @@ const elementStyles = `
         [part="panel"] {
           display: grid;
           gap: 0.6rem;
-          padding: 0.7rem;
+          padding: ${boePanel.padding};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.7rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
+          border-radius: ${boePanel.radius};
+          background: ${boePanel.background};
         }
 
         [part="header"] {
@@ -115,23 +116,23 @@ const elementStyles = `
         [part="assignees"],
         [part="checklist"] {
           display: grid;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="assignee-list"],
         [part="checklist-items"] {
           display: grid;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="assignee"] {
           display: grid;
           grid-template-columns: auto minmax(0, 1fr);
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           align-items: center;
           padding: 0.65rem 0.75rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
           font: inherit;
@@ -176,11 +177,11 @@ const elementStyles = `
         [part="checklist-item"] {
           display: grid;
           grid-template-columns: auto minmax(0, 1fr);
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           align-items: start;
           padding: 0.65rem 0.75rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: var(--boe-token-surface-surface, #ffffff);
         }
 
@@ -196,7 +197,7 @@ const elementStyles = `
         [part="actions"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="action"] {

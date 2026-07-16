@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-donut-chart";
 
@@ -45,17 +46,17 @@ const elementStyles = `
 
         [part="panel"] {
           display: grid;
-          gap: 0.55rem;
-          padding: 0.7rem;
+          gap: ${boePanel.gap};
+          padding: ${boePanel.padding};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, var(--boe-token-surface-surface, #ffffff) 4%);
         }
 
         [part="header"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           justify-content: space-between;
           align-items: start;
         }
@@ -127,10 +128,10 @@ const elementStyles = `
         [part="visual"] {
           display: grid;
           grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           align-items: center;
           padding: 0.65rem;
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, #eef4fb 12%);
         }
@@ -178,14 +179,14 @@ const elementStyles = `
 
         [part="legend"] {
           display: grid;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="legend-item"] {
           appearance: none;
           display: grid;
           grid-template-columns: auto 1fr;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           align-items: center;
           padding: 0.4rem 0.55rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
@@ -243,8 +244,8 @@ const elementStyles = `
         }
 
         [part="empty"] {
-          padding: 0.7rem;
-          border-radius: 0.7rem;
+          padding: ${boePanel.padding};
+          border-radius: ${boePanel.radius};
           border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }

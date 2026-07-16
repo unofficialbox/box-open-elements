@@ -2,6 +2,7 @@ import { InviteCollaboratorsController } from "./invite-collaborators-controller
 import type { InviteCollaboratorsTransport, InviteRole } from "./invite-collaborators-contracts.js";
 import { BaseElement } from "../../core/index.js";
 import { FocusRestore, trapTabKey } from "../../foundations/a11y/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
   boeFocusVisibleStyles,
@@ -28,9 +29,9 @@ const elementStyles = `
           max-block-size: calc(100vh - 2rem);
           overflow: auto;
           display: grid;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           padding: 0.75rem;
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: var(--boe-token-surface-surface, #ffffff);
           color: var(--boe-token-text-text, #222222);
           box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);

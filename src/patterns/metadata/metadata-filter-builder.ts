@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-metadata-filter-builder";
 
@@ -37,11 +38,11 @@ const builderStyles = `
 
   [part="builder"] {
     display: grid;
-    gap: 0.55rem;
-    padding: 0.7rem;
+    gap: ${boePanel.gap};
+    padding: ${boePanel.padding};
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.7rem;
-    background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
+    border-radius: ${boePanel.radius};
+    background: ${boePanel.background};
   }
 
   [part="label"] {
@@ -54,13 +55,13 @@ const builderStyles = `
 
   [part="rules"] {
     display: grid;
-    gap: 0.55rem;
+    gap: ${boePanel.gap};
   }
 
   [part="rule"] {
     display: grid;
     grid-template-columns: minmax(10rem, 1fr) minmax(8rem, 0.8fr) minmax(12rem, 1.2fr) auto;
-    gap: 0.55rem;
+    gap: ${boePanel.gap};
     align-items: center;
   }
 
