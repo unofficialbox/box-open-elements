@@ -108,7 +108,40 @@ applyDesignTokens(document.documentElement, "acme");
   `background: var(--boe-token-surface-surface-brand, #0061d5);`
 - Components must render sensibly with no design system registered.
 - Components that render assets treat asset names as keys into the active design system and fall back to built-in rendering when the key is absent.
-- Add explicit guidance per component for when it should consume tokens directly versus rely on shell styling (open follow-up carried from the original backlog).
+
+## Token consumption vs shell / consumer overrides
+
+Source-level Box styling is the default: every catalog surface carries its look in its own shadow styles via `--boe-token-*` (see `plans/source-level-styling-execplan.md`). Demo, docs, and host “shell” CSS must **not** be treated as the source of the Box look.
+
+| Actor | Responsibility |
+| --- | --- |
+| Component author | Paint with `--boe-token-*` + safe fallbacks inside the shadow tree; expose structural `part`s for overrides |
+| Host / docs shell | Register and `applyDesignTokens()` on a root; keep layout chrome separate from component paint |
+| App consumer | Theme by swapping design-system bundles; customize structure with `::part()`; use rare host custom properties only when the component documents them |
+
+### When to use which lever
+
+| Need | Use | Do not |
+| --- | --- | --- |
+| Brand / theme colors, text, strokes, status | `--boe-token-*` inside the component (or a registered custom bundle) | Hardcode hex in shadow styles without a token + fallback |
+| One-off visual tweak for a single embedding | `tag::part(name) { … }` from outside | Fork the component or restyle via brittle deep selectors |
+| Documented structural host knobs (e.g. collapsed nav label visibility) | Component-owned custom properties such as `--boe-nav-label-display` | Invent undocumented `--boe-*` vars on the host |
+| Whole-app light/dark or white-label theme | `registerDesignSystem` / `setActiveDesignSystem` + `applyDesignTokens` | Per-page shell CSS that paints over every control |
+| Third-party SCSS → token vocabulary | Style bridge (planned — [../integration/style-bridge.md](../integration/style-bridge.md)) | Hand-copy third-party rules into shadow trees |
+
+`:host { color: inherit; font: inherit; }` is intentional so typography can follow the embedding page while **paint** (background, border, status, brand) still comes from tokens.
+
+### Native closed-widget limits
+
+Some native controls only accept limited styling (`accent-color`, closed UA popups). Prefer tokens for what the platform allows; do not fake a full custom chrome unless the component is upgraded structurally:
+
+- `<datalist>` popups (`combobox`)
+- Native `<select>` / date / time picker popups
+- Bare `<input type="range">` tracks (beyond `accent-color`)
+
+### Docs-site API tab
+
+The component docs API tab lists **design tokens used** by scanning the primary host’s shadow styles for `--boe-token-*` references. That inventory is derived from the live preview — empty when a surface truly uses no tokens.
 
 ## Why this boundary works
 

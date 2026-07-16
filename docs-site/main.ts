@@ -307,6 +307,10 @@ const renderComponentPage = (entry: CatalogEntry): void => {
       <div id="api-attributes"></div>
       <p class="section-label">Styling hooks (parts)</p>
       <div id="api-parts"></div>
+      <p class="section-label">Design tokens used</p>
+      <div id="api-tokens"></div>
+      <p class="preview-note">Components consume <code>--boe-token-*</code> with fallbacks; shells register or override themes. See
+      <a href="https://github.com/unofficialbox/box-open-elements/blob/main/docs/foundations/tokens.md#token-consumption-vs-shell--consumer-overrides" target="_blank" rel="noreferrer">token consumption vs shell</a>.</p>
     </div>
     <div data-panel="accessibility" hidden>
       <div class="prose">
@@ -373,6 +377,7 @@ const renderComponentPage = (entry: CatalogEntry): void => {
   // Live inspectors (props / parts / roles) — re-run whenever the variant changes.
   const propList = stageBody.querySelector<HTMLElement>("#prop-list")!;
   const partsTarget = stageBody.querySelector<HTMLElement>("#api-parts")!;
+  const tokensTarget = stageBody.querySelector<HTMLElement>("#api-tokens")!;
   const rolesTarget = stageBody.querySelector<HTMLElement>("#a11y-roles")!;
   const keyboardTarget = stageBody.querySelector<HTMLElement>("#a11y-keyboard")!;
   const guidanceTarget = stageBody.querySelector<HTMLElement>("#guidance-section")!;
@@ -397,6 +402,9 @@ const renderComponentPage = (entry: CatalogEntry): void => {
     partsTarget.innerHTML = inspection.parts.length
       ? `<table class="api-table"><tr><th>Part</th><th>Selector</th></tr>${inspection.parts.map(part => `<tr><td><code>${escapeHtml(part)}</code></td><td><code>${entry.tag}::part(${escapeHtml(part)})</code></td></tr>`).join("")}</table>`
       : '<p class="inspector-empty">No parts exposed in this preview.</p>';
+    tokensTarget.innerHTML = inspection.tokens.length
+      ? `<table class="api-table"><tr><th>Token</th></tr>${inspection.tokens.map(token => `<tr><td><code>${escapeHtml(token)}</code></td></tr>`).join("")}</table>`
+      : '<p class="inspector-empty">No design tokens referenced in this preview\'s shadow styles.</p>';
     rolesTarget.innerHTML = inspection.roles.length
       ? `<table class="api-table"><tr><th>Role</th></tr>${inspection.roles.map(role => `<tr><td><code>${escapeHtml(role)}</code></td></tr>`).join("")}</table>`
       : '<p class="inspector-empty">No explicit ARIA roles in this preview (native semantics).</p>';
