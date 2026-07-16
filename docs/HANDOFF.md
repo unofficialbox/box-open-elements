@@ -26,7 +26,7 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
 - Recent merged PRs: fidelity Batches 0–7 + #41–**#51** (status-doc sync #51).
-- **Open PR:** workshop story batch 3 — `cursor/workshop-stories-batch3-7eb7`.
+- **Open PR #52:** workshop story batch 3 (JSON `options`/`items`, 34 → 49) — `cursor/workshop-stories-batch3-7eb7`.
 
 ## Completed initiative: component fidelity program
 
@@ -142,6 +142,6 @@ organized into **systemic sweeps**, not per-component rewrites.
 ## Open user-facing threads
 - Fidelity program complete; #44–#51 merged (workshop stories at **34** surfaces;
   `AGENTS.md` CI polling / stuck-run retry rules).
-- Workshop story batch 3 in flight (JSON `options`/`items` surfaces → 49).
+- Workshop story batch 3 in flight as **Open PR #52** (JSON `options`/`items` surfaces → 49).
 - Next after batch 3: more workshop coverage / example notes; coverage baseline;
   Theming/Motion docs only with real content.
