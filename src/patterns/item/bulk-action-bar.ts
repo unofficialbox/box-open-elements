@@ -1,6 +1,7 @@
 import { BaseElement } from "../../core/index.js";
 import { applyRovingTabindex, handleRovingKeydown } from "../../foundations/a11y/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-bulk-action-bar";
 
@@ -123,9 +124,9 @@ const elementStyles = `
           font: inherit;
           cursor: pointer;
           transition:
-            transform 140ms ease,
-            border-color 140ms ease,
-            background 140ms ease;
+            transform ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+            border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+            background ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
 
         [part="clear"] {

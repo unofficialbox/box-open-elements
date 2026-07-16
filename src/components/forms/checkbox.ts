@@ -5,6 +5,7 @@ import {
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
 import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-checkbox";
 const DEFAULT_VALUE = "on";
@@ -22,7 +23,7 @@ const checkboxStyles = `
     gap: 0.6rem;
     cursor: pointer;
     color: var(--boe-token-text-text, #222222);
-    transition: color 140ms ease;
+    transition: color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="field"]:hover:not(:has([part="input"]:disabled)) {

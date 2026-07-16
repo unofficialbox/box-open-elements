@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-alert";
 
@@ -41,7 +42,7 @@ const alertStyles = `
     border-radius: 0.75rem;
     background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff));
     color: var(--boe-token-text-text, #222222);
-    transition: background 140ms ease, border-color 140ms ease;
+    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="alert"][data-tone="success"] {
@@ -127,7 +128,7 @@ const alertStyles = `
     font-weight: 600;
     padding: 0.3rem 0.7rem;
     cursor: pointer;
-    transition: background 140ms ease, border-color 140ms ease;
+    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   ${boeNeutralInteractiveStyles('[part="dismiss"]')}

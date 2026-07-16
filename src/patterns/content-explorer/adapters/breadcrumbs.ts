@@ -1,5 +1,6 @@
 import { ContentExplorerController } from "../controller.js";
 import { BaseElement } from "../../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-explorer-breadcrumbs";
 
@@ -48,9 +49,9 @@ const elementStyles = `
           text-overflow: ellipsis;
           white-space: nowrap;
           transition:
-            background-color 140ms ease,
-            color 140ms ease,
-            box-shadow 140ms ease;
+            background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+            color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+            box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
 
         [part="breadcrumb"]:hover {

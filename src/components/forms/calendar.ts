@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-calendar";
 
@@ -114,7 +115,7 @@ const calendarStyles = `
     background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     cursor: pointer;
-    transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part~="nav"] svg {
@@ -172,7 +173,7 @@ const calendarStyles = `
     font-size: 0.82rem;
     color: var(--boe-token-text-text, #222222);
     cursor: pointer;
-    transition: background 120ms ease, color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+    transition: background ${boeMotionDuration.fast} ${boeMotionEasing.standard}, color ${boeMotionDuration.fast} ${boeMotionEasing.standard}, border-color ${boeMotionDuration.fast} ${boeMotionEasing.standard}, box-shadow ${boeMotionDuration.fast} ${boeMotionEasing.standard};
   }
 
   [part~="day"]:hover:not(:disabled) {

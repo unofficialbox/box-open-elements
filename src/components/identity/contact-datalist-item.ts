@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-contact-datalist-item";
 
@@ -26,7 +27,7 @@ const contactStyles = `
     border-radius: 0.6rem;
     cursor: pointer;
     color: var(--boe-token-text-text, #222222);
-    transition: background 140ms ease;
+    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="item"]:hover {

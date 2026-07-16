@@ -1,9 +1,4 @@
 import type { StoryModule } from "../metadata.js";
-import {
-  contentExplorerChromeHtml,
-  setupContentExplorerChrome,
-} from "../../docs-site/explorer-chrome-demo.js";
-import { createExplorerDemoTransport } from "../../docs-site/explorer-adapter-demo.js";
 
 const contentExplorer: StoryModule = {
   title: "Patterns/Content Explorer/Content Explorer",
@@ -12,8 +7,8 @@ const contentExplorer: StoryModule = {
     tag: "box-content-explorer",
     shortDescription: "Folder browsing with host chrome; metadata query is a separate host composition.",
     docsDescription:
-      "Folder mode uses transport + host filter-bar / saved-view bindings. Metadata-query browsing is a host composition (docs-site Metadata query chrome variant) using metadata-filter-builder + explorer adapters + metadata-inspector — not a controller view mode.",
-    sourceSnippet: contentExplorerChromeHtml,
+      "The composed shell owns its list. Host apps that need list/table presentation swap use explorer adapters + ContentExplorerController (see docs-site Folder host chrome). Metadata-query browsing is also host-owned — not a controller view mode.",
+    sourceSnippet: `<box-content-explorer root-folder-id="0" token="…" page-size="25"></box-content-explorer>`,
     referenceRows: [
       { kind: "attribute", name: "root-folder-id", type: "string", description: "Folder session root." },
       { kind: "attribute", name: "token", type: "string", description: "Session token for the transport." },
@@ -27,10 +22,9 @@ const contentExplorer: StoryModule = {
   },
   variants: [
     {
-      name: "Folder host chrome",
-      html: contentExplorerChromeHtml,
-      note: "saved-view-picker + filter-bar bound to explorer search. See docs-site for Metadata query chrome.",
-      setup: root => setupContentExplorerChrome(root, createExplorerDemoTransport()),
+      name: "Composed shell",
+      html: `<box-content-explorer root-folder-id="0" token="…" page-size="25"></box-content-explorer>`,
+      note: "Shell list is fixed. For list/table swap, compose breadcrumbs + list/table adapters with a shared controller (docs-site Folder host chrome).",
     },
   ],
 };

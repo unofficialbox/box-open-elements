@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-nav-sidebar";
 
@@ -28,7 +29,7 @@ const navSidebarStyles = `
     background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
     color: var(--boe-token-text-text, #222222);
     overflow: hidden;
-    transition: inline-size 160ms ease;
+    transition: inline-size ${boeMotionDuration.medium} ${boeMotionEasing.standard};
   }
 
   /* Collapsed: shrink to an icon strip. The header and footer usually hold

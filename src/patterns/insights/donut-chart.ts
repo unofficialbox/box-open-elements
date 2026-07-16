@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-donut-chart";
 
@@ -195,9 +196,9 @@ const elementStyles = `
           text-align: left;
           cursor: pointer;
           transition:
-            transform 120ms ease,
-            border-color 120ms ease,
-            box-shadow 120ms ease;
+            transform ${boeMotionDuration.fast} ${boeMotionEasing.standard},
+            border-color ${boeMotionDuration.fast} ${boeMotionEasing.standard},
+            box-shadow ${boeMotionDuration.fast} ${boeMotionEasing.standard};
         }
 
         [part="legend-item"]:hover {

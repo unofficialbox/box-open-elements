@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-segmented-control";
 
@@ -55,10 +56,10 @@ const segmentedControlStyles = `
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     cursor: pointer;
     transition:
-      background-color 140ms ease,
-      border-color 140ms ease,
-      color 140ms ease,
-      box-shadow 140ms ease;
+      background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="segment"]:hover:not(:disabled):not([data-selected="true"]) {

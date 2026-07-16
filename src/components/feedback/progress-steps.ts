@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-progress-steps";
 
@@ -42,7 +43,7 @@ const progressStepsStyles = `
     color: inherit;
     font: inherit;
     cursor: pointer;
-    transition: background 140ms ease, border-color 140ms ease;
+    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="step"]:hover {
@@ -73,7 +74,7 @@ const progressStepsStyles = `
     font-size: 0.78rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
-    transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, color ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="step"][data-state="complete"] [part="marker"] {

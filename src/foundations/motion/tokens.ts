@@ -7,8 +7,13 @@
  */
 
 export const boeMotionDuration = {
-  /** Hover / focus / color transitions */
+  /** Quick accent transitions (charts, micro-feedback) */
   fast: "120ms",
+  /**
+   * Dominant interactive paint duration across catalog controls
+   * (background / border / color / box-shadow on hover and press).
+   */
+  interactive: "140ms",
   /** Opacity / layout micro-transitions */
   medium: "160ms",
   /** Panel expand / collapse */

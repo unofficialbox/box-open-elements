@@ -139,13 +139,15 @@ import {
   bindSavedViewPickerToExplorer,
 } from "box-open-elements/patterns/content-explorer";
 
-const unbindFilter = bindFilterBarToExplorer(filterBar, explorer, {
+const unbindFilter = bindFilterBarToExplorer(filterBar, controller, {
   onViewChange: view => {
-    // host switches list/table (or other) presentation — explorer does not
+    // Host owns presentation: toggle adapter visibility (do not put this on the shell).
+    list.hidden = view !== "list";
+    table.hidden = view !== "table";
   },
 });
 
-const unbindViews = bindSavedViewPickerToExplorer(picker, explorer, {
+const unbindViews = bindSavedViewPickerToExplorer(picker, controller, {
   resolvePreset: id => localPresets.find(p => p.id === id),
 });
 ```
@@ -157,7 +159,7 @@ const unbindViews = bindSavedViewPickerToExplorer(picker, explorer, {
 | Saved-view persistence / server schema | Host (local presets first) |
 | `recents` transport mode | Next slice — needs a real transport contract before controller mode |
 
-The docs-site `content-explorer` preview and the screenshot gallery compose this chrome with local presets (Plans / PDFs / All files) against the mock transport.
+The docs-site `content-explorer` **Folder host chrome** variant composes saved-view-picker + filter-bar + breadcrumbs + `box-explorer-list` / `box-explorer-table` against a shared `ContentExplorerController` and mock transport. Filter-bar `view` switches list↔table via `onViewChange` (host-owned; the composed `box-content-explorer` shell is not used in that variant).
 
 ## Metadata-query host chrome (not a controller view mode)
 

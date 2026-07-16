@@ -3,6 +3,7 @@ import {
   boeFocusVisibleStyles,
   boeNeutralInteractiveStyles,
 } from "../../foundations/tokens/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-tabs";
 
@@ -52,10 +53,10 @@ const tabsStyles = `
     padding: 0.2rem 0.65rem;
     cursor: pointer;
     transition:
-      background-color 140ms ease,
-      color 140ms ease,
-      border-color 140ms ease,
-      box-shadow 140ms ease;
+      background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="tab"][data-layout="attached"] {

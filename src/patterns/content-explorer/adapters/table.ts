@@ -17,6 +17,7 @@ import {
   boeFocusVisibleStyles,
   boeNeutralInteractiveStyles,
 } from "../../../foundations/tokens/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-explorer-table";
 
@@ -93,7 +94,7 @@ const elementStyles = `
         }
 
         [part="row"] {
-          transition: background-color 140ms ease;
+          transition: background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
 
         [part="row"]:hover {
@@ -135,9 +136,9 @@ const elementStyles = `
           white-space: nowrap;
           cursor: pointer;
           transition:
-            background-color 140ms ease,
-            color 140ms ease,
-            box-shadow 140ms ease;
+            background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+            color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+            box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
 
         [part="row-item"]:hover:not(:disabled) {
@@ -200,9 +201,9 @@ const elementStyles = `
           color: var(--boe-token-text-text, #222222);
           cursor: pointer;
           transition:
-            border-color 140ms ease,
-            background-color 140ms ease,
-            box-shadow 140ms ease;
+            border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+            background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+            box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
 
         ${boeNeutralInteractiveStyles('[part="load-more"]')}

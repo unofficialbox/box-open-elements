@@ -146,6 +146,7 @@ organized into **systemic sweeps**, not per-component rewrites.
 
 ## Open user-facing threads
 - Fidelity program complete; workshop at **108** extracted stories; explorer metadata host chrome shipped.
-- Full catalog density audit landed (chrome highs cleared; dialog/empty-state may stay slightly airier).
-- `recents` still needs a transport contract; list/table presentation swap remains host-owned.
-- Next: React adapter PoC; opportunistic motion-literal migration.
+- Full catalog density audit landed; motion literals migrated to `boeMotionDuration` / `interactive`.
+- Explorer Folder host chrome swaps list/table adapters via filter-bar `onViewChange`.
+- `recents` still needs a transport contract; configurable columns remain open.
+- Next: React adapter PoC.

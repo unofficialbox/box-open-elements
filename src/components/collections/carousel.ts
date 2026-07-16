@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-carousel";
 
@@ -150,9 +151,9 @@ const carouselStyles = `
       inset 0 1px 0 rgba(255, 255, 255, 0.74),
       0 10px 20px rgba(15, 23, 42, 0.04);
     transition:
-      border-color 140ms ease,
-      background 140ms ease,
-      color 140ms ease;
+      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="pagination"] {
@@ -177,7 +178,7 @@ const carouselStyles = `
     border-radius: 999px;
     background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, var(--boe-token-surface-surface-secondary, #fbfbfb) 10%);
     cursor: pointer;
-    transition: inline-size 140ms ease, background 140ms ease, border-color 140ms ease;
+    transition: inline-size ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part~="dot-selected"] {

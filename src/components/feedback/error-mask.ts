@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-error-mask";
 
@@ -64,7 +65,7 @@ const errorMaskStyles = `
     font-weight: 600;
     padding: 0.5rem 0.9rem;
     cursor: pointer;
-    transition: background 140ms ease, transform 140ms ease;
+    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, transform ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="action"]:hover {

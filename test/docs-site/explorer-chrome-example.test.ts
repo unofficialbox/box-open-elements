@@ -6,7 +6,9 @@ import {
   contentExplorerChromeHtml,
   setupContentExplorerChrome,
 } from "../../docs-site/explorer-chrome-demo.js";
-import { defineBoxContentExplorerElement } from "../../src/patterns/content-explorer/content-explorer.js";
+import { defineBoxExplorerBreadcrumbsElement } from "../../src/patterns/content-explorer/adapters/breadcrumbs.js";
+import { defineBoxExplorerListElement } from "../../src/patterns/content-explorer/adapters/list.js";
+import { defineBoxExplorerTableElement } from "../../src/patterns/content-explorer/adapters/table.js";
 import { defineBoxFilterBarElement } from "../../src/patterns/search/filter-bar.js";
 import { defineBoxSavedViewPickerElement } from "../../src/patterns/search/saved-view-picker.js";
 import type { ExplorerTransport } from "../../src/patterns/content-explorer/types.js";
@@ -36,7 +38,9 @@ const createTransport = (): ExplorerTransport & {
 
 describe("docs-site content-explorer chrome demo", () => {
   beforeEach(() => {
-    defineBoxContentExplorerElement();
+    defineBoxExplorerBreadcrumbsElement();
+    defineBoxExplorerListElement();
+    defineBoxExplorerTableElement();
     defineBoxFilterBarElement();
     defineBoxSavedViewPickerElement();
   });
@@ -45,30 +49,32 @@ describe("docs-site content-explorer chrome demo", () => {
     document.body.innerHTML = "";
   });
 
-  it("wires filter search, saved-view search, presentation updates, and cleanup", async () => {
+  it("composes adapters and swaps list/table presentation from filter-bar view", async () => {
     expect(contentExplorerChromeHtml).toContain("box-saved-view-picker");
     expect(contentExplorerChromeHtml).toContain("box-filter-bar");
-    expect(contentExplorerChromeHtml).toContain("box-content-explorer");
+    expect(contentExplorerChromeHtml).toContain("box-explorer-breadcrumbs");
+    expect(contentExplorerChromeHtml).toContain("box-explorer-list");
+    expect(contentExplorerChromeHtml).toContain("box-explorer-table");
+    expect(contentExplorerChromeHtml).not.toContain("box-content-explorer");
 
     document.body.innerHTML = contentExplorerChromeHtml;
     const transport = createTransport();
     const cleanup = setupContentExplorerChrome(document.body, transport);
     expect(cleanup).toEqual(expect.any(Function));
 
-    const explorer = document.querySelector("box-content-explorer") as HTMLElement & {
-      search: (q: string) => Promise<void>;
-      clearSearch: () => Promise<void>;
-      connect?: () => Promise<void>;
-    };
+    // Allow controller.connect() to settle on the mock transport.
+    await Promise.resolve();
+    await Promise.resolve();
+
     const filterBar = document.querySelector("box-filter-bar") as HTMLElement;
     const picker = document.querySelector("box-saved-view-picker") as HTMLElement;
+    const list = document.querySelector("box-explorer-list") as HTMLElement;
+    const table = document.querySelector("box-explorer-table") as HTMLElement;
     const presentation = document.querySelector("[data-host-presentation]") as HTMLElement;
 
-    // Avoid full connect; spy search/clearSearch at the element boundary.
-    const search = vi.fn(async () => undefined);
-    const clearSearch = vi.fn(async () => undefined);
-    explorer.search = search;
-    explorer.clearSearch = clearSearch;
+    expect(list.hidden).toBe(false);
+    expect(table.hidden).toBe(true);
+    expect(presentation.querySelector("strong")?.textContent).toBe("list");
 
     filterBar.dispatchEvent(
       new CustomEvent("search", {
@@ -77,7 +83,11 @@ describe("docs-site content-explorer chrome demo", () => {
         detail: { value: { query: "Plan", sort: "", view: "list", filters: [] } },
       }),
     );
-    expect(search).toHaveBeenCalledWith("Plan");
+    await Promise.resolve();
+    expect(transport.searchItems).toHaveBeenCalled();
+    expect(
+      (transport.searchItems.mock.calls.at(-1)?.[0] as { query?: string } | undefined)?.query,
+    ).toBe("Plan");
 
     picker.dispatchEvent(
       new CustomEvent("value-changed", {
@@ -86,7 +96,10 @@ describe("docs-site content-explorer chrome demo", () => {
         detail: { value: "pdfs" },
       }),
     );
-    expect(search).toHaveBeenCalledWith("pdf");
+    await Promise.resolve();
+    expect(
+      (transport.searchItems.mock.calls.at(-1)?.[0] as { query?: string } | undefined)?.query,
+    ).toBe("pdf");
 
     filterBar.dispatchEvent(
       new CustomEvent("value-changed", {
@@ -95,11 +108,23 @@ describe("docs-site content-explorer chrome demo", () => {
         detail: { value: { query: "Plan", sort: "name", view: "table", filters: [] } },
       }),
     );
+    expect(list.hidden).toBe(true);
+    expect(table.hidden).toBe(false);
     expect(presentation.querySelector("strong")?.textContent).toBe("table");
     expect(presentation.getAttribute("aria-live")).toBe("polite");
 
+    filterBar.dispatchEvent(
+      new CustomEvent("value-changed", {
+        bubbles: true,
+        composed: true,
+        detail: { value: { query: "Plan", sort: "name", view: "list", filters: [] } },
+      }),
+    );
+    expect(list.hidden).toBe(false);
+    expect(table.hidden).toBe(true);
+
+    const callsBeforeCleanup = transport.searchItems.mock.calls.length;
     cleanup?.();
-    search.mockClear();
     filterBar.dispatchEvent(
       new CustomEvent("search", {
         bubbles: true,
@@ -107,6 +132,7 @@ describe("docs-site content-explorer chrome demo", () => {
         detail: { value: { query: "again", sort: "", view: "list", filters: [] } },
       }),
     );
-    expect(search).not.toHaveBeenCalled();
+    await Promise.resolve();
+    expect(transport.searchItems.mock.calls.length).toBe(callsBeforeCleanup);
   });
 });

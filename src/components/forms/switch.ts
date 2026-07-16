@@ -4,6 +4,7 @@ import {
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-switch";
 const DEFAULT_VALUE = "on";
@@ -60,7 +61,7 @@ const switchStyles = `
     border-radius: 999px;
     background: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, var(--boe-token-surface-surface, #ffffff) 18%);
     box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08);
-    transition: background 140ms ease, box-shadow 140ms ease;
+    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="switch"]:hover:not(:disabled) [part~="track"][data-checked="false"] {
@@ -88,7 +89,7 @@ const switchStyles = `
       0 1px 2px rgba(15, 23, 42, 0.18),
       0 0 0 1px color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 45%, transparent);
     transform: translateX(0);
-    transition: transform 140ms ease;
+    transition: transform ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part~="thumb"][data-checked="true"] {

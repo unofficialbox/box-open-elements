@@ -15,15 +15,17 @@ import {
 
 | Export | Role |
 | --- | --- |
-| `boeMotionDuration` | `fast` (120ms), `medium` (160ms), `slow` (240ms), `spin`, `shimmer` |
+| `boeMotionDuration` | `fast` (120ms), `interactive` (140ms), `medium` (160ms), `slow` (240ms), `spin`, `shimmer` |
 | `boeMotionEasing` | `standard`, `enter`, `exit`, `linear` |
 | `boeTransition(property, duration?, easing?)` | CSS transition shorthand |
 | `boeReducedMotionStyles(selector, declarations)` | `prefers-reduced-motion: reduce` block |
 
+Use `interactive` for catalog control paint transitions (background / border / color / box-shadow). Use `fast` for quicker accent feedback; `medium` / `slow` for layout and panel motion.
+
 ## Policy
 
 - **Purposeful only** — motion signals state (loading, expand/collapse, hover feedback), not decoration.
-- **Short by default** — interactive paint transitions use `fast` / `medium`; longer cycles are for continuous indicators (spinner, skeleton).
+- **Short by default** — control paint transitions use `interactive` (or `fast` for accents); layout/panel motion uses `medium` / `slow`; longer cycles are for continuous indicators (spinner, skeleton).
 - **Honor reduced motion** — continuous animations must degrade under `prefers-reduced-motion: reduce` (disable shimmer; slow or pause spin). Use `boeReducedMotionStyles` so the media query is consistent.
 
 ## Example (shadow styles)
@@ -53,7 +55,7 @@ const styles = `
 
 ## Migration
 
-Existing components still contain scattered duration literals from before this foundation existed. When touching a file's styles, switch transitions/animations to the shared constants; do not require a repo-wide sweep in one pass.
+Catalog shadow styles should consume `boeMotionDuration` / `boeMotionEasing` (or `boeTransition`) instead of hard-coded `120ms` / `140ms` / `160ms` literals. A maintainer sweep lives in `tools/migrate-motion-literals.ts`; re-run only when introducing new literal timings.
 
 ## Related
 

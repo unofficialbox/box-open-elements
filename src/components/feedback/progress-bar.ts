@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-progress-bar";
 
@@ -52,7 +53,7 @@ const progressBarStyles = `
     height: 100%;
     border-radius: 999px;
     background: var(--boe-token-surface-surface-brand, #0061d5);
-    transition: width 140ms ease;
+    transition: width ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 `;
 

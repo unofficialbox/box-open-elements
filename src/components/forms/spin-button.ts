@@ -4,6 +4,7 @@ import {
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-spin-button";
 
@@ -49,9 +50,9 @@ const spinButtonStyles = `
       );
     overflow: hidden;
     transition:
-      border-color 140ms ease,
-      background 140ms ease,
-      box-shadow 140ms ease;
+      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="control"]:hover {
@@ -74,8 +75,8 @@ const spinButtonStyles = `
     inline-size: 2.25rem;
     cursor: pointer;
     transition:
-      background 140ms ease,
-      color 140ms ease;
+      background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="decrement"] {

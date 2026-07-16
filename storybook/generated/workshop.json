@@ -1193,8 +1193,8 @@
       "title": "Patterns/Content Explorer/Content Explorer",
       "category": "Content Explorer",
       "shortDescription": "Folder browsing with host chrome; metadata query is a separate host composition.",
-      "docsDescription": "Folder mode uses transport + host filter-bar / saved-view bindings. Metadata-query browsing is a host composition (docs-site Metadata query chrome variant) using metadata-filter-builder + explorer adapters + metadata-inspector — not a controller view mode.",
-      "sourceSnippet": "<div class=\"explorer-host\" style=\"display:grid;gap:0.85rem\">\n  <box-saved-view-picker label=\"Saved views\"></box-saved-view-picker>\n  <box-filter-bar label=\"Filters\"></box-filter-bar>\n  <p data-host-presentation aria-live=\"polite\" style=\"margin:0;font-size:0.85rem;color:var(--boe-token-text-text-secondary,#6f6f6f)\">Host presentation: <strong>list</strong> (explorer shell stays list; host owns list/table swap)</p>\n  <box-content-explorer root-folder-id=\"0\" token=\"…\" page-size=\"25\"></box-content-explorer>\n</div>",
+      "docsDescription": "The composed shell owns its list. Host apps that need list/table presentation swap use explorer adapters + ContentExplorerController (see docs-site Folder host chrome). Metadata-query browsing is also host-owned — not a controller view mode.",
+      "sourceSnippet": "<box-content-explorer root-folder-id=\"0\" token=\"…\" page-size=\"25\"></box-content-explorer>",
       "referenceRows": [
         {
           "kind": "attribute",
@@ -1245,9 +1245,9 @@
       ],
       "variants": [
         {
-          "name": "Folder host chrome",
-          "html": "<div class=\"explorer-host\" style=\"display:grid;gap:0.85rem\">\n  <box-saved-view-picker label=\"Saved views\"></box-saved-view-picker>\n  <box-filter-bar label=\"Filters\"></box-filter-bar>\n  <p data-host-presentation aria-live=\"polite\" style=\"margin:0;font-size:0.85rem;color:var(--boe-token-text-text-secondary,#6f6f6f)\">Host presentation: <strong>list</strong> (explorer shell stays list; host owns list/table swap)</p>\n  <box-content-explorer root-folder-id=\"0\" token=\"…\" page-size=\"25\"></box-content-explorer>\n</div>",
-          "note": "saved-view-picker + filter-bar bound to explorer search. See docs-site for Metadata query chrome."
+          "name": "Composed shell",
+          "html": "<box-content-explorer root-folder-id=\"0\" token=\"…\" page-size=\"25\"></box-content-explorer>",
+          "note": "Shell list is fixed. For list/table swap, compose breadcrumbs + list/table adapters with a shared controller (docs-site Folder host chrome)."
         }
       ]
     },

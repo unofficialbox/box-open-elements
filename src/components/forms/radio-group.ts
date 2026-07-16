@@ -9,6 +9,7 @@ import {
   boeFocusRingShadow,
   boeFocusVisibleStyles,
 } from "../../foundations/tokens/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-radio-group";
 
@@ -57,9 +58,9 @@ const radioGroupStyles = `
     background: var(--boe-token-surface-surface, #ffffff);
     cursor: pointer;
     transition:
-      border-color 140ms ease,
-      background 140ms ease,
-      box-shadow 140ms ease;
+      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part~="option"]:hover:not(:has([part="input"]:disabled)) {
@@ -98,9 +99,9 @@ const radioGroupStyles = `
     background: var(--boe-token-surface-surface, #ffffff);
     box-shadow: inset 0 0 0 0 transparent;
     transition:
-      border-color 140ms ease,
-      background 140ms ease,
-      box-shadow 140ms ease;
+      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="input"]:checked {

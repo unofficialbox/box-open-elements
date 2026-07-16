@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-badge";
 
@@ -22,7 +23,7 @@ const badgeStyles = `
     letter-spacing: 0.05em;
     text-transform: uppercase;
     white-space: nowrap;
-    transition: background 140ms ease, color 140ms ease;
+    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="badge"][data-tone="neutral"] {

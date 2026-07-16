@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-pagination";
 
@@ -38,10 +39,10 @@ const paginationStyles = `
       inset 0 1px 0 rgba(255, 255, 255, 0.82),
       0 1px 2px rgba(15, 23, 42, 0.04);
     transition:
-      background-color 140ms ease,
-      border-color 140ms ease,
-      color 140ms ease,
-      box-shadow 140ms ease;
+      background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   ${boeNeutralInteractiveStyles('[part="previous"]')}

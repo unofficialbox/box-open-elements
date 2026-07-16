@@ -6,6 +6,7 @@ import {
   stringValuesFromFormValue,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-tag-input";
 
@@ -57,7 +58,7 @@ const tagInputStyles = `
         var(--boe-token-surface-surface, #ffffff) 0%,
         color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
       );
-    transition: border-color 140ms ease, box-shadow 140ms ease;
+    transition: border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="control"]:focus-within {
@@ -96,7 +97,7 @@ const tagInputStyles = `
     background: transparent;
     color: inherit;
     cursor: pointer;
-    transition: background 140ms ease;
+    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="tag-remove"] svg {

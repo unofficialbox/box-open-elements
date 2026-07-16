@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-category-selector";
 
@@ -40,7 +41,7 @@ const categorySelectorStyles = `
     font-size: 0.84rem;
     font-weight: 600;
     cursor: pointer;
-    transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+    transition: border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part~="pill"]:hover:not(:disabled) {

@@ -7,6 +7,7 @@ import {
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
 import { applyRovingTabindex, handleRovingKeydown } from "../../foundations/a11y/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-dual-listbox";
 
@@ -104,9 +105,9 @@ const dualListboxStyles = `
     padding: 0.5rem 0.65rem;
     cursor: pointer;
     transition:
-      border-color 140ms ease,
-      background 140ms ease,
-      transform 140ms ease;
+      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      transform ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="option"]:hover:not(:disabled) {
@@ -157,9 +158,9 @@ const dualListboxStyles = `
     font-weight: 700;
     cursor: pointer;
     transition:
-      border-color 140ms ease,
-      background 140ms ease,
-      transform 140ms ease;
+      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      transform ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
   [part="move-right"]:hover:not(:disabled),

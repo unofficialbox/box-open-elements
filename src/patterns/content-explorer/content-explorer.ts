@@ -18,6 +18,7 @@ import {
   type BoxSearchResultsHeaderElement,
 } from "../search/search-results-header.js";
 import { BaseElement } from "../../core/index.js";
+import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-content-explorer";
 
@@ -96,7 +97,7 @@ const elementStyles = `
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
-          transition: opacity 140ms ease;
+          transition: opacity ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
 
         section[aria-busy="true"] {
@@ -139,7 +140,7 @@ const elementStyles = `
           background: transparent;
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           cursor: pointer;
-          transition: background 140ms ease, color 140ms ease;
+          transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
 
         [part="breadcrumb"]:hover {
@@ -189,7 +190,7 @@ const elementStyles = `
           background: var(--boe-token-surface-surface, #ffffff);
           color: var(--boe-token-text-text, #222222);
           cursor: pointer;
-          transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+          transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
 
         [part="refresh"] {
@@ -232,7 +233,7 @@ const elementStyles = `
           gap: 0.55rem;
           padding: 0.15rem 0.45rem;
           background: var(--boe-token-surface-surface, #ffffff);
-          transition: background 140ms ease;
+          transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
 
         [part="items"] > li + li {
@@ -261,7 +262,7 @@ const elementStyles = `
           background: transparent;
           color: var(--boe-token-text-text, #222222);
           cursor: pointer;
-          transition: color 140ms ease;
+          transition: color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
 
         [part="item-name"] {
