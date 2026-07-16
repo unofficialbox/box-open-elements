@@ -1,9 +1,9 @@
 # Handoff — box-open-elements
 
 Snapshot for the next agent picking up this work. Read this first, then
-`BACKLOG.md`, `docs/foundations/tokens.md` (token consumption vs shell contract),
-`docs/audits/component-fidelity-audit.md` (completed fidelity program), and
-`plans/iconography-generator.md` (open PR #45).
+`BACKLOG.md`, `docs/foundations/brand.md` (imagery from Blueprint / UI Elements),
+`docs/foundations/tokens.md` (token consumption vs shell contract), and
+`docs/audits/component-fidelity-audit.md` (completed fidelity program).
 
 ## What this repo is
 
@@ -25,11 +25,10 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
   **not** deployed (internal tool).
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
-- Recent merged PRs: fidelity Batches 0–7 + #41 nits + **#42** design-heavy leftovers
-  + **#43** explorer search/item contract + UI chrome + **#44** docs-site guidance cards
-  + **#46** token consumption vs shell guidance / API-tab token inventory.
-- **Open PR #45:** iconography generator tooling —
-  `cursor/iconography-generator-7eb7` (see `plans/iconography-generator.md`).
+- Recent merged PRs: fidelity Batches 0–7 + #41–**#47** (through brand imagery from
+  Blueprint / UI Elements).
+- **Open PR #48:** workshop story expansion for docs-site Usage cards —
+  `cursor/workshop-guidance-stories-7eb7`.
 
 ## Completed initiative: component fidelity program
 
@@ -143,9 +142,7 @@ organized into **systemic sweeps**, not per-component rewrites.
   `getMirroredFormValue(el.internals)` in tests.
 
 ## Open user-facing threads
-- Fidelity program complete through #42; guidance cards #44 and token-vs-shell #46 merged.
-- **Open PR #45:** iconography generator (`bun run icons:generate` /
-  `BOX_ICONOGRAPHY_SOURCE`). Full 472-icon manifest already vendored; regenerate
-  from the external pack when the inventory updates.
-- Next after #45: brand imagery Figma review; Theming/Motion foundation docs only
-  with real content.
+- Fidelity program complete; #44–#46 merged (guidance cards, token-vs-shell, iconography generator).
+- Brand imagery closed from Blueprint + UI Elements product illustrations (**PR #47**).
+- Next: grow workshop guidance coverage with real stories/notes; Theming/Motion docs
+  only with real content.
