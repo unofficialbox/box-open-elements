@@ -25,9 +25,9 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
   **not** deployed (internal tool).
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
-- Recent merged PRs: fidelity Batches 0–7 + #41–**#48** (brand imagery #47, workshop
-  guidance stories #48).
-- **Open PR #49:** workshop story batch 2 (18 → 34) — `cursor/workshop-stories-batch2-7eb7`.
+- Recent merged PRs: fidelity Batches 0–7 + #41–**#50** (brand imagery #47, workshop
+  stories through #49 at 34 surfaces, agent CI-watch guidance #50).
+- No open PRs at this handoff.
 
 ## Completed initiative: component fidelity program
 
