@@ -2,12 +2,27 @@
 
 import { describe, expect, it } from "vitest";
 
-import { lessons, lessonById, explorerLesson, type PreviewKey } from "../../docs-site/lessons.js";
+import {
+  lessons,
+  lessonById,
+  explorerLesson,
+  shareLesson,
+  type Lesson,
+  type PreviewKey,
+} from "../../docs-site/lessons.js";
 import { catalog } from "../../docs-site/registry.js";
 import { addedLines } from "../../docs-site/diff.js";
 import { lessonMockTransport } from "../../docs-site/lesson-mock-transport.js";
 
-const PREVIEW_KEYS: PreviewKey[] = ["empty", "shell", "connected", "navigate", "select", "multiselect"];
+const EXPLORER_PREVIEW_KEYS: PreviewKey[] = ["empty", "shell", "connected", "navigate", "select", "multiselect"];
+const SHARE_PREVIEW_KEYS: PreviewKey[] = [
+  "empty",
+  "share-shell",
+  "share-link",
+  "share-people",
+  "share-settings",
+  "share-actions",
+];
 
 /** Lines that carry real content (skip blanks and pure-brace lines). */
 const significant = (code: string): string[] =>
@@ -16,11 +31,63 @@ const significant = (code: string): string[] =>
     .map(line => line.trim())
     .filter(line => /[A-Za-z]/.test(line));
 
+const assertLessonShape = (lesson: Lesson, previewKeys: PreviewKey[]): void => {
+  const numbers = lesson.steps.map(step => step.n);
+  expect(numbers[0]).toBe(0);
+  expect(lesson.steps[0].title).toBe("Setup");
+  const teaching = lesson.steps.filter(step => step.n > 0);
+  expect(teaching.length).toBeGreaterThanOrEqual(4);
+  expect(teaching.length).toBeLessThanOrEqual(6);
+  expect(numbers).toEqual(numbers.slice().sort((a, b) => a - b));
+
+  expect(lesson.outcomePreview.trim().length).toBeGreaterThan(0);
+  expect(lesson.wrapup.trim().length).toBeGreaterThan(0);
+  expect(previewKeys).toContain(lesson.outcomePreview);
+
+  for (const step of lesson.steps) {
+    expect(step.code.trim().length).toBeGreaterThan(0);
+    expect(step.why.trim().length).toBeGreaterThan(0);
+    expect(step.goal.trim().length).toBeGreaterThan(0);
+    expect(step.result.trim().length).toBeGreaterThan(0);
+    expect(step.file.trim().length).toBeGreaterThan(0);
+    expect(step.anchor.trim().length).toBeGreaterThan(0);
+    expect(previewKeys).toContain(step.preview);
+  }
+
+  for (let i = 1; i < lesson.steps.length; i++) {
+    const prevLines = significant(lesson.steps[i - 1].code);
+    const currentSet = new Set(significant(lesson.steps[i].code));
+    for (const line of prevLines) {
+      expect(currentSet.has(line)).toBe(true);
+    }
+    expect(significant(lesson.steps[i].code).length).toBeGreaterThan(prevLines.length);
+  }
+
+  expect(lesson.starterHtml).toContain("app.js");
+  expect(lesson.starterHtml).toContain("box-open-elements");
+  expect(lesson.starterHtml).toContain('id="app"');
+  expect(lesson.starterHtml).toMatch(/box-open-elements@\d+\.\d+\.\d+/);
+  expect(lesson.install.toLowerCase()).toContain("install");
+  expect(lesson.starterHtml).toContain('src="./app.js"');
+  expect(lesson.starterHtml).not.toContain(".ts");
+
+  for (const step of lesson.steps) {
+    expect(step.code).not.toContain("/dist/");
+    expect(step.code).not.toContain("./examples");
+    expect(step.code).not.toContain("createMockTransport");
+    expect(step.code).not.toMatch(/\bas\s+(const|any|unknown|never|string|number|boolean|[A-Z]\w*)\b/);
+    expect(step.code).not.toMatch(/:\s*(string|number|boolean)\b/);
+    expect(step.code).not.toContain("!.");
+  }
+};
+
 describe("build-along lessons", () => {
-  it("exposes exactly the Explorer lesson", () => {
-    expect(lessons).toHaveLength(1);
+  it("exposes Explorer and Share lessons", () => {
+    expect(lessons).toHaveLength(2);
     expect(lessons[0]).toBe(explorerLesson);
+    expect(lessons[1]).toBe(shareLesson);
     expect(lessonById("explorer")).toBe(explorerLesson);
+    expect(lessonById("share")).toBe(shareLesson);
     expect(lessonById("nope")).toBeUndefined();
   });
 
@@ -31,42 +98,8 @@ describe("build-along lessons", () => {
     }
   });
 
-  it("has a mandatory Setup step and contiguous numbering", () => {
-    const numbers = explorerLesson.steps.map(step => step.n);
-    expect(numbers).toEqual([0, 1, 2, 3, 4, 5]);
-    expect(explorerLesson.steps[0].title).toBe("Setup");
-    // 4–6 teaching steps on top of setup.
-    const teaching = explorerLesson.steps.filter(step => step.n > 0);
-    expect(teaching.length).toBeGreaterThanOrEqual(4);
-    expect(teaching.length).toBeLessThanOrEqual(6);
-  });
-
-  it("gives every step the required fields", () => {
-    for (const step of explorerLesson.steps) {
-      expect(step.code.trim().length).toBeGreaterThan(0);
-      expect(step.why.trim().length).toBeGreaterThan(0);
-      expect(step.goal.trim().length).toBeGreaterThan(0);
-      expect(step.result.trim().length).toBeGreaterThan(0);
-      expect(step.file.trim().length).toBeGreaterThan(0);
-      expect(step.anchor.trim().length).toBeGreaterThan(0);
-      expect(PREVIEW_KEYS).toContain(step.preview);
-    }
-  });
-
-  it("builds code cumulatively — no wholesale replacement", () => {
-    const steps = explorerLesson.steps;
-    for (let i = 1; i < steps.length; i++) {
-      const prevLines = significant(steps[i - 1].code);
-      const currentSet = new Set(significant(steps[i].code));
-      for (const line of prevLines) {
-        expect(currentSet.has(line)).toBe(true);
-      }
-      // Each step must actually add something.
-      expect(significant(steps[i].code).length).toBeGreaterThan(prevLines.length);
-    }
-  });
-
-  it("lands the full public-API surface by the final step", () => {
+  it("keeps Explorer lesson shape and public API surface", () => {
+    assertLessonShape(explorerLesson, EXPLORER_PREVIEW_KEYS);
     const finalCode = explorerLesson.steps[explorerLesson.steps.length - 1].code;
     for (const token of [
       'from "box-open-elements"',
@@ -85,39 +118,26 @@ describe("build-along lessons", () => {
     }
   });
 
-  it("keeps lesson code consumer-real (no docs-site internals)", () => {
-    for (const step of explorerLesson.steps) {
-      expect(step.code).not.toContain("/dist/");
-      expect(step.code).not.toContain("./examples");
-      expect(step.code).not.toContain("createMockTransport");
+  it("keeps Share lesson shape and public API surface", () => {
+    assertLessonShape(shareLesson, SHARE_PREVIEW_KEYS);
+    const finalCode = shareLesson.steps[shareLesson.steps.length - 1].code;
+    for (const token of [
+      'from "box-open-elements"',
+      "registerBoxDefaultDesignSystem",
+      "defineBoxSharePanelElement",
+      "box-share-panel",
+      "sharedLink",
+      "collaborators",
+      "settings",
+      "actions",
+      'addEventListener("action"',
+      'addEventListener("collaborator-selected"',
+    ]) {
+      expect(finalCode).toContain(token);
     }
   });
 
-  it("ships a runnable starter that references the app module and package", () => {
-    expect(explorerLesson.starterHtml).toContain("app.js");
-    expect(explorerLesson.starterHtml).toContain("box-open-elements");
-    expect(explorerLesson.starterHtml).toContain('id="app"');
-    // Pinned CDN version so the copyable starter never floats.
-    expect(explorerLesson.starterHtml).toMatch(/box-open-elements@\d+\.\d+\.\d+/);
-    expect(explorerLesson.install.toLowerCase()).toContain("install");
-  });
-
-  it("keeps lesson + starter as browser-valid JavaScript (no build step)", () => {
-    // The starter loads app.js from a static server, so the shown code must be
-    // plain browser JS — no TypeScript-only syntax that a browser can't run.
-    expect(explorerLesson.starterHtml).toContain('src="./app.js"');
-    expect(explorerLesson.starterHtml).not.toContain(".ts");
-    for (const step of explorerLesson.steps) {
-      // TS type assertions — upper- and lower-case keywords alike.
-      expect(step.code).not.toMatch(/\bas\s+(const|any|unknown|never|string|number|boolean|[A-Z]\w*)\b/);
-      expect(step.code).not.toMatch(/:\s*(string|number|boolean)\b/); // param type annotations
-      expect(step.code).not.toContain("!."); // non-null assertions
-    }
-  });
-
-  it("mock transport stays consistent per folder id (no contradictory navigation)", () => {
-    // Guard the reviewer's case: every non-root folder must not masquerade as
-    // Marketing. The shown Step 2 code drives folder name off the id.
+  it("keeps explorer mock transport folder names consistent in Step 2", () => {
     const step2 = explorerLesson.steps.find(step => step.n === 2)!;
     expect(step2.code).toContain("folderNames[folderId]");
     expect(step2.code).toContain('"77": "Legal"');
@@ -165,19 +185,19 @@ describe("lesson delta diff", () => {
   });
 
   it("highlights exactly the cumulative growth between real steps", () => {
-    const steps = explorerLesson.steps;
-    for (let i = 1; i < steps.length; i++) {
-      const added = addedLines(steps[i - 1].code, steps[i].code);
-      const prevLineCount = steps[i - 1].code.split("\n").length;
-      const currLineCount = steps[i].code.split("\n").length;
-      // Something is highlighted, and never more than the file has.
-      expect(added.size).toBeGreaterThan(0);
-      expect(added.size).toBeLessThanOrEqual(currLineCount);
-      // Cumulative growth means at least (curr - prev) lines are new.
-      expect(added.size).toBeGreaterThanOrEqual(currLineCount - prevLineCount);
-      for (const index of added) {
-        expect(index).toBeGreaterThanOrEqual(0);
-        expect(index).toBeLessThan(currLineCount);
+    for (const lesson of lessons) {
+      const steps = lesson.steps;
+      for (let i = 1; i < steps.length; i++) {
+        const added = addedLines(steps[i - 1].code, steps[i].code);
+        const prevLineCount = steps[i - 1].code.split("\n").length;
+        const currLineCount = steps[i].code.split("\n").length;
+        expect(added.size).toBeGreaterThan(0);
+        expect(added.size).toBeLessThanOrEqual(currLineCount);
+        expect(added.size).toBeGreaterThanOrEqual(currLineCount - prevLineCount);
+        for (const index of added) {
+          expect(index).toBeGreaterThanOrEqual(0);
+          expect(index).toBeLessThan(currLineCount);
+        }
       }
     }
   });

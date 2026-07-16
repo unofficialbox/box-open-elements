@@ -5,7 +5,7 @@
  * an outcome preview visible early, a Setup step, teaching-step cards (file
  * anchor + full-source-with-highlighted-delta + copy-whole-file + a live
  * result + "why it works" + checkpoint), a shared Events panel fed by the
- * real explorer events, and a "build it in your own project" section with
+ * real pattern events, and a "build it in your own project" section with
  * the complete runnable source. The live previews run against the already-
  * loaded library, exactly what the shown code produces in a consumer app.
  */
@@ -14,6 +14,17 @@ import { lessonMockTransport } from "./lesson-mock-transport.js";
 import type { Lesson, LessonStep, PreviewKey } from "./lessons.js";
 
 type ExplorerElement = HTMLElement & { transport: unknown };
+type SharePanelElement = HTMLElement & {
+  actions: Array<{ id: string; label: string; tone?: string }>;
+  collaborators: Array<{ name: string; role: string }>;
+  settings: Array<{ label: string; value: string }>;
+  sharedLink: {
+    url: string;
+    access: string;
+    label?: string;
+    status?: string;
+  } | null;
+};
 type LogFn = (name: string, detail: unknown) => void;
 
 const escapeHtml = (value: string): string =>
@@ -52,18 +63,50 @@ const mountExplorer = (canvas: HTMLElement, options: { multiple?: boolean; pageS
   return explorer;
 };
 
-/** Build the live result for a step. Returns a teardown. */
-const runPreview = (key: PreviewKey, canvas: HTMLElement, log: LogFn): (() => void) => {
-  canvas.innerHTML = "";
-  const cleanups: Array<() => void> = [];
-
-  if (key === "empty") {
-    const note = document.createElement("p");
-    note.className = "preview-note";
-    note.textContent = "Empty app — Box tokens applied, nothing mounted yet.";
-    canvas.append(note);
-    return () => {};
+const mountSharePanel = (
+  canvas: HTMLElement,
+  options: {
+    link?: boolean;
+    people?: boolean;
+    settings?: boolean;
+    actions?: boolean;
+  } = {},
+): SharePanelElement => {
+  const panel = document.createElement("box-share-panel") as SharePanelElement;
+  panel.setAttribute("heading", "Share Quarterly Plan.pdf");
+  if (options.link || options.people || options.settings || options.actions) {
+    panel.sharedLink = {
+      url: "https://box.com/s/example",
+      access: "company",
+      label: "Company link",
+      status: "Active",
+    };
   }
+  if (options.people || options.settings || options.actions) {
+    panel.collaborators = [
+      { name: "Morgan Lee", role: "Editor" },
+      { name: "Alex Kim", role: "Viewer" },
+    ];
+  }
+  if (options.settings || options.actions) {
+    panel.setAttribute("message", "Anyone in the company with the link can view.");
+    panel.settings = [
+      { label: "Downloads", value: "Allowed" },
+      { label: "Expiration", value: "Jun 1, 2027" },
+    ];
+  }
+  if (options.actions) {
+    panel.actions = [
+      { id: "copy", label: "Copy link" },
+      { id: "invite", label: "Invite people", tone: "primary" },
+    ];
+  }
+  canvas.append(panel);
+  return panel;
+};
+
+const runExplorerPreview = (key: PreviewKey, canvas: HTMLElement, log: LogFn): (() => void) => {
+  const cleanups: Array<() => void> = [];
 
   if (key === "shell") {
     const explorer = document.createElement("box-content-explorer");
@@ -103,6 +146,56 @@ const runPreview = (key: PreviewKey, canvas: HTMLElement, log: LogFn): (() => vo
   }
 
   return () => cleanups.forEach(fn => fn());
+};
+
+const runSharePreview = (key: PreviewKey, canvas: HTMLElement, log: LogFn): (() => void) => {
+  const cleanups: Array<() => void> = [];
+
+  if (key === "share-shell") {
+    const panel = mountSharePanel(canvas);
+    cleanups.push(() => panel.remove());
+    return () => cleanups.forEach(fn => fn());
+  }
+
+  const panel = mountSharePanel(canvas, {
+    link: key === "share-link" || key === "share-people" || key === "share-settings" || key === "share-actions",
+    people: key === "share-people" || key === "share-settings" || key === "share-actions",
+    settings: key === "share-settings" || key === "share-actions",
+    actions: key === "share-actions",
+  });
+  cleanups.push(() => panel.remove());
+
+  if (key === "share-actions") {
+    const onAction = (event: Event): void => log("action", (event as CustomEvent).detail);
+    const onCollaborator = (event: Event): void => log("collaborator-selected", (event as CustomEvent).detail);
+    panel.addEventListener("action", onAction);
+    panel.addEventListener("collaborator-selected", onCollaborator);
+    cleanups.push(() => {
+      panel.removeEventListener("action", onAction);
+      panel.removeEventListener("collaborator-selected", onCollaborator);
+    });
+  }
+
+  return () => cleanups.forEach(fn => fn());
+};
+
+/** Build the live result for a step. Returns a teardown. */
+const runPreview = (key: PreviewKey, canvas: HTMLElement, log: LogFn): (() => void) => {
+  canvas.innerHTML = "";
+
+  if (key === "empty") {
+    const note = document.createElement("p");
+    note.className = "preview-note";
+    note.textContent = "Empty app — Box tokens applied, nothing mounted yet.";
+    canvas.append(note);
+    return () => {};
+  }
+
+  if (key.startsWith("share-")) {
+    return runSharePreview(key, canvas, log);
+  }
+
+  return runExplorerPreview(key, canvas, log);
 };
 
 // ── Page ─────────────────────────────────────────────────────────────────────
@@ -150,7 +243,7 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
 
       <div class="lesson-outcome-preview">
         <p class="section-label">What you're building</p>
-        <div class="preview-canvas lesson-canvas" data-preview="multiselect" id="lesson-outcome-canvas"></div>
+        <div class="preview-canvas lesson-canvas" data-preview="${escapeHtml(lesson.outcomePreview)}" id="lesson-outcome-canvas"></div>
       </div>
 
       <p class="lesson-lead prose">${escapeHtml(lesson.why)}</p>
@@ -164,7 +257,7 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
               <span class="lesson-step-n">Wrap-up</span>
               <h2>What works now</h2>
             </header>
-            <p>You have an embedded content explorer that browses folders, follows breadcrumbs, and reports selection and activation to your app. Next: wire the same events into a preview surface, add the share modal, or point the transport at a real Box enterprise with <code>packages/box-server</code>.</p>
+            <p>${escapeHtml(lesson.wrapup)}</p>
           </section>
 
           <section class="lesson-own">
@@ -181,7 +274,7 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
         <aside class="inspector lesson-inspector">
           <div class="inspector-panel">
             <h3>Events <span class="count" id="lesson-event-count">0</span></h3>
-            <div class="inspector-list" id="lesson-event-list"><span class="inspector-empty">Interact with a Result above — selection and navigation events land here.</span></div>
+            <div class="inspector-list" id="lesson-event-list"><span class="inspector-empty">Interact with a Result above — selection, navigation, and share events land here.</span></div>
           </div>
         </aside>
       </div>
