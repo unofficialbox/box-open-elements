@@ -700,6 +700,41 @@
       ]
     },
     {
+      "id": "progress-steps",
+      "tag": "box-progress-steps",
+      "title": "Components/Feedback/Progress Steps",
+      "category": "Feedback",
+      "shortDescription": "A stepped progress indicator.",
+      "docsDescription": "Pass steps as JSON `items` and the active `value`.",
+      "sourceSnippet": "<box-progress-steps label=\"Migration\" items='[{\"label\":\"Scan\",\"value\":\"scan\"}]' value=\"scan\"></box-progress-steps>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible steps label."
+        },
+        {
+          "kind": "attribute",
+          "name": "items",
+          "type": "json",
+          "description": "Array of { label, value, description? }."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Active step value."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-progress-steps label=\"Migration\" items='[{\"label\":\"Scan\",\"value\":\"scan\"},{\"label\":\"Copy\",\"value\":\"copy\",\"description\":\"In progress\"},{\"label\":\"Verify\",\"value\":\"verify\"}]' value=\"copy\"></box-progress-steps>"
+        }
+      ]
+    },
+    {
       "id": "skeleton",
       "tag": "box-skeleton",
       "title": "Components/Feedback/Skeleton",
@@ -1586,6 +1621,152 @@
       ]
     },
     {
+      "id": "dual-listbox",
+      "tag": "box-dual-listbox",
+      "title": "Components/Forms/Dual Listbox",
+      "category": "Forms",
+      "shortDescription": "A transfer list for choosing multiple options.",
+      "docsDescription": "Provide `options` and selected `value` as JSON arrays.",
+      "sourceSnippet": "<box-dual-listbox label=\"Report fields\" options='[{\"label\":\"File name\",\"value\":\"name\"}]' value='[\"name\"]'></box-dual-listbox>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible control label."
+        },
+        {
+          "kind": "attribute",
+          "name": "options",
+          "type": "json",
+          "description": "Array of { label, value }."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "json",
+          "description": "Selected values array."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-dual-listbox label=\"Report fields\" options='[{\"label\":\"File name\",\"value\":\"name\"},{\"label\":\"Owner\",\"value\":\"owner\"},{\"label\":\"Modified\",\"value\":\"modified\"},{\"label\":\"Size\",\"value\":\"size\"}]' value='[\"name\",\"owner\"]'></box-dual-listbox>"
+        }
+      ]
+    },
+    {
+      "id": "range-slider",
+      "tag": "box-range-slider",
+      "title": "Components/Forms/Range Slider",
+      "category": "Forms",
+      "shortDescription": "A dual-thumb numeric range control.",
+      "docsDescription": "Set `start`/`end` within `min`/`max` for a bounded range.",
+      "sourceSnippet": "<box-range-slider label=\"Size range\" min=\"0\" max=\"100\" start=\"20\" end=\"80\"></box-range-slider>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible control label."
+        },
+        {
+          "kind": "attribute",
+          "name": "min",
+          "type": "number",
+          "description": "Minimum bound."
+        },
+        {
+          "kind": "attribute",
+          "name": "max",
+          "type": "number",
+          "description": "Maximum bound."
+        },
+        {
+          "kind": "attribute",
+          "name": "start",
+          "type": "number",
+          "description": "Range start value."
+        },
+        {
+          "kind": "attribute",
+          "name": "end",
+          "type": "number",
+          "description": "Range end value."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-range-slider label=\"Size range\" min=\"0\" max=\"100\" start=\"20\" end=\"80\"></box-range-slider>"
+        }
+      ]
+    },
+    {
+      "id": "tag-input",
+      "tag": "box-tag-input",
+      "title": "Components/Forms/Tag Input",
+      "category": "Forms",
+      "shortDescription": "A token field for labels and tags.",
+      "docsDescription": "Provide committed tags via the comma-separated `value` attribute.",
+      "sourceSnippet": "<box-tag-input label=\"Labels\" placeholder=\"Add a label\" value=\"marketing, q3, launch\"></box-tag-input>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible control label."
+        },
+        {
+          "kind": "attribute",
+          "name": "placeholder",
+          "type": "string",
+          "description": "Empty-field hint."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Comma-separated tag list."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-tag-input label=\"Labels\" placeholder=\"Add a label\" value=\"marketing, q3, launch\"></box-tag-input>"
+        }
+      ]
+    },
+    {
+      "id": "time-field",
+      "tag": "box-time-field",
+      "title": "Components/Forms/Time Field",
+      "category": "Forms",
+      "shortDescription": "A time-of-day input.",
+      "docsDescription": "Use a 24-hour `value` string such as `09:30`.",
+      "sourceSnippet": "<box-time-field label=\"Launch time\" value=\"09:30\"></box-time-field>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible control label."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Time value (HH:MM)."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-time-field label=\"Launch time\" value=\"09:30\"></box-time-field>"
+        }
+      ]
+    },
+    {
       "id": "dialog",
       "tag": "box-dialog",
       "title": "Components/Overlays/Dialog",
@@ -1900,6 +2081,51 @@
       ]
     },
     {
+      "id": "contact-datalist-item",
+      "tag": "box-contact-datalist-item",
+      "title": "Components/Identity/Contact Datalist Item",
+      "category": "Identity",
+      "shortDescription": "A people-picker row with name and email.",
+      "docsDescription": "Show a contact candidate with optional selected state.",
+      "sourceSnippet": "<box-contact-datalist-item name=\"Morgan Lee\" email=\"morgan@box.com\" value=\"morgan\"></box-contact-datalist-item>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "name",
+          "type": "string",
+          "description": "Contact display name."
+        },
+        {
+          "kind": "attribute",
+          "name": "email",
+          "type": "string",
+          "description": "Contact email."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Row value."
+        },
+        {
+          "kind": "attribute",
+          "name": "selected",
+          "type": "boolean",
+          "description": "Marks the row selected."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-contact-datalist-item name=\"Alex Kim\" email=\"alex@box.com\" value=\"alex\"></box-contact-datalist-item>"
+        },
+        {
+          "name": "Selected",
+          "html": "<box-contact-datalist-item name=\"Morgan Lee\" email=\"morgan@box.com\" value=\"morgan\" selected></box-contact-datalist-item>"
+        }
+      ]
+    },
+    {
       "id": "card",
       "tag": "box-card",
       "title": "Components/Collections/Card",
@@ -1930,6 +2156,92 @@
         {
           "name": "Default",
           "html": "<box-card eyebrow=\"PDF · 2.4 MB\" heading=\"Quarterly Plan.pdf\">Updated 2 hours ago by Morgan Lee</box-card>"
+        }
+      ]
+    },
+    {
+      "id": "carousel",
+      "tag": "box-carousel",
+      "title": "Components/Collections/Carousel",
+      "category": "Collections",
+      "shortDescription": "A horizontal featured-content carousel.",
+      "docsDescription": "Pass slides as JSON `items` (`id`/`title`/`description`).",
+      "sourceSnippet": "<box-carousel label=\"Featured\" items='[{\"id\":\"one\",\"title\":\"Launch checklist\",\"description\":\"Everything before go-live.\"}]'></box-carousel>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible carousel label."
+        },
+        {
+          "kind": "attribute",
+          "name": "items",
+          "type": "json",
+          "description": "Array of { id, title, description? }."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "number",
+          "description": "Selected slide index."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-carousel label=\"Featured\" items='[{\"id\":\"one\",\"title\":\"Launch checklist\",\"description\":\"Everything before go-live.\"},{\"id\":\"two\",\"title\":\"Brand refresh\",\"description\":\"New tokens and iconography.\"},{\"id\":\"three\",\"title\":\"Q3 planning\",\"description\":\"Roadmap and staffing.\"}]'></box-carousel>"
+        }
+      ]
+    },
+    {
+      "id": "datalist-item",
+      "tag": "box-datalist-item",
+      "title": "Components/Collections/Datalist Item",
+      "category": "Collections",
+      "shortDescription": "A selectable row for picker lists.",
+      "docsDescription": "Show a labelled row with optional meta, icon, and selected state.",
+      "sourceSnippet": "<box-datalist-item label=\"Quarterly Plan.pdf\" meta=\"PDF · 2.1 MB\" icon=\"P\" value=\"123\"></box-datalist-item>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Primary row label."
+        },
+        {
+          "kind": "attribute",
+          "name": "meta",
+          "type": "string",
+          "description": "Secondary meta line."
+        },
+        {
+          "kind": "attribute",
+          "name": "icon",
+          "type": "string",
+          "description": "Compact icon glyph or text."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Row value."
+        },
+        {
+          "kind": "attribute",
+          "name": "selected",
+          "type": "boolean",
+          "description": "Marks the row selected."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-datalist-item label=\"Quarterly Plan.pdf\" meta=\"PDF · 2.1 MB\" icon=\"P\" value=\"123\"></box-datalist-item>"
+        },
+        {
+          "name": "Selected",
+          "html": "<box-datalist-item label=\"Marketing\" meta=\"Folder · 18 items\" icon=\"M\" value=\"42\" selected></box-datalist-item>"
         }
       ]
     },
@@ -1973,6 +2285,41 @@
       ]
     },
     {
+      "id": "tree",
+      "tag": "box-tree",
+      "title": "Components/Collections/Tree",
+      "category": "Collections",
+      "shortDescription": "A hierarchical folder/tree navigator.",
+      "docsDescription": "Provide nested nodes as JSON `items` and the selected `value`.",
+      "sourceSnippet": "<box-tree label=\"Folders\" items='[{\"label\":\"Marketing\",\"value\":\"marketing\"}]' value=\"marketing\"></box-tree>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible tree label."
+        },
+        {
+          "kind": "attribute",
+          "name": "items",
+          "type": "json",
+          "description": "Nested { label, value, children? } nodes."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Selected node value."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-tree label=\"Folders\" items='[{\"label\":\"Marketing\",\"value\":\"marketing\",\"children\":[{\"label\":\"Brand\",\"value\":\"brand\"},{\"label\":\"Events\",\"value\":\"events\"}]},{\"label\":\"Finance\",\"value\":\"finance\"}]' value=\"marketing\"></box-tree>"
+        }
+      ]
+    },
+    {
       "id": "divider",
       "tag": "box-divider",
       "title": "Components/Layout/Divider",
@@ -2002,6 +2349,80 @@
         {
           "name": "Plain",
           "html": "<box-divider></box-divider>"
+        }
+      ]
+    },
+    {
+      "id": "drop-zone",
+      "tag": "box-drop-zone",
+      "title": "Components/Files/Drop Zone",
+      "category": "Files",
+      "shortDescription": "A drag-and-drop upload target.",
+      "docsDescription": "Invite files with a label and supporting message.",
+      "sourceSnippet": "<box-drop-zone label=\"Upload files\" message=\"Drag files here or browse.\"></box-drop-zone>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Primary drop-zone label."
+        },
+        {
+          "kind": "attribute",
+          "name": "message",
+          "type": "string",
+          "description": "Supporting instruction text."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-drop-zone label=\"Upload files\" message=\"Drag files here or browse.\"></box-drop-zone>"
+        }
+      ]
+    },
+    {
+      "id": "section",
+      "tag": "box-section",
+      "title": "Components/Layout/Section",
+      "category": "Layout",
+      "shortDescription": "A titled content section with optional actions.",
+      "docsDescription": "Use eyebrow/heading/description attributes and slots for actions and body content.",
+      "sourceSnippet": "<box-section eyebrow=\"Workspace\" heading=\"Members\" description=\"People with access to this workspace.\"><box-persona name=\"Morgan Lee\" description=\"Enterprise Admin\"></box-persona></box-section>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "eyebrow",
+          "type": "string",
+          "description": "Small label above the heading."
+        },
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Section title."
+        },
+        {
+          "kind": "attribute",
+          "name": "description",
+          "type": "string",
+          "description": "Supporting copy."
+        },
+        {
+          "kind": "slot",
+          "name": "actions",
+          "description": "Header actions."
+        },
+        {
+          "kind": "slot",
+          "name": "default",
+          "description": "Section body."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-section eyebrow=\"Workspace\" heading=\"Members\" description=\"People with access to this workspace.\">\n  <box-button slot=\"actions\" label=\"Invite\" tone=\"primary\"></box-button>\n  <box-persona name=\"Morgan Lee\" description=\"Enterprise Admin\"></box-persona>\n</box-section>"
         }
       ]
     },
@@ -2076,6 +2497,218 @@
         {
           "name": "Default",
           "html": "<box-accordion label=\"Details\" items='[{\"label\":\"Properties\",\"value\":\"props\",\"content\":\"Owner, size, and classification.\"},{\"label\":\"Activity\",\"value\":\"activity\",\"content\":\"Recent comments and versions.\"}]' value=\"props\"></box-accordion>"
+        }
+      ]
+    },
+    {
+      "id": "share-panel",
+      "tag": "box-share-panel",
+      "title": "Patterns/Share/Share Panel",
+      "category": "Share",
+      "shortDescription": "A share summary with link, collaborators, and settings.",
+      "docsDescription": "Compose heading/message with JSON `shared-link`, `collaborators`, `settings`, and `actions`.",
+      "sourceSnippet": "<box-share-panel heading=\"Share Quarterly Plan.pdf\" message=\"Anyone in the company with the link can view.\" shared-link='{\"url\":\"https://box.com/s/example\",\"access\":\"company\",\"label\":\"Company link\",\"status\":\"Active\"}'></box-share-panel>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Panel title."
+        },
+        {
+          "kind": "attribute",
+          "name": "message",
+          "type": "string",
+          "description": "Supporting share copy."
+        },
+        {
+          "kind": "attribute",
+          "name": "shared-link",
+          "type": "json",
+          "description": "Shared link summary object."
+        },
+        {
+          "kind": "attribute",
+          "name": "collaborators",
+          "type": "json",
+          "description": "Collaborator rows."
+        },
+        {
+          "kind": "attribute",
+          "name": "settings",
+          "type": "json",
+          "description": "Setting rows."
+        },
+        {
+          "kind": "attribute",
+          "name": "actions",
+          "type": "json",
+          "description": "Action buttons."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-share-panel heading=\"Share Quarterly Plan.pdf\" message=\"Anyone in the company with the link can view.\" shared-link='{\"url\":\"https://box.com/s/example\",\"access\":\"company\",\"label\":\"Company link\",\"status\":\"Active\"}' collaborators='[{\"name\":\"Morgan Lee\",\"role\":\"Editor\"},{\"name\":\"Alex Kim\",\"role\":\"Viewer\"}]' settings='[{\"label\":\"Downloads\",\"value\":\"Allowed\"},{\"label\":\"Expiration\",\"value\":\"Jun 1, 2026\"}]' actions='[{\"id\":\"copy\",\"label\":\"Copy link\"}]'></box-share-panel>"
+        }
+      ]
+    },
+    {
+      "id": "file-request-builder",
+      "tag": "box-file-request-builder",
+      "title": "Patterns/File Request/File Request Builder",
+      "category": "File Request",
+      "shortDescription": "A builder for collecting files from external parties.",
+      "docsDescription": "Pass request `fields` and `settings` as JSON arrays.",
+      "sourceSnippet": "<box-file-request-builder heading=\"Collect vendor W-9s\" message=\"Request tax forms from onboarding vendors.\" fields='[{\"id\":\"company\",\"label\":\"Company name\",\"required\":true}]'></box-file-request-builder>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Builder title."
+        },
+        {
+          "kind": "attribute",
+          "name": "message",
+          "type": "string",
+          "description": "Supporting copy."
+        },
+        {
+          "kind": "attribute",
+          "name": "fields",
+          "type": "json",
+          "description": "Request field definitions."
+        },
+        {
+          "kind": "attribute",
+          "name": "settings",
+          "type": "json",
+          "description": "Request settings rows."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-file-request-builder heading=\"Collect vendor W-9s\" message=\"Request tax forms from onboarding vendors.\" fields='[{\"id\":\"company\",\"label\":\"Company name\",\"required\":true},{\"id\":\"w9\",\"label\":\"W-9 upload\",\"description\":\"PDF only\",\"required\":true}]' settings='[{\"id\":\"due\",\"label\":\"Due date\",\"description\":\"Jul 31, 2026\"},{\"id\":\"notify\",\"label\":\"Email notifications\",\"description\":\"On upload\"}]'></box-file-request-builder>"
+        }
+      ]
+    },
+    {
+      "id": "review-queue-item",
+      "tag": "box-review-queue-item",
+      "title": "Patterns/Task/Review Queue Item",
+      "category": "Task",
+      "shortDescription": "A review-queue row with assignee and metrics.",
+      "docsDescription": "Combine heading/status attributes with JSON `assignee`, `metrics`, and `actions`.",
+      "sourceSnippet": "<box-review-queue-item heading=\"MSA_Acme_v4.pdf\" item-label=\"Contract\" status=\"Awaiting review\" priority=\"Medium\" due-date=\"Jul 14, 2026\"></box-review-queue-item>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Item title."
+        },
+        {
+          "kind": "attribute",
+          "name": "item-label",
+          "type": "string",
+          "description": "Item type label."
+        },
+        {
+          "kind": "attribute",
+          "name": "status",
+          "type": "string",
+          "description": "Review status."
+        },
+        {
+          "kind": "attribute",
+          "name": "priority",
+          "type": "string",
+          "description": "Priority label."
+        },
+        {
+          "kind": "attribute",
+          "name": "due-date",
+          "type": "string",
+          "description": "Due date display."
+        },
+        {
+          "kind": "attribute",
+          "name": "assignee",
+          "type": "json",
+          "description": "Assignee summary."
+        },
+        {
+          "kind": "attribute",
+          "name": "metrics",
+          "type": "json",
+          "description": "Metric chips."
+        },
+        {
+          "kind": "attribute",
+          "name": "actions",
+          "type": "json",
+          "description": "Action buttons."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-review-queue-item heading=\"MSA_Acme_v4.pdf\" item-label=\"Contract\" status=\"Awaiting review\" priority=\"Medium\" due-date=\"Jul 14, 2026\" message=\"Second-pass legal review.\" assignee='{\"name\":\"Morgan Lee\",\"role\":\"Legal\"}' metrics='[{\"label\":\"Pages\",\"value\":\"34\"},{\"label\":\"Comments\",\"value\":\"6\"}]' actions='[{\"id\":\"open\",\"label\":\"Open\"},{\"id\":\"approve\",\"label\":\"Approve\",\"tone\":\"primary\"}]'></box-review-queue-item>"
+        }
+      ]
+    },
+    {
+      "id": "metric-card",
+      "tag": "box-metric-card",
+      "title": "Patterns/Insights/Metric Card",
+      "category": "Insights",
+      "shortDescription": "A KPI card with optional trend.",
+      "docsDescription": "Surface a headline metric; pass optional JSON `trend` for delta tone/label.",
+      "sourceSnippet": "<box-metric-card heading=\"Active shared links\" value=\"1,284\" eyebrow=\"Last 30 days\" status=\"Healthy\" trend='{\"label\":\"+16.5%\",\"tone\":\"success\"}'></box-metric-card>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Metric title."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Primary metric value."
+        },
+        {
+          "kind": "attribute",
+          "name": "eyebrow",
+          "type": "string",
+          "description": "Context line above the heading."
+        },
+        {
+          "kind": "attribute",
+          "name": "status",
+          "type": "string",
+          "description": "Status label."
+        },
+        {
+          "kind": "attribute",
+          "name": "trend",
+          "type": "json",
+          "description": "{ label, tone } trend chip."
+        },
+        {
+          "kind": "attribute",
+          "name": "message",
+          "type": "string",
+          "description": "Supporting copy."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-metric-card heading=\"Active shared links\" value=\"1,284\" eyebrow=\"Last 30 days\" message=\"Up from 1,102 in the prior period.\" status=\"Healthy\" trend='{\"label\":\"+16.5%\",\"tone\":\"success\"}'></box-metric-card>"
         }
       ]
     }

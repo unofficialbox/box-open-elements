@@ -26,7 +26,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 - Explorer search + enriched item columns + UI chrome shipped (#43).
 - **Active:** host wiring for `box-filter-bar` / `box-saved-view-picker` → explorer search (`bindFilterBarToExplorer`, `bindSavedViewPickerToExplorer` in `patterns/content-explorer`).
-- **Open PR #55:** docs-site + gallery host chrome demo (filter-bar + saved-view + explorer, local presets).
+- Explorer host chrome demo shipped (#55): docs-site + gallery compose filter-bar + saved-view + explorer with local presets.
 - **Next slices:**
   - Wire host list/table presentation adapters when swapping off the composed list shell.
   - `recents` view mode once a real transport contract exists (do not fake as a folder listing).
@@ -34,7 +34,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 ## Tooling and infrastructure
 
-- Docs site shell + shipped follow-ons (`bun run docs`, variant dropdown from Storybook extraction, dark theme, markdown foundation docs in-shell, GitHub Pages deploy). Guidance cards shipped (#44). Workshop stories at **49** surfaces through #52. Grow coverage by authoring more workshop stories / example notes; do not invent placeholder cards.
+- Docs site shell + shipped follow-ons (`bun run docs`, variant dropdown from Storybook extraction, dark theme, markdown foundation docs in-shell, GitHub Pages deploy). Guidance cards shipped (#44). Workshop stories at **49** surfaces through #52; **batch 4 in flight** (→ **64**) on `cursor/workshop-stories-batch4-7eb7`. Grow coverage by authoring more workshop stories / example notes; do not invent placeholder cards.
 - Screenshot pixel-diff CI shipped (`visual-regression` job in `.github/workflows/ci.yml` via pinned Playwright container). Local: `bun run test:regression:pixel` / `bun run baselines:regen`. Calendar docs demo already pins `today` / `month` / `value` (see `docs-site/examples.ts`).
 - Storybook workshop shipped (`storybook/`, see `docs/workshop/storybook.md`) — extraction backend for docs-site variants; not deployed publicly.
 - `packages/box-server` shipped (see `docs/integration/box-server.md`).
