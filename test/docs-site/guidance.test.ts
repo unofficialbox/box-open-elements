@@ -10,10 +10,11 @@ import {
 } from "../../docs-site/guidance.js";
 
 describe("docs-site guidance", () => {
-  it("exposes workshop-authored usage for storybook surfaces only", () => {
+  it("exposes workshop-authored usage for storybook surfaces", () => {
     expect(usageById.button?.docsDescription).toMatch(/labelled button/i);
     expect(usageById.checkbox?.shortDescription).toMatch(/selectable/i);
-    expect(usageById["content-explorer"]).toBeUndefined();
+    expect(usageById["content-explorer"]?.shortDescription).toMatch(/host chrome/i);
+    expect(usageById["no-such-surface"]).toBeUndefined();
   });
 
   it("maps composite roles to Arrow/Home/End keyboard guidance", () => {
@@ -52,18 +53,19 @@ describe("docs-site guidance", () => {
     expect(withUsage.usageNote).toBe("Tone controls emphasis.");
     expect(withUsage.keyboard.some(bullet => bullet.includes("Enter and Space"))).toBe(true);
 
-    const noteOnly = resolvePreviewGuidance({
+    const explorer = resolvePreviewGuidance({
       catalogId: "content-explorer",
       roles: [],
       exampleNote: "Driven by a mock transport.",
     });
-    expect(hasUsageCard(noteOnly)).toBe(true);
-    expect(noteOnly.usage).toBeNull();
-    expect(noteOnly.bestPractices).toEqual([]);
-    expect(noteOnly.keyboard).toEqual([]);
+    expect(hasUsageCard(explorer)).toBe(true);
+    expect(explorer.usage?.shortDescription).toMatch(/host chrome/i);
+    expect(explorer.usageNote).toBe("Driven by a mock transport.");
+    expect(explorer.bestPractices).toEqual([]);
+    expect(explorer.keyboard).toEqual([]);
 
     const empty = resolvePreviewGuidance({
-      catalogId: "content-explorer",
+      catalogId: "no-such-surface",
       roles: [],
     });
     expect(hasUsageCard(empty)).toBe(false);
@@ -83,7 +85,7 @@ describe("docs-site guidance", () => {
     expect(html).toContain("<code>label</code>");
 
     const emptyHtml = renderGuidanceCards(
-      resolvePreviewGuidance({ catalogId: "content-explorer", roles: [] }),
+      resolvePreviewGuidance({ catalogId: "no-such-surface", roles: [] }),
     );
     expect(emptyHtml).toBe("");
   });

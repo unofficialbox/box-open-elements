@@ -27,7 +27,8 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
   Coverage floors: [docs/coverage-baseline.md](./coverage-baseline.md).
 - Recent merged PRs: fidelity Batches 0–7 + #41–**#58** (Preview build-along #58; Share #57; workshop batch 4 → 64 #56).
-- Workshop stories: **101** extracted surfaces (attribute-stable catalog parity). Still hand-curated / non-extract: `content-explorer` + controller-bound explorer adapters (`explorer-breadcrumbs`, `explorer-toolbar`, `explorer-list`, `explorer-table`, `explorer-items`, `explorer-action-menu`).
+- Workshop stories: **108** extracted surfaces (full catalog). Workshop UI runs live `setup()` for controller-bound explorer demos; extraction still strips `setup`.
+- Content explorer: folder host chrome + **Metadata query chrome** docs-site variant (`docs-site/explorer-metadata-demo.ts`) — host-owned, not a controller view mode.
 - Foundations: theming + motion docs; `src/foundations/motion`; style bridge CLI; explorer host bindings for filter-bar / saved views.
 - Build-alongs: Explorer + Share + Preview lessons in `docs-site/lessons.ts` (Share/Preview are attribute/JSON + events; Explorer uses mock transport).
 
@@ -143,6 +144,6 @@ organized into **systemic sweeps**, not per-component rewrites.
   `getMirroredFormValue(el.internals)` in tests.
 
 ## Open user-facing threads
-- Fidelity program complete; #44–**#58** merged; workshop at **101** extracted stories.
+- Fidelity program complete; workshop at **108** extracted stories; explorer metadata host chrome shipped.
 - `recents` still needs a transport contract; list/table presentation swap remains host-owned.
-- Next: React adapter PoC; opportunistic motion-literal migration; optional explorer-adapter host demos.
+- Next: React adapter PoC; opportunistic motion-literal migration.

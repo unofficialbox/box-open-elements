@@ -14,8 +14,8 @@ export interface StoryVariant {
   name: string;
   /** The canonical HTML for this variant (custom-element markup). */
   html: string;
-  /** Bind rich properties that can't be expressed as attributes. */
-  setup?: (root: HTMLElement) => void;
+  /** Bind rich properties that can't be expressed as attributes (workshop runtime only; stripped on extract). */
+  setup?: (root: HTMLElement) => void | (() => void);
   /** Optional one-line note shown under the variant. */
   note?: string;
 }

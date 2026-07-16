@@ -159,10 +159,28 @@ const unbindViews = bindSavedViewPickerToExplorer(picker, explorer, {
 
 The docs-site `content-explorer` preview and the screenshot gallery compose this chrome with local presets (Plans / PDFs / All files) against the mock transport.
 
+## Metadata-query host chrome (not a controller view mode)
+
+Docs-site ships a second **Metadata query chrome** variant on the `content-explorer` page (`docs-site/explorer-metadata-demo.ts`):
+
+```text
+box-metadata-filter-builder
+  → MetadataDataSource.query(...)
+  → map hits to ExplorerItem[]
+  → ContentExplorerController + box-explorer-toolbar / box-explorer-table
+box-metadata-inspector  ← selection-changed
+```
+
+Rules:
+
+- Do **not** add a `metadata` value to `ExplorerViewMode` (`folder | search` only).
+- The host owns the query, result mapping, and inspector wiring.
+- Workshop adapter stories use live `setup()` + `ContentExplorerController`; extraction still strips `setup` for docs-site JSON.
+
 ## Lessons carried from the original recreation plan
 
 - **Enrich the item contract.** — done (optional summary fields above).
 - **Search belongs in the contract and the controller.** — done for folder \| search with toolbar + results-header chrome; host filter-bar / saved-view binding shipped.
-- **Metadata-query browsing is a separate pattern.** Box's explorer mixes metadata-based views into the same element; keep metadata query in `patterns/metadata` with its own composed surface.
+- **Metadata-query browsing is a separate pattern.** — host chrome demo ships; keep query ownership in `patterns/metadata`, not inside the explorer controller.
 - **Workflow state (create-folder, rename, delete, upload, share handoff, preview handoff) deserves reusable headless seams**, not element-private shell logic.
 - **Preview-platform responsibilities stay out.** Preview dialogs, preview navigation, preview sidebars, and open-with belong to the preview pattern (and historically to the sibling `box-open-preview` repo). The explorer integrates; it does not duplicate.

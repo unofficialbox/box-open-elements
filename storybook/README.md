@@ -47,5 +47,7 @@ import map, or Storybook runtime is required.
 2. Register it in `registry.ts`.
 3. `bun run storybook:extract` to refresh the JSON.
 
-Keep variants attribute-only where possible — variants that need imperative
-`setup()` don't serialize and, per the doc, are poorer extraction candidates.
+Keep variants attribute-only where possible — `setup()` is stripped from
+`workshop.json` (docs-site extraction) but the workshop UI (`app.ts`) imports
+live `storyModules` and runs `setup()` for controller-bound demos such as
+explorer adapters.

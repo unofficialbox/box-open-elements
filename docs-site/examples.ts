@@ -5,8 +5,6 @@
  * back to a bare element with a `label` attribute.
  */
 import {
-  ContentExplorerController,
-  type ExplorerTransport,
   type InviteCollaboratorsTransport,
   type PresenceTransport,
   type PresenceUser,
@@ -18,123 +16,44 @@ import {
   contentExplorerChromeNote,
   setupContentExplorerChrome,
 } from "./explorer-chrome-demo.js";
+import {
+  createExplorerDemoTransport,
+  setupExplorerAdapter,
+} from "./explorer-adapter-demo.js";
+import {
+  contentExplorerMetadataChromeHtml,
+  contentExplorerMetadataChromeNote,
+  setupContentExplorerMetadataChrome,
+} from "./explorer-metadata-demo.js";
 
 /** Optional return value unsubscribes host listeners when the preview remounts. */
 type SetupFn = (root: HTMLElement) => void | (() => void);
 
-export interface ComponentExample {
+export interface ExampleVariant {
+  name: string;
   html: string;
   setup?: SetupFn;
   note?: string;
 }
 
-const mockOwner = { id: "u1", name: "Morgan Lee", type: "user" as const };
+export interface ComponentExample {
+  html: string;
+  setup?: SetupFn;
+  note?: string;
+  /** Live docs-site variants with setup (preferred over extracted workshop HTML). */
+  variants?: ExampleVariant[];
+}
 
-const mockItems = [
-  {
-    id: "42",
-    name: "Marketing",
-    type: "folder" as const,
-    modifiedAt: "2026-06-12T15:00:00.000Z",
-    owner: mockOwner,
-  },
-  {
-    id: "77",
-    name: "Legal",
-    type: "folder" as const,
-    modifiedAt: "2026-05-01T12:00:00.000Z",
-    owner: mockOwner,
-  },
-  {
-    id: "123",
-    name: "Quarterly Plan.pdf",
-    type: "file" as const,
-    size: 2_400_000,
-    modifiedAt: "2026-07-10T18:30:00.000Z",
-    extension: "pdf",
-    owner: mockOwner,
-    sharedLink: { isShared: true, access: "company" as const },
-    preview: { canPreview: true, extension: "pdf" },
-  },
-  {
-    id: "124",
-    name: "Brand Guidelines.pdf",
-    type: "file" as const,
-    size: 5_120_000,
-    modifiedAt: "2026-07-01T09:15:00.000Z",
-    extension: "pdf",
-    owner: mockOwner,
-    sharedLink: { isShared: false },
-    preview: { canPreview: true, extension: "pdf" },
-  },
-  {
-    id: "125",
-    name: "box.com/launch",
-    type: "web_link" as const,
-    modifiedAt: "2026-04-20T11:00:00.000Z",
-    owner: mockOwner,
-  },
-];
+/** Re-export for gallery / tests that still import the mock transport by this name. */
+export const createMockTransport = createExplorerDemoTransport;
 
-export const createMockTransport = (): ExplorerTransport => ({
-  async loadFolderItems({ folderId }) {
-    const root = folderId === "0";
-    return {
-      folderId,
-      folder: { id: folderId, name: root ? "All Files" : "Marketing", type: "folder" },
-      breadcrumbs: root
-        ? [{ id: "0", name: "All Files", type: "folder" }]
-        : [
-            { id: "0", name: "All Files", type: "folder" },
-            { id: "42", name: "Marketing", type: "folder" },
-          ],
-      items: mockItems.map(item => ({
-        ...item,
-        parent: root ? { id: "0", name: "All Files" } : { id: "42", name: "Marketing" },
-      })),
-      pagination: { hasMoreItems: true, limit: 25, offset: 0, totalCount: 120 },
-    };
-  },
-  async searchItems({ query, ancestorFolderId, limit = 25, offset = 0 }) {
-    const normalized = query.trim().toLowerCase();
-    const matches = mockItems
-      .filter(item => item.name.toLowerCase().includes(normalized))
-      .map(item => ({
-        ...item,
-        parent: { id: ancestorFolderId ?? "0", name: ancestorFolderId === "42" ? "Marketing" : "All Files" },
-      }));
-    const page = matches.slice(offset, offset + limit);
-    return {
-      query,
-      ancestorFolderId,
-      items: page,
-      pagination: {
-        hasMoreItems: offset + page.length < matches.length,
-        limit,
-        offset,
-        totalCount: matches.length,
-        nextOffset: offset + page.length,
-      },
-    };
-  },
-});
-
-const explorerAdapterSetup = (selector: string): SetupFn => root => {
-  const controller = new ContentExplorerController({
-    rootFolderId: "0",
-    token: "docs-token",
-    transport: createMockTransport(),
-    itemActions: [
-      { id: "share", label: "Share" },
-      { id: "download", label: "Download", itemTypes: ["file"] },
-    ],
-  });
-  const element = root.querySelector(selector) as (HTMLElement & { controller: unknown }) | null;
-  if (element) {
-    element.controller = controller;
-  }
-  void controller.connect().then(() => controller.toggleSelection("123"));
-};
+const explorerAdapterSetup =
+  (selector: string, options?: { selectItemId?: string; itemId?: string }): SetupFn =>
+  root =>
+    setupExplorerAdapter(root, selector, {
+      selectItemId: options?.selectItemId ?? "123",
+      itemId: options?.itemId,
+    });
 
 const set = (root: HTMLElement, selector: string, props: Record<string, unknown>): void => {
   const element = root.querySelector(selector) as (HTMLElement & Record<string, unknown>) | null;
@@ -494,6 +413,20 @@ export const examples: Record<string, ComponentExample> = {
     html: contentExplorerChromeHtml,
     setup: root => setupContentExplorerChrome(root, createMockTransport()),
     note: contentExplorerChromeNote,
+    variants: [
+      {
+        name: "Folder host chrome",
+        html: contentExplorerChromeHtml,
+        setup: root => setupContentExplorerChrome(root, createMockTransport()),
+        note: contentExplorerChromeNote,
+      },
+      {
+        name: "Metadata query chrome",
+        html: contentExplorerMetadataChromeHtml,
+        setup: root => setupContentExplorerMetadataChrome(root),
+        note: contentExplorerMetadataChromeNote,
+      },
+    ],
   },
   "explorer-breadcrumbs": { html: `<box-explorer-breadcrumbs></box-explorer-breadcrumbs>`, setup: explorerAdapterSetup("box-explorer-breadcrumbs"), note: "Driven by a shared ContentExplorerController with a mock transport." },
   "explorer-toolbar": { html: `<box-explorer-toolbar></box-explorer-toolbar>`, setup: explorerAdapterSetup("box-explorer-toolbar"), note: "Driven by a shared ContentExplorerController with a mock transport." },
@@ -502,12 +435,8 @@ export const examples: Record<string, ComponentExample> = {
   "explorer-items": { html: `<box-explorer-items></box-explorer-items>`, setup: explorerAdapterSetup("box-explorer-items"), note: "Driven by a shared ContentExplorerController with a mock transport." },
   "explorer-action-menu": {
     html: `<box-explorer-action-menu></box-explorer-action-menu>`,
-    setup: root => set(root, "box-explorer-action-menu", {
-      actions: [
-        { id: "share", label: "Share" },
-        { id: "download", label: "Download" },
-      ],
-    }),
+    setup: explorerAdapterSetup("box-explorer-action-menu", { itemId: "123", selectItemId: "123" }),
+    note: "Controller-bound item actions for Quarterly Plan.pdf (itemId + ContentExplorerController).",
   },
   "filter-bar": {
     html: `<box-filter-bar label="Filters" query="contract"></box-filter-bar>`,
