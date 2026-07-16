@@ -9,7 +9,7 @@ Bring box-open-elements everyday controls closer to [box-ui-elements](https://gi
 - [x] Branch `cursor/bue-visual-p0-controls-7eb7`
 - [x] `src/foundations/geometry` BDL constants + docs
 - [x] Restyle `box-button`, `box-text-field`, `box-select`, `box-checkbox`, `box-switch`
-- [ ] Tests + BACKLOG/HANDOFF + `bun run verify` + baselines + PR
+- [x] Tests + BACKLOG/HANDOFF + `bun run verify` + baselines + PR
 
 ## Decision Log
 
