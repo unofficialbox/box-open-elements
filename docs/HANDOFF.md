@@ -1,8 +1,8 @@
 # Handoff — box-open-elements
 
 Snapshot for the next agent picking up this work. Read this first, then
-`BACKLOG.md`, `docs/foundations/brand.md` (product illustrations + open Figma Imagery
-frame), `docs/foundations/tokens.md` (token consumption vs shell contract), and
+`BACKLOG.md`, `docs/foundations/brand.md` (imagery from Blueprint / UI Elements),
+`docs/foundations/tokens.md` (token consumption vs shell contract), and
 `docs/audits/component-fidelity-audit.md` (completed fidelity program).
 
 ## What this repo is
@@ -27,9 +27,8 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
 - Recent merged PRs: fidelity Batches 0–7 + #41–**#46** (through iconography generator
   #45 and token-vs-shell guidance #46).
-- **Open PR #47:** brand imagery docs — product-illustration contract from shipped
-  assets; Figma Imagery frame still needs a file URL + access
-  (`cursor/brand-imagery-review-7eb7`).
+- **Open PR #47:** brand imagery inferred from `@box/blueprint-web-assets` +
+  `box-ui-elements` (no Figma) — `cursor/brand-imagery-review-7eb7`.
 
 ## Completed initiative: component fidelity program
 
@@ -144,7 +143,6 @@ organized into **systemic sweeps**, not per-component rewrites.
 
 ## Open user-facing threads
 - Fidelity program complete; #44–#46 merged (guidance cards, token-vs-shell, iconography generator).
-- Brand imagery: document product-illustration contract from registry/`box-illustration`;
-  **blocked on Figma** for photography/marketing Imagery-frame review (no file URL in-repo).
+- Brand imagery closed from Blueprint + UI Elements product illustrations (**PR #47**).
 - Next: grow workshop guidance coverage with real stories/notes; Theming/Motion docs
   only with real content.

@@ -1,19 +1,13 @@
 # Box Brand Reference
 
-This document summarizes the Box brand-style-guide signals used for the Box design-system pass in the docs site and component library.
+This document summarizes the Box brand signals used for the docs site and
+component library. Sources are **shipped product assets**, not a Figma file:
 
-## Source frames
-
-Reviewed in the original brand pass (file URL not recorded in-repo):
-
-- Introduction: Figma node `152:203`
-- Typography: Figma node `294:1087`
-- Color: Figma node `294:1838`
-- Logos: Figma node `294:440`
-
-Not reviewed (session hit a Figma tool-call limit; imagery node id never captured):
-
-- Imagery — still needs a direct Figma review once a file URL + access are available
+| Source | What we take from it |
+| --- | --- |
+| `@box/blueprint-web-assets` | Design tokens (incl. illustration surfaces) and Blueprint illustration SVGs (Small / Medium / Large / Animated) |
+| `box-ui-elements` | Product illustration set (`es/illustration/*`, sized **56** / **140**) and empty-state icons (`src/icons/states/*`) |
+| This package | Token registry (`--boe-token-*`), curated illustration keys, and `box-illustration` / `box-empty-state` composition |
 
 ## Typography
 
@@ -37,19 +31,30 @@ Not reviewed (session hit a Figma tool-call limit; imagery node id never capture
 
 ## Imagery
 
-### Product illustrations (shipped library contract)
+Box product UI does **not** use lifestyle photography or multi-hue marketing art
+in empty/education moments. Upstream illustrations are **monochrome vector art**
+painted with the illustration surface token (Box blue), layered with opacity for
+depth.
 
-Until the brand-style-guide Imagery frame is reviewed, product UI must follow the
-**illustration contract already in this repo** — not invented photography or
-marketing art direction:
+### Visual rules (from Blueprint + UI Elements)
+
+| Rule | Evidence |
+| --- | --- |
+| Paint with the illustration token | Blueprint SVGs use `var(--surface-illustration-surface-box-neutral)` (resolves to Box blue `#0061d5`); UI Elements design tokens describe it as the color for illustrations |
+| Layer opacity, not extra hues | Typical fills use full / `0.25` / `0.1` opacity of that single surface — not a rainbow palette |
+| Size for the moment | UI Elements illustrations are named with **56** (compact) or **140** (hero empty/education); Blueprint groups Small / Medium / Large / Animated |
+| Use for empty / education / error interstitials | UI Elements `illustration/*` and `icons/states/*` (e.g. `FolderEmptyState`, `SearchEmptyState`, `ErrorEmptyState`, `UploadEmptyState`) |
+| Prefer icons for chrome | Dense toolbars and list rows use iconography; illustrations are for larger empty or onboarding surfaces (see [iconography.md](./iconography.md)) |
+| Do not invent photography | No partner/trademark page or UI Elements package ships a photo style for product chrome — stay on vector illustrations |
+
+### Library contract in this repo
 
 | Rule | Detail |
 | --- | --- |
 | Registry keys | Prefer `resolveDesignIllustration(name)` / `box-illustration` `asset` over one-off SVGs inside feature components |
-| Built-in keys | Box default bundle ships `empty-state-folder` and `files-information` (see `src/foundations/tokens/box-defaults.ts`) |
-| Paint | Illustration fills use `--boe-token-surface-illustration-*` (Box default neutral illustration surface is brand blue `#0061d5`) |
-| Composition | Empty / educational states pair illustration art with `heading` + `message` (see `box-empty-state`, `box-illustration`) |
-| Icons vs art | Compact chrome uses iconography (`docs/foundations/iconography.md`); larger empty/education moments use illustrations |
+| Built-in keys | Box default bundle ships `empty-state-folder` and `files-information` (adapted from the UI Elements / Blueprint empty-folder and files motifs) |
+| Paint | Illustration fills use `--boe-token-surface-illustration-*` with Box-blue fallbacks |
+| Composition | Empty / educational states pair art with `heading` + `message` (`box-illustration`, `box-empty-state`) |
 
 ```ts
 import { resolveDesignIllustration } from "box-open-elements/foundations/tokens";
@@ -61,11 +66,8 @@ const markup = resolveDesignIllustration("empty-state-folder");
 <box-illustration asset="empty-state-folder" heading="Nothing here yet" message="Upload a file to get started."></box-illustration>
 ```
 
-### Marketing / photography (Figma Imagery frame — open)
-
-- Do **not** invent a distinct photography, lifestyle, or marketing-illustration style for this library.
-- Closing that gap requires reviewing the Box brand-style-guide **Imagery** frame in Figma (file URL + access). Capture the node id next to the frames above when that happens.
-- Public Box partner / trademark pages cover logo and naming only — they are not a substitute for the Imagery frame.
+Expanding the illustration inventory means porting more Blueprint / UI Elements
+assets into the design-system registry — not inventing a new art direction.
 
 ## Implementation rules
 

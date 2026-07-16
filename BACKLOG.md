@@ -18,7 +18,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 - Iconography generator shipped (#45): `tools/iconography/`, `bun run icons:generate`. Full 472-icon manifest already vendored; regenerate from the external pack when the inventory updates (see `docs/foundations/iconography.md`).
 - Token consumption vs shell / consumer overrides documented in `docs/foundations/tokens.md`; docs-site API tab lists derived `--boe-token-*` usage from live preview shadow styles (#46). No per-component strategy fields — source-level styling is the contract.
-- Brand imagery: product-illustration contract documented from shipped registry/`box-illustration` assets in `docs/foundations/brand.md` (**open PR #47**). **Still open:** direct review of the Box brand-style-guide Imagery Figma frame (file URL + access not in-repo; do not invent photography/marketing art direction).
+- Brand imagery closed from Blueprint + `box-ui-elements` product illustrations (monochrome Box-blue vectors for empty/education states) — see `docs/foundations/brand.md`. No Figma dependency.
 - Add Theming and Motion foundation docs when there is real content for them (do not create placeholder pages).
 
 ## Patterns
