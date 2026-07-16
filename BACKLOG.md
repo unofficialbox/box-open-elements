@@ -48,7 +48,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 | --- | --- | --- |
 | Framework adapters | Thin React wrapper PoC for one everyday control (e.g. `box-button`) | Optional layer; do not block Web Component work |
 | Preview / Box AI | Keep annotation + provider-adapter seams provider-neutral; document AI-specific UI only when contract-stable | See `docs/patterns/preview.md` |
-| Build-along lessons | Author next lesson (preview) on existing lesson infra | Explorer + Share lessons ship; keep scaffolding lesson-generic |
+| Build-along lessons | Author next lesson only when a new workflow needs guided teaching | Explorer + Share + Preview lessons ship; keep scaffolding lesson-generic |
 | Explorer recents | Transport + controller `recents` mode after contract exists | Host filter-bar / saved-view binding already available |
 | Motion migration | Opportunistic replacement of hard-coded `120ms`/`140ms` literals | Foundation vocabulary already exists |
 | Style-bridge configs | First real third-party stylesheet mapping | Engine/CLI already ship |

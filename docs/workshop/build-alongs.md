@@ -90,6 +90,19 @@ The share-panel build-along, on the same lesson infra:
 
 Deliberately scoped to the attribute/JSON-driven panel — no invite modal, no explorer selection wiring, no transport.
 
+## Third lesson: Preview
+
+The preview-element build-along, on the same lesson infra:
+
+- **Step 0 — Setup.** Blank running app: Box design system registered, `<box-preview-element>` defined, nothing mounted.
+- **Step 1 — render the shell.** Mount the preview with a heading.
+- **Step 2 — item chrome.** Wire `item-label`, `status`, and `message`.
+- **Step 3 — provider.** Set the `provider` JSON property.
+- **Step 4 — adapter state.** Publish page/zoom via `adapterState`.
+- **Step 5 — actions + events.** Host-owned actions; listen for `action` and `provider-action`.
+
+Deliberately scoped to the attribute/JSON-driven shell — no slotted toolbar/stage, no live providerAdapter, no annotation surfaces.
+
 ## Authoring boundary
 
 - Build-alongs are hand-curated guided lessons and stay **outside** the Storybook extraction path (see [storybook.md](./storybook.md)) — they are workflows, not flat reference pages.

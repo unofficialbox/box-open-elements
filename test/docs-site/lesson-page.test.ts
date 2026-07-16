@@ -3,7 +3,8 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { renderLessonPage } from "../../docs-site/lesson-page.js";
-import { shareLesson } from "../../docs-site/lessons.js";
+import { previewLesson, shareLesson } from "../../docs-site/lessons.js";
+import { defineBoxPreviewElement } from "../../src/patterns/preview/preview-element.js";
 import { defineBoxSharePanelElement } from "../../src/patterns/share/share-panel.js";
 
 describe("docs-site Share lesson page previews", () => {
@@ -68,5 +69,61 @@ describe("docs-site Share lesson page previews", () => {
 
     teardown();
     expect(stage.querySelectorAll("box-share-panel")).toHaveLength(0);
+  });
+});
+
+describe("docs-site Preview lesson page previews", () => {
+  beforeEach(() => {
+    defineBoxPreviewElement();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("mounts preview states, forwards events, and tears down cleanly", () => {
+    const stage = document.createElement("div");
+    const breadcrumb = document.createElement("div");
+    document.body.append(stage, breadcrumb);
+
+    const teardown = renderLessonPage(previewLesson, stage, breadcrumb);
+
+    const canvases = [...stage.querySelectorAll<HTMLElement>(".lesson-canvas")];
+    const byPreview = Object.fromEntries(
+      canvases.map(canvas => [canvas.dataset.preview ?? "", canvas]),
+    ) as Record<string, HTMLElement>;
+
+    expect(byPreview.empty?.querySelector(".preview-note")?.textContent).toMatch(/Empty app/);
+    expect(byPreview["preview-shell"]?.querySelector("box-preview-element")).toBeTruthy();
+    expect(byPreview["preview-shell"]?.querySelector("box-preview-element")?.getAttribute("item-label")).toBeNull();
+
+    const meta = byPreview["preview-meta"]?.querySelector("box-preview-element");
+    expect(meta?.getAttribute("item-label")).toBe("PDF · 2.4 MB");
+    expect(meta?.getAttribute("provider")).toBeNull();
+
+    const provider = byPreview["preview-provider"]?.querySelector("box-preview-element");
+    expect(provider?.getAttribute("provider")).toContain("Box Content Preview");
+    expect(provider?.getAttribute("adapter-state")).toBeNull();
+
+    const adapter = byPreview["preview-adapter"]?.querySelector("box-preview-element");
+    expect(adapter?.getAttribute("adapter-state")).toContain("Page 2 of 34");
+    expect(adapter?.getAttribute("actions")).toBeNull();
+
+    const actionsPanel = byPreview["preview-actions"]?.querySelector("box-preview-element") as HTMLElement;
+    expect(actionsPanel?.getAttribute("actions")).toContain("Open provider");
+
+    const actionButton = actionsPanel.shadowRoot?.querySelector(
+      '[data-action-id="open-provider"]',
+    ) as HTMLButtonElement | null;
+    expect(actionButton).toBeTruthy();
+    actionButton?.click();
+
+    const eventList = stage.querySelector("#lesson-event-list")!;
+    const eventNames = [...eventList.querySelectorAll(".event-name")].map(node => node.textContent);
+    expect(eventNames).toContain("action");
+    expect(eventNames).toContain("provider-action");
+
+    teardown();
+    expect(stage.querySelectorAll("box-preview-element")).toHaveLength(0);
   });
 });

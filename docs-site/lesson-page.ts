@@ -25,6 +25,20 @@ type SharePanelElement = HTMLElement & {
     status?: string;
   } | null;
 };
+type ContentPreviewElement = HTMLElement & {
+  actions: Array<{ id: string; label: string; tone?: string }>;
+  adapterState: {
+    ready?: boolean;
+    pageLabel?: string;
+    zoomLabel?: string;
+  } | null;
+  provider: {
+    id: string;
+    label: string;
+    engine?: string;
+    status?: string;
+  } | null;
+};
 type LogFn = (name: string, detail: unknown) => void;
 
 const escapeHtml = (value: string): string =>
@@ -179,6 +193,78 @@ const runSharePreview = (key: PreviewKey, canvas: HTMLElement, log: LogFn): (() 
   return () => cleanups.forEach(fn => fn());
 };
 
+const mountContentPreview = (
+  canvas: HTMLElement,
+  options: {
+    meta?: boolean;
+    provider?: boolean;
+    adapter?: boolean;
+    actions?: boolean;
+  } = {},
+): ContentPreviewElement => {
+  const preview = document.createElement("box-preview-element") as ContentPreviewElement;
+  preview.setAttribute("heading", "Quarterly Plan.pdf");
+  if (options.meta || options.provider || options.adapter || options.actions) {
+    preview.setAttribute("item-label", "PDF · 2.4 MB");
+    preview.setAttribute("status", "Ready");
+    preview.setAttribute("message", "Rendered by the active preview provider.");
+  }
+  if (options.provider || options.adapter || options.actions) {
+    preview.provider = {
+      id: "content-preview",
+      label: "Box Content Preview",
+      engine: "pdf.js",
+      status: "ready",
+    };
+  }
+  if (options.adapter || options.actions) {
+    preview.adapterState = {
+      ready: true,
+      pageLabel: "Page 2 of 34",
+      zoomLabel: "100%",
+    };
+  }
+  if (options.actions) {
+    preview.actions = [
+      { id: "open-provider", label: "Open provider", tone: "primary" },
+      { id: "download", label: "Download" },
+    ];
+  }
+  canvas.append(preview);
+  return preview;
+};
+
+const runContentPreview = (key: PreviewKey, canvas: HTMLElement, log: LogFn): (() => void) => {
+  const cleanups: Array<() => void> = [];
+
+  if (key === "preview-shell") {
+    const preview = mountContentPreview(canvas);
+    cleanups.push(() => preview.remove());
+    return () => cleanups.forEach(fn => fn());
+  }
+
+  const preview = mountContentPreview(canvas, {
+    meta: key === "preview-meta" || key === "preview-provider" || key === "preview-adapter" || key === "preview-actions",
+    provider: key === "preview-provider" || key === "preview-adapter" || key === "preview-actions",
+    adapter: key === "preview-adapter" || key === "preview-actions",
+    actions: key === "preview-actions",
+  });
+  cleanups.push(() => preview.remove());
+
+  if (key === "preview-actions") {
+    const onAction = (event: Event): void => log("action", (event as CustomEvent).detail);
+    const onProviderAction = (event: Event): void => log("provider-action", (event as CustomEvent).detail);
+    preview.addEventListener("action", onAction);
+    preview.addEventListener("provider-action", onProviderAction);
+    cleanups.push(() => {
+      preview.removeEventListener("action", onAction);
+      preview.removeEventListener("provider-action", onProviderAction);
+    });
+  }
+
+  return () => cleanups.forEach(fn => fn());
+};
+
 /** Build the live result for a step. Returns a teardown. */
 const runPreview = (key: PreviewKey, canvas: HTMLElement, log: LogFn): (() => void) => {
   canvas.innerHTML = "";
@@ -193,6 +279,10 @@ const runPreview = (key: PreviewKey, canvas: HTMLElement, log: LogFn): (() => vo
 
   if (key.startsWith("share-")) {
     return runSharePreview(key, canvas, log);
+  }
+
+  if (key.startsWith("preview-")) {
+    return runContentPreview(key, canvas, log);
   }
 
   return runExplorerPreview(key, canvas, log);

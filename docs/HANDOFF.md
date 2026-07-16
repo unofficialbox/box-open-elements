@@ -26,9 +26,9 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + **coverage-gated** tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
   Coverage floors: [docs/coverage-baseline.md](./coverage-baseline.md).
-- Recent merged PRs: fidelity Batches 0–7 + #41–**#56** (workshop batch 4 → **64** surfaces #56; explorer host chrome demo #55; coverage/theming/motion/style-bridge #54).
+- Recent merged PRs: fidelity Batches 0–7 + #41–**#57** (Share build-along #57; workshop batch 4 → **64** surfaces #56; explorer host chrome demo #55; coverage/theming/motion/style-bridge #54).
 - Foundations: theming + motion docs; `src/foundations/motion`; style bridge CLI; explorer host bindings for filter-bar / saved views.
-- Build-alongs: Explorer + Share lessons in `docs-site/lessons.ts` (Share uses attribute/JSON props + `action` / `collaborator-selected` events; no transport).
+- Build-alongs: Explorer + Share + Preview lessons in `docs-site/lessons.ts` (Share/Preview are attribute/JSON + events; Explorer uses mock transport).
 
 ## Completed initiative: component fidelity program
 
@@ -142,6 +142,6 @@ organized into **systemic sweeps**, not per-component rewrites.
   `getMirroredFormValue(el.internals)` in tests.
 
 ## Open user-facing threads
-- Fidelity program complete; #44–**#56** merged (workshop **64** surfaces; coverage gate; theming/motion; style bridge; explorer chrome demo; Share build-along).
+- Fidelity program complete; #44–**#57** merged (workshop **64** surfaces; coverage gate; theming/motion; style bridge; explorer chrome demo; Share build-along).
 - `recents` still needs a transport contract; list/table presentation swap remains host-owned.
-- Next: more workshop stories; Preview build-along; React adapter PoC; opportunistic motion-literal migration.
+- Next: more workshop stories; React adapter PoC; opportunistic motion-literal migration.
