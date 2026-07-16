@@ -78,7 +78,7 @@ const elementStyles = `
         }
 
         [part="summary"] {
-          font-size: 1.65rem;
+          font-size: 1.35rem;
           font-weight: 700;
           line-height: 1;
           letter-spacing: -0.04em;
@@ -187,7 +187,7 @@ const elementStyles = `
         [part="legend"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.75rem;
+          gap: 0.55rem;
         }
 
         [part="legend-item"] {
@@ -234,8 +234,8 @@ const elementStyles = `
         }
 
         [part="empty"] {
-          padding: 0.65rem;
-          border-radius: 0.65rem;
+          padding: 0.7rem;
+          border-radius: 0.7rem;
           border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }

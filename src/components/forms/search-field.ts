@@ -31,7 +31,7 @@ const searchFieldStyles = `
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    padding: 0.3rem 0.3rem 0.3rem 0.85rem;
+    padding: 0.25rem 0.25rem 0.25rem 0.65rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
     border-radius: 0.7rem;
     background:
@@ -85,7 +85,7 @@ const searchFieldStyles = `
     flex: 0 0 auto;
     font: inherit;
     font-weight: 600;
-    padding: 0.42rem 0.85rem;
+    padding: 0.35rem 0.7rem;
     border-radius: 0.5rem;
     cursor: pointer;
     transition:

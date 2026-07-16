@@ -46,10 +46,10 @@ const elementStyles = `
 
         [part="form"] {
           display: grid;
-          gap: 1rem;
-          padding: 1.1rem;
+          gap: 0.55rem;
+          padding: 0.7rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 1rem;
+          border-radius: 0.7rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%, var(--boe-token-surface-surface, #ffffff) 8%);
         }
 
@@ -62,15 +62,15 @@ const elementStyles = `
 
         [part="fields"] {
           display: grid;
-          gap: 0.9rem;
+          gap: 0.55rem;
         }
 
         [part="section"] {
           display: grid;
-          gap: 0.9rem;
-          padding: 1rem;
+          gap: 0.55rem;
+          padding: 0.65rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 52%, transparent);
-          border-radius: 0.9rem;
+          border-radius: 0.7rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 68%, transparent);
         }
 
@@ -90,7 +90,7 @@ const elementStyles = `
         [part="checkbox-field"] {
           display: grid;
           grid-template-columns: auto 1fr;
-          gap: 0.75rem;
+          gap: 0.55rem;
           align-items: start;
         }
 
@@ -109,9 +109,9 @@ const elementStyles = `
         }
 
         [part="field-value"] {
-          padding: 0.8rem 0.9rem;
+          padding: 0.45rem 0.7rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
-          border-radius: 0.85rem;
+          border-radius: 0.55rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 82%, transparent);
           color: rgba(35, 32, 28, 0.94);
           min-block-size: 1.25rem;
@@ -126,9 +126,9 @@ const elementStyles = `
         [part="input"] {
           width: 100%;
           min-width: 0;
-          padding: 0.8rem 0.9rem;
+          padding: 0.45rem 0.7rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
-          border-radius: 0.85rem;
+          border-radius: 0.55rem;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
           box-sizing: border-box;
@@ -141,7 +141,7 @@ const elementStyles = `
 
         [part="actions"] {
           display: flex;
-          gap: 0.75rem;
+          gap: 0.55rem;
           justify-content: flex-end;
         }
 
@@ -149,7 +149,7 @@ const elementStyles = `
         [part="cancel"] {
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
           border-radius: 999px;
-          padding: 0.75rem 1.1rem;
+          padding: 0.4rem 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
           font: inherit;

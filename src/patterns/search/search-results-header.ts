@@ -37,17 +37,17 @@ const elementStyles = `
 
         [part="header"] {
           display: grid;
-          gap: 0.9rem;
-          padding: 1rem 1.1rem;
+          gap: 0.55rem;
+          padding: 0.7rem;
           border: 1px solid var(--_obp-border);
-          border-radius: 1rem;
+          border-radius: 0.7rem;
           background: var(--_obp-surface-muted);
         }
 
         [part="topline"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 1rem;
+          gap: 0.55rem;
           align-items: start;
           justify-content: space-between;
         }
@@ -66,7 +66,7 @@ const elementStyles = `
         }
 
         [part="count"] {
-          font-size: 1.4rem;
+          font-size: 1.35rem;
           font-weight: 700;
           line-height: 1.1;
         }
@@ -79,7 +79,7 @@ const elementStyles = `
         [part="actions"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.7rem;
+          gap: 0.55rem;
           align-items: center;
           justify-content: flex-end;
         }
@@ -88,7 +88,7 @@ const elementStyles = `
         [part="filter-chip"] {
           border: 1px solid var(--_obp-border-subtle);
           border-radius: 999px;
-          padding: 0.65rem 0.95rem;
+          padding: 0.4rem 0.7rem;
           background: var(--_obp-surface);
           color: inherit;
           font: inherit;

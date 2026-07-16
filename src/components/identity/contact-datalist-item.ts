@@ -21,7 +21,7 @@ const contactStyles = `
   [part="item"] {
     display: flex;
     align-items: center;
-    gap: 0.7rem;
+    gap: 0.55rem;
     padding: 0.5rem 0.65rem;
     border-radius: 0.6rem;
     cursor: pointer;

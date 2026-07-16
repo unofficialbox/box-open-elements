@@ -85,4 +85,15 @@ describe("BoxAppShellElement", () => {
     expect(containerRule).toContain("border-bottom:");
     expect(containerRule).toContain("border-top:");
   });
+
+  it("uses compact app-shell region padding", () => {
+    const element = document.createElement("box-app-shell") as BoxAppShellElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("padding: 0.65rem 0.75rem;");
+    expect(styles).toContain("padding: 0.65rem;");
+    expect(styles).toContain("padding: 0.7rem;");
+    expect(styles).toContain("padding: 0.55rem 0.75rem;");
+  });
 });

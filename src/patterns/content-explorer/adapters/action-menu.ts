@@ -104,7 +104,7 @@ const elementStyles = `
           display: grid;
           gap: 0.2rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-          border-radius: 0.95rem;
+          border-radius: 0.7rem;
           background: var(--boe-token-surface-surface, #ffffff);
           box-shadow: 0 18px 32px rgba(0, 67, 146, 0.12);
         }

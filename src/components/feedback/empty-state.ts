@@ -14,9 +14,9 @@ const emptyStateStyles = `
     display: grid;
     justify-items: center;
     gap: 0.55rem;
-    padding: 2rem 1.5rem;
+    padding: 1.1rem 1rem;
     border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.95rem;
+    border-radius: 0.75rem;
     background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
     text-align: center;
   }
@@ -44,7 +44,7 @@ const emptyStateStyles = `
     color: var(--boe-token-text-text-on-brand, #ffffff);
     font: inherit;
     font-weight: 600;
-    padding: 0.58rem 1.05rem;
+    padding: 0.5rem 0.9rem;
     cursor: pointer;
     transition: background 140ms ease, transform 140ms ease;
   }

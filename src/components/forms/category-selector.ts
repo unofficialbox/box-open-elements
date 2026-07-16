@@ -31,7 +31,7 @@ const categorySelectorStyles = `
 
   [part~="pill"] {
     appearance: none;
-    padding: 0.4rem 0.85rem;
+    padding: 0.35rem 0.7rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
     border-radius: 999px;
     background: var(--boe-token-surface-surface, #ffffff);

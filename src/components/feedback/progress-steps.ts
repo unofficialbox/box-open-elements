@@ -32,12 +32,12 @@ const progressStepsStyles = `
     appearance: none;
     display: flex;
     align-items: start;
-    gap: 0.7rem;
+    gap: 0.55rem;
     width: 100%;
     text-align: left;
-    padding: 0.7rem 0.8rem;
+    padding: 0.55rem 0.65rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 56%, transparent);
-    border-radius: 0.95rem;
+    border-radius: 0.75rem;
     background: var(--boe-token-surface-surface, #ffffff);
     color: inherit;
     font: inherit;

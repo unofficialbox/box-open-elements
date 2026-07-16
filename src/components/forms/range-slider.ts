@@ -40,7 +40,7 @@ const rangeSliderStyles = `
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.8rem;
+    gap: 0.55rem;
   }
 
   [part="label"] {

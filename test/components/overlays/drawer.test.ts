@@ -107,4 +107,17 @@ describe("BoxDrawerElement", () => {
 
     expect(element.parentNode).toBe(wrapper);
   });
+
+  it("uses compact drawer shell styles", () => {
+    const element = document.createElement("box-drawer") as BoxDrawerElement;
+    document.body.append(element);
+    element.show();
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("border-top-right-radius: 0.75rem;");
+    expect(styles).toContain("padding: 1.05rem 1.05rem 0.85rem;");
+    expect(styles).toContain("font-size: 1.1rem;");
+    expect(styles).toContain("border-radius: 0.7rem;");
+    expect(styles).toContain("padding: 1.05rem;");
+  });
 });

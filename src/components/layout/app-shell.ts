@@ -28,7 +28,7 @@ const appShellStyles = `
     align-items: center;
     justify-content: space-between;
     gap: 0.6rem;
-    padding: 0.75rem 0.9rem;
+    padding: 0.65rem 0.75rem;
     border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
     background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
   }
@@ -69,19 +69,19 @@ const appShellStyles = `
   }
 
   [part="nav"] {
-    padding: 0.75rem;
+    padding: 0.65rem;
     border-right: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
     background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
   }
 
   [part="main"] {
     min-width: 0;
-    padding: 0.85rem;
+    padding: 0.7rem;
     background: var(--boe-token-surface-surface, #ffffff);
   }
 
   [part="aside"] {
-    padding: 0.75rem;
+    padding: 0.65rem;
     border-left: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
     background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
   }
@@ -105,7 +105,7 @@ const appShellStyles = `
   }
 
   [part="footer"] {
-    padding: 0.6rem 0.9rem;
+    padding: 0.55rem 0.75rem;
     border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
     background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
     color: var(--boe-token-text-text-secondary, #6f6f6f);

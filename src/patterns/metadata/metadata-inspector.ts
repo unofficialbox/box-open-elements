@@ -33,10 +33,10 @@ const elementStyles = `
 
         [part="inspector"] {
           display: grid;
-          gap: 1rem;
-          padding: 1.1rem;
+          gap: 0.55rem;
+          padding: 0.7rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 1rem;
+          border-radius: 0.7rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
         }
 
@@ -54,7 +54,7 @@ const elementStyles = `
         }
 
         [part="title"] {
-          font-size: 1.35rem;
+          font-size: 1.1rem;
           font-weight: 700;
           line-height: 1.15;
         }
@@ -66,7 +66,7 @@ const elementStyles = `
 
         [part="section"] {
           display: grid;
-          gap: 0.7rem;
+          gap: 0.55rem;
         }
 
         [part="section-title"] {
@@ -79,7 +79,7 @@ const elementStyles = `
 
         [part="section-fields"] {
           display: grid;
-          gap: 0.75rem;
+          gap: 0.55rem;
           margin: 0;
         }
 
@@ -89,8 +89,8 @@ const elementStyles = `
           width: 100%;
           text-align: left;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 56%, transparent);
-          border-radius: 0.9rem;
-          padding: 0.8rem 0.9rem;
+          border-radius: 0.7rem;
+          padding: 0.55rem 0.65rem;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
           font: inherit;
@@ -101,7 +101,7 @@ const elementStyles = `
 
         [part="field-header"] {
           display: flex;
-          gap: 0.8rem;
+          gap: 0.55rem;
           align-items: start;
           justify-content: space-between;
         }

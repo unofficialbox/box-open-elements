@@ -114,6 +114,16 @@ describe("BoxGridViewElement", () => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ detail: { value: "3" } }));
   });
 
+  it("uses compact tile and empty-state shell styles", () => {
+    const element = createGridView();
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("gap: 0.55rem;");
+    expect(styles).toContain("padding: 0.7rem 0.65rem;");
+    expect(styles).toContain("border-radius: 0.7rem;");
+    expect(styles).toContain("padding: 0.7rem;");
+  });
+
   it("includes focus-visible and interactive styles for tiles", () => {
     const element = createGridView();
 

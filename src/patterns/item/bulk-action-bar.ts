@@ -41,17 +41,17 @@ const elementStyles = `
 
         [part="bar"] {
           display: grid;
-          gap: 1rem;
-          padding: 1rem 1.1rem;
+          gap: 0.55rem;
+          padding: 0.65rem 0.75rem;
           border: 1px solid var(--_obp-border);
-          border-radius: 1rem;
+          border-radius: 0.7rem;
           background: var(--_obp-surface-muted);
         }
 
         [part="topline"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.85rem;
+          gap: 0.55rem;
           align-items: center;
           justify-content: space-between;
         }
@@ -70,7 +70,7 @@ const elementStyles = `
         }
 
         [part="count"] {
-          font-size: 1.4rem;
+          font-size: 1.35rem;
           font-weight: 700;
           line-height: 1.1;
         }
@@ -90,7 +90,7 @@ const elementStyles = `
           display: inline-flex;
           align-items: center;
           gap: 0.45rem;
-          padding: 0.55rem 0.75rem;
+          padding: 0.4rem 0.65rem;
           border: 1px solid var(--_obp-border-subtle);
           border-radius: 999px;
           background: var(--_obp-surface);
@@ -108,7 +108,7 @@ const elementStyles = `
         [part="actions"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.7rem;
+          gap: 0.55rem;
           align-items: center;
           justify-content: flex-end;
         }
@@ -117,7 +117,7 @@ const elementStyles = `
         [part="clear"] {
           border: 1px solid var(--_obp-border-subtle);
           border-radius: 999px;
-          padding: 0.7rem 1rem;
+          padding: 0.4rem 0.7rem;
           background: var(--_obp-surface);
           color: inherit;
           font: inherit;

@@ -26,7 +26,7 @@ const buttonStyles = `
     font: inherit;
     font-weight: 600;
     line-height: 1.2;
-    padding: 0.55em 1.1em;
+    padding: 0.45em 1em;
     border-radius: 0.75rem;
     border: 1px solid transparent;
     cursor: pointer;

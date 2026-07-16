@@ -45,17 +45,17 @@ const elementStyles = `
 
         [part="panel"] {
           display: grid;
-          gap: 0.875rem;
-          padding: 0.95rem;
+          gap: 0.55rem;
+          padding: 0.7rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 1rem;
+          border-radius: 0.7rem;
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, var(--boe-token-surface-surface, #ffffff) 4%);
         }
 
         [part="header"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.75rem;
+          gap: 0.55rem;
           justify-content: space-between;
           align-items: start;
         }
@@ -80,7 +80,7 @@ const elementStyles = `
         }
 
         [part="summary"] {
-          font-size: 1.65rem;
+          font-size: 1.35rem;
           font-weight: 700;
           line-height: 1.05;
           letter-spacing: -0.03em;
@@ -115,7 +115,7 @@ const elementStyles = `
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
           font: inherit;
-          padding: 0.58rem 0.9rem;
+          padding: 0.4rem 0.7rem;
           cursor: pointer;
         }
 
@@ -128,9 +128,9 @@ const elementStyles = `
         [part="visual"] {
           display: grid;
           grid-template-rows: auto auto;
-          gap: 0.65rem;
+          gap: 0.55rem;
           padding: 0.2rem 0.2rem 0.45rem;
-          border-radius: 0.85rem;
+          border-radius: 0.7rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, #eef4fb 14%);
         }
@@ -261,8 +261,8 @@ const elementStyles = `
         }
 
         [part="empty"] {
-          padding: 1rem;
-          border-radius: 0.9rem;
+          padding: 0.7rem;
+          border-radius: 0.7rem;
           border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }

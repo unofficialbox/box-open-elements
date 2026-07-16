@@ -85,6 +85,14 @@ describe("BoxTooltipElement", () => {
     expect(styles).toContain("--boe-token-surface-surface-brand");
   });
 
+  it("uses compact tooltip panel radius", () => {
+    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("border-radius: 0.75rem;");
+  });
+
   it("uses a custom trigger label when provided", () => {
     const element = document.createElement("box-tooltip") as BoxTooltipElement;
     element.label = "Retention policy details";

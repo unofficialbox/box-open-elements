@@ -37,10 +37,10 @@ const builderStyles = `
 
   [part="builder"] {
     display: grid;
-    gap: 0.9rem;
-    padding: 1rem 1.1rem;
+    gap: 0.55rem;
+    padding: 0.7rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 1rem;
+    border-radius: 0.7rem;
     background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
   }
 
@@ -54,13 +54,13 @@ const builderStyles = `
 
   [part="rules"] {
     display: grid;
-    gap: 0.75rem;
+    gap: 0.55rem;
   }
 
   [part="rule"] {
     display: grid;
     grid-template-columns: minmax(10rem, 1fr) minmax(8rem, 0.8fr) minmax(12rem, 1.2fr) auto;
-    gap: 0.65rem;
+    gap: 0.55rem;
     align-items: center;
   }
 
@@ -68,9 +68,9 @@ const builderStyles = `
   [part="input"] {
     width: 100%;
     min-width: 0;
-    padding: 0.75rem 0.85rem;
+    padding: 0.45rem 0.7rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
-    border-radius: 0.85rem;
+    border-radius: 0.55rem;
     background: var(--boe-token-surface-surface, #ffffff);
     color: inherit;
     font: inherit;
@@ -81,7 +81,7 @@ const builderStyles = `
   [part="remove"] {
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
     border-radius: 999px;
-    padding: 0.65rem 0.95rem;
+    padding: 0.4rem 0.7rem;
     background: var(--boe-token-surface-surface, #ffffff);
     color: inherit;
     font: inherit;

@@ -76,4 +76,12 @@ describe("BoxProgressStepsElement", () => {
 
     expect(element.value).toBe("review");
   });
+
+  it("uses compact step shell radius", () => {
+    const element = document.createElement("box-progress-steps") as BoxProgressStepsElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("border-radius: 0.75rem;");
+  });
 });

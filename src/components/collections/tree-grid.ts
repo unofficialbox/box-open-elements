@@ -89,7 +89,7 @@ const treeGridStyles = `
     display: grid;
     gap: 0;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-    border-radius: 0.9rem;
+    border-radius: 0.7rem;
     overflow: hidden;
     background: var(--boe-token-surface-surface, #ffffff);
   }
@@ -215,7 +215,7 @@ const treeGridStyles = `
   ${boeFocusVisibleStyles('[part~="toggle"]')}
 
   [part="empty"] {
-    padding: 0.9rem 0.75rem;
+    padding: 0.7rem 0.65rem;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
   }
 `;

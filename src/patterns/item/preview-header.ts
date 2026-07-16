@@ -45,10 +45,10 @@ const elementStyles = `
 
         [part="header"] {
           display: grid;
-          gap: 0.9rem;
-          padding: 1.1rem;
+          gap: 0.55rem;
+          padding: 0.7rem;
           border: 1px solid var(--_obp-border);
-          border-radius: 1rem;
+          border-radius: 0.7rem;
           background: var(--_obp-surface-muted);
         }
 
@@ -81,13 +81,13 @@ const elementStyles = `
           display: flex;
           flex-wrap: wrap;
           align-items: center;
-          gap: 0.75rem;
+          gap: 0.55rem;
         }
 
         [part="title"] {
           margin: 0;
           font: inherit;
-          font-size: 1.6rem;
+          font-size: 1.15rem;
           font-weight: 700;
           line-height: 1.15;
         }
@@ -112,13 +112,13 @@ const elementStyles = `
         [part="actions"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.75rem;
+          gap: 0.55rem;
         }
 
         [part="action"] {
           border: 1px solid var(--_obp-border-subtle);
           border-radius: 999px;
-          padding: 0.75rem 1rem;
+          padding: 0.4rem 0.7rem;
           background: var(--_obp-surface);
           color: inherit;
           font: inherit;

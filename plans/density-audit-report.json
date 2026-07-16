@@ -1,0 +1,171 @@
+{
+  "generatedAt": "2026-07-16T16:54:28.286Z",
+  "reference": "segmented-control: control pad/gap 0.25rem, radius 0.75rem; segment pad 0.45em 1em, radius 0.55rem",
+  "bands": {
+    "shellPadding": "0.65–0.75rem",
+    "shellRadius": "0.65–0.75rem",
+    "gaps": "0.5–0.6rem",
+    "titles": "≤1.15rem",
+    "optionPad": "~0.4–0.55rem",
+    "controlMinHeight": "≤2.1rem preferred"
+  },
+  "thresholds": {
+    "high": "pad≥1 / radius≥1 / gap≥1 / title≥1.35 / minH≥3",
+    "med": "pad≥0.85 / radius≥0.9 / gap≥0.85 / title≥1.2 / minH≥2.5",
+    "low": "pad>0.75 / radius>0.75 / gap>0.65 / title>1.15 / minH>2.2"
+  },
+  "scannedFiles": 118,
+  "fatFiles": 14,
+  "totals": {
+    "high": 0,
+    "med": 5,
+    "low": 14
+  },
+  "files": [
+    {
+      "file": "src/components/overlays/drawer.ts",
+      "score": 5,
+      "high": 0,
+      "med": 2,
+      "low": 1,
+      "hits": [
+        "med:padding=1.05rem 1.05rem 0.85rem",
+        "low:padding=0.35rem 0.8rem",
+        "med:padding=1.05rem"
+      ]
+    },
+    {
+      "file": "src/components/feedback/empty-state.ts",
+      "score": 3,
+      "high": 0,
+      "med": 1,
+      "low": 1,
+      "hits": [
+        "med:padding=1.1rem 1rem",
+        "low:padding=0.5rem 0.9rem"
+      ]
+    },
+    {
+      "file": "src/components/feedback/error-mask.ts",
+      "score": 3,
+      "high": 0,
+      "med": 1,
+      "low": 1,
+      "hits": [
+        "med:padding=1.1rem 1rem",
+        "low:padding=0.5rem 0.9rem"
+      ]
+    },
+    {
+      "file": "src/components/overlays/dialog.ts",
+      "score": 3,
+      "high": 0,
+      "med": 1,
+      "low": 1,
+      "hits": [
+        "low:padding=1rem",
+        "med:padding=1.05rem"
+      ]
+    },
+    {
+      "file": "src/components/overlays/popover.ts",
+      "score": 1,
+      "high": 0,
+      "med": 0,
+      "low": 1,
+      "hits": [
+        "low:padding=0.4rem 0.78rem"
+      ]
+    },
+    {
+      "file": "src/patterns/insights/bar-chart.ts",
+      "score": 1,
+      "high": 0,
+      "med": 0,
+      "low": 1,
+      "hits": [
+        "low:font-size=1.35rem"
+      ]
+    },
+    {
+      "file": "src/patterns/insights/chart-panel.ts",
+      "score": 1,
+      "high": 0,
+      "med": 0,
+      "low": 1,
+      "hits": [
+        "low:font-size=1.35rem"
+      ]
+    },
+    {
+      "file": "src/patterns/insights/donut-chart.ts",
+      "score": 1,
+      "high": 0,
+      "med": 0,
+      "low": 1,
+      "hits": [
+        "low:font-size=1.35rem"
+      ]
+    },
+    {
+      "file": "src/patterns/insights/line-chart.ts",
+      "score": 1,
+      "high": 0,
+      "med": 0,
+      "low": 1,
+      "hits": [
+        "low:font-size=1.35rem"
+      ]
+    },
+    {
+      "file": "src/patterns/insights/metric-card.ts",
+      "score": 1,
+      "high": 0,
+      "med": 0,
+      "low": 1,
+      "hits": [
+        "low:font-size=1.35rem"
+      ]
+    },
+    {
+      "file": "src/patterns/item/bulk-action-bar.ts",
+      "score": 1,
+      "high": 0,
+      "med": 0,
+      "low": 1,
+      "hits": [
+        "low:font-size=1.35rem"
+      ]
+    },
+    {
+      "file": "src/patterns/search/search-results-header.ts",
+      "score": 1,
+      "high": 0,
+      "med": 0,
+      "low": 1,
+      "hits": [
+        "low:font-size=1.35rem"
+      ]
+    },
+    {
+      "file": "src/patterns/share/access-stats.ts",
+      "score": 1,
+      "high": 0,
+      "med": 0,
+      "low": 1,
+      "hits": [
+        "low:font-size=1.35rem"
+      ]
+    },
+    {
+      "file": "src/patterns/task/review-queue-item.ts",
+      "score": 1,
+      "high": 0,
+      "med": 0,
+      "low": 1,
+      "hits": [
+        "low:gap=0.6rem 0.75rem"
+      ]
+    }
+  ]
+}
