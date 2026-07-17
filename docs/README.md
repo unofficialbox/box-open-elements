@@ -5,6 +5,7 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 ## Start here
 
 - [Handoff](./HANDOFF.md) — current fidelity-program status for the next agent
+- [Agent takeover](./AGENT-TAKEOVER.md) — point-in-time handoff snapshot (see also [CHANGELOG.md](../CHANGELOG.md))
 - [Taxonomy](./taxonomy.md) — the canonical tier model and category map
 - [Architecture](./architecture.md) — layers, headless-first design, transport boundary, `BaseElement` render contract
 - [API Guidelines](./api-guidelines.md) — shared attribute/event/schema vocabulary
