@@ -92,4 +92,5 @@ Run from the repository root:
 
 - In the final handoff, state what changed, which commands were run, what passed, and what remains.
 - If a command could not be run, say exactly why.
+- Always end substantive handoffs with a **concrete next step** and a one-line **why** (see `.cursor/rules/recommend-next-step.mdc`).
 - For PR work: include check status (Verify / Pixel / CodeRabbit). If anything is still pending or red, keep looping per **CI and PR monitoring** instead of stopping.
