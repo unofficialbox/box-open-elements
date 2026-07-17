@@ -25,17 +25,19 @@ flowchart LR
 | `@box-open-elements/react` | Thin wrappers: define element, sync props as properties, forward refs/events |
 | App | Tokens registration, composition, data fetching |
 
-## PoC surface
+## Validated surface
 
 | Export | Wraps |
 | --- | --- |
 | `BoxButton` | `<box-button>` |
-| `createWebComponent` | Shared factory for future wrappers |
+| `BoxTextField` | `<box-text-field>` value control + typed `onValueChanged` |
+| `BoxSelect` | `<box-select>` + structured `options` property + typed `onValueChanged` |
+| `createWebComponent` | Shared property/event/ref adapter factory |
 
 ## Usage
 
 ```ts
-import { BoxButton } from "@box-open-elements/react";
+import { BoxButton, BoxSelect, BoxTextField } from "@box-open-elements/react";
 import {
   applyDesignTokens,
   registerBoxDefaultDesignSystem,
@@ -45,15 +47,31 @@ registerBoxDefaultDesignSystem({ setActive: true });
 applyDesignTokens(document.documentElement, "box-default");
 
 <BoxButton label="Save" tone="primary" onClick={handleSave} />
+
+<BoxTextField
+  label="Project name"
+  value={projectName}
+  onValueChanged={event => setProjectName(event.detail.value)}
+/>
+
+<BoxSelect
+  label="Status"
+  value={status}
+  options={[{ label: "Draft", value: "draft" }]}
+  onValueChanged={event => setStatus(event.detail.value)}
+/>
 ```
 
-Props map to element **properties** (`label`, `tone`, `size`, `disabled`) so boolean and
-enum values do not depend on React attribute stringification quirks.
+Component props map only to element **properties**, so booleans and structured
+arrays do not depend on React attribute stringification. Native React handlers
+remain on the host; declared custom-event props use stable DOM subscriptions
+that call the latest handler. Forwarded refs resolve to the underlying custom
+element.
 
-## Non-goals (PoC)
+## Non-goals (current phase)
 
 - Wrapping the full catalog
-- SSR/hydration framework kits (Next.js, Remix) beyond `suppressHydrationWarning` on the host
+- SSR/hydration framework kits (Next.js, Remix) beyond host hydration suppression
 - Replacing headless controllers with React state libraries
 
 ## Related

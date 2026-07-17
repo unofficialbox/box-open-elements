@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-17  
 **Repo:** [unofficialbox/box-open-elements](https://github.com/unofficialbox/box-open-elements)  
-**Base branch:** `main` @ `795edca` (through PR **#72**)
+**Base branch:** `main` @ `3b1d4be` (through PR **#73**)
 **Recent changelog:** [CHANGELOG.md](../CHANGELOG.md) (git-derived, 2026-07-14 – 2026-07-17)
 
 Read this file first, then `BACKLOG.md`, `docs/HANDOFF.md`, and the subsystem doc for whatever you touch.
@@ -17,7 +17,7 @@ Read this file first, then `BACKLOG.md`, `docs/HANDOFF.md`, and the subsystem do
 | **Live site** | https://unofficialbox.github.io/box-open-elements/ (push `main` → GitHub Pages) |
 | **Workshop** | Internal only — `storybook/`, **108** extracted stories → docs-site variant dropdown |
 | **Fidelity program** | **Complete** (Batches 0–7 + #41 + #42) |
-| **Open PR** | None after #72 at this snapshot; verify with `gh pr list` before starting |
+| **Open PR** | None after #73 at this snapshot; verify with `gh pr list` before starting |
 | **Next product gaps** | Framework adapter tracker (React/Angular/Vue/Svelte), explorer `recents` transport, configurable columns |
 
 ---
@@ -38,7 +38,7 @@ High-signal merged work — full PR list in [CHANGELOG.md](../CHANGELOG.md).
 
 ## Latest completed product slice: PR #70
 
-PRs #71–#72 were documentation handoff and synchronization follow-through.
+PRs #71–#73 were documentation handoff, synchronization, and framework-tracker follow-through.
 
 | Field | Value |
 | --- | --- |
@@ -119,7 +119,7 @@ From `BACKLOG.md` — do **not** invent placeholder content.
 
 | Priority | Item | Blocker / notes |
 | ---: | --- | --- |
-| 1 | **Framework adapter progress** | React PoC in #68; track Angular, Vue, and Svelte with explicit proof milestones |
+| 1 | **Framework adapter progress** | React Validated; next Beta proof is overlay + controller + SSR guidance. Angular, Vue, Svelte remain Tracked |
 | 2 | Explorer **`recents` view** | Needs real transport contract — do not fake as folder listing |
 | 3 | **Configurable / permission-gated columns** | Contract/design TBD |
 | 4 | Additional **style-bridge configs** | Only when restyling a concrete third-party stylesheet |
@@ -157,7 +157,7 @@ BUE visual conformance is largely done; remaining work is opportunistic polish p
 
 ## Suggested first session for the next agent
 
-1. Confirm the checkout starts from current `origin/main`; this snapshot is `795edca` through #72.
+1. Confirm the checkout starts from current `origin/main`; this snapshot is `3b1d4be` through #73.
 2. Advance the **framework adapter tracker**, or wait on **explorer recents** until its transport is defined.
 3. Run focused tests first, then **`bun run verify`** before publishing the slice.
 

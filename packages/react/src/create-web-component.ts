@@ -1,6 +1,7 @@
 import {
   createElement,
   forwardRef,
+  useCallback,
   useLayoutEffect,
   useRef,
   type CSSProperties,
@@ -29,6 +30,13 @@ type CreateWebComponentOptions<E extends HTMLElement, P extends BoxWebComponentP
   define: () => unknown;
   /** Sync React props onto the custom element instance (prefer properties over attributes). */
   sync: (element: E, props: P) => void;
+  /** Props assigned by `sync`; omit them from React's host-attribute spread. */
+  propertyNames?: ReadonlyArray<keyof P & string>;
+  /** Map React callback props to composed custom-element event names. */
+  events?: ReadonlyArray<{
+    propName: keyof P & string;
+    eventName: string;
+  }>;
   displayName: string;
 };
 
@@ -42,13 +50,18 @@ export const createWebComponent = <E extends HTMLElement, P extends BoxWebCompon
   const Component = forwardRef<E, P>(function BoxWebComponent(props, forwardedRef) {
     options.define();
     const localRef = useRef<E | null>(null);
+    const latestPropsRef = useRef<P>(props as P);
 
-    const setRefs: RefCallback<E> = node => {
-      localRef.current = node;
-      assignRef(forwardedRef, node);
-    };
+    const setRefs: RefCallback<E> = useCallback(
+      node => {
+        localRef.current = node;
+        assignRef(forwardedRef, node);
+      },
+      [forwardedRef],
+    );
 
     useLayoutEffect(() => {
+      latestPropsRef.current = props as P;
       const element = localRef.current;
       if (!element) {
         return;
@@ -56,10 +69,41 @@ export const createWebComponent = <E extends HTMLElement, P extends BoxWebCompon
       options.sync(element, props as P);
     });
 
+    useLayoutEffect(() => {
+      const element = localRef.current;
+      if (!element || !options.events) {
+        return;
+      }
+
+      const subscriptions = options.events.map(binding => {
+        const listener = (event: Event) => {
+          const handler = latestPropsRef.current[binding.propName];
+          if (typeof handler === "function") {
+            (handler as (event: Event) => void)(event);
+          }
+        };
+        element.addEventListener(binding.eventName, listener);
+        return { eventName: binding.eventName, listener };
+      });
+
+      return () => {
+        for (const { eventName, listener } of subscriptions) {
+          element.removeEventListener(eventName, listener);
+        }
+      };
+    }, []);
+
     const { className, style, ...rest } = props;
+    const hostProps = { ...rest } as Record<string, unknown>;
+    for (const propertyName of options.propertyNames ?? []) {
+      delete hostProps[propertyName];
+    }
+    for (const { propName } of options.events ?? []) {
+      delete hostProps[propName];
+    }
 
     return createElement(options.tagName, {
-      ...rest,
+      ...hostProps,
       ref: setRefs,
       className,
       style,

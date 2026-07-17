@@ -25,6 +25,7 @@ export const BoxButton = createWebComponent<BoxButtonElement, BoxButtonProps>({
   tagName: "box-button",
   define: defineBoxButtonElement,
   displayName: "BoxButton",
+  propertyNames: ["label", "tone", "size", "disabled"],
   sync: (element, props) => {
     if (props.label !== undefined) {
       element.label = props.label;
