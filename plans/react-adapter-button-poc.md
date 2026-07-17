@@ -9,7 +9,7 @@ Ship an optional `@box-open-elements/react` package with a thin `BoxButton` wrap
 - [x] Branch `cursor/react-adapter-button-poc-7eb7`
 - [x] `packages/react` + `createWebComponent` + `BoxButton`
 - [x] Docs (`docs/integration/react.md`) + BACKLOG/HANDOFF/README wiring
-- [ ] Tests + `bun run verify` + PR
+- [x] Tests + `bun run verify` + PR
 
 ## Decision Log
 
