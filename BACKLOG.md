@@ -53,6 +53,14 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 | Motion migration | Catalog styles consume `boeMotionDuration` / `interactive` (140ms) | Maintainer script: `tools/migrate-motion-literals.ts` |
 | Style-bridge configs | BUE Content Explorer config shipped; more libraries on demand | `bun run style-bridge:bue-explorer` |
 
+## Conformance program (box-ui-elements)
+
+- **Source-level geometry conformance shipped** — `tools/bue-conformance/` + `bun run bue-conformance`. Resolves `src/foundations/geometry` constants and diffs each against real upstream box-ui-elements SCSS fetched from `raw.githubusercontent.com`. Report: [`docs/audits/bue-conformance-audit.md`](./docs/audits/bue-conformance-audit.md); driver: [`plans/bue-conformance-execplan.md`](./plans/bue-conformance-execplan.md). First pass: **12/12 conformant**.
+- **Next slices:**
+  - Broaden Layer-1 claims (inputs, overlay/menu padding + radius, badge, avatar, tooltip, drawer, tabs).
+  - **Layer 2 (blocked on network):** allowlist `opensource.box.com` + `*.boxcdn.net`, then drive the public BUE Storybook in headless Chromium for computed-style / pixel diff of colour, shadow, and interaction states — the values Sass functions make unresolvable from source.
+  - Consider `--strict` in CI once the claim set is broad and stable.
+
 ## Density
 
 - **Full catalog density audit** shipped (`tools/density-audit.ts`, `plans/density-audit-report.json`). Absolute fat highs cleared; peer-variance pass aligns same-role chrome (overlay/feedback shells `0.75rem`, pattern shells `0.7rem`, list rows `0.5×0.65 / r0.6`, form text `0.45×0.7 / r0.7`). Maintainer helpers: `bun tools/density-audit.ts` (fat + peer camps), `bun tools/apply-density-consistency.ts` (surgical rewrites). Re-run after density-affecting style edits.

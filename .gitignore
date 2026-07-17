@@ -147,3 +147,6 @@ storybook/dist/
 
 # Screenshot-regression working dir
 .regression-tmp/
+
+# BUE conformance upstream fetch cache
+tools/bue-conformance/.cache/
