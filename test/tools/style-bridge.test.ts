@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   bridgeStylesheet,
+  combineSelectors,
   createFileImportResolver,
   flattenSimpleNesting,
   stripScssLineComments,
@@ -88,15 +89,20 @@ describe("style bridge", () => {
     expect(css).not.toContain("WRONG");
   });
 
-  it("strips // comments but keeps url(//…) and quoted //", () => {
+  it("strips // comments but keeps url(//…), quoted //, and block comments", () => {
     const src = `.x {
   background: url(//cdn.example/file.png);
   content: "https://example.com//path";
+  /* see https://example.com/docs */
+  width: calc(100% - 8px); // trim
   color: red; // accent
 }`;
     const stripped = stripScssLineComments(src);
     expect(stripped).toContain("url(//cdn.example/file.png)");
     expect(stripped).toContain('"https://example.com//path"');
+    expect(stripped).toContain("/* see https://example.com/docs */");
+    expect(stripped).toContain("calc(100% - 8px)");
+    expect(stripped).not.toContain("// trim");
     expect(stripped).not.toContain("// accent");
 
     const { css } = bridgeStylesheet(src, {
@@ -110,14 +116,36 @@ describe("style bridge", () => {
 
   it("preserves parent selectors inside nested at-rules", () => {
     const flat = flattenSimpleNesting(`.item {
+  color: blue;
   @media (min-width: 600px) {
     color: red;
     .child { margin: 0; }
   }
 }`);
     expect(flat).toContain("@media (min-width: 600px)");
+    expect(flat).toContain(".item {\n  color: blue;\n}");
     expect(flat).toContain(".item {\n  color: red;\n}");
     expect(flat).toContain(".item .child");
+    // Declarations flush before nested at-rules (cascade order).
+    expect(flat.indexOf("color: blue")).toBeLessThan(flat.indexOf("@media"));
+  });
+
+  it("expands comma-separated nested selectors", () => {
+    expect(combineSelectors(".root", ".a, .b")).toBe(".root .a, .root .b");
+    expect(combineSelectors(".root", "&:hover, &:focus")).toBe(".root:hover, .root:focus");
+    const flat = flattenSimpleNesting(`.root { .a, .b { color: red; } }`);
+    expect(flat.replace(/\s+/g, " ")).toContain(".root .a, .root .b");
+  });
+
+  it("ignores braces inside strings when scanning blocks", () => {
+    const flat = flattenSimpleNesting(`.x {
+  content: "{";
+  color: red;
+}
+.y { color: blue; }`);
+    expect(flat).toContain(".x {");
+    expect(flat).toContain('content: "{";');
+    expect(flat).toContain(".y {\n  color: blue;\n}");
   });
 
   it("runs selector-bridge with imports, variables, selectors, and literals", () => {

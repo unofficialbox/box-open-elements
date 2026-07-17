@@ -147,15 +147,16 @@ const stripSassDefinitions = (source: string): string =>
   source.replace(/^\s*\$[A-Za-z_][\w-]*\s*:[^;]*;\s*$/gm, "");
 
 /**
- * Strip SCSS `//` line comments without corrupting `url(//…)` or quoted `//`.
- * Tracks strings, escapes, and parentheses; only strips when paren depth is 0.
+ * Strip SCSS `//` line comments without corrupting `url(//…)`, quoted `//`,
+ * or `//` inside CSS block comments. Strips `//` inside other parentheses
+ * (e.g. calc) while preserving protocol-relative URLs in `url(…)`.
  */
 export const stripScssLineComments = (source: string): string => {
   let out = "";
   let i = 0;
   let inSingle = false;
   let inDouble = false;
-  let parenDepth = 0;
+  let urlParenDepth = 0;
 
   while (i < source.length) {
     const c = source[i]!;
@@ -185,32 +186,38 @@ export const stripScssLineComments = (source: string): string => {
       continue;
     }
 
-    if (c === "'") {
-      inSingle = true;
-      out += c;
-      i += 1;
+    if (c === "/" && next === "*") {
+      const end = source.indexOf("*/", i + 2);
+      const stop = end === -1 ? source.length : end + 2;
+      out += source.slice(i, stop);
+      i = stop;
       continue;
     }
-    if (c === '"') {
-      inDouble = true;
-      out += c;
-      i += 1;
-      continue;
-    }
-    if (c === "(") {
-      parenDepth += 1;
-      out += c;
-      i += 1;
-      continue;
-    }
-    if (c === ")" && parenDepth > 0) {
-      parenDepth -= 1;
+
+    if (c === "'" || c === '"') {
+      if (c === "'") inSingle = true;
+      else inDouble = true;
       out += c;
       i += 1;
       continue;
     }
 
-    if (c === "/" && next === "/" && parenDepth === 0) {
+    if (urlParenDepth === 0 && source.slice(i, i + 4).toLowerCase() === "url(") {
+      out += source.slice(i, i + 4);
+      i += 4;
+      urlParenDepth = 1;
+      continue;
+    }
+
+    if (urlParenDepth > 0) {
+      if (c === "(") urlParenDepth += 1;
+      else if (c === ")") urlParenDepth -= 1;
+      out += c;
+      i += 1;
+      continue;
+    }
+
+    if (c === "/" && next === "/") {
       while (i < source.length && source[i] !== "\n") i += 1;
       continue;
     }
@@ -230,6 +237,93 @@ const normalizeDeclBody = (raw: string): string =>
     .filter(Boolean)
     .join("\n  ");
 
+/** Combine parent/child selectors, expanding comma lists (Cartesian product). */
+export const combineSelectors = (parentSelector: string, selectorPart: string): string => {
+  if (!parentSelector) return selectorPart;
+  const parents = parentSelector.split(",").map(s => s.trim()).filter(Boolean);
+  const children = selectorPart.split(",").map(s => s.trim()).filter(Boolean);
+  const parts: string[] = [];
+  for (const parent of parents) {
+    for (const child of children) {
+      parts.push(child.startsWith("&") ? parent + child.slice(1) : `${parent} ${child}`);
+    }
+  }
+  return parts.join(", ");
+};
+
+/**
+ * Find the index just past a matching `}` for a block whose `{` was already consumed.
+ * Ignores braces inside strings and comments. Returns `{ end, hasNesting }`.
+ */
+const scanBlockEnd = (
+  source: string,
+  start: number,
+): { end: number; hasNesting: boolean } => {
+  let i = start;
+  let depth = 1;
+  let hasNesting = false;
+  let inSingle = false;
+  let inDouble = false;
+
+  while (i < source.length && depth > 0) {
+    const c = source[i]!;
+    const next = source[i + 1];
+
+    if (inSingle) {
+      if (c === "\\" && i + 1 < source.length) {
+        i += 2;
+        continue;
+      }
+      if (c === "'") inSingle = false;
+      i += 1;
+      continue;
+    }
+    if (inDouble) {
+      if (c === "\\" && i + 1 < source.length) {
+        i += 2;
+        continue;
+      }
+      if (c === '"') inDouble = false;
+      i += 1;
+      continue;
+    }
+
+    if (c === "/" && next === "*") {
+      const end = source.indexOf("*/", i + 2);
+      i = end === -1 ? source.length : end + 2;
+      continue;
+    }
+    if (c === "/" && next === "/") {
+      while (i < source.length && source[i] !== "\n") i += 1;
+      continue;
+    }
+    if (c === "'") {
+      inSingle = true;
+      i += 1;
+      continue;
+    }
+    if (c === '"') {
+      inDouble = true;
+      i += 1;
+      continue;
+    }
+    if (c === "{") {
+      depth += 1;
+      if (depth > 1) hasNesting = true;
+      i += 1;
+      continue;
+    }
+    if (c === "}") {
+      depth -= 1;
+      i += 1;
+      continue;
+    }
+    i += 1;
+  }
+
+  return { end: i, hasNesting };
+};
+
 /**
  * Flatten simple SCSS nesting: `parent { &.child { … } }` and
  * `parent { .child { … } }`. Not a full Sass compiler — see style-bridge.md limits.
@@ -237,7 +331,7 @@ const normalizeDeclBody = (raw: string): string =>
 export const flattenSimpleNesting = (input: string): string => {
   const flattenBlock = (blockSource: string, initialParent: string): string => {
     const out: string[] = [];
-    let source = blockSource;
+    const source = blockSource;
     let i = 0;
 
     const skipWs = (): void => {
@@ -269,12 +363,23 @@ export const flattenSimpleNesting = (input: string): string => {
     /** Parse block contents (decls + nested rules + at-rules) under `parentSelector`. */
     const parseBlockContents = (parentSelector: string, stopAtBrace: boolean): void => {
       const decls: string[] = [];
+      const flushDecls = (): void => {
+        if (!decls.length) return;
+        if (parentSelector) {
+          out.push(`${parentSelector} {\n  ${decls.join("\n  ")}\n}`);
+        } else {
+          out.push(decls.join("\n"));
+        }
+        decls.length = 0;
+      };
+
       while (i < source.length) {
         skipComments();
         if (i >= source.length) break;
         if (stopAtBrace && source[i] === "}") break;
 
         if (source.startsWith("@", i) && !source.startsWith("@import", i)) {
+          flushDecls();
           const atStart = i;
           while (i < source.length && source[i] !== "{" && source[i] !== ";") i += 1;
           if (source[i] === ";") {
@@ -285,15 +390,9 @@ export const flattenSimpleNesting = (input: string): string => {
           if (source[i] !== "{") break;
           const header = source.slice(atStart, i).trim();
           i += 1;
-          const innerStart = i;
-          let depth = 1;
-          while (i < source.length && depth > 0) {
-            if (source[i] === "{") depth += 1;
-            else if (source[i] === "}") depth -= 1;
-            if (depth > 0) i += 1;
-          }
-          const inner = source.slice(innerStart, i);
-          if (source[i] === "}") i += 1;
+          const { end } = scanBlockEnd(source, i);
+          const inner = source.slice(i, end - 1);
+          i = end;
           const flattenedInner = flattenBlock(inner, parentSelector);
           if (flattenedInner.trim()) {
             out.push(`${header} {\n${flattenedInner}\n}`);
@@ -306,6 +405,7 @@ export const flattenSimpleNesting = (input: string): string => {
           k += 1;
         }
         if (source[k] === "{") {
+          flushDecls();
           parseRule(parentSelector);
         } else if (source[k] === ";") {
           decls.push(source.slice(i, k + 1).trim());
@@ -314,13 +414,7 @@ export const flattenSimpleNesting = (input: string): string => {
           break;
         }
       }
-      if (decls.length) {
-        if (parentSelector) {
-          out.push(`${parentSelector} {\n  ${decls.join("\n  ")}\n}`);
-        } else {
-          out.push(decls.join("\n"));
-        }
-      }
+      flushDecls();
     };
 
     const parseRule = (parentSelector: string): void => {
@@ -331,28 +425,12 @@ export const flattenSimpleNesting = (input: string): string => {
       if (source[i] !== "{") return;
       i += 1;
 
-      let depth = 1;
-      let j = i;
-      let hasNesting = false;
-      while (j < source.length && depth > 0) {
-        if (source[j] === "{") {
-          depth += 1;
-          if (depth > 1) hasNesting = true;
-        } else if (source[j] === "}") {
-          depth -= 1;
-        }
-        j += 1;
-      }
-
-      const combined = parentSelector
-        ? selectorPart.startsWith("&")
-          ? parentSelector + selectorPart.slice(1)
-          : `${parentSelector} ${selectorPart}`
-        : selectorPart;
+      const { end, hasNesting } = scanBlockEnd(source, i);
+      const combined = combineSelectors(parentSelector, selectorPart);
 
       if (!hasNesting) {
-        const body = normalizeDeclBody(source.slice(i, j - 1));
-        i = j;
+        const body = normalizeDeclBody(source.slice(i, end - 1));
+        i = end;
         if (body) {
           out.push(`${combined} {\n  ${body}\n}`);
         }
