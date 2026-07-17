@@ -1,8 +1,10 @@
 # Style Bridge
 
-The style bridge is a small utility (built in `box-open-web-components` under `tools/style-bridge/`, not yet ported here) for importing third-party CSS or SCSS and translating it into a `box-open-elements`-facing format without coupling the core package to any one design language.
+The style bridge translates third-party CSS/SCSS subsets into a `box-open-elements`-facing format without coupling the core package to any one design language.
 
-The intended workflow:
+Engine + CLI live under `tools/style-bridge/`.
+
+## Intended workflow
 
 - keep web components structurally unopinionated
 - express visual-language mappings in bridge config files
@@ -22,15 +24,39 @@ The modes are config-driven: a Box-flavored stylesheet and another vendor token 
 
 ## Proven example: Box UI Elements Content Explorer
 
-The original repo bridged `ContentExplorer.scss` from the external `box-ui-elements` repo:
+First real library config (selector-bridge):
 
-- resolves `@import '../common/variables'`
-- substitutes simple `$variables`
-- flattens `.be { &.bce { ... } }`
-- maps legacy selectors like `.be.bce .bcpr`
-- rewrites literal values to custom-property hooks, e.g. `300px` becomes `var(--boe-content-explorer-min-width, 300px)` (prefix updated for this repo)
+| Piece | Path |
+| --- | --- |
+| Library snapshot | `tools/style-bridge/libraries/box-ui-elements/` |
+| Config | `tools/style-bridge/configs/box-ui-elements/content-explorer.config.json` |
+| Golden CSS + report | `tools/style-bridge/out/box-ui-elements/` |
 
-Each run writes a bridged CSS file plus a JSON (or markdown) report listing inlined imports, missing variables, unresolved imports, and applied mappings.
+What the run does:
+
+- resolves `@import '../common/variables'` (Sass partial / extensionless)
+- substitutes simple `$variables` via `variableMap` (definitions stripped)
+- flattens `.be { &.bce { … } }` without nesting sibling rules under a closed parent
+- maps legacy selectors (`.be.bce`, `.bce-Footer`, …) → `box-content-explorer` / `::part(…)`
+- rewrites literal values to custom-property hooks (exact value match after `:`)
+
+Regenerate:
+
+```bash
+bun run style-bridge:bue-explorer
+```
+
+Or the generic CLI:
+
+```bash
+bun run style-bridge -- \
+  --config tools/style-bridge/configs/box-ui-elements/content-explorer.config.json \
+  --input tools/style-bridge/libraries/box-ui-elements/content-explorer/index.scss \
+  --out tools/style-bridge/out/box-ui-elements/content-explorer.css \
+  --report tools/style-bridge/out/box-ui-elements/content-explorer.report.json
+```
+
+The variables file under `libraries/box-ui-elements/common/_variables.scss` is a **shim**: only simple `$name: value` bindings. Upstream `elements/common/_variables.scss` also pulls mixin-heavy imports outside the supported subset — see the library README.
 
 ## Why this beats a one-off conversion
 
@@ -41,16 +67,17 @@ Each run writes a bridged CSS file plus a JSON (or markdown) report listing inli
 | hard to audit | report shows what happened |
 | tightly coupled to one source | works for multiple source styles without changing components |
 
-## Known limits (first version)
+## Known limits
 
-Supported: `@import`, simple `$variables`, simple nested selectors, `&` replacement.
+Supported: `@import`, simple `$variables`, simple nested selectors, `&` replacement, Sass partial resolution.
+
 Not supported: mixin expansion, loops, interpolation, advanced Sass module syntax.
 
-That subset was sufficient for the Box content-explorer SCSS.
+`declarationMap` matches the **entire** value after `:` (before `;` / `}`). Compound values such as `1px solid var(--border-divider-border)` must be mapped in full.
 
-## Tooling (shipped)
+Bridged literals should end in concrete fallbacks (`16px`, `#e8e8e8`) so output works with no design system registered. Prefer `--boe-token-*` for shared strokes/surfaces and `--boe-content-explorer-*` (or similar) for layout hooks.
 
-Engine + CLI live under `tools/style-bridge/`:
+## Tooling
 
 ```bash
 bun run style-bridge -- \
@@ -65,8 +92,9 @@ bun run style-bridge -- \
 | Engine | `tools/style-bridge/bridge.ts` (`bridgeStylesheet`, both modes) |
 | CLI | `tools/style-bridge/cli.ts` |
 | Fixtures / tests | `test/fixtures/style-bridge/`, `test/tools/style-bridge.test.ts` |
+| BUE explorer config | `tools/style-bridge/configs/box-ui-elements/` |
 
-Default prefix remap for token-bridge configs should use `--obp-` → `--boe-`. Add library-specific selector maps only when a real stylesheet is being bridged.
+Default prefix remap for token-bridge configs should use `--obp-` → `--boe-`. Add further library configs only when restyling a concrete stylesheet.
 
 ## Follow-ups
 

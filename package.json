@@ -98,6 +98,7 @@
     "test:coverage": "vitest run --coverage",
     "verify": "bun run typecheck && bun run test:coverage && bun run build",
     "style-bridge": "bun tools/style-bridge/cli.ts",
+    "style-bridge:bue-explorer": "bun tools/style-bridge/cli.ts --config tools/style-bridge/configs/box-ui-elements/content-explorer.config.json --input tools/style-bridge/libraries/box-ui-elements/content-explorer/index.scss --out tools/style-bridge/out/box-ui-elements/content-explorer.css --report tools/style-bridge/out/box-ui-elements/content-explorer.report.json",
     "preview:capture": "bun run build && bun tools/preview/capture.ts",
     "docs": "bun run build && bun docs-site/server.ts",
     "docs:typecheck": "tsc -p docs-site/tsconfig.json",

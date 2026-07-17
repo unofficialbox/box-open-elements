@@ -1,15 +1,25 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
   bridgeStylesheet,
+  combineSelectors,
+  createFileImportResolver,
   flattenSimpleNesting,
+  splitSelectorList,
+  stripScssLineComments,
   type BridgeConfig,
 } from "../../tools/style-bridge/bridge.js";
 
 const FIXTURE_DIR = join(dirname(fileURLToPath(import.meta.url)), "../fixtures/style-bridge");
+const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
+const BUE_LIB = join(REPO_ROOT, "tools/style-bridge/libraries/box-ui-elements");
+const BUE_CONFIG = join(
+  REPO_ROOT,
+  "tools/style-bridge/configs/box-ui-elements/content-explorer.config.json",
+);
 
 const readFixture = (name: string): string => readFileSync(join(FIXTURE_DIR, name), "utf8");
 
@@ -22,6 +32,126 @@ describe("style bridge", () => {
 }`);
     expect(flat.replace(/\s+/g, " ")).toContain(".be.bce {");
     expect(flat).toContain("color: red;");
+  });
+
+  it("does not nest sibling rules under a closed parent", () => {
+    const flat = flattenSimpleNesting(`.be {
+  &.bce {
+    .x { color: red; }
+  }
+}
+.y { color: blue; }`);
+    expect(flat).toContain(".be.bce .x");
+    expect(flat).toContain(".y {\n  color: blue;\n}");
+    // Sibling `.y` must remain a top-level rule, not combined under `.be`.
+    expect(flat).not.toContain(".be.bce .y");
+    expect(flat).not.toContain(".be .y");
+  });
+
+  it("resolves Sass partials and extensionless imports from disk", () => {
+    const commonDir = join(BUE_LIB, "common");
+    const resolveImport = createFileImportResolver(
+      absolutePath => {
+        try {
+          return readFileSync(absolutePath, "utf8");
+        } catch {
+          return null;
+        }
+      },
+      (fromDir, specifier) => resolve(fromDir, specifier),
+      commonDir,
+    );
+    const contents = resolveImport("variables");
+    expect(contents).toContain("$minimumWidth");
+  });
+
+  it("does not rewrite .be as a prefix of .bce or .be-app", () => {
+    const { css } = bridgeStylesheet(`.be { color: red; }\n.bce { color: blue; }\n.be-app { color: green; }`, {
+      mode: "selector-bridge",
+      selectorMap: { ".be": "box-content-explorer" },
+    });
+    expect(css).toContain("box-content-explorer");
+    expect(css).toContain(".bce");
+    expect(css).toContain(".be-app");
+    expect(css).not.toContain("box-content-explorerce");
+    expect(css).not.toContain("box-content-explorer-app");
+  });
+
+  it("prefers longer declarationMap values", () => {
+    const { css } = bridgeStylesheet(`.x { border-top: 1px solid var(--border-divider-border); }`, {
+      mode: "selector-bridge",
+      selectorMap: {},
+      declarationMap: {
+        "var(--border-divider-border)": "WRONG",
+        "1px solid var(--border-divider-border)": "1px solid var(--boe-token-stroke-stroke, #e8e8e8)",
+      },
+    });
+    expect(css).toContain("1px solid var(--boe-token-stroke-stroke, #e8e8e8)");
+    expect(css).not.toContain("WRONG");
+  });
+
+  it("strips // comments but keeps url(//…), quoted //, and block comments", () => {
+    const src = `.x {
+  background: url(//cdn.example/file.png);
+  content: "https://example.com//path";
+  /* see https://example.com/docs */
+  width: calc(100% - 8px); // trim
+  color: red; // accent
+}`;
+    const stripped = stripScssLineComments(src);
+    expect(stripped).toContain("url(//cdn.example/file.png)");
+    expect(stripped).toContain('"https://example.com//path"');
+    expect(stripped).toContain("/* see https://example.com/docs */");
+    expect(stripped).toContain("calc(100% - 8px)");
+    expect(stripped).not.toContain("// trim");
+    expect(stripped).not.toContain("// accent");
+
+    const { css } = bridgeStylesheet(src, {
+      mode: "selector-bridge",
+      selectorMap: {},
+    });
+    expect(css).toContain("url(//cdn.example/file.png)");
+    expect(css).toContain('"https://example.com//path"');
+    expect(css).not.toContain("// accent");
+  });
+
+  it("preserves parent selectors inside nested at-rules", () => {
+    const flat = flattenSimpleNesting(`.item {
+  color: blue;
+  @media (min-width: 600px) {
+    color: red;
+    .child { margin: 0; }
+  }
+}`);
+    expect(flat).toContain("@media (min-width: 600px)");
+    expect(flat).toContain(".item {\n  color: blue;\n}");
+    expect(flat).toContain(".item {\n  color: red;\n}");
+    expect(flat).toContain(".item .child");
+    // Declarations flush before nested at-rules (cascade order).
+    expect(flat.indexOf("color: blue")).toBeLessThan(flat.indexOf("@media"));
+  });
+
+  it("expands comma-separated nested selectors", () => {
+    expect(splitSelectorList(".root:not(.a, .b), .other")).toEqual([
+      ".root:not(.a, .b)",
+      ".other",
+    ]);
+    expect(combineSelectors(".root", ".a, .b")).toBe(".root .a, .root .b");
+    expect(combineSelectors(".root", "&:hover, &:focus")).toBe(".root:hover, .root:focus");
+    expect(combineSelectors(".root", "&:not(.a, .b)")).toBe(".root:not(.a, .b)");
+    const flat = flattenSimpleNesting(`.root { .a, .b { color: red; } }`);
+    expect(flat.replace(/\s+/g, " ")).toContain(".root .a, .root .b");
+  });
+
+  it("ignores braces inside strings when scanning blocks", () => {
+    const flat = flattenSimpleNesting(`.x {
+  content: "{";
+  color: red;
+}
+.y { color: blue; }`);
+    expect(flat).toContain(".x {");
+    expect(flat).toContain('content: "{";');
+    expect(flat).toContain(".y {\n  color: blue;\n}");
   });
 
   it("runs selector-bridge with imports, variables, selectors, and literals", () => {
@@ -84,5 +214,37 @@ describe("style bridge", () => {
     );
     expect(report.unresolvedImports).toContain("missing.scss");
     expect(report.missingVariables).toContain("nope");
+  });
+
+  it("bridges the box-ui-elements content-explorer library snapshot", () => {
+    const config = JSON.parse(readFileSync(BUE_CONFIG, "utf8")) as BridgeConfig;
+    const entryDir = join(BUE_LIB, "content-explorer");
+    const source = readFileSync(join(entryDir, "index.scss"), "utf8");
+    const { css, report } = bridgeStylesheet(source, config, {
+      resolveImport: createFileImportResolver(
+        absolutePath => {
+          try {
+            return readFileSync(absolutePath, "utf8");
+          } catch {
+            return null;
+          }
+        },
+        (fromDir, specifier) => resolve(fromDir, specifier),
+        entryDir,
+      ),
+    });
+
+    expect(report.unresolvedImports).toEqual([]);
+    expect(report.missingVariables).toEqual([]);
+    expect(css).toContain("box-content-explorer {");
+    expect(css).toContain("box-content-explorer::part(main)");
+    expect(css).toContain("box-content-explorer::part(footer)");
+    expect(css).toContain("var(--boe-content-explorer-min-width, 300px)");
+    expect(css).toContain("var(--boe-token-stroke-stroke, #e8e8e8)");
+    expect(css).toContain("var(--boe-content-explorer-gap, 16px)");
+    expect(css).not.toContain("$minimumWidth");
+    expect(css).not.toMatch(/box-content-explorer\s+box-content-explorer::part/);
+    expect(report.appliedSelectorMappings).toBeGreaterThan(0);
+    expect(report.appliedDeclarationMappings).toBeGreaterThan(0);
   });
 });
