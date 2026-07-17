@@ -28,7 +28,7 @@ section.
 1. **Network egress to Box hosts is gated by the environment network policy.**
    In this run it was opened (Custom allowlist). To reach the reference from a
    fresh session, the environment must allow (Custom + defaults, or Full):
-   ```
+   ```text
    opensource.box.com     # public Storybook (no auth)
    *.boxcdn.net
    *.box.com  *.ent.box.com  app.box.com   # only if targeting the tenant
@@ -53,29 +53,41 @@ section.
    Force correct MIME on `.js`/`.css`/`.json` or ES modules won't execute:
    ```ts
    import { chromium } from "playwright-core";
-   import { readFileSync, existsSync, rmSync } from "node:fs";
+   import { readFileSync, rmSync } from "node:fs";
+   import { tmpdir } from "node:os";
+   import { join } from "node:path";
    const CA = "/root/.ccr/ca-bundle.crt";
+   // SSRF guard: only fetch documented Box / Storybook hosts. The browser (or a
+   // compromised page) can request arbitrary URLs; never turn this harness into
+   // an open server-side fetcher. Keep --max-redirs 0 so redirects can't escape
+   // the allowlist — if a real redirect is needed, re-check its Location here.
+   const ALLOW = [/^opensource\.box\.com$/, /(^|\.)box\.com$/, /(^|\.)ent\.box\.com$/, /(^|\.)boxcdn\.net$/];
+   const allowed = (u: string) => { try { const h = new URL(u).hostname; return ALLOW.some(re => re.test(h)); } catch { return false; } };
    const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" }); // NO proxy
    const page = await browser.newPage();
    let n = 0;
    await page.route("**/*", async (route) => {
      const url = route.request().url();
-     if (!/^https?:/.test(url)) return route.abort();
-     const tmp = `/tmp/route-${n++}.bin`;
-     const p = Bun.spawnSync(["curl","-sS","--cacert",CA,"--max-time","40","-L","-o",tmp,"-w","%{content_type}|%{http_code}",url]);
-     if (p.exitCode !== 0 || !existsSync(tmp)) return route.abort();
-     const [ctype, code] = p.stdout.toString().split("|");
-     const buf = readFileSync(tmp); rmSync(tmp,{force:true});
-     const path = url.split("?")[0];
-     const mime = /\.(js|mjs)$/.test(path) ? "text/javascript"
-       : /\.css$/.test(path) ? "text/css"
-       : /\.json$/.test(path) ? "application/json"
-       : (ctype||"application/octet-stream").split(";")[0];
-     await route.fulfill({ status: Number(code)||200, contentType: mime, body: buf });
+     if (!/^https:\/\//.test(url) || !allowed(url)) return route.abort();
+     const tmp = join(tmpdir(), `route-${process.pid}-${n++}.bin`);
+     try {
+       const p = Bun.spawnSync(["curl","-sS","--cacert",CA,"--max-time","40","--max-redirs","0","-o",tmp,"-w","%{content_type}|%{http_code}",url]);
+       if (p.exitCode !== 0) return route.abort();
+       const [ctype, code] = p.stdout.toString().split("|");
+       const buf = readFileSync(tmp);
+       const path = url.split("?")[0];
+       const mime = /\.(js|mjs)$/.test(path) ? "text/javascript"
+         : /\.css$/.test(path) ? "text/css"
+         : /\.json$/.test(path) ? "application/json"
+         : (ctype||"application/octet-stream").split(";")[0];
+       await route.fulfill({ status: Number(code)||200, contentType: mime, body: buf });
+     } catch { await route.abort(); }
+     finally { rmSync(tmp, { force: true }); }
    });
    ```
-   (For POST/XHR add `-X`, `-d`, and header passthrough. Handle cookies for the
-   tenant path — see below.)
+   (For POST/XHR add `-X`, `-d`, and header passthrough — forward auth/cookie
+   headers **only** to allow-listed origins. Handle cookies for the tenant path
+   with `curl -c/-b` — see below.)
 
 4. **The public BUE Storybook is blocked by a Service Worker.** Its stories use
    **MSW (Mock Service Worker)**; under interception the SW registration fails

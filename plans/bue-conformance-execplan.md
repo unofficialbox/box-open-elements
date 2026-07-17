@@ -92,7 +92,7 @@ bun run verify                                  # typecheck + coverage-gated tes
       badge radius.
 - [x] Runnable audit (`audit.ts`) — curl fetch via proxy + CA, merged-var
       resolution, Markdown + JSON report, `--refresh/--offline/--strict`.
-- [x] Unit tests (`test/tools/bue-conformance.test.ts`, 34 cases — signals +
+- [x] Unit tests (`test/tools/bue-conformance.test.ts`, 37 cases — signals +
       audit workflow via `import.meta.main` guard).
 - [x] First pass run — **12/12 conformant**; report committed.
 - [x] Review hardening (PR #76): pinned upstream revision `v26.0.0` (reproducible,

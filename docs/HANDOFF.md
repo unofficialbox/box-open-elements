@@ -18,7 +18,7 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 
 ## Current state (as of this handoff)
 
-- **Branch tip:** develop from current `origin/main`; this snapshot is `3b1d4be` through PR #73.
+- **Branch tip:** develop from current `origin/main`. Current baseline is `67a6749` through PR #76 (box-ui-elements conformance program). The `3b1d4be`/PR #73 references elsewhere in this file are the historical fidelity-program snapshot, not the current tip.
 - **Live site:** GitHub Pages, `https://unofficialbox.github.io/box-open-elements/`,
   auto-deploys on push to `main` via `.github/workflows/deploy.yml`
   (build cmd `bun run site:build`, output `docs-site/dist`). The Workshop is
