@@ -1,0 +1,281 @@
+{
+  "upstream": "box/box-ui-elements@v26.0.0",
+  "revision": "v26.0.0",
+  "files": [
+    {
+      "id": "layout",
+      "path": "src/styles/constants/_layout.scss",
+      "loaded": true
+    },
+    {
+      "id": "buttons",
+      "path": "src/styles/constants/_buttons.scss",
+      "loaded": true
+    },
+    {
+      "id": "modal",
+      "path": "src/components/modal/Modal.scss",
+      "loaded": true
+    },
+    {
+      "id": "menu",
+      "path": "src/components/menu/Menu.scss",
+      "loaded": true
+    },
+    {
+      "id": "overlay",
+      "path": "src/styles/mixins/_overlay.scss",
+      "loaded": true
+    },
+    {
+      "id": "inputs",
+      "path": "src/styles/_inputs.scss",
+      "loaded": true
+    },
+    {
+      "id": "badge",
+      "path": "src/components/badge/Badge.scss",
+      "loaded": true
+    }
+  ],
+  "claims": [
+    {
+      "id": "radius.size",
+      "surface": "radius",
+      "boeConst": "boeRadius.size",
+      "boeValue": "4px",
+      "upstreamRaw": "4px",
+      "upstreamResolved": "4px",
+      "verdict": "conformant",
+      "boePx": 4,
+      "upstreamPx": 4,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "$bdl-border-radius-size"
+    },
+    {
+      "id": "radius.med",
+      "surface": "radius",
+      "boeConst": "boeRadius.med",
+      "boeValue": "6px",
+      "upstreamRaw": "$bdl-border-radius-size * 1.5",
+      "upstreamResolved": "6px",
+      "verdict": "conformant",
+      "boePx": 6,
+      "upstreamPx": 6,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "$bdl-border-radius-size-med (= size * 1.5)"
+    },
+    {
+      "id": "radius.large",
+      "surface": "radius",
+      "boeConst": "boeRadius.large",
+      "boeValue": "8px",
+      "upstreamRaw": "$bdl-border-radius-size * 2",
+      "upstreamResolved": "8px",
+      "verdict": "conformant",
+      "boePx": 8,
+      "upstreamPx": 8,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "$bdl-border-radius-size-large (= size * 2)"
+    },
+    {
+      "id": "radius.xlarge",
+      "surface": "radius",
+      "boeConst": "boeRadius.xlarge",
+      "boeValue": "12px",
+      "upstreamRaw": "$bdl-border-radius-size * 3",
+      "upstreamResolved": "12px",
+      "verdict": "conformant",
+      "boePx": 12,
+      "upstreamPx": 12,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "$bdl-border-radius-size-xlarge (= size * 3)"
+    },
+    {
+      "id": "space.unit",
+      "surface": "spacing",
+      "boeConst": "boeSpace.unit",
+      "boeValue": "4px",
+      "upstreamRaw": "4px",
+      "upstreamResolved": "4px",
+      "verdict": "conformant",
+      "boePx": 4,
+      "upstreamPx": 4,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "$bdl-grid-unit (4px grid root)"
+    },
+    {
+      "id": "control.height",
+      "surface": "control",
+      "boeConst": "boeControl.height",
+      "boeValue": "32px",
+      "upstreamRaw": "32px",
+      "upstreamResolved": "32px",
+      "verdict": "conformant",
+      "boePx": 32,
+      "upstreamPx": 32,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "$bdl-btn-height"
+    },
+    {
+      "id": "control.heightLarge",
+      "surface": "control",
+      "boeConst": "boeControl.heightLarge",
+      "boeValue": "40px",
+      "upstreamRaw": "40px",
+      "upstreamResolved": "40px",
+      "verdict": "conformant",
+      "boePx": 40,
+      "upstreamPx": 40,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "$bdl-btn-height-large"
+    },
+    {
+      "id": "control.paddingInline",
+      "surface": "control",
+      "boeConst": "boeControl.paddingInline",
+      "boeValue": "16px",
+      "upstreamRaw": "$bdl-grid-unit * 4",
+      "upstreamResolved": "16px",
+      "verdict": "conformant",
+      "boePx": 16,
+      "upstreamPx": 16,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "$bdl-btn-padding-horizontal (= grid-unit * 4)"
+    },
+    {
+      "id": "overlay.modalRadius",
+      "surface": "overlay",
+      "boeConst": "boeOverlay.modalRadius",
+      "boeValue": "12px",
+      "upstreamRaw": "$bdl-border-radius-size-xlarge",
+      "upstreamResolved": "12px",
+      "verdict": "conformant",
+      "boePx": 12,
+      "upstreamPx": 12,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "Modal.scss .modal-dialog border-radius: $bdl-border-radius-size-xlarge"
+    },
+    {
+      "id": "overlay.modalPadding",
+      "surface": "overlay",
+      "boeConst": "boeOverlay.modalPadding",
+      "boeValue": "30px",
+      "upstreamRaw": "30px",
+      "upstreamResolved": "30px",
+      "verdict": "conformant",
+      "boePx": 30,
+      "upstreamPx": 30,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "Modal.scss .modal-dialog padding: 30px"
+    },
+    {
+      "id": "overlay.modalWidth",
+      "surface": "overlay",
+      "boeConst": "boeOverlay.modalWidth",
+      "boeValue": "460px",
+      "upstreamRaw": "460px",
+      "upstreamResolved": "460px",
+      "verdict": "conformant",
+      "boePx": 460,
+      "upstreamPx": 460,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "Modal.scss .modal-dialog width: 460px"
+    },
+    {
+      "id": "overlay.itemMinHeight",
+      "surface": "overlay",
+      "boeConst": "boeOverlay.itemMinHeight",
+      "boeValue": "30px",
+      "upstreamRaw": "30px",
+      "upstreamResolved": "30px",
+      "verdict": "conformant",
+      "boePx": 30,
+      "upstreamPx": 30,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "Menu.scss .menu-item min-height: 30px"
+    },
+    {
+      "id": "overlay.padding",
+      "surface": "overlay",
+      "boeConst": "boeOverlay.padding",
+      "boeValue": "12px",
+      "upstreamRaw": "$bdl-grid-unit * 3",
+      "upstreamResolved": "12px",
+      "verdict": "conformant",
+      "boePx": 12,
+      "upstreamPx": 12,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "mixins/_overlay.scss bdl-Overlay-container padding: $bdl-grid-unit * 3"
+    },
+    {
+      "id": "overlay.radius",
+      "surface": "overlay",
+      "boeConst": "boeOverlay.radius",
+      "boeValue": "8px",
+      "upstreamRaw": "$bdl-border-radius-size-large",
+      "upstreamResolved": "8px",
+      "verdict": "conformant",
+      "boePx": 8,
+      "upstreamPx": 8,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "mixins/_overlay.scss bdl-Overlay-container border-radius: $bdl-border-radius-size-large"
+    },
+    {
+      "id": "overlay.itemRadius",
+      "surface": "overlay",
+      "boeConst": "boeOverlay.itemRadius",
+      "boeValue": "8px",
+      "upstreamRaw": "$bdl-border-radius-size-large",
+      "upstreamResolved": "8px",
+      "verdict": "conformant",
+      "boePx": 8,
+      "upstreamPx": 8,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "mixins/_overlay.scss bdl-Overlay-listItemContainer border-radius: $bdl-border-radius-size-large"
+    },
+    {
+      "id": "control.inputPadding",
+      "surface": "control",
+      "boeConst": "boeControl.inputPadding",
+      "boeValue": "7px",
+      "upstreamRaw": "7px",
+      "upstreamResolved": "7px",
+      "verdict": "conformant",
+      "boePx": 7,
+      "upstreamPx": 7,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "_inputs.scss @mixin box-inputs padding: 7px"
+    },
+    {
+      "id": "badge.radius",
+      "surface": "badge",
+      "boeConst": "boeRadius.size",
+      "boeValue": "4px",
+      "upstreamRaw": "$bdl-border-radius-size",
+      "upstreamResolved": "4px",
+      "verdict": "conformant",
+      "boePx": 4,
+      "upstreamPx": 4,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "Badge.scss .badge border-radius: $bdl-border-radius-size (badges use boeRadius.size)"
+    }
+  ]
+}
