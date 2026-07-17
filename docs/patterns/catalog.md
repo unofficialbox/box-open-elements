@@ -29,7 +29,7 @@ src/patterns/
     schemas.ts        # built — wire schemas
     types.ts          # built
   preview/          # built — provider adapter, content-preview adapter, annotations, box-preview-element
-  search/             # target
+  search/             # built — filter-bar, saved-view-picker, search-results-header
   item/             # built — item-form, item-details-panel, bulk-action-bar, preview-header
   metadata/           # built — contracts, schemas, metadata-filter-builder, metadata-inspector
   share/              # built — contracts, schemas, access-stats, collaborator-avatars, invite-collaborators-modal, permission-matrix, presence, share-panel, unified-share-modal

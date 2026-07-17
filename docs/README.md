@@ -14,7 +14,7 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 
 ## Audits
 
-- [Component Fidelity Audit](./audits/component-fidelity-audit.md) — active work driver for the systemic batch program
+- [Component Fidelity Audit](./audits/component-fidelity-audit.md) — original scoring snapshot and completed systemic batch record
 - [Audit data](./audits/component-fidelity-audit.data.json) — per-component scores and issues
 
 ## Foundations

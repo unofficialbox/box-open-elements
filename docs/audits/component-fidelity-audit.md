@@ -24,8 +24,8 @@ result is written to the run journal, and the committed outputs are this report 
 
 **51 components score below 3/5; 229 high-severity issues logged.**
 
-> **Program status (live):** Batches **0–7** and medium/low nits (#41) **merged**.
-> Design-heavy leftovers in flight (`cursor/design-heavy-leftovers-7eb7`, #42).
+> **Program status:** complete. Batches **0–7**, medium/low nits (#41), and
+> design-heavy leftovers (#42) are merged.
 > Session status: [HANDOFF.md](../HANDOFF.md). Scores and issue lists below are the **original
 > audit snapshot** — they are not re-scored after each batch; track completion in the prioritized
 > plan and HANDOFF.
@@ -41,9 +41,9 @@ At audit time the library averaged **2.78/5** across 108 scored components (51 u
 `shadowRoot.innerHTML` rebuild on every state change** and **hardcoded `white` inside
 `color-mix()`**. Those systemic themes (plus focus/hover states, ARIA/keyboard, form association,
 `title`→`heading`, and the security holes) have since been swept — see the prioritized plan.
-Remaining work is the design-heavy leftovers pass in flight after Batches 0–7 and the
-medium/low nits pass (floating popover, slotted tooltip, explorer select-vs-activate,
-responsive app-shell, nav-sidebar icon contract).
+The design-heavy leftovers pass also shipped: floating popover, slotted tooltip,
+explorer select-vs-activate, responsive app-shell, and the nav-sidebar icon contract.
+The scores remain the original audit snapshot rather than a post-program re-score.
 
 ## Systemic themes
 
@@ -134,6 +134,6 @@ for multi-value / niche controls (`FormData` helpers).
 **Medium/low audit nits — DONE (#41).** High-signal pure-code polish across identity, forms,
 overlays, layout, explorer adapters, charts, tree/tree-grid, calendar `today` pin, etc.
 
-**Design-heavy leftovers — IN FLIGHT.** Floating/anchored popover, slotted tooltip trigger,
+**Design-heavy leftovers — DONE (#42).** Floating/anchored popover, slotted tooltip trigger,
 explorer `item-gesture` select-vs-activate, app-shell `@container` reflow, nav-sidebar
 collapsed icon contract.

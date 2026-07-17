@@ -19,7 +19,7 @@ The roadmap is intentionally biased toward enterprise workflows rather than mark
 - first exemplar component (`box-button`) and first exemplar headless pattern module (`ExplorerSelectionController`), both tested
 - docs reorganized under the Foundations → Components → Patterns taxonomy
 
-## Phase 1: Explorer foundation
+## Phase 1: Explorer foundation — **done**
 
 The components needed for a credible file explorer, picker, and embedded workspace shell:
 
@@ -36,7 +36,7 @@ The components needed for a credible file explorer, picker, and embedded workspa
 11. `pagination`
 12. `checkbox`, `checkbox-group`, `radio-group`
 
-## Phase 2: Composition depth
+## Phase 2: Composition depth — **done**
 
 1. `tabs`, `card`, `tree`, `tree-grid`
 2. `drop-zone`
@@ -45,7 +45,7 @@ The components needed for a credible file explorer, picker, and embedded workspa
 5. `accordion`, `avatar`, `persona`, `illustration`
 6. first pattern compositions: search (`filter-bar`, `search-results-header`, `saved-view-picker`) and item (`item-form`, `item-details-panel`, `bulk-action-bar`, `preview-header`)
 
-## Phase 3: Broader app coverage
+## Phase 3: Broader app coverage — **done**
 
 1. `date-field`, `time-field`, `number-input`, `spin-button`, `slider`, `range-slider`
 2. `drawer`, `switch`, `segmented-control`
@@ -76,7 +76,7 @@ These run alongside the phases rather than after them:
 
 - **Docs site** — **done** (v1 + follow-ons): the component-docs-site shell is built per [workshop/docs-site.md](./workshop/docs-site.md) — the taxonomy rail, tabbed component pages with live Events/Properties inspectors and runtime-derived API tables, foundations token/icon pages, a dark-mode toggle, variant dropdown (Storybook extraction), and guided build-along lessons (`bun run docs`). Screenshot checkpoints and CI are wired: render-health via `bun run test:regression`, and a **strict pixel-diff gate** in the `visual-regression` CI job inside the pinned Playwright container (`bun run test:regression:pixel` / `bun run baselines:regen`). See [workshop/docs-site.md](./workshop/docs-site.md).
 - **Storybook** — **done**: reintroduced Bun-natively as the extraction backend per [workshop/storybook.md](./workshop/storybook.md) — a `storybook/` workshop (typed stories → identity-guarded extracted JSON → a self-contained, separately-deployable static site). See its [README](../storybook/README.md). No Storybook/Vite runtime or consumer dependency.
-- **Build-alongs** — **done** (first lesson): the Explorer build-along ships in the docs site per [workshop/build-alongs.md](./workshop/build-alongs.md) — a live-website-first, build-it-yourself guide with a mandatory setup step, per-step live previews and highlighted deltas, copy-whole-file checkpoints, and a copyable standalone starter. Further lessons (preview, share, upload, metadata) are follow-ups.
+- **Build-alongs** — **done** (first three lessons): Explorer, Share, and Preview ship in the docs site per [workshop/build-alongs.md](./workshop/build-alongs.md) — live-website-first, build-it-yourself guides with mandatory setup, per-step live previews and highlighted deltas, copy-whole-file checkpoints, and a reusable starter. Add another lesson only when a real workflow needs guided teaching.
 - **Design system + theming** — **done**: retoned to Box's modernized Blueprint palette with an Inter typography baseline, then a design-QA pass drove focus rings and status colors through design tokens (`color-mix` off `--boe-token-*`) so every surface adapts between light and dark instead of leaving hardcoded, off-brand, or non-theming values.
 - **Server package** — **done**: `packages/box-server` rebuilt per [integration/box-server.md](./integration/box-server.md) — CCG auth + REST client, Box-backed explorer/share/metadata data sources, DTO mappers, and framework-neutral route handlers, all dependency-free (platform `fetch`) and covered by `bun run verify`.
 - **API consistency** — apply [api-guidelines.md](./api-guidelines.md) at port time; this rebuild is the chance to shed the old repo's compatibility aliases.

@@ -18,7 +18,7 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 
 ## Current state (as of this handoff)
 
-- **Branch tip:** develop from `origin/main` (density audit + #61 demo fidelity on main).
+- **Branch tip:** develop from current `origin/main`; this snapshot is `1652899` through PR #71.
 - **Live site:** GitHub Pages, `https://unofficialbox.github.io/box-open-elements/`,
   auto-deploys on push to `main` via `.github/workflows/deploy.yml`
   (build cmd `bun run site:build`, output `docs-site/dist`). The Workshop is
@@ -26,10 +26,10 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + **coverage-gated** tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
   Coverage floors: [docs/coverage-baseline.md](./coverage-baseline.md).
-- Recent merged PRs: fidelity Batches 0–7 + #41–**#61** (density + demo fidelity #61; workshop → 108 #59–#60).
+- Recent merged work through **#71** includes the completed fidelity program, 108-story workshop, density/BUE visual conformance, React adapter PoC, agent workflow rules, and the BUE Content Explorer style-bridge config.
 - Workshop stories: **108** extracted surfaces (full catalog). Workshop UI runs live `setup()` for controller-bound explorer demos; extraction still strips `setup`.
 - Content explorer: folder host chrome + **Metadata query chrome** docs-site variant (`docs-site/explorer-metadata-demo.ts`) — host-owned, not a controller view mode.
-- Foundations: theming + motion docs; `src/foundations/motion`; style bridge CLI; explorer host bindings for filter-bar / saved views.
+- Foundations/tooling: theming + motion docs; `src/foundations/motion`; style bridge CLI + BUE Content Explorer config; explorer host bindings for filter-bar / saved views.
 - Build-alongs: Explorer + Share + Preview lessons in `docs-site/lessons.ts` (Share/Preview are attribute/JSON + events; Explorer uses mock transport).
 - **Density:** full-catalog chrome pass + maintainer audit (`bun tools/density-audit.ts`). Reference = segmented-control.
 
@@ -106,12 +106,7 @@ organized into **systemic sweeps**, not per-component rewrites.
 
 ## Gotchas / conventions (important)
 
-- **Git identity:** `git config user.email noreply@anthropic.com` +
-  `user.name Claude`, or commits show Unverified. (The `8f58d75` merge commit is
-  GitHub's own — don't try to re-sign it.)
-- **Never** put the model identifier (`claude-opus-4-8`) in commits/PRs/code.
-  Commit footer: `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>` +
-  `Claude-Session: …`.
+- Preserve the repository's configured Git identity; do not rewrite authorship or add model/session identifiers to commits, PRs, or source.
 - **PR flow:** open **draft** PRs first, then mark **ready for review** so
   CodeRabbit runs (it skips drafts). Poll until the CodeRabbit commit status is
   `Review completed` / success (large diffs can stall — a small push retriggers).
@@ -135,8 +130,7 @@ organized into **systemic sweeps**, not per-component rewrites.
 - **Docs-site content rule:** no invented placeholder content — every card/link/
   token/variant must point at real data. Examples live in `docs-site/examples.ts`
   and the gallery mirror in `tools/preview/gallery.html` (keep both in sync).
-- **Repo scope:** GitHub access is limited to `unofficialbox/box-open-elements`.
-  Use the `mcp__github__*` tools (no `gh` CLI).
+- **Repo scope:** keep GitHub operations limited to `unofficialbox/box-open-elements`; use the available GitHub tooling for status and PR work.
 - **Always update docs** when behavior/architecture/status changes (`HANDOFF.md`,
   owning subsystem docs, catalogs/migration-map when public surface moves).
 - **Always commit and push** working branches as you go; open/update the PR each
