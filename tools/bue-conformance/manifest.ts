@@ -48,6 +48,9 @@ export const UPSTREAM_FILES: readonly UpstreamFile[] = [
   upstream("buttons", "src/styles/constants/_buttons.scss"),
   upstream("modal", "src/components/modal/Modal.scss"),
   upstream("menu", "src/components/menu/Menu.scss"),
+  upstream("overlay", "src/styles/mixins/_overlay.scss"),
+  upstream("inputs", "src/styles/_inputs.scss"),
+  upstream("badge", "src/components/badge/Badge.scss"),
 ] as const;
 
 export type Extractor =
@@ -214,5 +217,79 @@ export const CLAIMS: readonly Claim[] = [
     },
     tolerancePx: 0,
     citation: "Menu.scss .menu-item min-height: 30px",
+  },
+  {
+    id: "overlay.padding",
+    surface: "overlay",
+    boeConst: "boeOverlay.padding",
+    boeValue: boeOverlay.padding,
+    extractor: {
+      kind: "decl",
+      file: "overlay",
+      selector: "@mixin bdl-Overlay-container",
+      property: "padding",
+    },
+    tolerancePx: 0,
+    citation: "mixins/_overlay.scss bdl-Overlay-container padding: $bdl-grid-unit * 3",
+  },
+  {
+    id: "overlay.radius",
+    surface: "overlay",
+    boeConst: "boeOverlay.radius",
+    boeValue: boeOverlay.radius,
+    extractor: {
+      kind: "decl",
+      file: "overlay",
+      selector: "@mixin bdl-Overlay-container",
+      property: "border-radius",
+    },
+    tolerancePx: 0,
+    citation: "mixins/_overlay.scss bdl-Overlay-container border-radius: $bdl-border-radius-size-large",
+  },
+  {
+    id: "overlay.itemRadius",
+    surface: "overlay",
+    boeConst: "boeOverlay.itemRadius",
+    boeValue: boeOverlay.itemRadius,
+    extractor: {
+      kind: "decl",
+      file: "overlay",
+      selector: "@mixin bdl-Overlay-listItemContainer",
+      property: "border-radius",
+    },
+    tolerancePx: 0,
+    citation: "mixins/_overlay.scss bdl-Overlay-listItemContainer border-radius: $bdl-border-radius-size-large",
+  },
+
+  // --- Input control chrome (@mixin box-inputs) ---
+  {
+    id: "control.inputPadding",
+    surface: "control",
+    boeConst: "boeControl.inputPadding",
+    boeValue: boeControl.inputPadding,
+    extractor: {
+      kind: "decl",
+      file: "inputs",
+      selector: "@mixin box-inputs",
+      property: "padding",
+    },
+    tolerancePx: 0,
+    citation: "_inputs.scss @mixin box-inputs padding: 7px",
+  },
+
+  // --- Badge radius (Badge.scss .badge) ---
+  {
+    id: "badge.radius",
+    surface: "badge",
+    boeConst: "boeRadius.size",
+    boeValue: boeRadius.size,
+    extractor: {
+      kind: "decl",
+      file: "badge",
+      selector: ".badge",
+      property: "border-radius",
+    },
+    tolerancePx: 0,
+    citation: "Badge.scss .badge border-radius: $bdl-border-radius-size (badges use boeRadius.size)",
   },
 ] as const;

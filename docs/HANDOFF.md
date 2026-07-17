@@ -142,7 +142,7 @@ organized into **systemic sweeps**, not per-component rewrites.
 - Fidelity program complete; workshop at **108** extracted stories; explorer metadata host chrome shipped.
 - Density peer-consistency + Foundations GFM tables shipped.
 - **BUE visual conformance**: controls, overlays/tabs/feedback, drawer, and pattern shells aligned via `boeOverlay` / `boePanel` geometry tokens.
-- **BUE conformance program** (new): repeatable source-level geometry audit — `bun run bue-conformance` diffs `src/foundations/geometry` against real upstream box-ui-elements SCSS (via `raw.githubusercontent.com`). Report `docs/audits/bue-conformance-audit.md`; plan `plans/bue-conformance-execplan.md`. First pass 12/12 conformant. Live-Storybook colour/pixel layer is deferred until `opensource.box.com` is allowlisted (sandbox blocks all Box hosts + `github.com` clone; only raw file fetch works).
+- **BUE conformance program** (new): repeatable source-level geometry audit — `bun run bue-conformance` diffs `src/foundations/geometry` against real upstream box-ui-elements SCSS (via `raw.githubusercontent.com`). Report `docs/audits/bue-conformance-audit.md`; plan `plans/bue-conformance-execplan.md`. First pass 17/17 conformant. Live-Storybook colour/pixel layer is deferred until `opensource.box.com` is allowlisted (sandbox blocks all Box hosts + `github.com` clone; only raw file fetch works).
 - Motion literals migrated to `boeMotionDuration` / `interactive`.
 - Explorer Folder host chrome swaps list/table adapters via filter-bar `onViewChange`.
 - `recents` still needs a transport contract; configurable columns remain open.

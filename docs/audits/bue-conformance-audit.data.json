@@ -21,6 +21,21 @@
       "id": "menu",
       "path": "src/components/menu/Menu.scss",
       "loaded": true
+    },
+    {
+      "id": "overlay",
+      "path": "src/styles/mixins/_overlay.scss",
+      "loaded": true
+    },
+    {
+      "id": "inputs",
+      "path": "src/styles/_inputs.scss",
+      "loaded": true
+    },
+    {
+      "id": "badge",
+      "path": "src/components/badge/Badge.scss",
+      "loaded": true
     }
   ],
   "claims": [
@@ -191,6 +206,76 @@
       "deltaPx": 0,
       "note": null,
       "citation": "Menu.scss .menu-item min-height: 30px"
+    },
+    {
+      "id": "overlay.padding",
+      "surface": "overlay",
+      "boeConst": "boeOverlay.padding",
+      "boeValue": "12px",
+      "upstreamRaw": "$bdl-grid-unit * 3",
+      "upstreamResolved": "12px",
+      "verdict": "conformant",
+      "boePx": 12,
+      "upstreamPx": 12,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "mixins/_overlay.scss bdl-Overlay-container padding: $bdl-grid-unit * 3"
+    },
+    {
+      "id": "overlay.radius",
+      "surface": "overlay",
+      "boeConst": "boeOverlay.radius",
+      "boeValue": "8px",
+      "upstreamRaw": "$bdl-border-radius-size-large",
+      "upstreamResolved": "8px",
+      "verdict": "conformant",
+      "boePx": 8,
+      "upstreamPx": 8,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "mixins/_overlay.scss bdl-Overlay-container border-radius: $bdl-border-radius-size-large"
+    },
+    {
+      "id": "overlay.itemRadius",
+      "surface": "overlay",
+      "boeConst": "boeOverlay.itemRadius",
+      "boeValue": "8px",
+      "upstreamRaw": "$bdl-border-radius-size-large",
+      "upstreamResolved": "8px",
+      "verdict": "conformant",
+      "boePx": 8,
+      "upstreamPx": 8,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "mixins/_overlay.scss bdl-Overlay-listItemContainer border-radius: $bdl-border-radius-size-large"
+    },
+    {
+      "id": "control.inputPadding",
+      "surface": "control",
+      "boeConst": "boeControl.inputPadding",
+      "boeValue": "7px",
+      "upstreamRaw": "7px",
+      "upstreamResolved": "7px",
+      "verdict": "conformant",
+      "boePx": 7,
+      "upstreamPx": 7,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "_inputs.scss @mixin box-inputs padding: 7px"
+    },
+    {
+      "id": "badge.radius",
+      "surface": "badge",
+      "boeConst": "boeRadius.size",
+      "boeValue": "4px",
+      "upstreamRaw": "$bdl-border-radius-size",
+      "upstreamResolved": "4px",
+      "verdict": "conformant",
+      "boePx": 4,
+      "upstreamPx": 4,
+      "deltaPx": 0,
+      "note": null,
+      "citation": "Badge.scss .badge border-radius: $bdl-border-radius-size (badges use boeRadius.size)"
     }
   ]
 }

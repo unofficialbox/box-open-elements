@@ -85,10 +85,11 @@ bun run verify                                  # typecheck + coverage-gated tes
 
 - [x] Pure signals module (`signals.ts`) — length parse, SCSS var parse, ref +
       arithmetic resolver, declaration extractor, verdict comparison.
-- [x] Claim manifest (`manifest.ts`) — imports real geometry constants; 12
-      length claims (radii ×4, grid unit, control height/large/pad, modal
-      radius/padding/width, menu item min-height) mapped to verified upstream
-      paths.
+- [x] Claim manifest (`manifest.ts`) — imports real geometry constants; **17**
+      length claims mapped to verified upstream paths: radii ×4, grid unit,
+      control height/large/pad + input padding, modal radius/padding/width,
+      menu item min-height, overlay container padding/radius + list-item radius,
+      badge radius.
 - [x] Runnable audit (`audit.ts`) — curl fetch via proxy + CA, merged-var
       resolution, Markdown + JSON report, `--refresh/--offline/--strict`.
 - [x] Unit tests (`test/tools/bue-conformance.test.ts`, 34 cases — signals +
@@ -100,8 +101,11 @@ bun run verify                                  # typecheck + coverage-gated tes
       `curl --fail` so HTTP errors are never cached; `--strict` fails on any
       non-conformant verdict.
 - [x] `package.json` script `bue-conformance`; `.cache/` gitignored.
-- [ ] Broaden Layer 1 claims: inputs (`box-inputs` mixin), overlay/menu padding
-      + radius, badge radius, avatar size, tooltip, drawer width, tabs metrics.
+- [x] Broaden Layer 1 (round 1): `box-inputs` padding, overlay container
+      padding/radius, list-item radius, badge radius (12 → 17 claims).
+- [ ] Broaden Layer 1 (round 2): avatar size, tooltip radius/max-width, select
+      height, drawer width, tabs metrics, menu item padding (needs multi-value
+      shorthand resolution).
 - [ ] Layer 2 (blocked): allowlist `opensource.box.com` + `*.boxcdn.net`, then
       drive BUE Storybook in headless Chromium for computed-style/pixel diff of
       colour, shadow, and interaction states.

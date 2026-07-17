@@ -291,6 +291,16 @@ describe("audit workflow", () => {
         ".modal-dialog { width: 460px; padding: 30px; border-radius: $bdl-border-radius-size-xlarge; }",
     },
     { id: "menu", path: "menu", content: ".menu-item { min-height: 30px; }" },
+    {
+      id: "overlay",
+      path: "overlay",
+      content: [
+        "@mixin bdl-Overlay-container { padding: $bdl-grid-unit * 3; border-radius: $bdl-border-radius-size-large; }",
+        "@mixin bdl-Overlay-listItemContainer { border-radius: $bdl-border-radius-size-large; }",
+      ].join("\n"),
+    },
+    { id: "inputs", path: "inputs", content: "@mixin box-inputs { padding: 7px; }" },
+    { id: "badge", path: "badge", content: ".badge { border-radius: $bdl-border-radius-size; }" },
   ];
 
   it("parseArgs reads the run flags", () => {
@@ -336,11 +346,14 @@ describe("audit workflow", () => {
 
   it("evaluate marks every claim conformant against faithful upstream", () => {
     const rows = evaluate(conformantFiles());
-    expect(rows.length).toBeGreaterThanOrEqual(12);
+    expect(rows.length).toBeGreaterThanOrEqual(17);
     expect(rows.every(r => r.verdict === "conformant")).toBe(true);
     // Cross-file resolution: modal radius resolves via the layout var map.
     const modalRadius = rows.find(r => r.claim.id === "overlay.modalRadius");
     expect(modalRadius?.upstreamResolved).toBe("12px");
+    // Mixin-scoped decl with arithmetic resolves via the merged var map.
+    const overlayPad = rows.find(r => r.claim.id === "overlay.padding");
+    expect(overlayPad?.upstreamResolved).toBe("12px");
   });
 
   it("evaluate flags drift and missing-upstream", () => {
@@ -371,6 +384,6 @@ describe("audit workflow", () => {
   it("renderMarkdown reports a verdict summary", () => {
     const md = renderMarkdown(evaluate(conformantFiles()), conformantFiles());
     expect(md).toContain("# box-ui-elements Geometry Conformance Audit");
-    expect(md).toMatch(/✅ Conformant \| 12/);
+    expect(md).toMatch(/✅ Conformant \| 17/);
   });
 });
