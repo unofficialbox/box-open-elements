@@ -8,7 +8,9 @@ The core package stays framework-agnostic. This adapter is a thin layer that:
 2. syncs React props onto element **properties** (not fragile attribute stringification)
 3. forwards refs and DOM events
 
-See [`docs/integration/react.md`](../../docs/integration/react.md) for the boundary and roadmap.
+See [`docs/integration/react.md`](../../docs/integration/react.md) for the React
+boundary and the [framework adapter tracker](../../docs/integration/framework-adapters.md)
+for cross-framework milestones.
 
 ## Install (workspace)
 

@@ -13,7 +13,8 @@
    Workflow areas grouped by Box noun. Each area owns its headless controllers, transport contracts, and composed surfaces together.
 5. Optional adapter packages
    Framework integrations on top of the Web Component layer — React PoC in
-   `packages/react` (`@box-open-elements/react`); Vue/Angular remain future work.
+   `packages/react` (`@box-open-elements/react`); Angular, Vue, and Svelte are
+   tracked future lanes.
 
 ## Taxonomy Diagram
 
@@ -25,7 +26,7 @@ flowchart LR
     B --> C["Components"]
     C --> D["Patterns"]
     D --> E["Docs Site / Demo"]
-    D --> F["Framework Adapters (React PoC)"]
+    D --> F["Framework adapters (React PoC; Angular, Vue, Svelte tracked)"]
 ```
 
 ## Why this is useful
@@ -106,7 +107,7 @@ Shared helpers: `boeFormFieldErrorStyles`, `formErrorMessageMarkup`, `getMirrore
 
 - Keep state and business logic separate from rendering.
 - Expose controllers and stores rather than framework components.
-- Make React, Vue, Angular adapters optional layers on top of the Web Components and headless layer. React starts as `@box-open-elements/react` (see [integration/react.md](./integration/react.md)).
+- Make React, Angular, Vue, and Svelte integrations optional layers on top of the Web Components and headless layer. React starts as `@box-open-elements/react`; validate native custom-element consumption before creating more wrapper packages (see [integration/framework-adapters.md](./integration/framework-adapters.md)).
 - Prefer boring, guessable APIs over clever ones.
 - Keep collection primitives compatible with pagination, infinite scroll, and future windowing.
 - Treat accessibility semantics and keyboard support as part of the component contract.

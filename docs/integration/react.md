@@ -2,6 +2,8 @@
 
 Optional React wrappers for `box-open-elements` Web Components live in
 [`packages/react`](../../packages/react) as `@box-open-elements/react`.
+Cross-framework status and acceptance milestones live in the
+[Framework Adapter Progress tracker](./framework-adapters.md).
 
 ## Goal
 
@@ -56,6 +58,7 @@ enum values do not depend on React attribute stringification quirks.
 
 ## Related
 
+- [Framework Adapter Progress](./framework-adapters.md) — canonical React, Angular, Vue, and Svelte tracker
 - [Architecture](../architecture.md) — adapter packages as an optional outer layer
 - [Box Server Integration](./box-server.md) — sibling optional package pattern
 - Package README: [`packages/react/README.md`](../../packages/react/README.md)

@@ -93,7 +93,7 @@ const explorer = new ContentExplorerController({
 });
 ```
 
-Then choose any UI: custom React components, Vue SFCs, Angular templates, Web Components, or plain DOM. That is the "lego block" threshold to optimize toward.
+Then choose any UI: custom React components, Angular templates, Vue SFCs, Svelte components, Web Components, or plain DOM. That is the "lego block" threshold to optimize toward.
 
 ## Rebuild status
 
