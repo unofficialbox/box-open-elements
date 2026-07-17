@@ -151,4 +151,4 @@ organized into **systemic sweeps**, not per-component rewrites.
 - Motion literals migrated to `boeMotionDuration` / `interactive`.
 - Explorer Folder host chrome swaps list/table adapters via filter-bar `onViewChange`.
 - `recents` still needs a transport contract; configurable columns remain open.
-- Next optional slice: React adapter PoC.
+- React adapter PoC shipped (`packages/react`, `BoxButton`). Next optional: more wrappers, style-bridge config, or explorer `recents` when contracted.

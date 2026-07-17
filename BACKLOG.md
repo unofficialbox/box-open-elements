@@ -45,7 +45,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 | Area | First slice | Notes |
 | --- | --- | --- |
-| Framework adapters | Thin React wrapper PoC for one everyday control (e.g. `box-button`) | Optional layer; do not block Web Component work |
+| Framework adapters | React PoC shipped (`@box-open-elements/react` + `BoxButton`) | Extend wrappers via `createWebComponent` as needed; Vue/Angular later |
 | **BUE visual conformance** | Controls + overlays/tabs/feedback + drawer + pattern shells | `docs/foundations/geometry.md` (`boeOverlay`, `boePanel`); opportunistic polish only |
 | Preview / Box AI | Keep annotation + provider-adapter seams provider-neutral; document AI-specific UI only when contract-stable | See `docs/patterns/preview.md` |
 | Build-along lessons | Author next lesson only when a new workflow needs guided teaching | Explorer + Share + Preview lessons ship; keep scaffolding lesson-generic |

@@ -43,6 +43,7 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 ## Integration
 
 - [Box Server Integration](./integration/box-server.md) — the server-side boundary
+- [React Adapter](./integration/react.md) — optional `@box-open-elements/react` wrappers
 - [Box Wire Examples](./integration/wire-examples.md) — language-neutral JSON contracts
 - [Style Bridge](./integration/style-bridge.md) — third-party CSS/SCSS translation
 

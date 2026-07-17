@@ -11,8 +11,9 @@
    Accessible Web Components for single controls, organized by category.
 4. `src/patterns`
    Workflow areas grouped by Box noun. Each area owns its headless controllers, transport contracts, and composed surfaces together.
-5. Future adapter packages
-   React, Vue, Angular integrations built on top of the headless layer.
+5. Optional adapter packages
+   Framework integrations on top of the Web Component layer — React PoC in
+   `packages/react` (`@box-open-elements/react`); Vue/Angular remain future work.
 
 ## Taxonomy Diagram
 
@@ -24,7 +25,7 @@ flowchart LR
     B --> C["Components"]
     C --> D["Patterns"]
     D --> E["Docs Site / Demo"]
-    D --> F["Future Framework Adapters"]
+    D --> F["Framework Adapters (React PoC)"]
 ```
 
 ## Why this is useful
@@ -105,7 +106,7 @@ Shared helpers: `boeFormFieldErrorStyles`, `formErrorMessageMarkup`, `getMirrore
 
 - Keep state and business logic separate from rendering.
 - Expose controllers and stores rather than framework components.
-- Make React, Vue, Angular adapters optional layers on top of the Web Components and headless layer.
+- Make React, Vue, Angular adapters optional layers on top of the Web Components and headless layer. React starts as `@box-open-elements/react` (see [integration/react.md](./integration/react.md)).
 - Prefer boring, guessable APIs over clever ones.
 - Keep collection primitives compatible with pagination, infinite scroll, and future windowing.
 - Treat accessibility semantics and keyboard support as part of the component contract.
