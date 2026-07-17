@@ -37,7 +37,7 @@ flowchart LR
 ## Usage
 
 ```ts
-import { BoxButton } from "@box-open-elements/react";
+import { BoxButton, BoxSelect, BoxTextField } from "@box-open-elements/react";
 import {
   applyDesignTokens,
   registerBoxDefaultDesignSystem,

@@ -20,7 +20,8 @@ React integration guide and framework tracker.
 - [x] Add focused tests for values, booleans, structured options, custom events, latest handlers, and forwarded refs.
 - [x] Update package and repository docs; mark React **Validated** only when the checklist is proved.
 - [x] Run targeted tests, package typecheck, and `bun run verify`.
-- [ ] Publish the PR and poll Verify, Visual regression, and CodeRabbit to green.
+- [x] Publish PR #74 and poll Verify, Visual regression, and CodeRabbit to green;
+      address the review's missing usage-example imports.
 
 ## Surprises & Discoveries
 
@@ -131,6 +132,7 @@ confirm the PoC contract remains intact.
 - Existing verification baseline: 152 test files / 814 tests / 84.06% lines.
 - Targeted adapter result: 2 files / 7 tests pass; package typecheck passes.
 - Full verification result: 153 files / 817 tests / 84.16% lines; typecheck and build pass.
+- PR: #74; Verify, Visual regression, and CodeRabbit passed on the implementation commit.
 
 ## Interfaces and Dependencies
 
