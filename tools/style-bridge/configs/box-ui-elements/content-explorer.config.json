@@ -22,7 +22,7 @@
     "300px": "var(--boe-content-explorer-min-width, 300px)",
     "1 0 230px": "1 0 var(--boe-content-explorer-content-basis, 230px)",
     "70px": "var(--boe-content-explorer-footer-height, 70px)",
-    "var(--space-4)": "var(--boe-space-4, var(--space-4))",
-    "1px solid var(--border-divider-border)": "1px solid var(--boe-token-stroke-stroke, var(--border-divider-border))"
+    "var(--space-4)": "var(--boe-content-explorer-gap, 16px)",
+    "1px solid var(--border-divider-border)": "1px solid var(--boe-token-stroke-stroke, #e8e8e8)"
   }
 }

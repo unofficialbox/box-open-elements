@@ -7,6 +7,7 @@ import {
   bridgeStylesheet,
   createFileImportResolver,
   flattenSimpleNesting,
+  stripScssLineComments,
   type BridgeConfig,
 } from "../../tools/style-bridge/bridge.js";
 
@@ -60,6 +61,63 @@ describe("style bridge", () => {
     );
     const contents = resolveImport("variables");
     expect(contents).toContain("$minimumWidth");
+  });
+
+  it("does not rewrite .be as a prefix of .bce or .be-app", () => {
+    const { css } = bridgeStylesheet(`.be { color: red; }\n.bce { color: blue; }\n.be-app { color: green; }`, {
+      mode: "selector-bridge",
+      selectorMap: { ".be": "box-content-explorer" },
+    });
+    expect(css).toContain("box-content-explorer");
+    expect(css).toContain(".bce");
+    expect(css).toContain(".be-app");
+    expect(css).not.toContain("box-content-explorerce");
+    expect(css).not.toContain("box-content-explorer-app");
+  });
+
+  it("prefers longer declarationMap values", () => {
+    const { css } = bridgeStylesheet(`.x { border-top: 1px solid var(--border-divider-border); }`, {
+      mode: "selector-bridge",
+      selectorMap: {},
+      declarationMap: {
+        "var(--border-divider-border)": "WRONG",
+        "1px solid var(--border-divider-border)": "1px solid var(--boe-token-stroke-stroke, #e8e8e8)",
+      },
+    });
+    expect(css).toContain("1px solid var(--boe-token-stroke-stroke, #e8e8e8)");
+    expect(css).not.toContain("WRONG");
+  });
+
+  it("strips // comments but keeps url(//…) and quoted //", () => {
+    const src = `.x {
+  background: url(//cdn.example/file.png);
+  content: "https://example.com//path";
+  color: red; // accent
+}`;
+    const stripped = stripScssLineComments(src);
+    expect(stripped).toContain("url(//cdn.example/file.png)");
+    expect(stripped).toContain('"https://example.com//path"');
+    expect(stripped).not.toContain("// accent");
+
+    const { css } = bridgeStylesheet(src, {
+      mode: "selector-bridge",
+      selectorMap: {},
+    });
+    expect(css).toContain("url(//cdn.example/file.png)");
+    expect(css).toContain('"https://example.com//path"');
+    expect(css).not.toContain("// accent");
+  });
+
+  it("preserves parent selectors inside nested at-rules", () => {
+    const flat = flattenSimpleNesting(`.item {
+  @media (min-width: 600px) {
+    color: red;
+    .child { margin: 0; }
+  }
+}`);
+    expect(flat).toContain("@media (min-width: 600px)");
+    expect(flat).toContain(".item {\n  color: red;\n}");
+    expect(flat).toContain(".item .child");
   });
 
   it("runs selector-bridge with imports, variables, selectors, and literals", () => {
@@ -148,7 +206,8 @@ describe("style bridge", () => {
     expect(css).toContain("box-content-explorer::part(main)");
     expect(css).toContain("box-content-explorer::part(footer)");
     expect(css).toContain("var(--boe-content-explorer-min-width, 300px)");
-    expect(css).toContain("var(--boe-token-stroke-stroke, var(--border-divider-border))");
+    expect(css).toContain("var(--boe-token-stroke-stroke, #e8e8e8)");
+    expect(css).toContain("var(--boe-content-explorer-gap, 16px)");
     expect(css).not.toContain("$minimumWidth");
     expect(css).not.toMatch(/box-content-explorer\s+box-content-explorer::part/);
     expect(report.appliedSelectorMappings).toBeGreaterThan(0);

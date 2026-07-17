@@ -147,143 +147,232 @@ const stripSassDefinitions = (source: string): string =>
   source.replace(/^\s*\$[A-Za-z_][\w-]*\s*:[^;]*;\s*$/gm, "");
 
 /**
+ * Strip SCSS `//` line comments without corrupting `url(//…)` or quoted `//`.
+ * Tracks strings, escapes, and parentheses; only strips when paren depth is 0.
+ */
+export const stripScssLineComments = (source: string): string => {
+  let out = "";
+  let i = 0;
+  let inSingle = false;
+  let inDouble = false;
+  let parenDepth = 0;
+
+  while (i < source.length) {
+    const c = source[i]!;
+    const next = source[i + 1];
+
+    if (inSingle) {
+      out += c;
+      if (c === "\\" && i + 1 < source.length) {
+        out += source[i + 1]!;
+        i += 2;
+        continue;
+      }
+      if (c === "'") inSingle = false;
+      i += 1;
+      continue;
+    }
+
+    if (inDouble) {
+      out += c;
+      if (c === "\\" && i + 1 < source.length) {
+        out += source[i + 1]!;
+        i += 2;
+        continue;
+      }
+      if (c === '"') inDouble = false;
+      i += 1;
+      continue;
+    }
+
+    if (c === "'") {
+      inSingle = true;
+      out += c;
+      i += 1;
+      continue;
+    }
+    if (c === '"') {
+      inDouble = true;
+      out += c;
+      i += 1;
+      continue;
+    }
+    if (c === "(") {
+      parenDepth += 1;
+      out += c;
+      i += 1;
+      continue;
+    }
+    if (c === ")" && parenDepth > 0) {
+      parenDepth -= 1;
+      out += c;
+      i += 1;
+      continue;
+    }
+
+    if (c === "/" && next === "/" && parenDepth === 0) {
+      while (i < source.length && source[i] !== "\n") i += 1;
+      continue;
+    }
+
+    out += c;
+    i += 1;
+  }
+
+  return out;
+};
+
+const normalizeDeclBody = (raw: string): string =>
+  raw
+    .trim()
+    .split("\n")
+    .map(line => line.trim())
+    .filter(Boolean)
+    .join("\n  ");
+
+/**
  * Flatten simple SCSS nesting: `parent { &.child { … } }` and
  * `parent { .child { … } }`. Not a full Sass compiler — see style-bridge.md limits.
  */
-export const flattenSimpleNesting = (source: string): string => {
-  const out: string[] = [];
-  let i = 0;
+export const flattenSimpleNesting = (input: string): string => {
+  const flattenBlock = (blockSource: string, initialParent: string): string => {
+    const out: string[] = [];
+    let source = blockSource;
+    let i = 0;
 
-  const skipWs = (): void => {
-    while (i < source.length && /\s/.test(source[i]!)) i += 1;
-  };
+    const skipWs = (): void => {
+      while (i < source.length && /\s/.test(source[i]!)) i += 1;
+    };
 
-  const readUntil = (chars: string): string => {
-    let start = i;
-    while (i < source.length && !chars.includes(source[i]!)) i += 1;
-    return source.slice(start, i);
-  };
+    const readUntil = (chars: string): string => {
+      const start = i;
+      while (i < source.length && !chars.includes(source[i]!)) i += 1;
+      return source.slice(start, i);
+    };
 
-  const skipComments = (): void => {
-    while (i < source.length) {
-      skipWs();
-      if (source.startsWith("/*", i)) {
-        const end = source.indexOf("*/", i + 2);
-        i = end === -1 ? source.length : end + 2;
-        continue;
-      }
-      if (source.startsWith("//", i)) {
-        while (i < source.length && source[i] !== "\n") i += 1;
-        continue;
-      }
-      break;
-    }
-  };
-
-  /** Parse exactly one rule (selector + block), combining with `parentSelector`. */
-  const parseRule = (parentSelector: string): void => {
-    skipComments();
-    if (i >= source.length || source[i] === "}") {
-      return;
-    }
-
-    // at-rule passthrough (keep body as-is for @media etc.)
-    if (source.startsWith("@", i) && !source.startsWith("@import", i)) {
-      const atStart = i;
-      while (i < source.length && source[i] !== "{" && source[i] !== ";") i += 1;
-      if (source[i] === ";") {
-        i += 1;
-        out.push(source.slice(atStart, i));
-        return;
-      }
-      if (source[i] === "{") {
-        i += 1;
-        const innerStart = i;
-        let depth = 1;
-        while (i < source.length && depth > 0) {
-          if (source[i] === "{") depth += 1;
-          else if (source[i] === "}") depth -= 1;
-          if (depth > 0) i += 1;
+    const skipComments = (): void => {
+      while (i < source.length) {
+        skipWs();
+        if (source.startsWith("/*", i)) {
+          const end = source.indexOf("*/", i + 2);
+          i = end === -1 ? source.length : end + 2;
+          continue;
         }
-        const inner = source.slice(innerStart, i);
-        i += 1; // closing }
-        out.push(`${source.slice(atStart, innerStart)}${inner}}`);
-      }
-      return;
-    }
-
-    const selectorPart = readUntil("{").trim();
-    if (source[i] !== "{") {
-      return;
-    }
-    i += 1; // {
-
-    // Peek: does this block contain nested `{` before its closing `}`?
-    let depth = 1;
-    let j = i;
-    let hasNesting = false;
-    while (j < source.length && depth > 0) {
-      if (source[j] === "{") {
-        depth += 1;
-        if (depth > 1) hasNesting = true;
-      } else if (source[j] === "}") {
-        depth -= 1;
-      }
-      j += 1;
-    }
-
-    const combined = parentSelector
-      ? selectorPart.startsWith("&")
-        ? parentSelector + selectorPart.slice(1)
-        : `${parentSelector} ${selectorPart}`
-      : selectorPart;
-
-    if (!hasNesting) {
-      const body = source
-        .slice(i, j - 1)
-        .trim()
-        .split("\n")
-        .map(line => line.trim())
-        .filter(Boolean)
-        .join("\n  ");
-      i = j;
-      if (body) {
-        out.push(`${combined} {\n  ${body}\n}`);
-      }
-      return;
-    }
-
-    // Nested rules: parse children until this block's closing `}`.
-    const decls: string[] = [];
-    while (i < source.length && source[i] !== "}") {
-      skipComments();
-      if (source[i] === "}") break;
-      let k = i;
-      while (k < source.length && source[k] !== "{" && source[k] !== ";" && source[k] !== "}") {
-        k += 1;
-      }
-      if (source[k] === "{") {
-        parseRule(combined);
-      } else if (source[k] === ";") {
-        decls.push(source.slice(i, k + 1).trim());
-        i = k + 1;
-      } else {
+        if (source.startsWith("//", i)) {
+          while (i < source.length && source[i] !== "\n") i += 1;
+          continue;
+        }
         break;
       }
+    };
+
+    /** Parse block contents (decls + nested rules + at-rules) under `parentSelector`. */
+    const parseBlockContents = (parentSelector: string, stopAtBrace: boolean): void => {
+      const decls: string[] = [];
+      while (i < source.length) {
+        skipComments();
+        if (i >= source.length) break;
+        if (stopAtBrace && source[i] === "}") break;
+
+        if (source.startsWith("@", i) && !source.startsWith("@import", i)) {
+          const atStart = i;
+          while (i < source.length && source[i] !== "{" && source[i] !== ";") i += 1;
+          if (source[i] === ";") {
+            i += 1;
+            out.push(source.slice(atStart, i));
+            continue;
+          }
+          if (source[i] !== "{") break;
+          const header = source.slice(atStart, i).trim();
+          i += 1;
+          const innerStart = i;
+          let depth = 1;
+          while (i < source.length && depth > 0) {
+            if (source[i] === "{") depth += 1;
+            else if (source[i] === "}") depth -= 1;
+            if (depth > 0) i += 1;
+          }
+          const inner = source.slice(innerStart, i);
+          if (source[i] === "}") i += 1;
+          const flattenedInner = flattenBlock(inner, parentSelector);
+          if (flattenedInner.trim()) {
+            out.push(`${header} {\n${flattenedInner}\n}`);
+          }
+          continue;
+        }
+
+        let k = i;
+        while (k < source.length && source[k] !== "{" && source[k] !== ";" && source[k] !== "}") {
+          k += 1;
+        }
+        if (source[k] === "{") {
+          parseRule(parentSelector);
+        } else if (source[k] === ";") {
+          decls.push(source.slice(i, k + 1).trim());
+          i = k + 1;
+        } else {
+          break;
+        }
+      }
+      if (decls.length) {
+        if (parentSelector) {
+          out.push(`${parentSelector} {\n  ${decls.join("\n  ")}\n}`);
+        } else {
+          out.push(decls.join("\n"));
+        }
+      }
+    };
+
+    const parseRule = (parentSelector: string): void => {
+      skipComments();
+      if (i >= source.length || source[i] === "}") return;
+
+      const selectorPart = readUntil("{").trim();
+      if (source[i] !== "{") return;
+      i += 1;
+
+      let depth = 1;
+      let j = i;
+      let hasNesting = false;
+      while (j < source.length && depth > 0) {
+        if (source[j] === "{") {
+          depth += 1;
+          if (depth > 1) hasNesting = true;
+        } else if (source[j] === "}") {
+          depth -= 1;
+        }
+        j += 1;
+      }
+
+      const combined = parentSelector
+        ? selectorPart.startsWith("&")
+          ? parentSelector + selectorPart.slice(1)
+          : `${parentSelector} ${selectorPart}`
+        : selectorPart;
+
+      if (!hasNesting) {
+        const body = normalizeDeclBody(source.slice(i, j - 1));
+        i = j;
+        if (body) {
+          out.push(`${combined} {\n  ${body}\n}`);
+        }
+        return;
+      }
+
+      parseBlockContents(combined, true);
+      if (source[i] === "}") i += 1;
+    };
+
+    if (initialParent && !/[{@]/.test(source)) {
+      const body = normalizeDeclBody(source);
+      return body ? `${initialParent} {\n  ${body}\n}` : "";
     }
-    if (decls.length) {
-      out.push(`${combined} {\n  ${decls.join("\n  ")}\n}`);
-    }
-    if (source[i] === "}") i += 1;
+
+    parseBlockContents(initialParent, false);
+    return out.join("\n\n");
   };
 
-  while (i < source.length) {
-    skipComments();
-    if (i >= source.length) break;
-    parseRule("");
-  }
-
-  return out.join("\n\n");
+  return flattenBlock(input, "");
 };
 
 const applySelectorMap = (
@@ -376,8 +465,7 @@ export const bridgeStylesheet = (
   if (config.mode === "selector-bridge") {
     css = substituteVariables(css, config.variableMap, report);
     css = stripSassDefinitions(css);
-    // Drop // line comments (kept from SCSS) before flattening for cleaner CSS.
-    css = css.replace(/(^|[^:])\/\/.*$/gm, "$1");
+    css = stripScssLineComments(css);
     css = flattenSimpleNesting(css);
     css = applySelectorMap(css, config.selectorMap, report);
     css = applyDeclarationMap(css, config.declarationMap, report);

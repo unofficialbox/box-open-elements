@@ -75,6 +75,8 @@ Not supported: mixin expansion, loops, interpolation, advanced Sass module synta
 
 `declarationMap` matches the **entire** value after `:` (before `;` / `}`). Compound values such as `1px solid var(--border-divider-border)` must be mapped in full.
 
+Bridged literals should end in concrete fallbacks (`16px`, `#e8e8e8`) so output works with no design system registered. Prefer `--boe-token-*` for shared strokes/surfaces and `--boe-content-explorer-*` (or similar) for layout hooks.
+
 ## Tooling
 
 ```bash
