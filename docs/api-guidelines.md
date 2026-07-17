@@ -21,7 +21,7 @@ The API should optimize for:
 - predictable naming across components
 - plain object schemas that are easy to generate and inspect
 - event payloads that mirror component state closely
-- compatibility aliases when migrating toward better names
+- clean public names at port time; compatibility aliases only when an already-published contract requires them
 - simple escape hatches over large config surfaces
 
 ## Import contract
@@ -102,7 +102,7 @@ selected entry under `"value"`; range controls use `"range"` as the base for
 - Prefer `value-changed` for selection/input updates.
 - Prefer `open-changed` for overlay visibility changes.
 - Prefer `ratio-changed` for resizable split panes (`detail: { ratio }` on `split-view`).
-- Prefer adding compatibility aliases before hard renames when an existing component uses a less ideal term such as `heading`, `caption`, or `subtitle`.
+- During predecessor ports, apply the preferred vocabulary directly instead of carrying old aliases forward. For an already-published API, document the migration and add an alias only when compatibility is an explicit requirement.
 
 ## Shared event contract
 

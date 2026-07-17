@@ -59,6 +59,12 @@ The docs-site ships as a **host-agnostic static build** and deploys to a live UR
   - **Render-health mode** (`bun run test:regression`, no `--pixel`) stays available as an environment-independent fallback for machines without Docker: bundled fonts give identical text *metrics* everywhere, so it still catches crashes, blank/broken renders, and layout collapse without needing a matched rendering environment.
 - Shell state (active tab, selection, sidebar width, theme) persists across refreshes.
 
-## Optional Box connection
+## Real Box connection boundary
 
-The docs site uses mock data by default. An optional `.env` OAuth configuration (`BOX_OAUTH_CLIENT_ID`, `BOX_OAUTH_CLIENT_SECRET`, `BOX_OAUTH_REDIRECT_URI`, `BOX_API_BASE_URL`) lets the site connect to a real Box enterprise as the current user, powering the content-explorer path first and falling back to mock data automatically on failure.
+The docs site uses mock data by default and currently contains no browser OAuth
+flow. A real Box connection must call an app-owned BFF backed by
+`packages/box-server` and the stable pattern wire contracts; tokens, CCG
+credentials, OAuth client secrets, and impersonation remain server-side. Never
+place `BOX_OAUTH_CLIENT_SECRET` or another Box credential in docs-site code,
+client-visible environment variables, static build output, or browser storage.
+See [Box Server Integration](../integration/box-server.md).

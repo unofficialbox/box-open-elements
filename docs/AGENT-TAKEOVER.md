@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-17  
 **Repo:** [unofficialbox/box-open-elements](https://github.com/unofficialbox/box-open-elements)  
-**Base branch:** `main` @ `3b379e3` (through PR **#69**)  
+**Base branch:** `main` @ `1652899` (through PR **#71**)
 **Recent changelog:** [CHANGELOG.md](../CHANGELOG.md) (git-derived, 2026-07-14 – 2026-07-17)
 
 Read this file first, then `BACKLOG.md`, `docs/HANDOFF.md`, and the subsystem doc for whatever you touch.
@@ -17,7 +17,7 @@ Read this file first, then `BACKLOG.md`, `docs/HANDOFF.md`, and the subsystem do
 | **Live site** | https://unofficialbox.github.io/box-open-elements/ (push `main` → GitHub Pages) |
 | **Workshop** | Internal only — `storybook/`, **108** extracted stories → docs-site variant dropdown |
 | **Fidelity program** | **Complete** (Batches 0–7 + #41 + #42) |
-| **Open PR** | [#70](https://github.com/unofficialbox/box-open-elements/pull/70) — style-bridge BUE Content Explorer config (**CI green**, ready to merge) |
+| **Open PR** | None after #71 at this snapshot; verify with `gh pr list` before starting |
 | **Next product gaps** | Explorer `recents` (needs transport contract), configurable columns, more React wrappers |
 
 ---
@@ -32,17 +32,17 @@ High-signal merged work — full PR list in [CHANGELOG.md](../CHANGELOG.md).
 4. **Foundations** — iconography generator, brand imagery, token/shell docs, theming/motion, coverage gate (#45–#47, #54, #63–#64).
 5. **Density + BUE visual** — full-catalog audit, `boeOverlay` / `boePanel`, control/overlay/drawer conformance (#61–#67).
 6. **Adapters + agents** — React PoC (`@box-open-elements/react`), recommend-next-step rule (#68–#69).
+7. **Style bridge** — first real BUE Content Explorer selector-bridge config and engine hardening (#70), followed by this takeover/changelog snapshot (#71).
 
 ---
 
-## In-flight: PR #70 (your first action if taking over now)
+## Latest completed slice: PR #70
 
 | Field | Value |
 | --- | --- |
-| Branch | `cursor/style-bridge-bue-explorer-config-7eb7` |
-| Head | `1c740f0` |
+| Merged commit | `c9eca7a` |
 | CI | Verify + Pixel + CodeRabbit **pass** |
-| User intent | Likely **squash-merge** after review (pattern from prior PRs) |
+| State | **Merged** to `main` on 2026-07-17 |
 
 ### What #70 adds
 
@@ -53,14 +53,6 @@ High-signal merged work — full PR list in [CHANGELOG.md](../CHANGELOG.md).
 - ExecPlan: `plans/style-bridge-bue-explorer-execplan.md`
 - Engine fixes: Sass partial imports, nest flatten, safe `//` strip, at-rule parent scope, comma selector expansion
 - Tests: `test/tools/style-bridge.test.ts` (14 cases)
-
-### After merge
-
-1. `git fetch origin main && git checkout main && git pull`
-2. Update `docs/HANDOFF.md` / `BACKLOG.md` if any status lines still say “in flight”
-3. Delete merged feature branch on remote if housekeeping
-
----
 
 ## Standard agent workflow
 
@@ -90,7 +82,7 @@ git add … && git commit && git push -u origin <branch>
 | Full gate | `bun run verify` |
 | Docs dev | `bun run docs` |
 | Pixel CI locally | `bun run test:regression:pixel` (Docker) |
-| Style bridge (post-#70) | `bun run style-bridge:bue-explorer` |
+| Style bridge | `bun run style-bridge:bue-explorer` |
 | Density audit | `bun tools/density-audit.ts` |
 | PR checks | `gh pr checks <n>` |
 
@@ -125,13 +117,12 @@ From `BACKLOG.md` — do **not** invent placeholder content.
 
 | Priority | Item | Blocker / notes |
 | ---: | --- | --- |
-| 1 | Merge **#70** | None — CI green |
-| 2 | More **React wrappers** via `createWebComponent` | PoC in #68 |
-| 3 | Explorer **`recents` view** | Needs real transport contract — do not fake as folder listing |
-| 4 | **Configurable / permission-gated columns** | Contract/design TBD |
-| 5 | Additional **style-bridge configs** | Only when restyling a concrete third-party stylesheet |
-| 6 | **Motion literal migration** | Opportunistic — `tools/migrate-motion-literals.ts` |
-| 7 | Next **build-along lesson** | Only when a new workflow needs guided teaching |
+| 1 | More **React wrappers** via `createWebComponent` | PoC in #68 |
+| 2 | Explorer **`recents` view** | Needs real transport contract — do not fake as folder listing |
+| 3 | **Configurable / permission-gated columns** | Contract/design TBD |
+| 4 | Additional **style-bridge configs** | Only when restyling a concrete third-party stylesheet |
+| 5 | **Motion literal migration** | Opportunistic — `tools/migrate-motion-literals.ts` |
+| 6 | Next **build-along lesson** | Only when a new workflow needs guided teaching |
 
 BUE visual conformance is largely done; remaining work is opportunistic polish per `docs/foundations/geometry.md`.
 
@@ -164,9 +155,9 @@ BUE visual conformance is largely done; remaining work is opportunistic polish p
 
 ## Suggested first session for the next agent
 
-1. **Squash-merge PR #70** if the user confirms (closes style-bridge config slice).
-2. **Skim** `BACKLOG.md` and pick **React wrapper expansion** or wait on **explorer recents** until transport is defined.
-3. Run **`bun run verify`** on `main` after merge to confirm clean tip.
+1. Confirm the checkout starts from current `origin/main`; this snapshot is `1652899` through #71.
+2. Pick **React wrapper expansion**, or wait on **explorer recents** until its transport is defined.
+3. Run focused tests first, then **`bun run verify`** before publishing the slice.
 
 ---
 

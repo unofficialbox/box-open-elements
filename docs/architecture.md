@@ -112,10 +112,12 @@ Shared helpers: `boeFormFieldErrorStyles`, `formErrorMessageMarkup`, `getMirrore
 - Treat accessibility semantics and keyboard support as part of the component contract.
 - Prefer in-place shadow DOM updates (`BaseElement`) over full `innerHTML` rebuilds.
 
-## Non-goals for the first phase
+## Scope boundary after catalog parity
 
-- porting every component from `box-open-web-components` at once
-- supporting every Box element immediately
-- reproducing every behavior from `box-ui-elements`
-
-The previous repo remains the reference implementation for everything not yet rebuilt here; see [migration-map.md](./migration-map.md) for the component-by-component mapping.
+Phases 0–5 and the scoped gap inventory are complete. Future additions are
+gap-driven rather than a blanket effort to reproduce every `box-ui-elements`
+surface or behavior. Use the predecessor and upstream implementations as
+research inputs, then apply this repo's taxonomy, API, accessibility, and
+transport rules deliberately. See [migration-map.md](./migration-map.md) for the
+completed mapping and the few intentionally explorer-bound generic-component
+gaps.

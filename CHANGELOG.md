@@ -4,24 +4,18 @@ Work merged to `main` and notable in-flight changes for **2026-07-14 through 202
 
 Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
-**Summary:** ~95 commits on `main`; **49 PRs merged** (#21–#69 in this window). Component fidelity program completed; docs-site/workshop expanded to **108 stories**; density + BUE visual conformance landed; React adapter PoC and agent workflow rules shipped.
+**Summary:** 55 commits on `main`; **52 PRs merged** (#20–#71 in this window). Component fidelity program completed; docs-site/workshop expanded to **108 stories**; density + BUE visual conformance landed; React adapter PoC, agent workflow rules, and the first real style-bridge library config shipped.
 
 ---
 
-## 2026-07-17 (in flight — not yet on `main`)
+## 2026-07-17 — React adapter, agent rules, and BUE style bridge
 
-| PR | Branch | Summary |
-| --- | --- | --- |
-| [#70](https://github.com/unofficialbox/box-open-elements/pull/70) | `cursor/style-bridge-bue-explorer-config-7eb7` | First real **style-bridge** library config: BUE Content Explorer SCSS → `box-content-explorer` / `::part(…)` + token hooks; engine hardening; `bun run style-bridge:bue-explorer`; 14 focused tests. CI green (Verify + Pixel + CodeRabbit). **Ready to squash-merge.** |
+| PR | Summary |
+| --- | --- |
+| [#70](https://github.com/unofficialbox/box-open-elements/pull/70) | First real **style-bridge** library config: BUE Content Explorer SCSS → `box-content-explorer` / `::part(…)` + token hooks; engine hardening; `bun run style-bridge:bue-explorer`; 14 focused tests. |
+| [#71](https://github.com/unofficialbox/box-open-elements/pull/71) | Git-derived three-day changelog and agent-takeover snapshot. |
 
-Commits on the branch (not on `main` yet):
-
-```
-1c740f0 fix(style-bridge): split selector lists at top-level commas only
-3e0d2b0 fix(style-bridge): harden comment strip, cascade order, selectors
-4b162c0 fix(style-bridge): address CodeRabbit findings on BUE bridge
-0724868 feat(style-bridge): add BUE Content Explorer library config
-```
+Both PRs are merged on `main`; #70 passed Verify, Visual regression, and CodeRabbit before merge.
 
 ---
 
@@ -130,11 +124,9 @@ Infrastructure and early fidelity work shipped via the design-system rebuild ser
 
 | Commits | Author |
 | ---: | --- |
-| 44 | Kyle @ Unofficial Box |
-| 29 | Claude |
+| 34 | Kyle @ Unofficial Box |
 | 16 | Cursor Agent |
 | 5 | cursor[bot] |
-| 2 | Kyle Adams |
 
 ---
 
@@ -143,7 +135,7 @@ Infrastructure and early fidelity work shipped via the design-system rebuild ser
 ```bash
 bun run verify          # typecheck + coverage-gated tests + build
 bun run test:regression:pixel   # CI pixel gate locally (Docker)
-bun run style-bridge:bue-explorer   # after #70 merges
+bun run style-bridge:bue-explorer   # BUE Content Explorer bridge
 ```
 
 See `AGENTS.md`, `BACKLOG.md`, and `docs/HANDOFF.md` for ongoing orientation.

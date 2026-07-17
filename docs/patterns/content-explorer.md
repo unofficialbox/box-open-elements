@@ -62,7 +62,13 @@ Third parties keep their own action UX while using shared behavior rules.
 
 Responsibility: render the blocks, wire DOM events to headless commands, expose composition APIs.
 
-Examples: `breadcrumbs`, `list`, `table`, `toolbar`, `action-menu` — all generic components from the `components` tier, not explorer-prefixed wrappers.
+Built adapters are explorer-scoped Web Components under
+`patterns/content-explorer/adapters`: `box-explorer-breadcrumbs`,
+`box-explorer-list`, `box-explorer-table`, `box-explorer-toolbar`,
+`box-explorer-items`, and `box-explorer-action-menu`. They bind directly to the
+shared controller and remain pattern-owned because their behavior is
+explorer-specific. Generic catalog counterparts can be added later only when a
+transport-free use case justifies them.
 
 ### Item gestures (select vs activate)
 
@@ -89,14 +95,13 @@ const explorer = new ContentExplorerController({
 
 Then choose any UI: custom React components, Vue SFCs, Angular templates, Web Components, or plain DOM. That is the "lego block" threshold to optimize toward.
 
-## Rebuild order
+## Rebuild status
 
-1. `ExplorerSelectionController` — done; well-bounded and highly reusable.
-2. `ExplorerCollectionController` — pagination and refresh logic.
-3. `ExplorerNavigationController` — breadcrumbs and folder transitions.
-4. `ExplorerActionsController` — action rules and enablement.
-5. `ContentExplorerController` facade + transport contracts (`contracts.ts`, `box-transport.ts`).
-6. The composed `box-content-explorer` surface, assembled from generic catalog components.
+The complete explorer stack is built: selection, collection, navigation,
+actions, the `ContentExplorerController` facade, transport/data-source
+contracts, presentation adapters, and the composed `box-content-explorer`
+surface. New work is gap-driven: `recents` needs a real transport contract, and
+configurable or permission-gated columns need an explicit host/component API.
 
 ## Item contract (enriched)
 

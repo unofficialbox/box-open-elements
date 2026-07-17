@@ -58,9 +58,9 @@ Phases 0–5 of the [roadmap](./docs/roadmap.md) are complete — full catalog p
 - `storybook/` — a Bun-native workshop: typed stories → identity-guarded extracted JSON → a self-contained, separately-deployable static site, with no Storybook/Vite runtime or consumer dependency (see [storybook/README.md](./storybook/README.md))
 - Docs site + CI — live GitHub Pages deploy, Storybook-backed variant dropdown, and a strict pixel-diff visual-regression gate in CI
 
-**Fidelity program** (see [docs/HANDOFF.md](./docs/HANDOFF.md)): Batches 0–6 done; next is Batch 7 (polish).
+**Fidelity program** (see [docs/HANDOFF.md](./docs/HANDOFF.md)): complete — Batches 0–7, the medium/low audit nits, and the design-heavy leftovers have shipped.
 
-Everything in the [components catalog](./docs/components/catalog.md) and [patterns catalog](./docs/patterns/catalog.md) that carries a **built** marker is implemented here with dedicated tests; the remainder keeps its reference implementation in `box-open-web-components` for deliberate, phase-by-phase porting.
+Everything in the [components catalog](./docs/components/catalog.md) and [patterns catalog](./docs/patterns/catalog.md) that carries a **built** marker is implemented here with dedicated tests. Remaining catalog entries are intentional generic-component gaps whose current implementations are explorer-bound; future additions are gap-driven rather than phase-gated ports.
 
 ## Example: foundations + components
 
