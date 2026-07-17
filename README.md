@@ -54,7 +54,7 @@ Phases 0–5 of the [roadmap](./docs/roadmap.md) are complete — full catalog p
 - `src/patterns/content-explorer` — the full headless explorer stack (collection, navigation, selection, actions, facade controller, data-source contracts, Box transport, wire schemas) plus the `box-explorer-*` presentation adapters and the composed `box-content-explorer` surface
 - `src/patterns/{search,item,metadata,share,preview,file-request,task,governance,insights}` — all nine composition/workflow areas, including contracts and wire schemas for metadata and share, the provider-neutral preview adapter stack, the pluggable `box-preview-element`, and the share workflows (`box-presence`, `box-invite-collaborators-modal`, `box-unified-share-modal`, `box-access-stats`, `box-collaborator-avatars`)
 - `packages/box-server` — a dependency-free server-side adapter: CCG auth + REST client, Box-backed explorer/share/metadata data sources, DTO mappers, and framework-neutral route handlers (see [docs/integration/box-server.md](./docs/integration/box-server.md))
-- `packages/react` — optional React wrappers (`@box-open-elements/react`); PoC ships `BoxButton` (see [docs/integration/react.md](./docs/integration/react.md))
+- `packages/react` — optional React wrappers (`@box-open-elements/react`); PoC ships `BoxButton`. React, Angular, Vue, and Svelte progress is tracked in [docs/integration/framework-adapters.md](./docs/integration/framework-adapters.md).
 - `storybook/` — a Bun-native workshop: typed stories → identity-guarded extracted JSON → a self-contained, separately-deployable static site, with no Storybook/Vite runtime or consumer dependency (see [storybook/README.md](./storybook/README.md))
 - Docs site + CI — live GitHub Pages deploy, Storybook-backed variant dropdown, and a strict pixel-diff visual-regression gate in CI
 
@@ -97,7 +97,7 @@ selection.setItems([{ id: "1" }, { id: "2" }]);
 selection.toggleSelection("1");
 ```
 
-Workflow patterns begin as headless behavior and gain presentation adapters, so custom React components, Vue SFCs, Angular templates, Web Components, and plain DOM can all consume the same state.
+Workflow patterns begin as headless behavior and gain presentation adapters, so custom React components, Angular templates, Vue SFCs, Svelte components, Web Components, and plain DOM can all consume the same state.
 
 ## Import contract
 

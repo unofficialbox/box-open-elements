@@ -45,7 +45,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 
 | Area | First slice | Notes |
 | --- | --- | --- |
-| Framework adapters | React PoC shipped (`@box-open-elements/react` + `BoxButton`) | Extend wrappers via `createWebComponent` as needed; Vue/Angular later |
+| Framework adapters | React PoC shipped (`@box-open-elements/react` + `BoxButton`) | Track React, Angular, Vue, and Svelte in [`docs/integration/framework-adapters.md`](./docs/integration/framework-adapters.md); prove direct interop before adding wrappers |
 | **BUE visual conformance** | Controls + overlays/tabs/feedback + drawer + pattern shells | `docs/foundations/geometry.md` (`boeOverlay`, `boePanel`); opportunistic polish only |
 | Preview / Box AI | Keep annotation + provider-adapter seams provider-neutral; document AI-specific UI only when contract-stable | See `docs/patterns/preview.md` |
 | Build-along lessons | Author next lesson only when a new workflow needs guided teaching | Explorer + Share + Preview lessons ship; keep scaffolding lesson-generic |
