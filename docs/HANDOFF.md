@@ -3,7 +3,7 @@
 Snapshot for the next agent picking up this work. Read this first, then
 `BACKLOG.md`, `docs/foundations/brand.md` (imagery from Blueprint / UI Elements),
 `docs/foundations/tokens.md` (token consumption vs shell contract), and
-`docs/audits/component-fidelity-audit.md` (completed fidelity program).
+`docs/audits/box-design-fidelity-reconciliation.md` (active visual-fidelity program).
 
 ## What this repo is
 
@@ -16,9 +16,9 @@ pattern compositions in `src/patterns/<area>/`. There is a **docs-site** SPA
 internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 `storybook/generated/workshop.json` and feed the docs-site variant dropdown.
 
-## Current state (as of this handoff)
+## Current state (as of 2026-07-17)
 
-- **Branch tip:** develop from current `origin/main`; this snapshot is `3b1d4be` through PR #73.
+- **Active branch:** `codex/light-mode-state-reconciliation`. The branch contains the exhaustive design-fidelity audit, Slice 0 reference/state harness, and Slice 1a Inter typography foundation. See the concise root [HANDOFF.md](../HANDOFF.md).
 - **Live site:** GitHub Pages, `https://unofficialbox.github.io/box-open-elements/`,
   auto-deploys on push to `main` via `.github/workflows/deploy.yml`
   (build cmd `bun run site:build`, output `docs-site/dist`). The Workshop is
@@ -26,14 +26,16 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + **coverage-gated** tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
   Coverage floors: [docs/coverage-baseline.md](./coverage-baseline.md).
-- Recent merged work through **#73** includes the completed fidelity program, 108-story workshop, density/BUE visual conformance, React adapter PoC, agent workflow rules, the BUE Content Explorer style-bridge config, documentation synchronization, and the four-framework progress tracker.
+- Recent merged work through **#73** includes the earlier systemic fidelity batches, 108-story workshop, density/BUE visual conformance, React adapter PoC, agent workflow rules, the BUE Content Explorer style-bridge config, documentation synchronization, and the four-framework progress tracker.
+- **Current visual status:** catalog presence and earlier systemic fixes are complete, but professional Box parity is not. The exhaustive 2026-07-17 reconciliation covers all 8 documented foundations, 72 components, and 36 rendered patterns. Slice 0 ships a dated reference contract plus deterministic desktop/mobile state baselines. Slice 1a establishes Inter across all 107 rendered hosts and pins one official Inter Variable asset for docs/visual tests. Slice 1b geometry, elevation, surface, icon, and interaction roles is next in `plans/box-design-fidelity-reconciliation-execplan.md`.
+- **Known docs-shell follow-up:** at a 390px viewport the shell still measures 604px wide. This is an existing responsive-layout defect, not a typography fallback.
 - Workshop stories: **108** extracted surfaces (full catalog). Workshop UI runs live `setup()` for controller-bound explorer demos; extraction still strips `setup`.
 - Content explorer: folder host chrome + **Metadata query chrome** docs-site variant (`docs-site/explorer-metadata-demo.ts`) — host-owned, not a controller view mode.
 - Foundations/tooling: theming + motion docs; `src/foundations/motion`; style bridge CLI + BUE Content Explorer config; explorer host bindings for filter-bar / saved views.
 - Build-alongs: Explorer + Share + Preview lessons in `docs-site/lessons.ts` (Share/Preview are attribute/JSON + events; Explorer uses mock transport).
 - **Density:** full-catalog chrome pass + maintainer audit (`bun tools/density-audit.ts`). Reference = segmented-control.
 
-## Completed initiative: component fidelity program
+## Earlier initiative: systemic component fidelity program
 
 A multi-agent audit scored all 109 components (avg **2.78/5**, 51 below 3/5,
 229 high-severity issues). Full report + per-component data:
@@ -84,7 +86,8 @@ organized into **systemic sweeps**, not per-component rewrites.
   contract (`--boe-nav-label-display`).
 
 ### Remaining (fidelity)
-1. Spacing/token rhythm noise only if needed. Fidelity program is otherwise complete.
+
+The earlier batches closed major security, behavior, accessibility, and systemic styling defects; they did not establish professional visual parity. Follow the exhaustive row-by-row audit in `docs/audits/box-design-fidelity-reconciliation.md` and the active ExecPlan in `plans/box-design-fidelity-reconciliation-execplan.md`. Do not describe visual fidelity as complete until those rows are reconciled and verified against current Box.
 
 ### Deferred CodeRabbit items (intentional)
 - "add style tests" nitpicks → covered by the screenshot gate; low value.

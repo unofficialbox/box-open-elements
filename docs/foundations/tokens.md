@@ -131,7 +131,7 @@ Source-level Box styling is the default: every catalog surface carries its look 
 | Whole-app light/dark or white-label theme | `registerDesignSystem` / `setActiveDesignSystem` + `applyDesignTokens` | Per-page shell CSS that paints over every control |
 | Third-party SCSS → token vocabulary | Style bridge (`bun run style-bridge` — [../integration/style-bridge.md](../integration/style-bridge.md)) | Hand-copy third-party rules into shadow trees |
 
-`:host { color: inherit; font: inherit; }` is intentional so typography can follow the embedding page while **paint** (background, border, status, brand) still comes from tokens.
+Rendered hosts use `font: inherit` plus `font-family: var(--boe-token-font-family-base, …)` intentionally: size, weight, and line height can follow the embedding page while the authoritative family remains Inter. See [Typography](./typography.md) for the semantic roles and consumer font-loading boundary. **Paint** (background, border, status, brand) still comes from tokens.
 
 ### Native closed-widget limits
 

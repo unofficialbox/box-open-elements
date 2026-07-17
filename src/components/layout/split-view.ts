@@ -4,6 +4,7 @@ const DEFAULT_TAG_NAME = "box-split-view";
 
 const splitViewStyles = `
   :host {
+    font-family: var(--boe-token-font-family-base, InterVariable, Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif);
     display: block;
   }
 

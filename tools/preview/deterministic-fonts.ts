@@ -2,14 +2,9 @@
  * Font determinism for the screenshot pipeline.
  *
  * Screenshots must render identically in this sandbox and in CI for a
- * pixel-diff gate to be meaningful. Two things break that: the docs-site loads
- * InterVariable from a CDN (reachable in CI, blocked here), and un-mapped
- * fallbacks resolve to whatever sans the environment happens to have.
- *
- * So the capture pipeline blocks all remote fonts and maps the entire sans
- * fallback chain (plus a forced monospace family) to committed DejaVu files
- * embedded as data: URIs. Inter stays the real runtime font for users — only
- * screenshot rendering is pinned. DejaVu is redistributable (see fonts/LICENSE).
+ * pixel-diff gate to be meaningful. The capture pipeline embeds the same
+ * pinned Inter Variable WOFF2 that the docs site ships. Only developer-facing
+ * monospace regions use committed DejaVu Sans Mono.
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -17,33 +12,25 @@ import { dirname, join } from "node:path";
 import type { Page } from "playwright-core";
 
 const FONT_DIR = join(dirname(fileURLToPath(import.meta.url)), "fonts");
+const INTER_FONT_DIR = join(dirname(fileURLToPath(import.meta.url)), "../../docs-site/fonts");
 
-const dataUri = (file: string): string => {
-  const base64 = readFileSync(join(FONT_DIR, file)).toString("base64");
-  return `data:font/ttf;base64,${base64}`;
+const dataUri = (directory: string, file: string, mimeType: string): string => {
+  const base64 = readFileSync(join(directory, file)).toString("base64");
+  return `data:${mimeType};base64,${base64}`;
 };
 
-// The sans families named anywhere in the token stacks / gallery markup, all
-// mapped to the same committed face so the first-available family is stable.
-const SANS_FAMILIES = ["InterVariable", "Inter", "Lato", "Helvetica Neue", "Helvetica", "Arial"];
-
-/** `@font-face` + monospace-override CSS pinning fonts to the bundled DejaVu. */
+/** Pinned Inter faces plus a monospace override for developer tooling. */
 export const deterministicFontCss = (): string => {
-  const sans = dataUri("DejaVuSans.ttf");
-  const sansBold = dataUri("DejaVuSans-Bold.ttf");
-  const mono = dataUri("DejaVuSansMono.ttf");
-
-  const sansFaces = SANS_FAMILIES.flatMap(family => [
-    `@font-face { font-family: "${family}"; font-weight: 100 500; font-style: normal; src: url("${sans}") format("truetype"); }`,
-    `@font-face { font-family: "${family}"; font-weight: 600 900; font-style: normal; src: url("${sansBold}") format("truetype"); }`,
-  ]);
+  const inter = dataUri(INTER_FONT_DIR, "InterVariable.woff2", "font/woff2");
+  const mono = dataUri(FONT_DIR, "DejaVuSansMono.ttf", "font/ttf");
 
   return [
-    ...sansFaces,
+    `@font-face { font-family: "InterVariable"; font-weight: 100 900; font-style: normal; src: url("${inter}") format("woff2"); }`,
+    `@font-face { font-family: "Inter"; font-weight: 100 900; font-style: normal; src: url("${inter}") format("woff2"); }`,
     `@font-face { font-family: "BOEMono"; src: url("${mono}") format("truetype"); }`,
     // Force the monospace regions of the docs chrome onto the bundled mono face
     // (page-level rules do not pierce shadow DOM, but the code blocks live in
-    // light DOM). The @font-face maps above DO reach shadow DOM.
+    // light DOM). The Inter @font-face definitions DO reach shadow DOM.
     `pre, code, kbd, samp, .code-block, .code-line, .page-tag { font-family: "BOEMono", monospace !important; }`,
   ].join("\n");
 };

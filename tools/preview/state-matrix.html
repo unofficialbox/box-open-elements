@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>box-open-elements deterministic state matrix</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px;
+    font-family: var(--boe-token-font-family-base, InterVariable, Inter, "Helvetica Neue", Helvetica, Arial, sans-serif);
+    background: #f4f4f4;
+    color: #222;
+  }
+  header { max-width: 1120px; margin: 0 auto 24px; }
+  h1 { margin: 0 0 4px; font-size: 21px; line-height: 32px; }
+  header p { margin: 0; color: #6f6f6f; font-size: 14px; line-height: 20px; }
+  main { display: grid; gap: 16px; max-width: 1120px; margin: 0 auto; }
+  section {
+    padding: 24px;
+    border: 1px solid #e8e8e8;
+    background: #fff;
+  }
+  h2 { margin: 0 0 16px; font-size: 19px; line-height: 24px; }
+  .matrix { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: start; }
+  .specimen { min-width: 0; display: grid; gap: 10px; align-content: start; }
+  .state-label { color: #6f6f6f; font-size: 12px; line-height: 16px; font-weight: 700; }
+  .row-list { display: grid; gap: 4px; max-width: 320px; }
+  box-tabs { max-width: 520px; }
+  box-menu { width: 100%; max-width: 280px; }
+  @media (max-width: 700px) {
+    body { padding: 16px; }
+    section { padding: 16px; }
+    .matrix { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Deterministic interaction-state matrix</h1>
+  <p>Current implementation specimens. Labels describe state semantics, not visual acceptance.</p>
+</header>
+<main>
+  <section id="section-states-actions" data-state-section="actions">
+    <h2>Actions</h2>
+    <div class="matrix">
+      <div class="specimen"><span class="state-label">Rest · primary</span><box-button label="Share"></box-button></div>
+      <div class="specimen"><span class="state-label">Rest · secondary</span><box-button label="New" tone="neutral"></box-button></div>
+      <div class="specimen"><span class="state-label">Disabled</span><box-button label="Share" disabled></box-button></div>
+      <div class="specimen"><span class="state-label">Selected group option</span><box-button-group id="state-button-group" layout="attached"></box-button-group></div>
+      <div class="specimen"><span class="state-label">Transient target</span><box-button id="transient-button" label="Hover or focus"></box-button></div>
+    </div>
+  </section>
+
+  <section id="section-states-rows" data-state-section="rows">
+    <h2>Rows and options</h2>
+    <div class="matrix">
+      <div class="specimen"><span class="state-label">Menu rows</span><box-menu id="state-menu" label="File actions"></box-menu></div>
+      <div class="specimen"><span class="state-label">Rest / selected / disabled</span><div class="row-list" role="listbox" aria-label="Files">
+        <box-datalist-item id="transient-row" icon="F" label="Finance" meta="Folder" value="finance"></box-datalist-item>
+        <box-datalist-item icon="P" label="Quarterly Plan.pdf" meta="PDF · 2.4 MB" value="plan" selected></box-datalist-item>
+        <box-datalist-item icon="L" label="Legal" meta="Folder" value="legal" disabled></box-datalist-item>
+      </div></div>
+    </div>
+  </section>
+
+  <section id="section-states-selection" data-state-section="selection">
+    <h2>Persisted selection</h2>
+    <div class="matrix">
+      <div class="specimen"><span class="state-label">Selected tab · underline family</span><box-tabs id="state-tabs" label="Details sections" layout="separated"></box-tabs></div>
+      <div class="specimen"><span class="state-label">Checked indicators</span><box-checkbox-group id="state-checkboxes" label="Permissions"></box-checkbox-group></div>
+      <div class="specimen"><span class="state-label">Selected radio indicator</span><box-radio-group id="state-radios" label="Access level"></box-radio-group></div>
+      <div class="specimen"><span class="state-label">Toggle on / off / disabled</span><box-switch label="Shared link" checked></box-switch><box-switch label="Expiration"></box-switch><box-switch label="Downloads" disabled></box-switch></div>
+    </div>
+  </section>
+
+  <section id="section-states-fields" data-state-section="fields">
+    <h2>Fields</h2>
+    <div class="matrix">
+      <div class="specimen"><span class="state-label">Rest</span><box-text-field label="Name" value="Quarterly Plan"></box-text-field></div>
+      <div class="specimen"><span class="state-label">Invalid</span><box-text-field label="Email" value="not-an-email" invalid error-message="Enter a valid email address"></box-text-field></div>
+      <div class="specimen"><span class="state-label">Disabled</span><box-text-field label="Owner" value="Morgan Lee" disabled></box-text-field></div>
+      <div class="specimen"><span class="state-label">Select</span><box-select id="state-select" label="Permission"></box-select></div>
+    </div>
+  </section>
+</main>
+
+<script type="module">
+  import {
+    applyDesignTokens,
+    registerBoxDefaultDesignSystem,
+    defineBoxButtonElement,
+    defineBoxButtonGroupElement,
+    defineBoxMenuElement,
+    defineBoxDatalistItemElement,
+    defineBoxTabsElement,
+    defineBoxCheckboxGroupElement,
+    defineBoxRadioGroupElement,
+    defineBoxSwitchElement,
+    defineBoxTextFieldElement,
+    defineBoxSelectElement,
+  } from "/dist/index.js";
+
+  registerBoxDefaultDesignSystem({ setActive: true });
+  applyDesignTokens(document.documentElement, "box-default");
+  for (const define of [
+    defineBoxButtonElement,
+    defineBoxButtonGroupElement,
+    defineBoxMenuElement,
+    defineBoxDatalistItemElement,
+    defineBoxTabsElement,
+    defineBoxCheckboxGroupElement,
+    defineBoxRadioGroupElement,
+    defineBoxSwitchElement,
+    defineBoxTextFieldElement,
+    defineBoxSelectElement,
+  ]) define();
+
+  const byId = id => document.getElementById(id);
+  byId("state-button-group").options = [
+    { label: "List", value: "list" },
+    { label: "Grid", value: "grid" },
+  ];
+  byId("state-button-group").value = "list";
+  byId("state-menu").items = [
+    { id: "open", label: "Open" },
+    { id: "share", label: "Share" },
+    { id: "delete", label: "Delete" },
+    { id: "locked", label: "Move", disabled: true },
+  ];
+  byId("state-tabs").options = [
+    { label: "Sharing", value: "sharing" },
+    { label: "Details", value: "details" },
+  ];
+  byId("state-tabs").value = "sharing";
+  byId("state-checkboxes").options = [
+    { label: "Can view", value: "view" },
+    { label: "Can edit", value: "edit" },
+  ];
+  byId("state-checkboxes").value = ["view"];
+  byId("state-radios").options = [
+    { label: "Company", value: "company" },
+    { label: "Invited people only", value: "invited" },
+  ];
+  byId("state-radios").value = "company";
+  byId("state-select").options = [
+    { label: "Viewer", value: "viewer" },
+    { label: "Editor", value: "editor" },
+  ];
+  byId("state-select").value = "viewer";
+
+  await Promise.all([...document.querySelectorAll("main *")]
+    .filter(node => node.localName.includes("-"))
+    .map(node => customElements.whenDefined(node.localName)));
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  document.body.dataset.stateMatrixReady = "true";
+</script>
+</body>
+</html>

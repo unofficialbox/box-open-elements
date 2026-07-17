@@ -28,6 +28,7 @@ const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const OUT = join(ROOT, "docs-site/dist");
 const LIB_SRC = join(ROOT, "dist");
 const WORKSHOP_SRC = join(ROOT, "storybook/dist");
+const FONT_SRC = join(ROOT, "docs-site/fonts");
 
 const version = ((await Bun.file(join(ROOT, "package.json")).json()) as { version: string }).version;
 
@@ -65,6 +66,7 @@ if (!build.success) {
 
 // Static assets: styles, the built library tree (importmap target), the workshop.
 cpSync(join(ROOT, "docs-site/styles.css"), join(OUT, "styles.css"));
+cpSync(FONT_SRC, join(OUT, "fonts"), { recursive: true });
 cpSync(LIB_SRC, join(OUT, "lib"), { recursive: true });
 if (includeWorkshop) cpSync(WORKSHOP_SRC, join(OUT, "workshop"), { recursive: true });
 

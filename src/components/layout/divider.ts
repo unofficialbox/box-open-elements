@@ -17,6 +17,7 @@ const dividerStyles = `
     inline-size: 100%;
     color: inherit;
     font: inherit;
+    font-family: var(--boe-token-font-family-base, InterVariable, Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif);
   }
 
   :host([orientation="vertical"]) {

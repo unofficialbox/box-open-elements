@@ -15,11 +15,14 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 ## Audits
 
 - [Component Fidelity Audit](./audits/component-fidelity-audit.md) — original scoring snapshot and completed systemic batch record
+- [Box Design-Fidelity Reconciliation](./audits/box-design-fidelity-reconciliation.md) — exhaustive current Box/BUE/local comparison for every foundation, component, and pattern
+- [Current Box Visual Reference](./audits/box-visual-reference.md) — dated, machine-readable role measurements used by the remediation and visual gate
 - [Audit data](./audits/component-fidelity-audit.data.json) — per-component scores and issues
 
 ## Foundations
 
 - [Design Tokens](./foundations/tokens.md)
+- [Typography](./foundations/typography.md) — Inter Variable loading, host contract, and semantic product roles
 - [Theming](./foundations/theming.md) — register / activate / apply / observe
 - [Geometry](./foundations/geometry.md) — BDL space / radius / control-height (BUE-aligned)
 - [Motion](./foundations/motion.md) — shared durations, easing, reduced-motion

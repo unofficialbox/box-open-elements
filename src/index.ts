@@ -29,6 +29,13 @@ export type {
   DesignTokenMap,
 } from "./foundations/tokens/index.js";
 export { boxIconography, boxIconographyAliases } from "./foundations/icons/index.js";
+export {
+  boeFontFamily,
+  boeType,
+  boeTypeStyles,
+  boeTypographyHostDeclaration,
+} from "./foundations/typography/index.js";
+export type { BoeTypeRole } from "./foundations/typography/index.js";
 
 // Components: actions
 export * from "./components/actions/button.js";

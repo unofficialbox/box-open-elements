@@ -12,7 +12,7 @@ import {
 const DEFAULT_TAG_NAME = "box-invite-collaborators-modal";
 
 const elementStyles = `
-        :host { display: contents; color: inherit; font: inherit; }
+        :host { display: contents; color: inherit; font: inherit; font-family: var(--boe-token-font-family-base, InterVariable, Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif); }
 
         [part="backdrop"] {
           position: fixed;

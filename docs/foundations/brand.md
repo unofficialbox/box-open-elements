@@ -11,7 +11,7 @@ component library. Sources are **shipped product assets**, not a Figma file:
 
 ## Typography
 
-- Use a clean sans-serif system centered on `Inter` and `Inter Display`.
+- Use Inter Variable for product UI. Lato is reserved for an explicitly legacy BUE context.
 - Keep hierarchy crisp and product-oriented.
 - Avoid warmer editorial/serif baselines when Box mode is active.
 - Reserve large type for clear hierarchy, not decorative effect.

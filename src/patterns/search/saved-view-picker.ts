@@ -26,6 +26,7 @@ const elementStyles = `
           display: block;
           color: inherit;
           font: inherit;
+          font-family: var(--boe-token-font-family-base, InterVariable, Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif);
           --_obp-surface: var(--boe-token-surface-surface, #ffffff);
           --_obp-surface-muted: var(--boe-token-surface-surface-secondary, #fbfbfb);
           --_obp-border: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);

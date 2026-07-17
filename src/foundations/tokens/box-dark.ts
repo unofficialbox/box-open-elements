@@ -14,7 +14,7 @@ export const boxDarkDesignSystem: DesignSystemDefinition = {
   // Blueprint neutral palette used by the light default. Box publishes no
   // canonical dark token set, so these are the neutral-dark analogue of it.
   tokens: {
-    FontFamilyBase: "InterVariable, Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif",
+    FontFamilyBase: "InterVariable, Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif",
     SurfaceSurface: "#1c1c1c",
     SurfaceSurfaceHover: "#2a2a2a",
     SurfaceSurfaceSecondary: "#161616",

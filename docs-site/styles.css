@@ -1,18 +1,18 @@
 * { box-sizing: border-box; }
 
-/* InterVariable is Box's modernized typeface (box-ui-elements `is-inter-font`),
-   loaded from Box's CDN — the same source box-ui-elements uses. */
+/* InterVariable is Box's modernized typeface. The pinned OFL asset is shared
+   with visual regression so runtime and baseline typography are identical. */
 @font-face {
   font-family: InterVariable;
   font-style: normal;
-  font-weight: 400 700;
+  font-weight: 100 900;
   font-display: swap;
-  src: url("https://cdn01.boxcdn.net/fonts/1.0.18-beta.5/inter/InterVariable.woff2") format("woff2");
+  src: url("./fonts/InterVariable.woff2") format("woff2");
 }
 
 body {
   margin: 0;
-  font-family: var(--boe-token-font-family-base, InterVariable, Lato, "Helvetica Neue", Helvetica, Arial, sans-serif);
+  font-family: var(--boe-token-font-family-base, InterVariable, Inter, "Helvetica Neue", Helvetica, Arial, sans-serif);
   font-size: 15px;
   color: #222222;
   background: #fbfbfb;

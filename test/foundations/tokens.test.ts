@@ -36,6 +36,10 @@ describe("foundations/tokens", () => {
 
     expect(resolveDesignIcon("info")).toContain("<svg");
     expect(boxDefaultDesignSystem.tokens?.SurfaceSurfaceBrand).toBe("#0061d5");
+    expect(boxDefaultDesignSystem.tokens?.FontFamilyBase).toBe(
+      "InterVariable, Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif",
+    );
+    expect(boxDefaultDesignSystem.tokens?.FontFamilyBase).not.toContain("Lato");
   });
 
   it("rejects activating an unregistered design system", () => {

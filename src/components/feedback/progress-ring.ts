@@ -11,6 +11,7 @@ const progressRingStyles = `
     display: inline-block;
     color: inherit;
     font: inherit;
+    font-family: var(--boe-token-font-family-base, InterVariable, Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif);
   }
 
   [part="ring"] {

@@ -4,8 +4,9 @@
  * Usage: bun run build && bun tools/preview/capture.ts
  *
  * Serves the repo root statically so /dist/index.js resolves, loads
- * tools/preview/gallery.html in headless Chromium, waits for the gallery
- * to mark itself ready, then screenshots each <section>.
+ * tools/preview/gallery.html and tools/preview/state-matrix.html in headless
+ * Chromium, waits for their deterministic ready markers, then screenshots
+ * catalog sections and explicit interaction states.
  */
 import { chromium } from "playwright-core";
 import { existsSync, mkdirSync } from "node:fs";
@@ -79,6 +80,44 @@ try {
     await section.screenshot({ path: target });
     console.log(`captured ${target}`);
   }
+
+  await page.goto(`http://localhost:${PORT}/tools/preview/state-matrix.html`, { waitUntil: "networkidle" });
+  await page.waitForSelector('body[data-state-matrix-ready="true"]', { timeout: 15_000 });
+  await applyDeterministicFonts(page);
+  await page.waitForTimeout(150);
+
+  const stateSections = await page.locator("section[data-state-section]").all();
+  for (const section of stateSections) {
+    const stateName = await section.getAttribute("data-state-section");
+    const target = join(OUT_DIR, `states-${stateName}.png`);
+    await section.screenshot({ path: target });
+    console.log(`captured ${target}`);
+  }
+
+  const actionsSection = page.locator('[data-state-section="actions"]');
+  const transientButton = page.locator("#transient-button").locator('[part="button"]');
+  await transientButton.hover();
+  await page.waitForTimeout(250); // settle the shared 140ms interactive transition
+  await actionsSection.screenshot({ path: join(OUT_DIR, "states-actions-hover.png") });
+  await transientButton.focus();
+  await page.mouse.move(1140, 880);
+  await page.waitForTimeout(250); // settle hover-out and focus-visible transitions
+  await actionsSection.screenshot({ path: join(OUT_DIR, "states-actions-focus.png") });
+
+  const rowsSection = page.locator('[data-state-section="rows"]');
+  const transientRow = page.locator("#transient-row").locator('[part="item"]');
+  await transientRow.hover();
+  await page.waitForTimeout(250); // settle the shared 140ms interactive transition
+  await rowsSection.screenshot({ path: join(OUT_DIR, "states-rows-hover.png") });
+  await transientRow.focus();
+  await page.mouse.move(1140, 880);
+  await page.waitForTimeout(250); // settle hover-out and focus-visible transitions
+  await rowsSection.screenshot({ path: join(OUT_DIR, "states-rows-focus.png") });
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: join(OUT_DIR, "states-mobile.png"), fullPage: true });
+  console.log(`captured ${join(OUT_DIR, "states-mobile.png")}`);
 } finally {
   await browser.close();
   server.stop();

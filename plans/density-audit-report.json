@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T18:16:51.499Z",
+  "generatedAt": "2026-07-17T11:27:51.419Z",
   "reference": "segmented-control: control pad/gap 0.25rem, radius 0.75rem; segment pad 0.45em 1em, radius 0.55rem",
   "bands": {
     "shellPadding": "0.65–0.75rem",
@@ -26,27 +26,70 @@
   },
   "peerVariance": [
     {
+      "role": "feedback-shell",
+      "prop": "padding",
+      "distinct": 5,
+      "camps": {
+        "14px 10px": [
+          "src/components/feedback/alert.ts"
+        ],
+        "${boeSpace[10]}": [
+          "src/components/feedback/error-mask.ts"
+        ],
+        "0.55rem 0.7rem": [
+          "src/components/feedback/nudge.ts"
+        ],
+        "10px 10px 10px 20px": [
+          "src/components/feedback/toast.ts"
+        ],
+        "0.75rem": [
+          "src/components/feedback/empty-state.ts"
+        ]
+      }
+    },
+    {
       "role": "form-control",
       "prop": "padding",
-      "distinct": 4,
+      "distinct": 5,
       "camps": {
         "0.25rem 0.25rem 0.25rem 0.65rem": [
           "src/components/forms/search-field.ts"
         ],
+        "0 ${boeSpace[12]} 0 ${boeSpace[3]}": [
+          "src/components/forms/dropdown.ts"
+        ],
+        "5px 25px 5px 10px": [
+          "src/components/forms/select.ts"
+        ],
         "0.45rem 0.7rem": [
-          "src/components/forms/time-field.ts",
-          "src/components/forms/combobox.ts",
-          "src/components/forms/text-field.ts",
           "src/components/forms/text-area.ts",
           "src/components/forms/number-input.ts",
-          "src/components/forms/date-field.ts"
+          "src/components/forms/time-field.ts",
+          "src/components/forms/date-field.ts",
+          "src/components/forms/combobox.ts"
         ],
         "0.45rem 0.5rem": [
           "src/components/forms/spin-button.ts"
+        ]
+      }
+    },
+    {
+      "role": "feedback-shell",
+      "prop": "border-radius",
+      "distinct": 4,
+      "camps": {
+        "${boeRadius.med}": [
+          "src/components/feedback/alert.ts",
+          "src/components/feedback/error-mask.ts"
         ],
-        "0.45rem 2.1rem 0.45rem 0.7rem": [
-          "src/components/forms/select.ts",
-          "src/components/forms/dropdown.ts"
+        "0.65rem": [
+          "src/components/feedback/nudge.ts"
+        ],
+        "${boeRadius.large}": [
+          "src/components/feedback/toast.ts"
+        ],
+        "0.7rem": [
+          "src/components/feedback/empty-state.ts"
         ]
       }
     },
@@ -58,12 +101,12 @@
         "0": [
           "src/components/collections/draggable-list.ts"
         ],
+        "0.5rem 0.65rem": [
+          "src/components/identity/contact-datalist-item.ts",
+          "src/components/collections/datalist-item.ts"
+        ],
         "0.16rem 0.18rem": [
           "src/components/collections/tree.ts"
-        ],
-        "0.5rem 0.65rem": [
-          "src/components/collections/datalist-item.ts",
-          "src/components/identity/contact-datalist-item.ts"
         ],
         "0.4rem": [
           "src/patterns/content-explorer/adapters/list.ts"
@@ -75,14 +118,14 @@
       "prop": "padding",
       "distinct": 3,
       "camps": {
-        "0.75rem 0.75rem 0.65rem": [
-          "src/components/overlays/drawer.ts"
+        "0 ${boeControl.paddingInline}": [
+          "src/components/overlays/popover.ts"
         ],
-        "0.75rem": [
+        "${boeOverlay.modalPadding}": [
           "src/components/overlays/dialog.ts"
         ],
-        "0.7rem": [
-          "src/components/overlays/popover.ts"
+        "${boeSpace[4]}": [
+          "src/components/overlays/drawer.ts"
         ]
       }
     },
@@ -94,33 +137,33 @@
         "0": [
           "src/patterns/share/collaborator-avatars.ts"
         ],
-        "0.7rem": [
-          "src/patterns/file-request/file-request-builder.ts",
-          "src/patterns/search/search-results-header.ts",
-          "src/patterns/search/saved-view-picker.ts",
-          "src/patterns/search/filter-bar.ts",
-          "src/patterns/item/preview-header.ts",
-          "src/patterns/item/bulk-action-bar.ts",
-          "src/patterns/item/item-details-panel.ts",
-          "src/patterns/item/item-form.ts",
-          "src/patterns/share/permission-matrix.ts",
-          "src/patterns/share/share-panel.ts",
-          "src/patterns/share/access-stats.ts",
-          "src/patterns/preview/annotation-thread.ts",
-          "src/patterns/preview/annotation-inspector.ts",
-          "src/patterns/preview/annotation-toolbar.ts",
-          "src/patterns/preview/preview-element.ts",
-          "src/patterns/governance/governance-panel.ts",
-          "src/patterns/content-explorer/content-explorer.ts",
-          "src/patterns/metadata/metadata-inspector.ts",
-          "src/patterns/metadata/metadata-filter-builder.ts",
-          "src/patterns/task/task-assignment-panel.ts",
-          "src/patterns/task/review-queue-item.ts",
+        "${boePanel.padding}": [
           "src/patterns/insights/metric-card.ts",
+          "src/patterns/insights/chart-panel.ts",
+          "src/patterns/insights/line-chart.ts",
           "src/patterns/insights/bar-chart.ts",
           "src/patterns/insights/donut-chart.ts",
-          "src/patterns/insights/chart-panel.ts",
-          "src/patterns/insights/line-chart.ts"
+          "src/patterns/search/search-results-header.ts",
+          "src/patterns/search/filter-bar.ts",
+          "src/patterns/search/saved-view-picker.ts",
+          "src/patterns/item/item-form.ts",
+          "src/patterns/item/item-details-panel.ts",
+          "src/patterns/item/preview-header.ts",
+          "src/patterns/item/bulk-action-bar.ts",
+          "src/patterns/task/review-queue-item.ts",
+          "src/patterns/task/task-assignment-panel.ts",
+          "src/patterns/governance/governance-panel.ts",
+          "src/patterns/preview/preview-element.ts",
+          "src/patterns/preview/annotation-toolbar.ts",
+          "src/patterns/preview/annotation-thread.ts",
+          "src/patterns/preview/annotation-inspector.ts",
+          "src/patterns/metadata/metadata-filter-builder.ts",
+          "src/patterns/metadata/metadata-inspector.ts",
+          "src/patterns/content-explorer/content-explorer.ts",
+          "src/patterns/file-request/file-request-builder.ts",
+          "src/patterns/share/permission-matrix.ts",
+          "src/patterns/share/access-stats.ts",
+          "src/patterns/share/share-panel.ts"
         ],
         "0.75rem": [
           "src/patterns/share/invite-collaborators-modal.ts",
@@ -129,34 +172,22 @@
       }
     },
     {
-      "role": "feedback-shell",
-      "prop": "padding",
-      "distinct": 2,
-      "camps": {
-        "0.75rem": [
-          "src/components/feedback/alert.ts",
-          "src/components/feedback/empty-state.ts",
-          "src/components/feedback/error-mask.ts"
-        ],
-        "0.55rem 0.7rem": [
-          "src/components/feedback/toast.ts",
-          "src/components/feedback/nudge.ts"
-        ]
-      }
-    },
-    {
-      "role": "feedback-shell",
+      "role": "form-control",
       "prop": "border-radius",
       "distinct": 2,
       "camps": {
         "0.7rem": [
-          "src/components/feedback/alert.ts",
-          "src/components/feedback/empty-state.ts",
-          "src/components/feedback/error-mask.ts"
+          "src/components/forms/search-field.ts",
+          "src/components/forms/text-area.ts",
+          "src/components/forms/number-input.ts",
+          "src/components/forms/time-field.ts",
+          "src/components/forms/spin-button.ts",
+          "src/components/forms/date-field.ts",
+          "src/components/forms/combobox.ts"
         ],
-        "0.65rem": [
-          "src/components/feedback/toast.ts",
-          "src/components/feedback/nudge.ts"
+        "${boeRadius.med}": [
+          "src/components/forms/dropdown.ts",
+          "src/components/forms/select.ts"
         ]
       }
     },
@@ -166,12 +197,12 @@
       "distinct": 2,
       "camps": {
         "0.6rem": [
-          "src/components/collections/tree.ts",
+          "src/components/identity/contact-datalist-item.ts",
           "src/components/collections/draggable-list.ts",
           "src/components/collections/datalist-item.ts",
-          "src/components/identity/contact-datalist-item.ts"
+          "src/components/collections/tree.ts"
         ],
-        "0.7rem": [
+        "${boePanel.radius}": [
           "src/patterns/content-explorer/adapters/list.ts"
         ]
       }
@@ -184,7 +215,7 @@
         "0": [
           "src/patterns/content-explorer/adapters/action-menu.ts"
         ],
-        "0.5rem 0.7rem": [
+        "${boeOverlay.itemPadding}": [
           "src/components/actions/menu-item.ts"
         ]
       }
@@ -194,11 +225,25 @@
       "prop": "border-radius",
       "distinct": 2,
       "camps": {
-        "0.55rem": [
+        "${boeOverlay.itemRadius}": [
           "src/components/actions/menu-item.ts"
         ],
-        "0.7rem": [
+        "${boePanel.radius}": [
           "src/patterns/content-explorer/adapters/action-menu.ts"
+        ]
+      }
+    },
+    {
+      "role": "overlay-shell",
+      "prop": "border-radius",
+      "distinct": 2,
+      "camps": {
+        "${boeRadius.med}": [
+          "src/components/overlays/popover.ts",
+          "src/components/overlays/drawer.ts"
+        ],
+        "${boeOverlay.modalRadius}": [
+          "src/components/overlays/dialog.ts"
         ]
       }
     }

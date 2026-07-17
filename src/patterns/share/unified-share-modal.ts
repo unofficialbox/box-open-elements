@@ -34,7 +34,7 @@ const accessLabel = (access: SharedLinkState["access"]): string =>
   ACCESS_OPTIONS.find(option => option.value === access)?.label ?? "Invited people only";
 
 const elementStyles = `
-        :host { display: contents; color: inherit; font: inherit; }
+        :host { display: contents; color: inherit; font: inherit; font-family: var(--boe-token-font-family-base, InterVariable, Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif); }
 
         [part="backdrop"] {
           position: fixed;

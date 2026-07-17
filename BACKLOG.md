@@ -7,7 +7,7 @@ This file tracks the highest-signal follow-up work that is still open. The phase
 Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fidelity-audit.md).
 
 - **Done (merged):** Batches 0–7 + medium/low audit nits (#41) + design-heavy leftovers (#42).
-- **Complete** for the fidelity program (spacing/token rhythm only if needed).
+- **Catalog presence is complete; visual fidelity is not.** The exhaustive current-Box/BUE reconciliation is active and supersedes earlier “complete” visual-readiness language.
 
 ## Build-out
 
@@ -46,7 +46,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 | Area | First slice | Notes |
 | --- | --- | --- |
 | Framework adapters | React **Validated** (`BoxButton`, `BoxTextField`, `BoxSelect`) | Next React Beta proof: overlay + controller + SSR guidance; Angular, Vue, Svelte remain Tracked in [`docs/integration/framework-adapters.md`](./docs/integration/framework-adapters.md) |
-| **BUE visual conformance** | Controls + overlays/tabs/feedback + drawer + pattern shells | `docs/foundations/geometry.md` (`boeOverlay`, `boePanel`); opportunistic polish only |
+| **Box design-fidelity reconciliation** | Slice 1b: geometry, elevation, surface, icon, and interaction roles | Slice 1a established Inter across all 107 rendered hosts and pinned the docs/test font. Exhaustive 72-component / 36-pattern audit: [`docs/audits/box-design-fidelity-reconciliation.md`](./docs/audits/box-design-fidelity-reconciliation.md) and [`plans/box-design-fidelity-reconciliation-execplan.md`](./plans/box-design-fidelity-reconciliation-execplan.md) |
 | Preview / Box AI | Keep annotation + provider-adapter seams provider-neutral; document AI-specific UI only when contract-stable | See `docs/patterns/preview.md` |
 | Build-along lessons | Author next lesson only when a new workflow needs guided teaching | Explorer + Share + Preview lessons ship; keep scaffolding lesson-generic |
 | Explorer recents / columns | `recents` transport mode after contract exists; configurable table columns | Metadata-query host chrome already ships as a separate composition |

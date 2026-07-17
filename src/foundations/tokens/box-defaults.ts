@@ -15,7 +15,7 @@ export const boxDefaultDesignSystem: DesignSystemDefinition = {
   // `enableModernizedComponents`: warm-neutral greys + #222 text rather than the
   // legacy cool blue-greys. Brand blue and status colors were already aligned.
   tokens: {
-    FontFamilyBase: "InterVariable, Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif",
+    FontFamilyBase: "InterVariable, Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif",
     SurfaceSurface: "#ffffff",
     SurfaceSurfaceHover: "#f4f4f4",
     SurfaceSurfaceSecondary: "#fbfbfb",
