@@ -8,6 +8,7 @@ import {
   combineSelectors,
   createFileImportResolver,
   flattenSimpleNesting,
+  splitSelectorList,
   stripScssLineComments,
   type BridgeConfig,
 } from "../../tools/style-bridge/bridge.js";

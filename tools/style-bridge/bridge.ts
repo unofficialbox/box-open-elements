@@ -237,11 +237,77 @@ const normalizeDeclBody = (raw: string): string =>
     .filter(Boolean)
     .join("\n  ");
 
+/**
+ * Split a selector list on top-level commas only (ignore commas inside
+ * `()`, `[]`, quotes, and escapes — e.g. `.root:not(.a, .b)`).
+ */
+export const splitSelectorList = (selector: string): string[] => {
+  const parts: string[] = [];
+  let start = 0;
+  let depthParen = 0;
+  let depthBracket = 0;
+  let inSingle = false;
+  let inDouble = false;
+
+  for (let i = 0; i < selector.length; i += 1) {
+    const c = selector[i]!;
+
+    if (inSingle) {
+      if (c === "\\" && i + 1 < selector.length) {
+        i += 1;
+        continue;
+      }
+      if (c === "'") inSingle = false;
+      continue;
+    }
+    if (inDouble) {
+      if (c === "\\" && i + 1 < selector.length) {
+        i += 1;
+        continue;
+      }
+      if (c === '"') inDouble = false;
+      continue;
+    }
+
+    if (c === "'") {
+      inSingle = true;
+      continue;
+    }
+    if (c === '"') {
+      inDouble = true;
+      continue;
+    }
+    if (c === "(") {
+      depthParen += 1;
+      continue;
+    }
+    if (c === ")" && depthParen > 0) {
+      depthParen -= 1;
+      continue;
+    }
+    if (c === "[") {
+      depthBracket += 1;
+      continue;
+    }
+    if (c === "]" && depthBracket > 0) {
+      depthBracket -= 1;
+      continue;
+    }
+    if (c === "," && depthParen === 0 && depthBracket === 0) {
+      parts.push(selector.slice(start, i).trim());
+      start = i + 1;
+    }
+  }
+
+  parts.push(selector.slice(start).trim());
+  return parts.filter(Boolean);
+};
+
 /** Combine parent/child selectors, expanding comma lists (Cartesian product). */
 export const combineSelectors = (parentSelector: string, selectorPart: string): string => {
   if (!parentSelector) return selectorPart;
-  const parents = parentSelector.split(",").map(s => s.trim()).filter(Boolean);
-  const children = selectorPart.split(",").map(s => s.trim()).filter(Boolean);
+  const parents = splitSelectorList(parentSelector);
+  const children = splitSelectorList(selectorPart);
   const parts: string[] = [];
   for (const parent of parents) {
     for (const child of children) {
