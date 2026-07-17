@@ -69,7 +69,7 @@ Run from the repository root:
 | coverage report | `bun run test:coverage` |
 | build package | `bun run build` |
 | broad repo verification | `bun run verify` (typecheck + **coverage-gated** tests + build) |
-| style bridge | `bun run style-bridge -- --config … --input …` |
+| style bridge | `bun run style-bridge -- --config … --input …` (BUE explorer: `bun run style-bridge:bue-explorer`) |
 | PR checks | `gh pr checks <n>` |
 | cancel stuck Actions run | `gh run cancel <run-id>` |
 | retry failed Actions jobs | `gh run rerun <run-id> --failed` |

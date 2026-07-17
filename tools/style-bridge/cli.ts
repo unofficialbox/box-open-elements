@@ -5,7 +5,11 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-import { bridgeStylesheet, type BridgeConfig } from "./bridge.ts";
+import {
+  bridgeStylesheet,
+  createFileImportResolver,
+  type BridgeConfig,
+} from "./bridge.ts";
 
 const usage = `Usage:
   bun tools/style-bridge/cli.ts --config <config.json> --input <source.css|scss> [--out <out.css>] [--report <report.json>]
@@ -33,13 +37,17 @@ const source = readFileSync(inputAbs, "utf8");
 const inputDir = dirname(inputAbs);
 
 const { css, report } = bridgeStylesheet(source, config, {
-  resolveImport: specifier => {
-    try {
-      return readFileSync(resolve(inputDir, specifier), "utf8");
-    } catch {
-      return null;
-    }
-  },
+  resolveImport: createFileImportResolver(
+    absolutePath => {
+      try {
+        return readFileSync(absolutePath, "utf8");
+      } catch {
+        return null;
+      }
+    },
+    (fromDir, specifier) => resolve(fromDir, specifier),
+    inputDir,
+  ),
 });
 
 if (outPath) {

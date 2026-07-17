@@ -41,6 +41,37 @@ export type BridgeOptions = {
   resolveImport?: (specifier: string) => string | null;
 };
 
+/**
+ * Build a filesystem import resolver that understands Sass-style partials
+ * (`variables` → `_variables.scss`) and bare extensionless paths.
+ */
+export const createFileImportResolver = (
+  readFile: (absolutePath: string) => string | null,
+  resolvePath: (fromDir: string, specifier: string) => string,
+  fromDir: string,
+): NonNullable<BridgeOptions["resolveImport"]> => {
+  return (specifier: string) => {
+    const base = resolvePath(fromDir, specifier);
+    const basename = base.split(/[/\\]/).pop() ?? "";
+    const dir = base.slice(0, Math.max(0, base.length - basename.length));
+    const candidates = [
+      base,
+      `${base}.scss`,
+      `${base}.css`,
+      `${dir}_${basename}.scss`,
+      `${dir}_${basename}.css`,
+      `${dir}_${basename}`,
+    ];
+    for (const candidate of candidates) {
+      const contents = readFile(candidate);
+      if (contents != null) {
+        return contents;
+      }
+    }
+    return null;
+  };
+};
+
 export type BridgeResult = {
   css: string;
   report: BridgeReport;
@@ -73,7 +104,8 @@ const inlineImports = (
 
   return source.replace(IMPORT_RE, (_match, specifier: string) => {
     if (seen.has(specifier)) {
-      return "/* cyclic import skipped */";
+      // Empty — a comment token here can confuse the simple nest flattener.
+      return "";
     }
     const resolved = resolveImport(specifier);
     if (resolved == null) {
@@ -115,7 +147,7 @@ const stripSassDefinitions = (source: string): string =>
   source.replace(/^\s*\$[A-Za-z_][\w-]*\s*:[^;]*;\s*$/gm, "");
 
 /**
- * Flatten one level of simple SCSS nesting: `parent { &.child { … } }` and
+ * Flatten simple SCSS nesting: `parent { &.child { … } }` and
  * `parent { .child { … } }`. Not a full Sass compiler — see style-bridge.md limits.
  */
 export const flattenSimpleNesting = (source: string): string => {
@@ -132,108 +164,123 @@ export const flattenSimpleNesting = (source: string): string => {
     return source.slice(start, i);
   };
 
-  const parseBlock = (parentSelector: string): void => {
-    skipWs();
-    while (i < source.length && source[i] !== "}") {
+  const skipComments = (): void => {
+    while (i < source.length) {
       skipWs();
-      if (i >= source.length || source[i] === "}") break;
-
-      // at-rule passthrough (keep body as-is for @media etc.)
-      if (source.startsWith("@", i) && !source.startsWith("@import", i)) {
-        const atStart = i;
-        while (i < source.length && source[i] !== "{" && source[i] !== ";") i += 1;
-        if (source[i] === ";") {
-          i += 1;
-          out.push(source.slice(atStart, i));
-          continue;
-        }
-        if (source[i] === "{") {
-          i += 1;
-          const innerStart = i;
-          let depth = 1;
-          while (i < source.length && depth > 0) {
-            if (source[i] === "{") depth += 1;
-            else if (source[i] === "}") depth -= 1;
-            if (depth > 0) i += 1;
-          }
-          const inner = source.slice(innerStart, i);
-          i += 1; // closing }
-          out.push(`${source.slice(atStart, innerStart)}${inner}}`);
-          continue;
-        }
+      if (source.startsWith("/*", i)) {
+        const end = source.indexOf("*/", i + 2);
+        i = end === -1 ? source.length : end + 2;
+        continue;
       }
-
-      const selectorPart = readUntil("{").trim();
-      if (source[i] !== "{") break;
-      i += 1; // {
-
-      // Peek: does this block contain nested `{` before its closing `}`?
-      let depth = 1;
-      let j = i;
-      let hasNesting = false;
-      while (j < source.length && depth > 0) {
-        if (source[j] === "{") {
-          depth += 1;
-          if (depth > 1) hasNesting = true;
-        } else if (source[j] === "}") {
-          depth -= 1;
-        }
-        j += 1;
+      if (source.startsWith("//", i)) {
+        while (i < source.length && source[i] !== "\n") i += 1;
+        continue;
       }
+      break;
+    }
+  };
 
-      const combined = parentSelector
-        ? selectorPart.startsWith("&")
-          ? parentSelector + selectorPart.slice(1)
-          : `${parentSelector} ${selectorPart}`
-        : selectorPart;
+  /** Parse exactly one rule (selector + block), combining with `parentSelector`. */
+  const parseRule = (parentSelector: string): void => {
+    skipComments();
+    if (i >= source.length || source[i] === "}") {
+      return;
+    }
 
-      if (!hasNesting) {
-        const body = source.slice(i, j - 1).trim();
-        i = j;
-        if (body) {
-          out.push(`${combined} {\n  ${body}\n}`);
+    // at-rule passthrough (keep body as-is for @media etc.)
+    if (source.startsWith("@", i) && !source.startsWith("@import", i)) {
+      const atStart = i;
+      while (i < source.length && source[i] !== "{" && source[i] !== ";") i += 1;
+      if (source[i] === ";") {
+        i += 1;
+        out.push(source.slice(atStart, i));
+        return;
+      }
+      if (source[i] === "{") {
+        i += 1;
+        const innerStart = i;
+        let depth = 1;
+        while (i < source.length && depth > 0) {
+          if (source[i] === "{") depth += 1;
+          else if (source[i] === "}") depth -= 1;
+          if (depth > 0) i += 1;
         }
+        const inner = source.slice(innerStart, i);
+        i += 1; // closing }
+        out.push(`${source.slice(atStart, innerStart)}${inner}}`);
+      }
+      return;
+    }
+
+    const selectorPart = readUntil("{").trim();
+    if (source[i] !== "{") {
+      return;
+    }
+    i += 1; // {
+
+    // Peek: does this block contain nested `{` before its closing `}`?
+    let depth = 1;
+    let j = i;
+    let hasNesting = false;
+    while (j < source.length && depth > 0) {
+      if (source[j] === "{") {
+        depth += 1;
+        if (depth > 1) hasNesting = true;
+      } else if (source[j] === "}") {
+        depth -= 1;
+      }
+      j += 1;
+    }
+
+    const combined = parentSelector
+      ? selectorPart.startsWith("&")
+        ? parentSelector + selectorPart.slice(1)
+        : `${parentSelector} ${selectorPart}`
+      : selectorPart;
+
+    if (!hasNesting) {
+      const body = source
+        .slice(i, j - 1)
+        .trim()
+        .split("\n")
+        .map(line => line.trim())
+        .filter(Boolean)
+        .join("\n  ");
+      i = j;
+      if (body) {
+        out.push(`${combined} {\n  ${body}\n}`);
+      }
+      return;
+    }
+
+    // Nested rules: parse children until this block's closing `}`.
+    const decls: string[] = [];
+    while (i < source.length && source[i] !== "}") {
+      skipComments();
+      if (source[i] === "}") break;
+      let k = i;
+      while (k < source.length && source[k] !== "{" && source[k] !== ";" && source[k] !== "}") {
+        k += 1;
+      }
+      if (source[k] === "{") {
+        parseRule(combined);
+      } else if (source[k] === ";") {
+        decls.push(source.slice(i, k + 1).trim());
+        i = k + 1;
       } else {
-        // Parse nested with combined as parent; also collect direct decls first.
-        const decls: string[] = [];
-        while (i < source.length && source[i] !== "}") {
-          skipWs();
-          if (source[i] === "}") break;
-          // Lookahead for nested rule vs declaration
-          let k = i;
-          while (k < source.length && source[k] !== "{" && source[k] !== ";" && source[k] !== "}") {
-            k += 1;
-          }
-          if (source[k] === "{") {
-            parseBlock(combined);
-          } else if (source[k] === ";") {
-            decls.push(source.slice(i, k + 1).trim());
-            i = k + 1;
-          } else {
-            break;
-          }
-        }
-        if (decls.length) {
-          out.push(`${combined} {\n  ${decls.join("\n  ")}\n}`);
-        }
-        if (source[i] === "}") i += 1;
+        break;
       }
+    }
+    if (decls.length) {
+      out.push(`${combined} {\n  ${decls.join("\n  ")}\n}`);
     }
     if (source[i] === "}") i += 1;
   };
 
   while (i < source.length) {
-    skipWs();
+    skipComments();
     if (i >= source.length) break;
-    // top-level comment
-    if (source.startsWith("/*", i)) {
-      const end = source.indexOf("*/", i + 2);
-      if (end === -1) break;
-      out.push(source.slice(i, end + 2));
-      i = end + 2;
-      continue;
-    }
-    parseBlock("");
+    parseRule("");
   }
 
   return out.join("\n\n");
@@ -250,7 +297,8 @@ const applySelectorMap = (
   for (const from of keys) {
     const to = selectorMap[from]!;
     const escaped = from.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const re = new RegExp(escaped, "g");
+    // Refuse prefix matches (`.be` must not rewrite `.bce` / `.be-app`).
+    const re = new RegExp(`${escaped}(?![-\\w])`, "g");
     const before = next;
     next = next.replace(re, to);
     if (next !== before) {
@@ -267,7 +315,9 @@ const applyDeclarationMap = (
 ): string => {
   if (!declarationMap) return css;
   let next = css;
-  for (const [from, to] of Object.entries(declarationMap)) {
+  // Longer values first so `1px solid var(--x)` wins over bare `var(--x)`.
+  const entries = Object.entries(declarationMap).sort((a, b) => b[0].length - a[0].length);
+  for (const [from, to] of entries) {
     const escaped = from.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     // Match as a CSS value (after `:`, before `;` or `}`)
     const re = new RegExp(`(:\\s*)${escaped}(\\s*[;}])`, "g");
@@ -326,9 +376,13 @@ export const bridgeStylesheet = (
   if (config.mode === "selector-bridge") {
     css = substituteVariables(css, config.variableMap, report);
     css = stripSassDefinitions(css);
+    // Drop // line comments (kept from SCSS) before flattening for cleaner CSS.
+    css = css.replace(/(^|[^:])\/\/.*$/gm, "$1");
     css = flattenSimpleNesting(css);
     css = applySelectorMap(css, config.selectorMap, report);
     css = applyDeclarationMap(css, config.declarationMap, report);
+    // Collapse excessive blank lines left by stripped defs / comments.
+    css = css.replace(/\n{3,}/g, "\n\n");
     return { css: css.trim() + "\n", report };
   }
 

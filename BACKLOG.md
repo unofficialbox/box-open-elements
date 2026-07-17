@@ -39,7 +39,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 - `packages/box-server` shipped (see `docs/integration/box-server.md`).
 - CI (`bun run verify` + pixel gate) shipped on pushes/PRs. Agent CI/PR monitoring rules shipped in `AGENTS.md` (#50): poll checks, fix red immediately, cancel/rerun stuck runs.
 - **Coverage baseline measured and hard-gated** (#54) — see [docs/coverage-baseline.md](./docs/coverage-baseline.md). `bun run verify` runs `test:coverage` with floors (lines/statements 80%, functions 85%, branches 65%). Raise floors only after a fresh measurement.
-- **Style bridge shipped** (`tools/style-bridge/`, `bun run style-bridge`) — selector-bridge + token-bridge for the documented CSS/SCSS subset. Add real library configs only when restyling a concrete stylesheet.
+- **Style bridge shipped** (`tools/style-bridge/`, `bun run style-bridge`) — selector-bridge + token-bridge for the documented CSS/SCSS subset. First real library config: BUE Content Explorer (`bun run style-bridge:bue-explorer`). Add further library configs only when restyling a concrete stylesheet.
 
 ## Active follow-ups (formerly deferred)
 
@@ -51,7 +51,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 | Build-along lessons | Author next lesson only when a new workflow needs guided teaching | Explorer + Share + Preview lessons ship; keep scaffolding lesson-generic |
 | Explorer recents / columns | `recents` transport mode after contract exists; configurable table columns | Metadata-query host chrome already ships as a separate composition |
 | Motion migration | Catalog styles consume `boeMotionDuration` / `interactive` (140ms) | Maintainer script: `tools/migrate-motion-literals.ts` |
-| Style-bridge configs | First real third-party stylesheet mapping | Engine/CLI already ship |
+| Style-bridge configs | BUE Content Explorer config shipped; more libraries on demand | `bun run style-bridge:bue-explorer` |
 
 ## Density
 

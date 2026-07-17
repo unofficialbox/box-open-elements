@@ -1,0 +1,10 @@
+// Bridge shim for box-ui-elements `elements/common/_variables.scss`.
+// Only simple `$name: value` bindings the selector-bridge can substitute.
+// Upstream also imports mixin-heavy stylesheets — those are intentionally omitted.
+
+$minimumWidth: 300px;
+$sidebarHeaderHeight: 60px;
+$sidebarSubHeaderHeight: 56px;
+$sidebarContentWidth: 340px;
+$sidebarContentIncreasedWidth: 380px;
+$sidebarContentMinHeight: 93px;

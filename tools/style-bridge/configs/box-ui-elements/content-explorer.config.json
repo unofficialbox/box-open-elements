@@ -1,0 +1,28 @@
+{
+  "mode": "selector-bridge",
+  "variableMap": {
+    "minimumWidth": "300px",
+    "sidebarHeaderHeight": "60px",
+    "sidebarSubHeaderHeight": "56px",
+    "sidebarContentWidth": "340px",
+    "sidebarContentIncreasedWidth": "380px",
+    "sidebarContentMinHeight": "93px"
+  },
+  "selectorMap": {
+    ".be.bce .bce-ContentExplorer-main": "box-content-explorer::part(main)",
+    ".be.bce .be-app-element": "box-content-explorer::part(app)",
+    ".be.bce .bcpr": "box-content-explorer::part(preview)",
+    ".be.bce": "box-content-explorer",
+    ".be": "box-content-explorer",
+    ".bce-content": "box-content-explorer::part(content)",
+    ".bce-Footer:empty": "box-content-explorer::part(footer):empty",
+    ".bce-Footer": "box-content-explorer::part(footer)"
+  },
+  "declarationMap": {
+    "300px": "var(--boe-content-explorer-min-width, 300px)",
+    "1 0 230px": "1 0 var(--boe-content-explorer-content-basis, 230px)",
+    "70px": "var(--boe-content-explorer-footer-height, 70px)",
+    "var(--space-4)": "var(--boe-space-4, var(--space-4))",
+    "1px solid var(--border-divider-border)": "1px solid var(--boe-token-stroke-stroke, var(--border-divider-border))"
+  }
+}
