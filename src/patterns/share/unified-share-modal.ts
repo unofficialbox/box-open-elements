@@ -2,6 +2,7 @@ import { UnifiedShareController } from "./unified-share-controller.js";
 import type { UnifiedShareState, UnifiedShareTab } from "./unified-share-controller.js";
 import type { CollaboratorSummary, ShareDataSource, SharedLinkState } from "./contracts.js";
 import { BaseElement } from "../../core/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
   boeNeutralInteractiveStyles,
@@ -50,9 +51,9 @@ const elementStyles = `
           max-block-size: calc(100vh - 2rem);
           overflow: auto;
           display: grid;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           padding: 0.75rem;
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: var(--boe-token-surface-surface, #ffffff);
           color: var(--boe-token-text-text, #222222);
           box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
@@ -62,7 +63,7 @@ const elementStyles = `
           display: flex;
           align-items: flex-start;
           justify-content: space-between;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="title"] { margin: 0; font-size: 1.1rem; font-weight: 700; }
@@ -109,7 +110,7 @@ const elementStyles = `
           box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
         }
 
-        [part="body"] { display: grid; gap: 0.55rem; min-block-size: 6rem; }
+        [part="body"] { display: grid; gap: ${boePanel.gap}; min-block-size: 6rem; }
 
         [part="label"] {
           font-size: 0.78rem;

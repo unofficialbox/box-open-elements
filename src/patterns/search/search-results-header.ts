@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
   boeNeutralInteractiveStyles,
@@ -37,17 +38,17 @@ const elementStyles = `
 
         [part="header"] {
           display: grid;
-          gap: 0.55rem;
-          padding: 0.7rem;
+          gap: ${boePanel.gap};
+          padding: ${boePanel.padding};
           border: 1px solid var(--_obp-border);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: var(--_obp-surface-muted);
         }
 
         [part="topline"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           align-items: start;
           justify-content: space-between;
         }
@@ -79,7 +80,7 @@ const elementStyles = `
         [part="actions"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           align-items: center;
           justify-content: flex-end;
         }

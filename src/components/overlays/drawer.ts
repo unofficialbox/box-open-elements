@@ -1,5 +1,12 @@
 import { BaseElement } from "../../core/index.js";
 import { FocusRestore, trapTabKey } from "../../foundations/a11y/index.js";
+import {
+  boeControl,
+  boeOverlay,
+  boePanel,
+  boeRadius,
+  boeSpace,
+} from "../../foundations/geometry/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-drawer";
@@ -15,76 +22,70 @@ const drawerStyles = `
     inset: 0;
     display: grid;
     z-index: 1200;
-    background: rgba(15, 23, 42, 0.24);
-    backdrop-filter: blur(6px);
+    background: ${boeOverlay.modalBackdrop};
   }
 
   [part="drawer"] {
-    width: min(26.25rem, calc(100vw - 2rem));
+    width: min(${boePanel.drawerWidth}, calc(100vw - 2rem));
     height: 100%;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 78%, var(--boe-token-surface-surface-secondary, #fbfbfb) 22%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 100%
-      );
-    color: var(--boe-token-text-text, #1f1e1b);
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.82),
-      0 26px 52px rgba(15, 23, 42, 0.14);
+    background: ${boePanel.background};
+    color: var(--boe-token-text-text, #222222);
+    border: ${boePanel.border};
+    box-shadow: ${boeOverlay.modalShadow};
   }
 
   [part="drawer"][data-position="left"] {
     border-left: 0;
-    border-top-right-radius: 0.75rem;
-    border-bottom-right-radius: 0.75rem;
+    border-top-right-radius: ${boeOverlay.modalRadius};
+    border-bottom-right-radius: ${boeOverlay.modalRadius};
   }
 
   [part="drawer"][data-position="right"] {
     border-right: 0;
-    border-top-left-radius: 0.75rem;
-    border-bottom-left-radius: 0.75rem;
+    border-top-left-radius: ${boeOverlay.modalRadius};
+    border-bottom-left-radius: ${boeOverlay.modalRadius};
   }
 
   [part="drawer"][data-position="bottom"] {
     width: 100%;
     max-width: none;
-    height: min(20rem, calc(100vh - 3rem));
+    height: min(320px, calc(100vh - 3rem));
     border-left: 0;
     border-right: 0;
     border-bottom: 0;
-    border-top-left-radius: 0.75rem;
-    border-top-right-radius: 0.75rem;
+    border-top-left-radius: ${boeOverlay.modalRadius};
+    border-top-right-radius: ${boeOverlay.modalRadius};
   }
 
   [part="header"] {
     display: flex;
     align-items: start;
     justify-content: space-between;
-    gap: 0.55rem;
-    padding: 0.75rem 0.75rem 0.65rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
+    gap: ${boeSpace[3]};
+    padding: ${boeSpace[4]};
+    border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
   }
 
   [part="meta"] {
     display: grid;
-    gap: 0.35rem;
+    gap: ${boeSpace[1]};
   }
 
   [part="meta"] h2 {
     margin: 0;
     font: inherit;
-    font-size: 1.1rem;
+    font-size: ${boeOverlay.modalTitleSize};
     font-weight: 700;
+    line-height: 24px;
   }
 
   [part="description"] {
     margin: 0;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
-    line-height: 1.5;
+    font-size: 14px;
+    line-height: 20px;
   }
 
   [part="description"][hidden] {
@@ -93,21 +94,25 @@ const drawerStyles = `
 
   [part="close"] {
     appearance: none;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.7rem;
-    background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%);
-    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    box-sizing: border-box;
+    border: 1px solid ${boeControl.buttonBorder};
+    border-radius: ${boeRadius.med};
+    background: var(--boe-token-surface-surface, #ffffff);
+    color: var(--boe-token-text-text, #222222);
     font: inherit;
-    min-height: 2rem;
-    padding: 0.35rem 0.7rem;
+    font-size: ${boeControl.fontSize};
+    font-weight: 700;
+    letter-spacing: ${boeControl.letterSpacing};
+    min-height: ${boeControl.height};
+    padding: 0 ${boeSpace[3]};
     cursor: pointer;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+    box-shadow: none;
   }
 
   ${boeNeutralInteractiveStyles('[part="close"]')}
 
   [part="body"] {
-    padding: 0.75rem;
+    padding: ${boeSpace[4]};
     overflow: auto;
   }
 `;

@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
   boeNeutralInteractiveStyles,
@@ -44,9 +45,9 @@ const elementStyles = `
         [part="panel"] {
           display: grid;
           gap: 0.6rem;
-          padding: 0.7rem;
+          padding: ${boePanel.padding};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, var(--boe-token-surface-surface, #ffffff) 4%);
         }
 
@@ -118,7 +119,7 @@ const elementStyles = `
 
         [part="visual"] {
           padding: 0.65rem;
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, #eef4fb 12%);
         }
@@ -126,7 +127,7 @@ const elementStyles = `
         [part="chart"] {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(3.6rem, 1fr));
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           align-items: end;
           min-height: 8.5rem;
         }
@@ -138,7 +139,7 @@ const elementStyles = `
           align-content: end;
           padding: 0.45rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 52%, transparent);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, #eef4fb 10%);
           cursor: pointer;
           font: inherit;
@@ -161,7 +162,7 @@ const elementStyles = `
           inline-size: 100%;
           min-block-size: 0.55rem;
           block-size: calc(5.25rem * var(--point-ratio));
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: linear-gradient(180deg, color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 84%, var(--boe-token-surface-surface, #ffffff) 16%) 0%, var(--boe-token-surface-surface-brand, #0061d5) 100%);
         }
 
@@ -187,7 +188,7 @@ const elementStyles = `
         [part="legend"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="legend-item"] {
@@ -234,8 +235,8 @@ const elementStyles = `
         }
 
         [part="empty"] {
-          padding: 0.7rem;
-          border-radius: 0.7rem;
+          padding: ${boePanel.padding};
+          border-radius: ${boePanel.radius};
           border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }

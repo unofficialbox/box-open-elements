@@ -4,6 +4,7 @@ import {
   boeControl,
   boeInputControlStyles,
   boeOverlay,
+  boePanel,
   boeRadius,
   boeSpace,
 } from "../../src/foundations/geometry/index.js";
@@ -39,5 +40,12 @@ describe("geometry foundation (BDL)", () => {
     expect(boeOverlay.modalWidth).toBe("460px");
     expect(boeOverlay.modalRadius).toBe("12px");
     expect(boeOverlay.modalBackdrop).toBe("rgba(0, 0, 0, 0.75)");
+  });
+
+  it("exposes BUE pattern panel shell chrome", () => {
+    expect(boePanel.padding).toBe("12px");
+    expect(boePanel.radius).toBe("8px");
+    expect(boePanel.gap).toBe("12px");
+    expect(boePanel.drawerWidth).toBe("340px");
   });
 });

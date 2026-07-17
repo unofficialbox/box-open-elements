@@ -46,7 +46,7 @@ Driver: [docs/audits/component-fidelity-audit.md](./docs/audits/component-fideli
 | Area | First slice | Notes |
 | --- | --- | --- |
 | Framework adapters | Thin React wrapper PoC for one everyday control (e.g. `box-button`) | Optional layer; do not block Web Component work |
-| **BUE visual conformance** | P0 controls + overlays/tabs/toast/alert/badge/avatar/error-mask | `docs/foundations/geometry.md` + `boeOverlay`; remaining: denser pattern shells / drawer if needed |
+| **BUE visual conformance** | Controls + overlays/tabs/feedback + drawer + pattern shells | `docs/foundations/geometry.md` (`boeOverlay`, `boePanel`); opportunistic polish only |
 | Preview / Box AI | Keep annotation + provider-adapter seams provider-neutral; document AI-specific UI only when contract-stable | See `docs/patterns/preview.md` |
 | Build-along lessons | Author next lesson only when a new workflow needs guided teaching | Explorer + Share + Preview lessons ship; keep scaffolding lesson-generic |
 | Explorer recents / columns | `recents` transport mode after contract exists; configurable table columns | Metadata-query host chrome already ships as a separate composition |

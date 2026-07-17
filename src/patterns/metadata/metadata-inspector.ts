@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-metadata-inspector";
 
@@ -33,11 +34,11 @@ const elementStyles = `
 
         [part="inspector"] {
           display: grid;
-          gap: 0.55rem;
-          padding: 0.7rem;
+          gap: ${boePanel.gap};
+          padding: ${boePanel.padding};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.7rem;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
+          border-radius: ${boePanel.radius};
+          background: ${boePanel.background};
         }
 
         [part="header"] {
@@ -66,7 +67,7 @@ const elementStyles = `
 
         [part="section"] {
           display: grid;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="section-title"] {
@@ -79,7 +80,7 @@ const elementStyles = `
 
         [part="section-fields"] {
           display: grid;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           margin: 0;
         }
 
@@ -89,7 +90,7 @@ const elementStyles = `
           width: 100%;
           text-align: left;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 56%, transparent);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           padding: 0.55rem 0.65rem;
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
@@ -101,7 +102,7 @@ const elementStyles = `
 
         [part="field-header"] {
           display: flex;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           align-items: start;
           justify-content: space-between;
         }

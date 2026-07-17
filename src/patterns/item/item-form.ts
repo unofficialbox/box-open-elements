@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
   boeFocusVisibleStyles,
@@ -46,10 +47,10 @@ const elementStyles = `
 
         [part="form"] {
           display: grid;
-          gap: 0.55rem;
-          padding: 0.7rem;
+          gap: ${boePanel.gap};
+          padding: ${boePanel.padding};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 92%, var(--boe-token-surface-surface, #ffffff) 8%);
         }
 
@@ -62,15 +63,15 @@ const elementStyles = `
 
         [part="fields"] {
           display: grid;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="section"] {
           display: grid;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           padding: 0.65rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 52%, transparent);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 68%, transparent);
         }
 
@@ -90,7 +91,7 @@ const elementStyles = `
         [part="checkbox-field"] {
           display: grid;
           grid-template-columns: auto 1fr;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           align-items: start;
         }
 
@@ -141,7 +142,7 @@ const elementStyles = `
 
         [part="actions"] {
           display: flex;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           justify-content: flex-end;
         }
 

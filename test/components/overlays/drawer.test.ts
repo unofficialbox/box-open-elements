@@ -108,16 +108,18 @@ describe("BoxDrawerElement", () => {
     expect(element.parentNode).toBe(wrapper);
   });
 
-  it("uses compact drawer shell styles", () => {
+  it("uses BUE drawer / sidebar shell styles", () => {
     const element = document.createElement("box-drawer") as BoxDrawerElement;
     document.body.append(element);
     element.show();
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("border-top-right-radius: 0.75rem;");
-    expect(styles).toContain("padding: 0.75rem 0.75rem 0.65rem;");
-    expect(styles).toContain("font-size: 1.1rem;");
-    expect(styles).toContain("border-radius: 0.7rem;");
-    expect(styles).toContain("padding: 0.75rem;");
+    expect(styles).toContain("background: rgba(0, 0, 0, 0.75)");
+    expect(styles).toContain("width: min(340px, calc(100vw - 2rem))");
+    expect(styles).toContain("border-top-right-radius: 12px;");
+    expect(styles).toContain("padding: 16px;");
+    expect(styles).toContain("font-size: 16px;");
+    expect(styles).toContain("min-height: 32px;");
+    expect(styles).toContain("border-radius: 6px;");
   });
 });

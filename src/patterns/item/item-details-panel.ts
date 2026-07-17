@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
   boeNeutralInteractiveStyles,
@@ -52,10 +53,10 @@ const elementStyles = `
 
         [part="panel"] {
           display: grid;
-          gap: 0.55rem;
-          padding: 0.7rem;
+          gap: ${boePanel.gap};
+          padding: ${boePanel.padding};
           border: 1px solid var(--_obp-border);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: var(--_obp-surface-muted);
         }
 
@@ -69,7 +70,7 @@ const elementStyles = `
 
         [part="header"] {
           display: grid;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="title"] {
@@ -99,10 +100,10 @@ const elementStyles = `
         [part="owner"] {
           display: grid;
           grid-template-columns: auto 1fr;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           align-items: center;
           padding: 0.65rem;
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: color-mix(in srgb, var(--_obp-surface) 76%, transparent);
           border: 1px solid var(--_obp-border-subtle);
         }
@@ -141,7 +142,7 @@ const elementStyles = `
         [part="meta-row"] {
           display: grid;
           grid-template-columns: minmax(8rem, 0.85fr) minmax(0, 1fr);
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           margin: 0;
           padding: 0.5rem 0.65rem;
           border-radius: 0.65rem;
@@ -162,7 +163,7 @@ const elementStyles = `
         [part="actions"] {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
         }
 
         [part="action"] {

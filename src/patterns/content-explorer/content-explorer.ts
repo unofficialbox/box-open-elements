@@ -19,6 +19,7 @@ import {
 } from "../search/search-results-header.js";
 import { BaseElement } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boePanel } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-content-explorer";
 
@@ -92,10 +93,10 @@ const elementStyles = `
 
         section {
           display: grid;
-          gap: 0.55rem;
-          padding: 0.7rem;
+          gap: ${boePanel.gap};
+          padding: ${boePanel.padding};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           background: var(--boe-token-surface-surface, #ffffff);
           transition: opacity ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
@@ -222,7 +223,7 @@ const elementStyles = `
           padding: 0;
           display: grid;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 62%, transparent);
-          border-radius: 0.7rem;
+          border-radius: ${boePanel.radius};
           overflow: hidden;
         }
 
@@ -230,7 +231,7 @@ const elementStyles = `
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 0.55rem;
+          gap: ${boePanel.gap};
           padding: 0.15rem 0.45rem;
           background: var(--boe-token-surface-surface, #ffffff);
           transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard};

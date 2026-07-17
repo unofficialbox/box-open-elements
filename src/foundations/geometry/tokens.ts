@@ -30,6 +30,20 @@ export const boeSpace = {
 } as const;
 
 /**
+ * Pattern / panel shell chrome — denser BDL card surfaces (12 / 8)
+ * used by share panels, explorers, insights cards, etc.
+ */
+export const boePanel = {
+  padding: "12px",
+  radius: "8px",
+  gap: "12px",
+  border: "1px solid var(--boe-token-stroke-stroke, #e8e8e8)",
+  background: "var(--boe-token-surface-surface, #ffffff)",
+  /** Content-sidebar-ish drawer width */
+  drawerWidth: "340px",
+} as const;
+
+/**
  * Overlay / menu / flyout chrome — `mixins/_overlay.scss` + Menu.scss.
  */
 export const boeOverlay = {
