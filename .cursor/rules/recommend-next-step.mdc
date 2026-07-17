@@ -1,0 +1,19 @@
+---
+description: Always recommend a next step and explain why
+alwaysApply: true
+---
+
+# Recommend a next step (with why)
+
+At the end of substantive replies — especially after finishing a task, merging a PR, answering “what’s next?”, or reaching a natural pause — always include:
+
+1. **A concrete next step** the user can take (or ask you to take), not a vague “let me know”.
+2. **A short why** — one sentence on priority, leverage, or risk (use `BACKLOG.md` / `docs/HANDOFF.md` / `docs/roadmap.md` when available).
+
+## Shape
+
+Prefer a small ranked list (2–4 options) with the top pick called out, plus a one-line reason for that pick. Keep it scannable.
+
+## When to skip
+
+Skip only for pure yes/no confirmations, secret/credential handling, or when the user explicitly asked for no recommendations.
