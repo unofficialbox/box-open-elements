@@ -18,7 +18,7 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 
 ## Current state (as of this handoff)
 
-- **Branch tip:** develop from current `origin/main`; this snapshot is `795edca` through PR #72.
+- **Branch tip:** develop from current `origin/main`; this snapshot is `3b1d4be` through PR #73.
 - **Live site:** GitHub Pages, `https://unofficialbox.github.io/box-open-elements/`,
   auto-deploys on push to `main` via `.github/workflows/deploy.yml`
   (build cmd `bun run site:build`, output `docs-site/dist`). The Workshop is
@@ -26,7 +26,7 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 - **CI** (`.github/workflows/ci.yml`): `Verify` (typecheck + **coverage-gated** tests + build) and
   `Visual regression` (strict pixel diff inside a pinned Playwright container).
   Coverage floors: [docs/coverage-baseline.md](./coverage-baseline.md).
-- Recent merged work through **#72** includes the completed fidelity program, 108-story workshop, density/BUE visual conformance, React adapter PoC, agent workflow rules, the BUE Content Explorer style-bridge config, and the documentation synchronization pass.
+- Recent merged work through **#73** includes the completed fidelity program, 108-story workshop, density/BUE visual conformance, React adapter PoC, agent workflow rules, the BUE Content Explorer style-bridge config, documentation synchronization, and the four-framework progress tracker.
 - Workshop stories: **108** extracted surfaces (full catalog). Workshop UI runs live `setup()` for controller-bound explorer demos; extraction still strips `setup`.
 - Content explorer: folder host chrome + **Metadata query chrome** docs-site variant (`docs-site/explorer-metadata-demo.ts`) — host-owned, not a controller view mode.
 - Foundations/tooling: theming + motion docs; `src/foundations/motion`; style bridge CLI + BUE Content Explorer config; explorer host bindings for filter-bar / saved views.
@@ -145,4 +145,4 @@ organized into **systemic sweeps**, not per-component rewrites.
 - Motion literals migrated to `boeMotionDuration` / `interactive`.
 - Explorer Folder host chrome swaps list/table adapters via filter-bar `onViewChange`.
 - `recents` still needs a transport contract; configurable columns remain open.
-- Framework adapter progress is tracked in `docs/integration/framework-adapters.md`: React is at PoC (`packages/react`, `BoxButton`); Angular, Vue, and Svelte are tracked and should prove direct custom-element interop before wrapper packages. Explorer `recents` remains blocked on a real transport contract.
+- Framework adapter progress is tracked in `docs/integration/framework-adapters.md`: React is **Validated** with `BoxButton`, `BoxTextField`, and `BoxSelect`; its next Beta proof is an overlay + controller composition + SSR guidance. Angular, Vue, and Svelte remain Tracked. Explorer `recents` remains blocked on a real transport contract.

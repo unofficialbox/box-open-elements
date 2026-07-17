@@ -20,7 +20,7 @@ bun add react react-dom
 ```
 
 ```ts
-import { BoxButton } from "@box-open-elements/react";
+import { BoxButton, BoxSelect, BoxTextField } from "@box-open-elements/react";
 import {
   applyDesignTokens,
   registerBoxDefaultDesignSystem,
@@ -30,10 +30,23 @@ registerBoxDefaultDesignSystem({ setActive: true });
 applyDesignTokens(document.documentElement, "box-default");
 
 export function SaveAction() {
-  return <BoxButton label="Save" tone="primary" onClick={() => console.log("saved")} />;
+  return (
+    <>
+      <BoxTextField label="Project" value="Apollo" />
+      <BoxSelect
+        label="Status"
+        value="draft"
+        options={[{ label: "Draft", value: "draft" }]}
+      />
+      <BoxButton label="Save" tone="primary" onClick={() => console.log("saved")} />
+    </>
+  );
 }
 ```
 
 ## Status
 
-PoC — `BoxButton` only. More wrappers can share `createWebComponent` as needed.
+**Validated** — `BoxButton`, `BoxTextField`, and `BoxSelect` prove native and
+composed events, value and structured property synchronization, latest callback
+routing, and forwarded element refs. The next Beta proof is an overlay plus one
+headless controller composition and explicit SSR/hydration guidance.

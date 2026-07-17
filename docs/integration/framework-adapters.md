@@ -21,7 +21,7 @@ custom element. Each status requires the evidence described above.
 
 | Framework | Direct custom-element interop | Typed adapter foundation | Representative components | Pattern/controller proof | SSR/hydration guidance | Overall |
 | --- | --- | --- | --- | --- | --- | --- |
-| React | Partial: property sync + native click via `BoxButton` tests | **Built**: `createWebComponent` | **1**: `BoxButton` | Not started | Partial: host hydration suppression only | **PoC** |
+| React | **Validated**: properties, native/composed events, latest handlers, refs | **Built**: `createWebComponent` | **3**: `BoxButton`, `BoxTextField`, `BoxSelect` | Not started | Partial: host hydration suppression only | **Validated** |
 | Angular | Not started | Not decided | 0 | Not started | Not started | **Tracked** |
 | Vue | Not started | Not decided | 0 | Not started | Not started | **Tracked** |
 | Svelte | Not started | Not decided | 0 | Not started | Not started | **Tracked** |
@@ -31,17 +31,26 @@ custom element. Each status requires the evidence described above.
 ### React
 
 Current implementation: [`packages/react`](../../packages/react) exposes
-`@box-open-elements/react`, `BoxButton`, and `createWebComponent`.
+`@box-open-elements/react`, `BoxButton`, `BoxTextField`, `BoxSelect`, and
+`createWebComponent`.
 
-Next proof set:
+Validation evidence:
 
-1. a value control with property updates and a custom state-change event
-2. an overlay with controlled `open` state and focus/ref behavior
-3. one headless controller or workflow-pattern composition
-4. explicit client-rendering and SSR/hydration guidance
+- `BoxTextField` proves value/boolean/form-property updates, typed composed
+  `value-changed`, latest-handler routing, and forwarded element refs.
+- `BoxSelect` proves structured option arrays are assigned as properties rather
+  than passed through React's host-attribute spread.
+- `BoxButton` keeps native `onClick` forwarding covered.
 
-Do not wrap the whole catalog mechanically. Expand by interaction family so the
-factory is proven against distinct property, event, focus, and lifecycle shapes.
+Next **Beta** proof set:
+
+1. an overlay with controlled `open` state and focus/ref behavior
+2. one headless controller or workflow-pattern composition
+3. explicit client-rendering and SSR/hydration guidance
+
+Do not wrap the whole catalog mechanically. Continue by interaction family so
+the factory is proven against distinct property, event, focus, and lifecycle
+shapes.
 
 ### Angular
 
