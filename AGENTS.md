@@ -23,6 +23,7 @@ This file applies to this repository. It adds repo-specific guidance for AI codi
 | old-repo → new-repo mapping | `docs/migration-map.md` |
 | explorer composition | `docs/patterns/content-explorer.md` |
 | server integration boundary | `docs/integration/box-server.md` |
+| React adapter package | `docs/integration/react.md` |
 
 ## Repo conventions
 
