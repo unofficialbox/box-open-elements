@@ -132,8 +132,13 @@ describe("style bridge", () => {
   });
 
   it("expands comma-separated nested selectors", () => {
+    expect(splitSelectorList(".root:not(.a, .b), .other")).toEqual([
+      ".root:not(.a, .b)",
+      ".other",
+    ]);
     expect(combineSelectors(".root", ".a, .b")).toBe(".root .a, .root .b");
     expect(combineSelectors(".root", "&:hover, &:focus")).toBe(".root:hover, .root:focus");
+    expect(combineSelectors(".root", "&:not(.a, .b)")).toBe(".root:not(.a, .b)");
     const flat = flattenSimpleNesting(`.root { .a, .b { color: red; } }`);
     expect(flat.replace(/\s+/g, " ")).toContain(".root .a, .root .b");
   });
