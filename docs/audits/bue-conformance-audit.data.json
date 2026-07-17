@@ -1,5 +1,6 @@
 {
-  "upstream": "box/box-ui-elements@master",
+  "upstream": "box/box-ui-elements@v26.0.0",
+  "revision": "v26.0.0",
   "files": [
     {
       "id": "layout",
@@ -147,7 +148,7 @@
       "upstreamPx": 12,
       "deltaPx": 0,
       "note": null,
-      "citation": "Modal.scss .modal-content border-radius: $bdl-border-radius-size-xlarge"
+      "citation": "Modal.scss .modal-dialog border-radius: $bdl-border-radius-size-xlarge"
     },
     {
       "id": "overlay.modalPadding",
@@ -161,7 +162,7 @@
       "upstreamPx": 30,
       "deltaPx": 0,
       "note": null,
-      "citation": "Modal.scss .modal padding: 30px"
+      "citation": "Modal.scss .modal-dialog padding: 30px"
     },
     {
       "id": "overlay.modalWidth",
@@ -175,7 +176,7 @@
       "upstreamPx": 460,
       "deltaPx": 0,
       "note": null,
-      "citation": "Modal.scss .modal-content width: 460px"
+      "citation": "Modal.scss .modal-dialog width: 460px"
     },
     {
       "id": "overlay.itemMinHeight",

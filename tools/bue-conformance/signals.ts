@@ -16,6 +16,56 @@ export interface Length {
   raw: string;
 }
 
+/**
+ * Strip `//` line comments and `/* … *​/` block comments from SCSS while
+ * preserving comment-like text inside single/double-quoted strings. Runs before
+ * any variable/declaration extraction so commented-out code can never be read as
+ * active (a commented `$x: 9px;` must not override the real value, and a
+ * commented property must not shift declaration indexes).
+ */
+export function stripScssComments(input: string): string {
+  let out = "";
+  let quote: string | null = null;
+  for (let i = 0; i < input.length; i += 1) {
+    const ch = input[i];
+    const next = input[i + 1];
+    if (quote) {
+      out += ch;
+      if (ch === quote) {
+        quote = null;
+      } else if (ch === "\\" && next !== undefined) {
+        out += next;
+        i += 1;
+      }
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+      out += ch;
+      continue;
+    }
+    if (ch === "/" && next === "/") {
+      while (i < input.length && input[i] !== "\n") {
+        i += 1;
+      }
+      if (i < input.length) {
+        out += "\n";
+      }
+      continue;
+    }
+    if (ch === "/" && next === "*") {
+      i += 2;
+      while (i < input.length && !(input[i] === "*" && input[i + 1] === "/")) {
+        i += 1;
+      }
+      i += 1; // land on the '/'
+      continue;
+    }
+    out += ch;
+  }
+  return out;
+}
+
 /** Parse a single CSS/SCSS length token (`px` or `rem`) into pixels. */
 export function parseLength(value: string): Length | null {
   const trimmed = value.trim();
@@ -39,7 +89,7 @@ export function parseScssVariables(scss: string): Map<string, string> {
   const vars = new Map<string, string>();
   const pattern = /\$([\w-]+)\s*:\s*([^;]+);/g;
   let match: RegExpExecArray | null;
-  while ((match = pattern.exec(scss)) !== null) {
+  while ((match = pattern.exec(stripScssComments(scss))) !== null) {
     const name = match[1];
     const value = match[2].replace(/\s*!default\s*$/, "").trim();
     vars.set(name, value);
@@ -82,9 +132,16 @@ function evaluateLengthArithmetic(value: string): string {
     value.trim(),
   );
   if (mul) {
+    const leftUnit = mul[2];
+    const rightUnit = mul[4];
+    // Reject length × length (e.g. `2px * 3rem`): the product is not a concrete
+    // CSS length. Require at most one operand to carry a unit.
+    if (Boolean(leftUnit) && Boolean(rightUnit)) {
+      return value;
+    }
     const left = Number.parseFloat(mul[1]);
     const right = Number.parseFloat(mul[3]);
-    const unit = mul[2] ?? mul[4] ?? "";
+    const unit = leftUnit ?? rightUnit ?? "";
     if (Number.isFinite(left) && Number.isFinite(right)) {
       return `${trimNumber(left * right)}${unit}`;
     }
@@ -117,10 +174,84 @@ export function extractDeclarations(css: string, property: string): string[] {
   );
   const values: string[] = [];
   let match: RegExpExecArray | null;
-  while ((match = pattern.exec(css)) !== null) {
+  while ((match = pattern.exec(stripScssComments(css))) !== null) {
     values.push(match[1].trim());
   }
   return values;
+}
+
+/** Remove every brace-balanced nested block, keeping only depth-0 text. */
+function stripNestedBlocks(body: string): string {
+  let out = "";
+  let depth = 0;
+  for (const ch of body) {
+    if (ch === "{") {
+      depth += 1;
+      continue;
+    }
+    if (ch === "}") {
+      depth = Math.max(0, depth - 1);
+      continue;
+    }
+    if (depth === 0) {
+      out += ch;
+    }
+  }
+  return out;
+}
+
+/** Does a rule header (possibly a comma list) name `selector` as a whole token? */
+function headerMatchesSelector(header: string, selector: string): boolean {
+  return header.split(",").some(part => {
+    const trimmed = part.trim();
+    if (trimmed === selector) {
+      return true;
+    }
+    // Allow a trailing combinator/pseudo so `.menu-item:hover` still matches
+    // `.menu-item`, but `.modal-dialog-container` does not match `.modal-dialog`.
+    return (
+      trimmed.startsWith(selector) &&
+      /[\s.:#[>+~]/.test(trimmed.charAt(selector.length))
+    );
+  });
+}
+
+/**
+ * Extract a property only from rules whose header names `selector`, ignoring
+ * unrelated declarations elsewhere in the file. Nested blocks inside a matched
+ * rule are removed so only that rule's own declarations are read. Values are
+ * returned in source order across every matching rule, so a stray empty
+ * same-named block (e.g. an animation-only `.modal-dialog`) does not shift the
+ * result.
+ */
+export function extractScopedDeclarations(
+  css: string,
+  selector: string,
+  property: string,
+): string[] {
+  const clean = stripScssComments(css);
+  const stack: { header: string; start: number }[] = [];
+  const matched: { start: number; body: string }[] = [];
+  let lastBoundary = 0;
+  for (let i = 0; i < clean.length; i += 1) {
+    const ch = clean[i];
+    if (ch === "{") {
+      stack.push({ header: clean.slice(lastBoundary, i).trim(), start: i + 1 });
+      lastBoundary = i + 1;
+    } else if (ch === "}") {
+      const rule = stack.pop();
+      if (rule && headerMatchesSelector(rule.header, selector)) {
+        matched.push({ start: rule.start, body: clean.slice(rule.start, i) });
+      }
+      lastBoundary = i + 1;
+    } else if (ch === ";") {
+      lastBoundary = i + 1;
+    }
+  }
+  // Rules close innermost-first; re-sort by opening position for source order.
+  return matched
+    .sort((a, b) => a.start - b.start)
+    .flatMap(rule => extractDeclarations(stripNestedBlocks(rule.body), property));
 }
 
 export type Verdict =

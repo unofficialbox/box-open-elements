@@ -91,8 +91,14 @@ bun run verify                                  # typecheck + coverage-gated tes
       paths.
 - [x] Runnable audit (`audit.ts`) — curl fetch via proxy + CA, merged-var
       resolution, Markdown + JSON report, `--refresh/--offline/--strict`.
-- [x] Unit tests (`test/tools/bue-conformance.test.ts`, 20 cases).
+- [x] Unit tests (`test/tools/bue-conformance.test.ts`, 34 cases — signals +
+      audit workflow via `import.meta.main` guard).
 - [x] First pass run — **12/12 conformant**; report committed.
+- [x] Review hardening (PR #76): pinned upstream revision `v26.0.0` (reproducible,
+      `BUE_UPSTREAM_REV` override); quote-aware SCSS comment stripping;
+      selector-scoped declaration extraction (no cross-rule index bleed);
+      `curl --fail` so HTTP errors are never cached; `--strict` fails on any
+      non-conformant verdict.
 - [x] `package.json` script `bue-conformance`; `.cache/` gitignored.
 - [ ] Broaden Layer 1 claims: inputs (`box-inputs` mixin), overlay/menu padding
       + radius, badge radius, avatar size, tooltip, drawer width, tabs metrics.
@@ -124,6 +130,15 @@ bun run verify                                  # typecheck + coverage-gated tes
 - Curate upstream paths (no crawl) because the tree API is blocked; treat a
   moved anchor as `missing-upstream` (a visible signal), never a silent pass.
 - Do not commit `.cache/`; the committed report + the unit tests are the record.
+- Pin upstream to an immutable release tag (`v26.0.0`), not `master`: raw serves
+  tags, the audit stays reproducible, and files can't be mixed across commits
+  mid-run. A full SHA would be ideal but is undiscoverable here (the tree/commit
+  APIs are 403); a release tag is immutable enough. Bump deliberately to
+  re-baseline.
+- Scope declaration extraction to the cited selector instead of a whole-file
+  index — upstream has look-alike (`.modal-dialog-container`) and empty
+  same-named (`.modal-dialog` animation-only) blocks that a bare index would
+  misread.
 
 ## Outcomes & Acceptance
 

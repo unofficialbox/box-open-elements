@@ -3,11 +3,21 @@ import { describe, expect, it } from "vitest";
 import {
   compareValue,
   extractDeclarations,
+  extractScopedDeclarations,
   normalizeToken,
   parseLength,
   parseScssVariables,
   resolveScssValue,
+  stripScssComments,
 } from "../../tools/bue-conformance/signals.js";
+import {
+  computeExitCode,
+  evaluate,
+  extractUpstream,
+  parseArgs,
+  renderMarkdown,
+  type LoadedFile,
+} from "../../tools/bue-conformance/audit.js";
 
 describe("parseLength", () => {
   it("parses px and rem (rem at 16px root)", () => {
@@ -29,6 +39,20 @@ describe("parseLength", () => {
   });
 });
 
+describe("stripScssComments", () => {
+  it("removes line and block comments", () => {
+    expect(stripScssComments("a; // gone\nb;")).toBe("a; \nb;");
+    expect(stripScssComments("a;/* gone */b;")).toBe("a;b;");
+  });
+
+  it("preserves comment-like text inside quoted strings", () => {
+    expect(stripScssComments('content: "a // b";')).toBe('content: "a // b";');
+    expect(stripScssComments("content: 'x /* y */ z';")).toBe(
+      "content: 'x /* y */ z';",
+    );
+  });
+});
+
 describe("parseScssVariables", () => {
   it("parses simple declarations and strips !default", () => {
     const vars = parseScssVariables(
@@ -36,6 +60,13 @@ describe("parseScssVariables", () => {
     );
     expect(vars.get("bdl-grid-unit")).toBe("4px");
     expect(vars.get("bdl-btn-height")).toBe("32px");
+  });
+
+  it("ignores commented-out declarations (both comment styles)", () => {
+    const vars = parseScssVariables(
+      "$h: 32px;\n// $h: 99px;\n/* $h: 88px; */",
+    );
+    expect(vars.get("h")).toBe("32px");
   });
 
   it("keeps arithmetic values verbatim and lets later declarations win", () => {
@@ -67,6 +98,12 @@ describe("resolveScssValue", () => {
 
   it("evaluates length / number arithmetic", () => {
     expect(resolveScssValue("$grid / 2", vars)).toBe("2px");
+  });
+
+  it("leaves length × length unresolved (not a concrete CSS length)", () => {
+    expect(resolveScssValue("2px * 3rem", vars)).toBe("2px * 3rem");
+    // Unitless × length still resolves.
+    expect(resolveScssValue("2 * 3px", vars)).toBe("6px");
   });
 
   it("resolves chained variable aliases", () => {
@@ -147,8 +184,173 @@ describe("compareValue", () => {
   });
 });
 
+describe("extractScopedDeclarations", () => {
+  // Mirrors the real Modal.scss shape: an animation-only nested `.modal-dialog`,
+  // a look-alike `.modal-dialog-container`, then the real `.modal-dialog`.
+  const modalScss = `
+    .modal {
+      padding: 30px;
+      .modal-dialog { box-shadow: none; }
+    }
+    .modal-dialog-container { width: 100%; }
+    .modal-dialog {
+      width: 460px;
+      padding: 30px;
+      border-radius: $bdl-border-radius-size-xlarge;
+    }
+  `;
+
+  it("reads only the matching rule, skipping the empty same-named block", () => {
+    expect(extractScopedDeclarations(modalScss, ".modal-dialog", "width")).toEqual([
+      "460px",
+    ]);
+    expect(
+      extractScopedDeclarations(modalScss, ".modal-dialog", "border-radius"),
+    ).toEqual(["$bdl-border-radius-size-xlarge"]);
+  });
+
+  it("does not leak declarations from an unrelated look-alike selector", () => {
+    // `.modal-dialog-container` width:100% must not be attributed to `.modal-dialog`.
+    expect(extractScopedDeclarations(modalScss, ".modal-dialog", "padding")).toEqual([
+      "30px",
+    ]);
+  });
+
+  it("matches a pseudo/combinator suffix but not a longer name", () => {
+    const css = ".menu-item:hover { min-height: 5px; }";
+    expect(extractScopedDeclarations(css, ".menu-item", "min-height")).toEqual([
+      "5px",
+    ]);
+    expect(
+      extractScopedDeclarations(".menu-item-icon { min-height: 9px; }", ".menu-item", "min-height"),
+    ).toEqual([]);
+  });
+
+  it("ignores commented-out declarations within the scope", () => {
+    const css = ".menu-item { /* min-height: 99px; */ min-height: 30px; }";
+    expect(extractScopedDeclarations(css, ".menu-item", "min-height")).toEqual([
+      "30px",
+    ]);
+  });
+});
+
 describe("normalizeToken", () => {
   it("collapses whitespace and lowercases", () => {
     expect(normalizeToken("  Foo   Bar ")).toBe("foo bar");
+  });
+});
+
+describe("audit workflow", () => {
+  // Synthetic upstream mirroring the manifest's real variable names + selectors,
+  // so evaluate() exercises the actual CLAIMS incl. cross-file resolution.
+  const conformantFiles = (): LoadedFile[] => [
+    {
+      id: "layout",
+      path: "layout",
+      content: [
+        "$bdl-grid-unit: 4px !default;",
+        "$bdl-border-radius-size: 4px;",
+        "$bdl-border-radius-size-med: $bdl-border-radius-size * 1.5;",
+        "$bdl-border-radius-size-large: $bdl-border-radius-size * 2;",
+        "$bdl-border-radius-size-xlarge: $bdl-border-radius-size * 3;",
+      ].join("\n"),
+    },
+    {
+      id: "buttons",
+      path: "buttons",
+      content: [
+        "$bdl-btn-height: 32px;",
+        "$bdl-btn-height-large: 40px;",
+        "$bdl-btn-padding-horizontal: $bdl-grid-unit * 4;",
+      ].join("\n"),
+    },
+    {
+      id: "modal",
+      path: "modal",
+      content:
+        ".modal-dialog { width: 460px; padding: 30px; border-radius: $bdl-border-radius-size-xlarge; }",
+    },
+    { id: "menu", path: "menu", content: ".menu-item { min-height: 30px; }" },
+  ];
+
+  it("parseArgs reads the run flags", () => {
+    expect(parseArgs([])).toEqual({ refresh: false, offline: false, strict: false });
+    expect(parseArgs(["--refresh", "--offline", "--strict"])).toEqual({
+      refresh: true,
+      offline: true,
+      strict: true,
+    });
+  });
+
+  it("extractUpstream resolves scss-var and scoped decl claims", () => {
+    const byId = new Map<string, string | null>([
+      ["buttons", "$bdl-btn-height: 32px;"],
+      ["modal", ".modal-dialog { width: 460px; }"],
+    ]);
+    expect(
+      extractUpstream(
+        { extractor: { kind: "scss-var", file: "buttons", name: "bdl-btn-height" } } as never,
+        byId,
+      ),
+    ).toBe("32px");
+    expect(
+      extractUpstream(
+        {
+          extractor: {
+            kind: "decl",
+            file: "modal",
+            selector: ".modal-dialog",
+            property: "width",
+          },
+        } as never,
+        byId,
+      ),
+    ).toBe("460px");
+    expect(
+      extractUpstream(
+        { extractor: { kind: "scss-var", file: "absent", name: "x" } } as never,
+        byId,
+      ),
+    ).toBeNull();
+  });
+
+  it("evaluate marks every claim conformant against faithful upstream", () => {
+    const rows = evaluate(conformantFiles());
+    expect(rows.length).toBeGreaterThanOrEqual(12);
+    expect(rows.every(r => r.verdict === "conformant")).toBe(true);
+    // Cross-file resolution: modal radius resolves via the layout var map.
+    const modalRadius = rows.find(r => r.claim.id === "overlay.modalRadius");
+    expect(modalRadius?.upstreamResolved).toBe("12px");
+  });
+
+  it("evaluate flags drift and missing-upstream", () => {
+    const files = conformantFiles();
+    files[1] = { id: "buttons", path: "buttons", content: "$bdl-btn-height: 30px;\n$bdl-btn-height-large: 40px;\n$bdl-btn-padding-horizontal: $bdl-grid-unit * 4;" };
+    files[3] = { id: "menu", path: "menu", content: null };
+    const rows = evaluate(files);
+    expect(rows.find(r => r.claim.id === "control.height")?.verdict).toBe("drift");
+    expect(rows.find(r => r.claim.id === "overlay.itemMinHeight")?.verdict).toBe(
+      "missing-upstream",
+    );
+  });
+
+  it("computeExitCode fails strict mode on any non-conformant verdict", () => {
+    const rows = evaluate(conformantFiles());
+    expect(computeExitCode(rows, false)).toBe(0);
+    expect(computeExitCode(rows, true)).toBe(0);
+
+    const drifted = evaluate(
+      conformantFiles().map(f =>
+        f.id === "menu" ? { ...f, content: null } : f,
+      ),
+    );
+    expect(computeExitCode(drifted, false)).toBe(0);
+    expect(computeExitCode(drifted, true)).toBe(1);
+  });
+
+  it("renderMarkdown reports a verdict summary", () => {
+    const md = renderMarkdown(evaluate(conformantFiles()), conformantFiles());
+    expect(md).toContain("# box-ui-elements Geometry Conformance Audit");
+    expect(md).toMatch(/✅ Conformant \| 12/);
   });
 });

@@ -20,18 +20,27 @@ import {
   boeSpace,
 } from "../../src/foundations/geometry/index.js";
 
-const UPSTREAM_ROOT =
-  "https://raw.githubusercontent.com/box/box-ui-elements/master";
+/**
+ * Immutable upstream revision. Pinned to a release tag (not `master`) so the
+ * audit is reproducible and never mixes files from different commits when the
+ * branch advances mid-run. Override for a one-off run with `BUE_UPSTREAM_REV`.
+ * Bump this deliberately to re-baseline against a newer box-ui-elements release.
+ */
+export const UPSTREAM_REVISION = "v26.0.0";
+
+/** Build the raw.githubusercontent URL for an upstream path at a revision. */
+export function upstreamUrl(path: string, revision = UPSTREAM_REVISION): string {
+  return `https://raw.githubusercontent.com/box/box-ui-elements/${revision}/${path}`;
+}
 
 /** Upstream file to fetch, keyed by a short id used from extractors. */
 export interface UpstreamFile {
   id: string;
   path: string;
-  url: string;
 }
 
 function upstream(id: string, path: string): UpstreamFile {
-  return { id, path, url: `${UPSTREAM_ROOT}/${path}` };
+  return { id, path };
 }
 
 export const UPSTREAM_FILES: readonly UpstreamFile[] = [
@@ -43,7 +52,16 @@ export const UPSTREAM_FILES: readonly UpstreamFile[] = [
 
 export type Extractor =
   | { kind: "scss-var"; file: string; name: string }
-  | { kind: "decl"; file: string; property: string; index?: number };
+  | {
+      kind: "decl";
+      file: string;
+      property: string;
+      /** Rule selector the declaration must live under (prevents matching an
+       *  unrelated declaration elsewhere in the file). */
+      selector: string;
+      /** Nth match within the scoped selector rule(s); defaults to 0. */
+      index?: number;
+    };
 
 export interface Claim {
   id: string;
@@ -146,34 +164,54 @@ export const CLAIMS: readonly Claim[] = [
     surface: "overlay",
     boeConst: "boeOverlay.modalRadius",
     boeValue: boeOverlay.modalRadius,
-    extractor: { kind: "decl", file: "modal", property: "border-radius", index: 0 },
+    extractor: {
+      kind: "decl",
+      file: "modal",
+      selector: ".modal-dialog",
+      property: "border-radius",
+    },
     tolerancePx: 0,
-    citation: "Modal.scss .modal-content border-radius: $bdl-border-radius-size-xlarge",
+    citation: "Modal.scss .modal-dialog border-radius: $bdl-border-radius-size-xlarge",
   },
   {
     id: "overlay.modalPadding",
     surface: "overlay",
     boeConst: "boeOverlay.modalPadding",
     boeValue: boeOverlay.modalPadding,
-    extractor: { kind: "decl", file: "modal", property: "padding", index: 0 },
+    extractor: {
+      kind: "decl",
+      file: "modal",
+      selector: ".modal-dialog",
+      property: "padding",
+    },
     tolerancePx: 0,
-    citation: "Modal.scss .modal padding: 30px",
+    citation: "Modal.scss .modal-dialog padding: 30px",
   },
   {
     id: "overlay.modalWidth",
     surface: "overlay",
     boeConst: "boeOverlay.modalWidth",
     boeValue: boeOverlay.modalWidth,
-    extractor: { kind: "decl", file: "modal", property: "width", index: 1 },
+    extractor: {
+      kind: "decl",
+      file: "modal",
+      selector: ".modal-dialog",
+      property: "width",
+    },
     tolerancePx: 0,
-    citation: "Modal.scss .modal-content width: 460px",
+    citation: "Modal.scss .modal-dialog width: 460px",
   },
   {
     id: "overlay.itemMinHeight",
     surface: "overlay",
     boeConst: "boeOverlay.itemMinHeight",
     boeValue: boeOverlay.itemMinHeight,
-    extractor: { kind: "decl", file: "menu", property: "min-height", index: 0 },
+    extractor: {
+      kind: "decl",
+      file: "menu",
+      selector: ".menu-item",
+      property: "min-height",
+    },
     tolerancePx: 0,
     citation: "Menu.scss .menu-item min-height: 30px",
   },
