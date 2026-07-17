@@ -232,6 +232,26 @@ describe("extractScopedDeclarations", () => {
       "30px",
     ]);
   });
+
+  it("treats a brace inside a quoted value as text, not structure", () => {
+    const css = `.menu-item { content: "{"; min-height: 30px; }`;
+    expect(extractScopedDeclarations(css, ".menu-item", "min-height")).toEqual([
+      "30px",
+    ]);
+  });
+
+  it("does not match a descendant rule as the target element", () => {
+    const css = ".menu-item .icon { min-height: 9px; }";
+    expect(extractScopedDeclarations(css, ".menu-item", "min-height")).toEqual([]);
+  });
+
+  it("still matches same-subject compound/state suffixes", () => {
+    const css = ".menu-item.active { min-height: 7px; } .menu-item[aria-current] { min-height: 8px; }";
+    expect(extractScopedDeclarations(css, ".menu-item", "min-height")).toEqual([
+      "7px",
+      "8px",
+    ]);
+  });
 });
 
 describe("normalizeToken", () => {

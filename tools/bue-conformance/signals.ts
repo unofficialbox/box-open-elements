@@ -180,11 +180,38 @@ export function extractDeclarations(css: string, property: string): string[] {
   return values;
 }
 
-/** Remove every brace-balanced nested block, keeping only depth-0 text. */
+/**
+ * Remove every brace-balanced nested block, keeping only depth-0 text. Quote
+ * aware so a brace inside a string value (e.g. `content: "{"`) is not treated as
+ * a structural delimiter.
+ */
 function stripNestedBlocks(body: string): string {
   let out = "";
   let depth = 0;
-  for (const ch of body) {
+  let quote: string | null = null;
+  for (let i = 0; i < body.length; i += 1) {
+    const ch = body[i];
+    if (quote) {
+      if (depth === 0) {
+        out += ch;
+      }
+      if (ch === quote) {
+        quote = null;
+      } else if (ch === "\\" && i + 1 < body.length) {
+        if (depth === 0) {
+          out += body[i + 1];
+        }
+        i += 1;
+      }
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+      if (depth === 0) {
+        out += ch;
+      }
+      continue;
+    }
     if (ch === "{") {
       depth += 1;
       continue;
@@ -200,18 +227,22 @@ function stripNestedBlocks(body: string): string {
   return out;
 }
 
-/** Does a rule header (possibly a comma list) name `selector` as a whole token? */
+/**
+ * Does a rule header (possibly a comma list) name `selector` as its subject?
+ * Accepts same-subject compound/state suffixes (`.menu-item:hover`,
+ * `.menu-item.active`, `.menu-item[aria-current]`) but rejects descendant or
+ * combinator rules (`.menu-item .icon`, `.menu-item > x`) and longer names
+ * (`.modal-dialog-container`), whose declarations style a different element.
+ */
 function headerMatchesSelector(header: string, selector: string): boolean {
   return header.split(",").some(part => {
     const trimmed = part.trim();
     if (trimmed === selector) {
       return true;
     }
-    // Allow a trailing combinator/pseudo so `.menu-item:hover` still matches
-    // `.menu-item`, but `.modal-dialog-container` does not match `.modal-dialog`.
     return (
       trimmed.startsWith(selector) &&
-      /[\s.:#[>+~]/.test(trimmed.charAt(selector.length))
+      /^[.:[#]/.test(trimmed.slice(selector.length))
     );
   });
 }
@@ -233,9 +264,20 @@ export function extractScopedDeclarations(
   const stack: { header: string; start: number }[] = [];
   const matched: { start: number; body: string }[] = [];
   let lastBoundary = 0;
+  let quote: string | null = null;
   for (let i = 0; i < clean.length; i += 1) {
     const ch = clean[i];
-    if (ch === "{") {
+    if (quote) {
+      if (ch === quote) {
+        quote = null;
+      } else if (ch === "\\") {
+        i += 1;
+      }
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+    } else if (ch === "{") {
       stack.push({ header: clean.slice(lastBoundary, i).trim(), start: i + 1 });
       lastBoundary = i + 1;
     } else if (ch === "}") {
