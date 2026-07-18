@@ -211,6 +211,13 @@ function declarationsIn(body: string, property: string): string[] {
  * selector list names `selector` in `state`, in source order. Compiled CSS is
  * flat (no nesting), so a single brace scan is sufficient.
  */
+/**
+ * Scan flat (compiled) CSS and collect every value of `property` from rules
+ * whose header satisfies `headerMatches`, in source order. Shared brace-scanning
+ * core for `extractCompiledDeclarations` (state-aware) and
+ * `extractRawDeclarations` (verbatim selector); comments are stripped first so a
+ * banner preceding a rule cannot leak into its selector.
+ */
 function collectDeclarations(
   rawCss: string,
   headerMatches: (header: string) => boolean,

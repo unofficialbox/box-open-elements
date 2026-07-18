@@ -48,20 +48,31 @@ export function buildTokenMap(): Map<string, string> {
   return map;
 }
 
-export interface UpstreamRule {
-  /** Selector + interaction state (partMatches semantics). */
-  selector?: string;
-  state?: State;
-  /**
-   * Verbatim compound selector to match instead of `selector`/`state` — for
-   * upstream rules with child combinators / pseudo-elements that `partMatches`
-   * rejects (e.g. the custom checkbox/radio marks).
-   */
-  rawSelector?: string;
+/** Match a rule by selector + interaction state (`partMatches` semantics). */
+export interface CompiledUpstreamRule {
+  selector: string;
+  state: State;
   property: string;
   /** Nth matching declaration; defaults to 0. */
   index?: number;
+  rawSelector?: never;
 }
+
+/**
+ * Match a rule by a verbatim compound selector — for upstream rules with child
+ * combinators / pseudo-elements that `partMatches` rejects (e.g. the custom
+ * checkbox/radio marks `.checkbox-label>input[type=checkbox]+span::after`).
+ */
+export interface RawUpstreamRule {
+  rawSelector: string;
+  property: string;
+  index?: number;
+  selector?: never;
+  state?: never;
+}
+
+/** Either a selector+state rule or a verbatim compound-selector rule. */
+export type UpstreamRule = CompiledUpstreamRule | RawUpstreamRule;
 
 export interface ColorClaim {
   id: string;

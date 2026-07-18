@@ -65,6 +65,7 @@ export function parseArgs(argv: string[]): Args {
   };
 }
 
+/** Build curl arguments for one URL (proxy-aware, CA-pinned, no redirects). */
 function curlArgsFor(url: string): string[] {
   const args = ["-sS", "--fail", "--max-time", "40", "--max-redirs", "0", url];
   if (existsSync(CA_BUNDLE)) {
@@ -244,14 +245,10 @@ export function evaluate(
     const grounded = anchorPresent(claim, componentSource);
     const boeResolved = resolveCssVars(claim.boeValue, tokenMap);
     const rule = claim.upstream;
-    const upstreamValues = rule.rawSelector
-      ? extractRawDeclarations(css, rule.rawSelector, rule.property)
-      : extractCompiledDeclarations(
-          css,
-          rule.selector as string,
-          rule.state as "base" | "hover" | "active" | "focus",
-          rule.property,
-        );
+    const upstreamValues =
+      rule.rawSelector !== undefined
+        ? extractRawDeclarations(css, rule.rawSelector, rule.property)
+        : extractCompiledDeclarations(css, rule.selector, rule.state, rule.property);
     const upstreamRaw = upstreamValues[rule.index ?? 0] ?? null;
 
     if (!grounded) {

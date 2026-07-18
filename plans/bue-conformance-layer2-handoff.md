@@ -138,11 +138,12 @@ Ranked by ROI given the walls above:
 - **C — Compiled-CSS extraction (no browser). ✅ DONE (rounds 1-4).**
   Fetched the Storybook's compiled CSS-in-JS bundles via `curl`, decoded the
   css-loader string literals to recover the resolved (post-Sass) CSS, and diffed
-  the resolved colour/shadow/state values for the button, menu-item, and badge
-  families. Round 2 recovers the per-story **chunk map** from the webpack runtime
-  bundle and fetches all chunks, so code-split component CSS is reachable without
-  a browser. Round 3 added a static **`color-mix(in srgb, …)` evaluator** so
-  box-open-elements colours that compute a value resolve too. See
+  the resolved colour/shadow/state values for the button, menu-item, badge,
+  checkbox, radio, and tooltip surfaces. Round 2 recovers the per-story **chunk
+  map** from the webpack runtime bundle and fetches all chunks, so code-split
+  component CSS is reachable without a browser. Round 3 added a static
+  **`color-mix(in srgb, …)` evaluator**; round 4 added a verbatim compound-selector
+  matcher for the custom checkbox/radio marks. See
   `bun run bue-conformance:color` and `docs/audits/bue-conformance-color-audit.md`.
   What's left for the live-browser paths: multi-stop **gradients** (tooltip
   background) and box-open-elements colours with no flat upstream counterpart —
@@ -155,10 +156,13 @@ Ranked by ROI given the walls above:
   effort + auth risk (2FA), but the only *live* path not blocked by MSW.
 - **D — Beat the Storybook MSW** (stub the service worker). Lowest confidence.
 
-**Suggested first move next session:** verify network (`curl` the index.json),
-then attempt **C** — it reuses the working `curl` fetch path and sidesteps both
-the Chromium-proxy and MSW walls. Fall back to **B** only if the owner
-specifically wants the live tenant view and has set the creds.
+**Suggested first move next session:** path **C is complete** (rounds 1-4,
+26 claims). What remains needs a *live* render, so pick up **round 5 / the
+live-browser path** — **B** (tenant login; `BOX_USERNAME/PASSWORD` are set) or
+**D** (stub the Storybook MSW), driven through the curl-interception harness
+above — to capture the surfaces C cannot resolve statically: multi-stop
+**gradients** (tooltip background) and box-open-elements colours with no flat
+upstream counterpart. Verify network first (`curl` the index.json).
 
 ## Files / commands
 
