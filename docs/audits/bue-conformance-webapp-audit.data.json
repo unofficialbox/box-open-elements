@@ -224,6 +224,27 @@
       "boeValue": "28px",
       "boxValue": "28px",
       "verdict": "conformant"
+    },
+    {
+      "surface": "dropdown menu radius",
+      "boeConst": "boeOverlay.radius",
+      "boeValue": "20px",
+      "boxValue": "20px",
+      "verdict": "conformant"
+    },
+    {
+      "surface": "menu item radius",
+      "boeConst": "boeOverlay.itemRadius",
+      "boeValue": "12px",
+      "boxValue": "12px",
+      "verdict": "conformant"
+    },
+    {
+      "surface": "dialog radius",
+      "boeConst": "boeOverlay.modalRadius",
+      "boeValue": "24px",
+      "boxValue": "24px",
+      "verdict": "conformant"
     }
   ]
 }

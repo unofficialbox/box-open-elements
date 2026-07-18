@@ -77,11 +77,13 @@ describe("evaluateGeometry", () => {
       readFileSync(join(process.cwd(), "docs/audits/box-webapp-reference.data.json"), "utf8"),
     ) as Reference;
     const rows = evaluateGeometry(reference);
-    // box-open-elements' control/field/nav radii must match the captured live-Box
+    // box-open-elements' control + overlay radii must match the captured live-Box
     // radii — this is what confirms the Layer 1 "intentional-divergence" claims.
-    expect(rows.length).toBeGreaterThanOrEqual(3);
+    expect(rows.length).toBeGreaterThanOrEqual(6);
     expect(rows.every(r => r.verdict === "conformant")).toBe(true);
     expect(rows.find(r => r.surface.includes("button"))?.boxValue).toBe("20px");
+    expect(rows.find(r => r.surface.includes("dialog"))?.boxValue).toBe("24px");
+    expect(rows.find(r => r.surface.includes("menu item"))?.boxValue).toBe("12px");
   });
 
   it("flags a radius that stopped matching the live app as review", () => {

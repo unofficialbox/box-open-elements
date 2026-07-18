@@ -53,5 +53,8 @@ Verifies box-open-elements' pill radii against the live Box app — these are th
 | ✅ | button radius | 20px | 20px | `boeControl.radius` |
 | ✅ | search field radius | 24px | 24px | `boeRadius.field` |
 | ✅ | nav item radius | 28px | 28px | `boeRadius.nav` |
+| ✅ | dropdown menu radius | 20px | 20px | `boeOverlay.radius` |
+| ✅ | menu item radius | 12px | 12px | `boeOverlay.itemRadius` |
+| ✅ | dialog radius | 24px | 24px | `boeOverlay.modalRadius` |
 
 Typography is a deliberate divergence (box-open-elements keeps `InterVariable`-first; Box ships Lato) recorded in the reference's `observations`, not audited here.
