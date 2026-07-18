@@ -70,6 +70,14 @@ describe("renderMarkdown", () => {
     expect(md).toContain("2026-07-18");
     for (const t of Object.keys(REF.tokens)) expect(md).toContain("`" + t + "`");
   });
+
+  it("surfaces the snapshot refresh cadence when the reference carries one", () => {
+    expect(renderMarkdown(evaluate(BOE, REF), REF)).not.toContain("Keeping this current");
+    const withRefresh = { ...REF, refresh: "Re-capture QUARTERLY from a signed-in session." };
+    const md = renderMarkdown(evaluate(BOE, withRefresh), withRefresh);
+    expect(md).toContain("Keeping this current");
+    expect(md).toContain("Re-capture QUARTERLY");
+  });
 });
 
 describe("evaluateGeometry", () => {
