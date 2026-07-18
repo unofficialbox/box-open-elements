@@ -152,11 +152,13 @@ bun run verify                                  # typecheck + coverage-gated tes
       pseudo-elements (the custom checkbox/radio marks
       `.checkbox-label>input[type=checkbox]+span::after`) that the state-aware
       `partMatches` intentionally rejects. Now **26 claims, 20 conformant / 6 review.**
-- [ ] Layer 2 round 5 — surfaces still deferred: multi-stop **gradients** (tooltip
-      background) and non-sRGB mixes have no single resolvable colour, and some
-      box-open-elements colours have no solid upstream counterpart (a gradient vs
-      a flat fill). These need a live-browser `getComputedStyle` read (paths
-      below), not more static evaluation.
+- [ ] Layer 2 round 5 — **live capture from the real Box web app** (`app.box.com`),
+      the conformance ground truth, plus any surfaces still deferred statically.
+      This needs a rendered browser reading `getComputedStyle`; the cloud sandbox
+      can't drive a local browser and Chromium can't use the MITM proxy, so **run
+      it locally**. Full plan, environment findings, surface map, and a capture
+      script are in
+      [`bue-conformance-live-browser-handoff.md`](./bue-conformance-live-browser-handoff.md).
 - [ ] Layer 2 — live-browser paths (broader coverage): tenant login
       (`BOX_USERNAME/PASSWORD` in a fresh session) or beating the public
       Storybook's MSW service worker, driven through the proven curl-interception
