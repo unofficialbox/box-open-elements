@@ -2,7 +2,7 @@ import { UnifiedShareController } from "./unified-share-controller.js";
 import type { UnifiedShareState, UnifiedShareTab } from "./unified-share-controller.js";
 import type { CollaboratorSummary, ShareDataSource, SharedLinkState } from "./contracts.js";
 import { BaseElement } from "../../core/index.js";
-import { boePanel } from "../../foundations/geometry/index.js";
+import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
   boeNeutralInteractiveStyles,
@@ -53,7 +53,7 @@ const elementStyles = `
           display: grid;
           gap: ${boePanel.gap};
           padding: 0.75rem;
-          border-radius: ${boePanel.radius};
+          border-radius: ${boeRadius.field};
           background: var(--boe-token-surface-surface, #ffffff);
           color: var(--boe-token-text-text, #222222);
           box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
@@ -128,7 +128,7 @@ const elementStyles = `
           box-sizing: border-box;
           padding: 0.55rem 0.65rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.6rem;
+          border-radius: ${boeRadius.control};
           background: var(--boe-token-surface-surface-secondary, #fbfbfb);
           font: inherit;
           color: inherit;
@@ -136,7 +136,7 @@ const elementStyles = `
 
         [part="copy"] {
           appearance: none;
-          border-radius: 0.6rem;
+          border-radius: ${boeRadius.control};
           border: 1px solid transparent;
           background: var(--boe-token-surface-surface-brand, #0061d5);
           color: var(--boe-token-text-text-on-brand, #ffffff);
@@ -152,7 +152,7 @@ const elementStyles = `
           box-sizing: border-box;
           padding: 0.55rem 0.65rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: 0.6rem;
+          border-radius: ${boeRadius.control};
           background: var(--boe-token-surface-surface, #ffffff);
           font: inherit;
           color: inherit;

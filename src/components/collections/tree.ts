@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-tree";
 
@@ -74,7 +75,7 @@ const treeStyles = `
     gap: 0.55rem;
     align-items: center;
     padding: 0.16rem 0.18rem;
-    border-radius: 0.6rem;
+    border-radius: ${boeRadius.med};
     background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 78%, transparent);
   }
 
@@ -93,7 +94,7 @@ const treeStyles = `
     place-items: center;
     appearance: none;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
-    border-radius: 0.35rem;
+    border-radius: ${boeRadius.control};
     padding: 0;
     line-height: 1;
     background: var(--boe-token-surface-surface, #ffffff);
@@ -111,7 +112,7 @@ const treeStyles = `
     place-items: center;
     appearance: none;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
-    border-radius: 0.375rem;
+    border-radius: ${boeRadius.control};
     padding: 0;
     line-height: 1;
     background: var(--boe-token-surface-surface, #ffffff);
@@ -157,7 +158,7 @@ const treeStyles = `
     appearance: none;
     text-align: left;
     border: 1px solid transparent;
-    border-radius: 0.6rem;
+    border-radius: ${boeRadius.med};
     padding: 0.5rem 0.65rem;
     background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text, #222222);

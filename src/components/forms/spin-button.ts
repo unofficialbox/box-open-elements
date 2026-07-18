@@ -5,6 +5,7 @@ import {
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-spin-button";
 
@@ -41,7 +42,7 @@ const spinButtonStyles = `
     display: inline-flex;
     align-items: stretch;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-    border-radius: 0.7rem;
+    border-radius: ${boeRadius.control};
     background: var(--boe-token-surface-surface, #ffffff);
     overflow: hidden;
     transition:

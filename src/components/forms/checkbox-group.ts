@@ -11,6 +11,7 @@ import {
   boeFocusVisibleStyles,
 } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-checkbox-group";
 
@@ -63,7 +64,7 @@ const checkboxGroupStyles = `
     gap: 0.45rem;
     padding: 0.4rem 0.55rem;
     border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
-    border-radius: 0.55rem;
+    border-radius: ${boeRadius.med};
     cursor: pointer;
     background: var(--boe-token-surface-surface, #ffffff);
     transition:

@@ -11,6 +11,7 @@ import {
   boeFocusVisibleStyles,
 } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-multi-select";
 
@@ -72,7 +73,7 @@ const multiSelectStyles = `
     gap: 0.15rem;
     padding: 0.35rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-    border-radius: 0.75rem;
+    border-radius: ${boeRadius.xlarge};
     background: var(--boe-token-surface-surface, #ffffff);
     box-shadow: 0 12px 30px color-mix(in srgb, #0b1e33 14%, transparent);
   }
@@ -82,7 +83,7 @@ const multiSelectStyles = `
     align-items: center;
     gap: 0.45rem;
     padding: 0.55rem 0.7rem;
-    border-radius: 0.5rem;
+    border-radius: ${boeRadius.med};
     cursor: pointer;
     color: var(--boe-token-text-text, #222222);
     transition:

@@ -5,6 +5,7 @@ import {
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-search-field";
 
@@ -34,7 +35,7 @@ const searchFieldStyles = `
     gap: 0.4rem;
     padding: 0.25rem 0.25rem 0.25rem 0.65rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-    border-radius: 0.7rem;
+    border-radius: ${boeRadius.field};
     background: var(--boe-token-surface-surface, #ffffff);
     transition:
       border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
@@ -82,7 +83,7 @@ const searchFieldStyles = `
     font: inherit;
     font-weight: 600;
     padding: 0.35rem 0.7rem;
-    border-radius: 0.5rem;
+    border-radius: ${boeRadius.control};
     cursor: pointer;
     transition:
       background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
@@ -97,7 +98,7 @@ const searchFieldStyles = `
   }
 
   [part="submit"]:hover:not(:disabled) {
-    background: var(--boe-token-surface-surface-brand-hover, #0057c0);
+    background: var(--boe-token-surface-surface-brand-hover, #006ae9);
   }
 
   [part="submit"]:active:not(:disabled) {

@@ -6,6 +6,7 @@ import {
 import type { FormValue } from "../../core/index.js";
 import { applyRovingTabindex, handleRovingKeydown } from "../../foundations/a11y/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-rich-text-input";
 
@@ -136,7 +137,7 @@ const richTextStyles = `
     gap: 0.45rem;
     padding: 0.5rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.7rem;
+    border-radius: ${boeRadius.large};
     background: var(--boe-token-surface-surface-secondary, #fbfbfb);
     box-shadow: 0 14px 28px rgba(15, 23, 42, 0.04);
   }
@@ -147,7 +148,7 @@ const richTextStyles = `
     gap: 0.35rem;
     padding: 0.2rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-stroke-stroke, #e8e8e8) 92%);
-    border-radius: 0.65rem;
+    border-radius: ${boeRadius.control};
     background: var(--boe-token-surface-surface, #ffffff);
   }
 
@@ -155,7 +156,7 @@ const richTextStyles = `
     min-inline-size: 2rem;
     block-size: 2rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 74%, transparent);
-    border-radius: 0.55rem;
+    border-radius: ${boeRadius.control};
     background: var(--boe-token-surface-surface, #ffffff);
     color: inherit;
     font: inherit;
@@ -177,7 +178,7 @@ const richTextStyles = `
     min-block-size: 8.5rem;
     padding: 0.5rem 0.55rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
-    border-radius: 0.55rem;
+    border-radius: ${boeRadius.control};
     background: var(--boe-token-surface-surface, #ffffff);
     line-height: 1.5;
     outline: none;

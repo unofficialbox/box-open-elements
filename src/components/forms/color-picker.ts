@@ -5,6 +5,7 @@ import {
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-color-picker";
 
@@ -56,7 +57,7 @@ const colorPickerStyles = `
     gap: 0.55rem;
     padding: 0.45rem 0.7rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-    border-radius: 0.7rem;
+    border-radius: ${boeRadius.control};
     background:
       linear-gradient(
         180deg,

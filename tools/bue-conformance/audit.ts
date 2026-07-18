@@ -172,15 +172,22 @@ export function evaluate(files: LoadedFile[]): Row[] {
       upstreamValue: upstreamResolved,
       tolerancePx: claim.tolerancePx,
     });
+    // A claim box-open-elements deliberately diverges on (tracking the live Box
+    // web app, not box-ui-elements source) reports its mismatch as an intentional
+    // divergence rather than drift.
+    const verdict: Verdict =
+      claim.intentional && comparison.verdict === "drift"
+        ? "intentional-divergence"
+        : comparison.verdict;
     return {
       claim,
       upstreamRaw,
       upstreamResolved,
-      verdict: comparison.verdict,
+      verdict,
       boePx: comparison.boePx,
       upstreamPx: comparison.upstreamPx,
       deltaPx: comparison.deltaPx,
-      note: comparison.note,
+      note: claim.intentional && verdict === "intentional-divergence" ? claim.intentional : comparison.note,
     };
   });
 }
@@ -190,18 +197,24 @@ const VERDICT_ICON: Record<Verdict, string> = {
   drift: "❌",
   "missing-upstream": "⚠️",
   review: "🔍",
+  "intentional-divergence": "🎯",
 };
 
 /**
- * Strict mode treats anything other than `conformant` as a failure — `drift`,
- * `missing-upstream` (could not verify), and `review` (unresolved non-length)
- * all mean the audit did not confirm conformance.
+ * Strict mode treats anything other than `conformant` or `intentional-divergence`
+ * as a failure — `drift`, `missing-upstream` (could not verify), and `review`
+ * (unresolved non-length) all mean the audit did not confirm conformance.
+ * `intentional-divergence` is a deliberate, documented choice and passes.
  */
 export function computeExitCode(rows: Row[], strict: boolean): number {
   if (!strict) {
     return 0;
   }
-  return rows.every(row => row.verdict === "conformant") ? 0 : 1;
+  return rows.every(
+    row => row.verdict === "conformant" || row.verdict === "intentional-divergence",
+  )
+    ? 0
+    : 1;
 }
 
 export function renderMarkdown(rows: Row[], files: LoadedFile[]): string {
@@ -210,6 +223,7 @@ export function renderMarkdown(rows: Row[], files: LoadedFile[]): string {
     drift: 0,
     "missing-upstream": 0,
     review: 0,
+    "intentional-divergence": 0,
   };
   for (const row of rows) {
     counts[row.verdict] += 1;
@@ -224,7 +238,9 @@ export function renderMarkdown(rows: Row[], files: LoadedFile[]): string {
       "values in [box/box-ui-elements](https://github.com/box/box-ui-elements) " +
       `(\`${REVISION}\`). Length claims are resolved statically; colour/shadow conformance ` +
       "is verified in the live-Storybook phase (see " +
-      "`plans/bue-conformance-execplan.md`).",
+      "`plans/bue-conformance-execplan.md`). Some radii now **intentionally diverge** " +
+      "from box-ui-elements source to track the live Box web app's pill geometry — " +
+      "see `docs/audits/bue-conformance-webapp-audit.md`.",
   );
   lines.push("");
   lines.push("## Summary");
@@ -232,6 +248,7 @@ export function renderMarkdown(rows: Row[], files: LoadedFile[]): string {
   lines.push("| Verdict | Count |");
   lines.push("| --- | ---: |");
   lines.push(`| ✅ Conformant | ${counts.conformant} |`);
+  lines.push(`| 🎯 Intentional divergence (tracks live Box app) | ${counts["intentional-divergence"]} |`);
   lines.push(`| ❌ Drift | ${counts.drift} |`);
   lines.push(`| ⚠️ Missing upstream | ${counts["missing-upstream"]} |`);
   lines.push(`| 🔍 Needs review | ${counts.review} |`);
@@ -263,7 +280,8 @@ export function renderMarkdown(rows: Row[], files: LoadedFile[]): string {
   lines.push("## Legend");
   lines.push("");
   lines.push("- ✅ **Conformant** — resolved value matches upstream within tolerance.");
-  lines.push("- ❌ **Drift** — box-open-elements value differs from upstream; investigate.");
+  lines.push("- 🎯 **Intentional divergence** — box-open-elements deliberately differs from box-ui-elements source to track the live Box web app (pill geometry); documented, not a defect.");
+  lines.push("- ❌ **Drift** — box-open-elements value differs from upstream unexpectedly; investigate.");
   lines.push("- ⚠️ **Missing upstream** — anchor not found (path/selector moved upstream, or offline).");
   lines.push("- 🔍 **Needs review** — non-length value (colour/shadow/Sass function); verify visually.");
   lines.push("");

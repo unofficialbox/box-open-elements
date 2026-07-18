@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 import {
   boeFocusVisibleStyles,
   boeNeutralInteractiveStyles,
@@ -19,7 +20,7 @@ const nudgeStyles = `
     gap: 0.55rem;
     padding: 0.55rem 0.7rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, var(--boe-token-surface-surface, #ffffff));
-    border-radius: 0.65rem;
+    border-radius: ${boeRadius.large};
     background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 7%, var(--boe-token-surface-surface, #ffffff));
     color: var(--boe-token-text-text, #222222);
   }
@@ -79,7 +80,7 @@ const nudgeStyles = `
   }
 
   [part="action"]:hover:not(:disabled) {
-    color: var(--boe-token-surface-surface-brand-hover, #0057c0);
+    color: var(--boe-token-surface-surface-brand-hover, #006ae9);
   }
 
   [part="action"]:active:not(:disabled) {

@@ -300,7 +300,8 @@ export type Verdict =
   | "conformant"
   | "drift"
   | "missing-upstream"
-  | "review";
+  | "review"
+  | "intentional-divergence";
 
 export interface ComparisonInput {
   boeValue: string;

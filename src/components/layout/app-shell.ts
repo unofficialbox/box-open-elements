@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-app-shell";
 
@@ -14,7 +15,7 @@ const appShellStyles = `
     grid-template-rows: auto 1fr auto;
     min-height: 100%;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.75rem;
+    border-radius: ${boeRadius.large};
     background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text, #222222);
     overflow: hidden;

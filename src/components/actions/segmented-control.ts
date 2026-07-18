@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-segmented-control";
@@ -30,7 +31,7 @@ const segmentedControlStyles = `
     gap: 0.25rem;
     padding: 0.25rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-    border-radius: 0.75rem;
+    border-radius: ${boeRadius.control};
     background: var(--boe-token-surface-surface-secondary, #fbfbfb);
     box-shadow: none;
   }
@@ -46,7 +47,7 @@ const segmentedControlStyles = `
     line-height: 1.2;
     padding: 0.45em 1em;
     border: 1px solid transparent;
-    border-radius: 0.55rem;
+    border-radius: ${boeRadius.control};
     background: transparent;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     cursor: pointer;

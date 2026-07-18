@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-accordion";
@@ -29,7 +30,7 @@ const accordionStyles = `
     gap: 0;
     padding: 0;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-    border-radius: 0.65rem;
+    border-radius: ${boeRadius.large};
     background: var(--boe-token-surface-surface, #ffffff);
     overflow: hidden;
   }
@@ -76,7 +77,7 @@ const accordionStyles = `
     display: inline-grid;
     place-items: center;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 80%, var(--boe-token-surface-surface, #ffffff) 20%);
-    border-radius: 0.45rem;
+    border-radius: ${boeRadius.med};
     background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-surface-surface-brand, #0061d5);
     font-weight: 700;

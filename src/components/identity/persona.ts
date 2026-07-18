@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-persona";
 const DEFAULT_SIZE = 40;
@@ -31,7 +32,7 @@ const personaStyles = `
     gap: 0.5rem;
     padding: 0.4rem 0.5rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 80%, var(--boe-token-surface-surface, #ffffff) 20%);
-    border-radius: 0.6rem;
+    border-radius: ${boeRadius.large};
     background: var(--boe-token-surface-surface, #ffffff);
   }
 

@@ -23,7 +23,7 @@ Read from **58** compiled Storybook bundle(s) carrying CSS (the always-loaded bu
 | ✅ | button/primary | `SurfaceSurfaceBrand` | rgba(0, 97, 213, 1) | rgba(0, 97, 213, 1) | 0 | .btn-primary background-color |
 | ✅ | button/primary | `TextTextOnBrand` | rgba(255, 255, 255, 1) | rgba(255, 255, 255, 1) | 0 | .btn-primary color |
 | ✅ | button/primary | `SurfaceSurfaceBrand` | rgba(0, 97, 213, 1) | rgba(0, 97, 213, 1) | 0 | .btn-primary border-color |
-| 🔍 | button/primary | `SurfaceSurfaceBrandHover` | rgba(0, 87, 192, 1) | rgba(0, 116, 254, 1) | 62 | .btn-primary:hover background-color |
+| 🔍 | button/primary | `SurfaceSurfaceBrandHover` | rgba(0, 106, 233, 1) | rgba(0, 116, 254, 1) | 21 | .btn-primary:hover background-color |
 | 🔍 | button/primary | `SurfaceSurfaceBrandPressed` | rgba(0, 78, 170, 1) | rgba(0, 78, 172, 1) | 2 | .btn-primary:active background-color |
 | ✅ | button/primary | `boeControl.primaryFocusShadow` | inset 0 0 0 1px rgba(255, 255, 255, 0.8), 0 1px 2px rgba(0, 0, 0, 0.1) | inset 0 0 0 1px rgba(255, 255, 255, 0.8), 0 1px 2px rgba(0, 0, 0, 0.1) | — | .btn-primary:focus box-shadow |
 | ✅ | button/neutral | `SurfaceSurface` | rgba(255, 255, 255, 1) | rgba(255, 255, 255, 1) | 0 | .btn background-color |

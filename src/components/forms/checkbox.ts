@@ -5,7 +5,7 @@ import {
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
 import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
-import { boeControl, boeSpace } from "../../foundations/geometry/index.js";
+import { boeControl, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-checkbox";
@@ -43,7 +43,7 @@ const checkboxStyles = `
     margin: 0;
     flex: 0 0 auto;
     accent-color: var(--boe-token-surface-surface-brand, #0061d5);
-    border-radius: 2px;
+    border-radius: ${boeRadius.size};
     cursor: inherit;
   }
 

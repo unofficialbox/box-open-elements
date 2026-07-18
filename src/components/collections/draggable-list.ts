@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-draggable-list";
 
@@ -37,7 +38,7 @@ const draggableListStyles = `
     gap: 0.55rem;
     padding: 0.5rem 0.65rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.6rem;
+    border-radius: ${boeRadius.med};
     background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text, #222222);
   }
@@ -59,7 +60,7 @@ const draggableListStyles = `
     block-size: 1.6rem;
     padding: 0;
     border: 0;
-    border-radius: 0.4rem;
+    border-radius: ${boeRadius.control};
     background: transparent;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     cursor: grab;

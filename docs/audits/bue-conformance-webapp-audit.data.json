@@ -1,0 +1,229 @@
+{
+  "capturedFrom": "app.box.com (Box web app, @boxdemo.com tenant) — Blueprint design system",
+  "capturedOn": "2026-07-18",
+  "tokens": [
+    {
+      "token": "SurfaceSurface",
+      "blueprintVar": "--surface-surface",
+      "boeValue": "#ffffff",
+      "boxValue": "#fff",
+      "boeCanonical": "rgba(255, 255, 255, 1)",
+      "boxCanonical": "rgba(255, 255, 255, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "SurfaceSurfaceHover",
+      "blueprintVar": "--surface-surface-hover",
+      "boeValue": "#f4f4f4",
+      "boxValue": "#f4f4f4",
+      "boeCanonical": "rgba(244, 244, 244, 1)",
+      "boxCanonical": "rgba(244, 244, 244, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "SurfaceSurfaceSecondary",
+      "blueprintVar": "--surface-surface-secondary",
+      "boeValue": "#fbfbfb",
+      "boxValue": "#fbfbfb",
+      "boeCanonical": "rgba(251, 251, 251, 1)",
+      "boxCanonical": "rgba(251, 251, 251, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "SurfaceSurfaceTertiary",
+      "blueprintVar": "--surface-surface-tertiary",
+      "boeValue": "#e8e8e8",
+      "boxValue": "#e8e8e8",
+      "boeCanonical": "rgba(232, 232, 232, 1)",
+      "boxCanonical": "rgba(232, 232, 232, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "SurfaceSurfaceQuaternary",
+      "blueprintVar": "--surface-surface-quaternary",
+      "boeValue": "#d3d3d3",
+      "boxValue": "#d3d3d3",
+      "boeCanonical": "rgba(211, 211, 211, 1)",
+      "boxCanonical": "rgba(211, 211, 211, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "SurfaceSurfaceBrand",
+      "blueprintVar": "--surface-surface-brand",
+      "boeValue": "#0061d5",
+      "boxValue": "#0061d5",
+      "boeCanonical": "rgba(0, 97, 213, 1)",
+      "boxCanonical": "rgba(0, 97, 213, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "SurfaceSurfaceBrandHover",
+      "blueprintVar": "--surface-surface-brand-hover",
+      "boeValue": "#006ae9",
+      "boxValue": "#006ae9",
+      "boeCanonical": "rgba(0, 106, 233, 1)",
+      "boxCanonical": "rgba(0, 106, 233, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "SurfaceSurfaceBrandPressed",
+      "blueprintVar": "--surface-surface-brand-pressed",
+      "boeValue": "#004eaa",
+      "boxValue": "#004eac",
+      "boeCanonical": "rgba(0, 78, 170, 1)",
+      "boxCanonical": "rgba(0, 78, 172, 1)",
+      "delta": 2,
+      "verdict": "review"
+    },
+    {
+      "token": "SurfaceSearchSurface",
+      "blueprintVar": "--surface-search-surface",
+      "boeValue": "#f4f4f4",
+      "boxValue": "#f4f4f4",
+      "boeCanonical": "rgba(244, 244, 244, 1)",
+      "boxCanonical": "rgba(244, 244, 244, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "SurfaceItemSurfaceSelected",
+      "blueprintVar": "--surface-item-surface-selected",
+      "boeValue": "#f2f7fd",
+      "boxValue": "#f2f7fd",
+      "boeCanonical": "rgba(242, 247, 253, 1)",
+      "boxCanonical": "rgba(242, 247, 253, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "SurfaceItemSurfaceHover",
+      "blueprintVar": "--surface-item-surface-hover",
+      "boeValue": "#eaf2fd",
+      "boxValue": "#fff",
+      "boeCanonical": "rgba(234, 242, 253, 1)",
+      "boxCanonical": "rgba(255, 255, 255, 1)",
+      "delta": 21,
+      "verdict": "review"
+    },
+    {
+      "token": "SurfaceTooltipSurface",
+      "blueprintVar": "--surface-tooltip-surface",
+      "boeValue": "#4e4e4e",
+      "boxValue": "#4e4e4e",
+      "boeCanonical": "rgba(78, 78, 78, 1)",
+      "boxCanonical": "rgba(78, 78, 78, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "SurfaceStatusSurfaceSuccess",
+      "blueprintVar": "--surface-status-surface-success",
+      "boeValue": "#26c281",
+      "boxValue": "#26c281",
+      "boeCanonical": "rgba(38, 194, 129, 1)",
+      "boxCanonical": "rgba(38, 194, 129, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "SurfaceStatusSurfaceError",
+      "blueprintVar": "--surface-status-surface-error",
+      "boeValue": "#ed3757",
+      "boxValue": "#ed3757",
+      "boeCanonical": "rgba(237, 55, 87, 1)",
+      "boxCanonical": "rgba(237, 55, 87, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "SurfaceStatusSurfaceInprogress",
+      "blueprintVar": "--surface-status-surface-inprogress",
+      "boeValue": "#f5b31b",
+      "boxValue": "#f5b31b",
+      "boeCanonical": "rgba(245, 179, 27, 1)",
+      "boxCanonical": "rgba(245, 179, 27, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "TextText",
+      "blueprintVar": "--text-text-on-light",
+      "boeValue": "#222222",
+      "boxValue": "#222",
+      "boeCanonical": "rgba(34, 34, 34, 1)",
+      "boxCanonical": "rgba(34, 34, 34, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "TextTextSecondary",
+      "blueprintVar": "--text-text-on-light-secondary",
+      "boeValue": "#6f6f6f",
+      "boxValue": "#6f6f6f",
+      "boeCanonical": "rgba(111, 111, 111, 1)",
+      "boxCanonical": "rgba(111, 111, 111, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "TextTextPlaceholder",
+      "blueprintVar": "--text-text-on-light-tertiary",
+      "boeValue": "#909090",
+      "boxValue": "#909090",
+      "boeCanonical": "rgba(144, 144, 144, 1)",
+      "boxCanonical": "rgba(144, 144, 144, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "TextTextOnBrand",
+      "blueprintVar": "--text-text-on-dark",
+      "boeValue": "#ffffff",
+      "boxValue": "#fff",
+      "boeCanonical": "rgba(255, 255, 255, 1)",
+      "boxCanonical": "rgba(255, 255, 255, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "TextTextDanger",
+      "blueprintVar": "--text-text-destructive-on-light",
+      "boeValue": "#c4183c",
+      "boxValue": "#d5324e",
+      "boeCanonical": "rgba(196, 24, 60, 1)",
+      "boxCanonical": "rgba(213, 50, 78, 1)",
+      "delta": 26,
+      "verdict": "review"
+    }
+  ],
+  "geometry": [
+    {
+      "surface": "button radius",
+      "boeConst": "boeControl.radius",
+      "boeValue": "20px",
+      "boxValue": "20px",
+      "verdict": "conformant"
+    },
+    {
+      "surface": "search field radius",
+      "boeConst": "boeRadius.field",
+      "boeValue": "24px",
+      "boxValue": "24px",
+      "verdict": "conformant"
+    },
+    {
+      "surface": "nav item radius",
+      "boeConst": "boeRadius.nav",
+      "boeValue": "28px",
+      "boxValue": "28px",
+      "verdict": "conformant"
+    }
+  ]
+}

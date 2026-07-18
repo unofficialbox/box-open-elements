@@ -11,7 +11,7 @@ import {
   boeNeutralInteractiveStyles,
 } from "../../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../../foundations/motion/index.js";
-import { boePanel } from "../../../foundations/geometry/index.js";
+import { boePanel, boeRadius } from "../../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-explorer-list";
 
@@ -59,7 +59,7 @@ const elementStyles = `
           align-items: center;
           gap: 0.5rem;
           padding: 0.15rem 0.35rem;
-          border-radius: 0.6rem;
+          border-radius: ${boeRadius.med};
           transition: background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
 
@@ -82,7 +82,7 @@ const elementStyles = `
           border: 0;
           margin: 0;
           padding: 0.5rem 0.65rem;
-          border-radius: 0.6rem;
+          border-radius: ${boeRadius.med};
           background: transparent;
           color: var(--boe-token-text-text, #222222);
           font: inherit;
@@ -141,7 +141,7 @@ const elementStyles = `
         [part~="item-action"] {
           appearance: none;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 86%, var(--boe-token-surface-surface, #ffffff) 14%);
-          border-radius: 0.6rem;
+          border-radius: ${boeRadius.control};
           margin: 0;
           padding: 0.3rem 0.6rem;
           background: var(--boe-token-surface-surface, #ffffff);

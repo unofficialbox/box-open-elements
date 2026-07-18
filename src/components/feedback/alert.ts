@@ -41,7 +41,7 @@ const alertStyles = `
     margin: ${boeSpace[3]} 0;
     padding: 14px 10px;
     border: 1px solid var(--boe-token-text-text-secondary, #6f6f6f);
-    border-radius: ${boeRadius.med};
+    border-radius: ${boeRadius.large};
     background: var(--boe-token-surface-surface-secondary, #f4f4f4);
     color: var(--boe-token-text-text, #222222);
     transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};

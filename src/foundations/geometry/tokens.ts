@@ -35,7 +35,8 @@ export const boeSpace = {
  */
 export const boePanel = {
   padding: "12px",
-  radius: "8px",
+  /** Card / panel surface — Box 16px (was 8px). */
+  radius: "16px",
   gap: "12px",
   border: "1px solid var(--boe-token-stroke-stroke, #e8e8e8)",
   background: "var(--boe-token-surface-surface, #ffffff)",
@@ -49,32 +50,50 @@ export const boePanel = {
 export const boeOverlay = {
   /** Container pad — 3 × grid */
   padding: "12px",
-  radius: "8px",
+  /** Menu / popover surface — Box 20px (was 8px). */
+  radius: "20px",
   shadow: "0 4px 12px 0 rgb(0 0 0 / 10%)",
   border: "1px solid var(--boe-token-stroke-stroke, #e8e8e8)",
-  /** Menu item — 8 48 8 8, min-height 30, radius 8 */
+  /** Menu item — min-height 30; item radius 12px (Box). */
   itemPadding: "8px 48px 8px 8px",
   itemMinHeight: "30px",
-  itemRadius: "8px",
-  /** Modal — Modal.scss */
+  itemRadius: "12px",
+  /** Modal — dialog radius 24px (Box; was 12px). */
   modalPadding: "30px",
   modalWidth: "460px",
-  modalRadius: "12px",
+  modalRadius: "24px",
   modalShadow: "0 1px 1px 1px rgb(0 0 0 / 5%)",
   modalTitleSize: "16px",
   modalBackdrop: "rgba(0, 0, 0, 0.75)",
 } as const;
 
 /**
- * `$bdl-border-radius-size*` — 4 / 6 / 8 / 12px.
- * Use `med` for controls (button, input); `large` for menus; `xlarge` for modals.
+ * Corner radii. box-open-elements tracks the **live Box web app** (Blueprint),
+ * which ships pill-shaped controls and larger surface radii — captured from
+ * `app.box.com` (see `docs/audits/box-webapp-reference.data.json`). This is an
+ * intentional divergence from box-ui-elements' legacy SCSS geometry (4/6/8/12);
+ * the Layer 1 audit records it as such.
+ *
+ * Role guide: `control` for buttons/inputs, `field` for search + dialogs, `nav`
+ * for nav items, `large` for cards/panels, `med` for rows/small surfaces,
+ * `size` for badges/checkboxes, `pill` for chips/toggles.
  */
 export const boeRadius = {
+  /** Badges, checkboxes, tiny chips — Box ~4px. */
   size: "4px",
-  med: "6px",
-  large: "8px",
-  xlarge: "12px",
-  /** True pills only (chips, label-pills) — not everyday controls. */
+  /** Rows, small surfaces, list-item hover — Box 12px (was 6px). */
+  med: "12px",
+  /** Cards, panels — Box 16px (was 8px). */
+  large: "16px",
+  /** Controls (buttons, inputs) + menus — Box 20px (was 12px). */
+  xlarge: "20px",
+  /** Interactive controls — buttons, inputs. Box pill radius 20px. */
+  control: "20px",
+  /** Large fields (search) + dialogs/modals — Box 24px. */
+  field: "24px",
+  /** Nav items — Box 28px. */
+  nav: "28px",
+  /** True pills — chips, toggles, label-pills. */
   pill: "999px",
 } as const;
 
@@ -83,6 +102,8 @@ export const boeControl = {
   height: "32px",
   heightLarge: "40px",
   paddingInline: "16px",
+  /** Pill control radius — buttons/inputs. Box 20px. */
+  radius: "20px",
   /** Shared input pad from `@mixin box-inputs` */
   inputPadding: "7px",
   /** BUE select control height */

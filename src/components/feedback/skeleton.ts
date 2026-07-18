@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 import {
   boeMotionDuration,
   boeMotionEasing,
@@ -15,7 +16,7 @@ const skeletonStyles = `
   }
 
   [part="skeleton"] {
-    border-radius: 0.5rem;
+    border-radius: ${boeRadius.med};
     background:
       linear-gradient(
         90deg,

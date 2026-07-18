@@ -122,7 +122,7 @@ describe("BoxDialogElement", () => {
     expect(styles).toContain("background: rgba(0, 0, 0, 0.75)");
     expect(styles).toContain("font-size: 16px;");
     expect(styles).toContain("min-height: 40px;");
-    expect(styles).toContain("border-radius: 6px;");
+    expect(styles).toContain("border-radius: 12px;");
   });
 
   it("includes focus-visible and hover styles for cancel and confirm", () => {

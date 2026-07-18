@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 
 const DEFAULT_TAG_NAME = "box-tooltip";
@@ -28,7 +29,7 @@ const tooltipStyles = `
     place-items: center;
     appearance: none;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 80%, var(--boe-token-surface-surface, #ffffff) 20%);
-    border-radius: 0.75rem;
+    border-radius: ${boeRadius.med};
     background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     font: inherit;
@@ -47,9 +48,9 @@ const tooltipStyles = `
     z-index: 1;
     width: min(13.75rem, calc(100vw - 6rem));
     padding: 0.5rem 0.65rem;
-    border-radius: 0.75rem;
+    border-radius: ${boeRadius.xlarge};
     border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, rgba(255, 255, 255, 0.08));
-    background: var(--boe-token-surface-tooltip-surface, #222222);
+    background: var(--boe-token-surface-tooltip-surface, #4e4e4e);
     color: rgba(255, 255, 255, 0.94);
     box-shadow: 0 16px 28px rgba(16, 24, 32, 0.18);
     line-height: 1.45;

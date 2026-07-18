@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-card";
 
@@ -14,7 +15,7 @@ const cardStyles = `
     gap: 0.55rem;
     padding: 0.7rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, var(--boe-token-surface-surface, #ffffff) 18%);
-    border-radius: 0.7rem;
+    border-radius: ${boeRadius.large};
     background: var(--boe-token-surface-surface-secondary, #fbfbfb);
     box-shadow:
       0 14px 28px rgba(15, 23, 42, 0.04);

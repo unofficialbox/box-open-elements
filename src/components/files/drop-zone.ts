@@ -4,6 +4,7 @@ import {
   boeFocusVisibleStyles,
 } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-drop-zone";
 
@@ -21,7 +22,7 @@ const dropZoneStyles = `
     justify-items: start;
     padding: 0.75rem;
     border: 1.5px dashed color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-stroke-stroke, #e8e8e8) 84%);
-    border-radius: 0.75rem;
+    border-radius: ${boeRadius.large};
     background: var(--boe-token-surface-surface-secondary, #fbfbfb);
     cursor: pointer;
     transition:

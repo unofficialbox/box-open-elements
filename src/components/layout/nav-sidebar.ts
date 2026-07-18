@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-nav-sidebar";
 
@@ -25,7 +26,7 @@ const navSidebarStyles = `
     padding: 0.65rem 0.6rem;
     box-sizing: border-box;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.7rem;
+    border-radius: ${boeRadius.large};
     background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 94%, var(--boe-token-surface-surface, #ffffff) 6%);
     color: var(--boe-token-text-text, #222222);
     overflow: hidden;
@@ -68,7 +69,7 @@ const navSidebarStyles = `
     gap: 0.55rem;
     min-block-size: 1.9rem;
     padding: 0.3rem 0.45rem;
-    border-radius: 0.5rem;
+    border-radius: ${boeRadius.nav};
     color: inherit;
     text-decoration: none;
     font: inherit;

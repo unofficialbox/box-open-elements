@@ -107,7 +107,7 @@ describe("BoxPopoverElement", () => {
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toMatch(/\[part="surface"\][\s\S]*?padding:\s*12px;/);
-    expect(styles).toMatch(/\[part="surface"\][\s\S]*?border-radius:\s*8px;/);
+    expect(styles).toMatch(/\[part="surface"\][\s\S]*?border-radius:\s*20px;/);
     expect(styles).toMatch(/\[part="surface"\][\s\S]*?box-shadow:\s*0 4px 12px/);
     expect(styles).toMatch(/\[part="trigger"\][\s\S]*?min-height:\s*32px;/);
   });

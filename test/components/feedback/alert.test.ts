@@ -109,7 +109,7 @@ describe("BoxAlertElement", () => {
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("padding: 14px 10px;");
-    expect(styles).toContain("border-radius: 6px;");
+    expect(styles).toContain("border-radius: 16px;");
     expect(styles).toContain("margin: 12px 0;");
   });
 
