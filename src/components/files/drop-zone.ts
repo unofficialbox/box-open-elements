@@ -22,12 +22,7 @@ const dropZoneStyles = `
     padding: 0.75rem;
     border: 1.5px dashed color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-stroke-stroke, #e8e8e8) 84%);
     border-radius: 0.75rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 86%, var(--boe-token-surface-surface, #ffffff) 14%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 100%
-      );
+    background: var(--boe-token-surface-surface-secondary, #fbfbfb);
     cursor: pointer;
     transition:
       border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
@@ -51,12 +46,7 @@ const dropZoneStyles = `
 
   [part="zone"][data-dragging="true"] {
     border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 76%, var(--boe-token-surface-surface, #ffffff) 24%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-item-surface-selected, #f2f7fd) 72%, var(--boe-token-surface-surface, #ffffff) 18%) 100%
-      );
+    background: var(--boe-token-surface-item-surface-selected, #f2f7fd);
     box-shadow:
       inset 0 0 0 1px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent),
       0 14px 28px rgba(15, 23, 42, 0.05);

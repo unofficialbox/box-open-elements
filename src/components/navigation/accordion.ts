@@ -80,7 +80,7 @@ const accordionStyles = `
     background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-surface-surface-brand, #0061d5);
     font-weight: 700;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
+    box-shadow: none;
   }
 
   [part="panel"] {

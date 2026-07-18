@@ -41,17 +41,10 @@ const buttonGroupStyles = `
     padding: 0.45em 1em;
     border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
     border-radius: 0.75rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface-secondary, #fbfbfb) 6%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
-      );
+    background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text, #222222);
     cursor: pointer;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.82),
-      0 1px 2px rgba(15, 23, 42, 0.04);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     transition:
       background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
       border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
@@ -89,16 +82,9 @@ const buttonGroupStyles = `
 
   [part="button"][data-selected="true"] {
     border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, var(--boe-token-stroke-stroke, #e8e8e8) 78%);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 60%, var(--boe-token-surface-surface, #ffffff) 40%) 100%
-      );
+    background: var(--boe-token-surface-surface, #ffffff);
     color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 80%, var(--boe-token-text-text, #222222) 20%);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.82),
-      0 6px 12px rgba(15, 23, 42, 0.035);
+    box-shadow: 0 6px 12px rgba(15, 23, 42, 0.035);
     z-index: 1;
   }
 

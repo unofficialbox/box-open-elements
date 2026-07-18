@@ -83,9 +83,7 @@ const illustrationStyles = `
         color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, var(--boe-token-surface-surface-secondary, #fbfbfb) 84%) 100%
       );
     border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, transparent);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.72),
-      0 14px 26px rgba(15, 23, 42, 0.1);
+    box-shadow: 0 14px 26px rgba(15, 23, 42, 0.1);
   }
 
   [part~="orb-a"] {
@@ -121,16 +119,9 @@ const illustrationStyles = `
     inline-size: 6.6rem;
     block-size: 4.8rem;
     border-radius: 0.75rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, var(--boe-token-surface-surface-secondary, #fbfbfb) 10%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%) 100%
-      );
+    background: var(--boe-token-surface-surface, #ffffff);
     border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, transparent);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.82),
-      0 14px 28px rgba(15, 23, 42, 0.1);
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.1);
   }
 
   [part~="stack-card-one"] {

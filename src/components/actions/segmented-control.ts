@@ -31,13 +31,8 @@ const segmentedControlStyles = `
     padding: 0.25rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
     border-radius: 0.75rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 2%, var(--boe-token-surface-surface-secondary, #fbfbfb) 98%) 100%
-      );
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+    background: var(--boe-token-surface-surface-secondary, #fbfbfb);
+    box-shadow: none;
   }
 
   [part="control"][data-layout="attached"] {
@@ -71,9 +66,7 @@ const segmentedControlStyles = `
     background: var(--boe-token-surface-surface, #ffffff);
     border-color: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, var(--boe-token-surface-surface, #ffffff) 30%);
     color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 84%, var(--boe-token-text-text, #222222) 16%);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.82),
-      0 2px 6px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
   }
 
   [part="segment"]:focus-visible {

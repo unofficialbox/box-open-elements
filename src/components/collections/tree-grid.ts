@@ -67,7 +67,7 @@ const treeGridStyles = `
     background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, #eef4fb 6%);
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     cursor: pointer;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+    box-shadow: none;
   }
 
   [part~="control"] svg {

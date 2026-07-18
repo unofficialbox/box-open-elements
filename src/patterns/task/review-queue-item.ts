@@ -131,7 +131,7 @@ const elementStyles = `
           display: inline-grid;
           place-items: center;
           border-radius: 999px;
-          background: linear-gradient(180deg, #2b7de9 0%, #0057c2 100%);
+          background: var(--boe-token-surface-surface-brand, #0061d5);
           color: var(--boe-token-text-text-on-brand, #ffffff);
           font-weight: 700;
           letter-spacing: 0.04em;
