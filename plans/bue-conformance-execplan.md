@@ -161,7 +161,11 @@ bun run verify                                  # typecheck + coverage-gated tes
       (`BOX_USERNAME/PASSWORD` in a fresh session) or beating the public
       Storybook's MSW service worker, driven through the proven curl-interception
       harness. See [`bue-conformance-layer2-handoff.md`](./bue-conformance-layer2-handoff.md).
-- [ ] Optional: add `--strict` to CI once the claim set is broad and stable.
+- [x] Add `--strict` to CI: a `conformance` job runs `bun run bue-conformance --strict`
+      on every PR/push (`.github/workflows/ci.yml`) — real geometry drift or a
+      moved upstream anchor fails the build; `intentional-divergence` (the pill
+      radii tracking the live Box app) passes. The colour/webapp audits still
+      carry `review` items so they are not strict-gated yet.
 
 ## Surprises & Discoveries
 
