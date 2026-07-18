@@ -10,11 +10,11 @@ Read from **58** compiled Storybook bundle(s) carrying CSS (the always-loaded bu
 
 | Verdict | Count |
 | --- | ---: |
-| ✅ Conformant | 17 |
-| 🔍 Review | 4 |
+| ✅ Conformant | 20 |
+| 🔍 Review | 6 |
 | ⚠️ Missing upstream | 0 |
 | 🚫 Missing box-open-elements | 0 |
-| **Total claims** | **21** |
+| **Total claims** | **26** |
 
 ## Claims
 
@@ -41,6 +41,11 @@ Read from **58** compiled Storybook bundle(s) carrying CSS (the always-loaded bu
 | ✅ | badge/status | `SurfaceStatusSurfaceError` | rgba(237, 55, 87, 1) | rgba(237, 55, 87, 1) | 0 | .badge-error background |
 | ✅ | badge/status | `SurfaceStatusSurfaceInprogress` | rgba(245, 179, 27, 1) | rgba(245, 179, 27, 1) | 0 | .badge-warning background (box-open-elements inprogress/warning tone) |
 | ✅ | badge/status | `surface-surface-brand 50% + #fff (color-mix)` | rgba(128, 176, 234, 1) | rgba(127, 176, 234, 1) | 1 | .badge-info background |
+| ✅ | badge/status | `badge.ts status tone text` | rgba(255, 255, 255, 1) | rgba(255, 255, 255, 1) | 0 | .badge-success color |
+| 🔍 | menu/item | `SurfaceItemSurfaceSelected` | rgba(242, 247, 253, 1) | rgba(34, 34, 34, 0.05) | 242 | .menu-item.is-active background-color |
+| ✅ | checkbox | `SurfaceSurfaceBrand` | rgba(0, 97, 213, 1) | rgba(0, 97, 213, 1) | 0 | .checkbox-label>input[type=checkbox]+span::after border (checked mark) |
+| ✅ | radio | `SurfaceSurfaceBrand` | rgba(0, 97, 213, 1) | rgba(0, 97, 213, 1) | 0 | .radio-label>input[type=radio]:checked+span::before background-color |
+| 🔍 | tooltip | `tooltip.ts label colour` | rgba(255, 255, 255, 0.94) | rgba(255, 255, 255, 1) | 15 | .bdl-Tooltip color |
 
 ## Legend
 

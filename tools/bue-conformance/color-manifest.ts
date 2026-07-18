@@ -49,8 +49,15 @@ export function buildTokenMap(): Map<string, string> {
 }
 
 export interface UpstreamRule {
-  selector: string;
-  state: State;
+  /** Selector + interaction state (partMatches semantics). */
+  selector?: string;
+  state?: State;
+  /**
+   * Verbatim compound selector to match instead of `selector`/`state` — for
+   * upstream rules with child combinators / pseudo-elements that `partMatches`
+   * rejects (e.g. the custom checkbox/radio marks).
+   */
+  rawSelector?: string;
   property: string;
   /** Nth matching declaration; defaults to 0. */
   index?: number;
@@ -80,6 +87,9 @@ export interface ColorClaim {
 const BUTTON = "src/components/actions/button.ts";
 const MENU_ITEM = "src/components/actions/menu-item.ts";
 const BADGE = "src/components/feedback/badge.ts";
+const CHECKBOX = "src/components/forms/checkbox.ts";
+const RADIO = "src/components/forms/radio-group.ts";
+const TOOLTIP = "src/components/overlays/tooltip.ts";
 
 export const COLOR_CLAIMS: readonly ColorClaim[] = [
   // === Primary button (box-button, default tone) ↔ upstream `.btn-primary` ===
@@ -345,5 +355,78 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     upstream: { selector: ".badge-info", state: "base", property: "background" },
     tolerance: 1,
     citation: ".badge-info background",
+  },
+  {
+    id: "badge.status.text",
+    surface: "badge/status",
+    boeConst: "badge.ts status tone text",
+    boeValue: "#ffffff",
+    kind: "color",
+    boeComponent: BADGE,
+    boeAnchor: "color: #ffffff",
+    upstream: { selector: ".badge-success", state: "base", property: "color" },
+    tolerance: 0,
+    citation: ".badge-success color",
+  },
+
+  // === Menu item selected (box-menu-item[data-selected]) ↔ `.menu-item.is-active` ===
+  {
+    id: "menu.item.selected.background",
+    surface: "menu/item",
+    boeConst: "SurfaceItemSurfaceSelected",
+    boeValue: T.SurfaceItemSurfaceSelected,
+    kind: "color",
+    boeComponent: MENU_ITEM,
+    boeAnchor: "background: var(--boe-token-surface-item-surface-selected, #f2f7fd)",
+    upstream: { selector: ".menu-item.is-active", state: "base", property: "background-color" },
+    tolerance: 0,
+    citation: ".menu-item.is-active background-color",
+  },
+
+  // === Checkbox / radio checked mark (box-checkbox / box-radio-group) ===
+  {
+    id: "checkbox.checked.accent",
+    surface: "checkbox",
+    boeConst: "SurfaceSurfaceBrand",
+    boeValue: T.SurfaceSurfaceBrand,
+    kind: "color",
+    boeComponent: CHECKBOX,
+    boeAnchor: "accent-color: var(--boe-token-surface-surface-brand, #0061d5)",
+    // Upstream draws the check with a brand-coloured border on a pseudo-element.
+    upstream: {
+      rawSelector: ".checkbox-label>input[type=checkbox]+span::after",
+      property: "border-right",
+    },
+    tolerance: 0,
+    citation: ".checkbox-label>input[type=checkbox]+span::after border (checked mark)",
+  },
+  {
+    id: "radio.checked.fill",
+    surface: "radio",
+    boeConst: "SurfaceSurfaceBrand",
+    boeValue: T.SurfaceSurfaceBrand,
+    kind: "color",
+    boeComponent: RADIO,
+    boeAnchor: "border-color: var(--boe-token-surface-surface-brand, #0061d5)",
+    upstream: {
+      rawSelector: ".radio-label>input[type=radio]:checked+span::before",
+      property: "background-color",
+    },
+    tolerance: 0,
+    citation: ".radio-label>input[type=radio]:checked+span::before background-color",
+  },
+
+  // === Tooltip text (box-tooltip) ↔ `.bdl-Tooltip` ===
+  {
+    id: "tooltip.text",
+    surface: "tooltip",
+    boeConst: "tooltip.ts label colour",
+    boeValue: "rgba(255, 255, 255, 0.94)",
+    kind: "color",
+    boeComponent: TOOLTIP,
+    boeAnchor: "color: rgba(255, 255, 255, 0.94)",
+    upstream: { selector: ".bdl-Tooltip", state: "base", property: "color" },
+    tolerance: 0,
+    citation: ".bdl-Tooltip color",
   },
 ] as const;

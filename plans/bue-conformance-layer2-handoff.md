@@ -11,19 +11,19 @@ hard-won environment findings so you don't re-derive them.
   against real upstream box-ui-elements SCSS (pinned `v26.0.0`), **17/17
   conformant**. Tooling: `tools/bue-conformance/{signals,manifest,audit}.ts`;
   report `docs/audits/bue-conformance-audit.md`; 37 tests.
-- **Layer 2 rounds 1-3 (colour / shadow / interaction state) are DONE via path C
-  (compiled-CSS extraction) — this branch.** `bun run bue-conformance:color`
-  reads the public Storybook's compiled (post-Sass, resolved) CSS and diffs
-  box-open-elements' shipped colour/shadow/state values against it. Harness:
+- **Layer 2 rounds 1-4 (colour / shadow / interaction state) are DONE via path C
+  (compiled-CSS extraction).** `bun run bue-conformance:color` reads the public
+  Storybook's compiled (post-Sass, resolved) CSS and diffs box-open-elements'
+  shipped colour/shadow/state values against it. Harness:
   `tools/bue-conformance/{color-signals,css-extract,color-manifest,color-audit}.ts`;
-  report `docs/audits/bue-conformance-color-audit.md`; 63 tests. Covers the
-  **button, menu-item, and badge** families — **21 claims, 17 conformant / 4
-  review.** Round 2 broadened past the always-loaded bundle by reading the
-  webpack **chunk map** from the runtime bundle and fetching all per-story chunks
-  (bounded async curl pool). Round 3 added a static **`color-mix(in srgb, …)`
-  evaluator**, so box-open-elements colours that compute a value (neutral button
-  hover/active, badge info) resolve without a browser. The sections below remain
-  the guide for the **live-browser** paths, now only needed for what stays
+  report `docs/audits/bue-conformance-color-audit.md`; 65 tests. Covers the
+  **button, menu-item, badge, checkbox, radio, and tooltip** surfaces —
+  **26 claims, 20 conformant / 6 review.** Round 2 broadened past the
+  always-loaded bundle via the webpack **chunk map**; round 3 added a static
+  **`color-mix(in srgb, …)` evaluator**; round 4 added checkbox/radio/menu-selected/
+  tooltip via a verbatim compound-selector matcher (`extractRawDeclarations`) for
+  upstream rules with child combinators / pseudo-elements. The sections below
+  remain the guide for the **live-browser** paths, now only needed for what stays
   unresolvable statically: multi-stop **gradients** (tooltip background) and
   box-open-elements colours with no flat upstream counterpart.
 
@@ -135,7 +135,7 @@ section.
 
 Ranked by ROI given the walls above:
 
-- **C — Compiled-CSS extraction (no browser). ✅ DONE (rounds 1-3, this branch).**
+- **C — Compiled-CSS extraction (no browser). ✅ DONE (rounds 1-4).**
   Fetched the Storybook's compiled CSS-in-JS bundles via `curl`, decoded the
   css-loader string literals to recover the resolved (post-Sass) CSS, and diffed
   the resolved colour/shadow/state values for the button, menu-item, and badge

@@ -18,6 +18,7 @@ import {
 import {
   extractBundleCss,
   extractCompiledDeclarations,
+  extractRawDeclarations,
   parseChunkNames,
   partMatches,
   stripCssComments,
@@ -379,10 +380,16 @@ const FIXTURE_CSS = [
   ".menu-item:not(.is-disabled):hover{background-color:#f4f4f4;color:#222}",
   "/* 1228.hash.iframe.bundle.js */",
   ".badge{color:#222;background:#e8e8e8;border-radius:4px}",
-  ".badge-success{background:#26c281}",
+  ".badge-success{background:#26c281;color:#fff}",
   ".badge-error{background:#ed3757}",
   ".badge-warning{background:#f5b31b}",
   ".badge-info{background:#7fb0ea}",
+  // Round-4 broadening: menu selected, checkbox/radio marks (compound selectors),
+  // tooltip.
+  ".menu-item.is-active{background-color:rgba(34,34,34,.05)}",
+  ".checkbox-label>input[type=checkbox]+span::after{border-right:2px solid #0061d5;border-bottom:2px solid #0061d5}",
+  ".radio-label>input[type=radio]:checked+span::before{background-color:#0061d5;border:3px solid #fff}",
+  ".bdl-Tooltip{background-color:#4e4e4e;color:#fff;border-radius:4px}",
 ].join("\n");
 
 describe("extractCompiledDeclarations", () => {
@@ -422,6 +429,29 @@ describe("extractCompiledDeclarations", () => {
     expect(
       extractCompiledDeclarations(FIXTURE_CSS, ".nonexistent", "hover", "background-color"),
     ).toEqual([]);
+  });
+});
+
+describe("extractRawDeclarations", () => {
+  it("matches a verbatim compound selector partMatches would reject", () => {
+    expect(
+      extractRawDeclarations(
+        FIXTURE_CSS,
+        ".radio-label>input[type=radio]:checked+span::before",
+        "background-color",
+      ),
+    ).toEqual(["#0061d5"]);
+    expect(
+      extractRawDeclarations(
+        FIXTURE_CSS,
+        ".checkbox-label>input[type=checkbox]+span::after",
+        "border-right",
+      ),
+    ).toEqual(["2px solid #0061d5"]);
+  });
+
+  it("requires an exact part match (no prefix bleed)", () => {
+    expect(extractRawDeclarations(FIXTURE_CSS, ".radio-label", "color")).toEqual([]);
   });
 });
 
@@ -475,6 +505,9 @@ const COMPONENT_SOURCE = new Map<string, string | null>(
     "src/components/actions/button.ts",
     "src/components/actions/menu-item.ts",
     "src/components/feedback/badge.ts",
+    "src/components/forms/checkbox.ts",
+    "src/components/forms/radio-group.ts",
+    "src/components/overlays/tooltip.ts",
   ].map(rel => [rel, readSrc(rel)]),
 );
 
@@ -512,10 +545,10 @@ describe("evaluate", () => {
     expect(byId("button.primary.hover.background").delta).toBe(62);
   });
 
-  it("yields the expected verdict mix (17 conformant, 4 review)", () => {
+  it("yields the expected verdict mix (20 conformant, 6 review)", () => {
     const conformant = rows.filter(r => r.verdict === "conformant").length;
     const review = rows.filter(r => r.verdict === "review").length;
-    expect({ conformant, review }).toEqual({ conformant: 17, review: 4 });
+    expect({ conformant, review }).toEqual({ conformant: 20, review: 6 });
   });
 
   it("resolves the round-2 surfaces (menu + badge)", () => {
@@ -562,8 +595,8 @@ describe("renderMarkdown", () => {
     const md = renderMarkdown(rows, ["main.abc.iframe.bundle.js"]);
     expect(md).toContain("Layer 2");
     expect(md).toContain("**1**");
-    expect(md).toContain("| ✅ Conformant | 17 |");
-    expect(md).toContain("| 🔍 Review | 4 |");
+    expect(md).toContain("| ✅ Conformant | 20 |");
+    expect(md).toContain("| 🔍 Review | 6 |");
     for (const claim of COLOR_CLAIMS) {
       expect(md).toContain(claim.citation);
     }
