@@ -188,7 +188,7 @@ const calendarStyles = `
   }
 
   [part~="day"][data-selected="true"]:hover:not(:disabled) {
-    background: var(--boe-token-surface-surface-brand-hover, #0057c0);
+    background: var(--boe-token-surface-surface-brand-hover, #006ae9);
   }
 
   [part~="day"]:focus-visible {

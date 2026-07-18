@@ -60,7 +60,7 @@ const iconButtonStyles = `
   }
 
   [part="button"][data-tone="primary"]:hover:not(:disabled) {
-    background: var(--boe-token-surface-surface-brand-hover, #0057c0);
+    background: var(--boe-token-surface-surface-brand-hover, #006ae9);
     color: var(--boe-token-text-text-on-brand, #ffffff);
   }
 

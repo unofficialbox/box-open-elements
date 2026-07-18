@@ -76,7 +76,7 @@ const switchStyles = `
   }
 
   [part="switch"]:hover:not(:disabled) [part~="track"][data-checked="true"] {
-    background: var(--boe-token-surface-surface-brand-hover, #0057c0);
+    background: var(--boe-token-surface-surface-brand-hover, #006ae9);
   }
 
   [part="switch"]:active:not(:disabled) [part~="track"][data-checked="true"] {

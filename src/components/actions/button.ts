@@ -46,8 +46,8 @@ const buttonStyles = `
   }
 
   button:hover:not(:disabled) {
-    background: var(--boe-token-surface-surface-brand-hover, #0057c0);
-    border-color: var(--boe-token-surface-surface-brand-hover, #0057c0);
+    background: var(--boe-token-surface-surface-brand-hover, #006ae9);
+    border-color: var(--boe-token-surface-surface-brand-hover, #006ae9);
   }
 
   button:active:not(:disabled) {
@@ -58,7 +58,7 @@ const buttonStyles = `
 
   button:focus-visible {
     outline: none;
-    background: var(--boe-token-surface-surface-brand-hover, #0057c0);
+    background: var(--boe-token-surface-surface-brand-hover, #006ae9);
     border-color: var(--boe-token-surface-surface-brand, #0061d5);
     box-shadow: ${boeControl.primaryFocusShadow};
   }

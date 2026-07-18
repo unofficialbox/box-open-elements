@@ -49,7 +49,7 @@ const tooltipStyles = `
     padding: 0.5rem 0.65rem;
     border-radius: 0.75rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, rgba(255, 255, 255, 0.08));
-    background: var(--boe-token-surface-tooltip-surface, #222222);
+    background: var(--boe-token-surface-tooltip-surface, #4e4e4e);
     color: rgba(255, 255, 255, 0.94);
     box-shadow: 0 16px 28px rgba(16, 24, 32, 0.18);
     line-height: 1.45;

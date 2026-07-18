@@ -542,7 +542,9 @@ describe("evaluate", () => {
     expect(byId("button.primary.focus.shadow").verdict).toBe("conformant");
     expect(byId("button.neutral.focus.shadow").verdict).toBe("conformant");
     expect(byId("button.primary.hover.background").verdict).toBe("review");
-    expect(byId("button.primary.hover.background").delta).toBe(62);
+    // box-open-elements hover is now #006ae9 (matches the real Box app); the
+    // Storybook fixture is the legacy #0074fe, so the delta is 21.
+    expect(byId("button.primary.hover.background").delta).toBe(21);
   });
 
   it("yields the expected verdict mix (20 conformant, 6 review)", () => {

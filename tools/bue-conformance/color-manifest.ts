@@ -147,7 +147,7 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     boeValue: T.SurfaceSurfaceBrandHover,
     kind: "color",
     boeComponent: BUTTON,
-    boeAnchor: "background: var(--boe-token-surface-surface-brand-hover, #0057c0)",
+    boeAnchor: "background: var(--boe-token-surface-surface-brand-hover, #006ae9)",
     upstream: { selector: ".btn-primary", state: "hover", property: "background-color" },
     tolerance: 0,
     citation: ".btn-primary:hover background-color",

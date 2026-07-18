@@ -56,7 +56,7 @@ const linkButtonStyles = `
   [part="link"]:hover {
     text-decoration: underline;
     background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, transparent);
-    color: var(--boe-token-surface-surface-brand-hover, #0057c0);
+    color: var(--boe-token-surface-surface-brand-hover, #006ae9);
   }
 
   [part="link"]:active {
