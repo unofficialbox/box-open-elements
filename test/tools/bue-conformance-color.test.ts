@@ -8,8 +8,10 @@ import {
   colorDelta,
   compareColor,
   extractColor,
+  mixColors,
   normalizeShadow,
   parseColor,
+  parseColorMix,
   resolveCssVars,
   splitTopLevel,
 } from "../../tools/bue-conformance/color-signals.js";
@@ -109,7 +111,47 @@ describe("extractColor", () => {
 
   it("returns null when there is no colour", () => {
     expect(extractColor("1px solid")).toBeNull();
+  });
+
+  it("evaluates a resolved color-mix and defers unresolved ones", () => {
+    expect(canonicalColor(extractColor("color-mix(in srgb, #ffffff 97%, black 3%)")!)).toBe(
+      "rgba(247, 247, 247, 1)",
+    );
+    // Operand still a var (unresolved) or a gradient → deferred to review.
     expect(extractColor("color-mix(in srgb, var(--x) 8%, transparent)")).toBeNull();
+    expect(extractColor("linear-gradient(#fff, #000)")).toBeNull();
+  });
+});
+
+describe("mixColors + parseColorMix", () => {
+  it("mixes opaque colours in sRGB", () => {
+    const mid = mixColors(parseColor("#000")!, 50, parseColor("#fff")!, 50)!;
+    expect(canonicalColor(mid)).toBe("rgba(128, 128, 128, 1)");
+  });
+
+  it("infers a missing percentage as the complement", () => {
+    // #fff at 97% + black (implicit 3%) → #f7f7f7.
+    expect(
+      canonicalColor(parseColorMix("color-mix(in srgb, #ffffff 97%, black)")!),
+    ).toBe("rgba(247, 247, 247, 1)");
+  });
+
+  it("scales alpha when percentages sum below 100 / handles transparent", () => {
+    expect(canonicalColor(parseColorMix("color-mix(in srgb, #0061d5 8%, transparent)")!)).toBe(
+      "rgba(0, 97, 213, 0.08)",
+    );
+  });
+
+  it("parses operands that themselves contain commas", () => {
+    expect(
+      canonicalColor(parseColorMix("color-mix(in srgb, rgb(0,97,213) 50%, #fff)")!),
+    ).toBe("rgba(128, 176, 234, 1)");
+  });
+
+  it("returns null for unsupported spaces or unresolved operands", () => {
+    expect(parseColorMix("color-mix(in oklch, #000, #fff)")).toBeNull();
+    expect(parseColorMix("color-mix(in srgb, var(--x), #fff)")).toBeNull();
+    expect(parseColorMix("#fff")).toBeNull();
   });
 });
 
@@ -215,10 +257,21 @@ describe("compareColor", () => {
     ).toBe("missing-upstream");
   });
 
-  it("reviews values it cannot parse as a colour (e.g. color-mix)", () => {
+  it("resolves a color-mix and compares it (conformant when it matches)", () => {
+    // #fff 92% + black 8% → #ebebeb, which is exactly upstream's active grey.
     expect(
       compareColor({
         boeValue: "color-mix(in srgb, #fff 92%, black 8%)",
+        upstreamValue: "#ebebeb",
+        kind: "color",
+      }).verdict,
+    ).toBe("conformant");
+  });
+
+  it("reviews a color-mix it cannot resolve (unsupported space / gradient)", () => {
+    expect(
+      compareColor({
+        boeValue: "color-mix(in oklch, #fff, #000)",
         upstreamValue: "#f7f7f7",
         kind: "color",
       }).verdict,
@@ -312,6 +365,8 @@ describe("partMatches", () => {
 
 const FIXTURE_CSS = [
   ".btn{color:#4e4e4e;background-color:#fff;border-color:#bcbcbc}",
+  ".btn:not(.is-disabled):hover{background-color:#f7f7f7}",
+  ".btn:not(.is-disabled):active{background-color:#ebebeb;border-color:#bcbcbc}",
   ".btn:not(.is-disabled):focus{border-color:#222;box-shadow:0 1px 2px rgba(0,0,0,.1)}",
   ".btn-primary{color:#fff;background-color:#0061d5;border-color:#0061d5}",
   ".btn-primary:not(.is-disabled):hover,.btn-primary:not(.bdl-is-disabled):hover{background-color:#0074fe;border-color:#0074fe}",
@@ -327,6 +382,7 @@ const FIXTURE_CSS = [
   ".badge-success{background:#26c281}",
   ".badge-error{background:#ed3757}",
   ".badge-warning{background:#f5b31b}",
+  ".badge-info{background:#7fb0ea}",
 ].join("\n");
 
 describe("extractCompiledDeclarations", () => {
@@ -364,7 +420,7 @@ describe("extractCompiledDeclarations", () => {
 
   it("returns [] when nothing matches", () => {
     expect(
-      extractCompiledDeclarations(FIXTURE_CSS, ".btn", "hover", "background-color"),
+      extractCompiledDeclarations(FIXTURE_CSS, ".nonexistent", "hover", "background-color"),
     ).toEqual([]);
   });
 });
@@ -456,10 +512,10 @@ describe("evaluate", () => {
     expect(byId("button.primary.hover.background").delta).toBe(62);
   });
 
-  it("yields the expected verdict mix (14 conformant, 4 review)", () => {
+  it("yields the expected verdict mix (17 conformant, 4 review)", () => {
     const conformant = rows.filter(r => r.verdict === "conformant").length;
     const review = rows.filter(r => r.verdict === "review").length;
-    expect({ conformant, review }).toEqual({ conformant: 14, review: 4 });
+    expect({ conformant, review }).toEqual({ conformant: 17, review: 4 });
   });
 
   it("resolves the round-2 surfaces (menu + badge)", () => {
@@ -467,6 +523,14 @@ describe("evaluate", () => {
     expect(byId("menu.item.hover.background").verdict).toBe("conformant");
     expect(byId("badge.success.background").verdict).toBe("conformant");
     expect(byId("badge.neutral.background").verdict).toBe("review");
+  });
+
+  it("resolves the round-3 color-mix surfaces against upstream", () => {
+    const byId = (id: string): Row => rows.find(r => r.claim.id === id)!;
+    expect(byId("button.neutral.hover.background").boeCanonical).toBe("rgba(247, 247, 247, 1)");
+    expect(byId("button.neutral.hover.background").verdict).toBe("conformant");
+    expect(byId("button.neutral.active.background").verdict).toBe("conformant");
+    expect(byId("badge.info.background").verdict).toBe("conformant"); // ±1 rounding
   });
 
   it("flags a stale anchor as missing-boe", () => {
@@ -498,7 +562,7 @@ describe("renderMarkdown", () => {
     const md = renderMarkdown(rows, ["main.abc.iframe.bundle.js"]);
     expect(md).toContain("Layer 2");
     expect(md).toContain("**1**");
-    expect(md).toContain("| ✅ Conformant | 14 |");
+    expect(md).toContain("| ✅ Conformant | 17 |");
     expect(md).toContain("| 🔍 Review | 4 |");
     for (const claim of COLOR_CLAIMS) {
       expect(md).toContain(claim.citation);

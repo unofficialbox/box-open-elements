@@ -126,18 +126,115 @@ const COLOR_TOKEN =
   /#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)|\b(?:transparent|white|black)\b/g;
 
 /**
+ * Mix two colours in the sRGB space with premultiplied alpha, per the CSS
+ * Color 5 `color-mix()` algorithm. `p1`/`p2` are percentages (0-100) or `null`
+ * to be inferred (both null → 50/50; one null → the other's complement). When
+ * the specified percentages sum to < 100 the result alpha is scaled down.
+ */
+export function mixColors(
+  c1: Rgba,
+  p1: number | null,
+  c2: Rgba,
+  p2: number | null,
+): Rgba | null {
+  let a1 = p1;
+  let a2 = p2;
+  if (a1 === null && a2 === null) {
+    a1 = 50;
+    a2 = 50;
+  } else if (a2 === null) {
+    a2 = 100 - (a1 as number);
+  } else if (a1 === null) {
+    a1 = 100 - a2;
+  }
+  const sum = (a1 as number) + (a2 as number);
+  if (sum <= 0) {
+    return null;
+  }
+  const w1 = (a1 as number) / sum;
+  const w2 = (a2 as number) / sum;
+  const alphaMult = sum < 100 ? sum / 100 : 1;
+  const outAlpha = c1.a * w1 + c2.a * w2;
+  const premix = (ch1: number, ch2: number): number =>
+    outAlpha === 0 ? 0 : (ch1 * c1.a * w1 + ch2 * c2.a * w2) / outAlpha;
+  return {
+    r: clampChannel(premix(c1.r, c2.r)),
+    g: clampChannel(premix(c1.g, c2.g)),
+    b: clampChannel(premix(c1.b, c2.b)),
+    a: Number.parseFloat((outAlpha * alphaMult).toFixed(4)),
+  };
+}
+
+/** Extract the first balanced `color-mix( … )` expression from a value, if any. */
+function firstColorMix(value: string): string | null {
+  const start = value.toLowerCase().indexOf("color-mix(");
+  if (start === -1) {
+    return null;
+  }
+  let depth = 0;
+  for (let i = start + "color-mix".length; i < value.length; i += 1) {
+    if (value[i] === "(") {
+      depth += 1;
+    } else if (value[i] === ")") {
+      depth -= 1;
+      if (depth === 0) {
+        return value.slice(start, i + 1);
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Evaluate a `color-mix(in srgb, A p1?, B p2?)` expression to a concrete colour.
+ * Only the sRGB colour space is supported (the box-open-elements catalog uses
+ * `in srgb` exclusively); other spaces, gradients, or unresolved operands return
+ * `null` so the caller can route them to review. Operand `var()` must already be
+ * resolved to concrete colours.
+ */
+export function parseColorMix(input: string): Rgba | null {
+  const expr = firstColorMix(input);
+  if (expr === null) {
+    return null;
+  }
+  const inner = expr.slice("color-mix(".length, -1);
+  const parts = splitTopLevel(inner).map(p => p.trim());
+  if (parts.length !== 3 || !/^in\s+srgb$/i.test(parts[0])) {
+    return null;
+  }
+  const parseComponent = (part: string): { color: Rgba; pct: number | null } | null => {
+    const pctMatch = /\s(\d*\.?\d+)%$/.exec(part);
+    const colorText = pctMatch ? part.slice(0, part.length - pctMatch[0].length) : part;
+    const color = parseColor(colorText.trim());
+    if (!color) {
+      return null;
+    }
+    return { color, pct: pctMatch ? Number.parseFloat(pctMatch[1]) : null };
+  };
+  const a = parseComponent(parts[1]);
+  const b = parseComponent(parts[2]);
+  if (!a || !b) {
+    return null;
+  }
+  return mixColors(a.color, a.pct, b.color, b.pct);
+}
+
+/**
  * Pull the first colour token out of a declaration value. Handles shorthand
  * such as `1px solid #0061d5` (→ `#0061d5`) so a `border` shorthand and a
  * `border-color` longhand compare on the same footing.
  *
- * Returns `null` for computed-colour expressions (`color-mix()`, gradients):
- * plucking a sub-colour out of them would be meaningless, so they are left for
- * the caller to route to `review` — the colour analogue of Layer 1 deferring
- * unresolvable Sass functions.
+ * A `color-mix(in srgb, …)` is evaluated to its concrete result (see
+ * `parseColorMix`). Gradients — and any `color-mix` that does not fully resolve
+ * — return `null` so the caller can route them to review, the colour analogue of
+ * Layer 1 deferring unresolvable Sass functions.
  */
 export function extractColor(value: string): Rgba | null {
-  if (/\b(?:color-mix|(?:repeating-)?(?:linear|radial|conic)-gradient)\s*\(/i.test(value)) {
+  if (/\b(?:repeating-)?(?:linear|radial|conic)-gradient\s*\(/i.test(value)) {
     return null;
+  }
+  if (/\bcolor-mix\s*\(/i.test(value)) {
+    return parseColorMix(value);
   }
   const matches = value.match(COLOR_TOKEN);
   if (!matches) {

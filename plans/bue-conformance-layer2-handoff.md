@@ -11,20 +11,21 @@ hard-won environment findings so you don't re-derive them.
   against real upstream box-ui-elements SCSS (pinned `v26.0.0`), **17/17
   conformant**. Tooling: `tools/bue-conformance/{signals,manifest,audit}.ts`;
   report `docs/audits/bue-conformance-audit.md`; 37 tests.
-- **Layer 2 rounds 1-2 (colour / shadow / interaction state) are DONE via path C
+- **Layer 2 rounds 1-3 (colour / shadow / interaction state) are DONE via path C
   (compiled-CSS extraction) — this branch.** `bun run bue-conformance:color`
   reads the public Storybook's compiled (post-Sass, resolved) CSS and diffs
   box-open-elements' shipped colour/shadow/state values against it. Harness:
   `tools/bue-conformance/{color-signals,css-extract,color-manifest,color-audit}.ts`;
-  report `docs/audits/bue-conformance-color-audit.md`; 55 tests. Covers the
-  **button, menu-item, and badge** families — **18 claims, 14 conformant / 4
+  report `docs/audits/bue-conformance-color-audit.md`; 63 tests. Covers the
+  **button, menu-item, and badge** families — **21 claims, 17 conformant / 4
   review.** Round 2 broadened past the always-loaded bundle by reading the
   webpack **chunk map** from the runtime bundle and fetching all per-story chunks
-  (bounded async curl pool), so no browser is needed for any code-split
-  component. The sections below remain the guide for the **live-browser** paths,
-  now only needed for surfaces whose box-open-elements side is `color-mix()` /
-  gradient (tooltip, some inputs/checkbox states) and so can't be resolved
-  statically on the box-open-elements side.
+  (bounded async curl pool). Round 3 added a static **`color-mix(in srgb, …)`
+  evaluator**, so box-open-elements colours that compute a value (neutral button
+  hover/active, badge info) resolve without a browser. The sections below remain
+  the guide for the **live-browser** paths, now only needed for what stays
+  unresolvable statically: multi-stop **gradients** (tooltip background) and
+  box-open-elements colours with no flat upstream counterpart.
 
 ## The goal of Layer 2
 
@@ -134,16 +135,18 @@ section.
 
 Ranked by ROI given the walls above:
 
-- **C — Compiled-CSS extraction (no browser). ✅ DONE (rounds 1-2, this branch).**
+- **C — Compiled-CSS extraction (no browser). ✅ DONE (rounds 1-3, this branch).**
   Fetched the Storybook's compiled CSS-in-JS bundles via `curl`, decoded the
   css-loader string literals to recover the resolved (post-Sass) CSS, and diffed
   the resolved colour/shadow/state values for the button, menu-item, and badge
   families. Round 2 recovers the per-story **chunk map** from the webpack runtime
   bundle and fetches all chunks, so code-split component CSS is reachable without
-  a browser. See `bun run bue-conformance:color` and
-  `docs/audits/bue-conformance-color-audit.md`. What's left for the live-browser
-  paths: surfaces whose box-open-elements side uses `color-mix()` / gradients
-  (tooltip, some inputs/checkbox states), unresolvable statically.
+  a browser. Round 3 added a static **`color-mix(in srgb, …)` evaluator** so
+  box-open-elements colours that compute a value resolve too. See
+  `bun run bue-conformance:color` and `docs/audits/bue-conformance-color-audit.md`.
+  What's left for the live-browser paths: multi-stop **gradients** (tooltip
+  background) and box-open-elements colours with no flat upstream counterpart —
+  no single value to resolve statically.
 - **A — Ship Layer 1 as the deliverable; run Layer 2 off-proxy.** Layer 2's live
   capture genuinely wants an environment **without** a MITM proxy (a local
   machine / different CI). Accept the boundary; don't burn cycles here.

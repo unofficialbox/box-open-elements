@@ -213,6 +213,36 @@
       "citation": ".btn:focus border-color"
     },
     {
+      "id": "button.neutral.hover.background",
+      "surface": "button/neutral",
+      "boeConst": "surface-surface 97% + black 3% (color-mix)",
+      "boeValue": "color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 97%, black 3%)",
+      "boeResolved": "color-mix(in srgb, #ffffff 97%, black 3%)",
+      "boeCanonical": "rgba(247, 247, 247, 1)",
+      "upstreamRaw": "#f7f7f7",
+      "upstreamCanonical": "rgba(247, 247, 247, 1)",
+      "kind": "color",
+      "verdict": "conformant",
+      "delta": 0,
+      "note": null,
+      "citation": ".btn:hover background-color"
+    },
+    {
+      "id": "button.neutral.active.background",
+      "surface": "button/neutral",
+      "boeConst": "surface-surface 92% + black 8% (color-mix)",
+      "boeValue": "color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, black 8%)",
+      "boeResolved": "color-mix(in srgb, #ffffff 92%, black 8%)",
+      "boeCanonical": "rgba(235, 235, 235, 1)",
+      "upstreamRaw": "#ebebeb",
+      "upstreamCanonical": "rgba(235, 235, 235, 1)",
+      "kind": "color",
+      "verdict": "conformant",
+      "delta": 0,
+      "note": null,
+      "citation": ".btn:active background-color"
+    },
+    {
       "id": "button.neutral.focus.shadow",
       "surface": "button/neutral",
       "boeConst": "button.ts neutral :focus-visible box-shadow",
@@ -331,6 +361,21 @@
       "delta": 0,
       "note": null,
       "citation": ".badge-warning background (box-open-elements inprogress/warning tone)"
+    },
+    {
+      "id": "badge.info.background",
+      "surface": "badge/status",
+      "boeConst": "surface-surface-brand 50% + #fff (color-mix)",
+      "boeValue": "color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 50%, #fff)",
+      "boeResolved": "color-mix(in srgb, #0061d5 50%, #fff)",
+      "boeCanonical": "rgba(128, 176, 234, 1)",
+      "upstreamRaw": "#7fb0ea",
+      "upstreamCanonical": "rgba(127, 176, 234, 1)",
+      "kind": "color",
+      "verdict": "conformant",
+      "delta": 1,
+      "note": null,
+      "citation": ".badge-info background"
     }
   ]
 }

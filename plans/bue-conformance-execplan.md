@@ -134,11 +134,20 @@ bun run verify                                  # typecheck + coverage-gated tes
       surfaces: **menu-item** (text, hover — both conformant) and **badge**
       (text + 3 status tones conformant; neutral surface `#fbfbfb` vs upstream
       `#e8e8e8` → review). Now **18 claims, 14 conformant / 4 review.**
-- [ ] Layer 2 round 3 — surfaces whose box-open-elements side is `color-mix()` /
-      gradient (tooltip, some inputs, checkbox states): these can't be resolved
-      statically on the box-open-elements side, the colour analogue of Layer 1
-      deferring Sass functions. They need either a small `color-mix` evaluator or
-      a live-browser `getComputedStyle` read (paths below).
+- [x] Layer 2 round 3 — **static `color-mix()` evaluator.** `color-signals.ts`
+      now evaluates `color-mix(in srgb, A p1?, B p2?)` (premultiplied-alpha sRGB,
+      per CSS Color 5) to a concrete colour, so box-open-elements declarations
+      that compute a colour resolve without a browser. This recovered the neutral
+      button **hover** (`#fff` 97% + black 3% → `#f7f7f7`) and **active**
+      (`#fff` 92% + black 8% → `#ebebeb`) states — which round 1 had to skip —
+      and both match upstream `.btn:hover` / `.btn:active` exactly; plus the badge
+      **info/brand** tone (`brand` 50% + `#fff` → `#80b0ea` vs upstream `#7fb0ea`,
+      ±1 sRGB rounding). Now **21 claims, 17 conformant / 4 review.**
+- [ ] Layer 2 round 4 — surfaces still deferred: multi-stop **gradients** (tooltip
+      background) and non-sRGB mixes have no single resolvable colour, and some
+      box-open-elements colours have no solid upstream counterpart (a gradient vs
+      a flat fill). These need a live-browser `getComputedStyle` read (paths
+      below), not more static evaluation.
 - [ ] Layer 2 — live-browser paths (broader coverage): tenant login
       (`BOX_USERNAME/PASSWORD` in a fresh session) or beating the public
       Storybook's MSW service worker, driven through the proven curl-interception

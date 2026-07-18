@@ -10,11 +10,11 @@ Read from **58** compiled Storybook bundle(s) carrying CSS (the always-loaded bu
 
 | Verdict | Count |
 | --- | ---: |
-| ✅ Conformant | 14 |
+| ✅ Conformant | 17 |
 | 🔍 Review | 4 |
 | ⚠️ Missing upstream | 0 |
 | 🚫 Missing box-open-elements | 0 |
-| **Total claims** | **18** |
+| **Total claims** | **21** |
 
 ## Claims
 
@@ -30,6 +30,8 @@ Read from **58** compiled Storybook bundle(s) carrying CSS (the always-loaded bu
 | 🔍 | button/neutral | `TextTextSecondary` | rgba(111, 111, 111, 1) | rgba(78, 78, 78, 1) | 33 | .btn color |
 | ✅ | button/neutral | `boeControl.buttonBorder` | rgba(188, 188, 188, 1) | rgba(188, 188, 188, 1) | 0 | .btn border-color |
 | ✅ | button/neutral | `TextText` | rgba(34, 34, 34, 1) | rgba(34, 34, 34, 1) | 0 | .btn:focus border-color |
+| ✅ | button/neutral | `surface-surface 97% + black 3% (color-mix)` | rgba(247, 247, 247, 1) | rgba(247, 247, 247, 1) | 0 | .btn:hover background-color |
+| ✅ | button/neutral | `surface-surface 92% + black 8% (color-mix)` | rgba(235, 235, 235, 1) | rgba(235, 235, 235, 1) | 0 | .btn:active background-color |
 | ✅ | button/neutral | `button.ts neutral :focus-visible box-shadow` | 0 1px 2px rgba(0, 0, 0, 0.1) | 0 1px 2px rgba(0, 0, 0, 0.1) | — | .btn:focus box-shadow |
 | ✅ | menu/item | `TextText` | rgba(34, 34, 34, 1) | rgba(34, 34, 34, 1) | 0 | .menu-item color |
 | ✅ | menu/item | `SurfaceSurfaceHover` | rgba(244, 244, 244, 1) | rgba(244, 244, 244, 1) | 0 | .menu-item:hover background-color |
@@ -38,6 +40,7 @@ Read from **58** compiled Storybook bundle(s) carrying CSS (the always-loaded bu
 | ✅ | badge/status | `SurfaceStatusSurfaceSuccess` | rgba(38, 194, 129, 1) | rgba(38, 194, 129, 1) | 0 | .badge-success background |
 | ✅ | badge/status | `SurfaceStatusSurfaceError` | rgba(237, 55, 87, 1) | rgba(237, 55, 87, 1) | 0 | .badge-error background |
 | ✅ | badge/status | `SurfaceStatusSurfaceInprogress` | rgba(245, 179, 27, 1) | rgba(245, 179, 27, 1) | 0 | .badge-warning background (box-open-elements inprogress/warning tone) |
+| ✅ | badge/status | `surface-surface-brand 50% + #fff (color-mix)` | rgba(128, 176, 234, 1) | rgba(127, 176, 234, 1) | 1 | .badge-info background |
 
 ## Legend
 

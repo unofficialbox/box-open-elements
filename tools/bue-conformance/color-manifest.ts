@@ -206,6 +206,32 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     citation: ".btn:focus border-color",
   },
   {
+    id: "button.neutral.hover.background",
+    surface: "button/neutral",
+    boeConst: "surface-surface 97% + black 3% (color-mix)",
+    boeValue: "color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 97%, black 3%)",
+    kind: "color",
+    boeComponent: BUTTON,
+    boeAnchor:
+      "background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 97%, black 3%)",
+    upstream: { selector: ".btn", state: "hover", property: "background-color" },
+    tolerance: 0,
+    citation: ".btn:hover background-color",
+  },
+  {
+    id: "button.neutral.active.background",
+    surface: "button/neutral",
+    boeConst: "surface-surface 92% + black 8% (color-mix)",
+    boeValue: "color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, black 8%)",
+    kind: "color",
+    boeComponent: BUTTON,
+    boeAnchor:
+      "background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, black 8%)",
+    upstream: { selector: ".btn", state: "active", property: "background-color" },
+    tolerance: 0,
+    citation: ".btn:active background-color",
+  },
+  {
     id: "button.neutral.focus.shadow",
     surface: "button/neutral",
     boeConst: "button.ts neutral :focus-visible box-shadow",
@@ -304,5 +330,20 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     upstream: { selector: ".badge-warning", state: "base", property: "background" },
     tolerance: 0,
     citation: ".badge-warning background (box-open-elements inprogress/warning tone)",
+  },
+  {
+    id: "badge.info.background",
+    surface: "badge/status",
+    boeConst: "surface-surface-brand 50% + #fff (color-mix)",
+    boeValue: "color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 50%, #fff)",
+    kind: "color",
+    boeComponent: BADGE,
+    boeAnchor:
+      "background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 50%, #fff)",
+    // ±1 per channel: the 50/50 sRGB mix lands on #80b0ea (127.5 → 128); upstream
+    // authored #7fb0ea (127). Same design intent, sub-perceptual rounding.
+    upstream: { selector: ".badge-info", state: "base", property: "background" },
+    tolerance: 1,
+    citation: ".badge-info background",
   },
 ] as const;
