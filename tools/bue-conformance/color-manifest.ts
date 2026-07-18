@@ -78,6 +78,8 @@ export interface ColorClaim {
 }
 
 const BUTTON = "src/components/actions/button.ts";
+const MENU_ITEM = "src/components/actions/menu-item.ts";
+const BADGE = "src/components/feedback/badge.ts";
 
 export const COLOR_CLAIMS: readonly ColorClaim[] = [
   // === Primary button (box-button, default tone) ↔ upstream `.btn-primary` ===
@@ -214,5 +216,93 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     upstream: { selector: ".btn", state: "focus", property: "box-shadow" },
     tolerance: 0,
     citation: ".btn:focus box-shadow",
+  },
+
+  // === Menu item (box-menu-item) ↔ upstream `.menu-item` ===
+  {
+    id: "menu.item.text",
+    surface: "menu/item",
+    boeConst: "TextText",
+    boeValue: T.TextText,
+    kind: "color",
+    boeComponent: MENU_ITEM,
+    boeAnchor: "color: var(--boe-token-text-text, #222222)",
+    upstream: { selector: ".menu-item", state: "base", property: "color" },
+    tolerance: 0,
+    citation: ".menu-item color",
+  },
+  {
+    id: "menu.item.hover.background",
+    surface: "menu/item",
+    boeConst: "SurfaceSurfaceHover",
+    boeValue: T.SurfaceSurfaceHover,
+    kind: "color",
+    boeComponent: MENU_ITEM,
+    boeAnchor: "background: var(--boe-token-surface-surface-hover, #f4f4f4)",
+    upstream: { selector: ".menu-item", state: "hover", property: "background-color" },
+    tolerance: 0,
+    citation: ".menu-item:hover background-color",
+  },
+
+  // === Badge (box-badge) ↔ upstream `.badge` family ===
+  {
+    id: "badge.text",
+    surface: "badge",
+    boeConst: "TextText",
+    boeValue: T.TextText,
+    kind: "color",
+    boeComponent: BADGE,
+    boeAnchor: "color: var(--boe-token-text-text, #222222)",
+    upstream: { selector: ".badge", state: "base", property: "color" },
+    tolerance: 0,
+    citation: ".badge color",
+  },
+  {
+    id: "badge.neutral.background",
+    surface: "badge",
+    boeConst: "SurfaceSurfaceSecondary",
+    boeValue: T.SurfaceSurfaceSecondary,
+    kind: "color",
+    boeComponent: BADGE,
+    boeAnchor: "background: var(--boe-token-surface-surface-secondary, #f4f4f4)",
+    upstream: { selector: ".badge", state: "base", property: "background" },
+    tolerance: 0,
+    citation: ".badge background",
+  },
+  {
+    id: "badge.success.background",
+    surface: "badge/status",
+    boeConst: "SurfaceStatusSurfaceSuccess",
+    boeValue: T.SurfaceStatusSurfaceSuccess,
+    kind: "color",
+    boeComponent: BADGE,
+    boeAnchor: "background: var(--boe-token-surface-status-surface-success, #26c281)",
+    upstream: { selector: ".badge-success", state: "base", property: "background" },
+    tolerance: 0,
+    citation: ".badge-success background",
+  },
+  {
+    id: "badge.error.background",
+    surface: "badge/status",
+    boeConst: "SurfaceStatusSurfaceError",
+    boeValue: T.SurfaceStatusSurfaceError,
+    kind: "color",
+    boeComponent: BADGE,
+    boeAnchor: "background: var(--boe-token-surface-status-surface-error, #ed3757)",
+    upstream: { selector: ".badge-error", state: "base", property: "background" },
+    tolerance: 0,
+    citation: ".badge-error background",
+  },
+  {
+    id: "badge.inprogress.background",
+    surface: "badge/status",
+    boeConst: "SurfaceStatusSurfaceInprogress",
+    boeValue: T.SurfaceStatusSurfaceInprogress,
+    kind: "color",
+    boeComponent: BADGE,
+    boeAnchor: "background: var(--boe-token-surface-status-surface-inprogress, #f5b31b)",
+    upstream: { selector: ".badge-warning", state: "base", property: "background" },
+    tolerance: 0,
+    citation: ".badge-warning background (box-open-elements inprogress/warning tone)",
   },
 ] as const;

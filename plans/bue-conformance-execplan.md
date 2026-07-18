@@ -125,11 +125,20 @@ bun run verify                                  # typecheck + coverage-gated tes
       tones — surfaced for judgement, never auto-labelled drift, because the
       public Storybook still renders legacy button styles). Sidesteps both the
       headless-Chromium-proxy wall and the Storybook MSW wall entirely.
-- [ ] Layer 2 round 2 — broaden surfaces (badge, menu/overlay, tooltip, inputs,
-      checkbox/radio). The always-loaded main bundle covers the button family;
-      other components' compiled CSS lives in per-story webpack chunks, so
-      broadening means either resolving those chunk URLs or the live-browser
-      paths below.
+- [x] Layer 2 round 2 — **broaden past the always-loaded bundle via the webpack
+      chunk map.** Component CSS beyond the button family is code-split into
+      per-story chunks; `color-audit.ts` now reads the `{chunkId:"hash",…}` map
+      out of the webpack runtime bundle, fetches every chunk (bounded async curl
+      pool), and extracts the css-loader CSS from each — building the full
+      resolved-CSS corpus (≈58 CSS-bearing chunks) once, then caching it. Added
+      surfaces: **menu-item** (text, hover — both conformant) and **badge**
+      (text + 3 status tones conformant; neutral surface `#fbfbfb` vs upstream
+      `#e8e8e8` → review). Now **18 claims, 14 conformant / 4 review.**
+- [ ] Layer 2 round 3 — surfaces whose box-open-elements side is `color-mix()` /
+      gradient (tooltip, some inputs, checkbox states): these can't be resolved
+      statically on the box-open-elements side, the colour analogue of Layer 1
+      deferring Sass functions. They need either a small `color-mix` evaluator or
+      a live-browser `getComputedStyle` read (paths below).
 - [ ] Layer 2 — live-browser paths (broader coverage): tenant login
       (`BOX_USERNAME/PASSWORD` in a fresh session) or beating the public
       Storybook's MSW service worker, driven through the proven curl-interception
@@ -156,7 +165,11 @@ bun run verify                                  # typecheck + coverage-gated tes
   the fully-resolved, post-Sass CSS — colours, shadows, and `:hover/:active/:focus`
   states — with no headless Chromium and no MSW service worker to fight. The
   bundle hashes change per deploy, so the audit discovers them from `iframe.html`
-  at run time rather than pinning them.
+  at run time rather than pinning them. Only the button family ships in the
+  always-loaded bundle; every other component's CSS is code-split into a
+  per-story chunk, whose filenames are recovered from the `{chunkId:"hash",…}`
+  map in the webpack runtime bundle — the audit fetches all ~640 chunks (bounded
+  async pool, ~10s) and caches the ~58 that carry CSS as one corpus.
 - box-open-elements' button colour language is **already faithful where it means
   to be** (base brand/text/border, primary focus ring, neutral focus border +
   shadow all match upstream exactly) and **deliberately diverges where Blueprint

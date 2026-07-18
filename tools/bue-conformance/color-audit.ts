@@ -24,7 +24,11 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { extractBundleCss, extractCompiledDeclarations } from "./css-extract.js";
+import {
+  extractBundleCss,
+  extractCompiledDeclarations,
+  parseChunkNames,
+} from "./css-extract.js";
 import {
   compareColor,
   resolveCssVars,
@@ -60,19 +64,55 @@ export function parseArgs(argv: string[]): Args {
   };
 }
 
+function curlArgsFor(url: string): string[] {
+  const args = ["-sS", "--fail", "--max-time", "40", "--max-redirs", "0", url];
+  if (existsSync(CA_BUNDLE)) {
+    args.unshift("--cacert", CA_BUNDLE);
+  }
+  return args;
+}
+
 /** curl one URL (honours HTTPS_PROXY + CA bundle). Returns body or null. */
 function curl(url: string): string | null {
-  const curlArgs = ["-sS", "--fail", "--max-time", "40", "--max-redirs", "0", url];
-  if (existsSync(CA_BUNDLE)) {
-    curlArgs.unshift("--cacert", CA_BUNDLE);
-  }
-  const proc = Bun.spawnSync(["curl", ...curlArgs]);
+  const proc = Bun.spawnSync(["curl", ...curlArgsFor(url)]);
   if (proc.exitCode !== 0) {
     return null;
   }
   const body = proc.stdout.toString();
   return body.length > 0 ? body : null;
 }
+
+/**
+ * Fetch many URLs with a bounded concurrency pool and hand each body to
+ * `onBody` as it arrives (bodies are large — extract and discard immediately
+ * rather than holding them all in memory).
+ */
+async function curlEach(
+  urls: string[],
+  onBody: (url: string, body: string) => void,
+  concurrency = 16,
+): Promise<void> {
+  let next = 0;
+  const worker = async (): Promise<void> => {
+    while (next < urls.length) {
+      const url = urls[next++];
+      const proc = Bun.spawn(["curl", ...curlArgsFor(url)], {
+        stdout: "pipe",
+        stderr: "ignore",
+      });
+      const body = await new Response(proc.stdout).text();
+      await proc.exited;
+      if (proc.exitCode === 0 && body.length > 0) {
+        onBody(url, body);
+      }
+    }
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, urls.length) }, () => worker()),
+  );
+}
+
+const CHUNK_NAME = /^[\w.~-]+\.iframe\.bundle\.js$/;
 
 /**
  * Parse the `import './xxx.iframe.bundle.js'` references out of the Storybook
@@ -97,8 +137,14 @@ export interface CompiledCss {
   fromCache: boolean;
 }
 
-/** Fetch and concatenate the compiled CSS of every Storybook bundle. */
-function loadCompiledCss(args: Args): CompiledCss {
+/**
+ * Fetch and concatenate the compiled CSS of every Storybook bundle — the
+ * always-loaded ones named in `iframe.html` (button family) **and** the lazy
+ * per-story chunks discovered from the webpack runtime map (badge / menu /
+ * tooltip / …). The result is cached, so only `--refresh` re-fetches; a plain
+ * run reads the cache.
+ */
+async function loadCompiledCss(args: Args): Promise<CompiledCss> {
   if (!existsSync(CACHE_DIR)) {
     mkdirSync(CACHE_DIR, { recursive: true });
   }
@@ -109,42 +155,59 @@ function loadCompiledCss(args: Args): CompiledCss {
       : [];
     return { css: readFileSync(CSS_CACHE, "utf8"), bundles, fromCache: true };
   }
+  const fallback = (): CompiledCss =>
+    haveCache
+      ? { css: readFileSync(CSS_CACHE, "utf8"), bundles: [], fromCache: true }
+      : { css: "", bundles: [], fromCache: false };
   if (args.offline) {
-    return { css: "", bundles: [], fromCache: false };
+    return fallback();
   }
 
   const iframeHtml = curl(`${STORYBOOK_BASE}/iframe.html`);
   if (iframeHtml === null) {
-    if (haveCache) {
-      return { css: readFileSync(CSS_CACHE, "utf8"), bundles: [], fromCache: true };
-    }
-    return { css: "", bundles: [], fromCache: false };
+    return fallback();
   }
 
-  const names = parseBundleNames(iframeHtml);
-  const sheets: string[] = [];
-  const loaded: string[] = [];
-  for (const name of names) {
-    const js = curl(`${STORYBOOK_BASE}/${name}`);
-    if (js === null) {
-      continue;
-    }
-    const css = extractBundleCss(js);
-    if (css.trim() !== "") {
-      sheets.push(`/* ${name} */\n${css}`);
-      loaded.push(name);
+  // Always-loaded bundles + the lazy chunks the runtime bundle enumerates.
+  const eager = parseBundleNames(iframeHtml);
+  const runtimeName = eager.find(n => n.startsWith("runtime~"));
+  let chunkNames: string[] = [];
+  if (runtimeName) {
+    const runtimeJs = curl(`${STORYBOOK_BASE}/${runtimeName}`);
+    if (runtimeJs !== null) {
+      chunkNames = parseChunkNames(runtimeJs).filter(n => CHUNK_NAME.test(n));
     }
   }
-  const css = sheets.join("\n");
+  const allNames = [...new Set([...eager, ...chunkNames])].filter(n =>
+    CHUNK_NAME.test(n),
+  );
+  // eslint-disable-next-line no-console
+  console.log(
+    `Fetching ${allNames.length} Storybook bundles ` +
+      `(${eager.length} eager + ${chunkNames.length} lazy chunks)…`,
+  );
+
+  const sheetByName = new Map<string, string>();
+  await curlEach(
+    allNames.map(n => `${STORYBOOK_BASE}/${n}`),
+    (url, body) => {
+      const name = url.slice(url.lastIndexOf("/") + 1);
+      const css = extractBundleCss(body);
+      if (css.trim() !== "") {
+        sheetByName.set(name, css);
+      }
+    },
+  );
+
+  // Deterministic order (name-sorted) so the cached corpus is stable.
+  const loaded = [...sheetByName.keys()].sort();
+  const css = loaded.map(name => `/* ${name} */\n${sheetByName.get(name)}`).join("\n");
   if (css.trim() !== "") {
     writeFileSync(CSS_CACHE, css);
     writeFileSync(BUNDLES_CACHE, `${JSON.stringify(loaded, null, 2)}\n`);
     return { css, bundles: loaded, fromCache: false };
   }
-  if (haveCache) {
-    return { css: readFileSync(CSS_CACHE, "utf8"), bundles: [], fromCache: true };
-  }
-  return { css: "", bundles: loaded, fromCache: false };
+  return fallback();
 }
 
 export interface Row {
@@ -269,7 +332,11 @@ export function renderMarkdown(rows: Row[], bundles: string[]): string {
   );
   lines.push("");
   if (bundles.length > 0) {
-    lines.push(`Upstream bundles read: ${bundles.map(b => `\`${b}\``).join(", ")}.`);
+    lines.push(
+      `Read from **${bundles.length}** compiled Storybook bundle(s) carrying CSS ` +
+        "(the always-loaded button styles plus the per-story chunks for the other " +
+        "surfaces, discovered from the webpack runtime map).",
+    );
     lines.push("");
   }
   lines.push("## Summary");
@@ -306,9 +373,9 @@ export function renderMarkdown(rows: Row[], bundles: string[]): string {
   return lines.join("\n");
 }
 
-function main(): void {
+async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
-  const { css, bundles, fromCache } = loadCompiledCss(args);
+  const { css, bundles, fromCache } = await loadCompiledCss(args);
 
   const componentFiles = [...new Set(COLOR_CLAIMS.map(c => c.boeComponent))];
   const componentSource = new Map<string, string | null>(
@@ -377,5 +444,9 @@ function main(): void {
 
 // Only run when executed directly, so tests can import the pure helpers above.
 if (import.meta.main) {
-  main();
+  main().catch((err: unknown) => {
+    // eslint-disable-next-line no-console
+    console.error(err);
+    process.exit(1);
+  });
 }

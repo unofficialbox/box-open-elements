@@ -63,6 +63,52 @@ export function extractBundleCss(js: string): string {
   return sheets.join("\n");
 }
 
+/**
+ * Recover the lazy-chunk filenames from the webpack runtime bundle. Component
+ * CSS is code-split: only the button family ships in the always-loaded bundle,
+ * while badge / menu / tooltip / … styles live in per-story chunks. The runtime
+ * builds their URLs from a `{chunkId:"hash",…}[id]+".iframe.bundle.js"` map;
+ * this reads that map back out and returns `id.hash.iframe.bundle.js` names.
+ */
+export function parseChunkNames(runtimeJs: string): string[] {
+  const marker = ".iframe.bundle.js";
+  const at = runtimeJs.indexOf(marker);
+  if (at === -1) {
+    return [];
+  }
+  const before = runtimeJs.slice(0, at);
+  const close = before.lastIndexOf("}");
+  if (close === -1) {
+    return [];
+  }
+  // Walk backward to the matching `{` of the chunk map object literal.
+  let depth = 0;
+  let open = -1;
+  for (let i = close; i >= 0; i -= 1) {
+    const ch = before[i];
+    if (ch === "}") {
+      depth += 1;
+    } else if (ch === "{") {
+      depth -= 1;
+      if (depth === 0) {
+        open = i;
+        break;
+      }
+    }
+  }
+  if (open === -1) {
+    return [];
+  }
+  const map = before.slice(open, close + 1);
+  const names: string[] = [];
+  const pair = /(\d+):"([0-9a-f]+)"/g;
+  let m: RegExpExecArray | null;
+  while ((m = pair.exec(map)) !== null) {
+    names.push(`${m[1]}.${m[2]}.iframe.bundle.js`);
+  }
+  return names;
+}
+
 export type State = "base" | "hover" | "active" | "focus";
 
 /**
@@ -108,6 +154,46 @@ export function partMatches(part: string, selector: string, state: State): boole
   }
 }
 
+/**
+ * Strip CSS block comments (quote-aware). CSS has no `//` line comments, so only
+ * slash-star comments are removed — a `url(http://…)` is safe. Run before rule
+ * scanning so a comment banner (e.g. the per-chunk name marker, or a css-loader
+ * sourceMap note) preceding a rule cannot leak into that rule's selector.
+ */
+export function stripCssComments(css: string): string {
+  let out = "";
+  let quote: string | null = null;
+  for (let i = 0; i < css.length; i += 1) {
+    const ch = css[i];
+    const next = css[i + 1];
+    if (quote) {
+      out += ch;
+      if (ch === quote) {
+        quote = null;
+      } else if (ch === "\\" && next !== undefined) {
+        out += next;
+        i += 1;
+      }
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+      out += ch;
+      continue;
+    }
+    if (ch === "/" && next === "*") {
+      i += 2;
+      while (i < css.length && !(css[i] === "*" && css[i + 1] === "/")) {
+        i += 1;
+      }
+      i += 1; // land on the '/'
+      continue;
+    }
+    out += ch;
+  }
+  return out;
+}
+
 /** Extract every value of `property` declared directly inside a rule body. */
 function declarationsIn(body: string, property: string): string[] {
   const escaped = property.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -126,11 +212,12 @@ function declarationsIn(body: string, property: string): string[] {
  * flat (no nesting), so a single brace scan is sufficient.
  */
 export function extractCompiledDeclarations(
-  css: string,
+  rawCss: string,
   selector: string,
   state: State,
   property: string,
 ): string[] {
+  const css = stripCssComments(rawCss);
   const values: string[] = [];
   let depth = 0;
   let header = "";

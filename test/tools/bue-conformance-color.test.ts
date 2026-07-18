@@ -16,7 +16,9 @@ import {
 import {
   extractBundleCss,
   extractCompiledDeclarations,
+  parseChunkNames,
   partMatches,
+  stripCssComments,
 } from "../../tools/bue-conformance/css-extract.js";
 import {
   anchorPresent,
@@ -247,6 +249,34 @@ describe("extractBundleCss", () => {
   });
 });
 
+describe("stripCssComments", () => {
+  it("removes block comments but keeps quoted / url content", () => {
+    expect(stripCssComments("/* a */.x{color:red}")).toBe(".x{color:red}");
+    expect(stripCssComments('.x{content:"/* not a comment */"}')).toBe(
+      '.x{content:"/* not a comment */"}',
+    );
+    expect(stripCssComments(".x{background:url(http://a/b.png)}")).toBe(
+      ".x{background:url(http://a/b.png)}",
+    );
+  });
+});
+
+describe("parseChunkNames", () => {
+  it("recovers id.hash names from the webpack chunk map", () => {
+    const runtime =
+      'foo=e=>(e+"."+{398:"86aafe12",903:"f1d6cb68",1228:"332b6076"}[e]+".iframe.bundle.js");';
+    expect(parseChunkNames(runtime)).toEqual([
+      "398.86aafe12.iframe.bundle.js",
+      "903.f1d6cb68.iframe.bundle.js",
+      "1228.332b6076.iframe.bundle.js",
+    ]);
+  });
+
+  it("returns [] when there is no chunk map", () => {
+    expect(parseChunkNames("no chunks here")).toEqual([]);
+  });
+});
+
 describe("partMatches", () => {
   it("matches the base subject and rejects longer names", () => {
     expect(partMatches(".btn", ".btn", "base")).toBe(true);
@@ -287,7 +317,17 @@ const FIXTURE_CSS = [
   ".btn-primary:not(.is-disabled):hover,.btn-primary:not(.bdl-is-disabled):hover{background-color:#0074fe;border-color:#0074fe}",
   ".btn-primary:not(.is-disabled):active{background-color:#004eac;border-color:#004eac;box-shadow:none}",
   ".btn-primary:not(.is-disabled):focus{background-color:#0074fe;border:1px solid #0061d5;box-shadow:inset 0 0 0 1px rgba(255,255,255,.8),0 1px 2px rgba(0,0,0,.1)}",
-].join("");
+  // Round 2: menu-item + badge (each is the first rule after a comment banner,
+  // exercising the comment-strip that keeps the marker out of the selector).
+  "/* 1319.hash.iframe.bundle.js */",
+  ".menu-item{color:#222;background:transparent;min-height:30px}",
+  ".menu-item:not(.is-disabled):hover{background-color:#f4f4f4;color:#222}",
+  "/* 1228.hash.iframe.bundle.js */",
+  ".badge{color:#222;background:#e8e8e8;border-radius:4px}",
+  ".badge-success{background:#26c281}",
+  ".badge-error{background:#ed3757}",
+  ".badge-warning{background:#f5b31b}",
+].join("\n");
 
 describe("extractCompiledDeclarations", () => {
   it("reads a base declaration", () => {
@@ -309,6 +349,17 @@ describe("extractCompiledDeclarations", () => {
     expect(
       extractCompiledDeclarations(FIXTURE_CSS, ".btn", "base", "background-color"),
     ).toEqual(["#fff"]);
+  });
+
+  it("reads a rule that immediately follows a comment banner", () => {
+    // .badge is the first rule after a `/* … */` marker — the comment must not
+    // leak into its selector.
+    expect(extractCompiledDeclarations(FIXTURE_CSS, ".badge", "base", "color")).toEqual([
+      "#222",
+    ]);
+    expect(
+      extractCompiledDeclarations(FIXTURE_CSS, ".badge", "base", "background"),
+    ).toEqual(["#e8e8e8"]);
   });
 
   it("returns [] when nothing matches", () => {
@@ -362,13 +413,14 @@ describe("parseBundleNames", () => {
   });
 });
 
-const BUTTON_SRC = readFileSync(
-  join(process.cwd(), "src/components/actions/button.ts"),
-  "utf8",
+const readSrc = (rel: string): string => readFileSync(join(process.cwd(), rel), "utf8");
+const COMPONENT_SOURCE = new Map<string, string | null>(
+  [
+    "src/components/actions/button.ts",
+    "src/components/actions/menu-item.ts",
+    "src/components/feedback/badge.ts",
+  ].map(rel => [rel, readSrc(rel)]),
 );
-const COMPONENT_SOURCE = new Map<string, string | null>([
-  ["src/components/actions/button.ts", BUTTON_SRC],
-]);
 
 describe("anchorPresent", () => {
   it("is true when the component still declares the anchor", () => {
@@ -404,10 +456,17 @@ describe("evaluate", () => {
     expect(byId("button.primary.hover.background").delta).toBe(62);
   });
 
-  it("yields the expected verdict mix (8 conformant, 3 review)", () => {
+  it("yields the expected verdict mix (14 conformant, 4 review)", () => {
     const conformant = rows.filter(r => r.verdict === "conformant").length;
     const review = rows.filter(r => r.verdict === "review").length;
-    expect({ conformant, review }).toEqual({ conformant: 8, review: 3 });
+    expect({ conformant, review }).toEqual({ conformant: 14, review: 4 });
+  });
+
+  it("resolves the round-2 surfaces (menu + badge)", () => {
+    const byId = (id: string): Row => rows.find(r => r.claim.id === id)!;
+    expect(byId("menu.item.hover.background").verdict).toBe("conformant");
+    expect(byId("badge.success.background").verdict).toBe("conformant");
+    expect(byId("badge.neutral.background").verdict).toBe("review");
   });
 
   it("flags a stale anchor as missing-boe", () => {
@@ -438,9 +497,9 @@ describe("renderMarkdown", () => {
     const rows = evaluate(FIXTURE_CSS, COMPONENT_SOURCE);
     const md = renderMarkdown(rows, ["main.abc.iframe.bundle.js"]);
     expect(md).toContain("Layer 2");
-    expect(md).toContain("main.abc.iframe.bundle.js");
-    expect(md).toContain("| ✅ Conformant | 8 |");
-    expect(md).toContain("| 🔍 Review | 3 |");
+    expect(md).toContain("**1**");
+    expect(md).toContain("| ✅ Conformant | 14 |");
+    expect(md).toContain("| 🔍 Review | 4 |");
     for (const claim of COLOR_CLAIMS) {
       expect(md).toContain(claim.citation);
     }
