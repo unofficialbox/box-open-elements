@@ -50,9 +50,7 @@ const elementStyles = `
           font: inherit;
           cursor: pointer;
           padding: 0;
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.82),
-            0 1px 2px rgba(15, 23, 42, 0.04);
+          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
           transition:
             border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
             background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},

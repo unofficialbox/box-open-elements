@@ -137,15 +137,8 @@ const richTextStyles = `
     padding: 0.5rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
     border-radius: 0.7rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%, var(--boe-token-surface-surface, #ffffff) 10%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 82%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%) 100%
-      );
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.82),
-      0 14px 28px rgba(15, 23, 42, 0.04);
+    background: var(--boe-token-surface-surface-secondary, #fbfbfb);
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.04);
   }
 
   [part="toolbar"] {
@@ -155,12 +148,7 @@ const richTextStyles = `
     padding: 0.2rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-stroke-stroke, #e8e8e8) 92%);
     border-radius: 0.65rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface-secondary, #fbfbfb) 6%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
-      );
+    background: var(--boe-token-surface-surface, #ffffff);
   }
 
   [part="tool-button"] {

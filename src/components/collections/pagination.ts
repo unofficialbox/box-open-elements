@@ -27,16 +27,10 @@ const paginationStyles = `
     padding: 0.35em 0.8em;
     border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
     border-radius: 0.6rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface-secondary, #fbfbfb) 6%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
-      );
+    background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text, #222222);
     cursor: pointer;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.82),
       0 1px 2px rgba(15, 23, 42, 0.04);
     transition:
       background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},

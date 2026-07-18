@@ -32,17 +32,10 @@ const iconButtonStyles = `
     font: inherit;
     border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
     border-radius: 0.75rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, var(--boe-token-surface-surface-secondary, #fbfbfb) 6%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 88%) 100%
-      );
+    background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     cursor: pointer;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.82),
-      0 1px 2px rgba(15, 23, 42, 0.04);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     transition:
       background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
       border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
@@ -62,12 +55,7 @@ const iconButtonStyles = `
 
   [part="button"][data-tone="primary"] {
     border-color: transparent;
-    background:
-      linear-gradient(
-        180deg,
-        var(--boe-token-surface-surface-brand, #0061d5) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 88%, #003c86 12%) 100%
-      );
+    background: var(--boe-token-surface-surface-brand, #0061d5);
     color: var(--boe-token-text-text-on-brand, #ffffff);
   }
 

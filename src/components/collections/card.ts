@@ -15,14 +15,8 @@ const cardStyles = `
     padding: 0.7rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, var(--boe-token-surface-surface, #ffffff) 18%);
     border-radius: 0.7rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%) 100%
-      );
+    background: var(--boe-token-surface-surface-secondary, #fbfbfb);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.82),
       0 14px 28px rgba(15, 23, 42, 0.04);
   }
 

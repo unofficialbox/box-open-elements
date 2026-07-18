@@ -155,9 +155,7 @@ const elementStyles = `
           min-block-size: 13rem;
           border: 1px solid var(--_obp-border-subtle);
           border-radius: ${boePanel.radius};
-          background:
-            radial-gradient(circle at top left, color-mix(in srgb, var(--_obp-brand) 10%, transparent), transparent 32%),
-            linear-gradient(180deg, color-mix(in srgb, var(--_obp-surface) 86%, var(--boe-token-surface-surface, #ffffff) 14%) 0%, var(--_obp-surface-muted) 100%);
+          background: var(--_obp-surface);
           overflow: hidden;
         }
 

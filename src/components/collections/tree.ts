@@ -96,17 +96,12 @@ const treeStyles = `
     border-radius: 0.35rem;
     padding: 0;
     line-height: 1;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 3%, var(--boe-token-surface-surface-secondary, #fbfbfb) 18%, var(--boe-token-surface-surface, #ffffff) 79%) 100%
-      );
+    background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     font: inherit;
     font-size: 0.85rem;
     cursor: pointer;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.74);
+    box-shadow: none;
   }
 
   [part~="control"] {
@@ -119,15 +114,10 @@ const treeStyles = `
     border-radius: 0.375rem;
     padding: 0;
     line-height: 1;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface-secondary, #fbfbfb) 18%, var(--boe-token-surface-surface, #ffffff) 78%) 100%
-      );
+    background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     cursor: pointer;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76);
+    box-shadow: none;
   }
 
   [part~="toggle-expanded"] {
@@ -169,12 +159,7 @@ const treeStyles = `
     border: 1px solid transparent;
     border-radius: 0.6rem;
     padding: 0.5rem 0.65rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%, var(--boe-token-surface-surface, #ffffff) 92%) 100%
-      );
+    background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text, #222222);
     font: inherit;
     font-size: 0.9rem;
@@ -189,26 +174,15 @@ const treeStyles = `
 
   [part~="item"]:hover {
     border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, transparent);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 68%, var(--boe-token-surface-surface, #ffffff) 32%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-item-surface-hover, #eef4fb) 62%, var(--boe-token-surface-surface, #ffffff) 34%) 100%
-      );
+    background: var(--boe-token-surface-item-surface-hover, #eef4fb);
   }
 
   [part~="item-selected"] {
     border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 78%, var(--boe-token-surface-surface, #ffffff) 22%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 64%, var(--boe-token-surface-surface, #ffffff) 36%) 100%
-      );
+    background: var(--boe-token-surface-item-surface-selected, #f2f7fd);
     color: var(--boe-token-text-text, #222222);
     box-shadow:
-      inset 0 0 0 1px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, transparent),
-      inset 0 1px 0 rgba(255, 255, 255, 0.72);
+      inset 0 0 0 1px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 14%, transparent);
   }
 
   [part~="item"]:focus-visible,

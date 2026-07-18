@@ -29,17 +29,12 @@ const tooltipStyles = `
     appearance: none;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 80%, var(--boe-token-surface-surface, #ffffff) 20%);
     border-radius: 0.75rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 14%, var(--boe-token-surface-surface, #ffffff) 86%) 100%
-      );
+    background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     font: inherit;
     padding: 0;
     cursor: pointer;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
+    box-shadow: none;
   }
 
   ${boeNeutralInteractiveStyles('[part="trigger"]')}
@@ -54,16 +49,9 @@ const tooltipStyles = `
     padding: 0.5rem 0.65rem;
     border-radius: 0.75rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, rgba(255, 255, 255, 0.08));
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-tooltip-surface, #222222) 88%, var(--boe-token-surface-surface-brand, #0061d5) 12%) 0%,
-        var(--boe-token-surface-tooltip-surface, #222222) 100%
-      );
+    background: var(--boe-token-surface-tooltip-surface, #222222);
     color: rgba(255, 255, 255, 0.94);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 16px 28px rgba(16, 24, 32, 0.18);
+    box-shadow: 0 16px 28px rgba(16, 24, 32, 0.18);
     line-height: 1.45;
   }
 

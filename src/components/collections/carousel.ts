@@ -32,14 +32,8 @@ const carouselStyles = `
     padding: 0.7rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
     border-radius: 0.75rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%, var(--boe-token-surface-surface, #ffffff) 10%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 84%, var(--boe-token-surface-surface-secondary, #fbfbfb) 16%) 100%
-      );
+    background: var(--boe-token-surface-surface-secondary, #fbfbfb);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.82),
       0 18px 36px rgba(15, 23, 42, 0.05);
   }
 
@@ -73,8 +67,6 @@ const carouselStyles = `
       );
     border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.75),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.18),
       0 18px 34px rgba(15, 23, 42, 0.08);
   }
 
@@ -85,14 +77,8 @@ const carouselStyles = `
     padding: 0.7rem 0.75rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-stroke-stroke, #e8e8e8) 90%);
     border-radius: 0.7rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, var(--boe-token-surface-surface-secondary, #fbfbfb) 10%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%, var(--boe-token-surface-surface, #ffffff) 82%) 100%
-      );
+    background: var(--boe-token-surface-surface, #ffffff);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.8),
       0 10px 22px rgba(15, 23, 42, 0.04);
   }
 
@@ -138,17 +124,11 @@ const carouselStyles = `
     block-size: 2.45rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 76%, var(--boe-token-surface-surface, #ffffff) 24%);
     border-radius: 0.7rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%, var(--boe-token-surface-surface, #ffffff) 86%) 100%
-      );
+    background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     font: inherit;
     cursor: pointer;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.74),
       0 10px 20px rgba(15, 23, 42, 0.04);
     transition:
       border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
@@ -163,12 +143,7 @@ const carouselStyles = `
     padding: 0.35rem 0.45rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, var(--boe-token-surface-surface, #ffffff) 30%);
     border-radius: 999px;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, var(--boe-token-surface-surface-secondary, #fbfbfb) 8%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 3%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%, var(--boe-token-surface-surface, #ffffff) 85%) 100%
-      );
+    background: var(--boe-token-surface-surface, #ffffff);
   }
 
   [part~="dot"] {

@@ -65,15 +65,8 @@ const dualListboxStyles = `
     padding: 0.55rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
     border-radius: 0.75rem;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, var(--boe-token-surface-surface, #ffffff) 12%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 4%, var(--boe-token-surface-surface, #ffffff) 82%, var(--boe-token-surface-surface-secondary, #fbfbfb) 14%) 100%
-      );
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.8),
-      0 12px 24px rgba(15, 23, 42, 0.04);
+    background: var(--boe-token-surface-surface-secondary, #fbfbfb);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.04);
   }
 
   [part="list-label"] {
@@ -166,12 +159,7 @@ const dualListboxStyles = `
   [part="move-right"]:hover:not(:disabled),
   [part="move-left"]:hover:not(:disabled) {
     border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 22%, transparent);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 74%, var(--boe-token-surface-surface, #ffffff) 26%) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 6%, var(--boe-token-surface-item-surface-hover, #eef4fb) 68%, var(--boe-token-surface-surface, #ffffff) 26%) 100%
-      );
+    background: var(--boe-token-surface-item-surface-hover, #eef4fb);
   }
 
   [part="empty"] {

@@ -36,12 +36,7 @@ const timeFieldStyles = `
     padding: 0.45rem 0.7rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
     border-radius: 0.7rem;
-    background:
-      linear-gradient(
-        180deg,
-        var(--boe-token-surface-surface, #ffffff) 0%,
-        color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, var(--boe-token-surface-surface-secondary, #fbfbfb) 12%) 100%
-      );
+    background: var(--boe-token-surface-surface, #ffffff);
     transition:
       border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
       background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},

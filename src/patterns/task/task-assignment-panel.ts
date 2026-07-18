@@ -146,11 +146,7 @@ const elementStyles = `
           display: inline-grid;
           place-items: center;
           border-radius: 999px;
-          background: linear-gradient(
-            180deg,
-            color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 82%, var(--boe-token-surface-surface, #ffffff) 18%) 0%,
-            var(--boe-token-surface-surface-brand, #0061d5) 100%
-          );
+          background: var(--boe-token-surface-surface-brand, #0061d5);
           color: var(--boe-token-text-text-on-brand, #ffffff);
           font-weight: 700;
           letter-spacing: 0.04em;
