@@ -110,6 +110,7 @@
     "baselines:regen": "bash tools/preview/container-run.sh 'bun run build && bun tools/preview/capture.ts && bun tools/preview/docs-site-shots.ts'",
     "icons:generate": "bun tools/iconography/generate-box-iconography.ts",
     "bue-conformance": "bun tools/bue-conformance/audit.ts",
+    "bue-conformance:color": "bun tools/bue-conformance/color-audit.ts",
     "storybook:extract": "bun storybook/extract.ts",
     "storybook:dev": "bun run build && bun storybook/server.ts",
     "storybook:build": "bun run build && bun storybook/build.ts"

@@ -17,6 +17,7 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 - [Component Fidelity Audit](./audits/component-fidelity-audit.md) — original scoring snapshot and completed systemic batch record
 - [Audit data](./audits/component-fidelity-audit.data.json) — per-component scores and issues
 - [box-ui-elements Conformance Audit](./audits/bue-conformance-audit.md) — geometry claims diffed against real upstream SCSS (`bun run bue-conformance`)
+- [box-ui-elements Colour & Interaction-State Audit (Layer 2)](./audits/bue-conformance-color-audit.md) — resolved colour/shadow/state claims diffed against the compiled upstream Storybook CSS (`bun run bue-conformance:color`)
 
 ## Foundations
 
