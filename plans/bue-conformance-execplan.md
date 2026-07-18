@@ -92,7 +92,7 @@ bun run verify                                  # typecheck + coverage-gated tes
       badge radius.
 - [x] Runnable audit (`audit.ts`) — curl fetch via proxy + CA, merged-var
       resolution, Markdown + JSON report, `--refresh/--offline/--strict`.
-- [x] Unit tests (`test/tools/bue-conformance.test.ts`, 34 cases — signals +
+- [x] Unit tests (`test/tools/bue-conformance.test.ts`, 37 cases — signals +
       audit workflow via `import.meta.main` guard).
 - [x] First pass run — **12/12 conformant**; report committed.
 - [x] Review hardening (PR #76): pinned upstream revision `v26.0.0` (reproducible,
@@ -106,9 +106,13 @@ bun run verify                                  # typecheck + coverage-gated tes
 - [ ] Broaden Layer 1 (round 2): avatar size, tooltip radius/max-width, select
       height, drawer width, tabs metrics, menu item padding (needs multi-value
       shorthand resolution).
-- [ ] Layer 2 (blocked): allowlist `opensource.box.com` + `*.boxcdn.net`, then
-      drive BUE Storybook in headless Chromium for computed-style/pixel diff of
-      colour, shadow, and interaction states.
+- [ ] Layer 2 (live colour/shadow/state capture): see
+      [`bue-conformance-layer2-handoff.md`](./bue-conformance-layer2-handoff.md)
+      for the environment findings — network is openable, but headless Chromium
+      can't use the MITM proxy directly (curl-backed request interception is the
+      proven workaround) and the public Storybook is blocked by an MSW service
+      worker. Recommended next: compiled-CSS extraction, or the tenant path in a
+      fresh session with `BOX_USERNAME/PASSWORD`.
 - [ ] Optional: add `--strict` to CI once the claim set is broad and stable.
 
 ## Surprises & Discoveries

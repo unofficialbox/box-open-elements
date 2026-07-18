@@ -18,7 +18,7 @@ internal **Storybook workshop** (`storybook/`) whose stories are extracted to
 
 ## Current state (as of this handoff)
 
-- **Branch tip:** develop from current `origin/main`; this snapshot is `3b1d4be` through PR #73.
+- **Branch tip:** develop from current `origin/main`. Current baseline is `67a6749` through PR #76 (box-ui-elements conformance program). The `3b1d4be`/PR #73 references elsewhere in this file are the historical fidelity-program snapshot, not the current tip.
 - **Live site:** GitHub Pages, `https://unofficialbox.github.io/box-open-elements/`,
   auto-deploys on push to `main` via `.github/workflows/deploy.yml`
   (build cmd `bun run site:build`, output `docs-site/dist`). The Workshop is
@@ -142,7 +142,7 @@ organized into **systemic sweeps**, not per-component rewrites.
 - Fidelity program complete; workshop at **108** extracted stories; explorer metadata host chrome shipped.
 - Density peer-consistency + Foundations GFM tables shipped.
 - **BUE visual conformance**: controls, overlays/tabs/feedback, drawer, and pattern shells aligned via `boeOverlay` / `boePanel` geometry tokens.
-- **BUE conformance program** (new): repeatable source-level geometry audit — `bun run bue-conformance` diffs `src/foundations/geometry` against real upstream box-ui-elements SCSS (via `raw.githubusercontent.com`). Report `docs/audits/bue-conformance-audit.md`; plan `plans/bue-conformance-execplan.md`. First pass 17/17 conformant. Live-Storybook colour/pixel layer is deferred until `opensource.box.com` is allowlisted (sandbox blocks all Box hosts + `github.com` clone; only raw file fetch works).
+- **BUE conformance program** (merged #76): repeatable source-level geometry audit — `bun run bue-conformance` diffs `src/foundations/geometry` against real upstream box-ui-elements SCSS (pinned `v26.0.0`). Report `docs/audits/bue-conformance-audit.md`; plan `plans/bue-conformance-execplan.md`. **17/17 conformant.** Live colour/pixel **Layer 2** is not done — see **[`plans/bue-conformance-layer2-handoff.md`](../plans/bue-conformance-layer2-handoff.md)** for the environment findings (network is openable, but headless Chromium can't traverse the MITM proxy directly — a curl-interception workaround is proven — and the public Storybook is blocked by an MSW service worker; tenant path needs `BOX_USERNAME/PASSWORD` in a fresh session).
 - Motion literals migrated to `boeMotionDuration` / `interactive`.
 - Explorer Folder host chrome swaps list/table adapters via filter-bar `onViewChange`.
 - `recents` still needs a transport contract; configurable columns remain open.
