@@ -46,6 +46,12 @@ jobs:
       - name: box-ui-elements geometry conformance (--strict)
         run: bun run bue-conformance --strict || (sleep 10 && bun run bue-conformance --strict --refresh)
 
+      # Offline + deterministic (reads the committed live-Box reference snapshot).
+      # Fails on a colour/geometry token that stops matching the real Box web app;
+      # `accepted-divergence` (documented deliberate choices) passes.
+      - name: Real Box web app conformance (--strict)
+        run: bun run bue-conformance:webapp --strict
+
   visual-regression:
     name: Visual regression (pixel diff, pinned container)
     runs-on: ubuntu-latest

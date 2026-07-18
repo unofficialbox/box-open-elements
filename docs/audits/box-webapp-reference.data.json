@@ -46,7 +46,8 @@
     },
     "SurfaceItemSurfaceHover": {
       "blueprintVar": "--surface-item-surface-hover",
-      "value": "#fff"
+      "value": "#fff",
+      "accepted": "box-open-elements keeps a visible blue hover tint (#eaf2fd); Box's #fff would erase the hover affordance \u2014 an intentional divergence, not drift."
     },
     "SurfaceTooltipSurface": {
       "blueprintVar": "--surface-tooltip-surface",

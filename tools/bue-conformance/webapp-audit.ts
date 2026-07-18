@@ -29,12 +29,12 @@ const REFERENCE = join(REPO_ROOT, "docs/audits/box-webapp-reference.data.json");
 const REPORT_MD = join(REPO_ROOT, "docs/audits/bue-conformance-webapp-audit.md");
 const REPORT_JSON = join(REPO_ROOT, "docs/audits/bue-conformance-webapp-audit.data.json");
 
-export type Verdict = "conformant" | "review" | "missing-boe";
+export type Verdict = "conformant" | "accepted-divergence" | "review" | "missing-boe";
 
 export interface Reference {
   capturedFrom: string;
   capturedOn: string;
-  tokens: Record<string, { blueprintVar: string; value: string }>;
+  tokens: Record<string, { blueprintVar: string; value: string; accepted?: string }>;
   observations?: {
     geometry?: Record<string, { borderRadius?: string } | string>;
   };
@@ -104,9 +104,10 @@ export const TOLERANCE = 0;
 
 /**
  * Compare each Box reference token against the value box-open-elements ships.
- * Both are colours; exact (within tolerance) → `conformant`, else `review`
- * (box-open-elements may diverge intentionally — the font family, for instance,
- * is deliberately Inter-first). `missing-boe` if the catalog lacks the token.
+ * Both are colours; exact (within tolerance) → `conformant`. A mismatch on a
+ * token the reference marks `accepted` (a deliberate box-open-elements choice) →
+ * `accepted-divergence`; any other mismatch → `review`. `missing-boe` if the
+ * catalog lacks the token.
  */
 export function evaluate(
   boeTokens: Record<string, unknown>,
@@ -124,6 +125,7 @@ export function evaluate(
       };
     }
     const delta = boeColor && boxColor ? colorDelta(boeColor, boxColor) : null;
+    const conformant = delta !== null && delta <= TOLERANCE;
     return {
       token,
       blueprintVar: ref.blueprintVar,
@@ -132,13 +134,18 @@ export function evaluate(
       boeCanonical: boeColor ? canonicalColor(boeColor) : null,
       boxCanonical: boxColor ? canonicalColor(boxColor) : null,
       delta,
-      verdict: delta !== null && delta <= TOLERANCE ? "conformant" : "review",
+      verdict: conformant
+        ? "conformant"
+        : ref.accepted
+          ? "accepted-divergence"
+          : "review",
     };
   });
 }
 
 const ICON: Record<Verdict, string> = {
   conformant: "✅",
+  "accepted-divergence": "🎯",
   review: "🔍",
   "missing-boe": "🚫",
 };
@@ -148,7 +155,11 @@ export function computeExitCode(
   strict: boolean,
 ): number {
   if (!strict) return 0;
-  return rows.every(r => r.verdict === "conformant") ? 0 : 1;
+  return rows.every(
+    r => r.verdict === "conformant" || r.verdict === "accepted-divergence",
+  )
+    ? 0
+    : 1;
 }
 
 export function renderMarkdown(
@@ -156,7 +167,12 @@ export function renderMarkdown(
   reference: Reference,
   geometry: GeometryRow[] = [],
 ): string {
-  const counts: Record<Verdict, number> = { conformant: 0, review: 0, "missing-boe": 0 };
+  const counts: Record<Verdict, number> = {
+    conformant: 0,
+    "accepted-divergence": 0,
+    review: 0,
+    "missing-boe": 0,
+  };
   for (const r of rows) counts[r.verdict] += 1;
   const L: string[] = [];
   L.push("# box-ui-elements Conformance Audit — Real Box Web App (webapp layer)");
@@ -181,6 +197,7 @@ export function renderMarkdown(
   L.push("| Verdict | Count |");
   L.push("| --- | ---: |");
   L.push(`| ✅ Conformant | ${counts.conformant} |`);
+  L.push(`| 🎯 Accepted divergence | ${counts["accepted-divergence"]} |`);
   L.push(`| 🔍 Review | ${counts.review} |`);
   L.push(`| 🚫 Missing box-open-elements | ${counts["missing-boe"]} |`);
   L.push(`| **Total tokens** | **${rows.length}** |`);
@@ -199,6 +216,7 @@ export function renderMarkdown(
   L.push("## Legend");
   L.push("");
   L.push("- ✅ **Conformant** — box-open-elements matches the live Box token within tolerance.");
+  L.push("- 🎯 **Accepted divergence** — a deliberate box-open-elements choice recorded as `accepted` in the reference (e.g. the blue item-hover tint vs Box's `#fff`); documented, not drift.");
   L.push("- 🔍 **Review** — differs from what Box ships today (delta = max per-channel difference, 0-255).");
   L.push("- 🚫 **Missing box-open-elements** — the catalog has no matching token.");
   L.push("");
@@ -243,7 +261,8 @@ function main(): void {
   const geoReview = geometry.filter(g => g.verdict !== "conformant").length;
   // eslint-disable-next-line no-console
   console.log(
-    `BUE webapp conformance: ${by("conformant")} conformant, ${by("review")} review, ` +
+    `BUE webapp conformance: ${by("conformant")} conformant, ` +
+      `${by("accepted-divergence")} accepted, ${by("review")} review, ` +
       `${by("missing-boe")} missing (of ${rows.length} tokens); ` +
       `geometry ${geometry.length - geoReview}/${geometry.length} conformant. Report: ${REPORT_MD}`,
   );
