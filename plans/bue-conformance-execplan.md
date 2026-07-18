@@ -73,11 +73,16 @@ shadow / Sass-function values are routed to `review` with both raw values shown
 ## Commands
 
 ```bash
-bun run bue-conformance             # fetch (cached) + regenerate the report
+bun run bue-conformance             # Layer 1: fetch (cached) + regenerate the geometry report
 bun tools/bue-conformance/audit.ts --refresh   # force re-fetch upstream
 bun tools/bue-conformance/audit.ts --offline   # cache only, no network
 bun tools/bue-conformance/audit.ts --strict    # exit 1 on any drift (CI-gate ready)
-bun run test test/tools/bue-conformance.test.ts # harness unit tests
+bun run bue-conformance:color       # Layer 2: fetch (cached) + regenerate the colour/state report
+bun tools/bue-conformance/color-audit.ts --refresh   # force re-fetch the compiled Storybook CSS
+bun tools/bue-conformance/color-audit.ts --offline   # cache only, no network
+bun tools/bue-conformance/color-audit.ts --strict    # exit 1 unless every claim conformant
+bun run test test/tools/bue-conformance.test.ts       # Layer 1 harness unit tests
+bun run test test/tools/bue-conformance-color.test.ts # Layer 2 harness unit tests
 bun run verify                                  # typecheck + coverage-gated tests + build
 ```
 
@@ -106,13 +111,29 @@ bun run verify                                  # typecheck + coverage-gated tes
 - [ ] Broaden Layer 1 (round 2): avatar size, tooltip radius/max-width, select
       height, drawer width, tabs metrics, menu item padding (needs multi-value
       shorthand resolution).
-- [ ] Layer 2 (live colour/shadow/state capture): see
-      [`bue-conformance-layer2-handoff.md`](./bue-conformance-layer2-handoff.md)
-      for the environment findings — network is openable, but headless Chromium
-      can't use the MITM proxy directly (curl-backed request interception is the
-      proven workaround) and the public Storybook is blocked by an MSW service
-      worker. Recommended next: compiled-CSS extraction, or the tenant path in a
-      fresh session with `BOX_USERNAME/PASSWORD`.
+- [x] Layer 2 round 1 — **colour / shadow / interaction state via compiled-CSS
+      extraction (path C)**: `bun run bue-conformance:color` fetches the public
+      box-ui-elements Storybook's compiled (post-Sass, resolved) CSS, extracts
+      the resolved colour/shadow value for each rule + interaction state, and
+      diffs it against the value box-open-elements ships (imported from
+      `src/foundations/tokens` + `src/foundations/geometry`, each claim grounded
+      by a source anchor in the shipped component). Harness:
+      `tools/bue-conformance/{color-signals,css-extract,color-manifest,color-audit}.ts`;
+      report `docs/audits/bue-conformance-color-audit.md` (+ `.data.json`); 50
+      tests. First run: **button family, 11 claims, 8 conformant / 3 review** (the
+      reviews are box-open-elements' intentional Blueprint-modernised hover/text
+      tones — surfaced for judgement, never auto-labelled drift, because the
+      public Storybook still renders legacy button styles). Sidesteps both the
+      headless-Chromium-proxy wall and the Storybook MSW wall entirely.
+- [ ] Layer 2 round 2 — broaden surfaces (badge, menu/overlay, tooltip, inputs,
+      checkbox/radio). The always-loaded main bundle covers the button family;
+      other components' compiled CSS lives in per-story webpack chunks, so
+      broadening means either resolving those chunk URLs or the live-browser
+      paths below.
+- [ ] Layer 2 — live-browser paths (broader coverage): tenant login
+      (`BOX_USERNAME/PASSWORD` in a fresh session) or beating the public
+      Storybook's MSW service worker, driven through the proven curl-interception
+      harness. See [`bue-conformance-layer2-handoff.md`](./bue-conformance-layer2-handoff.md).
 - [ ] Optional: add `--strict` to CI once the claim set is broad and stable.
 
 ## Surprises & Discoveries
@@ -128,6 +149,20 @@ bun run verify                                  # typecheck + coverage-gated tes
 - box-open-elements geometry is already faithful (first pass: 12/12). The
   program's value is *breadth + repeatability + drift alarms*, not finding an
   initial pile of defects.
+- **Layer 2 without a browser is viable.** The public Storybook is a webpack
+  build whose css-loader embeds each compiled stylesheet as a JS string literal
+  (`___CSS_LOADER_EXPORT___.push([module.id,'<CSS>',""])`). Fetching the bundles
+  with `curl` (which traverses the proxy fine) and decoding those literals yields
+  the fully-resolved, post-Sass CSS — colours, shadows, and `:hover/:active/:focus`
+  states — with no headless Chromium and no MSW service worker to fight. The
+  bundle hashes change per deploy, so the audit discovers them from `iframe.html`
+  at run time rather than pinning them.
+- box-open-elements' button colour language is **already faithful where it means
+  to be** (base brand/text/border, primary focus ring, neutral focus border +
+  shadow all match upstream exactly) and **deliberately diverges where Blueprint
+  modernised** (hover darken `#0057c0` vs legacy lighten `#0074fe`; secondary
+  text `#6f6f6f` vs `#4e4e4e`). Layer 2 therefore routes colour differences to
+  `review`, never auto-`drift`.
 
 ## Decision Log
 

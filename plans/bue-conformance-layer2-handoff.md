@@ -11,9 +11,16 @@ hard-won environment findings so you don't re-derive them.
   against real upstream box-ui-elements SCSS (pinned `v26.0.0`), **17/17
   conformant**. Tooling: `tools/bue-conformance/{signals,manifest,audit}.ts`;
   report `docs/audits/bue-conformance-audit.md`; 37 tests.
-- **Layer 2 (live colour / shadow / interaction-state capture) is NOT done** —
-  it needs a real browser to read computed styles / pixels from a rendered
-  reference. This handoff is about unblocking that.
+- **Layer 2 round 1 (colour / shadow / interaction state) is DONE via path C
+  (compiled-CSS extraction) — this branch.** `bun run bue-conformance:color`
+  reads the public Storybook's compiled (post-Sass, resolved) CSS and diffs
+  box-open-elements' shipped colour/shadow/state values against it. Harness:
+  `tools/bue-conformance/{color-signals,css-extract,color-manifest,color-audit}.ts`;
+  report `docs/audits/bue-conformance-color-audit.md`; 50 tests. First run:
+  **button family, 11 claims, 8 conformant / 3 review.** No browser needed —
+  path C sidesteps both walls below. The sections below remain the guide for the
+  **live-browser** paths (needed to broaden past the always-loaded button CSS
+  into per-story component chunks).
 
 ## The goal of Layer 2
 
@@ -123,10 +130,14 @@ section.
 
 Ranked by ROI given the walls above:
 
-- **C — Compiled-CSS extraction (no browser).** Fetch the Storybook's compiled
-  CSS-in-JS bundles via `curl`, extract the resolved colour/shadow declarations
-  (post-Sass), and add them as `review`→auto colour/shadow claims. Gets most of
-  Layer 2's unique value without fighting the browser. Medium effort.
+- **C — Compiled-CSS extraction (no browser). ✅ DONE (round 1, this branch).**
+  Fetched the Storybook's compiled CSS-in-JS bundles via `curl`, decoded the
+  css-loader string literals to recover the resolved (post-Sass) CSS, and diffed
+  the resolved colour/shadow/state values for the button family. See
+  `bun run bue-conformance:color` and `docs/audits/bue-conformance-color-audit.md`.
+  Round 2 (broaden to badge/menu/tooltip/inputs) needs per-story chunk URLs or a
+  live-browser path — the always-loaded main bundle only carries the button
+  family's CSS.
 - **A — Ship Layer 1 as the deliverable; run Layer 2 off-proxy.** Layer 2's live
   capture genuinely wants an environment **without** a MITM proxy (a local
   machine / different CI). Accept the boundary; don't burn cycles here.
