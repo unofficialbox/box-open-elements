@@ -21,7 +21,7 @@ import { fileURLToPath } from "node:url";
 
 import { canonicalColor, colorDelta, parseColor } from "./color-signals.js";
 import { boxDefaultDesignSystem } from "../../src/foundations/tokens/box-defaults.js";
-import { boeControl, boeRadius } from "../../src/foundations/geometry/index.js";
+import { boeControl, boeOverlay, boeRadius } from "../../src/foundations/geometry/index.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(HERE, "..", "..");
@@ -82,6 +82,9 @@ export function evaluateGeometry(reference: Reference): GeometryRow[] {
     cmp("button radius", "boeControl.radius", boeControl.radius, radiusOf("primaryButton")),
     cmp("search field radius", "boeRadius.field", boeRadius.field, radiusOf("searchInput")),
     cmp("nav item radius", "boeRadius.nav", boeRadius.nav, radiusOf("navItem")),
+    cmp("dropdown menu radius", "boeOverlay.radius", boeOverlay.radius, radiusOf("dropdownMenu")),
+    cmp("menu item radius", "boeOverlay.itemRadius", boeOverlay.itemRadius, radiusOf("dropdownMenuItem")),
+    cmp("dialog radius", "boeOverlay.modalRadius", boeOverlay.modalRadius, radiusOf("dialog")),
   ];
 }
 

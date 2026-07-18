@@ -1,39 +1,127 @@
 {
-  "capturedFrom": "app.box.com (Box web app, @boxdemo.com tenant) — Blueprint design system",
+  "capturedFrom": "app.box.com (Box web app, @boxdemo.com tenant) \u2014 Blueprint design system",
   "capturedOn": "2026-07-18",
   "method": "live getComputedStyle of Blueprint design tokens on :root, plus rendered control metrics, captured via a browser signed in to the real Box web app",
-  "note": "This is the conformance GROUND TRUTH — the actual shipping Box product, not the box-ui-elements Storybook. box-open-elements token keys map to Blueprint's semantic custom properties (e.g. TextText -> --text-text-on-light). Values are recorded verbatim (short hex allowed; the audit normalises).",
+  "note": "This is the conformance GROUND TRUTH \u2014 the actual shipping Box product, not the box-ui-elements Storybook. box-open-elements token keys map to Blueprint's semantic custom properties (e.g. TextText -> --text-text-on-light). Values are recorded verbatim (short hex allowed; the audit normalises).",
   "tokens": {
-    "SurfaceSurface": { "blueprintVar": "--surface-surface", "value": "#fff" },
-    "SurfaceSurfaceHover": { "blueprintVar": "--surface-surface-hover", "value": "#f4f4f4" },
-    "SurfaceSurfaceSecondary": { "blueprintVar": "--surface-surface-secondary", "value": "#fbfbfb" },
-    "SurfaceSurfaceTertiary": { "blueprintVar": "--surface-surface-tertiary", "value": "#e8e8e8" },
-    "SurfaceSurfaceQuaternary": { "blueprintVar": "--surface-surface-quaternary", "value": "#d3d3d3" },
-    "SurfaceSurfaceBrand": { "blueprintVar": "--surface-surface-brand", "value": "#0061d5" },
-    "SurfaceSurfaceBrandHover": { "blueprintVar": "--surface-surface-brand-hover", "value": "#006ae9" },
-    "SurfaceSurfaceBrandPressed": { "blueprintVar": "--surface-surface-brand-pressed", "value": "#004eac" },
-    "SurfaceSearchSurface": { "blueprintVar": "--surface-search-surface", "value": "#f4f4f4" },
-    "SurfaceItemSurfaceSelected": { "blueprintVar": "--surface-item-surface-selected", "value": "#f2f7fd" },
-    "SurfaceItemSurfaceHover": { "blueprintVar": "--surface-item-surface-hover", "value": "#fff" },
-    "SurfaceTooltipSurface": { "blueprintVar": "--surface-tooltip-surface", "value": "#4e4e4e" },
-    "SurfaceStatusSurfaceSuccess": { "blueprintVar": "--surface-status-surface-success", "value": "#26c281" },
-    "SurfaceStatusSurfaceError": { "blueprintVar": "--surface-status-surface-error", "value": "#ed3757" },
-    "SurfaceStatusSurfaceInprogress": { "blueprintVar": "--surface-status-surface-inprogress", "value": "#f5b31b" },
-    "TextText": { "blueprintVar": "--text-text-on-light", "value": "#222" },
-    "TextTextSecondary": { "blueprintVar": "--text-text-on-light-secondary", "value": "#6f6f6f" },
-    "TextTextPlaceholder": { "blueprintVar": "--text-text-on-light-tertiary", "value": "#909090" },
-    "TextTextOnBrand": { "blueprintVar": "--text-text-on-dark", "value": "#fff" },
-    "TextTextDanger": { "blueprintVar": "--text-text-destructive-on-light", "value": "#d5324e" }
+    "SurfaceSurface": {
+      "blueprintVar": "--surface-surface",
+      "value": "#fff"
+    },
+    "SurfaceSurfaceHover": {
+      "blueprintVar": "--surface-surface-hover",
+      "value": "#f4f4f4"
+    },
+    "SurfaceSurfaceSecondary": {
+      "blueprintVar": "--surface-surface-secondary",
+      "value": "#fbfbfb"
+    },
+    "SurfaceSurfaceTertiary": {
+      "blueprintVar": "--surface-surface-tertiary",
+      "value": "#e8e8e8"
+    },
+    "SurfaceSurfaceQuaternary": {
+      "blueprintVar": "--surface-surface-quaternary",
+      "value": "#d3d3d3"
+    },
+    "SurfaceSurfaceBrand": {
+      "blueprintVar": "--surface-surface-brand",
+      "value": "#0061d5"
+    },
+    "SurfaceSurfaceBrandHover": {
+      "blueprintVar": "--surface-surface-brand-hover",
+      "value": "#006ae9"
+    },
+    "SurfaceSurfaceBrandPressed": {
+      "blueprintVar": "--surface-surface-brand-pressed",
+      "value": "#004eac"
+    },
+    "SurfaceSearchSurface": {
+      "blueprintVar": "--surface-search-surface",
+      "value": "#f4f4f4"
+    },
+    "SurfaceItemSurfaceSelected": {
+      "blueprintVar": "--surface-item-surface-selected",
+      "value": "#f2f7fd"
+    },
+    "SurfaceItemSurfaceHover": {
+      "blueprintVar": "--surface-item-surface-hover",
+      "value": "#fff"
+    },
+    "SurfaceTooltipSurface": {
+      "blueprintVar": "--surface-tooltip-surface",
+      "value": "#4e4e4e"
+    },
+    "SurfaceStatusSurfaceSuccess": {
+      "blueprintVar": "--surface-status-surface-success",
+      "value": "#26c281"
+    },
+    "SurfaceStatusSurfaceError": {
+      "blueprintVar": "--surface-status-surface-error",
+      "value": "#ed3757"
+    },
+    "SurfaceStatusSurfaceInprogress": {
+      "blueprintVar": "--surface-status-surface-inprogress",
+      "value": "#f5b31b"
+    },
+    "TextText": {
+      "blueprintVar": "--text-text-on-light",
+      "value": "#222"
+    },
+    "TextTextSecondary": {
+      "blueprintVar": "--text-text-on-light-secondary",
+      "value": "#6f6f6f"
+    },
+    "TextTextPlaceholder": {
+      "blueprintVar": "--text-text-on-light-tertiary",
+      "value": "#909090"
+    },
+    "TextTextOnBrand": {
+      "blueprintVar": "--text-text-on-dark",
+      "value": "#fff"
+    },
+    "TextTextDanger": {
+      "blueprintVar": "--text-text-destructive-on-light",
+      "value": "#d5324e"
+    }
   },
   "observations": {
     "stroke": "Box control borders use opacity-based colours (rgba(0,0,0,0.12) rest / rgba(0,0,0,0.9) outline), not a solid stroke token; box-open-elements' StrokeStroke #e8e8e8 / StrokeStrokeHover #bcbcbc are the solid analogue and are not diffed here.",
     "typography": "Every Blueprint --*-font-family token resolves to Lato; box-open-elements intentionally keeps InterVariable-first (per maintainer decision), so the family divergence is by design, not drift.",
     "geometry": {
-      "primaryButton": { "borderRadius": "20px", "height": "32px", "font": "Lato", "fontSize": "15px" },
-      "secondaryButton": { "borderRadius": "20px", "height": "40px", "font": "Lato", "fontSize": "15px" },
-      "searchInput": { "borderRadius": "24px", "height": "48px", "font": "Lato", "fontSize": "15px" },
-      "navItem": { "borderRadius": "28px" },
-      "note": "Box ships pill-shaped controls (radius 20-28px); box-open-elements controls use boeRadius.med (6px) — the geometry gap the pill-radius reconciliation addresses."
+      "primaryButton": {
+        "borderRadius": "20px",
+        "height": "32px",
+        "font": "Lato",
+        "fontSize": "15px"
+      },
+      "secondaryButton": {
+        "borderRadius": "20px",
+        "height": "40px",
+        "font": "Lato",
+        "fontSize": "15px"
+      },
+      "searchInput": {
+        "borderRadius": "24px",
+        "height": "48px",
+        "font": "Lato",
+        "fontSize": "15px"
+      },
+      "navItem": {
+        "borderRadius": "28px"
+      },
+      "note": "Box ships pill-shaped controls (radius 20-28px); box-open-elements controls use boeRadius.med (6px) \u2014 the geometry gap the pill-radius reconciliation addresses.",
+      "dropdownMenu": {
+        "borderRadius": "20px",
+        "note": "Blueprint bp_dropdown_menu content"
+      },
+      "dropdownMenuItem": {
+        "borderRadius": "12px"
+      },
+      "dialog": {
+        "borderRadius": "24px",
+        "note": "Blueprint bp_modal content"
+      }
     }
   }
 }
