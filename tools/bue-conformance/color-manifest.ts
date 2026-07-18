@@ -159,7 +159,7 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     boeValue: T.SurfaceSurfaceBrandPressed,
     kind: "color",
     boeComponent: BUTTON,
-    boeAnchor: "background: var(--boe-token-surface-surface-brand-pressed, #004eaa)",
+    boeAnchor: "background: var(--boe-token-surface-surface-brand-pressed, #004eac)",
     upstream: { selector: ".btn-primary", state: "active", property: "background-color" },
     tolerance: 0,
     citation: ".btn-primary:active background-color",

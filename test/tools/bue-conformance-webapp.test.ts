@@ -108,10 +108,10 @@ describe("box-open-elements vs the committed live-Box reference", () => {
       reference,
     );
     const conformant = rows.filter(r => r.verdict === "conformant").length;
-    // 17/20 tokens match the real Box app (brand-hover + tooltip fixed to match);
-    // the 3 reviews are brand-pressed (Δ2), item-surface-hover, and text-danger.
+    // 19/20 tokens match the real Box app; the sole remaining review is
+    // SurfaceItemSurfaceHover (box-open-elements keeps a blue hover tint vs Box #fff).
     expect(rows).toHaveLength(20);
-    expect(conformant).toBe(17);
+    expect(conformant).toBe(19);
     // the two corrected tokens now match the live app exactly
     expect(rows.find(r => r.token === "SurfaceSurfaceBrandHover")!.verdict).toBe("conformant");
     expect(rows.find(r => r.token === "SurfaceTooltipSurface")!.verdict).toBe("conformant");

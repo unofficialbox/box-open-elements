@@ -51,8 +51,8 @@ const buttonStyles = `
   }
 
   button:active:not(:disabled) {
-    background: var(--boe-token-surface-surface-brand-pressed, #004eaa);
-    border-color: var(--boe-token-surface-surface-brand-pressed, #004eaa);
+    background: var(--boe-token-surface-surface-brand-pressed, #004eac);
+    border-color: var(--boe-token-surface-surface-brand-pressed, #004eac);
     box-shadow: none;
   }
 

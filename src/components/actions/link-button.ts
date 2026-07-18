@@ -61,7 +61,7 @@ const linkButtonStyles = `
   }
 
   [part="link"]:active {
-    color: var(--boe-token-surface-surface-brand-pressed, #004eaa);
+    color: var(--boe-token-surface-surface-brand-pressed, #004eac);
     background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, transparent);
   }
 

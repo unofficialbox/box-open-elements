@@ -547,10 +547,10 @@ describe("evaluate", () => {
     expect(byId("button.primary.hover.background").delta).toBe(21);
   });
 
-  it("yields the expected verdict mix (20 conformant, 6 review)", () => {
+  it("yields the expected verdict mix (21 conformant, 5 review)", () => {
     const conformant = rows.filter(r => r.verdict === "conformant").length;
     const review = rows.filter(r => r.verdict === "review").length;
-    expect({ conformant, review }).toEqual({ conformant: 20, review: 6 });
+    expect({ conformant, review }).toEqual({ conformant: 21, review: 5 });
   });
 
   it("resolves the round-2 surfaces (menu + badge)", () => {
@@ -597,8 +597,8 @@ describe("renderMarkdown", () => {
     const md = renderMarkdown(rows, ["main.abc.iframe.bundle.js"]);
     expect(md).toContain("Layer 2");
     expect(md).toContain("**1**");
-    expect(md).toContain("| ✅ Conformant | 20 |");
-    expect(md).toContain("| 🔍 Review | 6 |");
+    expect(md).toContain("| ✅ Conformant | 21 |");
+    expect(md).toContain("| 🔍 Review | 5 |");
     for (const claim of COLOR_CLAIMS) {
       expect(md).toContain(claim.citation);
     }
