@@ -108,12 +108,32 @@ describe("box-open-elements vs the committed live-Box reference", () => {
       reference,
     );
     const conformant = rows.filter(r => r.verdict === "conformant").length;
-    // 19/20 tokens match the real Box app; the sole remaining review is
-    // SurfaceItemSurfaceHover (box-open-elements keeps a blue hover tint vs Box #fff).
+    // 19/20 tokens match the real Box app; the sole divergence is
+    // SurfaceItemSurfaceHover (box-open-elements' intentional blue hover tint vs
+    // Box #fff), marked `accepted` in the reference — so no `review` remains.
     expect(rows).toHaveLength(20);
     expect(conformant).toBe(19);
-    // the two corrected tokens now match the live app exactly
+    expect(rows.filter(r => r.verdict === "review")).toHaveLength(0);
+    expect(rows.find(r => r.token === "SurfaceItemSurfaceHover")!.verdict).toBe(
+      "accepted-divergence",
+    );
     expect(rows.find(r => r.token === "SurfaceSurfaceBrandHover")!.verdict).toBe("conformant");
     expect(rows.find(r => r.token === "SurfaceTooltipSurface")!.verdict).toBe("conformant");
+    // With only conformant + accepted-divergence, the audit passes --strict.
+    expect(computeExitCode([...rows, ...evaluateGeometry(reference)], true)).toBe(0);
+  });
+
+  it("routes an unmarked mismatch to review, but an `accepted` one to accepted-divergence", () => {
+    const base = {
+      capturedFrom: "x",
+      capturedOn: "x",
+      tokens: {
+        A: { blueprintVar: "--a", value: "#000000" },
+      },
+    } as Reference;
+    expect(evaluate({ A: "#111111" }, base)[0].verdict).toBe("review");
+    base.tokens.A.accepted = "intentional";
+    expect(evaluate({ A: "#111111" }, base)[0].verdict).toBe("accepted-divergence");
+    expect(computeExitCode(evaluate({ A: "#111111" }, base), true)).toBe(0);
   });
 });
