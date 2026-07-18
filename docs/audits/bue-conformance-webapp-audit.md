@@ -64,4 +64,15 @@ Verifies box-open-elements' pill radii against the live Box app — these are th
 | ✅ | menu item radius | 12px | 12px | `boeOverlay.itemRadius` |
 | ✅ | dialog radius | 24px | 24px | `boeOverlay.modalRadius` |
 
+## Interaction states
+
+Verifies box-open-elements' state tokens against the colour the live Box app **actually renders** for each surface in that state — captured in-situ by resolving each component's `:hover`/`:active` rule against Blueprint's `:root` (see the reference's `observations.states`). This confirms the semantic tokens above are the ones the real surfaces render, not just that the token *values* match.
+
+| | Surface | State | box-open-elements | Real Box (rendered) | Δ | Token |
+| --- | --- | --- | --- | --- | ---: | --- |
+| ✅ | primary button | hover | rgba(0, 106, 233, 1) | rgba(0, 106, 233, 1) | 0 | `SurfaceSurfaceBrandHover` |
+| ✅ | primary button | active | rgba(0, 78, 172, 1) | rgba(0, 78, 172, 1) | 0 | `SurfaceSurfaceBrandPressed` |
+| ✅ | menu item / interactive control | hover | rgba(244, 244, 244, 1) | rgba(244, 244, 244, 1) | 0 | `SurfaceSurfaceHover` |
+| 🎯 | file-list row | hover | rgba(234, 242, 253, 1) | rgba(244, 244, 244, 1) | 10 | `SurfaceItemSurfaceHover` |
+
 Typography is a deliberate divergence (box-open-elements keeps `InterVariable`-first; Box ships Lato) recorded in the reference's `observations`, not audited here.
