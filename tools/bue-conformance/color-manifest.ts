@@ -101,6 +101,13 @@ const BADGE = "src/components/feedback/badge.ts";
 const CHECKBOX = "src/components/forms/checkbox.ts";
 const RADIO = "src/components/forms/radio-group.ts";
 const TOOLTIP = "src/components/overlays/tooltip.ts";
+const AVATAR = "src/components/identity/avatar.ts";
+const PILL_CLOUD = "src/components/forms/pill-cloud.ts";
+const TAG_INPUT = "src/components/forms/tag-input.ts";
+const SPINNER = "src/components/feedback/spinner.ts";
+const FIELDSET = "src/components/forms/fieldset.ts";
+const SEARCH_FIELD = "src/components/forms/search-field.ts";
+const TEXT_AREA = "src/components/forms/text-area.ts";
 
 export const COLOR_CLAIMS: readonly ColorClaim[] = [
   // === Primary button (box-button, default tone) ↔ upstream `.btn-primary` ===
@@ -439,5 +446,145 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     upstream: { selector: ".bdl-Tooltip", state: "base", property: "color" },
     tolerance: 0,
     citation: ".bdl-Tooltip color",
+  },
+
+  // === Avatar (box-avatar) ↔ upstream `.avatar .avatar-initials` ===
+  // box-open-elements' AVATAR_COLORS palette is an exact ordered match to
+  // upstream's `data-bg-idx` generated-colour set; the default (index 0) and the
+  // initials text are the two values declared as CSS in the component.
+  {
+    id: "avatar.background",
+    surface: "avatar",
+    boeConst: "avatar.ts AVATAR_COLORS[0] (= surface-surface-brand #0061d5)",
+    boeValue: "#0061d5",
+    kind: "color",
+    boeComponent: AVATAR,
+    boeAnchor: "background: var(--avatar-bg, #0061d5)",
+    upstream: { rawSelector: '.avatar .avatar-initials[data-bg-idx="0"]', property: "background-color" },
+    tolerance: 0,
+    citation: '.avatar .avatar-initials[data-bg-idx="0"] background-color (default generated avatar fill)',
+  },
+  {
+    id: "avatar.initials.text",
+    surface: "avatar",
+    boeConst: "avatar.ts initials text colour",
+    boeValue: "#ffffff",
+    kind: "color",
+    boeComponent: AVATAR,
+    boeAnchor: "color: #ffffff",
+    upstream: { rawSelector: ".avatar .avatar-initials", property: "color" },
+    tolerance: 0,
+    citation: ".avatar .avatar-initials color (initials over the generated avatar background)",
+  },
+
+  // === Pill cloud (box-pill-cloud) ↔ upstream `.bdl-Pill.bdl-PillCloud-button` ===
+  {
+    id: "pillcloud.pill.background",
+    surface: "pill-cloud",
+    boeConst: "SurfaceSurface",
+    boeValue: T.SurfaceSurface,
+    kind: "color",
+    boeComponent: PILL_CLOUD,
+    boeAnchor: "background: var(--boe-token-surface-surface, #ffffff)",
+    upstream: { selector: ".bdl-Pill.bdl-PillCloud-button", state: "base", property: "background-color" },
+    tolerance: 0,
+    citation: ".bdl-Pill.bdl-PillCloud-button background-color (resting pill fill)",
+  },
+  {
+    id: "pillcloud.pill.brand.border",
+    surface: "pill-cloud",
+    boeConst: "SurfaceSurfaceBrand",
+    boeValue: T.SurfaceSurfaceBrand,
+    kind: "color",
+    boeComponent: PILL_CLOUD,
+    boeAnchor: "border-color: var(--boe-token-surface-surface-brand, #0061d5)",
+    // Same brand-blue outline; box-open-elements applies it on selection, upstream
+    // renders it on the resting pill — the colour value is what conformance checks.
+    upstream: { selector: ".bdl-Pill.bdl-PillCloud-button", state: "base", property: "border" },
+    tolerance: 0,
+    citation: ".bdl-Pill.bdl-PillCloud-button border (brand outline; box-open-elements on selection, upstream at rest)",
+  },
+
+  // === Tag input (box-tag-input) ↔ upstream `.bdl-PillSelector.is-focused` ===
+  {
+    id: "taginput.control.focus.border",
+    surface: "tag-input",
+    boeConst: "SurfaceSurfaceBrand",
+    boeValue: T.SurfaceSurfaceBrand,
+    kind: "color",
+    boeComponent: TAG_INPUT,
+    boeAnchor: "border-color: var(--boe-token-surface-surface-brand, #0061d5)",
+    upstream: {
+      rawSelector: ".bdl-PillSelectorDropdown .bdl-PillSelector.is-focused",
+      property: "border-color",
+    },
+    tolerance: 0,
+    citation: ".bdl-PillSelectorDropdown .bdl-PillSelector.is-focused border-color (focused pill-entry field)",
+  },
+
+  // === Spinner (box-spinner) ↔ upstream `.crawler div` (BUIK loading indicator) ===
+  {
+    id: "spinner.indicator.brand",
+    surface: "spinner/loading",
+    boeConst: "SurfaceSurfaceBrand",
+    boeValue: T.SurfaceSurfaceBrand,
+    kind: "color",
+    boeComponent: SPINNER,
+    boeAnchor: "border-top-color: var(--boe-token-surface-surface-brand, #0061d5)",
+    upstream: { rawSelector: ".crawler div", property: "background-color" },
+    tolerance: 0,
+    citation: ".crawler div background-color (BUIK loading-indicator bar) ↔ box-open-elements spinner brand arc",
+  },
+
+  // === Form label (box-fieldset legend) ↔ upstream `.bdl-Label` ===
+  {
+    id: "label.text",
+    surface: "form/label",
+    boeConst: "TextTextSecondary",
+    boeValue: T.TextTextSecondary,
+    kind: "color",
+    boeComponent: FIELDSET,
+    boeAnchor: "color: var(--boe-token-text-text-secondary, #6f6f6f)",
+    upstream: { selector: ".bdl-Label", state: "base", property: "color" },
+    tolerance: 0,
+    citation: ".bdl-Label color (BDL form field label) ↔ box-open-elements fieldset label text",
+  },
+
+  // === Text inputs (box-search-field / box-text-area) ↔ upstream box-inputs base ===
+  {
+    id: "text-field.input.text",
+    surface: "text-field/input",
+    boeConst: "TextText",
+    boeValue: T.TextText,
+    kind: "color",
+    boeComponent: SEARCH_FIELD,
+    boeAnchor: "color: var(--boe-token-text-text, #222222)",
+    upstream: { rawSelector: "input[type=text]", property: "color" },
+    tolerance: 0,
+    citation: "input[type=text] (box-inputs base mixin) color — text/search input text colour",
+  },
+  {
+    id: "text-area.textarea.text",
+    surface: "text-area",
+    boeConst: "TextText",
+    boeValue: T.TextText,
+    kind: "color",
+    boeComponent: TEXT_AREA,
+    boeAnchor: "color: var(--boe-token-text-text, #222222)",
+    upstream: { rawSelector: "textarea", property: "color" },
+    tolerance: 0,
+    citation: "textarea (box-inputs base mixin) color — text-area text colour",
+  },
+  {
+    id: "text-area.textarea.focus.border",
+    surface: "text-area",
+    boeConst: "SurfaceSurfaceBrand",
+    boeValue: T.SurfaceSurfaceBrand,
+    kind: "color",
+    boeComponent: TEXT_AREA,
+    boeAnchor: "border-color: var(--boe-token-surface-surface-brand, #0061d5)",
+    upstream: { selector: "textarea", state: "focus", property: "border" },
+    tolerance: 0,
+    citation: "textarea:focus border (box-inputs base mixin) — focus border tracks brand blue",
   },
 ] as const;

@@ -390,6 +390,15 @@ const FIXTURE_CSS = [
   ".checkbox-label>input[type=checkbox]+span::after{border-right:2px solid #0061d5;border-bottom:2px solid #0061d5}",
   ".radio-label>input[type=radio]:checked+span::before{background-color:#0061d5;border:3px solid #fff}",
   ".bdl-Tooltip{background-color:#4e4e4e;color:#fff;border-radius:4px}",
+  // Round-5 broadening: avatar, pill-cloud, tag-input, spinner, form label, text inputs.
+  '.avatar .avatar-initials[data-bg-idx="0"]{background-color:#0061d5}',
+  ".avatar .avatar-initials{display:flex;color:#fff;font-weight:bold}",
+  ".bdl-Pill.bdl-PillCloud-button{display:inline-block;margin:3px;color:#0061d5;background-color:#fff;border:1px solid #0061d5}",
+  ".bdl-PillSelectorDropdown .bdl-PillSelector.is-focused{border-color:#0061d5;outline:0;box-shadow:none}",
+  ".crawler div{display:inline-block;width:2px;height:10px;background-color:#0061d5;border-radius:4px}",
+  ".bdl-Label,.label{display:block;color:#6f6f6f;font-weight:bold}",
+  "input[type=text],input[type=date],div[contentEditable=true],textarea{width:262px;padding:7px;color:#222;border:1px solid #d3d3d3}",
+  "input[type=text]:focus,textarea:focus{border:1px solid #0061d5;outline:0}",
 ].join("\n");
 
 describe("extractCompiledDeclarations", () => {
@@ -500,15 +509,10 @@ describe("parseBundleNames", () => {
 });
 
 const readSrc = (rel: string): string => readFileSync(join(process.cwd(), rel), "utf8");
+// Derived from the manifest so new claim families are covered automatically —
+// the "every anchor grounded" test then guards every shipped component.
 const COMPONENT_SOURCE = new Map<string, string | null>(
-  [
-    "src/components/actions/button.ts",
-    "src/components/actions/menu-item.ts",
-    "src/components/feedback/badge.ts",
-    "src/components/forms/checkbox.ts",
-    "src/components/forms/radio-group.ts",
-    "src/components/overlays/tooltip.ts",
-  ].map(rel => [rel, readSrc(rel)]),
+  [...new Set(COLOR_CLAIMS.map(c => c.boeComponent))].map(rel => [rel, readSrc(rel)]),
 );
 
 describe("anchorPresent", () => {
@@ -547,10 +551,24 @@ describe("evaluate", () => {
     expect(byId("button.primary.hover.background").delta).toBe(21);
   });
 
-  it("yields the expected verdict mix (21 conformant, 5 review)", () => {
+  it("yields the expected verdict mix (31 conformant, 5 review)", () => {
     const conformant = rows.filter(r => r.verdict === "conformant").length;
     const review = rows.filter(r => r.verdict === "review").length;
-    expect({ conformant, review }).toEqual({ conformant: 21, review: 5 });
+    expect({ conformant, review }).toEqual({ conformant: 31, review: 5 });
+  });
+
+  it("resolves the round-5 surfaces (avatar, pill, spinner, label, inputs)", () => {
+    const byId = (id: string): Row => rows.find(r => r.claim.id === id)!;
+    expect(byId("avatar.background").verdict).toBe("conformant");
+    expect(byId("avatar.initials.text").verdict).toBe("conformant");
+    expect(byId("pillcloud.pill.background").verdict).toBe("conformant");
+    expect(byId("pillcloud.pill.brand.border").verdict).toBe("conformant");
+    expect(byId("taginput.control.focus.border").verdict).toBe("conformant");
+    expect(byId("spinner.indicator.brand").verdict).toBe("conformant");
+    expect(byId("label.text").verdict).toBe("conformant");
+    expect(byId("text-field.input.text").verdict).toBe("conformant");
+    expect(byId("text-area.textarea.text").verdict).toBe("conformant");
+    expect(byId("text-area.textarea.focus.border").verdict).toBe("conformant");
   });
 
   it("resolves the round-2 surfaces (menu + badge)", () => {
@@ -597,7 +615,7 @@ describe("renderMarkdown", () => {
     const md = renderMarkdown(rows, ["main.abc.iframe.bundle.js"]);
     expect(md).toContain("Layer 2");
     expect(md).toContain("**1**");
-    expect(md).toContain("| ✅ Conformant | 21 |");
+    expect(md).toContain("| ✅ Conformant | 31 |");
     expect(md).toContain("| 🔍 Review | 5 |");
     for (const claim of COLOR_CLAIMS) {
       expect(md).toContain(claim.citation);

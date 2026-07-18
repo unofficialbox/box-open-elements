@@ -10,11 +10,11 @@ Read from **58** compiled Storybook bundle(s) carrying CSS (the always-loaded bu
 
 | Verdict | Count |
 | --- | ---: |
-| ✅ Conformant | 21 |
+| ✅ Conformant | 31 |
 | 🔍 Review | 5 |
 | ⚠️ Missing upstream | 0 |
 | 🚫 Missing box-open-elements | 0 |
-| **Total claims** | **26** |
+| **Total claims** | **36** |
 
 ## Claims
 
@@ -46,6 +46,16 @@ Read from **58** compiled Storybook bundle(s) carrying CSS (the always-loaded bu
 | ✅ | checkbox | `SurfaceSurfaceBrand` | rgba(0, 97, 213, 1) | rgba(0, 97, 213, 1) | 0 | .checkbox-label>input[type=checkbox]+span::after border (checked mark) |
 | ✅ | radio | `SurfaceSurfaceBrand` | rgba(0, 97, 213, 1) | rgba(0, 97, 213, 1) | 0 | .radio-label>input[type=radio]:checked+span::before background-color |
 | 🔍 | tooltip | `tooltip.ts label colour` | rgba(255, 255, 255, 0.94) | rgba(255, 255, 255, 1) | 15 | .bdl-Tooltip color |
+| ✅ | avatar | `avatar.ts AVATAR_COLORS[0] (= surface-surface-brand #0061d5)` | rgba(0, 97, 213, 1) | rgba(0, 97, 213, 1) | 0 | .avatar .avatar-initials[data-bg-idx="0"] background-color (default generated avatar fill) |
+| ✅ | avatar | `avatar.ts initials text colour` | rgba(255, 255, 255, 1) | rgba(255, 255, 255, 1) | 0 | .avatar .avatar-initials color (initials over the generated avatar background) |
+| ✅ | pill-cloud | `SurfaceSurface` | rgba(255, 255, 255, 1) | rgba(255, 255, 255, 1) | 0 | .bdl-Pill.bdl-PillCloud-button background-color (resting pill fill) |
+| ✅ | pill-cloud | `SurfaceSurfaceBrand` | rgba(0, 97, 213, 1) | rgba(0, 97, 213, 1) | 0 | .bdl-Pill.bdl-PillCloud-button border (brand outline; box-open-elements on selection, upstream at rest) |
+| ✅ | tag-input | `SurfaceSurfaceBrand` | rgba(0, 97, 213, 1) | rgba(0, 97, 213, 1) | 0 | .bdl-PillSelectorDropdown .bdl-PillSelector.is-focused border-color (focused pill-entry field) |
+| ✅ | spinner/loading | `SurfaceSurfaceBrand` | rgba(0, 97, 213, 1) | rgba(0, 97, 213, 1) | 0 | .crawler div background-color (BUIK loading-indicator bar) ↔ box-open-elements spinner brand arc |
+| ✅ | form/label | `TextTextSecondary` | rgba(111, 111, 111, 1) | rgba(111, 111, 111, 1) | 0 | .bdl-Label color (BDL form field label) ↔ box-open-elements fieldset label text |
+| ✅ | text-field/input | `TextText` | rgba(34, 34, 34, 1) | rgba(34, 34, 34, 1) | 0 | input[type=text] (box-inputs base mixin) color — text/search input text colour |
+| ✅ | text-area | `TextText` | rgba(34, 34, 34, 1) | rgba(34, 34, 34, 1) | 0 | textarea (box-inputs base mixin) color — text-area text colour |
+| ✅ | text-area | `SurfaceSurfaceBrand` | rgba(0, 97, 213, 1) | rgba(0, 97, 213, 1) | 0 | textarea:focus border (box-inputs base mixin) — focus border tracks brand blue |
 
 ## Legend
 
