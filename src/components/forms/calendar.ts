@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-calendar";
 
@@ -80,7 +81,7 @@ const calendarStyles = `
     max-inline-size: 100%;
     padding: 0.7rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-    border-radius: 0.7rem;
+    border-radius: ${boeRadius.large};
     background: var(--boe-token-surface-surface, #ffffff);
   }
 
@@ -106,7 +107,7 @@ const calendarStyles = `
     block-size: 2rem;
     padding: 0;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-    border-radius: 0.6rem;
+    border-radius: ${boeRadius.control};
     background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     cursor: pointer;
@@ -162,7 +163,7 @@ const calendarStyles = `
     block-size: 2.1rem;
     padding: 0;
     border: 1px solid transparent;
-    border-radius: 0.55rem;
+    border-radius: ${boeRadius.med};
     background: transparent;
     font: inherit;
     font-size: 0.82rem;

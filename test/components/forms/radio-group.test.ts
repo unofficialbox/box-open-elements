@@ -210,7 +210,7 @@ describe("BoxRadioGroupElement", () => {
     expect(styles).toContain('[part~="option"]:focus-within');
     expect(styles).toContain('[part~="option-selected"]');
     expect(styles).toContain("padding: 0.4rem 0.55rem;");
-    expect(styles).toContain("border-radius: 0.55rem;");
+    expect(styles).toContain("border-radius: 12px;");
     expect(styles).toContain("--boe-token-surface-surface-brand");
     expect(styles).toContain('[part~="option"]:hover:not(:has([part="input"]:disabled))');
     expect(styles).toContain('[part~="option"]:active:not(:has([part="input"]:disabled))');

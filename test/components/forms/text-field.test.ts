@@ -89,7 +89,7 @@ describe("BoxTextFieldElement", () => {
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("min-height: 32px");
     expect(styles).toContain("padding: 7px");
-    expect(styles).toContain("border-radius: 6px");
+    expect(styles).toContain("border-radius: 12px");
     expect(styles).toContain("inset 0 2px 4px");
   });
 });

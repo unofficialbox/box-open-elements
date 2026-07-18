@@ -1,6 +1,7 @@
 import { BaseElement } from "../../core/index.js";
 import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-tree-grid";
 
@@ -61,7 +62,7 @@ const treeGridStyles = `
     place-items: center;
     appearance: none;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
-    border-radius: 0.375rem;
+    border-radius: ${boeRadius.control};
     padding: 0;
     line-height: 1;
     background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 94%, #eef4fb 6%);
@@ -90,7 +91,7 @@ const treeGridStyles = `
     display: grid;
     gap: 0;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-    border-radius: 0.7rem;
+    border-radius: ${boeRadius.large};
     overflow: hidden;
     background: var(--boe-token-surface-surface, #ffffff);
   }
@@ -152,7 +153,7 @@ const treeGridStyles = `
     place-items: center;
     appearance: none;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
-    border-radius: 0.35rem;
+    border-radius: ${boeRadius.control};
     padding: 0;
     line-height: 1;
     background: var(--boe-token-surface-surface, #ffffff);
@@ -187,7 +188,7 @@ const treeGridStyles = `
     appearance: none;
     text-align: left;
     border: 1px solid transparent;
-    border-radius: 0.6rem;
+    border-radius: ${boeRadius.med};
     padding: 0.35rem 0.5rem;
     background: transparent;
     color: var(--boe-token-text-text, #222222);

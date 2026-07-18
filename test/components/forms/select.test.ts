@@ -46,7 +46,7 @@ describe("BoxSelectElement", () => {
     expect(styles).toContain("gap: 8px");
     expect(styles).toContain("min-height: 34px");
     expect(styles).toContain("padding: 5px 25px 5px 10px");
-    expect(styles).toContain("border-radius: 6px");
+    expect(styles).toContain("border-radius: 20px");
   });
 
   it("forwards disabled state to the select", () => {

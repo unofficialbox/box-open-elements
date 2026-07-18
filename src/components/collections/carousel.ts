@@ -1,6 +1,7 @@
 import { BaseElement } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-carousel";
 
@@ -31,7 +32,7 @@ const carouselStyles = `
     gap: 0.55rem;
     padding: 0.7rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
-    border-radius: 0.75rem;
+    border-radius: ${boeRadius.large};
     background: var(--boe-token-surface-surface-secondary, #fbfbfb);
     box-shadow:
       0 18px 36px rgba(15, 23, 42, 0.05);
@@ -56,7 +57,7 @@ const carouselStyles = `
     inline-size: 100%;
     block-size: 100%;
     min-block-size: 12rem;
-    border-radius: 0.7rem;
+    border-radius: ${boeRadius.med};
     object-fit: cover;
     background:
       linear-gradient(
@@ -76,7 +77,7 @@ const carouselStyles = `
     align-content: center;
     padding: 0.7rem 0.75rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-stroke-stroke, #e8e8e8) 90%);
-    border-radius: 0.7rem;
+    border-radius: ${boeRadius.med};
     background: var(--boe-token-surface-surface, #ffffff);
     box-shadow:
       0 10px 22px rgba(15, 23, 42, 0.04);
@@ -123,7 +124,7 @@ const carouselStyles = `
     inline-size: 2.45rem;
     block-size: 2.45rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 76%, var(--boe-token-surface-surface, #ffffff) 24%);
-    border-radius: 0.7rem;
+    border-radius: ${boeRadius.control};
     background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     font: inherit;

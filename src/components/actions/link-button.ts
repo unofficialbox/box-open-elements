@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-link-button";
@@ -42,7 +43,7 @@ const linkButtonStyles = `
     line-height: 1.2;
     padding: 0.35em 0.6em;
     margin: -0.35em -0.6em;
-    border-radius: 0.55rem;
+    border-radius: ${boeRadius.control};
     color: var(--boe-token-surface-surface-brand, #0061d5);
     text-decoration: none;
     text-underline-offset: 0.2em;

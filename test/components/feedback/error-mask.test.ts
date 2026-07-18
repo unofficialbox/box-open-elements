@@ -73,7 +73,7 @@ describe("BoxErrorMaskElement", () => {
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("padding: 40px;");
-    expect(styles).toContain("border-radius: 6px;");
+    expect(styles).toContain("border-radius: 16px;");
     expect(styles).toContain("border: 1px dashed");
     expect(styles).toContain("min-height: 32px;");
   });

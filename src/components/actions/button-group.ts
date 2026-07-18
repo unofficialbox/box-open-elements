@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-button-group";
@@ -40,7 +41,7 @@ const buttonGroupStyles = `
     line-height: 1.2;
     padding: 0.45em 1em;
     border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
-    border-radius: 0.75rem;
+    border-radius: ${boeRadius.control};
     background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text, #222222);
     cursor: pointer;
@@ -57,17 +58,17 @@ const buttonGroupStyles = `
   }
 
   [part="button"][data-layout="attached"][data-position="first"] {
-    border-top-left-radius: 0.75rem;
-    border-bottom-left-radius: 0.75rem;
+    border-top-left-radius: ${boeRadius.control};
+    border-bottom-left-radius: ${boeRadius.control};
   }
 
   [part="button"][data-layout="attached"][data-position="last"] {
-    border-top-right-radius: 0.75rem;
-    border-bottom-right-radius: 0.75rem;
+    border-top-right-radius: ${boeRadius.control};
+    border-bottom-right-radius: ${boeRadius.control};
   }
 
   [part="button"][data-layout="attached"][data-position="only"] {
-    border-radius: 0.75rem;
+    border-radius: ${boeRadius.control};
   }
 
   [part="button"][data-layout="attached"][data-position="middle"],

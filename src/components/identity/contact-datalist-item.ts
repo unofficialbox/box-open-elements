@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-contact-datalist-item";
 
@@ -24,7 +25,7 @@ const contactStyles = `
     align-items: center;
     gap: 0.55rem;
     padding: 0.5rem 0.65rem;
-    border-radius: 0.6rem;
+    border-radius: ${boeRadius.med};
     cursor: pointer;
     color: var(--boe-token-text-text, #222222);
     transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard};

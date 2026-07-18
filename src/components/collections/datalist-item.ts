@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-datalist-item";
 
@@ -15,7 +16,7 @@ const datalistItemStyles = `
     align-items: center;
     gap: 0.55rem;
     padding: 0.5rem 0.65rem;
-    border-radius: 0.6rem;
+    border-radius: ${boeRadius.med};
     cursor: pointer;
     color: var(--boe-token-text-text, #222222);
     transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
@@ -45,7 +46,7 @@ const datalistItemStyles = `
     place-items: center;
     inline-size: 1.9rem;
     block-size: 1.9rem;
-    border-radius: 0.45rem;
+    border-radius: ${boeRadius.large};
     background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 82%, var(--boe-token-surface-surface, #ffffff) 18%);
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     font-weight: 700;

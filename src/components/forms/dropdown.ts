@@ -57,7 +57,7 @@ const dropdownStyles = `
     text-align: left;
     padding: 0 ${boeSpace[12]} 0 ${boeSpace[3]};
     border: 1px solid ${boeControl.buttonBorder};
-    border-radius: ${boeRadius.med};
+    border-radius: ${boeRadius.control};
     background:
       url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%236f6f6f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center / 12px 8px,
       var(--boe-token-surface-surface, #ffffff);

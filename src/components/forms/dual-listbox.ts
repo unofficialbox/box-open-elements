@@ -8,6 +8,7 @@ import {
 import type { FormValue } from "../../core/index.js";
 import { applyRovingTabindex, handleRovingKeydown } from "../../foundations/a11y/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-dual-listbox";
 
@@ -64,7 +65,7 @@ const dualListboxStyles = `
     gap: 0.4rem;
     padding: 0.55rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.75rem;
+    border-radius: ${boeRadius.large};
     background: var(--boe-token-surface-surface-secondary, #fbfbfb);
     box-shadow: 0 12px 24px rgba(15, 23, 42, 0.04);
   }
@@ -90,7 +91,7 @@ const dualListboxStyles = `
   [part="option"] {
     width: 100%;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
-    border-radius: 0.65rem;
+    border-radius: ${boeRadius.med};
     background: var(--boe-token-surface-surface, #ffffff);
     color: inherit;
     font: inherit;
@@ -143,7 +144,7 @@ const dualListboxStyles = `
     inline-size: 1.65rem;
     block-size: 1.65rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, transparent);
-    border-radius: 0.45rem;
+    border-radius: ${boeRadius.med};
     background: var(--boe-token-surface-surface, #ffffff);
     color: inherit;
     font: inherit;
@@ -167,7 +168,7 @@ const dualListboxStyles = `
     place-items: center;
     min-block-size: 100%;
     border: 1px dashed rgba(214, 224, 234, 0.72);
-    border-radius: 0.65rem;
+    border-radius: ${boeRadius.med};
     padding: 0.65rem;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 65%, transparent);

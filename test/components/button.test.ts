@@ -82,7 +82,7 @@ describe("box-button", () => {
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("min-height: 32px");
     expect(styles).toContain("padding: 0 16px");
-    expect(styles).toContain("border-radius: 6px");
+    expect(styles).toContain("border-radius: 20px");
     expect(styles).toContain("font-size: 13px");
     expect(styles).toContain("opacity: 0.4");
   });

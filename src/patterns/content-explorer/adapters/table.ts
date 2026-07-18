@@ -18,7 +18,7 @@ import {
   boeNeutralInteractiveStyles,
 } from "../../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../../foundations/motion/index.js";
-import { boePanel } from "../../../foundations/geometry/index.js";
+import { boePanel, boeRadius } from "../../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-explorer-table";
 
@@ -114,7 +114,7 @@ const elementStyles = `
           margin: 0;
           display: block;
           cursor: pointer;
-          border-radius: 0.25rem;
+          border-radius: ${boeRadius.size};
         }
 
         ${boeFocusVisibleStyles('[part="selection"]')}
@@ -124,7 +124,7 @@ const elementStyles = `
           border: 0;
           margin: 0;
           padding: 0.35rem 0.5rem;
-          border-radius: 0.6rem;
+          border-radius: ${boeRadius.med};
           background: transparent;
           color: var(--boe-token-text-text, #222222);
           font: inherit;

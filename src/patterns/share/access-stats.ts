@@ -1,5 +1,5 @@
 import { BaseElement } from "../../core/index.js";
-import { boePanel } from "../../foundations/geometry/index.js";
+import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-access-stats";
 
@@ -112,7 +112,7 @@ const elementStyles = `
           justify-items: center;
           gap: 0.15rem;
           padding: 0.5rem 0.45rem;
-          border-radius: 0.65rem;
+          border-radius: ${boeRadius.large};
           background: var(--boe-token-surface-surface, #ffffff);
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
           text-align: center;

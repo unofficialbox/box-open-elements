@@ -109,11 +109,11 @@ describe("BoxCarouselElement", () => {
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("padding: 0.7rem;");
-    expect(styles).toContain("border-radius: 0.75rem;");
+    expect(styles).toContain("border-radius: 16px;");
     expect(styles).toContain("gap: 0.55rem;");
     expect(styles).toContain("font-size: 1.15rem;");
     expect(styles).toContain("padding: 0.7rem 0.75rem;");
-    expect(styles).toContain("border-radius: 0.7rem;");
+    expect(styles).toContain("border-radius: 12px;");
   });
 
   it("preserves selected-dot styles on hover and active", () => {

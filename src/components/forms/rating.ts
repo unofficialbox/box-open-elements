@@ -5,6 +5,7 @@ import {
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-rating";
 
@@ -44,7 +45,7 @@ const ratingStyles = `
     display: grid;
     place-items: center;
     border: none;
-    border-radius: 0.4rem;
+    border-radius: ${boeRadius.med};
     background: transparent;
     color: rgba(82, 96, 109, 0.45);
     cursor: pointer;

@@ -1,5 +1,5 @@
 import { BaseElement } from "../../core/index.js";
-import { boePanel } from "../../foundations/geometry/index.js";
+import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
   boeNeutralInteractiveStyles,
@@ -145,7 +145,7 @@ const elementStyles = `
           gap: ${boePanel.gap};
           margin: 0;
           padding: 0.5rem 0.65rem;
-          border-radius: 0.65rem;
+          border-radius: ${boeRadius.med};
           background: color-mix(in srgb, var(--_obp-surface) 76%, transparent);
           border: 1px solid var(--_obp-border-subtle);
         }

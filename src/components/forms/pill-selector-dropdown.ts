@@ -6,6 +6,7 @@ import {
   stringValuesFromFormValue,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-pill-selector-dropdown";
 
@@ -36,7 +37,7 @@ const pillSelectorStyles = `
     gap: 0.4rem;
     padding: 0.4rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.7rem;
+    border-radius: ${boeRadius.control};
     background: var(--boe-token-surface-surface, #ffffff);
   }
 
@@ -119,7 +120,7 @@ const pillSelectorStyles = `
     padding: 0.3rem;
     list-style: none;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-    border-radius: 0.6rem;
+    border-radius: ${boeRadius.large};
     background: var(--boe-token-surface-surface, #ffffff);
     box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
   }
@@ -131,7 +132,7 @@ const pillSelectorStyles = `
     text-align: start;
     padding: 0.4rem 0.55rem;
     border: 0;
-    border-radius: 0.4rem;
+    border-radius: ${boeRadius.med};
     background: transparent;
     color: var(--boe-token-text-text, #222222);
     font: inherit;

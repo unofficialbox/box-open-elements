@@ -344,14 +344,31 @@ describe("audit workflow", () => {
     ).toBeNull();
   });
 
-  it("evaluate marks every claim conformant against faithful upstream", () => {
+  it("marks source-matching claims conformant and diverged radii intentional", () => {
     const rows = evaluate(conformantFiles());
     expect(rows.length).toBeGreaterThanOrEqual(17);
-    expect(rows.every(r => r.verdict === "conformant")).toBe(true);
-    // Cross-file resolution: modal radius resolves via the layout var map.
+    // Every claim is either conformant with box-ui-elements source, or an
+    // intentional divergence (radii now track the live Box app's pill geometry).
+    expect(
+      rows.every(
+        r => r.verdict === "conformant" || r.verdict === "intentional-divergence",
+      ),
+    ).toBe(true);
+    const diverged = rows
+      .filter(r => r.verdict === "intentional-divergence")
+      .map(r => r.claim.id)
+      .sort();
+    expect(diverged).toEqual([
+      "overlay.itemRadius",
+      "overlay.modalRadius",
+      "overlay.radius",
+      "radius.large",
+      "radius.med",
+      "radius.xlarge",
+    ]);
+    // Cross-file resolution still works: modal radius resolves via the layout map.
     const modalRadius = rows.find(r => r.claim.id === "overlay.modalRadius");
     expect(modalRadius?.upstreamResolved).toBe("12px");
-    // Mixin-scoped decl with arithmetic resolves via the merged var map.
     const overlayPad = rows.find(r => r.claim.id === "overlay.padding");
     expect(overlayPad?.upstreamResolved).toBe("12px");
   });
@@ -384,6 +401,7 @@ describe("audit workflow", () => {
   it("renderMarkdown reports a verdict summary", () => {
     const md = renderMarkdown(evaluate(conformantFiles()), conformantFiles());
     expect(md).toContain("# box-ui-elements Geometry Conformance Audit");
-    expect(md).toMatch(/✅ Conformant \| 17/);
+    expect(md).toMatch(/✅ Conformant \| 11/);
+    expect(md).toMatch(/🎯 Intentional divergence.* \| 6/);
   });
 });

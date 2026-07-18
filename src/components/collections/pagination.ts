@@ -1,6 +1,7 @@
 import { BaseElement } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-pagination";
 
@@ -26,7 +27,7 @@ const paginationStyles = `
     line-height: 1.2;
     padding: 0.35em 0.8em;
     border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
-    border-radius: 0.6rem;
+    border-radius: ${boeRadius.control};
     background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text, #222222);
     cursor: pointer;

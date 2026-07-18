@@ -1,6 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
-import { boePanel } from "../../foundations/geometry/index.js";
+import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-donut-chart";
 
@@ -190,7 +190,7 @@ const elementStyles = `
           align-items: center;
           padding: 0.4rem 0.55rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
-          border-radius: 0.65rem;
+          border-radius: ${boeRadius.med};
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, #eef4fb 10%);
           color: inherit;
           font: inherit;

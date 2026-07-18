@@ -19,7 +19,7 @@ const errorMaskStyles = `
     padding: ${boeSpace[10]};
     overflow: hidden;
     border: 1px dashed var(--boe-token-text-text-secondary, #6f6f6f);
-    border-radius: ${boeRadius.med};
+    border-radius: ${boeRadius.large};
     background: transparent;
     text-align: center;
   }

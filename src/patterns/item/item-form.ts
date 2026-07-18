@@ -1,5 +1,5 @@
 import { BaseElement } from "../../core/index.js";
-import { boePanel } from "../../foundations/geometry/index.js";
+import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
   boeFocusVisibleStyles,
@@ -112,7 +112,7 @@ const elementStyles = `
         [part="field-value"] {
           padding: 0.45rem 0.7rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
-          border-radius: 0.55rem;
+          border-radius: ${boeRadius.control};
           background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 82%, transparent);
           color: rgba(35, 32, 28, 0.94);
           min-block-size: 1.25rem;
@@ -129,7 +129,7 @@ const elementStyles = `
           min-width: 0;
           padding: 0.45rem 0.7rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
-          border-radius: 0.55rem;
+          border-radius: ${boeRadius.control};
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
           box-sizing: border-box;

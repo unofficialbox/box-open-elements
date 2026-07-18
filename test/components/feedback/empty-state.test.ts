@@ -62,7 +62,7 @@ describe("BoxEmptyStateElement", () => {
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("padding: 0.75rem;");
-    expect(styles).toContain("border-radius: 0.7rem;");
+    expect(styles).toContain("border-radius: 16px;");
     expect(styles).toContain("padding: 0.45rem 0.75rem;");
   });
 });

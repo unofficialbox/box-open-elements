@@ -1,6 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
-import { boePanel } from "../../foundations/geometry/index.js";
+import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-filter-bar";
 
@@ -82,7 +82,7 @@ const elementStyles = `
           min-width: 0;
           padding: 0.45rem 0.7rem;
           border: 1px solid var(--_obp-border-subtle);
-          border-radius: 0.55rem;
+          border-radius: ${boeRadius.control};
           background: var(--_obp-surface);
           color: inherit;
           font: inherit;

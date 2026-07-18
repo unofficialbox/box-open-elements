@@ -19,7 +19,7 @@ import {
 } from "../search/search-results-header.js";
 import { BaseElement } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
-import { boePanel } from "../../foundations/geometry/index.js";
+import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-content-explorer";
 
@@ -137,7 +137,7 @@ const elementStyles = `
           font-size: 0.875rem;
           padding: 0.25rem 0.55rem;
           border: none;
-          border-radius: 0.55rem;
+          border-radius: ${boeRadius.med};
           background: transparent;
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           cursor: pointer;
@@ -171,7 +171,7 @@ const elementStyles = `
         [part="error"] {
           margin: 0;
           padding: 0.55rem 0.7rem;
-          border-radius: 0.65rem;
+          border-radius: ${boeRadius.large};
           font-size: 0.9rem;
           background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, var(--boe-token-surface-surface, #ffffff));
           border: 1px solid color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 34%, transparent);
@@ -186,7 +186,7 @@ const elementStyles = `
           font-size: 0.875rem;
           font-weight: 600;
           padding: 0.4rem 0.7rem;
-          border-radius: 0.55rem;
+          border-radius: ${boeRadius.control};
           border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
           background: var(--boe-token-surface-surface, #ffffff);
           color: var(--boe-token-text-text, #222222);
@@ -259,7 +259,7 @@ const elementStyles = `
           text-align: left;
           padding: 0.45rem 0.45rem;
           border: none;
-          border-radius: 0.55rem;
+          border-radius: ${boeRadius.med};
           background: transparent;
           color: var(--boe-token-text-text, #222222);
           cursor: pointer;

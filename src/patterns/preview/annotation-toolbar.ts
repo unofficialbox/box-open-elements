@@ -1,6 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { applyRovingTabindex, handleRovingKeydown } from "../../foundations/a11y/index.js";
-import { boePanel } from "../../foundations/geometry/index.js";
+import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
   boeNeutralInteractiveStyles,
@@ -92,7 +92,7 @@ const elementStyles = `
           min-height: 1.75rem;
           padding: 0.3rem 0.65rem;
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 60%, transparent);
-          border-radius: 0.55rem;
+          border-radius: ${boeRadius.control};
           background: var(--boe-token-surface-surface, #ffffff);
           color: inherit;
           font: inherit;

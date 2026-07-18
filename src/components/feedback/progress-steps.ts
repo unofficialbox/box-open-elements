@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-progress-steps";
@@ -38,7 +39,7 @@ const progressStepsStyles = `
     text-align: left;
     padding: 0.55rem 0.65rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 56%, transparent);
-    border-radius: 0.75rem;
+    border-radius: ${boeRadius.med};
     background: var(--boe-token-surface-surface, #ffffff);
     color: inherit;
     font: inherit;

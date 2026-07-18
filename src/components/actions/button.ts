@@ -32,7 +32,7 @@ const buttonStyles = `
     line-height: 1;
     letter-spacing: ${boeControl.letterSpacing};
     white-space: nowrap;
-    border-radius: ${boeRadius.med};
+    border-radius: ${boeRadius.control};
     border: 1px solid var(--boe-token-surface-surface-brand, #0061d5);
     cursor: pointer;
     background: var(--boe-token-surface-surface-brand, #0061d5);
@@ -109,7 +109,7 @@ const buttonStyles = `
     min-height: 28px;
     padding: 0 ${boeSpace[3]};
     font-size: 12px;
-    border-radius: ${boeRadius.med};
+    border-radius: ${boeRadius.control};
   }
 
   button[data-size="large"] {

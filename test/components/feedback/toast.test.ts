@@ -40,7 +40,7 @@ describe("BoxToastElement", () => {
     expect(styles).toContain("inline-size: fit-content;");
     expect(styles).toContain("min-height: 48px;");
     expect(styles).toContain("padding: 10px 10px 10px 20px;");
-    expect(styles).toContain("border-radius: 8px;");
+    expect(styles).toContain("border-radius: 16px;");
     expect(styles).toContain("border: 2px solid");
     expect(styles).toContain("font-size: 15px;");
   });

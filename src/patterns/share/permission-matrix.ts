@@ -1,7 +1,7 @@
 import { BaseElement } from "../../core/index.js";
 import { boeFocusRingShadow } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
-import { boePanel } from "../../foundations/geometry/index.js";
+import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-permission-matrix";
 
@@ -116,7 +116,7 @@ const matrixStyles = `
     width: min(100%, 13rem);
     min-width: 10rem;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 76%, var(--boe-token-surface-surface, #ffffff) 24%);
-    border-radius: 0.55rem;
+    border-radius: ${boeRadius.control};
     background: var(--boe-token-surface-surface, #ffffff);
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     transition:

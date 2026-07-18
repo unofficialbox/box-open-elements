@@ -80,6 +80,13 @@ export interface Claim {
   tolerancePx: number;
   /** What box-open-elements docs claim the upstream anchor is. */
   citation: string;
+  /**
+   * Set when box-open-elements **deliberately** diverges from box-ui-elements
+   * source for this value (tracking the live Box web app instead). A mismatch is
+   * then reported as `intentional-divergence`, not `drift`, and does not fail
+   * `--strict`. See `docs/audits/bue-conformance-webapp-audit.md`.
+   */
+  intentional?: string;
 }
 
 export const CLAIMS: readonly Claim[] = [
@@ -101,6 +108,7 @@ export const CLAIMS: readonly Claim[] = [
     extractor: { kind: "scss-var", file: "layout", name: "bdl-border-radius-size-med" },
     tolerancePx: 0,
     citation: "$bdl-border-radius-size-med (= size * 1.5)",
+    intentional: "Tracks the live Box web app pill geometry (Blueprint), not box-ui-elements 6px source — see webapp audit.",
   },
   {
     id: "radius.large",
@@ -110,6 +118,7 @@ export const CLAIMS: readonly Claim[] = [
     extractor: { kind: "scss-var", file: "layout", name: "bdl-border-radius-size-large" },
     tolerancePx: 0,
     citation: "$bdl-border-radius-size-large (= size * 2)",
+    intentional: "Tracks the live Box web app pill geometry (Blueprint), not box-ui-elements 6px source — see webapp audit.",
   },
   {
     id: "radius.xlarge",
@@ -119,6 +128,7 @@ export const CLAIMS: readonly Claim[] = [
     extractor: { kind: "scss-var", file: "layout", name: "bdl-border-radius-size-xlarge" },
     tolerancePx: 0,
     citation: "$bdl-border-radius-size-xlarge (= size * 3)",
+    intentional: "Tracks the live Box web app pill geometry (Blueprint), not box-ui-elements 6px source — see webapp audit.",
   },
 
   // --- Spacing grid (_layout.scss $bdl-grid-unit) ---
@@ -175,6 +185,7 @@ export const CLAIMS: readonly Claim[] = [
     },
     tolerancePx: 0,
     citation: "Modal.scss .modal-dialog border-radius: $bdl-border-radius-size-xlarge",
+    intentional: "Tracks the live Box web app pill geometry (Blueprint), not box-ui-elements source — see webapp audit.",
   },
   {
     id: "overlay.modalPadding",
@@ -245,6 +256,7 @@ export const CLAIMS: readonly Claim[] = [
     },
     tolerancePx: 0,
     citation: "mixins/_overlay.scss bdl-Overlay-container border-radius: $bdl-border-radius-size-large",
+    intentional: "Tracks the live Box web app pill geometry (Blueprint), not box-ui-elements source — see webapp audit.",
   },
   {
     id: "overlay.itemRadius",
@@ -259,6 +271,7 @@ export const CLAIMS: readonly Claim[] = [
     },
     tolerancePx: 0,
     citation: "mixins/_overlay.scss bdl-Overlay-listItemContainer border-radius: $bdl-border-radius-size-large",
+    intentional: "Tracks the live Box web app pill geometry (Blueprint), not box-ui-elements source — see webapp audit.",
   },
 
   // --- Input control chrome (@mixin box-inputs) ---
