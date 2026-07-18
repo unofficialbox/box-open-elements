@@ -114,11 +114,13 @@ export function canonicalColor(color: Rgba): string {
  * Used to distinguish an exact match from a near-match from a real divergence.
  */
 export function colorDelta(a: Rgba, b: Rgba): number {
-  return Math.max(
-    Math.abs(a.r - b.r),
-    Math.abs(a.g - b.g),
-    Math.abs(a.b - b.b),
-    Math.abs(a.a - b.a) * 255,
+  return Math.round(
+    Math.max(
+      Math.abs(a.r - b.r),
+      Math.abs(a.g - b.g),
+      Math.abs(a.b - b.b),
+      Math.abs(a.a - b.a) * 255,
+    ),
   );
 }
 

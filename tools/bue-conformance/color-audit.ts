@@ -27,6 +27,7 @@ import { fileURLToPath } from "node:url";
 import {
   extractBundleCss,
   extractCompiledDeclarations,
+  extractRawDeclarations,
   parseChunkNames,
 } from "./css-extract.js";
 import {
@@ -64,6 +65,7 @@ export function parseArgs(argv: string[]): Args {
   };
 }
 
+/** Build curl arguments for one URL (proxy-aware, CA-pinned, no redirects). */
 function curlArgsFor(url: string): string[] {
   const args = ["-sS", "--fail", "--max-time", "40", "--max-redirs", "0", url];
   if (existsSync(CA_BUNDLE)) {
@@ -242,13 +244,12 @@ export function evaluate(
   return COLOR_CLAIMS.map(claim => {
     const grounded = anchorPresent(claim, componentSource);
     const boeResolved = resolveCssVars(claim.boeValue, tokenMap);
-    const upstreamValues = extractCompiledDeclarations(
-      css,
-      claim.upstream.selector,
-      claim.upstream.state,
-      claim.upstream.property,
-    );
-    const upstreamRaw = upstreamValues[claim.upstream.index ?? 0] ?? null;
+    const rule = claim.upstream;
+    const upstreamValues =
+      rule.rawSelector !== undefined
+        ? extractRawDeclarations(css, rule.rawSelector, rule.property)
+        : extractCompiledDeclarations(css, rule.selector, rule.state, rule.property);
+    const upstreamRaw = upstreamValues[rule.index ?? 0] ?? null;
 
     if (!grounded) {
       return {

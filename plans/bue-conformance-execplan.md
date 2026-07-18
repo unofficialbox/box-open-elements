@@ -143,7 +143,16 @@ bun run verify                                  # typecheck + coverage-gated tes
       and both match upstream `.btn:hover` / `.btn:active` exactly; plus the badge
       **info/brand** tone (`brand` 50% + `#fff` → `#80b0ea` vs upstream `#7fb0ea`,
       ±1 sRGB rounding). Now **21 claims, 17 conformant / 4 review.**
-- [ ] Layer 2 round 4 — surfaces still deferred: multi-stop **gradients** (tooltip
+- [x] Layer 2 round 4 — **broaden static coverage to more surfaces.** Added
+      **checkbox** and **radio** checked marks (brand `#0061d5` — both conformant),
+      **badge** status text (`#fff` — conformant), **menu-item selected** (box-open-elements'
+      blue tint `#f2f7fd` vs upstream's `rgba(34,34,34,.05)` overlay → review), and
+      **tooltip** text (`rgba(255,255,255,.94)` vs `#fff` → review). Needed a new
+      `extractRawDeclarations` matcher for upstream rules with child combinators /
+      pseudo-elements (the custom checkbox/radio marks
+      `.checkbox-label>input[type=checkbox]+span::after`) that the state-aware
+      `partMatches` intentionally rejects. Now **26 claims, 20 conformant / 6 review.**
+- [ ] Layer 2 round 5 — surfaces still deferred: multi-stop **gradients** (tooltip
       background) and non-sRGB mixes have no single resolvable colour, and some
       box-open-elements colours have no solid upstream counterpart (a gradient vs
       a flat fill). These need a live-browser `getComputedStyle` read (paths

@@ -32,7 +32,7 @@
     "49063.6dd55a3f.iframe.bundle.js",
     "50790.37e448fa.iframe.bundle.js",
     "50803.c6c76390.iframe.bundle.js",
-    "50908.287390fa.iframe.bundle.js",
+    "50908.4c1951e4.iframe.bundle.js",
     "51748.0bb27f04.iframe.bundle.js",
     "53386.a146da6f.iframe.bundle.js",
     "63958.e8c9257a.iframe.bundle.js",
@@ -58,7 +58,7 @@
     "9341.f297f695.iframe.bundle.js",
     "98478.763832c5.iframe.bundle.js",
     "99972.06001b87.iframe.bundle.js",
-    "main.2ccbd4b8.iframe.bundle.js"
+    "main.1f947a71.iframe.bundle.js"
   ],
   "fromCache": false,
   "claims": [
@@ -376,6 +376,81 @@
       "delta": 1,
       "note": null,
       "citation": ".badge-info background"
+    },
+    {
+      "id": "badge.status.text",
+      "surface": "badge/status",
+      "boeConst": "badge.ts status tone text",
+      "boeValue": "#ffffff",
+      "boeResolved": "#ffffff",
+      "boeCanonical": "rgba(255, 255, 255, 1)",
+      "upstreamRaw": "#fff",
+      "upstreamCanonical": "rgba(255, 255, 255, 1)",
+      "kind": "color",
+      "verdict": "conformant",
+      "delta": 0,
+      "note": null,
+      "citation": ".badge-success color"
+    },
+    {
+      "id": "menu.item.selected.background",
+      "surface": "menu/item",
+      "boeConst": "SurfaceItemSurfaceSelected",
+      "boeValue": "#f2f7fd",
+      "boeResolved": "#f2f7fd",
+      "boeCanonical": "rgba(242, 247, 253, 1)",
+      "upstreamRaw": "rgba(34,34,34,.05)",
+      "upstreamCanonical": "rgba(34, 34, 34, 0.05)",
+      "kind": "color",
+      "verdict": "review",
+      "delta": 242,
+      "note": "Colours differ by 242 (per-channel, 0-255) — verify (may be an intentional modernisation).",
+      "citation": ".menu-item.is-active background-color"
+    },
+    {
+      "id": "checkbox.checked.accent",
+      "surface": "checkbox",
+      "boeConst": "SurfaceSurfaceBrand",
+      "boeValue": "#0061d5",
+      "boeResolved": "#0061d5",
+      "boeCanonical": "rgba(0, 97, 213, 1)",
+      "upstreamRaw": "2px solid #0061d5",
+      "upstreamCanonical": "rgba(0, 97, 213, 1)",
+      "kind": "color",
+      "verdict": "conformant",
+      "delta": 0,
+      "note": null,
+      "citation": ".checkbox-label>input[type=checkbox]+span::after border (checked mark)"
+    },
+    {
+      "id": "radio.checked.fill",
+      "surface": "radio",
+      "boeConst": "SurfaceSurfaceBrand",
+      "boeValue": "#0061d5",
+      "boeResolved": "#0061d5",
+      "boeCanonical": "rgba(0, 97, 213, 1)",
+      "upstreamRaw": "#0061d5",
+      "upstreamCanonical": "rgba(0, 97, 213, 1)",
+      "kind": "color",
+      "verdict": "conformant",
+      "delta": 0,
+      "note": null,
+      "citation": ".radio-label>input[type=radio]:checked+span::before background-color"
+    },
+    {
+      "id": "tooltip.text",
+      "surface": "tooltip",
+      "boeConst": "tooltip.ts label colour",
+      "boeValue": "rgba(255, 255, 255, 0.94)",
+      "boeResolved": "rgba(255, 255, 255, 0.94)",
+      "boeCanonical": "rgba(255, 255, 255, 0.94)",
+      "upstreamRaw": "#fff",
+      "upstreamCanonical": "rgba(255, 255, 255, 1)",
+      "kind": "color",
+      "verdict": "review",
+      "delta": 15,
+      "note": "Colours differ by 15 (per-channel, 0-255) — verify (may be an intentional modernisation).",
+      "citation": ".bdl-Tooltip color"
     }
   ]
 }

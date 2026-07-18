@@ -211,10 +211,16 @@ function declarationsIn(body: string, property: string): string[] {
  * selector list names `selector` in `state`, in source order. Compiled CSS is
  * flat (no nesting), so a single brace scan is sufficient.
  */
-export function extractCompiledDeclarations(
+/**
+ * Scan flat (compiled) CSS and collect every value of `property` from rules
+ * whose header satisfies `headerMatches`, in source order. Shared brace-scanning
+ * core for `extractCompiledDeclarations` (state-aware) and
+ * `extractRawDeclarations` (verbatim selector); comments are stripped first so a
+ * banner preceding a rule cannot leak into its selector.
+ */
+function collectDeclarations(
   rawCss: string,
-  selector: string,
-  state: State,
+  headerMatches: (header: string) => boolean,
   property: string,
 ): string[] {
   const css = stripCssComments(rawCss);
@@ -234,10 +240,7 @@ export function extractCompiledDeclarations(
     if (ch === "}") {
       depth -= 1;
       if (depth === 0) {
-        const matched = header
-          .split(",")
-          .some(part => partMatches(part, selector, state));
-        if (matched) {
+        if (headerMatches(header)) {
           values.push(...declarationsIn(body, property));
         }
         header = "";
@@ -251,4 +254,36 @@ export function extractCompiledDeclarations(
     }
   }
   return values;
+}
+
+export function extractCompiledDeclarations(
+  rawCss: string,
+  selector: string,
+  state: State,
+  property: string,
+): string[] {
+  return collectDeclarations(
+    rawCss,
+    header => header.split(",").some(part => partMatches(part, selector, state)),
+    property,
+  );
+}
+
+/**
+ * Read `property` from rules whose selector list contains `rawSelector` as an
+ * exact comma-separated part. Unlike `extractCompiledDeclarations`, this matches
+ * the whole compound selector verbatim — for upstream rules that `partMatches`
+ * intentionally rejects (child combinators, pseudo-elements), e.g. the custom
+ * checkbox/radio marks `.checkbox-label>input[type=checkbox]+span::after`.
+ */
+export function extractRawDeclarations(
+  rawCss: string,
+  rawSelector: string,
+  property: string,
+): string[] {
+  return collectDeclarations(
+    rawCss,
+    header => header.split(",").some(part => part.trim() === rawSelector),
+    property,
+  );
 }
