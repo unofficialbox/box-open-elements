@@ -108,11 +108,11 @@ describe("box-open-elements vs the committed live-Box reference", () => {
       reference,
     );
     const conformant = rows.filter(r => r.verdict === "conformant").length;
-    // 19/20 tokens match the real Box app; the sole divergence is
+    // 24/25 tokens match the real Box app; the sole divergence is
     // SurfaceItemSurfaceHover (box-open-elements' intentional blue hover tint vs
     // Box #fff), marked `accepted` in the reference — so no `review` remains.
-    expect(rows).toHaveLength(20);
-    expect(conformant).toBe(19);
+    expect(rows).toHaveLength(25);
+    expect(conformant).toBe(24);
     expect(rows.filter(r => r.verdict === "review")).toHaveLength(0);
     expect(rows.find(r => r.token === "SurfaceItemSurfaceHover")!.verdict).toBe(
       "accepted-divergence",

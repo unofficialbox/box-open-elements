@@ -84,10 +84,30 @@
     "TextTextDanger": {
       "blueprintVar": "--text-text-destructive-on-light",
       "value": "#d5324e"
+    },
+    "SurfaceIllustrationSurfaceBoxNeutral": {
+      "blueprintVar": "--bp-box-blue-100",
+      "value": "#0061d5"
+    },
+    "SurfaceBadgeFoldersharedSurface": {
+      "blueprintVar": "--surface-badge-foldershared-surface",
+      "value": "#2486fc"
+    },
+    "SurfaceBadgePdfSurface": {
+      "blueprintVar": "--surface-badge-pdf-surface",
+      "value": "#d0021b"
+    },
+    "StrokeStroke": {
+      "blueprintVar": "--bp-gray-10",
+      "value": "#e8e8e8"
+    },
+    "StrokeStrokeHover": {
+      "blueprintVar": "--bp-gray-30",
+      "value": "#bcbcbc"
     }
   },
   "observations": {
-    "stroke": "Box control borders use opacity-based colours (rgba(0,0,0,0.12) rest / rgba(0,0,0,0.9) outline), not a solid stroke token; box-open-elements' StrokeStroke #e8e8e8 / StrokeStrokeHover #bcbcbc are the solid analogue and are not diffed here.",
+    "stroke": "Box control borders also use opacity-based colours (rgba(0,0,0,0.12)); the solid StrokeStroke/StrokeStrokeHover values map to Blueprint --bp-gray-10/-30 and are diffed.",
     "typography": "Every Blueprint --*-font-family token resolves to Lato; box-open-elements intentionally keeps InterVariable-first (per maintainer decision), so the family divergence is by design, not drift.",
     "geometry": {
       "primaryButton": {

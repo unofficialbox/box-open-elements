@@ -201,6 +201,56 @@
       "boxCanonical": "rgba(213, 50, 78, 1)",
       "delta": 0,
       "verdict": "conformant"
+    },
+    {
+      "token": "SurfaceIllustrationSurfaceBoxNeutral",
+      "blueprintVar": "--bp-box-blue-100",
+      "boeValue": "#0061d5",
+      "boxValue": "#0061d5",
+      "boeCanonical": "rgba(0, 97, 213, 1)",
+      "boxCanonical": "rgba(0, 97, 213, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "SurfaceBadgeFoldersharedSurface",
+      "blueprintVar": "--surface-badge-foldershared-surface",
+      "boeValue": "#2486fc",
+      "boxValue": "#2486fc",
+      "boeCanonical": "rgba(36, 134, 252, 1)",
+      "boxCanonical": "rgba(36, 134, 252, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "SurfaceBadgePdfSurface",
+      "blueprintVar": "--surface-badge-pdf-surface",
+      "boeValue": "#d0021b",
+      "boxValue": "#d0021b",
+      "boeCanonical": "rgba(208, 2, 27, 1)",
+      "boxCanonical": "rgba(208, 2, 27, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "StrokeStroke",
+      "blueprintVar": "--bp-gray-10",
+      "boeValue": "#e8e8e8",
+      "boxValue": "#e8e8e8",
+      "boeCanonical": "rgba(232, 232, 232, 1)",
+      "boxCanonical": "rgba(232, 232, 232, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "token": "StrokeStrokeHover",
+      "blueprintVar": "--bp-gray-30",
+      "boeValue": "#bcbcbc",
+      "boxValue": "#bcbcbc",
+      "boeCanonical": "rgba(188, 188, 188, 1)",
+      "boxCanonical": "rgba(188, 188, 188, 1)",
+      "delta": 0,
+      "verdict": "conformant"
     }
   ],
   "geometry": [
