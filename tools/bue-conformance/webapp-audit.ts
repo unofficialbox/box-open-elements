@@ -34,6 +34,8 @@ export type Verdict = "conformant" | "accepted-divergence" | "review" | "missing
 export interface Reference {
   capturedFrom: string;
   capturedOn: string;
+  /** How/when to re-capture this dated snapshot; surfaced in the report. */
+  refresh?: string;
   tokens: Record<string, { blueprintVar: string; value: string; accepted?: string }>;
   observations?: {
     geometry?: Record<string, { borderRadius?: string } | string>;
@@ -264,6 +266,10 @@ export function renderMarkdown(
       "typography by maintainer decision; see the reference's `observations`).",
   );
   L.push("");
+  if (reference.refresh) {
+    L.push(`> **Keeping this current.** ${reference.refresh}`);
+    L.push("");
+  }
   L.push("## Summary");
   L.push("");
   L.push("| Verdict | Count |");

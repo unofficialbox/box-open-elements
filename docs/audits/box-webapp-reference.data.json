@@ -3,6 +3,7 @@
   "capturedOn": "2026-07-18",
   "method": "live getComputedStyle of Blueprint design tokens on :root, plus rendered control metrics, captured via a browser signed in to the real Box web app",
   "note": "This is the conformance GROUND TRUTH \u2014 the actual shipping Box product, not the box-ui-elements Storybook. box-open-elements token keys map to Blueprint's semantic custom properties (e.g. TextText -> --text-text-on-light). Values are recorded verbatim (short hex allowed; the audit normalises).",
+  "refresh": "This is a DATED SNAPSHOT: the --strict audit is only as current as `capturedOn`. Box ships design changes over time, so a stale snapshot passes --strict against an old Box rather than today's. Re-capture roughly QUARTERLY (or after any visible Box redesign) from a browser signed in to the real app: re-read the Blueprint :root tokens (the `blueprintVar` for each), the rendered control radii (observations.geometry), and the in-situ :hover/:active state colours (observations.states) \u2014 then bump `capturedOn` and reconcile any new drift. See tools/bue-conformance/webapp-audit.ts for the field shapes.",
   "tokens": {
     "SurfaceSurface": {
       "blueprintVar": "--surface-surface",
