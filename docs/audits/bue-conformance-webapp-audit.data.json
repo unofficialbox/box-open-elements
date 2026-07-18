@@ -202,5 +202,28 @@
       "delta": 26,
       "verdict": "review"
     }
+  ],
+  "geometry": [
+    {
+      "surface": "button radius",
+      "boeConst": "boeControl.radius",
+      "boeValue": "20px",
+      "boxValue": "20px",
+      "verdict": "conformant"
+    },
+    {
+      "surface": "search field radius",
+      "boeConst": "boeRadius.field",
+      "boeValue": "24px",
+      "boxValue": "24px",
+      "verdict": "conformant"
+    },
+    {
+      "surface": "nav item radius",
+      "boeConst": "boeRadius.nav",
+      "boeValue": "28px",
+      "boxValue": "28px",
+      "verdict": "conformant"
+    }
   ]
 }

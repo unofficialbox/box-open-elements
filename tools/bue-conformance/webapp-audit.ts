@@ -21,6 +21,7 @@ import { fileURLToPath } from "node:url";
 
 import { canonicalColor, colorDelta, parseColor } from "./color-signals.js";
 import { boxDefaultDesignSystem } from "../../src/foundations/tokens/box-defaults.js";
+import { boeControl, boeRadius } from "../../src/foundations/geometry/index.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(HERE, "..", "..");
@@ -34,6 +35,54 @@ export interface Reference {
   capturedFrom: string;
   capturedOn: string;
   tokens: Record<string, { blueprintVar: string; value: string }>;
+  observations?: {
+    geometry?: Record<string, { borderRadius?: string } | string>;
+  };
+}
+
+export interface GeometryRow {
+  surface: string;
+  boeConst: string;
+  boeValue: string;
+  boxValue: string;
+  verdict: Verdict;
+}
+
+/** Parse a pixel length (`"20px"` → 20); returns null for non-px. */
+function px(value: string | undefined): number | null {
+  if (!value) return null;
+  const m = /^(-?\d*\.?\d+)px$/.exec(value.trim());
+  return m ? Number.parseFloat(m[1]) : null;
+}
+
+/**
+ * Verify box-open-elements' shipped **control geometry** against the live Box
+ * app radii captured in `observations.geometry`. Without this, the radius claims
+ * Layer 1 flags as `intentional-divergence` are only *asserted* to track Box —
+ * this confirms box-open-elements' pill radii still match what the app renders.
+ */
+export function evaluateGeometry(reference: Reference): GeometryRow[] {
+  const geo = reference.observations?.geometry ?? {};
+  const radiusOf = (key: string): string | undefined => {
+    const v = geo[key];
+    return typeof v === "object" ? v.borderRadius : undefined;
+  };
+  const cmp = (surface: string, boeConst: string, boe: string, box: string | undefined): GeometryRow => {
+    const b = px(box);
+    const o = px(boe);
+    return {
+      surface,
+      boeConst,
+      boeValue: boe,
+      boxValue: box ?? "—",
+      verdict: box === undefined ? "missing-boe" : b !== null && o === b ? "conformant" : "review",
+    };
+  };
+  return [
+    cmp("button radius", "boeControl.radius", boeControl.radius, radiusOf("primaryButton")),
+    cmp("search field radius", "boeRadius.field", boeRadius.field, radiusOf("searchInput")),
+    cmp("nav item radius", "boeRadius.nav", boeRadius.nav, radiusOf("navItem")),
+  ];
 }
 
 export interface Row {
@@ -91,12 +140,19 @@ const ICON: Record<Verdict, string> = {
   "missing-boe": "🚫",
 };
 
-export function computeExitCode(rows: Row[], strict: boolean): number {
+export function computeExitCode(
+  rows: readonly { verdict: Verdict }[],
+  strict: boolean,
+): number {
   if (!strict) return 0;
   return rows.every(r => r.verdict === "conformant") ? 0 : 1;
 }
 
-export function renderMarkdown(rows: Row[], reference: Reference): string {
+export function renderMarkdown(
+  rows: Row[],
+  reference: Reference,
+  geometry: GeometryRow[] = [],
+): string {
   const counts: Record<Verdict, number> = { conformant: 0, review: 0, "missing-boe": 0 };
   for (const r of rows) counts[r.verdict] += 1;
   const L: string[] = [];
@@ -143,9 +199,26 @@ export function renderMarkdown(rows: Row[], reference: Reference): string {
   L.push("- 🔍 **Review** — differs from what Box ships today (delta = max per-channel difference, 0-255).");
   L.push("- 🚫 **Missing box-open-elements** — the catalog has no matching token.");
   L.push("");
+  if (geometry.length > 0) {
+    L.push("## Control geometry");
+    L.push("");
+    L.push(
+      "Verifies box-open-elements' pill radii against the live Box app — these are the " +
+        "geometry values Layer 1 flags as `intentional-divergence` from box-ui-elements source.",
+    );
+    L.push("");
+    L.push("| | Surface | box-open-elements | Real Box | Constant |");
+    L.push("| --- | --- | --- | --- | --- |");
+    for (const g of geometry) {
+      L.push(
+        `| ${ICON[g.verdict]} | ${g.surface} | ${g.boeValue} | ${g.boxValue} | \`${g.boeConst}\` |`,
+      );
+    }
+    L.push("");
+  }
   L.push(
-    "Geometry & typography divergences (pill control radii, Lato vs Inter) are recorded " +
-      "in the reference's `observations` block, not the token table.",
+    "Typography is a deliberate divergence (box-open-elements keeps `InterVariable`-first; " +
+      "Box ships Lato) recorded in the reference's `observations`, not audited here.",
   );
   L.push("");
   return L.join("\n");
@@ -155,25 +228,34 @@ function main(): void {
   const strict = process.argv.includes("--strict");
   const reference = JSON.parse(readFileSync(REFERENCE, "utf8")) as Reference;
   const rows = evaluate(boxDefaultDesignSystem.tokens as Record<string, unknown>, reference);
+  const geometry = evaluateGeometry(reference);
 
   writeFileSync(
     REPORT_JSON,
-    `${JSON.stringify({ capturedFrom: reference.capturedFrom, capturedOn: reference.capturedOn, tokens: rows }, null, 2)}\n`,
+    `${JSON.stringify({ capturedFrom: reference.capturedFrom, capturedOn: reference.capturedOn, tokens: rows, geometry }, null, 2)}\n`,
   );
-  writeFileSync(REPORT_MD, renderMarkdown(rows, reference));
+  writeFileSync(REPORT_MD, renderMarkdown(rows, reference, geometry));
 
   const by = (v: Verdict): number => rows.filter(r => r.verdict === v).length;
+  const geoReview = geometry.filter(g => g.verdict !== "conformant").length;
   // eslint-disable-next-line no-console
   console.log(
     `BUE webapp conformance: ${by("conformant")} conformant, ${by("review")} review, ` +
-      `${by("missing-boe")} missing (of ${rows.length}). Report: ${REPORT_MD}`,
+      `${by("missing-boe")} missing (of ${rows.length} tokens); ` +
+      `geometry ${geometry.length - geoReview}/${geometry.length} conformant. Report: ${REPORT_MD}`,
   );
   for (const r of rows.filter(x => x.verdict === "review")) {
     // eslint-disable-next-line no-console
     console.log(`  🔍 ${r.token}: box-open-elements ${r.boeCanonical} vs Box ${r.boxCanonical} (Δ${r.delta})`);
   }
+  for (const g of geometry.filter(x => x.verdict !== "conformant")) {
+    // eslint-disable-next-line no-console
+    console.log(`  🔍 ${g.surface}: box-open-elements ${g.boeValue} vs Box ${g.boxValue}`);
+  }
 
-  const code = computeExitCode(rows, strict);
+  // Strict mode now also gates on the live-Box geometry, so an intentional
+  // divergence that stopped matching the app fails the audit.
+  const code = computeExitCode([...rows, ...geometry], strict);
   if (code !== 0) process.exit(code);
 }
 

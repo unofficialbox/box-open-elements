@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   computeExitCode,
   evaluate,
+  evaluateGeometry,
   renderMarkdown,
   type Reference,
   type Row,
@@ -67,6 +68,31 @@ describe("renderMarkdown", () => {
     expect(md).toContain("Real Box Web App");
     expect(md).toContain("2026-07-18");
     for (const t of Object.keys(REF.tokens)) expect(md).toContain("`" + t + "`");
+  });
+});
+
+describe("evaluateGeometry", () => {
+  it("verifies pill radii against the live-Box geometry observations", () => {
+    const reference = JSON.parse(
+      readFileSync(join(process.cwd(), "docs/audits/box-webapp-reference.data.json"), "utf8"),
+    ) as Reference;
+    const rows = evaluateGeometry(reference);
+    // box-open-elements' control/field/nav radii must match the captured live-Box
+    // radii — this is what confirms the Layer 1 "intentional-divergence" claims.
+    expect(rows.length).toBeGreaterThanOrEqual(3);
+    expect(rows.every(r => r.verdict === "conformant")).toBe(true);
+    expect(rows.find(r => r.surface.includes("button"))?.boxValue).toBe("20px");
+  });
+
+  it("flags a radius that stopped matching the live app as review", () => {
+    const ref: Reference = {
+      capturedFrom: "x",
+      capturedOn: "x",
+      tokens: {},
+      observations: { geometry: { primaryButton: { borderRadius: "99px" } } },
+    };
+    const button = evaluateGeometry(ref).find(r => r.surface.includes("button"));
+    expect(button?.verdict).toBe("review"); // box-open-elements 20px vs 99px
   });
 });
 

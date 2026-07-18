@@ -108,7 +108,7 @@ export const CLAIMS: readonly Claim[] = [
     extractor: { kind: "scss-var", file: "layout", name: "bdl-border-radius-size-med" },
     tolerancePx: 0,
     citation: "$bdl-border-radius-size-med (= size * 1.5)",
-    intentional: "Tracks the live Box web app pill geometry (Blueprint), not box-ui-elements 6px source — see webapp audit.",
+    intentional: "Tracks the live Box web app pill geometry (Blueprint), not box-ui-elements' legacy radius scale — see webapp audit.",
   },
   {
     id: "radius.large",
@@ -118,7 +118,7 @@ export const CLAIMS: readonly Claim[] = [
     extractor: { kind: "scss-var", file: "layout", name: "bdl-border-radius-size-large" },
     tolerancePx: 0,
     citation: "$bdl-border-radius-size-large (= size * 2)",
-    intentional: "Tracks the live Box web app pill geometry (Blueprint), not box-ui-elements 6px source — see webapp audit.",
+    intentional: "Tracks the live Box web app pill geometry (Blueprint), not box-ui-elements' legacy radius scale — see webapp audit.",
   },
   {
     id: "radius.xlarge",
@@ -128,7 +128,7 @@ export const CLAIMS: readonly Claim[] = [
     extractor: { kind: "scss-var", file: "layout", name: "bdl-border-radius-size-xlarge" },
     tolerancePx: 0,
     citation: "$bdl-border-radius-size-xlarge (= size * 3)",
-    intentional: "Tracks the live Box web app pill geometry (Blueprint), not box-ui-elements 6px source — see webapp audit.",
+    intentional: "Tracks the live Box web app pill geometry (Blueprint), not box-ui-elements' legacy radius scale — see webapp audit.",
   },
 
   // --- Spacing grid (_layout.scss $bdl-grid-unit) ---

@@ -64,7 +64,7 @@
       "boePx": 12,
       "upstreamPx": 6,
       "deltaPx": 6,
-      "note": "Tracks the live Box web app pill geometry (Blueprint), not box-ui-elements 6px source — see webapp audit.",
+      "note": "Tracks the live Box web app pill geometry (Blueprint), not box-ui-elements' legacy radius scale — see webapp audit.",
       "citation": "$bdl-border-radius-size-med (= size * 1.5)"
     },
     {
@@ -78,7 +78,7 @@
       "boePx": 16,
       "upstreamPx": 8,
       "deltaPx": 8,
-      "note": "Tracks the live Box web app pill geometry (Blueprint), not box-ui-elements 6px source — see webapp audit.",
+      "note": "Tracks the live Box web app pill geometry (Blueprint), not box-ui-elements' legacy radius scale — see webapp audit.",
       "citation": "$bdl-border-radius-size-large (= size * 2)"
     },
     {
@@ -92,7 +92,7 @@
       "boePx": 20,
       "upstreamPx": 12,
       "deltaPx": 8,
-      "note": "Tracks the live Box web app pill geometry (Blueprint), not box-ui-elements 6px source — see webapp audit.",
+      "note": "Tracks the live Box web app pill geometry (Blueprint), not box-ui-elements' legacy radius scale — see webapp audit.",
       "citation": "$bdl-border-radius-size-xlarge (= size * 3)"
     },
     {
