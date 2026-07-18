@@ -34,7 +34,7 @@ const checkboxStyles = `
   }
 
   [part="field"]:active:not(:has([part="input"]:disabled)) {
-    color: var(--boe-token-surface-surface-brand-pressed, #004eaa);
+    color: var(--boe-token-surface-surface-brand-pressed, #004eac);
   }
 
   [part="input"] {

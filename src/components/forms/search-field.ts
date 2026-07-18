@@ -102,7 +102,7 @@ const searchFieldStyles = `
   }
 
   [part="submit"]:active:not(:disabled) {
-    background: var(--boe-token-surface-surface-brand-pressed, #004eaa);
+    background: var(--boe-token-surface-surface-brand-pressed, #004eac);
   }
 
   [part="clear"] {

@@ -84,7 +84,7 @@ const nudgeStyles = `
   }
 
   [part="action"]:active:not(:disabled) {
-    color: var(--boe-token-surface-surface-brand-pressed, #004eaa);
+    color: var(--boe-token-surface-surface-brand-pressed, #004eac);
   }
 
   ${boeFocusVisibleStyles('[part="action"]')}

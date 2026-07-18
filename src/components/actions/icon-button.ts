@@ -66,7 +66,7 @@ const iconButtonStyles = `
   }
 
   [part="button"][data-tone="primary"]:active:not(:disabled) {
-    background: var(--boe-token-surface-surface-brand-pressed, #004eaa);
+    background: var(--boe-token-surface-surface-brand-pressed, #004eac);
   }
 
   [part="button"][data-tone="danger"] {

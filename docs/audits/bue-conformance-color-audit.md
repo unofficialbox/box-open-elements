@@ -10,8 +10,8 @@ Read from **58** compiled Storybook bundle(s) carrying CSS (the always-loaded bu
 
 | Verdict | Count |
 | --- | ---: |
-| ✅ Conformant | 20 |
-| 🔍 Review | 6 |
+| ✅ Conformant | 21 |
+| 🔍 Review | 5 |
 | ⚠️ Missing upstream | 0 |
 | 🚫 Missing box-open-elements | 0 |
 | **Total claims** | **26** |
@@ -24,7 +24,7 @@ Read from **58** compiled Storybook bundle(s) carrying CSS (the always-loaded bu
 | ✅ | button/primary | `TextTextOnBrand` | rgba(255, 255, 255, 1) | rgba(255, 255, 255, 1) | 0 | .btn-primary color |
 | ✅ | button/primary | `SurfaceSurfaceBrand` | rgba(0, 97, 213, 1) | rgba(0, 97, 213, 1) | 0 | .btn-primary border-color |
 | 🔍 | button/primary | `SurfaceSurfaceBrandHover` | rgba(0, 106, 233, 1) | rgba(0, 116, 254, 1) | 21 | .btn-primary:hover background-color |
-| 🔍 | button/primary | `SurfaceSurfaceBrandPressed` | rgba(0, 78, 170, 1) | rgba(0, 78, 172, 1) | 2 | .btn-primary:active background-color |
+| ✅ | button/primary | `SurfaceSurfaceBrandPressed` | rgba(0, 78, 172, 1) | rgba(0, 78, 172, 1) | 0 | .btn-primary:active background-color |
 | ✅ | button/primary | `boeControl.primaryFocusShadow` | inset 0 0 0 1px rgba(255, 255, 255, 0.8), 0 1px 2px rgba(0, 0, 0, 0.1) | inset 0 0 0 1px rgba(255, 255, 255, 0.8), 0 1px 2px rgba(0, 0, 0, 0.1) | — | .btn-primary:focus box-shadow |
 | ✅ | button/neutral | `SurfaceSurface` | rgba(255, 255, 255, 1) | rgba(255, 255, 255, 1) | 0 | .btn background-color |
 | 🔍 | button/neutral | `TextTextSecondary` | rgba(111, 111, 111, 1) | rgba(78, 78, 78, 1) | 33 | .btn color |

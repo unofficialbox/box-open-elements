@@ -55,7 +55,7 @@ export const boeBrandInteractiveStyles = (selector: string): string => `
   }
 
   ${selector}:active:not(:disabled) {
-    background: var(--boe-token-surface-surface-brand-pressed, #004eaa);
+    background: var(--boe-token-surface-surface-brand-pressed, #004eac);
   }
 
   ${selector}:disabled {

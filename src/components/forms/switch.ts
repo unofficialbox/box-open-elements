@@ -80,7 +80,7 @@ const switchStyles = `
   }
 
   [part="switch"]:active:not(:disabled) [part~="track"][data-checked="true"] {
-    background: var(--boe-token-surface-surface-brand-pressed, #004eaa);
+    background: var(--boe-token-surface-surface-brand-pressed, #004eac);
   }
 
   [part~="thumb"] {

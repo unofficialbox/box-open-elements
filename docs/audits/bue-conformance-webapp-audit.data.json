@@ -75,12 +75,12 @@
     {
       "token": "SurfaceSurfaceBrandPressed",
       "blueprintVar": "--surface-surface-brand-pressed",
-      "boeValue": "#004eaa",
+      "boeValue": "#004eac",
       "boxValue": "#004eac",
-      "boeCanonical": "rgba(0, 78, 170, 1)",
+      "boeCanonical": "rgba(0, 78, 172, 1)",
       "boxCanonical": "rgba(0, 78, 172, 1)",
-      "delta": 2,
-      "verdict": "review"
+      "delta": 0,
+      "verdict": "conformant"
     },
     {
       "token": "SurfaceSearchSurface",
@@ -195,12 +195,12 @@
     {
       "token": "TextTextDanger",
       "blueprintVar": "--text-text-destructive-on-light",
-      "boeValue": "#c4183c",
+      "boeValue": "#d5324e",
       "boxValue": "#d5324e",
-      "boeCanonical": "rgba(196, 24, 60, 1)",
+      "boeCanonical": "rgba(213, 50, 78, 1)",
       "boxCanonical": "rgba(213, 50, 78, 1)",
-      "delta": 26,
-      "verdict": "review"
+      "delta": 0,
+      "verdict": "conformant"
     }
   ],
   "geometry": [
