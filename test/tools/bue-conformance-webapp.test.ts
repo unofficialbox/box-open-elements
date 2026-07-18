@@ -7,6 +7,7 @@ import {
   computeExitCode,
   evaluate,
   evaluateGeometry,
+  evaluateStates,
   renderMarkdown,
   type Reference,
   type Row,
@@ -98,6 +99,67 @@ describe("evaluateGeometry", () => {
   });
 });
 
+describe("evaluateStates", () => {
+  const baseState = (over: Record<string, unknown> = {}): Reference => ({
+    capturedFrom: "x",
+    capturedOn: "x",
+    tokens: {},
+    observations: {
+      states: {
+        surfaces: [
+          {
+            surface: "primary button",
+            state: "hover",
+            blueprintVar: "--surface-surface-brand-hover",
+            rendered: "#006ae9",
+            boeToken: "SurfaceSurfaceBrandHover",
+          },
+          ...(over.extra ? (over.extra as object[]) : []),
+        ],
+      },
+    },
+  });
+
+  it("marks a token that matches the in-situ rendered state conformant", () => {
+    const rows = evaluateStates({ SurfaceSurfaceBrandHover: "#006ae9" }, baseState());
+    expect(rows[0].verdict).toBe("conformant");
+    expect(rows[0].delta).toBe(0);
+  });
+
+  it("routes an unmarked state mismatch to review, an `accepted` one to accepted-divergence", () => {
+    const ref = baseState({
+      extra: [
+        {
+          surface: "file-list row",
+          state: "hover",
+          blueprintVar: "--surface-surface-hover",
+          rendered: "#f4f4f4",
+          boeToken: "SurfaceItemSurfaceHover",
+        },
+      ],
+    });
+    // box-open-elements' item-hover blue tint vs Box's neutral #f4f4f4, unmarked → review.
+    expect(
+      evaluateStates({ SurfaceSurfaceBrandHover: "#006ae9", SurfaceItemSurfaceHover: "#eaf2fd" }, ref)
+        .find(r => r.surface === "file-list row")!.verdict,
+    ).toBe("review");
+    // Mark it accepted → accepted-divergence, which passes --strict.
+    ref.observations!.states!.surfaces[1].accepted = "intentional blue tint";
+    const rows = evaluateStates(
+      { SurfaceSurfaceBrandHover: "#006ae9", SurfaceItemSurfaceHover: "#eaf2fd" },
+      ref,
+    );
+    expect(rows.find(r => r.surface === "file-list row")!.verdict).toBe("accepted-divergence");
+    expect(computeExitCode(rows, true)).toBe(0);
+  });
+
+  it("flags a state token the catalog lacks as missing-boe", () => {
+    const rows = evaluateStates({}, baseState());
+    expect(rows[0].verdict).toBe("missing-boe");
+    expect(rows[0].boeValue).toBeNull();
+  });
+});
+
 describe("box-open-elements vs the committed live-Box reference", () => {
   it("stays conformant on the surfaces box-open-elements is faithful to", () => {
     const reference = JSON.parse(
@@ -119,8 +181,20 @@ describe("box-open-elements vs the committed live-Box reference", () => {
     );
     expect(rows.find(r => r.token === "SurfaceSurfaceBrandHover")!.verdict).toBe("conformant");
     expect(rows.find(r => r.token === "SurfaceTooltipSurface")!.verdict).toBe("conformant");
+    // In-situ interaction states: button hover/active + menu hover are conformant;
+    // the file-row hover is the accepted blue-tint divergence — no `review`.
+    const states = evaluateStates(
+      boxDefaultDesignSystem.tokens as Record<string, unknown>,
+      reference,
+    );
+    expect(states.length).toBeGreaterThanOrEqual(4);
+    expect(states.filter(s => s.verdict === "review")).toHaveLength(0);
+    expect(states.find(s => s.surface === "file-list row")!.verdict).toBe("accepted-divergence");
+    expect(
+      states.find(s => s.surface === "primary button" && s.state === "hover")!.verdict,
+    ).toBe("conformant");
     // With only conformant + accepted-divergence, the audit passes --strict.
-    expect(computeExitCode([...rows, ...evaluateGeometry(reference)], true)).toBe(0);
+    expect(computeExitCode([...rows, ...evaluateGeometry(reference), ...states], true)).toBe(0);
   });
 
   it("routes an unmarked mismatch to review, but an `accepted` one to accepted-divergence", () => {

@@ -109,6 +109,40 @@
   "observations": {
     "stroke": "Box control borders also use opacity-based colours (rgba(0,0,0,0.12)); the solid StrokeStroke/StrokeStrokeHover values map to Blueprint --bp-gray-10/-30 and are diffed.",
     "typography": "Every Blueprint --*-font-family token resolves to Lato; box-open-elements intentionally keeps InterVariable-first (per maintainer decision), so the family divergence is by design, not drift.",
+    "states": {
+      "note": "Interaction-state background colours captured in-situ from the live Box app by reading each component module's :hover/:active CSS rule and resolving its var() reference against :root (not just the semantic tokens above). Confirms which state token each surface actually renders. `boeToken` is the box-open-elements token that surface consumes.",
+      "surfaces": [
+        {
+          "surface": "primary button",
+          "state": "hover",
+          "blueprintVar": "--surface-surface-brand-hover",
+          "rendered": "#006ae9",
+          "boeToken": "SurfaceSurfaceBrandHover"
+        },
+        {
+          "surface": "primary button",
+          "state": "active",
+          "blueprintVar": "--surface-surface-brand-pressed",
+          "rendered": "#004eac",
+          "boeToken": "SurfaceSurfaceBrandPressed"
+        },
+        {
+          "surface": "menu item / interactive control",
+          "state": "hover",
+          "blueprintVar": "--surface-surface-hover",
+          "rendered": "#f4f4f4",
+          "boeToken": "SurfaceSurfaceHover"
+        },
+        {
+          "surface": "file-list row",
+          "state": "hover",
+          "blueprintVar": "--surface-surface-hover",
+          "rendered": "#f4f4f4",
+          "boeToken": "SurfaceItemSurfaceHover",
+          "accepted": "Box renders the file-row hover as neutral #f4f4f4 (--surface-surface-hover), not the --surface-item-surface-hover token (#fff); box-open-elements' SurfaceItemSurfaceHover keeps a blue tint (#eaf2fd) for a stronger hover affordance — intentional divergence, consistent with the token-level SurfaceItemSurfaceHover note."
+        }
+      ]
+    },
     "geometry": {
       "primaryButton": {
         "borderRadius": "20px",

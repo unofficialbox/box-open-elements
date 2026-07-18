@@ -296,5 +296,51 @@
       "boxValue": "24px",
       "verdict": "conformant"
     }
+  ],
+  "states": [
+    {
+      "surface": "primary button",
+      "state": "hover",
+      "boeToken": "SurfaceSurfaceBrandHover",
+      "boeValue": "#006ae9",
+      "renderedValue": "#006ae9",
+      "boeCanonical": "rgba(0, 106, 233, 1)",
+      "renderedCanonical": "rgba(0, 106, 233, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "surface": "primary button",
+      "state": "active",
+      "boeToken": "SurfaceSurfaceBrandPressed",
+      "boeValue": "#004eac",
+      "renderedValue": "#004eac",
+      "boeCanonical": "rgba(0, 78, 172, 1)",
+      "renderedCanonical": "rgba(0, 78, 172, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "surface": "menu item / interactive control",
+      "state": "hover",
+      "boeToken": "SurfaceSurfaceHover",
+      "boeValue": "#f4f4f4",
+      "renderedValue": "#f4f4f4",
+      "boeCanonical": "rgba(244, 244, 244, 1)",
+      "renderedCanonical": "rgba(244, 244, 244, 1)",
+      "delta": 0,
+      "verdict": "conformant"
+    },
+    {
+      "surface": "file-list row",
+      "state": "hover",
+      "boeToken": "SurfaceItemSurfaceHover",
+      "boeValue": "#eaf2fd",
+      "renderedValue": "#f4f4f4",
+      "boeCanonical": "rgba(234, 242, 253, 1)",
+      "renderedCanonical": "rgba(244, 244, 244, 1)",
+      "delta": 10,
+      "verdict": "accepted-divergence"
+    }
   ]
 }

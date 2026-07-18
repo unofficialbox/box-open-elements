@@ -37,7 +37,34 @@ export interface Reference {
   tokens: Record<string, { blueprintVar: string; value: string; accepted?: string }>;
   observations?: {
     geometry?: Record<string, { borderRadius?: string } | string>;
+    states?: {
+      note?: string;
+      surfaces: StateReference[];
+    };
   };
+}
+
+export interface StateReference {
+  surface: string;
+  state: string;
+  blueprintVar: string;
+  /** The colour Box actually renders for this surface in this state (in-situ). */
+  rendered: string;
+  /** The box-open-elements token that surface consumes. */
+  boeToken: string;
+  accepted?: string;
+}
+
+export interface StateRow {
+  surface: string;
+  state: string;
+  boeToken: string;
+  boeValue: string | null;
+  renderedValue: string;
+  boeCanonical: string | null;
+  renderedCanonical: string | null;
+  delta: number | null;
+  verdict: Verdict;
 }
 
 export interface GeometryRow {
@@ -143,6 +170,50 @@ export function evaluate(
   });
 }
 
+/**
+ * Verify box-open-elements' **interaction-state** colours against what the live
+ * Box app actually renders in-situ (`observations.states`). The token-level
+ * `evaluate` proves box-open-elements matches Blueprint's *semantic tokens*; this
+ * proves each real surface (button hover/active, menu-item hover, file-row hover)
+ * renders the token box-open-elements expects — so a surface silently rewired to a
+ * different state colour is caught. Same verdict rules as `evaluate`: an exact
+ * match is `conformant`; a mismatch the reference marks `accepted` (a deliberate
+ * box-open-elements choice, e.g. the blue row-hover tint) is `accepted-divergence`;
+ * any other mismatch is `review`; a missing token is `missing-boe`.
+ */
+export function evaluateStates(
+  boeTokens: Record<string, unknown>,
+  reference: Reference,
+): StateRow[] {
+  const surfaces = reference.observations?.states?.surfaces ?? [];
+  return surfaces.map(s => {
+    const boeRaw = typeof boeTokens[s.boeToken] === "string" ? (boeTokens[s.boeToken] as string) : null;
+    const boeColor = boeRaw ? parseColor(boeRaw) : null;
+    const renderedColor = parseColor(s.rendered);
+    if (!boeRaw) {
+      return {
+        surface: s.surface, state: s.state, boeToken: s.boeToken, boeValue: null,
+        renderedValue: s.rendered, boeCanonical: null,
+        renderedCanonical: renderedColor ? canonicalColor(renderedColor) : null,
+        delta: null, verdict: "missing-boe" as Verdict,
+      };
+    }
+    const delta = boeColor && renderedColor ? colorDelta(boeColor, renderedColor) : null;
+    const conformant = delta !== null && delta <= TOLERANCE;
+    return {
+      surface: s.surface,
+      state: s.state,
+      boeToken: s.boeToken,
+      boeValue: boeRaw,
+      renderedValue: s.rendered,
+      boeCanonical: boeColor ? canonicalColor(boeColor) : null,
+      renderedCanonical: renderedColor ? canonicalColor(renderedColor) : null,
+      delta,
+      verdict: conformant ? "conformant" : s.accepted ? "accepted-divergence" : "review",
+    };
+  });
+}
+
 const ICON: Record<Verdict, string> = {
   conformant: "✅",
   "accepted-divergence": "🎯",
@@ -166,6 +237,7 @@ export function renderMarkdown(
   rows: Row[],
   reference: Reference,
   geometry: GeometryRow[] = [],
+  states: StateRow[] = [],
 ): string {
   const counts: Record<Verdict, number> = {
     conformant: 0,
@@ -237,6 +309,27 @@ export function renderMarkdown(
     }
     L.push("");
   }
+  if (states.length > 0) {
+    L.push("## Interaction states");
+    L.push("");
+    L.push(
+      "Verifies box-open-elements' state tokens against the colour the live Box app " +
+        "**actually renders** for each surface in that state — captured in-situ by resolving " +
+        "each component's `:hover`/`:active` rule against Blueprint's `:root` (see the " +
+        "reference's `observations.states`). This confirms the semantic tokens above are the " +
+        "ones the real surfaces render, not just that the token *values* match.",
+    );
+    L.push("");
+    L.push("| | Surface | State | box-open-elements | Real Box (rendered) | Δ | Token |");
+    L.push("| --- | --- | --- | --- | --- | ---: | --- |");
+    for (const s of states) {
+      L.push(
+        `| ${ICON[s.verdict]} | ${s.surface} | ${s.state} | ${s.boeCanonical ?? s.boeValue ?? "—"} | ` +
+          `${s.renderedCanonical ?? s.renderedValue} | ${s.delta ?? "—"} | \`${s.boeToken}\` |`,
+      );
+    }
+    L.push("");
+  }
   L.push(
     "Typography is a deliberate divergence (box-open-elements keeps `InterVariable`-first; " +
       "Box ships Lato) recorded in the reference's `observations`, not audited here.",
@@ -248,23 +341,28 @@ export function renderMarkdown(
 function main(): void {
   const strict = process.argv.includes("--strict");
   const reference = JSON.parse(readFileSync(REFERENCE, "utf8")) as Reference;
-  const rows = evaluate(boxDefaultDesignSystem.tokens as Record<string, unknown>, reference);
+  const boeTokens = boxDefaultDesignSystem.tokens as Record<string, unknown>;
+  const rows = evaluate(boeTokens, reference);
   const geometry = evaluateGeometry(reference);
+  const states = evaluateStates(boeTokens, reference);
 
   writeFileSync(
     REPORT_JSON,
-    `${JSON.stringify({ capturedFrom: reference.capturedFrom, capturedOn: reference.capturedOn, tokens: rows, geometry }, null, 2)}\n`,
+    `${JSON.stringify({ capturedFrom: reference.capturedFrom, capturedOn: reference.capturedOn, tokens: rows, geometry, states }, null, 2)}\n`,
   );
-  writeFileSync(REPORT_MD, renderMarkdown(rows, reference, geometry));
+  writeFileSync(REPORT_MD, renderMarkdown(rows, reference, geometry, states));
 
   const by = (v: Verdict): number => rows.filter(r => r.verdict === v).length;
   const geoReview = geometry.filter(g => g.verdict !== "conformant").length;
+  const stateOk = states.filter(s => s.verdict === "conformant").length;
+  const stateAccepted = states.filter(s => s.verdict === "accepted-divergence").length;
   // eslint-disable-next-line no-console
   console.log(
     `BUE webapp conformance: ${by("conformant")} conformant, ` +
       `${by("accepted-divergence")} accepted, ${by("review")} review, ` +
       `${by("missing-boe")} missing (of ${rows.length} tokens); ` +
-      `geometry ${geometry.length - geoReview}/${geometry.length} conformant. Report: ${REPORT_MD}`,
+      `geometry ${geometry.length - geoReview}/${geometry.length} conformant; ` +
+      `states ${stateOk} conformant + ${stateAccepted} accepted (of ${states.length}). Report: ${REPORT_MD}`,
   );
   for (const r of rows.filter(x => x.verdict === "review")) {
     // eslint-disable-next-line no-console
@@ -274,10 +372,14 @@ function main(): void {
     // eslint-disable-next-line no-console
     console.log(`  🔍 ${g.surface}: box-open-elements ${g.boeValue} vs Box ${g.boxValue}`);
   }
+  for (const s of states.filter(x => x.verdict === "review")) {
+    // eslint-disable-next-line no-console
+    console.log(`  🔍 ${s.surface} (${s.state}): box-open-elements ${s.boeCanonical} vs Box ${s.renderedCanonical} (Δ${s.delta})`);
+  }
 
-  // Strict mode now also gates on the live-Box geometry, so an intentional
-  // divergence that stopped matching the app fails the audit.
-  const code = computeExitCode([...rows, ...geometry], strict);
+  // Strict mode also gates on the live-Box geometry and in-situ interaction
+  // states, so a surface silently rewired to a different state colour fails.
+  const code = computeExitCode([...rows, ...geometry, ...states], strict);
   if (code !== 0) process.exit(code);
 }
 
