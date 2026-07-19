@@ -52,6 +52,15 @@ jobs:
       - name: Real Box web app conformance (--strict)
         run: bun run bue-conformance:webapp --strict
 
+      # Layer 2 colour non-regression floor. Offline against the committed
+      # Storybook-CSS snapshot (tools/bue-conformance/.cache), so it's
+      # deterministic and network-free. `--strict` is unreachable here (the 5
+      # intentional Blueprint-modernisation `review` rows), so instead we assert
+      # the conformant count never drops below its current 40 — a box-open-elements
+      # token change that breaks a conformant claim fails; the reviews are left be.
+      - name: Layer 2 colour conformance floor (offline)
+        run: bun run bue-conformance:color --offline --min-conformant=40
+
   visual-regression:
     name: Visual regression (pixel diff, pinned container)
     runs-on: ubuntu-latest

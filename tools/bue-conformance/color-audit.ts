@@ -55,13 +55,20 @@ export interface Args {
   refresh: boolean;
   offline: boolean;
   strict: boolean;
+  /** `--min-conformant=N`: fail if fewer than N claims are conformant. */
+  minConformant: number | null;
 }
 
 export function parseArgs(argv: string[]): Args {
+  const floorArg = argv.find(a => a.startsWith("--min-conformant="));
+  const parsedFloor = floorArg
+    ? Number.parseInt(floorArg.slice("--min-conformant=".length), 10)
+    : Number.NaN;
   return {
     refresh: argv.includes("--refresh"),
     offline: argv.includes("--offline"),
     strict: argv.includes("--strict"),
+    minConformant: Number.isFinite(parsedFloor) ? parsedFloor : null,
   };
 }
 
@@ -298,6 +305,21 @@ export function computeExitCode(rows: Row[], strict: boolean): number {
   return rows.every(row => row.verdict === "conformant") ? 0 : 1;
 }
 
+/**
+ * Non-regression floor. Unlike `--strict` (which the intentional Blueprint-
+ * modernisation `review` rows make unreachable), this only asserts that the
+ * number of `conformant` claims never drops below `floor` — so a box-open-elements
+ * token change that breaks a currently-conformant claim fails CI, while the
+ * documented reviews are left alone. `null` floor is a no-op.
+ */
+export function conformantFloorExitCode(rows: Row[], floor: number | null): number {
+  if (floor === null) {
+    return 0;
+  }
+  const conformant = rows.filter(row => row.verdict === "conformant").length;
+  return conformant >= floor ? 0 : 1;
+}
+
 export function renderMarkdown(rows: Row[], bundles: string[]): string {
   const counts: Record<Verdict, number> = {
     conformant: 0,
@@ -437,7 +459,16 @@ async function main(): Promise<void> {
     );
   }
 
-  const exitCode = computeExitCode(rows, args.strict);
+  const floorCode = conformantFloorExitCode(rows, args.minConformant);
+  if (args.minConformant !== null) {
+    // eslint-disable-next-line no-console
+    console.log(
+      `Conformant floor: ${by("conformant")} conformant vs required ≥ ${args.minConformant} — ` +
+        `${floorCode === 0 ? "PASS" : "FAIL (a previously-conformant claim regressed)"}`,
+    );
+  }
+
+  const exitCode = computeExitCode(rows, args.strict) || floorCode;
   if (exitCode !== 0) {
     process.exit(exitCode);
   }

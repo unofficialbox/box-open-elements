@@ -148,5 +148,10 @@ storybook/dist/
 # Screenshot-regression working dir
 .regression-tmp/
 
-# BUE conformance upstream fetch cache
-tools/bue-conformance/.cache/
+# BUE conformance upstream fetch cache. Ignore the fetched artefacts, but keep
+# the compiled-CSS snapshot + bundle map committed — they are the frozen upstream
+# reference the offline Layer 2 colour gate reads in CI (like the webapp snapshot).
+!tools/bue-conformance/.cache/
+tools/bue-conformance/.cache/*
+!tools/bue-conformance/.cache/storybook-compiled.css
+!tools/bue-conformance/.cache/storybook-bundles.json

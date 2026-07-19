@@ -26,6 +26,7 @@ import {
 import {
   anchorPresent,
   computeExitCode,
+  conformantFloorExitCode,
   evaluate,
   parseArgs,
   parseBundleNames,
@@ -497,8 +498,20 @@ describe("parseArgs", () => {
       refresh: true,
       offline: false,
       strict: true,
+      minConformant: null,
     });
-    expect(parseArgs([])).toEqual({ refresh: false, offline: false, strict: false });
+    expect(parseArgs([])).toEqual({
+      refresh: false,
+      offline: false,
+      strict: false,
+      minConformant: null,
+    });
+  });
+
+  it("parses the --min-conformant floor (and ignores a non-numeric value)", () => {
+    expect(parseArgs(["--min-conformant=40"]).minConformant).toBe(40);
+    expect(parseArgs(["--offline", "--min-conformant=0"]).minConformant).toBe(0);
+    expect(parseArgs(["--min-conformant=abc"]).minConformant).toBeNull();
   });
 });
 
@@ -627,6 +640,21 @@ describe("computeExitCode", () => {
   it("is 1 in strict mode when any claim is not conformant", () => {
     expect(computeExitCode([mk("conformant"), mk("review")], true)).toBe(1);
     expect(computeExitCode([mk("conformant")], true)).toBe(0);
+  });
+});
+
+describe("conformantFloorExitCode", () => {
+  const mk = (verdict: Row["verdict"]): Row => ({ verdict } as Row);
+  const rows = [mk("conformant"), mk("conformant"), mk("review"), mk("conformant")]; // 3 conformant
+
+  it("is a no-op when no floor is set", () => {
+    expect(conformantFloorExitCode(rows, null)).toBe(0);
+  });
+
+  it("passes at or above the floor and fails below it — reviews don't count", () => {
+    expect(conformantFloorExitCode(rows, 3)).toBe(0); // exactly at floor
+    expect(conformantFloorExitCode(rows, 2)).toBe(0);
+    expect(conformantFloorExitCode(rows, 4)).toBe(1); // a conformant claim would have to regress
   });
 });
 
