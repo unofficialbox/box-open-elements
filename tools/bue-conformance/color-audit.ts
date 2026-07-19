@@ -354,6 +354,17 @@ export function renderMarkdown(rows: Row[], bundles: string[]): string {
       "shown so that judgement needs no browser.",
   );
   lines.push("");
+  lines.push(
+    "> **Keeping this current.** CI runs this audit `--offline` against a **committed, " +
+      "frozen snapshot** of the compiled Storybook CSS (`tools/bue-conformance/.cache/" +
+      "storybook-compiled.css`) and gates on a conformant-count floor (`--min-conformant`), " +
+      "so the check is deterministic and fails on box-open-elements regressions rather than " +
+      "upstream drift. That snapshot is dated: re-fetch it with `bun run bue-conformance:" +
+      "color --refresh` roughly **quarterly**, whenever you broaden claim coverage, or after " +
+      "a material box-ui-elements Storybook change — then commit the refreshed cache and, if " +
+      "the conformant count rose, bump the CI floor to match.",
+  );
+  lines.push("");
   if (bundles.length > 0) {
     lines.push(
       `Read from **${bundles.length}** compiled Storybook bundle(s) carrying CSS ` +
