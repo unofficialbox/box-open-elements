@@ -10,7 +10,7 @@ import {
   type PresenceUser,
   type ShareDataSource,
   type ShareState,
-} from "box-open-elements";
+} from "@unofficialbox/box-open-elements";
 import {
   contentExplorerChromeHtml,
   contentExplorerChromeNote,
@@ -25,7 +25,7 @@ import {
   contentExplorerMetadataChromeNote,
   setupContentExplorerMetadataChrome,
 } from "./explorer-metadata-demo.js";
-import { boxIconography } from "box-open-elements";
+import { boxIconography } from "@unofficialbox/box-open-elements";
 
 /** Inline a Box iconography glyph by name (for slotted demo icons). */
 const icon = (name: keyof typeof boxIconography): string =>

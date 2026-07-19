@@ -42,8 +42,8 @@ src/patterns/
 ## Import contract
 
 ```ts
-import { ExplorerSelectionController } from "box-open-elements/patterns/content-explorer/selection";
-import { ExplorerSelectionController } from "box-open-elements/patterns/content-explorer"; // area root re-export
+import { ExplorerSelectionController } from "@unofficialbox/box-open-elements/patterns/content-explorer/selection";
+import { ExplorerSelectionController } from "@unofficialbox/box-open-elements/patterns/content-explorer"; // area root re-export
 ```
 
 ## Target inventory by area

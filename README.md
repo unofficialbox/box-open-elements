@@ -68,8 +68,8 @@ Everything in the [components catalog](./docs/components/catalog.md) and [patter
 import {
   applyDesignTokens,
   registerBoxDefaultDesignSystem,
-} from "box-open-elements/foundations/tokens";
-import { defineBoxButtonElement } from "box-open-elements/components/actions/button";
+} from "@unofficialbox/box-open-elements/foundations/tokens";
+import { defineBoxButtonElement } from "@unofficialbox/box-open-elements/components/actions/button";
 
 registerBoxDefaultDesignSystem({ setActive: true });
 applyDesignTokens(document.documentElement, "box-default");
@@ -85,7 +85,7 @@ Components consume foundation tokens (`--boe-token-*`) with safe fallbacks, so t
 ## Example: headless patterns
 
 ```ts
-import { ExplorerSelectionController } from "box-open-elements/patterns/content-explorer/selection";
+import { ExplorerSelectionController } from "@unofficialbox/box-open-elements/patterns/content-explorer/selection";
 
 const selection = new ExplorerSelectionController({ selectionMode: "multiple" });
 
@@ -101,11 +101,11 @@ Workflow patterns begin as headless behavior and gain presentation adapters, so 
 
 ## Import contract
 
-- root exports: `box-open-elements`
-- shared runtime: `box-open-elements/core`
-- foundations: `box-open-elements/foundations/<module>`
-- components: `box-open-elements/components/<category>/<name>`
-- patterns: `box-open-elements/patterns/<area>` and `box-open-elements/patterns/<area>/<module>`
+- root exports: `@unofficialbox/box-open-elements`
+- shared runtime: `@unofficialbox/box-open-elements/core`
+- foundations: `@unofficialbox/box-open-elements/foundations/<module>`
+- components: `@unofficialbox/box-open-elements/components/<category>/<name>`
+- patterns: `@unofficialbox/box-open-elements/patterns/<area>` and `@unofficialbox/box-open-elements/patterns/<area>/<module>`
 
 New exports follow the wildcard contract by default instead of adding explicit `package.json` entries. See [docs/api-guidelines.md](./docs/api-guidelines.md).
 

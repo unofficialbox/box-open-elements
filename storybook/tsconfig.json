@@ -11,7 +11,7 @@
     "resolveJsonModule": true,
     "types": ["bun-types"],
     "paths": {
-      "box-open-elements": ["../src/index.ts"]
+      "@unofficialbox/box-open-elements": ["../src/index.ts"]
     }
   },
   "include": ["./**/*.ts"]

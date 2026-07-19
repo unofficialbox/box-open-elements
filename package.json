@@ -1,5 +1,5 @@
 {
-  "name": "box-open-elements",
+  "name": "@unofficialbox/box-open-elements",
   "version": "0.1.0",
   "description": "Box Open Elements: an open, framework-agnostic design system and web component library for Box-style experiences",
   "license": "MIT",

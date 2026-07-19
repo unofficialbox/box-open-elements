@@ -63,7 +63,7 @@ Workflow patterns should begin as headless behavior (controllers plus contracts)
 
 ## Web Component render contract
 
-Catalog and pattern custom elements extend `BaseElement` from `box-open-elements/core`:
+Catalog and pattern custom elements extend `BaseElement` from `@unofficialbox/box-open-elements/core`:
 
 - `renderTemplate()` — build the shadow DOM (styles + structure) once on first connect
 - `setupListeners()` — attach listeners once to stable nodes (prefer event delegation for lists)

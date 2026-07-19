@@ -1,6 +1,6 @@
 # Motion
 
-Motion guidance is backed by a small shared vocabulary in `box-open-elements/foundations/motion`. Prefer that module over hard-coded `120ms` / `ease` literals in new or touched shadow styles.
+Motion guidance is backed by a small shared vocabulary in `@unofficialbox/box-open-elements/foundations/motion`. Prefer that module over hard-coded `120ms` / `ease` literals in new or touched shadow styles.
 
 ## Vocabulary
 
@@ -10,7 +10,7 @@ import {
   boeMotionEasing,
   boeReducedMotionStyles,
   boeTransition,
-} from "box-open-elements/foundations/motion";
+} from "@unofficialbox/box-open-elements/foundations/motion";
 ```
 
 | Export | Role |
@@ -36,7 +36,7 @@ import {
   boeMotionEasing,
   boeReducedMotionStyles,
   boeTransition,
-} from "box-open-elements/foundations/motion";
+} from "@unofficialbox/box-open-elements/foundations/motion";
 
 const styles = `
   [part="panel"] {

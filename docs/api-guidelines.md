@@ -30,21 +30,21 @@ The package import surface should stay predictable as the catalog grows:
 
 - `box-open-elements`
   - root exports and common entrypoints
-- `box-open-elements/core`
+- `@unofficialbox/box-open-elements/core`
   - shared runtime (event emitter, controller base)
-- `box-open-elements/foundations/<module>`
+- `@unofficialbox/box-open-elements/foundations/<module>`
   - design-token registry, token bundles, iconography
-- `box-open-elements/components/<category>/<name>`
+- `@unofficialbox/box-open-elements/components/<category>/<name>`
   - single controls grouped by category
-- `box-open-elements/patterns/<area>` and `box-open-elements/patterns/<area>/<module>`
+- `@unofficialbox/box-open-elements/patterns/<area>` and `@unofficialbox/box-open-elements/patterns/<area>/<module>`
   - workflow areas: headless controllers, contracts, and composed surfaces
 
 Examples:
 
 ```ts
-import { defineBoxButtonElement } from "box-open-elements/components/actions/button";
-import { applyDesignTokens } from "box-open-elements/foundations/tokens";
-import { ExplorerSelectionController } from "box-open-elements/patterns/content-explorer/selection";
+import { defineBoxButtonElement } from "@unofficialbox/box-open-elements/components/actions/button";
+import { applyDesignTokens } from "@unofficialbox/box-open-elements/foundations/tokens";
+import { ExplorerSelectionController } from "@unofficialbox/box-open-elements/patterns/content-explorer/selection";
 ```
 
 Guidance:
@@ -215,7 +215,7 @@ Accessibility semantics and keyboard behavior are part of the component contract
 
 ## Render lifecycle
 
-Web Components in this package extend `BaseElement` (`box-open-elements/core`):
+Web Components in this package extend `BaseElement` (`@unofficialbox/box-open-elements/core`):
 
 - build the shadow tree once in `renderTemplate()`
 - attach listeners once in `setupListeners()`

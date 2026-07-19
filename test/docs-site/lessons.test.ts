@@ -113,7 +113,7 @@ describe("build-along lessons", () => {
     assertLessonShape(explorerLesson, EXPLORER_PREVIEW_KEYS);
     const finalCode = explorerLesson.steps[explorerLesson.steps.length - 1].code;
     for (const token of [
-      'from "box-open-elements"',
+      'from "@unofficialbox/box-open-elements"',
       "registerBoxDefaultDesignSystem",
       "defineBoxContentExplorerElement",
       "box-content-explorer",
@@ -133,7 +133,7 @@ describe("build-along lessons", () => {
     assertLessonShape(shareLesson, SHARE_PREVIEW_KEYS);
     const finalCode = shareLesson.steps[shareLesson.steps.length - 1].code;
     for (const token of [
-      'from "box-open-elements"',
+      'from "@unofficialbox/box-open-elements"',
       "registerBoxDefaultDesignSystem",
       "defineBoxSharePanelElement",
       "box-share-panel",
@@ -152,7 +152,7 @@ describe("build-along lessons", () => {
     assertLessonShape(previewLesson, CONTENT_PREVIEW_KEYS);
     const finalCode = previewLesson.steps[previewLesson.steps.length - 1].code;
     for (const token of [
-      'from "box-open-elements"',
+      'from "@unofficialbox/box-open-elements"',
       "registerBoxDefaultDesignSystem",
       "defineBoxPreviewElement",
       "box-preview-element",

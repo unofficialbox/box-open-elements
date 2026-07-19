@@ -2,7 +2,7 @@
 
 Everyday control chrome should track [box-ui-elements](https://github.com/box/box-ui-elements) Box Design Language geometry (`src/styles/constants/_layout.scss`, `_buttons.scss`, `_inputs.scss`, and overlay/modal SCSS), not ad-hoc rem bands.
 
-Shared constants live in `box-open-elements/foundations/geometry`.
+Shared constants live in `@unofficialbox/box-open-elements/foundations/geometry`.
 
 ## Vocabulary
 
@@ -14,7 +14,7 @@ import {
   boeOverlay,
   boePanel,
   boeInputControlStyles,
-} from "box-open-elements/foundations/geometry";
+} from "@unofficialbox/box-open-elements/foundations/geometry";
 ```
 
 | Export | Role |

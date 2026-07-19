@@ -25,7 +25,7 @@ import {
   registerBoxDefaultDesignSystem,
   registerDesignSystem,
   setActiveDesignSystem,
-} from "box-open-elements/foundations/tokens";
+} from "@unofficialbox/box-open-elements/foundations/tokens";
 ```
 
 | API | Purpose |
@@ -50,7 +50,7 @@ SurfaceSurfaceBrand  →  --boe-token-surface-surface-brand
 import {
   applyDesignTokens,
   registerBoxDefaultDesignSystem,
-} from "box-open-elements/foundations/tokens";
+} from "@unofficialbox/box-open-elements/foundations/tokens";
 
 registerBoxDefaultDesignSystem({ setActive: true });
 applyDesignTokens(document.documentElement, "box-default");
@@ -66,7 +66,7 @@ import {
   registerBoxDefaultDesignSystem,
   registerBoxDarkDesignSystem,
   setActiveDesignSystem,
-} from "box-open-elements/foundations/tokens";
+} from "@unofficialbox/box-open-elements/foundations/tokens";
 
 registerBoxDefaultDesignSystem();
 registerBoxDarkDesignSystem();
@@ -84,7 +84,7 @@ The docs site's footer theme toggle uses exactly this mechanism.
 import {
   applyDesignTokens,
   registerDesignSystem,
-} from "box-open-elements/foundations/tokens";
+} from "@unofficialbox/box-open-elements/foundations/tokens";
 
 registerDesignSystem(
   {
@@ -157,7 +157,7 @@ The component docs API tab lists **design tokens used** by scanning the primary 
 ## Interactive state helpers
 
 Batch 3 fidelity work ships shared CSS snippets from
-`box-open-elements/foundations/tokens` so interactive parts share one
+`@unofficialbox/box-open-elements/foundations/tokens` so interactive parts share one
 focus/hover/active/disabled language:
 
 ```ts
@@ -165,7 +165,7 @@ import {
   boeBrandInteractiveStyles,
   boeNeutralInteractiveStyles,
   boeFocusVisibleStyles,
-} from "box-open-elements/foundations/tokens";
+} from "@unofficialbox/box-open-elements/foundations/tokens";
 
 const styles = `
   ${boeNeutralInteractiveStyles('[part="trigger"]')}

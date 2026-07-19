@@ -40,7 +40,7 @@ import {
   registerBoxDefaultDesignSystem,
   registerBoxDarkDesignSystem,
   setActiveDesignSystem,
-} from "box-open-elements/foundations/tokens";
+} from "@unofficialbox/box-open-elements/foundations/tokens";
 
 registerBoxDefaultDesignSystem();
 registerBoxDarkDesignSystem();
@@ -63,7 +63,7 @@ The docs-site footer theme toggle uses this exact pattern: flip the active syste
 Asset-driven surfaces (for example icon buttons, help icons, illustrations) listen for this event and re-resolve icons/illustrations from the newly active bundle so theme switches update glyphs without a full-page reload.
 
 ```ts
-import { DESIGN_SYSTEM_CHANGE_EVENT } from "box-open-elements/foundations/tokens";
+import { DESIGN_SYSTEM_CHANGE_EVENT } from "@unofficialbox/box-open-elements/foundations/tokens";
 
 globalThis.addEventListener(DESIGN_SYSTEM_CHANGE_EVENT, () => {
   // re-read resolveDesignIcon / resolveDesignIllustration as needed

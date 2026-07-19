@@ -1,4 +1,4 @@
-import * as lib from "box-open-elements";
+import * as lib from "@unofficialbox/box-open-elements";
 import { catalog, titleOf, type CatalogEntry } from "./registry.js";
 import { examples } from "./examples.js";
 import {
