@@ -93,16 +93,23 @@ const treeStyles = `
     display: inline-grid;
     place-items: center;
     appearance: none;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
-    border-radius: ${boeRadius.control};
+    border: none;
+    border-radius: ${boeRadius.size};
     padding: 0;
     line-height: 1;
-    background: var(--boe-token-surface-surface, #ffffff);
+    background: transparent;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     font: inherit;
-    font-size: 0.85rem;
     cursor: pointer;
     box-shadow: none;
+    transition:
+      background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
+  }
+
+  [part~="toggle"]:hover {
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+    color: var(--boe-token-text-text, #222222);
   }
 
   [part~="control"] {
@@ -112,19 +119,22 @@ const treeStyles = `
     place-items: center;
     appearance: none;
     border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
-    border-radius: ${boeRadius.control};
+    border-radius: ${boeRadius.size};
     padding: 0;
     line-height: 1;
     background: var(--boe-token-surface-surface, #ffffff);
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     cursor: pointer;
     box-shadow: none;
+    transition:
+      background-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+      color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
-  [part~="toggle-expanded"] {
-    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
-    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, transparent);
-    color: var(--boe-token-surface-surface-brand, #0061d5);
+  [part~="control"]:hover {
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+    color: var(--boe-token-text-text, #222222);
   }
 
   [part~="toggle"] svg {
@@ -135,6 +145,14 @@ const treeStyles = `
     fill: none;
     stroke-width: 1.6;
     stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
+  }
+
+  /* Collapsed chevron points right; expanded rotates it to point down —
+     Box's flat disclosure idiom (no boxed circle, no plus/minus glyph). */
+  [part~="toggle-expanded"] svg {
+    transform: rotate(90deg);
   }
 
   [part~="control"] svg {
@@ -310,23 +328,24 @@ export class BoxTreeElement extends BaseElement {
     return nodes;
   }
 
-  private renderToggleIcon(isExpanded: boolean): string {
-    const verticalStroke = isExpanded ? "" : '<path d="M6 2.25V9.75" />';
+  private renderToggleIcon(): string {
+    // A single right-pointing chevron; CSS rotates it 90° when expanded.
     return `
       <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-        <path d="M2.25 6H9.75" />
-        ${verticalStroke}
+        <path d="M4.5 2.5 8 6l-3.5 3.5" />
       </svg>
     `;
   }
 
   private renderControlIcon(type: "expand-all" | "collapse-all"): string {
-    const verticalStroke = type === "expand-all" ? '<path d="M6 3.9V8.1" />' : "";
+    // Double chevron: pointing down = expand all, pointing up = collapse all.
+    const paths =
+      type === "expand-all"
+        ? '<path d="M3 4.25 6 7l3-2.75" /><path d="M3 7.25 6 10l3-2.75" />'
+        : '<path d="M3 7.75 6 5l3 2.75" /><path d="M3 4.75 6 2l3 2.75" />';
     return `
       <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-        <rect x="1.5" y="1.5" width="9" height="9" rx="0.8" />
-        <path d="M4.15 6H7.85" />
-        ${verticalStroke}
+        ${paths}
       </svg>
     `;
   }
@@ -355,7 +374,7 @@ export class BoxTreeElement extends BaseElement {
                       part="${togglePart}"
                       data-key="${escapeHtml(key)}"
                       aria-expanded="${String(isExpanded)}"
-                    >${this.renderToggleIcon(isExpanded)}</button>`
+                    >${this.renderToggleIcon()}</button>`
                   : `<span part="spacer" aria-hidden="true"></span>`
               }
               <button
