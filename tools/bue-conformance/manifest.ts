@@ -10,8 +10,8 @@
  * Only length-valued claims live here today — they are statically resolvable and
  * cover the Box Design Language geometry vocabulary (grid, radii, control
  * heights, overlay/modal metrics). Colour/shadow conformance is produced by Sass
- * functions upstream and is verified in the live-Storybook computed-style phase
- * (see plans/bue-conformance-execplan.md).
+ * functions upstream and is verified separately by the Layer 2 colour audit
+ * (`bun run bue-conformance:color`).
  */
 import {
   boeControl,

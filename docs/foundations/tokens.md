@@ -113,7 +113,7 @@ applyDesignTokens(document.documentElement, "acme");
 
 ## Token consumption vs shell / consumer overrides
 
-Source-level Box styling is the default: every catalog surface carries its look in its own shadow styles via `--boe-token-*` (see `plans/source-level-styling-execplan.md`). Demo, docs, and host “shell” CSS must **not** be treated as the source of the Box look.
+Source-level Box styling is the default: every catalog surface carries its look in its own shadow styles via `--boe-token-*`. Demo, docs, and host “shell” CSS must **not** be treated as the source of the Box look.
 
 | Actor | Responsibility |
 | --- | --- |

@@ -44,5 +44,4 @@ import {
 ## Related
 
 - [Design Tokens](./tokens.md) — color/theme registry
-- [Upstream Gaps](../research/upstream-gaps.md) — catalog inventory vs BUE
 - [Motion](./motion.md) — transition timing

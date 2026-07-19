@@ -1,7 +1,7 @@
 # Workshop (Storybook backend)
 
 A **separately-deployable component website** for `box-open-elements`, and the
-one-way extraction backend described in [`docs/workshop/storybook.md`](../docs/workshop/storybook.md).
+one-way extraction backend.
 
 It is the secondary authoring/iteration surface — many small component *states*
 in isolation — distinct from the guided docs site. Per the doc, it is **not** a

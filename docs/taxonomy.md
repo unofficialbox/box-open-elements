@@ -2,7 +2,7 @@
 
 This diagram is the canonical model for the package structure, docs structure, and teaching structure of `box-open-elements`.
 
-The system uses the industry-standard three-tier shape — **Foundations → Components → Patterns** — used by Atlassian, Shopify Polaris, and GitHub Primer (see [research/taxonomy-comparison.md](./research/taxonomy-comparison.md)). It replaces the previous repo's `Primitives → Composites → Elements` naming:
+The system uses the industry-standard three-tier shape — **Foundations → Components → Patterns** — used by Atlassian, Shopify Polaris, and GitHub Primer. It replaces the previous repo's `Primitives → Composites → Elements` naming:
 
 | Old tier (`box-open-web-components`) | New tier (`box-open-elements`) |
 | --- | --- |

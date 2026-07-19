@@ -48,7 +48,7 @@ import { ExplorerSelectionController } from "box-open-elements/patterns/content-
 
 ## Target inventory by area
 
-Status: **built** = implemented here with tests; everything else has its reference implementation in `box-open-web-components` (see [../migration-map.md](../migration-map.md)).
+Status: **built** = implemented here with tests; everything else has its reference implementation in `box-open-web-components`.
 
 ### Content Explorer (workflow)
 
@@ -123,7 +123,7 @@ Headless blocks (see [content-explorer.md](./content-explorer.md) for the compos
 
 ## Scoped workflow gap candidates
 
-From the upstream `box/box-ui-elements` comparison (see [../research/upstream-gaps.md](../research/upstream-gaps.md)):
+From the upstream `box/box-ui-elements` comparison:
 
 - **Compositions**: `access-stats`, `collaborator-avatars` — **both built** in the Share section above
 - **Workflows**: `unified-share-modal` (Box's most orchestration-heavy share surface), `invite-collaborators-modal` (multi-step, transport-aware), and `presence` (live data subscription) — **all built** in the Share section above

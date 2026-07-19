@@ -13,9 +13,8 @@
  *   bun tools/bue-conformance/audit.ts --strict   # exit 1 if any drift found
  *
  * Network-blocked sandboxes: only `raw.githubusercontent.com` is reachable here,
- * which is exactly what this script uses. The live-Storybook colour/pixel phase
- * (blocked until `opensource.box.com` is allowlisted) is tracked in
- * plans/bue-conformance-execplan.md.
+ * which is exactly what this script uses. The live-Storybook colour phase runs
+ * separately via `bun run bue-conformance:color`.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -237,10 +236,9 @@ export function renderMarkdown(rows: Row[], files: LoadedFile[]): string {
       "constants (`src/foundations/geometry`) against the real Box Design Language " +
       "values in [box/box-ui-elements](https://github.com/box/box-ui-elements) " +
       `(\`${REVISION}\`). Length claims are resolved statically; colour/shadow conformance ` +
-      "is verified in the live-Storybook phase (see " +
-      "`plans/bue-conformance-execplan.md`). Some radii now **intentionally diverge** " +
-      "from box-ui-elements source to track the live Box web app's pill geometry — " +
-      "see `docs/audits/bue-conformance-webapp-audit.md`.",
+      "is verified separately by `bun run bue-conformance:color`. Some radii now " +
+      "**intentionally diverge** from box-ui-elements source to track the live Box web " +
+      "app's pill geometry — verified by `bun run bue-conformance:webapp`.",
   );
   lines.push("");
   lines.push("## Summary");

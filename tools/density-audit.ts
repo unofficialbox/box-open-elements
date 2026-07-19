@@ -4,7 +4,7 @@
  * 1) Absolute fat thresholds vs segmented-control bands
  * 2) Peer-variance summary for same-role chrome (pad/radius/gap/title)
  */
-import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
 const ROOT = join(import.meta.dir, "..");
@@ -245,7 +245,9 @@ const report = {
   })),
 };
 
-const outPath = join(ROOT, "plans/density-audit-report.json");
+const outDir = join(ROOT, "tmp");
+mkdirSync(outDir, { recursive: true });
+const outPath = join(outDir, "density-audit-report.json");
 writeFileSync(outPath, JSON.stringify(report, null, 2));
 
 console.log(`Scanned ${files.length} element files; ${findings.length} with fat tokens`);

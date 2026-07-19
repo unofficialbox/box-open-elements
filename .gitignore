@@ -155,3 +155,12 @@ storybook/dist/
 tools/bue-conformance/.cache/*
 !tools/bue-conformance/.cache/storybook-compiled.css
 !tools/bue-conformance/.cache/storybook-bundles.json
+
+# Generated conformance audit reports — the audit tools rewrite these on every
+# run, so they're build artefacts, not source. The committed *input* snapshot
+# (docs/audits/box-webapp-reference.data.json) is kept.
+docs/audits/bue-conformance-*audit.md
+docs/audits/bue-conformance-*audit.data.json
+
+# Dev-tool scratch output (density-audit report, etc.)
+tmp/
