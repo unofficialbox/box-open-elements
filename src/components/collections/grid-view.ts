@@ -2,6 +2,7 @@ import { BaseElement } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 import { boeRadius } from "../../foundations/geometry/index.js";
+import { boxIconography } from "../../foundations/icons/index.js";
 
 const DEFAULT_TAG_NAME = "box-grid-view";
 
@@ -18,6 +19,21 @@ type BoxGridViewItem = {
   label: string;
   meta?: string;
   icon?: string;
+};
+
+const iconLibrary = boxIconography as Record<string, string>;
+
+/**
+ * Render a tile thumbnail glyph. A known Box iconography name (`"folder"`,
+ * `"file-document"`, `"link"`, …) resolves to that icon's trusted SVG markup;
+ * any other value is treated as literal text (e.g. a single-letter monogram)
+ * and HTML-escaped. Empty when no icon is provided.
+ */
+const renderThumbIcon = (icon?: string): string => {
+  if (!icon) {
+    return "";
+  }
+  return iconLibrary[icon] ?? escapeHtml(icon);
 };
 
 const gridViewStyles = `
@@ -70,6 +86,11 @@ const gridViewStyles = `
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     font-size: 1.1rem;
     font-weight: 700;
+  }
+
+  [part="thumb"] svg {
+    inline-size: 1.6rem;
+    block-size: 1.6rem;
   }
 
   [part="tile-label"] {
@@ -209,7 +230,7 @@ export class BoxGridViewElement extends BaseElement {
       .map(item => {
         const isSelected = item.value === this.valueInternal;
         const tilePart = isSelected ? "tile tile-selected" : "tile";
-        const iconMarkup = item.icon ? escapeHtml(item.icon) : "";
+        const iconMarkup = renderThumbIcon(item.icon);
         const metaMarkup = item.meta
           ? `<span part="meta">${escapeHtml(item.meta)}</span>`
           : "";

@@ -25,6 +25,11 @@ import {
   contentExplorerMetadataChromeNote,
   setupContentExplorerMetadataChrome,
 } from "./explorer-metadata-demo.js";
+import { boxIconography } from "box-open-elements";
+
+/** Inline a Box iconography glyph by name (for slotted demo icons). */
+const icon = (name: keyof typeof boxIconography): string =>
+  (boxIconography as Record<string, string>)[name] ?? "";
 
 /** Optional return value unsubscribes host listeners when the preview remounts. */
 type SetupFn = (root: HTMLElement) => void | (() => void);
@@ -129,10 +134,10 @@ export const examples: Record<string, ComponentExample> = {
     html: `<box-grid-view label="Files"></box-grid-view>`,
     setup: root => set(root, "box-grid-view", {
       items: [
-        { value: "123", label: "Quarterly Plan.pdf", meta: "PDF · 2.1 MB", icon: "P" },
-        { value: "124", label: "Brand Guidelines.pdf", meta: "PDF · 5.4 MB", icon: "P" },
-        { value: "42", label: "Marketing", meta: "Folder · 18 items", icon: "M" },
-        { value: "125", label: "box.com/launch", meta: "Web link", icon: "L" },
+        { value: "123", label: "Quarterly Plan.pdf", meta: "PDF · 2.1 MB", icon: "file-document" },
+        { value: "124", label: "Brand Guidelines.pdf", meta: "PDF · 5.4 MB", icon: "file-document" },
+        { value: "42", label: "Marketing", meta: "Folder · 18 items", icon: "folder" },
+        { value: "125", label: "box.com/launch", meta: "Web link", icon: "link" },
       ],
       value: "123",
     }),
@@ -423,21 +428,22 @@ export const examples: Record<string, ComponentExample> = {
   },
   "split-view": {
     html: `<box-split-view label="Master detail" ratio="0.4" resizable>
-  <box-grid-view slot="primary" label="Files" value="123" items='[{"value":"123","label":"Quarterly Plan.pdf","meta":"PDF · 2.1 MB","icon":"P"},{"value":"124","label":"Brand Guidelines.pdf","meta":"PDF · 5.4 MB","icon":"P"},{"value":"42","label":"Marketing","meta":"Folder · 18 items","icon":"M"}]'></box-grid-view>
+  <box-grid-view slot="primary" label="Files" value="123" items='[{"value":"123","label":"Quarterly Plan.pdf","meta":"PDF · 2.1 MB","icon":"file-document"},{"value":"124","label":"Brand Guidelines.pdf","meta":"PDF · 5.4 MB","icon":"file-document"},{"value":"42","label":"Marketing","meta":"Folder · 18 items","icon":"folder"}]'></box-grid-view>
   <box-item-details-panel heading="Quarterly Plan.pdf" eyebrow="PDF · 2.4 MB" owner='{"name":"Morgan Lee","description":"Enterprise Admin"}' meta='[{"label":"Modified","value":"Jul 10, 2026"},{"label":"Status","value":"Shared"}]'></box-item-details-panel>
 </box-split-view>`,
   },
   "nav-sidebar": {
     html: `<style>
   #demo-nav-sidebar [data-nav-label] { display: var(--boe-nav-label-display, inline); }
-  #demo-nav-sidebar [data-nav-icon] { inline-size: 1.1rem; text-align: center; }
+  #demo-nav-sidebar [data-nav-icon] { display: inline-grid; place-items: center; inline-size: 1.1rem; block-size: 1.1rem; }
+  #demo-nav-sidebar [data-nav-icon] svg { inline-size: 100%; block-size: 100%; display: block; }
 </style>
 <box-nav-sidebar label="Workspace" id="demo-nav-sidebar">
   <box-sidebar-toggle-button slot="header" controls="demo-nav-sidebar" label="Collapse navigation"></box-sidebar-toggle-button>
-  <button type="button" aria-label="All Files"><span data-nav-icon aria-hidden="true">A</span><span data-nav-label>All Files</span></button>
-  <button type="button" aria-label="Recents"><span data-nav-icon aria-hidden="true">R</span><span data-nav-label>Recents</span></button>
-  <button type="button" aria-label="Synced"><span data-nav-icon aria-hidden="true">S</span><span data-nav-label>Synced</span></button>
-  <button type="button" aria-label="Trash"><span data-nav-icon aria-hidden="true">T</span><span data-nav-label>Trash</span></button>
+  <button type="button" aria-label="All Files"><span data-nav-icon aria-hidden="true">${icon("folder")}</span><span data-nav-label>All Files</span></button>
+  <button type="button" aria-label="Recents"><span data-nav-icon aria-hidden="true">${icon("clock1")}</span><span data-nav-label>Recents</span></button>
+  <button type="button" aria-label="Synced"><span data-nav-icon aria-hidden="true">${icon("cloud")}</span><span data-nav-label>Synced</span></button>
+  <button type="button" aria-label="Starred"><span data-nav-icon aria-hidden="true">${icon("star")}</span><span data-nav-label>Starred</span></button>
   <span slot="footer">2.4 GB of 10 GB used</span>
 </box-nav-sidebar>`,
     setup: root => {
