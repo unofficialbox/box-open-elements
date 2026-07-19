@@ -23,6 +23,10 @@ type BoxGridViewItem = {
 const gridViewStyles = `
   :host {
     display: block;
+    /* Fill the host container so the auto-fill grid can form multiple columns.
+       As a bare block this collapses to content width inside flex/inline parents
+       (e.g. a flex preview canvas), rendering a single column. */
+    inline-size: 100%;
     color: inherit;
     font: inherit;
   }

@@ -29,6 +29,10 @@ type DualListboxOption = {
 const dualListboxStyles = `
   :host {
     display: block;
+    /* Fill the host container so the two panels get their full width; as a bare
+       block this collapses to content width in flex/inline parents, cramping the
+       panels and clipping option labels. */
+    inline-size: 100%;
     color: inherit;
     font: inherit;
   }
@@ -83,7 +87,7 @@ const dualListboxStyles = `
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
-    min-block-size: 14rem;
+    min-block-size: 10rem;
     max-block-size: 18rem;
     overflow: auto;
   }
