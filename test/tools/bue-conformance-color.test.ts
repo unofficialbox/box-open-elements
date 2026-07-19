@@ -399,6 +399,14 @@ const FIXTURE_CSS = [
   ".bdl-Label,.label{display:block;color:#6f6f6f;font-weight:bold}",
   "input[type=text],input[type=date],div[contentEditable=true],textarea{width:262px;padding:7px;color:#222;border:1px solid #d3d3d3}",
   "input[type=text]:focus,textarea:focus{border:1px solid #0061d5;outline:0}",
+  // Round-6 broadening: switch, date-field/calendar, dropdown/menu surface.
+  ".toggle-simple-switch::before{right:0;background-color:#bcbcbc;border-radius:20px}",
+  ".toggle-simple-input:checked~.toggle-simple-switch::before{background-color:#0061d5}",
+  ".toggle-simple-switch::after{width:20px;height:20px;background-color:#fff;border:1px solid #6f6f6f}",
+  ".date-picker-wrapper .date-picker-description{color:#6f6f6f}",
+  ".is-selected .pika-button{color:#fff;font-weight:bold;background-color:#0061d5;border-radius:6px}",
+  ".dropdown-menu-element{color:#222}",
+  ".aria-menu{background-color:#fff;border:1px solid #e8e8e8}",
 ].join("\n");
 
 describe("extractCompiledDeclarations", () => {
@@ -551,10 +559,23 @@ describe("evaluate", () => {
     expect(byId("button.primary.hover.background").delta).toBe(21);
   });
 
-  it("yields the expected verdict mix (31 conformant, 5 review)", () => {
+  it("yields the expected verdict mix (40 conformant, 5 review)", () => {
     const conformant = rows.filter(r => r.verdict === "conformant").length;
     const review = rows.filter(r => r.verdict === "review").length;
-    expect({ conformant, review }).toEqual({ conformant: 31, review: 5 });
+    expect({ conformant, review }).toEqual({ conformant: 40, review: 5 });
+  });
+
+  it("resolves the round-6 surfaces (switch, date/calendar, dropdown/menu)", () => {
+    const byId = (id: string): Row => rows.find(r => r.claim.id === id)!;
+    expect(byId("switch.track.off.background").verdict).toBe("conformant");
+    expect(byId("switch.track.on.background").verdict).toBe("conformant");
+    expect(byId("switch.thumb.background").verdict).toBe("conformant");
+    expect(byId("date-field.description.text").verdict).toBe("conformant");
+    expect(byId("calendar.day.selected.background").verdict).toBe("conformant");
+    expect(byId("calendar.day.selected.text").verdict).toBe("conformant");
+    expect(byId("dropdown.item.text").verdict).toBe("conformant");
+    expect(byId("menu.surface.background").verdict).toBe("conformant");
+    expect(byId("menu.surface.border").verdict).toBe("conformant");
   });
 
   it("resolves the round-5 surfaces (avatar, pill, spinner, label, inputs)", () => {
@@ -615,7 +636,7 @@ describe("renderMarkdown", () => {
     const md = renderMarkdown(rows, ["main.abc.iframe.bundle.js"]);
     expect(md).toContain("Layer 2");
     expect(md).toContain("**1**");
-    expect(md).toContain("| ✅ Conformant | 31 |");
+    expect(md).toContain("| ✅ Conformant | 40 |");
     expect(md).toContain("| 🔍 Review | 5 |");
     for (const claim of COLOR_CLAIMS) {
       expect(md).toContain(claim.citation);

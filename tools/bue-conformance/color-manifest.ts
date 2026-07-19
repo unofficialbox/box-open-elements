@@ -108,6 +108,11 @@ const SPINNER = "src/components/feedback/spinner.ts";
 const FIELDSET = "src/components/forms/fieldset.ts";
 const SEARCH_FIELD = "src/components/forms/search-field.ts";
 const TEXT_AREA = "src/components/forms/text-area.ts";
+const SWITCH = "src/components/forms/switch.ts";
+const DATE_FIELD = "src/components/forms/date-field.ts";
+const CALENDAR = "src/components/forms/calendar.ts";
+const DROPDOWN = "src/components/forms/dropdown.ts";
+const MENU = "src/components/actions/menu.ts";
 
 export const COLOR_CLAIMS: readonly ColorClaim[] = [
   // === Primary button (box-button, default tone) ↔ upstream `.btn-primary` ===
@@ -586,5 +591,123 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     upstream: { selector: "textarea", state: "focus", property: "border" },
     tolerance: 0,
     citation: "textarea:focus border (box-inputs base mixin) — focus border tracks brand blue",
+  },
+
+  // === Switch (box-switch) ↔ upstream `.toggle-simple-switch` pseudo-elements ===
+  {
+    id: "switch.track.off.background",
+    surface: "switch",
+    boeConst: "StrokeStrokeHover",
+    boeValue: T.StrokeStrokeHover,
+    kind: "color",
+    boeComponent: SWITCH,
+    boeAnchor: "background: var(--boe-token-stroke-stroke-hover, #bcbcbc)",
+    upstream: { rawSelector: ".toggle-simple-switch::before", property: "background-color" },
+    tolerance: 0,
+    citation: ".toggle-simple-switch::before background-color (off/unchecked track fill)",
+  },
+  {
+    id: "switch.track.on.background",
+    surface: "switch",
+    boeConst: "SurfaceSurfaceBrand",
+    boeValue: T.SurfaceSurfaceBrand,
+    kind: "color",
+    boeComponent: SWITCH,
+    boeAnchor: "background: var(--boe-token-surface-surface-brand, #0061d5)",
+    upstream: {
+      rawSelector: ".toggle-simple-input:checked~.toggle-simple-switch::before",
+      property: "background-color",
+    },
+    tolerance: 0,
+    citation:
+      ".toggle-simple-input:checked~.toggle-simple-switch::before background-color (on/checked track brand fill)",
+  },
+  {
+    id: "switch.thumb.background",
+    surface: "switch",
+    boeConst: "SurfaceSurface",
+    boeValue: T.SurfaceSurface,
+    kind: "color",
+    boeComponent: SWITCH,
+    boeAnchor: "background: var(--boe-token-surface-surface, #ffffff)",
+    upstream: { rawSelector: ".toggle-simple-switch::after", property: "background-color" },
+    tolerance: 0,
+    citation: ".toggle-simple-switch::after background-color (switch thumb fill)",
+  },
+
+  // === Date field / calendar (box-date-field / box-calendar) ↔ upstream date-picker + Pikaday ===
+  {
+    id: "date-field.description.text",
+    surface: "date-field",
+    boeConst: "TextTextSecondary",
+    boeValue: T.TextTextSecondary,
+    kind: "color",
+    boeComponent: DATE_FIELD,
+    boeAnchor: "color: var(--boe-token-text-text-secondary, #6f6f6f)",
+    upstream: { rawSelector: ".date-picker-wrapper .date-picker-description", property: "color" },
+    tolerance: 0,
+    citation: ".date-picker-wrapper .date-picker-description color (date-picker secondary/help text)",
+  },
+  {
+    id: "calendar.day.selected.background",
+    surface: "calendar/day",
+    boeConst: "SurfaceSurfaceBrand",
+    boeValue: T.SurfaceSurfaceBrand,
+    kind: "color",
+    boeComponent: CALENDAR,
+    boeAnchor: "background: var(--boe-token-surface-surface-brand, #0061d5)",
+    upstream: { rawSelector: ".is-selected .pika-button", property: "background-color" },
+    tolerance: 0,
+    citation: ".is-selected .pika-button background-color (Pikaday selected day) ↔ box-open-elements selected-day brand fill",
+  },
+  {
+    id: "calendar.day.selected.text",
+    surface: "calendar/day",
+    boeConst: "TextTextOnBrand",
+    boeValue: T.TextTextOnBrand,
+    kind: "color",
+    boeComponent: CALENDAR,
+    boeAnchor: "color: var(--boe-token-text-text-on-brand, #ffffff)",
+    upstream: { rawSelector: ".is-selected .pika-button", property: "color" },
+    tolerance: 0,
+    citation: ".is-selected .pika-button color (Pikaday selected day text) ↔ box-open-elements text-on-brand",
+  },
+
+  // === Dropdown menu / menu surface (box-dropdown / box-menu) ↔ upstream `.dropdown-menu-element` / `.aria-menu` ===
+  {
+    id: "dropdown.item.text",
+    surface: "dropdown/item",
+    boeConst: "TextText",
+    boeValue: T.TextText,
+    kind: "color",
+    boeComponent: DROPDOWN,
+    boeAnchor: "color: var(--boe-token-text-text, #222222)",
+    upstream: { selector: ".dropdown-menu-element", state: "base", property: "color" },
+    tolerance: 0,
+    citation: ".dropdown-menu-element color (BUIK DropdownMenu text)",
+  },
+  {
+    id: "menu.surface.background",
+    surface: "menu/surface",
+    boeConst: "SurfaceSurface",
+    boeValue: T.SurfaceSurface,
+    kind: "color",
+    boeComponent: MENU,
+    boeAnchor: "background: var(--boe-token-surface-surface, #ffffff)",
+    upstream: { selector: ".aria-menu", state: "base", property: "background-color" },
+    tolerance: 0,
+    citation: ".aria-menu background-color (BUIK Menu surface fill)",
+  },
+  {
+    id: "menu.surface.border",
+    surface: "menu/surface",
+    boeConst: "boeOverlay.border (= stroke-stroke)",
+    boeValue: T.StrokeStroke,
+    kind: "color",
+    boeComponent: MENU,
+    boeAnchor: "border: ${boeOverlay.border}",
+    upstream: { selector: ".aria-menu", state: "base", property: "border" },
+    tolerance: 0,
+    citation: ".aria-menu border (BUIK Menu surface stroke; boeOverlay.border = stroke-stroke)",
   },
 ] as const;

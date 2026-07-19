@@ -10,11 +10,11 @@ Read from **58** compiled Storybook bundle(s) carrying CSS (the always-loaded bu
 
 | Verdict | Count |
 | --- | ---: |
-| ✅ Conformant | 31 |
+| ✅ Conformant | 40 |
 | 🔍 Review | 5 |
 | ⚠️ Missing upstream | 0 |
 | 🚫 Missing box-open-elements | 0 |
-| **Total claims** | **36** |
+| **Total claims** | **45** |
 
 ## Claims
 
@@ -56,6 +56,15 @@ Read from **58** compiled Storybook bundle(s) carrying CSS (the always-loaded bu
 | ✅ | text-field/input | `TextText` | rgba(34, 34, 34, 1) | rgba(34, 34, 34, 1) | 0 | input[type=text] (box-inputs base mixin) color — text/search input text colour |
 | ✅ | text-area | `TextText` | rgba(34, 34, 34, 1) | rgba(34, 34, 34, 1) | 0 | textarea (box-inputs base mixin) color — text-area text colour |
 | ✅ | text-area | `SurfaceSurfaceBrand` | rgba(0, 97, 213, 1) | rgba(0, 97, 213, 1) | 0 | textarea:focus border (box-inputs base mixin) — focus border tracks brand blue |
+| ✅ | switch | `StrokeStrokeHover` | rgba(188, 188, 188, 1) | rgba(188, 188, 188, 1) | 0 | .toggle-simple-switch::before background-color (off/unchecked track fill) |
+| ✅ | switch | `SurfaceSurfaceBrand` | rgba(0, 97, 213, 1) | rgba(0, 97, 213, 1) | 0 | .toggle-simple-input:checked~.toggle-simple-switch::before background-color (on/checked track brand fill) |
+| ✅ | switch | `SurfaceSurface` | rgba(255, 255, 255, 1) | rgba(255, 255, 255, 1) | 0 | .toggle-simple-switch::after background-color (switch thumb fill) |
+| ✅ | date-field | `TextTextSecondary` | rgba(111, 111, 111, 1) | rgba(111, 111, 111, 1) | 0 | .date-picker-wrapper .date-picker-description color (date-picker secondary/help text) |
+| ✅ | calendar/day | `SurfaceSurfaceBrand` | rgba(0, 97, 213, 1) | rgba(0, 97, 213, 1) | 0 | .is-selected .pika-button background-color (Pikaday selected day) ↔ box-open-elements selected-day brand fill |
+| ✅ | calendar/day | `TextTextOnBrand` | rgba(255, 255, 255, 1) | rgba(255, 255, 255, 1) | 0 | .is-selected .pika-button color (Pikaday selected day text) ↔ box-open-elements text-on-brand |
+| ✅ | dropdown/item | `TextText` | rgba(34, 34, 34, 1) | rgba(34, 34, 34, 1) | 0 | .dropdown-menu-element color (BUIK DropdownMenu text) |
+| ✅ | menu/surface | `SurfaceSurface` | rgba(255, 255, 255, 1) | rgba(255, 255, 255, 1) | 0 | .aria-menu background-color (BUIK Menu surface fill) |
+| ✅ | menu/surface | `boeOverlay.border (= stroke-stroke)` | rgba(232, 232, 232, 1) | rgba(232, 232, 232, 1) | 0 | .aria-menu border (BUIK Menu surface stroke; boeOverlay.border = stroke-stroke) |
 
 ## Legend
 
