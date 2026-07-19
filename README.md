@@ -122,4 +122,4 @@ The docs index is at [docs/README.md](./docs/README.md). The most important entr
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, the `bun run verify` gate, component conventions, the conformance audits, and the PR workflow.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, the `bun run verify` gate, component conventions, the conformance audits, and the PR workflow. Maintainers: see [RELEASING.md](./RELEASING.md) for publishing to npm.
