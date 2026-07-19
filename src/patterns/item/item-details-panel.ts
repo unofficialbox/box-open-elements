@@ -239,7 +239,26 @@ export class BoxItemDetailsPanelElement extends BaseElement {
   }
 
   get owner(): ItemDetailsOwner | null {
-    return this.parseJsonAttribute<ItemDetailsOwner | null>("owner", null);
+    const raw = this.getAttribute("owner");
+    if (!raw) {
+      return null;
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      // A bare string (e.g. owner="Morgan Lee") is a common author shorthand —
+      // treat it as the owner name rather than rendering an empty avatar.
+      parsed = raw;
+    }
+    if (typeof parsed === "string") {
+      const name = parsed.trim();
+      return name ? { name } : null;
+    }
+    if (parsed && typeof parsed === "object" && typeof (parsed as ItemDetailsOwner).name === "string") {
+      return parsed as ItemDetailsOwner;
+    }
+    return null;
   }
 
   set owner(value: ItemDetailsOwner | null) {
@@ -436,7 +455,11 @@ export class BoxItemDetailsPanelElement extends BaseElement {
     const owner = this.owner;
     this.ownerEl.hidden = !owner;
     if (owner) {
-      this.ownerAvatarEl.textContent = owner.initials ?? owner.name.slice(0, 2).toUpperCase();
+      const initials = (owner.initials ?? owner.name.slice(0, 2)).trim().toUpperCase();
+      // Never leave a bare tinted circle — hide the avatar when there is nothing
+      // to put in it.
+      this.ownerAvatarEl.hidden = initials === "";
+      this.ownerAvatarEl.textContent = initials;
       this.ownerNameEl.textContent = owner.name;
       this.ownerDescriptionEl.hidden = !owner.description;
       this.ownerDescriptionEl.textContent = owner.description ?? "";
