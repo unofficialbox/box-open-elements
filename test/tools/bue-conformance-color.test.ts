@@ -670,4 +670,11 @@ describe("renderMarkdown", () => {
       expect(md).toContain(claim.citation);
     }
   });
+
+  it("surfaces the frozen-snapshot refresh cadence", () => {
+    const md = renderMarkdown(evaluate(FIXTURE_CSS, COMPONENT_SOURCE), []);
+    expect(md).toContain("Keeping this current");
+    expect(md).toContain("bue-conformance:color --refresh");
+    expect(md).toContain("quarterly");
+  });
 });
