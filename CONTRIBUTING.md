@@ -112,6 +112,12 @@ sub-threshold nondeterministic noise on unrelated screenshots (revert those).
 5. PRs are squash-merged, so the PR title becomes the commit message — keep it
    descriptive.
 
+## Releasing
+
+Maintainers: cutting and publishing a release (to npm, as
+`@unofficialbox/box-open-elements`) is documented in
+[RELEASING.md](./RELEASING.md).
+
 ## Reporting issues
 
 Open an issue at
