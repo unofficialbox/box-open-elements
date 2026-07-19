@@ -119,3 +119,7 @@ The docs index is at [docs/README.md](./docs/README.md). The most important entr
 - [Design Tokens](./docs/foundations/tokens.md)
 - [Content Explorer](./docs/patterns/content-explorer.md)
 - [Box Server Integration](./docs/integration/box-server.md)
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, the `bun run verify` gate, component conventions, the conformance audits, and the PR workflow.
