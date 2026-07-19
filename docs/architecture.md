@@ -119,6 +119,5 @@ Phases 0–5 and the scoped gap inventory are complete. Future additions are
 gap-driven rather than a blanket effort to reproduce every `box-ui-elements`
 surface or behavior. Use the predecessor and upstream implementations as
 research inputs, then apply this repo's taxonomy, API, accessibility, and
-transport rules deliberately. See [migration-map.md](./migration-map.md) for the
-completed mapping and the few intentionally explorer-bound generic-component
-gaps.
+transport rules deliberately. The few remaining generic-component gaps are
+intentionally explorer-bound.

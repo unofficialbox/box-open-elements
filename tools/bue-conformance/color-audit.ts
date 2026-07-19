@@ -17,8 +17,8 @@
  *
  * Network: reads `opensource.box.com` + `*.boxcdn.net` (Storybook + fonts). The
  * bundle hash is discovered from `iframe.html` at run time, so the audit follows
- * Storybook redeploys without a manifest edit. See
- * plans/bue-conformance-execplan.md for the environment findings.
+ * Storybook redeploys without a manifest edit. CI runs `--offline` against the
+ * committed snapshot under `.cache`, so it needs no network.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";

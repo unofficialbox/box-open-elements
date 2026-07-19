@@ -105,8 +105,7 @@ When a framework milestone lands, update:
 
 1. the progress table and framework lane above
 2. the owning package/example README
-3. [BACKLOG.md](../../BACKLOG.md) and [HANDOFF.md](../HANDOFF.md)
-4. CI/typecheck commands if a new workspace package or example app is added
+3. CI/typecheck commands if a new workspace package or example app is added
 
 Related: [React Adapter](./react.md), [Architecture](../architecture.md), and
 [API Guidelines](../api-guidelines.md).

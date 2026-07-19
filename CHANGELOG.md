@@ -46,7 +46,7 @@ Both PRs are merged on `main`; #70 passed Verify, Visual regression, and CodeRab
 
 - **Geometry foundations:** `boeOverlay`, `boePanel`, control sizing aligned to box-ui-elements BDL (`docs/foundations/geometry.md`).
 - **Motion:** shared `boeMotionDuration` / `interactive` (140ms); maintainer script `tools/migrate-motion-literals.ts`.
-- **Density:** `tools/density-audit.ts`, `tools/apply-density-consistency.ts`, report in `plans/density-audit-report.json`.
+- **Density:** `tools/density-audit.ts`, `tools/apply-density-consistency.ts`, report in `tmp/density-audit-report.json`.
 - **Coverage gate:** `bun run verify` now runs coverage with floors — see `docs/coverage-baseline.md`.
 - **Workshop:** extracted story count **108** (catalog parity including explorer adapters).
 - **Build-alongs:** Explorer, Share, and Preview lessons in `docs-site/lessons.ts`.
@@ -95,7 +95,7 @@ Both PRs are merged on `main`; #70 passed Verify, Visual regression, and CodeRab
 | 7 | Multi-value form association polish |
 | + | Medium/low nits (#41), design-heavy leftovers (#42) |
 
-Audit driver: `docs/audits/component-fidelity-audit.md` (109 components scored).
+Audit driver scored 109 components against the reference.
 
 ---
 

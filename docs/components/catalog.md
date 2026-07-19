@@ -8,12 +8,12 @@ It aligns three things:
 - the docs-site catalog structure
 - the public package subpaths (`box-open-elements/components/<category>/<name>`)
 
-For the higher-level taxonomy diagram, see [../taxonomy.md](../taxonomy.md). For the old-repo → new-repo mapping, see [../migration-map.md](../migration-map.md).
+For the higher-level taxonomy diagram, see [../taxonomy.md](../taxonomy.md).
 
 ## Status convention
 
 - **built** — implemented in this repo with dedicated tests
-- *(everything else)* — target inventory; the reference implementation lives in `box-open-web-components` and is ported (not copied blindly) per the roadmap in [../roadmap.md](../roadmap.md)
+- *(everything else)* — target inventory; the reference implementation lives in `box-open-web-components` and is ported (not copied blindly)
 
 ## Import contract
 
@@ -131,7 +131,7 @@ Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …
 
 ## Scoped gap candidates
 
-Beyond the 61 carried-over components, these gaps were identified by real comparisons against upstream `box/box-ui-elements` and seven major public design systems (see [../research/upstream-gaps.md](../research/upstream-gaps.md) and [../research/component-inventory-comparison.md](../research/component-inventory-comparison.md)):
+Beyond the 61 carried-over components, these gaps were identified by real comparisons against upstream `box/box-ui-elements` and seven major public design systems:
 
 - strongest cross-system gaps: `chip`/`tag` (distinct from status-only `badge`), `divider` — **both built** (`box-chip`, `box-divider`)
 - close seconds: standalone `calendar` grid (sibling to `date-field`), tag/token input field — **both built** (`box-calendar`, `box-tag-input`)

@@ -8,7 +8,7 @@ It is a ground-up rebuild of [`box-open-web-components`](https://github.com/unof
 - **Components** — accessible Web Components for single controls, organized by category
 - **Patterns** — combinations of components that address user objectives with sequences and flows: headless controllers, transport contracts, and composed workflow surfaces, grouped by Box noun
 
-See [docs/taxonomy.md](./docs/taxonomy.md) for the canonical model and [docs/migration-map.md](./docs/migration-map.md) for how the old repo maps onto this one.
+See [docs/taxonomy.md](./docs/taxonomy.md) for the canonical model.
 
 The guiding idea is unchanged: predictable, extensible building blocks that are easy for both human developers and AI coding assistants to compose.
 
@@ -39,11 +39,11 @@ bun run docs
 
 `bun run docs` builds the library and serves the component-documentation site at `http://localhost:4600` — browse the full catalog with live previews, events/properties inspectors, and foundations pages.
 
-`bun run verify` is the main safety check and runs typecheck, **coverage-gated** tests (`test:coverage`), and build in sequence. Floors and the measured baseline live in [docs/coverage-baseline.md](./docs/coverage-baseline.md).
+`bun run verify` is the main safety check and runs typecheck, **coverage-gated** tests (`test:coverage`), and build in sequence.
 
 ## Current state
 
-Phases 0–5 of the [roadmap](./docs/roadmap.md) are complete — full catalog parity with the reference repo, plus every scoped gap the research surfaced:
+Full catalog parity with the reference repo, plus every scoped gap the research surfaced:
 
 - `src/core` — typed event emitter, controller base class, `BaseElement` (in-place shadow DOM render contract), and `FormAssociatedElement` (native form participation + invalid state)
 - `src/foundations/tokens` — the design-system registry (tokens, icons, illustrations), the Box default bundle, and the Box dark bundle, retoned to Box's modernized Blueprint palette with an Inter typography baseline; shared interaction helpers (`interaction.ts`) for focus/hover/active/disabled
@@ -58,7 +58,7 @@ Phases 0–5 of the [roadmap](./docs/roadmap.md) are complete — full catalog p
 - `storybook/` — a Bun-native workshop: typed stories → identity-guarded extracted JSON → a self-contained, separately-deployable static site, with no Storybook/Vite runtime or consumer dependency (see [storybook/README.md](./storybook/README.md))
 - Docs site + CI — live GitHub Pages deploy, Storybook-backed variant dropdown, and a strict pixel-diff visual-regression gate in CI
 
-**Fidelity program** (see [docs/HANDOFF.md](./docs/HANDOFF.md)): complete — Batches 0–7, the medium/low audit nits, and the design-heavy leftovers have shipped.
+**Fidelity program**: complete — Batches 0–7, the medium/low audit nits, and the design-heavy leftovers have shipped.
 
 Everything in the [components catalog](./docs/components/catalog.md) and [patterns catalog](./docs/patterns/catalog.md) that carries a **built** marker is implemented here with dedicated tests. Remaining catalog entries are intentional generic-component gaps whose current implementations are explorer-bound; future additions are gap-driven rather than phase-gated ports.
 
@@ -113,13 +113,9 @@ New exports follow the wildcard contract by default instead of adding explicit `
 
 The docs index is at [docs/README.md](./docs/README.md). The most important entries:
 
-- [Handoff](./docs/HANDOFF.md) — live fidelity-program status
-- [Component Fidelity Audit](./docs/audits/component-fidelity-audit.md)
 - [Taxonomy](./docs/taxonomy.md)
 - [Architecture](./docs/architecture.md)
 - [API Guidelines](./docs/api-guidelines.md)
-- [Roadmap](./docs/roadmap.md)
-- [Migration Map](./docs/migration-map.md)
 - [Design Tokens](./docs/foundations/tokens.md)
 - [Content Explorer](./docs/patterns/content-explorer.md)
 - [Box Server Integration](./docs/integration/box-server.md)
