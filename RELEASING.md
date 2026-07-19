@@ -13,12 +13,15 @@ publish.
 - **npm org membership.** You must be a member of the `unofficialbox` npm org
   with publish rights (`npm org ls unofficialbox` should list you after
   `npm login`).
-- **`NPM_TOKEN` secret (CI route only).** Create a **granular** or **automation**
-  npm access token with *read + write* on the `@unofficialbox` scope, and add it
-  as a GitHub Actions repository secret named `NPM_TOKEN`
-  (Settings → Secrets and variables → Actions). Automation/granular tokens skip
-  the interactive 2FA prompt, which a plain token with 2FA-on-writes cannot do in
-  CI.
+- **Trusted publisher (CI route — no secret).** The release workflow publishes
+  with npm **OIDC trusted publishing**, so there is no long-lived `NPM_TOKEN` to
+  create or store. On npmjs.com, open the package's **Settings → Trusted
+  Publisher**, choose **GitHub Actions**, and enter the org (`unofficialbox`),
+  this repository, and the workflow filename (`release.yml`). npm then trusts a
+  short-lived credential minted from the workflow's OIDC token at publish time.
+  - *First publish only:* if npm requires the package to exist before you can add
+    a trusted publisher, do one initial local publish (Route B) to create it,
+    then configure the trusted publisher for every release after that.
 
 ## Versioning
 
@@ -39,9 +42,9 @@ publish.
    ```
 3. `.github/workflows/release.yml` runs automatically: it checks the tag matches
    the version, runs `bun run verify` (typecheck + coverage tests + build), then
-   `npm publish --provenance --access public`. Provenance is attested via OIDC —
-   no token is embedded in the tarball, and the npm page shows a provenance
-   badge.
+   `npm publish --access public` authenticated via **OIDC trusted publishing**
+   (no token). Provenance is generated automatically, so the npm page shows a
+   provenance badge.
 4. Watch the run: `gh run watch` (or the Actions tab). A green run means it's live.
 
 You can also trigger the workflow manually (`workflow_dispatch`) without a
