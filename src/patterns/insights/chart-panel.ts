@@ -159,11 +159,16 @@ const elementStyles = `
 
         [part="bar"] {
           display: block;
-          inline-size: 100%;
-          min-block-size: 0.55rem;
+          /* Thin, centered columns with a light rounded cap — matches box-bar-chart.
+             A full-width bar with the panel's 16px radius reads as a rounded blob
+             and flattens the visible height differences between points. */
+          inline-size: min(100%, 1.6rem);
+          justify-self: center;
+          min-block-size: 0.45rem;
           block-size: calc(5.25rem * var(--point-ratio));
-          border-radius: ${boePanel.radius};
+          border-radius: 0.6rem 0.6rem 0.4rem 0.4rem;
           background: linear-gradient(180deg, color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 84%, var(--boe-token-surface-surface, #ffffff) 16%) 0%, var(--boe-token-surface-surface-brand, #0061d5) 100%);
+          box-shadow: 0 10px 18px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 16%, transparent);
         }
 
         [part="point"][data-tone="accent"] [part="bar"] {

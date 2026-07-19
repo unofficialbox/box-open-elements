@@ -585,14 +585,13 @@ export const examples: Record<string, ComponentExample> = {
     }),
   },
   "item-details-panel": {
-    html: `<box-item-details-panel heading="Quarterly Plan.pdf" eyebrow="PDF · 2.4 MB" owner="Morgan Lee" status="Shared" message="Latest board-ready plan with updated forecasts."></box-item-details-panel>`,
+    html: `<box-item-details-panel heading="Quarterly Plan.pdf" eyebrow="PDF · 2.4 MB" owner='{"name":"Morgan Lee","description":"Enterprise Admin"}' status="Shared" message="Latest board-ready plan with updated forecasts."></box-item-details-panel>`,
     setup: root => set(root, "box-item-details-panel", {
       actions: [
         { id: "share", label: "Share" },
         { id: "download", label: "Download" },
       ],
       meta: [
-        { label: "Owner", value: "Morgan Lee" },
         { label: "Modified", value: "Jul 10, 2026" },
       ],
     }),
