@@ -22,7 +22,7 @@ export function replaceOnce(haystack: string, needle: string, replacement: strin
  */
 export function rewriteIndexHtml(html: string, includeWorkshop: boolean): string {
   let out = replaceOnce(html, 'href="/docs-site/styles.css"', 'href="./styles.css"');
-  out = replaceOnce(out, '"box-open-elements": "/dist/index.js"', '"box-open-elements": "./lib/index.js"');
+  out = replaceOnce(out, '"@unofficialbox/box-open-elements": "/dist/index.js"', '"@unofficialbox/box-open-elements": "./lib/index.js"');
   out = replaceOnce(out, 'src="/docs-site/main.js"', 'src="./main.js"');
   if (includeWorkshop) {
     out = replaceOnce(

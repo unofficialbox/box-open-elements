@@ -6,7 +6,7 @@ It aligns three things:
 
 - the filesystem layout under `src/components`
 - the docs-site catalog structure
-- the public package subpaths (`box-open-elements/components/<category>/<name>`)
+- the public package subpaths (`@unofficialbox/box-open-elements/components/<category>/<name>`)
 
 For the higher-level taxonomy diagram, see [../taxonomy.md](../taxonomy.md).
 
@@ -18,7 +18,7 @@ For the higher-level taxonomy diagram, see [../taxonomy.md](../taxonomy.md).
 ## Import contract
 
 ```ts
-import { defineBoxButtonElement } from "box-open-elements/components/actions/button";
+import { defineBoxButtonElement } from "@unofficialbox/box-open-elements/components/actions/button";
 ```
 
 Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …). Each module exports the element class and an idempotent `defineBox<Name>Element()` helper.

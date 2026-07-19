@@ -136,13 +136,13 @@ Presentation adapters:
 
 ## Host chrome: filter bar and saved views
 
-`box-filter-bar` and `box-saved-view-picker` are standalone pattern components. Wire them at the **host** layer with helpers from `box-open-elements/patterns/content-explorer`:
+`box-filter-bar` and `box-saved-view-picker` are standalone pattern components. Wire them at the **host** layer with helpers from `@unofficialbox/box-open-elements/patterns/content-explorer`:
 
 ```ts
 import {
   bindFilterBarToExplorer,
   bindSavedViewPickerToExplorer,
-} from "box-open-elements/patterns/content-explorer";
+} from "@unofficialbox/box-open-elements/patterns/content-explorer";
 
 const unbindFilter = bindFilterBarToExplorer(filterBar, controller, {
   onViewChange: view => {

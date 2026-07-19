@@ -43,7 +43,7 @@ Key allocation: process blue filenames first (sorted), then white; slug from the
 Icons are resolved through the design-system registry:
 
 ```ts
-import { resolveDesignIcon } from "box-open-elements/foundations/tokens";
+import { resolveDesignIcon } from "@unofficialbox/box-open-elements/foundations/tokens";
 
 const svg = resolveDesignIcon("info");
 ```

@@ -28,7 +28,7 @@ Components expose accessible semantics as part of the default contract, not as o
 - `Enter` and `Space` should activate the currently focused item when activation is expected
 - `Escape` should dismiss transient surfaces such as dialogs, drawers, popovers, tooltips, and menus
 
-Shared helpers live in `box-open-elements/foundations/a11y`:
+Shared helpers live in `@unofficialbox/box-open-elements/foundations/a11y`:
 
 | Helper | Use when |
 | --- | --- |
@@ -36,7 +36,7 @@ Shared helpers live in `box-open-elements/foundations/a11y`:
 | `trapTabKey` / `FocusRestore` | modal dialogs and drawers (`aria-modal`) |
 | `renderHeadingHtml` / `headingOpenTag` | rendering a `heading` attribute as a real `<h*>` |
 
-Form controls that submit values extend `FormAssociatedElement` (`box-open-elements/core`): set
+Form controls that submit values extend `FormAssociatedElement` (`@unofficialbox/box-open-elements/core`): set
 `name`, toggle `invalid` + `error-message` for validation UI (`aria-invalid` /
 `aria-errormessage` + `part="error-message"`), and keep `syncFormAssociation()` in sync with the
 control value. Multi-option fields apply invalid ARIA to every focusable control via

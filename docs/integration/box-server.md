@@ -91,8 +91,8 @@ Wire schemas live alongside those contracts and define the backend-language-neut
 To avoid pushing Box-specific logic into the controller transport, adapt a higher-level data source to the controller transport contract:
 
 ```ts
-import { ContentExplorerController } from "box-open-elements/patterns/content-explorer/controller";
-import { createExplorerTransportFromDataSource } from "box-open-elements/patterns/content-explorer/contracts";
+import { ContentExplorerController } from "@unofficialbox/box-open-elements/patterns/content-explorer/controller";
+import { createExplorerTransportFromDataSource } from "@unofficialbox/box-open-elements/patterns/content-explorer/contracts";
 
 const transport = createExplorerTransportFromDataSource(serverBackedExplorerDataSource);
 

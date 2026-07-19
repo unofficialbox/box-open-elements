@@ -1,4 +1,4 @@
-import * as lib from "box-open-elements";
+import * as lib from "@unofficialbox/box-open-elements";
 import type { ExtractedStory, StoryModule } from "./metadata.js";
 import workshopData from "./generated/workshop.json" with { type: "json" };
 import { storyModules } from "./registry.js";

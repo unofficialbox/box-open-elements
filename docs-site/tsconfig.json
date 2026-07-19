@@ -11,9 +11,9 @@
     "resolveJsonModule": true,
     "types": ["bun-types"],
     "paths": {
-      "box-open-elements": ["../src/index.ts"],
-      "box-open-elements/patterns/content-explorer": ["../src/patterns/content-explorer/index.ts"],
-      "box-open-elements/patterns/search": ["../src/patterns/search/index.ts"]
+      "@unofficialbox/box-open-elements": ["../src/index.ts"],
+      "@unofficialbox/box-open-elements/patterns/content-explorer": ["../src/patterns/content-explorer/index.ts"],
+      "@unofficialbox/box-open-elements/patterns/search": ["../src/patterns/search/index.ts"]
     }
   },
   "include": ["./**/*.ts"]

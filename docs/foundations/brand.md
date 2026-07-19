@@ -57,7 +57,7 @@ depth.
 | Composition | Empty / educational states pair art with `heading` + `message` (`box-illustration`, `box-empty-state`) |
 
 ```ts
-import { resolveDesignIllustration } from "box-open-elements/foundations/tokens";
+import { resolveDesignIllustration } from "@unofficialbox/box-open-elements/foundations/tokens";
 
 const markup = resolveDesignIllustration("empty-state-folder");
 ```

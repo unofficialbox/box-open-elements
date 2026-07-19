@@ -41,7 +41,7 @@ import { BoxButton, BoxSelect, BoxTextField } from "@box-open-elements/react";
 import {
   applyDesignTokens,
   registerBoxDefaultDesignSystem,
-} from "box-open-elements/foundations/tokens";
+} from "@unofficialbox/box-open-elements/foundations/tokens";
 
 registerBoxDefaultDesignSystem({ setActive: true });
 applyDesignTokens(document.documentElement, "box-default");

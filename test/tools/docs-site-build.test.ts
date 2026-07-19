@@ -32,7 +32,7 @@ describe("rewriteIndexHtml", () => {
 
   it("points the importmap at the copied library tree", () => {
     const out = rewriteIndexHtml(indexHtml, true);
-    expect(out).toContain('"box-open-elements": "./lib/index.js"');
+    expect(out).toContain('"@unofficialbox/box-open-elements": "./lib/index.js"');
     expect(out).not.toContain("/dist/index.js");
   });
 

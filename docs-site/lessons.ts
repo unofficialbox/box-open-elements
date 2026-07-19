@@ -73,7 +73,7 @@ export interface Lesson {
   steps: LessonStep[];
 }
 
-const importMapSnippet = `{ "imports": { "box-open-elements": "https://esm.sh/box-open-elements@0.1.0" } }`;
+const importMapSnippet = `{ "imports": { "@unofficialbox/box-open-elements": "https://esm.sh/@unofficialbox/box-open-elements@0.1.0" } }`;
 
 const starterHtml = (title: string, mountComment: string): string => `<!doctype html>
 <html lang="en">
@@ -102,7 +102,7 @@ const EXPLORER_STEP0 = `import {
   registerBoxDefaultDesignSystem,
   applyDesignTokens,
   defineBoxContentExplorerElement,
-} from "box-open-elements";
+} from "@unofficialbox/box-open-elements";
 
 // Register the Box design system and paint its tokens onto the page.
 registerBoxDefaultDesignSystem({ setActive: true });
@@ -289,7 +289,7 @@ const SHARE_STEP0 = `import {
   registerBoxDefaultDesignSystem,
   applyDesignTokens,
   defineBoxSharePanelElement,
-} from "box-open-elements";
+} from "@unofficialbox/box-open-elements";
 
 // Register the Box design system and paint its tokens onto the page.
 registerBoxDefaultDesignSystem({ setActive: true });
@@ -441,7 +441,7 @@ const PREVIEW_STEP0 = `import {
   registerBoxDefaultDesignSystem,
   applyDesignTokens,
   defineBoxPreviewElement,
-} from "box-open-elements";
+} from "@unofficialbox/box-open-elements";
 
 // Register the Box design system and paint its tokens onto the page.
 registerBoxDefaultDesignSystem({ setActive: true });
