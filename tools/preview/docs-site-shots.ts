@@ -19,7 +19,7 @@ const OUT_DIR = process.env.DOCS_SHOTS_OUT_DIR ?? join(ROOT, "docs/screenshots/d
 const PORT = 4601;
 const BANNER_TIMEOUT_MS = 20_000;
 
-const routes: Array<[string, string, string]> = [
+const routes: Array<[name: string, hash: string, readyMarker: string, scrollTo?: string]> = [
   ["home", "#home", "home/home"],
   ["components-button", "#components/button", "components/button"],
   ["components-forms", "#components/multi-select", "components/multi-select"],
@@ -28,6 +28,7 @@ const routes: Array<[string, string, string]> = [
   ["components-calendar", "#components/calendar", "components/calendar"],
   ["components-tag-input", "#components/tag-input", "components/tag-input"],
   ["patterns-content-explorer", "#patterns/content-explorer", "patterns/content-explorer"],
+  ["lessons-share", "#lessons/share", "lessons/share", ".lesson-frameworks"],
   ["patterns-share-panel", "#patterns/share-panel", "patterns/share-panel"],
   ["foundations-tokens", "#foundations/tokens", "foundations/tokens"],
   ["foundations-theming", "#foundations/theming", "foundations/theming"],
@@ -89,10 +90,18 @@ try {
     }
   });
 
-  for (const [name, hash, readyMarker] of routes) {
+  for (const [name, hash, readyMarker, scrollTo] of routes) {
     await page.goto(`http://localhost:${PORT}/${hash}`, { waitUntil: "networkidle" });
     await page.waitForSelector(`body[data-route-ready="${readyMarker}"]`, { timeout: 15_000 });
     await applyDeterministicFonts(page);
+    // A hash-only goto does not reload, so scroll persists between routes.
+    // Reset it so each shot is independent of the order they run in.
+    await page.evaluate(() => window.scrollTo(0, 0));
+    // Shots are viewport-sized; a route may name a selector to bring into view
+    // so a section further down the page is the one under test.
+    if (scrollTo) {
+      await page.locator(scrollTo).scrollIntoViewIfNeeded({ timeout: 15_000 });
+    }
     await page.waitForTimeout(150);
     await page.screenshot({ path: join(OUT_DIR, `${name}.png`) });
     console.log(`captured ${name}.png`);

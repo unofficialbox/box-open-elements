@@ -14,6 +14,8 @@ import {
 import { catalog } from "../../docs-site/registry.js";
 import { addedLines } from "../../docs-site/diff.js";
 import { lessonMockTransport } from "../../docs-site/lesson-mock-transport.js";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 const EXPLORER_PREVIEW_KEYS: PreviewKey[] = ["empty", "shell", "connected", "navigate", "select", "multiselect"];
 const SHARE_PREVIEW_KEYS: PreviewKey[] = [
@@ -231,4 +233,56 @@ describe("lesson delta diff", () => {
       }
     }
   });
+});
+
+/** Every `defineBox…Element` exported anywhere under src/ (source of truth). */
+const collectDefineNames = (dir: string): Set<string> => {
+  const names = new Set<string>();
+  const walk = (current: string): void => {
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      const full = join(current, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.name.endsWith(".ts")) {
+        for (const m of readFileSync(full, "utf8").matchAll(/export const (defineBox[A-Za-z]+Element)\b/g)) {
+          names.add(m[1]);
+        }
+      }
+    }
+  };
+  walk(dir);
+  return names;
+};
+
+describe("lesson framework snippets", () => {
+  const FRAMEWORKS = ["html", "react", "angular", "vue", "svelte"] as const;
+
+  // Every `defineBox…Element` the library actually exports. The snippets are
+  // hand-written, so a typo (e.g. defineBoxPreviewElementElement) would ship a
+  // copy-pasteable import that does not exist.
+  const exportedDefineNames = collectDefineNames(join(import.meta.dirname, "../../src"));
+
+  for (const lesson of lessons) {
+    describe(lesson.id, () => {
+      it("provides a snippet for every framework", () => {
+        for (const framework of FRAMEWORKS) {
+          expect(lesson.frameworks[framework]?.trim()).toBeTruthy();
+        }
+      });
+
+      it("only imports define functions the package exports", () => {
+        for (const framework of FRAMEWORKS) {
+          const source = lesson.frameworks[framework];
+          for (const name of source.match(/\bdefineBox[A-Za-z]*\b/g) ?? []) {
+            expect(exportedDefineNames, `${lesson.id}/${framework} imports ${name}`).toContain(name);
+          }
+        }
+      });
+
+      it("imports from the published package name", () => {
+        for (const framework of FRAMEWORKS) {
+          expect(lesson.frameworks[framework]).toContain("@unofficialbox/box-open-elements");
+        }
+      });
+    });
+  }
 });

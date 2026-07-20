@@ -71,7 +71,16 @@ export interface Lesson {
   /** Install + run notes for the secondary local path. */
   install: string;
   steps: LessonStep[];
+  /**
+   * The finished integration in each framework. The steps teach the vanilla
+   * build; this shows the same element, properties, and events wired up the way
+   * each framework expects. Hand-written per lesson — the imperative step code
+   * has no mechanical translation.
+   */
+  frameworks: Record<FrameworkId, string>;
 }
+
+export type FrameworkId = "html" | "react" | "angular" | "vue" | "svelte";
 
 const importMapSnippet = `{ "imports": { "@unofficialbox/box-open-elements": "https://esm.sh/@unofficialbox/box-open-elements@0.1.0" } }`;
 
@@ -281,6 +290,145 @@ export const explorerLesson: Lesson = {
       preview: "multiselect",
     },
   ],
+  frameworks: {
+    html: `<box-content-explorer
+  id="explorer"
+  root-folder-id="0"
+  token="developer-token"
+  selection-mode="multiple"
+></box-content-explorer>
+
+<script type="module">
+  import {
+    defineBoxContentExplorerElement,
+    registerBoxDefaultDesignSystem,
+  } from "@unofficialbox/box-open-elements";
+
+  registerBoxDefaultDesignSystem();
+  defineBoxContentExplorerElement();
+
+  const explorer = document.getElementById("explorer");
+  // transport is an object, so it is set as a property, not an attribute.
+  explorer.transport = transport;
+
+  explorer.addEventListener("folder-loaded", event => {
+    console.log("You are in:", event.detail.folder.name);
+  });
+  explorer.addEventListener("selection-changed", event => {
+    console.log("Selected:", event.detail.selectedItemIds);
+  });
+</script>`,
+    react: `import { useEffect, useRef } from "react";
+import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+
+defineBoxContentExplorerElement();
+
+export function Explorer({ transport }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    // Object props and custom events both need the ref: React sets attributes
+    // for strings, but does not subscribe to custom events.
+    el.transport = transport;
+
+    const onFolder = event => console.log("You are in:", event.detail.folder.name);
+    const onSelect = event => console.log("Selected:", event.detail.selectedItemIds);
+    el.addEventListener("folder-loaded", onFolder);
+    el.addEventListener("selection-changed", onSelect);
+    return () => {
+      el.removeEventListener("folder-loaded", onFolder);
+      el.removeEventListener("selection-changed", onSelect);
+    };
+  }, [transport]);
+
+  return (
+    <box-content-explorer
+      ref={ref}
+      root-folder-id="0"
+      token="developer-token"
+      selection-mode="multiple"
+    />
+  );
+}`,
+    angular: `import { Component, CUSTOM_ELEMENTS_SCHEMA, Input } from "@angular/core";
+import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+
+defineBoxContentExplorerElement();
+
+@Component({
+  standalone: true,
+  selector: "app-explorer",
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  template: \`
+    <box-content-explorer
+      [transport]="transport"
+      root-folder-id="0"
+      token="developer-token"
+      selection-mode="multiple"
+      (folder-loaded)="onFolderLoaded($event)"
+      (selection-changed)="onSelectionChanged($event)"
+    ></box-content-explorer>
+  \`,
+})
+export class ExplorerComponent {
+  @Input() transport!: unknown;
+
+  onFolderLoaded(event: CustomEvent) {
+    console.log("You are in:", event.detail.folder.name);
+  }
+
+  onSelectionChanged(event: CustomEvent) {
+    console.log("Selected:", event.detail.selectedItemIds);
+  }
+}`,
+    vue: `<script setup lang="ts">
+import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+
+defineBoxContentExplorerElement();
+
+const props = defineProps<{ transport: unknown }>();
+
+const onFolderLoaded = (event: CustomEvent) => {
+  console.log("You are in:", event.detail.folder.name);
+};
+const onSelectionChanged = (event: CustomEvent) => {
+  console.log("Selected:", event.detail.selectedItemIds);
+};
+</script>
+
+<template>
+  <box-content-explorer
+    :transport="props.transport"
+    root-folder-id="0"
+    token="developer-token"
+    selection-mode="multiple"
+    @folder-loaded="onFolderLoaded"
+    @selection-changed="onSelectionChanged"
+  ></box-content-explorer>
+</template>`,
+    svelte: `<script lang="ts">
+  import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+
+  defineBoxContentExplorerElement();
+
+  export let transport;
+
+  let el;
+  // Objects must be assigned as properties; attributes are strings only.
+  $: if (el) el.transport = transport;
+</script>
+
+<box-content-explorer
+  bind:this={el}
+  root-folder-id="0"
+  token="developer-token"
+  selection-mode="multiple"
+  on:folder-loaded={event => console.log("You are in:", event.detail.folder.name)}
+  on:selection-changed={event => console.log("Selected:", event.detail.selectedItemIds)}
+></box-content-explorer>`,
+  },
 };
 
 // ── Share lesson source, built up cumulatively ───────────────────────────────
@@ -433,6 +581,150 @@ export const shareLesson: Lesson = {
       preview: "share-actions",
     },
   ],
+  frameworks: {
+    html: `<box-share-panel id="share" heading="Share Quarterly Plan.pdf"></box-share-panel>
+
+<script type="module">
+  import {
+    defineBoxSharePanelElement,
+    registerBoxDefaultDesignSystem,
+  } from "@unofficialbox/box-open-elements";
+
+  registerBoxDefaultDesignSystem();
+  defineBoxSharePanelElement();
+
+  const panel = document.getElementById("share");
+  // sharedLink, collaborators and actions are object/array properties.
+  panel.sharedLink = { url: "https://box.com/s/example", access: "company" };
+  panel.collaborators = [{ name: "Morgan Lee", role: "Editor" }];
+  panel.actions = [
+    { id: "copy", label: "Copy link" },
+    { id: "invite", label: "Invite people", tone: "primary" },
+  ];
+
+  panel.addEventListener("action", event => {
+    console.log("action", event.detail.action);
+  });
+  panel.addEventListener("collaborator-selected", event => {
+    console.log("collaborator", event.detail.name);
+  });
+</script>`,
+    react: `import { useEffect, useRef } from "react";
+import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+
+defineBoxSharePanelElement();
+
+export function SharePanel() {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.sharedLink = { url: "https://box.com/s/example", access: "company" };
+    el.collaborators = [{ name: "Morgan Lee", role: "Editor" }];
+    el.actions = [
+      { id: "copy", label: "Copy link" },
+      { id: "invite", label: "Invite people", tone: "primary" },
+    ];
+
+    const onAction = event => console.log("action", event.detail.action);
+    const onCollaborator = event => console.log("collaborator", event.detail.name);
+    el.addEventListener("action", onAction);
+    el.addEventListener("collaborator-selected", onCollaborator);
+    return () => {
+      el.removeEventListener("action", onAction);
+      el.removeEventListener("collaborator-selected", onCollaborator);
+    };
+  }, []);
+
+  return <box-share-panel ref={ref} heading="Share Quarterly Plan.pdf" />;
+}`,
+    angular: `import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
+import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+
+defineBoxSharePanelElement();
+
+@Component({
+  standalone: true,
+  selector: "app-share",
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  template: \`
+    <box-share-panel
+      heading="Share Quarterly Plan.pdf"
+      [sharedLink]="sharedLink"
+      [collaborators]="collaborators"
+      [actions]="actions"
+      (action)="onAction($event)"
+      (collaborator-selected)="onCollaborator($event)"
+    ></box-share-panel>
+  \`,
+})
+export class ShareComponent {
+  sharedLink = { url: "https://box.com/s/example", access: "company" };
+  collaborators = [{ name: "Morgan Lee", role: "Editor" }];
+  actions = [
+    { id: "copy", label: "Copy link" },
+    { id: "invite", label: "Invite people", tone: "primary" },
+  ];
+
+  onAction(event: CustomEvent) {
+    console.log("action", event.detail.action);
+  }
+
+  onCollaborator(event: CustomEvent) {
+    console.log("collaborator", event.detail.name);
+  }
+}`,
+    vue: `<script setup lang="ts">
+import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+
+defineBoxSharePanelElement();
+
+const sharedLink = { url: "https://box.com/s/example", access: "company" };
+const collaborators = [{ name: "Morgan Lee", role: "Editor" }];
+const actions = [
+  { id: "copy", label: "Copy link" },
+  { id: "invite", label: "Invite people", tone: "primary" },
+];
+
+const onAction = (event: CustomEvent) => console.log("action", event.detail.action);
+const onCollaborator = (event: CustomEvent) => console.log("collaborator", event.detail.name);
+</script>
+
+<template>
+  <box-share-panel
+    heading="Share Quarterly Plan.pdf"
+    :sharedLink="sharedLink"
+    :collaborators="collaborators"
+    :actions="actions"
+    @action="onAction"
+    @collaborator-selected="onCollaborator"
+  ></box-share-panel>
+</template>`,
+    svelte: `<script lang="ts">
+  import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+
+  defineBoxSharePanelElement();
+
+  let el;
+  // Object and array props are assigned, not passed as attributes.
+  $: if (el) {
+    el.sharedLink = { url: "https://box.com/s/example", access: "company" };
+    el.collaborators = [{ name: "Morgan Lee", role: "Editor" }];
+    el.actions = [
+      { id: "copy", label: "Copy link" },
+      { id: "invite", label: "Invite people", tone: "primary" },
+    ];
+  }
+</script>
+
+<box-share-panel
+  bind:this={el}
+  heading="Share Quarterly Plan.pdf"
+  on:action={event => console.log("action", event.detail.action)}
+  on:collaborator-selected={event => console.log("collaborator", event.detail.name)}
+></box-share-panel>`,
+  },
 };
 
 // ── Preview lesson source, built up cumulatively ─────────────────────────────
@@ -584,6 +876,170 @@ export const previewLesson: Lesson = {
       preview: "preview-actions",
     },
   ],
+  frameworks: {
+    html: `<box-preview-element
+  id="preview"
+  heading="Quarterly Plan.pdf"
+  item-label="PDF · 2.4 MB"
+  status="Ready"
+></box-preview-element>
+
+<script type="module">
+  import {
+    defineBoxPreviewElement,
+    registerBoxDefaultDesignSystem,
+  } from "@unofficialbox/box-open-elements";
+
+  registerBoxDefaultDesignSystem();
+  defineBoxPreviewElement();
+
+  const preview = document.getElementById("preview");
+  // provider, adapterState and actions are object/array properties.
+  preview.provider = { id: "content-preview", label: "Box Content Preview" };
+  preview.adapterState = { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%" };
+  preview.actions = [
+    { id: "open-provider", label: "Open provider", tone: "primary" },
+    { id: "download", label: "Download" },
+  ];
+
+  preview.addEventListener("action", event => {
+    console.log("action", event.detail.action);
+  });
+  preview.addEventListener("provider-action", event => {
+    console.log("provider-action", event.detail.action, event.detail.providerId);
+  });
+</script>`,
+    react: `import { useEffect, useRef } from "react";
+import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+
+defineBoxPreviewElement();
+
+export function Preview() {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.provider = { id: "content-preview", label: "Box Content Preview" };
+    el.adapterState = { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%" };
+    el.actions = [
+      { id: "open-provider", label: "Open provider", tone: "primary" },
+      { id: "download", label: "Download" },
+    ];
+
+    const onAction = event => console.log("action", event.detail.action);
+    const onProviderAction = event =>
+      console.log("provider-action", event.detail.action, event.detail.providerId);
+    el.addEventListener("action", onAction);
+    el.addEventListener("provider-action", onProviderAction);
+    return () => {
+      el.removeEventListener("action", onAction);
+      el.removeEventListener("provider-action", onProviderAction);
+    };
+  }, []);
+
+  return (
+    <box-preview-element
+      ref={ref}
+      heading="Quarterly Plan.pdf"
+      item-label="PDF · 2.4 MB"
+      status="Ready"
+    />
+  );
+}`,
+    angular: `import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
+import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+
+defineBoxPreviewElement();
+
+@Component({
+  standalone: true,
+  selector: "app-preview",
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  template: \`
+    <box-preview-element
+      heading="Quarterly Plan.pdf"
+      item-label="PDF · 2.4 MB"
+      status="Ready"
+      [provider]="provider"
+      [adapterState]="adapterState"
+      [actions]="actions"
+      (action)="onAction($event)"
+      (provider-action)="onProviderAction($event)"
+    ></box-preview-element>
+  \`,
+})
+export class PreviewComponent {
+  provider = { id: "content-preview", label: "Box Content Preview" };
+  adapterState = { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%" };
+  actions = [
+    { id: "open-provider", label: "Open provider", tone: "primary" },
+    { id: "download", label: "Download" },
+  ];
+
+  onAction(event: CustomEvent) {
+    console.log("action", event.detail.action);
+  }
+
+  onProviderAction(event: CustomEvent) {
+    console.log("provider-action", event.detail.action, event.detail.providerId);
+  }
+}`,
+    vue: `<script setup lang="ts">
+import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+
+defineBoxPreviewElement();
+
+const provider = { id: "content-preview", label: "Box Content Preview" };
+const adapterState = { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%" };
+const actions = [
+  { id: "open-provider", label: "Open provider", tone: "primary" },
+  { id: "download", label: "Download" },
+];
+
+const onAction = (event: CustomEvent) => console.log("action", event.detail.action);
+const onProviderAction = (event: CustomEvent) =>
+  console.log("provider-action", event.detail.action, event.detail.providerId);
+</script>
+
+<template>
+  <box-preview-element
+    heading="Quarterly Plan.pdf"
+    item-label="PDF · 2.4 MB"
+    status="Ready"
+    :provider="provider"
+    :adapterState="adapterState"
+    :actions="actions"
+    @action="onAction"
+    @provider-action="onProviderAction"
+  ></box-preview-element>
+</template>`,
+    svelte: `<script lang="ts">
+  import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+
+  defineBoxPreviewElement();
+
+  let el;
+  $: if (el) {
+    el.provider = { id: "content-preview", label: "Box Content Preview" };
+    el.adapterState = { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%" };
+    el.actions = [
+      { id: "open-provider", label: "Open provider", tone: "primary" },
+      { id: "download", label: "Download" },
+    ];
+  }
+</script>
+
+<box-preview-element
+  bind:this={el}
+  heading="Quarterly Plan.pdf"
+  item-label="PDF · 2.4 MB"
+  status="Ready"
+  on:action={event => console.log("action", event.detail.action)}
+  on:provider-action={event =>
+    console.log("provider-action", event.detail.action, event.detail.providerId)}
+></box-preview-element>`,
+  },
 };
 
 export const lessons: Lesson[] = [explorerLesson, shareLesson, previewLesson];

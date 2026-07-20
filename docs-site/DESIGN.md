@@ -60,6 +60,18 @@ chrome, cards, tables and prose retheme automatically.
   see "Component responsiveness" below.
 - **Inspector panels** — intentionally deep-navy "console" cards in both themes;
   coral event names, sky/blue count chips.
+- **Framework selector** — the Code tab and each build-along's "Use it in your
+  framework" section select frameworks with their **official brand marks**
+  (`docs-site/framework-icons.ts`, path data from simple-icons, inlined so there
+  is no runtime dependency). Unselected marks are muted and monochrome; the
+  active one takes its brand colour, with a per-theme value where the brand hex
+  would vanish into the background (React's cyan on paper, Angular's near-black
+  on navy). Each control carries a visually-hidden label and a `title`.
+- **Snippet formatting** — `docs-site/format-html.ts` pretty-prints example
+  markup: one attribute per line once a tag outgrows a single line, nested
+  elements indented, JSX self-closing when the target is React. Attribute
+  *values* are never reformatted, so JSON payloads stay copy-pasteable and match
+  what the preview renders.
 - **Code blocks** — VS Code default dark (Dark+) editor colours on `#1e1e1e`,
   tokenized by `docs-site/highlight.ts` (a small dependency-free lexer covering
   html / ts / css / bash / json, plus a `mixed` mode for Vue and Svelte
