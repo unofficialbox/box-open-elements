@@ -8,6 +8,31 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ---
 
+## 0.2.0 — 2026-07-19
+
+First release cut through the automated OIDC release workflow (`0.1.0` was the
+bootstrap publish that created the package; no functional code changed between
+them). Notable work landed since the last changelog window:
+
+- **box-ui-elements conformance program** — CI-gated on three axes: Layer 1
+  geometry vs upstream SCSS, Layer 2 colour/state vs the compiled Storybook CSS
+  (45 grounded claims, with a conformant-count floor), and a live-Box **webapp
+  reference** covering colour, geometry, and interaction states.
+- **Gallery-review component polish** — flat Box tree/tree-grid disclosure
+  chevrons ([#92](https://github.com/unofficialbox/box-open-elements/pull/92)),
+  grid-view/dual-listbox fill-width
+  ([#93](https://github.com/unofficialbox/box-open-elements/pull/93)),
+  item-details empty-avatar fix + chart-panel bar scaling
+  ([#94](https://github.com/unofficialbox/box-open-elements/pull/94)), and real
+  Box iconography in grid-view/nav-sidebar
+  ([#95](https://github.com/unofficialbox/box-open-elements/pull/95)).
+- **npm packaging** — scoped as `@unofficialbox/box-open-elements`, published
+  via a provenance-attested **OIDC trusted-publishing** workflow (no token);
+  planning docs purged and contributor + maintainer guides added
+  ([#98](https://github.com/unofficialbox/box-open-elements/pull/98)–[#102](https://github.com/unofficialbox/box-open-elements/pull/102)).
+
+---
+
 ## 2026-07-17 — React adapter, agent rules, and BUE style bridge
 
 | PR | Summary |
