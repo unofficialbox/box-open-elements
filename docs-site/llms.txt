@@ -1,0 +1,18 @@
+# Box Open Elements
+
+> A framework-agnostic Web Components design system and component library for Box-style experiences. Headless, token-themeable, and conformant with box-ui-elements. Published to npm as `@unofficialbox/box-open-elements`.
+
+## Documentation
+
+- [README](https://github.com/unofficialbox/box-open-elements/blob/main/README.md): overview, install, and the import contract
+- [Architecture](https://github.com/unofficialbox/box-open-elements/blob/main/docs/architecture.md): layers, headless-first design, transport boundary, render contract
+- [API Guidelines](https://github.com/unofficialbox/box-open-elements/blob/main/docs/api-guidelines.md): shared attribute/event/schema vocabulary
+- [Taxonomy](https://github.com/unofficialbox/box-open-elements/blob/main/docs/taxonomy.md): the Foundations → Components → Patterns model
+- [Components Catalog](https://github.com/unofficialbox/box-open-elements/blob/main/docs/components/catalog.md): the component inventory
+- [Patterns Catalog](https://github.com/unofficialbox/box-open-elements/blob/main/docs/patterns/catalog.md): the pattern inventory
+- [Design Tokens](https://github.com/unofficialbox/box-open-elements/blob/main/docs/foundations/tokens.md): token registry and theming
+
+## Install
+
+- npm: `npm i @unofficialbox/box-open-elements`
+- Docs site: https://unofficialbox.github.io/box-open-elements
