@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Box Open Elements: an open, framework-agnostic design system and web component library for Box-style experiences",
   "license": "MIT",
-  "homepage": "https://components.unofficialbox.dev",
+  "homepage": "https://unofficialbox.github.io/box-open-elements",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/unofficialbox/box-open-elements.git"
