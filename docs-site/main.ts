@@ -113,8 +113,17 @@ const state: { tier: string; filter: string; route: Route } = {
   route: { tier: "components", id: "button" },
 };
 
+// Build-time boot globals injected per prerendered page (docs-site/build.ts).
+type BootWindow = Window & { __ROUTE__?: Route; __REL__?: string; __BUILT__?: boolean };
+
 const parseHash = (): Route => {
-  const [tier, id] = location.hash.replace(/^#/, "").split("/");
+  const raw = location.hash.replace(/^#/, "");
+  // A prerendered per-page file carries its route as a global instead of a hash.
+  if (!raw) {
+    const boot = (window as BootWindow).__ROUTE__;
+    if (boot) return boot;
+  }
+  const [tier, id] = raw.split("/");
   if (tier === "foundations" && FOUNDATION_PAGES.some(page => page.id === id)) return { tier, id };
   if (tier === "lessons" && lessonById(id)) return { tier, id };
   if ((tier === "components" || tier === "patterns") && catalog.some(entry => entry.tier === tier && entry.id === id)) {
@@ -148,18 +157,27 @@ const renderRail = (): void => {
     heading.textContent = `${label} (${visible.length})`;
     const group = document.createElement("div");
     group.className = "rail-group";
+    const rel = (window as BootWindow).__REL__ ?? "";
+    const built = (window as BootWindow).__BUILT__ === true;
     for (const item of visible) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "rail-item";
-      button.textContent = item.label;
+      // Real <a> so crawlers follow the link graph. Lessons have no static file,
+      // so they stay hash-routed; in the dev bundle everything is hash-routed.
+      const hasStaticPage = built && item.tier !== "lessons";
+      const link = document.createElement("a");
+      link.className = "rail-item";
+      link.textContent = item.label;
+      link.href = hasStaticPage ? `${rel}${item.tier}/${item.id}/` : `#${item.tier}/${item.id}`;
       if (state.route.tier === item.tier && state.route.id === item.id) {
-        button.setAttribute("aria-current", "page");
+        link.setAttribute("aria-current", "page");
       }
-      button.addEventListener("click", () => {
-        location.hash = `#${item.tier}/${item.id}`;
+      link.addEventListener("click", event => {
+        if (!hasStaticPage) {
+          event.preventDefault();
+          location.hash = `#${item.tier}/${item.id}`;
+        }
+        // Otherwise let the browser navigate to the prerendered static page.
       });
-      group.append(button);
+      group.append(link);
     }
     section.append(heading, group);
     railTree.append(section);
@@ -605,6 +623,6 @@ applyRailVersion(
   () => fetch("/api/status").then(response => response.json() as Promise<{ version: string }>),
 );
 
-if (!location.hash) location.hash = "#components/button";
+if (!location.hash && !(window as BootWindow).__ROUTE__) location.hash = "#components/button";
 render();
 markRouteReady();
