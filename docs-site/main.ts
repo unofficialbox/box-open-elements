@@ -19,6 +19,7 @@ import themingMd from "../docs/foundations/theming.md";
 import motionMd from "../docs/foundations/motion.md";
 import geometryMd from "../docs/foundations/geometry.md";
 import { renderMarkdown } from "./markdown.js";
+import { highlightCode, normalizeLang } from "./highlight.js";
 
 // Real, extracted variant states per component (storybook workshop → docs site).
 // Only the components with authored stories have these; everything else keeps
@@ -46,20 +47,23 @@ const applyTheme = (theme: "light" | "dark"): void => {
   lib.setActiveDesignSystem(system);
   lib.applyDesignTokens(document.documentElement, system);
   document.documentElement.dataset.theme = theme;
-  const toggle = document.getElementById("theme-toggle");
-  if (toggle) {
-    toggle.setAttribute("aria-pressed", String(theme === "dark"));
-    toggle.textContent = theme === "dark" ? "Light" : "Dark";
-  }
+  // Every theme toggle (rail footer + masthead) reflects the same state.
+  document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]").forEach(button => {
+    button.setAttribute("aria-pressed", String(theme === "dark"));
+    const label = button.querySelector<HTMLElement>("[data-theme-label]") ?? button;
+    label.textContent = theme === "dark" ? "Light" : "Dark";
+  });
 };
 
 const storedTheme = localStorage.getItem("boe-docs-theme");
 applyTheme(storedTheme === "dark" ? "dark" : "light");
 
-document.getElementById("theme-toggle")?.addEventListener("click", () => {
-  const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-  localStorage.setItem("boe-docs-theme", next);
-  applyTheme(next);
+document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]").forEach(button => {
+  button.addEventListener("click", () => {
+    const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    localStorage.setItem("boe-docs-theme", next);
+    applyTheme(next);
+  });
 });
 
 // ── Shared event vocabulary the Events panel listens for ────────────────────
@@ -180,6 +184,15 @@ const stageBody = document.getElementById("stage-body")!;
 const breadcrumb = document.getElementById("stage-breadcrumb")!;
 let teardown: (() => void) | null = null;
 
+// Persisted rail scroll — survives both the hash-routed re-render and the
+// static build's full page navigation (per-component HTML files) within a tab.
+const RAIL_SCROLL_KEY = "boe-rail-scroll";
+let railScroll = Number(sessionStorage.getItem(RAIL_SCROLL_KEY)) || 0;
+railTree.addEventListener("scroll", () => {
+  railScroll = railTree.scrollTop;
+  sessionStorage.setItem(RAIL_SCROLL_KEY, String(railScroll));
+}, { passive: true });
+
 // ── Rail ─────────────────────────────────────────────────────────────────────
 
 const renderRail = (): void => {
@@ -227,24 +240,28 @@ const renderRail = (): void => {
 
   if (state.tier === "foundations") {
     addGroup("Foundations", FOUNDATION_PAGES.map(page => ({ id: page.id, label: page.label, tier: "foundations" })));
-    return;
+  } else {
+    const entries = catalog.filter(entry => entry.tier === state.tier);
+    const categories = [...new Set(entries.map(entry => entry.category))];
+    for (const category of categories) {
+      addGroup(
+        category,
+        entries
+          .filter(entry => entry.category === category)
+          .map(entry => ({ id: entry.id, label: titleOf(entry.id), tier: entry.tier })),
+      );
+    }
+
+    // Guided build-along lessons live in the Patterns tier as their own group.
+    if (state.tier === "patterns" && lessons.length) {
+      addGroup("Build Alongs", lessons.map(lesson => ({ id: lesson.id, label: lesson.title, tier: "lessons" })));
+    }
   }
 
-  const entries = catalog.filter(entry => entry.tier === state.tier);
-  const categories = [...new Set(entries.map(entry => entry.category))];
-  for (const category of categories) {
-    addGroup(
-      category,
-      entries
-        .filter(entry => entry.category === category)
-        .map(entry => ({ id: entry.id, label: titleOf(entry.id), tier: entry.tier })),
-    );
-  }
-
-  // Guided build-along lessons live in the Patterns tier as their own group.
-  if (state.tier === "patterns" && lessons.length) {
-    addGroup("Build Alongs", lessons.map(lesson => ({ id: lesson.id, label: lesson.title, tier: "lessons" })));
-  }
+  // Rebuilding the tree resets its scroll; restore the last position so clicking
+  // a rail item (which re-renders, and on the static build reloads the page)
+  // doesn't jump the menu back to the top.
+  railTree.scrollTop = railScroll;
 };
 
 // ── Component page ───────────────────────────────────────────────────────────
@@ -321,7 +338,7 @@ const renderComponentPage = (entry: CatalogEntry): void => {
             `<button type="button" class="code-tab" data-code="${framework.id}" role="tab" aria-selected="${index === 0}">${framework.label}</button>`,
         ).join("")}
       </div>
-      <pre class="code-block"><code id="code-block">${escapeHtml(initialHtml)}</code></pre>
+      <pre class="code-block"><code id="code-block">${highlightCode(initialHtml, "html")}</code></pre>
       <p class="preview-note code-frameworks-note">Snippets show a minimal use; the one-time setup (design tokens, Vue <code>isCustomElement</code>, React custom events) is in the <a href="https://github.com/unofficialbox/box-open-elements/blob/main/docs/integration/frameworks.md" target="_blank" rel="noreferrer">Frameworks guide</a>.</p>
       ${(() => {
         const note = useExampleVariants ? exampleVariants[0]?.note : example.note;
@@ -474,7 +491,8 @@ const renderComponentPage = (entry: CatalogEntry): void => {
   let currentHtml = initialHtml;
   let currentFramework: Framework = "html";
   const renderCode = (): void => {
-    codeBlock.textContent = frameworkSnippet(currentFramework, entry.id, entry.tag, currentHtml);
+    const snippet = frameworkSnippet(currentFramework, entry.id, entry.tag, currentHtml);
+    codeBlock.innerHTML = highlightCode(snippet, normalizeLang(currentFramework));
   };
   stageBody.querySelectorAll<HTMLButtonElement>(".code-tab").forEach(tab => {
     tab.addEventListener("click", () => {
@@ -726,6 +744,9 @@ document.querySelectorAll<HTMLButtonElement>(".rail-tabs button").forEach(button
 
 railFilter.addEventListener("input", () => {
   state.filter = railFilter.value;
+  // A new filter should show results from the top.
+  railScroll = 0;
+  sessionStorage.setItem(RAIL_SCROLL_KEY, "0");
   renderRail();
 });
 

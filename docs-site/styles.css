@@ -163,9 +163,38 @@ body {
 }
 .mast-nav a .ext { font-size: 11px; color: var(--community-coral); }
 
+.mast-right { display: flex; align-items: center; gap: 10px; }
+.mast-theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border: 1.5px solid rgba(205, 216, 234, 0.4);
+  border-radius: 999px;
+  background: transparent;
+  color: #e6edf8;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.mast-theme:hover { background: rgba(255, 255, 255, 0.08); border-color: var(--community-sky); }
+.mast-theme:focus-visible { outline: 2px solid var(--community-sky); outline-offset: 2px; }
+.mast-theme-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  background: linear-gradient(90deg, currentColor 0 50%, transparent 50% 100%);
+}
+
 .shell {
   display: grid;
-  grid-template-columns: 264px 1fr;
+  /* 272px fits all three tier tabs on one row without truncating. */
+  grid-template-columns: 272px 1fr;
   min-height: calc(100vh - 56px);
 }
 
@@ -224,21 +253,27 @@ body {
   box-shadow: 0 0 0 3px rgba(8, 102, 217, 0.4);
 }
 
-.rail-tabs { display: flex; gap: 4px; }
+/* Wraps to a second row rather than truncating: the labels fit on one line in
+   InterVariable, but must stay fully readable in a fallback face (or before the
+   webfont loads), so never clip them. */
+.rail-tabs { display: flex; flex-wrap: wrap; gap: 3px; }
 
+/* Sentence case and content-width tabs: uppercase "FOUNDATIONS" at a legible
+   size, or equal thirds, overflow the rail. */
 .rail-tabs button {
-  flex: 1;
+  flex: 0 1 auto;
   font: inherit;
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 7px 4px;
+  letter-spacing: 0;
+  padding: 7px 7px;
   border: none;
   border-radius: 7px;
   background: transparent;
   color: #9fb2cc;
   cursor: pointer;
+  white-space: nowrap;
+  text-align: center;
 }
 .rail-tabs button:hover { background: rgba(255, 255, 255, 0.06); color: #dfe8f6; }
 .rail-tabs button[aria-selected="true"] { background: var(--community-blue); color: #ffffff; }
@@ -583,13 +618,25 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  /* Centred horizontally so flyout components (tooltip, popover, menu) that
+     anchor a wider surface under their trigger stay inside the canvas instead
+     of spilling left over the rail. Pairs with the `> *` width cap below —
+     centring alone would make over-wide content spill from *both* edges. */
+  justify-content: center;
   align-items: flex-start;
   align-content: flex-start;
   min-height: 140px;
   margin: 0 auto;
   width: 100%;
+  overflow: auto;
   transition: max-width 180ms ease;
 }
+
+/* Keep any demo — including wide patterns like the content explorer, whose
+   inner panels are wider than the host element — inside the canvas. The width
+   cap handles the host; `overflow: auto` contains inner layout that the cap
+   can't reach, scrolling within the frame instead of escaping it. */
+.preview-canvas > * { max-width: 100%; min-width: 0; }
 
 .preview-note { grid-column: 1 / -1; font-size: 12.5px; color: var(--ink-soft); margin: 6px 2px 0; }
 
@@ -708,9 +755,11 @@ body {
 .prop-row { display: flex; justify-content: space-between; gap: 10px; }
 .prop-row .prop-value { color: #8ea3c4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }
 
+/* Code blocks use VS Code's default dark theme (Dark+) editor colours, so
+   snippets read the same here as they do in the editor. */
 pre.code-block {
-  background: var(--community-ink);
-  color: #e6edf8;
+  background: #1e1e1e;
+  color: #d4d4d4;
   border: 1px solid var(--line-strong);
   border-radius: 14px;
   padding: 18px 20px;
@@ -721,6 +770,18 @@ pre.code-block {
   font-size: 13px;
   line-height: 1.6;
 }
+
+/* Dark+ token palette (see docs-site/highlight.ts for the tokenizer). */
+.code-block .tok-comment { color: #6a9955; }
+.code-block .tok-str { color: #ce9178; }
+.code-block .tok-kw { color: #569cd6; }
+.code-block .tok-ctrl { color: #c586c0; }
+.code-block .tok-num { color: #b5cea8; }
+.code-block .tok-fn { color: #dcdcaa; }
+.code-block .tok-type { color: #4ec9b0; }
+.code-block .tok-var { color: #9cdcfe; }
+.code-block .tok-tag { color: #569cd6; }
+.code-block .tok-attr { color: #9cdcfe; }
 
 table.api-table { width: 100%; border-collapse: collapse; background: var(--surface-card); border: 1.5px solid var(--line-strong); border-radius: 14px; overflow: hidden; }
 table.api-table th, table.api-table td { text-align: left; padding: 9px 14px; font-size: 13px; border-top: 1px solid var(--line); color: var(--ink); }
@@ -893,7 +954,6 @@ table.api-table code { font-family: ui-monospace, Menlo, monospace; font-size: 1
    · <700 single column with the rail collapsed to a scrollable top strip. */
 
 @media (max-width: 1099px) {
-  .shell { grid-template-columns: 216px 1fr; }
   .stage { padding: 22px 22px 56px; }
   .preview-layout { grid-template-columns: 1fr; }
   .lesson-layout { grid-template-columns: 1fr; }
@@ -910,9 +970,12 @@ table.api-table code { font-family: ui-monospace, Menlo, monospace; font-size: 1
     border-right: none;
     border-bottom: 2px solid var(--community-blue);
   }
-  .masthead { padding: 0 14px; }
+  .masthead { padding: 0 14px; gap: 10px; }
   .mast-title { display: none; }
   .mast-nav a { padding: 6px 8px; letter-spacing: 0.04em; }
+  .mast-right { gap: 6px; }
+  .mast-theme-label { display: none; }
+  .mast-theme { padding: 6px 9px; }
   .stage { padding: 20px 16px 48px; }
   .page-title { font-size: 26px; }
   .home-cards { grid-template-columns: 1fr; }

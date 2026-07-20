@@ -41,11 +41,17 @@
       <span class="mast-mark"><b>B</b><span>/</span></span>
       <span class="mast-title">Box Open Elements</span>
     </a>
-    <nav class="mast-nav" aria-label="Community">
-      <a href="https://unofficialbox.dev" target="_blank" rel="noreferrer">Community<span class="ext" aria-hidden="true">↗</span></a>
-      <a href="https://www.npmjs.com/package/@unofficialbox/box-open-elements" target="_blank" rel="noreferrer">npm<span class="ext" aria-hidden="true">↗</span></a>
-      <a href="https://github.com/unofficialbox/box-open-elements" target="_blank" rel="noreferrer">GitHub<span class="ext" aria-hidden="true">↗</span></a>
-    </nav>
+    <div class="mast-right">
+      <nav class="mast-nav" aria-label="Community">
+        <a href="https://unofficialbox.dev" target="_blank" rel="noreferrer">Community<span class="ext" aria-hidden="true">↗</span></a>
+        <a href="https://www.npmjs.com/package/@unofficialbox/box-open-elements" target="_blank" rel="noreferrer">npm<span class="ext" aria-hidden="true">↗</span></a>
+        <a href="https://github.com/unofficialbox/box-open-elements" target="_blank" rel="noreferrer">GitHub<span class="ext" aria-hidden="true">↗</span></a>
+      </nav>
+      <button type="button" id="theme-toggle-top" class="mast-theme" data-theme-toggle aria-pressed="false" title="Toggle dark mode">
+        <span class="mast-theme-dot" aria-hidden="true"></span>
+        <span class="mast-theme-label" data-theme-label>Dark</span>
+      </button>
+    </div>
   </header>
   <div class="shell">
     <aside class="rail">
@@ -62,7 +68,7 @@
       <div id="rail-tree" class="rail-tree"></div>
       <footer class="rail-foot">
         <span id="rail-version"></span>
-        <button type="button" id="theme-toggle" title="Toggle dark mode" aria-pressed="false">Dark</button>
+        <button type="button" id="theme-toggle" data-theme-toggle title="Toggle dark mode" aria-pressed="false"><span data-theme-label>Dark</span></button>
         <a href="https://github.com/unofficialbox/box-open-elements" target="_blank" rel="noreferrer">GitHub</a>
       </footer>
     </aside>

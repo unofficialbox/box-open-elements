@@ -2,7 +2,10 @@
  * Minimal, dependency-free markdown → HTML for foundation docs (trusted,
  * repo-owned content). Handles headings, lists, GFM tables, code fences,
  * inline code/bold/links, rules, and paragraphs.
+ *
+ * Fenced blocks are syntax-highlighted from their info string (```ts, ```html …).
  */
+import { highlightCode, normalizeLang, type HighlightLang } from "./highlight.js";
 
 const escapeHtml = (value: string): string =>
   value
@@ -71,7 +74,11 @@ export const renderMarkdown = (md: string): string => {
   let inList = false;
   let inCode = false;
   let code: string[] = [];
+  let codeLang: HighlightLang = "text";
   let tableBuf: string[] = [];
+
+  const flushCode = (): string =>
+    `<pre class="code-block"><code>${highlightCode(code.join("\n"), codeLang)}</code></pre>`;
 
   const closeList = (): void => {
     if (inList) {
@@ -90,12 +97,15 @@ export const renderMarkdown = (md: string): string => {
   for (const line of md.replace(/\r\n/g, "\n").split("\n")) {
     if (line.trim().startsWith("```")) {
       if (inCode) {
-        out.push(`<pre class="code-block"><code>${escapeHtml(code.join("\n"))}</code></pre>`);
+        out.push(flushCode());
         code = [];
+        codeLang = "text";
         inCode = false;
       } else {
         flushTable();
         closeList();
+        // The fence info string names the grammar, e.g. ```ts
+        codeLang = normalizeLang(line.trim().slice(3));
         inCode = true;
       }
       continue;
@@ -145,6 +155,6 @@ export const renderMarkdown = (md: string): string => {
 
   flushTable();
   closeList();
-  if (inCode) out.push(`<pre class="code-block"><code>${escapeHtml(code.join("\n"))}</code></pre>`);
+  if (inCode) out.push(flushCode());
   return out.join("\n");
 };
