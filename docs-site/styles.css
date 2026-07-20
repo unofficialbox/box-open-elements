@@ -105,6 +105,7 @@ body {
   background: transparent;
   color: #222222;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .rail-item:hover { background: #f4f4f4; }
