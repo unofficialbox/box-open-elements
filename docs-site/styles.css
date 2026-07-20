@@ -197,6 +197,24 @@ body {
 
 .stage-tabs button[aria-selected="true"] { color: #0061d5; border-bottom-color: #0061d5; }
 
+/* Framework sub-tabs inside the Code panel. */
+.code-tabs { display: flex; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
+.code-tab {
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 4px 11px;
+  border: 1px solid #e8e8e8;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #6f6f6f;
+  cursor: pointer;
+}
+.code-tab[aria-selected="true"] { background: #f2f7fd; border-color: #0061d5; color: #0061d5; }
+.code-frameworks-note { margin-top: 10px; }
+:root[data-theme="dark"] .code-tab { background: #1f1f1f; border-color: #3a3a3a; color: #b8b8b8; }
+:root[data-theme="dark"] .code-tab[aria-selected="true"] { background: #10233f; border-color: #7db4ff; color: #7db4ff; }
+
 .preview-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 18px; }
 
 .preview-toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }

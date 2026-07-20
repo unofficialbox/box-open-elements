@@ -103,6 +103,46 @@ const escapeHtml = (value: string): string =>
 const toKebab = (value: string): string =>
   value.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
 
+// ── Framework code snippets (docs "Code" tab) ────────────────────────────────
+
+type Framework = "html" | "react" | "angular" | "vue" | "svelte";
+
+const FRAMEWORKS: Array<{ id: Framework; label: string }> = [
+  { id: "html", label: "HTML" },
+  { id: "react", label: "React" },
+  { id: "angular", label: "Angular" },
+  { id: "vue", label: "Vue" },
+  { id: "svelte", label: "Svelte" },
+];
+
+/** `defineBox…Element` for a catalog id — matches the package's export names. */
+const defineName = (id: string): string =>
+  `defineBox${id.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join("")}Element`;
+
+/** The demo's representative root element, in self-closing and full forms. */
+const representativeTag = (html: string, tag: string): { selfClose: string; full: string } => {
+  const open = new RegExp(`<${tag}(?:\\s[^>]*)?>`).exec(html)?.[0] ?? `<${tag}>`;
+  return { selfClose: open.replace(/\s*>$/, " />"), full: `${open}</${tag}>` };
+};
+
+/** A minimal copy-pasteable per-framework usage snippet for one component. */
+const frameworkSnippet = (framework: Framework, id: string, tag: string, html: string): string => {
+  if (framework === "html") return html;
+  const { selfClose, full } = representativeTag(html, tag);
+  const def = defineName(id);
+  const imp = `import { ${def} } from "@unofficialbox/box-open-elements";\n${def}();`;
+  switch (framework) {
+    case "react":
+      return `${imp}\n\nexport function Example() {\n  return ${selfClose};\n}`;
+    case "angular":
+      return `import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";\n${imp}\n\n@Component({\n  standalone: true,\n  schemas: [CUSTOM_ELEMENTS_SCHEMA],\n  template: \`${full}\`,\n})\nexport class Example {}`;
+    case "vue":
+      return `<script setup lang="ts">\n${imp}\n</script>\n\n<template>\n  ${full}\n</template>`;
+    case "svelte":
+      return `<script lang="ts">\n  ${imp}\n</script>\n\n${full}`;
+  }
+};
+
 // ── State + routing ──────────────────────────────────────────────────────────
 
 type Route = { tier: string; id: string };
@@ -273,7 +313,14 @@ const renderComponentPage = (entry: CatalogEntry): void => {
       </div>
     </div>
     <div data-panel="code" hidden>
+      <div class="code-tabs" role="tablist" aria-label="Framework">
+        ${FRAMEWORKS.map(
+          (framework, index) =>
+            `<button type="button" class="code-tab" data-code="${framework.id}" role="tab" aria-selected="${index === 0}">${framework.label}</button>`,
+        ).join("")}
+      </div>
       <pre class="code-block"><code id="code-block">${escapeHtml(initialHtml)}</code></pre>
+      <p class="preview-note code-frameworks-note">Snippets show a minimal use; the one-time setup (design tokens, Vue <code>isCustomElement</code>, React custom events) is in the <a href="https://github.com/unofficialbox/box-open-elements/blob/main/docs/integration/frameworks.md" target="_blank" rel="noreferrer">Frameworks guide</a>.</p>
       ${(() => {
         const note = useExampleVariants ? exampleVariants[0]?.note : example.note;
         return note ? `<p class="preview-note">${escapeHtml(note)}</p>` : `<p class="preview-note" hidden></p>`;
@@ -420,13 +467,31 @@ const renderComponentPage = (entry: CatalogEntry): void => {
   // Variant picker — live example setups when present; otherwise extracted HTML.
   const variantSelect = stageBody.querySelector<HTMLSelectElement>("#variant-select");
   const codeBlock = stageBody.querySelector<HTMLElement>("#code-block")!;
+
+  // Framework code tabs — re-render the snippet for the current variant + framework.
+  let currentHtml = initialHtml;
+  let currentFramework: Framework = "html";
+  const renderCode = (): void => {
+    codeBlock.textContent = frameworkSnippet(currentFramework, entry.id, entry.tag, currentHtml);
+  };
+  stageBody.querySelectorAll<HTMLButtonElement>(".code-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      currentFramework = tab.dataset.code as Framework;
+      stageBody
+        .querySelectorAll<HTMLButtonElement>(".code-tab")
+        .forEach(other => other.setAttribute("aria-selected", String(other === tab)));
+      renderCode();
+    });
+  });
+
   variantSelect?.addEventListener("change", () => {
     const index = Number(variantSelect.value);
     const variant = variants[index];
     if (!variant) return;
     const setup = useExampleVariants ? exampleVariants[index]?.setup : undefined;
     mount(variant.html, setup);
-    codeBlock.textContent = variant.html;
+    currentHtml = variant.html;
+    renderCode();
     const note = useExampleVariants ? exampleVariants[index]?.note : example.note;
     const noteEl = stageBody.querySelector<HTMLElement>(".preview-note");
     if (noteEl) {
