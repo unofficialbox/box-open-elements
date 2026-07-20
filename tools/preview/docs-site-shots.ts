@@ -20,6 +20,7 @@ const PORT = 4601;
 const BANNER_TIMEOUT_MS = 20_000;
 
 const routes: Array<[string, string, string]> = [
+  ["home", "#home", "home/home"],
   ["components-button", "#components/button", "components/button"],
   ["components-forms", "#components/multi-select", "components/multi-select"],
   ["components-chip", "#components/chip", "components/chip"],

@@ -22,7 +22,7 @@ import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { rewriteIndexHtml } from "./build-helpers.js";
-import { prerenderPages, type PrerenderPage } from "./prerender.js";
+import { homePage, prerenderPages, type PrerenderPage } from "./prerender.js";
 
 /** Absolute deployed origin + base path (GitHub Pages project site). */
 const SITE = "https://unofficialbox.github.io/box-open-elements";
@@ -121,8 +121,17 @@ function buildPageHtml(rootHtml: string, page: PrerenderPage): string {
   return out;
 }
 
-// Root: the SPA landing/default, marked built (nav links resolve from root).
-await Bun.write(join(OUT, "index.html"), injectBoot(html, "", null));
+// Root: the landing page. Prerender the home content so crawlers and the no-JS
+// view get it; the client re-renders on boot (route stays null → parseHash()
+// resolves the empty hash to home). Nav links resolve from the root (rel "").
+const home = homePage();
+const rootHtml = html
+  .replace('<div id="stage-body"></div>', `<div id="stage-body">${home.bodyHtml}</div>`)
+  .replace(
+    '<nav id="stage-breadcrumb" aria-label="Breadcrumb"></nav>',
+    `<nav id="stage-breadcrumb" aria-label="Breadcrumb">${home.breadcrumbHtml}</nav>`,
+  );
+await Bun.write(join(OUT, "index.html"), injectBoot(rootHtml, "", null));
 
 const pages = prerenderPages();
 for (const page of pages) {
