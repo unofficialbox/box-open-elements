@@ -61,7 +61,9 @@ chrome, cards, tables and prose retheme automatically.
 - **Inspector panels** — intentionally deep-navy "console" cards in both themes;
   coral event names, sky/blue count chips.
 - **Framework selector** — the Code tab and each build-along's "Use it in your
-  framework" section select frameworks with their **official brand marks**
+  framework" section (full-width, directly under the lesson intro and above the
+  step-by-step walkthrough, so it's the first thing after the overview) select
+  frameworks with their **official brand marks**
   (`docs-site/framework-icons.ts`, path data from simple-icons, inlined so there
   is no runtime dependency). Unselected marks are muted and monochrome; the
   active one takes its brand colour, with a per-theme value where the brand hex

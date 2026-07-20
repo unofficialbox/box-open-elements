@@ -355,6 +355,24 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
     })
     .join("");
 
+  // Prominent, full-width framework section shown above the step-by-step
+  // walkthrough — the finished result in each framework before the deep dive.
+  const frameworksHtml = `
+    <section class="lesson-frameworks">
+      <p class="section-label">Use it in your framework</p>
+      <p>Prefer to skip the walkthrough? Here is the finished lesson — the same element, properties, and events — wired up the way each framework expects. The step-by-step below builds it with plain DOM calls.</p>
+      <div class="code-tabs" role="tablist" aria-label="Framework">
+        ${LESSON_FRAMEWORKS.map(
+          (framework, index) =>
+            `<button type="button" class="code-tab" data-lesson-code="${framework.id}" role="tab" aria-selected="${index === 0}" title="${framework.label}"><span class="code-tab-icon">${frameworkIconSvg(framework.id)}</span><span class="visually-hidden">${framework.label}</span></button>`,
+        ).join("")}
+      </div>
+      <div class="code-wrap">
+        <button type="button" class="code-copy" id="lesson-framework-copy" data-copy="${escapeHtml(lesson.frameworks.html)}">Copy</button>
+        <pre class="code-block"><code id="lesson-framework-code">${highlightCode(lesson.frameworks.html, "html")}</code></pre>
+      </div>
+    </section>`;
+
   stageBody.innerHTML = `
     <div class="lesson">
       <span class="page-tag">Build Along</span>
@@ -368,6 +386,8 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
 
       <p class="lesson-lead prose">${escapeHtml(lesson.why)}</p>
 
+      ${frameworksHtml}
+
       <div class="lesson-layout">
         <div class="lesson-steps">
           ${stepsHtml}
@@ -378,21 +398,6 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
               <h2>What works now</h2>
             </header>
             <p>${escapeHtml(lesson.wrapup)}</p>
-          </section>
-
-          <section class="lesson-frameworks">
-            <p class="section-label">Use it in your framework</p>
-            <p>The steps above build this with plain DOM calls. Here is the same element, properties, and events wired up the way each framework expects.</p>
-            <div class="code-tabs" role="tablist" aria-label="Framework">
-              ${LESSON_FRAMEWORKS.map(
-                (framework, index) =>
-                  `<button type="button" class="code-tab" data-lesson-code="${framework.id}" role="tab" aria-selected="${index === 0}" title="${framework.label}"><span class="code-tab-icon">${frameworkIconSvg(framework.id)}</span><span class="visually-hidden">${framework.label}</span></button>`,
-              ).join("")}
-            </div>
-            <div class="code-wrap">
-              <button type="button" class="code-copy" id="lesson-framework-copy" data-copy="${escapeHtml(lesson.frameworks.html)}">Copy</button>
-              <pre class="code-block"><code id="lesson-framework-code">${highlightCode(lesson.frameworks.html, "html")}</code></pre>
-            </div>
           </section>
 
           <section class="lesson-own">
