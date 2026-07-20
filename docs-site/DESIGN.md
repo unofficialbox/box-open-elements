@@ -1,0 +1,88 @@
+# Docs site design
+
+The docs site is styled as an extension of the [Unofficial Box Developer
+Community](https://unofficialbox.dev) — warm paper stage, a deep-navy rail and
+masthead, editorial condensed display type, and a blue/coral accent pair. This
+note records the design language so future changes stay coherent. All behaviour
+(catalog, previews, inspectors, prerender, dark mode, deploy) is unchanged; this
+is a visual layer.
+
+## Tokens
+
+Defined once at the top of `styles.css` as `--community-*` raw values mapped to
+semantic aliases, so the palette shifts in one place and dark mode is a token
+override rather than a per-rule sprawl.
+
+| Raw token | Value | Role |
+|---|---|---|
+| `--community-ink` | `#0b172a` | Deep navy — rail, masthead, inspectors, code, hard borders |
+| `--community-blue` | `#0866d9` | Primary accent — links, active states, CTAs |
+| `--community-blue-dark` | `#004fb2` | Accent on light surfaces (≥ 4.5:1 text, focus ring) |
+| `--community-sky` / `-strong` | `#e9f3ff` / `#d8eaff` | Pale-blue fills — pills, table heads, install chip |
+| `--community-paper` | `#f7f2e8` | Warm stage background |
+| `--community-white` | `#fffefa` | Card surface |
+| `--community-coral` | `#ff6658` | Punk accent — counters, active tab underline, event names |
+| `--community-muted` | `#55667c` | Secondary ink |
+| `--community-line` | `#172235` | Strong hairline |
+
+Semantic aliases (`--surface-stage/card/rail/sky`, `--ink`, `--ink-soft`,
+`--accent`, `--accent-dark`, `--accent-coral`, `--line`, `--line-strong`,
+`--edge`, `--focus-ring`, `--card-shadow`, `--card-shadow-ink`) are what the
+rules consume. The `:root[data-theme="dark"]` block re-points every alias, so
+chrome, cards, tables and prose retheme automatically.
+
+## Layout
+
+- **Masthead** (`.masthead`) — sticky navy bar: `B/` mark + "Box Open Elements",
+  and Community / npm / GitHub links with `↗` external cues. 56px tall; the rail
+  and stage sit beneath it (`top: 56px`).
+- **Rail** (`.rail`) — deep-navy sidebar, always navy in both themes. Active item
+  gets a coral inset marker; the active tab fills blue.
+- **Stage** (`.stage`) — warm paper. Condensed uppercase `.page-title`, monospace
+  `.page-tag` pill, coral-underlined `.stage-tabs`.
+- **Landing** (`.home`) — monospace eyebrow, huge condensed hero (ink + blue
+  accent), serif lede, offset-shadow CTAs, sky install chip, four numbered cards
+  (Foundations / Components / Patterns / Build Alongs) with live counts, and the
+  "Community-built. Open source. Punk Rock. 🤘" footer.
+
+## Signature treatments
+
+- **Preview canvas** — white card with a dotted grid background, a hard `--edge`
+  border and an offset blue shadow.
+- **Inspector panels** — intentionally deep-navy "console" cards in both themes;
+  coral event names, sky/blue count chips.
+- **Code blocks** — deep-navy; long lines **wrap** (`white-space: pre-wrap`)
+  rather than scrolling horizontally.
+- **Cards** (related / guidance / token / icon) — soft-bordered with small offset
+  shadows; guidance cards carry a coral left border.
+- **Hard editorial borders** use `--edge` (navy in light, a lighter navy in dark)
+  so they stay visible against the dark stage.
+
+## Accessibility
+
+- The spec's coral focus ring fails 3:1 non-text contrast on the paper/sky
+  surfaces, so the focus ring is `--focus-ring` (accent-dark `#004fb2`, ≥ 8:1 on
+  paper) instead. Coral is used only where it clears contrast (on navy, or as a
+  decorative marker paired with text).
+- A `.skip-link` jumps to `#stage-body`; the masthead is a real `<header>`/`<nav>`.
+- Focus-visible outlines on every interactive control (rail, tabs, buttons,
+  cards, links).
+
+## Responsive
+
+- **≥ 1100px** — full three-region layout.
+- **700–1099px** — narrowed rail, single-column preview/inspector and lesson
+  layouts.
+- **< 700px** — single column; the rail collapses to a scrollable top strip and
+  the masthead title is hidden (mark + nav remain).
+
+## Regenerating screenshots
+
+The restyle changes every docs-site baseline. Regenerate them in the pinned
+Playwright container so they stay pixel-comparable with CI:
+
+```
+bash tools/preview/container-run.sh 'bun run build && bun tools/preview/docs-site-shots.ts'
+```
+
+A `home` baseline was added alongside the existing component/foundation shots.

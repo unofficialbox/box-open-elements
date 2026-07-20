@@ -162,7 +162,9 @@ const parseHash = (): Route => {
   if (!raw) {
     const boot = (window as BootWindow).__ROUTE__;
     if (boot) return boot;
+    return { tier: "home", id: "home" };
   }
+  if (raw === "home") return { tier: "home", id: "home" };
   const [tier, id] = raw.split("/");
   if (tier === "foundations" && FOUNDATION_PAGES.some(page => page.id === id)) return { tier, id };
   if (tier === "lessons" && lessonById(id)) return { tier, id };
@@ -615,6 +617,54 @@ const renderMarkdownPage = (title: string, md: string): void => {
   stageBody.innerHTML = `<div class="prose md-doc">${renderMarkdown(md)}</div>`;
 };
 
+// ── Landing page ─────────────────────────────────────────────────────────────
+
+// Rel-aware internal link: the static build emits per-page files (crawlable),
+// the dev bundle stays hash-routed. Mirrors the rail's link logic.
+const pageHref = (tier: string, id: string): string => {
+  const rel = (window as BootWindow).__REL__ ?? "";
+  const built = (window as BootWindow).__BUILT__ === true;
+  return built && tier !== "lessons" ? `${rel}${tier}/${id}/` : `#${tier}/${id}`;
+};
+
+const renderHomePage = (): void => {
+  breadcrumb.innerHTML = "<b>Home</b>";
+  const componentCount = catalog.filter(entry => entry.tier === "components").length;
+  const patternCount = catalog.filter(entry => entry.tier === "patterns").length;
+  const firstComponent = catalog.find(entry => entry.tier === "components")!.id;
+  const firstPattern = catalog.find(entry => entry.tier === "patterns")!.id;
+  const cards: Array<{ num: string; title: string; blurb: string; count: string; href: string }> = [
+    { num: "01", title: "Foundations", blurb: "Tokens, theming, geometry, motion, icons, accessibility, and brand.", count: `${FOUNDATION_PAGES.length} pages`, href: pageHref("foundations", "tokens") },
+    { num: "02", title: "Components", blurb: "Framework-agnostic custom elements that track Box's design language.", count: `${componentCount} components`, href: pageHref("components", firstComponent) },
+    { num: "03", title: "Patterns", blurb: "Composed views — explorers, sidebars, metadata, and data displays.", count: `${patternCount} patterns`, href: pageHref("patterns", firstPattern) },
+    { num: "04", title: "Build Alongs", blurb: "Step-by-step lessons assembling real interfaces from the elements.", count: `${lessons.length} lessons`, href: pageHref("lessons", lessons[0].id) },
+  ];
+  stageBody.innerHTML = `
+    <section class="home" aria-labelledby="home-hero">
+      <p class="home-eyebrow">Box Open Elements · Edition 01</p>
+      <h1 class="home-hero" id="home-hero">Build the interface.<br><span class="accent">Keep the freedom.</span></h1>
+      <p class="home-lede">Framework-agnostic Web Components that track Box's design language — drop them into React, Angular, Vue, Svelte, or plain HTML. No lock-in, no wrapper tax.</p>
+      <div class="home-actions">
+        <a class="home-cta primary" href="${pageHref("components", firstComponent)}">Explore the catalog →</a>
+        <a class="home-cta ghost" href="https://github.com/unofficialbox/box-open-elements" target="_blank" rel="noreferrer">View on GitHub <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="home-install">
+        <span class="home-install-label">Install</span>
+        <code>npm install @unofficialbox/box-open-elements</code>
+      </div>
+      <div class="home-cards">
+        ${cards.map(card => `
+          <a class="home-card" href="${card.href}">
+            <span class="home-card-num">${card.num}</span>
+            <h2 class="home-card-title">${card.title}</h2>
+            <p class="home-card-blurb">${card.blurb}</p>
+            <span class="home-card-count">${card.count}</span>
+          </a>`).join("")}
+      </div>
+      <p class="home-foot">Community-built. Open source. Punk Rock. <span aria-hidden="true">🤘</span></p>
+    </section>`;
+};
+
 // ── Router ───────────────────────────────────────────────────────────────────
 
 const render = (): void => {
@@ -622,9 +672,15 @@ const render = (): void => {
   teardown?.();
   teardown = null;
   state.route = parseHash();
-  // A lessons route keeps the Patterns tab + rail active.
-  state.tier = state.route.tier === "lessons" ? "patterns" : state.route.tier;
+  // A lessons route keeps the Patterns tab + rail active; home has no tier.
+  state.tier = state.route.tier === "lessons" ? "patterns"
+    : state.route.tier === "home" ? state.tier
+    : state.route.tier;
   renderRail();
+  if (state.route.tier === "home") {
+    renderHomePage();
+    return;
+  }
   if (state.route.tier === "foundations") {
     if (state.route.id === "tokens") renderTokensPage();
     else if (state.route.id === "icons") renderIconsPage();
@@ -688,6 +744,14 @@ applyRailVersion(
   () => fetch("/api/status").then(response => response.json() as Promise<{ version: string }>),
 );
 
-if (!location.hash && !(window as BootWindow).__ROUTE__) location.hash = "#components/button";
+// Home links (masthead brand + rail wordmark) resolve to the site root in the
+// static build and to the home hash in the dev bundle.
+for (const id of ["mast-home", "rail-home"]) {
+  const home = document.getElementById(id) as HTMLAnchorElement | null;
+  if (!home) continue;
+  const rel = (window as BootWindow).__REL__ ?? "";
+  home.setAttribute("href", (window as BootWindow).__BUILT__ === true ? (rel || "./") : "#home");
+}
+
 render();
 markRouteReady();
