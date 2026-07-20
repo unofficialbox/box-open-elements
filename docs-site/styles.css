@@ -587,12 +587,13 @@ body {
 
 .code-tab[aria-selected="true"][data-code="html"] { color: #e34f26; }
 .code-tab[aria-selected="true"][data-code="react"] { color: #149eca; }
-.code-tab[aria-selected="true"][data-code="angular"] { color: #0f0f11; }
+/* Angular's brand red reads on both the paper and navy backgrounds, so unlike
+   React it needs no per-theme value. */
+.code-tab[aria-selected="true"][data-code="angular"] { color: #dd0031; }
 .code-tab[aria-selected="true"][data-code="vue"] { color: #35845f; }
 .code-tab[aria-selected="true"][data-code="svelte"] { color: #ff3e00; }
 
 :root[data-theme="dark"] .code-tab[aria-selected="true"][data-code="react"] { color: #61dafb; }
-:root[data-theme="dark"] .code-tab[aria-selected="true"][data-code="angular"] { color: #ffffff; }
 :root[data-theme="dark"] .code-tab[aria-selected="true"][data-code="vue"] { color: #4fc08d; }
 
 .visually-hidden {
