@@ -60,9 +60,9 @@ const escapeHtml = (value: string): string =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 
-/** A code block: full source, delta lines highlighted, with a copy button. */
-const codeBlock = (code: string, highlight: Set<number>, copyLabel: string): string => {
-  const lines = code
+/** Per-line source with the delta lines highlighted (the vanilla "HTML" tab). */
+const diffLinesHtml = (code: string, highlight: Set<number>): string =>
+  code
     .split("\n")
     .map((line, index) => {
       const cls = highlight.has(index) ? "code-line is-added" : "code-line";
@@ -71,12 +71,20 @@ const codeBlock = (code: string, highlight: Set<number>, copyLabel: string): str
       return `<span class="${cls}">${highlightCode(line, "ts") || "&nbsp;"}</span>`;
     })
     .join("");
-  return `
+
+/** A code block: full source, delta lines highlighted, with a copy button. */
+const codeBlock = (code: string, highlight: Set<number>, copyLabel: string): string => `
     <div class="code-wrap">
       <button type="button" class="code-copy" data-copy="${escapeHtml(code)}">${escapeHtml(copyLabel)}</button>
-      <pre class="code-block"><code>${lines}</code></pre>
+      <pre class="code-block"><code>${diffLinesHtml(code, highlight)}</code></pre>
     </div>`;
-};
+
+/** The rendered code for a step in a given framework (html = vanilla diff). */
+type StepVariant = { htmlLines: string; codes: Record<FrameworkId, string> };
+const stepVariantCode = (variant: StepVariant, framework: FrameworkId): string =>
+  framework === "html"
+    ? variant.htmlLines
+    : highlightCode(variant.codes[framework], normalizeLang(framework));
 
 // ── Live previews ────────────────────────────────────────────────────────────
 
@@ -325,8 +333,20 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
 
   const finalCode = lesson.steps[lesson.steps.length - 1].code;
 
-  const stepCard = (step: LessonStep, prevCode: string): string => {
-    const highlight = addedLines(prevCode, step.code);
+  // Per-step code in every framework: html = the vanilla diff-highlighted lines,
+  // the rest = that step's cumulative component. Captured for the tab handler.
+  const stepVariants: StepVariant[] = lesson.steps.map((step, index) => ({
+    htmlLines: diffLinesHtml(step.code, addedLines(index === 0 ? "" : lesson.steps[index - 1].code, step.code)),
+    codes: {
+      html: step.code,
+      react: lesson.stepFrameworks.react[index],
+      angular: lesson.stepFrameworks.angular[index],
+      vue: lesson.stepFrameworks.vue[index],
+      svelte: lesson.stepFrameworks.svelte[index],
+    },
+  }));
+
+  const stepCard = (step: LessonStep, index: number, variant: StepVariant): string => {
     const isSetup = step.n === 0;
     return `
       <section class="lesson-step" aria-labelledby="step-${step.n}">
@@ -336,7 +356,16 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
         </header>
         <p class="lesson-goal">${escapeHtml(step.goal)}</p>
         <p class="lesson-anchor"><span class="lesson-file">${escapeHtml(step.file)}</span> — ${escapeHtml(step.anchor)}</p>
-        ${codeBlock(step.code, highlight, isSetup ? "Copy app.js" : "Copy full file (checkpoint)")}
+        <div class="code-tabs" role="tablist" aria-label="Framework">
+          ${LESSON_FRAMEWORKS.map(
+            (framework, order) =>
+              `<button type="button" class="code-tab" data-step-tab="${index}" data-framework="${framework.id}" role="tab" aria-selected="${order === 0}" title="${framework.label}"><span class="code-tab-icon">${frameworkIconSvg(framework.id)}</span><span class="visually-hidden">${framework.label}</span></button>`,
+          ).join("")}
+        </div>
+        <div class="code-wrap">
+          <button type="button" class="code-copy" data-copy="${escapeHtml(step.code)}">${isSetup ? "Copy app.js" : "Copy file"}</button>
+          <pre class="code-block"><code id="step-code-${index}">${variant.htmlLines}</code></pre>
+        </div>
         <div class="lesson-result">
           <p class="section-label">Result</p>
           <div class="preview-canvas lesson-canvas" data-preview="${step.preview}"></div>
@@ -346,14 +375,7 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
       </section>`;
   };
 
-  let prev = "";
-  const stepsHtml = lesson.steps
-    .map(step => {
-      const html = stepCard(step, prev);
-      prev = step.code;
-      return html;
-    })
-    .join("");
+  const stepsHtml = lesson.steps.map((step, index) => stepCard(step, index, stepVariants[index])).join("");
 
   // Prominent, full-width framework section shown above the step-by-step
   // walkthrough — the finished result in each framework before the deep dive.
@@ -476,9 +498,30 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
   };
   stageBody.addEventListener("click", onFramework);
 
+  // Per-step framework tabs: swap that step's code block (and copy target)
+  // between the vanilla walkthrough and the cumulative framework component.
+  const onStepFramework = (event: Event): void => {
+    const tab = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-step-tab]");
+    if (!tab) return;
+    const index = Number(tab.dataset.stepTab);
+    const framework = tab.dataset.framework as FrameworkId;
+    const variant = stepVariants[index];
+    const codeEl = stageBody.querySelector<HTMLElement>(`#step-code-${index}`);
+    if (!variant || !codeEl) return;
+    const card = tab.closest(".lesson-step");
+    card?.querySelectorAll<HTMLButtonElement>("[data-step-tab]").forEach(other =>
+      other.setAttribute("aria-selected", String(other === tab)),
+    );
+    codeEl.innerHTML = stepVariantCode(variant, framework);
+    const copy = card?.querySelector<HTMLButtonElement>(".code-copy");
+    if (copy) copy.dataset.copy = variant.codes[framework];
+  };
+  stageBody.addEventListener("click", onStepFramework);
+
   return () => {
     teardowns.forEach(fn => fn());
     stageBody.removeEventListener("click", onCopy);
     stageBody.removeEventListener("click", onFramework);
+    stageBody.removeEventListener("click", onStepFramework);
   };
 };
