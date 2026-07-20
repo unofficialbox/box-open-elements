@@ -34,10 +34,14 @@ chrome, cards, tables and prose retheme automatically.
 ## Layout
 
 - **Masthead** (`.masthead`) — sticky navy bar: `B/` mark + "Box Open Elements",
-  and Community / npm / GitHub links with `↗` external cues. 56px tall; the rail
-  and stage sit beneath it (`top: 56px`).
-- **Rail** (`.rail`) — deep-navy sidebar, always navy in both themes. Active item
-  gets a coral inset marker; the active tab fills blue.
+  Community / npm / GitHub links with `↗` external cues, and the theme toggle.
+  56px tall; the rail and stage sit beneath it (`top: 56px`).
+- **Rail** (`.rail`) — 272px deep-navy sidebar, always navy in both themes.
+  Active item gets a coral inset marker; the active tier tab fills blue. The
+  tier tabs use sentence case and content widths — uppercase or equal thirds
+  overflow the rail and truncate. Rail scroll is persisted in `sessionStorage`
+  so clicking an item (a full page load on the static build) doesn't jump the
+  menu back to the top.
 - **Stage** (`.stage`) — warm paper. Condensed uppercase `.page-title`, monospace
   `.page-tag` pill, coral-underlined `.stage-tabs`.
 - **Landing** (`.home`) — monospace eyebrow, huge condensed hero (ink + blue
@@ -48,11 +52,17 @@ chrome, cards, tables and prose retheme automatically.
 ## Signature treatments
 
 - **Preview canvas** — white card with a dotted grid background, a hard `--edge`
-  border and an offset blue shadow.
+  border and an offset blue shadow. Content is **centred horizontally** so
+  flyout components (tooltip, popover, menu) that anchor a wider surface under
+  their trigger stay inside the canvas instead of spilling over the rail.
 - **Inspector panels** — intentionally deep-navy "console" cards in both themes;
   coral event names, sky/blue count chips.
-- **Code blocks** — deep-navy; long lines **wrap** (`white-space: pre-wrap`)
-  rather than scrolling horizontally.
+- **Code blocks** — VS Code default dark (Dark+) editor colours on `#1e1e1e`,
+  tokenized by `docs-site/highlight.ts` (a small dependency-free lexer covering
+  html / ts / css / bash / json, plus a `mixed` mode for Vue and Svelte
+  single-file components). Long lines **wrap** (`white-space: pre-wrap`) rather
+  than scrolling horizontally. Token classes are `.tok-*`; the palette lives
+  next to `pre.code-block` in `styles.css`.
 - **Cards** (related / guidance / token / icon) — soft-bordered with small offset
   shadows; guidance cards carry a coral left border.
 - **Hard editorial borders** use `--edge` (navy in light, a lighter navy in dark)
@@ -65,6 +75,9 @@ chrome, cards, tables and prose retheme automatically.
   paper) instead. Coral is used only where it clears contrast (on navy, or as a
   decorative marker paired with text).
 - A `.skip-link` jumps to `#stage-body`; the masthead is a real `<header>`/`<nav>`.
+- Theme switching is available from the masthead (primary) and the rail footer.
+  Both carry `data-theme-toggle`, expose `aria-pressed`, and are kept in sync by
+  `applyTheme()` — add `data-theme-toggle` to any new toggle and it just works.
 - Focus-visible outlines on every interactive control (rail, tabs, buttons,
   cards, links).
 

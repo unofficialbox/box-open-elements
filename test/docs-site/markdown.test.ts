@@ -56,7 +56,10 @@ const x = 1;
     expect(html).toContain("<ul>");
     expect(html).toContain("<li>one</li>");
     expect(html).toContain('<pre class="code-block"><code>');
-    expect(html).toContain("const x = 1;");
+    // Fenced code is syntax-highlighted (docs-site/highlight.ts), so the source
+    // survives as tokens rather than a raw string.
+    expect(html).toContain('<span class="tok-kw">const</span>');
+    expect(html.replace(/<[^>]+>/g, "")).toContain("const x = 1;");
   });
 
   it("renders every Foundations doc table as HTML (not pipe paragraphs)", () => {

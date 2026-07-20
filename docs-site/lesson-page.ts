@@ -10,6 +10,7 @@
  * loaded library, exactly what the shown code produces in a consumer app.
  */
 import { addedLines } from "./diff.js";
+import { highlightCode } from "./highlight.js";
 import { lessonMockTransport } from "./lesson-mock-transport.js";
 import type { Lesson, LessonStep, PreviewKey } from "./lessons.js";
 
@@ -54,7 +55,9 @@ const codeBlock = (code: string, highlight: Set<number>, copyLabel: string): str
     .split("\n")
     .map((line, index) => {
       const cls = highlight.has(index) ? "code-line is-added" : "code-line";
-      return `<span class="${cls}">${escapeHtml(line) || "&nbsp;"}</span>`;
+      // Highlighted per line so the added-line markers stay well-formed; lesson
+      // steps are line-oriented, so the tokenizer has everything it needs.
+      return `<span class="${cls}">${highlightCode(line, "ts") || "&nbsp;"}</span>`;
     })
     .join("");
   return `
