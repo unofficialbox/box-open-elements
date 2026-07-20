@@ -30,6 +30,9 @@ const elementStyles = `
           display: block;
           color: inherit;
           font: inherit;
+          /* Let the host shrink below its controls' intrinsic width when a
+             container constrains it. */
+          min-width: 0;
           --_obp-surface: var(--boe-token-surface-surface, #ffffff);
           --_obp-surface-muted: var(--boe-token-surface-surface-secondary, #fbfbfb);
           --_obp-border: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
@@ -55,9 +58,17 @@ const elementStyles = `
           text-transform: uppercase;
         }
 
+        /* Zero track floors, not fixed rem floors. The columns still size to
+           their content (so a shrink-to-fit host keeps the three-up layout at
+           its natural width) but can compress when a container constrains the
+           bar, instead of forcing the host wider than its container.
+           auto-fit was rejected: it collapses to one column whenever the host
+           is shrink-to-fit. A container query was too: container-type makes
+           the host's width independent of its content, which collapses the bar
+           anywhere it isn't explicitly stretched. */
         [part="controls"] {
           display: grid;
-          grid-template-columns: minmax(14rem, 1.4fr) repeat(2, minmax(10rem, 0.8fr));
+          grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 0.8fr));
           gap: ${boePanel.gap};
           align-items: center;
         }
@@ -117,11 +128,6 @@ const elementStyles = `
           color: var(--_obp-brand);
         }
 
-        @media (max-width: 900px) {
-          [part="controls"] {
-            grid-template-columns: 1fr;
-          }
-        }
       `;
 
 export class BoxFilterBarElement extends BaseElement {

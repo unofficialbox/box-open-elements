@@ -39,6 +39,10 @@ const elementStyles = `
           display: block;
           color: inherit;
           font: inherit;
+          /* The table's header row is nowrap, so its min-content width is wide.
+             Without this the host refuses to shrink below that width and pushes
+             out of grid/flex containers instead of scrolling. */
+          min-width: 0;
         }
 
         [part="table-shell"] {
@@ -46,7 +50,10 @@ const elementStyles = `
           border-radius: ${boePanel.radius};
           background: var(--boe-token-surface-surface, #ffffff);
           box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-          overflow: hidden;
+          /* Scroll the table within its own frame when the host is narrower
+             than the table's intrinsic width. */
+          overflow-x: auto;
+          overflow-y: hidden;
         }
 
         [part="table-shell"][aria-busy="true"] {

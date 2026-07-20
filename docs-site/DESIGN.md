@@ -55,6 +55,9 @@ chrome, cards, tables and prose retheme automatically.
   border and an offset blue shadow. Content is **centred horizontally** so
   flyout components (tooltip, popover, menu) that anchor a wider surface under
   their trigger stay inside the canvas instead of spilling over the rail.
+  Children are width-capped and the canvas contains its own overflow, so a demo
+  can never escape the frame. Components should still shrink on their own —
+  see "Component responsiveness" below.
 - **Inspector panels** — intentionally deep-navy "console" cards in both themes;
   coral event names, sky/blue count chips.
 - **Code blocks** — VS Code default dark (Dark+) editor colours on `#1e1e1e`,
@@ -88,6 +91,27 @@ chrome, cards, tables and prose retheme automatically.
   layouts.
 - **< 700px** — single column; the rail collapses to a scrollable top strip and
   the masthead title is hidden (mark + nav remain).
+
+## Component responsiveness
+
+The canvas contains overflow, but a component that refuses to shrink still
+renders badly at narrow widths. Two constraints learned from fixing the content
+explorer, worth knowing before adding a pattern:
+
+- **Media queries inside a shadow root measure the viewport, not the host.** A
+  narrow component on a wide screen never triggers them, so they can't make a
+  component responsive to its own width.
+- **`container-type` is not a drop-in replacement.** It makes the host's inline
+  size independent of its content, which collapses any component that is
+  shrink-to-fit rather than stretched — for example in the preview gallery.
+  Likewise `repeat(auto-fit, …)` collapses to one column in those contexts.
+
+What works without a query: give grid tracks **zero floors**
+(`minmax(0, 1.4fr)` rather than `minmax(14rem, 1.4fr)`) so columns still size to
+their content when the host is free, but compress when it is constrained; add
+`min-width: 0` to `:host` so the element may shrink below its content's
+min-content width; and let intrinsically wide content (a data table) scroll
+inside its own frame rather than pushing its host wider.
 
 ## Regenerating screenshots
 
