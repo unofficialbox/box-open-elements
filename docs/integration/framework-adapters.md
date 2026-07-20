@@ -4,6 +4,10 @@ This is the canonical progress tracker for consuming `box-open-elements` from
 React, Angular, Vue, and Svelte. The core package remains framework-agnostic;
 framework work lives in optional packages, examples, and integration tests.
 
+> Looking for **how to use the components** in your framework? See
+> [Using with React, Angular, Vue, and Svelte](./frameworks.md) for setup and
+> working examples. This page tracks adapter *maturity*, not usage.
+
 ## Status model
 
 | Status | Meaning |

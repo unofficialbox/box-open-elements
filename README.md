@@ -116,6 +116,7 @@ The docs index is at [docs/README.md](./docs/README.md). The most important entr
 - [Taxonomy](./docs/taxonomy.md)
 - [Architecture](./docs/architecture.md)
 - [API Guidelines](./docs/api-guidelines.md)
+- [Using with React, Angular, Vue, and Svelte](./docs/integration/frameworks.md)
 - [Design Tokens](./docs/foundations/tokens.md)
 - [Content Explorer](./docs/patterns/content-explorer.md)
 - [Box Server Integration](./docs/integration/box-server.md)
