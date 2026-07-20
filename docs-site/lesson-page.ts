@@ -10,7 +10,18 @@
  * loaded library, exactly what the shown code produces in a consumer app.
  */
 import { addedLines } from "./diff.js";
-import { highlightCode } from "./highlight.js";
+import { highlightCode, normalizeLang } from "./highlight.js";
+import { frameworkIconSvg } from "./framework-icons.js";
+import type { FrameworkId } from "./lessons.js";
+
+/** Framework selector for a lesson's "Use it in your framework" section. */
+const LESSON_FRAMEWORKS: Array<{ id: FrameworkId; label: string }> = [
+  { id: "html", label: "HTML" },
+  { id: "react", label: "React" },
+  { id: "angular", label: "Angular" },
+  { id: "vue", label: "Vue" },
+  { id: "svelte", label: "Svelte" },
+];
 import { lessonMockTransport } from "./lesson-mock-transport.js";
 import type { Lesson, LessonStep, PreviewKey } from "./lessons.js";
 
@@ -369,6 +380,21 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
             <p>${escapeHtml(lesson.wrapup)}</p>
           </section>
 
+          <section class="lesson-frameworks">
+            <p class="section-label">Use it in your framework</p>
+            <p>The steps above build this with plain DOM calls. Here is the same element, properties, and events wired up the way each framework expects.</p>
+            <div class="code-tabs" role="tablist" aria-label="Framework">
+              ${LESSON_FRAMEWORKS.map(
+                (framework, index) =>
+                  `<button type="button" class="code-tab" data-lesson-code="${framework.id}" role="tab" aria-selected="${index === 0}" title="${framework.label}"><span class="code-tab-icon">${frameworkIconSvg(framework.id)}</span><span class="visually-hidden">${framework.label}</span></button>`,
+              ).join("")}
+            </div>
+            <div class="code-wrap">
+              <button type="button" class="code-copy" id="lesson-framework-copy" data-copy="${escapeHtml(lesson.frameworks.html)}">Copy</button>
+              <pre class="code-block"><code id="lesson-framework-code">${highlightCode(lesson.frameworks.html, "html")}</code></pre>
+            </div>
+          </section>
+
           <section class="lesson-own">
             <p class="section-label">Build it in your own project</p>
             <p>The live lesson above needs nothing installed. To build it locally, drop these two files together and run them — same code, run against the published package.</p>
@@ -430,8 +456,24 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
   };
   stageBody.addEventListener("click", onCopy);
 
+  // "Use it in your framework" selector.
+  const frameworkCode = stageBody.querySelector<HTMLElement>("#lesson-framework-code");
+  const frameworkCopy = stageBody.querySelector<HTMLButtonElement>("#lesson-framework-copy");
+  const frameworkTabs = [...stageBody.querySelectorAll<HTMLButtonElement>("[data-lesson-code]")];
+  const onFramework = (event: Event): void => {
+    const tab = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-lesson-code]");
+    if (!tab || !frameworkCode) return;
+    const id = tab.dataset.lessonCode as FrameworkId;
+    const source = lesson.frameworks[id];
+    frameworkTabs.forEach(other => other.setAttribute("aria-selected", String(other === tab)));
+    frameworkCode.innerHTML = highlightCode(source, normalizeLang(id));
+    if (frameworkCopy) frameworkCopy.dataset.copy = source;
+  };
+  stageBody.addEventListener("click", onFramework);
+
   return () => {
     teardowns.forEach(fn => fn());
     stageBody.removeEventListener("click", onCopy);
+    stageBody.removeEventListener("click", onFramework);
   };
 };

@@ -20,6 +20,8 @@ import motionMd from "../docs/foundations/motion.md";
 import geometryMd from "../docs/foundations/geometry.md";
 import { renderMarkdown } from "./markdown.js";
 import { highlightCode, normalizeLang } from "./highlight.js";
+import { frameworkIconSvg } from "./framework-icons.js";
+import { formatHtml, indentBlock } from "./format-html.js";
 
 // Real, extracted variant states per component (storybook workshop → docs site).
 // Only the components with authored stories have these; everything else keeps
@@ -123,27 +125,42 @@ const FRAMEWORKS: Array<{ id: Framework; label: string }> = [
 const defineName = (id: string): string =>
   `defineBox${id.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join("")}Element`;
 
-/** The demo's representative root element, in self-closing and full forms. */
+/**
+ * The demo's representative root element, pretty-printed in self-closing (JSX)
+ * and full forms. Attribute-heavy elements would otherwise be a single ~500
+ * character line.
+ */
 const representativeTag = (html: string, tag: string): { selfClose: string; full: string } => {
   const open = new RegExp(`<${tag}(?:\\s[^>]*)?>`).exec(html)?.[0] ?? `<${tag}>`;
-  return { selfClose: open.replace(/\s*>$/, " />"), full: `${open}</${tag}>` };
+  return {
+    selfClose: formatHtml(open.replace(/\s*>$/, "/>"), true),
+    full: formatHtml(`${open}</${tag}>`),
+  };
 };
+
+/** True when a formatted snippet spans more than one line. */
+const isMultiline = (code: string): boolean => code.includes("\n");
 
 /** A minimal copy-pasteable per-framework usage snippet for one component. */
 const frameworkSnippet = (framework: Framework, id: string, tag: string, html: string): string => {
-  if (framework === "html") return html;
+  if (framework === "html") return formatHtml(html);
   const { selfClose, full } = representativeTag(html, tag);
   const def = defineName(id);
   const imp = `import { ${def} } from "@unofficialbox/box-open-elements";\n${def}();`;
   switch (framework) {
-    case "react":
-      return `${imp}\n\nexport function Example() {\n  return ${selfClose};\n}`;
+    case "react": {
+      // Multi-line JSX has to be parenthesised after `return`.
+      const body = isMultiline(selfClose)
+        ? `  return (\n${indentBlock(selfClose, 4)}\n  );`
+        : `  return ${selfClose};`;
+      return `${imp}\n\nexport function Example() {\n${body}\n}`;
+    }
     case "angular":
-      return `import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";\n${imp}\n\n@Component({\n  standalone: true,\n  schemas: [CUSTOM_ELEMENTS_SCHEMA],\n  template: \`${full}\`,\n})\nexport class Example {}`;
+      return `import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";\n${imp}\n\n@Component({\n  standalone: true,\n  schemas: [CUSTOM_ELEMENTS_SCHEMA],\n  template: \`\n${indentBlock(full, 4)}\n  \`,\n})\nexport class Example {}`;
     case "vue":
-      return `<script setup lang="ts">\n${imp}\n</script>\n\n<template>\n  ${full}\n</template>`;
+      return `<script setup lang="ts">\n${imp}\n</script>\n\n<template>\n${indentBlock(full, 2)}\n</template>`;
     case "svelte":
-      return `<script lang="ts">\n  ${imp}\n</script>\n\n${full}`;
+      return `<script lang="ts">\n${indentBlock(imp, 2)}\n</script>\n\n${full}`;
   }
 };
 
@@ -335,10 +352,10 @@ const renderComponentPage = (entry: CatalogEntry): void => {
       <div class="code-tabs" role="tablist" aria-label="Framework">
         ${FRAMEWORKS.map(
           (framework, index) =>
-            `<button type="button" class="code-tab" data-code="${framework.id}" role="tab" aria-selected="${index === 0}">${framework.label}</button>`,
+            `<button type="button" class="code-tab" data-code="${framework.id}" role="tab" aria-selected="${index === 0}" title="${framework.label}"><span class="code-tab-icon">${frameworkIconSvg(framework.id)}</span><span class="visually-hidden">${framework.label}</span></button>`,
         ).join("")}
       </div>
-      <pre class="code-block"><code id="code-block">${highlightCode(initialHtml, "html")}</code></pre>
+      <pre class="code-block"><code id="code-block">${highlightCode(formatHtml(initialHtml), "html")}</code></pre>
       <p class="preview-note code-frameworks-note">Snippets show a minimal use; the one-time setup (design tokens, Vue <code>isCustomElement</code>, React custom events) is in the <a href="https://github.com/unofficialbox/box-open-elements/blob/main/docs/integration/frameworks.md" target="_blank" rel="noreferrer">Frameworks guide</a>.</p>
       ${(() => {
         const note = useExampleVariants ? exampleVariants[0]?.note : example.note;
