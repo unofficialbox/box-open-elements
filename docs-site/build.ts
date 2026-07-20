@@ -68,6 +68,11 @@ cpSync(join(ROOT, "docs-site/styles.css"), join(OUT, "styles.css"));
 cpSync(LIB_SRC, join(OUT, "lib"), { recursive: true });
 if (includeWorkshop) cpSync(WORKSHOP_SRC, join(OUT, "workshop"), { recursive: true });
 
+// SEO / GEO discovery files, served from the deployed root.
+for (const file of ["robots.txt", "sitemap.xml", "llms.txt"]) {
+  cpSync(join(ROOT, "docs-site", file), join(OUT, file));
+}
+
 const html = rewriteIndexHtml(await Bun.file(join(ROOT, "docs-site/index.html")).text(), includeWorkshop);
 await Bun.write(join(OUT, "index.html"), html);
 

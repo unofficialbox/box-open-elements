@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://unofficialbox.github.io/box-open-elements/sitemap.xml
