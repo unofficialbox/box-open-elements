@@ -8,6 +8,32 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ---
 
+## 0.2.1 — 2026-07-20
+
+Patch release: responsiveness fixes to two content-explorer pattern components.
+The rest of the work in this window is docs-site only and does not ship in the
+package.
+
+- **`box-explorer-table` shrinks instead of overflowing its host.** Its nowrap
+  header row gave it a wide min-content width, so it pushed out of grid/flex
+  containers at narrow widths. `:host { min-width: 0 }` lets it shrink and the
+  table scrolls within its own frame
+  ([#110](https://github.com/unofficialbox/box-open-elements/pull/110)).
+- **`box-filter-bar` reflows to one column when constrained.** Its media-query
+  fallback measured the viewport, not the host (a shadow-DOM gotcha), so a narrow
+  bar on a wide screen kept three columns and overflowed. Now uses zero grid
+  track floors plus `min-width: 0`, keeping the three-up layout at natural width
+  while compressing under constraint
+  ([#110](https://github.com/unofficialbox/box-open-elements/pull/110)).
+
+Docs site (not published): Community-brand restyle with a landing page
+([#108](https://github.com/unofficialbox/box-open-elements/pull/108)); rail,
+canvas-containment, VS Code code colours, and a masthead theme toggle
+([#109](https://github.com/unofficialbox/box-open-elements/pull/109)); official
+framework icons, beautified snippets, and per-lesson framework sections
+([#111](https://github.com/unofficialbox/box-open-elements/pull/111),
+[#112](https://github.com/unofficialbox/box-open-elements/pull/112)).
+
 ## 0.2.0 — 2026-07-19
 
 First release cut through the automated OIDC release workflow (`0.1.0` was the
