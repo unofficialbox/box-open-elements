@@ -42,7 +42,7 @@ The codebase follows the **Foundations → Components → Patterns** taxonomy (s
   explorer, metadata, insights, …)
 - `src/core/` — `BaseElement`, `FormAssociatedElement`, the typed event emitter
 - `tools/` — conformance audits, the style bridge, iconography generator, preview/regression harness
-- `docs-site/` — the component docs site (deployed to `components.unofficialbox.dev`)
+- `docs-site/` — the component docs site (deployed to https://unofficialbox.github.io/box-open-elements)
 - `storybook/` — a Bun-native workshop that extracts typed stories to static JSON
 
 Start with [`docs/architecture.md`](./docs/architecture.md) for the layering and
