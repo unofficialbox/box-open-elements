@@ -17,18 +17,106 @@ describe("BoxComboboxElement", () => {
     document.body.innerHTML = "";
   });
 
-  it("renders options in a datalist", () => {
+  const openListbox = (element: BoxComboboxElement): HTMLInputElement => {
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
+    input.dispatchEvent(new FocusEvent("focus"));
+    return input;
+  };
+
+  it("renders options as an ARIA listbox when opened", () => {
     const element = document.createElement("box-combobox") as BoxComboboxElement;
     element.options = [
       { label: "Marketing", value: "marketing" },
       { label: "Finance", value: "finance" },
     ];
-
     document.body.append(element);
 
-    const options = element.shadowRoot?.querySelectorAll("datalist option") ?? [];
+    const listbox = element.shadowRoot?.querySelector('[part="listbox"]') as HTMLElement;
+    expect(listbox.getAttribute("role")).toBe("listbox");
+    expect(listbox.hidden).toBe(true);
+
+    const input = openListbox(element);
+    expect(input.getAttribute("aria-expanded")).toBe("true");
+    expect(listbox.hidden).toBe(false);
+    const options = listbox.querySelectorAll('[part="option"]');
     expect(options).toHaveLength(2);
-    expect(options[0]?.getAttribute("data-option-value")).toBe("marketing");
+    expect((options[0] as HTMLElement).dataset.value).toBe("marketing");
+    expect(options[0].getAttribute("role")).toBe("option");
+  });
+
+  it("filters options by typed text", () => {
+    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    element.options = [
+      { label: "Marketing", value: "marketing" },
+      { label: "Finance", value: "finance" },
+      { label: "Facilities", value: "facilities" },
+    ];
+    document.body.append(element);
+
+    const input = openListbox(element);
+    input.value = "fi";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+
+    const labels = Array.from(element.shadowRoot?.querySelectorAll('[part="option-label"]') ?? []).map(
+      node => node.textContent,
+    );
+    expect(labels).toEqual(["Finance"]);
+  });
+
+  it("navigates options with the keyboard via aria-activedescendant and selects on Enter", () => {
+    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    const changed = vi.fn();
+    element.options = [
+      { label: "Marketing", value: "marketing" },
+      { label: "Finance", value: "finance" },
+    ];
+    element.addEventListener("value-changed", changed);
+    document.body.append(element);
+
+    const input = openListbox(element);
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    const firstActive = input.getAttribute("aria-activedescendant");
+    expect(firstActive).toBeTruthy();
+    expect(element.shadowRoot?.querySelector(`#${firstActive}`)?.getAttribute("part")).toContain("option");
+
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+
+    expect(element.value).toBe("finance");
+    expect(input.value).toBe("Finance");
+    expect(changed).toHaveBeenCalledWith(expect.objectContaining({ detail: { value: "finance" } }));
+    // Listbox closes after selection.
+    expect((element.shadowRoot?.querySelector('[part="listbox"]') as HTMLElement).hidden).toBe(true);
+  });
+
+  it("renders group dividers and per-option descriptions", () => {
+    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    element.options = [
+      { label: "Morgan Lee", value: "morgan", description: "morgan@box.com", group: "People" },
+      { label: "Alex Kim", value: "alex", description: "alex@box.com", group: "People" },
+      { label: "Marketing", value: "marketing", group: "Groups" },
+    ];
+    document.body.append(element);
+    openListbox(element);
+
+    const groups = element.shadowRoot?.querySelectorAll('[part="group-label"]');
+    expect(Array.from(groups ?? []).map(n => n.textContent)).toEqual(["People", "Groups"]);
+    expect(element.shadowRoot?.querySelector('[part="option-description"]')?.textContent).toBe("morgan@box.com");
+  });
+
+  it("selects an option on click", () => {
+    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    element.options = [
+      { label: "Marketing", value: "marketing" },
+      { label: "Finance", value: "finance" },
+    ];
+    document.body.append(element);
+    openListbox(element);
+
+    const option = element.shadowRoot?.querySelector('[part="option"][data-value="finance"]') as HTMLElement;
+    option.click();
+
+    expect(element.value).toBe("finance");
   });
 
   it("resolves option labels to option values on selection", () => {
