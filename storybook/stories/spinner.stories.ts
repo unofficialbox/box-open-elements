@@ -10,11 +10,14 @@ const spinner: StoryModule = {
     sourceSnippet: `<box-spinner label="Loading"></box-spinner>`,
     referenceRows: [
       { kind: "attribute", name: "label", type: "string", description: "Accessible loading label." },
+      { kind: "attribute", name: "size", type: "string", description: "Indicator size: small, medium (default), or large." },
     ],
   },
   variants: [
     { name: "Default", html: `<box-spinner label="Loading"></box-spinner>` },
     { name: "With context", html: `<box-spinner label="Syncing files"></box-spinner>` },
+    { name: "Small", html: `<box-spinner label="Loading" size="small"></box-spinner>` },
+    { name: "Large", html: `<box-spinner label="Loading" size="large"></box-spinner>` },
   ],
 };
 

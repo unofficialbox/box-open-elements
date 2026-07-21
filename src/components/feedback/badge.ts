@@ -1,6 +1,10 @@
 import { BaseElement } from "../../core/index.js";
 import { boeRadius } from "../../foundations/geometry/index.js";
-import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import {
+  boeMotionDuration,
+  boeMotionEasing,
+  boeReducedMotionStyles,
+} from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-badge";
 
@@ -54,14 +58,33 @@ const badgeStyles = `
     background: var(--boe-token-surface-status-surface-inprogress, #f5b31b);
     color: #ffffff;
   }
+
+  /* Hidden when used as a count that is zero/empty with hide-when-zero. */
+  :host([hidden]) {
+    display: none;
+  }
+
+  /* Count "pop" when the value changes (opt-in via the animate attribute). */
+  [part="badge"].boe-pop {
+    animation: boe-badge-pop ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
+  }
+
+  @keyframes boe-badge-pop {
+    0% { transform: scale(0.7); }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+
+  ${boeReducedMotionStyles('[part="badge"].boe-pop', "animation: none;")}
 `;
 
 export class BoxBadgeElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["label", "tone"];
+    return ["label", "tone", "max", "hide-when-zero", "animate"];
   }
 
   private badgeEl!: HTMLElement;
+  private lastText: string | null = null;
 
   get label(): string {
     return this.getAttribute("label") ?? "";
@@ -77,6 +100,46 @@ export class BoxBadgeElement extends BaseElement {
 
   set tone(value: string) {
     this.setAttribute("tone", value);
+  }
+
+  /** When the label is a count, cap the displayed number, e.g. max=99 → "99+". */
+  get max(): number | null {
+    const raw = this.getAttribute("max");
+    if (raw === null) return null;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  set max(value: number | null) {
+    if (value === null) {
+      this.removeAttribute("max");
+    } else {
+      this.setAttribute("max", String(value));
+    }
+  }
+
+  /** Hide the badge entirely when the count is zero or the label is empty. */
+  get hideWhenZero(): boolean {
+    return this.hasAttribute("hide-when-zero");
+  }
+
+  set hideWhenZero(value: boolean) {
+    this.toggleAttribute("hide-when-zero", value);
+  }
+
+  /** The label after applying the `max` cap (e.g. "128" with max=99 → "99+"). */
+  private displayText(): string {
+    const raw = this.label;
+    const max = this.max;
+    if (max !== null && /^\d+$/.test(raw.trim()) && Number(raw) > max) {
+      return `${max}+`;
+    }
+    return raw;
+  }
+
+  private isEmptyCount(): boolean {
+    const raw = this.label.trim();
+    return raw === "" || raw === "0";
   }
 
   protected renderTemplate(): void {
@@ -96,9 +159,22 @@ export class BoxBadgeElement extends BaseElement {
       return;
     }
 
+    // Hide when used as a count that is zero/empty and hide-when-zero is set.
+    const shouldHide = this.hideWhenZero && this.isEmptyCount();
+    this.toggleAttribute("hidden", shouldHide);
+
+    const text = this.displayText();
     this.badgeEl.dataset.tone = this.tone;
-    this.badgeEl.setAttribute("aria-label", this.label);
-    this.badgeEl.textContent = this.label;
+    this.badgeEl.setAttribute("aria-label", text);
+    this.badgeEl.textContent = text;
+
+    // Re-trigger the pop animation when an animated count actually changes.
+    if (this.hasAttribute("animate") && this.lastText !== null && this.lastText !== text) {
+      this.badgeEl.classList.remove("boe-pop");
+      void this.badgeEl.offsetWidth; // force reflow so the animation restarts
+      this.badgeEl.classList.add("boe-pop");
+    }
+    this.lastText = text;
   }
 }
 

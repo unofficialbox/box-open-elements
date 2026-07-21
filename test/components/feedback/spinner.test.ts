@@ -23,6 +23,25 @@ describe("BoxSpinnerElement", () => {
     expect(element.shadowRoot?.textContent).toContain("Loading folders");
   });
 
+  it("applies a data-size only for non-default sizes", () => {
+    const element = document.createElement("box-spinner") as BoxSpinnerElement;
+    document.body.append(element);
+    const indicator = element.shadowRoot?.querySelector('[part="indicator"]') as HTMLElement;
+
+    // Default (medium) carries no data-size attribute.
+    expect(indicator.hasAttribute("data-size")).toBe(false);
+
+    element.size = "large";
+    expect(indicator.getAttribute("data-size")).toBe("large");
+
+    element.size = "small";
+    expect(indicator.getAttribute("data-size")).toBe("small");
+
+    // An unrecognized size falls back to medium (attribute removed).
+    element.size = "huge";
+    expect(indicator.hasAttribute("data-size")).toBe(false);
+  });
+
   it("uses shared motion vocabulary for spin and reduced-motion", () => {
     const element = document.createElement("box-spinner") as BoxSpinnerElement;
     document.body.append(element);
