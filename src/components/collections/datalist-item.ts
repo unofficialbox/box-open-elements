@@ -30,6 +30,11 @@ const datalistItemStyles = `
     background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface, #ffffff) 90%);
   }
 
+  /* Active-descendant highlight (host sets active; DOM focus stays on the input). */
+  [part="item"][data-active="true"] {
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+  }
+
   [part="item"][data-disabled="true"] {
     opacity: 0.55;
     cursor: not-allowed;
@@ -75,6 +80,16 @@ const datalistItemStyles = `
   [part="meta"][hidden] {
     display: none;
   }
+
+  /* Arbitrary slotted content replaces the default label/meta when present. */
+  [part="content"]:not(.has-content) {
+    display: none;
+  }
+
+  [part="body"].has-slotted [part="label"],
+  [part="body"].has-slotted [part="meta"] {
+    display: none;
+  }
 `;
 
 /**
@@ -86,13 +101,24 @@ const datalistItemStyles = `
  */
 export class BoxDatalistItemElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "icon", "label", "meta", "selected", "value"];
+    return ["active", "disabled", "icon", "label", "meta", "selected", "value"];
   }
 
   private itemEl!: HTMLElement;
   private thumbEl!: HTMLElement;
+  private bodyEl!: HTMLElement;
   private labelEl!: HTMLElement;
   private metaEl!: HTMLElement;
+  private contentSlot!: HTMLSlotElement;
+
+  /** Active-descendant highlight — set by a host that keeps DOM focus elsewhere. */
+  get active(): boolean {
+    return this.hasAttribute("active");
+  }
+
+  set active(value: boolean) {
+    this.toggleAttribute("active", value);
+  }
 
   get label(): string {
     return this.getAttribute("label") ?? "";
@@ -167,13 +193,16 @@ export class BoxDatalistItemElement extends BaseElement {
         <span part="body">
           <span part="label"></span>
           <span part="meta" hidden></span>
+          <slot part="content"></slot>
         </span>
       </div>
     `;
     this.itemEl = this.shadowRoot.querySelector('[part="item"]')!;
     this.thumbEl = this.shadowRoot.querySelector('[part="thumb"]')!;
+    this.bodyEl = this.shadowRoot.querySelector('[part="body"]')!;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.metaEl = this.shadowRoot.querySelector('[part="meta"]')!;
+    this.contentSlot = this.shadowRoot.querySelector('slot[part="content"]')!;
   }
 
   protected setupListeners(): void {
@@ -184,6 +213,16 @@ export class BoxDatalistItemElement extends BaseElement {
         this.choose();
       }
     });
+    this.contentSlot.addEventListener("slotchange", () => this.syncSlot());
+  }
+
+  private syncSlot(): void {
+    if (!this.contentSlot) {
+      return;
+    }
+    const hasContent = this.contentSlot.assignedNodes({ flatten: true }).length > 0;
+    this.contentSlot.classList.toggle("has-content", hasContent);
+    this.bodyEl.classList.toggle("has-slotted", hasContent);
   }
 
   protected update(): void {
@@ -198,7 +237,9 @@ export class BoxDatalistItemElement extends BaseElement {
     this.itemEl.setAttribute("aria-selected", selected ? "true" : "false");
     this.itemEl.dataset.selected = selected ? "true" : "false";
     this.itemEl.dataset.disabled = disabled ? "true" : "false";
+    this.itemEl.dataset.active = this.active ? "true" : "false";
     this.itemEl.tabIndex = disabled ? -1 : 0;
+    this.syncSlot();
 
     if (disabled) {
       this.itemEl.setAttribute("aria-disabled", "true");

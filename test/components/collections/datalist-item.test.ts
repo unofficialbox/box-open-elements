@@ -80,4 +80,36 @@ describe("BoxDatalistItemElement", () => {
 
     expect(onSelect).not.toHaveBeenCalled();
   });
+
+  it("reflects the active-descendant highlight via data-active", () => {
+    const element = document.createElement("box-datalist-item") as BoxDatalistItemElement;
+    element.label = "Morgan";
+    document.body.append(element);
+
+    const item = element.shadowRoot?.querySelector('[part="item"]') as HTMLElement;
+    expect(item.dataset.active).toBe("false");
+
+    element.active = true;
+    expect(item.dataset.active).toBe("true");
+  });
+
+  it("replaces the default body with arbitrary slotted content", () => {
+    const element = document.createElement("box-datalist-item") as BoxDatalistItemElement;
+    element.label = "Morgan";
+    element.meta = "morgan@box.com";
+    const custom = document.createElement("div");
+    custom.textContent = "Custom row";
+    element.append(custom);
+    document.body.append(element);
+
+    const body = element.shadowRoot?.querySelector('[part="body"]') as HTMLElement;
+    const slot = element.shadowRoot?.querySelector('slot[part="content"]') as HTMLSlotElement;
+    return new Promise<void>(resolve => {
+      setTimeout(() => {
+        expect(slot.assignedElements()[0]).toBe(custom);
+        expect(body.classList.contains("has-slotted")).toBe(true);
+        resolve();
+      }, 0);
+    });
+  });
 });

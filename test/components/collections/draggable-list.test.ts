@@ -133,4 +133,19 @@ describe("BoxDraggableListElement", () => {
     expect(styles).toContain('[part="handle"]:hover:not(:disabled)');
     expect(styles).toContain("--boe-token-surface-surface-brand");
   });
+
+  it("exposes a per-item slot for custom row content with the label as fallback", () => {
+    const element = createList();
+
+    const slot = element.shadowRoot?.querySelector('slot[name="row-a"]') as HTMLSlotElement;
+    expect(slot).toBeTruthy();
+    // Default label renders as the slot fallback.
+    expect(slot.querySelector('[part="item-label"]')?.textContent).toBe("Alpha");
+
+    const custom = document.createElement("span");
+    custom.slot = "row-a";
+    custom.textContent = "Custom row A";
+    element.append(custom);
+    expect(slot.assignedElements()[0]).toBe(custom);
+  });
 });

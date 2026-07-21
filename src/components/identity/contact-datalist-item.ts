@@ -75,12 +75,48 @@ const contactStyles = `
     gap: 0.1rem;
   }
 
+  [part="name-row"] {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-inline-size: 0;
+  }
+
   [part="name"] {
     font-size: 0.9rem;
     font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  /* External-collaborator marker beside the name. */
+  [part="external"] {
+    flex: none;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 18%, var(--boe-token-surface-surface, #ffffff) 82%);
+    color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 55%, var(--boe-token-text-text, #222222));
+  }
+
+  [part="external"][hidden] {
+    display: none;
+  }
+
+  [part="subtitle"] {
+    font-size: 0.74rem;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  [part="subtitle"][hidden] {
+    display: none;
   }
 
   [part="email"] {
@@ -104,13 +140,33 @@ const contactStyles = `
  */
 export class BoxContactDatalistItemElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "email", "name", "selected", "src", "value"];
+    return ["disabled", "email", "external", "name", "selected", "src", "subtitle", "value"];
   }
 
   private itemEl!: HTMLElement;
   private avatarEl!: HTMLElement;
   private nameEl!: HTMLElement;
+  private externalEl!: HTMLElement;
+  private subtitleEl!: HTMLElement;
   private emailEl!: HTMLElement;
+
+  /** Marks the contact as an external collaborator. */
+  get external(): boolean {
+    return this.hasAttribute("external");
+  }
+
+  set external(value: boolean) {
+    this.toggleAttribute("external", value);
+  }
+
+  /** Optional secondary detail line below the email (e.g. role or company). */
+  get subtitle(): string {
+    return this.getAttribute("subtitle") ?? "";
+  }
+
+  set subtitle(value: string) {
+    this.setAttribute("subtitle", value);
+  }
 
   get name(): string {
     return this.getAttribute("name") ?? "";
@@ -183,14 +239,20 @@ export class BoxContactDatalistItemElement extends BaseElement {
       <div part="item" role="option">
         <span part="avatar" aria-hidden="true"></span>
         <span part="body">
-          <span part="name"></span>
+          <span part="name-row">
+            <span part="name"></span>
+            <span part="external" hidden>External</span>
+          </span>
           <span part="email" hidden></span>
+          <span part="subtitle" hidden></span>
         </span>
       </div>
     `;
     this.itemEl = this.shadowRoot.querySelector('[part="item"]')!;
     this.avatarEl = this.shadowRoot.querySelector('[part="avatar"]')!;
     this.nameEl = this.shadowRoot.querySelector('[part="name"]')!;
+    this.externalEl = this.shadowRoot.querySelector('[part="external"]')!;
+    this.subtitleEl = this.shadowRoot.querySelector('[part="subtitle"]')!;
     this.emailEl = this.shadowRoot.querySelector('[part="email"]')!;
   }
 
@@ -243,6 +305,14 @@ export class BoxContactDatalistItemElement extends BaseElement {
 
     this.nameEl.textContent = this.name;
 
+    const external = this.external;
+    this.externalEl.hidden = !external;
+    if (external) {
+      this.itemEl.setAttribute("aria-description", "External collaborator");
+    } else {
+      this.itemEl.removeAttribute("aria-description");
+    }
+
     if (this.email) {
       this.emailEl.hidden = false;
       this.emailEl.textContent = this.email;
@@ -250,6 +320,10 @@ export class BoxContactDatalistItemElement extends BaseElement {
       this.emailEl.hidden = true;
       this.emailEl.textContent = "";
     }
+
+    const subtitle = this.subtitle;
+    this.subtitleEl.hidden = !subtitle;
+    this.subtitleEl.textContent = subtitle;
   }
 }
 

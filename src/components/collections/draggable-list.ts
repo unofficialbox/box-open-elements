@@ -194,7 +194,7 @@ export class BoxDraggableListElement extends BaseElement {
                 <path d="M6 4h.01M10 4h.01M6 8h.01M10 8h.01M6 12h.01M10 12h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
               </svg>
             </button>
-            <span part="item-label">${escapeHtml(item.label)}</span>
+            <slot name="row-${escapeHtml(item.value)}" part="item-content"><span part="item-label">${escapeHtml(item.label)}</span></slot>
           </li>
         `;
       })
