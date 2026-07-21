@@ -1,6 +1,8 @@
 import {
   FormAssociatedElement,
   boeFormFieldErrorStyles,
+  boeFormFieldSupportStyles,
+  formDescriptionMarkup,
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
@@ -52,12 +54,13 @@ const dateFieldStyles = `
   }
 
   ${boeFormFieldErrorStyles}
+  ${boeFormFieldSupportStyles}
 `;
 
 export class BoxDateFieldElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
     return [
-      ...FormAssociatedElement.formObservedAttributes,
+      ...FormAssociatedElement.fieldObservedAttributes,
       "disabled",
       "label",
       "max",
@@ -69,6 +72,7 @@ export class BoxDateFieldElement extends FormAssociatedElement {
   private valueInternal = "";
   private inputEl!: HTMLInputElement;
   private labelEl!: HTMLElement;
+  private descriptionEl!: HTMLElement;
   private errorEl!: HTMLElement;
 
   get disabled(): boolean {
@@ -161,11 +165,13 @@ export class BoxDateFieldElement extends FormAssociatedElement {
       <style>${dateFieldStyles}</style>
       <label part="field">
         <span part="label"></span>
+        ${formDescriptionMarkup()}
         <input type="date" part="input" />
         ${formErrorMessageMarkup()}
       </label>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.descriptionEl = this.shadowRoot.querySelector('[part="description"]')!;
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
     this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
@@ -205,6 +211,7 @@ export class BoxDateFieldElement extends FormAssociatedElement {
       this.inputEl.removeAttribute("disabled");
     }
 
+    this.applyFieldSupport(this.labelEl, this.inputEl, this.descriptionEl);
     this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }

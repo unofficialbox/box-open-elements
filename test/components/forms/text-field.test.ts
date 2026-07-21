@@ -93,3 +93,58 @@ describe("BoxTextFieldElement", () => {
     expect(styles).toContain("inset 0 2px 4px");
   });
 });
+
+describe("BoxTextFieldElement — shared field features", () => {
+  it("shows a required indicator and sets aria-required", () => {
+    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    element.label = "Name";
+    element.required = true;
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="input"]');
+    expect(input?.getAttribute("aria-required")).toBe("true");
+    expect(element.shadowRoot?.querySelector(".boe-required-mark")?.textContent).toBe("*");
+
+    element.required = false;
+    expect(element.shadowRoot?.querySelector(".boe-required-mark")).toBeNull();
+    expect(input?.getAttribute("aria-required")).toBe("false");
+  });
+
+  it("renders a description and links it via aria-describedby", () => {
+    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    element.label = "API key";
+    element.description = "Found in your account settings.";
+    document.body.append(element);
+
+    const desc = element.shadowRoot?.querySelector('[part="description"]') as HTMLElement | null;
+    expect(desc?.textContent).toBe("Found in your account settings.");
+    expect(desc?.hidden).toBe(false);
+    const input = element.shadowRoot?.querySelector('[part="input"]');
+    expect(input?.getAttribute("aria-describedby")).toBe("boe-field-description");
+
+    element.description = "";
+    expect(desc?.hidden).toBe(true);
+    expect(input?.getAttribute("aria-describedby")).toBeNull();
+  });
+
+  it("keeps the label accessible when hidden visually", () => {
+    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    element.label = "Search";
+    element.hideLabel = true;
+    document.body.append(element);
+
+    // Label text stays in the DOM (screen readers) — only visually hidden via CSS.
+    expect(element.shadowRoot?.querySelector('[part="label"]')?.textContent).toContain("Search");
+    expect(element.hasAttribute("hide-label")).toBe(true);
+  });
+
+  it("re-appends the required mark after a label re-render", () => {
+    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    element.label = "Name";
+    element.required = true;
+    document.body.append(element);
+    // Changing the label triggers update(), which resets label textContent.
+    element.label = "Full name";
+    expect(element.shadowRoot?.querySelector(".boe-required-mark")).not.toBeNull();
+  });
+});

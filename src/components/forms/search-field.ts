@@ -1,6 +1,8 @@
 import {
   FormAssociatedElement,
   boeFormFieldErrorStyles,
+  boeFormFieldSupportStyles,
+  formDescriptionMarkup,
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
@@ -129,12 +131,13 @@ const searchFieldStyles = `
   }
 
   ${boeFormFieldErrorStyles}
+  ${boeFormFieldSupportStyles}
 `;
 
 export class BoxSearchFieldElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
     return [
-      ...FormAssociatedElement.formObservedAttributes,
+      ...FormAssociatedElement.fieldObservedAttributes,
       "disabled",
       "label",
       "placeholder",
@@ -145,6 +148,7 @@ export class BoxSearchFieldElement extends FormAssociatedElement {
   private valueInternal = "";
   private inputEl!: HTMLInputElement;
   private labelEl!: HTMLElement;
+  private descriptionEl!: HTMLElement;
   private submitEl!: HTMLButtonElement;
   private clearEl!: HTMLButtonElement;
   private errorEl!: HTMLElement;
@@ -229,6 +233,7 @@ export class BoxSearchFieldElement extends FormAssociatedElement {
       <style>${searchFieldStyles}</style>
       <label part="field">
         <span part="label"></span>
+        ${formDescriptionMarkup()}
         <div part="input-shell">
           <input type="search" part="input" />
           <button type="button" part="submit">Search</button>
@@ -238,6 +243,7 @@ export class BoxSearchFieldElement extends FormAssociatedElement {
       </label>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.descriptionEl = this.shadowRoot.querySelector('[part="description"]')!;
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
     this.submitEl = this.shadowRoot.querySelector('[part="submit"]')!;
     this.clearEl = this.shadowRoot.querySelector('[part="clear"]')!;
@@ -315,6 +321,7 @@ export class BoxSearchFieldElement extends FormAssociatedElement {
 
     this.clearEl.disabled = this.disabled || this.valueInternal.length === 0;
 
+    this.applyFieldSupport(this.labelEl, this.inputEl, this.descriptionEl);
     this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }

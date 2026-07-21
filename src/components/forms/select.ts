@@ -1,6 +1,8 @@
 import {
   FormAssociatedElement,
   boeFormFieldErrorStyles,
+  boeFormFieldSupportStyles,
+  formDescriptionMarkup,
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
@@ -73,12 +75,13 @@ const selectStyles = `
   }
 
   ${boeFormFieldErrorStyles}
+  ${boeFormFieldSupportStyles}
 `;
 
 export class BoxSelectElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
     return [
-      ...FormAssociatedElement.formObservedAttributes,
+      ...FormAssociatedElement.fieldObservedAttributes,
       "disabled",
       "label",
       "options",
@@ -89,6 +92,7 @@ export class BoxSelectElement extends FormAssociatedElement {
   private valueInternal = "";
   private selectEl!: HTMLSelectElement;
   private labelEl!: HTMLElement;
+  private descriptionEl!: HTMLElement;
   private errorEl!: HTMLElement;
 
   get value(): string {
@@ -170,11 +174,13 @@ export class BoxSelectElement extends FormAssociatedElement {
       <style>${selectStyles}</style>
       <label part="field">
         <span part="label"></span>
+        ${formDescriptionMarkup()}
         <select part="select"></select>
         ${formErrorMessageMarkup()}
       </label>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.descriptionEl = this.shadowRoot.querySelector('[part="description"]')!;
     this.selectEl = this.shadowRoot.querySelector('[part="select"]')!;
     this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
@@ -218,6 +224,7 @@ export class BoxSelectElement extends FormAssociatedElement {
       this.selectEl.removeAttribute("disabled");
     }
 
+    this.applyFieldSupport(this.labelEl, this.selectEl, this.descriptionEl);
     this.applyInvalidState(this.selectEl, this.errorEl);
   }
 }
