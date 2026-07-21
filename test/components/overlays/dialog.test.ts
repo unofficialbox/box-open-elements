@@ -136,4 +136,25 @@ describe("BoxDialogElement", () => {
     expect(styles).toContain('[part="confirm"]:focus-visible');
     expect(styles).toContain('[part="confirm"]:hover:not(:disabled)');
   });
+
+  it("applies the size to the dialog surface", () => {
+    const element = document.createElement("box-dialog") as BoxDialogElement;
+    element.size = "large";
+    element.open = true;
+    document.body.append(element);
+    element.show();
+    const dialog = element.shadowRoot?.querySelector('[part="dialog"]') as HTMLElement;
+    expect(dialog.dataset.size).toBe("large");
+  });
+
+  it("locks and restores page scroll around open/close", () => {
+    document.body.style.overflow = "auto";
+    const element = document.createElement("box-dialog") as BoxDialogElement;
+    document.body.append(element);
+    element.show();
+    expect(document.body.style.overflow).toBe("hidden");
+    element.close();
+    expect(document.body.style.overflow).toBe("auto");
+  });
+
 });

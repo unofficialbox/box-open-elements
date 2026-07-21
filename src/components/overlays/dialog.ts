@@ -36,6 +36,16 @@ const dialogStyles = `
     color: var(--boe-token-text-text, #222222);
   }
 
+  /* Size options — box-ui-elements Modal sizes. Default (medium) is the base. */
+  [part="dialog"][data-size="small"] { width: min(380px, calc(100vw - 3rem)); }
+  [part="dialog"][data-size="large"] { width: min(760px, calc(100vw - 3rem)); }
+  [part="dialog"][data-size="fullscreen"] {
+    width: calc(100vw - 2rem);
+    height: calc(100vh - 2rem);
+    max-width: none;
+    border-radius: ${boeRadius.large};
+  }
+
   [part="header"] h2 {
     margin: 0;
     font: inherit;
@@ -102,11 +112,13 @@ const dialogStyles = `
 
 export class BoxDialogElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["confirm-label", "description", "heading", "open"];
+    return ["confirm-label", "description", "heading", "open", "size"];
   }
 
   private openValue = false;
   private wasOpen = false;
+  private scrollLocked = false;
+  private previousBodyOverflow = "";
   private hostEl!: HTMLElement;
   private titleEl: HTMLElement | null = null;
   private descriptionEl: HTMLElement | null = null;
@@ -156,6 +168,34 @@ export class BoxDialogElement extends BaseElement {
 
   set confirmLabel(value: string) {
     this.setAttribute("confirm-label", value);
+  }
+
+  /** Modal size — box-ui-elements Modal sizes. Default `medium`. */
+  get size(): "small" | "medium" | "large" | "fullscreen" {
+    const size = this.getAttribute("size");
+    return size === "small" || size === "large" || size === "fullscreen" ? size : "medium";
+  }
+
+  set size(value: "small" | "medium" | "large" | "fullscreen") {
+    this.setAttribute("size", value);
+  }
+
+  /** Lock/unlock background page scroll while the modal is open. */
+  private setScrollLock(locked: boolean): void {
+    if (locked === this.scrollLocked) {
+      return;
+    }
+    this.scrollLocked = locked;
+    if (locked) {
+      this.previousBodyOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = this.previousBodyOverflow;
+    }
+  }
+
+  disconnectedCallback(): void {
+    this.setScrollLock(false);
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
@@ -236,6 +276,7 @@ export class BoxDialogElement extends BaseElement {
 
     if (!this.openValue) {
       const wasOpen = this.wasOpen;
+      this.setScrollLock(false);
       this.hostEl.innerHTML = "";
       this.titleEl = null;
       this.descriptionEl = null;
@@ -252,12 +293,13 @@ export class BoxDialogElement extends BaseElement {
     if (justOpened) {
       this.focusRestore.capture();
     }
+    this.setScrollLock(true);
 
     if (!this.hostEl.querySelector('[part="dialog"]')) {
       this.hostEl.innerHTML = `
         <style>${dialogStyles}</style>
         <div part="backdrop">
-          <section part="dialog" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="dialog-title">
+          <section part="dialog" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="dialog-title" data-size="${this.size}">
             <header part="header">
               <h2 id="dialog-title"></h2>
             </header>
@@ -275,6 +317,11 @@ export class BoxDialogElement extends BaseElement {
     this.titleEl = this.hostEl.querySelector("#dialog-title");
     this.descriptionEl = this.hostEl.querySelector('[part="description"]');
     this.confirmEl = this.hostEl.querySelector('[part="confirm"]');
+
+    const dialogEl = this.hostEl.querySelector('[part="dialog"]') as HTMLElement | null;
+    if (dialogEl) {
+      dialogEl.dataset.size = this.size;
+    }
 
     if (this.titleEl) {
       this.titleEl.textContent = this.heading;
