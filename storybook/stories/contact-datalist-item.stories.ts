@@ -13,11 +13,14 @@ const contactDatalistItem: StoryModule = {
       { kind: "attribute", name: "email", type: "string", description: "Contact email." },
       { kind: "attribute", name: "value", type: "string", description: "Row value." },
       { kind: "attribute", name: "selected", type: "boolean", description: "Marks the row selected." },
+      { kind: "attribute", name: "external", type: "boolean", description: "Marks the contact as an external collaborator." },
+      { kind: "attribute", name: "subtitle", type: "string", description: "Secondary detail line below the email." },
     ],
   },
   variants: [
     { name: "Default", html: `<box-contact-datalist-item name="Alex Kim" email="alex@box.com" value="alex"></box-contact-datalist-item>` },
     { name: "Selected", html: `<box-contact-datalist-item name="Morgan Lee" email="morgan@box.com" value="morgan" selected></box-contact-datalist-item>` },
+    { name: "External with subtitle", html: `<box-contact-datalist-item name="Sam Rivera" email="sam@partner.com" value="sam" external subtitle="Partner Co. · Reviewer"></box-contact-datalist-item>` },
   ],
 };
 

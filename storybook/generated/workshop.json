@@ -1591,6 +1591,18 @@
           "name": "selected",
           "type": "boolean",
           "description": "Marks the row selected."
+        },
+        {
+          "kind": "attribute",
+          "name": "external",
+          "type": "boolean",
+          "description": "Marks the contact as an external collaborator."
+        },
+        {
+          "kind": "attribute",
+          "name": "subtitle",
+          "type": "string",
+          "description": "Secondary detail line below the email."
         }
       ],
       "variants": [
@@ -1601,6 +1613,10 @@
         {
           "name": "Selected",
           "html": "<box-contact-datalist-item name=\"Morgan Lee\" email=\"morgan@box.com\" value=\"morgan\" selected></box-contact-datalist-item>"
+        },
+        {
+          "name": "External with subtitle",
+          "html": "<box-contact-datalist-item name=\"Sam Rivera\" email=\"sam@partner.com\" value=\"sam\" external subtitle=\"Partner Co. · Reviewer\"></box-contact-datalist-item>"
         }
       ]
     },
@@ -1706,6 +1722,18 @@
           "name": "selected",
           "type": "boolean",
           "description": "Marks the row selected."
+        },
+        {
+          "kind": "attribute",
+          "name": "active",
+          "type": "boolean",
+          "description": "Active-descendant highlight (host keeps DOM focus on the input)."
+        },
+        {
+          "kind": "slot",
+          "name": "(default)",
+          "type": "slot",
+          "description": "Arbitrary row content, replacing the default label/meta."
         }
       ],
       "variants": [

@@ -67,4 +67,24 @@ describe("BoxContactDatalistItemElement", () => {
     (element.shadowRoot?.querySelector('[part="item"]') as HTMLElement).click();
     expect(onSelect).not.toHaveBeenCalled();
   });
+
+  it("shows an external marker and a subtitle line when set", () => {
+    const element = document.createElement("box-contact-datalist-item") as BoxContactDatalistItemElement;
+    element.name = "Sam Rivera";
+    element.email = "sam@partner.com";
+    document.body.append(element);
+
+    const external = element.shadowRoot?.querySelector('[part="external"]') as HTMLElement;
+    const subtitle = element.shadowRoot?.querySelector('[part="subtitle"]') as HTMLElement;
+    const item = element.shadowRoot?.querySelector('[part="item"]') as HTMLElement;
+    expect(external.hidden).toBe(true);
+    expect(subtitle.hidden).toBe(true);
+
+    element.external = true;
+    element.subtitle = "Partner Co.";
+    expect(external.hidden).toBe(false);
+    expect(item.getAttribute("aria-description")).toBe("External collaborator");
+    expect(subtitle.hidden).toBe(false);
+    expect(subtitle.textContent).toBe("Partner Co.");
+  });
 });

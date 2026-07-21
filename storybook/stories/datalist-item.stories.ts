@@ -14,6 +14,8 @@ const datalistItem: StoryModule = {
       { kind: "attribute", name: "icon", type: "string", description: "Compact icon glyph or text." },
       { kind: "attribute", name: "value", type: "string", description: "Row value." },
       { kind: "attribute", name: "selected", type: "boolean", description: "Marks the row selected." },
+      { kind: "attribute", name: "active", type: "boolean", description: "Active-descendant highlight (host keeps DOM focus on the input)." },
+      { kind: "slot", name: "(default)", type: "slot", description: "Arbitrary row content, replacing the default label/meta." },
     ],
   },
   variants: [
