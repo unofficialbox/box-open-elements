@@ -104,7 +104,7 @@ describe("BoxTooltipElement", () => {
     expect(trigger.getAttribute("aria-label")).toBe("View retention policy");
   });
 
-  it("positions the tooltip panel absolutely without duplicating trigger and description text", () => {
+  it("positions the tooltip panel as a fixed overlay without duplicating trigger and description text", () => {
     const element = document.createElement("box-tooltip") as BoxTooltipElement;
     element.label = "Retention policy details";
     document.body.append(element);
@@ -112,7 +112,7 @@ describe("BoxTooltipElement", () => {
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("position: relative");
     expect(styles).toContain('[part="tooltip"]');
-    expect(styles).toContain("position: absolute");
+    expect(styles).toContain("position: fixed");
 
     const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement;
     expect(trigger.getAttribute("aria-label")).toBe("More information");
@@ -142,6 +142,56 @@ describe("BoxTooltipElement", () => {
 
     expect(element.open).toBe(true);
     expect(trigger.getAttribute("aria-describedby")).toBeTruthy();
+  });
+
+  it("applies a data-theme attribute for non-default themes and positions on open", () => {
+    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    element.label = "This field is required";
+    element.theme = "error";
+    document.body.append(element);
+
+    const panel = element.shadowRoot?.querySelector('[part="tooltip"]') as HTMLElement;
+    expect(panel.getAttribute("data-theme")).toBe("error");
+
+    // Positioning runs on open: the panel is placed with fixed coordinates.
+    element.show();
+    expect(panel.style.position).toBe("fixed");
+    expect(panel.style.top).not.toBe("");
+
+    // Reverting to default removes the attribute.
+    element.theme = "default";
+    expect(panel.hasAttribute("data-theme")).toBe(false);
+  });
+
+  it("renders rich slotted content alongside the label", () => {
+    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    element.label = "Preview";
+    const img = document.createElement("img");
+    img.slot = "content";
+    img.src = "data:image/gif;base64,R0lGODlhAQABAAAAACw=";
+    element.append(img);
+    document.body.append(element);
+
+    const contentSlot = element.shadowRoot?.querySelector(
+      'slot[name="content"]',
+    ) as HTMLSlotElement;
+    expect(contentSlot.assignedElements()[0]).toBe(img);
+    // The plain-text trigger slot stays separate from the content slot.
+    expect(element.shadowRoot?.querySelector('[part="label"]')?.textContent).toBe("Preview");
+  });
+
+  it("exposes a placement attribute steering the resolved side", () => {
+    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    element.label = "Above";
+    element.placement = "top-center";
+    document.body.append(element);
+
+    expect(element.getAttribute("placement")).toBe("top-center");
+    // Opening positions without throwing for a non-default placement.
+    element.show();
+    expect((element.shadowRoot?.querySelector('[part="tooltip"]') as HTMLElement).style.position).toBe(
+      "fixed",
+    );
   });
 
   it("keeps the tooltip open when focus moves within a compound slotted trigger", () => {
