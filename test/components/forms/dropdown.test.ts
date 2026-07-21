@@ -41,6 +41,29 @@ describe("BoxDropdownElement", () => {
     );
   });
 
+  it("positions the open menu as a fixed overlay and clears it on close", () => {
+    const element = document.createElement("box-dropdown") as BoxDropdownElement;
+    element.items = [
+      { id: "list", label: "List" },
+      { id: "table", label: "Table" },
+    ];
+    element.placement = "top-start";
+    document.body.append(element);
+
+    const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement;
+    trigger.click();
+
+    const menu = element.shadowRoot?.querySelector('[part="menu"]') as HTMLElement;
+    expect(menu).toBeTruthy();
+    expect(menu.style.position).toBe("fixed");
+    expect(menu.style.top).not.toBe("");
+    // Menu is at least the trigger width.
+    expect(menu.style.minInlineSize).not.toBe("");
+
+    trigger.click();
+    expect(element.shadowRoot?.querySelector('[part="menu"]')).toBeNull();
+  });
+
   it("does not open when disabled", () => {
     const element = document.createElement("box-dropdown") as BoxDropdownElement;
     element.items = [
