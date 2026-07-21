@@ -8,6 +8,87 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ---
 
+## 0.4.0 — 2026-07-21
+
+Feature release working through the **remaining box-ui-elements audit items** —
+the Medium/Low-severity behavioural gaps and the last net-new component left
+after the 0.3.0 program. Additive — no breaking changes. 13 PRs
+([#128](https://github.com/unofficialbox/box-open-elements/pull/128)–[#140](https://github.com/unofficialbox/box-open-elements/pull/140)),
+now **78 components** and **1096 tests**; conformance 0 drift; pixel gate clean.
+
+**Overlay primitive**
+
+- **Fixed a latent `trackAnchor` bug** in `foundations/overlay`: an optional-call
+  short-circuited its argument, so `anchorFloating` never ran without an
+  `onReposition` callback — silently breaking fixed-coordinate positioning for
+  both tooltip and popover. Split into compute-then-notify, with DOM regression
+  coverage ([#128](https://github.com/unofficialbox/box-open-elements/pull/128)).
+
+**New component**
+
+- **`box-guide-tooltip`** — a guided-tour callout that points at a target (`for`
+  id or slotted `anchor`), positioned on the overlay primitive; `heading`, body
+  slot, `step`/`total` indicator, and Back/Next/Close controls emitting
+  `next`/`back`/`close` with `detail.step`
+  ([#140](https://github.com/unofficialbox/box-open-elements/pull/140)).
+
+**Overlays**
+
+- **`tooltip`** — moved onto the overlay primitive (escapes overflow, flips);
+  `placement`, `theme` (default/error/callout), and a rich-content slot
+  ([#128](https://github.com/unofficialbox/box-open-elements/pull/128)).
+- **`dropdown`** — menu positioned on the overlay primitive with `placement`
+  ([#129](https://github.com/unofficialbox/box-open-elements/pull/129)).
+
+**Forms**
+
+- **`select`** — `multiple` (native multi-select + `values` array, form-mirrored),
+  option `group` (optgroup dividers), and per-option `disabled`
+  ([#134](https://github.com/unofficialbox/box-open-elements/pull/134)).
+- **`combobox`** — real ARIA listbox replacing the native datalist: type-to-filter,
+  `aria-activedescendant` keyboard nav, group dividers, per-option descriptions,
+  overlay-positioned popup (free-text still commits)
+  ([#135](https://github.com/unofficialbox/box-open-elements/pull/135)).
+- **`text-field`** — `type` passthrough, leading `icon` slot, trailing
+  `loading`/`valid` status ([#132](https://github.com/unofficialbox/box-open-elements/pull/132)).
+- **`search-field`** — `loading` spinner + form submission on Enter/submit
+  ([#132](https://github.com/unofficialbox/box-open-elements/pull/132)).
+- **`checkbox`** — `description` subsection ([#132](https://github.com/unofficialbox/box-open-elements/pull/132)).
+- **`date-field`** — `clearable` + `clear()`; **`time-field`** — 12h/24h
+  `setTimeString()` parsing + `parse-error`; **`radio-group`** — per-option
+  `description`/`disabled` ([#133](https://github.com/unofficialbox/box-open-elements/pull/133)).
+- **`category-selector`** — `max-links` overflow "More" menu (overlay-positioned)
+  ([#137](https://github.com/unofficialbox/box-open-elements/pull/137)).
+
+**Feedback**
+
+- **`spinner`** `size`; **`chip`** status palette / `size` / `icon` slot;
+  **`badge`** count semantics (`max`, `hide-when-zero`, `animate`)
+  ([#130](https://github.com/unofficialbox/box-open-elements/pull/130)).
+- **`alert`** & **`error-mask`** rich-content slots; **`help-text`** error role
+  (`role="alert"`); **`toast`** declarative `duration`, `action` slot, wrapping
+  ([#131](https://github.com/unofficialbox/box-open-elements/pull/131)).
+
+**Collections & identity**
+
+- **`avatar`** `badge` (online / external); **`carousel`** slotted slides;
+  **`grid-view`** per-tile `tile-<value>` slot (slotRenderer parity)
+  ([#136](https://github.com/unofficialbox/box-open-elements/pull/136)).
+- **`datalist-item`** content slot + `active`; **`contact-datalist-item`**
+  `external` marker + `subtitle`; **`draggable-list`** per-item `row-<value>`
+  slot ([#138](https://github.com/unofficialbox/box-open-elements/pull/138)).
+
+**Navigation & layout**
+
+- **`link-button`** `target`/`rel` (auto-`noopener` for `_blank`) + rich children;
+  **`accordion`** `borderless` + per-item `panel-<value>` slots
+  ([#137](https://github.com/unofficialbox/box-open-elements/pull/137)).
+- **`sidebar-toggle-button`** `direction` + action-aware tooltip; **`nav-sidebar`**
+  grouped-nav styling hooks (`[data-nav-group]`, `<hr>`)
+  ([#139](https://github.com/unofficialbox/box-open-elements/pull/139)).
+
+---
+
 ## 0.3.0 — 2026-07-21
 
 Feature release closing the **box-ui-elements coverage audit** (Steps 1–4): a
