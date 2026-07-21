@@ -53,6 +53,7 @@ import fileRequestBuilder from "./stories/file-request-builder.stories.js";
 import filterBar from "./stories/filter-bar.stories.js";
 import governancePanel from "./stories/governance-panel.stories.js";
 import gridView from "./stories/grid-view.stories.js";
+import guideTooltip from "./stories/guide-tooltip.stories.js";
 import helpText from "./stories/help-text.stories.js";
 import iconButton from "./stories/icon-button.stories.js";
 import illustration from "./stories/illustration.stories.js";
@@ -174,6 +175,7 @@ export const storyModules: StoryModule[] = [
   filterBar,
   governancePanel,
   gridView,
+  guideTooltip,
   helpText,
   iconButton,
   illustration,

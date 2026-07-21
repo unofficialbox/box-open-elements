@@ -138,6 +138,7 @@ export * from "./components/layout/split-view.js";
 export * from "./components/overlays/context-menu.js";
 export * from "./components/overlays/dialog.js";
 export * from "./components/overlays/drawer.js";
+export * from "./components/overlays/guide-tooltip.js";
 export * from "./components/overlays/popover.js";
 export * from "./components/overlays/tooltip.js";
 
