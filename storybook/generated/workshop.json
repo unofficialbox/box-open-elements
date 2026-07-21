@@ -486,6 +486,51 @@
       ]
     },
     {
+      "id": "breadcrumb",
+      "tag": "box-breadcrumb",
+      "title": "Components/Navigation/Breadcrumb",
+      "category": "Navigation",
+      "shortDescription": "A file-path trail with overflow collapse.",
+      "docsDescription": "A breadcrumb trail of folder crumbs. When the path is longer than `max-items` the middle crumbs collapse into an ellipsis (first crumb + last two are always shown). Clicking a crumb emits `navigate` with its value; the last crumb is `aria-current=\"page\"`.",
+      "sourceSnippet": "<box-breadcrumb label=\"File path\"></box-breadcrumb>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "items",
+          "type": "BreadcrumbItem[] (JSON)",
+          "description": "The path: { label, href?, value? } crumbs."
+        },
+        {
+          "kind": "attribute",
+          "name": "max-items",
+          "type": "number",
+          "description": "Crumbs shown before the middle collapses (default 4)."
+        },
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible name for the nav landmark."
+        },
+        {
+          "kind": "event",
+          "name": "navigate",
+          "type": "CustomEvent",
+          "description": "Fires when a non-current crumb is chosen."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Short path",
+          "html": "<box-breadcrumb label=\"File path\" items='[{\"label\":\"All Files\",\"value\":\"0\"},{\"label\":\"Marketing\",\"value\":\"42\"},{\"label\":\"Quarterly Plan.pdf\",\"value\":\"123\"}]'></box-breadcrumb>"
+        },
+        {
+          "name": "Collapsed (overflow)",
+          "html": "<box-breadcrumb label=\"File path\" items='[{\"label\":\"All Files\",\"value\":\"0\"},{\"label\":\"Marketing\",\"value\":\"42\"},{\"label\":\"Brand\",\"value\":\"77\"},{\"label\":\"2026\",\"value\":\"88\"},{\"label\":\"Quarterly Plan.pdf\",\"value\":\"123\"}]'></box-breadcrumb>"
+        }
+      ]
+    },
+    {
       "id": "thumbnail-card",
       "tag": "box-thumbnail-card",
       "title": "Components/Collections/Thumbnail Card",

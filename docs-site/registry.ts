@@ -28,7 +28,7 @@ export const catalog: CatalogEntry[] = [
   ]),
   ...c("Identity", ["avatar", "contact-datalist-item", "persona"]),
   ...c("Layout", ["app-shell", "divider", "nav-sidebar", "section", "sidebar-toggle-button", "split-view"]),
-  ...c("Navigation", ["accordion", "tabs"]),
+  ...c("Navigation", ["accordion", "breadcrumb", "tabs"]),
   ...c("Overlays", ["dialog", "drawer", "popover", "tooltip"]),
   ...c("Visuals", ["illustration"]),
 
