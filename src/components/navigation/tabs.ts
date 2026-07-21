@@ -1,5 +1,5 @@
 import { BaseElement } from "../../core/index.js";
-import { boeControl, boeSpace } from "../../foundations/geometry/index.js";
+import { boeControl, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import {
   boeFocusVisibleStyles,
 } from "../../foundations/tokens/index.js";
@@ -99,6 +99,22 @@ const tabsStyles = `
     outline-offset: -2px;
     box-shadow: none;
   }
+
+  /* Panels carry no default padding — an empty panel is zero-height, and
+     consumers style their own slotted content. */
+  [part="panel"] {
+    outline: none;
+  }
+
+  [part="panel"][hidden] {
+    display: none;
+  }
+
+  [part="panel"]:focus-visible {
+    outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
+    outline-offset: 2px;
+    border-radius: ${boeRadius.med};
+  }
 `;
 
 export class BoxTabsElement extends BaseElement {
@@ -109,6 +125,8 @@ export class BoxTabsElement extends BaseElement {
   private valueInternal = "";
   private lastOptionsJson = "";
   private tabsEl!: HTMLElement;
+  private panelsEl!: HTMLElement;
+  private readonly uid = `boe-tabs-${Math.random().toString(36).slice(2, 8)}`;
 
   get label(): string {
     return this.getAttribute("label") ?? "Tabs";
@@ -201,20 +219,44 @@ export class BoxTabsElement extends BaseElement {
                 ? "last"
                 : "middle";
 
+        const selected = option.value === selectedValue;
+        const value = escapeHtml(option.value);
         return `
           <button
             type="button"
             part="tab"
             role="tab"
+            id="${this.uid}-tab-${value}"
+            aria-controls="${this.uid}-panel-${value}"
             data-layout="${this.layout}"
             data-position="${position}"
-            data-selected="${String(option.value === selectedValue)}"
-            data-value="${escapeHtml(option.value)}"
-            aria-selected="${String(option.value === selectedValue)}"
-            tabindex="${option.value === selectedValue ? "0" : "-1"}"
+            data-selected="${String(selected)}"
+            data-value="${value}"
+            aria-selected="${String(selected)}"
+            tabindex="${selected ? "0" : "-1"}"
           >
             ${escapeHtml(option.label)}
           </button>
+        `;
+      })
+      .join("");
+  }
+
+  /** One tabpanel per option, fed by a slot named for the option value. */
+  private renderPanelsMarkup(options: BoxTabOption[], selectedValue: string): string {
+    return options
+      .map(option => {
+        const value = escapeHtml(option.value);
+        const selected = option.value === selectedValue;
+        return `
+          <div
+            part="panel"
+            role="tabpanel"
+            id="${this.uid}-panel-${value}"
+            aria-labelledby="${this.uid}-tab-${value}"
+            tabindex="0"
+            ${selected ? "" : "hidden"}
+          ><slot name="${value}"></slot></div>
         `;
       })
       .join("");
@@ -228,8 +270,10 @@ export class BoxTabsElement extends BaseElement {
     this.shadowRoot.innerHTML = `
       <style>${tabsStyles}</style>
       <div part="tabs" role="tablist"></div>
+      <div part="panels"></div>
     `;
     this.tabsEl = this.shadowRoot.querySelector('[part="tabs"]')!;
+    this.panelsEl = this.shadowRoot.querySelector('[part="panels"]')!;
   }
 
   protected setupListeners(): void {
@@ -297,6 +341,7 @@ export class BoxTabsElement extends BaseElement {
 
     if (optionsJson !== this.lastOptionsJson) {
       this.tabsEl.innerHTML = this.renderTabsMarkup(options, selectedValue);
+      this.panelsEl.innerHTML = this.renderPanelsMarkup(options, selectedValue);
       this.lastOptionsJson = optionsJson;
       return;
     }
@@ -323,6 +368,11 @@ export class BoxTabsElement extends BaseElement {
       tab.dataset.selected = String(selected);
       tab.setAttribute("aria-selected", String(selected));
       tab.tabIndex = selected ? 0 : -1;
+    });
+
+    // Show only the selected tab's panel.
+    this.panelsEl.querySelectorAll<HTMLElement>('[part="panel"]').forEach((panel, index) => {
+      panel.hidden = options[index]?.value !== selectedValue;
     });
   }
 }

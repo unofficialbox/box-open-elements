@@ -138,5 +138,55 @@ describe("BoxTabsElement", () => {
     expect(element.shadowRoot?.querySelector('[part="tab"]')).toBe(tab);
     expect(element.shadowRoot?.activeElement).toBe(tab);
   });
+
+  it("renders a tabpanel per option, linked to its tab and showing the selected one", () => {
+    const element = document.createElement("box-tabs") as BoxTabsElement;
+    element.options = [
+      { label: "All", value: "all" },
+      { label: "Recents", value: "recents" },
+    ] as never;
+    element.value = "all";
+    document.body.append(element);
+
+    const panels = element.shadowRoot?.querySelectorAll('[part="panel"]');
+    expect(panels?.length).toBe(2);
+    const first = panels?.[0] as HTMLElement;
+    const second = panels?.[1] as HTMLElement;
+    expect(first.getAttribute("role")).toBe("tabpanel");
+    expect(first.hidden).toBe(false);
+    expect(second.hidden).toBe(true);
+
+    // Tab <-> panel ARIA association.
+    const firstTab = element.shadowRoot?.querySelector('[part="tab"]') as HTMLElement;
+    expect(firstTab.getAttribute("aria-controls")).toBe(first.id);
+    expect(first.getAttribute("aria-labelledby")).toBe(firstTab.id);
+  });
+
+  it("switches the visible panel when the selection changes", () => {
+    const element = document.createElement("box-tabs") as BoxTabsElement;
+    element.options = [
+      { label: "All", value: "all" },
+      { label: "Recents", value: "recents" },
+    ] as never;
+    element.value = "all";
+    document.body.append(element);
+
+    element.value = "recents";
+    const panels = element.shadowRoot?.querySelectorAll('[part="panel"]');
+    expect((panels?.[0] as HTMLElement).hidden).toBe(true);
+    expect((panels?.[1] as HTMLElement).hidden).toBe(false);
+  });
+
+  it("routes slotted content into the matching panel", () => {
+    const element = document.createElement("box-tabs") as BoxTabsElement;
+    element.options = [{ label: "All", value: "all" }] as never;
+    element.innerHTML = '<div slot="all">Panel body</div>';
+    element.value = "all";
+    document.body.append(element);
+    const slot = element.shadowRoot?.querySelector('[part="panel"] slot') as HTMLSlotElement;
+    expect(slot.getAttribute("name")).toBe("all");
+    expect(slot.assignedNodes()[0]?.textContent).toBe("Panel body");
+  });
+
 });
 

@@ -529,23 +529,15 @@ export const examples: Record<string, ComponentExample> = {
     }),
   },
   tabs: {
-    html: `<box-tabs label="Views" layout="attached"></box-tabs>`,
-    setup: root => set(root, "box-tabs", {
-      options: [
-        { label: "All files", value: "all" },
-        { label: "Recents", value: "recents" },
-        { label: "Shared", value: "shared" },
-      ],
-      value: "all",
-    }),
+    html: `<box-tabs label="Views" layout="attached" options='[{"label":"All files","value":"all"},{"label":"Recents","value":"recents"},{"label":"Shared","value":"shared"}]' value="all">\n  <div slot="all" style="padding:12px 0">128 files across every folder.</div>\n  <div slot="recents" style="padding:12px 0">Files you opened this week.</div>\n  <div slot="shared" style="padding:12px 0">Shared with you by collaborators.</div>\n</box-tabs>`,
     variants: [
       {
         name: "Attached",
-        html: `<box-tabs label="Views" layout="attached" options='[{"label":"All files","value":"all"},{"label":"Recents","value":"recents"},{"label":"Shared","value":"shared"}]' value="all"></box-tabs>`,
+        html: `<box-tabs label="Views" layout="attached" options='[{"label":"All files","value":"all"},{"label":"Recents","value":"recents"},{"label":"Shared","value":"shared"}]' value="all"><div slot="all" style="padding:12px 0">128 files across every folder.</div><div slot="recents" style="padding:12px 0">Files you opened this week.</div><div slot="shared" style="padding:12px 0">Shared with you by collaborators.</div></box-tabs>`,
       },
       {
         name: "Separated",
-        html: `<box-tabs label="Views" layout="separated" options='[{"label":"All files","value":"all"},{"label":"Recents","value":"recents"},{"label":"Shared","value":"shared"}]' value="all"></box-tabs>`,
+        html: `<box-tabs label="Views" layout="separated" options='[{"label":"All files","value":"all"},{"label":"Recents","value":"recents"},{"label":"Shared","value":"shared"}]' value="all"><div slot="all" style="padding:12px 0">128 files across every folder.</div><div slot="recents" style="padding:12px 0">Files you opened this week.</div><div slot="shared" style="padding:12px 0">Shared with you by collaborators.</div></box-tabs>`,
       },
     ],
   },
