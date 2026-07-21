@@ -235,6 +235,8 @@ export class BoxGridViewElement extends BaseElement {
           ? `<span part="meta">${escapeHtml(item.meta)}</span>`
           : "";
 
+        // Per-item named slot lets a host override the tile body (slotRenderer
+        // parity); the default thumb/label/meta is the slot's fallback content.
         return `
           <button
             type="button"
@@ -244,9 +246,11 @@ export class BoxGridViewElement extends BaseElement {
             aria-selected="${String(isSelected)}"
             tabindex="${item.value === tabbableValue ? "0" : "-1"}"
           >
-            <span part="thumb" aria-hidden="true">${iconMarkup}</span>
-            <span part="tile-label">${escapeHtml(item.label)}</span>
-            ${metaMarkup}
+            <slot name="tile-${escapeHtml(item.value)}" part="tile-slot">
+              <span part="thumb" aria-hidden="true">${iconMarkup}</span>
+              <span part="tile-label">${escapeHtml(item.label)}</span>
+              ${metaMarkup}
+            </slot>
           </button>
         `;
       })

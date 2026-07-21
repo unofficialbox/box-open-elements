@@ -134,4 +134,21 @@ describe("BoxGridViewElement", () => {
     expect(styles).toContain('[part~="tile"]:disabled');
     expect(styles).toContain("--boe-token-surface-surface-hover");
   });
+
+  it("exposes a per-item slot for custom tile content, falling back to the default", () => {
+    const element = createGridView();
+
+    // Each tile carries a named slot keyed by the item value.
+    const slot = element.shadowRoot?.querySelector('slot[name="tile-1"]') as HTMLSlotElement;
+    expect(slot).toBeTruthy();
+    // With nothing assigned, the default thumb/label render as the slot fallback.
+    expect(slot.querySelector('[part="tile-label"]')?.textContent).toBe("Quarterly Plan.pdf");
+
+    // A host can override a single tile's body via slot="tile-<value>".
+    const custom = document.createElement("div");
+    custom.slot = "tile-1";
+    custom.textContent = "Custom body";
+    element.append(custom);
+    expect(slot.assignedElements()[0]).toBe(custom);
+  });
 });

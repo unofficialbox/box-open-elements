@@ -14,11 +14,14 @@ const avatar: StoryModule = {
       { kind: "attribute", name: "src", type: "string", description: "Optional image URL." },
       { kind: "attribute", name: "size", type: "string", description: "Visual size." },
       { kind: "attribute", name: "tone", type: "string", description: "Background emphasis." },
+      { kind: "attribute", name: "badge", type: '"none" | "online" | "external"', description: "Corner status/external-user indicator." },
     ],
   },
   variants: [
     { name: "Named", html: `<box-avatar name="Morgan Lee"></box-avatar>` },
     { name: "Initials", html: `<box-avatar initials="JD" name="Jordan Diaz"></box-avatar>` },
+    { name: "External user", html: `<box-avatar name="Sam Rivera" size="48" badge="external"></box-avatar>` },
+    { name: "Online", html: `<box-avatar name="Alex Kim" size="48" badge="online"></box-avatar>` },
   ],
 };
 

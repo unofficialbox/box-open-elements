@@ -83,14 +83,53 @@ const avatarStyles = `
   [part="image"][hidden] {
     display: none;
   }
+
+  /* Corner status/external indicator. Absent by default (no layout impact). */
+  [part="badge"] {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-end: 0;
+    box-sizing: border-box;
+    inline-size: max(8px, calc(var(--avatar-size, ${DEFAULT_SIZE}px) * 0.34));
+    block-size: max(8px, calc(var(--avatar-size, ${DEFAULT_SIZE}px) * 0.34));
+    border-radius: 999px;
+    border: 2px solid var(--boe-token-surface-surface, #ffffff);
+    display: grid;
+    place-items: center;
+    color: #ffffff;
+  }
+
+  [part="badge"][data-badge="online"] {
+    background: var(--boe-token-surface-status-surface-success, #26c281);
+  }
+
+  [part="badge"][data-badge="external"] {
+    background: var(--boe-token-surface-status-surface-inprogress, #f5b31b);
+  }
+
+  [part="badge"] svg {
+    inline-size: 62%;
+    block-size: 62%;
+    fill: currentColor;
+  }
 `;
 
 export class BoxAvatarElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["alt", "initials", "name", "size", "src", "tone"];
+    return ["alt", "badge", "initials", "name", "size", "src", "tone"];
   }
 
   private avatarEl!: HTMLElement;
+
+  /** Corner indicator: `""`/`none` (default), `online`, or `external`. */
+  get badge(): string {
+    const value = this.getAttribute("badge");
+    return value === "online" || value === "external" ? value : "none";
+  }
+
+  set badge(value: string) {
+    this.setAttribute("badge", value);
+  }
 
   get alt(): string {
     return this.getAttribute("alt") ?? this.name;
@@ -199,6 +238,34 @@ export class BoxAvatarElement extends BaseElement {
         existingImage.remove();
       }
       this.showAvatarFallback(existingFallback, fallback);
+    }
+
+    this.syncBadge();
+  }
+
+  private syncBadge(): void {
+    const badge = this.badge;
+    let badgeEl = this.avatarEl.querySelector('[part="badge"]') as HTMLElement | null;
+    if (badge === "none") {
+      badgeEl?.remove();
+      return;
+    }
+    if (!badgeEl) {
+      badgeEl = document.createElement("span");
+      badgeEl.setAttribute("part", "badge");
+      this.avatarEl.append(badgeEl);
+    }
+    badgeEl.dataset.badge = badge;
+    if (badge === "external") {
+      badgeEl.setAttribute("aria-label", "External user");
+      badgeEl.setAttribute("role", "img");
+      // Outward arrow marks an external collaborator.
+      badgeEl.innerHTML =
+        '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3h7v7h-2V6.4l-6.3 6.3-1.4-1.4L9.6 5H6V3z"/></svg>';
+    } else {
+      badgeEl.setAttribute("aria-label", "Online");
+      badgeEl.setAttribute("role", "img");
+      badgeEl.innerHTML = "";
     }
   }
 
