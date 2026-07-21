@@ -99,4 +99,40 @@ describe("BoxMenuElement", () => {
     expect(styles).toContain("padding: 8px 48px 8px 8px;");
     expect(styles).toContain("0 4px 12px");
   });
+
+  it("renders headers, separators, links, and checkable items", () => {
+    const el = document.createElement("box-menu") as BoxMenuElement;
+    el.items = [
+      { id: "h", label: "Actions", header: true },
+      { id: "open", label: "Open" },
+      { id: "link", label: "Docs", href: "/docs" },
+      { id: "pin", label: "Pinned", checked: true, separator: true },
+    ] as never;
+    document.body.append(el);
+    const sr = el.shadowRoot!;
+
+    expect(sr.querySelector('[part="menu-header"]')?.textContent).toBe("Actions");
+    expect(sr.querySelector('[part="menu-separator"]')).not.toBeNull();
+    const link = sr.querySelector('a[part="menu-item"]') as HTMLAnchorElement;
+    expect(link.getAttribute("href")).toBe("/docs");
+    expect(link.getAttribute("role")).toBe("menuitem");
+    const check = sr.querySelector('[role="menuitemcheckbox"]');
+    expect(check?.getAttribute("aria-checked")).toBe("true");
+    // Header is not a focusable menuitem.
+    expect(sr.querySelector('[part="menu-header"]')?.getAttribute("part")).toBe("menu-header");
+  });
+
+  it("toggles a checkable item's aria-checked and emits it", () => {
+    const el = document.createElement("box-menu") as BoxMenuElement;
+    el.items = [{ id: "pin", label: "Pin", checked: false }] as never;
+    const selected = vi.fn();
+    el.addEventListener("item-selected", selected);
+    document.body.append(el);
+    const check = el.shadowRoot?.querySelector('[role="menuitemcheckbox"]') as HTMLButtonElement;
+    check.click();
+    expect(check.getAttribute("aria-checked")).toBe("true");
+    expect(selected).toHaveBeenCalledTimes(1);
+    expect(selected.mock.calls[0][0].detail.id).toBe("pin");
+  });
+
 });

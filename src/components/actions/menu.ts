@@ -4,7 +4,7 @@ import {
   focusRovingItem,
   nextRovingIndex,
 } from "../../foundations/a11y/index.js";
-import { boeControl, boeOverlay } from "../../foundations/geometry/index.js";
+import { boeControl, boeOverlay, boeSpace } from "../../foundations/geometry/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
@@ -22,6 +22,14 @@ type BoxMenuItem = {
   disabled?: boolean;
   id: string;
   label: string;
+  /** Render a divider before this item. */
+  separator?: boolean;
+  /** Render a non-interactive section header instead of a menuitem. */
+  header?: boolean;
+  /** Render as a link (navigates on activate). */
+  href?: string;
+  /** Checkable item — renders menuitemcheckbox with aria-checked. */
+  checked?: boolean;
 };
 
 const menuStyles = `
@@ -76,6 +84,41 @@ const menuStyles = `
   [part="menu-item"]:disabled {
     opacity: ${boeControl.disabledOpacity};
   }
+
+  /* Link items keep the menu-item chrome but render as anchors. */
+  a[part="menu-item"] {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+  }
+
+  [part="menu-separator"] {
+    height: 1px;
+    margin: ${boeSpace[1]} 0;
+    background: var(--boe-token-stroke-stroke, #e8e8e8);
+  }
+
+  [part="menu-header"] {
+    padding: ${boeSpace[1]} ${boeSpace[2]};
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+  }
+
+  /* Check indicator for checkable items. */
+  [part="menu-item"][role="menuitemcheckbox"]::before {
+    content: "";
+    display: inline-block;
+    width: 1em;
+    margin-inline-end: ${boeSpace[1]};
+    flex-shrink: 0;
+  }
+
+  [part="menu-item"][aria-checked="true"]::before {
+    content: "✓";
+  }
 `;
 
 export class BoxMenuElement extends BaseElement {
@@ -123,6 +166,33 @@ export class BoxMenuElement extends BaseElement {
     this.setAttribute("items", JSON.stringify(value));
   }
 
+  /** Render one item: header, separator + item, link, checkable, or plain. */
+  private renderItem(item: BoxMenuItem): string {
+    const separator = item.separator ? `<div part="menu-separator" role="separator"></div>` : "";
+
+    if (item.header) {
+      return `${separator}<div part="menu-header" role="presentation">${escapeHtml(item.label)}</div>`;
+    }
+
+    const disabled = this.disabled || item.disabled;
+    const id = escapeHtml(item.id);
+    const label = escapeHtml(item.label);
+
+    // Checkable item — role=menuitemcheckbox with aria-checked.
+    if (typeof item.checked === "boolean") {
+      const checkedAttr = item.checked ? ' aria-checked="true"' : ' aria-checked="false"';
+      return `${separator}<button type="button" part="menu-item" role="menuitemcheckbox" data-item-id="${id}"${checkedAttr} ${disabled ? "disabled" : ""}>${label}</button>`;
+    }
+
+    // Link item — an anchor styled as a menuitem.
+    if (item.href) {
+      const aria = disabled ? ' aria-disabled="true"' : "";
+      return `${separator}<a part="menu-item" role="menuitem" data-item-id="${id}" href="${escapeHtml(item.href)}" tabindex="-1"${aria}>${label}</a>`;
+    }
+
+    return `${separator}<button type="button" part="menu-item" role="menuitem" data-item-id="${id}" ${disabled ? "disabled" : ""}>${label}</button>`;
+  }
+
   protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
@@ -137,17 +207,23 @@ export class BoxMenuElement extends BaseElement {
 
   protected setupListeners(): void {
     this.menuEl.addEventListener("click", event => {
-      const button = (event.target as HTMLElement | null)?.closest(
-        '[part="menu-item"]',
-      ) as HTMLButtonElement | null;
-      if (!button || !this.menuEl.contains(button) || button.disabled) {
+      const el = (event.target as HTMLElement | null)?.closest('[part="menu-item"]') as HTMLElement | null;
+      // Anchors have no `.disabled`; both use aria-disabled / native disabled.
+      const isDisabled = el?.hasAttribute("disabled") || el?.getAttribute("aria-disabled") === "true";
+      if (!el || !this.menuEl.contains(el) || isDisabled) {
         return;
       }
 
-      const itemId = button.getAttribute("data-item-id");
+      const itemId = el.getAttribute("data-item-id");
       const item = this.items.find(entry => entry.id === itemId);
       if (!item || this.disabled || item.disabled) {
         return;
+      }
+
+      // Checkable items toggle their aria-checked optimistically; the host owns
+      // the source of truth and can re-render from the event.
+      if (typeof item.checked === "boolean") {
+        el.setAttribute("aria-checked", String(!item.checked));
       }
 
       this.dispatchEvent(
@@ -196,15 +272,7 @@ export class BoxMenuElement extends BaseElement {
     }
 
     this.menuEl.setAttribute("aria-label", this.label);
-    this.menuEl.innerHTML = this.items
-      .map(
-        item => `
-          <button type="button" part="menu-item" role="menuitem" data-item-id="${escapeHtml(item.id)}" ${this.disabled || item.disabled ? "disabled" : ""}>
-            ${escapeHtml(item.label)}
-          </button>
-        `,
-      )
-      .join("");
+    this.menuEl.innerHTML = this.items.map(item => this.renderItem(item)).join("");
 
     const buttons = this.enabledMenuItems();
     applyRovingTabindex(buttons, 0);
