@@ -98,4 +98,44 @@ describe("BoxCategorySelectorElement", () => {
     expect(element.shadowRoot?.querySelector('[part="group"]')).toBeNull();
     expect(element.shadowRoot?.querySelector('[part="empty"]')?.textContent).toContain("No categories");
   });
+
+  it("collapses options beyond max-links into a More menu", () => {
+    const element = document.createElement("box-category-selector") as BoxCategorySelectorElement;
+    element.options = [
+      { value: "all", label: "All" },
+      { value: "docs", label: "Documents" },
+      { value: "media", label: "Media" },
+      { value: "images", label: "Images" },
+      { value: "audio", label: "Audio" },
+    ];
+    element.maxLinks = 2;
+    document.body.append(element);
+
+    // Only the first 2 categories render inline as radio pills.
+    const inlinePills = element.shadowRoot?.querySelectorAll('[part~="pill"]:not([data-more])');
+    expect(inlinePills?.length).toBe(2);
+
+    const more = element.shadowRoot?.querySelector('[data-more]') as HTMLButtonElement;
+    expect(more).toBeTruthy();
+    const menu = element.shadowRoot?.querySelector('[part="more-menu"]') as HTMLElement;
+    expect(menu.hidden).toBe(true);
+    // The overflow (3 remaining) lives in the menu.
+    expect(menu.querySelectorAll('[part="more-item"]').length).toBe(3);
+
+    // Opening the menu positions it and exposes the items.
+    more.click();
+    expect(menu.hidden).toBe(false);
+    expect(more.getAttribute("aria-expanded")).toBe("true");
+
+    // Selecting an overflow item commits the value and marks More active.
+    const changed = vi.fn();
+    element.addEventListener("value-changed", changed);
+    (menu.querySelector('[part="more-item"][data-value="audio"]') as HTMLButtonElement).click();
+
+    expect(element.value).toBe("audio");
+    expect(changed).toHaveBeenCalledWith(expect.objectContaining({ detail: { value: "audio" } }));
+    expect(menu.hidden).toBe(true);
+    expect(more.getAttribute("part")).toContain("pill-checked");
+    expect(more.textContent).toContain("Audio");
+  });
 });

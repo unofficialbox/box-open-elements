@@ -134,5 +134,31 @@ describe("BoxAccordionElement", () => {
     expect(heading?.tagName).toBe("H3");
     expect(heading?.querySelector('[part="trigger"]')).toBeTruthy();
   });
+
+  it("exposes a borderless variant and per-item panel slots for rich content", () => {
+    const element = document.createElement("box-accordion") as BoxAccordionElement;
+    element.borderless = true;
+    element.items = [
+      { label: "Details", value: "details", content: "Item details" },
+      { label: "History", value: "history" },
+    ];
+    document.body.append(element);
+
+    expect(element.hasAttribute("borderless")).toBe(true);
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain(":host([borderless]) [part=\"accordion\"]");
+
+    // Each panel carries a named slot keyed by the item value; default text is
+    // the slot fallback.
+    const slot = element.shadowRoot?.querySelector('slot[name="panel-details"]') as HTMLSlotElement;
+    expect(slot).toBeTruthy();
+    expect(slot.textContent).toContain("Item details");
+
+    const rich = document.createElement("div");
+    rich.slot = "panel-details";
+    rich.textContent = "Rich panel";
+    element.append(rich);
+    expect(slot.assignedElements()[0]).toBe(rich);
+  });
 });
 

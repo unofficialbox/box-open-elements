@@ -94,12 +94,29 @@ const accordionStyles = `
     display: none;
   }
 
+  /* Borderless variant: drop the outer card chrome, keep row dividers. */
+  :host([borderless]) [part="accordion"] {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    overflow: visible;
+  }
+
   ${boeNeutralInteractiveStyles('[part="trigger"]')}
 `;
 
 export class BoxAccordionElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["items", "label", "value"];
+    return ["items", "label", "value", "borderless"];
+  }
+
+  /** Flat variant with no outer card border/background. */
+  get borderless(): boolean {
+    return this.hasAttribute("borderless");
+  }
+
+  set borderless(value: boolean) {
+    this.toggleAttribute("borderless", Boolean(value));
   }
 
   private valueInternal = "";
@@ -179,7 +196,7 @@ export class BoxAccordionElement extends BaseElement {
               role="region"
               aria-labelledby="${triggerId}"
               ${isOpen ? "" : "hidden"}
-            >${escapeHtml(item.content ?? "")}</div>
+            ><slot name="panel-${escapeHtml(item.value)}">${escapeHtml(item.content ?? "")}</slot></div>
           </section>
         `;
       })
