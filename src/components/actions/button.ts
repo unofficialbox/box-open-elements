@@ -122,14 +122,89 @@ const buttonStyles = `
     opacity: ${boeControl.disabledOpacity};
     box-shadow: none;
   }
+
+  button[aria-busy="true"] {
+    cursor: default;
+  }
+
+  /* Leading icon slot — hidden when nothing is slotted (kept off the flex gap). */
+  [part="icon"] {
+    display: inline-flex;
+    width: 16px;
+    height: 16px;
+  }
+
+  [part="icon"][hidden] {
+    display: none;
+  }
+
+  [part="icon"] ::slotted(svg) {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Inline loading spinner, shown while is-loading. */
+  [part="spinner"] {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    animation: boe-btn-spin 0.7s linear infinite;
+  }
+
+  [part="spinner"][hidden] {
+    display: none;
+  }
+
+  @keyframes boe-btn-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [part="spinner"] { animation-duration: 1.6s; }
+  }
 `;
 
+export type ButtonType = "button" | "submit" | "reset";
+
 export class BoxButtonElement extends BaseElement {
+  static formAssociated = true;
+
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "size", "tone"];
+    return ["disabled", "label", "size", "tone", "is-loading", "type"];
   }
 
   private buttonEl!: HTMLButtonElement;
+  private spinnerEl!: HTMLElement;
+  private iconEl!: HTMLElement;
+  private labelEl!: HTMLElement;
+  private iconSlot!: HTMLSlotElement;
+  private readonly internals: ElementInternals;
+
+  constructor() {
+    super();
+    // Form association lets type="submit"/"reset" drive the owning form.
+    this.internals = this.attachInternals();
+  }
+
+  /** Loading state: shows a spinner and blocks activation (stays focusable). */
+  get isLoading(): boolean {
+    return this.hasAttribute("is-loading");
+  }
+
+  set isLoading(value: boolean) {
+    this.toggleAttribute("is-loading", Boolean(value));
+  }
+
+  get type(): ButtonType {
+    const type = this.getAttribute("type");
+    return type === "submit" || type === "reset" ? type : "button";
+  }
+
+  set type(value: ButtonType) {
+    this.setAttribute("type", value);
+  }
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -174,9 +249,42 @@ export class BoxButtonElement extends BaseElement {
 
     this.shadowRoot.innerHTML = `
       <style>${buttonStyles}</style>
-      <button type="button" part="button"></button>
+      <button type="button" part="button">
+        <span part="spinner" aria-hidden="true" hidden></span>
+        <span part="icon" hidden><slot name="icon"></slot></span>
+        <span part="label"></span>
+      </button>
     `;
     this.buttonEl = this.shadowRoot.querySelector('[part="button"]')!;
+    this.spinnerEl = this.shadowRoot.querySelector('[part="spinner"]')!;
+    this.iconEl = this.shadowRoot.querySelector('[part="icon"]')!;
+    this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.iconSlot = this.iconEl.querySelector("slot")!;
+  }
+
+  protected setupListeners(): void {
+    this.buttonEl.addEventListener("click", event => {
+      if (this.disabled || this.isLoading) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
+      // Drive the owning form for submit/reset (custom elements don't do this
+      // natively). Prefer the form-associated form; fall back to the nearest
+      // ancestor form so it works without full ElementInternals.form support.
+      const form = this.internals.form ?? this.closest("form");
+      if (this.type === "submit") {
+        form?.requestSubmit();
+      } else if (this.type === "reset") {
+        form?.reset();
+      }
+    });
+
+    this.iconSlot.addEventListener("slotchange", () => this.syncIconVisibility());
+  }
+
+  private syncIconVisibility(): void {
+    this.iconEl.hidden = this.iconSlot.assignedNodes({ flatten: true }).length === 0;
   }
 
   protected update(): void {
@@ -186,12 +294,21 @@ export class BoxButtonElement extends BaseElement {
 
     this.buttonEl.dataset.tone = this.tone;
     this.buttonEl.dataset.size = this.size;
+    this.labelEl.textContent = this.label;
+
+    const busy = this.isLoading;
+    this.spinnerEl.hidden = !busy;
+    this.buttonEl.setAttribute("aria-busy", String(busy));
+
+    // A loading button stays focusable but inert; a disabled one is fully off.
     if (this.disabled) {
       this.buttonEl.setAttribute("disabled", "");
     } else {
       this.buttonEl.removeAttribute("disabled");
     }
-    this.buttonEl.textContent = this.label;
+    this.buttonEl.setAttribute("aria-disabled", String(this.disabled || busy));
+
+    this.syncIconVisibility();
   }
 }
 
