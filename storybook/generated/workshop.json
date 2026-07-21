@@ -399,20 +399,38 @@
       "title": "Components/Feedback/Badge",
       "category": "Feedback",
       "shortDescription": "A compact status label.",
-      "docsDescription": "A small inline label for status or categorization, in the Box feedback tones.",
+      "docsDescription": "A small inline label for status or categorization, in the Box feedback tones. When used as a count, `max` caps the number (e.g. `max=\"99\"` shows `99+`), `hide-when-zero` removes it at zero/empty, and `animate` pops the badge whenever the count changes.",
       "sourceSnippet": "<box-badge label=\"Beta\"></box-badge>",
       "referenceRows": [
         {
           "kind": "attribute",
           "name": "label",
           "type": "string",
-          "description": "Badge text."
+          "description": "Badge text (or a count when used as a count badge)."
         },
         {
           "kind": "attribute",
           "name": "tone",
           "type": "\"neutral\" | \"success\" | \"warning\" | \"error\"",
           "description": "Status color."
+        },
+        {
+          "kind": "attribute",
+          "name": "max",
+          "type": "number",
+          "description": "Cap a numeric label, rendering values above it as \"max+\"."
+        },
+        {
+          "kind": "attribute",
+          "name": "hide-when-zero",
+          "type": "boolean",
+          "description": "Hide the badge when the count is 0 or empty."
+        },
+        {
+          "kind": "attribute",
+          "name": "animate",
+          "type": "boolean",
+          "description": "Pop the badge when the displayed value changes."
         }
       ],
       "variants": [
@@ -431,6 +449,10 @@
         {
           "name": "Error",
           "html": "<box-badge label=\"Failed\" tone=\"error\"></box-badge>"
+        },
+        {
+          "name": "Capped count",
+          "html": "<box-badge label=\"128\" tone=\"error\" max=\"99\"></box-badge>"
         }
       ]
     },
@@ -1246,7 +1268,7 @@
       "title": "Components/Feedback/Chip",
       "category": "Feedback",
       "shortDescription": "A compact, optionally removable tag.",
-      "docsDescription": "A small token for a selected value or filter. Emits `remove` with its `value` when dismissed.",
+      "docsDescription": "A small token for a selected value or filter. Emits `remove` with its `value` when dismissed. Use `tone` for a status palette (`success`/`warning`/`error`/`info`), `size=\"small\"` for a compact form, and the `icon` slot for a leading glyph.",
       "sourceSnippet": "<box-chip label=\"Marketing\" tone=\"brand\" removable value=\"marketing\"></box-chip>",
       "referenceRows": [
         {
@@ -1258,8 +1280,14 @@
         {
           "kind": "attribute",
           "name": "tone",
-          "type": "\"brand\" | \"neutral\"",
-          "description": "Visual emphasis."
+          "type": "\"neutral\" | \"brand\" | \"info\" | \"success\" | \"warning\" | \"error\"",
+          "description": "Visual emphasis / status palette."
+        },
+        {
+          "kind": "attribute",
+          "name": "size",
+          "type": "\"medium\" | \"small\"",
+          "description": "Chip size."
         },
         {
           "kind": "attribute",
@@ -1272,6 +1300,12 @@
           "name": "value",
           "type": "string",
           "description": "Payload emitted on remove."
+        },
+        {
+          "kind": "slot",
+          "name": "icon",
+          "type": "slot",
+          "description": "Leading icon before the label."
         },
         {
           "kind": "event",
@@ -1291,6 +1325,22 @@
         {
           "name": "Static",
           "html": "<box-chip label=\"Read only\" tone=\"neutral\"></box-chip>"
+        },
+        {
+          "name": "Success",
+          "html": "<box-chip label=\"Approved\" tone=\"success\"></box-chip>"
+        },
+        {
+          "name": "Warning",
+          "html": "<box-chip label=\"Expiring\" tone=\"warning\"></box-chip>"
+        },
+        {
+          "name": "Error",
+          "html": "<box-chip label=\"Blocked\" tone=\"error\"></box-chip>"
+        },
+        {
+          "name": "Small with icon",
+          "html": "<box-chip label=\"Verified\" tone=\"success\" size=\"small\"><svg slot=\"icon\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"M6.5 11L3 7.5l1-1 2.5 2.5L12 3.5l1 1z\" fill=\"currentColor\"/></svg></box-chip>"
         }
       ]
     },
@@ -4706,6 +4756,12 @@
           "name": "label",
           "type": "string",
           "description": "Accessible loading label."
+        },
+        {
+          "kind": "attribute",
+          "name": "size",
+          "type": "string",
+          "description": "Indicator size: small, medium (default), or large."
         }
       ],
       "variants": [
@@ -4716,6 +4772,14 @@
         {
           "name": "With context",
           "html": "<box-spinner label=\"Syncing files\"></box-spinner>"
+        },
+        {
+          "name": "Small",
+          "html": "<box-spinner label=\"Loading\" size=\"small\"></box-spinner>"
+        },
+        {
+          "name": "Large",
+          "html": "<box-spinner label=\"Loading\" size=\"large\"></box-spinner>"
         }
       ]
     },

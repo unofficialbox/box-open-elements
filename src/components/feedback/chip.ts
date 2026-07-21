@@ -47,10 +47,57 @@ const chipStyles = `
     background: color-mix(in srgb, var(--boe-token-surface-surface-hover, #f4f4f4) 70%, var(--boe-token-surface-surface-secondary, #fbfbfb) 30%);
   }
 
-  [part="chip"][data-tone="brand"] {
+  [part="chip"][data-tone="brand"],
+  [part="chip"][data-tone="info"] {
     border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, transparent);
     background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface, #ffffff) 90%);
     color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 72%, var(--boe-token-text-text, #222222));
+  }
+
+  [part="chip"][data-tone="success"] {
+    border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 32%, transparent);
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
+    color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 60%, var(--boe-token-text-text, #222222));
+  }
+
+  [part="chip"][data-tone="warning"] {
+    border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 40%, transparent);
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 16%, var(--boe-token-surface-surface, #ffffff) 84%);
+    color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 58%, var(--boe-token-text-text, #222222));
+  }
+
+  [part="chip"][data-tone="error"] {
+    border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 30%, transparent);
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, var(--boe-token-surface-surface, #ffffff) 90%);
+    color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 70%, var(--boe-token-text-text, #222222));
+  }
+
+  /* Compact size. */
+  [part="chip"][data-size="small"] {
+    gap: 0.25rem;
+    padding: 0.14rem 0.28rem 0.14rem 0.55rem;
+    font-size: 0.74rem;
+  }
+
+  [part="chip"][data-size="small"]:not([data-removable="true"]) {
+    padding-inline-end: 0.55rem;
+  }
+
+  /* Leading icon slot — hidden (and taking no gap) until content is assigned. */
+  [part="icon"] {
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+  }
+
+  [part="icon"]:not(.has-content) {
+    display: none;
+  }
+
+  [part="icon"]::slotted(*) {
+    inline-size: 0.95rem;
+    block-size: 0.95rem;
+    display: block;
   }
 
   [part="chip"][data-selected="true"],
@@ -100,12 +147,22 @@ const chipStyles = `
  */
 export class BoxChipElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "removable", "selectable", "selected", "tone", "value"];
+    return ["disabled", "label", "removable", "selectable", "selected", "size", "tone", "value"];
   }
 
   private chipEl!: HTMLElement;
   private labelEl!: HTMLElement;
+  private iconSlot!: HTMLSlotElement;
   private removeEl: HTMLButtonElement | null = null;
+
+  /** Chip size: `medium` (default) or `small`. */
+  get size(): string {
+    return this.getAttribute("size") === "small" ? "small" : "medium";
+  }
+
+  set size(value: string) {
+    this.setAttribute("size", value);
+  }
 
   get label(): string {
     return this.getAttribute("label") ?? "";
@@ -198,14 +255,18 @@ export class BoxChipElement extends BaseElement {
     this.shadowRoot.innerHTML = `
       <style>${chipStyles}</style>
       <span part="chip">
+        <slot name="icon" part="icon"></slot>
         <span part="label"></span>
       </span>
     `;
     this.chipEl = this.shadowRoot.querySelector('[part="chip"]')!;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.iconSlot = this.shadowRoot.querySelector('slot[name="icon"]')!;
   }
 
   protected setupListeners(): void {
+    this.iconSlot.addEventListener("slotchange", () => this.syncIconSlot());
+
     this.chipEl.addEventListener("click", event => {
       if ((event.target as HTMLElement).closest('[part="remove"]')) {
         return;
@@ -249,12 +310,26 @@ export class BoxChipElement extends BaseElement {
     }
   }
 
+  private syncIconSlot(): void {
+    if (!this.iconSlot) {
+      return;
+    }
+    const hasContent = this.iconSlot.assignedNodes({ flatten: true }).length > 0;
+    this.iconSlot.classList.toggle("has-content", hasContent);
+  }
+
   protected update(): void {
     if (!this.chipEl) {
       return;
     }
 
     this.chipEl.dataset.tone = this.tone;
+    if (this.size === "medium") {
+      this.chipEl.removeAttribute("data-size");
+    } else {
+      this.chipEl.dataset.size = this.size;
+    }
+    this.syncIconSlot();
     this.chipEl.dataset.removable = this.removable ? "true" : "false";
     this.chipEl.dataset.selected = this.selected ? "true" : "false";
     this.chipEl.dataset.disabled = this.disabled ? "true" : "false";

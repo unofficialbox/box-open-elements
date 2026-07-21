@@ -132,6 +132,42 @@ describe("BoxChipElement", () => {
     expect(element.hasAttribute("selectable")).toBe(false);
   });
 
+  it("applies status tone and size data attributes", () => {
+    const element = document.createElement("box-chip") as BoxChipElement;
+    element.label = "Approved";
+    element.tone = "success";
+    document.body.append(element);
+
+    const chip = element.shadowRoot?.querySelector('[part="chip"]') as HTMLElement;
+    expect(chip.dataset.tone).toBe("success");
+
+    // Default size carries no data-size; small does.
+    expect(chip.hasAttribute("data-size")).toBe(false);
+    element.size = "small";
+    expect(chip.dataset.size).toBe("small");
+  });
+
+  it("reveals the icon slot only once content is assigned", () => {
+    const element = document.createElement("box-chip") as BoxChipElement;
+    element.label = "Verified";
+    document.body.append(element);
+
+    const iconSlot = element.shadowRoot?.querySelector('slot[name="icon"]') as HTMLSlotElement;
+    // Empty by default → hidden (no flex gap before the label).
+    expect(iconSlot.classList.contains("has-content")).toBe(false);
+
+    const icon = document.createElement("span");
+    icon.slot = "icon";
+    element.append(icon);
+    // slotchange is async in jsdom; assert after a microtask/tick.
+    return new Promise<void>(resolve => {
+      setTimeout(() => {
+        expect(iconSlot.classList.contains("has-content")).toBe(true);
+        resolve();
+      }, 0);
+    });
+  });
+
   it("preserves selected chip surface on hover and active", () => {
     const element = document.createElement("box-chip") as BoxChipElement;
     element.label = "PDF";

@@ -26,6 +26,54 @@ describe("BoxBadgeElement", () => {
     expect(badge?.getAttribute("role")).toBe("status");
   });
 
+  it("caps a numeric label at max, rendering max+", () => {
+    const element = document.createElement("box-badge") as BoxBadgeElement;
+    element.label = "128";
+    element.max = 99;
+    document.body.append(element);
+
+    const badge = element.shadowRoot?.querySelector('[part="badge"]') as HTMLElement;
+    expect(badge.textContent).toBe("99+");
+    expect(badge.getAttribute("aria-label")).toBe("99+");
+
+    // At or below the cap the raw value shows through.
+    element.label = "42";
+    expect(badge.textContent).toBe("42");
+
+    // Non-numeric labels are never capped.
+    element.label = "Beta";
+    expect(badge.textContent).toBe("Beta");
+  });
+
+  it("hides the badge when the count is zero or empty with hide-when-zero", () => {
+    const element = document.createElement("box-badge") as BoxBadgeElement;
+    element.hideWhenZero = true;
+    element.label = "0";
+    document.body.append(element);
+
+    expect(element.hasAttribute("hidden")).toBe(true);
+
+    element.label = "3";
+    expect(element.hasAttribute("hidden")).toBe(false);
+
+    element.label = "";
+    expect(element.hasAttribute("hidden")).toBe(true);
+  });
+
+  it("pops on value change only when animate is set", () => {
+    const element = document.createElement("box-badge") as BoxBadgeElement;
+    element.setAttribute("animate", "");
+    element.label = "1";
+    document.body.append(element);
+
+    const badge = element.shadowRoot?.querySelector('[part="badge"]') as HTMLElement;
+    // First render establishes the baseline; no pop yet.
+    expect(badge.classList.contains("boe-pop")).toBe(false);
+
+    element.label = "2";
+    expect(badge.classList.contains("boe-pop")).toBe(true);
+  });
+
   it("uses BUE badge geometry", () => {
     const element = document.createElement("box-badge") as BoxBadgeElement;
     element.label = "New";
