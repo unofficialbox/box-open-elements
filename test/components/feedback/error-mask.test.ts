@@ -67,6 +67,25 @@ describe("BoxErrorMaskElement", () => {
     expect(onRetry).toHaveBeenCalledWith(expect.objectContaining({ detail: { label: "Try again" } }));
   });
 
+  it("reveals the body slot once custom content is assigned", () => {
+    const element = document.createElement("box-error-mask") as BoxErrorMaskElement;
+    element.heading = "Preview unavailable";
+    document.body.append(element);
+
+    const bodySlot = element.shadowRoot?.querySelector('slot[part="body"]') as HTMLSlotElement;
+    expect(bodySlot.classList.contains("has-content")).toBe(false);
+
+    const detail = document.createElement("p");
+    detail.textContent = "Error 502 from the preview service.";
+    element.append(detail);
+    return new Promise<void>(resolve => {
+      setTimeout(() => {
+        expect(bodySlot.classList.contains("has-content")).toBe(true);
+        resolve();
+      }, 0);
+    });
+  });
+
   it("uses BUE error-mask shell styles", () => {
     const element = document.createElement("box-error-mask") as BoxErrorMaskElement;
     document.body.append(element);

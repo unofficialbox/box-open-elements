@@ -55,4 +55,39 @@ describe("BoxToastElement", () => {
 
     expect(element.open).toBe(false);
   });
+
+  it("auto-hides per a declarative duration when opened via the property", () => {
+    vi.useFakeTimers();
+    const element = document.createElement("box-toast") as BoxToastElement;
+    element.message = "Copied";
+    element.duration = 200;
+    document.body.append(element);
+
+    element.open = true;
+    expect(element.open).toBe(true);
+    vi.advanceTimersByTime(199);
+    expect(element.open).toBe(true);
+    vi.advanceTimersByTime(1);
+    expect(element.open).toBe(false);
+  });
+
+  it("reveals the action slot only when content is assigned", () => {
+    const element = document.createElement("box-toast") as BoxToastElement;
+    element.message = "File deleted";
+    document.body.append(element);
+
+    const actionSlot = element.shadowRoot?.querySelector('slot[name="action"]') as HTMLSlotElement;
+    expect(actionSlot.classList.contains("has-content")).toBe(false);
+
+    const undo = document.createElement("button");
+    undo.slot = "action";
+    undo.textContent = "Undo";
+    element.append(undo);
+    return new Promise<void>(resolve => {
+      setTimeout(() => {
+        expect(actionSlot.classList.contains("has-content")).toBe(true);
+        resolve();
+      }, 0);
+    });
+  });
 });

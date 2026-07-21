@@ -55,6 +55,28 @@ const toastStyles = `
     font-size: 15px;
     font-weight: 700;
     line-height: 1.35;
+    /* Long unbroken tokens (URLs, filenames) wrap instead of overflowing. */
+    overflow-wrap: anywhere;
+  }
+
+  /* Optional action affordance (e.g. "Undo") before the dismiss button.
+     Hidden — taking no flex gap — until content is assigned. */
+  [part="action"] {
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+  }
+
+  [part="action"]:not(.has-content) {
+    display: none;
+  }
+
+  [part="action"]::slotted(*) {
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+    cursor: pointer;
   }
 
   [part="dismiss"] {
@@ -91,14 +113,25 @@ const toastStyles = `
 
 export class BoxToastElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["message", "open", "tone"];
+    return ["message", "open", "tone", "duration"];
   }
 
   private openValue = false;
   private timeoutId: ReturnType<typeof setTimeout> | null = null;
   private toastEl!: HTMLElement;
   private messageEl!: HTMLElement;
+  private actionSlot!: HTMLSlotElement;
   private dismissEl!: HTMLButtonElement;
+
+  /** Auto-dismiss delay in ms for the declarative `open` path. 0 = sticky. */
+  get duration(): number {
+    const raw = Number(this.getAttribute("duration"));
+    return Number.isFinite(raw) && raw >= 0 ? raw : 0;
+  }
+
+  set duration(value: number) {
+    this.setAttribute("duration", String(value));
+  }
 
   get open(): boolean {
     return this.openValue;
@@ -118,9 +151,28 @@ export class BoxToastElement extends BaseElement {
       this.removeAttribute("open");
     }
 
+    if (nextOpen) {
+      // Declarative open (attribute/property) auto-dismisses per `duration`;
+      // show() reschedules afterwards with its own option when provided.
+      this.scheduleAutoDismiss(this.duration);
+    } else if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
+
     this.dispatchEvent(new CustomEvent("open-changed", { bubbles: true, composed: true, detail: { open: nextOpen } }));
     if (this.isRendered) {
       this.update();
+    }
+  }
+
+  private scheduleAutoDismiss(duration: number): void {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
+    if (duration > 0) {
+      this.timeoutId = setTimeout(() => this.hide(), duration);
     }
   }
 
@@ -164,17 +216,9 @@ export class BoxToastElement extends BaseElement {
 
     this.open = true;
 
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-      this.timeoutId = null;
-    }
-
-    const duration = options?.duration ?? 2500;
-    if (duration > 0) {
-      this.timeoutId = setTimeout(() => {
-        this.hide();
-      }, duration);
-    }
+    // options.duration wins; else a declarative `duration` attribute; else 2500.
+    const duration = options?.duration ?? (this.duration || 2500);
+    this.scheduleAutoDismiss(duration);
   }
 
   hide(): void {
@@ -190,11 +234,13 @@ export class BoxToastElement extends BaseElement {
       <style>${toastStyles}</style>
       <div part="toast" role="status" aria-live="polite">
         <span part="message"></span>
+        <slot name="action" part="action"></slot>
         <button type="button" part="dismiss">Dismiss</button>
       </div>
     `;
     this.toastEl = this.shadowRoot.querySelector('[part="toast"]')!;
     this.messageEl = this.shadowRoot.querySelector('[part="message"]')!;
+    this.actionSlot = this.shadowRoot.querySelector('slot[name="action"]')!;
     this.dismissEl = this.shadowRoot.querySelector('[part="dismiss"]')!;
   }
 
@@ -202,6 +248,10 @@ export class BoxToastElement extends BaseElement {
     this.dismissEl.addEventListener("click", () => {
       this.dispatchEvent(new CustomEvent("dismiss", { bubbles: true, composed: true }));
       this.hide();
+    });
+    this.actionSlot.addEventListener("slotchange", () => {
+      const hasContent = this.actionSlot.assignedNodes({ flatten: true }).length > 0;
+      this.actionSlot.classList.toggle("has-content", hasContent);
     });
   }
 

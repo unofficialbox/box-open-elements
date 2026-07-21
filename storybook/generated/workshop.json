@@ -70,7 +70,7 @@
       "title": "Components/Feedback/Alert",
       "category": "Feedback",
       "shortDescription": "An inline message banner.",
-      "docsDescription": "A titled banner conveying status with a tone, and an optional message body.",
+      "docsDescription": "A titled banner conveying status with a tone, and an optional message body. For richer notices, slot markup (links, buttons) as the default children — they render below the message, and an alert with only rich children still shows.",
       "sourceSnippet": "<box-alert heading=\"Upload complete\" message=\"24 files were added.\" tone=\"success\"></box-alert>",
       "referenceRows": [
         {
@@ -90,6 +90,18 @@
           "name": "tone",
           "type": "\"info\" | \"success\" | \"warning\" | \"error\"",
           "description": "Status color."
+        },
+        {
+          "kind": "slot",
+          "name": "(default)",
+          "type": "slot",
+          "description": "Rich body content (links, buttons) rendered below the message."
+        },
+        {
+          "kind": "event",
+          "name": "dismiss",
+          "type": "CustomEvent",
+          "description": "Emitted when the alert is dismissed."
         }
       ],
       "variants": [
@@ -108,6 +120,10 @@
         {
           "name": "Error",
           "html": "<box-alert heading=\"Upload failed\" message=\"3 files could not be added.\" tone=\"error\"></box-alert>"
+        },
+        {
+          "name": "Rich content",
+          "html": "<box-alert heading=\"New collaborators\" tone=\"info\">Morgan and 2 others were added. <a href=\"#\">Review access</a></box-alert>"
         }
       ]
     },
@@ -2074,7 +2090,7 @@
       "title": "Components/Feedback/Error Mask",
       "category": "Feedback",
       "shortDescription": "A full-section error recovery surface.",
-      "docsDescription": "Use when a region failed to load. Provide `heading`, `message`, and optional `action-label`.",
+      "docsDescription": "Use when a region failed to load. Provide `heading`, `message`, and optional `action-label`. Slot additional markup (diagnostic details, a support link) as the default children — it renders below the message.",
       "sourceSnippet": "<box-error-mask heading=\"Couldn't load files\" message=\"Something went wrong.\" action-label=\"Retry\"></box-error-mask>",
       "referenceRows": [
         {
@@ -2094,6 +2110,18 @@
           "name": "action-label",
           "type": "string",
           "description": "Optional retry/action label."
+        },
+        {
+          "kind": "slot",
+          "name": "(default)",
+          "type": "slot",
+          "description": "Rich body content below the message."
+        },
+        {
+          "kind": "event",
+          "name": "retry",
+          "type": "CustomEvent",
+          "description": "Emitted when the action button is activated."
         }
       ],
       "variants": [
@@ -2538,7 +2566,7 @@
       "title": "Components/Feedback/Help Text",
       "category": "Feedback",
       "shortDescription": "Inline supporting guidance for a field or section.",
-      "docsDescription": "Passive help copy with optional `tone`. Pair near the control it explains; keep messages short.",
+      "docsDescription": "Passive help copy with optional `tone`. Pair near the control it explains; keep messages short. With `tone=\"error\"` it becomes an inline validation error — announced assertively via `role=\"alert\"` — instead of the passive `role=\"note\"`.",
       "sourceSnippet": "<box-help-text label=\"Shared links\" message=\"Shared links expire after 30 days.\"></box-help-text>",
       "referenceRows": [
         {
@@ -2556,8 +2584,8 @@
         {
           "kind": "attribute",
           "name": "tone",
-          "type": "string",
-          "description": "Optional emphasis."
+          "type": "\"info\" | \"success\" | \"warning\" | \"error\"",
+          "description": "Emphasis; error announces as an alert."
         }
       ],
       "variants": [
@@ -2568,6 +2596,10 @@
         {
           "name": "Warning",
           "html": "<box-help-text label=\"Permissions\" message=\"Editors can reshare this folder.\" tone=\"warning\"></box-help-text>"
+        },
+        {
+          "name": "Error",
+          "html": "<box-help-text message=\"Enter a valid email address.\" tone=\"error\"></box-help-text>"
         }
       ]
     },
@@ -5214,7 +5246,7 @@
       "title": "Components/Feedback/Toast",
       "category": "Feedback",
       "shortDescription": "A transient status message.",
-      "docsDescription": "Shows a short `message` with an optional tone. Toggle visibility with `open`.",
+      "docsDescription": "Shows a short `message` with an optional tone. Toggle visibility with `open`, or call `show(message, { duration, tone })`. A declarative `duration` (ms) auto-dismisses the toast; slot an `action` (e.g. an Undo button/link) before the dismiss control. Long unbroken tokens wrap instead of overflowing.",
       "sourceSnippet": "<box-toast open message=\"Upload complete\" tone=\"success\"></box-toast>",
       "referenceRows": [
         {
@@ -5234,6 +5266,24 @@
           "name": "tone",
           "type": "string",
           "description": "Status emphasis (e.g. success, error)."
+        },
+        {
+          "kind": "attribute",
+          "name": "duration",
+          "type": "number",
+          "description": "Auto-dismiss delay in ms for the declarative open path (0 = sticky)."
+        },
+        {
+          "kind": "slot",
+          "name": "action",
+          "type": "slot",
+          "description": "Action affordance (e.g. Undo) before the dismiss button."
+        },
+        {
+          "kind": "event",
+          "name": "dismiss",
+          "type": "CustomEvent",
+          "description": "Emitted when the toast is dismissed."
         }
       ],
       "variants": [
@@ -5244,6 +5294,10 @@
         {
           "name": "Error",
           "html": "<box-toast open message=\"Upload failed\" tone=\"error\"></box-toast>"
+        },
+        {
+          "name": "With action",
+          "html": "<box-toast open message=\"File deleted\" tone=\"info\"><button slot=\"action\" type=\"button\">Undo</button></box-toast>"
         },
         {
           "name": "Closed",
