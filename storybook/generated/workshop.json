@@ -55,12 +55,28 @@
           "name": "value",
           "type": "string",
           "description": "Expanded item value."
+        },
+        {
+          "kind": "attribute",
+          "name": "borderless",
+          "type": "boolean",
+          "description": "Flat variant with no outer card chrome."
+        },
+        {
+          "kind": "slot",
+          "name": "panel-<value>",
+          "type": "slot",
+          "description": "Rich panel body for an item; default text content is the fallback."
         }
       ],
       "variants": [
         {
           "name": "Default",
           "html": "<box-accordion label=\"Details\" items='[{\"label\":\"Properties\",\"value\":\"props\",\"content\":\"Owner, size, and classification.\"},{\"label\":\"Activity\",\"value\":\"activity\",\"content\":\"Recent comments and versions.\"}]' value=\"props\"></box-accordion>"
+        },
+        {
+          "name": "Borderless",
+          "html": "<box-accordion borderless label=\"Details\" items='[{\"label\":\"Properties\",\"value\":\"props\",\"content\":\"Owner, size, and classification.\"},{\"label\":\"Activity\",\"value\":\"activity\",\"content\":\"Recent comments and versions.\"}]' value=\"props\"></box-accordion>"
         }
       ]
     },
@@ -1142,12 +1158,22 @@
           "name": "value",
           "type": "string",
           "description": "Selected category value."
+        },
+        {
+          "kind": "attribute",
+          "name": "max-links",
+          "type": "number",
+          "description": "Max inline categories before the rest collapse into a More menu."
         }
       ],
       "variants": [
         {
           "name": "Default",
           "html": "<box-category-selector label=\"Filter by type\" options='[{\"value\":\"all\",\"label\":\"All\"},{\"value\":\"docs\",\"label\":\"Documents\"},{\"value\":\"media\",\"label\":\"Media\"},{\"value\":\"links\",\"label\":\"Links\"}]' value=\"all\"></box-category-selector>"
+        },
+        {
+          "name": "With overflow menu",
+          "html": "<box-category-selector label=\"Filter by type\" max-links=\"3\" options='[{\"value\":\"all\",\"label\":\"All\"},{\"value\":\"docs\",\"label\":\"Documents\"},{\"value\":\"media\",\"label\":\"Media\"},{\"value\":\"links\",\"label\":\"Links\"},{\"value\":\"notes\",\"label\":\"Notes\"},{\"value\":\"archived\",\"label\":\"Archived\"}]' value=\"all\"></box-category-selector>"
         }
       ]
     },
@@ -3038,6 +3064,24 @@
           "name": "tone",
           "type": "\"primary\" | \"neutral\" | \"danger\"",
           "description": "Visual emphasis."
+        },
+        {
+          "kind": "attribute",
+          "name": "target",
+          "type": "string",
+          "description": "Anchor target (e.g. _blank); _blank auto-adds a safe rel."
+        },
+        {
+          "kind": "attribute",
+          "name": "rel",
+          "type": "string",
+          "description": "Explicit rel (defaults to noopener noreferrer for _blank)."
+        },
+        {
+          "kind": "slot",
+          "name": "(default)",
+          "type": "slot",
+          "description": "Rich link content, replacing the label text."
         }
       ],
       "variants": [
@@ -3048,6 +3092,10 @@
         {
           "name": "Neutral",
           "html": "<box-link-button label=\"Learn more\" href=\"/docs\" tone=\"neutral\"></box-link-button>"
+        },
+        {
+          "name": "New tab",
+          "html": "<box-link-button label=\"Open the Box API reference\" href=\"https://developer.box.com\" target=\"_blank\"></box-link-button>"
         }
       ]
     },

@@ -1,5 +1,12 @@
 import { BaseElement } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import { boeOverlay, boeRadius } from "../../foundations/geometry/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import {
+  parsePlacement,
+  trackAnchor,
+  type OverlayPlacement,
+} from "../../foundations/overlay/index.js";
 
 const DEFAULT_TAG_NAME = "box-category-selector";
 
@@ -69,6 +76,50 @@ const categorySelectorStyles = `
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     font-size: 0.86rem;
   }
+
+  /* Overflow "More" menu (shown when options exceed max-links). */
+  [part="more-menu"] {
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    z-index: 40;
+    margin: 0;
+    padding: ${boeOverlay.padding};
+    list-style: none;
+    min-inline-size: 10rem;
+    max-block-size: 16rem;
+    overflow-y: auto;
+    border: ${boeOverlay.border};
+    border-radius: ${boeOverlay.radius};
+    background: var(--boe-token-surface-surface, #ffffff);
+    box-shadow: ${boeOverlay.shadow};
+  }
+
+  [part="more-menu"][hidden] {
+    display: none;
+  }
+
+  [part="more-item"] {
+    appearance: none;
+    display: block;
+    inline-size: 100%;
+    text-align: start;
+    border: 0;
+    background: transparent;
+    color: var(--boe-token-text-text, #222222);
+    font: inherit;
+    font-size: 0.84rem;
+    padding: 6px 10px;
+    border-radius: ${boeRadius.med};
+    cursor: pointer;
+  }
+
+  [part="more-item"][aria-checked="true"] {
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+    font-weight: 700;
+  }
+
+  ${boeNeutralInteractiveStyles('[part="more-item"]')}
 `;
 
 /**
@@ -80,13 +131,31 @@ const categorySelectorStyles = `
  */
 export class BoxCategorySelectorElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["label", "options", "value"];
+    return ["label", "options", "value", "max-links"];
   }
 
   private valueInternal = "";
   private lastOptionsJson = "";
   private hadFocus = false;
   private rootEl!: HTMLElement;
+  private moreOpen = false;
+  private positionCleanup: (() => void) | null = null;
+  private readonly onDocumentPointerDown = (event: PointerEvent): void => {
+    if (event.composedPath().includes(this)) {
+      return;
+    }
+    this.closeMore();
+  };
+
+  /** Max inline categories before the rest collapse into a "More" menu (0 = no limit). */
+  get maxLinks(): number {
+    const raw = Number(this.getAttribute("max-links"));
+    return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 0;
+  }
+
+  set maxLinks(value: number) {
+    this.setAttribute("max-links", String(value));
+  }
 
   get label(): string {
     return this.getAttribute("label") ?? "Categories";
@@ -135,6 +204,15 @@ export class BoxCategorySelectorElement extends BaseElement {
 
   private selectableOptions(): CategoryOption[] {
     return this.options.filter(option => !option.disabled);
+  }
+
+  private splitOptions(): { visible: CategoryOption[]; overflow: CategoryOption[] } {
+    const options = this.options;
+    const max = this.maxLinks;
+    if (max <= 0 || options.length <= max) {
+      return { visible: options, overflow: [] };
+    }
+    return { visible: options.slice(0, max), overflow: options.slice(max) };
   }
 
   private select(value: string): void {
@@ -187,11 +265,75 @@ export class BoxCategorySelectorElement extends BaseElement {
     this.rootEl = this.shadowRoot.querySelector('[part="root"]')!;
   }
 
+  private resolvedPlacement(): OverlayPlacement {
+    return parsePlacement(this.getAttribute("placement")) ?? { side: "bottom", align: "end" };
+  }
+
+  private openMore(): void {
+    const moreBtn = this.rootEl.querySelector('[data-more]') as HTMLButtonElement | null;
+    const menu = this.rootEl.querySelector('[part="more-menu"]') as HTMLElement | null;
+    if (!moreBtn || !menu || this.moreOpen) {
+      return;
+    }
+    this.moreOpen = true;
+    menu.hidden = false;
+    moreBtn.setAttribute("aria-expanded", "true");
+    document.addEventListener("pointerdown", this.onDocumentPointerDown);
+    this.positionCleanup = trackAnchor(moreBtn, menu, {
+      placement: this.resolvedPlacement(),
+      offset: 4,
+    });
+    (menu.querySelector('[part="more-item"]') as HTMLElement | null)?.focus();
+  }
+
+  private closeMore(restoreFocus = false): void {
+    if (!this.moreOpen) {
+      return;
+    }
+    this.moreOpen = false;
+    const moreBtn = this.rootEl.querySelector('[data-more]') as HTMLButtonElement | null;
+    const menu = this.rootEl.querySelector('[part="more-menu"]') as HTMLElement | null;
+    if (menu) {
+      menu.hidden = true;
+    }
+    moreBtn?.setAttribute("aria-expanded", "false");
+    document.removeEventListener("pointerdown", this.onDocumentPointerDown);
+    this.positionCleanup?.();
+    this.positionCleanup = null;
+    if (restoreFocus) {
+      moreBtn?.focus();
+    }
+  }
+
+  disconnectedCallback(): void {
+    document.removeEventListener("pointerdown", this.onDocumentPointerDown);
+    this.positionCleanup?.();
+    this.positionCleanup = null;
+    super.disconnectedCallback?.();
+  }
+
   protected setupListeners(): void {
     this.rootEl.addEventListener("click", event => {
-      const button = (event.target as HTMLElement).closest(
-        '[part~="pill"]',
-      ) as HTMLButtonElement | null;
+      const target = event.target as HTMLElement;
+
+      const moreBtn = target.closest('[data-more]') as HTMLButtonElement | null;
+      if (moreBtn && this.rootEl.contains(moreBtn)) {
+        if (this.moreOpen) {
+          this.closeMore();
+        } else {
+          this.openMore();
+        }
+        return;
+      }
+
+      const menuItem = target.closest('[part="more-item"]') as HTMLButtonElement | null;
+      if (menuItem && this.rootEl.contains(menuItem)) {
+        this.select(menuItem.dataset.value ?? "");
+        this.closeMore(true);
+        return;
+      }
+
+      const button = target.closest('[part~="pill"]') as HTMLButtonElement | null;
       if (!button || !this.rootEl.contains(button)) {
         return;
       }
@@ -199,13 +341,43 @@ export class BoxCategorySelectorElement extends BaseElement {
     });
 
     this.rootEl.addEventListener("keydown", event => {
-      const button = (event.target as HTMLElement).closest(
-        '[part~="pill"]',
-      ) as HTMLButtonElement | null;
+      const keyboardEvent = event as KeyboardEvent;
+      const target = event.target as HTMLElement;
+
+      // Menu item keys: Escape closes and returns focus; Arrow moves within.
+      const menuItem = target.closest('[part="more-item"]') as HTMLButtonElement | null;
+      if (menuItem && this.rootEl.contains(menuItem)) {
+        const items = Array.from(
+          this.rootEl.querySelectorAll<HTMLButtonElement>('[part="more-item"]:not(:disabled)'),
+        );
+        const index = items.indexOf(menuItem);
+        if (keyboardEvent.key === "Escape") {
+          keyboardEvent.preventDefault();
+          this.closeMore(true);
+        } else if (keyboardEvent.key === "ArrowDown") {
+          keyboardEvent.preventDefault();
+          items[(index + 1) % items.length]?.focus();
+        } else if (keyboardEvent.key === "ArrowUp") {
+          keyboardEvent.preventDefault();
+          items[(index - 1 + items.length) % items.length]?.focus();
+        }
+        return;
+      }
+
+      const button = target.closest('[part~="pill"]') as HTMLButtonElement | null;
       if (!button || !this.rootEl.contains(button)) {
         return;
       }
-      const keyboardEvent = event as KeyboardEvent;
+
+      // "More" button: open the overflow menu.
+      if (button.dataset.more) {
+        if (["Enter", " ", "ArrowDown"].includes(keyboardEvent.key)) {
+          keyboardEvent.preventDefault();
+          this.openMore();
+        }
+        return;
+      }
+
       const value = button.dataset.value ?? "";
       switch (keyboardEvent.key) {
         case "ArrowRight":
@@ -258,26 +430,45 @@ export class BoxCategorySelectorElement extends BaseElement {
       return;
     }
 
-    const optionsJson = JSON.stringify(options);
-    if (optionsJson !== this.lastOptionsJson || !this.rootEl.querySelector('[part="group"]')) {
-      this.rootEl.innerHTML = `
-        <div part="group" role="radiogroup" aria-label="${escapeHtml(this.label)}">
-          ${options
+    const { visible, overflow } = this.splitOptions();
+    const selectedInOverflow = overflow.some(option => option.value === this.valueInternal);
+    const cacheKey = `${JSON.stringify(options)}|${this.maxLinks}`;
+    if (cacheKey !== this.lastOptionsJson || !this.rootEl.querySelector('[part="group"]')) {
+      const pillMarkup = (option: CategoryOption): string => `
+        <button
+          type="button"
+          part="pill"
+          role="radio"
+          data-value="${escapeHtml(option.value)}"
+          ${option.disabled ? "disabled" : ""}
+        >${escapeHtml(option.label)}</button>
+      `;
+      const moreButton = overflow.length
+        ? `<button type="button" part="pill more" data-more="true" aria-haspopup="menu" aria-expanded="false">More</button>`
+        : "";
+      const moreMenu = overflow.length
+        ? `<ul part="more-menu" role="menu" aria-label="More categories" hidden>${overflow
             .map(
               option => `
-                <button
+                <li role="none"><button
                   type="button"
-                  part="pill"
-                  role="radio"
+                  part="more-item"
+                  role="menuitemradio"
                   data-value="${escapeHtml(option.value)}"
                   ${option.disabled ? "disabled" : ""}
-                >${escapeHtml(option.label)}</button>
+                >${escapeHtml(option.label)}</button></li>
               `,
             )
-            .join("")}
+            .join("")}</ul>`
+        : "";
+      this.rootEl.innerHTML = `
+        <div part="group" role="radiogroup" aria-label="${escapeHtml(this.label)}">
+          ${visible.map(pillMarkup).join("")}
+          ${moreButton}
         </div>
+        ${moreMenu}
       `;
-      this.lastOptionsJson = optionsJson;
+      this.lastOptionsJson = cacheKey;
     }
 
     const group = this.rootEl.querySelector('[part="group"]');
@@ -285,7 +476,7 @@ export class BoxCategorySelectorElement extends BaseElement {
 
     const tabbableValue = this.valueInternal || this.selectableOptions()[0]?.value || "";
 
-    this.rootEl.querySelectorAll('[part~="pill"]').forEach(node => {
+    this.rootEl.querySelectorAll('[part~="pill"]:not([data-more])').forEach(node => {
       const button = node as HTMLButtonElement;
       const optionValue = button.dataset.value ?? "";
       const option = options.find(entry => entry.value === optionValue);
@@ -293,6 +484,24 @@ export class BoxCategorySelectorElement extends BaseElement {
       button.setAttribute("part", isChecked ? "pill pill-checked" : "pill");
       button.setAttribute("aria-checked", String(isChecked));
       button.tabIndex = optionValue === tabbableValue && !option?.disabled ? 0 : -1;
+    });
+
+    // "More" reflects an active overflow selection and shows its label.
+    const moreBtn = this.rootEl.querySelector('[data-more]') as HTMLButtonElement | null;
+    if (moreBtn) {
+      const selectedOption = overflow.find(option => option.value === this.valueInternal);
+      moreBtn.textContent = selectedOption ? selectedOption.label : "More";
+      moreBtn.setAttribute("part", selectedInOverflow ? "pill more pill-checked" : "pill more");
+      moreBtn.setAttribute("aria-expanded", this.moreOpen ? "true" : "false");
+      // Roving tabindex: the More button is the tabbable entry when it holds the
+      // active (overflow) selection; otherwise a visible pill is.
+      moreBtn.tabIndex = selectedInOverflow ? 0 : -1;
+    }
+
+    // Reflect the checked overflow option in the menu.
+    this.rootEl.querySelectorAll('[part="more-item"]').forEach(node => {
+      const button = node as HTMLButtonElement;
+      button.setAttribute("aria-checked", String(button.dataset.value === this.valueInternal));
     });
 
     if (this.hadFocus && this.valueInternal) {

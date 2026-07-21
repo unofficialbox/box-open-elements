@@ -66,4 +66,39 @@ describe("BoxLinkButtonElement", () => {
     expect(hrefOf("/folder/1")).toBe("/folder/1");
     expect(hrefOf("#section")).toBe("#section");
   });
+
+  it("adds a safe rel automatically for target=_blank and honors explicit rel", () => {
+    const element = document.createElement("box-link-button") as BoxLinkButtonElement;
+    element.href = "https://app.box.com";
+    element.target = "_blank";
+    document.body.append(element);
+
+    const link = element.shadowRoot?.querySelector('[part="link"]') as HTMLAnchorElement;
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
+
+    element.rel = "noopener";
+    expect(link.getAttribute("rel")).toBe("noopener");
+
+    element.target = "";
+    expect(link.hasAttribute("target")).toBe(false);
+    // Explicit rel persists even without a target.
+    expect(link.getAttribute("rel")).toBe("noopener");
+  });
+
+  it("renders rich slotted children instead of the label", () => {
+    const element = document.createElement("box-link-button") as BoxLinkButtonElement;
+    element.href = "/docs";
+    element.label = "fallback";
+    const strong = document.createElement("strong");
+    strong.textContent = "Read the docs";
+    element.append(strong);
+    document.body.append(element);
+
+    const link = element.shadowRoot?.querySelector('[part="link"]') as HTMLAnchorElement;
+    const slot = link.querySelector("slot") as HTMLSlotElement;
+    expect(slot.assignedElements()[0]).toBe(strong);
+    // Accessible name comes from the children, not a forced aria-label.
+    expect(link.hasAttribute("aria-label")).toBe(false);
+  });
 });
