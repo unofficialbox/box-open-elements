@@ -83,6 +83,31 @@ const pillSelectorStyles = `
     display: inline-block;
   }
 
+  [part="custom-input"] {
+    flex: 1 1 6rem;
+    min-width: 6rem;
+    appearance: none;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--boe-token-text-text, #222222);
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.3rem 0.2rem;
+  }
+
+  [part="custom-input"][hidden] {
+    display: none;
+  }
+
+  [part="custom-input"][aria-invalid="true"] {
+    color: var(--boe-token-surface-status-surface-error, #ed3757);
+  }
+
+  [part="trigger"][hidden] {
+    display: none;
+  }
+
   [part="trigger"] {
     appearance: none;
     display: inline-flex;
@@ -169,6 +194,8 @@ export class BoxPillSelectorDropdownElement extends FormAssociatedElement {
       "options",
       "placeholder",
       "value",
+      "allow-custom",
+      "pattern",
     ];
   }
 
@@ -211,6 +238,65 @@ export class BoxPillSelectorDropdownElement extends FormAssociatedElement {
 
   set placeholder(value: string) {
     this.setAttribute("placeholder", value);
+  }
+
+  /** Allow creating pills from free-typed text (collaborator / email input). */
+  get allowCustom(): boolean {
+    return this.hasAttribute("allow-custom");
+  }
+
+  set allowCustom(value: boolean) {
+    this.toggleAttribute("allow-custom", Boolean(value));
+  }
+
+  /** Optional regex a custom entry must match (e.g. an email pattern). */
+  get pattern(): string {
+    return this.getAttribute("pattern") ?? "";
+  }
+
+  set pattern(value: string) {
+    if (value) {
+      this.setAttribute("pattern", value);
+    } else {
+      this.removeAttribute("pattern");
+    }
+  }
+
+  private customInputEl: HTMLInputElement | null = null;
+
+  /** A custom entry is valid when non-empty and (if set) matches `pattern`. */
+  private isValidCustom(text: string): boolean {
+    const trimmed = text.trim();
+    if (!trimmed) {
+      return false;
+    }
+    const pattern = this.pattern;
+    if (!pattern) {
+      return true;
+    }
+    try {
+      return new RegExp(`^(?:${pattern})$`).test(trimmed);
+    } catch {
+      return true;
+    }
+  }
+
+  /** Add a validated custom pill; flag the input and emit `invalid-entry` otherwise. */
+  private tryAddCustom(text: string): boolean {
+    const trimmed = text.trim();
+    if (!trimmed) {
+      return false;
+    }
+    if (!this.isValidCustom(trimmed)) {
+      this.customInputEl?.setAttribute("aria-invalid", "true");
+      this.dispatchEvent(
+        new CustomEvent("invalid-entry", { bubbles: true, composed: true, detail: { value: trimmed } }),
+      );
+      return false;
+    }
+    this.customInputEl?.setAttribute("aria-invalid", "false");
+    this.addValue(trimmed);
+    return true;
   }
 
   get options(): PillOption[] {
@@ -404,6 +490,7 @@ export class BoxPillSelectorDropdownElement extends FormAssociatedElement {
       <style>${pillSelectorStyles}</style>
       <div part="field" role="group">
         <span part="pills"></span>
+        <input part="custom-input" type="text" hidden />
         <div part="dropdown">
           <button type="button" part="trigger" aria-haspopup="menu"></button>
         </div>
@@ -412,6 +499,7 @@ export class BoxPillSelectorDropdownElement extends FormAssociatedElement {
     `;
     this.fieldEl = this.shadowRoot.querySelector('[part="field"]')!;
     this.pillsEl = this.shadowRoot.querySelector('[part="pills"]')!;
+    this.customInputEl = this.shadowRoot.querySelector('[part="custom-input"]')!;
     this.dropdownEl = this.shadowRoot.querySelector('[part="dropdown"]')!;
     this.triggerEl = this.shadowRoot.querySelector('[part="trigger"]')!;
     this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
@@ -444,6 +532,43 @@ export class BoxPillSelectorDropdownElement extends FormAssociatedElement {
         return;
       }
       this.removeValue(remove.dataset.value ?? "");
+    });
+
+    // Custom pill entry: Enter/comma commit the typed value; Backspace on an
+    // empty input removes the last pill; paste splits on commas/newlines.
+    this.customInputEl?.addEventListener("keydown", event => {
+      const input = event.target as HTMLInputElement;
+      const key = (event as KeyboardEvent).key;
+      if (key === "Enter" || key === ",") {
+        event.preventDefault();
+        if (this.tryAddCustom(input.value)) {
+          input.value = "";
+        }
+      } else if (key === "Backspace" && input.value === "" && this.valueInternal.length) {
+        event.preventDefault();
+        this.removeValue(this.valueInternal[this.valueInternal.length - 1]);
+      } else {
+        input.setAttribute("aria-invalid", "false");
+      }
+    });
+
+    this.customInputEl?.addEventListener("paste", event => {
+      const text = event.clipboardData?.getData("text") ?? "";
+      if (!/[,\n;]/.test(text)) {
+        return; // single token — let it type normally
+      }
+      event.preventDefault();
+      for (const piece of text.split(/[,\n;]+/)) {
+        this.tryAddCustom(piece);
+      }
+      (event.target as HTMLInputElement).value = "";
+    });
+
+    // Commit a half-typed entry when focus leaves the input.
+    this.customInputEl?.addEventListener("blur", () => {
+      if (this.customInputEl && this.tryAddCustom(this.customInputEl.value)) {
+        this.customInputEl.value = "";
+      }
     });
 
     this.dropdownEl.addEventListener("click", event => {
@@ -499,6 +624,17 @@ export class BoxPillSelectorDropdownElement extends FormAssociatedElement {
     this.fieldEl.setAttribute("aria-label", this.label);
     this.triggerEl.textContent = `+ ${this.placeholder}`;
     this.triggerEl.setAttribute("aria-expanded", String(this.open));
+
+    // Free-text entry input (collaborator / email token input).
+    if (this.customInputEl) {
+      const custom = this.allowCustom;
+      this.customInputEl.hidden = !custom;
+      this.customInputEl.placeholder = this.placeholder;
+      this.customInputEl.setAttribute("aria-label", `${this.label} — type to add`);
+      // With a free-text input, the +Add trigger is only useful when there are
+      // still fixed options to pick; hide it otherwise to keep the field clean.
+      this.triggerEl.hidden = custom && this.availableOptions().length === 0;
+    }
 
     this.pillsEl.innerHTML = this.valueInternal
       .map(
