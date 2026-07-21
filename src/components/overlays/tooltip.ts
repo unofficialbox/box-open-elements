@@ -1,8 +1,15 @@
 import { BaseElement } from "../../core/index.js";
 import { boeRadius } from "../../foundations/geometry/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import {
+  parsePlacement,
+  trackAnchor,
+  type OverlayPlacement,
+} from "../../foundations/overlay/index.js";
 
 const DEFAULT_TAG_NAME = "box-tooltip";
+
+export type TooltipTheme = "default" | "error" | "callout";
 
 const DEFAULT_TRIGGER_LABEL = "More information";
 
@@ -40,13 +47,15 @@ const tooltipStyles = `
 
   ${boeNeutralInteractiveStyles('[part="trigger"]')}
 
+  /* Positioned by JS (foundations/overlay) as position: fixed, so it escapes
+     ancestor overflow and flips/shifts to stay in the viewport. */
   [part="tooltip"] {
-    position: absolute;
-    inset-block-start: calc(100% + 0.5rem);
-    inset-inline-start: 50%;
-    transform: translateX(-50%);
-    z-index: 1;
-    width: min(13.75rem, calc(100vw - 6rem));
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    z-index: 40;
+    width: max-content;
+    max-width: min(18rem, calc(100vw - 2rem));
     padding: 0.5rem 0.65rem;
     border-radius: ${boeRadius.xlarge};
     border: 1px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, rgba(255, 255, 255, 0.08));
@@ -56,6 +65,26 @@ const tooltipStyles = `
     line-height: 1.45;
   }
 
+  /* Error theme — for validation hints. */
+  [part="tooltip"][data-theme="error"] {
+    background: var(--boe-token-surface-status-surface-error, #ed3757);
+    border-color: var(--boe-token-surface-status-surface-error, #ed3757);
+    color: #ffffff;
+  }
+
+  /* Callout theme — light surface for richer, longer content. */
+  [part="tooltip"][data-theme="callout"] {
+    background: var(--boe-token-surface-surface, #ffffff);
+    border-color: var(--boe-token-stroke-stroke, #e8e8e8);
+    color: var(--boe-token-text-text, #222222);
+  }
+
+  [part="tooltip"] ::slotted(img) {
+    max-width: 100%;
+    border-radius: ${boeRadius.med};
+    display: block;
+  }
+
   [part="tooltip"][hidden] {
     display: none;
   }
@@ -63,8 +92,10 @@ const tooltipStyles = `
 
 export class BoxTooltipElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["label", "open", "trigger-label"];
+    return ["label", "open", "trigger-label", "placement", "theme"];
   }
+
+  private positionCleanup: (() => void) | null = null;
 
   private openValue = false;
   private tooltipId = `box-tooltip-${Math.random().toString(36).slice(2, 10)}`;
@@ -72,6 +103,7 @@ export class BoxTooltipElement extends BaseElement {
   private triggerSlot!: HTMLSlotElement;
   private fallbackTriggerEl!: HTMLButtonElement;
   private tooltipEl!: HTMLElement;
+  private labelEl!: HTMLElement;
   private describedTrigger: HTMLElement | null = null;
 
   get label(): string {
@@ -88,6 +120,27 @@ export class BoxTooltipElement extends BaseElement {
 
   set triggerLabel(value: string) {
     this.setAttribute("trigger-label", value);
+  }
+
+  get placement(): string {
+    return this.getAttribute("placement") ?? "bottom-center";
+  }
+
+  set placement(value: string) {
+    this.setAttribute("placement", value);
+  }
+
+  private resolvedPlacement(): OverlayPlacement {
+    return parsePlacement(this.getAttribute("placement")) ?? { side: "bottom", align: "center" };
+  }
+
+  get theme(): TooltipTheme {
+    const value = this.getAttribute("theme");
+    return value === "error" || value === "callout" ? value : "default";
+  }
+
+  set theme(value: TooltipTheme) {
+    this.setAttribute("theme", value);
   }
 
   get open(): boolean {
@@ -157,13 +210,14 @@ export class BoxTooltipElement extends BaseElement {
         <span part="trigger-host">
           <slot><button type="button" part="trigger">?</button></slot>
         </span>
-        <div id="${this.tooltipId}" part="tooltip" role="tooltip" hidden></div>
+        <div id="${this.tooltipId}" part="tooltip" role="tooltip" hidden><span part="label"></span><slot name="content"></slot></div>
       </span>
     `;
     this.triggerHostEl = this.shadowRoot.querySelector('[part="trigger-host"]')!;
-    this.triggerSlot = this.shadowRoot.querySelector("slot")!;
+    this.triggerSlot = this.shadowRoot.querySelector("slot:not([name])")!;
     this.fallbackTriggerEl = this.shadowRoot.querySelector('[part="trigger"]')!;
     this.tooltipEl = this.shadowRoot.querySelector('[part="tooltip"]')!;
+    this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
   }
 
   protected setupListeners(): void {
@@ -202,8 +256,13 @@ export class BoxTooltipElement extends BaseElement {
       return;
     }
 
-    const label = this.label;
-    this.tooltipEl.textContent = label;
+    this.labelEl.textContent = this.label;
+    const theme = this.theme;
+    if (theme === "default") {
+      this.tooltipEl.removeAttribute("data-theme");
+    } else {
+      this.tooltipEl.setAttribute("data-theme", theme);
+    }
     this.tooltipEl.hidden = !this.openValue;
 
     const trigger = this.resolveDescribedTrigger();
@@ -212,10 +271,27 @@ export class BoxTooltipElement extends BaseElement {
     }
 
     this.clearDescribedBy();
+    this.stopTracking();
     if (this.openValue) {
       trigger.setAttribute("aria-describedby", this.tooltipId);
       this.describedTrigger = trigger;
+      // Position as a fixed-coordinate overlay so it escapes ancestor overflow
+      // and flips/shifts to stay on-screen.
+      this.positionCleanup = trackAnchor(this.triggerHostEl, this.tooltipEl, {
+        placement: this.resolvedPlacement(),
+        offset: 8,
+      });
     }
+  }
+
+  private stopTracking(): void {
+    this.positionCleanup?.();
+    this.positionCleanup = null;
+  }
+
+  disconnectedCallback(): void {
+    this.stopTracking();
+    super.disconnectedCallback?.();
   }
 }
 

@@ -218,7 +218,11 @@ export const trackAnchor = (
 ): (() => void) => {
   const reposition = (): void => {
     if (!anchor.isConnected || !floating.isConnected) return;
-    onReposition?.(anchorFloating(anchor, floating, options));
+    // Compute+apply the position first, then notify. Do NOT inline this into
+    // `onReposition?.(anchorFloating(...))`: optional-call short-circuits its
+    // argument when the callback is undefined, so anchorFloating would never run.
+    const result = anchorFloating(anchor, floating, options);
+    onReposition?.(result);
   };
   reposition();
   window.addEventListener("scroll", reposition, true);
