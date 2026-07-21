@@ -8,6 +8,54 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ---
 
+## 0.3.0 — 2026-07-21
+
+Feature release closing the **box-ui-elements coverage audit** (Steps 1–4): a
+behavioural gap analysis of our catalog against `box/box-ui-elements`, then the
+build-out. Additive — no breaking changes.
+
+**Foundations (two force-multipliers)**
+
+- **Viewport-aware overlay positioning** (`foundations/overlay`) — a shared
+  `resolvePosition` / `anchorFloating` / `trackAnchor` primitive with flip,
+  shift, and collision handling, exported for consumers building their own
+  overlays. `popover` moved onto it (12 placements, no more edge-clipping)
+  ([#116](https://github.com/unofficialbox/box-open-elements/pull/116)).
+- **Shared form-field features** — `FormAssociatedElement` gains `required`
+  (indicator + `aria-required`), `description` (help text + `aria-describedby`),
+  and `hideLabel`; applied to text-field, date-field, search-field, and select
+  ([#117](https://github.com/unofficialbox/box-open-elements/pull/117)).
+
+**New components (5)**
+
+- **`box-thumbnail-card`** — rich file/grid card with thumbnail + details slots;
+  optional interactive (keyboard-activated) mode.
+- **`box-badgeable`** — corner-badge wrapper (also closes the avatar badge gap).
+- **`box-breadcrumb`** — file-path trail with overflow-collapse into an ellipsis.
+- **`box-context-menu`** — right-click / Shift+F10 menu, cursor-anchored on the
+  overlay primitive, full keyboard menu.
+- **`box-table`** — semantic, selectable data table: single / Ctrl-click /
+  Shift-range selection, keyboard model, and host-owned sortable headers
+  ([#118](https://github.com/unofficialbox/box-open-elements/pull/118),
+  [#119](https://github.com/unofficialbox/box-open-elements/pull/119),
+  [#120](https://github.com/unofficialbox/box-open-elements/pull/120),
+  [#121](https://github.com/unofficialbox/box-open-elements/pull/121)).
+
+**Component upgrades (5, all backward-compatible)**
+
+- **`box-tabs`** — real tab **panels** (`role=tabpanel`, slotted per option); it
+  was previously only a tab strip.
+- **`box-button`** — `is-loading` spinner, `icon` slot, and `type="submit"|"reset"`
+  (form-associated).
+- **`box-dialog`** — `size` (small/medium/large/fullscreen) + background
+  scroll-lock.
+- **`box-menu`** — item composition: section headers, separators, link items,
+  and checkable items (`menuitemcheckbox`).
+- **`box-pill-selector-dropdown`** — `allow-custom` turns it into a
+  collaborator/email **token input**: type + Enter/comma to add, paste-to-create,
+  and `pattern` validation with `invalid-entry`
+  ([#122](https://github.com/unofficialbox/box-open-elements/pull/122)–[#126](https://github.com/unofficialbox/box-open-elements/pull/126)).
+
 ## 0.2.1 — 2026-07-20
 
 Patch release: responsiveness fixes to two content-explorer pattern components.
