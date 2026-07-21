@@ -172,11 +172,67 @@ export const FORM_ERROR_MESSAGE_ID = "boe-field-error";
 export const formErrorMessageMarkup = (): string =>
   `<p part="error-message" id="${FORM_ERROR_MESSAGE_ID}" role="alert" hidden></p>`;
 
+export const FORM_DESCRIPTION_ID = "boe-field-description";
+
+/** Optional help text rendered under the label (shown only when `description` is set). */
+export const formDescriptionMarkup = (): string =>
+  `<p part="description" id="${FORM_DESCRIPTION_ID}" hidden></p>`;
+
+/**
+ * Shared chrome for the field-feature set: help-text `description`, the
+ * `required` indicator, and the visually-hidden `hide-label` treatment.
+ * Include alongside `boeFormFieldErrorStyles` in a field's stylesheet.
+ */
+export const boeFormFieldSupportStyles = `
+  [part="description"] {
+    margin: 0;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+
+  [part="description"][hidden] {
+    display: none;
+  }
+
+  [part="label"] .boe-required-mark {
+    margin-inline-start: 2px;
+    color: var(--boe-token-surface-status-surface-error, #ed3757);
+  }
+
+  :host([hide-label]) [part="label"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+`;
+
 export abstract class FormAssociatedElement extends BaseElement {
   static formAssociated = true;
 
   /** Attributes every form control should observe (merge into subclass lists). */
   static readonly formObservedAttributes = ["name", "invalid", "error-message"] as const;
+
+  /**
+   * `formObservedAttributes` plus the shared field-feature attributes
+   * (`required`, `description`, `hide-label`). A field that renders a label +
+   * `formDescriptionMarkup()` and calls `applyFieldSupport()` should observe
+   * these instead.
+   */
+  static readonly fieldObservedAttributes = [
+    "name",
+    "invalid",
+    "error-message",
+    "required",
+    "description",
+    "hide-label",
+  ] as const;
 
   /** ElementInternals for form association (public for tests / advanced hosts). */
   readonly internals: ElementInternals;
@@ -218,6 +274,36 @@ export abstract class FormAssociatedElement extends BaseElement {
     } else {
       this.removeAttribute("error-message");
     }
+  }
+
+  get required(): boolean {
+    return this.hasAttribute("required");
+  }
+
+  set required(value: boolean) {
+    this.toggleAttribute("required", Boolean(value));
+  }
+
+  /** Help text rendered under the label (empty string hides it). */
+  get description(): string {
+    return this.getAttribute("description") ?? "";
+  }
+
+  set description(value: string) {
+    if (value) {
+      this.setAttribute("description", value);
+    } else {
+      this.removeAttribute("description");
+    }
+  }
+
+  /** Keep the label for assistive tech but hide it visually. */
+  get hideLabel(): boolean {
+    return this.hasAttribute("hide-label");
+  }
+
+  set hideLabel(value: boolean) {
+    this.toggleAttribute("hide-label", Boolean(value));
   }
 
   /** Value reported to the owning form (`null` omits the control). */
@@ -289,5 +375,49 @@ export abstract class FormAssociatedElement extends BaseElement {
     }
 
     this.syncFormAssociation();
+  }
+
+  /**
+   * Apply the shared field features to a rendered field: the `required`
+   * indicator + `aria-required` on the control, the `description` help text +
+   * `aria-describedby`, and the `hide-label` visually-hidden treatment (handled
+   * in CSS via `:host([hide-label])`). Call after setting the label's text
+   * content each update, since setting `textContent` clears the appended mark.
+   */
+  protected applyFieldSupport(
+    labelEl: HTMLElement | null | undefined,
+    control: HTMLElement | null | undefined,
+    descriptionEl: HTMLElement | null | undefined,
+  ): void {
+    const required = this.required;
+    const description = this.description;
+
+    if (labelEl) {
+      const existing = labelEl.querySelector(".boe-required-mark");
+      if (required && !existing) {
+        const mark = document.createElement("span");
+        mark.className = "boe-required-mark";
+        mark.setAttribute("aria-hidden", "true");
+        mark.textContent = "*";
+        labelEl.append(mark);
+      } else if (!required && existing) {
+        existing.remove();
+      }
+    }
+
+    if (control) {
+      control.toggleAttribute("required", required);
+      control.setAttribute("aria-required", String(required));
+      if (description) {
+        control.setAttribute("aria-describedby", FORM_DESCRIPTION_ID);
+      } else {
+        control.removeAttribute("aria-describedby");
+      }
+    }
+
+    if (descriptionEl) {
+      descriptionEl.textContent = description;
+      descriptionEl.hidden = description.length === 0;
+    }
   }
 }

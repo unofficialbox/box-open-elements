@@ -1,6 +1,8 @@
 import {
   FormAssociatedElement,
   boeFormFieldErrorStyles,
+  boeFormFieldSupportStyles,
+  formDescriptionMarkup,
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
@@ -41,12 +43,13 @@ const textFieldStyles = `
   }
 
   ${boeFormFieldErrorStyles}
+  ${boeFormFieldSupportStyles}
 `;
 
 export class BoxTextFieldElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
     return [
-      ...FormAssociatedElement.formObservedAttributes,
+      ...FormAssociatedElement.fieldObservedAttributes,
       "disabled",
       "label",
       "placeholder",
@@ -57,6 +60,7 @@ export class BoxTextFieldElement extends FormAssociatedElement {
   private valueInternal = "";
   private inputEl!: HTMLInputElement;
   private labelEl!: HTMLElement;
+  private descriptionEl!: HTMLElement;
   private errorEl!: HTMLElement;
 
   get value(): string {
@@ -124,11 +128,13 @@ export class BoxTextFieldElement extends FormAssociatedElement {
       <style>${textFieldStyles}</style>
       <label part="field">
         <span part="label"></span>
+        ${formDescriptionMarkup()}
         <input type="text" part="input" />
         ${formErrorMessageMarkup()}
       </label>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.descriptionEl = this.shadowRoot.querySelector('[part="description"]')!;
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
     this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
@@ -167,6 +173,8 @@ export class BoxTextFieldElement extends FormAssociatedElement {
       this.inputEl.removeAttribute("disabled");
     }
 
+    // After the label text is (re)set, since it clears the required mark.
+    this.applyFieldSupport(this.labelEl, this.inputEl, this.descriptionEl);
     this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }
