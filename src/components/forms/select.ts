@@ -2,13 +2,22 @@ import {
   FormAssociatedElement,
   boeFormFieldErrorStyles,
   boeFormFieldSupportStyles,
+  formDataFromNamedValues,
   formDescriptionMarkup,
   formErrorMessageMarkup,
+  stringValuesFromFormValue,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
 import { boeControl, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-select";
+
+type SelectOption = {
+  label: string;
+  value: string;
+  disabled?: boolean;
+  group?: string;
+};
 
 const escapeHtml = (value: string): string =>
   value
@@ -74,6 +83,20 @@ const selectStyles = `
     cursor: not-allowed;
   }
 
+  /* Multi-select renders as a native list box: drop the single-select chevron
+     and fixed height, let it show several rows. */
+  [part="select"][multiple] {
+    min-height: auto;
+    padding: 4px;
+    background-image: none;
+    cursor: default;
+  }
+
+  [part="select"][multiple] option {
+    padding: 3px 6px;
+    border-radius: ${boeRadius.size};
+  }
+
   ${boeFormFieldErrorStyles}
   ${boeFormFieldSupportStyles}
 `;
@@ -84,16 +107,27 @@ export class BoxSelectElement extends FormAssociatedElement {
       ...FormAssociatedElement.fieldObservedAttributes,
       "disabled",
       "label",
+      "multiple",
       "options",
       "value",
     ];
   }
 
   private valueInternal = "";
+  private valuesInternal: string[] = [];
   private selectEl!: HTMLSelectElement;
   private labelEl!: HTMLElement;
   private descriptionEl!: HTMLElement;
   private errorEl!: HTMLElement;
+
+  /** Allow selecting several options (native multi-select list box). */
+  get multiple(): boolean {
+    return this.hasAttribute("multiple");
+  }
+
+  set multiple(value: boolean) {
+    this.toggleAttribute("multiple", Boolean(value));
+  }
 
   get value(): string {
     return this.valueInternal;
@@ -101,7 +135,23 @@ export class BoxSelectElement extends FormAssociatedElement {
 
   set value(nextValue: string) {
     this.valueInternal = nextValue;
+    this.valuesInternal = nextValue ? [nextValue] : [];
     this.setAttribute("value", nextValue);
+    if (this.isRendered) {
+      this.update();
+    }
+  }
+
+  /** Selected values (canonical when `multiple`; single-element otherwise). */
+  get values(): string[] {
+    return [...this.valuesInternal];
+  }
+
+  set values(next: string[]) {
+    this.valuesInternal = Array.isArray(next) ? [...next] : [];
+    this.valueInternal = this.valuesInternal[0] ?? "";
+    this.setAttribute("value", this.valueInternal);
+    this.syncFormAssociation();
     if (this.isRendered) {
       this.update();
     }
@@ -127,39 +177,52 @@ export class BoxSelectElement extends FormAssociatedElement {
     this.setAttribute("label", value);
   }
 
-  get options(): Array<{ label: string; value: string }> {
+  get options(): SelectOption[] {
     const raw = this.getAttribute("options");
     if (!raw) {
       return [];
     }
 
     try {
-      const parsed = JSON.parse(raw) as Array<{ label: string; value: string }>;
+      const parsed = JSON.parse(raw) as SelectOption[];
       return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
     }
   }
 
-  set options(value: Array<{ label: string; value: string }>) {
+  set options(value: SelectOption[]) {
     this.setAttribute("options", JSON.stringify(value));
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
       this.valueInternal = this.getAttribute("value") ?? "";
+      if (!this.multiple) {
+        this.valuesInternal = this.valueInternal ? [this.valueInternal] : [];
+      }
     }
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
   protected getFormValue(): FormValue {
+    if (this.multiple) {
+      return formDataFromNamedValues(this.name, this.valuesInternal);
+    }
     return this.valueInternal;
   }
 
   protected restoreFormValue(value: FormValue): void {
-    const next = typeof value === "string" ? value : "";
-    this.valueInternal = next;
-    this.setAttribute("value", next);
+    if (this.multiple) {
+      this.valuesInternal = stringValuesFromFormValue(value, this.name);
+      this.valueInternal = this.valuesInternal[0] ?? "";
+      this.setAttribute("value", this.valueInternal);
+    } else {
+      const next = typeof value === "string" ? value : "";
+      this.valueInternal = next;
+      this.valuesInternal = next ? [next] : [];
+      this.setAttribute("value", next);
+    }
     if (this.isRendered) {
       this.update();
     }
@@ -187,18 +250,52 @@ export class BoxSelectElement extends FormAssociatedElement {
 
   protected setupListeners(): void {
     this.selectEl.addEventListener("change", event => {
-      const nextValue = (event.currentTarget as HTMLSelectElement).value;
-      this.valueInternal = nextValue;
-      this.setAttribute("value", nextValue);
+      const select = event.currentTarget as HTMLSelectElement;
+      if (this.multiple) {
+        this.valuesInternal = Array.from(select.selectedOptions).map(option => option.value);
+        this.valueInternal = this.valuesInternal[0] ?? "";
+      } else {
+        this.valueInternal = select.value;
+        this.valuesInternal = this.valueInternal ? [this.valueInternal] : [];
+      }
+      this.setAttribute("value", this.valueInternal);
       this.syncFormAssociation();
       this.dispatchEvent(
         new CustomEvent("value-changed", {
           bubbles: true,
           composed: true,
-          detail: { value: nextValue },
+          detail: this.multiple
+            ? { value: this.valueInternal, values: this.values }
+            : { value: this.valueInternal },
         }),
       );
     });
+  }
+
+  /** Build `<option>`/`<optgroup>` markup, grouping options that carry `group`. */
+  private optionsMarkup(): string {
+    const renderOption = (option: SelectOption): string =>
+      `<option value="${escapeHtml(option.value)}"${option.disabled ? " disabled" : ""}>${escapeHtml(option.label)}</option>`;
+
+    const options = this.options;
+    let markup = "";
+    let index = 0;
+    while (index < options.length) {
+      const group = options[index].group;
+      if (!group) {
+        markup += renderOption(options[index]);
+        index += 1;
+        continue;
+      }
+      // Consume the contiguous run sharing this group label into one optgroup.
+      let run = "";
+      while (index < options.length && options[index].group === group) {
+        run += renderOption(options[index]);
+        index += 1;
+      }
+      markup += `<optgroup label="${escapeHtml(group)}">${run}</optgroup>`;
+    }
+    return markup;
   }
 
   protected update(): void {
@@ -208,16 +305,19 @@ export class BoxSelectElement extends FormAssociatedElement {
 
     this.labelEl.textContent = this.label;
 
-    // Rebuild options (the list itself may change)
-    this.selectEl.innerHTML = this.options
-      .map(
-        option =>
-          `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>`,
-      )
-      .join("");
+    // Rebuild options (the list itself may change), grouping by `group`.
+    this.selectEl.multiple = this.multiple;
+    this.selectEl.innerHTML = this.optionsMarkup();
 
-    // Patch selected value and disabled after rebuilding options
-    this.selectEl.value = this.valueInternal;
+    // Patch selected value(s) and disabled after rebuilding options.
+    if (this.multiple) {
+      const selected = new Set(this.valuesInternal);
+      Array.from(this.selectEl.options).forEach(option => {
+        option.selected = selected.has(option.value);
+      });
+    } else {
+      this.selectEl.value = this.valueInternal;
+    }
     if (this.disabled) {
       this.selectEl.setAttribute("disabled", "");
     } else {
