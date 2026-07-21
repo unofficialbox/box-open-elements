@@ -11,12 +11,14 @@ const checkbox: StoryModule = {
     referenceRows: [
       { kind: "attribute", name: "label", type: "string", description: "Checkbox label." },
       { kind: "attribute", name: "checked", type: "boolean", description: "Selected state." },
+      { kind: "attribute", name: "description", type: "string", description: "Supporting subsection text shown below the label." },
       { kind: "attribute", name: "disabled", type: "boolean", description: "Renders the checkbox inert." },
     ],
   },
   variants: [
     { name: "Checked", html: `<box-checkbox label="Enable shared links" checked></box-checkbox>` },
     { name: "Unchecked", html: `<box-checkbox label="Require password"></box-checkbox>` },
+    { name: "With description", html: `<box-checkbox label="Email notifications" checked description="Get an email when someone comments on your files."></box-checkbox>` },
     { name: "Disabled", html: `<box-checkbox label="Managed by admin" checked disabled></box-checkbox>` },
   ],
 };
