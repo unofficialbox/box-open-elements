@@ -1,6 +1,14 @@
+<p align="center">
+  <a href="https://unofficialbox.github.io/box-open-elements">
+    <img src="https://raw.githubusercontent.com/unofficialbox/box-open-elements/main/assets/banner.svg" alt="Box Open Elements — framework-agnostic Web Components that track Box's design language" width="100%">
+  </a>
+</p>
+
 # box-open-elements
 
 `box-open-elements` is an open, framework-agnostic design system and web component library for Box-style experiences.
+
+> **Community project — not affiliated with, authorized, or endorsed by Box, Inc.** “Box” is a trademark of Box, Inc. This library tracks Box’s public design language for interoperability; it ships no Box code.
 
 It is a ground-up rebuild of [`box-open-web-components`](https://github.com/unofficialbox/box-open-web-components), carrying forward that repo's validated architecture, docs, and research — without its accumulated baggage — under a new industry-standard taxonomy:
 
@@ -17,6 +25,16 @@ The guiding idea is unchanged: predictable, extensible building blocks that are 
 - standard DOM events where a UI layer needs them
 - accessibility semantics and keyboard support as part of the component contract
 - injected transport contracts instead of SDK coupling
+
+## Preview
+
+[![The box-open-elements documentation site](https://raw.githubusercontent.com/unofficialbox/box-open-elements/main/docs/screenshots/docs-site/home.png)](https://unofficialbox.github.io/box-open-elements)
+
+The **[live docs site](https://unofficialbox.github.io/box-open-elements)** browses the full catalog with live previews, an events/properties inspector, per-framework code snippets (React / Angular / Vue / Svelte / HTML), and the foundations pages.
+
+Components track Box’s design language out of the box — tokens-driven, light and dark, keyboard-accessible:
+
+![A selection of form components — text field, search, select, checkboxes, radios, and a pill-selector dropdown](https://raw.githubusercontent.com/unofficialbox/box-open-elements/main/docs/screenshots/gallery/forms.png)
 
 ## Setup
 
@@ -50,7 +68,7 @@ Full catalog parity with the reference repo, plus every scoped gap the research 
 - `src/foundations/motion` — shared duration/easing vocabulary and reduced-motion CSS helper
 - `src/foundations/icons` — the generated Box iconography manifest and alias layer
 - `tools/style-bridge` — CSS/SCSS → BOE token/selector bridge (`bun run style-bridge`; BUE explorer: `bun run style-bridge:bue-explorer`)
-- `src/components` — 72 components across all ten categories, including the Phase 5 gap fills (`box-chip`, `box-divider`, `box-calendar`, `box-tag-input`, `box-nav-sidebar`, `box-sidebar-toggle-button`, `box-grid-view`, `box-fieldset`, `box-section`, `box-error-mask`, `box-draggable-list`, `box-nudge`, `box-pill-cloud`, `box-pill-selector-dropdown`, `box-datalist-item`, `box-contact-datalist-item`, `box-category-selector`)
+- `src/components` — 78 components across all ten categories, including the Phase 5 gap fills (`box-chip`, `box-divider`, `box-calendar`, `box-tag-input`, `box-nav-sidebar`, `box-sidebar-toggle-button`, `box-grid-view`, `box-fieldset`, `box-section`, `box-error-mask`, `box-draggable-list`, `box-nudge`, `box-pill-cloud`, `box-pill-selector-dropdown`, `box-datalist-item`, `box-contact-datalist-item`, `box-category-selector`)
 - `src/patterns/content-explorer` — the full headless explorer stack (collection, navigation, selection, actions, facade controller, data-source contracts, Box transport, wire schemas) plus the `box-explorer-*` presentation adapters and the composed `box-content-explorer` surface
 - `src/patterns/{search,item,metadata,share,preview,file-request,task,governance,insights}` — all nine composition/workflow areas, including contracts and wire schemas for metadata and share, the provider-neutral preview adapter stack, the pluggable `box-preview-element`, and the share workflows (`box-presence`, `box-invite-collaborators-modal`, `box-unified-share-modal`, `box-access-stats`, `box-collaborator-avatars`)
 - `packages/box-server` — a dependency-free server-side adapter: CCG auth + REST client, Box-backed explorer/share/metadata data sources, DTO mappers, and framework-neutral route handlers (see [docs/integration/box-server.md](./docs/integration/box-server.md))
