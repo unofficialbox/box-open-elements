@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" role="img" aria-label="Box Open Elements — framework-agnostic Web Components that track Box's design language">
+  <defs>
+    <pattern id="boe-dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.5" fill="#16233a"/>
+    </pattern>
+  </defs>
+
+  <!-- ground -->
+  <rect width="1200" height="300" fill="#0b1a2f"/>
+  <rect width="1200" height="300" fill="url(#boe-dots)"/>
+  <rect width="1200" height="6" fill="#0061d5"/>
+
+  <!-- brand mark echo (matches the docs-site "B/") -->
+  <text x="1142" y="206" text-anchor="end" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="800" font-size="150" letter-spacing="-4" fill="#fffefa">B<tspan fill="#0061d5">/</tspan></text>
+
+  <!-- kicker -->
+  <text x="66" y="90" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="15" font-weight="700" letter-spacing="2" fill="#5c9df2">COMMUNITY-BUILT · OPEN SOURCE · WEB COMPONENTS</text>
+
+  <!-- title -->
+  <g font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="800" letter-spacing="-1" fill="#fffefa">
+    <text x="64" y="172" font-size="66">BOX OPEN</text>
+    <text x="64" y="236" font-size="66">ELEMENTS<tspan fill="#ff6658">.</tspan></text>
+  </g>
+
+  <!-- subtitle -->
+  <text x="66" y="277" font-family="Georgia, 'Times New Roman', serif" font-size="18" fill="#9fb0c6">Web Components that track Box&#8217;s design language. React, Angular, Vue, Svelte, or plain HTML. No lock-in. &#129304;</text>
+</svg>
