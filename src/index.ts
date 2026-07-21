@@ -61,6 +61,7 @@ export * from "./components/collections/datalist-item.js";
 export * from "./components/collections/draggable-list.js";
 export * from "./components/collections/grid-view.js";
 export * from "./components/collections/pagination.js";
+export * from "./components/collections/table.js";
 export * from "./components/collections/thumbnail-card.js";
 export * from "./components/collections/tree.js";
 export * from "./components/collections/tree-grid.js";
