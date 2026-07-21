@@ -1642,14 +1642,14 @@
       "title": "Components/Overlays/Dialog",
       "category": "Overlays",
       "shortDescription": "A modal dialog for confirmations and focused tasks.",
-      "docsDescription": "Toggle with `open`. Provide `heading` and optional `description` / `confirm-label` for the primary action.",
+      "docsDescription": "Toggle with `open`. Provide `heading` and optional `description` / `confirm-label` for the primary action. `size` picks the modal width (small / medium / large / fullscreen), and opening locks background page scroll.",
       "sourceSnippet": "<box-dialog open heading=\"Delete item?\" description=\"This cannot be undone.\" confirm-label=\"Delete\"></box-dialog>",
       "referenceRows": [
         {
           "kind": "attribute",
           "name": "open",
           "type": "boolean",
-          "description": "Whether the dialog is shown."
+          "description": "Whether the dialog is shown (locks page scroll while open)."
         },
         {
           "kind": "attribute",
@@ -1668,6 +1668,12 @@
           "name": "confirm-label",
           "type": "string",
           "description": "Primary action label."
+        },
+        {
+          "kind": "attribute",
+          "name": "size",
+          "type": "\"small\" | \"medium\" | \"large\" | \"fullscreen\"",
+          "description": "Modal width; default medium."
         }
       ],
       "variants": [
