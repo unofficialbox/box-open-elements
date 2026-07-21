@@ -8,6 +8,8 @@ import annotationToolbar from "./stories/annotation-toolbar.stories.js";
 import appShell from "./stories/app-shell.stories.js";
 import avatar from "./stories/avatar.stories.js";
 import badge from "./stories/badge.stories.js";
+import badgeable from "./stories/badgeable.stories.js";
+import thumbnailCard from "./stories/thumbnail-card.stories.js";
 import barChart from "./stories/bar-chart.stories.js";
 import bulkActionBar from "./stories/bulk-action-bar.stories.js";
 import buttonGroup from "./stories/button-group.stories.js";
@@ -124,6 +126,8 @@ export const storyModules: StoryModule[] = [
   appShell,
   avatar,
   badge,
+  badgeable,
+  thumbnailCard,
   barChart,
   bulkActionBar,
   buttonGroup,

@@ -61,12 +61,14 @@ export * from "./components/collections/datalist-item.js";
 export * from "./components/collections/draggable-list.js";
 export * from "./components/collections/grid-view.js";
 export * from "./components/collections/pagination.js";
+export * from "./components/collections/thumbnail-card.js";
 export * from "./components/collections/tree.js";
 export * from "./components/collections/tree-grid.js";
 
 // Components: feedback
 export * from "./components/feedback/alert.js";
 export * from "./components/feedback/badge.js";
+export * from "./components/feedback/badgeable.js";
 export * from "./components/feedback/chip.js";
 export * from "./components/feedback/empty-state.js";
 export * from "./components/feedback/error-mask.js";
