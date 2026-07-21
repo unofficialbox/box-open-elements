@@ -9,6 +9,7 @@ import appShell from "./stories/app-shell.stories.js";
 import avatar from "./stories/avatar.stories.js";
 import badge from "./stories/badge.stories.js";
 import badgeable from "./stories/badgeable.stories.js";
+import breadcrumb from "./stories/breadcrumb.stories.js";
 import thumbnailCard from "./stories/thumbnail-card.stories.js";
 import barChart from "./stories/bar-chart.stories.js";
 import bulkActionBar from "./stories/bulk-action-bar.stories.js";
@@ -127,6 +128,7 @@ export const storyModules: StoryModule[] = [
   avatar,
   badge,
   badgeable,
+  breadcrumb,
   thumbnailCard,
   barChart,
   bulkActionBar,

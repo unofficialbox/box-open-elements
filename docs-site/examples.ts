@@ -500,6 +500,18 @@ export const examples: Record<string, ComponentExample> = {
       value: "props",
     }),
   },
+  breadcrumb: {
+    html: `<box-breadcrumb label="File path"></box-breadcrumb>`,
+    setup: root => set(root, "box-breadcrumb", {
+      items: [
+        { label: "All Files", value: "0" },
+        { label: "Marketing", value: "42" },
+        { label: "Brand", value: "77" },
+        { label: "2026", value: "88" },
+        { label: "Quarterly Plan.pdf", value: "123" },
+      ],
+    }),
+  },
   tabs: {
     html: `<box-tabs label="Views" layout="attached"></box-tabs>`,
     setup: root => set(root, "box-tabs", {

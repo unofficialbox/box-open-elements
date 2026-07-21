@@ -90,6 +90,7 @@ export * from "./components/identity/persona.js";
 
 // Components: navigation
 export * from "./components/navigation/accordion.js";
+export * from "./components/navigation/breadcrumb.js";
 export * from "./components/navigation/tabs.js";
 
 // Components: visuals
