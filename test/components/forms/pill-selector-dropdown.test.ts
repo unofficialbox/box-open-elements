@@ -185,4 +185,75 @@ describe("BoxPillSelectorDropdownElement", () => {
     expect(trigger(element).getAttribute("aria-expanded")).toBe("false");
     expect((element.shadowRoot?.activeElement as HTMLElement)?.getAttribute("part")).toBe("trigger");
   });
+
+  const makeCustom = (attrs: Record<string, string> = {}): BoxPillSelectorDropdownElement => {
+    const el = document.createElement("box-pill-selector-dropdown") as BoxPillSelectorDropdownElement;
+    el.setAttribute("allow-custom", "");
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+    document.body.append(el);
+    return el;
+  };
+
+  const input = (el: BoxPillSelectorDropdownElement): HTMLInputElement =>
+    el.shadowRoot?.querySelector('[part="custom-input"]') as HTMLInputElement;
+
+  const typeAndKey = (el: BoxPillSelectorDropdownElement, text: string, key: string): void => {
+    const i = input(el);
+    i.value = text;
+    i.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
+  };
+
+  it("shows the text input only when allow-custom is set", () => {
+    const el = makeCustom();
+    expect(input(el).hidden).toBe(false);
+  });
+
+  it("creates a custom pill on Enter and clears the input", () => {
+    const el = makeCustom();
+    const changed = vi.fn();
+    el.addEventListener("value-changed", changed);
+    typeAndKey(el, "morgan@box.com", "Enter");
+    expect(el.value).toEqual(["morgan@box.com"]);
+    expect(input(el).value).toBe("");
+    expect(changed).toHaveBeenCalledTimes(1);
+  });
+
+  it("creates a pill on comma", () => {
+    const el = makeCustom();
+    typeAndKey(el, "alex@box.com", ",");
+    expect(el.value).toEqual(["alex@box.com"]);
+  });
+
+  it("validates against pattern and rejects invalid entries", () => {
+    const el = makeCustom({ pattern: "[^@\\s]+@[^@\\s]+\\.[^@\\s]+" });
+    const invalid = vi.fn();
+    el.addEventListener("invalid-entry", invalid);
+    typeAndKey(el, "not-an-email", "Enter");
+    expect(el.value).toEqual([]);
+    expect(invalid).toHaveBeenCalledTimes(1);
+    expect(input(el).getAttribute("aria-invalid")).toBe("true");
+
+    typeAndKey(el, "ok@box.com", "Enter");
+    expect(el.value).toEqual(["ok@box.com"]);
+  });
+
+  it("splits a pasted list into multiple pills", () => {
+    const el = makeCustom();
+    const i = input(el);
+    // jsdom lacks DataTransfer; stub the clipboardData the handler reads.
+    const evt = new Event("paste", { bubbles: true, cancelable: true });
+    Object.defineProperty(evt, "clipboardData", {
+      value: { getData: () => "a@box.com, b@box.com\nc@box.com" },
+    });
+    i.dispatchEvent(evt);
+    expect(new Set(el.value)).toEqual(new Set(["a@box.com", "b@box.com", "c@box.com"]));
+  });
+
+  it("removes the last pill on Backspace in an empty input", () => {
+    const el = makeCustom();
+    el.value = ["a@box.com", "b@box.com"];
+    typeAndKey(el, "", "Backspace");
+    expect(el.value).toEqual(["a@box.com"]);
+  });
+
 });
