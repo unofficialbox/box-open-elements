@@ -435,6 +435,126 @@
       ]
     },
     {
+      "id": "badgeable",
+      "tag": "box-badgeable",
+      "title": "Components/Feedback/Badgeable",
+      "category": "Feedback",
+      "shortDescription": "Overlays badges on the corners of its content.",
+      "docsDescription": "A wrapper that pins badges to the corners of its subject. The subject goes in the default slot; each corner is a named slot: `top-left`, `top-right`, `bottom-left`, `bottom-right`. Corners with no content are hidden.",
+      "sourceSnippet": "<box-badgeable>\n  <box-avatar name=\"Morgan Lee\" size=\"48\"></box-avatar>\n  <box-badge slot=\"bottom-right\" label=\"3\" tone=\"brand\"></box-badge>\n</box-badgeable>",
+      "referenceRows": [
+        {
+          "kind": "slot",
+          "name": "(default)",
+          "type": "slot",
+          "description": "The badged subject (avatar, thumbnail, icon…)."
+        },
+        {
+          "kind": "slot",
+          "name": "top-left",
+          "type": "slot",
+          "description": "Badge pinned to the top-left corner."
+        },
+        {
+          "kind": "slot",
+          "name": "top-right",
+          "type": "slot",
+          "description": "Badge pinned to the top-right corner."
+        },
+        {
+          "kind": "slot",
+          "name": "bottom-left",
+          "type": "slot",
+          "description": "Badge pinned to the bottom-left corner."
+        },
+        {
+          "kind": "slot",
+          "name": "bottom-right",
+          "type": "slot",
+          "description": "Badge pinned to the bottom-right corner."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Count badge",
+          "html": "<box-badgeable>\n  <box-avatar name=\"Morgan Lee\" size=\"48\"></box-avatar>\n  <box-badge slot=\"bottom-right\" label=\"3\" tone=\"brand\"></box-badge>\n</box-badgeable>"
+        },
+        {
+          "name": "Status dot",
+          "html": "<box-badgeable>\n  <box-avatar name=\"Alex Kim\" size=\"48\"></box-avatar>\n  <box-badge slot=\"top-right\" label=\"●\" tone=\"success\"></box-badge>\n</box-badgeable>"
+        }
+      ]
+    },
+    {
+      "id": "thumbnail-card",
+      "tag": "box-thumbnail-card",
+      "title": "Components/Collections/Thumbnail Card",
+      "category": "Collections",
+      "shortDescription": "A rich file/grid card with a thumbnail and details.",
+      "docsDescription": "A gallery card: a thumbnail slot above a details row (title, subtitle, optional icon and action). Set `interactive` to make the whole card a keyboard-activated button that emits `activate`.",
+      "sourceSnippet": "<box-thumbnail-card title=\"Quarterly Plan.pdf\" subtitle=\"PDF · 2.4 MB\" interactive><div slot=\"thumbnail\" style=\"width:100%;height:100%;display:grid;place-items:center;font-size:32px\">📄</div></box-thumbnail-card>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "title",
+          "type": "string",
+          "description": "Card title (also the accessible name when interactive)."
+        },
+        {
+          "kind": "attribute",
+          "name": "subtitle",
+          "type": "string",
+          "description": "Secondary line under the title."
+        },
+        {
+          "kind": "attribute",
+          "name": "interactive",
+          "type": "boolean",
+          "description": "Make the card a focusable button that emits `activate`."
+        },
+        {
+          "kind": "attribute",
+          "name": "highlight-on-hover",
+          "type": "boolean",
+          "description": "Raise a hover shadow without making it a button."
+        },
+        {
+          "kind": "slot",
+          "name": "thumbnail",
+          "type": "slot",
+          "description": "The visual (image or icon) shown at the top."
+        },
+        {
+          "kind": "slot",
+          "name": "icon",
+          "type": "slot",
+          "description": "Small leading icon in the details row."
+        },
+        {
+          "kind": "slot",
+          "name": "action",
+          "type": "slot",
+          "description": "Trailing action (e.g. an overflow menu button)."
+        },
+        {
+          "kind": "event",
+          "name": "activate",
+          "type": "CustomEvent",
+          "description": "Fires on click/Enter/Space when interactive."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Interactive",
+          "html": "<box-thumbnail-card title=\"Quarterly Plan.pdf\" subtitle=\"PDF · 2.4 MB\" interactive style=\"width:220px\"><div slot=\"thumbnail\" style=\"width:100%;height:100%;display:grid;place-items:center;font-size:32px\">📄</div></box-thumbnail-card>"
+        },
+        {
+          "name": "Static",
+          "html": "<box-thumbnail-card title=\"Brand Guidelines.pdf\" subtitle=\"PDF · 5.1 MB\" highlight-on-hover style=\"width:220px\"><div slot=\"thumbnail\" style=\"width:100%;height:100%;display:grid;place-items:center;font-size:32px\">📄</div></box-thumbnail-card>"
+        }
+      ]
+    },
+    {
       "id": "bar-chart",
       "tag": "box-bar-chart",
       "title": "Patterns/Insights/Bar Chart",

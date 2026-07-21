@@ -105,6 +105,9 @@ export const examples: Record<string, ComponentExample> = {
     }),
   },
   card: { html: `<box-card eyebrow="PDF · 2.4 MB" heading="Quarterly Plan.pdf">Updated 2 hours ago by Morgan Lee</box-card>` },
+  "thumbnail-card": {
+    html: `<box-thumbnail-card title="Quarterly Plan.pdf" subtitle="PDF · 2.4 MB" interactive style="width: 220px">\n  <div slot="thumbnail" style="width:100%;height:100%;display:grid;place-items:center;font-size:32px">📄</div>\n</box-thumbnail-card>`,
+  },
   carousel: {
     html: `<box-carousel label="Featured"></box-carousel>`,
     setup: root => set(root, "box-carousel", {
@@ -174,6 +177,9 @@ export const examples: Record<string, ComponentExample> = {
   },
   alert: { html: `<box-alert heading="Upload complete" message="24 files were added to Marketing." tone="success"></box-alert>` },
   badge: { html: `<box-badge label="Beta"></box-badge>\n<box-badge label="Error" tone="error"></box-badge>` },
+  badgeable: {
+    html: `<box-badgeable>\n  <box-avatar name="Morgan Lee" size="48"></box-avatar>\n  <box-badge slot="bottom-right" label="3" tone="brand"></box-badge>\n</box-badgeable>`,
+  },
   chip: { html: `<box-chip label="Marketing" tone="brand" removable value="marketing"></box-chip>\n<box-chip label="Legal" removable value="legal"></box-chip>` },
   "empty-state": { html: `<box-empty-state heading="No results" message="Try a different search or clear the filters."></box-empty-state>` },
   "error-mask": { html: `<box-error-mask heading="Couldn't load files" message="Something went wrong while loading this folder." action-label="Retry"></box-error-mask>` },

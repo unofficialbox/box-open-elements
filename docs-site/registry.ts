@@ -14,9 +14,9 @@ const p = (category: string, ids: string[], tagPrefix = "box-"): CatalogEntry[] 
 export const catalog: CatalogEntry[] = [
   // Components
   ...c("Actions", ["button", "button-group", "icon-button", "link-button", "menu", "menu-item", "segmented-control"]),
-  ...c("Collections", ["card", "carousel", "datalist-item", "draggable-list", "grid-view", "pagination", "tree", "tree-grid"]),
+  ...c("Collections", ["card", "carousel", "datalist-item", "draggable-list", "grid-view", "pagination", "thumbnail-card", "tree", "tree-grid"]),
   ...c("Feedback", [
-    "alert", "badge", "chip", "empty-state", "error-mask", "help-text", "nudge", "progress-bar", "progress-ring",
+    "alert", "badge", "badgeable", "chip", "empty-state", "error-mask", "help-text", "nudge", "progress-bar", "progress-ring",
     "progress-steps", "skeleton", "spinner", "toast",
   ]),
   ...c("Files", ["drop-zone"]),
