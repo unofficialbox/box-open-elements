@@ -866,7 +866,7 @@
       "title": "Components/Actions/Button",
       "category": "Actions",
       "shortDescription": "The primary action trigger.",
-      "docsDescription": "A labelled button with Box tones and sizes. Emits a `click` event; set `disabled` to make it inert.",
+      "docsDescription": "A labelled button with Box tones and sizes. Emits a `click` event; set `disabled` to make it inert, `is-loading` to show a spinner and block activation, `type=\"submit\"|\"reset\"` to drive the owning form, and slot an `icon` for a leading glyph.",
       "sourceSnippet": "<box-button label=\"Save\" tone=\"primary\"></box-button>",
       "referenceRows": [
         {
@@ -884,14 +884,32 @@
         {
           "kind": "attribute",
           "name": "size",
-          "type": "\"small\"",
-          "description": "Compact size; omit for default."
+          "type": "\"small\" | \"large\"",
+          "description": "Compact / roomy size; omit for default."
         },
         {
           "kind": "attribute",
           "name": "disabled",
           "type": "boolean",
           "description": "Renders the button inert."
+        },
+        {
+          "kind": "attribute",
+          "name": "is-loading",
+          "type": "boolean",
+          "description": "Shows a spinner and blocks activation (stays focusable)."
+        },
+        {
+          "kind": "attribute",
+          "name": "type",
+          "type": "\"button\" | \"submit\" | \"reset\"",
+          "description": "Submit or reset the owning form."
+        },
+        {
+          "kind": "slot",
+          "name": "icon",
+          "type": "slot",
+          "description": "Leading 16px icon before the label."
         },
         {
           "kind": "event",
@@ -915,6 +933,14 @@
         {
           "name": "Small",
           "html": "<box-button label=\"Small\" tone=\"primary\" size=\"small\"></box-button>"
+        },
+        {
+          "name": "Loading",
+          "html": "<box-button label=\"Saving\" tone=\"primary\" is-loading></box-button>"
+        },
+        {
+          "name": "With icon",
+          "html": "<box-button label=\"Add\" tone=\"neutral\"><svg slot=\"icon\" viewBox=\"0 0 16 16\" fill=\"currentColor\"><path d=\"M8 3v10M3 8h10\" stroke=\"currentColor\" stroke-width=\"2\"/></svg></box-button>"
         },
         {
           "name": "Disabled",

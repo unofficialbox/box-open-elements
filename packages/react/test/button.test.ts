@@ -43,7 +43,7 @@ describe("BoxButton React adapter", () => {
     expect(element?.label).toBe("Save");
     expect(element?.tone).toBe("neutral");
     expect(element?.size).toBe("large");
-    expect(element?.shadowRoot?.querySelector("button")?.textContent).toBe("Save");
+    expect(element?.shadowRoot?.querySelector('[part="label"]')?.textContent).toBe("Save");
   });
 
   it("reflects disabled as a property", () => {
@@ -75,6 +75,6 @@ describe("BoxButton React adapter", () => {
     const next = container.querySelector("box-button") as BoxButtonElement | null;
     expect(next?.label).toBe("Publish");
     expect(next?.tone).toBe("danger");
-    expect(next?.shadowRoot?.querySelector("button")?.textContent).toBe("Publish");
+    expect(next?.shadowRoot?.querySelector('[part="label"]')?.textContent).toBe("Publish");
   });
 });
