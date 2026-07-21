@@ -1,19 +1,47 @@
 import { BaseElement } from "../../core/index.js";
 import { FocusRestore, getTabbableElements } from "../../foundations/a11y/index.js";
-import { boeControl, boeOverlay, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
+import { boeControl, boeOverlay, boeRadius } from "../../foundations/geometry/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import {
+  parsePlacement,
+  trackAnchor,
+  type OverlayPlacement,
+} from "../../foundations/overlay/index.js";
 
 const DEFAULT_TAG_NAME = "box-popover";
 
-export type PopoverPlacement = "bottom" | "top" | "start" | "end";
+/**
+ * Any side (`top`/`bottom`/`left`/`right`) with optional `-start`/`-center`/`-end`
+ * alignment, plus the legacy names (`start` = left, `end` = right).
+ */
+export type PopoverPlacement =
+  | "top"
+  | "bottom"
+  | "left"
+  | "right"
+  | "start"
+  | "end"
+  | "top-start"
+  | "top-center"
+  | "top-end"
+  | "bottom-start"
+  | "bottom-center"
+  | "bottom-end"
+  | "left-start"
+  | "left-center"
+  | "left-end"
+  | "right-start"
+  | "right-center"
+  | "right-end";
 
+/** The attribute value if it names a valid placement, else `"bottom"`. */
 const resolvePlacement = (value: string | null): PopoverPlacement => {
-  if (value === "top" || value === "start" || value === "end" || value === "bottom") {
-    return value;
-  }
+  if (value && parsePlacement(value)) return value.trim().toLowerCase() as PopoverPlacement;
   return "bottom";
 };
+
+const OVERLAY_OFFSET = 4;
 
 const popoverStyles = `
   :host {
@@ -51,10 +79,13 @@ const popoverStyles = `
 
   ${boeNeutralInteractiveStyles('[part="trigger"]')}
 
+  /* Positioned by JS (foundations/overlay) as position: fixed in viewport
+     coordinates — so it escapes ancestor overflow and flips/shifts to stay in
+     view, the job a portal does in box-ui-elements. */
   [part="surface"] {
-    position: absolute;
+    position: fixed;
     z-index: 30;
-    inset-block-start: calc(100% + ${boeSpace[1]});
+    inset-block-start: 0;
     inset-inline-start: 0;
     width: min(360px, calc(100vw - 5rem));
     min-width: 200px;
@@ -65,22 +96,6 @@ const popoverStyles = `
     color: var(--boe-token-text-text, #222222);
     box-shadow: ${boeOverlay.shadow};
     line-height: 1.5;
-  }
-
-  :host([placement="top"]) [part="surface"] {
-    inset-block-start: auto;
-    inset-block-end: calc(100% + ${boeSpace[1]});
-  }
-
-  :host([placement="start"]) [part="surface"] {
-    inset-block-start: 0;
-    inset-inline-start: auto;
-    inset-inline-end: calc(100% + ${boeSpace[1]});
-  }
-
-  :host([placement="end"]) [part="surface"] {
-    inset-block-start: 0;
-    inset-inline-start: calc(100% + ${boeSpace[1]});
   }
 
   [part="surface"][hidden] {
@@ -98,6 +113,7 @@ export class BoxPopoverElement extends BaseElement {
   private documentListenersBound = false;
   private triggerEl!: HTMLButtonElement;
   private surfaceEl!: HTMLElement;
+  private positionCleanup: (() => void) | null = null;
   private readonly focusRestore = new FocusRestore();
 
   private readonly onDocumentKeydown = (event: KeyboardEvent): void => {
@@ -184,6 +200,7 @@ export class BoxPopoverElement extends BaseElement {
 
   disconnectedCallback(): void {
     this.unbindDocumentListeners();
+    this.stopPositioning();
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
@@ -330,6 +347,12 @@ export class BoxPopoverElement extends BaseElement {
     this.surfaceEl.hidden = !this.openValue;
     this.syncDocumentListeners();
 
+    if (this.openValue) {
+      this.startPositioning();
+    } else {
+      this.stopPositioning();
+    }
+
     if (justOpened) {
       this.focusRestore.capture(this.triggerEl);
       queueMicrotask(() => this.focusSurface());
@@ -338,6 +361,27 @@ export class BoxPopoverElement extends BaseElement {
     }
 
     this.wasOpen = this.openValue;
+  }
+
+  /** Anchor the surface to the trigger and keep it positioned while open. */
+  private startPositioning(): void {
+    if (this.positionCleanup) {
+      return;
+    }
+    const placement: OverlayPlacement =
+      parsePlacement(this.getAttribute("placement")) ?? { side: "bottom", align: "start" };
+    this.positionCleanup = trackAnchor(this.triggerEl, this.surfaceEl, {
+      placement,
+      offset: OVERLAY_OFFSET,
+    });
+  }
+
+  private stopPositioning(): void {
+    this.positionCleanup?.();
+    this.positionCleanup = null;
+    this.surfaceEl.style.left = "";
+    this.surfaceEl.style.top = "";
+    this.surfaceEl.style.margin = "";
   }
 }
 

@@ -112,23 +112,26 @@ describe("BoxPopoverElement", () => {
     expect(styles).toMatch(/\[part="trigger"\][\s\S]*?min-height:\s*32px;/);
   });
 
-  it("floats the surface with absolute positioning and optional placement", () => {
+  it("floats the surface as a fixed overlay positioned by the overlay foundation", () => {
     const element = document.createElement("box-popover") as BoxPopoverElement;
     element.placement = "top";
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("position: absolute");
+    // position:fixed lets the surface escape ancestor overflow; JS sets left/top.
+    expect(styles).toContain("position: fixed");
     expect(styles).toContain("z-index: 30");
-    expect(styles).toContain(':host([placement="top"])');
     expect(element.placement).toBe("top");
   });
 
-  it("falls back to bottom placement for unsupported values", () => {
+  it("supports aligned placements and falls back to bottom for unsupported values", () => {
     const element = document.createElement("box-popover") as BoxPopoverElement;
-    element.setAttribute("placement", "diagonal");
     document.body.append(element);
 
+    element.setAttribute("placement", "right-end");
+    expect(element.placement).toBe("right-end");
+
+    element.setAttribute("placement", "diagonal");
     expect(element.placement).toBe("bottom");
   });
 
