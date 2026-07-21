@@ -16,6 +16,11 @@ import {
   boeNeutralInteractiveStyles,
 } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import {
+  parsePlacement,
+  trackAnchor,
+  type OverlayPlacement,
+} from "../../foundations/overlay/index.js";
 
 const DEFAULT_TAG_NAME = "box-dropdown";
 
@@ -92,12 +97,14 @@ const dropdownStyles = `
     box-shadow: none;
   }
 
+  /* Positioned by JS (foundations/overlay) as position: fixed, so the menu
+     escapes ancestor overflow and flips/shifts to stay in the viewport. */
   [part="menu"] {
-    position: absolute;
-    inset-block-start: calc(100% + ${boeSpace[1]});
+    position: fixed;
+    inset-block-start: 0;
     inset-inline-start: 0;
     z-index: 20;
-    min-inline-size: max(100%, 200px);
+    min-inline-size: 200px;
     display: grid;
     gap: 0;
     padding: ${boeOverlay.padding};
@@ -162,6 +169,7 @@ export class BoxDropdownElement extends FormAssociatedElement {
       "disabled",
       "items",
       "label",
+      "placement",
       "value",
     ];
   }
@@ -172,6 +180,7 @@ export class BoxDropdownElement extends FormAssociatedElement {
   private triggerEl!: HTMLButtonElement;
   private errorEl!: HTMLElement;
   private menuEl: HTMLElement | null = null;
+  private positionCleanup: (() => void) | null = null;
   private readonly focusRestore = new FocusRestore();
   private readonly onDocumentPointerDown = (event: PointerEvent): void => {
     const path = event.composedPath();
@@ -199,6 +208,18 @@ export class BoxDropdownElement extends FormAssociatedElement {
 
   set label(value: string) {
     this.setAttribute("label", value);
+  }
+
+  get placement(): string {
+    return this.getAttribute("placement") ?? "bottom-start";
+  }
+
+  set placement(value: string) {
+    this.setAttribute("placement", value);
+  }
+
+  private resolvedPlacement(): OverlayPlacement {
+    return parsePlacement(this.getAttribute("placement")) ?? { side: "bottom", align: "start" };
   }
 
   get items(): BoxDropdownItem[] {
@@ -255,6 +276,7 @@ export class BoxDropdownElement extends FormAssociatedElement {
 
   disconnectedCallback(): void {
     document.removeEventListener("pointerdown", this.onDocumentPointerDown);
+    this.stopTracking();
     super.disconnectedCallback();
   }
 
@@ -451,12 +473,27 @@ export class BoxDropdownElement extends FormAssociatedElement {
         items.findIndex(button => button.getAttribute("data-item-id") === this.valueInternal),
       );
       applyRovingTabindex(items, selectedIndex);
+      // Match the trigger width, then position as a fixed overlay. Track once
+      // per open so repeated updates (e.g. value change) don't stack listeners.
+      this.menuEl.style.minInlineSize = `${Math.max(this.triggerEl.offsetWidth, 200)}px`;
+      if (!this.positionCleanup) {
+        this.positionCleanup = trackAnchor(this.triggerEl, this.menuEl, {
+          placement: this.resolvedPlacement(),
+          offset: 4,
+        });
+      }
     } else if (this.menuEl) {
+      this.stopTracking();
       this.menuEl.remove();
       this.menuEl = null;
     }
 
     this.applyInvalidState(this.triggerEl, this.errorEl);
+  }
+
+  private stopTracking(): void {
+    this.positionCleanup?.();
+    this.positionCleanup = null;
   }
 }
 
