@@ -30,6 +30,21 @@ export type {
 } from "./foundations/tokens/index.js";
 export { boxIconography, boxIconographyAliases } from "./foundations/icons/index.js";
 
+// Foundations: viewport-aware overlay positioning (for building custom overlays)
+export {
+  anchorFloating,
+  parsePlacement,
+  resolvePosition,
+  trackAnchor,
+} from "./foundations/overlay/index.js";
+export type {
+  OverlayAlign,
+  OverlayPlacement,
+  OverlaySide,
+  PositionOptions,
+  PositionResult,
+} from "./foundations/overlay/index.js";
+
 // Components: actions
 export * from "./components/actions/button.js";
 export * from "./components/actions/button-group.js";
