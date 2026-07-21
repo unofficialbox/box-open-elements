@@ -90,6 +90,29 @@ const navSidebarStyles = `
     background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%);
   }
 
+  /* Grouped nav (NavList): slot a [data-nav-group] element as a section header,
+     and <hr> as a divider. Group labels collapse to nothing in the icon strip. */
+  [part="body"] ::slotted([data-nav-group]) {
+    display: block;
+    padding: 0.5rem 0.45rem 0.15rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+  }
+
+  [part="sidebar"][data-collapsed="true"] ::slotted([data-nav-group]) {
+    display: none;
+  }
+
+  [part="body"] ::slotted(hr) {
+    inline-size: 100%;
+    border: 0;
+    border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 68%, transparent);
+    margin: 0.35rem 0.2rem;
+  }
+
   [part="sidebar"][data-collapsed="true"] ::slotted(a),
   [part="sidebar"][data-collapsed="true"] ::slotted(button) {
     justify-content: center;

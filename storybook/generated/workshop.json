@@ -3422,7 +3422,7 @@
         {
           "kind": "slot",
           "name": "default",
-          "description": "Navigation anchors or buttons."
+          "description": "Navigation anchors or buttons. Slot a [data-nav-group] element as a section header and <hr> as a divider for grouped nav."
         },
         {
           "kind": "slot",
@@ -4801,6 +4801,12 @@
           "name": "disabled",
           "type": "boolean",
           "description": "Disables the toggle button."
+        },
+        {
+          "kind": "attribute",
+          "name": "direction",
+          "type": "\"left\" | \"right\"",
+          "description": "Which side the companion sidebar sits on (mirrors the glyph)."
         },
         {
           "kind": "event",

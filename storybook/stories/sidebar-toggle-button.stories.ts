@@ -13,6 +13,7 @@ const sidebarToggleButton: StoryModule = {
       { kind: "attribute", name: "controls", type: "string", description: "ID of the controlled sidebar." },
       { kind: "attribute", name: "expanded", type: "string", description: "`true` or `false`; defaults to expanded." },
       { kind: "attribute", name: "disabled", type: "boolean", description: "Disables the toggle button." },
+      { kind: "attribute", name: "direction", type: '"left" | "right"', description: "Which side the companion sidebar sits on (mirrors the glyph)." },
       { kind: "event", name: "toggle", type: "CustomEvent", description: "Emitted with `detail.expanded` after activation." },
     ],
   },

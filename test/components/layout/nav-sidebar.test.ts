@@ -75,4 +75,16 @@ describe("BoxNavSidebarElement", () => {
     expect(styles).toContain('[data-collapsed="true"] ::slotted(button)');
     expect(styles).toContain("appearance: none");
   });
+
+  it("provides styling hooks for grouped nav sections and dividers", () => {
+    const element = document.createElement("box-nav-sidebar") as BoxNavSidebarElement;
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    // Group headers via [data-nav-group]; hidden in the collapsed icon strip.
+    expect(styles).toContain("::slotted([data-nav-group])");
+    expect(styles).toContain('[data-collapsed="true"] ::slotted([data-nav-group])');
+    // <hr> dividers.
+    expect(styles).toContain("::slotted(hr)");
+  });
 });

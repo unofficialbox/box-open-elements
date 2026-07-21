@@ -84,4 +84,20 @@ describe("BoxSidebarToggleButtonElement", () => {
     element.label = "Collapse navigation";
     expect(element.shadowRoot?.activeElement?.getAttribute("part")).toBe("button");
   });
+
+  it("reflects direction and an action-aware tooltip title", () => {
+    const element = document.createElement("box-sidebar-toggle-button") as BoxSidebarToggleButtonElement;
+    document.body.append(element);
+    const button = element.shadowRoot?.querySelector('[part="button"]') as HTMLButtonElement;
+
+    // Expanded by default → tooltip offers to collapse.
+    expect(button.dataset.direction).toBe("left");
+    expect(button.title).toBe("Collapse sidebar");
+
+    element.expanded = false;
+    expect(button.title).toBe("Expand sidebar");
+
+    element.direction = "right";
+    expect(button.dataset.direction).toBe("right");
+  });
 });
