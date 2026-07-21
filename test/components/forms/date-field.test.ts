@@ -43,4 +43,33 @@ describe("BoxDateFieldElement", () => {
 
     expect(document.activeElement).toBe(element);
   });
+
+  it("shows a clear button only when clearable with a value, and clears on click", () => {
+    const element = document.createElement("box-date-field") as BoxDateFieldElement;
+    element.clearable = true;
+    element.value = "2026-07-21";
+    document.body.append(element);
+
+    const control = element.shadowRoot?.querySelector('[part="control"]') as HTMLElement;
+    const clear = element.shadowRoot?.querySelector('[part="clear"]') as HTMLButtonElement;
+    expect(control.dataset.clearable).toBe("true");
+
+    const changed = vi.fn();
+    element.addEventListener("value-changed", changed);
+    clear.click();
+
+    expect(element.value).toBe("");
+    expect(changed).toHaveBeenCalledWith(expect.objectContaining({ detail: { value: "" } }));
+    // With no value the clear affordance hides again.
+    expect(control.dataset.clearable).toBe("false");
+  });
+
+  it("does not show the clear button when not clearable", () => {
+    const element = document.createElement("box-date-field") as BoxDateFieldElement;
+    element.value = "2026-07-21";
+    document.body.append(element);
+
+    const control = element.shadowRoot?.querySelector('[part="control"]') as HTMLElement;
+    expect(control.dataset.clearable).toBe("false");
+  });
 });

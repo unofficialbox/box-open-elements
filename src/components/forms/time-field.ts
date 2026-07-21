@@ -156,6 +156,60 @@ export class BoxTimeFieldElement extends FormAssociatedElement {
     }
   }
 
+  /**
+   * Parse a human time string in 24-hour (`13:30`) or 12-hour (`1:30 PM`,
+   * `1 pm`) form to canonical `HH:MM`. Returns `""` for empty input and `null`
+   * when it cannot be parsed.
+   */
+  static parseTime(raw: string): string | null {
+    const value = raw.trim().toLowerCase();
+    if (!value) {
+      return "";
+    }
+    const twentyFour = value.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+    if (twentyFour) {
+      return `${twentyFour[1].padStart(2, "0")}:${twentyFour[2]}`;
+    }
+    const twelve = value.match(/^(\d{1,2})(?::([0-5]\d))?\s*(am|pm)$/);
+    if (twelve) {
+      let hours = Number.parseInt(twelve[1], 10);
+      const minutes = twelve[2] ?? "00";
+      if (hours < 1 || hours > 12) {
+        return null;
+      }
+      if (twelve[3] === "pm" && hours !== 12) {
+        hours += 12;
+      } else if (twelve[3] === "am" && hours === 12) {
+        hours = 0;
+      }
+      return `${String(hours).padStart(2, "0")}:${minutes}`;
+    }
+    return null;
+  }
+
+  /**
+   * Set the value from a human 12h/24h string. On success updates the value and
+   * returns true; on a parse failure emits `parse-error` and returns false.
+   */
+  setTimeString(value: string): boolean {
+    const parsed = BoxTimeFieldElement.parseTime(value);
+    if (parsed === null) {
+      this.dispatchEvent(
+        new CustomEvent("parse-error", {
+          bubbles: true,
+          composed: true,
+          detail: { value },
+        }),
+      );
+      return false;
+    }
+    this.syncValue(parsed);
+    if (this.isRendered) {
+      this.update();
+    }
+    return true;
+  }
+
   private syncValue(nextValue: string): void {
     this.valueInternal = nextValue;
     this.setAttribute("value", nextValue);

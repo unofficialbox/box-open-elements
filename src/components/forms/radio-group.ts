@@ -14,6 +14,13 @@ import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-radio-group";
 
+type RadioOption = {
+  label: string;
+  value: string;
+  description?: string;
+  disabled?: boolean;
+};
+
 const escapeHtml = (value: string): string =>
   value
     .replaceAll("&", "&amp;")
@@ -113,9 +120,32 @@ const radioGroupStyles = `
 
   ${boeFocusVisibleStyles('[part="input"]')}
 
+  [part="option-text"] {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-inline-size: 0;
+  }
+
   [part="option-label"] {
     font-weight: 500;
     color: var(--boe-token-text-text, #222222);
+  }
+
+  /* Per-option supporting text below the label. */
+  [part="option-description"] {
+    font-size: 0.78rem;
+    font-weight: 400;
+    line-height: 1.4;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+  }
+
+  [part~="option"][data-has-description="true"] {
+    align-items: start;
+  }
+
+  [part~="option"][data-has-description="true"] [part="input"] {
+    margin-block-start: 2px;
   }
 
   ${boeFormFieldErrorStyles}
@@ -169,21 +199,21 @@ export class BoxRadioGroupElement extends FormAssociatedElement {
     this.setAttribute("label", value);
   }
 
-  get options(): Array<{ label: string; value: string }> {
+  get options(): RadioOption[] {
     const raw = this.getAttribute("options");
     if (!raw) {
       return [];
     }
 
     try {
-      const parsed = JSON.parse(raw) as Array<{ label: string; value: string }>;
+      const parsed = JSON.parse(raw) as RadioOption[];
       return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
     }
   }
 
-  set options(value: Array<{ label: string; value: string }>) {
+  set options(value: RadioOption[]) {
     this.setAttribute("options", JSON.stringify(value));
   }
 
@@ -246,14 +276,22 @@ export class BoxRadioGroupElement extends FormAssociatedElement {
     const radioGroupName = this.getRadioGroupName();
     if (currentOptionsJson !== this.lastOptionsJson) {
       this.optionsContainerEl.innerHTML = this.options
-        .map(
-          option => `
-            <label part="option" data-value="${escapeHtml(option.value)}">
-              <input type="radio" part="input" name="${escapeHtml(radioGroupName)}" value="${escapeHtml(option.value)}" />
-              <span part="option-label">${escapeHtml(option.label)}</span>
+        .map(option => {
+          const description = option.description
+            ? `<span part="option-description">${escapeHtml(option.description)}</span>`
+            : "";
+          const hasDescription = option.description ? "true" : "false";
+          const disabledAttr = option.disabled ? " disabled" : "";
+          return `
+            <label part="option" data-value="${escapeHtml(option.value)}" data-has-description="${hasDescription}">
+              <input type="radio" part="input" name="${escapeHtml(radioGroupName)}" value="${escapeHtml(option.value)}"${disabledAttr} />
+              <span part="option-text">
+                <span part="option-label">${escapeHtml(option.label)}</span>
+                ${description}
+              </span>
             </label>
-          `,
-        )
+          `;
+        })
         .join("");
       this.lastOptionsJson = currentOptionsJson;
 
@@ -284,18 +322,22 @@ export class BoxRadioGroupElement extends FormAssociatedElement {
       });
     }
 
+    const disabledByValue = new Map(this.options.map(option => [option.value, Boolean(option.disabled)]));
     this.optionsContainerEl.querySelectorAll('[part~="option"]').forEach(labelNode => {
       const label = labelNode as HTMLLabelElement;
       const val = label.dataset.value;
       const isSelected = val === this.valueInternal;
 
       label.dataset.selected = String(isSelected);
+      // part= is overwritten to toggle the selected token; data-has-description
+      // is a separate attribute and survives.
       label.setAttribute("part", `option${isSelected ? " option-selected" : ""}`);
 
       const input = label.querySelector('[part="input"]') as HTMLInputElement | null;
       if (input) {
         input.checked = isSelected;
-        if (this.disabled) {
+        // Disabled if the whole group is disabled or this option is disabled.
+        if (this.disabled || disabledByValue.get(val ?? "")) {
           input.setAttribute("disabled", "");
         } else {
           input.removeAttribute("disabled");

@@ -53,6 +53,48 @@ const dateFieldStyles = `
     border-color: var(--boe-token-surface-surface-brand, #0061d5);
   }
 
+  /* Control wrapper — layout-neutral until a clear button appears. */
+  [part="control"] {
+    position: relative;
+    display: block;
+  }
+
+  [part="control"] [part="input"] {
+    inline-size: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Clear button sits just left of the native calendar indicator. */
+  [part="clear"] {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-end: 2rem;
+    transform: translateY(-50%);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    cursor: pointer;
+    transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
+  }
+
+  [part="control"][data-clearable="true"] [part="clear"] {
+    display: inline-flex;
+  }
+
+  [part="clear"] svg {
+    inline-size: 0.7rem;
+    block-size: 0.7rem;
+  }
+
+  ${boeNeutralInteractiveStyles('[part="clear"]')}
+
   ${boeFormFieldErrorStyles}
   ${boeFormFieldSupportStyles}
 `;
@@ -61,6 +103,7 @@ export class BoxDateFieldElement extends FormAssociatedElement {
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.fieldObservedAttributes,
+      "clearable",
       "disabled",
       "label",
       "max",
@@ -74,6 +117,17 @@ export class BoxDateFieldElement extends FormAssociatedElement {
   private labelEl!: HTMLElement;
   private descriptionEl!: HTMLElement;
   private errorEl!: HTMLElement;
+  private controlEl!: HTMLElement;
+  private clearEl!: HTMLButtonElement;
+
+  /** Shows a clear button that resets the value when a date is set. */
+  get clearable(): boolean {
+    return this.hasAttribute("clearable");
+  }
+
+  set clearable(value: boolean) {
+    this.toggleAttribute("clearable", Boolean(value));
+  }
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -166,7 +220,12 @@ export class BoxDateFieldElement extends FormAssociatedElement {
       <label part="field">
         <span part="label"></span>
         ${formDescriptionMarkup()}
-        <input type="date" part="input" />
+        <span part="control">
+          <input type="date" part="input" />
+          <button type="button" part="clear" aria-label="Clear date" tabindex="-1">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </button>
+        </span>
         ${formErrorMessageMarkup()}
       </label>
     `;
@@ -174,12 +233,25 @@ export class BoxDateFieldElement extends FormAssociatedElement {
     this.descriptionEl = this.shadowRoot.querySelector('[part="description"]')!;
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
     this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
+    this.controlEl = this.shadowRoot.querySelector('[part="control"]')!;
+    this.clearEl = this.shadowRoot.querySelector('[part="clear"]')!;
   }
 
   protected setupListeners(): void {
     this.inputEl.addEventListener("input", event => {
       this.syncValue((event.currentTarget as HTMLInputElement).value);
     });
+    this.clearEl.addEventListener("click", () => this.clear());
+  }
+
+  /** Reset the date to empty and emit value-changed. */
+  clear(): void {
+    if (this.disabled || !this.valueInternal) {
+      return;
+    }
+    this.inputEl.value = "";
+    this.syncValue("");
+    this.inputEl.focus();
   }
 
   protected update(): void {
@@ -210,6 +282,10 @@ export class BoxDateFieldElement extends FormAssociatedElement {
     } else {
       this.inputEl.removeAttribute("disabled");
     }
+
+    // Clear button only when clearable, enabled, and a value is present.
+    const showClear = this.clearable && !this.disabled && Boolean(this.valueInternal);
+    this.controlEl.dataset.clearable = showClear ? "true" : "false";
 
     this.applyFieldSupport(this.labelEl, this.inputEl, this.descriptionEl);
     this.applyInvalidState(this.inputEl, this.errorEl);
