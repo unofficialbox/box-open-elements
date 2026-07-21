@@ -113,6 +113,28 @@ describe("BoxAlertElement", () => {
     expect(styles).toContain("margin: 12px 0;");
   });
 
+  it("renders rich slotted content and stays visible on rich-only alerts", () => {
+    const element = document.createElement("box-alert") as BoxAlertElement;
+    element.setAttribute("open", "");
+    // No heading/message — only rich children.
+    const link = document.createElement("a");
+    link.href = "#";
+    link.textContent = "View details";
+    element.append(link);
+    document.body.append(element);
+
+    const richSlot = element.shadowRoot?.querySelector('slot[part="rich"]') as HTMLSlotElement;
+    return new Promise<void>(resolve => {
+      setTimeout(() => {
+        expect(richSlot.classList.contains("has-content")).toBe(true);
+        expect(richSlot.assignedElements()[0]).toBe(link);
+        // Rich-only alert is still shown.
+        expect(element.hidden).toBe(false);
+        resolve();
+      }, 0);
+    });
+  });
+
   it("includes focus-visible and interactive styles for dismiss", () => {
     const element = document.createElement("box-alert") as BoxAlertElement;
     element.heading = "Heads up";

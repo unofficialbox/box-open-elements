@@ -93,6 +93,22 @@ const alertStyles = `
     display: none;
   }
 
+  /* Rich body — slotted markup (links, buttons) beyond the plain message.
+     Hidden (taking no grid gap) until content is assigned. */
+  [part="rich"] {
+    display: block;
+    line-height: 1.45;
+  }
+
+  [part="rich"]:not(.has-content) {
+    display: none;
+  }
+
+  [part="rich"]::slotted(a) {
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+    font-weight: 600;
+  }
+
   .sr-only {
     position: absolute;
     inline-size: 1px;
@@ -134,6 +150,7 @@ export class BoxAlertElement extends BaseElement {
   private toneLabelEl!: HTMLElement;
   private titleEl!: HTMLElement;
   private messageEl!: HTMLElement;
+  private richSlot!: HTMLSlotElement;
   private dismissEl!: HTMLButtonElement;
 
   get open(): boolean {
@@ -223,6 +240,7 @@ export class BoxAlertElement extends BaseElement {
           <span part="tone-label" class="sr-only"></span>
           <h2 part="title" id="alert-title" hidden></h2>
           <span part="description message" hidden></span>
+          <slot part="rich"></slot>
         </div>
         <button type="button" part="dismiss" aria-label="Dismiss alert">Dismiss</button>
       </div>
@@ -231,12 +249,22 @@ export class BoxAlertElement extends BaseElement {
     this.toneLabelEl = this.shadowRoot.querySelector('[part="tone-label"]')!;
     this.titleEl = this.shadowRoot.querySelector('[part="title"]')!;
     this.messageEl = this.shadowRoot.querySelector('[part~="description"]')!;
+    this.richSlot = this.shadowRoot.querySelector('slot[part="rich"]')!;
     this.dismissEl = this.shadowRoot.querySelector('[part="dismiss"]')!;
+  }
+
+  private hasRichContent(): boolean {
+    return this.richSlot?.assignedNodes({ flatten: true }).length > 0;
   }
 
   protected setupListeners(): void {
     this.dismissEl.addEventListener("click", () => {
       this.dismiss();
+    });
+    this.richSlot.addEventListener("slotchange", () => {
+      if (this.isRendered) {
+        this.update();
+      }
     });
   }
 
@@ -245,8 +273,10 @@ export class BoxAlertElement extends BaseElement {
       return;
     }
 
-    const visible = this.openValue && Boolean(this.heading || this.message);
+    const hasRich = this.hasRichContent();
+    const visible = this.openValue && Boolean(this.heading || this.message || hasRich);
     this.hidden = !visible;
+    this.richSlot.classList.toggle("has-content", hasRich);
     if (!visible) {
       return;
     }

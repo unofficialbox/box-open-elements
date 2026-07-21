@@ -176,6 +176,12 @@ export class BoxHelpTextElement extends BaseElement {
     const iconMarkup = resolveDesignIcon(iconName) ?? "i";
 
     this.helpTextEl.dataset.tone = this.tone;
+    // Error help text is an inline validation error: announce it assertively.
+    if (this.tone === "error") {
+      this.helpTextEl.setAttribute("role", "alert");
+    } else {
+      this.helpTextEl.setAttribute("role", "note");
+    }
     this.helpTextEl.setAttribute("aria-label", this.label || "Help text");
     this.iconEl.setAttribute("data-icon-source", iconMarkup === "i" ? "text" : "design-system");
     this.iconEl.innerHTML = iconMarkup;

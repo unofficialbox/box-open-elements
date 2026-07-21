@@ -52,6 +52,20 @@ describe("BoxHelpTextElement", () => {
     expect(root?.getAttribute("aria-label")).toBe("Heads up");
   });
 
+  it("announces error-tone help text assertively via role=alert", () => {
+    const element = document.createElement("box-help-text") as BoxHelpTextElement;
+    element.message = "Enter a valid email address.";
+    element.tone = "error";
+    document.body.append(element);
+
+    const root = element.shadowRoot?.querySelector('[part="help-text"]') as HTMLElement;
+    expect(root.getAttribute("role")).toBe("alert");
+
+    // Switching away from error returns to the passive note role.
+    element.tone = "info";
+    expect(root.getAttribute("role")).toBe("note");
+  });
+
   it("uses a registered Box icon when the active design system provides one", () => {
     const element = document.createElement("box-help-text") as BoxHelpTextElement;
     element.message = "Inherited permissions may affect visibility.";

@@ -59,6 +59,17 @@ const errorMaskStyles = `
     display: none;
   }
 
+  /* Optional rich body — slotted markup below the message.
+     Hidden (no column gap) until content is assigned. */
+  [part="body"] {
+    display: block;
+    max-width: 32rem;
+  }
+
+  [part="body"]:not(.has-content) {
+    display: none;
+  }
+
   [part="action"] {
     appearance: none;
     box-sizing: border-box;
@@ -104,6 +115,7 @@ export class BoxErrorMaskElement extends BaseElement {
 
   private titleEl!: HTMLElement;
   private messageEl!: HTMLElement;
+  private bodySlot!: HTMLSlotElement;
   private actionEl: HTMLButtonElement | null = null;
 
   get heading(): string {
@@ -155,10 +167,20 @@ export class BoxErrorMaskElement extends BaseElement {
         </span>
         <h2 part="title"></h2>
         <span part="message description" hidden></span>
+        <slot part="body"></slot>
       </section>
     `;
     this.titleEl = this.shadowRoot.querySelector('[part="title"]')!;
     this.messageEl = this.shadowRoot.querySelector('[part~="message"]')!;
+    this.bodySlot = this.shadowRoot.querySelector('slot[part="body"]')!;
+  }
+
+  protected setupListeners(): void {
+    this.bodySlot.addEventListener("slotchange", () => {
+      if (this.isRendered) {
+        this.update();
+      }
+    });
   }
 
   private syncActionButton(): void {
@@ -197,6 +219,9 @@ export class BoxErrorMaskElement extends BaseElement {
     }
 
     this.titleEl.textContent = this.heading;
+
+    const hasBody = this.bodySlot.assignedNodes({ flatten: true }).length > 0;
+    this.bodySlot.classList.toggle("has-content", hasBody);
 
     if (this.message) {
       this.messageEl.hidden = false;
