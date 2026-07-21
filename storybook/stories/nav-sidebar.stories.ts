@@ -12,7 +12,7 @@ const navSidebar: StoryModule = {
       { kind: "attribute", name: "label", type: "string", description: "Accessible navigation label." },
       { kind: "attribute", name: "collapsed", type: "boolean", description: "Shrinks the rail and exposes the icon-strip state." },
       { kind: "slot", name: "header", description: "Branding or sidebar toggle content." },
-      { kind: "slot", name: "default", description: "Navigation anchors or buttons." },
+      { kind: "slot", name: "default", description: "Navigation anchors or buttons. Slot a [data-nav-group] element as a section header and <hr> as a divider for grouped nav." },
       { kind: "slot", name: "footer", description: "Footer/status content." },
     ],
   },

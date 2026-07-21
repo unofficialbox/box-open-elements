@@ -39,9 +39,18 @@ const sidebarToggleButtonStyles = `
     color: var(--boe-token-text-text, #222222);
   }
 
-  /* Rotate the chevron to point the way the next activation will move. */
+  /* Point the glyph the way the next activation will move (left sidebar default). */
   [part="button"][data-expanded="false"] svg {
     transform: scaleX(-1);
+  }
+
+  /* Right-side sidebar mirrors the direction. */
+  [part="button"][data-direction="right"][data-expanded="true"] svg {
+    transform: scaleX(-1);
+  }
+
+  [part="button"][data-direction="right"][data-expanded="false"] svg {
+    transform: none;
   }
 `;
 
@@ -54,10 +63,19 @@ const sidebarToggleButtonStyles = `
  */
 export class BoxSidebarToggleButtonElement extends BaseElement {
   static get observedAttributes(): string[] {
-    return ["controls", "disabled", "expanded", "label"];
+    return ["controls", "disabled", "expanded", "label", "direction"];
   }
 
   private buttonEl!: HTMLButtonElement;
+
+  /** Which side the companion sidebar sits on: `left` (default) or `right`. */
+  get direction(): string {
+    return this.getAttribute("direction") === "right" ? "right" : "left";
+  }
+
+  set direction(value: string) {
+    this.setAttribute("direction", value);
+  }
 
   get expanded(): boolean {
     // Default to expanded: a sidebar renders open until the user collapses it.
@@ -136,8 +154,11 @@ export class BoxSidebarToggleButtonElement extends BaseElement {
 
     const expanded = this.expanded;
     this.buttonEl.dataset.expanded = expanded ? "true" : "false";
+    this.buttonEl.dataset.direction = this.direction;
     this.buttonEl.setAttribute("aria-expanded", expanded ? "true" : "false");
     this.buttonEl.setAttribute("aria-label", this.label);
+    // Native hover tooltip reflects the action the next click performs.
+    this.buttonEl.title = expanded ? "Collapse sidebar" : "Expand sidebar";
 
     if (this.controls) {
       this.buttonEl.setAttribute("aria-controls", this.controls);
