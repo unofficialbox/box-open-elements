@@ -12,6 +12,7 @@ const gridView: StoryModule = {
       { kind: "attribute", name: "label", type: "string", description: "Accessible grid label." },
       { kind: "attribute", name: "items", type: "json", description: "Array of { value, label, meta, icon } tiles." },
       { kind: "attribute", name: "value", type: "string", description: "Selected item value." },
+      { kind: "slot", name: "tile-<value>", type: "slot", description: "Per-item custom tile body (slotRenderer parity); default thumb/label is the fallback." },
       { kind: "event", name: "value-changed", type: "CustomEvent", description: "Emitted when selection changes." },
     ],
   },

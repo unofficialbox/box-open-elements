@@ -111,4 +111,25 @@ describe("BoxAvatarElement", () => {
     expect(updatedImage?.hidden).toBe(true);
     expect(element.shadowRoot?.querySelector('[part="fallback"]')?.textContent).toBe("ML");
   });
+
+  it("renders a corner badge only for online/external and removes it otherwise", () => {
+    const element = document.createElement("box-avatar") as BoxAvatarElement;
+    element.name = "Morgan Lee";
+    document.body.append(element);
+
+    // No badge by default.
+    expect(element.shadowRoot?.querySelector('[part="badge"]')).toBeNull();
+
+    element.badge = "external";
+    const badge = element.shadowRoot?.querySelector('[part="badge"]') as HTMLElement;
+    expect(badge.dataset.badge).toBe("external");
+    expect(badge.getAttribute("aria-label")).toBe("External user");
+    expect(badge.querySelector("svg")).not.toBeNull();
+
+    element.badge = "online";
+    expect((element.shadowRoot?.querySelector('[part="badge"]') as HTMLElement).dataset.badge).toBe("online");
+
+    element.badge = "none";
+    expect(element.shadowRoot?.querySelector('[part="badge"]')).toBeNull();
+  });
 });

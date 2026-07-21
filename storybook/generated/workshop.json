@@ -396,6 +396,12 @@
           "name": "tone",
           "type": "string",
           "description": "Background emphasis."
+        },
+        {
+          "kind": "attribute",
+          "name": "badge",
+          "type": "\"none\" | \"online\" | \"external\"",
+          "description": "Corner status/external-user indicator."
         }
       ],
       "variants": [
@@ -406,6 +412,14 @@
         {
           "name": "Initials",
           "html": "<box-avatar initials=\"JD\" name=\"Jordan Diaz\"></box-avatar>"
+        },
+        {
+          "name": "External user",
+          "html": "<box-avatar name=\"Sam Rivera\" size=\"48\" badge=\"external\"></box-avatar>"
+        },
+        {
+          "name": "Online",
+          "html": "<box-avatar name=\"Alex Kim\" size=\"48\" badge=\"online\"></box-avatar>"
         }
       ]
     },
@@ -1087,6 +1101,12 @@
           "name": "value",
           "type": "number",
           "description": "Selected slide index."
+        },
+        {
+          "kind": "slot",
+          "name": "slide",
+          "type": "slot",
+          "description": "Arbitrary slide elements (slot=\"slide\"); takes precedence over JSON items. Use data-title for pagination labels."
         }
       ],
       "variants": [
@@ -2577,6 +2597,12 @@
           "name": "value",
           "type": "string",
           "description": "Selected item value."
+        },
+        {
+          "kind": "slot",
+          "name": "tile-<value>",
+          "type": "slot",
+          "description": "Per-item custom tile body (slotRenderer parity); default thumb/label is the fallback."
         },
         {
           "kind": "event",

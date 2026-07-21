@@ -178,5 +178,40 @@ describe("BoxCarouselElement", () => {
     expect(element.value).toBe(1);
     expect(element.shadowRoot?.querySelector('[part="title"]')?.textContent).toBe("Two");
   });
+
+  it("navigates slotted slides, showing only the active one", () => {
+    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    for (const [i, text] of ["Alpha", "Beta", "Gamma"].entries()) {
+      const slide = document.createElement("div");
+      slide.slot = "slide";
+      slide.setAttribute("data-title", text);
+      slide.textContent = `Slide ${i}`;
+      element.append(slide);
+    }
+    document.body.append(element);
+
+    const slides = Array.from(element.querySelectorAll('[slot="slide"]')) as HTMLElement[];
+    // slotchange is async in jsdom.
+    return new Promise<void>(resolve => {
+      setTimeout(() => {
+        // JSON viewport is hidden; slotted stage is shown.
+        expect((element.shadowRoot?.querySelector('[part="viewport"]') as HTMLElement).hidden).toBe(true);
+        expect((element.shadowRoot?.querySelector('[part="slotted-stage"]') as HTMLElement).hidden).toBe(false);
+        // Only slide 0 active.
+        expect(slides[0].hasAttribute("data-carousel-active")).toBe(true);
+        expect(slides[1].hasAttribute("data-carousel-active")).toBe(false);
+
+        // Pagination reflects 3 slotted slides.
+        expect(element.shadowRoot?.querySelectorAll('[part~="dot"]').length).toBe(3);
+
+        // Advance to slide 1.
+        (element.shadowRoot?.querySelector('[part="next"]') as HTMLButtonElement).click();
+        expect(element.value).toBe(1);
+        expect(slides[1].hasAttribute("data-carousel-active")).toBe(true);
+        expect(slides[0].hasAttribute("data-carousel-active")).toBe(false);
+        resolve();
+      }, 0);
+    });
+  });
 });
 

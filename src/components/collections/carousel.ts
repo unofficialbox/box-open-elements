@@ -193,6 +193,15 @@ const carouselStyles = `
     line-height: 1.58;
   }
 
+  /* Slotted-slides mode: only the active slide is shown. */
+  [part="slotted-stage"][hidden] {
+    display: none;
+  }
+
+  [part="slotted-stage"] ::slotted(:not([data-carousel-active])) {
+    display: none;
+  }
+
   @media (max-width: 720px) {
     [part="viewport"] {
       grid-template-columns: 1fr;
@@ -211,6 +220,9 @@ export class BoxCarouselElement extends BaseElement {
   private carouselEl!: HTMLElement;
   private labelEl!: HTMLElement;
   private stageEl!: HTMLElement;
+  private viewportEl!: HTMLElement;
+  private slottedStageEl!: HTMLElement;
+  private slideSlot!: HTMLSlotElement;
   private mediaEl!: HTMLElement;
   private eyebrowEl!: HTMLElement;
   private titleEl!: HTMLElement;
@@ -266,8 +278,21 @@ export class BoxCarouselElement extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
+  /** Slotted slides (elements assigned to the `slide` slot). */
+  private slottedSlides(): HTMLElement[] {
+    return this.slideSlot
+      ? (this.slideSlot.assignedElements({ flatten: true }) as HTMLElement[])
+      : [];
+  }
+
+  /** Active slide count — slotted slides when present, else JSON items. */
+  private slideCount(): number {
+    const slotted = this.slottedSlides().length;
+    return slotted > 0 ? slotted : this.items.length;
+  }
+
   private normalizeIndex(value: number): number {
-    const maxIndex = Math.max(0, this.items.length - 1);
+    const maxIndex = Math.max(0, this.slideCount() - 1);
     if (!Number.isFinite(value)) {
       return 0;
     }
@@ -293,11 +318,12 @@ export class BoxCarouselElement extends BaseElement {
   }
 
   private changeBy(delta: number): void {
-    if (this.items.length === 0) {
+    const count = this.slideCount();
+    if (count === 0) {
       return;
     }
 
-    const nextIndex = (this.valueInternal + delta + this.items.length) % this.items.length;
+    const nextIndex = (this.valueInternal + delta + count) % count;
     this.setIndex(nextIndex);
   }
 
@@ -319,6 +345,7 @@ export class BoxCarouselElement extends BaseElement {
               <div part="description" hidden></div>
             </div>
           </div>
+          <div part="slotted-stage" hidden><slot name="slide"></slot></div>
         </div>
         <div part="controls">
           <div part="nav">
@@ -334,6 +361,9 @@ export class BoxCarouselElement extends BaseElement {
     this.carouselEl = this.shadowRoot.querySelector('[part="carousel"]')!;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.stageEl = this.shadowRoot.querySelector('[part="stage"]')!;
+    this.viewportEl = this.shadowRoot.querySelector('[part="viewport"]')!;
+    this.slottedStageEl = this.shadowRoot.querySelector('[part="slotted-stage"]')!;
+    this.slideSlot = this.shadowRoot.querySelector('slot[name="slide"]')!;
     this.mediaEl = this.shadowRoot.querySelector('[part="media"]')!;
     this.eyebrowEl = this.shadowRoot.querySelector('[part="eyebrow"]')!;
     this.titleEl = this.shadowRoot.querySelector('[part="title"]')!;
@@ -348,6 +378,12 @@ export class BoxCarouselElement extends BaseElement {
   protected setupListeners(): void {
     this.previousEl.addEventListener("click", () => this.changeBy(-1));
     this.nextEl.addEventListener("click", () => this.changeBy(1));
+    this.slideSlot.addEventListener("slotchange", () => {
+      this.valueInternal = this.normalizeIndex(this.valueInternal);
+      if (this.isRendered) {
+        this.update();
+      }
+    });
     this.paginationEl.addEventListener("click", event => {
       const target = (event.target as HTMLElement | null)?.closest('[part~="dot"]') as HTMLButtonElement | null;
       if (!target || !this.paginationEl.contains(target)) {
@@ -378,13 +414,48 @@ export class BoxCarouselElement extends BaseElement {
 
     const items = this.items;
     const itemsJson = this.getAttribute("items") ?? "";
-    const activeItem = items[this.valueInternal] ?? null;
     const label = this.label;
 
     this.carouselEl.setAttribute("aria-label", label);
     this.labelEl.textContent = label;
     this.paginationEl.setAttribute("aria-label", `${label} slides`);
 
+    // Slotted-slides mode takes precedence when the host provides slide content.
+    const slotted = this.slottedSlides();
+    if (slotted.length > 0) {
+      this.viewportEl.hidden = true;
+      this.slottedStageEl.hidden = false;
+      this.stageEl.hidden = false;
+      this.controlsEl.hidden = false;
+      this.emptyEl.hidden = true;
+      slotted.forEach((slide, index) => {
+        const active = index === this.valueInternal;
+        slide.toggleAttribute("data-carousel-active", active);
+        slide.setAttribute("aria-hidden", active ? "false" : "true");
+      });
+      this.paginationEl.innerHTML = slotted
+        .map((slide, index) => {
+          const dotPart = index === this.valueInternal ? "dot dot-selected" : "dot";
+          const title = slide.getAttribute("data-title") ?? slide.getAttribute("aria-label") ?? `${index + 1}`;
+          return `
+            <button
+              type="button"
+              part="${dotPart}"
+              aria-label="Go to slide ${index + 1}: ${escapeHtml(title)}"
+              aria-current="${index === this.valueInternal ? "true" : "false"}"
+              data-index="${index}"
+            ></button>
+          `;
+        })
+        .join("");
+      this.lastItemsJson = "";
+      return;
+    }
+
+    this.slottedStageEl.hidden = true;
+    this.viewportEl.hidden = false;
+
+    const activeItem = items[this.valueInternal] ?? null;
     if (!activeItem) {
       this.stageEl.hidden = true;
       this.controlsEl.hidden = true;

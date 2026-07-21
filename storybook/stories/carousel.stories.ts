@@ -12,6 +12,7 @@ const carousel: StoryModule = {
       { kind: "attribute", name: "label", type: "string", description: "Accessible carousel label." },
       { kind: "attribute", name: "items", type: "json", description: "Array of { id, title, description? }." },
       { kind: "attribute", name: "value", type: "number", description: "Selected slide index." },
+      { kind: "slot", name: "slide", type: "slot", description: "Arbitrary slide elements (slot=\"slide\"); takes precedence over JSON items. Use data-title for pagination labels." },
     ],
   },
   variants: [
