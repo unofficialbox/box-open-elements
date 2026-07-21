@@ -218,4 +218,26 @@ describe("BoxRadioGroupElement", () => {
     expect(styles).toContain("cursor: not-allowed");
     expect(styles).toContain("opacity: 0.55");
   });
+
+  it("renders per-option descriptions and disables individual options", () => {
+    const element = document.createElement("box-radio-group") as BoxRadioGroupElement;
+    element.options = [
+      { label: "Viewer", value: "viewer", description: "Can view and download." },
+      { label: "Co-owner", value: "coowner", description: "Full control.", disabled: true },
+    ];
+    document.body.append(element);
+
+    const options = element.shadowRoot?.querySelectorAll('[part~="option"]');
+    const viewer = options?.[0] as HTMLElement;
+    const coowner = options?.[1] as HTMLElement;
+
+    expect(viewer.querySelector('[part="option-description"]')?.textContent).toContain("download");
+    expect(viewer.dataset.hasDescription).toBe("true");
+
+    const viewerInput = viewer.querySelector('[part="input"]') as HTMLInputElement;
+    const coownerInput = coowner.querySelector('[part="input"]') as HTMLInputElement;
+    expect(viewerInput.disabled).toBe(false);
+    // The individually disabled option is inert even though the group is enabled.
+    expect(coownerInput.disabled).toBe(true);
+  });
 });

@@ -1667,7 +1667,7 @@
       "title": "Components/Forms/Date Field",
       "category": "Forms",
       "shortDescription": "A labelled date input.",
-      "docsDescription": "Form-associated date field. Pin demo values with `value` (and optional `min` / `max`).",
+      "docsDescription": "Form-associated date field. Pin demo values with `value` (and optional `min` / `max`). Add `clearable` for a reset button (shown only when a date is set) that emits `value-changed` with an empty value.",
       "sourceSnippet": "<box-date-field label=\"Due date\" value=\"2026-07-18\"></box-date-field>",
       "referenceRows": [
         {
@@ -1696,6 +1696,12 @@
         },
         {
           "kind": "attribute",
+          "name": "clearable",
+          "type": "boolean",
+          "description": "Shows a clear button when a date is set."
+        },
+        {
+          "kind": "attribute",
           "name": "disabled",
           "type": "boolean",
           "description": "Makes the field inert."
@@ -1705,6 +1711,10 @@
         {
           "name": "Default",
           "html": "<box-date-field label=\"Due date\" value=\"2026-07-18\"></box-date-field>"
+        },
+        {
+          "name": "Clearable",
+          "html": "<box-date-field label=\"Due date\" value=\"2026-07-18\" clearable></box-date-field>"
         },
         {
           "name": "Disabled",
@@ -4023,7 +4033,7 @@
       "title": "Components/Forms/Radio Group",
       "category": "Forms",
       "shortDescription": "A labelled set of mutually exclusive choices.",
-      "docsDescription": "Form-associated radio group. Provide choices as JSON `options` and the selected `value`.",
+      "docsDescription": "Form-associated radio group. Provide choices as JSON `options` and the selected `value`. Each option may carry a `description` (supporting subsection under its label) and a `disabled` flag to make that single choice inert.",
       "sourceSnippet": "<box-radio-group label=\"Access level\" options='[{\"label\":\"Company\",\"value\":\"company\"}]' value=\"company\"></box-radio-group>",
       "referenceRows": [
         {
@@ -4036,7 +4046,7 @@
           "kind": "attribute",
           "name": "options",
           "type": "json",
-          "description": "Array of { label, value }."
+          "description": "Array of { label, value, description?, disabled? }."
         },
         {
           "kind": "attribute",
@@ -4049,6 +4059,10 @@
         {
           "name": "Default",
           "html": "<box-radio-group label=\"Access level\" options='[{\"label\":\"Company\",\"value\":\"company\"},{\"label\":\"Invited people only\",\"value\":\"invited\"}]' value=\"company\"></box-radio-group>"
+        },
+        {
+          "name": "With descriptions",
+          "html": "<box-radio-group label=\"Access level\" options='[{\"label\":\"Company\",\"value\":\"company\",\"description\":\"Anyone at your company can find and open this.\"},{\"label\":\"Invited people only\",\"value\":\"invited\",\"description\":\"Only people you invite can open this.\"},{\"label\":\"Public\",\"value\":\"public\",\"description\":\"Requires an admin to enable.\",\"disabled\":true}]' value=\"company\"></box-radio-group>"
         }
       ]
     },
@@ -5273,7 +5287,7 @@
       "title": "Components/Forms/Time Field",
       "category": "Forms",
       "shortDescription": "A time-of-day input.",
-      "docsDescription": "Use a 24-hour `value` string such as `09:30`.",
+      "docsDescription": "Use a 24-hour `value` string such as `09:30`. `setTimeString(str)` parses human 12h/24h input (`\"1:30 PM\"`, `\"9 am\"`, `\"13:45\"`) to canonical HH:MM, emitting `parse-error` when it can't (the static `parseTime` exposes the same logic).",
       "sourceSnippet": "<box-time-field label=\"Launch time\" value=\"09:30\"></box-time-field>",
       "referenceRows": [
         {
@@ -5287,6 +5301,18 @@
           "name": "value",
           "type": "string",
           "description": "Time value (HH:MM)."
+        },
+        {
+          "kind": "property",
+          "name": "setTimeString(str)",
+          "type": "method",
+          "description": "Parse a 12h/24h string into the value; returns false + emits parse-error on failure."
+        },
+        {
+          "kind": "event",
+          "name": "parse-error",
+          "type": "CustomEvent",
+          "description": "Emitted when setTimeString cannot parse the input."
         }
       ],
       "variants": [
