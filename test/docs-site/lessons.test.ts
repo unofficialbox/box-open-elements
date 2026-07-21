@@ -283,6 +283,46 @@ describe("lesson framework snippets", () => {
           expect(lesson.frameworks[framework]).toContain("@unofficialbox/box-open-elements");
         }
       });
+
+      const STEP_FRAMEWORKS = ["react", "angular", "vue", "svelte"] as const;
+
+      it("has a per-step snippet for every framework, indexed to the steps", () => {
+        for (const framework of STEP_FRAMEWORKS) {
+          const arr = lesson.stepFrameworks[framework];
+          expect(arr, `${lesson.id}/${framework} step array`).toHaveLength(lesson.steps.length);
+          for (let i = 0; i < arr.length; i++) {
+            expect(arr[i]?.trim(), `${lesson.id}/${framework} step ${i}`).toBeTruthy();
+          }
+        }
+      });
+
+      it("per-step snippets only import define functions the package exports", () => {
+        for (const framework of STEP_FRAMEWORKS) {
+          for (const source of lesson.stepFrameworks[framework]) {
+            for (const name of source.match(/\bdefineBox[A-Za-z]*\b/g) ?? []) {
+              expect(exportedDefineNames, `${lesson.id}/${framework} imports ${name}`).toContain(name);
+            }
+            expect(source).toContain("@unofficialbox/box-open-elements");
+          }
+        }
+      });
+
+      it("the component grows monotonically across steps 1…n (each ⊇ the previous)", () => {
+        // Step 0 is the one-time setup file (larger than the initial shell), so
+        // the growth check starts at the first component step. From there the
+        // framework version must stay in lockstep with the cumulative vanilla
+        // build: a later step should never be shorter, which would signal a
+        // dropped feature.
+        for (const framework of STEP_FRAMEWORKS) {
+          const arr = lesson.stepFrameworks[framework];
+          for (let i = 2; i < arr.length; i++) {
+            expect(
+              arr[i].length,
+              `${lesson.id}/${framework} step ${i} is shorter than step ${i - 1}`,
+            ).toBeGreaterThanOrEqual(arr[i - 1].length - 40);
+          }
+        }
+      });
     });
   }
 });

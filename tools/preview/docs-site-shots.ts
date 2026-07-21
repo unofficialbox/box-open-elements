@@ -29,6 +29,7 @@ const routes: Array<[name: string, hash: string, readyMarker: string, scrollTo?:
   ["components-tag-input", "#components/tag-input", "components/tag-input"],
   ["patterns-content-explorer", "#patterns/content-explorer", "patterns/content-explorer"],
   ["lessons-share", "#lessons/share", "lessons/share", ".lesson-frameworks"],
+  ["lessons-explorer-step", "#lessons/explorer", "lessons/explorer", "#step-0"],
   ["patterns-share-panel", "#patterns/share-panel", "patterns/share-panel"],
   ["foundations-tokens", "#foundations/tokens", "foundations/tokens"],
   ["foundations-theming", "#foundations/theming", "foundations/theming"],
@@ -100,7 +101,7 @@ try {
     // Shots are viewport-sized; a route may name a selector to bring into view
     // so a section further down the page is the one under test.
     if (scrollTo) {
-      await page.locator(scrollTo).scrollIntoViewIfNeeded({ timeout: 15_000 });
+      await page.locator(scrollTo).first().scrollIntoViewIfNeeded({ timeout: 15_000 });
     }
     await page.waitForTimeout(150);
     await page.screenshot({ path: join(OUT_DIR, `${name}.png`) });

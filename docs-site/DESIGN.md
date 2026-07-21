@@ -62,8 +62,12 @@ chrome, cards, tables and prose retheme automatically.
   coral event names, sky/blue count chips.
 - **Framework selector** — the Code tab and each build-along's "Use it in your
   framework" section (full-width, directly under the lesson intro and above the
-  step-by-step walkthrough, so it's the first thing after the overview) select
-  frameworks with their **official brand marks**
+  step-by-step walkthrough, so it's the first thing after the overview) — plus
+  **each build-along step**, whose code block switches between the vanilla
+  walkthrough (the "HTML" tab, with the added-line diff) and that step's
+  cumulative component in each framework (`docs-site/lesson-frameworks.ts`,
+  hand-authored in lockstep with the steps). Every step's tab state is
+  independent. All select frameworks with their **official brand marks**
   (`docs-site/framework-icons.ts`, path data from simple-icons, inlined so there
   is no runtime dependency). Unselected marks are muted and monochrome; the
   active one takes its brand colour, with a per-theme value where the brand hex

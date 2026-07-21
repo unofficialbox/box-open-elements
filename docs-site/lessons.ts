@@ -13,6 +13,12 @@
  * (each step runs in the browser against the already-deployed library) with a
  * copyable complete-source "build it in your own project" path.
  */
+import {
+  explorerStepFrameworks,
+  shareStepFrameworks,
+  previewStepFrameworks,
+  type StepFrameworks,
+} from "./lesson-frameworks.js";
 
 /** Which live preview state the renderer should build for a step. */
 export type PreviewKey =
@@ -78,6 +84,12 @@ export interface Lesson {
    * has no mechanical translation.
    */
   frameworks: Record<FrameworkId, string>;
+  /**
+   * Per-step cumulative component in each non-vanilla framework, indexed to
+   * `steps` (the step's own `code` is the vanilla / "HTML" tab). Lets the
+   * framework version stay in lockstep with each teaching step.
+   */
+  stepFrameworks: StepFrameworks;
 }
 
 export type FrameworkId = "html" | "react" | "angular" | "vue" | "svelte";
@@ -429,6 +441,7 @@ const onSelectionChanged = (event: CustomEvent) => {
   on:selection-changed={event => console.log("Selected:", event.detail.selectedItemIds)}
 ></box-content-explorer>`,
   },
+  stepFrameworks: explorerStepFrameworks,
 };
 
 // ── Share lesson source, built up cumulatively ───────────────────────────────
@@ -725,6 +738,7 @@ const onCollaborator = (event: CustomEvent) => console.log("collaborator", event
   on:collaborator-selected={event => console.log("collaborator", event.detail.name)}
 ></box-share-panel>`,
   },
+  stepFrameworks: shareStepFrameworks,
 };
 
 // ── Preview lesson source, built up cumulatively ─────────────────────────────
@@ -1040,6 +1054,7 @@ const onProviderAction = (event: CustomEvent) =>
     console.log("provider-action", event.detail.action, event.detail.providerId)}
 ></box-preview-element>`,
   },
+  stepFrameworks: previewStepFrameworks,
 };
 
 export const lessons: Lesson[] = [explorerLesson, shareLesson, previewLesson];
