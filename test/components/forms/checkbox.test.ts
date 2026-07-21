@@ -173,6 +173,27 @@ describe("BoxCheckboxElement", () => {
     expect(element.getAttribute("aria-checked")).toBe("false");
   });
 
+  it("renders an indented description subsection wired via aria-describedby", () => {
+    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    element.label = "Email notifications";
+    document.body.append(element);
+
+    const description = element.shadowRoot?.querySelector('[part="description"]') as HTMLElement;
+    const field = element.shadowRoot?.querySelector('[part="field"]') as HTMLElement;
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
+
+    // Absent by default — single-line render is unchanged.
+    expect(description.hidden).toBe(true);
+    expect(field.hasAttribute("data-has-description")).toBe(false);
+    expect(input.hasAttribute("aria-describedby")).toBe(false);
+
+    element.description = "Get an email when someone comments.";
+    expect(description.hidden).toBe(false);
+    expect(description.textContent).toContain("comments");
+    expect(field.dataset.hasDescription).toBe("true");
+    expect(input.getAttribute("aria-describedby")).toBe(description.id);
+  });
+
   it("uses BUE-sized checkbox geometry", () => {
     const element = document.createElement("box-checkbox") as BoxCheckboxElement;
     document.body.append(element);

@@ -14,13 +14,15 @@ const searchField: StoryModule = {
       { kind: "attribute", name: "value", type: "string", description: "Current query." },
       { kind: "attribute", name: "placeholder", type: "string", description: "Hint shown when empty." },
       { kind: "attribute", name: "disabled", type: "boolean", description: "Makes the field inert." },
+      { kind: "attribute", name: "loading", type: "boolean", description: "Shows a spinner in the submit button while a search runs." },
       { kind: "event", name: "input", description: "Fired as the query changes." },
-      { kind: "event", name: "change", description: "Fired when the query is committed." },
+      { kind: "event", name: "search", description: "Fired on Enter / submit; also requests the containing form's submission." },
     ],
   },
   variants: [
     { name: "Empty", html: `<box-search-field label="Search files" placeholder="Type to search"></box-search-field>` },
     { name: "Filled", html: `<box-search-field label="Search files" value="contracts"></box-search-field>` },
+    { name: "Loading", html: `<box-search-field label="Search files" value="contracts" loading></box-search-field>` },
   ],
 };
 

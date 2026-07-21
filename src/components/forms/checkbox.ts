@@ -49,8 +49,36 @@ const checkboxStyles = `
 
   ${boeFocusVisibleStyles('[part="input"]')}
 
+  [part="text"] {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 2px;
+    min-inline-size: 0;
+  }
+
   [part="label"] {
     font-weight: 400;
+  }
+
+  /* Supporting subsection below the label (BUE checkbox description). */
+  [part="description"] {
+    font-size: 0.82rem;
+    font-weight: 400;
+    line-height: 1.4;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+  }
+
+  [part="description"][hidden] {
+    display: none;
+  }
+
+  /* Top-align the box against multi-line content only when a description shows. */
+  [part="field"][data-has-description="true"] {
+    align-items: start;
+  }
+
+  [part="field"][data-has-description="true"] [part="input"] {
+    margin-block-start: 1px;
   }
 
   :host([disabled]) [part="field"] {
@@ -66,6 +94,7 @@ export class BoxCheckboxElement extends FormAssociatedElement {
     return [
       ...FormAssociatedElement.formObservedAttributes,
       "checked",
+      "description",
       "disabled",
       "indeterminate",
       "label",
@@ -78,7 +107,19 @@ export class BoxCheckboxElement extends FormAssociatedElement {
   private valueInternal = DEFAULT_VALUE;
   private inputEl!: HTMLInputElement;
   private labelEl!: HTMLSpanElement;
+  private descriptionEl!: HTMLElement;
+  private fieldEl!: HTMLElement;
   private errorEl!: HTMLElement;
+  private descriptionId = `box-checkbox-desc-${Math.random().toString(36).slice(2, 10)}`;
+
+  /** Supporting text shown as an indented subsection below the label. */
+  get description(): string {
+    return this.getAttribute("description") ?? "";
+  }
+
+  set description(value: string) {
+    this.setAttribute("description", value);
+  }
 
   get checked(): boolean {
     return this.checkedInternal;
@@ -204,13 +245,18 @@ export class BoxCheckboxElement extends FormAssociatedElement {
           type="checkbox"
           part="input"
         />
-        <span part="label"></span>
+        <span part="text">
+          <span part="label"></span>
+          <span part="description" id="${this.descriptionId}" hidden></span>
+        </span>
       </label>
       ${formErrorMessageMarkup()}
     `;
 
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.descriptionEl = this.shadowRoot.querySelector('[part="description"]')!;
+    this.fieldEl = this.shadowRoot.querySelector('[part="field"]')!;
     this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
@@ -264,6 +310,19 @@ export class BoxCheckboxElement extends FormAssociatedElement {
     }
     this.inputEl.setAttribute("aria-label", this.label);
     this.labelEl.textContent = this.label;
+
+    const description = this.description;
+    if (description) {
+      this.descriptionEl.hidden = false;
+      this.descriptionEl.textContent = description;
+      this.inputEl.setAttribute("aria-describedby", this.descriptionId);
+      this.fieldEl.dataset.hasDescription = "true";
+    } else {
+      this.descriptionEl.hidden = true;
+      this.descriptionEl.textContent = "";
+      this.inputEl.removeAttribute("aria-describedby");
+      this.fieldEl.removeAttribute("data-has-description");
+    }
 
     this.applyInvalidState(this.inputEl, this.errorEl);
   }

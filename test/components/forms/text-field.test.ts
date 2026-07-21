@@ -147,4 +147,57 @@ describe("BoxTextFieldElement — shared field features", () => {
     element.label = "Full name";
     expect(element.shadowRoot?.querySelector(".boe-required-mark")).not.toBeNull();
   });
+
+  it("passes a supported type through to the input", () => {
+    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    element.type = "email";
+    document.body.append(element);
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
+    expect(input.type).toBe("email");
+
+    // Unsupported types fall back to text.
+    element.type = "color";
+    expect(input.type).toBe("text");
+  });
+
+  it("reveals a leading icon slot only when content is assigned", () => {
+    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    document.body.append(element);
+    const control = element.shadowRoot?.querySelector('[part="control"]') as HTMLElement;
+    expect(control.dataset.hasIcon).toBe("false");
+
+    const icon = document.createElement("span");
+    icon.slot = "icon";
+    element.append(icon);
+    return new Promise<void>(resolve => {
+      setTimeout(() => {
+        expect(control.dataset.hasIcon).toBe("true");
+        resolve();
+      }, 0);
+    });
+  });
+
+  it("shows a trailing spinner when loading and a check when valid", () => {
+    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    document.body.append(element);
+    const control = element.shadowRoot?.querySelector('[part="control"]') as HTMLElement;
+    const status = element.shadowRoot?.querySelector('[part="status"]') as HTMLElement;
+
+    expect(control.hasAttribute("data-status")).toBe(false);
+
+    element.loading = true;
+    expect(control.dataset.status).toBe("loading");
+    expect(status.querySelector('[part="spinner"]')).not.toBeNull();
+
+    // Loading takes precedence over valid.
+    element.valid = true;
+    expect(control.dataset.status).toBe("loading");
+
+    element.loading = false;
+    expect(control.dataset.status).toBe("valid");
+    expect(status.querySelector('[part="valid-icon"]')).not.toBeNull();
+
+    element.valid = false;
+    expect(control.hasAttribute("data-status")).toBe(false);
+  });
 });

@@ -87,6 +87,36 @@ describe("BoxSearchFieldElement", () => {
     expect(clear?.disabled).toBe(true);
   });
 
+  it("shows a spinner and busies the submit button while loading", () => {
+    const element = document.createElement("box-search-field") as BoxSearchFieldElement;
+    document.body.append(element);
+    const submit = element.shadowRoot?.querySelector('[part="submit"]') as HTMLButtonElement;
+
+    element.loading = true;
+    expect(submit.querySelector('[part="spinner"]')).not.toBeNull();
+    expect(submit.getAttribute("aria-busy")).toBe("true");
+    expect(submit.disabled).toBe(true);
+
+    element.loading = false;
+    expect(submit.querySelector('[part="spinner"]')).toBeNull();
+    expect(submit.textContent).toContain("Search");
+    expect(submit.disabled).toBe(false);
+  });
+
+  it("requests submission of its containing form on Enter", () => {
+    const form = document.createElement("form");
+    const element = document.createElement("box-search-field") as BoxSearchFieldElement;
+    form.append(element);
+    document.body.append(form);
+    const submitted = vi.fn((event: Event) => event.preventDefault());
+    form.addEventListener("submit", submitted);
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+
+    expect(submitted).toHaveBeenCalledTimes(1);
+  });
+
   it("does not lose focus when label attribute changes while input is focused", () => {
     const element = document.createElement("box-search-field") as BoxSearchFieldElement;
     element.label = "Search";

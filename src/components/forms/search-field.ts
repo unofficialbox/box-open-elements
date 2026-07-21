@@ -6,10 +6,16 @@ import {
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
-import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+import {
+  boeMotionDuration,
+  boeMotionEasing,
+  boeReducedMotionStyles,
+} from "../../foundations/motion/index.js";
 import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-search-field";
+
+const searchSpinnerMarkup = '<span part="spinner" aria-hidden="true"></span>';
 
 const searchFieldStyles = `
   :host {
@@ -130,6 +136,22 @@ const searchFieldStyles = `
     cursor: not-allowed;
   }
 
+  [part="submit"] [part="spinner"] {
+    display: inline-block;
+    inline-size: 0.95rem;
+    block-size: 0.95rem;
+    border-radius: 999px;
+    border: 2px solid color-mix(in srgb, currentColor 35%, transparent);
+    border-top-color: currentColor;
+    animation: boe-search-spin ${boeMotionDuration.spin} ${boeMotionEasing.linear} infinite;
+  }
+
+  @keyframes boe-search-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  ${boeReducedMotionStyles('[part="submit"] [part="spinner"]', "animation-duration: 1.6s;")}
+
   ${boeFormFieldErrorStyles}
   ${boeFormFieldSupportStyles}
 `;
@@ -141,8 +163,18 @@ export class BoxSearchFieldElement extends FormAssociatedElement {
       "disabled",
       "label",
       "placeholder",
+      "loading",
       "value",
     ];
+  }
+
+  /** Shows a spinner in the submit button while a search runs asynchronously. */
+  get loading(): boolean {
+    return this.hasAttribute("loading");
+  }
+
+  set loading(value: boolean) {
+    this.toggleAttribute("loading", Boolean(value));
   }
 
   private valueInternal = "";
@@ -273,30 +305,34 @@ export class BoxSearchFieldElement extends FormAssociatedElement {
         return;
       }
       if (event.key === "Enter") {
-        this.dispatchEvent(
-          new CustomEvent("search", {
-            bubbles: true,
-            composed: true,
-            detail: { value: this.valueInternal },
-          }),
-        );
+        this.submitSearch();
       }
     });
     this.submitEl.addEventListener("click", () => {
       if (this.disabled) {
         return;
       }
-      this.dispatchEvent(
-        new CustomEvent("search", {
-          bubbles: true,
-          composed: true,
-          detail: { value: this.valueInternal },
-        }),
-      );
+      this.submitSearch();
     });
     this.clearEl.addEventListener("click", () => {
       this.clear();
     });
+  }
+
+  /**
+   * Emit `search` and, when placed inside a form, request its submission — so a
+   * search field behaves like a native search input on Enter / submit-click.
+   */
+  private submitSearch(): void {
+    this.dispatchEvent(
+      new CustomEvent("search", {
+        bubbles: true,
+        composed: true,
+        detail: { value: this.valueInternal },
+      }),
+    );
+    const form = this.internals.form ?? this.closest("form");
+    form?.requestSubmit();
   }
 
   protected update(): void {
@@ -313,10 +349,22 @@ export class BoxSearchFieldElement extends FormAssociatedElement {
 
     if (this.disabled) {
       this.inputEl.setAttribute("disabled", "");
-      this.submitEl.setAttribute("disabled", "");
     } else {
       this.inputEl.removeAttribute("disabled");
-      this.submitEl.removeAttribute("disabled");
+    }
+
+    // Loading: show a spinner in the submit button and disable it; else the
+    // submit label, disabled only when the whole field is disabled.
+    if (this.loading) {
+      this.submitEl.innerHTML = searchSpinnerMarkup;
+      this.submitEl.setAttribute("aria-label", "Searching");
+      this.submitEl.setAttribute("aria-busy", "true");
+      this.submitEl.disabled = true;
+    } else {
+      this.submitEl.textContent = "Search";
+      this.submitEl.removeAttribute("aria-label");
+      this.submitEl.removeAttribute("aria-busy");
+      this.submitEl.disabled = this.disabled;
     }
 
     this.clearEl.disabled = this.disabled || this.valueInternal.length === 0;
