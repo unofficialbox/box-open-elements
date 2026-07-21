@@ -146,6 +146,22 @@ export const examples: Record<string, ComponentExample> = {
     }),
   },
   pagination: { html: `<box-pagination page="2" page-size="25" total-items="220"></box-pagination>` },
+  table: {
+    html: `<box-table label="Files" selection-mode="multiple"></box-table>`,
+    setup: root => set(root, "box-table", {
+      columns: [
+        { key: "name", label: "Name", sortable: true },
+        { key: "owner", label: "Owner" },
+        { key: "modified", label: "Modified", align: "end" },
+      ],
+      rows: [
+        { id: "123", cells: { name: "Quarterly Plan.pdf", owner: "Morgan Lee", modified: "Jul 10, 2026" } },
+        { id: "124", cells: { name: "Brand Guidelines.pdf", owner: "Alex Kim", modified: "Jun 2, 2026" } },
+        { id: "42", cells: { name: "Marketing", owner: "Morgan Lee", modified: "May 30, 2026" } },
+      ],
+    }),
+    note: "Click to select; Ctrl/Cmd-click to toggle, Shift-click for a range. Arrow keys + Space navigate and select.",
+  },
   tree: {
     html: `<box-tree label="Folders"></box-tree>`,
     setup: root => set(root, "box-tree", {
