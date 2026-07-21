@@ -533,6 +533,18 @@ export const examples: Record<string, ComponentExample> = {
       },
     ],
   },
+  "context-menu": {
+    html: `<box-context-menu>\n  <div style="display:grid;place-items:center;height:120px;border:1px dashed var(--boe-token-stroke-stroke,#e8e8e8);border-radius:12px;color:var(--boe-token-text-text-secondary,#6f6f6f)">Right-click here</div>\n</box-context-menu>`,
+    setup: root => set(root, "box-context-menu", {
+      items: [
+        { id: "open", label: "Open" },
+        { id: "rename", label: "Rename" },
+        { id: "download", label: "Download" },
+        { id: "delete", label: "Delete", separator: true },
+      ],
+    }),
+    note: "Right-click (or Shift+F10) the area to open the menu at the pointer.",
+  },
   dialog: { html: `<box-dialog heading="Delete file?" message="Quarterly Plan.pdf will be moved to trash." open></box-dialog>` },
   drawer: { html: `<box-drawer heading="Details" open></box-drawer>` },
   popover: { html: `<box-popover label="More info" placement="top" open>Shared links expire automatically.</box-popover>` },

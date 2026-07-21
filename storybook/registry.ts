@@ -10,6 +10,7 @@ import avatar from "./stories/avatar.stories.js";
 import badge from "./stories/badge.stories.js";
 import badgeable from "./stories/badgeable.stories.js";
 import breadcrumb from "./stories/breadcrumb.stories.js";
+import contextMenu from "./stories/context-menu.stories.js";
 import thumbnailCard from "./stories/thumbnail-card.stories.js";
 import barChart from "./stories/bar-chart.stories.js";
 import bulkActionBar from "./stories/bulk-action-bar.stories.js";
@@ -129,6 +130,7 @@ export const storyModules: StoryModule[] = [
   badge,
   badgeable,
   breadcrumb,
+  contextMenu,
   thumbnailCard,
   barChart,
   bulkActionBar,
