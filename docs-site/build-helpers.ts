@@ -21,7 +21,8 @@ export function replaceOnce(haystack: string, needle: string, replacement: strin
  * bundled — a rail-footer link to it is added.
  */
 export function rewriteIndexHtml(html: string, includeWorkshop: boolean): string {
-  let out = replaceOnce(html, 'href="/docs-site/styles.css"', 'href="./styles.css"');
+  let out = replaceOnce(html, 'href="/docs-site/favicon.svg"', 'href="./favicon.svg"');
+  out = replaceOnce(out, 'href="/docs-site/styles.css"', 'href="./styles.css"');
   out = replaceOnce(out, '"@unofficialbox/box-open-elements": "/dist/index.js"', '"@unofficialbox/box-open-elements": "./lib/index.js"');
   out = replaceOnce(out, 'src="/docs-site/main.js"', 'src="./main.js"');
   if (includeWorkshop) {

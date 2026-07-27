@@ -2,6 +2,10 @@
 
 Motion guidance is backed by a small shared vocabulary in `@unofficialbox/box-open-elements/foundations/motion`. Prefer that module over hard-coded `120ms` / `ease` literals in new or touched shadow styles.
 
+Duration and easing constants resolve through `--boe-profile-*` properties,
+allowing a [design profile](./design-profiles.md) to change the catalog's motion
+character while preserving reduced-motion behavior.
+
 ## Vocabulary
 
 ```ts

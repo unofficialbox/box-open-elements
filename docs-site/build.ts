@@ -67,7 +67,8 @@ if (!build.success) {
   process.exit(1);
 }
 
-// Static assets: styles, the built library tree (importmap target), the workshop.
+// Static assets: favicon, styles, the built library tree (importmap target), the workshop.
+cpSync(join(ROOT, "docs-site/favicon.svg"), join(OUT, "favicon.svg"));
 cpSync(join(ROOT, "docs-site/styles.css"), join(OUT, "styles.css"));
 cpSync(LIB_SRC, join(OUT, "lib"), { recursive: true });
 if (includeWorkshop) cpSync(WORKSHOP_SRC, join(OUT, "workshop"), { recursive: true });
@@ -102,6 +103,7 @@ function buildPageHtml(rootHtml: string, page: PrerenderPage): string {
   const url = `${SITE}/${page.path}/`;
   let out = rootHtml
     // depth-2 relative asset refs
+    .replace('href="./favicon.svg"', 'href="../../favicon.svg"')
     .replace('href="./styles.css"', 'href="../../styles.css"')
     .replace('src="./main.js"', 'src="../../main.js"')
     .replace('"./lib/index.js"', '"../../lib/index.js"')

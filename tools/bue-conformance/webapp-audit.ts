@@ -20,6 +20,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { canonicalColor, colorDelta, parseColor } from "./color-signals.js";
+import { resolveCssVars } from "./color-signals.js";
 import { boxDefaultDesignSystem } from "../../src/foundations/tokens/box-defaults.js";
 import { boeControl, boeOverlay, boeRadius } from "../../src/foundations/geometry/index.js";
 
@@ -97,12 +98,13 @@ export function evaluateGeometry(reference: Reference): GeometryRow[] {
     return typeof v === "object" ? v.borderRadius : undefined;
   };
   const cmp = (surface: string, boeConst: string, boe: string, box: string | undefined): GeometryRow => {
+    const resolvedBoe = resolveCssVars(boe, new Map());
     const b = px(box);
-    const o = px(boe);
+    const o = px(resolvedBoe);
     return {
       surface,
       boeConst,
-      boeValue: boe,
+      boeValue: resolvedBoe,
       boxValue: box ?? "—",
       verdict: box === undefined ? "missing-boe" : b !== null && o === b ? "conformant" : "review",
     };

@@ -1,6 +1,6 @@
 import { registerDesignSystem } from "./registry.js";
 import { boxDefaultDesignSystem } from "./box-defaults.js";
-import type { DesignSystemDefinition } from "./types.js";
+import type { RegisteredDesignSystemDefinition } from "./types.js";
 
 /**
  * Box dark theme. Same token keys, icons, and illustrations as
@@ -8,7 +8,7 @@ import type { DesignSystemDefinition } from "./types.js";
  * change, so every component that consumes `--boe-token-*` re-themes with no
  * markup change when this bundle is made active.
  */
-export const boxDarkDesignSystem: DesignSystemDefinition = {
+export const boxDarkDesignSystem: RegisteredDesignSystemDefinition = {
   name: "box-dark",
   // Neutral-grey dark surfaces (no blue tint), consistent with the modernized
   // Blueprint neutral palette used by the light default. Box publishes no
@@ -48,5 +48,5 @@ export const boxDarkDesignSystem: DesignSystemDefinition = {
 
 export const registerBoxDarkDesignSystem = (
   options: { setActive?: boolean } = {},
-): DesignSystemDefinition =>
+): RegisteredDesignSystemDefinition =>
   registerDesignSystem(boxDarkDesignSystem, options);

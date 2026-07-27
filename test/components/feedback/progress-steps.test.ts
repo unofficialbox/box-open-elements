@@ -82,6 +82,6 @@ describe("BoxProgressStepsElement", () => {
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("border-radius: 12px;");
+    expect(styles).toContain("border-radius: var(--boe-profile-radius-medium, 12px);");
   });
 });

@@ -9,19 +9,23 @@ import {
 
 describe("motion foundation", () => {
   it("exposes a stable duration / easing vocabulary", () => {
-    expect(boeMotionDuration.fast).toBe("120ms");
-    expect(boeMotionDuration.interactive).toBe("140ms");
-    expect(boeMotionDuration.medium).toBe("160ms");
-    expect(boeMotionDuration.spin).toBe("0.8s");
-    expect(boeMotionEasing.standard).toBe("ease");
-    expect(boeMotionEasing.linear).toBe("linear");
+    expect(boeMotionDuration.fast).toBe("var(--boe-profile-motion-fast, 120ms)");
+    expect(boeMotionDuration.interactive).toBe("var(--boe-profile-motion-interactive, 140ms)");
+    expect(boeMotionDuration.medium).toBe("var(--boe-profile-motion-medium, 160ms)");
+    expect(boeMotionDuration.spin).toBe("var(--boe-profile-motion-spin, 0.8s)");
+    expect(boeMotionEasing.standard).toBe("var(--boe-profile-easing-standard, ease)");
+    expect(boeMotionEasing.linear).toBe("var(--boe-profile-easing-linear, linear)");
   });
 
   it("builds transition shorthand from the vocabulary", () => {
-    expect(boeTransition("opacity")).toBe("opacity 120ms ease");
-    expect(boeTransition("opacity", boeMotionDuration.interactive)).toBe("opacity 140ms ease");
+    expect(boeTransition("opacity")).toBe(
+      `opacity ${boeMotionDuration.fast} ${boeMotionEasing.standard}`,
+    );
+    expect(boeTransition("opacity", boeMotionDuration.interactive)).toBe(
+      `opacity ${boeMotionDuration.interactive} ${boeMotionEasing.standard}`,
+    );
     expect(boeTransition("opacity", boeMotionDuration.medium, boeMotionEasing.enter)).toBe(
-      "opacity 160ms ease-out",
+      `opacity ${boeMotionDuration.medium} ${boeMotionEasing.enter}`,
     );
   });
 

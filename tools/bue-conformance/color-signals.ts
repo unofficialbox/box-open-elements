@@ -313,16 +313,35 @@ export function resolveCssVars(
 ): string {
   let current = value.trim();
   for (let depth = 0; depth < maxDepth; depth += 1) {
-    const next = current.replace(
-      /var\(\s*(--[\w-]+)\s*(?:,\s*([^()]*?)\s*)?\)/g,
-      (whole, name: string, fallback: string | undefined) => {
-        const key = name.replace(/^--/, "");
-        if (tokens.has(key)) {
-          return tokens.get(key) as string;
+    const start = current.lastIndexOf("var(");
+    if (start === -1) {
+      return current;
+    }
+
+    let nesting = 0;
+    let end = -1;
+    for (let index = start + 4; index < current.length; index += 1) {
+      if (current[index] === "(") {
+        nesting += 1;
+      } else if (current[index] === ")") {
+        if (nesting === 0) {
+          end = index;
+          break;
         }
-        return fallback !== undefined ? fallback : whole;
-      },
-    );
+        nesting -= 1;
+      }
+    }
+    if (end === -1) {
+      return current;
+    }
+
+    const whole = current.slice(start, end + 1);
+    const parts = splitTopLevel(current.slice(start + 4, end));
+    const name = parts.shift()?.trim() ?? "";
+    const key = name.replace(/^--/, "");
+    const fallback = parts.join(",").trim();
+    const replacement = tokens.get(key) ?? (fallback || whole);
+    const next = `${current.slice(0, start)}${replacement}${current.slice(end + 1)}`;
     if (next === current) {
       return next;
     }

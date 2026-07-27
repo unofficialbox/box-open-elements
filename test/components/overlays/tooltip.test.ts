@@ -90,7 +90,7 @@ describe("BoxTooltipElement", () => {
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("border-radius: 20px;");
+    expect(styles).toContain("border-radius: var(--boe-profile-radius-xlarge, 20px);");
   });
 
   it("uses a custom trigger label when provided", () => {

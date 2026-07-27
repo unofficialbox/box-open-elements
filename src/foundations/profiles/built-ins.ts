@@ -1,0 +1,136 @@
+import { registerDesignProfile } from "./registry.js";
+import type { DesignProfileDefinition } from "./types.js";
+
+export const boxDefaultDesignProfile: DesignProfileDefinition = {
+  name: "box-default",
+  description: "Box web-app geometry, density, elevation, typography, and motion.",
+  spacing: {
+    unit: "4px",
+    space1: "4px",
+    space2: "8px",
+    space3: "12px",
+    space4: "16px",
+    space5: "20px",
+    space6: "24px",
+    space8: "32px",
+    space10: "40px",
+    space12: "48px",
+  },
+  radius: {
+    size: "4px",
+    medium: "12px",
+    large: "16px",
+    xlarge: "20px",
+    control: "20px",
+    field: "24px",
+    nav: "28px",
+    pill: "999px",
+  },
+  density: {
+    panelPadding: "12px",
+    panelGap: "12px",
+    overlayPadding: "12px",
+    overlayItemPadding: "8px 48px 8px 8px",
+    overlayItemMinHeight: "30px",
+    modalPadding: "30px",
+    modalWidth: "460px",
+    drawerWidth: "340px",
+    controlHeight: "32px",
+    controlHeightLarge: "40px",
+    controlPaddingInline: "16px",
+    inputPadding: "7px",
+    selectHeight: "34px",
+    disabledOpacity: "0.4",
+  },
+  typography: {
+    fontFamilyBase: "InterVariable, Inter, Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif",
+    controlFontSize: "13px",
+    controlLetterSpacing: "0.035em",
+    modalTitleSize: "16px",
+  },
+  elevation: {
+    panel: "0 1px 2px rgb(15 23 42 / 4%)",
+    overlay: "0 4px 12px 0 rgb(0 0 0 / 10%)",
+    modal: "0 1px 1px 1px rgb(0 0 0 / 5%)",
+    inputInset: "inset 0 2px 4px rgb(0 0 0 / 10%)",
+    primaryFocus:
+      "inset 0 0 0 1px rgb(255 255 255 / 80%), 0 1px 2px rgb(0 0 0 / 10%)",
+  },
+  motion: {
+    fast: "120ms",
+    interactive: "140ms",
+    medium: "160ms",
+    slow: "240ms",
+    spin: "0.8s",
+    shimmer: "1.4s",
+    easingStandard: "ease",
+    easingEnter: "ease-out",
+    easingExit: "ease-in",
+    easingLinear: "linear",
+  },
+};
+
+export const compactNeutralDesignProfile: DesignProfileDefinition = {
+  name: "compact-neutral",
+  description: "A denser, restrained application profile for information-heavy tools.",
+  spacing: {
+    space1: "3px",
+    space2: "6px",
+    space3: "10px",
+    space4: "14px",
+    space5: "18px",
+    space6: "20px",
+    space8: "28px",
+    space10: "36px",
+    space12: "44px",
+  },
+  radius: {
+    size: "3px",
+    medium: "6px",
+    large: "8px",
+    xlarge: "10px",
+    control: "6px",
+    field: "8px",
+    nav: "6px",
+    pill: "999px",
+  },
+  density: {
+    panelPadding: "10px",
+    panelGap: "8px",
+    overlayPadding: "6px",
+    overlayItemPadding: "6px 32px 6px 8px",
+    overlayItemMinHeight: "28px",
+    modalPadding: "20px",
+    controlHeight: "28px",
+    controlHeightLarge: "34px",
+    controlPaddingInline: "12px",
+    inputPadding: "5px 7px",
+    selectHeight: "30px",
+  },
+  typography: {
+    fontFamilyBase: "InterVariable, Inter, sans-serif",
+    controlFontSize: "12px",
+    controlLetterSpacing: "0",
+    modalTitleSize: "15px",
+  },
+  elevation: {
+    panel: "0 1px 2px rgb(0 0 0 / 5%)",
+    overlay: "0 8px 24px rgb(0 0 0 / 18%)",
+    modal: "0 12px 32px rgb(0 0 0 / 22%)",
+    inputInset: "none",
+  },
+  motion: {
+    fast: "80ms",
+    interactive: "100ms",
+    medium: "140ms",
+    slow: "180ms",
+    easingStandard: "cubic-bezier(0.2, 0, 0, 1)",
+    easingEnter: "cubic-bezier(0.16, 1, 0.3, 1)",
+    easingExit: "cubic-bezier(0.7, 0, 0.84, 0)",
+  },
+};
+
+export const registerBuiltInDesignProfiles = (): void => {
+  registerDesignProfile(boxDefaultDesignProfile);
+  registerDesignProfile(compactNeutralDesignProfile);
+};

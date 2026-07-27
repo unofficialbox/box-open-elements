@@ -8,6 +8,28 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ---
 
+## Unreleased
+
+- Add preferred typed semantic design-token names (for example,
+  `surfacePrimary`, `textPrimary`, and `borderDefault`) while preserving Box's
+  repetitive upstream keys as compatibility aliases.
+- Add typed, persistent design profiles for runtime density, geometry,
+  typography, elevation, and motion switching, with `box-default` and
+  `compact-neutral` built-ins.
+
+**Foundations**
+
+- Added a framework-neutral theme controller with persistent `light`, `dark`,
+  and `system` preferences; OS color-scheme observation; atomic design-system
+  activation and token application; stale-token cleanup for custom bundles;
+  scoped roots; `data-theme` / `color-scheme` synchronization; and the
+  `boe:theme-change` event.
+- Added `createThemeInitializationScript()` for pre-paint theme metadata in SSR
+  and static shells. The docs site now uses the controller for both theme
+  toggles and applies its initial theme before CSS loads.
+
+---
+
 ## 0.4.0 — 2026-07-21
 
 Feature release working through the **remaining box-ui-elements audit items** —

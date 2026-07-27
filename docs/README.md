@@ -12,7 +12,8 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 ## Foundations
 
 - [Design Tokens](./foundations/tokens.md)
-- [Theming](./foundations/theming.md) — register / activate / apply / observe
+- [Theming](./foundations/theming.md) — persistent light / dark / system switching
+- [Design Profiles](./foundations/design-profiles.md) — runtime density, geometry, typography, elevation, and motion
 - [Geometry](./foundations/geometry.md) — BDL space / radius / control-height (BUE-aligned)
 - [Motion](./foundations/motion.md) — shared durations, easing, reduced-motion
 - [Iconography](./foundations/iconography.md)

@@ -91,9 +91,9 @@ describe("BoxErrorMaskElement", () => {
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("padding: 40px;");
-    expect(styles).toContain("border-radius: 16px;");
+    expect(styles).toContain("padding: var(--boe-profile-space-10, 40px);");
+    expect(styles).toContain("border-radius: var(--boe-profile-radius-large, 16px);");
     expect(styles).toContain("border: 1px dashed");
-    expect(styles).toContain("min-height: 32px;");
+    expect(styles).toContain("min-height: var(--boe-profile-control-height, 32px);");
   });
 });

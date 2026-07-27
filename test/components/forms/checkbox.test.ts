@@ -201,7 +201,7 @@ describe("BoxCheckboxElement", () => {
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("inline-size: 14px");
     expect(styles).toContain("block-size: 14px");
-    expect(styles).toContain("border-radius: 4px");
-    expect(styles).toContain("opacity: 0.4");
+    expect(styles).toContain("border-radius: var(--boe-profile-radius-size, 4px)");
+    expect(styles).toContain("opacity: var(--boe-profile-disabled-opacity, 0.4)");
   });
 });

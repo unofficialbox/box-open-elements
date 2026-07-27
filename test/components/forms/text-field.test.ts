@@ -87,10 +87,10 @@ describe("BoxTextFieldElement", () => {
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("min-height: 32px");
-    expect(styles).toContain("padding: 7px");
-    expect(styles).toContain("border-radius: 12px");
-    expect(styles).toContain("inset 0 2px 4px");
+    expect(styles).toContain("min-height: var(--boe-profile-control-height, 32px)");
+    expect(styles).toContain("padding: var(--boe-profile-input-padding, 7px)");
+    expect(styles).toContain("border-radius: var(--boe-profile-radius-medium, 12px)");
+    expect(styles).toContain("var(--boe-profile-shadow-input-inset, inset 0 2px 4px");
   });
 });
 

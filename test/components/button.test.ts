@@ -80,11 +80,11 @@ describe("box-button", () => {
     element.setAttribute("label", "Save");
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("min-height: 32px");
-    expect(styles).toContain("padding: 0 16px");
-    expect(styles).toContain("border-radius: 20px");
-    expect(styles).toContain("font-size: 13px");
-    expect(styles).toContain("opacity: 0.4");
+    expect(styles).toContain("min-height: var(--boe-profile-control-height, 32px)");
+    expect(styles).toContain("padding: 0 var(--boe-profile-control-padding-inline, 16px)");
+    expect(styles).toContain("border-radius: var(--boe-profile-radius-control, 20px)");
+    expect(styles).toContain("font-size: var(--boe-profile-control-font-size, 13px)");
+    expect(styles).toContain("opacity: var(--boe-profile-disabled-opacity, 0.4)");
   });
 
   it("is idempotent to define twice", () => {

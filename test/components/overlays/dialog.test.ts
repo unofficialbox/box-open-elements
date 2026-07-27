@@ -116,13 +116,13 @@ describe("BoxDialogElement", () => {
     element.show();
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("padding: 30px;");
-    expect(styles).toContain("border-radius: 12px;");
-    expect(styles).toContain("width: min(460px, calc(100vw - 3rem))");
+    expect(styles).toContain("padding: var(--boe-profile-modal-padding, 30px);");
+    expect(styles).toContain("border-radius: var(--boe-profile-radius-field, 24px);");
+    expect(styles).toContain("width: min(var(--boe-profile-modal-width, 460px), calc(100vw - 3rem))");
     expect(styles).toContain("background: rgba(0, 0, 0, 0.75)");
-    expect(styles).toContain("font-size: 16px;");
-    expect(styles).toContain("min-height: 40px;");
-    expect(styles).toContain("border-radius: 12px;");
+    expect(styles).toContain("font-size: var(--boe-profile-modal-title-size, 16px);");
+    expect(styles).toContain("min-height: var(--boe-profile-control-height-large, 40px);");
+    expect(styles).toContain("border-radius: var(--boe-profile-radius-medium, 12px);");
   });
 
   it("includes focus-visible and hover styles for cancel and confirm", () => {

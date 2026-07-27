@@ -8,27 +8,27 @@
 
 export const boeMotionDuration = {
   /** Quick accent transitions (charts, micro-feedback) */
-  fast: "120ms",
+  fast: "var(--boe-profile-motion-fast, 120ms)",
   /**
    * Dominant interactive paint duration across catalog controls
    * (background / border / color / box-shadow on hover and press).
    */
-  interactive: "140ms",
+  interactive: "var(--boe-profile-motion-interactive, 140ms)",
   /** Opacity / layout micro-transitions */
-  medium: "160ms",
+  medium: "var(--boe-profile-motion-medium, 160ms)",
   /** Panel expand / collapse */
-  slow: "240ms",
+  slow: "var(--boe-profile-motion-slow, 240ms)",
   /** Indeterminate spinner rotation */
-  spin: "0.8s",
+  spin: "var(--boe-profile-motion-spin, 0.8s)",
   /** Skeleton shimmer cycle */
-  shimmer: "1.4s",
+  shimmer: "var(--boe-profile-motion-shimmer, 1.4s)",
 } as const;
 
 export const boeMotionEasing = {
-  standard: "ease",
-  enter: "ease-out",
-  exit: "ease-in",
-  linear: "linear",
+  standard: "var(--boe-profile-easing-standard, ease)",
+  enter: "var(--boe-profile-easing-enter, ease-out)",
+  exit: "var(--boe-profile-easing-exit, ease-in)",
+  linear: "var(--boe-profile-easing-linear, linear)",
 } as const;
 
 export type BoeMotionDuration = (typeof boeMotionDuration)[keyof typeof boeMotionDuration];

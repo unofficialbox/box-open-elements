@@ -115,11 +115,11 @@ describe("BoxDrawerElement", () => {
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("background: rgba(0, 0, 0, 0.75)");
-    expect(styles).toContain("width: min(340px, calc(100vw - 2rem))");
-    expect(styles).toContain("border-top-right-radius: 24px;");
-    expect(styles).toContain("padding: 16px;");
-    expect(styles).toContain("font-size: 16px;");
-    expect(styles).toContain("min-height: 32px;");
-    expect(styles).toContain("border-radius: 12px;");
+    expect(styles).toContain("width: min(var(--boe-profile-drawer-width, 340px), calc(100vw - 2rem))");
+    expect(styles).toContain("border-top-right-radius: var(--boe-profile-radius-field, 24px);");
+    expect(styles).toContain("padding: var(--boe-profile-space-4, 16px);");
+    expect(styles).toContain("font-size: var(--boe-profile-modal-title-size, 16px);");
+    expect(styles).toContain("min-height: var(--boe-profile-control-height, 32px);");
+    expect(styles).toContain("border-radius: var(--boe-profile-radius-medium, 12px);");
   });
 });

@@ -22,12 +22,16 @@ set -euo pipefail
 IMAGE="mcr.microsoft.com/playwright:v1.61.1-noble"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 CMD="${*:?usage: container-run.sh <command>}"
+DOCKER_ARCH="$(docker info --format '{{.Architecture}}')"
+BUN_CACHE_VOLUME="boe-bun-cache-${DOCKER_ARCH//[^a-zA-Z0-9_.-]/-}"
 
 docker_args=(
   --rm --init
   --ipc=host
   -v "$REPO_ROOT:/work"
-  -v boe-bun-cache:/root/.bun
+  # Bun installs architecture-specific binaries. Keep caches separated so a
+  # Rosetta/x86 run cannot poison a later native ARM container (or vice versa).
+  -v "$BUN_CACHE_VOLUME:/root/.bun"
   -w /work
   -e HOME=/root
   -e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright

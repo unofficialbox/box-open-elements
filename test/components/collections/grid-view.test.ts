@@ -120,7 +120,7 @@ describe("BoxGridViewElement", () => {
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("gap: 0.55rem;");
     expect(styles).toContain("padding: 0.6rem 0.65rem;");
-    expect(styles).toContain("border-radius: 16px;");
+    expect(styles).toContain("border-radius: var(--boe-profile-radius-large, 16px);");
     expect(styles).toContain("padding: 0.7rem;");
   });
 

@@ -332,17 +332,18 @@ export function compareValue({
   upstreamValue,
   tolerancePx = 0,
 }: ComparisonInput): Comparison {
+  const resolvedBoeValue = resolveCssVars(boeValue, new Map());
   if (upstreamValue === null || upstreamValue.trim() === "") {
     return {
       verdict: "missing-upstream",
-      boePx: parseLength(boeValue)?.px ?? null,
+      boePx: parseLength(resolvedBoeValue)?.px ?? null,
       upstreamPx: null,
       deltaPx: null,
       note: "Upstream value could not be located; check the manifest path/selector.",
     };
   }
 
-  const boeLength = parseLength(boeValue);
+  const boeLength = parseLength(resolvedBoeValue);
   const upstreamLength = parseLength(upstreamValue);
 
   if (boeLength && upstreamLength) {
@@ -355,7 +356,7 @@ export function compareValue({
     };
   }
 
-  if (normalizeToken(boeValue) === normalizeToken(upstreamValue)) {
+  if (normalizeToken(resolvedBoeValue) === normalizeToken(upstreamValue)) {
     return {
       verdict: "conformant",
       boePx: boeLength?.px ?? null,
@@ -378,3 +379,4 @@ export function compareValue({
 export function normalizeToken(value: string): string {
   return value.trim().replace(/\s+/g, " ").toLowerCase();
 }
+import { resolveCssVars } from "./color-signals.js";

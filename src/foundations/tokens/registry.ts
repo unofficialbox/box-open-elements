@@ -3,15 +3,72 @@ import type {
   DesignAssetRenderContext,
   DesignAssetRenderer,
   DesignSystemDefinition,
+  DesignTokenInput,
   DesignTokenMap,
+  RegisteredDesignSystemDefinition,
 } from "./types.js";
 
 export const DESIGN_SYSTEM_CHANGE_EVENT = "boe:design-system-change";
 
 const DEFAULT_TOKEN_PREFIX = "--boe-token-";
 
-const designSystems = new Map<string, DesignSystemDefinition>();
+const designSystems = new Map<string, RegisteredDesignSystemDefinition>();
 let activeDesignSystemName: string | null = null;
+
+export const SEMANTIC_TOKEN_ALIASES = {
+  fontFamilyBase: "FontFamilyBase",
+  surfacePrimary: "SurfaceSurface",
+  surfacePrimaryHover: "SurfaceSurfaceHover",
+  surfaceSecondary: "SurfaceSurfaceSecondary",
+  surfaceTertiary: "SurfaceSurfaceTertiary",
+  surfaceQuaternary: "SurfaceSurfaceQuaternary",
+  surfaceBrand: "SurfaceSurfaceBrand",
+  surfaceBrandHover: "SurfaceSurfaceBrandHover",
+  surfaceBrandPressed: "SurfaceSurfaceBrandPressed",
+  surfaceSearch: "SurfaceSearchSurface",
+  surfaceItemSelected: "SurfaceItemSurfaceSelected",
+  surfaceItemHover: "SurfaceItemSurfaceHover",
+  surfaceTooltip: "SurfaceTooltipSurface",
+  surfaceStatusSuccess: "SurfaceStatusSurfaceSuccess",
+  surfaceStatusError: "SurfaceStatusSurfaceError",
+  surfaceStatusInProgress: "SurfaceStatusSurfaceInprogress",
+  surfaceStatusAccent: "SurfaceStatusSurfaceAccent",
+  surfaceIllustrationBoxNeutral: "SurfaceIllustrationSurfaceBoxNeutral",
+  surfaceBadgeFolderShared: "SurfaceBadgeFoldersharedSurface",
+  surfaceBadgePdf: "SurfaceBadgePdfSurface",
+  textPrimary: "TextText",
+  textSecondary: "TextTextSecondary",
+  textPlaceholder: "TextTextPlaceholder",
+  textOnBrand: "TextTextOnBrand",
+  textDanger: "TextTextDanger",
+  borderDefault: "StrokeStroke",
+  borderHover: "StrokeStrokeHover",
+} as const;
+
+export const normalizeDesignTokens = (
+  tokens: DesignTokenInput,
+): DesignTokenMap => {
+  const normalized: DesignTokenMap = {};
+  const sourceNames = new Map<string, string>();
+
+  for (const [tokenName, tokenValue] of Object.entries(tokens)) {
+    const canonicalName =
+      SEMANTIC_TOKEN_ALIASES[tokenName as keyof typeof SEMANTIC_TOKEN_ALIASES] ??
+      tokenName;
+    const existingSourceName = sourceNames.get(canonicalName);
+
+    if (existingSourceName && existingSourceName !== tokenName) {
+      throw new Error(
+        `Design token "${canonicalName}" was provided as both "${existingSourceName}" and "${tokenName}"`,
+      );
+    }
+
+    normalized[canonicalName] = tokenValue;
+    sourceNames.set(canonicalName, tokenName);
+  }
+
+  return normalized;
+};
 
 const toKebabCase = (value: string): string =>
   value
@@ -57,18 +114,26 @@ const renderAsset = (
 export const registerDesignSystem = (
   definition: DesignSystemDefinition,
   options: { setActive?: boolean } = {},
-): DesignSystemDefinition => {
-  designSystems.set(definition.name, definition);
+): RegisteredDesignSystemDefinition => {
+  const normalizedDefinition: RegisteredDesignSystemDefinition = {
+    ...definition,
+    tokens: definition.tokens
+      ? normalizeDesignTokens(definition.tokens)
+      : undefined,
+  };
+  designSystems.set(definition.name, normalizedDefinition);
 
   if (options.setActive) {
     activeDesignSystemName = definition.name;
     emitDesignSystemChange();
   }
 
-  return definition;
+  return normalizedDefinition;
 };
 
-export const getDesignSystem = (name: string | null | undefined): DesignSystemDefinition | null => {
+export const getDesignSystem = (
+  name: string | null | undefined,
+): RegisteredDesignSystemDefinition | null => {
   if (!name) {
     return null;
   }
@@ -85,27 +150,27 @@ export const setActiveDesignSystem = (name: string | null): void => {
   emitDesignSystemChange();
 };
 
-export const getActiveDesignSystem = (): DesignSystemDefinition | null =>
+export const getActiveDesignSystem = (): RegisteredDesignSystemDefinition | null =>
   activeDesignSystemName ? getDesignSystem(activeDesignSystemName) : null;
 
-export const listDesignSystems = (): DesignSystemDefinition[] =>
+export const listDesignSystems = (): RegisteredDesignSystemDefinition[] =>
   Array.from(designSystems.values());
 
 export const resolveDesignSystemTokens = (name?: string | null): DesignTokenMap => {
   const system = name === undefined ? getActiveDesignSystem() : getDesignSystem(name);
-  return system?.tokens ?? {};
+  return system?.tokens ? normalizeDesignTokens(system.tokens) : {};
 };
 
 export const applyDesignTokens = (
   target: HTMLElement,
-  tokensOrSystemName?: DesignTokenMap | string | null,
+  tokensOrSystemName?: DesignTokenInput | string | null,
   options: ApplyDesignTokensOptions = {},
 ): string[] => {
   const prefix = options.prefix ?? DEFAULT_TOKEN_PREFIX;
   const tokens =
     typeof tokensOrSystemName === "string" || tokensOrSystemName == null
       ? resolveDesignSystemTokens(tokensOrSystemName)
-      : tokensOrSystemName;
+      : normalizeDesignTokens(tokensOrSystemName);
 
   const appliedVariables: string[] = [];
 
@@ -119,7 +184,7 @@ export const applyDesignTokens = (
 };
 
 export const createDesignTokenStyleText = (
-  tokensOrSystemName?: DesignTokenMap | string | null,
+  tokensOrSystemName?: DesignTokenInput | string | null,
   options: ApplyDesignTokensOptions = {},
 ): string => {
   const prefix = options.prefix ?? DEFAULT_TOKEN_PREFIX;
@@ -127,7 +192,7 @@ export const createDesignTokenStyleText = (
   const tokens =
     typeof tokensOrSystemName === "string" || tokensOrSystemName == null
       ? resolveDesignSystemTokens(tokensOrSystemName)
-      : tokensOrSystemName;
+      : normalizeDesignTokens(tokensOrSystemName);
 
   const declarations = Object.entries(tokens)
     .map(([tokenName, tokenValue]) => `  ${resolveTokenVariableName(tokenName, prefix)}: ${tokenValue};`)

@@ -113,8 +113,8 @@ describe("BoxTabsElement", () => {
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("line-height: 40px;");
-    expect(styles).toContain("font-size: 13px;");
+    expect(styles).toContain("line-height: var(--boe-profile-control-height-large, 40px);");
+    expect(styles).toContain("font-size: var(--boe-profile-control-font-size, 13px);");
     expect(styles).toContain("border-radius: 0;");
     expect(styles).toContain("height: 2px;");
     expect(styles).toContain("background: var(--boe-token-surface-surface-brand, #0061d5)");
@@ -189,4 +189,3 @@ describe("BoxTabsElement", () => {
   });
 
 });
-

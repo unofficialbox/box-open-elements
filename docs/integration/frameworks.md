@@ -217,8 +217,8 @@ can only hold strings.
   SSR frameworks (Next, Nuxt, SvelteKit, Analog), define + register the elements
   on the **client** only, or guard the tokens/`define` calls behind a
   browser check to avoid running them during server render.
-- **Theming.** Swap the whole catalog's look at runtime with
-  `registerBoxDarkDesignSystem()` + `setActiveDesignSystem("box-dark")` — see
-  [../foundations/tokens.md](../foundations/tokens.md).
+- **Theming.** Use `createThemeController()` for persistent
+  light/dark/system switching in every framework — see
+  [../foundations/theming.md](../foundations/theming.md).
 - **Framework support status** (validated adapters vs. direct usage) is tracked
   in [framework-adapters.md](./framework-adapters.md).

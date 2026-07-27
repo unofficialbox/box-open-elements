@@ -3,6 +3,9 @@
 Everyday control chrome should track [box-ui-elements](https://github.com/box/box-ui-elements) Box Design Language geometry (`src/styles/constants/_layout.scss`, `_buttons.scss`, `_inputs.scss`, and overlay/modal SCSS), not ad-hoc rem bands.
 
 Shared constants live in `@unofficialbox/box-open-elements/foundations/geometry`.
+Their values use `--boe-profile-*` custom properties with Box-compatible
+fallbacks, so a [design profile](./design-profiles.md) can change geometry and
+density at runtime without rebuilding component shadow styles.
 
 ## Vocabulary
 

@@ -106,10 +106,10 @@ describe("BoxPopoverElement", () => {
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toMatch(/\[part="surface"\][\s\S]*?padding:\s*12px;/);
-    expect(styles).toMatch(/\[part="surface"\][\s\S]*?border-radius:\s*20px;/);
-    expect(styles).toMatch(/\[part="surface"\][\s\S]*?box-shadow:\s*0 4px 12px/);
-    expect(styles).toMatch(/\[part="trigger"\][\s\S]*?min-height:\s*32px;/);
+    expect(styles).toContain("padding: var(--boe-profile-overlay-padding, 12px);");
+    expect(styles).toContain("border-radius: var(--boe-profile-radius-xlarge, 20px);");
+    expect(styles).toContain("box-shadow: var(--boe-profile-shadow-overlay, 0 4px 12px");
+    expect(styles).toContain("min-height: var(--boe-profile-control-height, 32px);");
   });
 
   it("floats the surface as a fixed overlay positioned by the overlay foundation", () => {

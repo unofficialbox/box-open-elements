@@ -80,7 +80,7 @@ describe("BoxDropZoneElement", () => {
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("padding: 0.75rem;");
-    expect(styles).toContain("border-radius: 16px;");
+    expect(styles).toContain("border-radius: var(--boe-profile-radius-large, 16px);");
   });
 
   it("includes focus-visible and hover styles for the drop zone", () => {

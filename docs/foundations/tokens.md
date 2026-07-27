@@ -22,6 +22,7 @@ import {
   applyDesignTokens,
   boxDefaultDesignSystem,
   createDesignTokenStyleText,
+  normalizeDesignTokens,
   registerBoxDefaultDesignSystem,
   registerDesignSystem,
   setActiveDesignSystem,
@@ -31,6 +32,7 @@ import {
 | API | Purpose |
 | --- | --- |
 | `registerDesignSystem()` | register any custom token/icon/illustration bundle |
+| `normalizeDesignTokens()` | translate preferred semantic names to internal Box-compatible keys |
 | `registerBoxDefaultDesignSystem()` | register the built-in Box light bundle |
 | `registerBoxDarkDesignSystem()` | register the built-in Box dark bundle (`box-dark`) |
 | `setActiveDesignSystem()` | switch the active bundle at runtime |
@@ -38,11 +40,17 @@ import {
 | `createDesignTokenStyleText()` | generate a CSS block for SSR or stylesheet injection |
 | `resolveDesignIcon()` / `resolveDesignIllustration()` | look up a registered asset by name |
 
-Token names are written in the bundle as PascalCase keys (matching Box's `tokens.json` inventory) and applied as kebab-cased CSS custom properties with the `--boe-token-` prefix:
+Custom bundles should use the typed, lower-camel-case semantic names. The
+registry translates them to Box-compatible keys and then applies kebab-cased CSS
+custom properties with the `--boe-token-` prefix:
 
 ```
-SurfaceSurfaceBrand  →  --boe-token-surface-surface-brand
+surfaceBrand  →  SurfaceSurfaceBrand  →  --boe-token-surface-surface-brand
 ```
+
+The repetitive PascalCase names remain supported for compatibility with Box's
+upstream `tokens.json` inventory and existing consumers, but they are an
+internal/conformance vocabulary rather than the preferred authoring API.
 
 ## Box default example
 
@@ -62,21 +70,15 @@ applyDesignTokens(document.documentElement, "box-default");
 
 ```ts
 import {
-  applyDesignTokens,
-  registerBoxDefaultDesignSystem,
-  registerBoxDarkDesignSystem,
-  setActiveDesignSystem,
-} from "@unofficialbox/box-open-elements/foundations/tokens";
+  createThemeController,
+} from "@unofficialbox/box-open-elements/foundations/theming";
 
-registerBoxDefaultDesignSystem();
-registerBoxDarkDesignSystem();
-
-// switch at runtime
-setActiveDesignSystem("box-dark");
-applyDesignTokens(document.documentElement, "box-dark");
+const theme = createThemeController();
+theme.start();
+theme.setPreference("dark");
 ```
 
-The docs site's footer theme toggle uses exactly this mechanism.
+The docs-site theme toggles use this controller. Use the registry calls directly only for low-level bundle authoring or token application; see [Theming](./theming.md).
 
 ## Custom design system example
 
@@ -90,9 +92,11 @@ registerDesignSystem(
   {
     name: "acme",
     tokens: {
-      BrandPrimary: "#5b4bff",
-      SurfaceSurface: "#ffffff",
-      TextText: "#111111",
+      fontFamilyBase: "InterVariable, Inter, sans-serif",
+      surfacePrimary: "#ffffff",
+      surfaceBrand: "#5b4bff",
+      textPrimary: "#111111",
+      borderDefault: "#e8e8e8",
     },
     icons: {
       search: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="4"></circle></svg>',
@@ -103,6 +107,34 @@ registerDesignSystem(
 
 applyDesignTokens(document.documentElement, "acme");
 ```
+
+### Semantic names
+
+| Preferred name | Compatibility key | Purpose |
+| --- | --- | --- |
+| `surfacePrimary` | `SurfaceSurface` | primary application/component surface |
+| `surfacePrimaryHover` | `SurfaceSurfaceHover` | hover state for the primary surface |
+| `surfaceSecondary` | `SurfaceSurfaceSecondary` | secondary surface |
+| `surfaceBrand` | `SurfaceSurfaceBrand` | primary brand action/surface |
+| `surfaceBrandHover` | `SurfaceSurfaceBrandHover` | brand hover state |
+| `surfaceBrandPressed` | `SurfaceSurfaceBrandPressed` | brand pressed state |
+| `surfaceItemSelected` | `SurfaceItemSurfaceSelected` | selected collection item |
+| `surfaceItemHover` | `SurfaceItemSurfaceHover` | hovered collection item |
+| `textPrimary` | `TextText` | primary content text |
+| `textSecondary` | `TextTextSecondary` | supporting content text |
+| `textPlaceholder` | `TextTextPlaceholder` | placeholder text |
+| `textOnBrand` | `TextTextOnBrand` | text on brand surfaces |
+| `textDanger` | `TextTextDanger` | destructive/error text |
+| `borderDefault` | `StrokeStroke` | default border/divider |
+| `borderHover` | `StrokeStrokeHover` | emphasized or hovered border |
+
+The exported `SemanticDesignTokenMap` type includes the full surface, status,
+badge, illustration, text, border, and base-font vocabulary. Custom token names
+outside that vocabulary remain supported and are converted to `--boe-token-*`
+without translation.
+
+Do not provide both forms of the same token in one bundle. For example,
+`surfacePrimary` and `SurfaceSurface` together are rejected as ambiguous.
 
 ## Component consumption rules
 
@@ -118,7 +150,7 @@ Source-level Box styling is the default: every catalog surface carries its look 
 | Actor | Responsibility |
 | --- | --- |
 | Component author | Paint with `--boe-token-*` + safe fallbacks inside the shadow tree; expose structural `part`s for overrides |
-| Host / docs shell | Register and `applyDesignTokens()` on a root; keep layout chrome separate from component paint |
+| Host / docs shell | Start a theme controller on a root; keep layout chrome separate from component paint |
 | App consumer | Theme by swapping design-system bundles; customize structure with `::part()`; use rare host custom properties only when the component documents them |
 
 ### When to use which lever
@@ -128,7 +160,7 @@ Source-level Box styling is the default: every catalog surface carries its look 
 | Brand / theme colors, text, strokes, status | `--boe-token-*` inside the component (or a registered custom bundle) | Hardcode hex in shadow styles without a token + fallback |
 | One-off visual tweak for a single embedding | `tag::part(name) { … }` from outside | Fork the component or restyle via brittle deep selectors |
 | Documented structural host knobs (e.g. collapsed nav label visibility) | Component-owned custom properties such as `--boe-nav-label-display` | Invent undocumented `--boe-*` vars on the host |
-| Whole-app light/dark or white-label theme | `registerDesignSystem` / `setActiveDesignSystem` + `applyDesignTokens` | Per-page shell CSS that paints over every control |
+| Whole-app light/dark or white-label theme | `createThemeController` with built-in or registered bundle names | Per-page shell CSS that paints over every control |
 | Third-party SCSS → token vocabulary | Style bridge (`bun run style-bridge` — [../integration/style-bridge.md](../integration/style-bridge.md)) | Hand-copy third-party rules into shadow trees |
 
 `:host { color: inherit; font: inherit; }` is intentional so typography can follow the embedding page while **paint** (background, border, status, brand) still comes from tokens.
