@@ -10,7 +10,7 @@
 
 > **Community project — not affiliated with, authorized, or endorsed by Box, Inc.** “Box” is a trademark of Box, Inc. This library tracks Box’s public design language for interoperability; it ships no Box code.
 
-It is a ground-up rebuild of [`box-open-web-components`](https://github.com/unofficialbox/box-open-web-components), carrying forward that repo's validated architecture, docs, and research — without its accumulated baggage — under a new industry-standard taxonomy:
+The library is organized around three layers:
 
 - **Foundations** — design decisions as data: tokens, color, typography, iconography, accessibility, theming
 - **Components** — accessible Web Components for single controls, organized by category
@@ -18,7 +18,7 @@ It is a ground-up rebuild of [`box-open-web-components`](https://github.com/unof
 
 See [docs/taxonomy.md](./docs/taxonomy.md) for the canonical model.
 
-The guiding idea is unchanged: predictable, extensible building blocks that are easy for both human developers and AI coding assistants to compose.
+Core implementation principles:
 
 - plain TypeScript modules, no React requirement in the core package
 - state and business logic separate from rendering: controllers and stores, not framework components
