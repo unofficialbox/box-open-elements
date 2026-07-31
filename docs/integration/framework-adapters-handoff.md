@@ -7,9 +7,9 @@ Updated: 2026-07-31
 | Framework | Completion | Status | Evidence |
 | --- | ---: | --- | --- |
 | React 19 | **90%** | Release candidate | Publishable package; typed wrappers; controller hook; Next.js SSR/hydration fixture; release workflow |
-| Angular 20 | **40%** | Validated direct | Strict template compilation and production app build |
-| Vue 3 | **40%** | Validated direct | `vue-tsc` and production app build |
-| Svelte 5 | **40%** | Validated direct | `svelte-check` and production app build |
+| Angular 20 | **90%** | Release candidate | Standalone typed directives; signal bridge; strict app; server-safe import |
+| Vue 3 | **90%** | Release candidate | Typed wrappers; composable; SSR test; production app |
+| Svelte 5 | **90%** | Release candidate | Typed wrappers; readable store; SSR fixture; production app |
 
 Percentages represent support-milestone completion: Tracked 0%, PoC 20%,
 Validated 40%, Beta 70%, Release candidate 90%, and Supported 100%. They do not
@@ -26,7 +26,10 @@ under `.framework-validation/`.
 - React controller integration uses `useSyncExternalStore`; controller state
   and mutations remain in `ExplorerSelectionController`.
 - Angular, Vue, and Svelte stay on direct custom-element consumption until a
-  tested framework gap justifies a wrapper.
+  typed adapter is imported; all runtime behavior remains in the custom
+  elements and shared controllers.
+- All four adapters use the same version and release tag. `adapters:version`
+  blocks drift before build or publication.
 
 ## Browser QA findings resolved
 
@@ -36,10 +39,17 @@ under `.framework-validation/`.
   host elements.
 - The Angular fixture had the same type-only-import failure for `Select`; its
   runtime registration is now explicit and tested through the rendered app.
+- Angular custom events now use explicit DOM subscriptions with teardown;
+  combining a same-name `@HostListener` and `@Output` caused recursive routing.
+- Vue wrappers expose the actual custom-element instance through a stable
+  getter after mount, while property synchronization remains reactive.
+- Svelte wrappers use Svelte 5 runes, bindable element refs, direct custom-
+  element property binding, and effect-scoped custom-event subscriptions. This
+  replaced legacy reactive assignments that compiled but did not synchronize
+  reliably in the packaged consumer.
 
 ## Remaining work
 
-1. Publish `@unofficialbox/box-open-elements-react` after merge and verify a
-   clean install from npm before marking React Supported.
-2. Add overlay and controller composition proofs for another framework only if
-   product support requires Beta status there.
+1. Bootstrap-publish all four adapter packages after merge and configure their
+   npm Trusted Publishers for `release-adapters.yml`.
+2. Verify clean registry installs, then mark all four adapters Supported.

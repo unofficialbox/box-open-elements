@@ -99,20 +99,23 @@ npm pack --dry-run
 
 ## Sub-packages
 
-`@unofficialbox/box-open-elements-react` is versioned independently in
-`packages/react/package.json`. Release tags use `react-vX.Y.Z`; publishing that
-GitHub Release runs `.github/workflows/release-react.yml`. The tag must match
-the adapter package version.
+The React, Angular, Vue, and Svelte adapters are versioned together. Run
+`bun run adapters:version` before release; it fails if any adapter manifest
+drifts. Release tags use `adapters-vX.Y.Z`, and publishing that GitHub Release
+runs `.github/workflows/release-adapters.yml` for all four packages.
 
-Before the first automated release, publish the package once from a trusted
-local npm session, then configure its npm Trusted Publisher for organization
-`unofficialbox`, this repository, and workflow `release-react.yml`. Subsequent
-releases use OIDC and require no long-lived npm token.
+Before the first automated release, publish each package once from a trusted
+local npm session, then configure each package's npm Trusted Publisher for
+organization `unofficialbox`, this repository, and workflow
+`release-adapters.yml`. Subsequent releases use OIDC and require no long-lived
+npm token.
 
 Verify the public package after release:
 
 ```bash
-npm view @unofficialbox/box-open-elements-react version
+for package_name in react angular vue svelte; do
+  npm view "@unofficialbox/box-open-elements-$package_name" version
+done
 ```
 
 `@box-open-elements/box-server` remains private and is not published.

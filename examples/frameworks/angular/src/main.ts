@@ -1,37 +1,41 @@
 import "zone.js";
 import "@angular/compiler";
-import {
-  AfterViewInit,
-  Component,
-  CUSTOM_ELEMENTS_SCHEMA,
-  ElementRef,
-  ViewChild,
-} from "@angular/core";
+import { Component } from "@angular/core";
 import { bootstrapApplication } from "@angular/platform-browser";
 
-import { Button } from "@unofficialbox/box-open-elements/button";
-import { Select } from "@unofficialbox/box-open-elements/select";
-import "@unofficialbox/box-open-elements/text-field";
+import {
+  Button,
+  Dialog,
+  Select,
+  TextField,
+  createExplorerSelectionSignal,
+} from "@unofficialbox/box-open-elements-angular";
 import {
   applyDesignTokens,
   registerBoxDefaultDesignSystem,
 } from "@unofficialbox/box-open-elements/foundations/tokens";
+import { ExplorerSelectionController } from "@unofficialbox/box-open-elements/patterns/content-explorer/selection";
 import "../../shared.css";
 
 registerBoxDefaultDesignSystem({ setActive: true });
 applyDesignTokens(document.documentElement, "box-default");
-Button.register();
-Button.register();
-Select.register();
-Select.register();
+
+const createSelectionController = (): ExplorerSelectionController => {
+  const controller = new ExplorerSelectionController();
+  controller.setItems([{ id: "alpha" }, { id: "beta" }]);
+  return controller;
+};
 
 @Component({
   selector: "adapter-validation",
   standalone: true,
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  imports: [Button, Dialog, Select, TextField],
   template: `
     <main>
-      <h1>Angular direct interop</h1>
+      <h1>Angular adapter interop</h1>
+      <p data-testid="selection">
+        Selected: {{ selection().selectedItemIds.join(", ") || "None" }}
+      </p>
       <div class="fields">
         <box-text-field
           data-testid="project-name"
@@ -40,7 +44,6 @@ Select.register();
           (value-changed)="setName($event)"
         ></box-text-field>
         <box-select
-          #statusSelect
           data-testid="status"
           label="Status"
           [value]="status"
@@ -49,36 +52,59 @@ Select.register();
           (value-changed)="setStatus($event)"
         ></box-select>
       </div>
-      <box-button data-testid="save" label="Save" tone="primary" (click)="save()"></box-button>
+      <div class="actions">
+        <box-button
+          data-testid="toggle-alpha"
+          label="Toggle Alpha"
+          tone="neutral"
+          (click)="toggleAlpha()"
+        ></box-button>
+        <box-button
+          data-testid="open-dialog"
+          label="Open dialog"
+          tone="primary"
+          (click)="dialogOpen = true"
+        ></box-button>
+        <box-button data-testid="save" label="Save" tone="primary" (click)="save()"></box-button>
+      </div>
       <p data-testid="state">{{ message }}</p>
+      <box-dialog
+        data-testid="dialog"
+        [open]="dialogOpen"
+        heading="Angular controlled dialog"
+        description="The custom element owns focus; Angular owns open state."
+        (open-changed)="setDialogOpen($event)"
+      >Escape closes this overlay and restores focus.</box-dialog>
     </main>
   `,
 })
-class AdapterValidationComponent implements AfterViewInit {
-  @ViewChild("statusSelect", { read: ElementRef })
-  private readonly statusSelect?: ElementRef<Select>;
-
+class AdapterValidation {
+  private readonly selectionController = createSelectionController();
+  readonly selection = createExplorerSelectionSignal(this.selectionController);
   name = "Apollo";
   status = "draft";
   saving = false;
+  dialogOpen = false;
   message = "Ready";
   readonly options = [
     { label: "Draft", value: "draft" },
     { label: "Published", value: "published" },
   ];
 
-  ngAfterViewInit(): void {
-    if (this.statusSelect?.nativeElement.options.length !== this.options.length) {
-      throw new Error("Angular did not assign structured options to box-select.");
-    }
+  setName(event: CustomEvent<{ value: string }>): void {
+    this.name = event.detail.value;
   }
 
-  setName(event: Event): void {
-    this.name = (event as CustomEvent<{ value: string }>).detail.value;
+  setStatus(event: CustomEvent<{ value: string }>): void {
+    this.status = event.detail.value;
   }
 
-  setStatus(event: Event): void {
-    this.status = (event as CustomEvent<{ value: string }>).detail.value;
+  setDialogOpen(event: CustomEvent<{ open: boolean }>): void {
+    this.dialogOpen = event.detail.open;
+  }
+
+  toggleAlpha(): void {
+    this.selectionController.toggleSelection("alpha");
   }
 
   save(): void {
@@ -86,4 +112,4 @@ class AdapterValidationComponent implements AfterViewInit {
   }
 }
 
-void bootstrapApplication(AdapterValidationComponent);
+void bootstrapApplication(AdapterValidation);

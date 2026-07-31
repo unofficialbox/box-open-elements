@@ -8,9 +8,10 @@ package.
 | --- | --- |
 | React 19 | Published-package shape, controlled dialog focus/close behavior, controller subscription |
 | React 19 + Next 16 | Server prerendering, browser upgrade, and hydration |
-| Angular 20 | `CUSTOM_ELEMENTS_SCHEMA`, property binding, custom events |
-| Vue 3 | `isCustomElement`, property binding, custom events |
-| Svelte 5 | element refs, structured-property assignment, custom events |
+| Angular 20 | Standalone directives, strict typed inputs/outputs, signal controller bridge |
+| Vue 3 | Typed wrappers, exposed refs, custom emits, composable controller bridge |
+| Svelte 5 | Typed wrappers, bindable refs, callback events, readable controller store |
+| Svelte 5 SSR | Packaged component compilation and inert server-host rendering |
 
 Run every compiler, type checker, and production build:
 

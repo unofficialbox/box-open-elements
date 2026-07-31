@@ -1,0 +1,71 @@
+name: Publish framework adapters to npm
+
+# Publishes the React, Angular, Vue, and Svelte adapters as one lockstep release.
+# GitHub Releases for the adapter train use adapters-vX.Y.Z tags.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Adapter version to publish (for example, 0.1.0)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Build + publish framework adapters
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'adapters-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Update npm for OIDC trusted publishing
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check tag and package versions
+        env:
+          DISPATCH_VERSION: ${{ inputs.version }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "release" ]; then
+            ADAPTER_VERSION="${GITHUB_REF_NAME#adapters-v}"
+          else
+            ADAPTER_VERSION="$DISPATCH_VERSION"
+          fi
+          ADAPTER_VERSION="$ADAPTER_VERSION" bun run adapters:version
+
+      - name: Verify repository
+        run: bun run verify
+
+      - name: Publish React adapter
+        run: npm publish ./packages/react --access public
+
+      - name: Publish Angular adapter
+        run: npm publish ./packages/angular --access public
+
+      - name: Publish Vue adapter
+        run: npm publish ./packages/vue --access public
+
+      - name: Publish Svelte adapter
+        run: npm publish ./packages/svelte --access public

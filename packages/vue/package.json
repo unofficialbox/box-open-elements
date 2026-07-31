@@ -1,0 +1,41 @@
+{
+  "name": "@unofficialbox/box-open-elements-vue",
+  "version": "0.1.0",
+  "description": "Typed Vue adapters for box-open-elements Web Components.",
+  "license": "MIT",
+  "homepage": "https://unofficialbox.github.io/box-open-elements",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unofficialbox/box-open-elements.git",
+    "directory": "packages/vue"
+  },
+  "bugs": {
+    "url": "https://github.com/unofficialbox/box-open-elements/issues"
+  },
+  "keywords": ["vue", "web-components", "design-system", "box"],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "peerDependencies": {
+    "@unofficialbox/box-open-elements": "^0.5.0",
+    "vue": ">=3.5.0 <4.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "bun run build",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  }
+}

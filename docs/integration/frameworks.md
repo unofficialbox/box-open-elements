@@ -6,14 +6,18 @@ This guide shows the minimal setup and a working example per framework.
 
 Runnable compiler/build fixtures for all four frameworks live in
 [`examples/frameworks`](../../examples/frameworks) and run as part of
-`bun run verify`. React is Beta; Angular, Vue, and Svelte direct consumption is
-Validated without wrapper packages.
+`bun run verify`. React, Angular, Vue, and Svelte now have release-candidate
+adapter packages at the same `0.1.0` version.
 
 The core package is **`@unofficialbox/box-open-elements`**; every direct example
-below uses it. A release-ready typed React package lives at
-[`packages/react`](../../packages/react) as
-`@unofficialbox/box-open-elements-react`; its first npm publication follows the
-merge of its release contract.
+below uses it. Framework adapters remain thin optional layers and publish as:
+
+- `@unofficialbox/box-open-elements-react`
+- `@unofficialbox/box-open-elements-angular`
+- `@unofficialbox/box-open-elements-vue`
+- `@unofficialbox/box-open-elements-svelte`
+
+All four adapters share one version and `adapters-vX.Y.Z` release train.
 
 ## Common setup (all frameworks)
 
@@ -97,25 +101,28 @@ declare module "react" {
 }
 ```
 
-> **Typed wrappers.** The repo also has `@unofficialbox/box-open-elements-react`
-> (`<Button>`, `<TextField onValueChanged={…}>`) that hides the ref/event
-> plumbing — see [react.md](./react.md). It isn't published to npm yet; until it
-> is, prefer the direct usage above.
+The typed adapter hides the ref/event plumbing and adds `Dialog` plus
+`useExplorerSelectionController`; see [react.md](./react.md).
 
 ---
 
 ## Angular
 
-Add `CUSTOM_ELEMENTS_SCHEMA` so the template compiler allows custom tags. Then
-property binding `[prop]` sets the DOM property (works for objects), and event
-binding `(event)` subscribes to any event — including custom ones.
+Import the standalone directives into the consuming component. They register
+their custom elements and give strict templates typed property inputs and
+custom-event outputs without `CUSTOM_ELEMENTS_SCHEMA`.
 
 ```ts
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
+import { Component } from "@angular/core";
+import {
+  Button,
+  Select,
+  TextField,
+} from "@unofficialbox/box-open-elements-angular";
 
 @Component({
   standalone: true,
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  imports: [Button, Select, TextField],
   template: `
     <box-text-field label="Project name" [value]="name"
                     (value-changed)="name = $event.detail.value"></box-text-field>
@@ -135,92 +142,78 @@ export class ExampleComponent {
 ```
 
 `[options]="options"` binds the array to the element **property** directly — no
-stringification. Import the required concise exports in `main.ts` before
-`bootstrapApplication`; importing them registers their `box-*` elements.
+stringification. `createExplorerSelectionSignal(controller)` adds a scoped,
+readonly Angular signal for headless selection composition.
 
 ---
 
 ## Vue 3
 
-Tell Vue's compiler that `box-*` tags are custom elements (so it doesn't try to
-resolve them as Vue components). In Vite:
-
-```ts
-// vite.config.ts
-import vue from "@vitejs/plugin-vue";
-export default {
-  plugins: [
-    vue({ template: { compilerOptions: { isCustomElement: (tag) => tag.startsWith("box-") } } }),
-  ],
-};
-```
-
-Then bind properties with `:prop` (Vue sets the DOM property when it exists) and
-listen to custom events with `@event`; the payload is on `$event.detail`:
+Import the typed Vue components. They synchronize properties after mount,
+re-emit typed custom events, expose the underlying element ref, and remain safe
+to render on the server.
 
 ```vue
 <script setup lang="ts">
 import { ref } from "vue";
+import { Button, Select, TextField } from "@unofficialbox/box-open-elements-vue";
 const name = ref("");
 const status = ref("draft");
 const options = [{ label: "Draft", value: "draft" }, { label: "Live", value: "live" }];
 </script>
 
 <template>
-  <box-text-field label="Project name" :value="name"
-                  @value-changed="name = $event.detail.value" />
+  <TextField label="Project name" :value="name"
+             @value-changed="name = $event.detail.value" />
 
-  <box-select label="Status" :value="status" :options="options"
-              @value-changed="status = $event.detail.value" />
+  <Select label="Status" :value="status" :options="options"
+          @value-changed="status = $event.detail.value" />
 
-  <box-button label="Save" tone="primary" @click="console.log(name, status)" />
+  <Button label="Save" tone="primary" @click="console.log(name, status)" />
 </template>
 ```
 
-For a stubborn primitive that must be a property rather than an attribute, use
-the `.prop` modifier: `:label.prop="title"`.
+`useExplorerSelectionController(controller)` returns a scoped readonly ref and
+disposes its subscription with the consuming Vue scope.
 
 ---
 
 ## Svelte
 
-Svelte renders custom elements natively. Primitive attributes and events work
-inline; set **object properties** imperatively via `bind:this`, since attributes
-can only hold strings.
+The Svelte package handles the framework's structured-property gap explicitly,
+uses callback props for typed custom events, and exposes a bindable `element`
+reference.
 
 ```svelte
 <script lang="ts">
+  import { Button, Select, TextField } from "@unofficialbox/box-open-elements-svelte";
   let name = "";
   let status = "draft";
   const options = [{ label: "Draft", value: "draft" }, { label: "Live", value: "live" }];
 
-  let selectEl: HTMLElement & { options?: unknown };
-  // Assign the array to the element property whenever it changes.
-  $: if (selectEl) selectEl.options = options;
 </script>
 
-<box-text-field
+<TextField
   label="Project name"
   value={name}
-  on:value-changed={(e) => (name = e.detail.value)} />
+  onValueChanged={(e) => (name = e.detail.value)} />
 
-<box-select
-  bind:this={selectEl}
+<Select
   label="Status"
   value={status}
-  on:value-changed={(e) => (status = e.detail.value)} />
+  {options}
+  onValueChanged={(e) => (status = e.detail.value)} />
 
-<box-button label="Save" tone="primary" on:click={() => console.log(name, status)} />
+<Button label="Save" tone="primary" onClick={() => console.log(name, status)} />
 ```
 
 ---
 
 ## Notes
 
-- **SSR / hydration.** These components render in a browser (shadow DOM). For
-  SSR frameworks (Next, Nuxt, SvelteKit, Analog), define + register the elements
-  on the **client** only, or guard the tokens/`define` calls behind a
-  browser check to avoid running them during server render.
+- **SSR / hydration.** Adapter imports and host rendering are server-safe.
+  Shadow DOM, property synchronization, tokens, and custom-element upgrade run
+  in the browser. Apply design tokens only when `document` is available.
 - **Theming.** Use `createThemeController()` for persistent
   light/dark/system switching in every framework — see
   [../foundations/theming.md](../foundations/theming.md).
