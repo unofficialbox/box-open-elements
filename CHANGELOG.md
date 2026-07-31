@@ -10,10 +10,39 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
-- Add preferred typed semantic design-token names (for example,
+No unreleased changes.
+
+---
+
+## 0.5.0 — 2026-07-31
+
+Breaking pre-1.0 feature release introducing a concise, auto-registering public
+API plus runtime themes and design profiles. The release contains
+[#143](https://github.com/unofficialbox/box-open-elements/pull/143) and
+[#144](https://github.com/unofficialbox/box-open-elements/pull/144), with 1,114
+tests and clean conformance and visual-regression gates.
+
+**Breaking public API**
+
+- Replaced public `Box*Element` classes and `defineBox*Element()` helpers with
+  concise PascalCase exports such as `Accordion`, `Avatar`, `Button`, and
+  `Switch`.
+- Importing from the package root now automatically registers the complete
+  `box-*` catalog. Tree-shakable component entrypoints such as
+  `@unofficialbox/box-open-elements/accordion` register only their component.
+- Added an idempotent static `register()` escape hatch for custom registries and
+  isolated test realms.
+- Removed the old Box-prefixed React adapter exports in favor of `Button`,
+  `Select`, `TextField`, and concise supporting types.
+- Made package imports safe during server-side rendering when `HTMLElement` and
+  `customElements` are unavailable.
+
+**Themes and design profiles**
+
+- Added preferred typed semantic design-token names (for example,
   `surfacePrimary`, `textPrimary`, and `borderDefault`) while preserving Box's
   repetitive upstream keys as compatibility aliases.
-- Add typed, persistent design profiles for runtime density, geometry,
+- Added typed, persistent design profiles for runtime density, geometry,
   typography, elevation, and motion switching, with `box-default` and
   `compact-neutral` built-ins.
 
@@ -27,6 +56,15 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 - Added `createThemeInitializationScript()` for pre-paint theme metadata in SSR
   and static shells. The docs site now uses the controller for both theme
   toggles and applies its initial theme before CSS loads.
+
+**Documentation and tooling**
+
+- Updated the documentation site, framework examples, Storybook, gallery,
+  package guidance, and Markdown references to the concise API.
+- Added the text-based `B/` favicon and refreshed the project banner and package
+  presentation.
+- Added public API, optimized-entrypoint, SSR, and auto-registration contract
+  coverage, plus updated pinned-container visual baselines.
 
 ---
 
