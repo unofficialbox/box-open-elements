@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022", "DOM"],
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "baseUrl": "../..",
+    "paths": {
+      "@unofficialbox/box-open-elements/button": ["src/entries/button.ts"],
+      "@unofficialbox/box-open-elements/dialog": ["src/entries/dialog.ts"],
+      "@unofficialbox/box-open-elements/select": ["src/entries/select.ts"],
+      "@unofficialbox/box-open-elements/text-field": ["src/entries/text-field.ts"],
+      "@unofficialbox/box-open-elements/patterns/content-explorer/selection": ["src/patterns/content-explorer/selection/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

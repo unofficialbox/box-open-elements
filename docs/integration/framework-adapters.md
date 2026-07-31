@@ -30,10 +30,10 @@ the component catalog changes.
 
 | Framework | Completion | Direct custom-element interop | Typed adapter foundation | Representative components | Pattern/controller proof | SSR/hydration guidance | Overall |
 | --- | ---: | --- | --- | --- | --- | --- | --- |
-| React 19 | **90%** | **Validated**: properties, native/composed events, latest handlers, refs | **Built**: `createWebComponent` | **4**: `Button`, `TextField`, `Select`, `Dialog` | `ExplorerSelectionController` via `useSyncExternalStore` | Next.js 16 prerender, hydration, upgrade, and events; adapter focus contract validated | **Release candidate** |
-| Angular 20 | **40%** | **Validated**: strict templates, properties, custom events | Not needed | **3 direct**: button, text field, select | Not started | Client registration documented | **Validated** |
-| Vue 3 | **40%** | **Validated**: compiler config, properties, custom events | Not needed | **3 direct**: button, text field, select | Not started | Client registration documented | **Validated** |
-| Svelte 5 | **40%** | **Validated**: properties, custom events, element refs | Not needed | **3 direct**: button, text field, select | Not started | Client registration documented | **Validated** |
+| React 19 | **90%** | **Validated**: properties, native/composed events, latest handlers, refs | `createWebComponent` | **4**: `Button`, `TextField`, `Select`, `Dialog` | `useExplorerSelectionController` | Next.js 16 prerender, hydration, upgrade, and events | **Release candidate** |
+| Angular 20 | **90%** | **Validated**: strict templates, properties, typed outputs, element access | Standalone directives | **4**: `Button`, `TextField`, `Select`, `Dialog` | `createExplorerSelectionSignal` | Server-safe package import; browser upgrade and focus validated | **Release candidate** |
+| Vue 3 | **90%** | **Validated**: property sync, typed emits, exposed refs | Typed Vue wrappers | **4**: `Button`, `TextField`, `Select`, `Dialog` | `useExplorerSelectionController` | Vue SSR host rendering; browser upgrade and focus validated | **Release candidate** |
+| Svelte 5 | **90%** | **Validated**: structured properties, callback events, bindable refs | Typed Svelte wrappers | **4**: `Button`, `TextField`, `Select`, `Dialog` | `createExplorerSelectionStore` | Svelte SSR host rendering; browser upgrade and focus validated | **Release candidate** |
 
 ## Framework lanes
 
@@ -61,11 +61,10 @@ Validation evidence:
   close without visible runtime errors. Focus restoration is covered by the
   focused adapter test above.
 
-Next **Supported** proof set:
+Shared **Supported** proof set:
 
-1. publish `@unofficialbox/box-open-elements-react` through the dedicated
-   trusted-publishing workflow
-2. verify a clean consumer install from npm
+1. publish all four `0.1.0` packages through the lockstep adapter workflow
+2. verify clean consumer installs from npm
 
 Do not wrap the whole catalog mechanically. Continue by interaction family so
 the factory is proven against distinct property, event, focus, and lifecycle
@@ -73,24 +72,35 @@ shapes.
 
 ### Angular
 
-Validated in [`examples/frameworks/angular`](../../examples/frameworks/angular)
-with `CUSTOM_ELEMENTS_SCHEMA`, strict template compilation, structured property
-binding, custom events, tokens, and a production build. No wrapper gap has been
-demonstrated.
+[`packages/angular`](../../packages/angular) exposes standalone `Button`,
+`TextField`, `Select`, and `Dialog` directives with typed inputs/outputs and
+underlying element access. `createExplorerSelectionSignal` maps the shared
+controller into Angular change detection without duplicating its state.
+
+The production fixture in
+[`examples/frameworks/angular`](../../examples/frameworks/angular) compiles
+with strict templates and no `CUSTOM_ELEMENTS_SCHEMA`, proving the directives'
+actual template contract.
 
 ### Vue
 
-Validated in [`examples/frameworks/vue`](../../examples/frameworks/vue) with
-custom-element compiler configuration, structured property binding, custom
-events, tokens, `vue-tsc`, and a production build. No wrapper gap has been
-demonstrated.
+[`packages/vue`](../../packages/vue) exposes typed wrapper components with
+structured property synchronization, custom-event emits, and exposed element
+refs. `useExplorerSelectionController` returns a scoped readonly Vue ref.
+
+The Vue fixture validates `vue-tsc`, a production browser build, controller
+updates, dialog behavior, and structured options. Focused tests cover Vue SSR.
 
 ### Svelte
 
-Validated in [`examples/frameworks/svelte`](../../examples/frameworks/svelte)
-with structured property assignment through an element ref, custom events,
-tokens, `svelte-check`, and a production build. No wrapper gap has been
-demonstrated. SSR framework hydration remains a separate milestone.
+[`packages/svelte`](../../packages/svelte) exposes typed wrapper components
+with explicit structured property synchronization, callback event props, and
+bindable element refs. `createExplorerSelectionStore` maps the controller to a
+standard readable store.
+
+The browser fixture validates `svelte-check` and a production build. A separate
+SSR fixture compiles the packaged components and renders inert custom-element
+hosts with `svelte/server`.
 
 ## Shared validation checklist
 
@@ -117,6 +127,8 @@ machine, and document client rendering plus SSR/hydration behavior.
 - Prefer a small representative proof set over shallow full-catalog wrappers.
 - Track framework versions once a runnable integration exists; do not claim a
   version from documentation-only examples.
+- Keep React, Angular, Vue, and Svelte adapter versions identical. The
+  `adapters:version` gate and `adapters-vX.Y.Z` release train enforce lockstep.
 
 ## Updating this tracker
 

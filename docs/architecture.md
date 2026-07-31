@@ -12,9 +12,9 @@
 4. `src/patterns`
    Workflow areas grouped by Box noun. Each area owns its headless controllers, transport contracts, and composed surfaces together.
 5. Optional adapter packages
-   Framework integrations on top of the Web Component layer — React PoC in
-   `packages/react` (`@unofficialbox/box-open-elements-react`); Angular, Vue, and Svelte are
-   tracked future lanes.
+   Framework integrations on top of the Web Component layer in
+   `packages/{react,angular,vue,svelte}`. They share a lockstep version and add
+   only framework-native property, event, ref, lifecycle, and controller bridges.
 
 ## Taxonomy Diagram
 
@@ -26,7 +26,7 @@ flowchart LR
     B --> C["Components"]
     C --> D["Patterns"]
     D --> E["Docs Site / Demo"]
-    D --> F["Framework adapters (React PoC; Angular, Vue, Svelte tracked)"]
+    D --> F["Framework adapters (React, Angular, Vue, Svelte)"]
 ```
 
 ## Why this is useful
@@ -112,7 +112,10 @@ Shared helpers: `boeFormFieldErrorStyles`, `formErrorMessageMarkup`, `getMirrore
 
 - Keep state and business logic separate from rendering.
 - Expose controllers and stores rather than framework components.
-- Make React, Angular, Vue, and Svelte integrations optional layers on top of the Web Components and headless layer. React ships as `@unofficialbox/box-open-elements-react`; validate native custom-element consumption before creating more wrapper packages (see [integration/framework-adapters.md](./integration/framework-adapters.md)).
+- Make React, Angular, Vue, and Svelte integrations optional layers on top of
+  the Web Components and headless layer. Keep runtime behavior in core; adapters
+  translate only demonstrated framework boundaries and share one release train
+  (see [integration/framework-adapters.md](./integration/framework-adapters.md)).
 - Prefer boring, guessable APIs over clever ones.
 - Keep collection primitives compatible with pagination, infinite scroll, and future windowing.
 - Treat accessibility semantics and keyboard support as part of the component contract.

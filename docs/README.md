@@ -34,8 +34,8 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 
 - [Using with React, Angular, Vue, and Svelte](./integration/frameworks.md) — setup + working examples per framework
 - [Box Server Integration](./integration/box-server.md) — the server-side boundary
-- [Framework Adapter Progress](./integration/framework-adapters.md) — React, Angular, Vue, and Svelte milestones
-- [React Adapter](./integration/react.md) — optional `@unofficialbox/box-open-elements-react` wrappers
+- [Framework Adapter Progress](./integration/framework-adapters.md) — lockstep React, Angular, Vue, and Svelte packages
+- [React Adapter](./integration/react.md) — React-specific wrapper contract
 - [Box Wire Examples](./integration/wire-examples.md) — language-neutral JSON contracts
 - [Style Bridge](./integration/style-bridge.md) — third-party CSS/SCSS translation
 

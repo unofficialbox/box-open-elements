@@ -1,0 +1,41 @@
+{
+  "name": "@unofficialbox/box-open-elements-angular",
+  "version": "0.1.0",
+  "description": "Typed Angular adapters for box-open-elements Web Components.",
+  "license": "MIT",
+  "homepage": "https://unofficialbox.github.io/box-open-elements",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unofficialbox/box-open-elements.git",
+    "directory": "packages/angular"
+  },
+  "bugs": {
+    "url": "https://github.com/unofficialbox/box-open-elements/issues"
+  },
+  "keywords": ["angular", "web-components", "design-system", "box"],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "peerDependencies": {
+    "@angular/core": ">=20.0.0 <21.0.0",
+    "@unofficialbox/box-open-elements": "^0.5.0"
+  },
+  "scripts": {
+    "build": "ngc -p tsconfig.build.json",
+    "prepublishOnly": "bun run build",
+    "typecheck": "ngc -p tsconfig.json --noEmit"
+  }
+}

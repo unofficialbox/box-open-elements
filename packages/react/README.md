@@ -55,7 +55,8 @@ routing, forwarded refs, controlled overlay focus behavior, and server-safe host
 rendering. `useExplorerSelectionController` proves headless controller
 composition. Package exports, version contracts, the Next.js hydration fixture,
 and CI validation are release-ready. Supported status follows the first public
-npm publication and a clean registry-install verification.
+npm publication and a clean registry-install verification. React releases in
+lockstep with the Angular, Vue, and Svelte adapters under `adapters-vX.Y.Z`.
 
 ## Supported versions
 

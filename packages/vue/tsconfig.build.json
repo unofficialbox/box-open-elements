@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "noEmit": false,
+    "outDir": "dist",
+    "rootDir": "src",
+    "paths": {
+      "@unofficialbox/box-open-elements/button": ["dist/entries/button.d.ts"],
+      "@unofficialbox/box-open-elements/dialog": ["dist/entries/dialog.d.ts"],
+      "@unofficialbox/box-open-elements/select": ["dist/entries/select.d.ts"],
+      "@unofficialbox/box-open-elements/text-field": ["dist/entries/text-field.d.ts"],
+      "@unofficialbox/box-open-elements/patterns/content-explorer/selection": ["dist/patterns/content-explorer/selection/index.d.ts"]
+    }
+  }
+}
