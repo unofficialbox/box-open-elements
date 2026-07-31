@@ -25,6 +25,7 @@ describe("replaceOnce", () => {
 describe("rewriteIndexHtml", () => {
   it("rewrites server-absolute asset refs to relative (host-agnostic)", () => {
     const out = rewriteIndexHtml(indexHtml, true);
+    expect(out).toContain('href="./favicon.svg"');
     expect(out).toContain('href="./styles.css"');
     expect(out).toContain('src="./main.js"');
     expect(out).not.toContain("/docs-site/");

@@ -93,10 +93,10 @@ describe("BoxMenuElement", () => {
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("padding: 12px;");
-    expect(styles).toContain("border-radius: 20px;");
-    expect(styles).toContain("min-height: 30px;");
-    expect(styles).toContain("padding: 8px 48px 8px 8px;");
+    expect(styles).toContain("padding: var(--boe-profile-overlay-padding, 12px);");
+    expect(styles).toContain("border-radius: var(--boe-profile-radius-xlarge, 20px);");
+    expect(styles).toContain("min-height: var(--boe-profile-overlay-item-min-height, 30px);");
+    expect(styles).toContain("padding: var(--boe-profile-overlay-item-padding, 8px 48px 8px 8px);");
     expect(styles).toContain("0 4px 12px");
   });
 

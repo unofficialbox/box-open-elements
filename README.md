@@ -66,6 +66,7 @@ Full catalog parity with the reference repo, plus every scoped gap the research 
 - `src/core` — typed event emitter, controller base class, `BaseElement` (in-place shadow DOM render contract), and `FormAssociatedElement` (native form participation + invalid state)
 - `src/foundations/tokens` — the design-system registry (tokens, icons, illustrations), the Box default bundle, and the Box dark bundle, retoned to Box's modernized Blueprint palette with an Inter typography baseline; shared interaction helpers (`interaction.ts`) for focus/hover/active/disabled
 - `src/foundations/motion` — shared duration/easing vocabulary and reduced-motion CSS helper
+- `src/foundations/profiles` — typed runtime profiles for density, geometry, typography, elevation, and motion
 - `src/foundations/icons` — the generated Box iconography manifest and alias layer
 - `tools/style-bridge` — CSS/SCSS → BOE token/selector bridge (`bun run style-bridge`; BUE explorer: `bun run style-bridge:bue-explorer`)
 - `src/components` — 78 components across all ten categories, including the Phase 5 gap fills (`box-chip`, `box-divider`, `box-calendar`, `box-tag-input`, `box-nav-sidebar`, `box-sidebar-toggle-button`, `box-grid-view`, `box-fieldset`, `box-section`, `box-error-mask`, `box-draggable-list`, `box-nudge`, `box-pill-cloud`, `box-pill-selector-dropdown`, `box-datalist-item`, `box-contact-datalist-item`, `box-category-selector`)
@@ -84,13 +85,12 @@ Everything in the [components catalog](./docs/components/catalog.md) and [patter
 
 ```ts
 import {
-  applyDesignTokens,
-  registerBoxDefaultDesignSystem,
-} from "@unofficialbox/box-open-elements/foundations/tokens";
+  createThemeController,
+} from "@unofficialbox/box-open-elements/foundations/theming";
 import { defineBoxButtonElement } from "@unofficialbox/box-open-elements/components/actions/button";
 
-registerBoxDefaultDesignSystem({ setActive: true });
-applyDesignTokens(document.documentElement, "box-default");
+const theme = createThemeController();
+theme.start();
 defineBoxButtonElement();
 ```
 

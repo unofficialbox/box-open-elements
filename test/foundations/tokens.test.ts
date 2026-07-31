@@ -5,6 +5,8 @@ import {
   boxDarkDesignSystem,
   boxDefaultDesignSystem,
   createDesignTokenStyleText,
+  getDesignSystem,
+  normalizeDesignTokens,
   registerBoxDarkDesignSystem,
   registerBoxDefaultDesignSystem,
   registerDesignSystem,
@@ -22,6 +24,24 @@ describe("foundations/tokens", () => {
     expect(target.style.getPropertyValue("--boe-token-surface-surface-brand")).toBe("#0061d5");
   });
 
+  it("translates preferred semantic names to the Box-compatible component variables", () => {
+    const target = document.createElement("div");
+
+    const applied = applyDesignTokens(target, {
+      surfacePrimary: "#0f1011",
+      textPrimary: "#f7f8f8",
+      borderDefault: "#2a2b2e",
+    });
+
+    expect(applied).toEqual([
+      "--boe-token-surface-surface",
+      "--boe-token-text-text",
+      "--boe-token-stroke-stroke",
+    ]);
+    expect(target.style.getPropertyValue("--boe-token-surface-surface")).toBe("#0f1011");
+    expect(target.style.getPropertyValue("--boe-token-surface-primary")).toBe("");
+  });
+
   it("creates a stylesheet block for SSR usage", () => {
     const styleText = createDesignTokenStyleText(
       { TextText: "#101820" },
@@ -29,6 +49,32 @@ describe("foundations/tokens", () => {
     );
 
     expect(styleText).toBe(":host {\n  --boe-token-text-text: #101820;\n}");
+  });
+
+  it("normalizes semantic names when registering a custom design system", () => {
+    registerDesignSystem({
+      name: "linear-inspired",
+      tokens: {
+        fontFamilyBase: "InterVariable, Inter, sans-serif",
+        surfaceBrand: "#5e6ad2",
+        textSecondary: "#8a8f98",
+      },
+    });
+
+    expect(getDesignSystem("linear-inspired")?.tokens).toEqual({
+      FontFamilyBase: "InterVariable, Inter, sans-serif",
+      SurfaceSurfaceBrand: "#5e6ad2",
+      TextTextSecondary: "#8a8f98",
+    });
+  });
+
+  it("rejects ambiguous semantic and compatibility names for the same token", () => {
+    expect(() =>
+      normalizeDesignTokens({
+        surfacePrimary: "#ffffff",
+        SurfaceSurface: "#000000",
+      }),
+    ).toThrow(/provided as both/);
   });
 
   it("registers and activates the Box default design system", () => {

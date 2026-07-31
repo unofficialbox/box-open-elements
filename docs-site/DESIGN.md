@@ -35,7 +35,8 @@ chrome, cards, tables and prose retheme automatically.
 
 - **Masthead** (`.masthead`) — sticky navy bar: `B/` mark + "Box Open Elements",
   Community / npm / GitHub links with `↗` external cues, and the theme toggle.
-  56px tall; the rail and stage sit beneath it (`top: 56px`).
+  56px tall; the rail and stage sit beneath it (`top: 56px`). The same blue/coral
+  `B/` mark appears in `favicon.svg` on a navy rounded-square field.
 - **Rail** (`.rail`) — 272px deep-navy sidebar, always navy in both themes.
   Active item gets a coral inset marker; the active tier tab fills blue. The
   tier tabs use sentence case and content widths — uppercase or equal thirds
@@ -98,7 +99,8 @@ chrome, cards, tables and prose retheme automatically.
 - A `.skip-link` jumps to `#stage-body`; the masthead is a real `<header>`/`<nav>`.
 - Theme switching is available from the masthead (primary) and the rail footer.
   Both carry `data-theme-toggle`, expose `aria-pressed`, and are kept in sync by
-  `applyTheme()` — add `data-theme-toggle` to any new toggle and it just works.
+  the shared theme controller — add `data-theme-toggle` to any new toggle and
+  it just works.
 - Focus-visible outlines on every interactive control (rail, tabs, buttons,
   cards, links).
 

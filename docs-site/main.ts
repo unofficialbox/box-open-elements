@@ -16,6 +16,7 @@ import brandMd from "../docs/foundations/brand.md";
 import tokensMd from "../docs/foundations/tokens.md";
 import iconographyMd from "../docs/foundations/iconography.md";
 import themingMd from "../docs/foundations/theming.md";
+import designProfilesMd from "../docs/foundations/design-profiles.md";
 import motionMd from "../docs/foundations/motion.md";
 import geometryMd from "../docs/foundations/geometry.md";
 import { renderMarkdown } from "./markdown.js";
@@ -31,10 +32,49 @@ const variantsById: Record<string, Variant[]> = Object.fromEntries(
   workshop.stories.map(story => [story.id, story.variants]),
 );
 
-// ── Bootstrap: tokens + every custom element ────────────────────────────────
+// ── Bootstrap: theme + every custom element ─────────────────────────────────
 
-lib.registerBoxDefaultDesignSystem();
-lib.registerBoxDarkDesignSystem();
+const themeController = lib.createThemeController({
+  root: document.documentElement,
+  storageKey: "boe-docs-theme",
+});
+
+const profileController = lib.createDesignProfileController({
+  root: document.documentElement,
+  storageKey: "boe-docs-profile",
+});
+
+const syncThemeToggles = (theme: lib.ResolvedTheme): void => {
+  document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]").forEach(button => {
+    button.setAttribute("aria-pressed", String(theme === "dark"));
+    button.title = `Switch to ${theme === "dark" ? "light" : "dark"} mode`;
+    const label = button.querySelector<HTMLElement>("[data-theme-label]") ?? button;
+    label.textContent = theme === "dark" ? "Light" : "Dark";
+  });
+};
+
+document.documentElement.addEventListener(lib.THEME_CHANGE_EVENT, event => {
+  syncThemeToggles((event as CustomEvent<lib.ThemeChangeDetail>).detail.resolvedTheme);
+});
+
+const syncProfileToggles = (profileName: string): void => {
+  const isCompact = profileName === "compact-neutral";
+  document.querySelectorAll<HTMLButtonElement>("[data-profile-toggle]").forEach(button => {
+    button.setAttribute("aria-pressed", String(isCompact));
+    button.title = `Switch to ${isCompact ? "Box default" : "compact neutral"} profile`;
+    const label = button.querySelector<HTMLElement>("[data-profile-label]") ?? button;
+    label.textContent = isCompact ? "Box profile" : "Compact";
+  });
+};
+
+document.documentElement.addEventListener(lib.DESIGN_PROFILE_CHANGE_EVENT, event => {
+  syncProfileToggles(
+    (event as CustomEvent<lib.DesignProfileChangeDetail>).detail.profileName,
+  );
+});
+
+themeController.start();
+profileController.start();
 
 for (const [name, value] of Object.entries(lib)) {
   if (/^defineBox[A-Za-z]+Element$/.test(name) && typeof value === "function") {
@@ -42,31 +82,50 @@ for (const [name, value] of Object.entries(lib)) {
   }
 }
 
-// ── Theme: swap the active design system + retheme the site chrome ──────────
+document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]").forEach(button => {
+  button.addEventListener("click", () => themeController.toggle());
+});
 
-const applyTheme = (theme: "light" | "dark"): void => {
-  const system = theme === "dark" ? "box-dark" : "box-default";
-  lib.setActiveDesignSystem(system);
-  lib.applyDesignTokens(document.documentElement, system);
-  document.documentElement.dataset.theme = theme;
-  // Every theme toggle (rail footer + masthead) reflects the same state.
-  document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]").forEach(button => {
-    button.setAttribute("aria-pressed", String(theme === "dark"));
-    const label = button.querySelector<HTMLElement>("[data-theme-label]") ?? button;
-    label.textContent = theme === "dark" ? "Light" : "Dark";
+const bindProfileToggles = (root: ParentNode = document): void => {
+  root.querySelectorAll<HTMLButtonElement>("[data-profile-toggle]").forEach(button => {
+    button.addEventListener("click", () => {
+      profileController.setProfile(
+        profileController.getProfile() === "compact-neutral"
+          ? "box-default"
+          : "compact-neutral",
+      );
+    });
   });
 };
 
-const storedTheme = localStorage.getItem("boe-docs-theme");
-applyTheme(storedTheme === "dark" ? "dark" : "light");
+bindProfileToggles();
 
-document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]").forEach(button => {
-  button.addEventListener("click", () => {
-    const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-    localStorage.setItem("boe-docs-theme", next);
-    applyTheme(next);
-  });
-});
+const renderDesignProfilesPage = (): void => {
+  breadcrumb.innerHTML = "Foundations / <b>Design Profiles</b>";
+  const isCompact = profileController.getProfile() === "compact-neutral";
+  stageBody.innerHTML = `
+    <h1 class="page-title">Design Profiles</h1>
+    <span class="page-tag">--boe-profile-*</span>
+    <section class="profile-demo" aria-label="Live design profile preview">
+      <div class="profile-demo-head">
+        <div>
+          <strong>Live profile preview</strong>
+          <span>Theme colors remain independent.</span>
+        </div>
+        <button type="button" class="profile-demo-toggle" data-profile-toggle aria-pressed="${isCompact}">
+          <span data-profile-label>${isCompact ? "Box profile" : "Compact"}</span>
+        </button>
+      </div>
+      <div class="profile-demo-controls">
+        <box-button label="Primary action"></box-button>
+        <box-button label="Secondary" tone="neutral"></box-button>
+        <box-text-field label="Project name" value="Design profiles"></box-text-field>
+      </div>
+    </section>
+    <div class="prose md-doc">${renderMarkdown(designProfilesMd.replace(/^#[^\n]*\n/, ""))}</div>
+  `;
+  bindProfileToggles(stageBody);
+};
 
 // ── Shared event vocabulary the Events panel listens for ────────────────────
 
@@ -83,6 +142,7 @@ const SHARED_EVENTS = [
 const FOUNDATION_PAGES = [
   { id: "tokens", label: "Design Tokens" },
   { id: "theming", label: "Theming" },
+  { id: "design-profiles", label: "Design Profiles" },
   { id: "geometry", label: "Geometry" },
   { id: "motion", label: "Motion" },
   { id: "icons", label: "Iconography" },
@@ -95,6 +155,7 @@ const FOUNDATION_MD: Record<string, { title: string; md: string }> = {
   accessibility: { title: "Accessibility", md: accessibilityMd },
   brand: { title: "Brand", md: brandMd },
   theming: { title: "Theming", md: themingMd },
+  "design-profiles": { title: "Design Profiles", md: designProfilesMd },
   geometry: { title: "Geometry", md: geometryMd },
   motion: { title: "Motion", md: motionMd },
 };
@@ -719,6 +780,7 @@ const render = (): void => {
   if (state.route.tier === "foundations") {
     if (state.route.id === "tokens") renderTokensPage();
     else if (state.route.id === "icons") renderIconsPage();
+    else if (state.route.id === "design-profiles") renderDesignProfilesPage();
     else {
       const doc = FOUNDATION_MD[state.route.id];
       renderMarkdownPage(doc.title, doc.md);

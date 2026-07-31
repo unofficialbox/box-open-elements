@@ -8,25 +8,25 @@
 
 /** `$bdl-grid-unit` — spacing scale root (4px). */
 export const boeSpace = {
-  unit: "4px",
+  unit: "var(--boe-profile-space-unit, 4px)",
   /** 1 × grid */
-  1: "4px",
+  1: "var(--boe-profile-space-1, 4px)",
   /** 2 × grid */
-  2: "8px",
+  2: "var(--boe-profile-space-2, 8px)",
   /** 3 × grid */
-  3: "12px",
+  3: "var(--boe-profile-space-3, 12px)",
   /** 4 × grid — button horizontal padding */
-  4: "16px",
+  4: "var(--boe-profile-space-4, 16px)",
   /** 5 × grid */
-  5: "20px",
+  5: "var(--boe-profile-space-5, 20px)",
   /** 6 × grid — overlay padding */
-  6: "24px",
+  6: "var(--boe-profile-space-6, 24px)",
   /** 8 × grid — modal-ish pad / control height */
-  8: "32px",
+  8: "var(--boe-profile-space-8, 32px)",
   /** 10 × grid */
-  10: "40px",
+  10: "var(--boe-profile-space-10, 40px)",
   /** 12 × grid — menu-item trailing pad */
-  12: "48px",
+  12: "var(--boe-profile-space-12, 48px)",
 } as const;
 
 /**
@@ -34,14 +34,15 @@ export const boeSpace = {
  * used by share panels, explorers, insights cards, etc.
  */
 export const boePanel = {
-  padding: "12px",
+  padding: "var(--boe-profile-panel-padding, 12px)",
   /** Card / panel surface — Box 16px (was 8px). */
-  radius: "16px",
-  gap: "12px",
+  radius: "var(--boe-profile-radius-large, 16px)",
+  gap: "var(--boe-profile-panel-gap, 12px)",
   border: "1px solid var(--boe-token-stroke-stroke, #e8e8e8)",
   background: "var(--boe-token-surface-surface, #ffffff)",
+  shadow: "var(--boe-profile-shadow-panel, 0 1px 2px rgb(15 23 42 / 4%))",
   /** Content-sidebar-ish drawer width */
-  drawerWidth: "340px",
+  drawerWidth: "var(--boe-profile-drawer-width, 340px)",
 } as const;
 
 /**
@@ -49,21 +50,21 @@ export const boePanel = {
  */
 export const boeOverlay = {
   /** Container pad — 3 × grid */
-  padding: "12px",
+  padding: "var(--boe-profile-overlay-padding, 12px)",
   /** Menu / popover surface — Box 20px (was 8px). */
-  radius: "20px",
-  shadow: "0 4px 12px 0 rgb(0 0 0 / 10%)",
+  radius: "var(--boe-profile-radius-xlarge, 20px)",
+  shadow: "var(--boe-profile-shadow-overlay, 0 4px 12px 0 rgb(0 0 0 / 10%))",
   border: "1px solid var(--boe-token-stroke-stroke, #e8e8e8)",
   /** Menu item — min-height 30; item radius 12px (Box). */
-  itemPadding: "8px 48px 8px 8px",
-  itemMinHeight: "30px",
-  itemRadius: "12px",
+  itemPadding: "var(--boe-profile-overlay-item-padding, 8px 48px 8px 8px)",
+  itemMinHeight: "var(--boe-profile-overlay-item-min-height, 30px)",
+  itemRadius: "var(--boe-profile-radius-medium, 12px)",
   /** Modal — dialog radius 24px (Box; was 12px). */
-  modalPadding: "30px",
-  modalWidth: "460px",
-  modalRadius: "24px",
-  modalShadow: "0 1px 1px 1px rgb(0 0 0 / 5%)",
-  modalTitleSize: "16px",
+  modalPadding: "var(--boe-profile-modal-padding, 30px)",
+  modalWidth: "var(--boe-profile-modal-width, 460px)",
+  modalRadius: "var(--boe-profile-radius-field, 24px)",
+  modalShadow: "var(--boe-profile-shadow-modal, 0 1px 1px 1px rgb(0 0 0 / 5%))",
+  modalTitleSize: "var(--boe-profile-modal-title-size, 16px)",
   modalBackdrop: "rgba(0, 0, 0, 0.75)",
 } as const;
 
@@ -80,50 +81,50 @@ export const boeOverlay = {
  */
 export const boeRadius = {
   /** Badges, checkboxes, tiny chips — Box ~4px. */
-  size: "4px",
+  size: "var(--boe-profile-radius-size, 4px)",
   /** Rows, small surfaces, list-item hover — Box 12px (was 6px). */
-  med: "12px",
+  med: "var(--boe-profile-radius-medium, 12px)",
   /** Cards, panels — Box 16px (was 8px). */
-  large: "16px",
+  large: "var(--boe-profile-radius-large, 16px)",
   /** Controls (buttons, inputs) + menus — Box 20px (was 12px). */
-  xlarge: "20px",
+  xlarge: "var(--boe-profile-radius-xlarge, 20px)",
   /** Interactive controls — buttons, inputs. Box pill radius 20px. */
-  control: "20px",
+  control: "var(--boe-profile-radius-control, 20px)",
   /** Large fields (search) + dialogs/modals — Box 24px. */
-  field: "24px",
+  field: "var(--boe-profile-radius-field, 24px)",
   /** Nav items — Box 28px. */
-  nav: "28px",
+  nav: "var(--boe-profile-radius-nav, 28px)",
   /** True pills — chips, toggles, label-pills. */
-  pill: "999px",
+  pill: "var(--boe-profile-radius-pill, 999px)",
 } as const;
 
 /** `$bdl-btn-height*` + related control metrics. */
 export const boeControl = {
-  height: "32px",
-  heightLarge: "40px",
-  paddingInline: "16px",
+  height: "var(--boe-profile-control-height, 32px)",
+  heightLarge: "var(--boe-profile-control-height-large, 40px)",
+  paddingInline: "var(--boe-profile-control-padding-inline, 16px)",
   /** Pill control radius — buttons/inputs. Box 20px. */
-  radius: "20px",
+  radius: "var(--boe-profile-radius-control, 20px)",
   /** Shared input pad from `@mixin box-inputs` */
-  inputPadding: "7px",
+  inputPadding: "var(--boe-profile-input-padding, 7px)",
   /** BUE select control height */
-  selectHeight: "34px",
+  selectHeight: "var(--boe-profile-select-height, 34px)",
   /** Legacy body font used on `.btn` */
-  fontSize: "13px",
-  letterSpacing: "0.035em",
+  fontSize: "var(--boe-profile-control-font-size, 13px)",
+  letterSpacing: "var(--boe-profile-control-letter-spacing, 0.035em)",
   /** BUE disabled control opacity */
-  disabledOpacity: "0.4",
+  disabledOpacity: "var(--boe-profile-disabled-opacity, 0.4)",
   /** Input border — `$bdl-gray-20` / SurfaceSurfaceQuaternary */
   inputBorder: "var(--boe-token-surface-surface-quaternary, #d3d3d3)",
   /** Button secondary border — `$bdl-gray-30` / StrokeStrokeHover */
   buttonBorder: "var(--boe-token-stroke-stroke-hover, #bcbcbc)",
   /** `@mixin box-inputs` inset shadow */
-  inputInsetShadow: "inset 0 2px 4px rgb(0 0 0 / 10%)",
+  inputInsetShadow: "var(--boe-profile-shadow-input-inset, inset 0 2px 4px rgb(0 0 0 / 10%))",
   /** Overlay / menu shadow — `mixins/_overlay.scss` */
-  overlayShadow: "0 4px 12px 0 rgb(0 0 0 / 10%)",
+  overlayShadow: "var(--boe-profile-shadow-overlay, 0 4px 12px 0 rgb(0 0 0 / 10%))",
   /** Primary button focus inset ring */
   primaryFocusShadow:
-    "inset 0 0 0 1px rgb(255 255 255 / 80%), 0 1px 2px rgb(0 0 0 / 10%)",
+    "var(--boe-profile-shadow-primary-focus, inset 0 0 0 1px rgb(255 255 255 / 80%), 0 1px 2px rgb(0 0 0 / 10%))",
 } as const;
 
 /** Shared text-field / select chrome matching `@mixin box-inputs`. */

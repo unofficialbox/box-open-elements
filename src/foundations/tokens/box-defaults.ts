@@ -1,6 +1,6 @@
 import { registerDesignSystem } from "./registry.js";
 import { boxIconography } from "../icons/box-iconography.js";
-import type { DesignSystemDefinition } from "./types.js";
+import type { RegisteredDesignSystemDefinition } from "./types.js";
 
 const iconSvg = (viewBox: string, body: string): string =>
   `<svg viewBox="${viewBox}" width="1em" height="1em" role="img" aria-hidden="true" focusable="false">${body}</svg>`;
@@ -8,7 +8,7 @@ const iconSvg = (viewBox: string, body: string): string =>
 const illustrationSvg = (viewBox: string, body: string): string =>
   `<svg viewBox="${viewBox}" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" role="presentation" aria-hidden="true" focusable="false">${body}</svg>`;
 
-export const boxDefaultDesignSystem: DesignSystemDefinition = {
+export const boxDefaultDesignSystem: RegisteredDesignSystemDefinition = {
   name: "box-default",
   // Values track Box's modernized "Blueprint" design system
   // (@box/blueprint-web-assets) — the palette box-ui-elements uses under
@@ -76,5 +76,5 @@ export const boxDefaultDesignSystem: DesignSystemDefinition = {
 
 export const registerBoxDefaultDesignSystem = (
   options: { setActive?: boolean } = {},
-): DesignSystemDefinition =>
+): RegisteredDesignSystemDefinition =>
   registerDesignSystem(boxDefaultDesignSystem, options);

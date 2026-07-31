@@ -41,7 +41,7 @@ describe("BoxRichTextInputElement", () => {
     expect(styles).toContain("padding: 0.5rem;");
     expect(styles).toContain("min-inline-size: 2rem;");
     expect(styles).toContain("block-size: 2rem;");
-    expect(styles).toContain("border-radius: 16px;");
+    expect(styles).toContain("border-radius: var(--boe-profile-radius-large, 16px);");
   });
 
   it("emits value-changed when the editor content changes", () => {

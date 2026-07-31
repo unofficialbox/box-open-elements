@@ -109,8 +109,8 @@ describe("BoxAlertElement", () => {
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("padding: 14px 10px;");
-    expect(styles).toContain("border-radius: 16px;");
-    expect(styles).toContain("margin: 12px 0;");
+    expect(styles).toContain("border-radius: var(--boe-profile-radius-large, 16px);");
+    expect(styles).toContain("margin: var(--boe-profile-space-3, 12px) 0;");
   });
 
   it("renders rich slotted content and stays visible on rich-only alerts", () => {

@@ -1,10 +1,12 @@
 export {
   DESIGN_SYSTEM_CHANGE_EVENT,
+  SEMANTIC_TOKEN_ALIASES,
   applyDesignTokens,
   createDesignTokenStyleText,
   getActiveDesignSystem,
   getDesignSystem,
   listDesignSystems,
+  normalizeDesignTokens,
   registerDesignSystem,
   resolveDesignIcon,
   resolveDesignIllustration,
@@ -24,5 +26,8 @@ export type {
   DesignAssetRenderContext,
   DesignAssetRenderer,
   DesignSystemDefinition,
+  DesignTokenInput,
   DesignTokenMap,
+  RegisteredDesignSystemDefinition,
+  SemanticDesignTokenMap,
 } from "./types.js";

@@ -81,7 +81,7 @@ describe("BoxBadgeElement", () => {
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("padding: 2px 4px 3px;");
-    expect(styles).toContain("border-radius: 4px;");
+    expect(styles).toContain("border-radius: var(--boe-profile-radius-size, 4px);");
     expect(styles).toContain("font-size: 10px;");
     expect(styles).not.toContain("border-radius: 999px");
   });

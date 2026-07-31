@@ -6,6 +6,7 @@ export type { JsonSchema } from "./core/json-schema.js";
 // Foundations
 export {
   DESIGN_SYSTEM_CHANGE_EVENT,
+  SEMANTIC_TOKEN_ALIASES,
   applyDesignTokens,
   boxDarkDesignSystem,
   boxDefaultDesignSystem,
@@ -13,6 +14,7 @@ export {
   getActiveDesignSystem,
   getDesignSystem,
   listDesignSystems,
+  normalizeDesignTokens,
   registerBoxDarkDesignSystem,
   registerBoxDefaultDesignSystem,
   registerDesignSystem,
@@ -26,8 +28,54 @@ export type {
   DesignAssetRenderContext,
   DesignAssetRenderer,
   DesignSystemDefinition,
+  DesignTokenInput,
   DesignTokenMap,
+  RegisteredDesignSystemDefinition,
+  SemanticDesignTokenMap,
 } from "./foundations/tokens/index.js";
+export {
+  DARK_MODE_MEDIA_QUERY,
+  DEFAULT_THEME_STORAGE_KEY,
+  THEME_CHANGE_EVENT,
+  createThemeController,
+  createThemeInitializationScript,
+} from "./foundations/theming/index.js";
+export type {
+  ResolvedTheme,
+  ThemeChangeDetail,
+  ThemeController,
+  ThemeControllerOptions,
+  ThemeInitializationScriptOptions,
+  ThemePreference,
+} from "./foundations/theming/index.js";
+export {
+  DESIGN_PROFILE_CHANGE_EVENT,
+  DESIGN_PROFILE_VARIABLES,
+  DEFAULT_DESIGN_PROFILE_STORAGE_KEY,
+  applyDesignProfile,
+  boxDefaultDesignProfile,
+  compactNeutralDesignProfile,
+  createDesignProfileController,
+  createDesignProfileStyleText,
+  getDesignProfile,
+  listDesignProfiles,
+  registerBuiltInDesignProfiles,
+  registerDesignProfile,
+  resolveDesignProfileProperties,
+} from "./foundations/profiles/index.js";
+export type {
+  ApplyDesignProfileOptions,
+  DesignProfileChangeDetail,
+  DesignProfileController,
+  DesignProfileControllerOptions,
+  DesignProfileDefinition,
+  DesignProfileDensity,
+  DesignProfileElevation,
+  DesignProfileMotion,
+  DesignProfileRadius,
+  DesignProfileSpacing,
+  DesignProfileTypography,
+} from "./foundations/profiles/index.js";
 export { boxIconography, boxIconographyAliases } from "./foundations/icons/index.js";
 
 // Foundations: viewport-aware overlay positioning (for building custom overlays)
