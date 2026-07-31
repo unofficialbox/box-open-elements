@@ -22,6 +22,9 @@
   ],
   "packageManager": "bun@1.3.11",
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -110,14 +113,22 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "bun run build:core && bun run build:react",
+    "build:core": "tsc -p tsconfig.json",
+    "build:react": "bun run --cwd packages/react build",
     "build:watch": "tsc -p tsconfig.json --watch --preserveWatchOutput",
     "prepublishOnly": "bun run build",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p packages/box-server/tsconfig.json --noEmit && tsc -p packages/react/tsconfig.json --noEmit && tsc -p storybook/tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "verify": "bun run typecheck && bun run test:coverage && bun run build",
+    "verify": "bun run typecheck && bun run test:coverage && bun run build && bun run frameworks:validate",
+    "frameworks:react": "tsc --noEmit -p examples/frameworks/react/tsconfig.json && vite build --config examples/frameworks/react/vite.config.ts",
+    "frameworks:react:ssr": "next build examples/frameworks/react-ssr",
+    "frameworks:angular": "ngc -p examples/frameworks/angular/tsconfig.json && vite build --config examples/frameworks/angular/vite.config.ts",
+    "frameworks:vue": "vue-tsc --noEmit -p examples/frameworks/vue/tsconfig.json && vite build --config examples/frameworks/vue/vite.config.ts",
+    "frameworks:svelte": "svelte-check --tsconfig examples/frameworks/svelte/tsconfig.json && vite build --config examples/frameworks/svelte/vite.config.ts",
+    "frameworks:validate": "bun run frameworks:react && bun run frameworks:react:ssr && bun run frameworks:angular && bun run frameworks:vue && bun run frameworks:svelte",
     "style-bridge": "bun tools/style-bridge/cli.ts",
     "style-bridge:bue-explorer": "bun tools/style-bridge/cli.ts --config tools/style-bridge/configs/box-ui-elements/content-explorer.config.json --input tools/style-bridge/libraries/box-ui-elements/content-explorer/index.scss --out tools/style-bridge/out/box-ui-elements/content-explorer.css --report tools/style-bridge/out/box-ui-elements/content-explorer.report.json",
     "preview:capture": "bun run build && bun tools/preview/capture.ts",
@@ -138,18 +149,34 @@
     "storybook:build": "bun run build && bun storybook/build.ts"
   },
   "devDependencies": {
+    "@angular/compiler": "20.3.27",
+    "@angular/compiler-cli": "20.3.27",
+    "@angular/core": "20.3.27",
+    "@angular/platform-browser": "20.3.27",
+    "@sveltejs/vite-plugin-svelte": "7.2.0",
+    "@types/node": "24.10.1",
     "@types/pngjs": "^6.0.5",
     "@types/react": "19",
     "@types/react-dom": "19",
+    "@unofficialbox/box-open-elements-react": "workspace:*",
+    "@vitejs/plugin-vue": "6.0.8",
     "@vitest/coverage-v8": "^4.1.2",
     "bun-types": "^1.3.14",
     "jsdom": "^29.0.1",
+    "next": "16.2.12",
     "pixelmatch": "^7.2.0",
     "playwright-core": "^1.61.1",
     "pngjs": "^7.0.0",
     "react": "19",
     "react-dom": "19",
+    "rxjs": "7.8.2",
+    "svelte": "5.56.8",
+    "svelte-check": "4.3.4",
     "typescript": "^5.8.2",
-    "vitest": "^4.1.2"
+    "vite": "8.2.0",
+    "vitest": "^4.1.2",
+    "vue": "3.5.40",
+    "vue-tsc": "3.1.5",
+    "zone.js": "0.15.1"
   }
 }

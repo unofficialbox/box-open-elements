@@ -4,10 +4,16 @@
 works in any framework that can render custom elements — which is all of them.
 This guide shows the minimal setup and a working example per framework.
 
-The published package is **`@unofficialbox/box-open-elements`**; every example
-below uses it directly. (A typed React wrapper exists in-repo at
-[`packages/react`](../../packages/react) but is not published yet — see the
-[React](#react) note.)
+Runnable compiler/build fixtures for all four frameworks live in
+[`examples/frameworks`](../../examples/frameworks) and run as part of
+`bun run verify`. React is Beta; Angular, Vue, and Svelte direct consumption is
+Validated without wrapper packages.
+
+The core package is **`@unofficialbox/box-open-elements`**; every direct example
+below uses it. A release-ready typed React package lives at
+[`packages/react`](../../packages/react) as
+`@unofficialbox/box-open-elements-react`; its first npm publication follows the
+merge of its release contract.
 
 ## Common setup (all frameworks)
 
@@ -91,7 +97,7 @@ declare module "react" {
 }
 ```
 
-> **Typed wrappers.** The repo also has `@box-open-elements/react`
+> **Typed wrappers.** The repo also has `@unofficialbox/box-open-elements-react`
 > (`<Button>`, `<TextField onValueChanged={…}>`) that hides the ref/event
 > plumbing — see [react.md](./react.md). It isn't published to npm yet; until it
 > is, prefer the direct usage above.

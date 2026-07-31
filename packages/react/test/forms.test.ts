@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, createElement, createRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
@@ -167,7 +167,3 @@ describe("React form adapters", () => {
     expect(selectCurrentTarget).toBe(element);
   });
 });
-  beforeEach(() => {
-    SelectElement.register();
-    TextFieldElement.register();
-  });

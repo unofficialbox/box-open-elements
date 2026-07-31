@@ -23,7 +23,7 @@ const assignRef = <T,>(ref: ForwardedRef<T> | undefined, value: T | null): void 
 export type WebComponentProps = {
   className?: string;
   style?: CSSProperties;
-} & Omit<HTMLAttributes<HTMLElement>, "className" | "style" | "children">;
+} & Omit<HTMLAttributes<HTMLElement>, "className" | "style" | "children" | "onCancel">;
 
 type CreateWebComponentOptions<E extends HTMLElement, P extends WebComponentProps> = {
   tagName: string;

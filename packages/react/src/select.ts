@@ -1,6 +1,8 @@
-import { Select as SelectElement } from "../../../src/components/forms/select.js";
+import { Select as SelectElement } from "@unofficialbox/box-open-elements/select";
 import { createWebComponent, type WebComponentProps } from "./create-web-component.js";
 import type { CustomEventHandler, ValueChangedDetail } from "./events.js";
+
+SelectElement.register();
 
 export type SelectOption = {
   label: string;

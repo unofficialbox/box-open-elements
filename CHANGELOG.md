@@ -10,7 +10,13 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
-No unreleased changes.
+- Promoted the React adapter to a release candidate under
+  `@unofficialbox/box-open-elements-react`, with production package exports,
+  explicit version contracts, and an independent trusted-publishing workflow.
+- Added typed `Dialog` and `useExplorerSelectionController` integrations plus
+  server-rendering and hydration coverage.
+- Added runnable React, Angular, Vue, and Svelte validation apps to the full CI
+  gate, including a Next.js 16 SSR/hydration host for React.
 
 ---
 

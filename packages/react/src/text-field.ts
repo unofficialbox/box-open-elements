@@ -1,6 +1,8 @@
-import { TextField as TextFieldElement } from "../../../src/components/forms/text-field.js";
+import { TextField as TextFieldElement } from "@unofficialbox/box-open-elements/text-field";
 import { createWebComponent, type WebComponentProps } from "./create-web-component.js";
 import type { CustomEventHandler, ValueChangedDetail } from "./events.js";
+
+TextFieldElement.register();
 
 export type TextFieldProps = WebComponentProps & {
   label?: string;
