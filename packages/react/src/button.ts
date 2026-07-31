@@ -1,7 +1,9 @@
 import type { MouseEventHandler } from "react";
 
-import { Button as ButtonElement } from "../../../src/components/actions/button.js";
+import { Button as ButtonElement } from "@unofficialbox/box-open-elements/button";
 import { createWebComponent, type WebComponentProps } from "./create-web-component.js";
+
+ButtonElement.register();
 
 export type ButtonProps = WebComponentProps & {
   /** Button label text (maps to the `label` property / attribute). */
@@ -16,7 +18,7 @@ export type ButtonProps = WebComponentProps & {
 
 /**
  * React wrapper for `<box-button>`. Registers the custom element on first render
- * and syncs props as element properties so React 18/19 both behave.
+ * and syncs props as element properties for the supported React 19 contract.
  */
 export const Button = createWebComponent<ButtonElement, ButtonProps>({
   tagName: "box-button",

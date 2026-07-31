@@ -17,7 +17,7 @@
     "dist"
   ],
   "peerDependencies": {
-    "box-open-elements": "workspace:*"
+    "@unofficialbox/box-open-elements": "^0.5.0"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit"

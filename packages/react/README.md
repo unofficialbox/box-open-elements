@@ -1,4 +1,4 @@
-# @box-open-elements/react
+# @unofficialbox/box-open-elements-react
 
 Optional React wrappers for [`box-open-elements`](../..) Web Components.
 
@@ -12,15 +12,14 @@ See [`docs/integration/react.md`](../../docs/integration/react.md) for the React
 boundary and the [framework adapter tracker](../../docs/integration/framework-adapters.md)
 for cross-framework milestones.
 
-## Install (workspace)
+## Install
 
 ```bash
-bun add react react-dom
-# consume from the monorepo package
+npm install @unofficialbox/box-open-elements @unofficialbox/box-open-elements-react react react-dom
 ```
 
 ```ts
-import { Button, Select, TextField } from "@box-open-elements/react";
+import { Button, Dialog, Select, TextField } from "@unofficialbox/box-open-elements-react";
 import {
   applyDesignTokens,
   registerBoxDefaultDesignSystem,
@@ -44,9 +43,29 @@ export function SaveAction() {
 }
 ```
 
+The release-candidate surface also includes a controlled `Dialog` wrapper and
+`useExplorerSelectionController`, which subscribes React to the existing
+headless selection controller without duplicating its state.
+
 ## Status
 
-**Validated** — `Button`, `TextField`, and `Select` prove native and
+**Release candidate** — `Button`, `TextField`, `Select`, and `Dialog` prove native and
 composed events, value and structured property synchronization, latest callback
-routing, and forwarded element refs. The next Beta proof is an overlay plus one
-headless controller composition and explicit SSR/hydration guidance.
+routing, forwarded refs, controlled overlay focus behavior, and server-safe host
+rendering. `useExplorerSelectionController` proves headless controller
+composition. Package exports, version contracts, the Next.js hydration fixture,
+and CI validation are release-ready. Supported status follows the first public
+npm publication and a clean registry-install verification.
+
+## Supported versions
+
+| Dependency | Contract |
+| --- | --- |
+| React / React DOM | `^19.0.0` |
+| `@unofficialbox/box-open-elements` | `^0.5.0` |
+| Node.js for SSR | `>=20.9.0` |
+| Next.js validation host | `16.2.12` |
+
+The package ships ESM JavaScript and declarations from `dist/`. The Next.js
+fixture in `examples/frameworks/react-ssr` proves server prerendering, browser
+upgrade, hydration, events, controller subscriptions, and overlay focus.

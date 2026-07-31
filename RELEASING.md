@@ -99,6 +99,20 @@ npm pack --dry-run
 
 ## Sub-packages
 
-`@box-open-elements/react` and `@box-open-elements/box-server` are currently
-`private` and are **not** published. If they are opened up later, publish them
-under the same org conventions and give each its own version bump.
+`@unofficialbox/box-open-elements-react` is versioned independently in
+`packages/react/package.json`. Release tags use `react-vX.Y.Z`; publishing that
+GitHub Release runs `.github/workflows/release-react.yml`. The tag must match
+the adapter package version.
+
+Before the first automated release, publish the package once from a trusted
+local npm session, then configure its npm Trusted Publisher for organization
+`unofficialbox`, this repository, and workflow `release-react.yml`. Subsequent
+releases use OIDC and require no long-lived npm token.
+
+Verify the public package after release:
+
+```bash
+npm view @unofficialbox/box-open-elements-react version
+```
+
+`@box-open-elements/box-server` remains private and is not published.

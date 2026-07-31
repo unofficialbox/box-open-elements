@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { act } from "react";
@@ -78,6 +78,3 @@ describe("Button React adapter", () => {
     expect(next?.shadowRoot?.querySelector('[part="label"]')?.textContent).toBe("Publish");
   });
 });
-  beforeEach(() => {
-    ButtonElement.register();
-  });

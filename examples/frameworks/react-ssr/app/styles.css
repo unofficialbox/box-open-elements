@@ -1,0 +1,25 @@
+:root {
+  color: #222;
+  background: #f6f7f8;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  box-sizing: border-box;
+  width: min(100% - 2rem, 44rem);
+  margin: 3rem auto;
+  padding: 2rem;
+  border: 1px solid #d8d8d8;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.actions {
+  display: grid;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}

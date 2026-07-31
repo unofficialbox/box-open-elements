@@ -5,6 +5,14 @@
     "moduleResolution": "NodeNext",
     "lib": ["ES2022", "DOM"],
     "jsx": "react-jsx",
+    "baseUrl": "../..",
+    "paths": {
+      "@unofficialbox/box-open-elements/button": ["src/entries/button.ts"],
+      "@unofficialbox/box-open-elements/dialog": ["src/entries/dialog.ts"],
+      "@unofficialbox/box-open-elements/select": ["src/entries/select.ts"],
+      "@unofficialbox/box-open-elements/text-field": ["src/entries/text-field.ts"],
+      "@unofficialbox/box-open-elements/patterns/content-explorer/selection": ["src/patterns/content-explorer/selection/index.ts"]
+    },
     "types": ["react", "react-dom"],
     "noEmit": true,
     "strict": true,
