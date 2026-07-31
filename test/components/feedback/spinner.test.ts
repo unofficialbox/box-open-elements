@@ -2,12 +2,12 @@
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { BoxSpinnerElement, defineBoxSpinnerElement } from "../../../src/components/feedback/spinner.js";
+import { Spinner } from "../../../src/components/feedback/spinner.js";
 import { boeMotionDuration, boeMotionEasing } from "../../../src/foundations/motion/index.js";
 
-describe("BoxSpinnerElement", () => {
+describe("Spinner", () => {
   beforeEach(() => {
-    defineBoxSpinnerElement();
+    Spinner.register();
   });
 
   afterEach(() => {
@@ -15,7 +15,7 @@ describe("BoxSpinnerElement", () => {
   });
 
   it("renders the provided label", () => {
-    const element = document.createElement("box-spinner") as BoxSpinnerElement;
+    const element = document.createElement("box-spinner") as Spinner;
     element.label = "Loading folders";
 
     document.body.append(element);
@@ -24,7 +24,7 @@ describe("BoxSpinnerElement", () => {
   });
 
   it("applies a data-size only for non-default sizes", () => {
-    const element = document.createElement("box-spinner") as BoxSpinnerElement;
+    const element = document.createElement("box-spinner") as Spinner;
     document.body.append(element);
     const indicator = element.shadowRoot?.querySelector('[part="indicator"]') as HTMLElement;
 
@@ -43,7 +43,7 @@ describe("BoxSpinnerElement", () => {
   });
 
   it("uses shared motion vocabulary for spin and reduced-motion", () => {
-    const element = document.createElement("box-spinner") as BoxSpinnerElement;
+    const element = document.createElement("box-spinner") as Spinner;
     document.body.append(element);
 
     const styleText = element.shadowRoot?.querySelector("style")?.textContent ?? "";

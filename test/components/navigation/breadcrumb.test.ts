@@ -3,23 +3,22 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxBreadcrumbElement,
-  defineBoxBreadcrumbElement,
+  Breadcrumb,
 } from "../../../src/components/navigation/breadcrumb.js";
 
 const path = (n: number): { label: string; value: string }[] =>
   Array.from({ length: n }, (_, i) => ({ label: `Folder ${i}`, value: String(i) }));
 
-const create = (items: unknown[]): BoxBreadcrumbElement => {
-  const el = document.createElement("box-breadcrumb") as BoxBreadcrumbElement;
+const create = (items: unknown[]): Breadcrumb => {
+  const el = document.createElement("box-breadcrumb") as Breadcrumb;
   el.items = items as never;
   document.body.append(el);
   return el;
 };
 
-describe("BoxBreadcrumbElement", () => {
+describe("Breadcrumb", () => {
   beforeEach(() => {
-    defineBoxBreadcrumbElement();
+    Breadcrumb.register();
   });
 
   afterEach(() => {

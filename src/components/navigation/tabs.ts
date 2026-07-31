@@ -117,7 +117,8 @@ const tabsStyles = `
   }
 `;
 
-export class BoxTabsElement extends BaseElement {
+export class Tabs extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["label", "layout", "options", "value"];
   }
@@ -377,14 +378,4 @@ export class BoxTabsElement extends BaseElement {
   }
 }
 
-export const defineBoxTabsElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxTabsElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxTabsElement;
-  }
-
-  customElements.define(tagName, BoxTabsElement);
-  return BoxTabsElement;
-};
+Tabs.register();

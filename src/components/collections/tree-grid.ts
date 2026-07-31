@@ -240,7 +240,8 @@ const treeGridStyles = `
   }
 `;
 
-export class BoxTreeGridElement extends BaseElement {
+export class TreeGrid extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["columns", "items", "label", "value"];
   }
@@ -678,14 +679,4 @@ export class BoxTreeGridElement extends BaseElement {
   }
 }
 
-export const defineBoxTreeGridElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxTreeGridElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxTreeGridElement;
-  }
-
-  customElements.define(tagName, BoxTreeGridElement);
-  return BoxTreeGridElement;
-};
+TreeGrid.register();

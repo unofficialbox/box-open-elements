@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxContactDatalistItemElement,
-  defineBoxContactDatalistItemElement,
+  ContactDatalistItem,
 } from "../../../src/components/identity/contact-datalist-item.js";
 
-describe("BoxContactDatalistItemElement", () => {
+describe("ContactDatalistItem", () => {
   beforeEach(() => {
-    defineBoxContactDatalistItemElement();
+    ContactDatalistItem.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxContactDatalistItemElement", () => {
   });
 
   it("renders name, email, and initials avatar", () => {
-    const element = document.createElement("box-contact-datalist-item") as BoxContactDatalistItemElement;
+    const element = document.createElement("box-contact-datalist-item") as ContactDatalistItem;
     element.name = "Morgan Lee";
     element.email = "morgan@box.com";
     document.body.append(element);
@@ -29,7 +28,7 @@ describe("BoxContactDatalistItemElement", () => {
   });
 
   it("renders an image when src is provided", () => {
-    const element = document.createElement("box-contact-datalist-item") as BoxContactDatalistItemElement;
+    const element = document.createElement("box-contact-datalist-item") as ContactDatalistItem;
     element.name = "Alex Kim";
     element.src = "https://example.com/a.png";
     document.body.append(element);
@@ -39,7 +38,7 @@ describe("BoxContactDatalistItemElement", () => {
   });
 
   it("defaults value to the email and emits select on activation", () => {
-    const element = document.createElement("box-contact-datalist-item") as BoxContactDatalistItemElement;
+    const element = document.createElement("box-contact-datalist-item") as ContactDatalistItem;
     element.name = "Sam Patel";
     element.email = "sam@box.com";
     document.body.append(element);
@@ -55,7 +54,7 @@ describe("BoxContactDatalistItemElement", () => {
   });
 
   it("reflects selected and suppresses activation while disabled", () => {
-    const element = document.createElement("box-contact-datalist-item") as BoxContactDatalistItemElement;
+    const element = document.createElement("box-contact-datalist-item") as ContactDatalistItem;
     element.name = "Jordan Rivera";
     element.disabled = true;
     document.body.append(element);
@@ -69,7 +68,7 @@ describe("BoxContactDatalistItemElement", () => {
   });
 
   it("shows an external marker and a subtitle line when set", () => {
-    const element = document.createElement("box-contact-datalist-item") as BoxContactDatalistItemElement;
+    const element = document.createElement("box-contact-datalist-item") as ContactDatalistItem;
     element.name = "Sam Rivera";
     element.email = "sam@partner.com";
     document.body.append(element);

@@ -122,7 +122,7 @@ const starterHtml = (title: string, mountComment: string): string => `<!doctype 
 const EXPLORER_STEP0 = `import {
   registerBoxDefaultDesignSystem,
   applyDesignTokens,
-  defineBoxContentExplorerElement,
+  ContentExplorer,
 } from "@unofficialbox/box-open-elements";
 
 // Register the Box design system and paint its tokens onto the page.
@@ -130,7 +130,7 @@ registerBoxDefaultDesignSystem({ setActive: true });
 applyDesignTokens(document.documentElement, "box-default");
 
 // Teach the browser about the <box-content-explorer> element.
-defineBoxContentExplorerElement();`;
+`;
 
 const EXPLORER_STEP1 = `${EXPLORER_STEP0}
 
@@ -251,7 +251,7 @@ export const explorerLesson: Lesson = {
       title: "Render the shell",
       goal: "Put the explorer element on the page.",
       file: "app.js",
-      anchor: "after defineBoxContentExplorerElement()",
+      anchor: "after the ContentExplorer import",
       code: EXPLORER_STEP1,
       why: "The element renders its own shell immediately; with no transport or session yet it shows an empty, un-connected state — proof the custom element is alive.",
       result: "The explorer chrome appears, empty — no data loaded yet.",
@@ -312,12 +312,11 @@ export const explorerLesson: Lesson = {
 
 <script type="module">
   import {
-    defineBoxContentExplorerElement,
+    ContentExplorer,
     registerBoxDefaultDesignSystem,
   } from "@unofficialbox/box-open-elements";
 
   registerBoxDefaultDesignSystem();
-  defineBoxContentExplorerElement();
 
   const explorer = document.getElementById("explorer");
   // transport is an object, so it is set as a property, not an attribute.
@@ -331,9 +330,8 @@ export const explorerLesson: Lesson = {
   });
 </script>`,
     react: `import { useEffect, useRef } from "react";
-import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/content-explorer";
 
-defineBoxContentExplorerElement();
 
 export function Explorer({ transport }) {
   const ref = useRef(null);
@@ -365,9 +363,8 @@ export function Explorer({ transport }) {
   );
 }`,
     angular: `import { Component, CUSTOM_ELEMENTS_SCHEMA, Input } from "@angular/core";
-import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/content-explorer";
 
-defineBoxContentExplorerElement();
 
 @Component({
   standalone: true,
@@ -396,9 +393,8 @@ export class ExplorerComponent {
   }
 }`,
     vue: `<script setup lang="ts">
-import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/content-explorer";
 
-defineBoxContentExplorerElement();
 
 const props = defineProps<{ transport: unknown }>();
 
@@ -421,9 +417,8 @@ const onSelectionChanged = (event: CustomEvent) => {
   ></box-content-explorer>
 </template>`,
     svelte: `<script lang="ts">
-  import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+  import "@unofficialbox/box-open-elements/content-explorer";
 
-  defineBoxContentExplorerElement();
 
   export let transport;
 
@@ -449,7 +444,7 @@ const onSelectionChanged = (event: CustomEvent) => {
 const SHARE_STEP0 = `import {
   registerBoxDefaultDesignSystem,
   applyDesignTokens,
-  defineBoxSharePanelElement,
+  SharePanel,
 } from "@unofficialbox/box-open-elements";
 
 // Register the Box design system and paint its tokens onto the page.
@@ -457,7 +452,7 @@ registerBoxDefaultDesignSystem({ setActive: true });
 applyDesignTokens(document.documentElement, "box-default");
 
 // Teach the browser about the <box-share-panel> element.
-defineBoxSharePanelElement();`;
+`;
 
 const SHARE_STEP1 = `${SHARE_STEP0}
 
@@ -543,7 +538,7 @@ export const shareLesson: Lesson = {
       title: "Render the shell",
       goal: "Put the share panel on the page with a heading.",
       file: "app.js",
-      anchor: "after defineBoxSharePanelElement()",
+      anchor: "after the SharePanel import",
       code: SHARE_STEP1,
       why: "The element renders its panel chrome from observed attributes; with only a heading it shows an empty share shell — proof the custom element is alive.",
       result: "The share panel heading appears; no link, people, or actions yet.",
@@ -599,12 +594,11 @@ export const shareLesson: Lesson = {
 
 <script type="module">
   import {
-    defineBoxSharePanelElement,
+    SharePanel,
     registerBoxDefaultDesignSystem,
   } from "@unofficialbox/box-open-elements";
 
   registerBoxDefaultDesignSystem();
-  defineBoxSharePanelElement();
 
   const panel = document.getElementById("share");
   // sharedLink, collaborators and actions are object/array properties.
@@ -623,9 +617,8 @@ export const shareLesson: Lesson = {
   });
 </script>`,
     react: `import { useEffect, useRef } from "react";
-import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/share-panel";
 
-defineBoxSharePanelElement();
 
 export function SharePanel() {
   const ref = useRef(null);
@@ -653,9 +646,8 @@ export function SharePanel() {
   return <box-share-panel ref={ref} heading="Share Quarterly Plan.pdf" />;
 }`,
     angular: `import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
-import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/share-panel";
 
-defineBoxSharePanelElement();
 
 @Component({
   standalone: true,
@@ -689,9 +681,8 @@ export class ShareComponent {
   }
 }`,
     vue: `<script setup lang="ts">
-import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/share-panel";
 
-defineBoxSharePanelElement();
 
 const sharedLink = { url: "https://box.com/s/example", access: "company" };
 const collaborators = [{ name: "Morgan Lee", role: "Editor" }];
@@ -715,9 +706,8 @@ const onCollaborator = (event: CustomEvent) => console.log("collaborator", event
   ></box-share-panel>
 </template>`,
     svelte: `<script lang="ts">
-  import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+  import "@unofficialbox/box-open-elements/share-panel";
 
-  defineBoxSharePanelElement();
 
   let el;
   // Object and array props are assigned, not passed as attributes.
@@ -746,7 +736,7 @@ const onCollaborator = (event: CustomEvent) => console.log("collaborator", event
 const PREVIEW_STEP0 = `import {
   registerBoxDefaultDesignSystem,
   applyDesignTokens,
-  defineBoxPreviewElement,
+  Preview,
 } from "@unofficialbox/box-open-elements";
 
 // Register the Box design system and paint its tokens onto the page.
@@ -754,7 +744,7 @@ registerBoxDefaultDesignSystem({ setActive: true });
 applyDesignTokens(document.documentElement, "box-default");
 
 // Teach the browser about the <box-preview-element> element.
-defineBoxPreviewElement();`;
+`;
 
 const PREVIEW_STEP1 = `${PREVIEW_STEP0}
 
@@ -839,7 +829,7 @@ export const previewLesson: Lesson = {
       title: "Render the shell",
       goal: "Put the preview element on the page with a heading.",
       file: "app.js",
-      anchor: "after defineBoxPreviewElement()",
+      anchor: "after the Preview import",
       code: PREVIEW_STEP1,
       why: "The element renders its workspace chrome from observed attributes; with only a heading it shows an empty preview shell — proof the custom element is alive.",
       result: "The preview heading appears; no provider, page state, or actions yet.",
@@ -900,12 +890,11 @@ export const previewLesson: Lesson = {
 
 <script type="module">
   import {
-    defineBoxPreviewElement,
+    Preview,
     registerBoxDefaultDesignSystem,
   } from "@unofficialbox/box-open-elements";
 
   registerBoxDefaultDesignSystem();
-  defineBoxPreviewElement();
 
   const preview = document.getElementById("preview");
   // provider, adapterState and actions are object/array properties.
@@ -924,9 +913,8 @@ export const previewLesson: Lesson = {
   });
 </script>`,
     react: `import { useEffect, useRef } from "react";
-import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/preview";
 
-defineBoxPreviewElement();
 
 export function Preview() {
   const ref = useRef(null);
@@ -962,9 +950,8 @@ export function Preview() {
   );
 }`,
     angular: `import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
-import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/preview";
 
-defineBoxPreviewElement();
 
 @Component({
   standalone: true,
@@ -1000,9 +987,8 @@ export class PreviewComponent {
   }
 }`,
     vue: `<script setup lang="ts">
-import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/preview";
 
-defineBoxPreviewElement();
 
 const provider = { id: "content-preview", label: "Box Content Preview" };
 const adapterState = { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%" };
@@ -1029,9 +1015,8 @@ const onProviderAction = (event: CustomEvent) =>
   ></box-preview-element>
 </template>`,
     svelte: `<script lang="ts">
-  import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+  import "@unofficialbox/box-open-elements/preview";
 
-  defineBoxPreviewElement();
 
   let el;
   $: if (el) {

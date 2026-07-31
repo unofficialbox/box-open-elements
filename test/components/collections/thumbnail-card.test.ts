@@ -3,19 +3,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxThumbnailCardElement,
-  defineBoxThumbnailCardElement,
+  ThumbnailCard,
 } from "../../../src/components/collections/thumbnail-card.js";
 
-const create = (): BoxThumbnailCardElement => {
-  const el = document.createElement("box-thumbnail-card") as BoxThumbnailCardElement;
+const create = (): ThumbnailCard => {
+  const el = document.createElement("box-thumbnail-card") as ThumbnailCard;
   document.body.append(el);
   return el;
 };
 
-describe("BoxThumbnailCardElement", () => {
+describe("ThumbnailCard", () => {
   beforeEach(() => {
-    defineBoxThumbnailCardElement();
+    ThumbnailCard.register();
   });
 
   afterEach(() => {

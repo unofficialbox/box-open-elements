@@ -37,7 +37,8 @@ const summarize = (users: PresenceUser[]): string => {
  * update) or by injecting a static `users` array. A polite live region
  * announces roster changes. Pair the transport with your realtime backend.
  */
-export class BoxPresenceElement extends BaseElement {
+export class Presence extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["label", "max"];
   }
@@ -278,14 +279,4 @@ export class BoxPresenceElement extends BaseElement {
   }
 }
 
-export const defineBoxPresenceElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxPresenceElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxPresenceElement;
-  }
-
-  customElements.define(tagName, BoxPresenceElement);
-  return BoxPresenceElement;
-};
+Presence.register();

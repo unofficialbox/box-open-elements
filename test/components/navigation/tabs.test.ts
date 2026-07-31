@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxTabsElement, defineBoxTabsElement } from "../../../src/components/navigation/tabs.js";
+import { Tabs } from "../../../src/components/navigation/tabs.js";
 
-describe("BoxTabsElement", () => {
+describe("Tabs", () => {
   beforeEach(() => {
-    defineBoxTabsElement();
+    Tabs.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxTabsElement", () => {
   });
 
   it("selects the first option by default", () => {
-    const element = document.createElement("box-tabs") as BoxTabsElement;
+    const element = document.createElement("box-tabs") as Tabs;
     element.options = [
       { label: "Overview", value: "overview" },
       { label: "Activity", value: "activity" },
@@ -26,7 +26,7 @@ describe("BoxTabsElement", () => {
   });
 
   it("emits value changes when a tab is clicked", () => {
-    const element = document.createElement("box-tabs") as BoxTabsElement;
+    const element = document.createElement("box-tabs") as Tabs;
     const changed = vi.fn();
     element.options = [
       { label: "Overview", value: "overview" },
@@ -48,7 +48,7 @@ describe("BoxTabsElement", () => {
   });
 
   it("uses tab semantics and supports arrow key navigation", () => {
-    const element = document.createElement("box-tabs") as BoxTabsElement;
+    const element = document.createElement("box-tabs") as Tabs;
     element.options = [
       { label: "Overview", value: "overview" },
       { label: "Activity", value: "activity" },
@@ -70,7 +70,7 @@ describe("BoxTabsElement", () => {
   });
 
   it("supports attached layout metadata for grouped styling", () => {
-    const element = document.createElement("box-tabs") as BoxTabsElement;
+    const element = document.createElement("box-tabs") as Tabs;
     element.layout = "attached";
     element.options = [
       { label: "Overview", value: "overview" },
@@ -90,7 +90,7 @@ describe("BoxTabsElement", () => {
   });
 
   it("keeps transparent hover chrome and focus-visible for tabs", () => {
-    const element = document.createElement("box-tabs") as BoxTabsElement;
+    const element = document.createElement("box-tabs") as Tabs;
     element.options = [
       { label: "Overview", value: "overview" },
       { label: "Activity", value: "activity" },
@@ -104,7 +104,7 @@ describe("BoxTabsElement", () => {
   });
 
   it("uses BUE underline tab styles", () => {
-    const element = document.createElement("box-tabs") as BoxTabsElement;
+    const element = document.createElement("box-tabs") as Tabs;
     element.layout = "attached";
     element.options = [
       { label: "Overview", value: "overview" },
@@ -122,7 +122,7 @@ describe("BoxTabsElement", () => {
   });
 
   it("preserves focus on a tab when an attribute changes", () => {
-    const element = document.createElement("box-tabs") as BoxTabsElement;
+    const element = document.createElement("box-tabs") as Tabs;
     element.options = [
       { label: "Overview", value: "overview" },
       { label: "Activity", value: "activity" },
@@ -140,7 +140,7 @@ describe("BoxTabsElement", () => {
   });
 
   it("renders a tabpanel per option, linked to its tab and showing the selected one", () => {
-    const element = document.createElement("box-tabs") as BoxTabsElement;
+    const element = document.createElement("box-tabs") as Tabs;
     element.options = [
       { label: "All", value: "all" },
       { label: "Recents", value: "recents" },
@@ -163,7 +163,7 @@ describe("BoxTabsElement", () => {
   });
 
   it("switches the visible panel when the selection changes", () => {
-    const element = document.createElement("box-tabs") as BoxTabsElement;
+    const element = document.createElement("box-tabs") as Tabs;
     element.options = [
       { label: "All", value: "all" },
       { label: "Recents", value: "recents" },
@@ -178,7 +178,7 @@ describe("BoxTabsElement", () => {
   });
 
   it("routes slotted content into the matching panel", () => {
-    const element = document.createElement("box-tabs") as BoxTabsElement;
+    const element = document.createElement("box-tabs") as Tabs;
     element.options = [{ label: "All", value: "all" }] as never;
     element.innerHTML = '<div slot="all">Panel body</div>';
     element.value = "all";

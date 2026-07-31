@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { BoxSectionElement, defineBoxSectionElement } from "../../../src/components/layout/section.js";
+import { Section } from "../../../src/components/layout/section.js";
 
-describe("BoxSectionElement", () => {
+describe("Section", () => {
   beforeEach(() => {
-    defineBoxSectionElement();
+    Section.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxSectionElement", () => {
   });
 
   it("renders a heading that labels the section region", () => {
-    const element = document.createElement("box-section") as BoxSectionElement;
+    const element = document.createElement("box-section") as Section;
     element.heading = "Recent activity";
     document.body.append(element);
 
@@ -26,7 +26,7 @@ describe("BoxSectionElement", () => {
   });
 
   it("uses compact section spacing and title scale", () => {
-    const element = document.createElement("box-section") as BoxSectionElement;
+    const element = document.createElement("box-section") as Section;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -36,7 +36,7 @@ describe("BoxSectionElement", () => {
   });
 
   it("accepts title as an alias for heading", () => {
-    const element = document.createElement("box-section") as BoxSectionElement;
+    const element = document.createElement("box-section") as Section;
     element.heading = "Overview";
     document.body.append(element);
 
@@ -45,7 +45,7 @@ describe("BoxSectionElement", () => {
   });
 
   it("renders eyebrow and description only when provided", () => {
-    const element = document.createElement("box-section") as BoxSectionElement;
+    const element = document.createElement("box-section") as Section;
     element.heading = "Settings";
     document.body.append(element);
 
@@ -62,7 +62,7 @@ describe("BoxSectionElement", () => {
   });
 
   it("exposes actions and default content slots", () => {
-    const element = document.createElement("box-section") as BoxSectionElement;
+    const element = document.createElement("box-section") as Section;
     document.body.append(element);
 
     expect(element.shadowRoot?.querySelector('[part="actions"] slot[name="actions"]')).toBeTruthy();

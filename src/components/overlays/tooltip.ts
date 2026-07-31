@@ -90,7 +90,8 @@ const tooltipStyles = `
   }
 `;
 
-export class BoxTooltipElement extends BaseElement {
+export class Tooltip extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["label", "open", "trigger-label", "placement", "theme"];
   }
@@ -295,14 +296,4 @@ export class BoxTooltipElement extends BaseElement {
   }
 }
 
-export const defineBoxTooltipElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxTooltipElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxTooltipElement;
-  }
-
-  customElements.define(tagName, BoxTooltipElement);
-  return BoxTooltipElement;
-};
+Tooltip.register();

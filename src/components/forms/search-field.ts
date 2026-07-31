@@ -156,7 +156,8 @@ const searchFieldStyles = `
   ${boeFormFieldSupportStyles}
 `;
 
-export class BoxSearchFieldElement extends FormAssociatedElement {
+export class SearchField extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.fieldObservedAttributes,
@@ -374,14 +375,4 @@ export class BoxSearchFieldElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxSearchFieldElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxSearchFieldElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxSearchFieldElement;
-  }
-
-  customElements.define(tagName, BoxSearchFieldElement);
-  return BoxSearchFieldElement;
-};
+SearchField.register();

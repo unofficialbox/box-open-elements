@@ -6,13 +6,13 @@ import {
   createExplorerDemoTransport,
   setupExplorerAdapter,
 } from "../../docs-site/explorer-adapter-demo.js";
-import { defineBoxExplorerActionMenuElement } from "../../src/patterns/content-explorer/adapters/action-menu.js";
-import { defineBoxExplorerBreadcrumbsElement } from "../../src/patterns/content-explorer/adapters/breadcrumbs.js";
+import { ExplorerActionMenu } from "../../src/patterns/content-explorer/adapters/action-menu.js";
+import { ExplorerBreadcrumbs } from "../../src/patterns/content-explorer/adapters/breadcrumbs.js";
 
 describe("docs-site explorer adapter demo helpers", () => {
   beforeEach(() => {
-    defineBoxExplorerBreadcrumbsElement();
-    defineBoxExplorerActionMenuElement();
+    ExplorerBreadcrumbs.register();
+    ExplorerActionMenu.register();
   });
 
   afterEach(() => {

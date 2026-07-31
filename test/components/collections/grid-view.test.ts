@@ -2,7 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxGridViewElement, defineBoxGridViewElement } from "../../../src/components/collections/grid-view.js";
+import { GridView } from "../../../src/components/collections/grid-view.js";
 
 const sampleItems = [
   { value: "1", label: "Quarterly Plan.pdf", meta: "2.1 MB" },
@@ -10,16 +10,16 @@ const sampleItems = [
   { value: "3", label: "Launch", icon: "L" },
 ];
 
-const createGridView = (): BoxGridViewElement => {
-  const element = document.createElement("box-grid-view") as BoxGridViewElement;
+const createGridView = (): GridView => {
+  const element = document.createElement("box-grid-view") as GridView;
   element.items = sampleItems;
   document.body.append(element);
   return element;
 };
 
-describe("BoxGridViewElement", () => {
+describe("GridView", () => {
   beforeEach(() => {
-    defineBoxGridViewElement();
+    GridView.register();
   });
 
   afterEach(() => {
@@ -40,7 +40,7 @@ describe("BoxGridViewElement", () => {
   });
 
   it("renders an empty state when there are no items", () => {
-    const element = document.createElement("box-grid-view") as BoxGridViewElement;
+    const element = document.createElement("box-grid-view") as GridView;
     document.body.append(element);
 
     expect(element.shadowRoot?.querySelector('[part="grid"]')).toBeNull();

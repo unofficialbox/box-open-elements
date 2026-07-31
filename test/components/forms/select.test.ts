@@ -2,12 +2,12 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxSelectElement, defineBoxSelectElement } from "../../../src/components/forms/select.js";
+import { Select } from "../../../src/components/forms/select.js";
 import { getMirroredFormValue } from "../../../src/core/index.js";
 
-describe("BoxSelectElement", () => {
+describe("Select", () => {
   beforeEach(() => {
-    defineBoxSelectElement();
+    Select.register();
   });
 
   afterEach(() => {
@@ -15,7 +15,7 @@ describe("BoxSelectElement", () => {
   });
 
   it("renders options and emits value changes", () => {
-    const element = document.createElement("box-select") as BoxSelectElement;
+    const element = document.createElement("box-select") as Select;
     const changed = vi.fn();
     element.label = "View";
     element.options = [
@@ -40,7 +40,7 @@ describe("BoxSelectElement", () => {
   });
 
   it("uses BUE select control geometry", () => {
-    const element = document.createElement("box-select") as BoxSelectElement;
+    const element = document.createElement("box-select") as Select;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -51,7 +51,7 @@ describe("BoxSelectElement", () => {
   });
 
   it("forwards disabled state to the select", () => {
-    const element = document.createElement("box-select") as BoxSelectElement;
+    const element = document.createElement("box-select") as Select;
     element.disabled = true;
 
     document.body.append(element);
@@ -62,7 +62,7 @@ describe("BoxSelectElement", () => {
   });
 
   it("groups options carrying a group into optgroups and disables options", () => {
-    const element = document.createElement("box-select") as BoxSelectElement;
+    const element = document.createElement("box-select") as Select;
     element.options = [
       { label: "Recent", value: "recent" },
       { label: "Name", value: "name", group: "Sort by" },
@@ -83,7 +83,7 @@ describe("BoxSelectElement", () => {
 
   it("supports multiple selection with array values and form mirroring", () => {
     const form = document.createElement("form");
-    const element = document.createElement("box-select") as BoxSelectElement;
+    const element = document.createElement("box-select") as Select;
     element.setAttribute("name", "views");
     element.multiple = true;
     element.options = [

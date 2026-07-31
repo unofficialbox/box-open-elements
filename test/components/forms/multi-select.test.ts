@@ -3,14 +3,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxMultiSelectElement,
-  defineBoxMultiSelectElement,
+  MultiSelect,
 } from "../../../src/components/forms/multi-select.js";
 import { FORM_ERROR_MESSAGE_ID, getMirroredFormValue } from "../../../src/core/index.js";
 
-describe("BoxMultiSelectElement", () => {
+describe("MultiSelect", () => {
   beforeEach(() => {
-    defineBoxMultiSelectElement();
+    MultiSelect.register();
   });
 
   afterEach(() => {
@@ -18,7 +17,7 @@ describe("BoxMultiSelectElement", () => {
   });
 
   it("renders options and emits selected values", () => {
-    const element = document.createElement("box-multi-select") as BoxMultiSelectElement;
+    const element = document.createElement("box-multi-select") as MultiSelect;
     const changed = vi.fn();
     element.options = [
       { label: "Preview", value: "preview" },
@@ -42,7 +41,7 @@ describe("BoxMultiSelectElement", () => {
   });
 
   it("renders option-level disabled state through the public options API", () => {
-    const element = document.createElement("box-multi-select") as BoxMultiSelectElement;
+    const element = document.createElement("box-multi-select") as MultiSelect;
     element.options = [
       { label: "Preview", value: "preview" },
       { label: "Download", value: "download", disabled: true },
@@ -58,7 +57,7 @@ describe("BoxMultiSelectElement", () => {
   });
 
   it("mirrors selected values as FormData entries and omits empty selection", () => {
-    const element = document.createElement("box-multi-select") as BoxMultiSelectElement;
+    const element = document.createElement("box-multi-select") as MultiSelect;
     element.name = "permissions";
     element.options = [
       { label: "Preview", value: "preview" },
@@ -92,7 +91,7 @@ describe("BoxMultiSelectElement", () => {
   });
 
   it("restores form value via formStateRestoreCallback", () => {
-    const element = document.createElement("box-multi-select") as BoxMultiSelectElement;
+    const element = document.createElement("box-multi-select") as MultiSelect;
     element.name = "permissions";
     element.options = [
       { label: "Preview", value: "preview" },
@@ -112,7 +111,7 @@ describe("BoxMultiSelectElement", () => {
   });
 
   it("propagates invalid ARIA state to every checkbox option", () => {
-    const element = document.createElement("box-multi-select") as BoxMultiSelectElement;
+    const element = document.createElement("box-multi-select") as MultiSelect;
     element.options = [
       { label: "Preview", value: "preview" },
       { label: "Download", value: "download" },

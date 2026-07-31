@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
-  BoxPersonaElement,
-  defineBoxPersonaElement,
+  Persona,
 } from "../../../src/components/identity/persona.js";
 
-describe("BoxPersonaElement", () => {
+describe("Persona", () => {
   beforeEach(() => {
-    defineBoxPersonaElement();
+    Persona.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxPersonaElement", () => {
   });
 
   it("renders persona metadata", () => {
-    const element = document.createElement("box-persona") as BoxPersonaElement;
+    const element = document.createElement("box-persona") as Persona;
     element.name = "Morgan Lee";
     element.subtitle = "Product Design";
     element.status = "Reviewer";
@@ -30,7 +29,7 @@ describe("BoxPersonaElement", () => {
   });
 
   it("supports description as the preferred subtitle alias", () => {
-    const element = document.createElement("box-persona") as BoxPersonaElement;
+    const element = document.createElement("box-persona") as Persona;
     element.name = "Morgan Lee";
     element.description = "Design Systems";
 
@@ -41,7 +40,7 @@ describe("BoxPersonaElement", () => {
   });
 
   it("derives initials from the name", () => {
-    const element = document.createElement("box-persona") as BoxPersonaElement;
+    const element = document.createElement("box-persona") as Persona;
     element.name = "Morgan Lee";
 
     document.body.append(element);
@@ -50,7 +49,7 @@ describe("BoxPersonaElement", () => {
   });
 
   it("falls back to the default size for invalid size values", () => {
-    const element = document.createElement("box-persona") as BoxPersonaElement;
+    const element = document.createElement("box-persona") as Persona;
     element.name = "Morgan Lee";
     element.setAttribute("size", "not-a-number");
 
@@ -63,7 +62,7 @@ describe("BoxPersonaElement", () => {
   });
 
   it("uses compact card spacing by default", () => {
-    const element = document.createElement("box-persona") as BoxPersonaElement;
+    const element = document.createElement("box-persona") as Persona;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -73,7 +72,7 @@ describe("BoxPersonaElement", () => {
   });
 
   it("scales initials font size with avatar size", () => {
-    const element = document.createElement("box-persona") as BoxPersonaElement;
+    const element = document.createElement("box-persona") as Persona;
     element.name = "Morgan Lee";
     element.size = 64;
 
@@ -86,7 +85,7 @@ describe("BoxPersonaElement", () => {
   });
 
   it("shows initials when the image fails to load", () => {
-    const element = document.createElement("box-persona") as BoxPersonaElement;
+    const element = document.createElement("box-persona") as Persona;
     element.name = "Morgan Lee";
     element.src = "https://example.com/missing.png";
 
@@ -100,7 +99,7 @@ describe("BoxPersonaElement", () => {
   });
 
   it("preserves errored image state when unrelated attributes change", () => {
-    const element = document.createElement("box-persona") as BoxPersonaElement;
+    const element = document.createElement("box-persona") as Persona;
     element.name = "Morgan Lee";
     element.src = "https://example.com/missing.png";
 
@@ -119,7 +118,7 @@ describe("BoxPersonaElement", () => {
   });
 
   it("maps tone to status indicator styles", () => {
-    const element = document.createElement("box-persona") as BoxPersonaElement;
+    const element = document.createElement("box-persona") as Persona;
     element.name = "Morgan Lee";
     element.status = "Approved";
     element.tone = "success";

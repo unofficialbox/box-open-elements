@@ -159,7 +159,8 @@ const tagInputStyles = `
  * available as the `tags` array property and mirrored to the `value` attribute
  * as a comma-separated list.
  */
-export class BoxTagInputElement extends FormAssociatedElement {
+export class TagInput extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -466,14 +467,4 @@ export class BoxTagInputElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxTagInputElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxTagInputElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxTagInputElement;
-  }
-
-  customElements.define(tagName, BoxTagInputElement);
-  return BoxTagInputElement;
-};
+TagInput.register();

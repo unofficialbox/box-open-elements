@@ -212,7 +212,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxReviewQueueItemElement extends BaseElement {
+export class ReviewQueueItem extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["actions", "assignee", "due-date", "heading", "item-label", "message", "metrics", "priority", "status"];
   }
@@ -469,8 +470,4 @@ export class BoxReviewQueueItemElement extends BaseElement {
   }
 }
 
-export const defineBoxReviewQueueItemElement = (tagName = DEFAULT_TAG_NAME): void => {
-  if (!customElements.get(tagName)) {
-    customElements.define(tagName, BoxReviewQueueItemElement);
-  }
-};
+ReviewQueueItem.register();

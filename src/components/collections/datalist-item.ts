@@ -99,7 +99,8 @@ const datalistItemStyles = `
  * Enter/Space; `selected` reflects to `aria-selected`. The host owns the list
  * and its roving focus.
  */
-export class BoxDatalistItemElement extends BaseElement {
+export class DatalistItem extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["active", "disabled", "icon", "label", "meta", "selected", "value"];
   }
@@ -254,14 +255,4 @@ export class BoxDatalistItemElement extends BaseElement {
   }
 }
 
-export const defineBoxDatalistItemElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxDatalistItemElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxDatalistItemElement;
-  }
-
-  customElements.define(tagName, BoxDatalistItemElement);
-  return BoxDatalistItemElement;
-};
+DatalistItem.register();

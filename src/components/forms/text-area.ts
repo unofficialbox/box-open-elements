@@ -67,7 +67,8 @@ const textAreaStyles = `
   ${boeFormFieldErrorStyles}
 `;
 
-export class BoxTextAreaElement extends FormAssociatedElement {
+export class TextArea extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -209,14 +210,4 @@ export class BoxTextAreaElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxTextAreaElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxTextAreaElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxTextAreaElement;
-  }
-
-  customElements.define(tagName, BoxTextAreaElement);
-  return BoxTextAreaElement;
-};
+TextArea.register();

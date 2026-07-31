@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
-  BoxProgressRingElement,
-  defineBoxProgressRingElement,
+  ProgressRing,
 } from "../../../src/components/feedback/progress-ring.js";
 
-describe("BoxProgressRingElement", () => {
+describe("ProgressRing", () => {
   beforeEach(() => {
-    defineBoxProgressRingElement();
+    ProgressRing.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxProgressRingElement", () => {
   });
 
   it("renders percentage based on value and max", () => {
-    const element = document.createElement("box-progress-ring") as BoxProgressRingElement;
+    const element = document.createElement("box-progress-ring") as ProgressRing;
     element.label = "Upload";
     element.max = 40;
     element.value = 10;

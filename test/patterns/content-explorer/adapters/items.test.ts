@@ -4,8 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ContentExplorerController } from "../../../../src/patterns/content-explorer/controller.js";
 import {
-  BoxExplorerItemsElement,
-  defineBoxExplorerItemsElement,
+  ExplorerItems,
 } from "../../../../src/patterns/content-explorer/adapters/items.js";
 import type { ExplorerTransport, ExplorerTransportResult } from "../../../../src/patterns/content-explorer/types.js";
 
@@ -28,9 +27,9 @@ const flushMicrotasks = async (): Promise<void> => {
   await Promise.resolve();
 };
 
-describe("BoxExplorerItemsElement", () => {
+describe("ExplorerItems", () => {
   beforeEach(() => {
-    defineBoxExplorerItemsElement();
+    ExplorerItems.register();
   });
 
   afterEach(() => {
@@ -51,7 +50,7 @@ describe("BoxExplorerItemsElement", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-items") as BoxExplorerItemsElement;
+    const element = document.createElement("box-explorer-items") as ExplorerItems;
     const invoked = vi.fn();
     element.controller = controller;
     element.addEventListener("item-action-invoked", invoked);

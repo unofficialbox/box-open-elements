@@ -120,7 +120,8 @@ const gridViewStyles = `
  * listbox: one tile is tabbable (roving `tabindex`), arrow keys move focus, and
  * Enter/Space or click selects. It owns no transport.
  */
-export class BoxGridViewElement extends BaseElement {
+export class GridView extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["items", "label", "value"];
   }
@@ -365,14 +366,4 @@ export class BoxGridViewElement extends BaseElement {
   }
 }
 
-export const defineBoxGridViewElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxGridViewElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxGridViewElement;
-  }
-
-  customElements.define(tagName, BoxGridViewElement);
-  return BoxGridViewElement;
-};
+GridView.register();

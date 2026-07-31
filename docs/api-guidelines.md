@@ -28,29 +28,36 @@ The API should optimize for:
 
 The package import surface should stay predictable as the catalog grows:
 
-- `box-open-elements`
-  - root exports and common entrypoints
+- `@unofficialbox/box-open-elements`
+  - concise PascalCase exports and automatic registration for the full catalog
 - `@unofficialbox/box-open-elements/core`
   - shared runtime (event emitter, controller base)
 - `@unofficialbox/box-open-elements/foundations/<module>`
   - design-token registry, token bundles, iconography
-- `@unofficialbox/box-open-elements/components/<category>/<name>`
-  - single controls grouped by category
+- `@unofficialbox/box-open-elements/<name>`
+  - optimized component entrypoint that registers only that component
 - `@unofficialbox/box-open-elements/patterns/<area>` and `@unofficialbox/box-open-elements/patterns/<area>/<module>`
   - workflow areas: headless controllers, contracts, and composed surfaces
 
 Examples:
 
 ```ts
-import { defineBoxButtonElement } from "@unofficialbox/box-open-elements/components/actions/button";
+import { Accordion, Avatar, Button, Switch } from "@unofficialbox/box-open-elements";
+import { TextField } from "@unofficialbox/box-open-elements/text-field";
 import { applyDesignTokens } from "@unofficialbox/box-open-elements/foundations/tokens";
 import { ExplorerSelectionController } from "@unofficialbox/box-open-elements/patterns/content-explorer/selection";
 ```
 
 Guidance:
 
-- prefer wildcard-compatible file names and subpaths
-- avoid adding one-off explicit `package.json` exports for every new component
+- component classes use concise PascalCase names without `Box`, `Element`, or
+  `Component`
+- importing a component registers its `box-*` custom element automatically
+- the root entrypoint is convenient but may load the full catalog; use flat
+  component entrypoints in bundle-sensitive applications
+- every component exposes idempotent `register()` for isolated registries and
+  test realms; normal consumers should not need to call it
+- keep module-scope registration SSR-safe
 - reserve explicit alias exports for compatibility cases where a public name intentionally differs from the file name
 - keep the category structure synchronized with [components/catalog.md](./components/catalog.md) and [patterns/catalog.md](./patterns/catalog.md)
 

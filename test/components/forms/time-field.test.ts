@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxTimeFieldElement, defineBoxTimeFieldElement } from "../../../src/components/forms/time-field.js";
+import { TimeField } from "../../../src/components/forms/time-field.js";
 
-describe("BoxTimeFieldElement", () => {
+describe("TimeField", () => {
   beforeEach(() => {
-    defineBoxTimeFieldElement();
+    TimeField.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxTimeFieldElement", () => {
   });
 
   it("emits value changes when the time changes", () => {
-    const element = document.createElement("box-time-field") as BoxTimeFieldElement;
+    const element = document.createElement("box-time-field") as TimeField;
     const changed = vi.fn();
     element.addEventListener("value-changed", changed);
 
@@ -32,7 +32,7 @@ describe("BoxTimeFieldElement", () => {
   });
 
   it("does not lose focus when label attribute changes while input is focused", () => {
-    const element = document.createElement("box-time-field") as BoxTimeFieldElement;
+    const element = document.createElement("box-time-field") as TimeField;
     element.label = "Time";
     document.body.append(element);
 
@@ -45,18 +45,18 @@ describe("BoxTimeFieldElement", () => {
   });
 
   it("parses 12h and 24h strings to canonical HH:MM", () => {
-    expect(BoxTimeFieldElement.parseTime("1:30 PM")).toBe("13:30");
-    expect(BoxTimeFieldElement.parseTime("12:00 am")).toBe("00:00");
-    expect(BoxTimeFieldElement.parseTime("12 pm")).toBe("12:00");
-    expect(BoxTimeFieldElement.parseTime("9 am")).toBe("09:00");
-    expect(BoxTimeFieldElement.parseTime("13:45")).toBe("13:45");
-    expect(BoxTimeFieldElement.parseTime("")).toBe("");
-    expect(BoxTimeFieldElement.parseTime("25:00")).toBeNull();
-    expect(BoxTimeFieldElement.parseTime("half past two")).toBeNull();
+    expect(TimeField.parseTime("1:30 PM")).toBe("13:30");
+    expect(TimeField.parseTime("12:00 am")).toBe("00:00");
+    expect(TimeField.parseTime("12 pm")).toBe("12:00");
+    expect(TimeField.parseTime("9 am")).toBe("09:00");
+    expect(TimeField.parseTime("13:45")).toBe("13:45");
+    expect(TimeField.parseTime("")).toBe("");
+    expect(TimeField.parseTime("25:00")).toBeNull();
+    expect(TimeField.parseTime("half past two")).toBeNull();
   });
 
   it("setTimeString applies a valid time and emits parse-error on failure", () => {
-    const element = document.createElement("box-time-field") as BoxTimeFieldElement;
+    const element = document.createElement("box-time-field") as TimeField;
     document.body.append(element);
 
     const changed = vi.fn();

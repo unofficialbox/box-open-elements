@@ -76,7 +76,8 @@ const dropZoneStyles = `
   }
 `;
 
-export class BoxDropZoneElement extends BaseElement {
+export class DropZone extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["description", "label", "message"];
   }
@@ -182,14 +183,4 @@ export class BoxDropZoneElement extends BaseElement {
   }
 }
 
-export const defineBoxDropZoneElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxDropZoneElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxDropZoneElement;
-  }
-
-  customElements.define(tagName, BoxDropZoneElement);
-  return BoxDropZoneElement;
-};
+DropZone.register();

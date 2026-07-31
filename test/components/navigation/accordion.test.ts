@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxAccordionElement,
-  defineBoxAccordionElement,
+  Accordion,
 } from "../../../src/components/navigation/accordion.js";
 
-describe("BoxAccordionElement", () => {
+describe("Accordion", () => {
   beforeEach(() => {
-    defineBoxAccordionElement();
+    Accordion.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxAccordionElement", () => {
   });
 
   it("renders the first item open by default", () => {
-    const element = document.createElement("box-accordion") as BoxAccordionElement;
+    const element = document.createElement("box-accordion") as Accordion;
     element.items = [
       { label: "Details", value: "details", content: "Item details" },
       { label: "History", value: "history", content: "Activity history" },
@@ -30,7 +29,7 @@ describe("BoxAccordionElement", () => {
   });
 
   it("emits value-changed when a different panel is opened", () => {
-    const element = document.createElement("box-accordion") as BoxAccordionElement;
+    const element = document.createElement("box-accordion") as Accordion;
     const changed = vi.fn();
     element.items = [
       { label: "Details", value: "details", content: "Item details" },
@@ -51,7 +50,7 @@ describe("BoxAccordionElement", () => {
   });
 
   it("preserves focus on a trigger when an attribute changes", () => {
-    const element = document.createElement("box-accordion") as BoxAccordionElement;
+    const element = document.createElement("box-accordion") as Accordion;
     element.items = [
       { label: "Details", value: "details", content: "Item details" },
       { label: "History", value: "history", content: "Activity history" },
@@ -69,7 +68,7 @@ describe("BoxAccordionElement", () => {
   });
 
   it("includes brand focus-visible and hover styles for triggers", () => {
-    const element = document.createElement("box-accordion") as BoxAccordionElement;
+    const element = document.createElement("box-accordion") as Accordion;
     element.items = [{ label: "Details", value: "details", content: "Item details" }];
     document.body.append(element);
 
@@ -81,7 +80,7 @@ describe("BoxAccordionElement", () => {
   });
 
   it("uses compact grouped item styles", () => {
-    const element = document.createElement("box-accordion") as BoxAccordionElement;
+    const element = document.createElement("box-accordion") as Accordion;
     element.items = [{ label: "Details", value: "details", content: "Item details" }];
     document.body.append(element);
 
@@ -95,7 +94,7 @@ describe("BoxAccordionElement", () => {
   });
 
   it("collapses the open panel when its trigger is clicked again", () => {
-    const element = document.createElement("box-accordion") as BoxAccordionElement;
+    const element = document.createElement("box-accordion") as Accordion;
     const changed = vi.fn();
     element.items = [
       { label: "Details", value: "details", content: "Item details" },
@@ -121,7 +120,7 @@ describe("BoxAccordionElement", () => {
   });
 
   it("wraps triggers in heading elements and exposes a labeled region", () => {
-    const element = document.createElement("box-accordion") as BoxAccordionElement;
+    const element = document.createElement("box-accordion") as Accordion;
     element.label = "Item sections";
     element.items = [{ label: "Details", value: "details", content: "Item details" }];
     document.body.append(element);
@@ -136,7 +135,7 @@ describe("BoxAccordionElement", () => {
   });
 
   it("exposes a borderless variant and per-item panel slots for rich content", () => {
-    const element = document.createElement("box-accordion") as BoxAccordionElement;
+    const element = document.createElement("box-accordion") as Accordion;
     element.borderless = true;
     element.items = [
       { label: "Details", value: "details", content: "Item details" },

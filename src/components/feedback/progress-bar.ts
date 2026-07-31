@@ -57,7 +57,8 @@ const progressBarStyles = `
   }
 `;
 
-export class BoxProgressBarElement extends BaseElement {
+export class ProgressBar extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["label", "max", "value"];
   }
@@ -136,14 +137,4 @@ export class BoxProgressBarElement extends BaseElement {
   }
 }
 
-export const defineBoxProgressBarElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxProgressBarElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxProgressBarElement;
-  }
-
-  customElements.define(tagName, BoxProgressBarElement);
-  return BoxProgressBarElement;
-};
+ProgressBar.register();

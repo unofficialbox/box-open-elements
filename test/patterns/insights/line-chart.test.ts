@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxLineChartElement,
-  defineBoxLineChartElement,
+  LineChart,
 } from "../../../src/patterns/insights/line-chart.js";
 
-describe("BoxLineChartElement", () => {
+describe("LineChart", () => {
   beforeEach(() => {
-    defineBoxLineChartElement();
+    LineChart.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxLineChartElement", () => {
   });
 
   it("renders summary, timeframe, and line points", () => {
-    const element = document.createElement("box-line-chart") as BoxLineChartElement;
+    const element = document.createElement("box-line-chart") as LineChart;
     element.heading = "Review activity";
     element.summary = "64 reviewed";
     element.timeframe = "Last 7 days";
@@ -37,7 +36,7 @@ describe("BoxLineChartElement", () => {
   });
 
   it("emits action when an action button is clicked", () => {
-    const element = document.createElement("box-line-chart") as BoxLineChartElement;
+    const element = document.createElement("box-line-chart") as LineChart;
     const action = vi.fn();
     element.actions = [{ id: "open-report", label: "Open report", tone: "primary" }];
     element.addEventListener("action", action);
@@ -57,7 +56,7 @@ describe("BoxLineChartElement", () => {
   });
 
   it("emits point-selected when a point is clicked", () => {
-    const element = document.createElement("box-line-chart") as BoxLineChartElement;
+    const element = document.createElement("box-line-chart") as LineChart;
     const selected = vi.fn();
     element.points = [{ id: "wed", label: "Wed", value: 24, tone: "accent" }];
     element.addEventListener("point-selected", selected);

@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxErrorMaskElement, defineBoxErrorMaskElement } from "../../../src/components/feedback/error-mask.js";
+import { ErrorMask } from "../../../src/components/feedback/error-mask.js";
 
-describe("BoxErrorMaskElement", () => {
+describe("ErrorMask", () => {
   beforeEach(() => {
-    defineBoxErrorMaskElement();
+    ErrorMask.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxErrorMaskElement", () => {
   });
 
   it("renders an assertive alert with a default heading", () => {
-    const element = document.createElement("box-error-mask") as BoxErrorMaskElement;
+    const element = document.createElement("box-error-mask") as ErrorMask;
     document.body.append(element);
 
     const section = element.shadowRoot?.querySelector('[part="error-mask"]');
@@ -24,7 +24,7 @@ describe("BoxErrorMaskElement", () => {
   });
 
   it("renders a custom heading and message", () => {
-    const element = document.createElement("box-error-mask") as BoxErrorMaskElement;
+    const element = document.createElement("box-error-mask") as ErrorMask;
     element.heading = "Couldn't load files";
     element.message = "Check your connection and try again.";
     document.body.append(element);
@@ -36,7 +36,7 @@ describe("BoxErrorMaskElement", () => {
   });
 
   it("accepts a heading via the heading property", () => {
-    const element = document.createElement("box-error-mask") as BoxErrorMaskElement;
+    const element = document.createElement("box-error-mask") as ErrorMask;
     element.heading = "Access denied";
     document.body.append(element);
 
@@ -45,7 +45,7 @@ describe("BoxErrorMaskElement", () => {
   });
 
   it("omits the action button until an action label is set", () => {
-    const element = document.createElement("box-error-mask") as BoxErrorMaskElement;
+    const element = document.createElement("box-error-mask") as ErrorMask;
     document.body.append(element);
 
     expect(element.shadowRoot?.querySelector('[part="action"]')).toBeNull();
@@ -55,7 +55,7 @@ describe("BoxErrorMaskElement", () => {
   });
 
   it("emits a retry event when the action is activated", () => {
-    const element = document.createElement("box-error-mask") as BoxErrorMaskElement;
+    const element = document.createElement("box-error-mask") as ErrorMask;
     element.actionLabel = "Try again";
     document.body.append(element);
 
@@ -68,7 +68,7 @@ describe("BoxErrorMaskElement", () => {
   });
 
   it("reveals the body slot once custom content is assigned", () => {
-    const element = document.createElement("box-error-mask") as BoxErrorMaskElement;
+    const element = document.createElement("box-error-mask") as ErrorMask;
     element.heading = "Preview unavailable";
     document.body.append(element);
 
@@ -87,7 +87,7 @@ describe("BoxErrorMaskElement", () => {
   });
 
   it("uses BUE error-mask shell styles", () => {
-    const element = document.createElement("box-error-mask") as BoxErrorMaskElement;
+    const element = document.createElement("box-error-mask") as ErrorMask;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";

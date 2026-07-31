@@ -14,8 +14,7 @@ import {
 } from "./types.js";
 import { formatItemMetaLine } from "./adapters/item-summary.js";
 import {
-  defineBoxSearchResultsHeaderElement,
-  type BoxSearchResultsHeaderElement,
+  SearchResultsHeader,
 } from "../search/search-results-header.js";
 import { BaseElement } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
@@ -48,39 +47,39 @@ const readPositiveNumber = (value: string | null): number | undefined => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
 };
 
-export interface BoxContentExplorerTemplateContext {
-  element: BoxContentExplorerElement;
+export interface ContentExplorerTemplateContext {
+  element: ContentExplorer;
   state: Readonly<ExplorerState> | null;
 }
 
-export interface BoxContentExplorerFolderTemplateArgs extends BoxContentExplorerTemplateContext {
+export interface ContentExplorerFolderTemplateArgs extends ContentExplorerTemplateContext {
   breadcrumbsMarkup: string;
 }
 
-export interface BoxContentExplorerBreadcrumbTemplateArgs extends BoxContentExplorerTemplateContext {
+export interface ContentExplorerBreadcrumbTemplateArgs extends ContentExplorerTemplateContext {
   buttonAttributes: string;
   id: string;
   name: string;
 }
 
-export interface BoxContentExplorerItemActionTemplateArgs extends BoxContentExplorerTemplateContext {
+export interface ContentExplorerItemActionTemplateArgs extends ContentExplorerTemplateContext {
   action: ExplorerItemAction;
   buttonAttributes: string;
   item: ExplorerItem;
 }
 
-export interface BoxContentExplorerItemTemplateArgs extends BoxContentExplorerTemplateContext {
+export interface ContentExplorerItemTemplateArgs extends ContentExplorerTemplateContext {
   isSelected: boolean;
   item: ExplorerItem;
   itemActionsMarkup: string;
   itemButtonAttributes: string;
 }
 
-export interface BoxContentExplorerTemplates {
-  renderBreadcrumb?: (args: BoxContentExplorerBreadcrumbTemplateArgs) => string;
-  renderFolder?: (args: BoxContentExplorerFolderTemplateArgs) => string;
-  renderItem?: (args: BoxContentExplorerItemTemplateArgs) => string;
-  renderItemAction?: (args: BoxContentExplorerItemActionTemplateArgs) => string;
+export interface ContentExplorerTemplates {
+  renderBreadcrumb?: (args: ContentExplorerBreadcrumbTemplateArgs) => string;
+  renderFolder?: (args: ContentExplorerFolderTemplateArgs) => string;
+  renderItem?: (args: ContentExplorerItemTemplateArgs) => string;
+  renderItemAction?: (args: ContentExplorerItemActionTemplateArgs) => string;
 }
 
 
@@ -311,7 +310,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxContentExplorerElement extends BaseElement {
+export class ContentExplorer extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["item-gesture", "language", "page-size", "root-folder-id", "search-query", "selection-mode", "token"];
   }
@@ -328,7 +328,7 @@ export class BoxContentExplorerElement extends BaseElement {
 
   private itemActionsValue: ExplorerItemAction[] = [];
 
-  private templatesValue: BoxContentExplorerTemplates = {};
+  private templatesValue: ContentExplorerTemplates = {};
   get language(): string | null {
     return this.getAttribute("language");
   }
@@ -401,11 +401,11 @@ export class BoxContentExplorerElement extends BaseElement {
     this.scheduleStart();
   }
 
-  get templates(): BoxContentExplorerTemplates {
+  get templates(): ContentExplorerTemplates {
     return this.templatesValue;
   }
 
-  set templates(value: BoxContentExplorerTemplates) {
+  set templates(value: ContentExplorerTemplates) {
     this.templatesValue = value;
     if (this.isRendered) {
       this.update();
@@ -766,7 +766,7 @@ export class BoxContentExplorerElement extends BaseElement {
     });
     const searchHeader = this.shadowRoot.querySelector(
       '[part="search-results-header"]',
-    ) as BoxSearchResultsHeaderElement | null;
+    ) as SearchResultsHeader | null;
     searchHeader?.addEventListener("action", event => {
       const actionId = (event as CustomEvent<{ action?: string }>).detail?.action;
       if (actionId === "clear-search") {
@@ -874,15 +874,5 @@ export class BoxContentExplorerElement extends BaseElement {
   }
 }
 
-export const defineBoxContentExplorerElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxContentExplorerElement => {
-  defineBoxSearchResultsHeaderElement();
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxContentExplorerElement;
-  }
-
-  customElements.define(tagName, BoxContentExplorerElement);
-  return BoxContentExplorerElement;
-};
+SearchResultsHeader.register();
+ContentExplorer.register();

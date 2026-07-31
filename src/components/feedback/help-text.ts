@@ -86,7 +86,8 @@ const helpTextStyles = `
   }
 `;
 
-export class BoxHelpTextElement extends BaseElement {
+export class HelpText extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   private readonly handleDesignSystemChange = (): void => {
     this.update();
   };
@@ -198,14 +199,4 @@ export class BoxHelpTextElement extends BaseElement {
   }
 }
 
-export const defineBoxHelpTextElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxHelpTextElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxHelpTextElement;
-  }
-
-  customElements.define(tagName, BoxHelpTextElement);
-  return BoxHelpTextElement;
-};
+HelpText.register();

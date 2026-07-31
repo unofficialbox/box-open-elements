@@ -95,7 +95,8 @@ const contextMenuStyles = `
  * menu at the pointer, positioned with `foundations/overlay` so it stays in the
  * viewport. Full keyboard menu: arrows, Home/End, Enter/Space, Escape.
  */
-export class BoxContextMenuElement extends BaseElement {
+export class ContextMenu extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["items", "disabled"];
   }
@@ -280,14 +281,4 @@ export class BoxContextMenuElement extends BaseElement {
   }
 }
 
-export const defineBoxContextMenuElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxContextMenuElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxContextMenuElement;
-  }
-
-  customElements.define(tagName, BoxContextMenuElement);
-  return BoxContextMenuElement;
-};
+ContextMenu.register();

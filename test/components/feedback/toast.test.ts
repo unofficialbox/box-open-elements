@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxToastElement, defineBoxToastElement } from "../../../src/components/feedback/toast.js";
+import { Toast } from "../../../src/components/feedback/toast.js";
 
-describe("BoxToastElement", () => {
+describe("Toast", () => {
   beforeEach(() => {
-    defineBoxToastElement();
+    Toast.register();
   });
 
   afterEach(() => {
@@ -15,7 +15,7 @@ describe("BoxToastElement", () => {
   });
 
   it("shows and dismisses a toast", () => {
-    const element = document.createElement("box-toast") as BoxToastElement;
+    const element = document.createElement("box-toast") as Toast;
     const dismissed = vi.fn();
     element.addEventListener("dismiss", dismissed);
 
@@ -33,7 +33,7 @@ describe("BoxToastElement", () => {
   });
 
   it("uses BUE notification toast styles", () => {
-    const element = document.createElement("box-toast") as BoxToastElement;
+    const element = document.createElement("box-toast") as Toast;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -47,7 +47,7 @@ describe("BoxToastElement", () => {
 
   it("auto-hides after the provided duration", () => {
     vi.useFakeTimers();
-    const element = document.createElement("box-toast") as BoxToastElement;
+    const element = document.createElement("box-toast") as Toast;
 
     document.body.append(element);
     element.show("Done", { duration: 100 });
@@ -58,7 +58,7 @@ describe("BoxToastElement", () => {
 
   it("auto-hides per a declarative duration when opened via the property", () => {
     vi.useFakeTimers();
-    const element = document.createElement("box-toast") as BoxToastElement;
+    const element = document.createElement("box-toast") as Toast;
     element.message = "Copied";
     element.duration = 200;
     document.body.append(element);
@@ -72,7 +72,7 @@ describe("BoxToastElement", () => {
   });
 
   it("reveals the action slot only when content is assigned", () => {
-    const element = document.createElement("box-toast") as BoxToastElement;
+    const element = document.createElement("box-toast") as Toast;
     element.message = "File deleted";
     document.body.append(element);
 

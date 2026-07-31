@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxAnnotationToolbarElement,
-  defineBoxAnnotationToolbarElement,
+  AnnotationToolbar,
 } from "../../../src/patterns/preview/annotation-toolbar.js";
 
-describe("BoxAnnotationToolbarElement", () => {
+describe("AnnotationToolbar", () => {
   beforeEach(() => {
-    defineBoxAnnotationToolbarElement();
+    AnnotationToolbar.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxAnnotationToolbarElement", () => {
   });
 
   it("renders tools, colors, and actions", () => {
-    const element = document.createElement("box-annotation-toolbar") as BoxAnnotationToolbarElement;
+    const element = document.createElement("box-annotation-toolbar") as AnnotationToolbar;
     element.label = "Review annotations";
     element.tools = [
       { id: "highlight", label: "Highlight", icon: "H" },
@@ -38,7 +37,7 @@ describe("BoxAnnotationToolbarElement", () => {
   });
 
   it("emits tool-selected when a tool is clicked", () => {
-    const element = document.createElement("box-annotation-toolbar") as BoxAnnotationToolbarElement;
+    const element = document.createElement("box-annotation-toolbar") as AnnotationToolbar;
     const selected = vi.fn();
     element.tools = [{ id: "draw", label: "Draw", icon: "D" }];
     element.addEventListener("tool-selected", selected);
@@ -61,7 +60,7 @@ describe("BoxAnnotationToolbarElement", () => {
   });
 
   it("emits color-selected when a swatch is clicked", () => {
-    const element = document.createElement("box-annotation-toolbar") as BoxAnnotationToolbarElement;
+    const element = document.createElement("box-annotation-toolbar") as AnnotationToolbar;
     const selected = vi.fn();
     element.colorOptions = [{ id: "amber", label: "Amber", value: "#f59e0b" }];
     element.addEventListener("color-selected", selected);
@@ -84,7 +83,7 @@ describe("BoxAnnotationToolbarElement", () => {
   });
 
   it("includes brand focus-visible and interactive states for tools", () => {
-    const element = document.createElement("box-annotation-toolbar") as BoxAnnotationToolbarElement;
+    const element = document.createElement("box-annotation-toolbar") as AnnotationToolbar;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";

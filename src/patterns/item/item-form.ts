@@ -170,7 +170,8 @@ const elementStyles = `
         ${boeBrandInteractiveStyles('[part="submit"]')}
       `;
 
-export class BoxItemFormElement extends BaseElement {
+export class ItemForm extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["disabled", "fields", "label", "mode", "submit-label", "value"];
   }
@@ -573,14 +574,4 @@ export class BoxItemFormElement extends BaseElement {
   }
 }
 
-export const defineBoxItemFormElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxItemFormElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxItemFormElement;
-  }
-
-  customElements.define(tagName, BoxItemFormElement);
-  return BoxItemFormElement;
-};
+ItemForm.register();

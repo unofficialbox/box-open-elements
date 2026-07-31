@@ -1,14 +1,14 @@
 // @vitest-environment jsdom
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { act } from "react";
 
-import { BoxButton } from "../src/button.js";
-import type { BoxButtonElement } from "../../../src/components/actions/button.js";
+import { Button } from "../src/button.js";
+import { Button as ButtonElement } from "../../../src/components/actions/button.js";
 
-describe("BoxButton React adapter", () => {
+describe("Button React adapter", () => {
   let container: HTMLDivElement;
   let root: Root;
 
@@ -30,9 +30,9 @@ describe("BoxButton React adapter", () => {
     document.body.append(container);
     root = createRoot(container);
     act(() => {
-      root.render(createElement(BoxButton, props));
+      root.render(createElement(Button, props));
     });
-    return container.querySelector("box-button") as BoxButtonElement | null;
+    return container.querySelector("box-button") as ButtonElement | null;
   };
 
   it("registers and renders box-button with synced properties", () => {
@@ -69,12 +69,15 @@ describe("BoxButton React adapter", () => {
     expect(element?.label).toBe("Save");
 
     act(() => {
-      root.render(createElement(BoxButton, { label: "Publish", tone: "danger" }));
+      root.render(createElement(Button, { label: "Publish", tone: "danger" }));
     });
 
-    const next = container.querySelector("box-button") as BoxButtonElement | null;
+    const next = container.querySelector("box-button") as ButtonElement | null;
     expect(next?.label).toBe("Publish");
     expect(next?.tone).toBe("danger");
     expect(next?.shadowRoot?.querySelector('[part="label"]')?.textContent).toBe("Publish");
   });
 });
+  beforeEach(() => {
+    ButtonElement.register();
+  });

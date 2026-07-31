@@ -78,7 +78,8 @@ const badgeStyles = `
   ${boeReducedMotionStyles('[part="badge"].boe-pop', "animation: none;")}
 `;
 
-export class BoxBadgeElement extends BaseElement {
+export class Badge extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["label", "tone", "max", "hide-when-zero", "animate"];
   }
@@ -178,14 +179,4 @@ export class BoxBadgeElement extends BaseElement {
   }
 }
 
-export const defineBoxBadgeElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxBadgeElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxBadgeElement;
-  }
-
-  customElements.define(tagName, BoxBadgeElement);
-  return BoxBadgeElement;
-};
+Badge.register();

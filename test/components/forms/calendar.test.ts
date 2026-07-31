@@ -2,10 +2,10 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxCalendarElement, defineBoxCalendarElement } from "../../../src/components/forms/calendar.js";
+import { Calendar } from "../../../src/components/forms/calendar.js";
 
-const create = (attrs: Record<string, string> = {}): BoxCalendarElement => {
-  const element = document.createElement("box-calendar") as BoxCalendarElement;
+const create = (attrs: Record<string, string> = {}): Calendar => {
+  const element = document.createElement("box-calendar") as Calendar;
   for (const [key, value] of Object.entries(attrs)) {
     element.setAttribute(key, value);
   }
@@ -13,9 +13,9 @@ const create = (attrs: Record<string, string> = {}): BoxCalendarElement => {
   return element;
 };
 
-describe("BoxCalendarElement", () => {
+describe("Calendar", () => {
   beforeEach(() => {
-    defineBoxCalendarElement();
+    Calendar.register();
   });
 
   afterEach(() => {

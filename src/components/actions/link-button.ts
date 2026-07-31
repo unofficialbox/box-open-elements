@@ -89,7 +89,8 @@ const linkButtonStyles = `
   }
 `;
 
-export class BoxLinkButtonElement extends BaseElement {
+export class LinkButton extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["href", "label", "tone", "target", "rel"];
   }
@@ -200,14 +201,4 @@ export class BoxLinkButtonElement extends BaseElement {
   }
 }
 
-export const defineBoxLinkButtonElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxLinkButtonElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxLinkButtonElement;
-  }
-
-  customElements.define(tagName, BoxLinkButtonElement);
-  return BoxLinkButtonElement;
-};
+LinkButton.register();

@@ -3,14 +3,13 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
-  BoxIllustrationElement,
-  defineBoxIllustrationElement,
+  Illustration,
 } from "../../../src/components/visuals/illustration.js";
 import { registerBoxDefaultDesignSystem, setActiveDesignSystem } from "../../../src/index.js";
 
-describe("BoxIllustrationElement", () => {
+describe("Illustration", () => {
   beforeEach(() => {
-    defineBoxIllustrationElement();
+    Illustration.register();
     registerBoxDefaultDesignSystem({ setActive: true });
   });
 
@@ -20,7 +19,7 @@ describe("BoxIllustrationElement", () => {
   });
 
   it("renders title and caption", () => {
-    const element = document.createElement("box-illustration") as BoxIllustrationElement;
+    const element = document.createElement("box-illustration") as Illustration;
     element.heading = "No recent activity";
     element.caption = "This illustration can support empty states and onboarding moments.";
 
@@ -31,7 +30,7 @@ describe("BoxIllustrationElement", () => {
   });
 
   it("supports message as the preferred caption alias", () => {
-    const element = document.createElement("box-illustration") as BoxIllustrationElement;
+    const element = document.createElement("box-illustration") as Illustration;
     element.message = "A reusable ambient note for empty states.";
 
     document.body.append(element);
@@ -41,7 +40,7 @@ describe("BoxIllustrationElement", () => {
   });
 
   it("exposes the heading outside the image role", () => {
-    const element = document.createElement("box-illustration") as BoxIllustrationElement;
+    const element = document.createElement("box-illustration") as Illustration;
     element.heading = "No recent activity";
 
     document.body.append(element);
@@ -56,7 +55,7 @@ describe("BoxIllustrationElement", () => {
   });
 
   it("renders a registered Box illustration asset when requested", () => {
-    const element = document.createElement("box-illustration") as BoxIllustrationElement;
+    const element = document.createElement("box-illustration") as Illustration;
     element.asset = "empty-state-folder";
     element.heading = "Folder empty";
 
@@ -69,7 +68,7 @@ describe("BoxIllustrationElement", () => {
   });
 
   it("uses compact illustration shell styles", () => {
-    const element = document.createElement("box-illustration") as BoxIllustrationElement;
+    const element = document.createElement("box-illustration") as Illustration;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";

@@ -187,7 +187,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxItemDetailsPanelElement extends BaseElement {
+export class ItemDetailsPanel extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["actions", "eyebrow", "message", "meta", "owner", "status", "heading"];
   }
@@ -489,14 +490,4 @@ export class BoxItemDetailsPanelElement extends BaseElement {
   }
 }
 
-export const defineBoxItemDetailsPanelElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxItemDetailsPanelElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxItemDetailsPanelElement;
-  }
-
-  customElements.define(tagName, BoxItemDetailsPanelElement);
-  return BoxItemDetailsPanelElement;
-};
+ItemDetailsPanel.register();

@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxAnnotationThreadElement,
-  defineBoxAnnotationThreadElement,
+  AnnotationThread,
 } from "../../../src/patterns/preview/annotation-thread.js";
 
-describe("BoxAnnotationThreadElement", () => {
+describe("AnnotationThread", () => {
   beforeEach(() => {
-    defineBoxAnnotationThreadElement();
+    AnnotationThread.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxAnnotationThreadElement", () => {
   });
 
   it("renders thread entries", () => {
-    const element = document.createElement("box-annotation-thread") as BoxAnnotationThreadElement;
+    const element = document.createElement("box-annotation-thread") as AnnotationThread;
     element.heading = "Annotation Thread";
     element.entries = [
       { id: "a1", author: "Morgan Lee", body: "Tighten the hero spacing.", toolLabel: "Comment", status: "Open" },
@@ -32,7 +31,7 @@ describe("BoxAnnotationThreadElement", () => {
   });
 
   it("emits entry-selected when an entry is clicked", () => {
-    const element = document.createElement("box-annotation-thread") as BoxAnnotationThreadElement;
+    const element = document.createElement("box-annotation-thread") as AnnotationThread;
     const selected = vi.fn();
     element.entries = [{ id: "a1", author: "Morgan Lee", body: "Tighten the hero spacing." }];
     element.addEventListener("entry-selected", selected);
@@ -55,7 +54,7 @@ describe("BoxAnnotationThreadElement", () => {
   });
 
   it("emits action with selected entry context", () => {
-    const element = document.createElement("box-annotation-thread") as BoxAnnotationThreadElement;
+    const element = document.createElement("box-annotation-thread") as AnnotationThread;
     const action = vi.fn();
     element.entries = [{ id: "a1", author: "Morgan Lee", body: "Tighten the hero spacing." }];
     element.selectedEntryId = "a1";

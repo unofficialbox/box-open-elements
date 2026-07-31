@@ -3,8 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxContentExplorerElement,
-  defineBoxContentExplorerElement,
+  ContentExplorer,
 } from "../../../src/patterns/content-explorer/content-explorer.js";
 import type { ExplorerTransport, ExplorerTransportResult } from "../../src/elements/content-explorer/types.js";
 
@@ -31,9 +30,9 @@ const flushMicrotasks = async (): Promise<void> => {
   await Promise.resolve();
 };
 
-describe("BoxContentExplorerElement", () => {
+describe("ContentExplorer", () => {
   beforeEach(() => {
-    defineBoxContentExplorerElement();
+    ContentExplorer.register();
   });
 
   afterEach(() => {
@@ -55,7 +54,7 @@ describe("BoxContentExplorerElement", () => {
       ),
     };
 
-    const element = document.createElement("box-content-explorer") as BoxContentExplorerElement;
+    const element = document.createElement("box-content-explorer") as ContentExplorer;
     const itemsChanged = vi.fn();
 
     element.transport = transport;
@@ -107,7 +106,7 @@ describe("BoxContentExplorerElement", () => {
         ),
     };
 
-    const element = document.createElement("box-content-explorer") as BoxContentExplorerElement;
+    const element = document.createElement("box-content-explorer") as ContentExplorer;
 
     element.transport = transport;
     element.rootFolderId = "0";
@@ -154,7 +153,7 @@ describe("BoxContentExplorerElement", () => {
         ),
     };
 
-    const element = document.createElement("box-content-explorer") as BoxContentExplorerElement;
+    const element = document.createElement("box-content-explorer") as ContentExplorer;
     element.transport = transport;
     element.rootFolderId = "0";
     element.token = "token";
@@ -170,8 +169,8 @@ describe("BoxContentExplorerElement", () => {
   });
 
   it("reuses an existing definition when asked to define the element again", () => {
-    const first = defineBoxContentExplorerElement();
-    const second = defineBoxContentExplorerElement();
+    const first = ContentExplorer.register();
+    const second = ContentExplorer.register();
 
     expect(first).toBe(second);
     expect(customElements.get("box-content-explorer")).toBe(first);
@@ -199,7 +198,7 @@ describe("BoxContentExplorerElement", () => {
         ),
     };
 
-    const element = document.createElement("box-content-explorer") as BoxContentExplorerElement;
+    const element = document.createElement("box-content-explorer") as ContentExplorer;
     const activated = vi.fn();
     element.transport = transport;
     element.rootFolderId = "0";
@@ -227,7 +226,7 @@ describe("BoxContentExplorerElement", () => {
       ),
     };
 
-    const element = document.createElement("box-content-explorer") as BoxContentExplorerElement;
+    const element = document.createElement("box-content-explorer") as ContentExplorer;
     const actionInvoked = vi.fn();
     element.transport = transport;
     element.rootFolderId = "0";
@@ -260,7 +259,7 @@ describe("BoxContentExplorerElement", () => {
       ),
     };
 
-    const element = document.createElement("box-content-explorer") as BoxContentExplorerElement;
+    const element = document.createElement("box-content-explorer") as ContentExplorer;
     element.transport = transport;
     element.rootFolderId = "0";
     element.token = "token";
@@ -302,7 +301,7 @@ describe("BoxContentExplorerElement", () => {
       ),
     };
 
-    const element = document.createElement("box-content-explorer") as BoxContentExplorerElement;
+    const element = document.createElement("box-content-explorer") as ContentExplorer;
     element.transport = transport;
     element.rootFolderId = "0";
     element.token = "token";
@@ -331,7 +330,7 @@ describe("BoxContentExplorerElement", () => {
       ),
     };
 
-    const element = document.createElement("box-content-explorer") as BoxContentExplorerElement;
+    const element = document.createElement("box-content-explorer") as ContentExplorer;
     element.transport = transport;
     element.rootFolderId = "0";
     element.token = "token";
@@ -356,7 +355,7 @@ describe("BoxContentExplorerElement", () => {
       loadFolderItems: vi.fn().mockRejectedValue(new Error('<img src=x onerror=alert(1)>')),
     };
 
-    const element = document.createElement("box-content-explorer") as BoxContentExplorerElement;
+    const element = document.createElement("box-content-explorer") as ContentExplorer;
     element.transport = transport;
     element.rootFolderId = "0";
     element.token = "token";
@@ -384,7 +383,7 @@ describe("BoxContentExplorerElement", () => {
         pagination: { hasMoreItems: false, limit: 25, offset: 0, totalCount: 1 },
       }),
     };
-    const element = document.createElement("box-content-explorer") as BoxContentExplorerElement;
+    const element = document.createElement("box-content-explorer") as ContentExplorer;
     const searchSucceeded = vi.fn();
     const viewChanged = vi.fn();
     element.transport = transport;
@@ -435,7 +434,7 @@ describe("BoxContentExplorerElement", () => {
         pagination: { hasMoreItems: false, limit: 25, offset: 0, totalCount: 1 },
       }),
     };
-    const element = document.createElement("box-content-explorer") as BoxContentExplorerElement;
+    const element = document.createElement("box-content-explorer") as ContentExplorer;
     element.transport = transport;
     element.rootFolderId = "0";
     element.token = "token";

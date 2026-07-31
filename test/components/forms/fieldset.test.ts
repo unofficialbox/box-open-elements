@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { BoxFieldsetElement, defineBoxFieldsetElement } from "../../../src/components/forms/fieldset.js";
+import { Fieldset } from "../../../src/components/forms/fieldset.js";
 
-describe("BoxFieldsetElement", () => {
+describe("Fieldset", () => {
   beforeEach(() => {
-    defineBoxFieldsetElement();
+    Fieldset.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxFieldsetElement", () => {
   });
 
   it("renders a legend and a body slot", () => {
-    const element = document.createElement("box-fieldset") as BoxFieldsetElement;
+    const element = document.createElement("box-fieldset") as Fieldset;
     element.label = "Contact details";
     document.body.append(element);
 
@@ -23,14 +23,14 @@ describe("BoxFieldsetElement", () => {
   });
 
   it("omits the legend when no label is set", () => {
-    const element = document.createElement("box-fieldset") as BoxFieldsetElement;
+    const element = document.createElement("box-fieldset") as Fieldset;
     document.body.append(element);
 
     expect(element.shadowRoot?.querySelector('[part="legend"]')).toBeNull();
   });
 
   it("wires a description via aria-describedby", () => {
-    const element = document.createElement("box-fieldset") as BoxFieldsetElement;
+    const element = document.createElement("box-fieldset") as Fieldset;
     element.label = "Address";
     element.description = "Where should we ship?";
     document.body.append(element);
@@ -42,7 +42,7 @@ describe("BoxFieldsetElement", () => {
   });
 
   it("propagates disabled to slotted light-DOM controls", () => {
-    const element = document.createElement("box-fieldset") as BoxFieldsetElement;
+    const element = document.createElement("box-fieldset") as Fieldset;
     const input = document.createElement("input");
     const button = document.createElement("button");
     element.append(input, button);
@@ -60,7 +60,7 @@ describe("BoxFieldsetElement", () => {
   });
 
   it("does not re-enable a control the consumer disabled independently", () => {
-    const element = document.createElement("box-fieldset") as BoxFieldsetElement;
+    const element = document.createElement("box-fieldset") as Fieldset;
     const input = document.createElement("input");
     input.disabled = true;
     element.append(input);

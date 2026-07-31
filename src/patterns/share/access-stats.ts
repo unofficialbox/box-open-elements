@@ -144,7 +144,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxAccessStatsElement extends BaseElement {
+export class AccessStats extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["label", "stats"];
   }
@@ -231,14 +232,4 @@ export class BoxAccessStatsElement extends BaseElement {
   }
 }
 
-export const defineBoxAccessStatsElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxAccessStatsElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxAccessStatsElement;
-  }
-
-  customElements.define(tagName, BoxAccessStatsElement);
-  return BoxAccessStatsElement;
-};
+AccessStats.register();

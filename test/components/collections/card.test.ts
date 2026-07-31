@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { BoxCardElement, defineBoxCardElement } from "../../../src/components/collections/card.js";
+import { Card } from "../../../src/components/collections/card.js";
 
-describe("BoxCardElement", () => {
+describe("Card", () => {
   beforeEach(() => {
-    defineBoxCardElement();
+    Card.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxCardElement", () => {
   });
 
   it("renders eyebrow, heading, and slotted body content", () => {
-    const element = document.createElement("box-card") as BoxCardElement;
+    const element = document.createElement("box-card") as Card;
     element.eyebrow = "Project";
     element.heading = "Launch Readiness";
     element.textContent = "Body copy";
@@ -27,7 +27,7 @@ describe("BoxCardElement", () => {
   });
 
   it("uses compact card shell styles", () => {
-    const element = document.createElement("box-card") as BoxCardElement;
+    const element = document.createElement("box-card") as Card;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -37,7 +37,7 @@ describe("BoxCardElement", () => {
   });
 
   it("renders the heading", () => {
-    const element = document.createElement("box-card") as BoxCardElement;
+    const element = document.createElement("box-card") as Card;
     element.heading = "Release Notes";
 
     document.body.append(element);

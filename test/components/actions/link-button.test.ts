@@ -3,14 +3,13 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
-  BoxLinkButtonElement,
-  defineBoxLinkButtonElement,
+  LinkButton,
 } from "../../../src/components/actions/link-button.js";
 import { boeMotionDuration, boeMotionEasing } from "../../../src/foundations/motion/index.js";
 
-describe("BoxLinkButtonElement", () => {
+describe("LinkButton", () => {
   beforeEach(() => {
-    defineBoxLinkButtonElement();
+    LinkButton.register();
   });
 
   afterEach(() => {
@@ -18,7 +17,7 @@ describe("BoxLinkButtonElement", () => {
   });
 
   it("renders a link with the configured label and href", () => {
-    const element = document.createElement("box-link-button") as BoxLinkButtonElement;
+    const element = document.createElement("box-link-button") as LinkButton;
     element.label = "Open docs";
     element.href = "/docs";
 
@@ -31,7 +30,7 @@ describe("BoxLinkButtonElement", () => {
   });
 
   it("uses shared motion vocabulary for paint transitions", () => {
-    const element = document.createElement("box-link-button") as BoxLinkButtonElement;
+    const element = document.createElement("box-link-button") as LinkButton;
     document.body.append(element);
 
     const styleText = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -42,7 +41,7 @@ describe("BoxLinkButtonElement", () => {
   });
 
   const hrefOf = (value: string): string | null => {
-    const element = document.createElement("box-link-button") as BoxLinkButtonElement;
+    const element = document.createElement("box-link-button") as LinkButton;
     element.href = value;
     document.body.append(element);
     return element.shadowRoot?.querySelector('[part="link"]')?.getAttribute("href") ?? null;
@@ -68,7 +67,7 @@ describe("BoxLinkButtonElement", () => {
   });
 
   it("adds a safe rel automatically for target=_blank and honors explicit rel", () => {
-    const element = document.createElement("box-link-button") as BoxLinkButtonElement;
+    const element = document.createElement("box-link-button") as LinkButton;
     element.href = "https://app.box.com";
     element.target = "_blank";
     document.body.append(element);
@@ -87,7 +86,7 @@ describe("BoxLinkButtonElement", () => {
   });
 
   it("renders rich slotted children instead of the label", () => {
-    const element = document.createElement("box-link-button") as BoxLinkButtonElement;
+    const element = document.createElement("box-link-button") as LinkButton;
     element.href = "/docs";
     element.label = "fallback";
     const strong = document.createElement("strong");

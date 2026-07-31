@@ -3,8 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxCollaboratorAvatarsElement,
-  defineBoxCollaboratorAvatarsElement,
+  CollaboratorAvatars,
 } from "../../../src/patterns/share/collaborator-avatars.js";
 
 const people = [
@@ -15,8 +14,8 @@ const people = [
   { id: "5", name: "Robin Cho" },
 ];
 
-const create = (max?: number): BoxCollaboratorAvatarsElement => {
-  const element = document.createElement("box-collaborator-avatars") as BoxCollaboratorAvatarsElement;
+const create = (max?: number): CollaboratorAvatars => {
+  const element = document.createElement("box-collaborator-avatars") as CollaboratorAvatars;
   element.collaborators = people;
   if (max !== undefined) {
     element.max = max;
@@ -25,9 +24,9 @@ const create = (max?: number): BoxCollaboratorAvatarsElement => {
   return element;
 };
 
-describe("BoxCollaboratorAvatarsElement", () => {
+describe("CollaboratorAvatars", () => {
   beforeEach(() => {
-    defineBoxCollaboratorAvatarsElement();
+    CollaboratorAvatars.register();
   });
 
   afterEach(() => {
@@ -47,7 +46,7 @@ describe("BoxCollaboratorAvatarsElement", () => {
   });
 
   it("uses explicitly supplied initials over the derived ones", () => {
-    const element = document.createElement("box-collaborator-avatars") as BoxCollaboratorAvatarsElement;
+    const element = document.createElement("box-collaborator-avatars") as CollaboratorAvatars;
     element.collaborators = [{ id: "1", name: "Morgan Lee", initials: "MX" }];
     document.body.append(element);
 
@@ -55,7 +54,7 @@ describe("BoxCollaboratorAvatarsElement", () => {
   });
 
   it("uses a supplied label as the group accessible name", () => {
-    const element = document.createElement("box-collaborator-avatars") as BoxCollaboratorAvatarsElement;
+    const element = document.createElement("box-collaborator-avatars") as CollaboratorAvatars;
     element.collaborators = people;
     element.label = "Shared with";
     document.body.append(element);
@@ -64,7 +63,7 @@ describe("BoxCollaboratorAvatarsElement", () => {
   });
 
   it("falls back to the default label when the supplied label is blank", () => {
-    const element = document.createElement("box-collaborator-avatars") as BoxCollaboratorAvatarsElement;
+    const element = document.createElement("box-collaborator-avatars") as CollaboratorAvatars;
     element.collaborators = people;
     element.label = "   ";
     document.body.append(element);
@@ -82,7 +81,7 @@ describe("BoxCollaboratorAvatarsElement", () => {
   });
 
   it("renders an image avatar when src is provided", () => {
-    const element = document.createElement("box-collaborator-avatars") as BoxCollaboratorAvatarsElement;
+    const element = document.createElement("box-collaborator-avatars") as CollaboratorAvatars;
     element.collaborators = [{ id: "1", name: "Morgan Lee", src: "https://example.com/a.png" }];
     document.body.append(element);
 
@@ -112,7 +111,7 @@ describe("BoxCollaboratorAvatarsElement", () => {
   });
 
   it("keeps the labelled group and shows an empty affordance with no collaborators", () => {
-    const element = document.createElement("box-collaborator-avatars") as BoxCollaboratorAvatarsElement;
+    const element = document.createElement("box-collaborator-avatars") as CollaboratorAvatars;
     document.body.append(element);
 
     const group = element.shadowRoot?.querySelector('[part="group"]');
@@ -122,7 +121,7 @@ describe("BoxCollaboratorAvatarsElement", () => {
   });
 
   it("drops malformed collaborator records", () => {
-    const element = document.createElement("box-collaborator-avatars") as BoxCollaboratorAvatarsElement;
+    const element = document.createElement("box-collaborator-avatars") as CollaboratorAvatars;
     element.setAttribute("collaborators", JSON.stringify([null, { name: "Morgan Lee" }, { id: 5 }]));
     document.body.append(element);
 

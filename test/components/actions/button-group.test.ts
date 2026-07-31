@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxButtonGroupElement,
-  defineBoxButtonGroupElement,
+  ButtonGroup,
 } from "../../../src/components/actions/button-group.js";
 
-describe("BoxButtonGroupElement", () => {
+describe("ButtonGroup", () => {
   beforeEach(() => {
-    defineBoxButtonGroupElement();
+    ButtonGroup.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxButtonGroupElement", () => {
   });
 
   it("selects the first option by default and emits changes", () => {
-    const element = document.createElement("box-button-group") as BoxButtonGroupElement;
+    const element = document.createElement("box-button-group") as ButtonGroup;
     const changed = vi.fn();
     element.options = [
       { label: "List", value: "list" },
@@ -41,7 +40,7 @@ describe("BoxButtonGroupElement", () => {
   });
 
   it("uses radio-group semantics and supports arrow key navigation", () => {
-    const element = document.createElement("box-button-group") as BoxButtonGroupElement;
+    const element = document.createElement("box-button-group") as ButtonGroup;
     element.options = [
       { label: "List", value: "list" },
       { label: "Table", value: "table" },
@@ -65,7 +64,7 @@ describe("BoxButtonGroupElement", () => {
   });
 
   it("supports attached layout metadata for grouped styling", () => {
-    const element = document.createElement("box-button-group") as BoxButtonGroupElement;
+    const element = document.createElement("box-button-group") as ButtonGroup;
     element.layout = "attached";
     element.options = [
       { label: "Archive", value: "archive" },

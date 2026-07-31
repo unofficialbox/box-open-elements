@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxDateFieldElement, defineBoxDateFieldElement } from "../../../src/components/forms/date-field.js";
+import { DateField } from "../../../src/components/forms/date-field.js";
 
-describe("BoxDateFieldElement", () => {
+describe("DateField", () => {
   beforeEach(() => {
-    defineBoxDateFieldElement();
+    DateField.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxDateFieldElement", () => {
   });
 
   it("emits value changes when the date changes", () => {
-    const element = document.createElement("box-date-field") as BoxDateFieldElement;
+    const element = document.createElement("box-date-field") as DateField;
     const changed = vi.fn();
     element.addEventListener("value-changed", changed);
 
@@ -32,7 +32,7 @@ describe("BoxDateFieldElement", () => {
   });
 
   it("does not lose focus when label attribute changes while input is focused", () => {
-    const element = document.createElement("box-date-field") as BoxDateFieldElement;
+    const element = document.createElement("box-date-field") as DateField;
     element.label = "Date";
     document.body.append(element);
 
@@ -45,7 +45,7 @@ describe("BoxDateFieldElement", () => {
   });
 
   it("shows a clear button only when clearable with a value, and clears on click", () => {
-    const element = document.createElement("box-date-field") as BoxDateFieldElement;
+    const element = document.createElement("box-date-field") as DateField;
     element.clearable = true;
     element.value = "2026-07-21";
     document.body.append(element);
@@ -65,7 +65,7 @@ describe("BoxDateFieldElement", () => {
   });
 
   it("does not show the clear button when not clearable", () => {
-    const element = document.createElement("box-date-field") as BoxDateFieldElement;
+    const element = document.createElement("box-date-field") as DateField;
     element.value = "2026-07-21";
     document.body.append(element);
 

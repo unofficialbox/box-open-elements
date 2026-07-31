@@ -3,14 +3,13 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
-  BoxIconButtonElement,
-  defineBoxIconButtonElement,
+  IconButton,
 } from "../../../src/components/actions/icon-button.js";
 import { registerBoxDefaultDesignSystem, setActiveDesignSystem } from "../../../src/index.js";
 
-describe("BoxIconButtonElement", () => {
+describe("IconButton", () => {
   beforeEach(() => {
-    defineBoxIconButtonElement();
+    IconButton.register();
     registerBoxDefaultDesignSystem({ setActive: true });
   });
 
@@ -20,7 +19,7 @@ describe("BoxIconButtonElement", () => {
   });
 
   it("renders a registered Box svg icon for aliased icon names and preserves the label", () => {
-    const element = document.createElement("box-icon-button") as BoxIconButtonElement;
+    const element = document.createElement("box-icon-button") as IconButton;
     element.icon = "+";
     element.label = "Add item";
 
@@ -34,7 +33,7 @@ describe("BoxIconButtonElement", () => {
   });
 
   it("renders a registered Box svg icon when the icon name matches the active design system", () => {
-    const element = document.createElement("box-icon-button") as BoxIconButtonElement;
+    const element = document.createElement("box-icon-button") as IconButton;
     element.icon = "search";
     element.label = "Search";
 

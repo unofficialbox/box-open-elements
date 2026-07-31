@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxDropZoneElement,
-  defineBoxDropZoneElement,
+  DropZone,
 } from "../../../src/components/files/drop-zone.js";
 
-describe("BoxDropZoneElement", () => {
+describe("DropZone", () => {
   beforeEach(() => {
-    defineBoxDropZoneElement();
+    DropZone.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxDropZoneElement", () => {
   });
 
   it("renders label and message", () => {
-    const element = document.createElement("box-drop-zone") as BoxDropZoneElement;
+    const element = document.createElement("box-drop-zone") as DropZone;
     element.label = "Upload";
     element.message = "Drop files here";
 
@@ -28,7 +27,7 @@ describe("BoxDropZoneElement", () => {
   });
 
   it("supports description as a compatible alias for message", () => {
-    const element = document.createElement("box-drop-zone") as BoxDropZoneElement;
+    const element = document.createElement("box-drop-zone") as DropZone;
     element.description = "Drag files here or click to browse.";
 
     document.body.append(element);
@@ -38,7 +37,7 @@ describe("BoxDropZoneElement", () => {
   });
 
   it("emits files-selected when input changes", () => {
-    const element = document.createElement("box-drop-zone") as BoxDropZoneElement;
+    const element = document.createElement("box-drop-zone") as DropZone;
     const changed = vi.fn();
     element.addEventListener("files-selected", changed);
 
@@ -55,7 +54,7 @@ describe("BoxDropZoneElement", () => {
   });
 
   it("preserves the file input across label updates while dragging", () => {
-    const element = document.createElement("box-drop-zone") as BoxDropZoneElement;
+    const element = document.createElement("box-drop-zone") as DropZone;
     element.label = "Upload";
     document.body.append(element);
 
@@ -75,7 +74,7 @@ describe("BoxDropZoneElement", () => {
   });
 
   it("uses compact drop-zone shell styles", () => {
-    const element = document.createElement("box-drop-zone") as BoxDropZoneElement;
+    const element = document.createElement("box-drop-zone") as DropZone;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -84,7 +83,7 @@ describe("BoxDropZoneElement", () => {
   });
 
   it("includes focus-visible and hover styles for the drop zone", () => {
-    const element = document.createElement("box-drop-zone") as BoxDropZoneElement;
+    const element = document.createElement("box-drop-zone") as DropZone;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";

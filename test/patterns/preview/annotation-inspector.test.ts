@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxAnnotationInspectorElement,
-  defineBoxAnnotationInspectorElement,
+  AnnotationInspector,
 } from "../../../src/patterns/preview/annotation-inspector.js";
 
-describe("BoxAnnotationInspectorElement", () => {
+describe("AnnotationInspector", () => {
   beforeEach(() => {
-    defineBoxAnnotationInspectorElement();
+    AnnotationInspector.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxAnnotationInspectorElement", () => {
   });
 
   it("renders the selected annotation details", () => {
-    const element = document.createElement("box-annotation-inspector") as BoxAnnotationInspectorElement;
+    const element = document.createElement("box-annotation-inspector") as AnnotationInspector;
     element.heading = "Annotation Inspector";
     element.annotation = {
       id: "a1",
@@ -40,7 +39,7 @@ describe("BoxAnnotationInspectorElement", () => {
   });
 
   it("emits action when an action button is clicked", () => {
-    const element = document.createElement("box-annotation-inspector") as BoxAnnotationInspectorElement;
+    const element = document.createElement("box-annotation-inspector") as AnnotationInspector;
     const action = vi.fn();
     element.annotation = {
       id: "a1",
@@ -66,7 +65,7 @@ describe("BoxAnnotationInspectorElement", () => {
   });
 
   it("emits reply-selected when a reply is clicked", () => {
-    const element = document.createElement("box-annotation-inspector") as BoxAnnotationInspectorElement;
+    const element = document.createElement("box-annotation-inspector") as AnnotationInspector;
     const selected = vi.fn();
     element.annotation = {
       id: "a1",

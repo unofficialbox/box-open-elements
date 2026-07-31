@@ -138,7 +138,8 @@ const contactStyles = `
  * `role="option"` that emits `select` with its `value` on click or Enter/Space
  * and reflects `selected` to `aria-selected`; the host owns the list.
  */
-export class BoxContactDatalistItemElement extends BaseElement {
+export class ContactDatalistItem extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["disabled", "email", "external", "name", "selected", "src", "subtitle", "value"];
   }
@@ -327,14 +328,4 @@ export class BoxContactDatalistItemElement extends BaseElement {
   }
 }
 
-export const defineBoxContactDatalistItemElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxContactDatalistItemElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxContactDatalistItemElement;
-  }
-
-  customElements.define(tagName, BoxContactDatalistItemElement);
-  return BoxContactDatalistItemElement;
-};
+ContactDatalistItem.register();

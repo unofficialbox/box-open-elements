@@ -138,7 +138,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxPreviewHeaderElement extends BaseElement {
+export class PreviewHeader extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["actions", "breadcrumbs", "message", "status", "heading"];
   }
@@ -378,14 +379,4 @@ export class BoxPreviewHeaderElement extends BaseElement {
   }
 }
 
-export const defineBoxPreviewHeaderElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxPreviewHeaderElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxPreviewHeaderElement;
-  }
-
-  customElements.define(tagName, BoxPreviewHeaderElement);
-  return BoxPreviewHeaderElement;
-};
+PreviewHeader.register();

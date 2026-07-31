@@ -89,7 +89,8 @@ const ratingStyles = `
   ${boeFormFieldErrorStyles}
 `;
 
-export class BoxRatingElement extends FormAssociatedElement {
+export class Rating extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -337,14 +338,4 @@ export class BoxRatingElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxRatingElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxRatingElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxRatingElement;
-  }
-
-  customElements.define(tagName, BoxRatingElement);
-  return BoxRatingElement;
-};
+Rating.register();

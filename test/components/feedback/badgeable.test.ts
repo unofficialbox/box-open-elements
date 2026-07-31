@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
-  BoxBadgeableElement,
-  defineBoxBadgeableElement,
+  Badgeable,
 } from "../../../src/components/feedback/badgeable.js";
 
-describe("BoxBadgeableElement", () => {
+describe("Badgeable", () => {
   beforeEach(() => {
-    defineBoxBadgeableElement();
+    Badgeable.register();
   });
 
   afterEach(() => {
@@ -17,14 +16,14 @@ describe("BoxBadgeableElement", () => {
   });
 
   it("renders a slot for each corner plus the default subject slot", () => {
-    const el = document.createElement("box-badgeable") as BoxBadgeableElement;
+    const el = document.createElement("box-badgeable") as Badgeable;
     document.body.append(el);
     const slots = [...(el.shadowRoot?.querySelectorAll("slot") ?? [])].map(s => s.getAttribute("name"));
     expect(slots).toEqual([null, "top-left", "top-right", "bottom-left", "bottom-right"]);
   });
 
   it("hides corners with no assigned badge and shows those with one", () => {
-    const el = document.createElement("box-badgeable") as BoxBadgeableElement;
+    const el = document.createElement("box-badgeable") as Badgeable;
     el.innerHTML = `<span>subject</span><span slot="bottom-right">3</span>`;
     document.body.append(el);
 
@@ -38,7 +37,7 @@ describe("BoxBadgeableElement", () => {
   });
 
   it("reveals a corner when a badge is added later", async () => {
-    const el = document.createElement("box-badgeable") as BoxBadgeableElement;
+    const el = document.createElement("box-badgeable") as Badgeable;
     el.innerHTML = `<span>subject</span>`;
     document.body.append(el);
     const topRight = el.shadowRoot?.querySelector('[data-corner="top-right"]') as HTMLElement;

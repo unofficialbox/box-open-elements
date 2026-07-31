@@ -225,7 +225,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxTaskAssignmentPanelElement extends BaseElement {
+export class TaskAssignmentPanel extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["actions", "assignees", "checklist", "current-assignee-id", "due-date", "message", "priority", "status", "heading"];
   }
@@ -525,8 +526,4 @@ export class BoxTaskAssignmentPanelElement extends BaseElement {
   }
 }
 
-export const defineBoxTaskAssignmentPanelElement = (tagName = DEFAULT_TAG_NAME): void => {
-  if (!customElements.get(tagName)) {
-    customElements.define(tagName, BoxTaskAssignmentPanelElement);
-  }
-};
+TaskAssignmentPanel.register();

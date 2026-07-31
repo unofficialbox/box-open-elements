@@ -3,8 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxInviteCollaboratorsModalElement,
-  defineBoxInviteCollaboratorsModalElement,
+  InviteCollaboratorsModal,
 } from "../../../src/patterns/share/invite-collaborators-modal.js";
 
 const createTransport = () => ({
@@ -13,8 +12,8 @@ const createTransport = () => ({
 
 const openModal = (
   transport: ReturnType<typeof createTransport>,
-): BoxInviteCollaboratorsModalElement => {
-  const element = document.createElement("box-invite-collaborators-modal") as BoxInviteCollaboratorsModalElement;
+): InviteCollaboratorsModal => {
+  const element = document.createElement("box-invite-collaborators-modal") as InviteCollaboratorsModal;
   element.transport = transport;
   element.itemId = "42";
   element.open = true;
@@ -22,15 +21,15 @@ const openModal = (
   return element;
 };
 
-const addRecipient = (element: BoxInviteCollaboratorsModalElement, email: string): void => {
+const addRecipient = (element: InviteCollaboratorsModal, email: string): void => {
   const input = element.shadowRoot?.querySelector('[part="recipient-input"]') as HTMLInputElement;
   input.value = email;
   input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
 };
 
-describe("BoxInviteCollaboratorsModalElement", () => {
+describe("InviteCollaboratorsModal", () => {
   beforeEach(() => {
-    defineBoxInviteCollaboratorsModalElement();
+    InviteCollaboratorsModal.register();
   });
 
   afterEach(() => {

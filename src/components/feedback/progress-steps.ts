@@ -112,7 +112,8 @@ const progressStepsStyles = `
   }
 `;
 
-export class BoxProgressStepsElement extends BaseElement {
+export class ProgressSteps extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["items", "label", "value"];
   }
@@ -310,14 +311,4 @@ export class BoxProgressStepsElement extends BaseElement {
   }
 }
 
-export const defineBoxProgressStepsElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxProgressStepsElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxProgressStepsElement;
-  }
-
-  customElements.define(tagName, BoxProgressStepsElement);
-  return BoxProgressStepsElement;
-};
+ProgressSteps.register();

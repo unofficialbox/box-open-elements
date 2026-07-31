@@ -4,8 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ContentExplorerController } from "../../../../src/patterns/content-explorer/controller.js";
 import {
-  BoxExplorerToolbarElement,
-  defineBoxExplorerToolbarElement,
+  ExplorerToolbar,
 } from "../../../../src/patterns/content-explorer/adapters/toolbar.js";
 import type { ExplorerTransport, ExplorerTransportResult } from "../../../../src/patterns/content-explorer/types.js";
 
@@ -28,9 +27,9 @@ const flushMicrotasks = async (): Promise<void> => {
   await Promise.resolve();
 };
 
-describe("BoxExplorerToolbarElement", () => {
+describe("ExplorerToolbar", () => {
   beforeEach(() => {
-    defineBoxExplorerToolbarElement();
+    ExplorerToolbar.register();
   });
 
   afterEach(() => {
@@ -57,7 +56,7 @@ describe("BoxExplorerToolbarElement", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-toolbar") as BoxExplorerToolbarElement;
+    const element = document.createElement("box-explorer-toolbar") as ExplorerToolbar;
     element.controller = controller;
 
     document.body.append(element);
@@ -102,7 +101,7 @@ describe("BoxExplorerToolbarElement", () => {
       transport,
       selectionMode: "single",
     });
-    const element = document.createElement("box-explorer-toolbar") as BoxExplorerToolbarElement;
+    const element = document.createElement("box-explorer-toolbar") as ExplorerToolbar;
     element.controller = controller;
 
     document.body.append(element);
@@ -129,7 +128,7 @@ describe("BoxExplorerToolbarElement", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-toolbar") as BoxExplorerToolbarElement;
+    const element = document.createElement("box-explorer-toolbar") as ExplorerToolbar;
     element.controller = controller;
 
     document.body.append(element);
@@ -159,7 +158,7 @@ describe("BoxExplorerToolbarElement", () => {
       transport,
       selectionMode: "single",
     });
-    const element = document.createElement("box-explorer-toolbar") as BoxExplorerToolbarElement;
+    const element = document.createElement("box-explorer-toolbar") as ExplorerToolbar;
     element.controller = controller;
 
     document.body.append(element);

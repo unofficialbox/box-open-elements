@@ -2,7 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { BoxAccessStatsElement, defineBoxAccessStatsElement } from "../../../src/patterns/share/access-stats.js";
+import { AccessStats } from "../../../src/patterns/share/access-stats.js";
 
 const sampleStats = [
   { label: "Views", value: 1280, icon: "👁" },
@@ -10,16 +10,16 @@ const sampleStats = [
   { label: "Comments", value: 7 },
 ];
 
-const create = (): BoxAccessStatsElement => {
-  const element = document.createElement("box-access-stats") as BoxAccessStatsElement;
+const create = (): AccessStats => {
+  const element = document.createElement("box-access-stats") as AccessStats;
   element.stats = sampleStats;
   document.body.append(element);
   return element;
 };
 
-describe("BoxAccessStatsElement", () => {
+describe("AccessStats", () => {
   beforeEach(() => {
-    defineBoxAccessStatsElement();
+    AccessStats.register();
   });
 
   afterEach(() => {
@@ -62,7 +62,7 @@ describe("BoxAccessStatsElement", () => {
   });
 
   it("abbreviates millions and billions without producing 1000k", () => {
-    const element = document.createElement("box-access-stats") as BoxAccessStatsElement;
+    const element = document.createElement("box-access-stats") as AccessStats;
     element.stats = [
       { label: "Views", value: 1_000_000 },
       { label: "Downloads", value: 2_500_000_000 },
@@ -80,7 +80,7 @@ describe("BoxAccessStatsElement", () => {
   });
 
   it("promotes near-million counts to M instead of 1000k", () => {
-    const element = document.createElement("box-access-stats") as BoxAccessStatsElement;
+    const element = document.createElement("box-access-stats") as AccessStats;
     element.stats = [{ label: "Views", value: 999_950 }];
     document.body.append(element);
 
@@ -90,7 +90,7 @@ describe("BoxAccessStatsElement", () => {
   });
 
   it("keeps the labelled section and shows an empty affordance with no stats", () => {
-    const element = document.createElement("box-access-stats") as BoxAccessStatsElement;
+    const element = document.createElement("box-access-stats") as AccessStats;
     document.body.append(element);
 
     const section = element.shadowRoot?.querySelector('[part="stats"]');
@@ -100,7 +100,7 @@ describe("BoxAccessStatsElement", () => {
   });
 
   it("drops malformed stat entries", () => {
-    const element = document.createElement("box-access-stats") as BoxAccessStatsElement;
+    const element = document.createElement("box-access-stats") as AccessStats;
     element.setAttribute(
       "stats",
       JSON.stringify([null, { label: "Views", value: 5 }, { label: "Bad", value: "x" }]),

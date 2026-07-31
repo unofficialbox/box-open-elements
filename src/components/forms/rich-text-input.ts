@@ -218,7 +218,8 @@ const richTextStyles = `
   ${boeFormFieldErrorStyles}
 `;
 
-export class BoxRichTextInputElement extends FormAssociatedElement {
+export class RichTextInput extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -454,14 +455,4 @@ export class BoxRichTextInputElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxRichTextInputElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxRichTextInputElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxRichTextInputElement;
-  }
-
-  customElements.define(tagName, BoxRichTextInputElement);
-  return BoxRichTextInputElement;
-};
+RichTextInput.register();

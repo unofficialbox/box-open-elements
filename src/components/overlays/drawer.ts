@@ -117,7 +117,8 @@ const drawerStyles = `
   }
 `;
 
-export class BoxDrawerElement extends BaseElement {
+export class Drawer extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["description", "heading", "open", "position"];
   }
@@ -358,14 +359,4 @@ export class BoxDrawerElement extends BaseElement {
   }
 }
 
-export const defineBoxDrawerElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxDrawerElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxDrawerElement;
-  }
-
-  customElements.define(tagName, BoxDrawerElement);
-  return BoxDrawerElement;
-};
+Drawer.register();

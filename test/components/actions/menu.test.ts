@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxMenuElement, defineBoxMenuElement } from "../../../src/components/actions/menu.js";
+import { Menu } from "../../../src/components/actions/menu.js";
 
-describe("BoxMenuElement", () => {
+describe("Menu", () => {
   beforeEach(() => {
-    defineBoxMenuElement();
+    Menu.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxMenuElement", () => {
   });
 
   it("renders menu items", () => {
-    const element = document.createElement("box-menu") as BoxMenuElement;
+    const element = document.createElement("box-menu") as Menu;
     element.items = [
       { id: "rename", label: "Rename" },
       { id: "archive", label: "Archive" },
@@ -27,7 +27,7 @@ describe("BoxMenuElement", () => {
   });
 
   it("emits selected items", () => {
-    const element = document.createElement("box-menu") as BoxMenuElement;
+    const element = document.createElement("box-menu") as Menu;
     const selected = vi.fn();
     element.items = [
       { id: "rename", label: "Rename" },
@@ -48,7 +48,7 @@ describe("BoxMenuElement", () => {
   });
 
   it("forwards disabled state to items", () => {
-    const element = document.createElement("box-menu") as BoxMenuElement;
+    const element = document.createElement("box-menu") as Menu;
     element.disabled = true;
     element.items = [{ id: "rename", label: "Rename" }];
 
@@ -60,7 +60,7 @@ describe("BoxMenuElement", () => {
   });
 
   it("uses roving tabindex and ArrowDown/Home/End between menuitems", async () => {
-    const element = document.createElement("box-menu") as BoxMenuElement;
+    const element = document.createElement("box-menu") as Menu;
     element.items = [
       { id: "rename", label: "Rename" },
       { id: "share", label: "Share" },
@@ -88,7 +88,7 @@ describe("BoxMenuElement", () => {
   });
 
   it("uses BUE overlay menu geometry", () => {
-    const element = document.createElement("box-menu") as BoxMenuElement;
+    const element = document.createElement("box-menu") as Menu;
     element.items = [{ id: "a", label: "Open" }];
     document.body.append(element);
 
@@ -101,7 +101,7 @@ describe("BoxMenuElement", () => {
   });
 
   it("renders headers, separators, links, and checkable items", () => {
-    const el = document.createElement("box-menu") as BoxMenuElement;
+    const el = document.createElement("box-menu") as Menu;
     el.items = [
       { id: "h", label: "Actions", header: true },
       { id: "open", label: "Open" },
@@ -123,7 +123,7 @@ describe("BoxMenuElement", () => {
   });
 
   it("toggles a checkable item's aria-checked and emits it", () => {
-    const el = document.createElement("box-menu") as BoxMenuElement;
+    const el = document.createElement("box-menu") as Menu;
     el.items = [{ id: "pin", label: "Pin", checked: false }] as never;
     const selected = vi.fn();
     el.addEventListener("item-selected", selected);

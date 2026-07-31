@@ -129,7 +129,8 @@ const categorySelectorStyles = `
  * `value` and announced with `value-changed`. Follows the radiogroup keyboard
  * pattern: arrow keys move selection with roving `tabindex`.
  */
-export class BoxCategorySelectorElement extends BaseElement {
+export class CategorySelector extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["label", "options", "value", "max-links"];
   }
@@ -514,14 +515,4 @@ export class BoxCategorySelectorElement extends BaseElement {
   }
 }
 
-export const defineBoxCategorySelectorElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxCategorySelectorElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxCategorySelectorElement;
-  }
-
-  customElements.define(tagName, BoxCategorySelectorElement);
-  return BoxCategorySelectorElement;
-};
+CategorySelector.register();

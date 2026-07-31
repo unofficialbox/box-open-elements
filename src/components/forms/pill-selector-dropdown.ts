@@ -186,7 +186,8 @@ const pillSelectorStyles = `
  * opening focuses the first item; ArrowUp/Down/Home/End move focus, Escape (or
  * moving focus outside) closes and returns focus to the trigger.
  */
-export class BoxPillSelectorDropdownElement extends FormAssociatedElement {
+export class PillSelectorDropdown extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -695,14 +696,4 @@ export class BoxPillSelectorDropdownElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxPillSelectorDropdownElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxPillSelectorDropdownElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxPillSelectorDropdownElement;
-  }
-
-  customElements.define(tagName, BoxPillSelectorDropdownElement);
-  return BoxPillSelectorDropdownElement;
-};
+PillSelectorDropdown.register();

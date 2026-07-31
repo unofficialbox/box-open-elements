@@ -54,7 +54,8 @@ const cardStyles = `
   }
 `;
 
-export class BoxCardElement extends BaseElement {
+export class Card extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["eyebrow", "heading"];
   }
@@ -115,14 +116,4 @@ export class BoxCardElement extends BaseElement {
   }
 }
 
-export const defineBoxCardElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxCardElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxCardElement;
-  }
-
-  customElements.define(tagName, BoxCardElement);
-  return BoxCardElement;
-};
+Card.register();

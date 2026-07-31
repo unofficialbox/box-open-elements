@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { BoxPopoverElement, defineBoxPopoverElement } from "../../../src/components/overlays/popover.js";
+import { Popover } from "../../../src/components/overlays/popover.js";
 
-describe("BoxPopoverElement", () => {
+describe("Popover", () => {
   beforeEach(() => {
-    defineBoxPopoverElement();
+    Popover.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxPopoverElement", () => {
   });
 
   it("toggles open state from the trigger", () => {
-    const element = document.createElement("box-popover") as BoxPopoverElement;
+    const element = document.createElement("box-popover") as Popover;
     element.label = "Open details";
     element.innerHTML = "<p>Popover content</p>";
 
@@ -28,7 +28,7 @@ describe("BoxPopoverElement", () => {
   });
 
   it("closes on Escape from the trigger", () => {
-    const element = document.createElement("box-popover") as BoxPopoverElement;
+    const element = document.createElement("box-popover") as Popover;
 
     document.body.append(element);
     element.show();
@@ -40,7 +40,7 @@ describe("BoxPopoverElement", () => {
   });
 
   it("closes on document-level Escape while open", () => {
-    const element = document.createElement("box-popover") as BoxPopoverElement;
+    const element = document.createElement("box-popover") as Popover;
     element.innerHTML = "<p>Popover content</p>";
 
     document.body.append(element);
@@ -53,7 +53,7 @@ describe("BoxPopoverElement", () => {
   });
 
   it("closes on outside pointerdown while open", () => {
-    const element = document.createElement("box-popover") as BoxPopoverElement;
+    const element = document.createElement("box-popover") as Popover;
     element.innerHTML = "<p>Popover content</p>";
 
     document.body.append(element);
@@ -66,7 +66,7 @@ describe("BoxPopoverElement", () => {
   });
 
   it("does not bind document listeners while detached", () => {
-    const element = document.createElement("box-popover") as BoxPopoverElement;
+    const element = document.createElement("box-popover") as Popover;
     element.innerHTML = "<p>Popover content</p>";
     element.show();
 
@@ -81,7 +81,7 @@ describe("BoxPopoverElement", () => {
   });
 
   it("restores focus to the trigger when Escape closes from inside", async () => {
-    const element = document.createElement("box-popover") as BoxPopoverElement;
+    const element = document.createElement("box-popover") as Popover;
     const content = document.createElement("button");
     content.textContent = "Inside";
     element.append(content);
@@ -102,7 +102,7 @@ describe("BoxPopoverElement", () => {
   });
 
   it("uses BUE overlay popover shell styles", () => {
-    const element = document.createElement("box-popover") as BoxPopoverElement;
+    const element = document.createElement("box-popover") as Popover;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -113,7 +113,7 @@ describe("BoxPopoverElement", () => {
   });
 
   it("floats the surface as a fixed overlay positioned by the overlay foundation", () => {
-    const element = document.createElement("box-popover") as BoxPopoverElement;
+    const element = document.createElement("box-popover") as Popover;
     element.placement = "top";
     document.body.append(element);
 
@@ -125,7 +125,7 @@ describe("BoxPopoverElement", () => {
   });
 
   it("supports aligned placements and falls back to bottom for unsupported values", () => {
-    const element = document.createElement("box-popover") as BoxPopoverElement;
+    const element = document.createElement("box-popover") as Popover;
     document.body.append(element);
 
     element.setAttribute("placement", "right-end");
@@ -136,7 +136,7 @@ describe("BoxPopoverElement", () => {
   });
 
   it("moves focus into the surface when opened", async () => {
-    const element = document.createElement("box-popover") as BoxPopoverElement;
+    const element = document.createElement("box-popover") as Popover;
     const content = document.createElement("button");
     content.textContent = "Inside";
     element.append(content);
@@ -149,7 +149,7 @@ describe("BoxPopoverElement", () => {
   });
 
   it("associates the trigger and dialog surface for assistive tech", () => {
-    const element = document.createElement("box-popover") as BoxPopoverElement;
+    const element = document.createElement("box-popover") as Popover;
     document.body.append(element);
 
     const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null;
@@ -161,7 +161,7 @@ describe("BoxPopoverElement", () => {
   });
 
   it("disables the trigger and prevents opening when disabled", () => {
-    const element = document.createElement("box-popover") as BoxPopoverElement;
+    const element = document.createElement("box-popover") as Popover;
     element.label = "Open details";
     element.disabled = true;
     document.body.append(element);
@@ -177,7 +177,7 @@ describe("BoxPopoverElement", () => {
   });
 
   it("closes when disabled while open", () => {
-    const element = document.createElement("box-popover") as BoxPopoverElement;
+    const element = document.createElement("box-popover") as Popover;
     document.body.append(element);
     element.show();
     expect(element.open).toBe(true);
@@ -190,7 +190,7 @@ describe("BoxPopoverElement", () => {
   });
 
   it("does not open via the open attribute when disabled", () => {
-    const element = document.createElement("box-popover") as BoxPopoverElement;
+    const element = document.createElement("box-popover") as Popover;
     element.disabled = true;
     document.body.append(element);
 

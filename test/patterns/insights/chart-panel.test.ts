@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxChartPanelElement,
-  defineBoxChartPanelElement,
+  ChartPanel,
 } from "../../../src/patterns/insights/chart-panel.js";
 
-describe("BoxChartPanelElement", () => {
+describe("ChartPanel", () => {
   beforeEach(() => {
-    defineBoxChartPanelElement();
+    ChartPanel.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxChartPanelElement", () => {
   });
 
   it("renders summary, timeframe, and chart points", () => {
-    const element = document.createElement("box-chart-panel") as BoxChartPanelElement;
+    const element = document.createElement("box-chart-panel") as ChartPanel;
     element.heading = "Weekly activity";
     element.summary = "89%";
     element.timeframe = "Last 7 days";
@@ -37,7 +36,7 @@ describe("BoxChartPanelElement", () => {
   });
 
   it("emits an action event when an action button is clicked", () => {
-    const element = document.createElement("box-chart-panel") as BoxChartPanelElement;
+    const element = document.createElement("box-chart-panel") as ChartPanel;
     const action = vi.fn();
     element.actions = [{ id: "open-report", label: "Open report", tone: "primary" }];
     element.addEventListener("action", action);
@@ -57,7 +56,7 @@ describe("BoxChartPanelElement", () => {
   });
 
   it("emits point-selected when a chart point is clicked", () => {
-    const element = document.createElement("box-chart-panel") as BoxChartPanelElement;
+    const element = document.createElement("box-chart-panel") as ChartPanel;
     const pointSelected = vi.fn();
     element.points = [{ id: "wed", label: "Wed", value: 24, tone: "accent" }];
     element.addEventListener("point-selected", pointSelected);

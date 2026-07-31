@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxChipElement, defineBoxChipElement } from "../../../src/components/feedback/chip.js";
+import { Chip } from "../../../src/components/feedback/chip.js";
 
-describe("BoxChipElement", () => {
+describe("Chip", () => {
   beforeEach(() => {
-    defineBoxChipElement();
+    Chip.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxChipElement", () => {
   });
 
   it("renders the label and no remove affordance by default", () => {
-    const element = document.createElement("box-chip") as BoxChipElement;
+    const element = document.createElement("box-chip") as Chip;
     element.label = "Marketing";
     document.body.append(element);
 
@@ -23,7 +23,7 @@ describe("BoxChipElement", () => {
   });
 
   it("emits remove with its value when the dismiss button is clicked", () => {
-    const element = document.createElement("box-chip") as BoxChipElement;
+    const element = document.createElement("box-chip") as Chip;
     element.label = "Legal";
     element.value = "legal";
     element.removable = true;
@@ -40,7 +40,7 @@ describe("BoxChipElement", () => {
   });
 
   it("falls back to the label as the value when none is set", () => {
-    const element = document.createElement("box-chip") as BoxChipElement;
+    const element = document.createElement("box-chip") as Chip;
     element.label = "Design";
     document.body.append(element);
 
@@ -48,7 +48,7 @@ describe("BoxChipElement", () => {
   });
 
   it("does not dismiss when disabled", () => {
-    const element = document.createElement("box-chip") as BoxChipElement;
+    const element = document.createElement("box-chip") as Chip;
     element.label = "Frozen";
     element.removable = true;
     element.disabled = true;
@@ -64,7 +64,7 @@ describe("BoxChipElement", () => {
   });
 
   it("toggles selection and emits select when selectable", () => {
-    const element = document.createElement("box-chip") as BoxChipElement;
+    const element = document.createElement("box-chip") as Chip;
     element.label = "PDF";
     element.value = "pdf";
     element.setAttribute("selectable", "");
@@ -82,7 +82,7 @@ describe("BoxChipElement", () => {
   });
 
   it("toggles selection via keyboard and keeps focus on the chip", () => {
-    const element = document.createElement("box-chip") as BoxChipElement;
+    const element = document.createElement("box-chip") as Chip;
     element.label = "PDF";
     element.setAttribute("selectable", "");
     document.body.append(element);
@@ -104,7 +104,7 @@ describe("BoxChipElement", () => {
   });
 
   it("restores focus to the remove button across an observed-attribute re-render", () => {
-    const element = document.createElement("box-chip") as BoxChipElement;
+    const element = document.createElement("box-chip") as Chip;
     element.label = "PDF";
     element.setAttribute("removable", "");
     document.body.append(element);
@@ -119,7 +119,7 @@ describe("BoxChipElement", () => {
   });
 
   it("exposes selectable as a reflected boolean property", () => {
-    const element = document.createElement("box-chip") as BoxChipElement;
+    const element = document.createElement("box-chip") as Chip;
     element.label = "PDF";
     element.selectable = true;
     document.body.append(element);
@@ -133,7 +133,7 @@ describe("BoxChipElement", () => {
   });
 
   it("applies status tone and size data attributes", () => {
-    const element = document.createElement("box-chip") as BoxChipElement;
+    const element = document.createElement("box-chip") as Chip;
     element.label = "Approved";
     element.tone = "success";
     document.body.append(element);
@@ -148,7 +148,7 @@ describe("BoxChipElement", () => {
   });
 
   it("reveals the icon slot only once content is assigned", () => {
-    const element = document.createElement("box-chip") as BoxChipElement;
+    const element = document.createElement("box-chip") as Chip;
     element.label = "Verified";
     document.body.append(element);
 
@@ -169,7 +169,7 @@ describe("BoxChipElement", () => {
   });
 
   it("preserves selected chip surface on hover and active", () => {
-    const element = document.createElement("box-chip") as BoxChipElement;
+    const element = document.createElement("box-chip") as Chip;
     element.label = "PDF";
     element.selectable = true;
     element.selected = true;

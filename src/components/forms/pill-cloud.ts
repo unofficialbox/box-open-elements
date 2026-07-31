@@ -86,7 +86,8 @@ const pillCloudStyles = `
  * announced with `value-changed`. Each pill is a toggle button with
  * `aria-pressed`; the group is a labelled `role="group"`.
  */
-export class BoxPillCloudElement extends FormAssociatedElement {
+export class PillCloud extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -265,14 +266,4 @@ export class BoxPillCloudElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxPillCloudElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxPillCloudElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxPillCloudElement;
-  }
-
-  customElements.define(tagName, BoxPillCloudElement);
-  return BoxPillCloudElement;
-};
+PillCloud.register();

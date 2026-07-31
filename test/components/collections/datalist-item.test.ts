@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxDatalistItemElement,
-  defineBoxDatalistItemElement,
+  DatalistItem,
 } from "../../../src/components/collections/datalist-item.js";
 
-describe("BoxDatalistItemElement", () => {
+describe("DatalistItem", () => {
   beforeEach(() => {
-    defineBoxDatalistItemElement();
+    DatalistItem.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxDatalistItemElement", () => {
   });
 
   it("renders a labelled option row with optional meta", () => {
-    const element = document.createElement("box-datalist-item") as BoxDatalistItemElement;
+    const element = document.createElement("box-datalist-item") as DatalistItem;
     element.label = "Quarterly Plan.pdf";
     element.meta = "PDF · 2.1 MB";
     document.body.append(element);
@@ -29,7 +28,7 @@ describe("BoxDatalistItemElement", () => {
   });
 
   it("reflects selected onto aria-selected", () => {
-    const element = document.createElement("box-datalist-item") as BoxDatalistItemElement;
+    const element = document.createElement("box-datalist-item") as DatalistItem;
     element.label = "Item";
     document.body.append(element);
 
@@ -39,7 +38,7 @@ describe("BoxDatalistItemElement", () => {
   });
 
   it("defaults value to the label and emits select on click", () => {
-    const element = document.createElement("box-datalist-item") as BoxDatalistItemElement;
+    const element = document.createElement("box-datalist-item") as DatalistItem;
     element.label = "Marketing";
     document.body.append(element);
 
@@ -51,7 +50,7 @@ describe("BoxDatalistItemElement", () => {
   });
 
   it("emits select on Enter and Space", () => {
-    const element = document.createElement("box-datalist-item") as BoxDatalistItemElement;
+    const element = document.createElement("box-datalist-item") as DatalistItem;
     element.label = "Legal";
     element.value = "42";
     document.body.append(element);
@@ -67,7 +66,7 @@ describe("BoxDatalistItemElement", () => {
   });
 
   it("does not emit or focus when disabled", () => {
-    const element = document.createElement("box-datalist-item") as BoxDatalistItemElement;
+    const element = document.createElement("box-datalist-item") as DatalistItem;
     element.label = "Disabled";
     element.disabled = true;
     document.body.append(element);
@@ -82,7 +81,7 @@ describe("BoxDatalistItemElement", () => {
   });
 
   it("reflects the active-descendant highlight via data-active", () => {
-    const element = document.createElement("box-datalist-item") as BoxDatalistItemElement;
+    const element = document.createElement("box-datalist-item") as DatalistItem;
     element.label = "Morgan";
     document.body.append(element);
 
@@ -94,7 +93,7 @@ describe("BoxDatalistItemElement", () => {
   });
 
   it("replaces the default body with arbitrary slotted content", () => {
-    const element = document.createElement("box-datalist-item") as BoxDatalistItemElement;
+    const element = document.createElement("box-datalist-item") as DatalistItem;
     element.label = "Morgan";
     element.meta = "morgan@box.com";
     const custom = document.createElement("div");

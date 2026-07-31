@@ -14,7 +14,7 @@ import {
 import { catalog } from "../../docs-site/registry.js";
 import { addedLines } from "../../docs-site/diff.js";
 import { lessonMockTransport } from "../../docs-site/lesson-mock-transport.js";
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import { join } from "node:path";
 
 const EXPLORER_PREVIEW_KEYS: PreviewKey[] = ["empty", "shell", "connected", "navigate", "select", "multiselect"];
@@ -117,7 +117,7 @@ describe("build-along lessons", () => {
     for (const token of [
       'from "@unofficialbox/box-open-elements"',
       "registerBoxDefaultDesignSystem",
-      "defineBoxContentExplorerElement",
+      "ContentExplorer",
       "box-content-explorer",
       "explorer.transport = transport",
       "root-folder-id",
@@ -137,7 +137,7 @@ describe("build-along lessons", () => {
     for (const token of [
       'from "@unofficialbox/box-open-elements"',
       "registerBoxDefaultDesignSystem",
-      "defineBoxSharePanelElement",
+      "SharePanel",
       "box-share-panel",
       "sharedLink",
       "collaborators",
@@ -156,7 +156,7 @@ describe("build-along lessons", () => {
     for (const token of [
       'from "@unofficialbox/box-open-elements"',
       "registerBoxDefaultDesignSystem",
-      "defineBoxPreviewElement",
+      "Preview",
       "box-preview-element",
       "item-label",
       "provider",
@@ -235,31 +235,22 @@ describe("lesson delta diff", () => {
   });
 });
 
-/** Every `defineBox…Element` exported anywhere under src/ (source of truth). */
-const collectDefineNames = (dir: string): Set<string> => {
-  const names = new Set<string>();
-  const walk = (current: string): void => {
-    for (const entry of readdirSync(current, { withFileTypes: true })) {
-      const full = join(current, entry.name);
-      if (entry.isDirectory()) walk(full);
-      else if (entry.name.endsWith(".ts")) {
-        for (const m of readFileSync(full, "utf8").matchAll(/export const (defineBox[A-Za-z]+Element)\b/g)) {
-          names.add(m[1]);
-        }
-      }
-    }
-  };
-  walk(dir);
-  return names;
-};
+/** Every optimized component subpath emitted under src/entries. */
+const collectComponentPaths = (dir: string): Set<string> =>
+  new Set(
+    readdirSync(dir, { withFileTypes: true })
+      .filter(entry => entry.isFile() && entry.name.endsWith(".ts"))
+      .map(entry => entry.name.replace(/\.ts$/, "")),
+  );
 
 describe("lesson framework snippets", () => {
   const FRAMEWORKS = ["html", "react", "angular", "vue", "svelte"] as const;
 
-  // Every `defineBox…Element` the library actually exports. The snippets are
-  // hand-written, so a typo (e.g. defineBoxPreviewElementElement) would ship a
-  // copy-pasteable import that does not exist.
-  const exportedDefineNames = collectDefineNames(join(import.meta.dirname, "../../src"));
+  // The snippets are hand-written, so validate every flat component subpath
+  // against the generated public entrypoints.
+  const exportedComponentPaths = collectComponentPaths(
+    join(import.meta.dirname, "../../src/entries"),
+  );
 
   for (const lesson of lessons) {
     describe(lesson.id, () => {
@@ -269,11 +260,17 @@ describe("lesson framework snippets", () => {
         }
       });
 
-      it("only imports define functions the package exports", () => {
+      it("only imports component subpaths the package exports", () => {
         for (const framework of FRAMEWORKS) {
           const source = lesson.frameworks[framework];
-          for (const name of source.match(/\bdefineBox[A-Za-z]*\b/g) ?? []) {
-            expect(exportedDefineNames, `${lesson.id}/${framework} imports ${name}`).toContain(name);
+          for (const match of source.matchAll(
+            /@unofficialbox\/box-open-elements\/([a-z][a-z0-9-]*)/g,
+          )) {
+            const componentPath = match[1];
+            expect(
+              exportedComponentPaths,
+              `${lesson.id}/${framework} imports ${componentPath}`,
+            ).toContain(componentPath);
           }
         }
       });
@@ -296,11 +293,17 @@ describe("lesson framework snippets", () => {
         }
       });
 
-      it("per-step snippets only import define functions the package exports", () => {
+      it("per-step snippets only import component subpaths the package exports", () => {
         for (const framework of STEP_FRAMEWORKS) {
           for (const source of lesson.stepFrameworks[framework]) {
-            for (const name of source.match(/\bdefineBox[A-Za-z]*\b/g) ?? []) {
-              expect(exportedDefineNames, `${lesson.id}/${framework} imports ${name}`).toContain(name);
+            for (const match of source.matchAll(
+              /@unofficialbox\/box-open-elements\/([a-z][a-z0-9-]*)/g,
+            )) {
+              const componentPath = match[1];
+              expect(
+                exportedComponentPaths,
+                `${lesson.id}/${framework} imports ${componentPath}`,
+              ).toContain(componentPath);
             }
             expect(source).toContain("@unofficialbox/box-open-elements");
           }

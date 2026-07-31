@@ -1,8 +1,7 @@
 import { ContentExplorerController } from "../controller.js";
 import { BaseElement } from "../../../core/index.js";
 import {
-  BoxSearchFieldElement,
-  defineBoxSearchFieldElement,
+  SearchField,
 } from "../../../components/forms/search-field.js";
 import { applyRovingTabindex, handleRovingKeydown } from "../../../foundations/a11y/index.js";
 import { boeNeutralInteractiveStyles } from "../../../foundations/tokens/index.js";
@@ -77,7 +76,8 @@ const elementStyles = `
         ${boeNeutralInteractiveStyles('[part="clear-selection"]')}
       `;
 
-export class BoxExplorerToolbarElement extends BaseElement {
+export class ExplorerToolbar extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   private controllerValue: ContentExplorerController | null = null;
 
   private unsubscribeFns: Array<() => void> = [];
@@ -97,7 +97,7 @@ export class BoxExplorerToolbarElement extends BaseElement {
   }
 
   connectedCallback(): void {
-    defineBoxSearchFieldElement();
+    SearchField.register();
     this.bindController();
     super.connectedCallback();
   }
@@ -145,8 +145,8 @@ export class BoxExplorerToolbarElement extends BaseElement {
     this.unsubscribeFns = [];
   }
 
-  private getSearchField(): BoxSearchFieldElement | null {
-    return this.shadowRoot?.querySelector('[part="search"]') as BoxSearchFieldElement | null;
+  private getSearchField(): SearchField | null {
+    return this.shadowRoot?.querySelector('[part="search"]') as SearchField | null;
   }
 
   private syncSearchField(query: string, loading: boolean): void {
@@ -171,7 +171,7 @@ export class BoxExplorerToolbarElement extends BaseElement {
       return;
     }
 
-    defineBoxSearchFieldElement();
+    SearchField.register();
 
     this.shadowRoot.innerHTML = `
       <style>${elementStyles}</style>
@@ -283,15 +283,5 @@ export class BoxExplorerToolbarElement extends BaseElement {
   }
 }
 
-export const defineBoxExplorerToolbarElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxExplorerToolbarElement => {
-  defineBoxSearchFieldElement();
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxExplorerToolbarElement;
-  }
-
-  customElements.define(tagName, BoxExplorerToolbarElement);
-  return BoxExplorerToolbarElement;
-};
+SearchField.register();
+ExplorerToolbar.register();

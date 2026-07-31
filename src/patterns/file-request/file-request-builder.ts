@@ -170,7 +170,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxFileRequestBuilderElement extends BaseElement {
+export class FileRequestBuilder extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["fields", "heading", "message", "settings", "value"];
   }
@@ -393,14 +394,4 @@ export class BoxFileRequestBuilderElement extends BaseElement {
   }
 }
 
-export const defineBoxFileRequestBuilderElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxFileRequestBuilderElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxFileRequestBuilderElement;
-  }
-
-  customElements.define(tagName, BoxFileRequestBuilderElement);
-  return BoxFileRequestBuilderElement;
-};
+FileRequestBuilder.register();

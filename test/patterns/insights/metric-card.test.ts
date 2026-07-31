@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxMetricCardElement,
-  defineBoxMetricCardElement,
+  MetricCard,
 } from "../../../src/patterns/insights/metric-card.js";
 
-describe("BoxMetricCardElement", () => {
+describe("MetricCard", () => {
   beforeEach(() => {
-    defineBoxMetricCardElement();
+    MetricCard.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxMetricCardElement", () => {
   });
 
   it("renders value, status, and trend", () => {
-    const element = document.createElement("box-metric-card") as BoxMetricCardElement;
+    const element = document.createElement("box-metric-card") as MetricCard;
     element.heading = "External shares";
     element.value = "148";
     element.status = "Healthy";
@@ -32,7 +31,7 @@ describe("BoxMetricCardElement", () => {
   });
 
   it("emits action when the card action is clicked", () => {
-    const element = document.createElement("box-metric-card") as BoxMetricCardElement;
+    const element = document.createElement("box-metric-card") as MetricCard;
     const action = vi.fn();
     element.action = { id: "open-report", label: "Open report", tone: "primary" };
     element.addEventListener("action", action);
@@ -54,7 +53,7 @@ describe("BoxMetricCardElement", () => {
   });
 
   it("includes brand focus-visible and interactive states for the action", () => {
-    const element = document.createElement("box-metric-card") as BoxMetricCardElement;
+    const element = document.createElement("box-metric-card") as MetricCard;
     element.action = { id: "open-report", label: "Open report", tone: "primary" };
     document.body.append(element);
 

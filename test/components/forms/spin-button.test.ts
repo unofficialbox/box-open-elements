@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxSpinButtonElement, defineBoxSpinButtonElement } from "../../../src/components/forms/spin-button.js";
+import { SpinButton } from "../../../src/components/forms/spin-button.js";
 
-describe("BoxSpinButtonElement", () => {
+describe("SpinButton", () => {
   beforeEach(() => {
-    defineBoxSpinButtonElement();
+    SpinButton.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxSpinButtonElement", () => {
   });
 
   it("increments and decrements while emitting value changes", () => {
-    const element = document.createElement("box-spin-button") as BoxSpinButtonElement;
+    const element = document.createElement("box-spin-button") as SpinButton;
     const changed = vi.fn();
     element.value = 4;
     element.step = 2;
@@ -34,7 +34,7 @@ describe("BoxSpinButtonElement", () => {
   });
 
   it("supports keyboard stepping and spinbutton aria attributes", () => {
-    const element = document.createElement("box-spin-button") as BoxSpinButtonElement;
+    const element = document.createElement("box-spin-button") as SpinButton;
     element.min = 0;
     element.max = 10;
     element.value = 4;
@@ -52,7 +52,7 @@ describe("BoxSpinButtonElement", () => {
   });
 
   it("does not lose focus when label attribute changes while input is focused", () => {
-    const element = document.createElement("box-spin-button") as BoxSpinButtonElement;
+    const element = document.createElement("box-spin-button") as SpinButton;
     element.label = "Quantity";
     element.value = 4;
     document.body.append(element);

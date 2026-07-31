@@ -4,7 +4,7 @@ import {
   shouldActivateOnClick,
   shouldToggleOnEnter,
 } from "../types.js";
-import { BoxExplorerActionMenuElement } from "./action-menu.js";
+import { ExplorerActionMenu } from "./action-menu.js";
 import {
   formatItemDate,
   formatItemOwner,
@@ -217,7 +217,8 @@ const elementStyles = `
         ${boeNeutralInteractiveStyles('[part="load-more"]')}
       `;
 
-export class BoxExplorerTableElement extends BaseElement {
+export class ExplorerTable extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["item-gesture"];
   }
@@ -412,7 +413,7 @@ export class BoxExplorerTableElement extends BaseElement {
   private syncActionMenus(): void {
     this.shadowRoot?.querySelectorAll("box-explorer-action-menu").forEach(node => {
       const itemId = node.getAttribute("data-item-id");
-      const menuElement = node as BoxExplorerActionMenuElement;
+      const menuElement = node as ExplorerActionMenu;
       menuElement.controller = this.controllerValue;
       menuElement.itemId = itemId;
     });
@@ -528,14 +529,4 @@ export class BoxExplorerTableElement extends BaseElement {
   }
 }
 
-export const defineBoxExplorerTableElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxExplorerTableElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxExplorerTableElement;
-  }
-
-  customElements.define(tagName, BoxExplorerTableElement);
-  return BoxExplorerTableElement;
-};
+ExplorerTable.register();

@@ -94,7 +94,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxSavedViewPickerElement extends BaseElement {
+export class SavedViewPicker extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["label", "value", "views"];
   }
@@ -276,14 +277,4 @@ export class BoxSavedViewPickerElement extends BaseElement {
   }
 }
 
-export const defineBoxSavedViewPickerElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxSavedViewPickerElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxSavedViewPickerElement;
-  }
-
-  customElements.define(tagName, BoxSavedViewPickerElement);
-  return BoxSavedViewPickerElement;
-};
+SavedViewPicker.register();

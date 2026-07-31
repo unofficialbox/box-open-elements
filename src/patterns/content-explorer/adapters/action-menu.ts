@@ -126,7 +126,8 @@ const elementStyles = `
         ${boeNeutralInteractiveStyles('[part="menu-item"]')}
       `;
 
-export class BoxExplorerActionMenuElement extends BaseElement {
+export class ExplorerActionMenu extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   private controllerValue: ContentExplorerController | null = null;
 
   private itemIdValue: string | null = null;
@@ -371,14 +372,4 @@ export class BoxExplorerActionMenuElement extends BaseElement {
 
 }
 
-export const defineBoxExplorerActionMenuElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxExplorerActionMenuElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxExplorerActionMenuElement;
-  }
-
-  customElements.define(tagName, BoxExplorerActionMenuElement);
-  return BoxExplorerActionMenuElement;
-};
+ExplorerActionMenu.register();

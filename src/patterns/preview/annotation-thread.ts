@@ -186,7 +186,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxAnnotationThreadElement extends BaseElement {
+export class AnnotationThread extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["actions", "entries", "message", "selected-entry-id", "heading"];
   }
@@ -388,14 +389,4 @@ export class BoxAnnotationThreadElement extends BaseElement {
   }
 }
 
-export const defineBoxAnnotationThreadElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxAnnotationThreadElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxAnnotationThreadElement;
-  }
-
-  customElements.define(tagName, BoxAnnotationThreadElement);
-  return BoxAnnotationThreadElement;
-};
+AnnotationThread.register();

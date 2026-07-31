@@ -95,7 +95,8 @@ const rangeSliderStyles = `
   }
 `;
 
-export class BoxRangeSliderElement extends FormAssociatedElement {
+export class RangeSlider extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -336,14 +337,4 @@ export class BoxRangeSliderElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxRangeSliderElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxRangeSliderElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxRangeSliderElement;
-  }
-
-  customElements.define(tagName, BoxRangeSliderElement);
-  return BoxRangeSliderElement;
-};
+RangeSlider.register();

@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxBarChartElement,
-  defineBoxBarChartElement,
+  BarChart,
 } from "../../../src/patterns/insights/bar-chart.js";
 
-describe("BoxBarChartElement", () => {
+describe("BarChart", () => {
   beforeEach(() => {
-    defineBoxBarChartElement();
+    BarChart.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxBarChartElement", () => {
   });
 
   it("renders summary, timeframe, and bar points", () => {
-    const element = document.createElement("box-bar-chart") as BoxBarChartElement;
+    const element = document.createElement("box-bar-chart") as BarChart;
     element.heading = "Share activity";
     element.summary = "18 shared";
     element.timeframe = "Last 7 days";
@@ -36,7 +35,7 @@ describe("BoxBarChartElement", () => {
   });
 
   it("emits action when an action button is clicked", () => {
-    const element = document.createElement("box-bar-chart") as BoxBarChartElement;
+    const element = document.createElement("box-bar-chart") as BarChart;
     const action = vi.fn();
     element.actions = [{ id: "open-report", label: "Open report", tone: "primary" }];
     element.addEventListener("action", action);
@@ -56,7 +55,7 @@ describe("BoxBarChartElement", () => {
   });
 
   it("emits point-selected when a bar is clicked", () => {
-    const element = document.createElement("box-bar-chart") as BoxBarChartElement;
+    const element = document.createElement("box-bar-chart") as BarChart;
     const selected = vi.fn();
     element.points = [{ id: "wed", label: "Wed", value: 9, tone: "accent" }];
     element.addEventListener("point-selected", selected);

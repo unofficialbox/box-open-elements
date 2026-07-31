@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, createElement, createRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-import { BoxSelectElement } from "../../../src/components/forms/select.js";
-import type { BoxTextFieldElement } from "../../../src/components/forms/text-field.js";
-import { BoxSelect, type BoxSelectOption } from "../src/select.js";
-import { BoxTextField } from "../src/text-field.js";
+import { Select as SelectElement } from "../../../src/components/forms/select.js";
+import { TextField as TextFieldElement } from "../../../src/components/forms/text-field.js";
+import { Select, type SelectOption } from "../src/select.js";
+import { TextField } from "../src/text-field.js";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
   .IS_REACT_ACT_ENVIRONMENT = true;
@@ -35,11 +35,11 @@ describe("React form adapters", () => {
 
   it("syncs text-field properties and forwards the underlying element ref", () => {
     const host = createHost();
-    const ref = createRef<BoxTextFieldElement>();
+    const ref = createRef<TextFieldElement>();
 
     act(() => {
       host.render(
-        createElement(BoxTextField, {
+        createElement(TextField, {
           ref,
           label: "Project name",
           value: "Apollo",
@@ -52,7 +52,7 @@ describe("React form adapters", () => {
       );
     });
 
-    const element = container?.querySelector("box-text-field") as BoxTextFieldElement | null;
+    const element = container?.querySelector("box-text-field") as TextFieldElement | null;
     expect(ref.current).toBe(element);
     expect(element?.label).toBe("Project name");
     expect(element?.value).toBe("Apollo");
@@ -77,17 +77,17 @@ describe("React form adapters", () => {
     const host = createHost();
 
     act(() => {
-      host.render(createElement(BoxTextField, { value: "First", onValueChanged: firstHandler }));
+      host.render(createElement(TextField, { value: "First", onValueChanged: firstHandler }));
     });
     const subscriptionsAfterMount = addEventListener.mock.calls.filter(
       ([eventName]) => eventName === "value-changed",
     ).length;
 
     act(() => {
-      host.render(createElement(BoxTextField, { value: "Second", onValueChanged: latestHandler }));
+      host.render(createElement(TextField, { value: "Second", onValueChanged: latestHandler }));
     });
 
-    const element = container?.querySelector("box-text-field") as BoxTextFieldElement | null;
+    const element = container?.querySelector("box-text-field") as TextFieldElement | null;
     const input = element?.shadowRoot?.querySelector("input");
     expect(element?.value).toBe("Second");
     expect(
@@ -108,20 +108,20 @@ describe("React form adapters", () => {
   });
 
   it("assigns structured select options once and updates them as properties", () => {
-    const optionsSetter = vi.spyOn(BoxSelectElement.prototype, "options", "set");
+    const optionsSetter = vi.spyOn(SelectElement.prototype, "options", "set");
     let selectCurrentTarget: EventTarget | null = null;
     const onValueChanged = vi.fn((event: CustomEvent<{ value: string }>) => {
       selectCurrentTarget = event.currentTarget;
     });
     const host = createHost();
-    const initialOptions: BoxSelectOption[] = [
+    const initialOptions: SelectOption[] = [
       { label: "Draft", value: "draft" },
       { label: "Published", value: "published" },
     ];
 
     act(() => {
       host.render(
-        createElement(BoxSelect, {
+        createElement(Select, {
           label: "Status",
           value: "draft",
           options: initialOptions,
@@ -130,18 +130,18 @@ describe("React form adapters", () => {
       );
     });
 
-    const element = container?.querySelector("box-select") as BoxSelectElement | null;
+    const element = container?.querySelector("box-select") as SelectElement | null;
     expect(optionsSetter).toHaveBeenCalledTimes(1);
     expect(element?.options).toEqual(initialOptions);
     expect(element?.shadowRoot?.querySelectorAll("option")).toHaveLength(2);
 
-    const nextOptions: BoxSelectOption[] = [
+    const nextOptions: SelectOption[] = [
       ...initialOptions,
       { label: "Archived", value: "archived" },
     ];
     act(() => {
       host.render(
-        createElement(BoxSelect, {
+        createElement(Select, {
           label: "Status",
           value: "archived",
           options: nextOptions,
@@ -167,3 +167,7 @@ describe("React form adapters", () => {
     expect(selectCurrentTarget).toBe(element);
   });
 });
+  beforeEach(() => {
+    SelectElement.register();
+    TextFieldElement.register();
+  });

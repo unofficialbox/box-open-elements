@@ -6,11 +6,6 @@ import { storyModules } from "./registry.js";
 // ── Bootstrap: Box design systems + every custom element ────────────────────
 lib.registerBoxDefaultDesignSystem();
 lib.registerBoxDarkDesignSystem();
-for (const [name, value] of Object.entries(lib)) {
-  if (/^defineBox[A-Za-z]+Element$/.test(name) && typeof value === "function") {
-    (value as () => void)();
-  }
-}
 
 const stories = (workshopData as { stories: ExtractedStory[] }).stories;
 const liveById = new Map<string, StoryModule>(storyModules.map(module => [module.meta.id, module]));

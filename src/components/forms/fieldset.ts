@@ -51,7 +51,8 @@ const fieldsetStyles = `
  * `disabled` is mirrored onto the light-DOM controls directly. Groups arbitrary
  * fields; use `box-checkbox-group`/`box-radio-group` for option lists.
  */
-export class BoxFieldsetElement extends BaseElement {
+export class Fieldset extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["description", "disabled", "label"];
   }
@@ -182,14 +183,4 @@ export class BoxFieldsetElement extends BaseElement {
   }
 }
 
-export const defineBoxFieldsetElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxFieldsetElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxFieldsetElement;
-  }
-
-  customElements.define(tagName, BoxFieldsetElement);
-  return BoxFieldsetElement;
-};
+Fieldset.register();

@@ -3,12 +3,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxGuideTooltipElement,
-  defineBoxGuideTooltipElement,
+  GuideTooltip,
 } from "../../../src/components/overlays/guide-tooltip.js";
 
-const create = (attrs: Record<string, string> = {}): BoxGuideTooltipElement => {
-  const element = document.createElement("box-guide-tooltip") as BoxGuideTooltipElement;
+const create = (attrs: Record<string, string> = {}): GuideTooltip => {
+  const element = document.createElement("box-guide-tooltip") as GuideTooltip;
   for (const [key, value] of Object.entries(attrs)) {
     element.setAttribute(key, value);
   }
@@ -16,12 +15,12 @@ const create = (attrs: Record<string, string> = {}): BoxGuideTooltipElement => {
   return element;
 };
 
-const callout = (element: BoxGuideTooltipElement): HTMLElement =>
+const callout = (element: GuideTooltip): HTMLElement =>
   element.shadowRoot?.querySelector('[part="callout"]') as HTMLElement;
 
-describe("BoxGuideTooltipElement", () => {
+describe("GuideTooltip", () => {
   beforeEach(() => {
-    defineBoxGuideTooltipElement();
+    GuideTooltip.register();
   });
 
   afterEach(() => {

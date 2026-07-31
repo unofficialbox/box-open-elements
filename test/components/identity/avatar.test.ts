@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
-  BoxAvatarElement,
-  defineBoxAvatarElement,
+  Avatar,
 } from "../../../src/components/identity/avatar.js";
 
-describe("BoxAvatarElement", () => {
+describe("Avatar", () => {
   beforeEach(() => {
-    defineBoxAvatarElement();
+    Avatar.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxAvatarElement", () => {
   });
 
   it("renders initials derived from the name", () => {
-    const element = document.createElement("box-avatar") as BoxAvatarElement;
+    const element = document.createElement("box-avatar") as Avatar;
     element.name = "Morgan Lee";
 
     document.body.append(element);
@@ -26,7 +25,7 @@ describe("BoxAvatarElement", () => {
   });
 
   it("renders an image when src is provided", () => {
-    const element = document.createElement("box-avatar") as BoxAvatarElement;
+    const element = document.createElement("box-avatar") as Avatar;
     element.src = "https://example.com/avatar.png";
     element.alt = "Profile photo";
 
@@ -38,7 +37,7 @@ describe("BoxAvatarElement", () => {
   });
 
   it("falls back to the default size for invalid size values", () => {
-    const element = document.createElement("box-avatar") as BoxAvatarElement;
+    const element = document.createElement("box-avatar") as Avatar;
     element.name = "Morgan Lee";
     element.setAttribute("size", "0");
 
@@ -51,7 +50,7 @@ describe("BoxAvatarElement", () => {
   });
 
   it("uses solid BUE avatar initials chrome by default", () => {
-    const element = document.createElement("box-avatar") as BoxAvatarElement;
+    const element = document.createElement("box-avatar") as Avatar;
     element.name = "Morgan Lee";
 
     document.body.append(element);
@@ -66,7 +65,7 @@ describe("BoxAvatarElement", () => {
   });
 
   it("scales initials font size with avatar size", () => {
-    const element = document.createElement("box-avatar") as BoxAvatarElement;
+    const element = document.createElement("box-avatar") as Avatar;
     element.name = "Morgan Lee";
     element.size = 80;
 
@@ -79,7 +78,7 @@ describe("BoxAvatarElement", () => {
   });
 
   it("shows initials when the image fails to load", () => {
-    const element = document.createElement("box-avatar") as BoxAvatarElement;
+    const element = document.createElement("box-avatar") as Avatar;
     element.name = "Morgan Lee";
     element.src = "https://example.com/missing.png";
 
@@ -93,7 +92,7 @@ describe("BoxAvatarElement", () => {
   });
 
   it("preserves errored image state when unrelated attributes change", () => {
-    const element = document.createElement("box-avatar") as BoxAvatarElement;
+    const element = document.createElement("box-avatar") as Avatar;
     element.name = "Morgan Lee";
     element.src = "https://example.com/missing.png";
 
@@ -113,7 +112,7 @@ describe("BoxAvatarElement", () => {
   });
 
   it("renders a corner badge only for online/external and removes it otherwise", () => {
-    const element = document.createElement("box-avatar") as BoxAvatarElement;
+    const element = document.createElement("box-avatar") as Avatar;
     element.name = "Morgan Lee";
     document.body.append(element);
 

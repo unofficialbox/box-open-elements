@@ -274,7 +274,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxBarChartElement extends BaseElement {
+export class BarChart extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["actions", "heading", "legend", "message", "points", "summary", "timeframe"];
   }
@@ -522,8 +523,4 @@ export class BoxBarChartElement extends BaseElement {
   }
 }
 
-export const defineBoxBarChartElement = (tagName = DEFAULT_TAG_NAME): void => {
-  if (!customElements.get(tagName)) {
-    customElements.define(tagName, BoxBarChartElement);
-  }
-};
+BarChart.register();

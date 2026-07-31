@@ -22,22 +22,22 @@ flowchart LR
 | Layer | Owns |
 | --- | --- |
 | Core (`src/`) | Custom elements, foundations, patterns — no React |
-| `@box-open-elements/react` | Thin wrappers: define element, sync props as properties, forward refs/events |
+| `@box-open-elements/react` | Thin wrappers: import registered elements, sync props as properties, forward refs/events |
 | App | Tokens registration, composition, data fetching |
 
 ## Validated surface
 
 | Export | Wraps |
 | --- | --- |
-| `BoxButton` | `<box-button>` |
-| `BoxTextField` | `<box-text-field>` value control + typed `onValueChanged` |
-| `BoxSelect` | `<box-select>` + structured `options` property + typed `onValueChanged` |
+| `Button` | `<box-button>` |
+| `TextField` | `<box-text-field>` value control + typed `onValueChanged` |
+| `Select` | `<box-select>` + structured `options` property + typed `onValueChanged` |
 | `createWebComponent` | Shared property/event/ref adapter factory |
 
 ## Usage
 
 ```ts
-import { BoxButton, BoxSelect, BoxTextField } from "@box-open-elements/react";
+import { Button, Select, TextField } from "@box-open-elements/react";
 import {
   applyDesignTokens,
   registerBoxDefaultDesignSystem,
@@ -46,15 +46,15 @@ import {
 registerBoxDefaultDesignSystem({ setActive: true });
 applyDesignTokens(document.documentElement, "box-default");
 
-<BoxButton label="Save" tone="primary" onClick={handleSave} />
+<Button label="Save" tone="primary" onClick={handleSave} />
 
-<BoxTextField
+<TextField
   label="Project name"
   value={projectName}
   onValueChanged={event => setProjectName(event.detail.value)}
 />
 
-<BoxSelect
+<Select
   label="Status"
   value={status}
   options={[{ label: "Draft", value: "draft" }]}

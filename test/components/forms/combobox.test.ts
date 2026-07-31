@@ -3,28 +3,27 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxComboboxElement,
-  defineBoxComboboxElement,
+  Combobox,
 } from "../../../src/components/forms/combobox.js";
 import { getMirroredFormValue } from "../../../src/core/index.js";
 
-describe("BoxComboboxElement", () => {
+describe("Combobox", () => {
   beforeEach(() => {
-    defineBoxComboboxElement();
+    Combobox.register();
   });
 
   afterEach(() => {
     document.body.innerHTML = "";
   });
 
-  const openListbox = (element: BoxComboboxElement): HTMLInputElement => {
+  const openListbox = (element: Combobox): HTMLInputElement => {
     const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
     input.dispatchEvent(new FocusEvent("focus"));
     return input;
   };
 
   it("renders options as an ARIA listbox when opened", () => {
-    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    const element = document.createElement("box-combobox") as Combobox;
     element.options = [
       { label: "Marketing", value: "marketing" },
       { label: "Finance", value: "finance" },
@@ -45,7 +44,7 @@ describe("BoxComboboxElement", () => {
   });
 
   it("filters options by typed text", () => {
-    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    const element = document.createElement("box-combobox") as Combobox;
     element.options = [
       { label: "Marketing", value: "marketing" },
       { label: "Finance", value: "finance" },
@@ -64,7 +63,7 @@ describe("BoxComboboxElement", () => {
   });
 
   it("navigates options with the keyboard via aria-activedescendant and selects on Enter", () => {
-    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    const element = document.createElement("box-combobox") as Combobox;
     const changed = vi.fn();
     element.options = [
       { label: "Marketing", value: "marketing" },
@@ -90,7 +89,7 @@ describe("BoxComboboxElement", () => {
   });
 
   it("renders group dividers and per-option descriptions", () => {
-    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    const element = document.createElement("box-combobox") as Combobox;
     element.options = [
       { label: "Morgan Lee", value: "morgan", description: "morgan@box.com", group: "People" },
       { label: "Alex Kim", value: "alex", description: "alex@box.com", group: "People" },
@@ -105,7 +104,7 @@ describe("BoxComboboxElement", () => {
   });
 
   it("selects an option on click", () => {
-    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    const element = document.createElement("box-combobox") as Combobox;
     element.options = [
       { label: "Marketing", value: "marketing" },
       { label: "Finance", value: "finance" },
@@ -120,7 +119,7 @@ describe("BoxComboboxElement", () => {
   });
 
   it("resolves option labels to option values on selection", () => {
-    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    const element = document.createElement("box-combobox") as Combobox;
     const changed = vi.fn();
     element.options = [
       { label: "Marketing", value: "marketing" },
@@ -144,7 +143,7 @@ describe("BoxComboboxElement", () => {
   });
 
   it("displays the option label when value is set programmatically", () => {
-    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    const element = document.createElement("box-combobox") as Combobox;
     element.options = [
       { label: "Marketing", value: "marketing" },
       { label: "Finance", value: "finance" },
@@ -159,7 +158,7 @@ describe("BoxComboboxElement", () => {
   });
 
   it("resolves labels to values on blur", () => {
-    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    const element = document.createElement("box-combobox") as Combobox;
     element.options = [{ label: "Marketing", value: "marketing" }];
     document.body.append(element);
 
@@ -172,7 +171,7 @@ describe("BoxComboboxElement", () => {
   });
 
   it("emits value changes as the input changes", () => {
-    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    const element = document.createElement("box-combobox") as Combobox;
     const changed = vi.fn();
     element.addEventListener("value-changed", changed);
 
@@ -191,7 +190,7 @@ describe("BoxComboboxElement", () => {
   });
 
   it("does not lose focus when label attribute changes while input is focused", () => {
-    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    const element = document.createElement("box-combobox") as Combobox;
     element.label = "Department";
     document.body.append(element);
 
@@ -204,7 +203,7 @@ describe("BoxComboboxElement", () => {
   });
 
   it("supports disabled attribute on the input", () => {
-    const element = document.createElement("box-combobox") as BoxComboboxElement;
+    const element = document.createElement("box-combobox") as Combobox;
     element.disabled = true;
     document.body.append(element);
 

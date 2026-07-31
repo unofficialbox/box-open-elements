@@ -1,10 +1,10 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
-import { defineBoxButtonElement } from "../../src/components/actions/button.js";
+import { Button } from "../../src/components/actions/button.js";
 
 describe("box-button", () => {
   beforeAll(() => {
-    defineBoxButtonElement();
+    Button.register();
   });
 
   const create = (): HTMLElement => {
@@ -88,6 +88,6 @@ describe("box-button", () => {
   });
 
   it("is idempotent to define twice", () => {
-    expect(() => defineBoxButtonElement()).not.toThrow();
+    expect(() => Button.register()).not.toThrow();
   });
 });

@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxTreeElement, defineBoxTreeElement } from "../../../src/components/collections/tree.js";
+import { Tree } from "../../../src/components/collections/tree.js";
 
-describe("BoxTreeElement", () => {
+describe("Tree", () => {
   beforeEach(() => {
-    defineBoxTreeElement();
+    Tree.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxTreeElement", () => {
   });
 
   it("renders nested items and expands top-level groups by default", () => {
-    const element = document.createElement("box-tree") as BoxTreeElement;
+    const element = document.createElement("box-tree") as Tree;
     element.items = [
       {
         label: "Navigation",
@@ -29,7 +29,7 @@ describe("BoxTreeElement", () => {
   });
 
   it("emits value changes for leaf selections", () => {
-    const element = document.createElement("box-tree") as BoxTreeElement;
+    const element = document.createElement("box-tree") as Tree;
     const changed = vi.fn();
     element.items = [
       {
@@ -53,7 +53,7 @@ describe("BoxTreeElement", () => {
   });
 
   it("preserves focus on the clicked item after selection", async () => {
-    const element = document.createElement("box-tree") as BoxTreeElement;
+    const element = document.createElement("box-tree") as Tree;
     element.items = [
       {
         label: "Navigation",
@@ -78,7 +78,7 @@ describe("BoxTreeElement", () => {
   });
 
   it("uses tree semantics and supports keyboard navigation", async () => {
-    const element = document.createElement("box-tree") as BoxTreeElement;
+    const element = document.createElement("box-tree") as Tree;
     element.items = [
       {
         label: "Navigation",
@@ -102,7 +102,7 @@ describe("BoxTreeElement", () => {
   });
 
   it("keeps selected and expanded tokenized parts queryable", () => {
-    const element = document.createElement("box-tree") as BoxTreeElement;
+    const element = document.createElement("box-tree") as Tree;
     element.items = [
       {
         label: "Navigation",
@@ -119,7 +119,7 @@ describe("BoxTreeElement", () => {
   });
 
   it("supports expand-all and collapse-all controls", () => {
-    const element = document.createElement("box-tree") as BoxTreeElement;
+    const element = document.createElement("box-tree") as Tree;
     element.items = [
       {
         label: "Navigation",
@@ -152,7 +152,7 @@ describe("BoxTreeElement", () => {
   });
 
   it("reseeds expanded state when items change", () => {
-    const element = document.createElement("box-tree") as BoxTreeElement;
+    const element = document.createElement("box-tree") as Tree;
     element.items = [
       {
         label: "Navigation",
@@ -182,7 +182,7 @@ describe("BoxTreeElement", () => {
   });
 
   it("does not auto-expand nested branches", () => {
-    const element = document.createElement("box-tree") as BoxTreeElement;
+    const element = document.createElement("box-tree") as Tree;
     element.items = [
       {
         label: "Navigation",

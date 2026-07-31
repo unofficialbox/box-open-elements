@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxGovernancePanelElement,
-  defineBoxGovernancePanelElement,
+  GovernancePanel,
 } from "../../../src/patterns/governance/governance-panel.js";
 
-describe("BoxGovernancePanelElement", () => {
+describe("GovernancePanel", () => {
   beforeEach(() => {
-    defineBoxGovernancePanelElement();
+    GovernancePanel.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxGovernancePanelElement", () => {
   });
 
   it("renders governance signals and policies", () => {
-    const element = document.createElement("box-governance-panel") as BoxGovernancePanelElement;
+    const element = document.createElement("box-governance-panel") as GovernancePanel;
     element.heading = "Governance";
     element.status = "Compliant";
     element.signals = [
@@ -36,7 +35,7 @@ describe("BoxGovernancePanelElement", () => {
   });
 
   it("emits action and policy-selected events", () => {
-    const element = document.createElement("box-governance-panel") as BoxGovernancePanelElement;
+    const element = document.createElement("box-governance-panel") as GovernancePanel;
     const action = vi.fn();
     const policySelected = vi.fn();
     element.actions = [

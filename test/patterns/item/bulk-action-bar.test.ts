@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxBulkActionBarElement,
-  defineBoxBulkActionBarElement,
+  BulkActionBar,
 } from "../../../src/patterns/item/bulk-action-bar.js";
 
-describe("BoxBulkActionBarElement", () => {
+describe("BulkActionBar", () => {
   beforeEach(() => {
-    defineBoxBulkActionBarElement();
+    BulkActionBar.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxBulkActionBarElement", () => {
   });
 
   it("renders the selection count and item labels", () => {
-    const element = document.createElement("box-bulk-action-bar") as BoxBulkActionBarElement;
+    const element = document.createElement("box-bulk-action-bar") as BulkActionBar;
     element.items = [
       { id: "1", label: "Brand Strategy.pdf", description: "PDF" },
       { id: "2", label: "Launch Plan", description: "Doc" },
@@ -31,7 +30,7 @@ describe("BoxBulkActionBarElement", () => {
   });
 
   it("emits action with count and items", () => {
-    const element = document.createElement("box-bulk-action-bar") as BoxBulkActionBarElement;
+    const element = document.createElement("box-bulk-action-bar") as BulkActionBar;
     const action = vi.fn();
     element.items = [{ id: "1", label: "Brand Strategy.pdf" }];
     element.actions = [
@@ -57,7 +56,7 @@ describe("BoxBulkActionBarElement", () => {
   });
 
   it("emits clear when the clear button is clicked", () => {
-    const element = document.createElement("box-bulk-action-bar") as BoxBulkActionBarElement;
+    const element = document.createElement("box-bulk-action-bar") as BulkActionBar;
     const clear = vi.fn();
     element.count = 3;
     element.addEventListener("clear", clear);
@@ -78,7 +77,7 @@ describe("BoxBulkActionBarElement", () => {
   });
 
   it("includes brand focus-visible and interactive states for actions", () => {
-    const element = document.createElement("box-bulk-action-bar") as BoxBulkActionBarElement;
+    const element = document.createElement("box-bulk-action-bar") as BulkActionBar;
     element.actions = [{ id: "share", label: "Share" }];
     document.body.append(element);
 

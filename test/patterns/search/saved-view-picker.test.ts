@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxSavedViewPickerElement,
-  defineBoxSavedViewPickerElement,
+  SavedViewPicker,
 } from "../../../src/patterns/search/saved-view-picker.js";
 
-describe("BoxSavedViewPickerElement", () => {
+describe("SavedViewPicker", () => {
   beforeEach(() => {
-    defineBoxSavedViewPickerElement();
+    SavedViewPicker.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxSavedViewPickerElement", () => {
   });
 
   it("renders saved views", () => {
-    const element = document.createElement("box-saved-view-picker") as BoxSavedViewPickerElement;
+    const element = document.createElement("box-saved-view-picker") as SavedViewPicker;
     element.views = [
       { id: "launch", label: "Launch Review", description: "Assets due this week", resultCount: 12 },
     ];
@@ -30,7 +29,7 @@ describe("BoxSavedViewPickerElement", () => {
   });
 
   it("emits value-changed when a view is selected", () => {
-    const element = document.createElement("box-saved-view-picker") as BoxSavedViewPickerElement;
+    const element = document.createElement("box-saved-view-picker") as SavedViewPicker;
     const changed = vi.fn();
     element.views = [
       { id: "launch", label: "Launch Review" },

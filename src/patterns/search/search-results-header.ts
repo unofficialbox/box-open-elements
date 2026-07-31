@@ -118,7 +118,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxSearchResultsHeaderElement extends BaseElement {
+export class SearchResultsHeader extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["actions", "filters", "label", "query", "result-count", "scope", "sort-label", "view-label"];
   }
@@ -334,14 +335,4 @@ export class BoxSearchResultsHeaderElement extends BaseElement {
   }
 }
 
-export const defineBoxSearchResultsHeaderElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxSearchResultsHeaderElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxSearchResultsHeaderElement;
-  }
-
-  customElements.define(tagName, BoxSearchResultsHeaderElement);
-  return BoxSearchResultsHeaderElement;
-};
+SearchResultsHeader.register();

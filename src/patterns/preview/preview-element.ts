@@ -185,7 +185,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxPreviewElement extends BaseElement {
+export class Preview extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   private providerAdapterValue: PreviewProviderAdapter | null = null;
 
   private providerAdapterUnsubscribe: (() => void) | null = null;
@@ -492,14 +493,4 @@ export class BoxPreviewElement extends BaseElement {
   }
 }
 
-export const defineBoxPreviewElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxPreviewElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxPreviewElement;
-  }
-
-  customElements.define(tagName, BoxPreviewElement);
-  return BoxPreviewElement;
-};
+Preview.register();

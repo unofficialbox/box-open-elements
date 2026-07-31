@@ -111,7 +111,8 @@ const toastStyles = `
   }
 `;
 
-export class BoxToastElement extends BaseElement {
+export class Toast extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["message", "open", "tone", "duration"];
   }
@@ -271,14 +272,4 @@ export class BoxToastElement extends BaseElement {
   }
 }
 
-export const defineBoxToastElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxToastElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxToastElement;
-  }
-
-  customElements.define(tagName, BoxToastElement);
-  return BoxToastElement;
-};
+Toast.register();

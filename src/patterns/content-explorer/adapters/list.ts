@@ -207,7 +207,8 @@ const elementStyles = `
         ${boeNeutralInteractiveStyles('[part="load-more"]')}
       `;
 
-export class BoxExplorerListElement extends BaseElement {
+export class ExplorerList extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["item-gesture"];
   }
@@ -592,14 +593,4 @@ export class BoxExplorerListElement extends BaseElement {
   }
 }
 
-export const defineBoxExplorerListElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxExplorerListElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxExplorerListElement;
-  }
-
-  customElements.define(tagName, BoxExplorerListElement);
-  return BoxExplorerListElement;
-};
+ExplorerList.register();

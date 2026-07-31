@@ -212,7 +212,8 @@ const treeStyles = `
   }
 `;
 
-export class BoxTreeElement extends BaseElement {
+export class Tree extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["items", "label", "value"];
   }
@@ -594,14 +595,4 @@ export class BoxTreeElement extends BaseElement {
   }
 }
 
-export const defineBoxTreeElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxTreeElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxTreeElement;
-  }
-
-  customElements.define(tagName, BoxTreeElement);
-  return BoxTreeElement;
-};
+Tree.register();

@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { BoxNavSidebarElement, defineBoxNavSidebarElement } from "../../../src/components/layout/nav-sidebar.js";
+import { NavSidebar } from "../../../src/components/layout/nav-sidebar.js";
 
-describe("BoxNavSidebarElement", () => {
+describe("NavSidebar", () => {
   beforeEach(() => {
-    defineBoxNavSidebarElement();
+    NavSidebar.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxNavSidebarElement", () => {
   });
 
   it("renders a labelled nav with header, body, and footer slots", () => {
-    const element = document.createElement("box-nav-sidebar") as BoxNavSidebarElement;
+    const element = document.createElement("box-nav-sidebar") as NavSidebar;
     document.body.append(element);
 
     const nav = element.shadowRoot?.querySelector('[part="sidebar"]');
@@ -27,7 +27,7 @@ describe("BoxNavSidebarElement", () => {
   });
 
   it("reflects a custom label onto the nav aria-label", () => {
-    const element = document.createElement("box-nav-sidebar") as BoxNavSidebarElement;
+    const element = document.createElement("box-nav-sidebar") as NavSidebar;
     element.label = "Workspace navigation";
     document.body.append(element);
 
@@ -37,7 +37,7 @@ describe("BoxNavSidebarElement", () => {
   });
 
   it("is expanded by default and reflects the collapsed state", () => {
-    const element = document.createElement("box-nav-sidebar") as BoxNavSidebarElement;
+    const element = document.createElement("box-nav-sidebar") as NavSidebar;
     document.body.append(element);
 
     expect(element.collapsed).toBe(false);
@@ -53,7 +53,7 @@ describe("BoxNavSidebarElement", () => {
   });
 
   it("collapses when the collapsed attribute is set declaratively", () => {
-    const element = document.createElement("box-nav-sidebar") as BoxNavSidebarElement;
+    const element = document.createElement("box-nav-sidebar") as NavSidebar;
     element.setAttribute("collapsed", "");
     document.body.append(element);
 
@@ -62,7 +62,7 @@ describe("BoxNavSidebarElement", () => {
   });
 
   it("exposes a collapsed icon-strip CSS contract for slotted nav rows", () => {
-    const element = document.createElement("box-nav-sidebar") as BoxNavSidebarElement;
+    const element = document.createElement("box-nav-sidebar") as NavSidebar;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -77,7 +77,7 @@ describe("BoxNavSidebarElement", () => {
   });
 
   it("provides styling hooks for grouped nav sections and dividers", () => {
-    const element = document.createElement("box-nav-sidebar") as BoxNavSidebarElement;
+    const element = document.createElement("box-nav-sidebar") as NavSidebar;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";

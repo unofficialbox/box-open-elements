@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxDualListboxElement,
-  defineBoxDualListboxElement,
+  DualListbox,
 } from "../../../src/components/forms/dual-listbox.js";
 
-describe("BoxDualListboxElement", () => {
+describe("DualListbox", () => {
   beforeEach(() => {
-    defineBoxDualListboxElement();
+    DualListbox.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxDualListboxElement", () => {
   });
 
   it("renders available and chosen lists", () => {
-    const element = document.createElement("box-dual-listbox") as BoxDualListboxElement;
+    const element = document.createElement("box-dual-listbox") as DualListbox;
     element.options = [
       { label: "Preview", value: "preview" },
       { label: "Download", value: "download" },
@@ -33,7 +32,7 @@ describe("BoxDualListboxElement", () => {
   });
 
   it("uses compact transfer column spacing", () => {
-    const element = document.createElement("box-dual-listbox") as BoxDualListboxElement;
+    const element = document.createElement("box-dual-listbox") as DualListbox;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -46,7 +45,7 @@ describe("BoxDualListboxElement", () => {
   });
 
   it("moves selected available options to the chosen list", () => {
-    const element = document.createElement("box-dual-listbox") as BoxDualListboxElement;
+    const element = document.createElement("box-dual-listbox") as DualListbox;
     const changed = vi.fn();
     element.options = [
       { label: "Preview", value: "preview" },
@@ -70,7 +69,7 @@ describe("BoxDualListboxElement", () => {
   });
 
   it("moves selected chosen options back to the available list", () => {
-    const element = document.createElement("box-dual-listbox") as BoxDualListboxElement;
+    const element = document.createElement("box-dual-listbox") as DualListbox;
     element.options = [
       { label: "Preview", value: "preview" },
       { label: "Download", value: "download" },
@@ -88,7 +87,7 @@ describe("BoxDualListboxElement", () => {
   });
 
   it("supports disabled state", () => {
-    const element = document.createElement("box-dual-listbox") as BoxDualListboxElement;
+    const element = document.createElement("box-dual-listbox") as DualListbox;
     element.options = [{ label: "Preview", value: "preview" }];
     element.disabled = true;
 
@@ -99,7 +98,7 @@ describe("BoxDualListboxElement", () => {
   });
 
   it("keeps option focus when toggling selection", () => {
-    const element = document.createElement("box-dual-listbox") as BoxDualListboxElement;
+    const element = document.createElement("box-dual-listbox") as DualListbox;
     element.options = [
       { label: "Preview", value: "preview" },
       { label: "Download", value: "download" },

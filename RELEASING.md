@@ -83,7 +83,7 @@ Consumers then install and import:
 npm i @unofficialbox/box-open-elements
 ```
 ```ts
-import { defineBoxButtonElement } from "@unofficialbox/box-open-elements";
+import { Button } from "@unofficialbox/box-open-elements";
 // or a subpath, e.g. "@unofficialbox/box-open-elements/foundations/tokens"
 ```
 

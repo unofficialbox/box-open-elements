@@ -133,7 +133,8 @@ const spinButtonStyles = `
   ${boeFormFieldErrorStyles}
 `;
 
-export class BoxSpinButtonElement extends FormAssociatedElement {
+export class SpinButton extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -385,14 +386,4 @@ export class BoxSpinButtonElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxSpinButtonElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxSpinButtonElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxSpinButtonElement;
-  }
-
-  customElements.define(tagName, BoxSpinButtonElement);
-  return BoxSpinButtonElement;
-};
+SpinButton.register();

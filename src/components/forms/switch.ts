@@ -119,7 +119,8 @@ const switchStyles = `
   ${boeFormFieldErrorStyles}
 `;
 
-export class BoxSwitchElement extends FormAssociatedElement {
+export class Switch extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -327,14 +328,4 @@ export class BoxSwitchElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxSwitchElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxSwitchElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxSwitchElement;
-  }
-
-  customElements.define(tagName, BoxSwitchElement);
-  return BoxSwitchElement;
-};
+Switch.register();

@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxFileRequestBuilderElement,
-  defineBoxFileRequestBuilderElement,
+  FileRequestBuilder,
 } from "../../../src/patterns/file-request/file-request-builder.js";
 
-describe("BoxFileRequestBuilderElement", () => {
+describe("FileRequestBuilder", () => {
   beforeEach(() => {
-    defineBoxFileRequestBuilderElement();
+    FileRequestBuilder.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxFileRequestBuilderElement", () => {
   });
 
   it("renders settings and upload fields", () => {
-    const element = document.createElement("box-file-request-builder") as BoxFileRequestBuilderElement;
+    const element = document.createElement("box-file-request-builder") as FileRequestBuilder;
     element.settings = [
       { id: "link-protection", label: "Require email", description: "Ask uploaders for their email before upload." },
     ];
@@ -33,7 +32,7 @@ describe("BoxFileRequestBuilderElement", () => {
   });
 
   it("emits value-changed when a setting is toggled", () => {
-    const element = document.createElement("box-file-request-builder") as BoxFileRequestBuilderElement;
+    const element = document.createElement("box-file-request-builder") as FileRequestBuilder;
     const changed = vi.fn();
     element.settings = [
       { id: "require-email", label: "Require email" },
@@ -54,7 +53,7 @@ describe("BoxFileRequestBuilderElement", () => {
   });
 
   it("emits action with the current builder value", () => {
-    const element = document.createElement("box-file-request-builder") as BoxFileRequestBuilderElement;
+    const element = document.createElement("box-file-request-builder") as FileRequestBuilder;
     const action = vi.fn();
     element.value = { "require-email": true };
     element.addEventListener("action", action);

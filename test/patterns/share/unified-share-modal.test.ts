@@ -3,8 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxUnifiedShareModalElement,
-  defineBoxUnifiedShareModalElement,
+  UnifiedShareModal,
 } from "../../../src/patterns/share/unified-share-modal.js";
 import type { ShareDataSource, ShareState } from "../../../src/patterns/share/contracts.js";
 
@@ -33,8 +32,8 @@ const createDataSource = (overrides: Partial<ShareDataSource> = {}): ShareDataSo
 
 const openModal = async (
   dataSource: ShareDataSource = createDataSource(),
-): Promise<BoxUnifiedShareModalElement> => {
-  const element = document.createElement("box-unified-share-modal") as BoxUnifiedShareModalElement;
+): Promise<UnifiedShareModal> => {
+  const element = document.createElement("box-unified-share-modal") as UnifiedShareModal;
   element.dataSource = dataSource;
   element.itemId = "42";
   element.open = true;
@@ -45,9 +44,9 @@ const openModal = async (
   return element;
 };
 
-describe("BoxUnifiedShareModalElement", () => {
+describe("UnifiedShareModal", () => {
   beforeEach(() => {
-    defineBoxUnifiedShareModalElement();
+    UnifiedShareModal.register();
   });
 
   afterEach(() => {
@@ -218,7 +217,7 @@ describe("BoxUnifiedShareModalElement", () => {
         throw new Error("offline");
       }),
     });
-    const element = document.createElement("box-unified-share-modal") as BoxUnifiedShareModalElement;
+    const element = document.createElement("box-unified-share-modal") as UnifiedShareModal;
     element.dataSource = dataSource;
     element.itemId = "42";
     element.open = true;

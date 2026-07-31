@@ -284,7 +284,8 @@ const initials = (name: string): string => {
  * `linkcopied` after a successful copy, and `close` on dismissal. Structure is
  * built once per open so the tab controls keep focus while the body re-renders.
  */
-export class BoxUnifiedShareModalElement extends BaseElement {
+export class UnifiedShareModal extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["heading", "item-id", "item-type", "open"];
   }
@@ -721,14 +722,4 @@ export class BoxUnifiedShareModalElement extends BaseElement {
   }
 }
 
-export const defineBoxUnifiedShareModalElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxUnifiedShareModalElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxUnifiedShareModalElement;
-  }
-
-  customElements.define(tagName, BoxUnifiedShareModalElement);
-  return BoxUnifiedShareModalElement;
-};
+UnifiedShareModal.register();

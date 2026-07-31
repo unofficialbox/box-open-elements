@@ -168,7 +168,8 @@ const buttonStyles = `
 
 export type ButtonType = "button" | "submit" | "reset";
 
-export class BoxButtonElement extends BaseElement {
+export class Button extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static formAssociated = true;
 
   static get observedAttributes(): string[] {
@@ -312,14 +313,4 @@ export class BoxButtonElement extends BaseElement {
   }
 }
 
-export const defineBoxButtonElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxButtonElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxButtonElement;
-  }
-
-  customElements.define(tagName, BoxButtonElement);
-  return BoxButtonElement;
-};
+Button.register();

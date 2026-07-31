@@ -134,7 +134,8 @@ const multiSelectStyles = `
   ${boeFormFieldErrorStyles}
 `;
 
-export class BoxMultiSelectElement extends FormAssociatedElement {
+export class MultiSelect extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -303,14 +304,4 @@ export class BoxMultiSelectElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxMultiSelectElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxMultiSelectElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxMultiSelectElement;
-  }
-
-  customElements.define(tagName, BoxMultiSelectElement);
-  return BoxMultiSelectElement;
-};
+MultiSelect.register();

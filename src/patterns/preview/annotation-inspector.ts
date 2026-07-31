@@ -230,7 +230,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxAnnotationInspectorElement extends BaseElement {
+export class AnnotationInspector extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["actions", "annotation", "heading", "message"];
   }
@@ -441,14 +442,4 @@ export class BoxAnnotationInspectorElement extends BaseElement {
   }
 }
 
-export const defineBoxAnnotationInspectorElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxAnnotationInspectorElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxAnnotationInspectorElement;
-  }
-
-  customElements.define(tagName, BoxAnnotationInspectorElement);
-  return BoxAnnotationInspectorElement;
-};
+AnnotationInspector.register();

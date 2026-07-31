@@ -73,7 +73,7 @@ Full catalog parity with the reference repo, plus every scoped gap the research 
 - `src/patterns/content-explorer` — the full headless explorer stack (collection, navigation, selection, actions, facade controller, data-source contracts, Box transport, wire schemas) plus the `box-explorer-*` presentation adapters and the composed `box-content-explorer` surface
 - `src/patterns/{search,item,metadata,share,preview,file-request,task,governance,insights}` — all nine composition/workflow areas, including contracts and wire schemas for metadata and share, the provider-neutral preview adapter stack, the pluggable `box-preview-element`, and the share workflows (`box-presence`, `box-invite-collaborators-modal`, `box-unified-share-modal`, `box-access-stats`, `box-collaborator-avatars`)
 - `packages/box-server` — a dependency-free server-side adapter: CCG auth + REST client, Box-backed explorer/share/metadata data sources, DTO mappers, and framework-neutral route handlers (see [docs/integration/box-server.md](./docs/integration/box-server.md))
-- `packages/react` — optional React wrappers (`@box-open-elements/react`); the validated surface ships `BoxButton`, `BoxTextField`, and `BoxSelect`. React, Angular, Vue, and Svelte progress is tracked in [docs/integration/framework-adapters.md](./docs/integration/framework-adapters.md).
+- `packages/react` — optional React wrappers (`@box-open-elements/react`); the validated surface ships `Button`, `TextField`, and `Select`. React, Angular, Vue, and Svelte progress is tracked in [docs/integration/framework-adapters.md](./docs/integration/framework-adapters.md).
 - `storybook/` — a Bun-native workshop: typed stories → identity-guarded extracted JSON → a self-contained, separately-deployable static site, with no Storybook/Vite runtime or consumer dependency (see [storybook/README.md](./storybook/README.md))
 - Docs site + CI — live GitHub Pages deploy, Storybook-backed variant dropdown, and a strict pixel-diff visual-regression gate in CI
 
@@ -87,11 +87,10 @@ Everything in the [components catalog](./docs/components/catalog.md) and [patter
 import {
   createThemeController,
 } from "@unofficialbox/box-open-elements/foundations/theming";
-import { defineBoxButtonElement } from "@unofficialbox/box-open-elements/components/actions/button";
+import { Button } from "@unofficialbox/box-open-elements";
 
 const theme = createThemeController();
 theme.start();
-defineBoxButtonElement();
 ```
 
 ```html
@@ -122,10 +121,18 @@ Workflow patterns begin as headless behavior and gain presentation adapters, so 
 - root exports: `@unofficialbox/box-open-elements`
 - shared runtime: `@unofficialbox/box-open-elements/core`
 - foundations: `@unofficialbox/box-open-elements/foundations/<module>`
-- components: `@unofficialbox/box-open-elements/components/<category>/<name>`
+- optimized component entrypoints: `@unofficialbox/box-open-elements/<name>`
 - patterns: `@unofficialbox/box-open-elements/patterns/<area>` and `@unofficialbox/box-open-elements/patterns/<area>/<module>`
 
-New exports follow the wildcard contract by default instead of adding explicit `package.json` entries. See [docs/api-guidelines.md](./docs/api-guidelines.md).
+The root entrypoint is the concise convenience API and registers the full
+catalog. Flat component entrypoints register only the imported component:
+
+```ts
+import { Accordion, Avatar, Button, Switch } from "@unofficialbox/box-open-elements";
+import { TextField } from "@unofficialbox/box-open-elements/text-field";
+```
+
+See [docs/api-guidelines.md](./docs/api-guidelines.md).
 
 ## Documentation
 

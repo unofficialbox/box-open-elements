@@ -3,14 +3,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxDropdownElement,
-  defineBoxDropdownElement,
+  Dropdown,
 } from "../../../src/components/forms/dropdown.js";
 import { getMirroredFormValue } from "../../../src/core/index.js";
 
-describe("BoxDropdownElement", () => {
+describe("Dropdown", () => {
   beforeEach(() => {
-    defineBoxDropdownElement();
+    Dropdown.register();
   });
 
   afterEach(() => {
@@ -18,7 +17,7 @@ describe("BoxDropdownElement", () => {
   });
 
   it("renders items and emits value changes", () => {
-    const element = document.createElement("box-dropdown") as BoxDropdownElement;
+    const element = document.createElement("box-dropdown") as Dropdown;
     const changed = vi.fn();
     element.items = [
       { id: "list", label: "List" },
@@ -42,7 +41,7 @@ describe("BoxDropdownElement", () => {
   });
 
   it("positions the open menu as a fixed overlay and clears it on close", () => {
-    const element = document.createElement("box-dropdown") as BoxDropdownElement;
+    const element = document.createElement("box-dropdown") as Dropdown;
     element.items = [
       { id: "list", label: "List" },
       { id: "table", label: "Table" },
@@ -65,7 +64,7 @@ describe("BoxDropdownElement", () => {
   });
 
   it("does not open when disabled", () => {
-    const element = document.createElement("box-dropdown") as BoxDropdownElement;
+    const element = document.createElement("box-dropdown") as Dropdown;
     element.items = [
       { id: "list", label: "List" },
       { id: "table", label: "Table" },
@@ -81,7 +80,7 @@ describe("BoxDropdownElement", () => {
   });
 
   it("opens from keyboard on ArrowDown", () => {
-    const element = document.createElement("box-dropdown") as BoxDropdownElement;
+    const element = document.createElement("box-dropdown") as Dropdown;
     element.items = [
       { id: "list", label: "List" },
       { id: "table", label: "Table" },
@@ -96,7 +95,7 @@ describe("BoxDropdownElement", () => {
   });
 
   it("exposes listbox/option roles and moves focus with ArrowDown", async () => {
-    const element = document.createElement("box-dropdown") as BoxDropdownElement;
+    const element = document.createElement("box-dropdown") as Dropdown;
     element.items = [
       { id: "list", label: "List" },
       { id: "table", label: "Table" },
@@ -128,7 +127,7 @@ describe("BoxDropdownElement", () => {
   });
 
   it("closes on Escape and restores focus to the trigger", async () => {
-    const element = document.createElement("box-dropdown") as BoxDropdownElement;
+    const element = document.createElement("box-dropdown") as Dropdown;
     element.items = [
       { id: "list", label: "List" },
       { id: "table", label: "Table" },
@@ -151,7 +150,7 @@ describe("BoxDropdownElement", () => {
   });
 
   it("includes focus-visible and hover styles for trigger and items", () => {
-    const element = document.createElement("box-dropdown") as BoxDropdownElement;
+    const element = document.createElement("box-dropdown") as Dropdown;
     element.items = [
       { id: "list", label: "List" },
       { id: "table", label: "Table" },
@@ -169,7 +168,7 @@ describe("BoxDropdownElement", () => {
   });
 
   it("mirrors selected item id for form submission", () => {
-    const element = document.createElement("box-dropdown") as BoxDropdownElement;
+    const element = document.createElement("box-dropdown") as Dropdown;
     element.name = "view";
     element.items = [
       { id: "list", label: "List" },
@@ -186,7 +185,7 @@ describe("BoxDropdownElement", () => {
   });
 
   it("exposes invalid state on the trigger button", () => {
-    const element = document.createElement("box-dropdown") as BoxDropdownElement;
+    const element = document.createElement("box-dropdown") as Dropdown;
     element.invalid = true;
     element.errorMessage = "Choose a view";
     document.body.append(element);

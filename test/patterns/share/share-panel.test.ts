@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxSharePanelElement, defineBoxSharePanelElement } from "../../../src/patterns/share/share-panel.js";
+import { SharePanel } from "../../../src/patterns/share/share-panel.js";
 
-describe("BoxSharePanelElement", () => {
+describe("SharePanel", () => {
   beforeEach(() => {
-    defineBoxSharePanelElement();
+    SharePanel.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxSharePanelElement", () => {
   });
 
   it("renders shared link, settings, and collaborators", () => {
-    const element = document.createElement("box-share-panel") as BoxSharePanelElement;
+    const element = document.createElement("box-share-panel") as SharePanel;
     element.heading = "Share";
     element.sharedLink = {
       access: "Company",
@@ -39,7 +39,7 @@ describe("BoxSharePanelElement", () => {
   });
 
   it("emits action and collaborator-selected events", () => {
-    const element = document.createElement("box-share-panel") as BoxSharePanelElement;
+    const element = document.createElement("box-share-panel") as SharePanel;
     const action = vi.fn();
     const collaboratorSelected = vi.fn();
     element.sharedLink = {
@@ -79,7 +79,7 @@ describe("BoxSharePanelElement", () => {
   });
 
   it("preserves shared-link focus across unrelated attribute updates", () => {
-    const element = document.createElement("box-share-panel") as BoxSharePanelElement;
+    const element = document.createElement("box-share-panel") as SharePanel;
     element.sharedLink = {
       access: "Open",
       url: "https://box.dev/s/share",

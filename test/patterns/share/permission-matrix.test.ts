@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxPermissionMatrixElement,
-  defineBoxPermissionMatrixElement,
+  PermissionMatrix,
 } from "../../../src/patterns/share/permission-matrix.js";
 
-describe("BoxPermissionMatrixElement", () => {
+describe("PermissionMatrix", () => {
   beforeEach(() => {
-    defineBoxPermissionMatrixElement();
+    PermissionMatrix.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxPermissionMatrixElement", () => {
   });
 
   it("renders subjects and selected roles", () => {
-    const element = document.createElement("box-permission-matrix") as BoxPermissionMatrixElement;
+    const element = document.createElement("box-permission-matrix") as PermissionMatrix;
     element.label = "Permissions";
     element.options = [
       { label: "Viewer", value: "viewer" },
@@ -39,7 +38,7 @@ describe("BoxPermissionMatrixElement", () => {
   });
 
   it("emits value-changed and subject-role-changed", () => {
-    const element = document.createElement("box-permission-matrix") as BoxPermissionMatrixElement;
+    const element = document.createElement("box-permission-matrix") as PermissionMatrix;
     const valueChanged = vi.fn();
     const roleChanged = vi.fn();
     element.options = [
@@ -74,7 +73,7 @@ describe("BoxPermissionMatrixElement", () => {
   });
 
   it("defines sr-only styles for visually hidden select labels", () => {
-    const element = document.createElement("box-permission-matrix") as BoxPermissionMatrixElement;
+    const element = document.createElement("box-permission-matrix") as PermissionMatrix;
     element.options = [{ label: "Viewer", value: "viewer" }];
     element.subjects = [{ id: "1", name: "Morgan Lee" }];
 

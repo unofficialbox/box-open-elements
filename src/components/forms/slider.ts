@@ -73,7 +73,8 @@ const sliderStyles = `
   ${boeFormFieldErrorStyles}
 `;
 
-export class BoxSliderElement extends FormAssociatedElement {
+export class Slider extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -250,14 +251,4 @@ export class BoxSliderElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxSliderElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxSliderElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxSliderElement;
-  }
-
-  customElements.define(tagName, BoxSliderElement);
-  return BoxSliderElement;
-};
+Slider.register();

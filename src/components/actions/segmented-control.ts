@@ -82,7 +82,8 @@ const segmentedControlStyles = `
   }
 `;
 
-export class BoxSegmentedControlElement extends BaseElement {
+export class SegmentedControl extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["disabled", "label", "layout", "options", "value"];
   }
@@ -317,14 +318,4 @@ export class BoxSegmentedControlElement extends BaseElement {
   }
 }
 
-export const defineBoxSegmentedControlElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxSegmentedControlElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxSegmentedControlElement;
-  }
-
-  customElements.define(tagName, BoxSegmentedControlElement);
-  return BoxSegmentedControlElement;
-};
+SegmentedControl.register();

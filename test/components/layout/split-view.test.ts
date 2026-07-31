@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxSplitViewElement, defineBoxSplitViewElement } from "../../../src/components/layout/split-view.js";
+import { SplitView } from "../../../src/components/layout/split-view.js";
 
-describe("BoxSplitViewElement", () => {
+describe("SplitView", () => {
   beforeEach(() => {
-    defineBoxSplitViewElement();
+    SplitView.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxSplitViewElement", () => {
   });
 
   it("renders primary and secondary slots inside the split surface", () => {
-    const element = document.createElement("box-split-view") as BoxSplitViewElement;
+    const element = document.createElement("box-split-view") as SplitView;
     element.label = "Review Split";
     element.ratio = 0.4;
 
@@ -26,7 +26,7 @@ describe("BoxSplitViewElement", () => {
   });
 
   it("renders a separator and updates ratio when resizable", () => {
-    const element = document.createElement("box-split-view") as BoxSplitViewElement;
+    const element = document.createElement("box-split-view") as SplitView;
     element.label = "Review Split";
     element.ratio = 0.4;
     element.resizable = true;
@@ -52,7 +52,7 @@ describe("BoxSplitViewElement", () => {
   });
 
   it("emits ratio-changed while resizing via pointer", () => {
-    const element = document.createElement("box-split-view") as BoxSplitViewElement;
+    const element = document.createElement("box-split-view") as SplitView;
     element.resizable = true;
     element.ratio = 0.4;
     const changed = vi.fn();
@@ -83,7 +83,7 @@ describe("BoxSplitViewElement", () => {
   });
 
   it("keeps the same separator node when ratio changes during a drag", () => {
-    const element = document.createElement("box-split-view") as BoxSplitViewElement;
+    const element = document.createElement("box-split-view") as SplitView;
     element.resizable = true;
     element.ratio = 0.4;
     document.body.append(element);

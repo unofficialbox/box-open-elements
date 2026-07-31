@@ -64,7 +64,8 @@ const dividerStyles = `
   }
 `;
 
-export class BoxDividerElement extends BaseElement {
+export class Divider extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["label", "orientation"];
   }
@@ -124,14 +125,4 @@ export class BoxDividerElement extends BaseElement {
   }
 }
 
-export const defineBoxDividerElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxDividerElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxDividerElement;
-  }
-
-  customElements.define(tagName, BoxDividerElement);
-  return BoxDividerElement;
-};
+Divider.register();

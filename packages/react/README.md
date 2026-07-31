@@ -4,7 +4,7 @@ Optional React wrappers for [`box-open-elements`](../..) Web Components.
 
 The core package stays framework-agnostic. This adapter is a thin layer that:
 
-1. registers the custom element
+1. imports the automatically registered custom element
 2. syncs React props onto element **properties** (not fragile attribute stringification)
 3. forwards refs and DOM events
 
@@ -20,7 +20,7 @@ bun add react react-dom
 ```
 
 ```ts
-import { BoxButton, BoxSelect, BoxTextField } from "@box-open-elements/react";
+import { Button, Select, TextField } from "@box-open-elements/react";
 import {
   applyDesignTokens,
   registerBoxDefaultDesignSystem,
@@ -32,13 +32,13 @@ applyDesignTokens(document.documentElement, "box-default");
 export function SaveAction() {
   return (
     <>
-      <BoxTextField label="Project" value="Apollo" />
-      <BoxSelect
+      <TextField label="Project" value="Apollo" />
+      <Select
         label="Status"
         value="draft"
         options={[{ label: "Draft", value: "draft" }]}
       />
-      <BoxButton label="Save" tone="primary" onClick={() => console.log("saved")} />
+      <Button label="Save" tone="primary" onClick={() => console.log("saved")} />
     </>
   );
 }
@@ -46,7 +46,7 @@ export function SaveAction() {
 
 ## Status
 
-**Validated** — `BoxButton`, `BoxTextField`, and `BoxSelect` prove native and
+**Validated** — `Button`, `TextField`, and `Select` prove native and
 composed events, value and structured property synchronization, latest callback
 routing, and forwarded element refs. The next Beta proof is an overlay plus one
 headless controller composition and explicit SSR/hydration guidance.

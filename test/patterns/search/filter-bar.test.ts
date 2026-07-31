@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxFilterBarElement, defineBoxFilterBarElement } from "../../../src/patterns/search/filter-bar.js";
+import { FilterBar } from "../../../src/patterns/search/filter-bar.js";
 
-describe("BoxFilterBarElement", () => {
+describe("FilterBar", () => {
   beforeEach(() => {
-    defineBoxFilterBarElement();
+    FilterBar.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxFilterBarElement", () => {
   });
 
   it("emits value-changed when the search query changes", () => {
-    const element = document.createElement("box-filter-bar") as BoxFilterBarElement;
+    const element = document.createElement("box-filter-bar") as FilterBar;
     const changed = vi.fn();
     element.addEventListener("value-changed", changed);
 
@@ -42,7 +42,7 @@ describe("BoxFilterBarElement", () => {
   });
 
   it("emits value-changed when sort and view change", () => {
-    const element = document.createElement("box-filter-bar") as BoxFilterBarElement;
+    const element = document.createElement("box-filter-bar") as FilterBar;
     const changed = vi.fn();
     element.sortOptions = [
       { label: "Updated", value: "updated" },
@@ -75,7 +75,7 @@ describe("BoxFilterBarElement", () => {
   });
 
   it("toggles filter chips", () => {
-    const element = document.createElement("box-filter-bar") as BoxFilterBarElement;
+    const element = document.createElement("box-filter-bar") as FilterBar;
     element.filterOptions = [
       { label: "Owned by me", value: "mine" },
       { label: "Shared externally", value: "shared" },
@@ -90,7 +90,7 @@ describe("BoxFilterBarElement", () => {
   });
 
   it("emits search on query change commit", () => {
-    const element = document.createElement("box-filter-bar") as BoxFilterBarElement;
+    const element = document.createElement("box-filter-bar") as FilterBar;
     const searched = vi.fn();
     element.addEventListener("search", searched);
 
@@ -103,7 +103,7 @@ describe("BoxFilterBarElement", () => {
   });
 
   it("keeps the same input focused while typing", () => {
-    const element = document.createElement("box-filter-bar") as BoxFilterBarElement;
+    const element = document.createElement("box-filter-bar") as FilterBar;
 
     document.body.append(element);
 
@@ -124,7 +124,7 @@ describe("BoxFilterBarElement", () => {
   });
 
   it("keeps chip focus when toggling filters", () => {
-    const element = document.createElement("box-filter-bar") as BoxFilterBarElement;
+    const element = document.createElement("box-filter-bar") as FilterBar;
     element.filterOptions = [
       { label: "Owned by me", value: "mine" },
       { label: "Shared externally", value: "shared" },
@@ -148,7 +148,7 @@ describe("BoxFilterBarElement", () => {
   });
 
   it("preserves search focus across unrelated attribute updates", () => {
-    const element = document.createElement("box-filter-bar") as BoxFilterBarElement;
+    const element = document.createElement("box-filter-bar") as FilterBar;
     element.filterOptions = [{ label: "Mine", value: "mine" }];
     document.body.append(element);
 
@@ -165,7 +165,7 @@ describe("BoxFilterBarElement", () => {
   });
 
   it("includes brand focus-visible and interactive states for controls", () => {
-    const element = document.createElement("box-filter-bar") as BoxFilterBarElement;
+    const element = document.createElement("box-filter-bar") as FilterBar;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";

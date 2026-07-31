@@ -117,7 +117,8 @@ const checkboxGroupStyles = `
   ${boeFormFieldErrorStyles}
 `;
 
-export class BoxCheckboxGroupElement extends FormAssociatedElement {
+export class CheckboxGroup extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -306,14 +307,4 @@ export class BoxCheckboxGroupElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxCheckboxGroupElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxCheckboxGroupElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxCheckboxGroupElement;
-  }
-
-  customElements.define(tagName, BoxCheckboxGroupElement);
-  return BoxCheckboxGroupElement;
-};
+CheckboxGroup.register();

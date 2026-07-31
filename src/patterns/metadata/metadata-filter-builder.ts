@@ -114,7 +114,8 @@ const builderStyles = `
   }
 `;
 
-export class BoxMetadataFilterBuilderElement extends BaseElement {
+export class MetadataFilterBuilder extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["fields", "label", "rules"];
   }
@@ -423,14 +424,4 @@ export class BoxMetadataFilterBuilderElement extends BaseElement {
   }
 }
 
-export const defineBoxMetadataFilterBuilderElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxMetadataFilterBuilderElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxMetadataFilterBuilderElement;
-  }
-
-  customElements.define(tagName, BoxMetadataFilterBuilderElement);
-  return BoxMetadataFilterBuilderElement;
-};
+MetadataFilterBuilder.register();

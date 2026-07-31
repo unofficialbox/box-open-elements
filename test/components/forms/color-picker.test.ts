@@ -3,14 +3,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxColorPickerElement,
-  defineBoxColorPickerElement,
+  ColorPicker,
 } from "../../../src/components/forms/color-picker.js";
 import { getMirroredFormValue } from "../../../src/core/index.js";
 
-describe("BoxColorPickerElement", () => {
+describe("ColorPicker", () => {
   beforeEach(() => {
-    defineBoxColorPickerElement();
+    ColorPicker.register();
   });
 
   afterEach(() => {
@@ -18,7 +17,7 @@ describe("BoxColorPickerElement", () => {
   });
 
   it("renders the current color value and label", () => {
-    const element = document.createElement("box-color-picker") as BoxColorPickerElement;
+    const element = document.createElement("box-color-picker") as ColorPicker;
     element.label = "Accent Color";
     element.value = "#ff6600";
 
@@ -31,7 +30,7 @@ describe("BoxColorPickerElement", () => {
   });
 
   it("emits value-changed from the native color input", () => {
-    const element = document.createElement("box-color-picker") as BoxColorPickerElement;
+    const element = document.createElement("box-color-picker") as ColorPicker;
     const changed = vi.fn();
     element.addEventListener("value-changed", changed);
 
@@ -52,7 +51,7 @@ describe("BoxColorPickerElement", () => {
   });
 
   it("supports swatch selection", () => {
-    const element = document.createElement("box-color-picker") as BoxColorPickerElement;
+    const element = document.createElement("box-color-picker") as ColorPicker;
     element.swatches = [
       { label: "Sky", value: "#38bdf8" },
       { label: "Mint", value: "#22c55e" },
@@ -69,7 +68,7 @@ describe("BoxColorPickerElement", () => {
   });
 
   it("supports disabled state", () => {
-    const element = document.createElement("box-color-picker") as BoxColorPickerElement;
+    const element = document.createElement("box-color-picker") as ColorPicker;
     element.disabled = true;
 
     document.body.append(element);
@@ -79,7 +78,7 @@ describe("BoxColorPickerElement", () => {
   });
 
   it("mirrors the hex form value and invalid state", () => {
-    const element = document.createElement("box-color-picker") as BoxColorPickerElement;
+    const element = document.createElement("box-color-picker") as ColorPicker;
     element.name = "accent";
     element.value = "#22c55e";
     element.invalid = true;

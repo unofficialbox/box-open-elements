@@ -58,7 +58,8 @@ const progressRingStyles = `
   }
 `;
 
-export class BoxProgressRingElement extends BaseElement {
+export class ProgressRing extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["label", "max", "size", "value"];
   }
@@ -167,14 +168,4 @@ export class BoxProgressRingElement extends BaseElement {
   }
 }
 
-export const defineBoxProgressRingElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxProgressRingElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxProgressRingElement;
-  }
-
-  customElements.define(tagName, BoxProgressRingElement);
-  return BoxProgressRingElement;
-};
+ProgressRing.register();

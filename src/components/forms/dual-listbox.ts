@@ -194,7 +194,8 @@ const dualListboxStyles = `
   ${boeFormFieldErrorStyles}
 `;
 
-export class BoxDualListboxElement extends FormAssociatedElement {
+export class DualListbox extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -536,14 +537,4 @@ export class BoxDualListboxElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxDualListboxElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxDualListboxElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxDualListboxElement;
-  }
-
-  customElements.define(tagName, BoxDualListboxElement);
-  return BoxDualListboxElement;
-};
+DualListbox.register();

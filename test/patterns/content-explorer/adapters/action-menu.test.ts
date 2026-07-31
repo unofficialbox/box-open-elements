@@ -4,8 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ContentExplorerController } from "../../../../src/patterns/content-explorer/controller.js";
 import {
-  BoxExplorerActionMenuElement,
-  defineBoxExplorerActionMenuElement,
+  ExplorerActionMenu,
 } from "../../../../src/patterns/content-explorer/adapters/action-menu.js";
 import type { ExplorerTransport, ExplorerTransportResult } from "../../../../src/patterns/content-explorer/types.js";
 
@@ -28,9 +27,9 @@ const flushMicrotasks = async (): Promise<void> => {
   await Promise.resolve();
 };
 
-describe("BoxExplorerActionMenuElement", () => {
+describe("ExplorerActionMenu", () => {
   beforeEach(() => {
-    defineBoxExplorerActionMenuElement();
+    ExplorerActionMenu.register();
   });
 
   afterEach(() => {
@@ -51,7 +50,7 @@ describe("BoxExplorerActionMenuElement", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-action-menu") as BoxExplorerActionMenuElement;
+    const element = document.createElement("box-explorer-action-menu") as ExplorerActionMenu;
     const invoked = vi.fn();
     element.controller = controller;
     element.itemId = "1";
@@ -93,7 +92,7 @@ describe("BoxExplorerActionMenuElement", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-action-menu") as BoxExplorerActionMenuElement;
+    const element = document.createElement("box-explorer-action-menu") as ExplorerActionMenu;
     element.controller = controller;
     element.itemId = "1";
     document.body.append(element);
@@ -125,7 +124,7 @@ describe("BoxExplorerActionMenuElement", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-action-menu") as BoxExplorerActionMenuElement;
+    const element = document.createElement("box-explorer-action-menu") as ExplorerActionMenu;
     element.controller = controller;
     element.itemId = "1";
     document.body.append(element);

@@ -136,7 +136,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxMetadataInspectorElement extends BaseElement {
+export class MetadataInspector extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["eyebrow", "heading", "message", "sections"];
   }
@@ -285,15 +286,4 @@ export class BoxMetadataInspectorElement extends BaseElement {
   }
 }
 
-export const defineBoxMetadataInspectorElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxMetadataInspectorElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxMetadataInspectorElement;
-  }
-
-  customElements.define(tagName, BoxMetadataInspectorElement);
-  return BoxMetadataInspectorElement;
-};
-
+MetadataInspector.register();

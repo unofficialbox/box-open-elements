@@ -130,7 +130,8 @@ const elementStyles = `
 
       `;
 
-export class BoxFilterBarElement extends BaseElement {
+export class FilterBar extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["filter-options", "filters", "label", "query", "sort-options", "sort-value", "view-options", "view-value"];
   }
@@ -442,14 +443,4 @@ export class BoxFilterBarElement extends BaseElement {
   }
 }
 
-export const defineBoxFilterBarElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxFilterBarElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxFilterBarElement;
-  }
-
-  customElements.define(tagName, BoxFilterBarElement);
-  return BoxFilterBarElement;
-};
+FilterBar.register();

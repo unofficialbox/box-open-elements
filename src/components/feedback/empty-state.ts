@@ -58,7 +58,8 @@ const emptyStateStyles = `
   }
 `;
 
-export class BoxEmptyStateElement extends BaseElement {
+export class EmptyState extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["action-label", "description", "heading", "message"];
   }
@@ -147,14 +148,4 @@ export class BoxEmptyStateElement extends BaseElement {
   }
 }
 
-export const defineBoxEmptyStateElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxEmptyStateElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxEmptyStateElement;
-  }
-
-  customElements.define(tagName, BoxEmptyStateElement);
-  return BoxEmptyStateElement;
-};
+EmptyState.register();

@@ -2,7 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxPillCloudElement, defineBoxPillCloudElement } from "../../../src/components/forms/pill-cloud.js";
+import { PillCloud } from "../../../src/components/forms/pill-cloud.js";
 
 const sampleOptions = [
   { value: "pdf", label: "PDF" },
@@ -10,19 +10,19 @@ const sampleOptions = [
   { value: "img", label: "Images", disabled: true },
 ];
 
-const createCloud = (): BoxPillCloudElement => {
-  const element = document.createElement("box-pill-cloud") as BoxPillCloudElement;
+const createCloud = (): PillCloud => {
+  const element = document.createElement("box-pill-cloud") as PillCloud;
   element.options = sampleOptions;
   document.body.append(element);
   return element;
 };
 
-const pillFor = (element: BoxPillCloudElement, value: string): HTMLButtonElement =>
+const pillFor = (element: PillCloud, value: string): HTMLButtonElement =>
   element.shadowRoot?.querySelector(`[part~="pill"][data-value="${value}"]`) as HTMLButtonElement;
 
-describe("BoxPillCloudElement", () => {
+describe("PillCloud", () => {
   beforeEach(() => {
-    defineBoxPillCloudElement();
+    PillCloud.register();
   });
 
   afterEach(() => {
@@ -59,7 +59,7 @@ describe("BoxPillCloudElement", () => {
   });
 
   it("reflects a preset value onto pressed state", () => {
-    const element = document.createElement("box-pill-cloud") as BoxPillCloudElement;
+    const element = document.createElement("box-pill-cloud") as PillCloud;
     element.options = sampleOptions;
     element.value = ["doc"];
     document.body.append(element);
@@ -69,7 +69,7 @@ describe("BoxPillCloudElement", () => {
   });
 
   it("renders an empty affordance when there are no options", () => {
-    const element = document.createElement("box-pill-cloud") as BoxPillCloudElement;
+    const element = document.createElement("box-pill-cloud") as PillCloud;
     document.body.append(element);
 
     expect(element.shadowRoot?.querySelector('[part="cloud"]')).toBeNull();

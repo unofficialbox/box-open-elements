@@ -4,28 +4,22 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ContentExplorerController } from "../../../src/patterns/content-explorer/controller.js";
 import {
-  BoxExplorerActionMenuElement,
-  defineBoxExplorerActionMenuElement,
+  ExplorerActionMenu,
 } from "../../../src/patterns/content-explorer/adapters/action-menu.js";
 import {
-  BoxExplorerBreadcrumbsElement,
-  defineBoxExplorerBreadcrumbsElement,
+  ExplorerBreadcrumbs,
 } from "../../../src/patterns/content-explorer/adapters/breadcrumbs.js";
 import {
-  BoxExplorerItemsElement,
-  defineBoxExplorerItemsElement,
+  ExplorerItems,
 } from "../../../src/patterns/content-explorer/adapters/items.js";
 import {
-  BoxExplorerListElement,
-  defineBoxExplorerListElement,
+  ExplorerList,
 } from "../../../src/patterns/content-explorer/adapters/list.js";
 import {
-  BoxExplorerToolbarElement,
-  defineBoxExplorerToolbarElement,
+  ExplorerToolbar,
 } from "../../../src/patterns/content-explorer/adapters/toolbar.js";
 import {
-  BoxExplorerTableElement,
-  defineBoxExplorerTableElement,
+  ExplorerTable,
 } from "../../../src/patterns/content-explorer/adapters/table.js";
 import type { ExplorerTransport, ExplorerTransportResult } from "../../../src/patterns/content-explorer/types.js";
 
@@ -54,12 +48,12 @@ const flushMicrotasks = async (): Promise<void> => {
 
 describe("Explorer primitive web components", () => {
   beforeEach(() => {
-    defineBoxExplorerActionMenuElement();
-    defineBoxExplorerBreadcrumbsElement();
-    defineBoxExplorerListElement();
-    defineBoxExplorerItemsElement();
-    defineBoxExplorerTableElement();
-    defineBoxExplorerToolbarElement();
+    ExplorerActionMenu.register();
+    ExplorerBreadcrumbs.register();
+    ExplorerList.register();
+    ExplorerItems.register();
+    ExplorerTable.register();
+    ExplorerToolbar.register();
   });
 
   afterEach(() => {
@@ -84,7 +78,7 @@ describe("Explorer primitive web components", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-breadcrumbs") as BoxExplorerBreadcrumbsElement;
+    const element = document.createElement("box-explorer-breadcrumbs") as ExplorerBreadcrumbs;
     element.controller = controller;
 
     document.body.append(element);
@@ -109,7 +103,7 @@ describe("Explorer primitive web components", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-items") as BoxExplorerItemsElement;
+    const element = document.createElement("box-explorer-items") as ExplorerItems;
     const invoked = vi.fn();
     element.controller = controller;
     element.addEventListener("item-action-invoked", invoked);
@@ -159,7 +153,7 @@ describe("Explorer primitive web components", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-list") as BoxExplorerListElement;
+    const element = document.createElement("box-explorer-list") as ExplorerList;
     element.controller = controller;
 
     document.body.append(element);
@@ -191,7 +185,7 @@ describe("Explorer primitive web components", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-list") as BoxExplorerListElement;
+    const element = document.createElement("box-explorer-list") as ExplorerList;
     element.controller = controller;
 
     document.body.append(element);
@@ -224,7 +218,7 @@ describe("Explorer primitive web components", () => {
       transport,
       selectionMode: "single",
     });
-    const element = document.createElement("box-explorer-list") as BoxExplorerListElement;
+    const element = document.createElement("box-explorer-list") as ExplorerList;
     element.controller = controller;
 
     document.body.append(element);
@@ -254,7 +248,7 @@ describe("Explorer primitive web components", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-toolbar") as BoxExplorerToolbarElement;
+    const element = document.createElement("box-explorer-toolbar") as ExplorerToolbar;
     element.controller = controller;
 
     document.body.append(element);
@@ -284,7 +278,7 @@ describe("Explorer primitive web components", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-table") as BoxExplorerTableElement;
+    const element = document.createElement("box-explorer-table") as ExplorerTable;
     const actionInvoked = vi.fn();
     element.controller = controller;
     element.addEventListener("item-action-invoked", actionInvoked);
@@ -302,7 +296,7 @@ describe("Explorer primitive web components", () => {
 
     expect(controller.getState().selectedItemIds).toEqual(["1"]);
 
-    const actionMenu = element.shadowRoot?.querySelector("box-explorer-action-menu") as BoxExplorerActionMenuElement | null;
+    const actionMenu = element.shadowRoot?.querySelector("box-explorer-action-menu") as ExplorerActionMenu | null;
     const trigger = actionMenu?.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null;
     trigger?.click();
     await flushMicrotasks();
@@ -326,7 +320,7 @@ describe("Explorer primitive web components", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-table") as BoxExplorerTableElement;
+    const element = document.createElement("box-explorer-table") as ExplorerTable;
     element.controller = controller;
 
     document.body.append(element);
@@ -354,7 +348,7 @@ describe("Explorer primitive web components", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-action-menu") as BoxExplorerActionMenuElement;
+    const element = document.createElement("box-explorer-action-menu") as ExplorerActionMenu;
     const invoked = vi.fn();
     element.controller = controller;
     element.itemId = "1";
@@ -388,7 +382,7 @@ describe("Explorer primitive web components", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-action-menu") as BoxExplorerActionMenuElement;
+    const element = document.createElement("box-explorer-action-menu") as ExplorerActionMenu;
     element.controller = controller;
     element.itemId = "1";
 

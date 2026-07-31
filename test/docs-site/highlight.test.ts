@@ -44,7 +44,7 @@ describe("highlightCode", () => {
   });
 
   it("preserves the source exactly once markup is stripped", () => {
-    const src = `import { defineBoxButtonElement } from "@unofficialbox/box-open-elements";\ndefineBoxButtonElement();`;
+    const src = `import { Button } from "@unofficialbox/box-open-elements";\nButton.register();`;
     expect(plain(highlightCode(src, "ts"))).toBe(src);
   });
 

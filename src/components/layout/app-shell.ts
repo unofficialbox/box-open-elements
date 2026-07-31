@@ -137,7 +137,8 @@ const appShellStyles = `
   }
 `;
 
-export class BoxAppShellElement extends BaseElement {
+export class AppShell extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["heading", "nav-label", "aside-label"];
   }
@@ -267,14 +268,4 @@ export class BoxAppShellElement extends BaseElement {
   }
 }
 
-export const defineBoxAppShellElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxAppShellElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxAppShellElement;
-  }
-
-  customElements.define(tagName, BoxAppShellElement);
-  return BoxAppShellElement;
-};
+AppShell.register();
