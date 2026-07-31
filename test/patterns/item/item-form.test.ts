@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxItemFormElement, defineBoxItemFormElement } from "../../../src/patterns/item/item-form.js";
+import { ItemForm } from "../../../src/patterns/item/item-form.js";
 
-describe("BoxItemFormElement", () => {
+describe("ItemForm", () => {
   beforeEach(() => {
-    defineBoxItemFormElement();
+    ItemForm.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxItemFormElement", () => {
   });
 
   it("renders schema-driven fields", () => {
-    const element = document.createElement("box-item-form") as BoxItemFormElement;
+    const element = document.createElement("box-item-form") as ItemForm;
     element.fields = [
       { id: "name", label: "Name" },
       { id: "description", label: "Description", type: "textarea" },
@@ -31,7 +31,7 @@ describe("BoxItemFormElement", () => {
   });
 
   it("emits value-changed when fields update", () => {
-    const element = document.createElement("box-item-form") as BoxItemFormElement;
+    const element = document.createElement("box-item-form") as ItemForm;
     const changed = vi.fn();
     element.fields = [{ id: "name", label: "Name" }];
     element.addEventListener("value-changed", changed);
@@ -53,7 +53,7 @@ describe("BoxItemFormElement", () => {
   });
 
   it("emits submit with the current form value", () => {
-    const element = document.createElement("box-item-form") as BoxItemFormElement;
+    const element = document.createElement("box-item-form") as ItemForm;
     const submitted = vi.fn();
     element.fields = [{ id: "name", label: "Name" }];
     element.value = { name: "Policy" };
@@ -72,7 +72,7 @@ describe("BoxItemFormElement", () => {
   });
 
   it("emits cancel", () => {
-    const element = document.createElement("box-item-form") as BoxItemFormElement;
+    const element = document.createElement("box-item-form") as ItemForm;
     const cancelled = vi.fn();
     element.fields = [{ id: "name", label: "Name" }];
     element.addEventListener("cancel", cancelled);
@@ -86,7 +86,7 @@ describe("BoxItemFormElement", () => {
   });
 
   it("groups fields into sections", () => {
-    const element = document.createElement("box-item-form") as BoxItemFormElement;
+    const element = document.createElement("box-item-form") as ItemForm;
     element.fields = [
       { id: "name", label: "Name", section: "Basics" },
       { id: "classification", label: "Classification", section: "Governance" },
@@ -101,7 +101,7 @@ describe("BoxItemFormElement", () => {
   });
 
   it("supports read mode", () => {
-    const element = document.createElement("box-item-form") as BoxItemFormElement;
+    const element = document.createElement("box-item-form") as ItemForm;
     element.mode = "read";
     element.fields = [{ id: "name", label: "Name" }];
     element.value = { name: "Brand Strategy.pdf" };
@@ -116,7 +116,7 @@ describe("BoxItemFormElement", () => {
   });
 
   it("keeps the active field focused while typing", () => {
-    const element = document.createElement("box-item-form") as BoxItemFormElement;
+    const element = document.createElement("box-item-form") as ItemForm;
     element.fields = [{ id: "name", label: "Name" }];
     document.body.append(element);
 
@@ -141,7 +141,7 @@ describe("BoxItemFormElement", () => {
   });
 
   it("disables and syncs the focused control on external updates", () => {
-    const element = document.createElement("box-item-form") as BoxItemFormElement;
+    const element = document.createElement("box-item-form") as ItemForm;
     element.fields = [{ id: "name", label: "Name" }];
     element.value = { name: "Draft" };
     document.body.append(element);

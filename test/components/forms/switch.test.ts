@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxSwitchElement, defineBoxSwitchElement } from "../../../src/components/forms/switch.js";
+import { Switch } from "../../../src/components/forms/switch.js";
 
-describe("BoxSwitchElement", () => {
+describe("Switch", () => {
   beforeEach(() => {
-    defineBoxSwitchElement();
+    Switch.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxSwitchElement", () => {
   });
 
   it("emits checked-changed when toggled", () => {
-    const element = document.createElement("box-switch") as BoxSwitchElement;
+    const element = document.createElement("box-switch") as Switch;
     const changed = vi.fn();
     element.addEventListener("checked-changed", changed);
 
@@ -32,7 +32,7 @@ describe("BoxSwitchElement", () => {
   });
 
   it("does not toggle when disabled", () => {
-    const element = document.createElement("box-switch") as BoxSwitchElement;
+    const element = document.createElement("box-switch") as Switch;
     element.disabled = true;
 
     document.body.append(element);
@@ -44,7 +44,7 @@ describe("BoxSwitchElement", () => {
   });
 
   it("exposes an accessible label", () => {
-    const element = document.createElement("box-switch") as BoxSwitchElement;
+    const element = document.createElement("box-switch") as Switch;
     element.label = "Enable alerts";
 
     document.body.append(element);
@@ -54,7 +54,7 @@ describe("BoxSwitchElement", () => {
   });
 
   it("exposes checked state through part names for styling", () => {
-    const element = document.createElement("box-switch") as BoxSwitchElement;
+    const element = document.createElement("box-switch") as Switch;
 
     document.body.append(element);
     element.checked = true;
@@ -67,7 +67,7 @@ describe("BoxSwitchElement", () => {
   });
 
   it("does not lose focus when toggled via setter while switch is focused", () => {
-    const element = document.createElement("box-switch") as BoxSwitchElement;
+    const element = document.createElement("box-switch") as Switch;
     document.body.append(element);
 
     const button = element.shadowRoot?.querySelector('[part="switch"]') as HTMLButtonElement | null;
@@ -79,7 +79,7 @@ describe("BoxSwitchElement", () => {
   });
 
   it("uses BUE toggle track geometry", () => {
-    const element = document.createElement("box-switch") as BoxSwitchElement;
+    const element = document.createElement("box-switch") as Switch;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";

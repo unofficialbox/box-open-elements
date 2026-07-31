@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxTreeGridElement,
-  defineBoxTreeGridElement,
+  TreeGrid,
 } from "../../../src/components/collections/tree-grid.js";
 
-describe("BoxTreeGridElement", () => {
+describe("TreeGrid", () => {
   beforeEach(() => {
-    defineBoxTreeGridElement();
+    TreeGrid.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxTreeGridElement", () => {
   });
 
   it("renders nested rows and columns", () => {
-    const element = document.createElement("box-tree-grid") as BoxTreeGridElement;
+    const element = document.createElement("box-tree-grid") as TreeGrid;
     element.columns = [
       { key: "name", label: "Name" },
       { key: "type", label: "Type" },
@@ -40,7 +39,7 @@ describe("BoxTreeGridElement", () => {
   });
 
   it("emits value changes when a row is selected", () => {
-    const element = document.createElement("box-tree-grid") as BoxTreeGridElement;
+    const element = document.createElement("box-tree-grid") as TreeGrid;
     const changed = vi.fn();
     element.columns = [
       { key: "name", label: "Name" },
@@ -63,7 +62,7 @@ describe("BoxTreeGridElement", () => {
   });
 
   it("uses treegrid semantics and supports keyboard navigation", async () => {
-    const element = document.createElement("box-tree-grid") as BoxTreeGridElement;
+    const element = document.createElement("box-tree-grid") as TreeGrid;
     element.columns = [
       { key: "name", label: "Name" },
       { key: "type", label: "Type" },
@@ -90,7 +89,7 @@ describe("BoxTreeGridElement", () => {
   });
 
   it("keeps selected and expanded tokenized parts queryable", () => {
-    const element = document.createElement("box-tree-grid") as BoxTreeGridElement;
+    const element = document.createElement("box-tree-grid") as TreeGrid;
     element.columns = [
       { key: "name", label: "Name" },
       { key: "type", label: "Type" },
@@ -112,7 +111,7 @@ describe("BoxTreeGridElement", () => {
   });
 
   it("supports expand-all and collapse-all controls", () => {
-    const element = document.createElement("box-tree-grid") as BoxTreeGridElement;
+    const element = document.createElement("box-tree-grid") as TreeGrid;
     element.columns = [
       { key: "name", label: "Name" },
       { key: "type", label: "Type" },
@@ -151,7 +150,7 @@ describe("BoxTreeGridElement", () => {
   });
 
   it("applies grid column and depth custom properties", () => {
-    const element = document.createElement("box-tree-grid") as BoxTreeGridElement;
+    const element = document.createElement("box-tree-grid") as TreeGrid;
     element.columns = [
       { key: "name", label: "Name" },
       { key: "type", label: "Type" },
@@ -177,7 +176,7 @@ describe("BoxTreeGridElement", () => {
   });
 
   it("emits expand-changed when a branch is toggled", () => {
-    const element = document.createElement("box-tree-grid") as BoxTreeGridElement;
+    const element = document.createElement("box-tree-grid") as TreeGrid;
     const expandChanged = vi.fn();
     element.columns = [{ key: "name", label: "Name" }];
     element.items = [
@@ -202,7 +201,7 @@ describe("BoxTreeGridElement", () => {
   });
 
   it("exposes selected and hoverable row parts", () => {
-    const element = document.createElement("box-tree-grid") as BoxTreeGridElement;
+    const element = document.createElement("box-tree-grid") as TreeGrid;
     element.columns = [{ key: "name", label: "Name" }];
     element.items = [{ label: "Marketing", value: "marketing", cells: ["Folder"] }];
     element.value = "marketing";

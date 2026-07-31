@@ -3,8 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxContextMenuElement,
-  defineBoxContextMenuElement,
+  ContextMenu,
 } from "../../../src/components/overlays/context-menu.js";
 
 const ITEMS = [
@@ -14,8 +13,8 @@ const ITEMS = [
   { id: "locked", label: "Locked", disabled: true },
 ];
 
-const create = (): BoxContextMenuElement => {
-  const el = document.createElement("box-context-menu") as BoxContextMenuElement;
+const create = (): ContextMenu => {
+  const el = document.createElement("box-context-menu") as ContextMenu;
   el.items = ITEMS as never;
   el.innerHTML = "<div>target</div>";
   document.body.append(el);
@@ -26,9 +25,9 @@ const rightClick = (el: HTMLElement): void => {
   el.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, clientX: 40, clientY: 40, cancelable: true }));
 };
 
-describe("BoxContextMenuElement", () => {
+describe("ContextMenu", () => {
   beforeEach(() => {
-    defineBoxContextMenuElement();
+    ContextMenu.register();
   });
 
   afterEach(() => {

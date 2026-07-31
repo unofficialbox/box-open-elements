@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxSidebarToggleButtonElement,
-  defineBoxSidebarToggleButtonElement,
+  SidebarToggleButton,
 } from "../../../src/components/layout/sidebar-toggle-button.js";
 
-describe("BoxSidebarToggleButtonElement", () => {
+describe("SidebarToggleButton", () => {
   beforeEach(() => {
-    defineBoxSidebarToggleButtonElement();
+    SidebarToggleButton.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxSidebarToggleButtonElement", () => {
   });
 
   it("renders an expanded button with a default accessible label", () => {
-    const element = document.createElement("box-sidebar-toggle-button") as BoxSidebarToggleButtonElement;
+    const element = document.createElement("box-sidebar-toggle-button") as SidebarToggleButton;
     document.body.append(element);
 
     const button = element.shadowRoot?.querySelector('[part="button"]');
@@ -27,7 +26,7 @@ describe("BoxSidebarToggleButtonElement", () => {
   });
 
   it("wires controls onto aria-controls for the region it operates", () => {
-    const element = document.createElement("box-sidebar-toggle-button") as BoxSidebarToggleButtonElement;
+    const element = document.createElement("box-sidebar-toggle-button") as SidebarToggleButton;
     element.controls = "primary-sidebar";
     document.body.append(element);
 
@@ -37,7 +36,7 @@ describe("BoxSidebarToggleButtonElement", () => {
   });
 
   it("toggles expanded state and emits a toggle event on click", () => {
-    const element = document.createElement("box-sidebar-toggle-button") as BoxSidebarToggleButtonElement;
+    const element = document.createElement("box-sidebar-toggle-button") as SidebarToggleButton;
     document.body.append(element);
 
     const onToggle = vi.fn();
@@ -57,7 +56,7 @@ describe("BoxSidebarToggleButtonElement", () => {
   });
 
   it("does not toggle or emit while disabled", () => {
-    const element = document.createElement("box-sidebar-toggle-button") as BoxSidebarToggleButtonElement;
+    const element = document.createElement("box-sidebar-toggle-button") as SidebarToggleButton;
     element.disabled = true;
     document.body.append(element);
 
@@ -73,7 +72,7 @@ describe("BoxSidebarToggleButtonElement", () => {
   });
 
   it("restores focus to the button after an attribute-driven re-render", () => {
-    const element = document.createElement("box-sidebar-toggle-button") as BoxSidebarToggleButtonElement;
+    const element = document.createElement("box-sidebar-toggle-button") as SidebarToggleButton;
     document.body.append(element);
 
     const button = element.shadowRoot?.querySelector('[part="button"]') as HTMLButtonElement;
@@ -86,7 +85,7 @@ describe("BoxSidebarToggleButtonElement", () => {
   });
 
   it("reflects direction and an action-aware tooltip title", () => {
-    const element = document.createElement("box-sidebar-toggle-button") as BoxSidebarToggleButtonElement;
+    const element = document.createElement("box-sidebar-toggle-button") as SidebarToggleButton;
     document.body.append(element);
     const button = element.shadowRoot?.querySelector('[part="button"]') as HTMLButtonElement;
 

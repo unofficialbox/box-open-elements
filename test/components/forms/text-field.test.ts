@@ -2,12 +2,12 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxTextFieldElement, defineBoxTextFieldElement } from "../../../src/components/forms/text-field.js";
+import { TextField } from "../../../src/components/forms/text-field.js";
 import { getMirroredFormValue } from "../../../src/core/index.js";
 
-describe("BoxTextFieldElement", () => {
+describe("TextField", () => {
   beforeEach(() => {
-    defineBoxTextFieldElement();
+    TextField.register();
   });
 
   afterEach(() => {
@@ -15,7 +15,7 @@ describe("BoxTextFieldElement", () => {
   });
 
   it("emits value changes while typing", () => {
-    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    const element = document.createElement("box-text-field") as TextField;
     const changed = vi.fn();
     element.label = "Name";
     element.addEventListener("value-changed", changed);
@@ -34,7 +34,7 @@ describe("BoxTextFieldElement", () => {
   });
 
   it("forwards disabled state to the input", () => {
-    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    const element = document.createElement("box-text-field") as TextField;
     element.disabled = true;
 
     document.body.append(element);
@@ -45,7 +45,7 @@ describe("BoxTextFieldElement", () => {
   });
 
   it("does not lose focus when label attribute changes while input is focused", () => {
-    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    const element = document.createElement("box-text-field") as TextField;
     element.label = "Name";
     document.body.append(element);
 
@@ -58,7 +58,7 @@ describe("BoxTextFieldElement", () => {
   });
 
   it("mirrors typed value for form submission", () => {
-    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    const element = document.createElement("box-text-field") as TextField;
     element.name = "title";
     document.body.append(element);
 
@@ -70,7 +70,7 @@ describe("BoxTextFieldElement", () => {
   });
 
   it("exposes invalid state on the internal input", () => {
-    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    const element = document.createElement("box-text-field") as TextField;
     element.invalid = true;
     element.errorMessage = "Too short";
     document.body.append(element);
@@ -83,7 +83,7 @@ describe("BoxTextFieldElement", () => {
   });
 
   it("uses BUE box-inputs geometry", () => {
-    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    const element = document.createElement("box-text-field") as TextField;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -94,9 +94,9 @@ describe("BoxTextFieldElement", () => {
   });
 });
 
-describe("BoxTextFieldElement — shared field features", () => {
+describe("TextField — shared field features", () => {
   it("shows a required indicator and sets aria-required", () => {
-    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    const element = document.createElement("box-text-field") as TextField;
     element.label = "Name";
     element.required = true;
     document.body.append(element);
@@ -111,7 +111,7 @@ describe("BoxTextFieldElement — shared field features", () => {
   });
 
   it("renders a description and links it via aria-describedby", () => {
-    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    const element = document.createElement("box-text-field") as TextField;
     element.label = "API key";
     element.description = "Found in your account settings.";
     document.body.append(element);
@@ -128,7 +128,7 @@ describe("BoxTextFieldElement — shared field features", () => {
   });
 
   it("keeps the label accessible when hidden visually", () => {
-    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    const element = document.createElement("box-text-field") as TextField;
     element.label = "Search";
     element.hideLabel = true;
     document.body.append(element);
@@ -139,7 +139,7 @@ describe("BoxTextFieldElement — shared field features", () => {
   });
 
   it("re-appends the required mark after a label re-render", () => {
-    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    const element = document.createElement("box-text-field") as TextField;
     element.label = "Name";
     element.required = true;
     document.body.append(element);
@@ -149,7 +149,7 @@ describe("BoxTextFieldElement — shared field features", () => {
   });
 
   it("passes a supported type through to the input", () => {
-    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    const element = document.createElement("box-text-field") as TextField;
     element.type = "email";
     document.body.append(element);
     const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
@@ -161,7 +161,7 @@ describe("BoxTextFieldElement — shared field features", () => {
   });
 
   it("reveals a leading icon slot only when content is assigned", () => {
-    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    const element = document.createElement("box-text-field") as TextField;
     document.body.append(element);
     const control = element.shadowRoot?.querySelector('[part="control"]') as HTMLElement;
     expect(control.dataset.hasIcon).toBe("false");
@@ -178,7 +178,7 @@ describe("BoxTextFieldElement — shared field features", () => {
   });
 
   it("shows a trailing spinner when loading and a check when valid", () => {
-    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    const element = document.createElement("box-text-field") as TextField;
     document.body.append(element);
     const control = element.shadowRoot?.querySelector('[part="control"]') as HTMLElement;
     const status = element.shadowRoot?.querySelector('[part="status"]') as HTMLElement;

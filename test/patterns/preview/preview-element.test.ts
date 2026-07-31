@@ -4,13 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createStaticPreviewProviderAdapter } from "../../../src/patterns/preview/provider-adapter.js";
 import {
-  BoxPreviewElement,
-  defineBoxPreviewElement,
+  Preview,
 } from "../../../src/patterns/preview/preview-element.js";
 
-describe("BoxPreviewElement", () => {
+describe("Preview", () => {
   beforeEach(() => {
-    defineBoxPreviewElement();
+    Preview.register();
   });
 
   afterEach(() => {
@@ -18,7 +17,7 @@ describe("BoxPreviewElement", () => {
   });
 
   it("renders provider, title, and slotted regions", () => {
-    const element = document.createElement("box-preview-element") as BoxPreviewElement;
+    const element = document.createElement("box-preview-element") as Preview;
     element.heading = "Preview Workspace";
     element.provider = {
       id: "box-content-preview",
@@ -59,7 +58,7 @@ describe("BoxPreviewElement", () => {
   });
 
   it("emits action when a shell action is clicked", () => {
-    const element = document.createElement("box-preview-element") as BoxPreviewElement;
+    const element = document.createElement("box-preview-element") as Preview;
     const action = vi.fn();
     element.actions = [{ id: "open-provider", label: "Open provider", tone: "primary" }];
     element.addEventListener("action", action);
@@ -79,7 +78,7 @@ describe("BoxPreviewElement", () => {
   });
 
   it("emits provider-action with provider context", () => {
-    const element = document.createElement("box-preview-element") as BoxPreviewElement;
+    const element = document.createElement("box-preview-element") as Preview;
     const action = vi.fn();
     element.provider = {
       id: "box-content-preview",
@@ -126,7 +125,7 @@ describe("BoxPreviewElement", () => {
       },
       onAction,
     });
-    const element = document.createElement("box-preview-element") as BoxPreviewElement;
+    const element = document.createElement("box-preview-element") as Preview;
     element.providerAdapter = adapter;
     element.actions = [{ id: "open-provider", label: "Open provider" }];
 

@@ -140,7 +140,8 @@ const alertStyles = `
   ${boeNeutralInteractiveStyles('[part="dismiss"]')}
 `;
 
-export class BoxAlertElement extends BaseElement {
+export class Alert extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["description", "heading", "message", "open", "tone"];
   }
@@ -309,14 +310,4 @@ export class BoxAlertElement extends BaseElement {
   }
 }
 
-export const defineBoxAlertElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxAlertElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxAlertElement;
-  }
-
-  customElements.define(tagName, BoxAlertElement);
-  return BoxAlertElement;
-};
+Alert.register();

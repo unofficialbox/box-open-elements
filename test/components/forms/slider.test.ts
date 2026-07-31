@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxSliderElement, defineBoxSliderElement } from "../../../src/components/forms/slider.js";
+import { Slider } from "../../../src/components/forms/slider.js";
 
-describe("BoxSliderElement", () => {
+describe("Slider", () => {
   beforeEach(() => {
-    defineBoxSliderElement();
+    Slider.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxSliderElement", () => {
   });
 
   it("emits value changes while dragging", () => {
-    const element = document.createElement("box-slider") as BoxSliderElement;
+    const element = document.createElement("box-slider") as Slider;
     const changed = vi.fn();
     element.label = "Density";
     element.addEventListener("value-changed", changed);
@@ -33,7 +33,7 @@ describe("BoxSliderElement", () => {
   });
 
   it("does not lose focus when label attribute changes while input is focused", () => {
-    const element = document.createElement("box-slider") as BoxSliderElement;
+    const element = document.createElement("box-slider") as Slider;
     element.label = "Density";
     document.body.append(element);
 

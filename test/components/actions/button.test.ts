@@ -2,21 +2,21 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxButtonElement, defineBoxButtonElement } from "../../../src/components/actions/button.js";
+import { Button } from "../../../src/components/actions/button.js";
 
-const create = (): BoxButtonElement => {
-  const el = document.createElement("box-button") as BoxButtonElement;
+const create = (): Button => {
+  const el = document.createElement("box-button") as Button;
   el.label = "Save";
   document.body.append(el);
   return el;
 };
 
-const innerButton = (el: BoxButtonElement): HTMLButtonElement =>
+const innerButton = (el: Button): HTMLButtonElement =>
   el.shadowRoot?.querySelector('[part="button"]') as HTMLButtonElement;
 
-describe("BoxButtonElement", () => {
+describe("Button", () => {
   beforeEach(() => {
-    defineBoxButtonElement();
+    Button.register();
   });
 
   afterEach(() => {
@@ -62,7 +62,7 @@ describe("BoxButtonElement", () => {
 
   it("submits the owning form when type=submit", () => {
     const form = document.createElement("form");
-    const el = document.createElement("box-button") as BoxButtonElement;
+    const el = document.createElement("box-button") as Button;
     el.type = "submit";
     el.label = "Submit";
     form.append(el);
@@ -77,7 +77,7 @@ describe("BoxButtonElement", () => {
   it("resets the owning form when type=reset", () => {
     const form = document.createElement("form");
     form.innerHTML = `<input name="q" value="" />`;
-    const el = document.createElement("box-button") as BoxButtonElement;
+    const el = document.createElement("box-button") as Button;
     el.type = "reset";
     form.append(el);
     document.body.append(form);

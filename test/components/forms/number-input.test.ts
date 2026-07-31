@@ -2,12 +2,12 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxNumberInputElement, defineBoxNumberInputElement } from "../../../src/components/forms/number-input.js";
+import { NumberInput } from "../../../src/components/forms/number-input.js";
 import { getMirroredFormValue } from "../../../src/core/index.js";
 
-describe("BoxNumberInputElement", () => {
+describe("NumberInput", () => {
   beforeEach(() => {
-    defineBoxNumberInputElement();
+    NumberInput.register();
   });
 
   afterEach(() => {
@@ -15,7 +15,7 @@ describe("BoxNumberInputElement", () => {
   });
 
   it("emits numeric value changes while typing", () => {
-    const element = document.createElement("box-number-input") as BoxNumberInputElement;
+    const element = document.createElement("box-number-input") as NumberInput;
     const changed = vi.fn();
     element.label = "Version";
     element.addEventListener("value-changed", changed);
@@ -34,7 +34,7 @@ describe("BoxNumberInputElement", () => {
   });
 
   it("does not lose focus when label attribute changes while input is focused", () => {
-    const element = document.createElement("box-number-input") as BoxNumberInputElement;
+    const element = document.createElement("box-number-input") as NumberInput;
     element.label = "Version";
     element.value = 3;
     document.body.append(element);
@@ -52,7 +52,7 @@ describe("BoxNumberInputElement", () => {
   });
 
   it("clamps values to min and max bounds", () => {
-    const element = document.createElement("box-number-input") as BoxNumberInputElement;
+    const element = document.createElement("box-number-input") as NumberInput;
     element.min = 0;
     element.max = 10;
     document.body.append(element);
@@ -67,7 +67,7 @@ describe("BoxNumberInputElement", () => {
   });
 
   it("does not revert to a stale pre-clamp value when max is relaxed", () => {
-    const element = document.createElement("box-number-input") as BoxNumberInputElement;
+    const element = document.createElement("box-number-input") as NumberInput;
     element.min = 0;
     element.max = 10;
     element.value = 7;
@@ -83,7 +83,7 @@ describe("BoxNumberInputElement", () => {
   });
 
   it("clamps user input to min and max bounds", () => {
-    const element = document.createElement("box-number-input") as BoxNumberInputElement;
+    const element = document.createElement("box-number-input") as NumberInput;
     element.min = 1;
     element.max = 5;
     document.body.append(element);

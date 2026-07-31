@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxSegmentedControlElement,
-  defineBoxSegmentedControlElement,
+  SegmentedControl,
 } from "../../../src/components/actions/segmented-control.js";
 
-describe("BoxSegmentedControlElement", () => {
+describe("SegmentedControl", () => {
   beforeEach(() => {
-    defineBoxSegmentedControlElement();
+    SegmentedControl.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxSegmentedControlElement", () => {
   });
 
   it("selects the first enabled option by default and emits changes", () => {
-    const element = document.createElement("box-segmented-control") as BoxSegmentedControlElement;
+    const element = document.createElement("box-segmented-control") as SegmentedControl;
     const changed = vi.fn();
     element.options = [
       { label: "List", value: "list" },
@@ -41,7 +40,7 @@ describe("BoxSegmentedControlElement", () => {
   });
 
   it("supports arrow-key navigation between options", () => {
-    const element = document.createElement("box-segmented-control") as BoxSegmentedControlElement;
+    const element = document.createElement("box-segmented-control") as SegmentedControl;
     element.options = [
       { label: "Comfortable", value: "comfortable" },
       { label: "Compact", value: "compact" },
@@ -57,7 +56,7 @@ describe("BoxSegmentedControlElement", () => {
   });
 
   it("supports attached layout metadata for grouped styling", () => {
-    const element = document.createElement("box-segmented-control") as BoxSegmentedControlElement;
+    const element = document.createElement("box-segmented-control") as SegmentedControl;
     element.layout = "attached";
     element.options = [
       { label: "Comfortable", value: "comfortable" },

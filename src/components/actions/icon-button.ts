@@ -106,7 +106,8 @@ const iconButtonStyles = `
   }
 `;
 
-export class BoxIconButtonElement extends BaseElement {
+export class IconButton extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   private readonly handleDesignSystemChange = (): void => {
     if (this.isRendered) {
       this.update();
@@ -202,14 +203,4 @@ export class BoxIconButtonElement extends BaseElement {
   }
 }
 
-export const defineBoxIconButtonElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxIconButtonElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxIconButtonElement;
-  }
-
-  customElements.define(tagName, BoxIconButtonElement);
-  return BoxIconButtonElement;
-};
+IconButton.register();

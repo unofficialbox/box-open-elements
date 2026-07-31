@@ -1,4 +1,49 @@
-export abstract class BaseElement extends HTMLElement {
+const HTMLElementBase = (
+  typeof globalThis.HTMLElement === "undefined" ? class {} : globalThis.HTMLElement
+) as typeof HTMLElement;
+
+/**
+ * Registers a custom element when a browser registry is available.
+ *
+ * Component modules call this at import time. The browser guard keeps those
+ * modules safe to evaluate during SSR, while the existing-definition check
+ * makes repeated root and per-component imports idempotent.
+ */
+const registerCustomElement = <T extends CustomElementConstructor>(
+  tagName: string,
+  constructor: T,
+): T => {
+  const registry = globalThis.customElements;
+  if (!registry) {
+    return constructor;
+  }
+
+  const existing = registry.get(tagName);
+  if (existing) {
+    return existing as T;
+  }
+
+  registry.define(tagName, constructor);
+  return constructor;
+};
+
+export abstract class BaseElement extends HTMLElementBase {
+  static readonly tagName: string = "";
+
+  static register<T extends typeof BaseElement>(
+    this: T,
+    tagName = this.tagName,
+  ): T {
+    if (!tagName) {
+      throw new TypeError("Custom element classes must declare a tagName.");
+    }
+
+    return registerCustomElement(
+      tagName,
+      this as unknown as CustomElementConstructor,
+    ) as unknown as T;
+  }
+
   protected isRendered = false;
 
   constructor() {

@@ -37,7 +37,8 @@ const splitViewStyles = `
   }
 `;
 
-export class BoxSplitViewElement extends BaseElement {
+export class SplitView extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["label", "ratio", "resizable"];
   }
@@ -182,14 +183,4 @@ export class BoxSplitViewElement extends BaseElement {
   }
 }
 
-export const defineBoxSplitViewElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxSplitViewElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxSplitViewElement;
-  }
-
-  customElements.define(tagName, BoxSplitViewElement);
-  return BoxSplitViewElement;
-};
+SplitView.register();

@@ -33,6 +33,10 @@
       "types": "./dist/core/index.d.ts",
       "import": "./dist/core/index.js"
     },
+    "./*": {
+      "types": "./dist/entries/*.d.ts",
+      "import": "./dist/entries/*.js"
+    },
     "./foundations/*": {
       "types": "./dist/foundations/*/index.d.ts",
       "import": "./dist/foundations/*/index.js"

@@ -4,12 +4,12 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { renderLessonPage } from "../../docs-site/lesson-page.js";
 import { previewLesson, shareLesson } from "../../docs-site/lessons.js";
-import { defineBoxPreviewElement } from "../../src/patterns/preview/preview-element.js";
-import { defineBoxSharePanelElement } from "../../src/patterns/share/share-panel.js";
+import { Preview } from "../../src/patterns/preview/preview-element.js";
+import { SharePanel } from "../../src/patterns/share/share-panel.js";
 
 describe("docs-site Share lesson page previews", () => {
   beforeEach(() => {
-    defineBoxSharePanelElement();
+    SharePanel.register();
   });
 
   afterEach(() => {
@@ -74,7 +74,7 @@ describe("docs-site Share lesson page previews", () => {
 
 describe("docs-site Preview lesson page previews", () => {
   beforeEach(() => {
-    defineBoxPreviewElement();
+    Preview.register();
   });
 
   afterEach(() => {

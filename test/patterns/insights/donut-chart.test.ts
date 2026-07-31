@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxDonutChartElement,
-  defineBoxDonutChartElement,
+  DonutChart,
 } from "../../../src/patterns/insights/donut-chart.js";
 
-describe("BoxDonutChartElement", () => {
+describe("DonutChart", () => {
   beforeEach(() => {
-    defineBoxDonutChartElement();
+    DonutChart.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxDonutChartElement", () => {
   });
 
   it("renders summary, timeframe, and segments", () => {
-    const element = document.createElement("box-donut-chart") as BoxDonutChartElement;
+    const element = document.createElement("box-donut-chart") as DonutChart;
     element.heading = "Share distribution";
     element.summary = "18 shares";
     element.timeframe = "Last 7 days";
@@ -36,7 +35,7 @@ describe("BoxDonutChartElement", () => {
   });
 
   it("emits action when an action button is clicked", () => {
-    const element = document.createElement("box-donut-chart") as BoxDonutChartElement;
+    const element = document.createElement("box-donut-chart") as DonutChart;
     const action = vi.fn();
     element.actions = [{ id: "open-breakdown", label: "Open breakdown", tone: "primary" }];
     element.addEventListener("action", action);
@@ -56,7 +55,7 @@ describe("BoxDonutChartElement", () => {
   });
 
   it("emits segment-selected when a legend row is clicked", () => {
-    const element = document.createElement("box-donut-chart") as BoxDonutChartElement;
+    const element = document.createElement("box-donut-chart") as DonutChart;
     const selected = vi.fn();
     element.segments = [{ id: "external", label: "External", value: 8, tone: "accent" }];
     element.addEventListener("segment-selected", selected);
@@ -79,7 +78,7 @@ describe("BoxDonutChartElement", () => {
   });
 
   it("renders a full single-segment arc without collapsing", () => {
-    const element = document.createElement("box-donut-chart") as BoxDonutChartElement;
+    const element = document.createElement("box-donut-chart") as DonutChart;
     element.segments = [{ id: "only", label: "Only", value: 100 }];
 
     document.body.append(element);
@@ -90,7 +89,7 @@ describe("BoxDonutChartElement", () => {
   });
 
   it("cycles distinct default colors for untuned segments", () => {
-    const element = document.createElement("box-donut-chart") as BoxDonutChartElement;
+    const element = document.createElement("box-donut-chart") as DonutChart;
     element.segments = [
       { id: "alpha", label: "Alpha", value: 40 },
       { id: "beta", label: "Beta", value: 30 },
@@ -106,7 +105,7 @@ describe("BoxDonutChartElement", () => {
   });
 
   it("exposes a numeric segment summary on the chart aria-label", () => {
-    const element = document.createElement("box-donut-chart") as BoxDonutChartElement;
+    const element = document.createElement("box-donut-chart") as DonutChart;
     element.heading = "Share distribution";
     element.segments = [
       { id: "internal", label: "Internal", value: 10 },
@@ -120,7 +119,7 @@ describe("BoxDonutChartElement", () => {
   });
 
   it("tracks pressed legend state after segment selection", () => {
-    const element = document.createElement("box-donut-chart") as BoxDonutChartElement;
+    const element = document.createElement("box-donut-chart") as DonutChart;
     element.segments = [
       { id: "internal", label: "Internal", value: 10 },
       { id: "external", label: "External", value: 8 },
@@ -141,7 +140,7 @@ describe("BoxDonutChartElement", () => {
   });
 
   it("clears pressed legend state when the selected segment is clicked again", () => {
-    const element = document.createElement("box-donut-chart") as BoxDonutChartElement;
+    const element = document.createElement("box-donut-chart") as DonutChart;
     element.segments = [
       { id: "internal", label: "Internal", value: 10 },
       { id: "external", label: "External", value: 8 },

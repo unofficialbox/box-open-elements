@@ -76,12 +76,6 @@ document.documentElement.addEventListener(lib.DESIGN_PROFILE_CHANGE_EVENT, event
 themeController.start();
 profileController.start();
 
-for (const [name, value] of Object.entries(lib)) {
-  if (/^defineBox[A-Za-z]+Element$/.test(name) && typeof value === "function") {
-    (value as () => void)();
-  }
-}
-
 document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]").forEach(button => {
   button.addEventListener("click", () => themeController.toggle());
 });
@@ -182,10 +176,6 @@ const FRAMEWORKS: Array<{ id: Framework; label: string }> = [
   { id: "svelte", label: "Svelte" },
 ];
 
-/** `defineBox…Element` for a catalog id — matches the package's export names. */
-const defineName = (id: string): string =>
-  `defineBox${id.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join("")}Element`;
-
 /**
  * The demo's representative root element, pretty-printed in self-closing (JSX)
  * and full forms. Attribute-heavy elements would otherwise be a single ~500
@@ -206,8 +196,8 @@ const isMultiline = (code: string): boolean => code.includes("\n");
 const frameworkSnippet = (framework: Framework, id: string, tag: string, html: string): string => {
   if (framework === "html") return formatHtml(html);
   const { selfClose, full } = representativeTag(html, tag);
-  const def = defineName(id);
-  const imp = `import { ${def} } from "@unofficialbox/box-open-elements";\n${def}();`;
+  const componentPath = id === "preview-element" ? "preview" : id;
+  const imp = `import "@unofficialbox/box-open-elements/${componentPath}";`;
   switch (framework) {
     case "react": {
       // Multi-line JSX has to be parenthesised after `return`.

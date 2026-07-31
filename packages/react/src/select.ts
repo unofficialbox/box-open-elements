@@ -1,31 +1,27 @@
-import {
-  BoxSelectElement,
-  defineBoxSelectElement,
-} from "../../../src/components/forms/select.js";
-import { createWebComponent, type BoxWebComponentProps } from "./create-web-component.js";
-import type { BoxCustomEventHandler, BoxValueChangedDetail } from "./events.js";
+import { Select as SelectElement } from "../../../src/components/forms/select.js";
+import { createWebComponent, type WebComponentProps } from "./create-web-component.js";
+import type { CustomEventHandler, ValueChangedDetail } from "./events.js";
 
-export type BoxSelectOption = {
+export type SelectOption = {
   label: string;
   value: string;
 };
 
-export type BoxSelectProps = BoxWebComponentProps & {
+export type SelectProps = WebComponentProps & {
   label?: string;
   value?: string;
-  options?: BoxSelectOption[];
+  options?: SelectOption[];
   disabled?: boolean;
   name?: string;
   invalid?: boolean;
   errorMessage?: string;
-  onValueChanged?: BoxCustomEventHandler<BoxSelectElement, BoxValueChangedDetail>;
+  onValueChanged?: CustomEventHandler<SelectElement, ValueChangedDetail>;
 };
 
 /** React wrapper for `<box-select>`, including its structured `options` property. */
-export const BoxSelect = createWebComponent<BoxSelectElement, BoxSelectProps>({
+export const Select = createWebComponent<SelectElement, SelectProps>({
   tagName: "box-select",
-  define: defineBoxSelectElement,
-  displayName: "BoxSelect",
+  displayName: "Select",
   propertyNames: [
     "label",
     "value",

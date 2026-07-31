@@ -201,7 +201,8 @@ const matrixStyles = `
   }
 `;
 
-export class BoxPermissionMatrixElement extends BaseElement {
+export class PermissionMatrix extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["label", "options", "subjects", "value"];
   }
@@ -401,14 +402,4 @@ export class BoxPermissionMatrixElement extends BaseElement {
   }
 }
 
-export const defineBoxPermissionMatrixElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxPermissionMatrixElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxPermissionMatrixElement;
-  }
-
-  customElements.define(tagName, BoxPermissionMatrixElement);
-  return BoxPermissionMatrixElement;
-};
+PermissionMatrix.register();

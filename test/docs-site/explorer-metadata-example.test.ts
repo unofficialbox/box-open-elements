@@ -7,13 +7,12 @@ import {
   createMetadataDemoDataSource,
   setupContentExplorerMetadataChrome,
 } from "../../docs-site/explorer-metadata-demo.js";
-import { defineBoxExplorerTableElement } from "../../src/patterns/content-explorer/adapters/table.js";
-import { defineBoxExplorerToolbarElement } from "../../src/patterns/content-explorer/adapters/toolbar.js";
+import { ExplorerTable } from "../../src/patterns/content-explorer/adapters/table.js";
+import { ExplorerToolbar } from "../../src/patterns/content-explorer/adapters/toolbar.js";
 import {
-  BoxMetadataFilterBuilderElement,
-  defineBoxMetadataFilterBuilderElement,
+  MetadataFilterBuilder,
 } from "../../src/patterns/metadata/metadata-filter-builder.js";
-import { defineBoxMetadataInspectorElement } from "../../src/patterns/metadata/metadata-inspector.js";
+import { MetadataInspector } from "../../src/patterns/metadata/metadata-inspector.js";
 
 const waitForStatus = async (expected: string): Promise<void> => {
   for (let i = 0; i < 40; i++) {
@@ -27,10 +26,10 @@ const waitForStatus = async (expected: string): Promise<void> => {
 
 describe("docs-site content-explorer metadata chrome demo", () => {
   beforeEach(() => {
-    defineBoxMetadataFilterBuilderElement();
-    defineBoxMetadataInspectorElement();
-    defineBoxExplorerToolbarElement();
-    defineBoxExplorerTableElement();
+    MetadataFilterBuilder.register();
+    MetadataInspector.register();
+    ExplorerToolbar.register();
+    ExplorerTable.register();
   });
 
   afterEach(() => {
@@ -62,7 +61,7 @@ describe("docs-site content-explorer metadata chrome demo", () => {
     const cleanup = setupContentExplorerMetadataChrome(document.body);
     await waitForStatus("2");
 
-    const builder = document.querySelector("box-metadata-filter-builder") as BoxMetadataFilterBuilderElement;
+    const builder = document.querySelector("box-metadata-filter-builder") as MetadataFilterBuilder;
     builder.rules = [{ field: "classification", operator: "is", value: "confidential" }];
     builder.dispatchEvent(new CustomEvent("value-changed", { bubbles: true, composed: true }));
     await waitForStatus("1");

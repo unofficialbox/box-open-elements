@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
-  BoxProgressBarElement,
-  defineBoxProgressBarElement,
+  ProgressBar,
 } from "../../../src/components/feedback/progress-bar.js";
 
-describe("BoxProgressBarElement", () => {
+describe("ProgressBar", () => {
   beforeEach(() => {
-    defineBoxProgressBarElement();
+    ProgressBar.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxProgressBarElement", () => {
   });
 
   it("renders percentage based on value and max", () => {
-    const element = document.createElement("box-progress-bar") as BoxProgressBarElement;
+    const element = document.createElement("box-progress-bar") as ProgressBar;
     element.label = "Upload";
     element.max = 200;
     element.value = 50;

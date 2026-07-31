@@ -1,8 +1,8 @@
-export type BoxCustomEventHandler<
+export type CustomEventHandler<
   E extends HTMLElement,
   Detail,
 > = (event: CustomEvent<Detail> & { currentTarget: E }) => void;
 
-export type BoxValueChangedDetail = {
+export type ValueChangedDetail = {
   value: string;
 };

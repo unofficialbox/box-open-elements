@@ -51,9 +51,10 @@ shared attribute/event/schema vocabulary.
 
 ## Component conventions
 
-- **Web components, shadow DOM.** Each element renders into its own shadow root
-  and registers via an explicit `defineBoxXElement()` function (no side-effecting
-  auto-registration on import).
+- **Web components, shadow DOM.** Each concise PascalCase export (`Button`,
+  `TextField`, …) renders into its own shadow root and registers its `box-*`
+  custom element automatically when imported. Keep module evaluation SSR-safe
+  and registration idempotent.
 - **Paint with tokens.** Style shadow trees with `--boe-token-*` custom properties
   and safe hex fallbacks (e.g. `background: var(--boe-token-surface-surface-brand, #0061d5)`).
   Components must render sensibly with no design system registered. See

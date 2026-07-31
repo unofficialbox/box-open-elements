@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxMenuItemElement,
-  defineBoxMenuItemElement,
+  MenuItem,
 } from "../../../src/components/actions/menu-item.js";
 
-describe("BoxMenuItemElement", () => {
+describe("MenuItem", () => {
   beforeEach(() => {
-    defineBoxMenuItemElement();
+    MenuItem.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxMenuItemElement", () => {
   });
 
   it("renders label and emits selected events", () => {
-    const element = document.createElement("box-menu-item") as BoxMenuItemElement;
+    const element = document.createElement("box-menu-item") as MenuItem;
     const selected = vi.fn();
     element.label = "Rename";
     element.value = "rename";
@@ -37,7 +36,7 @@ describe("BoxMenuItemElement", () => {
   });
 
   it("does not emit selected when disabled", () => {
-    const element = document.createElement("box-menu-item") as BoxMenuItemElement;
+    const element = document.createElement("box-menu-item") as MenuItem;
     const selected = vi.fn();
     element.label = "Rename";
     element.value = "rename";
@@ -53,7 +52,7 @@ describe("BoxMenuItemElement", () => {
   });
 
   it("exposes menu item semantics and selected state", () => {
-    const element = document.createElement("box-menu-item") as BoxMenuItemElement;
+    const element = document.createElement("box-menu-item") as MenuItem;
     element.label = "Rename";
     element.value = "rename";
     element.selected = true;
@@ -66,7 +65,7 @@ describe("BoxMenuItemElement", () => {
   });
 
   it("preserves selected surface styles on hover and active", () => {
-    const element = document.createElement("box-menu-item") as BoxMenuItemElement;
+    const element = document.createElement("box-menu-item") as MenuItem;
     element.label = "Rename";
     element.selected = true;
     document.body.append(element);

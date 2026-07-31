@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxSearchFieldElement, defineBoxSearchFieldElement } from "../../../src/components/forms/search-field.js";
+import { SearchField } from "../../../src/components/forms/search-field.js";
 
-describe("BoxSearchFieldElement", () => {
+describe("SearchField", () => {
   beforeEach(() => {
-    defineBoxSearchFieldElement();
+    SearchField.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxSearchFieldElement", () => {
   });
 
   it("emits value changes and search submissions", () => {
-    const element = document.createElement("box-search-field") as BoxSearchFieldElement;
+    const element = document.createElement("box-search-field") as SearchField;
     const valueChanged = vi.fn();
     const searched = vi.fn();
     element.addEventListener("value-changed", valueChanged);
@@ -43,7 +43,7 @@ describe("BoxSearchFieldElement", () => {
   });
 
   it("clears the current value", () => {
-    const element = document.createElement("box-search-field") as BoxSearchFieldElement;
+    const element = document.createElement("box-search-field") as SearchField;
     const cleared = vi.fn();
     element.value = "marketing";
     element.addEventListener("clear", cleared);
@@ -58,7 +58,7 @@ describe("BoxSearchFieldElement", () => {
   });
 
   it("keeps the same input element while typing", () => {
-    const element = document.createElement("box-search-field") as BoxSearchFieldElement;
+    const element = document.createElement("box-search-field") as SearchField;
 
     document.body.append(element);
 
@@ -73,7 +73,7 @@ describe("BoxSearchFieldElement", () => {
   });
 
   it("forwards disabled state to the input and action buttons", () => {
-    const element = document.createElement("box-search-field") as BoxSearchFieldElement;
+    const element = document.createElement("box-search-field") as SearchField;
     element.disabled = true;
 
     document.body.append(element);
@@ -88,7 +88,7 @@ describe("BoxSearchFieldElement", () => {
   });
 
   it("shows a spinner and busies the submit button while loading", () => {
-    const element = document.createElement("box-search-field") as BoxSearchFieldElement;
+    const element = document.createElement("box-search-field") as SearchField;
     document.body.append(element);
     const submit = element.shadowRoot?.querySelector('[part="submit"]') as HTMLButtonElement;
 
@@ -105,7 +105,7 @@ describe("BoxSearchFieldElement", () => {
 
   it("requests submission of its containing form on Enter", () => {
     const form = document.createElement("form");
-    const element = document.createElement("box-search-field") as BoxSearchFieldElement;
+    const element = document.createElement("box-search-field") as SearchField;
     form.append(element);
     document.body.append(form);
     const submitted = vi.fn((event: Event) => event.preventDefault());
@@ -118,7 +118,7 @@ describe("BoxSearchFieldElement", () => {
   });
 
   it("does not lose focus when label attribute changes while input is focused", () => {
-    const element = document.createElement("box-search-field") as BoxSearchFieldElement;
+    const element = document.createElement("box-search-field") as SearchField;
     element.label = "Search";
     element.value = "report";
     document.body.append(element);

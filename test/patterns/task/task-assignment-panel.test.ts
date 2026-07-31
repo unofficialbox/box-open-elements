@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxTaskAssignmentPanelElement,
-  defineBoxTaskAssignmentPanelElement,
+  TaskAssignmentPanel,
 } from "../../../src/patterns/task/task-assignment-panel.js";
 
-describe("BoxTaskAssignmentPanelElement", () => {
+describe("TaskAssignmentPanel", () => {
   beforeEach(() => {
-    defineBoxTaskAssignmentPanelElement();
+    TaskAssignmentPanel.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxTaskAssignmentPanelElement", () => {
   });
 
   it("renders assignees and checklist items", () => {
-    const element = document.createElement("box-task-assignment-panel") as BoxTaskAssignmentPanelElement;
+    const element = document.createElement("box-task-assignment-panel") as TaskAssignmentPanel;
     element.heading = "Review Task";
     element.assignees = [
       { id: "morgan", name: "Morgan Lee", description: "Content Designer" },
@@ -34,7 +33,7 @@ describe("BoxTaskAssignmentPanelElement", () => {
   });
 
   it("emits assignee-changed and checklist-changed", () => {
-    const element = document.createElement("box-task-assignment-panel") as BoxTaskAssignmentPanelElement;
+    const element = document.createElement("box-task-assignment-panel") as TaskAssignmentPanel;
     const assigneeChanged = vi.fn();
     const checklistChanged = vi.fn();
     element.assignees = [
@@ -70,7 +69,7 @@ describe("BoxTaskAssignmentPanelElement", () => {
   });
 
   it("emits action with current assignment state", () => {
-    const element = document.createElement("box-task-assignment-panel") as BoxTaskAssignmentPanelElement;
+    const element = document.createElement("box-task-assignment-panel") as TaskAssignmentPanel;
     const action = vi.fn();
     element.currentAssigneeId = "morgan";
     element.checklist = [

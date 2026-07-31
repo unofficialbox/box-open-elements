@@ -129,7 +129,8 @@ const textFieldStyles = `
   ${boeFormFieldSupportStyles}
 `;
 
-export class BoxTextFieldElement extends FormAssociatedElement {
+export class TextField extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.fieldObservedAttributes,
@@ -328,14 +329,4 @@ export class BoxTextFieldElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxTextFieldElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxTextFieldElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxTextFieldElement;
-  }
-
-  customElements.define(tagName, BoxTextFieldElement);
-  return BoxTextFieldElement;
-};
+TextField.register();

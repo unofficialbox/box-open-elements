@@ -101,7 +101,8 @@ const selectStyles = `
   ${boeFormFieldSupportStyles}
 `;
 
-export class BoxSelectElement extends FormAssociatedElement {
+export class Select extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.fieldObservedAttributes,
@@ -329,14 +330,4 @@ export class BoxSelectElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxSelectElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxSelectElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxSelectElement;
-  }
-
-  customElements.define(tagName, BoxSelectElement);
-  return BoxSelectElement;
-};
+Select.register();

@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxMetadataInspectorElement,
-  defineBoxMetadataInspectorElement,
+  MetadataInspector,
 } from "../../../src/patterns/metadata/metadata-inspector.js";
 
-describe("BoxMetadataInspectorElement", () => {
+describe("MetadataInspector", () => {
   beforeEach(() => {
-    defineBoxMetadataInspectorElement();
+    MetadataInspector.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxMetadataInspectorElement", () => {
   });
 
   it("renders sections and field values", () => {
-    const element = document.createElement("box-metadata-inspector") as BoxMetadataInspectorElement;
+    const element = document.createElement("box-metadata-inspector") as MetadataInspector;
     element.heading = "Metadata";
     element.sections = [
       {
@@ -38,7 +37,7 @@ describe("BoxMetadataInspectorElement", () => {
   });
 
   it("emits field-selected when a field is clicked", () => {
-    const element = document.createElement("box-metadata-inspector") as BoxMetadataInspectorElement;
+    const element = document.createElement("box-metadata-inspector") as MetadataInspector;
     const selected = vi.fn();
     element.sections = [
       {

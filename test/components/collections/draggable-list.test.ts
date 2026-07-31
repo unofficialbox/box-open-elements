@@ -3,8 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxDraggableListElement,
-  defineBoxDraggableListElement,
+  DraggableList,
 } from "../../../src/components/collections/draggable-list.js";
 
 const sampleItems = [
@@ -13,24 +12,24 @@ const sampleItems = [
   { value: "c", label: "Charlie" },
 ];
 
-const createList = (): BoxDraggableListElement => {
-  const element = document.createElement("box-draggable-list") as BoxDraggableListElement;
+const createList = (): DraggableList => {
+  const element = document.createElement("box-draggable-list") as DraggableList;
   element.items = sampleItems;
   document.body.append(element);
   return element;
 };
 
-const handleFor = (element: BoxDraggableListElement, value: string): HTMLButtonElement =>
+const handleFor = (element: DraggableList, value: string): HTMLButtonElement =>
   element.shadowRoot?.querySelector(`[part="item"][data-value="${value}"] [part="handle"]`) as HTMLButtonElement;
 
-const order = (element: BoxDraggableListElement): string[] =>
+const order = (element: DraggableList): string[] =>
   Array.from(element.shadowRoot?.querySelectorAll('[part="item"]') ?? []).map(
     node => (node as HTMLElement).dataset.value ?? "",
   );
 
-describe("BoxDraggableListElement", () => {
+describe("DraggableList", () => {
   beforeEach(() => {
-    defineBoxDraggableListElement();
+    DraggableList.register();
   });
 
   afterEach(() => {
@@ -46,7 +45,7 @@ describe("BoxDraggableListElement", () => {
   });
 
   it("renders an empty state when there are no items", () => {
-    const element = document.createElement("box-draggable-list") as BoxDraggableListElement;
+    const element = document.createElement("box-draggable-list") as DraggableList;
     document.body.append(element);
 
     expect(element.shadowRoot?.querySelector('[part="list"]')).toBeNull();

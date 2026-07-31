@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxMetadataFilterBuilderElement,
-  defineBoxMetadataFilterBuilderElement,
+  MetadataFilterBuilder,
 } from "../../../src/patterns/metadata/metadata-filter-builder.js";
 
-describe("BoxMetadataFilterBuilderElement", () => {
+describe("MetadataFilterBuilder", () => {
   beforeEach(() => {
-    defineBoxMetadataFilterBuilderElement();
+    MetadataFilterBuilder.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxMetadataFilterBuilderElement", () => {
   });
 
   it("renders configured rules", () => {
-    const element = document.createElement("box-metadata-filter-builder") as BoxMetadataFilterBuilderElement;
+    const element = document.createElement("box-metadata-filter-builder") as MetadataFilterBuilder;
     element.fields = [
       { id: "classification", label: "Classification" },
       { id: "department", label: "Department" },
@@ -31,7 +30,7 @@ describe("BoxMetadataFilterBuilderElement", () => {
   });
 
   it("emits value-changed when a rule value changes", () => {
-    const element = document.createElement("box-metadata-filter-builder") as BoxMetadataFilterBuilderElement;
+    const element = document.createElement("box-metadata-filter-builder") as MetadataFilterBuilder;
     const changed = vi.fn();
     element.fields = [{ id: "classification", label: "Classification" }];
     element.rules = [{ field: "classification", operator: "is", value: "internal" }];
@@ -50,7 +49,7 @@ describe("BoxMetadataFilterBuilderElement", () => {
   });
 
   it("emits rule-added and rule-removed", () => {
-    const element = document.createElement("box-metadata-filter-builder") as BoxMetadataFilterBuilderElement;
+    const element = document.createElement("box-metadata-filter-builder") as MetadataFilterBuilder;
     const added = vi.fn();
     const removed = vi.fn();
     element.fields = [{ id: "classification", label: "Classification" }];
@@ -70,7 +69,7 @@ describe("BoxMetadataFilterBuilderElement", () => {
   });
 
   it("preserves focus and value while typing into a rule input", () => {
-    const element = document.createElement("box-metadata-filter-builder") as BoxMetadataFilterBuilderElement;
+    const element = document.createElement("box-metadata-filter-builder") as MetadataFilterBuilder;
     element.fields = [{ id: "classification", label: "Classification" }];
     element.rules = [{ field: "classification", operator: "is", value: "" }];
     document.body.append(element);
@@ -97,7 +96,7 @@ describe("BoxMetadataFilterBuilderElement", () => {
   });
 
   it("keeps field/operator select focus when changing rule controls", () => {
-    const element = document.createElement("box-metadata-filter-builder") as BoxMetadataFilterBuilderElement;
+    const element = document.createElement("box-metadata-filter-builder") as MetadataFilterBuilder;
     element.fields = [
       { id: "classification", label: "Classification" },
       { id: "department", label: "Department" },
@@ -128,7 +127,7 @@ describe("BoxMetadataFilterBuilderElement", () => {
   });
 
   it("includes brand focus-visible and interactive states for controls", () => {
-    const element = document.createElement("box-metadata-filter-builder") as BoxMetadataFilterBuilderElement;
+    const element = document.createElement("box-metadata-filter-builder") as MetadataFilterBuilder;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";

@@ -126,7 +126,8 @@ const personaStyles = `
   }
 `;
 
-export class BoxPersonaElement extends BaseElement {
+export class Persona extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["description", "initials", "name", "size", "src", "status", "subtitle", "tone"];
   }
@@ -296,14 +297,4 @@ export class BoxPersonaElement extends BaseElement {
   }
 }
 
-export const defineBoxPersonaElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxPersonaElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxPersonaElement;
-  }
-
-  customElements.define(tagName, BoxPersonaElement);
-  return BoxPersonaElement;
-};
+Persona.register();

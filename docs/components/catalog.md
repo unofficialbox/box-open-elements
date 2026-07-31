@@ -6,7 +6,7 @@ It aligns three things:
 
 - the filesystem layout under `src/components`
 - the docs-site catalog structure
-- the public package subpaths (`@unofficialbox/box-open-elements/components/<category>/<name>`)
+- the concise public package subpaths (`@unofficialbox/box-open-elements/<name>`)
 
 For the higher-level taxonomy diagram, see [../taxonomy.md](../taxonomy.md).
 
@@ -18,10 +18,14 @@ For the higher-level taxonomy diagram, see [../taxonomy.md](../taxonomy.md).
 ## Import contract
 
 ```ts
-import { defineBoxButtonElement } from "@unofficialbox/box-open-elements/components/actions/button";
+import { Button } from "@unofficialbox/box-open-elements";
+// Optimized alternative: "@unofficialbox/box-open-elements/button"
 ```
 
-Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …). Each module exports the element class and an idempotent `defineBox<Name>Element()` helper.
+Custom element tag names keep the `box-` prefix (`box-button`, `box-dialog`, …).
+Exports use concise PascalCase names and register automatically on import. Every
+class also exposes an idempotent static `register()` method for isolated custom
+element registries and test realms.
 
 ## Target inventory by category
 

@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxSearchResultsHeaderElement,
-  defineBoxSearchResultsHeaderElement,
+  SearchResultsHeader,
 } from "../../../src/patterns/search/search-results-header.js";
 
-describe("BoxSearchResultsHeaderElement", () => {
+describe("SearchResultsHeader", () => {
   beforeEach(() => {
-    defineBoxSearchResultsHeaderElement();
+    SearchResultsHeader.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxSearchResultsHeaderElement", () => {
   });
 
   it("renders count and context", () => {
-    const element = document.createElement("box-search-results-header") as BoxSearchResultsHeaderElement;
+    const element = document.createElement("box-search-results-header") as SearchResultsHeader;
     element.resultCount = 24;
     element.query = "brand";
     element.scope = "Marketing";
@@ -31,7 +30,7 @@ describe("BoxSearchResultsHeaderElement", () => {
   });
 
   it("emits action when a toolbar action is clicked", () => {
-    const element = document.createElement("box-search-results-header") as BoxSearchResultsHeaderElement;
+    const element = document.createElement("box-search-results-header") as SearchResultsHeader;
     const action = vi.fn();
     element.actions = [{ id: "save-view", label: "Save view" }];
     element.addEventListener("action", action);
@@ -49,7 +48,7 @@ describe("BoxSearchResultsHeaderElement", () => {
   });
 
   it("emits filter-removed when a chip is clicked", () => {
-    const element = document.createElement("box-search-results-header") as BoxSearchResultsHeaderElement;
+    const element = document.createElement("box-search-results-header") as SearchResultsHeader;
     const removed = vi.fn();
     element.filters = ["Shared externally"];
     element.addEventListener("filter-removed", removed);

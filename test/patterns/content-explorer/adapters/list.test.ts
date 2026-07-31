@@ -4,8 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ContentExplorerController } from "../../../../src/patterns/content-explorer/controller.js";
 import {
-  BoxExplorerListElement,
-  defineBoxExplorerListElement,
+  ExplorerList,
 } from "../../../../src/patterns/content-explorer/adapters/list.js";
 import type { ExplorerTransport, ExplorerTransportResult } from "../../../../src/patterns/content-explorer/types.js";
 
@@ -28,9 +27,9 @@ const flushMicrotasks = async (): Promise<void> => {
   await Promise.resolve();
 };
 
-describe("BoxExplorerListElement", () => {
+describe("ExplorerList", () => {
   beforeEach(() => {
-    defineBoxExplorerListElement();
+    ExplorerList.register();
   });
 
   afterEach(() => {
@@ -63,7 +62,7 @@ describe("BoxExplorerListElement", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-list") as BoxExplorerListElement;
+    const element = document.createElement("box-explorer-list") as ExplorerList;
     element.controller = controller;
 
     document.body.append(element);
@@ -109,7 +108,7 @@ describe("BoxExplorerListElement", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-list") as BoxExplorerListElement;
+    const element = document.createElement("box-explorer-list") as ExplorerList;
     element.controller = controller;
 
     document.body.append(element);
@@ -136,7 +135,7 @@ describe("BoxExplorerListElement", () => {
       transport,
       selectionMode: "multiple",
     });
-    const element = document.createElement("box-explorer-list") as BoxExplorerListElement;
+    const element = document.createElement("box-explorer-list") as ExplorerList;
     element.controller = controller;
 
     document.body.append(element);
@@ -173,7 +172,7 @@ describe("BoxExplorerListElement", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-list") as BoxExplorerListElement;
+    const element = document.createElement("box-explorer-list") as ExplorerList;
     const outsideButton = document.createElement("button");
     outsideButton.textContent = "Outside";
     element.controller = controller;
@@ -203,7 +202,7 @@ describe("BoxExplorerListElement", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-list") as BoxExplorerListElement;
+    const element = document.createElement("box-explorer-list") as ExplorerList;
     element.controller = controller;
 
     document.body.append(element);
@@ -241,7 +240,7 @@ describe("BoxExplorerListElement", () => {
       transport,
       selectionMode: "single",
     });
-    const element = document.createElement("box-explorer-list") as BoxExplorerListElement;
+    const element = document.createElement("box-explorer-list") as ExplorerList;
     element.controller = controller;
 
     document.body.append(element);

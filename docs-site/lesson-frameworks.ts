@@ -19,23 +19,22 @@ export type StepFrameworkId = "react" | "angular" | "vue" | "svelte";
 export type StepFrameworks = Record<StepFrameworkId, string[]>;
 
 // The one-time design-system registration each framework does in its entry file.
-const setup = (define: string, entry: string): Record<StepFrameworkId, string> => {
+const setup = (componentPath: string, entry: string): Record<StepFrameworkId, string> => {
   const body = `import {
   registerBoxDefaultDesignSystem,
   applyDesignTokens,
-  ${define},
 } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/${componentPath}";
 
 // Register the Box design system once, before your app mounts.
 registerBoxDefaultDesignSystem({ setActive: true });
-applyDesignTokens(document.documentElement, "box-default");
-${define}();`;
+applyDesignTokens(document.documentElement, "box-default");`;
   return { react: `// ${entry}.tsx\n${body}`, angular: `// ${entry}.ts\n${body}`, vue: `// ${entry}.ts\n${body}`, svelte: `// ${entry}.ts\n${body}` };
 };
 
-const explorerSetup = setup("defineBoxContentExplorerElement", "main");
-const shareSetup = setup("defineBoxSharePanelElement", "main");
-const previewSetup = setup("defineBoxPreviewElement", "main");
+const explorerSetup = setup("content-explorer", "main");
+const shareSetup = setup("share-panel", "main");
+const previewSetup = setup("preview", "main");
 
 // ── Explorer ─────────────────────────────────────────────────────────────────
 
@@ -45,9 +44,8 @@ export const explorerStepFrameworks: StepFrameworks = {
     // 1 — render the shell
     `// Explorer.tsx
 import { useRef } from "react";
-import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/content-explorer";
 
-defineBoxContentExplorerElement();
 
 export function Explorer() {
   const ref = useRef(null);
@@ -56,9 +54,8 @@ export function Explorer() {
     // 2 — connect the session
     `// Explorer.tsx
 import { useEffect, useRef } from "react";
-import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/content-explorer";
 
-defineBoxContentExplorerElement();
 
 export function Explorer({ transport }) {
   const ref = useRef(null);
@@ -75,9 +72,8 @@ export function Explorer({ transport }) {
     // 3 — follow navigation
     `// Explorer.tsx
 import { useEffect, useRef, useState } from "react";
-import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/content-explorer";
 
-defineBoxContentExplorerElement();
 
 export function Explorer({ transport }) {
   const ref = useRef(null);
@@ -103,9 +99,8 @@ export function Explorer({ transport }) {
     // 4 — react to selection
     `// Explorer.tsx
 import { useEffect, useRef, useState } from "react";
-import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/content-explorer";
 
-defineBoxContentExplorerElement();
 
 export function Explorer({ transport }) {
   const ref = useRef(null);
@@ -138,9 +133,8 @@ export function Explorer({ transport }) {
     // 5 — production-leaning (selection-mode + page-size)
     `// Explorer.tsx
 import { useEffect, useRef, useState } from "react";
-import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/content-explorer";
 
-defineBoxContentExplorerElement();
 
 export function Explorer({ transport }) {
   const ref = useRef(null);
@@ -182,9 +176,8 @@ export function Explorer({ transport }) {
     // 1
     `// explorer.component.ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
-import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/content-explorer";
 
-defineBoxContentExplorerElement();
 
 @Component({
   standalone: true,
@@ -196,9 +189,8 @@ export class ExplorerComponent {}`,
     // 2
     `// explorer.component.ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA, Input } from "@angular/core";
-import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/content-explorer";
 
-defineBoxContentExplorerElement();
 
 @Component({
   standalone: true,
@@ -218,9 +210,8 @@ export class ExplorerComponent {
     // 3
     `// explorer.component.ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA, Input } from "@angular/core";
-import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/content-explorer";
 
-defineBoxContentExplorerElement();
 
 @Component({
   standalone: true,
@@ -247,9 +238,8 @@ export class ExplorerComponent {
     // 4
     `// explorer.component.ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA, Input } from "@angular/core";
-import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/content-explorer";
 
-defineBoxContentExplorerElement();
 
 @Component({
   standalone: true,
@@ -283,9 +273,8 @@ export class ExplorerComponent {
     // 5
     `// explorer.component.ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA, Input } from "@angular/core";
-import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/content-explorer";
 
-defineBoxContentExplorerElement();
 
 @Component({
   standalone: true,
@@ -323,9 +312,8 @@ export class ExplorerComponent {
     explorerSetup.vue,
     // 1
     `<script setup lang="ts">
-import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/content-explorer";
 
-defineBoxContentExplorerElement();
 </script>
 
 <template>
@@ -333,9 +321,8 @@ defineBoxContentExplorerElement();
 </template>`,
     // 2
     `<script setup lang="ts">
-import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/content-explorer";
 
-defineBoxContentExplorerElement();
 
 const props = defineProps<{ transport: unknown }>();
 </script>
@@ -350,9 +337,8 @@ const props = defineProps<{ transport: unknown }>();
     // 3
     `<script setup lang="ts">
 import { ref } from "vue";
-import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/content-explorer";
 
-defineBoxContentExplorerElement();
 
 const props = defineProps<{ transport: unknown }>();
 const here = ref("");
@@ -374,9 +360,8 @@ const onFolderLoaded = (event: CustomEvent) => {
     // 4
     `<script setup lang="ts">
 import { ref } from "vue";
-import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/content-explorer";
 
-defineBoxContentExplorerElement();
 
 const props = defineProps<{ transport: unknown }>();
 const here = ref("");
@@ -404,9 +389,8 @@ const onSelectionChanged = (event: CustomEvent) => {
     // 5
     `<script setup lang="ts">
 import { ref } from "vue";
-import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/content-explorer";
 
-defineBoxContentExplorerElement();
 
 const props = defineProps<{ transport: unknown }>();
 const here = ref("");
@@ -438,17 +422,15 @@ const onSelectionChanged = (event: CustomEvent) => {
     explorerSetup.svelte,
     // 1
     `<script lang="ts">
-  import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+  import "@unofficialbox/box-open-elements/content-explorer";
 
-  defineBoxContentExplorerElement();
 </script>
 
 <box-content-explorer></box-content-explorer>`,
     // 2
     `<script lang="ts">
-  import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+  import "@unofficialbox/box-open-elements/content-explorer";
 
-  defineBoxContentExplorerElement();
 
   export let transport;
 
@@ -464,9 +446,8 @@ const onSelectionChanged = (event: CustomEvent) => {
 ></box-content-explorer>`,
     // 3
     `<script lang="ts">
-  import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+  import "@unofficialbox/box-open-elements/content-explorer";
 
-  defineBoxContentExplorerElement();
 
   export let transport;
 
@@ -484,9 +465,8 @@ const onSelectionChanged = (event: CustomEvent) => {
 ></box-content-explorer>`,
     // 4
     `<script lang="ts">
-  import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+  import "@unofficialbox/box-open-elements/content-explorer";
 
-  defineBoxContentExplorerElement();
 
   export let transport;
 
@@ -507,9 +487,8 @@ const onSelectionChanged = (event: CustomEvent) => {
 ></box-content-explorer>`,
     // 5
     `<script lang="ts">
-  import { defineBoxContentExplorerElement } from "@unofficialbox/box-open-elements";
+  import "@unofficialbox/box-open-elements/content-explorer";
 
-  defineBoxContentExplorerElement();
 
   export let transport;
 
@@ -541,9 +520,8 @@ export const shareStepFrameworks: StepFrameworks = {
     // 1 — shell + heading
     `// SharePanel.tsx
 import { useRef } from "react";
-import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/share-panel";
 
-defineBoxSharePanelElement();
 
 export function SharePanel() {
   const ref = useRef(null);
@@ -552,9 +530,8 @@ export function SharePanel() {
     // 2 — shared link
     `// SharePanel.tsx
 import { useEffect, useRef } from "react";
-import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/share-panel";
 
-defineBoxSharePanelElement();
 
 export function SharePanel() {
   const ref = useRef(null);
@@ -571,9 +548,8 @@ export function SharePanel() {
     // 3 — collaborators
     `// SharePanel.tsx
 import { useEffect, useRef } from "react";
-import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/share-panel";
 
-defineBoxSharePanelElement();
 
 export function SharePanel() {
   const ref = useRef(null);
@@ -593,9 +569,8 @@ export function SharePanel() {
     // 4 — message + settings
     `// SharePanel.tsx
 import { useEffect, useRef } from "react";
-import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/share-panel";
 
-defineBoxSharePanelElement();
 
 export function SharePanel() {
   const ref = useRef(null);
@@ -625,9 +600,8 @@ export function SharePanel() {
     // 5 — actions + events
     `// SharePanel.tsx
 import { useEffect, useRef } from "react";
-import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/share-panel";
 
-defineBoxSharePanelElement();
 
 export function SharePanel() {
   const ref = useRef(null);
@@ -673,9 +647,8 @@ export function SharePanel() {
     // 1
     `// share.component.ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
-import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/share-panel";
 
-defineBoxSharePanelElement();
 
 @Component({
   standalone: true,
@@ -687,9 +660,8 @@ export class ShareComponent {}`,
     // 2
     `// share.component.ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
-import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/share-panel";
 
-defineBoxSharePanelElement();
 
 @Component({
   standalone: true,
@@ -708,9 +680,8 @@ export class ShareComponent {
     // 3
     `// share.component.ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
-import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/share-panel";
 
-defineBoxSharePanelElement();
 
 @Component({
   standalone: true,
@@ -734,9 +705,8 @@ export class ShareComponent {
     // 4
     `// share.component.ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
-import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/share-panel";
 
-defineBoxSharePanelElement();
 
 @Component({
   standalone: true,
@@ -766,9 +736,8 @@ export class ShareComponent {
     // 5
     `// share.component.ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
-import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/share-panel";
 
-defineBoxSharePanelElement();
 
 @Component({
   standalone: true,
@@ -815,9 +784,8 @@ export class ShareComponent {
     shareSetup.vue,
     // 1
     `<script setup lang="ts">
-import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/share-panel";
 
-defineBoxSharePanelElement();
 </script>
 
 <template>
@@ -825,9 +793,8 @@ defineBoxSharePanelElement();
 </template>`,
     // 2
     `<script setup lang="ts">
-import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/share-panel";
 
-defineBoxSharePanelElement();
 
 const sharedLink = { url: "https://box.com/s/example", access: "company" };
 </script>
@@ -840,9 +807,8 @@ const sharedLink = { url: "https://box.com/s/example", access: "company" };
 </template>`,
     // 3
     `<script setup lang="ts">
-import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/share-panel";
 
-defineBoxSharePanelElement();
 
 const sharedLink = { url: "https://box.com/s/example", access: "company" };
 const collaborators = [
@@ -860,9 +826,8 @@ const collaborators = [
 </template>`,
     // 4
     `<script setup lang="ts">
-import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/share-panel";
 
-defineBoxSharePanelElement();
 
 const sharedLink = { url: "https://box.com/s/example", access: "company" };
 const collaborators = [
@@ -886,9 +851,8 @@ const settings = [
 </template>`,
     // 5
     `<script setup lang="ts">
-import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/share-panel";
 
-defineBoxSharePanelElement();
 
 const sharedLink = { url: "https://box.com/s/example", access: "company" };
 const collaborators = [
@@ -925,17 +889,15 @@ const onCollaborator = (event: CustomEvent) => console.log("collaborator", event
     shareSetup.svelte,
     // 1
     `<script lang="ts">
-  import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+  import "@unofficialbox/box-open-elements/share-panel";
 
-  defineBoxSharePanelElement();
 </script>
 
 <box-share-panel heading="Share Quarterly Plan.pdf"></box-share-panel>`,
     // 2
     `<script lang="ts">
-  import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+  import "@unofficialbox/box-open-elements/share-panel";
 
-  defineBoxSharePanelElement();
 
   let el;
   // Object props are assigned, not passed as attributes.
@@ -945,9 +907,8 @@ const onCollaborator = (event: CustomEvent) => console.log("collaborator", event
 <box-share-panel bind:this={el} heading="Share Quarterly Plan.pdf"></box-share-panel>`,
     // 3
     `<script lang="ts">
-  import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+  import "@unofficialbox/box-open-elements/share-panel";
 
-  defineBoxSharePanelElement();
 
   let el;
   $: if (el) {
@@ -962,9 +923,8 @@ const onCollaborator = (event: CustomEvent) => console.log("collaborator", event
 <box-share-panel bind:this={el} heading="Share Quarterly Plan.pdf"></box-share-panel>`,
     // 4
     `<script lang="ts">
-  import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+  import "@unofficialbox/box-open-elements/share-panel";
 
-  defineBoxSharePanelElement();
 
   let el;
   $: if (el) {
@@ -987,9 +947,8 @@ const onCollaborator = (event: CustomEvent) => console.log("collaborator", event
 ></box-share-panel>`,
     // 5
     `<script lang="ts">
-  import { defineBoxSharePanelElement } from "@unofficialbox/box-open-elements";
+  import "@unofficialbox/box-open-elements/share-panel";
 
-  defineBoxSharePanelElement();
 
   let el;
   $: if (el) {
@@ -1027,9 +986,8 @@ export const previewStepFrameworks: StepFrameworks = {
     // 1 — shell + heading
     `// Preview.tsx
 import { useRef } from "react";
-import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/preview";
 
-defineBoxPreviewElement();
 
 export function Preview() {
   const ref = useRef(null);
@@ -1038,9 +996,8 @@ export function Preview() {
     // 2 — item chrome
     `// Preview.tsx
 import { useRef } from "react";
-import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/preview";
 
-defineBoxPreviewElement();
 
 export function Preview() {
   const ref = useRef(null);
@@ -1057,9 +1014,8 @@ export function Preview() {
     // 3 — provider
     `// Preview.tsx
 import { useEffect, useRef } from "react";
-import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/preview";
 
-defineBoxPreviewElement();
 
 export function Preview() {
   const ref = useRef(null);
@@ -1084,9 +1040,8 @@ export function Preview() {
     // 4 — adapter state
     `// Preview.tsx
 import { useEffect, useRef } from "react";
-import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/preview";
 
-defineBoxPreviewElement();
 
 export function Preview() {
   const ref = useRef(null);
@@ -1111,9 +1066,8 @@ export function Preview() {
     // 5 — actions + events
     `// Preview.tsx
 import { useEffect, useRef } from "react";
-import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/preview";
 
-defineBoxPreviewElement();
 
 export function Preview() {
   const ref = useRef(null);
@@ -1155,9 +1109,8 @@ export function Preview() {
     // 1
     `// preview.component.ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
-import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/preview";
 
-defineBoxPreviewElement();
 
 @Component({
   standalone: true,
@@ -1169,9 +1122,8 @@ export class PreviewComponent {}`,
     // 2
     `// preview.component.ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
-import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/preview";
 
-defineBoxPreviewElement();
 
 @Component({
   standalone: true,
@@ -1190,9 +1142,8 @@ export class PreviewComponent {}`,
     // 3
     `// preview.component.ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
-import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/preview";
 
-defineBoxPreviewElement();
 
 @Component({
   standalone: true,
@@ -1214,9 +1165,8 @@ export class PreviewComponent {
     // 4
     `// preview.component.ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
-import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/preview";
 
-defineBoxPreviewElement();
 
 @Component({
   standalone: true,
@@ -1240,9 +1190,8 @@ export class PreviewComponent {
     // 5
     `// preview.component.ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
-import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/preview";
 
-defineBoxPreviewElement();
 
 @Component({
   standalone: true,
@@ -1283,9 +1232,8 @@ export class PreviewComponent {
     previewSetup.vue,
     // 1
     `<script setup lang="ts">
-import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/preview";
 
-defineBoxPreviewElement();
 </script>
 
 <template>
@@ -1293,9 +1241,8 @@ defineBoxPreviewElement();
 </template>`,
     // 2
     `<script setup lang="ts">
-import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/preview";
 
-defineBoxPreviewElement();
 </script>
 
 <template>
@@ -1308,9 +1255,8 @@ defineBoxPreviewElement();
 </template>`,
     // 3
     `<script setup lang="ts">
-import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/preview";
 
-defineBoxPreviewElement();
 
 const provider = { id: "content-preview", label: "Box Content Preview", engine: "pdf.js" };
 </script>
@@ -1326,9 +1272,8 @@ const provider = { id: "content-preview", label: "Box Content Preview", engine: 
 </template>`,
     // 4
     `<script setup lang="ts">
-import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/preview";
 
-defineBoxPreviewElement();
 
 const provider = { id: "content-preview", label: "Box Content Preview", engine: "pdf.js" };
 const adapterState = { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%" };
@@ -1346,9 +1291,8 @@ const adapterState = { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%"
 </template>`,
     // 5
     `<script setup lang="ts">
-import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+import "@unofficialbox/box-open-elements/preview";
 
-defineBoxPreviewElement();
 
 const provider = { id: "content-preview", label: "Box Content Preview", engine: "pdf.js" };
 const adapterState = { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%" };
@@ -1380,17 +1324,15 @@ const onProviderAction = (event: CustomEvent) =>
     previewSetup.svelte,
     // 1
     `<script lang="ts">
-  import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+  import "@unofficialbox/box-open-elements/preview";
 
-  defineBoxPreviewElement();
 </script>
 
 <box-preview-element heading="Quarterly Plan.pdf"></box-preview-element>`,
     // 2
     `<script lang="ts">
-  import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+  import "@unofficialbox/box-open-elements/preview";
 
-  defineBoxPreviewElement();
 </script>
 
 <box-preview-element
@@ -1401,9 +1343,8 @@ const onProviderAction = (event: CustomEvent) =>
 ></box-preview-element>`,
     // 3
     `<script lang="ts">
-  import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+  import "@unofficialbox/box-open-elements/preview";
 
-  defineBoxPreviewElement();
 
   let el;
   // Object props are assigned, not passed as attributes.
@@ -1419,9 +1360,8 @@ const onProviderAction = (event: CustomEvent) =>
 ></box-preview-element>`,
     // 4
     `<script lang="ts">
-  import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+  import "@unofficialbox/box-open-elements/preview";
 
-  defineBoxPreviewElement();
 
   let el;
   $: if (el) {
@@ -1439,9 +1379,8 @@ const onProviderAction = (event: CustomEvent) =>
 ></box-preview-element>`,
     // 5
     `<script lang="ts">
-  import { defineBoxPreviewElement } from "@unofficialbox/box-open-elements";
+  import "@unofficialbox/box-open-elements/preview";
 
-  defineBoxPreviewElement();
 
   let el;
   $: if (el) {

@@ -264,7 +264,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxSharePanelElement extends BaseElement {
+export class SharePanel extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["actions", "collaborators", "message", "settings", "shared-link", "heading"];
   }
@@ -653,14 +654,4 @@ export class BoxSharePanelElement extends BaseElement {
   }
 }
 
-export const defineBoxSharePanelElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxSharePanelElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxSharePanelElement;
-  }
-
-  customElements.define(tagName, BoxSharePanelElement);
-  return BoxSharePanelElement;
-};
+SharePanel.register();

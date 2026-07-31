@@ -103,7 +103,8 @@ const draggableListStyles = `
  * `reorder` event carrying the moved value, its old/new index, and the new
  * order. It owns no persistence — the host stores the order.
  */
-export class BoxDraggableListElement extends BaseElement {
+export class DraggableList extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["items", "label"];
   }
@@ -334,14 +335,4 @@ export class BoxDraggableListElement extends BaseElement {
   }
 }
 
-export const defineBoxDraggableListElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxDraggableListElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxDraggableListElement;
-  }
-
-  customElements.define(tagName, BoxDraggableListElement);
-  return BoxDraggableListElement;
-};
+DraggableList.register();

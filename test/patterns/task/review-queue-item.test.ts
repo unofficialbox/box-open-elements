@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxReviewQueueItemElement,
-  defineBoxReviewQueueItemElement,
+  ReviewQueueItem,
 } from "../../../src/patterns/task/review-queue-item.js";
 
-describe("BoxReviewQueueItemElement", () => {
+describe("ReviewQueueItem", () => {
   beforeEach(() => {
-    defineBoxReviewQueueItemElement();
+    ReviewQueueItem.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxReviewQueueItemElement", () => {
   });
 
   it("renders task summary, assignee, and metrics", () => {
-    const element = document.createElement("box-review-queue-item") as BoxReviewQueueItemElement;
+    const element = document.createElement("box-review-queue-item") as ReviewQueueItem;
     element.heading = "Launch Checklist";
     element.itemLabel = "Brand Strategy.pdf";
     element.assignee = { name: "Morgan Lee", role: "Owner" };
@@ -36,7 +35,7 @@ describe("BoxReviewQueueItemElement", () => {
   });
 
   it("emits selected when the row is opened", () => {
-    const element = document.createElement("box-review-queue-item") as BoxReviewQueueItemElement;
+    const element = document.createElement("box-review-queue-item") as ReviewQueueItem;
     const selected = vi.fn();
     element.heading = "Launch Checklist";
     element.itemLabel = "Brand Strategy.pdf";
@@ -58,7 +57,7 @@ describe("BoxReviewQueueItemElement", () => {
   });
 
   it("emits action for task controls", () => {
-    const element = document.createElement("box-review-queue-item") as BoxReviewQueueItemElement;
+    const element = document.createElement("box-review-queue-item") as ReviewQueueItem;
     const action = vi.fn();
     element.heading = "Launch Checklist";
     element.itemLabel = "Brand Strategy.pdf";

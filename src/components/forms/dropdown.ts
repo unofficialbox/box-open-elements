@@ -162,7 +162,8 @@ const dropdownStyles = `
   }
 `;
 
-export class BoxDropdownElement extends FormAssociatedElement {
+export class Dropdown extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -497,14 +498,4 @@ export class BoxDropdownElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxDropdownElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxDropdownElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxDropdownElement;
-  }
-
-  customElements.define(tagName, BoxDropdownElement);
-  return BoxDropdownElement;
-};
+Dropdown.register();

@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxItemDetailsPanelElement,
-  defineBoxItemDetailsPanelElement,
+  ItemDetailsPanel,
 } from "../../../src/patterns/item/item-details-panel.js";
 
-describe("BoxItemDetailsPanelElement", () => {
+describe("ItemDetailsPanel", () => {
   beforeEach(() => {
-    defineBoxItemDetailsPanelElement();
+    ItemDetailsPanel.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxItemDetailsPanelElement", () => {
   });
 
   it("renders title, owner, and metadata rows", () => {
-    const element = document.createElement("box-item-details-panel") as BoxItemDetailsPanelElement;
+    const element = document.createElement("box-item-details-panel") as ItemDetailsPanel;
     element.heading = "Brand Strategy.pdf";
     element.owner = {
       name: "Morgan Lee",
@@ -38,7 +37,7 @@ describe("BoxItemDetailsPanelElement", () => {
   });
 
   it("emits action when an action button is clicked", () => {
-    const element = document.createElement("box-item-details-panel") as BoxItemDetailsPanelElement;
+    const element = document.createElement("box-item-details-panel") as ItemDetailsPanel;
     const action = vi.fn();
     element.heading = "Brand Strategy.pdf";
     element.actions = [
@@ -62,7 +61,7 @@ describe("BoxItemDetailsPanelElement", () => {
   });
 
   it("preserves action focus across unrelated attribute updates", () => {
-    const element = document.createElement("box-item-details-panel") as BoxItemDetailsPanelElement;
+    const element = document.createElement("box-item-details-panel") as ItemDetailsPanel;
     element.heading = "Brand Strategy.pdf";
     element.actions = [
       { id: "open", label: "Open", tone: "primary" },
@@ -83,7 +82,7 @@ describe("BoxItemDetailsPanelElement", () => {
   });
 
   it("preserves action focus when only tone changes", () => {
-    const element = document.createElement("box-item-details-panel") as BoxItemDetailsPanelElement;
+    const element = document.createElement("box-item-details-panel") as ItemDetailsPanel;
     element.heading = "Brand Strategy.pdf";
     element.actions = [
       { id: "open", label: "Open", tone: "primary" },

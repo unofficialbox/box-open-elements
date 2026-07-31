@@ -194,7 +194,8 @@ const illustrationStyles = `
   }
 `;
 
-export class BoxIllustrationElement extends BaseElement {
+export class Illustration extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   private readonly handleDesignSystemChange = (): void => {
     this.update();
   };
@@ -337,14 +338,4 @@ export class BoxIllustrationElement extends BaseElement {
   }
 }
 
-export const defineBoxIllustrationElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxIllustrationElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxIllustrationElement;
-  }
-
-  customElements.define(tagName, BoxIllustrationElement);
-  return BoxIllustrationElement;
-};
+Illustration.register();

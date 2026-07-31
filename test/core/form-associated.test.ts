@@ -10,8 +10,7 @@ import {
   stringValuesFromFormValue,
 } from "../../src/core/index.js";
 import {
-  BoxTextFieldElement,
-  defineBoxTextFieldElement,
+  TextField,
 } from "../../src/components/forms/text-field.js";
 
 describe("form value helpers", () => {
@@ -39,7 +38,7 @@ describe("form value helpers", () => {
 
 describe("FormAssociatedElement", () => {
   beforeEach(() => {
-    defineBoxTextFieldElement();
+    TextField.register();
   });
 
   afterEach(() => {
@@ -47,7 +46,7 @@ describe("FormAssociatedElement", () => {
   });
 
   it("reflects the name attribute on the host", () => {
-    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    const element = document.createElement("box-text-field") as TextField;
     element.name = "username";
 
     document.body.append(element);
@@ -57,7 +56,7 @@ describe("FormAssociatedElement", () => {
   });
 
   it("shows an alert region and aria-invalid when invalid with an error message", () => {
-    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    const element = document.createElement("box-text-field") as TextField;
     element.invalid = true;
     element.errorMessage = "Required field";
 
@@ -74,7 +73,7 @@ describe("FormAssociatedElement", () => {
   });
 
   it("mirrors the form value after typing", () => {
-    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    const element = document.createElement("box-text-field") as TextField;
     document.body.append(element);
 
     const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement | null;
@@ -85,7 +84,7 @@ describe("FormAssociatedElement", () => {
   });
 
   it("clears the mirrored form value when disabled", () => {
-    const element = document.createElement("box-text-field") as BoxTextFieldElement;
+    const element = document.createElement("box-text-field") as TextField;
     element.value = "Draft";
     document.body.append(element);
 

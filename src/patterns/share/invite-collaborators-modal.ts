@@ -177,7 +177,8 @@ const DEFAULT_ROLES: InviteRole[] = [
  * dismissal, closing itself in both cases. Structure is built once per open so
  * the live inputs keep focus while only the pills/status update.
  */
-export class BoxInviteCollaboratorsModalElement extends BaseElement {
+export class InviteCollaboratorsModal extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["heading", "item-id", "open", "submit-label"];
   }
@@ -514,14 +515,4 @@ export class BoxInviteCollaboratorsModalElement extends BaseElement {
   }
 }
 
-export const defineBoxInviteCollaboratorsModalElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxInviteCollaboratorsModalElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxInviteCollaboratorsModalElement;
-  }
-
-  customElements.define(tagName, BoxInviteCollaboratorsModalElement);
-  return BoxInviteCollaboratorsModalElement;
-};
+InviteCollaboratorsModal.register();

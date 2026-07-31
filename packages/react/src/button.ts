@@ -1,12 +1,9 @@
 import type { MouseEventHandler } from "react";
 
-import {
-  BoxButtonElement,
-  defineBoxButtonElement,
-} from "../../../src/components/actions/button.js";
-import { createWebComponent, type BoxWebComponentProps } from "./create-web-component.js";
+import { Button as ButtonElement } from "../../../src/components/actions/button.js";
+import { createWebComponent, type WebComponentProps } from "./create-web-component.js";
 
-export type BoxButtonProps = BoxWebComponentProps & {
+export type ButtonProps = WebComponentProps & {
   /** Button label text (maps to the `label` property / attribute). */
   label?: string;
   /** Visual tone: `primary` (default), `neutral`, `danger`. */
@@ -14,17 +11,16 @@ export type BoxButtonProps = BoxWebComponentProps & {
   /** Control size: `small`, `medium` (default), `large`. */
   size?: string;
   disabled?: boolean;
-  onClick?: MouseEventHandler<BoxButtonElement>;
+  onClick?: MouseEventHandler<ButtonElement>;
 };
 
 /**
  * React wrapper for `<box-button>`. Registers the custom element on first render
  * and syncs props as element properties so React 18/19 both behave.
  */
-export const BoxButton = createWebComponent<BoxButtonElement, BoxButtonProps>({
+export const Button = createWebComponent<ButtonElement, ButtonProps>({
   tagName: "box-button",
-  define: defineBoxButtonElement,
-  displayName: "BoxButton",
+  displayName: "Button",
   propertyNames: ["label", "tone", "size", "disabled"],
   sync: (element, props) => {
     if (props.label !== undefined) {

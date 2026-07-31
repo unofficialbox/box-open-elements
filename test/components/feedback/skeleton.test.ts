@@ -2,12 +2,12 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxSkeletonElement, defineBoxSkeletonElement } from "../../../src/components/feedback/skeleton.js";
+import { Skeleton } from "../../../src/components/feedback/skeleton.js";
 import { boeMotionDuration, boeMotionEasing } from "../../../src/foundations/motion/index.js";
 
-describe("BoxSkeletonElement", () => {
+describe("Skeleton", () => {
   beforeEach(() => {
-    defineBoxSkeletonElement();
+    Skeleton.register();
   });
 
   afterEach(() => {
@@ -15,7 +15,7 @@ describe("BoxSkeletonElement", () => {
   });
 
   it("renders with the provided dimensions", () => {
-    const element = document.createElement("box-skeleton") as BoxSkeletonElement;
+    const element = document.createElement("box-skeleton") as Skeleton;
     element.width = "180px";
     element.height = "24px";
 
@@ -27,7 +27,7 @@ describe("BoxSkeletonElement", () => {
   });
 
   it("does not allow attribute values to inject markup", () => {
-    const element = document.createElement("box-skeleton") as BoxSkeletonElement;
+    const element = document.createElement("box-skeleton") as Skeleton;
     element.width = '16px" aria-hidden="false"><img src=x onerror=alert(1)>';
     document.body.append(element);
 
@@ -40,7 +40,7 @@ describe("BoxSkeletonElement", () => {
   });
 
   it("skips CSSOM writes when dimensions are unchanged", () => {
-    const element = document.createElement("box-skeleton") as BoxSkeletonElement;
+    const element = document.createElement("box-skeleton") as Skeleton;
     element.width = "100px";
     element.height = "16px";
     document.body.append(element);
@@ -57,7 +57,7 @@ describe("BoxSkeletonElement", () => {
   });
 
   it("uses shared motion vocabulary for shimmer and reduced-motion", () => {
-    const element = document.createElement("box-skeleton") as BoxSkeletonElement;
+    const element = document.createElement("box-skeleton") as Skeleton;
     document.body.append(element);
 
     const styleText = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -70,7 +70,7 @@ describe("BoxSkeletonElement", () => {
   });
 
   it("writes only the changed dimension", () => {
-    const element = document.createElement("box-skeleton") as BoxSkeletonElement;
+    const element = document.createElement("box-skeleton") as Skeleton;
     element.width = "100px";
     element.height = "16px";
     document.body.append(element);

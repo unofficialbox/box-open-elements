@@ -2,7 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxTableElement, defineBoxTableElement } from "../../../src/components/collections/table.js";
+import { Table } from "../../../src/components/collections/table.js";
 
 const COLUMNS = [
   { key: "name", label: "Name", sortable: true },
@@ -15,8 +15,8 @@ const ROWS = [
   { id: "4", cells: { name: "D.pdf", owner: "Kai" } },
 ];
 
-const create = (mode = "multiple"): BoxTableElement => {
-  const el = document.createElement("box-table") as BoxTableElement;
+const create = (mode = "multiple"): Table => {
+  const el = document.createElement("box-table") as Table;
   el.columns = COLUMNS as never;
   el.rows = ROWS as never;
   el.selectionMode = mode as never;
@@ -24,12 +24,12 @@ const create = (mode = "multiple"): BoxTableElement => {
   return el;
 };
 
-const rowAt = (el: BoxTableElement, i: number): HTMLElement =>
+const rowAt = (el: Table, i: number): HTMLElement =>
   el.shadowRoot?.querySelectorAll('[part="row"]')[i] as HTMLElement;
 
-describe("BoxTableElement", () => {
+describe("Table", () => {
   beforeEach(() => {
-    defineBoxTableElement();
+    Table.register();
   });
 
   afterEach(() => {

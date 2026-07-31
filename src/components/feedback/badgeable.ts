@@ -46,7 +46,8 @@ const badgeableStyles = `
  * named slot (`top-left`, `top-right`, `bottom-left`, `bottom-right`). Corners
  * with no assigned content are hidden so they don't capture pointer events.
  */
-export class BoxBadgeableElement extends BaseElement {
+export class Badgeable extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   private corners = new Map<Corner, { wrapper: HTMLElement; slot: HTMLSlotElement }>();
 
   protected renderTemplate(): void {
@@ -88,14 +89,4 @@ export class BoxBadgeableElement extends BaseElement {
   }
 }
 
-export const defineBoxBadgeableElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxBadgeableElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxBadgeableElement;
-  }
-
-  customElements.define(tagName, BoxBadgeableElement);
-  return BoxBadgeableElement;
-};
+Badgeable.register();

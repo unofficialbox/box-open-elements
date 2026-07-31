@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxTooltipElement,
-  defineBoxTooltipElement,
+  Tooltip,
 } from "../../../src/components/overlays/tooltip.js";
 
-describe("BoxTooltipElement", () => {
+describe("Tooltip", () => {
   beforeEach(() => {
-    defineBoxTooltipElement();
+    Tooltip.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxTooltipElement", () => {
   });
 
   it("shows tooltip content on hover", () => {
-    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    const element = document.createElement("box-tooltip") as Tooltip;
     element.label = "Helpful context";
 
     document.body.append(element);
@@ -31,7 +30,7 @@ describe("BoxTooltipElement", () => {
   });
 
   it("emits open changes when toggled", () => {
-    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    const element = document.createElement("box-tooltip") as Tooltip;
     const changed = vi.fn();
     element.addEventListener("open-changed", changed);
 
@@ -48,7 +47,7 @@ describe("BoxTooltipElement", () => {
   });
 
   it("does not immediately close when click follows focus-open", () => {
-    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    const element = document.createElement("box-tooltip") as Tooltip;
     document.body.append(element);
 
     const trigger = element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null;
@@ -61,7 +60,7 @@ describe("BoxTooltipElement", () => {
   });
 
   it("closes on Escape", () => {
-    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    const element = document.createElement("box-tooltip") as Tooltip;
 
     document.body.append(element);
     element.show();
@@ -73,7 +72,7 @@ describe("BoxTooltipElement", () => {
   });
 
   it("includes focus-visible and interactive styles for the trigger", () => {
-    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    const element = document.createElement("box-tooltip") as Tooltip;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -86,7 +85,7 @@ describe("BoxTooltipElement", () => {
   });
 
   it("uses compact tooltip panel radius", () => {
-    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    const element = document.createElement("box-tooltip") as Tooltip;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -94,7 +93,7 @@ describe("BoxTooltipElement", () => {
   });
 
   it("uses a custom trigger label when provided", () => {
-    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    const element = document.createElement("box-tooltip") as Tooltip;
     element.label = "Retention policy details";
     element.triggerLabel = "View retention policy";
 
@@ -105,7 +104,7 @@ describe("BoxTooltipElement", () => {
   });
 
   it("positions the tooltip panel as a fixed overlay without duplicating trigger and description text", () => {
-    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    const element = document.createElement("box-tooltip") as Tooltip;
     element.label = "Retention policy details";
     document.body.append(element);
 
@@ -127,7 +126,7 @@ describe("BoxTooltipElement", () => {
   });
 
   it("uses a slotted trigger and associates aria-describedby with it", () => {
-    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    const element = document.createElement("box-tooltip") as Tooltip;
     element.label = "Copy link";
     const trigger = document.createElement("button");
     trigger.textContent = "Share";
@@ -145,7 +144,7 @@ describe("BoxTooltipElement", () => {
   });
 
   it("applies a data-theme attribute for non-default themes and positions on open", () => {
-    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    const element = document.createElement("box-tooltip") as Tooltip;
     element.label = "This field is required";
     element.theme = "error";
     document.body.append(element);
@@ -164,7 +163,7 @@ describe("BoxTooltipElement", () => {
   });
 
   it("renders rich slotted content alongside the label", () => {
-    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    const element = document.createElement("box-tooltip") as Tooltip;
     element.label = "Preview";
     const img = document.createElement("img");
     img.slot = "content";
@@ -181,7 +180,7 @@ describe("BoxTooltipElement", () => {
   });
 
   it("exposes a placement attribute steering the resolved side", () => {
-    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    const element = document.createElement("box-tooltip") as Tooltip;
     element.label = "Above";
     element.placement = "top-center";
     document.body.append(element);
@@ -195,7 +194,7 @@ describe("BoxTooltipElement", () => {
   });
 
   it("keeps the tooltip open when focus moves within a compound slotted trigger", () => {
-    const element = document.createElement("box-tooltip") as BoxTooltipElement;
+    const element = document.createElement("box-tooltip") as Tooltip;
     element.label = "Compound trigger help";
     const wrapper = document.createElement("span");
     const first = document.createElement("button");

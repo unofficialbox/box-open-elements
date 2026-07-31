@@ -162,7 +162,8 @@ const guideTooltipStyles = `
  * so the host can advance the tour (moving `for`/`step`). Positioned as a
  * viewport-fixed overlay via `foundations/overlay`.
  */
-export class BoxGuideTooltipElement extends BaseElement {
+export class GuideTooltip extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       "open",
@@ -397,14 +398,4 @@ export class BoxGuideTooltipElement extends BaseElement {
   }
 }
 
-export const defineBoxGuideTooltipElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxGuideTooltipElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxGuideTooltipElement;
-  }
-
-  customElements.define(tagName, BoxGuideTooltipElement);
-  return BoxGuideTooltipElement;
-};
+GuideTooltip.register();

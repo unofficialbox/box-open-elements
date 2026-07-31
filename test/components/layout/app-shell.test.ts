@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxAppShellElement, defineBoxAppShellElement } from "../../../src/components/layout/app-shell.js";
+import { AppShell } from "../../../src/components/layout/app-shell.js";
 
-describe("BoxAppShellElement", () => {
+describe("AppShell", () => {
   beforeEach(() => {
-    defineBoxAppShellElement();
+    AppShell.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxAppShellElement", () => {
   });
 
   it("renders named layout regions", () => {
-    const element = document.createElement("box-app-shell") as BoxAppShellElement;
+    const element = document.createElement("box-app-shell") as AppShell;
     element.heading = "Workspace";
 
     document.body.append(element);
@@ -28,7 +28,7 @@ describe("BoxAppShellElement", () => {
   });
 
   it("hides empty nav/aside/footer landmarks and accepts custom labels", () => {
-    const element = document.createElement("box-app-shell") as BoxAppShellElement;
+    const element = document.createElement("box-app-shell") as AppShell;
     element.heading = "Workspace";
     element.navLabel = "Browse";
     element.asideLabel = "Details";
@@ -56,7 +56,7 @@ describe("BoxAppShellElement", () => {
   });
 
   it("disconnects the slot observer when removed from the document", () => {
-    const element = document.createElement("box-app-shell") as BoxAppShellElement;
+    const element = document.createElement("box-app-shell") as AppShell;
     document.body.append(element);
 
     const observer = (element as unknown as { slotObserver: MutationObserver | null }).slotObserver;
@@ -69,7 +69,7 @@ describe("BoxAppShellElement", () => {
   });
 
   it("stacks the frame at narrow container widths", () => {
-    const element = document.createElement("box-app-shell") as BoxAppShellElement;
+    const element = document.createElement("box-app-shell") as AppShell;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -87,7 +87,7 @@ describe("BoxAppShellElement", () => {
   });
 
   it("uses compact app-shell region padding", () => {
-    const element = document.createElement("box-app-shell") as BoxAppShellElement;
+    const element = document.createElement("box-app-shell") as AppShell;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";

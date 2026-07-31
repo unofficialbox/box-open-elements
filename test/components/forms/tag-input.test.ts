@@ -2,15 +2,15 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxTagInputElement, defineBoxTagInputElement } from "../../../src/components/forms/tag-input.js";
+import { TagInput } from "../../../src/components/forms/tag-input.js";
 import { getMirroredFormValue } from "../../../src/core/index.js";
 
-const inputOf = (element: BoxTagInputElement): HTMLInputElement =>
+const inputOf = (element: TagInput): HTMLInputElement =>
   element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
 
-describe("BoxTagInputElement", () => {
+describe("TagInput", () => {
   beforeEach(() => {
-    defineBoxTagInputElement();
+    TagInput.register();
   });
 
   afterEach(() => {
@@ -18,7 +18,7 @@ describe("BoxTagInputElement", () => {
   });
 
   it("seeds tags from the value attribute", () => {
-    const element = document.createElement("box-tag-input") as BoxTagInputElement;
+    const element = document.createElement("box-tag-input") as TagInput;
     element.setAttribute("value", "marketing, legal");
     document.body.append(element);
 
@@ -27,7 +27,7 @@ describe("BoxTagInputElement", () => {
   });
 
   it("adds a tag on Enter and emits tags-changed", () => {
-    const element = document.createElement("box-tag-input") as BoxTagInputElement;
+    const element = document.createElement("box-tag-input") as TagInput;
     document.body.append(element);
     const changed = vi.fn();
     element.addEventListener("tags-changed", changed);
@@ -48,7 +48,7 @@ describe("BoxTagInputElement", () => {
   });
 
   it("ignores duplicate tags case-insensitively", () => {
-    const element = document.createElement("box-tag-input") as BoxTagInputElement;
+    const element = document.createElement("box-tag-input") as TagInput;
     element.tags = ["Launch"];
     document.body.append(element);
 
@@ -57,7 +57,7 @@ describe("BoxTagInputElement", () => {
   });
 
   it("removes the last tag on Backspace when the field is empty", () => {
-    const element = document.createElement("box-tag-input") as BoxTagInputElement;
+    const element = document.createElement("box-tag-input") as TagInput;
     element.tags = ["a", "b"];
     document.body.append(element);
     const removed = vi.fn();
@@ -75,7 +75,7 @@ describe("BoxTagInputElement", () => {
   });
 
   it("removes a tag when its dismiss button is clicked", () => {
-    const element = document.createElement("box-tag-input") as BoxTagInputElement;
+    const element = document.createElement("box-tag-input") as TagInput;
     element.tags = ["one", "two"];
     document.body.append(element);
 
@@ -87,7 +87,7 @@ describe("BoxTagInputElement", () => {
   });
 
   it("honors the max attribute", () => {
-    const element = document.createElement("box-tag-input") as BoxTagInputElement;
+    const element = document.createElement("box-tag-input") as TagInput;
     element.setAttribute("max", "2");
     element.tags = ["a", "b"];
     document.body.append(element);
@@ -98,7 +98,7 @@ describe("BoxTagInputElement", () => {
   });
 
   it("reflects tags to the value attribute", () => {
-    const element = document.createElement("box-tag-input") as BoxTagInputElement;
+    const element = document.createElement("box-tag-input") as TagInput;
     document.body.append(element);
     element.addTag("q3");
 
@@ -107,7 +107,7 @@ describe("BoxTagInputElement", () => {
   });
 
   it("mirrors tags as FormData entries", () => {
-    const element = document.createElement("box-tag-input") as BoxTagInputElement;
+    const element = document.createElement("box-tag-input") as TagInput;
     element.name = "tags";
     document.body.append(element);
 

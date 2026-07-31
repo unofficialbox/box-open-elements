@@ -203,7 +203,8 @@ const calendarStyles = `
   }
 `;
 
-export class BoxCalendarElement extends BaseElement {
+export class Calendar extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["disabled", "max", "min", "month", "today", "value"];
   }
@@ -558,14 +559,4 @@ export class BoxCalendarElement extends BaseElement {
   }
 }
 
-export const defineBoxCalendarElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxCalendarElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxCalendarElement;
-  }
-
-  customElements.define(tagName, BoxCalendarElement);
-  return BoxCalendarElement;
-};
+Calendar.register();

@@ -3,14 +3,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxRichTextInputElement,
-  defineBoxRichTextInputElement,
+  RichTextInput,
 } from "../../../src/components/forms/rich-text-input.js";
 import { getMirroredFormValue } from "../../../src/core/index.js";
 
-describe("BoxRichTextInputElement", () => {
+describe("RichTextInput", () => {
   beforeEach(() => {
-    defineBoxRichTextInputElement();
+    RichTextInput.register();
   });
 
   afterEach(() => {
@@ -19,7 +18,7 @@ describe("BoxRichTextInputElement", () => {
   });
 
   it("renders the label and current html value", () => {
-    const element = document.createElement("box-rich-text-input") as BoxRichTextInputElement;
+    const element = document.createElement("box-rich-text-input") as RichTextInput;
     element.label = "Summary";
     element.value = "<p>Quarterly update</p>";
 
@@ -33,7 +32,7 @@ describe("BoxRichTextInputElement", () => {
   });
 
   it("uses compact surface, toolbar, button, and editor styles", () => {
-    const element = document.createElement("box-rich-text-input") as BoxRichTextInputElement;
+    const element = document.createElement("box-rich-text-input") as RichTextInput;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -45,7 +44,7 @@ describe("BoxRichTextInputElement", () => {
   });
 
   it("emits value-changed when the editor content changes", () => {
-    const element = document.createElement("box-rich-text-input") as BoxRichTextInputElement;
+    const element = document.createElement("box-rich-text-input") as RichTextInput;
     const changed = vi.fn();
     element.addEventListener("value-changed", changed);
 
@@ -72,7 +71,7 @@ describe("BoxRichTextInputElement", () => {
     };
     documentWithExecCommand.execCommand = execCommand;
 
-    const element = document.createElement("box-rich-text-input") as BoxRichTextInputElement;
+    const element = document.createElement("box-rich-text-input") as RichTextInput;
     document.body.append(element);
 
     const button = element.shadowRoot?.querySelector('[data-command="bold"]') as HTMLButtonElement | null;
@@ -82,7 +81,7 @@ describe("BoxRichTextInputElement", () => {
   });
 
   it("supports disabled state", () => {
-    const element = document.createElement("box-rich-text-input") as BoxRichTextInputElement;
+    const element = document.createElement("box-rich-text-input") as RichTextInput;
     element.disabled = true;
 
     document.body.append(element);
@@ -95,7 +94,7 @@ describe("BoxRichTextInputElement", () => {
   });
 
   it("allowlists formatting tags and strips unsafe markup on restore", () => {
-    const element = document.createElement("box-rich-text-input") as BoxRichTextInputElement;
+    const element = document.createElement("box-rich-text-input") as RichTextInput;
     document.body.append(element);
 
     element.formStateRestoreCallback(
@@ -111,7 +110,7 @@ describe("BoxRichTextInputElement", () => {
   });
 
   it("sanitizes pasted HTML before insertion", () => {
-    const element = document.createElement("box-rich-text-input") as BoxRichTextInputElement;
+    const element = document.createElement("box-rich-text-input") as RichTextInput;
     document.body.append(element);
 
     const editor = element.shadowRoot?.querySelector('[part="editor"]') as HTMLDivElement;

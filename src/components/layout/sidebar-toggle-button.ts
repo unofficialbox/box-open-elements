@@ -61,7 +61,8 @@ const sidebarToggleButtonStyles = `
  * property. `controls` reflects to `aria-controls` so assistive tech can tie the
  * button to the region it operates.
  */
-export class BoxSidebarToggleButtonElement extends BaseElement {
+export class SidebarToggleButton extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["controls", "disabled", "expanded", "label", "direction"];
   }
@@ -170,14 +171,4 @@ export class BoxSidebarToggleButtonElement extends BaseElement {
   }
 }
 
-export const defineBoxSidebarToggleButtonElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxSidebarToggleButtonElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxSidebarToggleButtonElement;
-  }
-
-  customElements.define(tagName, BoxSidebarToggleButtonElement);
-  return BoxSidebarToggleButtonElement;
-};
+SidebarToggleButton.register();

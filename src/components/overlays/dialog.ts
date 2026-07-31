@@ -110,7 +110,8 @@ const dialogStyles = `
   ${boeBrandInteractiveStyles('[part="confirm"]')}
 `;
 
-export class BoxDialogElement extends BaseElement {
+export class Dialog extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["confirm-label", "description", "heading", "open", "size"];
   }
@@ -343,14 +344,4 @@ export class BoxDialogElement extends BaseElement {
   }
 }
 
-export const defineBoxDialogElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxDialogElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxDialogElement;
-  }
-
-  customElements.define(tagName, BoxDialogElement);
-  return BoxDialogElement;
-};
+Dialog.register();

@@ -103,7 +103,8 @@ const popoverStyles = `
   }
 `;
 
-export class BoxPopoverElement extends BaseElement {
+export class Popover extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["disabled", "label", "open", "placement"];
   }
@@ -385,14 +386,4 @@ export class BoxPopoverElement extends BaseElement {
   }
 }
 
-export const defineBoxPopoverElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxPopoverElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxPopoverElement;
-  }
-
-  customElements.define(tagName, BoxPopoverElement);
-  return BoxPopoverElement;
-};
+Popover.register();

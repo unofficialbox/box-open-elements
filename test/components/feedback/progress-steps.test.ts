@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxProgressStepsElement,
-  defineBoxProgressStepsElement,
+  ProgressSteps,
 } from "../../../src/components/feedback/progress-steps.js";
 
-describe("BoxProgressStepsElement", () => {
+describe("ProgressSteps", () => {
   beforeEach(() => {
-    defineBoxProgressStepsElement();
+    ProgressSteps.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxProgressStepsElement", () => {
   });
 
   it("renders the current step", () => {
-    const element = document.createElement("box-progress-steps") as BoxProgressStepsElement;
+    const element = document.createElement("box-progress-steps") as ProgressSteps;
     element.items = [
       { label: "Draft", value: "draft" },
       { label: "Review", value: "review" },
@@ -32,7 +31,7 @@ describe("BoxProgressStepsElement", () => {
   });
 
   it("emits value-changed when a new step is selected", () => {
-    const element = document.createElement("box-progress-steps") as BoxProgressStepsElement;
+    const element = document.createElement("box-progress-steps") as ProgressSteps;
     const changed = vi.fn();
     element.items = [
       { label: "Draft", value: "draft" },
@@ -55,7 +54,7 @@ describe("BoxProgressStepsElement", () => {
   });
 
   it("uses step semantics and supports arrow key navigation", () => {
-    const element = document.createElement("box-progress-steps") as BoxProgressStepsElement;
+    const element = document.createElement("box-progress-steps") as ProgressSteps;
     element.items = [
       { label: "Draft", value: "draft" },
       { label: "Review", value: "review" },
@@ -78,7 +77,7 @@ describe("BoxProgressStepsElement", () => {
   });
 
   it("uses compact step shell radius", () => {
-    const element = document.createElement("box-progress-steps") as BoxProgressStepsElement;
+    const element = document.createElement("box-progress-steps") as ProgressSteps;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";

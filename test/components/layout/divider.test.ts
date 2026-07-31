@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { BoxDividerElement, defineBoxDividerElement } from "../../../src/components/layout/divider.js";
+import { Divider } from "../../../src/components/layout/divider.js";
 
-describe("BoxDividerElement", () => {
+describe("Divider", () => {
   beforeEach(() => {
-    defineBoxDividerElement();
+    Divider.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxDividerElement", () => {
   });
 
   it("renders a horizontal separator by default", () => {
-    const element = document.createElement("box-divider") as BoxDividerElement;
+    const element = document.createElement("box-divider") as Divider;
     document.body.append(element);
 
     const separator = element.shadowRoot?.querySelector('[part="divider"]');
@@ -24,7 +24,7 @@ describe("BoxDividerElement", () => {
   });
 
   it("renders a label between two lines when provided", () => {
-    const element = document.createElement("box-divider") as BoxDividerElement;
+    const element = document.createElement("box-divider") as Divider;
     element.label = "Shared";
     document.body.append(element);
 
@@ -35,7 +35,7 @@ describe("BoxDividerElement", () => {
   });
 
   it("drops the label for a vertical orientation", () => {
-    const element = document.createElement("box-divider") as BoxDividerElement;
+    const element = document.createElement("box-divider") as Divider;
     element.orientation = "vertical";
     element.label = "Ignored";
     document.body.append(element);
@@ -46,7 +46,7 @@ describe("BoxDividerElement", () => {
   });
 
   it("normalizes unknown orientations to horizontal", () => {
-    const element = document.createElement("box-divider") as BoxDividerElement;
+    const element = document.createElement("box-divider") as Divider;
     element.setAttribute("orientation", "diagonal");
     document.body.append(element);
 

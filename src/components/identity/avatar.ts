@@ -114,7 +114,8 @@ const avatarStyles = `
   }
 `;
 
-export class BoxAvatarElement extends BaseElement {
+export class Avatar extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["alt", "badge", "initials", "name", "size", "src", "tone"];
   }
@@ -279,14 +280,4 @@ export class BoxAvatarElement extends BaseElement {
   }
 }
 
-export const defineBoxAvatarElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxAvatarElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxAvatarElement;
-  }
-
-  customElements.define(tagName, BoxAvatarElement);
-  return BoxAvatarElement;
-};
+Avatar.register();

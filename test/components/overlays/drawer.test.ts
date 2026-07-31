@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxDrawerElement, defineBoxDrawerElement } from "../../../src/components/overlays/drawer.js";
+import { Drawer } from "../../../src/components/overlays/drawer.js";
 
-describe("BoxDrawerElement", () => {
+describe("Drawer", () => {
   beforeEach(() => {
-    defineBoxDrawerElement();
+    Drawer.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxDrawerElement", () => {
   });
 
   it("opens and closes through the public API", () => {
-    const element = document.createElement("box-drawer") as BoxDrawerElement;
+    const element = document.createElement("box-drawer") as Drawer;
 
     document.body.append(element);
     element.show();
@@ -29,7 +29,7 @@ describe("BoxDrawerElement", () => {
   });
 
   it("focuses the close button when it opens", async () => {
-    const element = document.createElement("box-drawer") as BoxDrawerElement;
+    const element = document.createElement("box-drawer") as Drawer;
     document.body.append(element);
     element.show();
     await Promise.resolve();
@@ -40,7 +40,7 @@ describe("BoxDrawerElement", () => {
   });
 
   it("emits dismiss and open-changed when closed from the button", () => {
-    const element = document.createElement("box-drawer") as BoxDrawerElement;
+    const element = document.createElement("box-drawer") as Drawer;
     const dismissed = vi.fn();
     const openChanged = vi.fn();
     element.heading = "Share Settings";
@@ -65,7 +65,7 @@ describe("BoxDrawerElement", () => {
   });
 
   it("closes on Escape and emits dismiss", () => {
-    const element = document.createElement("box-drawer") as BoxDrawerElement;
+    const element = document.createElement("box-drawer") as Drawer;
     const dismissed = vi.fn();
     element.addEventListener("dismiss", dismissed);
 
@@ -80,7 +80,7 @@ describe("BoxDrawerElement", () => {
   });
 
   it("supports bottom positioning", () => {
-    const element = document.createElement("box-drawer") as BoxDrawerElement;
+    const element = document.createElement("box-drawer") as Drawer;
     element.position = "bottom";
 
     document.body.append(element);
@@ -94,7 +94,7 @@ describe("BoxDrawerElement", () => {
 
   it("portals to document.body while open and restores on close", () => {
     const wrapper = document.createElement("div");
-    const element = document.createElement("box-drawer") as BoxDrawerElement;
+    const element = document.createElement("box-drawer") as Drawer;
 
     wrapper.append(element);
     document.body.append(wrapper);
@@ -109,7 +109,7 @@ describe("BoxDrawerElement", () => {
   });
 
   it("uses BUE drawer / sidebar shell styles", () => {
-    const element = document.createElement("box-drawer") as BoxDrawerElement;
+    const element = document.createElement("box-drawer") as Drawer;
     document.body.append(element);
     element.show();
 

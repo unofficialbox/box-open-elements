@@ -3,8 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxPillSelectorDropdownElement,
-  defineBoxPillSelectorDropdownElement,
+  PillSelectorDropdown,
 } from "../../../src/components/forms/pill-selector-dropdown.js";
 
 const sampleOptions = [
@@ -13,20 +12,20 @@ const sampleOptions = [
   { value: "sam", label: "Sam Patel" },
 ];
 
-const createSelector = (value: string[] = []): BoxPillSelectorDropdownElement => {
-  const element = document.createElement("box-pill-selector-dropdown") as BoxPillSelectorDropdownElement;
+const createSelector = (value: string[] = []): PillSelectorDropdown => {
+  const element = document.createElement("box-pill-selector-dropdown") as PillSelectorDropdown;
   element.options = sampleOptions;
   element.value = value;
   document.body.append(element);
   return element;
 };
 
-const trigger = (element: BoxPillSelectorDropdownElement): HTMLButtonElement =>
+const trigger = (element: PillSelectorDropdown): HTMLButtonElement =>
   element.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement;
 
-describe("BoxPillSelectorDropdownElement", () => {
+describe("PillSelectorDropdown", () => {
   beforeEach(() => {
-    defineBoxPillSelectorDropdownElement();
+    PillSelectorDropdown.register();
   });
 
   afterEach(() => {
@@ -186,18 +185,18 @@ describe("BoxPillSelectorDropdownElement", () => {
     expect((element.shadowRoot?.activeElement as HTMLElement)?.getAttribute("part")).toBe("trigger");
   });
 
-  const makeCustom = (attrs: Record<string, string> = {}): BoxPillSelectorDropdownElement => {
-    const el = document.createElement("box-pill-selector-dropdown") as BoxPillSelectorDropdownElement;
+  const makeCustom = (attrs: Record<string, string> = {}): PillSelectorDropdown => {
+    const el = document.createElement("box-pill-selector-dropdown") as PillSelectorDropdown;
     el.setAttribute("allow-custom", "");
     for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
     document.body.append(el);
     return el;
   };
 
-  const input = (el: BoxPillSelectorDropdownElement): HTMLInputElement =>
+  const input = (el: PillSelectorDropdown): HTMLInputElement =>
     el.shadowRoot?.querySelector('[part="custom-input"]') as HTMLInputElement;
 
-  const typeAndKey = (el: BoxPillSelectorDropdownElement, text: string, key: string): void => {
+  const typeAndKey = (el: PillSelectorDropdown, text: string, key: string): void => {
     const i = input(el);
     i.value = text;
     i.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));

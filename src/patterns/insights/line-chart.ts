@@ -269,7 +269,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxLineChartElement extends BaseElement {
+export class LineChart extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["actions", "legend", "message", "points", "summary", "timeframe", "heading"];
   }
@@ -585,8 +586,4 @@ export class BoxLineChartElement extends BaseElement {
   }
 }
 
-export const defineBoxLineChartElement = (tagName = DEFAULT_TAG_NAME): void => {
-  if (!customElements.get(tagName)) {
-    customElements.define(tagName, BoxLineChartElement);
-  }
-};
+LineChart.register();

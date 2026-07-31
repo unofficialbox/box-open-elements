@@ -3,14 +3,13 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
-  BoxHelpTextElement,
-  defineBoxHelpTextElement,
+  HelpText,
 } from "../../../src/components/feedback/help-text.js";
 import { registerBoxDefaultDesignSystem, setActiveDesignSystem } from "../../../src/index.js";
 
-describe("BoxHelpTextElement", () => {
+describe("HelpText", () => {
   beforeEach(() => {
-    defineBoxHelpTextElement();
+    HelpText.register();
     registerBoxDefaultDesignSystem({ setActive: true });
   });
 
@@ -20,7 +19,7 @@ describe("BoxHelpTextElement", () => {
   });
 
   it("renders the label and message", () => {
-    const element = document.createElement("box-help-text") as BoxHelpTextElement;
+    const element = document.createElement("box-help-text") as HelpText;
     element.label = "Heads up";
     element.message = "Inherited permissions may affect visibility.";
 
@@ -31,7 +30,7 @@ describe("BoxHelpTextElement", () => {
   });
 
   it("supports description as a compatible alias for message", () => {
-    const element = document.createElement("box-help-text") as BoxHelpTextElement;
+    const element = document.createElement("box-help-text") as HelpText;
     element.description = "This is inherited from the parent folder.";
 
     document.body.append(element);
@@ -41,7 +40,7 @@ describe("BoxHelpTextElement", () => {
   });
 
   it("exposes note semantics with an accessible label", () => {
-    const element = document.createElement("box-help-text") as BoxHelpTextElement;
+    const element = document.createElement("box-help-text") as HelpText;
     element.label = "Heads up";
     element.message = "Inherited permissions may affect visibility.";
 
@@ -53,7 +52,7 @@ describe("BoxHelpTextElement", () => {
   });
 
   it("announces error-tone help text assertively via role=alert", () => {
-    const element = document.createElement("box-help-text") as BoxHelpTextElement;
+    const element = document.createElement("box-help-text") as HelpText;
     element.message = "Enter a valid email address.";
     element.tone = "error";
     document.body.append(element);
@@ -67,7 +66,7 @@ describe("BoxHelpTextElement", () => {
   });
 
   it("uses a registered Box icon when the active design system provides one", () => {
-    const element = document.createElement("box-help-text") as BoxHelpTextElement;
+    const element = document.createElement("box-help-text") as HelpText;
     element.message = "Inherited permissions may affect visibility.";
 
     document.body.append(element);

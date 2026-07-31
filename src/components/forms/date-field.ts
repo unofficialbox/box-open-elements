@@ -99,7 +99,8 @@ const dateFieldStyles = `
   ${boeFormFieldSupportStyles}
 `;
 
-export class BoxDateFieldElement extends FormAssociatedElement {
+export class DateField extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.fieldObservedAttributes,
@@ -292,14 +293,4 @@ export class BoxDateFieldElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxDateFieldElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxDateFieldElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxDateFieldElement;
-  }
-
-  customElements.define(tagName, BoxDateFieldElement);
-  return BoxDateFieldElement;
-};
+DateField.register();

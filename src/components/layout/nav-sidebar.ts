@@ -138,7 +138,8 @@ const navSidebarStyles = `
  * `[data-nav-label]` span. Host exposes `--boe-nav-label-display` (`none` when
  * collapsed) so light-DOM CSS can hide labels without piercing the shadow tree.
  */
-export class BoxNavSidebarElement extends BaseElement {
+export class NavSidebar extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["collapsed", "label"];
   }
@@ -193,14 +194,4 @@ export class BoxNavSidebarElement extends BaseElement {
   }
 }
 
-export const defineBoxNavSidebarElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxNavSidebarElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxNavSidebarElement;
-  }
-
-  customElements.define(tagName, BoxNavSidebarElement);
-  return BoxNavSidebarElement;
-};
+NavSidebar.register();

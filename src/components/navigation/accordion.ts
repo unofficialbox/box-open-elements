@@ -105,7 +105,8 @@ const accordionStyles = `
   ${boeNeutralInteractiveStyles('[part="trigger"]')}
 `;
 
-export class BoxAccordionElement extends BaseElement {
+export class Accordion extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["items", "label", "value", "borderless"];
   }
@@ -303,14 +304,4 @@ export class BoxAccordionElement extends BaseElement {
   }
 }
 
-export const defineBoxAccordionElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxAccordionElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxAccordionElement;
-  }
-
-  customElements.define(tagName, BoxAccordionElement);
-  return BoxAccordionElement;
-};
+Accordion.register();

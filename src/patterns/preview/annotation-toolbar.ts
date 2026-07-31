@@ -177,7 +177,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxAnnotationToolbarElement extends BaseElement {
+export class AnnotationToolbar extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["actions", "active-tool-id", "color-options", "current-color", "label", "tools"];
   }
@@ -455,14 +456,4 @@ export class BoxAnnotationToolbarElement extends BaseElement {
   }
 }
 
-export const defineBoxAnnotationToolbarElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxAnnotationToolbarElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxAnnotationToolbarElement;
-  }
-
-  customElements.define(tagName, BoxAnnotationToolbarElement);
-  return BoxAnnotationToolbarElement;
-};
+AnnotationToolbar.register();

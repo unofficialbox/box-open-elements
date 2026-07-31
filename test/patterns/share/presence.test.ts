@@ -2,7 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { BoxPresenceElement, defineBoxPresenceElement } from "../../../src/patterns/share/presence.js";
+import { Presence } from "../../../src/patterns/share/presence.js";
 import type { PresenceTransport, PresenceUser } from "../../../src/patterns/share/presence-contracts.js";
 
 type MockTransport = PresenceTransport & {
@@ -39,9 +39,9 @@ const createMockTransport = (): MockTransport => {
   return transport;
 };
 
-describe("BoxPresenceElement", () => {
+describe("Presence", () => {
   beforeEach(() => {
-    defineBoxPresenceElement();
+    Presence.register();
   });
 
   afterEach(() => {
@@ -49,7 +49,7 @@ describe("BoxPresenceElement", () => {
   });
 
   it("renders static users as an avatar pile with a live summary", () => {
-    const element = document.createElement("box-presence") as BoxPresenceElement;
+    const element = document.createElement("box-presence") as Presence;
     element.users = [
       { id: "1", name: "Morgan Lee", activity: "editing" },
       { id: "2", name: "Alex Kim", activity: "viewing" },
@@ -66,7 +66,7 @@ describe("BoxPresenceElement", () => {
   });
 
   it("exposes each avatar's name and activity to assistive tech", () => {
-    const element = document.createElement("box-presence") as BoxPresenceElement;
+    const element = document.createElement("box-presence") as Presence;
     element.users = [
       { id: "1", name: "Morgan Lee", activity: "editing" },
       { id: "2", name: "Alex Kim", activity: "viewing" },
@@ -80,7 +80,7 @@ describe("BoxPresenceElement", () => {
   });
 
   it("shows an empty summary when no one is present", () => {
-    const element = document.createElement("box-presence") as BoxPresenceElement;
+    const element = document.createElement("box-presence") as Presence;
     document.body.append(element);
 
     expect(element.shadowRoot?.querySelector('[part="avatar"]')).toBeNull();
@@ -88,7 +88,7 @@ describe("BoxPresenceElement", () => {
   });
 
   it("caps avatars at max and shows a +N overflow", () => {
-    const element = document.createElement("box-presence") as BoxPresenceElement;
+    const element = document.createElement("box-presence") as Presence;
     element.max = 2;
     element.users = [
       { id: "1", name: "Morgan Lee" },
@@ -103,7 +103,7 @@ describe("BoxPresenceElement", () => {
 
   it("connects a controller from a transport and re-renders on live updates", () => {
     const transport = createMockTransport();
-    const element = document.createElement("box-presence") as BoxPresenceElement;
+    const element = document.createElement("box-presence") as Presence;
     element.transport = transport;
     document.body.append(element);
 
@@ -121,7 +121,7 @@ describe("BoxPresenceElement", () => {
 
   it("keeps the live-region summary node stable across roster updates", () => {
     const transport = createMockTransport();
-    const element = document.createElement("box-presence") as BoxPresenceElement;
+    const element = document.createElement("box-presence") as Presence;
     element.transport = transport;
     document.body.append(element);
 
@@ -136,7 +136,7 @@ describe("BoxPresenceElement", () => {
 
   it("does not subscribe until inserted and cleans up exactly once on removal", () => {
     const transport = createMockTransport();
-    const element = document.createElement("box-presence") as BoxPresenceElement;
+    const element = document.createElement("box-presence") as Presence;
     element.transport = transport;
 
     // Assigned while detached: no subscription yet.
@@ -163,7 +163,7 @@ describe("BoxPresenceElement", () => {
 
   it("preserves the last roster across detach and reattach", () => {
     const transport = createMockTransport();
-    const element = document.createElement("box-presence") as BoxPresenceElement;
+    const element = document.createElement("box-presence") as Presence;
     element.transport = transport;
     document.body.append(element);
 

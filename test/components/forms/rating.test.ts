@@ -2,12 +2,12 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxRatingElement, defineBoxRatingElement } from "../../../src/components/forms/rating.js";
+import { Rating } from "../../../src/components/forms/rating.js";
 import { getMirroredFormValue } from "../../../src/core/index.js";
 
-describe("BoxRatingElement", () => {
+describe("Rating", () => {
   beforeEach(() => {
-    defineBoxRatingElement();
+    Rating.register();
   });
 
   afterEach(() => {
@@ -15,7 +15,7 @@ describe("BoxRatingElement", () => {
   });
 
   it("renders the current rating and label", () => {
-    const element = document.createElement("box-rating") as BoxRatingElement;
+    const element = document.createElement("box-rating") as Rating;
     element.label = "Review";
     element.value = 4;
 
@@ -28,7 +28,7 @@ describe("BoxRatingElement", () => {
   });
 
   it("uses compact transparent star styles", () => {
-    const element = document.createElement("box-rating") as BoxRatingElement;
+    const element = document.createElement("box-rating") as Rating;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -41,7 +41,7 @@ describe("BoxRatingElement", () => {
   });
 
   it("emits value-changed when a star is selected", () => {
-    const element = document.createElement("box-rating") as BoxRatingElement;
+    const element = document.createElement("box-rating") as Rating;
     const changed = vi.fn();
     element.addEventListener("value-changed", changed);
 
@@ -59,7 +59,7 @@ describe("BoxRatingElement", () => {
   });
 
   it("supports keyboard stepping", () => {
-    const element = document.createElement("box-rating") as BoxRatingElement;
+    const element = document.createElement("box-rating") as Rating;
     element.value = 2;
 
     document.body.append(element);
@@ -73,7 +73,7 @@ describe("BoxRatingElement", () => {
   });
 
   it("does not change while disabled", () => {
-    const element = document.createElement("box-rating") as BoxRatingElement;
+    const element = document.createElement("box-rating") as Rating;
     element.disabled = true;
 
     document.body.append(element);
@@ -85,7 +85,7 @@ describe("BoxRatingElement", () => {
   });
 
   it("mirrors rating as a string form value", () => {
-    const element = document.createElement("box-rating") as BoxRatingElement;
+    const element = document.createElement("box-rating") as Rating;
     element.name = "score";
     document.body.append(element);
 

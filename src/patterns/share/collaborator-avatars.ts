@@ -111,7 +111,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxCollaboratorAvatarsElement extends BaseElement {
+export class CollaboratorAvatars extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["collaborators", "label", "max"];
   }
@@ -248,14 +249,4 @@ export class BoxCollaboratorAvatarsElement extends BaseElement {
   }
 }
 
-export const defineBoxCollaboratorAvatarsElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxCollaboratorAvatarsElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxCollaboratorAvatarsElement;
-  }
-
-  customElements.define(tagName, BoxCollaboratorAvatarsElement);
-  return BoxCollaboratorAvatarsElement;
-};
+CollaboratorAvatars.register();

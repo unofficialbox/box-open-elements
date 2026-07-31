@@ -65,7 +65,8 @@ const numberInputStyles = `
   ${boeFormFieldErrorStyles}
 `;
 
-export class BoxNumberInputElement extends FormAssociatedElement {
+export class NumberInput extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -273,14 +274,4 @@ export class BoxNumberInputElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxNumberInputElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxNumberInputElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxNumberInputElement;
-  }
-
-  customElements.define(tagName, BoxNumberInputElement);
-  return BoxNumberInputElement;
-};
+NumberInput.register();

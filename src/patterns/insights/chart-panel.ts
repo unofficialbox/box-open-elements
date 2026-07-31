@@ -257,7 +257,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxChartPanelElement extends BaseElement {
+export class ChartPanel extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["actions", "heading", "legend", "message", "points", "summary", "timeframe"];
   }
@@ -499,8 +500,4 @@ export class BoxChartPanelElement extends BaseElement {
   }
 }
 
-export const defineBoxChartPanelElement = (tagName = DEFAULT_TAG_NAME): void => {
-  if (!customElements.get(tagName)) {
-    customElements.define(tagName, BoxChartPanelElement);
-  }
-};
+ChartPanel.register();

@@ -55,7 +55,8 @@ const paginationStyles = `
   }
 `;
 
-export class BoxPaginationElement extends BaseElement {
+export class Pagination extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["page", "page-size", "total-items"];
   }
@@ -165,14 +166,4 @@ export class BoxPaginationElement extends BaseElement {
   }
 }
 
-export const defineBoxPaginationElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxPaginationElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxPaginationElement;
-  }
-
-  customElements.define(tagName, BoxPaginationElement);
-  return BoxPaginationElement;
-};
+Pagination.register();

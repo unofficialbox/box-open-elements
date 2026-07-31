@@ -2,12 +2,12 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxCheckboxElement, defineBoxCheckboxElement } from "../../../src/components/forms/checkbox.js";
+import { Checkbox } from "../../../src/components/forms/checkbox.js";
 import { getMirroredFormValue } from "../../../src/core/index.js";
 
-describe("BoxCheckboxElement", () => {
+describe("Checkbox", () => {
   beforeEach(() => {
-    defineBoxCheckboxElement();
+    Checkbox.register();
   });
 
   afterEach(() => {
@@ -15,7 +15,7 @@ describe("BoxCheckboxElement", () => {
   });
 
   it("emits checked changes", () => {
-    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    const element = document.createElement("box-checkbox") as Checkbox;
     const changed = vi.fn();
     element.addEventListener("checked-changed", changed);
 
@@ -34,7 +34,7 @@ describe("BoxCheckboxElement", () => {
   });
 
   it("supports disabled state", () => {
-    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    const element = document.createElement("box-checkbox") as Checkbox;
     element.disabled = true;
     element.label = "Remember choice";
 
@@ -46,7 +46,7 @@ describe("BoxCheckboxElement", () => {
   });
 
   it("retains focus on the internal input when attributes or properties change", () => {
-    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    const element = document.createElement("box-checkbox") as Checkbox;
     document.body.append(element);
 
     const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
@@ -68,7 +68,7 @@ describe("BoxCheckboxElement", () => {
   });
 
   it("includes focus-visible styles for the input", () => {
-    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    const element = document.createElement("box-checkbox") as Checkbox;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -80,7 +80,7 @@ describe("BoxCheckboxElement", () => {
   });
 
   it("submits the value attribute when checked and null when unchecked", () => {
-    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    const element = document.createElement("box-checkbox") as Checkbox;
     element.value = "remember";
     document.body.append(element);
 
@@ -94,7 +94,7 @@ describe("BoxCheckboxElement", () => {
   });
 
   it("defaults form value to on when checked without a custom value", () => {
-    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    const element = document.createElement("box-checkbox") as Checkbox;
     document.body.append(element);
 
     element.checked = true;
@@ -104,7 +104,7 @@ describe("BoxCheckboxElement", () => {
   });
 
   it("reflects indeterminate state to the input and aria-checked", () => {
-    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    const element = document.createElement("box-checkbox") as Checkbox;
     document.body.append(element);
 
     element.indeterminate = true;
@@ -118,7 +118,7 @@ describe("BoxCheckboxElement", () => {
   });
 
   it("clears indeterminate and checks when clicked", () => {
-    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    const element = document.createElement("box-checkbox") as Checkbox;
     document.body.append(element);
 
     element.indeterminate = true;
@@ -134,7 +134,7 @@ describe("BoxCheckboxElement", () => {
   });
 
   it("clears indeterminate when checked is set programmatically", () => {
-    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    const element = document.createElement("box-checkbox") as Checkbox;
     element.indeterminate = true;
     document.body.append(element);
 
@@ -145,7 +145,7 @@ describe("BoxCheckboxElement", () => {
   });
 
   it("clears indeterminate when checked is set to false", () => {
-    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    const element = document.createElement("box-checkbox") as Checkbox;
     element.indeterminate = true;
     document.body.append(element);
 
@@ -160,7 +160,7 @@ describe("BoxCheckboxElement", () => {
   });
 
   it("reflects aria-checked on the host for checked, unchecked, and mixed states", () => {
-    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    const element = document.createElement("box-checkbox") as Checkbox;
     document.body.append(element);
 
     element.checked = true;
@@ -174,7 +174,7 @@ describe("BoxCheckboxElement", () => {
   });
 
   it("renders an indented description subsection wired via aria-describedby", () => {
-    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    const element = document.createElement("box-checkbox") as Checkbox;
     element.label = "Email notifications";
     document.body.append(element);
 
@@ -195,7 +195,7 @@ describe("BoxCheckboxElement", () => {
   });
 
   it("uses BUE-sized checkbox geometry", () => {
-    const element = document.createElement("box-checkbox") as BoxCheckboxElement;
+    const element = document.createElement("box-checkbox") as Checkbox;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";

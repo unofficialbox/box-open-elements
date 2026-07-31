@@ -134,7 +134,8 @@ const colorPickerStyles = `
   ${boeFormFieldErrorStyles}
 `;
 
-export class BoxColorPickerElement extends FormAssociatedElement {
+export class ColorPicker extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -349,14 +350,4 @@ export class BoxColorPickerElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxColorPickerElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxColorPickerElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxColorPickerElement;
-  }
-
-  customElements.define(tagName, BoxColorPickerElement);
-  return BoxColorPickerElement;
-};
+ColorPicker.register();

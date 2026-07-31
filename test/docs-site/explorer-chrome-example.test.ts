@@ -6,11 +6,11 @@ import {
   contentExplorerChromeHtml,
   setupContentExplorerChrome,
 } from "../../docs-site/explorer-chrome-demo.js";
-import { defineBoxExplorerBreadcrumbsElement } from "../../src/patterns/content-explorer/adapters/breadcrumbs.js";
-import { defineBoxExplorerListElement } from "../../src/patterns/content-explorer/adapters/list.js";
-import { defineBoxExplorerTableElement } from "../../src/patterns/content-explorer/adapters/table.js";
-import { defineBoxFilterBarElement } from "../../src/patterns/search/filter-bar.js";
-import { defineBoxSavedViewPickerElement } from "../../src/patterns/search/saved-view-picker.js";
+import { ExplorerBreadcrumbs } from "../../src/patterns/content-explorer/adapters/breadcrumbs.js";
+import { ExplorerList } from "../../src/patterns/content-explorer/adapters/list.js";
+import { ExplorerTable } from "../../src/patterns/content-explorer/adapters/table.js";
+import { FilterBar } from "../../src/patterns/search/filter-bar.js";
+import { SavedViewPicker } from "../../src/patterns/search/saved-view-picker.js";
 import type { ExplorerTransport } from "../../src/patterns/content-explorer/types.js";
 
 const createTransport = (): ExplorerTransport & {
@@ -38,11 +38,11 @@ const createTransport = (): ExplorerTransport & {
 
 describe("docs-site content-explorer chrome demo", () => {
   beforeEach(() => {
-    defineBoxExplorerBreadcrumbsElement();
-    defineBoxExplorerListElement();
-    defineBoxExplorerTableElement();
-    defineBoxFilterBarElement();
-    defineBoxSavedViewPickerElement();
+    ExplorerBreadcrumbs.register();
+    ExplorerList.register();
+    ExplorerTable.register();
+    FilterBar.register();
+    SavedViewPicker.register();
   });
 
   afterEach(() => {

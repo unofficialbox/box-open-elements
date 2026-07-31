@@ -228,7 +228,7 @@ Both PRs are merged on `main`; #70 passed Verify, Visual regression, and CodeRab
 | PR | Title |
 | --- | --- |
 | [#69](https://github.com/unofficialbox/box-open-elements/pull/69) | Always-on rule: recommend next step with why (`.cursor/rules/recommend-next-step.mdc`, `AGENTS.md`) |
-| [#68](https://github.com/unofficialbox/box-open-elements/pull/68) | React adapter PoC: `@box-open-elements/react` + `BoxButton` + `createWebComponent` |
+| [#68](https://github.com/unofficialbox/box-open-elements/pull/68) | React adapter PoC: `@box-open-elements/react` + `Button` + `createWebComponent` |
 | [#67](https://github.com/unofficialbox/box-open-elements/pull/67) | BUE drawer + denser pattern shells via `boePanel` |
 | [#66](https://github.com/unofficialbox/box-open-elements/pull/66) | BUE overlays/tabs/toast/alert/badge/avatar/error-mask via `boeOverlay` |
 | [#65](https://github.com/unofficialbox/box-open-elements/pull/65) | BUE visual conformance P0: geometry tokens + everyday controls |

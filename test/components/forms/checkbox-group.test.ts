@@ -3,14 +3,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxCheckboxGroupElement,
-  defineBoxCheckboxGroupElement,
+  CheckboxGroup,
 } from "../../../src/components/forms/checkbox-group.js";
 import { FORM_ERROR_MESSAGE_ID, getMirroredFormValue } from "../../../src/core/index.js";
 
-describe("BoxCheckboxGroupElement", () => {
+describe("CheckboxGroup", () => {
   beforeEach(() => {
-    defineBoxCheckboxGroupElement();
+    CheckboxGroup.register();
   });
 
   afterEach(() => {
@@ -18,7 +17,7 @@ describe("BoxCheckboxGroupElement", () => {
   });
 
   it("renders checkbox options", () => {
-    const element = document.createElement("box-checkbox-group") as BoxCheckboxGroupElement;
+    const element = document.createElement("box-checkbox-group") as CheckboxGroup;
     element.options = [
       { label: "Preview", value: "preview" },
       { label: "Download", value: "download" },
@@ -31,7 +30,7 @@ describe("BoxCheckboxGroupElement", () => {
   });
 
   it("uses compact plain option card styles", () => {
-    const element = document.createElement("box-checkbox-group") as BoxCheckboxGroupElement;
+    const element = document.createElement("box-checkbox-group") as CheckboxGroup;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -42,7 +41,7 @@ describe("BoxCheckboxGroupElement", () => {
   });
 
   it("emits selected values when options change", () => {
-    const element = document.createElement("box-checkbox-group") as BoxCheckboxGroupElement;
+    const element = document.createElement("box-checkbox-group") as CheckboxGroup;
     const changed = vi.fn();
     element.options = [
       { label: "Preview", value: "preview" },
@@ -66,7 +65,7 @@ describe("BoxCheckboxGroupElement", () => {
   });
 
   it("forwards disabled state to checkbox inputs", () => {
-    const element = document.createElement("box-checkbox-group") as BoxCheckboxGroupElement;
+    const element = document.createElement("box-checkbox-group") as CheckboxGroup;
     element.options = [
       { label: "Preview", value: "preview" },
       { label: "Download", value: "download" },
@@ -81,7 +80,7 @@ describe("BoxCheckboxGroupElement", () => {
   });
 
   it("mirrors selected values as FormData entries", () => {
-    const element = document.createElement("box-checkbox-group") as BoxCheckboxGroupElement;
+    const element = document.createElement("box-checkbox-group") as CheckboxGroup;
     element.name = "permissions";
     element.options = [
       { label: "Preview", value: "preview" },
@@ -102,7 +101,7 @@ describe("BoxCheckboxGroupElement", () => {
   });
 
   it("mirrors programmatic value assignment to FormData", () => {
-    const element = document.createElement("box-checkbox-group") as BoxCheckboxGroupElement;
+    const element = document.createElement("box-checkbox-group") as CheckboxGroup;
     element.name = "permissions";
     element.options = [
       { label: "Preview", value: "preview" },
@@ -118,7 +117,7 @@ describe("BoxCheckboxGroupElement", () => {
   });
 
   it("propagates invalid ARIA state to every checkbox option", () => {
-    const element = document.createElement("box-checkbox-group") as BoxCheckboxGroupElement;
+    const element = document.createElement("box-checkbox-group") as CheckboxGroup;
     element.options = [
       { label: "Preview", value: "preview" },
       { label: "Download", value: "download" },

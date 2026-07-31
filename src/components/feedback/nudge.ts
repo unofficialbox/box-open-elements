@@ -122,7 +122,8 @@ const nudgeStyles = `
  * (emits `action`) and can be dismissed (emits `dismiss` and hides). Announced
  * politely via `role="status"`; the host decides what the action does.
  */
-export class BoxNudgeElement extends BaseElement {
+export class Nudge extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["action-label", "heading", "message", "open"];
   }
@@ -321,14 +322,4 @@ export class BoxNudgeElement extends BaseElement {
   }
 }
 
-export const defineBoxNudgeElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxNudgeElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxNudgeElement;
-  }
-
-  customElements.define(tagName, BoxNudgeElement);
-  return BoxNudgeElement;
-};
+Nudge.register();

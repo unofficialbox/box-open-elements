@@ -41,7 +41,8 @@ const skeletonStyles = `
   ${boeReducedMotionStyles('[part="skeleton"]', "animation: none;")}
 `;
 
-export class BoxSkeletonElement extends BaseElement {
+export class Skeleton extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["height", "width"];
   }
@@ -102,14 +103,4 @@ export class BoxSkeletonElement extends BaseElement {
   }
 }
 
-export const defineBoxSkeletonElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxSkeletonElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxSkeletonElement;
-  }
-
-  customElements.define(tagName, BoxSkeletonElement);
-  return BoxSkeletonElement;
-};
+Skeleton.register();

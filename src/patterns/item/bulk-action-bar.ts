@@ -156,7 +156,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxBulkActionBarElement extends BaseElement {
+export class BulkActionBar extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["actions", "clear-label", "count", "items", "label", "message"];
   }
@@ -374,8 +375,4 @@ export class BoxBulkActionBarElement extends BaseElement {
   }
 }
 
-export const defineBoxBulkActionBarElement = (tagName = DEFAULT_TAG_NAME): void => {
-  if (!customElements.get(tagName)) {
-    customElements.define(tagName, BoxBulkActionBarElement);
-  }
-};
+BulkActionBar.register();

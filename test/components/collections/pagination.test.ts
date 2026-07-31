@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxPaginationElement,
-  defineBoxPaginationElement,
+  Pagination,
 } from "../../../src/components/collections/pagination.js";
 
-describe("BoxPaginationElement", () => {
+describe("Pagination", () => {
   beforeEach(() => {
-    defineBoxPaginationElement();
+    Pagination.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxPaginationElement", () => {
   });
 
   it("renders the current item range", () => {
-    const element = document.createElement("box-pagination") as BoxPaginationElement;
+    const element = document.createElement("box-pagination") as Pagination;
     element.page = 2;
     element.pageSize = 10;
     element.totalItems = 45;
@@ -28,7 +27,7 @@ describe("BoxPaginationElement", () => {
   });
 
   it("emits page changes when next is clicked", () => {
-    const element = document.createElement("box-pagination") as BoxPaginationElement;
+    const element = document.createElement("box-pagination") as Pagination;
     const changed = vi.fn();
     element.page = 1;
     element.pageSize = 10;
@@ -49,7 +48,7 @@ describe("BoxPaginationElement", () => {
   });
 
   it("uses navigation semantics and accessible button labels", () => {
-    const element = document.createElement("box-pagination") as BoxPaginationElement;
+    const element = document.createElement("box-pagination") as Pagination;
     element.page = 1;
     element.pageSize = 10;
     element.totalItems = 25;
@@ -66,7 +65,7 @@ describe("BoxPaginationElement", () => {
   });
 
   it("includes focus/hover/active/disabled styles for previous and next", () => {
-    const element = document.createElement("box-pagination") as BoxPaginationElement;
+    const element = document.createElement("box-pagination") as Pagination;
     element.page = 1;
     element.pageSize = 10;
     element.totalItems = 25;

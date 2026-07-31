@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxNudgeElement, defineBoxNudgeElement } from "../../../src/components/feedback/nudge.js";
+import { Nudge } from "../../../src/components/feedback/nudge.js";
 
-describe("BoxNudgeElement", () => {
+describe("Nudge", () => {
   beforeEach(() => {
-    defineBoxNudgeElement();
+    Nudge.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxNudgeElement", () => {
   });
 
   it("renders a heading and message as a polite status", () => {
-    const element = document.createElement("box-nudge") as BoxNudgeElement;
+    const element = document.createElement("box-nudge") as Nudge;
     element.heading = "Try grid view";
     element.message = "See files as thumbnails.";
     document.body.append(element);
@@ -26,7 +26,7 @@ describe("BoxNudgeElement", () => {
   });
 
   it("omits the action button until an action label is set", () => {
-    const element = document.createElement("box-nudge") as BoxNudgeElement;
+    const element = document.createElement("box-nudge") as Nudge;
     element.heading = "Tip";
     document.body.append(element);
 
@@ -38,7 +38,7 @@ describe("BoxNudgeElement", () => {
   });
 
   it("emits an action event when the action is activated", () => {
-    const element = document.createElement("box-nudge") as BoxNudgeElement;
+    const element = document.createElement("box-nudge") as Nudge;
     element.heading = "Tip";
     element.actionLabel = "Show me";
     document.body.append(element);
@@ -51,7 +51,7 @@ describe("BoxNudgeElement", () => {
   });
 
   it("dismisses on the close button, emitting dismiss and clearing the content", () => {
-    const element = document.createElement("box-nudge") as BoxNudgeElement;
+    const element = document.createElement("box-nudge") as Nudge;
     element.heading = "Tip";
     document.body.append(element);
 

@@ -108,7 +108,8 @@ const errorMaskStyles = `
  * assertively via `role="alert"` and offers an optional retry action that emits
  * a `retry` event; the host owns the actual reload.
  */
-export class BoxErrorMaskElement extends BaseElement {
+export class ErrorMask extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["action-label", "description", "heading", "message"];
   }
@@ -235,14 +236,4 @@ export class BoxErrorMaskElement extends BaseElement {
   }
 }
 
-export const defineBoxErrorMaskElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxErrorMaskElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxErrorMaskElement;
-  }
-
-  customElements.define(tagName, BoxErrorMaskElement);
-  return BoxErrorMaskElement;
-};
+ErrorMask.register();

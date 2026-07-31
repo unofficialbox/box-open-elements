@@ -3,8 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxCategorySelectorElement,
-  defineBoxCategorySelectorElement,
+  CategorySelector,
 } from "../../../src/components/forms/category-selector.js";
 
 const sampleOptions = [
@@ -14,8 +13,8 @@ const sampleOptions = [
   { value: "archived", label: "Archived", disabled: true },
 ];
 
-const createSelector = (value = ""): BoxCategorySelectorElement => {
-  const element = document.createElement("box-category-selector") as BoxCategorySelectorElement;
+const createSelector = (value = ""): CategorySelector => {
+  const element = document.createElement("box-category-selector") as CategorySelector;
   element.options = sampleOptions;
   if (value) {
     element.value = value;
@@ -24,12 +23,12 @@ const createSelector = (value = ""): BoxCategorySelectorElement => {
   return element;
 };
 
-const pillFor = (element: BoxCategorySelectorElement, value: string): HTMLButtonElement =>
+const pillFor = (element: CategorySelector, value: string): HTMLButtonElement =>
   element.shadowRoot?.querySelector(`[part~="pill"][data-value="${value}"]`) as HTMLButtonElement;
 
-describe("BoxCategorySelectorElement", () => {
+describe("CategorySelector", () => {
   beforeEach(() => {
-    defineBoxCategorySelectorElement();
+    CategorySelector.register();
   });
 
   afterEach(() => {
@@ -92,7 +91,7 @@ describe("BoxCategorySelectorElement", () => {
   });
 
   it("renders an empty affordance with no options", () => {
-    const element = document.createElement("box-category-selector") as BoxCategorySelectorElement;
+    const element = document.createElement("box-category-selector") as CategorySelector;
     document.body.append(element);
 
     expect(element.shadowRoot?.querySelector('[part="group"]')).toBeNull();
@@ -100,7 +99,7 @@ describe("BoxCategorySelectorElement", () => {
   });
 
   it("collapses options beyond max-links into a More menu", () => {
-    const element = document.createElement("box-category-selector") as BoxCategorySelectorElement;
+    const element = document.createElement("box-category-selector") as CategorySelector;
     element.options = [
       { value: "all", label: "All" },
       { value: "docs", label: "Documents" },

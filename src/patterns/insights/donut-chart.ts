@@ -257,7 +257,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxDonutChartElement extends BaseElement {
+export class DonutChart extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["actions", "heading", "message", "segments", "summary", "timeframe"];
   }
@@ -607,8 +608,4 @@ export class BoxDonutChartElement extends BaseElement {
   }
 }
 
-export const defineBoxDonutChartElement = (tagName = DEFAULT_TAG_NAME): void => {
-  if (!customElements.get(tagName)) {
-    customElements.define(tagName, BoxDonutChartElement);
-  }
-};
+DonutChart.register();

@@ -62,7 +62,8 @@ const timeFieldStyles = `
   ${boeFormFieldErrorStyles}
 `;
 
-export class BoxTimeFieldElement extends FormAssociatedElement {
+export class TimeField extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -192,7 +193,7 @@ export class BoxTimeFieldElement extends FormAssociatedElement {
    * returns true; on a parse failure emits `parse-error` and returns false.
    */
   setTimeString(value: string): boolean {
-    const parsed = BoxTimeFieldElement.parseTime(value);
+    const parsed = TimeField.parseTime(value);
     if (parsed === null) {
       this.dispatchEvent(
         new CustomEvent("parse-error", {
@@ -281,14 +282,4 @@ export class BoxTimeFieldElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxTimeFieldElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxTimeFieldElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxTimeFieldElement;
-  }
-
-  customElements.define(tagName, BoxTimeFieldElement);
-  return BoxTimeFieldElement;
-};
+TimeField.register();

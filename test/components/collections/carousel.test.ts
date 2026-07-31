@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxCarouselElement, defineBoxCarouselElement } from "../../../src/components/collections/carousel.js";
+import { Carousel } from "../../../src/components/collections/carousel.js";
 
-describe("BoxCarouselElement", () => {
+describe("Carousel", () => {
   beforeEach(() => {
-    defineBoxCarouselElement();
+    Carousel.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxCarouselElement", () => {
   });
 
   it("renders the active slide", () => {
-    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    const element = document.createElement("box-carousel") as Carousel;
     element.items = [
       { title: "One", description: "First" },
       { title: "Two", description: "Second" },
@@ -28,7 +28,7 @@ describe("BoxCarouselElement", () => {
   });
 
   it("emits value-changed when navigating", () => {
-    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    const element = document.createElement("box-carousel") as Carousel;
     const changed = vi.fn();
     element.items = [
       { title: "One" },
@@ -50,7 +50,7 @@ describe("BoxCarouselElement", () => {
   });
 
   it("supports dot navigation", () => {
-    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    const element = document.createElement("box-carousel") as Carousel;
     element.items = [
       { title: "One" },
       { title: "Two" },
@@ -66,7 +66,7 @@ describe("BoxCarouselElement", () => {
   });
 
   it("exposes slide titles as headings and avoids fake tab roles on dots", () => {
-    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    const element = document.createElement("box-carousel") as Carousel;
     element.items = [{ title: "One" }, { title: "Two" }];
     document.body.append(element);
 
@@ -76,7 +76,7 @@ describe("BoxCarouselElement", () => {
   });
 
   it("navigates with ArrowLeft/ArrowRight on the carousel", () => {
-    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    const element = document.createElement("box-carousel") as Carousel;
     element.items = [{ title: "One" }, { title: "Two" }, { title: "Three" }];
     document.body.append(element);
 
@@ -88,7 +88,7 @@ describe("BoxCarouselElement", () => {
   });
 
   it("marks the active dot with a selected part", () => {
-    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    const element = document.createElement("box-carousel") as Carousel;
     element.items = [
       { title: "One" },
       { title: "Two" },
@@ -103,7 +103,7 @@ describe("BoxCarouselElement", () => {
   });
 
   it("uses compact shell chrome styles", () => {
-    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    const element = document.createElement("box-carousel") as Carousel;
     element.items = [{ title: "One" }];
     document.body.append(element);
 
@@ -117,7 +117,7 @@ describe("BoxCarouselElement", () => {
   });
 
   it("preserves selected-dot styles on hover and active", () => {
-    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    const element = document.createElement("box-carousel") as Carousel;
     element.items = [{ title: "One" }, { title: "Two" }];
     document.body.append(element);
 
@@ -128,7 +128,7 @@ describe("BoxCarouselElement", () => {
   });
 
   it("wraps when using previous from the first slide", () => {
-    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    const element = document.createElement("box-carousel") as Carousel;
     element.items = [
       { title: "One" },
       { title: "Two" },
@@ -144,7 +144,7 @@ describe("BoxCarouselElement", () => {
   });
 
   it("does not lose focus on a control when an attribute updates", () => {
-    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    const element = document.createElement("box-carousel") as Carousel;
     element.items = [
       { title: "One" },
       { title: "Two" },
@@ -162,7 +162,7 @@ describe("BoxCarouselElement", () => {
   });
 
   it("clamps the active index when items shrink", () => {
-    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    const element = document.createElement("box-carousel") as Carousel;
     element.items = [
       { title: "One" },
       { title: "Two" },
@@ -180,7 +180,7 @@ describe("BoxCarouselElement", () => {
   });
 
   it("navigates slotted slides, showing only the active one", () => {
-    const element = document.createElement("box-carousel") as BoxCarouselElement;
+    const element = document.createElement("box-carousel") as Carousel;
     for (const [i, text] of ["Alpha", "Beta", "Gamma"].entries()) {
       const slide = document.createElement("div");
       slide.slot = "slide";

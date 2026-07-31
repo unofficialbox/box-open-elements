@@ -97,7 +97,8 @@ type Crumb = BreadcrumbItem | typeof ELLIPSIS;
  * `Breadcrumb`. When the trail is longer than `max-items` the middle crumbs
  * collapse into an ellipsis, always keeping the first crumb and the last two.
  */
-export class BoxBreadcrumbElement extends BaseElement {
+export class Breadcrumb extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["items", "label", "max-items"];
   }
@@ -212,14 +213,4 @@ export class BoxBreadcrumbElement extends BaseElement {
   }
 }
 
-export const defineBoxBreadcrumbElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxBreadcrumbElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxBreadcrumbElement;
-  }
-
-  customElements.define(tagName, BoxBreadcrumbElement);
-  return BoxBreadcrumbElement;
-};
+Breadcrumb.register();

@@ -81,7 +81,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxExplorerBreadcrumbsElement extends BaseElement {
+export class ExplorerBreadcrumbs extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   private controllerValue: ContentExplorerController | null = null;
 
   private unsubscribeFns: Array<() => void> = [];
@@ -184,14 +185,4 @@ export class BoxExplorerBreadcrumbsElement extends BaseElement {
   }
 }
 
-export const defineBoxExplorerBreadcrumbsElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxExplorerBreadcrumbsElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxExplorerBreadcrumbsElement;
-  }
-
-  customElements.define(tagName, BoxExplorerBreadcrumbsElement);
-  return BoxExplorerBreadcrumbsElement;
-};
+ExplorerBreadcrumbs.register();

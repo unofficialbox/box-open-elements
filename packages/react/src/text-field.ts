@@ -1,11 +1,8 @@
-import {
-  BoxTextFieldElement,
-  defineBoxTextFieldElement,
-} from "../../../src/components/forms/text-field.js";
-import { createWebComponent, type BoxWebComponentProps } from "./create-web-component.js";
-import type { BoxCustomEventHandler, BoxValueChangedDetail } from "./events.js";
+import { TextField as TextFieldElement } from "../../../src/components/forms/text-field.js";
+import { createWebComponent, type WebComponentProps } from "./create-web-component.js";
+import type { CustomEventHandler, ValueChangedDetail } from "./events.js";
 
-export type BoxTextFieldProps = BoxWebComponentProps & {
+export type TextFieldProps = WebComponentProps & {
   label?: string;
   value?: string;
   placeholder?: string;
@@ -13,14 +10,13 @@ export type BoxTextFieldProps = BoxWebComponentProps & {
   name?: string;
   invalid?: boolean;
   errorMessage?: string;
-  onValueChanged?: BoxCustomEventHandler<BoxTextFieldElement, BoxValueChangedDetail>;
+  onValueChanged?: CustomEventHandler<TextFieldElement, ValueChangedDetail>;
 };
 
 /** React wrapper for the value-bearing `<box-text-field>` form control. */
-export const BoxTextField = createWebComponent<BoxTextFieldElement, BoxTextFieldProps>({
+export const TextField = createWebComponent<TextFieldElement, TextFieldProps>({
   tagName: "box-text-field",
-  define: defineBoxTextFieldElement,
-  displayName: "BoxTextField",
+  displayName: "TextField",
   propertyNames: [
     "label",
     "value",

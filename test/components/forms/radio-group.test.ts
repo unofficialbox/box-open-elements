@@ -2,12 +2,12 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxRadioGroupElement, defineBoxRadioGroupElement } from "../../../src/components/forms/radio-group.js";
+import { RadioGroup } from "../../../src/components/forms/radio-group.js";
 import { FORM_ERROR_MESSAGE_ID, getMirroredFormValue } from "../../../src/core/index.js";
 
-describe("BoxRadioGroupElement", () => {
+describe("RadioGroup", () => {
   beforeEach(() => {
-    defineBoxRadioGroupElement();
+    RadioGroup.register();
   });
 
   afterEach(() => {
@@ -15,7 +15,7 @@ describe("BoxRadioGroupElement", () => {
   });
 
   it("emits value changes when a new option is selected", () => {
-    const element = document.createElement("box-radio-group") as BoxRadioGroupElement;
+    const element = document.createElement("box-radio-group") as RadioGroup;
     const changed = vi.fn();
     element.options = [
       { label: "Single", value: "single" },
@@ -40,7 +40,7 @@ describe("BoxRadioGroupElement", () => {
   });
 
   it("forwards disabled state to radio inputs", () => {
-    const element = document.createElement("box-radio-group") as BoxRadioGroupElement;
+    const element = document.createElement("box-radio-group") as RadioGroup;
     element.options = [
       { label: "Single", value: "single" },
       { label: "Multiple", value: "multiple" },
@@ -55,7 +55,7 @@ describe("BoxRadioGroupElement", () => {
   });
 
   it("retains focus on the internal input when attributes or properties change", () => {
-    const element = document.createElement("box-radio-group") as BoxRadioGroupElement;
+    const element = document.createElement("box-radio-group") as RadioGroup;
     element.options = [
       { label: "Single", value: "single" },
       { label: "Multiple", value: "multiple" },
@@ -89,7 +89,7 @@ describe("BoxRadioGroupElement", () => {
   });
 
   it("omits form value when unselected or stale, but keeps an explicit empty option", () => {
-    const element = document.createElement("box-radio-group") as BoxRadioGroupElement;
+    const element = document.createElement("box-radio-group") as RadioGroup;
     element.name = "choice";
     element.options = [
       { label: "Single", value: "single" },
@@ -114,7 +114,7 @@ describe("BoxRadioGroupElement", () => {
   });
 
   it("propagates invalid ARIA state to every radio option", () => {
-    const element = document.createElement("box-radio-group") as BoxRadioGroupElement;
+    const element = document.createElement("box-radio-group") as RadioGroup;
     element.options = [
       { label: "Single", value: "single" },
       { label: "Multiple", value: "multiple" },
@@ -143,7 +143,7 @@ describe("BoxRadioGroupElement", () => {
   });
 
   it("mirrors form value when a radio change is dispatched", () => {
-    const element = document.createElement("box-radio-group") as BoxRadioGroupElement;
+    const element = document.createElement("box-radio-group") as RadioGroup;
     element.name = "choice";
     element.options = [
       { label: "Single", value: "single" },
@@ -161,7 +161,7 @@ describe("BoxRadioGroupElement", () => {
   });
 
   it("restores form value via formStateRestoreCallback", () => {
-    const element = document.createElement("box-radio-group") as BoxRadioGroupElement;
+    const element = document.createElement("box-radio-group") as RadioGroup;
     element.options = [
       { label: "Single", value: "single" },
       { label: "Multiple", value: "multiple" },
@@ -181,7 +181,7 @@ describe("BoxRadioGroupElement", () => {
   });
 
   it("updates every internal radio name when host name changes after render", () => {
-    const element = document.createElement("box-radio-group") as BoxRadioGroupElement;
+    const element = document.createElement("box-radio-group") as RadioGroup;
     element.name = "before";
     element.options = [
       { label: "Single", value: "single" },
@@ -199,7 +199,7 @@ describe("BoxRadioGroupElement", () => {
   });
 
   it("includes focus-within, hover, active, and disabled option styles", () => {
-    const element = document.createElement("box-radio-group") as BoxRadioGroupElement;
+    const element = document.createElement("box-radio-group") as RadioGroup;
     element.options = [
       { label: "Single", value: "single" },
       { label: "Multiple", value: "multiple" },
@@ -220,7 +220,7 @@ describe("BoxRadioGroupElement", () => {
   });
 
   it("renders per-option descriptions and disables individual options", () => {
-    const element = document.createElement("box-radio-group") as BoxRadioGroupElement;
+    const element = document.createElement("box-radio-group") as RadioGroup;
     element.options = [
       { label: "Viewer", value: "viewer", description: "Can view and download." },
       { label: "Co-owner", value: "coowner", description: "Full control.", disabled: true },

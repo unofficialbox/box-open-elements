@@ -121,7 +121,8 @@ const menuStyles = `
   }
 `;
 
-export class BoxMenuElement extends BaseElement {
+export class Menu extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["disabled", "items", "label"];
   }
@@ -279,14 +280,4 @@ export class BoxMenuElement extends BaseElement {
   }
 }
 
-export const defineBoxMenuElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxMenuElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxMenuElement;
-  }
-
-  customElements.define(tagName, BoxMenuElement);
-  return BoxMenuElement;
-};
+Menu.register();

@@ -191,7 +191,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxGovernancePanelElement extends BaseElement {
+export class GovernancePanel extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["actions", "heading", "message", "policies", "signals", "status"];
   }
@@ -409,8 +410,4 @@ export class BoxGovernancePanelElement extends BaseElement {
   }
 }
 
-export const defineBoxGovernancePanelElement = (tagName = DEFAULT_TAG_NAME): void => {
-  if (!customElements.get(tagName)) {
-    customElements.define(tagName, BoxGovernancePanelElement);
-  }
-};
+GovernancePanel.register();

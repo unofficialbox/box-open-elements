@@ -151,7 +151,8 @@ const radioGroupStyles = `
   ${boeFormFieldErrorStyles}
 `;
 
-export class BoxRadioGroupElement extends FormAssociatedElement {
+export class RadioGroup extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -361,14 +362,4 @@ export class BoxRadioGroupElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxRadioGroupElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxRadioGroupElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxRadioGroupElement;
-  }
-
-  customElements.define(tagName, BoxRadioGroupElement);
-  return BoxRadioGroupElement;
-};
+RadioGroup.register();

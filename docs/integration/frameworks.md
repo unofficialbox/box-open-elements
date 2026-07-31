@@ -21,9 +21,9 @@ npm i @unofficialbox/box-open-elements
 ```ts
 // app entry (main.ts / index.tsx / main.js …)
 import {
-  defineBoxButtonElement,
-  defineBoxTextFieldElement,
-  defineBoxSelectElement,
+  Button,
+  TextField,
+  Select,
 } from "@unofficialbox/box-open-elements";
 import {
   applyDesignTokens,
@@ -33,9 +33,6 @@ import {
 registerBoxDefaultDesignSystem({ setActive: true });
 applyDesignTokens(document.documentElement, "box-default");
 
-defineBoxButtonElement();
-defineBoxTextFieldElement();
-defineBoxSelectElement();
 ```
 
 The one thing to know across every framework: **primitive props** (strings,
@@ -54,11 +51,12 @@ so use a ref for those.
 
 ```tsx
 import { useEffect, useRef, useState } from "react";
-import type { BoxTextFieldElement } from "@unofficialbox/box-open-elements/components/forms/text-field";
+import "@unofficialbox/box-open-elements/text-field";
+import type { TextField } from "@unofficialbox/box-open-elements/text-field";
 
 function Example() {
   const [name, setName] = useState("");
-  const field = useRef<BoxTextFieldElement>(null);
+  const field = useRef<TextField>(null);
 
   useEffect(() => {
     const el = field.current;
@@ -94,7 +92,7 @@ declare module "react" {
 ```
 
 > **Typed wrappers.** The repo also has `@box-open-elements/react`
-> (`<BoxButton>`, `<BoxTextField onValueChanged={…}>`) that hides the ref/event
+> (`<Button>`, `<TextField onValueChanged={…}>`) that hides the ref/event
 > plumbing — see [react.md](./react.md). It isn't published to npm yet; until it
 > is, prefer the direct usage above.
 
@@ -131,8 +129,8 @@ export class ExampleComponent {
 ```
 
 `[options]="options"` binds the array to the element **property** directly — no
-stringification. Call the `defineBox*Element()` functions once in `main.ts`
-(before `bootstrapApplication`).
+stringification. Import the required concise exports in `main.ts` before
+`bootstrapApplication`; importing them registers their `box-*` elements.
 
 ---
 

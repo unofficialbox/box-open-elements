@@ -149,7 +149,8 @@ const elementStyles = `
         }
       `;
 
-export class BoxMetricCardElement extends BaseElement {
+export class MetricCard extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["action", "eyebrow", "message", "status", "heading", "trend", "value"];
   }
@@ -326,8 +327,4 @@ export class BoxMetricCardElement extends BaseElement {
   }
 }
 
-export const defineBoxMetricCardElement = (tagName = DEFAULT_TAG_NAME): void => {
-  if (!customElements.get(tagName)) {
-    customElements.define(tagName, BoxMetricCardElement);
-  }
-};
+MetricCard.register();

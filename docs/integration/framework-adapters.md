@@ -25,7 +25,7 @@ custom element. Each status requires the evidence described above.
 
 | Framework | Direct custom-element interop | Typed adapter foundation | Representative components | Pattern/controller proof | SSR/hydration guidance | Overall |
 | --- | --- | --- | --- | --- | --- | --- |
-| React | **Validated**: properties, native/composed events, latest handlers, refs | **Built**: `createWebComponent` | **3**: `BoxButton`, `BoxTextField`, `BoxSelect` | Not started | Partial: host hydration suppression only | **Validated** |
+| React | **Validated**: properties, native/composed events, latest handlers, refs | **Built**: `createWebComponent` | **3**: `Button`, `TextField`, `Select` | Not started | Partial: host hydration suppression only | **Validated** |
 | Angular | Not started | Not decided | 0 | Not started | Not started | **Tracked** |
 | Vue | Not started | Not decided | 0 | Not started | Not started | **Tracked** |
 | Svelte | Not started | Not decided | 0 | Not started | Not started | **Tracked** |
@@ -35,16 +35,16 @@ custom element. Each status requires the evidence described above.
 ### React
 
 Current implementation: [`packages/react`](../../packages/react) exposes
-`@box-open-elements/react`, `BoxButton`, `BoxTextField`, `BoxSelect`, and
+`@box-open-elements/react`, `Button`, `TextField`, `Select`, and
 `createWebComponent`.
 
 Validation evidence:
 
-- `BoxTextField` proves value/boolean/form-property updates, typed composed
+- `TextField` proves value/boolean/form-property updates, typed composed
   `value-changed`, latest-handler routing, and forwarded element refs.
-- `BoxSelect` proves structured option arrays are assigned as properties rather
+- `Select` proves structured option arrays are assigned as properties rather
   than passed through React's host-attribute spread.
-- `BoxButton` keeps native `onClick` forwarding covered.
+- `Button` keeps native `onClick` forwarding covered.
 
 Next **Beta** proof set:
 

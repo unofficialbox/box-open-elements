@@ -2,12 +2,12 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxRangeSliderElement, defineBoxRangeSliderElement } from "../../../src/components/forms/range-slider.js";
+import { RangeSlider } from "../../../src/components/forms/range-slider.js";
 import { FORM_ERROR_MESSAGE_ID, formDataFromRange, getMirroredFormValue } from "../../../src/core/index.js";
 
-describe("BoxRangeSliderElement", () => {
+describe("RangeSlider", () => {
   beforeEach(() => {
-    defineBoxRangeSliderElement();
+    RangeSlider.register();
   });
 
   afterEach(() => {
@@ -15,7 +15,7 @@ describe("BoxRangeSliderElement", () => {
   });
 
   it("emits both values when either thumb changes", () => {
-    const element = document.createElement("box-range-slider") as BoxRangeSliderElement;
+    const element = document.createElement("box-range-slider") as RangeSlider;
     const changed = vi.fn();
     element.addEventListener("value-changed", changed);
 
@@ -33,7 +33,7 @@ describe("BoxRangeSliderElement", () => {
   });
 
   it("normalizes the range when thumbs cross", () => {
-    const element = document.createElement("box-range-slider") as BoxRangeSliderElement;
+    const element = document.createElement("box-range-slider") as RangeSlider;
     document.body.append(element);
 
     const endInput = element.shadowRoot?.querySelector('[part="range-end"]') as HTMLInputElement | null;
@@ -45,7 +45,7 @@ describe("BoxRangeSliderElement", () => {
   });
 
   it("mirrors start and end values as FormData entries", () => {
-    const element = document.createElement("box-range-slider") as BoxRangeSliderElement;
+    const element = document.createElement("box-range-slider") as RangeSlider;
     element.name = "budget";
     document.body.append(element);
 
@@ -60,7 +60,7 @@ describe("BoxRangeSliderElement", () => {
   });
 
   it("restores form value via formStateRestoreCallback with FormData", () => {
-    const element = document.createElement("box-range-slider") as BoxRangeSliderElement;
+    const element = document.createElement("box-range-slider") as RangeSlider;
     element.name = "budget";
     element.min = 0;
     element.max = 100;
@@ -78,7 +78,7 @@ describe("BoxRangeSliderElement", () => {
   });
 
   it("clamps and orders restored range values", () => {
-    const element = document.createElement("box-range-slider") as BoxRangeSliderElement;
+    const element = document.createElement("box-range-slider") as RangeSlider;
     element.name = "budget";
     element.min = 0;
     element.max = 50;
@@ -91,7 +91,7 @@ describe("BoxRangeSliderElement", () => {
   });
 
   it("propagates invalid ARIA state to both range thumbs", () => {
-    const element = document.createElement("box-range-slider") as BoxRangeSliderElement;
+    const element = document.createElement("box-range-slider") as RangeSlider;
     element.invalid = true;
     element.errorMessage = "Range is required";
     document.body.append(element);

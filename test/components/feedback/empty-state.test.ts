@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxEmptyStateElement,
-  defineBoxEmptyStateElement,
+  EmptyState,
 } from "../../../src/components/feedback/empty-state.js";
 
-describe("BoxEmptyStateElement", () => {
+describe("EmptyState", () => {
   beforeEach(() => {
-    defineBoxEmptyStateElement();
+    EmptyState.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxEmptyStateElement", () => {
   });
 
   it("renders title and message", () => {
-    const element = document.createElement("box-empty-state") as BoxEmptyStateElement;
+    const element = document.createElement("box-empty-state") as EmptyState;
     element.heading = "No files yet";
     element.message = "Upload a file to get started.";
 
@@ -29,7 +28,7 @@ describe("BoxEmptyStateElement", () => {
   });
 
   it("emits an action event when the action button is clicked", () => {
-    const element = document.createElement("box-empty-state") as BoxEmptyStateElement;
+    const element = document.createElement("box-empty-state") as EmptyState;
     const action = vi.fn();
     element.actionLabel = "Upload file";
     element.addEventListener("action", action);
@@ -47,7 +46,7 @@ describe("BoxEmptyStateElement", () => {
   });
 
   it("supports description as a compatible alias for message", () => {
-    const element = document.createElement("box-empty-state") as BoxEmptyStateElement;
+    const element = document.createElement("box-empty-state") as EmptyState;
     element.description = "Use filters or create a new item to get started.";
 
     document.body.append(element);
@@ -57,7 +56,7 @@ describe("BoxEmptyStateElement", () => {
   });
 
   it("uses compact empty-state shell styles", () => {
-    const element = document.createElement("box-empty-state") as BoxEmptyStateElement;
+    const element = document.createElement("box-empty-state") as EmptyState;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";

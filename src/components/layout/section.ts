@@ -78,7 +78,8 @@ const sectionStyles = `
  * content. The `<section>` is labelled by its heading via `aria-labelledby` so
  * it is announced as a named region. Layout-only — it owns no behavior.
  */
-export class BoxSectionElement extends BaseElement {
+export class Section extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["description", "eyebrow", "heading"];
   }
@@ -152,14 +153,4 @@ export class BoxSectionElement extends BaseElement {
   }
 }
 
-export const defineBoxSectionElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxSectionElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxSectionElement;
-  }
-
-  customElements.define(tagName, BoxSectionElement);
-  return BoxSectionElement;
-};
+Section.register();

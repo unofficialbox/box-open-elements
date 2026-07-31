@@ -145,7 +145,8 @@ const chipStyles = `
  * is interactive: it can be selected and it can be dismissed, emitting `remove`
  * with its `value` so a host list can drop it.
  */
-export class BoxChipElement extends BaseElement {
+export class Chip extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["disabled", "label", "removable", "selectable", "selected", "size", "tone", "value"];
   }
@@ -359,14 +360,4 @@ export class BoxChipElement extends BaseElement {
   }
 }
 
-export const defineBoxChipElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxChipElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxChipElement;
-  }
-
-  customElements.define(tagName, BoxChipElement);
-  return BoxChipElement;
-};
+Chip.register();

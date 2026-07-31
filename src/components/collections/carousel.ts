@@ -209,7 +209,8 @@ const carouselStyles = `
   }
 `;
 
-export class BoxCarouselElement extends BaseElement {
+export class Carousel extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["items", "label", "value"];
   }
@@ -508,14 +509,4 @@ export class BoxCarouselElement extends BaseElement {
   }
 }
 
-export const defineBoxCarouselElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxCarouselElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxCarouselElement;
-  }
-
-  customElements.define(tagName, BoxCarouselElement);
-  return BoxCarouselElement;
-};
+Carousel.register();

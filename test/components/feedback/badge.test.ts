@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { BoxBadgeElement, defineBoxBadgeElement } from "../../../src/components/feedback/badge.js";
+import { Badge } from "../../../src/components/feedback/badge.js";
 
-describe("BoxBadgeElement", () => {
+describe("Badge", () => {
   beforeEach(() => {
-    defineBoxBadgeElement();
+    Badge.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxBadgeElement", () => {
   });
 
   it("renders label and tone", () => {
-    const element = document.createElement("box-badge") as BoxBadgeElement;
+    const element = document.createElement("box-badge") as Badge;
     element.label = "Beta";
     element.tone = "info";
 
@@ -27,7 +27,7 @@ describe("BoxBadgeElement", () => {
   });
 
   it("caps a numeric label at max, rendering max+", () => {
-    const element = document.createElement("box-badge") as BoxBadgeElement;
+    const element = document.createElement("box-badge") as Badge;
     element.label = "128";
     element.max = 99;
     document.body.append(element);
@@ -46,7 +46,7 @@ describe("BoxBadgeElement", () => {
   });
 
   it("hides the badge when the count is zero or empty with hide-when-zero", () => {
-    const element = document.createElement("box-badge") as BoxBadgeElement;
+    const element = document.createElement("box-badge") as Badge;
     element.hideWhenZero = true;
     element.label = "0";
     document.body.append(element);
@@ -61,7 +61,7 @@ describe("BoxBadgeElement", () => {
   });
 
   it("pops on value change only when animate is set", () => {
-    const element = document.createElement("box-badge") as BoxBadgeElement;
+    const element = document.createElement("box-badge") as Badge;
     element.setAttribute("animate", "");
     element.label = "1";
     document.body.append(element);
@@ -75,7 +75,7 @@ describe("BoxBadgeElement", () => {
   });
 
   it("uses BUE badge geometry", () => {
-    const element = document.createElement("box-badge") as BoxBadgeElement;
+    const element = document.createElement("box-badge") as Badge;
     element.label = "New";
     document.body.append(element);
 

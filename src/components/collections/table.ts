@@ -106,7 +106,8 @@ const tableStyles = `
  * toggle, Ctrl/Cmd+A select-all, Escape clear). Sorting is host-owned: sortable
  * headers emit `sort` and the host reorders `rows`.
  */
-export class BoxTableElement extends BaseElement {
+export class Table extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["columns", "rows", "selection-mode", "label", "sort-key", "sort-direction"];
   }
@@ -362,12 +363,4 @@ export class BoxTableElement extends BaseElement {
   }
 }
 
-export const defineBoxTableElement = (tagName = DEFAULT_TAG_NAME): typeof BoxTableElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxTableElement;
-  }
-
-  customElements.define(tagName, BoxTableElement);
-  return BoxTableElement;
-};
+Table.register();

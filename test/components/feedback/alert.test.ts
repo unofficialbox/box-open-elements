@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxAlertElement, defineBoxAlertElement } from "../../../src/components/feedback/alert.js";
+import { Alert } from "../../../src/components/feedback/alert.js";
 
-describe("BoxAlertElement", () => {
+describe("Alert", () => {
   beforeEach(() => {
-    defineBoxAlertElement();
+    Alert.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxAlertElement", () => {
   });
 
   it("renders title and message", () => {
-    const element = document.createElement("box-alert") as BoxAlertElement;
+    const element = document.createElement("box-alert") as Alert;
     element.heading = "Heads up";
     element.message = "Your session will expire soon.";
     element.tone = "warning";
@@ -27,7 +27,7 @@ describe("BoxAlertElement", () => {
   });
 
   it("dismisses and emits an event", () => {
-    const element = document.createElement("box-alert") as BoxAlertElement;
+    const element = document.createElement("box-alert") as Alert;
     const dismissed = vi.fn();
     const openChanged = vi.fn();
     element.heading = "Saved";
@@ -50,7 +50,7 @@ describe("BoxAlertElement", () => {
   });
 
   it("supports description as a compatible alias for message", () => {
-    const element = document.createElement("box-alert") as BoxAlertElement;
+    const element = document.createElement("box-alert") as Alert;
     element.heading = "Heads up";
     element.description = "Storage is almost full.";
 
@@ -61,7 +61,7 @@ describe("BoxAlertElement", () => {
   });
 
   it("exposes accessible alert and dismiss labels", () => {
-    const element = document.createElement("box-alert") as BoxAlertElement;
+    const element = document.createElement("box-alert") as Alert;
     element.heading = "Heads up";
     element.message = "Storage is almost full.";
 
@@ -77,7 +77,7 @@ describe("BoxAlertElement", () => {
   });
 
   it("names heading-less alerts with tone and message", () => {
-    const element = document.createElement("box-alert") as BoxAlertElement;
+    const element = document.createElement("box-alert") as Alert;
     element.message = "Storage is almost full.";
     element.tone = "warning";
 
@@ -89,7 +89,7 @@ describe("BoxAlertElement", () => {
   });
 
   it("announces tone with visually hidden text", () => {
-    const element = document.createElement("box-alert") as BoxAlertElement;
+    const element = document.createElement("box-alert") as Alert;
     element.heading = "Heads up";
     element.message = "Storage is almost full.";
     element.tone = "warning";
@@ -104,7 +104,7 @@ describe("BoxAlertElement", () => {
   });
 
   it("uses BUE inline-alert shell styles", () => {
-    const element = document.createElement("box-alert") as BoxAlertElement;
+    const element = document.createElement("box-alert") as Alert;
     document.body.append(element);
 
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
@@ -114,7 +114,7 @@ describe("BoxAlertElement", () => {
   });
 
   it("renders rich slotted content and stays visible on rich-only alerts", () => {
-    const element = document.createElement("box-alert") as BoxAlertElement;
+    const element = document.createElement("box-alert") as Alert;
     element.setAttribute("open", "");
     // No heading/message — only rich children.
     const link = document.createElement("a");
@@ -136,7 +136,7 @@ describe("BoxAlertElement", () => {
   });
 
   it("includes focus-visible and interactive styles for dismiss", () => {
-    const element = document.createElement("box-alert") as BoxAlertElement;
+    const element = document.createElement("box-alert") as Alert;
     element.heading = "Heads up";
     element.message = "Storage is almost full.";
     document.body.append(element);

@@ -4,8 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ContentExplorerController } from "../../../../src/patterns/content-explorer/controller.js";
 import {
-  BoxExplorerBreadcrumbsElement,
-  defineBoxExplorerBreadcrumbsElement,
+  ExplorerBreadcrumbs,
 } from "../../../../src/patterns/content-explorer/adapters/breadcrumbs.js";
 import type { ExplorerTransport, ExplorerTransportResult } from "../../../../src/patterns/content-explorer/types.js";
 
@@ -28,9 +27,9 @@ const flushMicrotasks = async (): Promise<void> => {
   await Promise.resolve();
 };
 
-describe("BoxExplorerBreadcrumbsElement", () => {
+describe("ExplorerBreadcrumbs", () => {
   beforeEach(() => {
-    defineBoxExplorerBreadcrumbsElement();
+    ExplorerBreadcrumbs.register();
   });
 
   afterEach(() => {
@@ -58,7 +57,7 @@ describe("BoxExplorerBreadcrumbsElement", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-breadcrumbs") as BoxExplorerBreadcrumbsElement;
+    const element = document.createElement("box-explorer-breadcrumbs") as ExplorerBreadcrumbs;
     element.controller = controller;
 
     document.body.append(element);

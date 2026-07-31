@@ -157,7 +157,8 @@ const comboboxStyles = `
   ${boeFormFieldErrorStyles}
 `;
 
-export class BoxComboboxElement extends FormAssociatedElement {
+export class Combobox extends FormAssociatedElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.formObservedAttributes,
@@ -596,14 +597,4 @@ export class BoxComboboxElement extends FormAssociatedElement {
   }
 }
 
-export const defineBoxComboboxElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxComboboxElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxComboboxElement;
-  }
-
-  customElements.define(tagName, BoxComboboxElement);
-  return BoxComboboxElement;
-};
+Combobox.register();

@@ -58,7 +58,8 @@ const spinnerStyles = `
   }
 `;
 
-export class BoxSpinnerElement extends BaseElement {
+export class Spinner extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["label", "size"];
   }
@@ -114,14 +115,4 @@ export class BoxSpinnerElement extends BaseElement {
   }
 }
 
-export const defineBoxSpinnerElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxSpinnerElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxSpinnerElement;
-  }
-
-  customElements.define(tagName, BoxSpinnerElement);
-  return BoxSpinnerElement;
-};
+Spinner.register();

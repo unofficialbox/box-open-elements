@@ -37,7 +37,9 @@ The upstream `box-ui-elements` wrappers expose an imperative API but still mount
 
 The public API should prefer:
 
-- constructors and factory functions
+- concise PascalCase custom-element classes that self-register on import
+- flat per-component entrypoints for bundle-sensitive consumers
+- constructors and factory functions for headless runtime APIs
 - plain objects for state snapshots
 - explicit commands such as `connect()`, `disconnect()`, `select()`, `navigateTo()`
 - event subscription via a typed emitter
@@ -65,6 +67,9 @@ Workflow patterns should begin as headless behavior (controllers plus contracts)
 
 Catalog and pattern custom elements extend `BaseElement` from `@unofficialbox/box-open-elements/core`:
 
+- `static tagName` — canonical `box-*` custom-element name
+- `static register()` — idempotent escape hatch for isolated registries; normal
+  imports register automatically
 - `renderTemplate()` — build the shadow DOM (styles + structure) once on first connect
 - `setupListeners()` — attach listeners once to stable nodes (prefer event delegation for lists)
 - `update()` — mutate text, classes, attributes, and `aria-*` in place on state change

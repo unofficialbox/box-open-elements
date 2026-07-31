@@ -20,14 +20,13 @@ const assignRef = <T,>(ref: ForwardedRef<T> | undefined, value: T | null): void 
   }
 };
 
-export type BoxWebComponentProps = {
+export type WebComponentProps = {
   className?: string;
   style?: CSSProperties;
 } & Omit<HTMLAttributes<HTMLElement>, "className" | "style" | "children">;
 
-type CreateWebComponentOptions<E extends HTMLElement, P extends BoxWebComponentProps> = {
+type CreateWebComponentOptions<E extends HTMLElement, P extends WebComponentProps> = {
   tagName: string;
-  define: () => unknown;
   /** Sync React props onto the custom element instance (prefer properties over attributes). */
   sync: (element: E, props: P) => void;
   /** Props assigned by `sync`; omit them from React's host-attribute spread. */
@@ -44,11 +43,10 @@ type CreateWebComponentOptions<E extends HTMLElement, P extends BoxWebComponentP
  * Thin React adapter factory for a box-open-elements custom element.
  * Defines the element once, syncs props via properties, and forwards refs/events.
  */
-export const createWebComponent = <E extends HTMLElement, P extends BoxWebComponentProps>(
+export const createWebComponent = <E extends HTMLElement, P extends WebComponentProps>(
   options: CreateWebComponentOptions<E, P>,
 ) => {
-  const Component = forwardRef<E, P>(function BoxWebComponent(props, forwardedRef) {
-    options.define();
+  const Component = forwardRef<E, P>(function WebComponent(props, forwardedRef) {
     const localRef = useRef<E | null>(null);
     const latestPropsRef = useRef<P>(props as P);
 

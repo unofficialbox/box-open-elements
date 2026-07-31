@@ -1,17 +1,8 @@
-import { BoxExplorerListElement } from "./list.js";
+import { ExplorerList } from "./list.js";
 
 const DEFAULT_TAG_NAME = "box-explorer-items";
 
-export class BoxExplorerItemsElement extends BoxExplorerListElement {}
+export class ExplorerItems extends ExplorerList {
+  static readonly tagName: string = DEFAULT_TAG_NAME;}
 
-export const defineBoxExplorerItemsElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxExplorerItemsElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxExplorerItemsElement;
-  }
-
-  customElements.define(tagName, BoxExplorerItemsElement);
-  return BoxExplorerItemsElement;
-};
+ExplorerItems.register();

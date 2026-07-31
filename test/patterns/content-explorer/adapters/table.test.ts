@@ -4,10 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ContentExplorerController } from "../../../../src/patterns/content-explorer/controller.js";
 import {
-  BoxExplorerTableElement,
-  defineBoxExplorerTableElement,
+  ExplorerTable,
 } from "../../../../src/patterns/content-explorer/adapters/table.js";
-import { defineBoxExplorerActionMenuElement } from "../../../../src/patterns/content-explorer/adapters/action-menu.js";
+import { ExplorerActionMenu } from "../../../../src/patterns/content-explorer/adapters/action-menu.js";
 import type { ExplorerTransport, ExplorerTransportResult } from "../../../../src/patterns/content-explorer/types.js";
 
 const createResult = (overrides: Partial<ExplorerTransportResult> = {}): ExplorerTransportResult => ({
@@ -29,10 +28,10 @@ const flushMicrotasks = async (): Promise<void> => {
   await Promise.resolve();
 };
 
-describe("BoxExplorerTableElement", () => {
+describe("ExplorerTable", () => {
   beforeEach(() => {
-    defineBoxExplorerActionMenuElement();
-    defineBoxExplorerTableElement();
+    ExplorerActionMenu.register();
+    ExplorerTable.register();
   });
 
   afterEach(() => {
@@ -62,7 +61,7 @@ describe("BoxExplorerTableElement", () => {
       token: "token",
       transport,
     });
-    const element = document.createElement("box-explorer-table") as BoxExplorerTableElement;
+    const element = document.createElement("box-explorer-table") as ExplorerTable;
     element.controller = controller;
 
     document.body.append(element);
@@ -95,7 +94,7 @@ describe("BoxExplorerTableElement", () => {
       transport,
       selectionMode: "single",
     });
-    const element = document.createElement("box-explorer-table") as BoxExplorerTableElement;
+    const element = document.createElement("box-explorer-table") as ExplorerTable;
     element.controller = controller;
 
     document.body.append(element);

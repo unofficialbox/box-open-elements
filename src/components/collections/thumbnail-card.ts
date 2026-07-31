@@ -108,7 +108,8 @@ const thumbnailCardStyles = `
   }
 `;
 
-export class BoxThumbnailCardElement extends BaseElement {
+export class ThumbnailCard extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["title", "subtitle", "interactive", "highlight-on-hover"];
   }
@@ -218,14 +219,4 @@ export class BoxThumbnailCardElement extends BaseElement {
   }
 }
 
-export const defineBoxThumbnailCardElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxThumbnailCardElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxThumbnailCardElement;
-  }
-
-  customElements.define(tagName, BoxThumbnailCardElement);
-  return BoxThumbnailCardElement;
-};
+ThumbnailCard.register();

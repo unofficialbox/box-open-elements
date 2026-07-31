@@ -101,7 +101,8 @@ const buttonGroupStyles = `
   }
 `;
 
-export class BoxButtonGroupElement extends BaseElement {
+export class ButtonGroup extends BaseElement {
+  static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return ["label", "layout", "options", "value"];
   }
@@ -283,14 +284,4 @@ export class BoxButtonGroupElement extends BaseElement {
   }
 }
 
-export const defineBoxButtonGroupElement = (
-  tagName = DEFAULT_TAG_NAME,
-): typeof BoxButtonGroupElement => {
-  const existingElement = customElements.get(tagName);
-  if (existingElement) {
-    return existingElement as typeof BoxButtonGroupElement;
-  }
-
-  customElements.define(tagName, BoxButtonGroupElement);
-  return BoxButtonGroupElement;
-};
+ButtonGroup.register();

@@ -3,13 +3,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  BoxPreviewHeaderElement,
-  defineBoxPreviewHeaderElement,
+  PreviewHeader,
 } from "../../../src/patterns/item/preview-header.js";
 
-describe("BoxPreviewHeaderElement", () => {
+describe("PreviewHeader", () => {
   beforeEach(() => {
-    defineBoxPreviewHeaderElement();
+    PreviewHeader.register();
   });
 
   afterEach(() => {
@@ -17,7 +16,7 @@ describe("BoxPreviewHeaderElement", () => {
   });
 
   it("renders heading, status, and breadcrumbs", () => {
-    const element = document.createElement("box-preview-header") as BoxPreviewHeaderElement;
+    const element = document.createElement("box-preview-header") as PreviewHeader;
     element.heading = "Brand Strategy.pdf";
     element.status = "Ready";
     element.breadcrumbs = [
@@ -33,7 +32,7 @@ describe("BoxPreviewHeaderElement", () => {
   });
 
   it("emits action", () => {
-    const element = document.createElement("box-preview-header") as BoxPreviewHeaderElement;
+    const element = document.createElement("box-preview-header") as PreviewHeader;
     const action = vi.fn();
     element.heading = "Brand Strategy.pdf";
     element.actions = [{ id: "share", label: "Share" }];
@@ -52,7 +51,7 @@ describe("BoxPreviewHeaderElement", () => {
   });
 
   it("emits breadcrumb-selected", () => {
-    const element = document.createElement("box-preview-header") as BoxPreviewHeaderElement;
+    const element = document.createElement("box-preview-header") as PreviewHeader;
     const selected = vi.fn();
     element.heading = "Brand Strategy.pdf";
     element.breadcrumbs = [
@@ -74,7 +73,7 @@ describe("BoxPreviewHeaderElement", () => {
   });
 
   it("preserves action focus across unrelated attribute updates", () => {
-    const element = document.createElement("box-preview-header") as BoxPreviewHeaderElement;
+    const element = document.createElement("box-preview-header") as PreviewHeader;
     element.heading = "Brand Strategy.pdf";
     element.actions = [{ id: "share", label: "Share" }];
     element.breadcrumbs = [
@@ -96,7 +95,7 @@ describe("BoxPreviewHeaderElement", () => {
   });
 
   it("preserves action focus when only tone changes", () => {
-    const element = document.createElement("box-preview-header") as BoxPreviewHeaderElement;
+    const element = document.createElement("box-preview-header") as PreviewHeader;
     element.heading = "Brand Strategy.pdf";
     element.actions = [{ id: "share", label: "Share", tone: "neutral" }];
     document.body.append(element);

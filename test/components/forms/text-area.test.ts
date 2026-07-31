@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxTextAreaElement, defineBoxTextAreaElement } from "../../../src/components/forms/text-area.js";
+import { TextArea } from "../../../src/components/forms/text-area.js";
 
-describe("BoxTextAreaElement", () => {
+describe("TextArea", () => {
   beforeEach(() => {
-    defineBoxTextAreaElement();
+    TextArea.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxTextAreaElement", () => {
   });
 
   it("emits value changes while typing", () => {
-    const element = document.createElement("box-text-area") as BoxTextAreaElement;
+    const element = document.createElement("box-text-area") as TextArea;
     const changed = vi.fn();
     element.addEventListener("value-changed", changed);
 
@@ -32,7 +32,7 @@ describe("BoxTextAreaElement", () => {
   });
 
   it("forwards disabled state to the textarea", () => {
-    const element = document.createElement("box-text-area") as BoxTextAreaElement;
+    const element = document.createElement("box-text-area") as TextArea;
     element.disabled = true;
 
     document.body.append(element);

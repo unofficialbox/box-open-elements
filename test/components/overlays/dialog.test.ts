@@ -2,11 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BoxDialogElement, defineBoxDialogElement } from "../../../src/components/overlays/dialog.js";
+import { Dialog } from "../../../src/components/overlays/dialog.js";
 
-describe("BoxDialogElement", () => {
+describe("Dialog", () => {
   beforeEach(() => {
-    defineBoxDialogElement();
+    Dialog.register();
   });
 
   afterEach(() => {
@@ -14,7 +14,7 @@ describe("BoxDialogElement", () => {
   });
 
   it("opens and closes through the public API", () => {
-    const element = document.createElement("box-dialog") as BoxDialogElement;
+    const element = document.createElement("box-dialog") as Dialog;
 
     document.body.append(element);
     element.show();
@@ -29,7 +29,7 @@ describe("BoxDialogElement", () => {
   });
 
   it("focuses the dialog surface when it opens", async () => {
-    const element = document.createElement("box-dialog") as BoxDialogElement;
+    const element = document.createElement("box-dialog") as Dialog;
     document.body.append(element);
     element.show();
     await Promise.resolve();
@@ -40,7 +40,7 @@ describe("BoxDialogElement", () => {
   });
 
   it("emits confirm and closes", () => {
-    const element = document.createElement("box-dialog") as BoxDialogElement;
+    const element = document.createElement("box-dialog") as Dialog;
     const confirmed = vi.fn();
     element.heading = "Delete item";
     element.confirmLabel = "Delete";
@@ -60,7 +60,7 @@ describe("BoxDialogElement", () => {
   });
 
   it("closes on Escape and emits cancel", () => {
-    const element = document.createElement("box-dialog") as BoxDialogElement;
+    const element = document.createElement("box-dialog") as Dialog;
     const cancelled = vi.fn();
     element.addEventListener("cancel", cancelled);
 
@@ -80,7 +80,7 @@ describe("BoxDialogElement", () => {
     document.body.append(opener);
     opener.focus();
 
-    const element = document.createElement("box-dialog") as BoxDialogElement;
+    const element = document.createElement("box-dialog") as Dialog;
     document.body.append(element);
     element.show();
     await Promise.resolve();
@@ -93,7 +93,7 @@ describe("BoxDialogElement", () => {
   });
 
   it("traps Tab focus inside the dialog", () => {
-    const element = document.createElement("box-dialog") as BoxDialogElement;
+    const element = document.createElement("box-dialog") as Dialog;
     document.body.append(element);
     element.show();
 
@@ -111,7 +111,7 @@ describe("BoxDialogElement", () => {
   });
 
   it("uses BUE modal dialog shell styles", () => {
-    const element = document.createElement("box-dialog") as BoxDialogElement;
+    const element = document.createElement("box-dialog") as Dialog;
     document.body.append(element);
     element.show();
 
@@ -126,7 +126,7 @@ describe("BoxDialogElement", () => {
   });
 
   it("includes focus-visible and hover styles for cancel and confirm", () => {
-    const element = document.createElement("box-dialog") as BoxDialogElement;
+    const element = document.createElement("box-dialog") as Dialog;
     document.body.append(element);
     element.show();
 
@@ -138,7 +138,7 @@ describe("BoxDialogElement", () => {
   });
 
   it("applies the size to the dialog surface", () => {
-    const element = document.createElement("box-dialog") as BoxDialogElement;
+    const element = document.createElement("box-dialog") as Dialog;
     element.size = "large";
     element.open = true;
     document.body.append(element);
@@ -149,7 +149,7 @@ describe("BoxDialogElement", () => {
 
   it("locks and restores page scroll around open/close", () => {
     document.body.style.overflow = "auto";
-    const element = document.createElement("box-dialog") as BoxDialogElement;
+    const element = document.createElement("box-dialog") as Dialog;
     document.body.append(element);
     element.show();
     expect(document.body.style.overflow).toBe("hidden");
