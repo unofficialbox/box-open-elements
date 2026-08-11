@@ -73,14 +73,18 @@ run them if you touch tokens, geometry, or component colour/state:
 
 ```bash
 bun run bue-conformance          # Layer 1: geometry vs upstream SCSS (strict)
-bun run bue-conformance:color    # Layer 2: colour/state vs compiled Storybook CSS (conformant-count floor)
+bun run bue-conformance:color    # Layer 2: colour/state vs compiled Storybook CSS (strict + conformant-count floor)
 bun run bue-conformance:webapp   # colour + geometry + interaction states vs the live Box web app (strict)
 ```
 
 The reports write to `docs/audits/` (git-ignored); the committed inputs are the
 live-Box reference snapshot and the Storybook-CSS snapshot. If you legitimately
-broaden coverage, refresh the relevant snapshot (each audit's `--refresh` flag)
-and, for Layer 2, bump the CI floor if the conformant count rose.
+broaden coverage, refresh the relevant reference — `bun run bue-conformance:color
+--refresh` for the Storybook-CSS snapshot, a manual logged-in browser capture for
+the live-Box snapshot, a tag bump in `tools/bue-conformance/manifest.ts` for the
+Layer 1 SCSS pin — and, for Layer 2, bump the CI floor if the conformant count
+rose. The verdict model, current coverage, and the snapshot refresh runbook live
+in [docs/audits/README.md](./docs/audits/README.md).
 
 ## Visual regression
 
