@@ -42,8 +42,9 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 ## Conformance audits
 
 Conformance against box-ui-elements is enforced in CI and regenerated on demand
-(reports write to `docs/audits/`, which is git-ignored — the committed input is
-the live-Box reference snapshot `audits/box-webapp-reference.data.json`). See
+(reports write to `docs/audits/`, which is git-ignored — the committed inputs are
+the live-Box reference snapshot `audits/box-webapp-reference.data.json` and the
+Storybook-CSS snapshot under `tools/bue-conformance/.cache/`). See
 the [Conformance Program](./audits/README.md) for the verdict model, current
 coverage, and the snapshot refresh runbook:
 

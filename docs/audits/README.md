@@ -73,9 +73,10 @@ descendant selectors. Add fixture rules and verdict expectations to
 
 ## Refresh runbook
 
-All three references are **dated snapshots** — currently captured
-**2026-07-18** (webapp + Storybook CSS). Refresh roughly **quarterly** (next
-due ≈ **2026-10-18**) or after a visible Box redesign:
+The Storybook CSS and webapp references are **dated snapshots**, both captured
+**2026-07-18**. Refresh them roughly **quarterly** (next due ≈ **2026-10-18**)
+or after a visible Box redesign; the Layer 1 reference is a pinned release tag
+rather than a dated capture, bumped when it's worth tracking a newer upstream:
 
 1. **Storybook CSS:** `bun run bue-conformance:color --refresh` (needs egress
    to `opensource.box.com`), commit the refreshed `tools/bue-conformance/.cache/`,
