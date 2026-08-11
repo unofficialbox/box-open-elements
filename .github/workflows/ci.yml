@@ -63,7 +63,7 @@ jobs:
       # `accepted-divergence` and passes `--strict`; anything left unconfirmed
       # fails it. The conformant-count floor stays as a non-regression backstop.
       - name: Layer 2 colour conformance (--strict, offline)
-        run: bun run bue-conformance:color --offline --strict --min-conformant=41
+        run: bun run bue-conformance:color --offline --strict --min-conformant=55
 
   visual-regression:
     name: Visual regression (pixel diff, pinned container)

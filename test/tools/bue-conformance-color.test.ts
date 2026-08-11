@@ -410,6 +410,18 @@ const FIXTURE_CSS = [
   ".is-selected .pika-button{color:#fff;font-weight:bold;background-color:#0061d5;border-radius:6px}",
   ".dropdown-menu-element{color:#222}",
   ".aria-menu{background-color:#fff;border:1px solid #e8e8e8}",
+  // Round-7 broadening: select (descendant rawSelectors), dialog/modal, toast
+  // (upstream Notification), progress-bar (ContentUploader progress fill).
+  ".select-container select,.bcp .select-container select{padding-right:25px;color:#222;background:none;border:none}",
+  ".select-container .select-overlay,.bcp .select-container .select-overlay{background-color:#fff;border:1px solid #d3d3d3;border-radius:6px}",
+  ".select-container .bdl-SelectButton:focus,.bcp .select-container .select-button:focus{border:1px solid #0061d5}",
+  ".modal-dialog{position:relative;width:460px;padding:30px;background-color:#fff;border-radius:12px;box-shadow:0 1px 1px 1px rgba(0,0,0,.05)}",
+  ".modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.75)}",
+  ".notification{color:#222;font-weight:bold;background-color:#e8e8e8;border:2px solid #222;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.15)}",
+  ".notification.info{background-color:#d4f3e6;border-color:#26c281}",
+  ".notification.warn{background-color:#fdf0d1;border-color:#f5b31b}",
+  ".notification.error{background-color:#fbd7dd;border-color:#ed3757}",
+  ".bcu-progress-container .bcu-progress{top:0;left:0;height:2px;background:#0061d5;box-shadow:0 1px 5px 0 #e4f4ff}",
 ].join("\n");
 
 describe("extractCompiledDeclarations", () => {
@@ -578,15 +590,36 @@ describe("evaluate", () => {
     expect(byId("button.primary.hover.background").delta).toBe(21);
   });
 
-  it("yields the expected verdict mix (41 conformant, 4 accepted-divergence, 0 review)", () => {
+  it("yields the expected verdict mix (55 conformant, 5 accepted-divergence, 0 review)", () => {
     const conformant = rows.filter(r => r.verdict === "conformant").length;
     const accepted = rows.filter(r => r.verdict === "accepted-divergence").length;
     const review = rows.filter(r => r.verdict === "review").length;
     expect({ conformant, accepted, review }).toEqual({
-      conformant: 41,
-      accepted: 4,
+      conformant: 55,
+      accepted: 5,
       review: 0,
     });
+  });
+
+  it("resolves the round-7 surfaces (select, dialog, toast, progress-bar)", () => {
+    const byId = (id: string): Row => rows.find(r => r.claim.id === id)!;
+    expect(byId("select.text").verdict).toBe("conformant");
+    expect(byId("select.control.background").verdict).toBe("conformant");
+    expect(byId("select.control.border").verdict).toBe("conformant");
+    expect(byId("select.control.focus.border").verdict).toBe("conformant");
+    expect(byId("dialog.surface.background").verdict).toBe("conformant");
+    expect(byId("dialog.backdrop").verdict).toBe("conformant");
+    expect(byId("dialog.surface.shadow").verdict).toBe("conformant");
+    expect(byId("toast.text").verdict).toBe("conformant");
+    expect(byId("toast.border").verdict).toBe("conformant");
+    // Same modernised secondary surface as badge: #fbfbfb in the live Box app
+    // vs the legacy Storybook's #e8e8e8 — live-Box capture vouches for it.
+    expect(byId("toast.neutral.background").verdict).toBe("accepted-divergence");
+    expect(byId("toast.shadow").verdict).toBe("conformant");
+    expect(byId("toast.success.border").verdict).toBe("conformant");
+    expect(byId("toast.error.border").verdict).toBe("conformant");
+    expect(byId("toast.warning.border").verdict).toBe("conformant");
+    expect(byId("progress-bar.fill").verdict).toBe("conformant");
   });
 
   it("resolves the round-6 surfaces (switch, date/calendar, dropdown/menu)", () => {
@@ -739,8 +772,8 @@ describe("renderMarkdown", () => {
     const md = renderMarkdown(rows, ["main.abc.iframe.bundle.js"]);
     expect(md).toContain("Layer 2");
     expect(md).toContain("**1**");
-    expect(md).toContain("| ✅ Conformant | 41 |");
-    expect(md).toContain("| 🎯 Accepted divergence | 4 |");
+    expect(md).toContain("| ✅ Conformant | 55 |");
+    expect(md).toContain("| 🎯 Accepted divergence | 5 |");
     expect(md).toContain("| 🔍 Review | 0 |");
     for (const claim of COLOR_CLAIMS) {
       expect(md).toContain(claim.citation);
