@@ -93,6 +93,15 @@ export interface ColorClaim {
   tolerance: number;
   /** What box-open-elements maps this onto upstream. */
   citation: string;
+  /**
+   * Token key in `docs/audits/box-webapp-reference.data.json` (Layer 2's live
+   * `app.box.com` capture) that can vouch for a `review` verdict here. When set
+   * and the reference confirms box-open-elements' resolved colour matches the
+   * *live* Box app, the audit downgrades `review` to `accepted-divergence`: the
+   * Storybook mismatch is then known to be legacy-vs-modernised styling, not
+   * unverified drift. Omit when there is no corresponding capture.
+   */
+  webappToken?: string;
 }
 
 const BUTTON = "src/components/actions/button.ts";
@@ -163,6 +172,7 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     upstream: { selector: ".btn-primary", state: "hover", property: "background-color" },
     tolerance: 0,
     citation: ".btn-primary:hover background-color",
+    webappToken: "SurfaceSurfaceBrandHover",
   },
   {
     id: "button.primary.active.background",
@@ -213,6 +223,7 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     upstream: { selector: ".btn", state: "base", property: "color" },
     tolerance: 0,
     citation: ".btn color",
+    webappToken: "TextTextSecondary",
   },
   {
     id: "button.neutral.border",
@@ -327,6 +338,7 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     upstream: { selector: ".badge", state: "base", property: "background" },
     tolerance: 0,
     citation: ".badge background",
+    webappToken: "SurfaceSurfaceSecondary",
   },
   {
     id: "badge.success.background",
@@ -404,6 +416,7 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     upstream: { selector: ".menu-item.is-active", state: "base", property: "background-color" },
     tolerance: 0,
     citation: ".menu-item.is-active background-color",
+    webappToken: "SurfaceItemSurfaceSelected",
   },
 
   // === Checkbox / radio checked mark (box-checkbox / box-radio-group) ===
@@ -444,10 +457,10 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     id: "tooltip.text",
     surface: "tooltip",
     boeConst: "tooltip.ts label colour",
-    boeValue: "rgba(255, 255, 255, 0.94)",
+    boeValue: "#ffffff",
     kind: "color",
     boeComponent: TOOLTIP,
-    boeAnchor: "color: rgba(255, 255, 255, 0.94)",
+    boeAnchor: 'color: #ffffff;\n    box-shadow: 0 16px 28px rgba(16, 24, 32, 0.18)',
     upstream: { selector: ".bdl-Tooltip", state: "base", property: "color" },
     tolerance: 0,
     citation: ".bdl-Tooltip color",
