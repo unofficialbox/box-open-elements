@@ -422,6 +422,15 @@ const FIXTURE_CSS = [
   ".notification.warn{background-color:#fdf0d1;border-color:#f5b31b}",
   ".notification.error{background-color:#fbd7dd;border-color:#ed3757}",
   ".bcu-progress-container .bcu-progress{top:0;left:0;height:2px;background:#0061d5;box-shadow:0 1px 5px 0 #e4f4ff}",
+  // Round-8 broadening: alert (upstream InlineNotice), breadcrumb, chip.
+  ".inline-alert{display:none;margin:10px 0;padding:14px 10px;color:#222;border-radius:6px}",
+  ".inline-alert.inline-alert-generic{background-color:#e8e8e8;border:1px solid #909090}",
+  ".inline-alert.inline-alert-success{background-color:#e9f8f2;border:1px solid #26c281}",
+  ".inline-alert.inline-alert-error{background-color:#fdebee;border:1px solid #f69bab}",
+  ".inline-alert.inline-alert-warning{background-color:#fef7e8;border:1px solid #fad98d}",
+  ".breadcrumbs .breadcrumb-item *{overflow:hidden;color:#909090;white-space:nowrap}",
+  ".breadcrumbs .breadcrumb-item.breadcrumb-item-last *{color:#4e4e4e}",
+  ".bdl-LabelPill{color:#222;font-weight:bold}",
 ].join("\n");
 
 describe("extractCompiledDeclarations", () => {
@@ -590,15 +599,35 @@ describe("evaluate", () => {
     expect(byId("button.primary.hover.background").delta).toBe(21);
   });
 
-  it("yields the expected verdict mix (55 conformant, 5 accepted-divergence, 0 review)", () => {
+  it("yields the expected verdict mix (63 conformant, 9 accepted-divergence, 0 review)", () => {
     const conformant = rows.filter(r => r.verdict === "conformant").length;
     const accepted = rows.filter(r => r.verdict === "accepted-divergence").length;
     const review = rows.filter(r => r.verdict === "review").length;
     expect({ conformant, accepted, review }).toEqual({
-      conformant: 55,
-      accepted: 5,
+      conformant: 63,
+      accepted: 9,
       review: 0,
     });
+  });
+
+  it("resolves the round-8 surfaces (alert, breadcrumb, chip)", () => {
+    const byId = (id: string): Row => rows.find(r => r.claim.id === id)!;
+    expect(byId("alert.text").verdict).toBe("conformant");
+    // The tonal fills/borders are the same tint math upstream produces with
+    // Sass: exact on error/warning, ±1 channel on the success fill.
+    expect(byId("alert.success.background").verdict).toBe("conformant");
+    expect(byId("alert.success.border").verdict).toBe("conformant");
+    expect(byId("alert.error.background").verdict).toBe("conformant");
+    expect(byId("alert.error.border").verdict).toBe("conformant");
+    expect(byId("alert.warning.background").verdict).toBe("conformant");
+    expect(byId("alert.warning.border").verdict).toBe("conformant");
+    // Neutral fill/outline + both breadcrumb texts modernise legacy greys to
+    // Blueprint tokens — vouched by the live-Box capture.
+    expect(byId("alert.neutral.background").verdict).toBe("accepted-divergence");
+    expect(byId("alert.neutral.border").verdict).toBe("accepted-divergence");
+    expect(byId("breadcrumb.link.text").verdict).toBe("accepted-divergence");
+    expect(byId("breadcrumb.current.text").verdict).toBe("accepted-divergence");
+    expect(byId("chip.text").verdict).toBe("conformant");
   });
 
   it("resolves the round-7 surfaces (select, dialog, toast, progress-bar)", () => {
@@ -772,8 +801,8 @@ describe("renderMarkdown", () => {
     const md = renderMarkdown(rows, ["main.abc.iframe.bundle.js"]);
     expect(md).toContain("Layer 2");
     expect(md).toContain("**1**");
-    expect(md).toContain("| ✅ Conformant | 55 |");
-    expect(md).toContain("| 🎯 Accepted divergence | 5 |");
+    expect(md).toContain("| ✅ Conformant | 63 |");
+    expect(md).toContain("| 🎯 Accepted divergence | 9 |");
     expect(md).toContain("| 🔍 Review | 0 |");
     for (const claim of COLOR_CLAIMS) {
       expect(md).toContain(claim.citation);

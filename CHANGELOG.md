@@ -10,6 +10,11 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Broadened the Layer 2 colour conformance audit to alert, breadcrumb, and chip
+  (12 new claims, 60 → 72 total; CI conformant floor 55 → 63). Upstream's
+  inline-alert tone palette resolves to the same tint math `alert.ts` ships as
+  `color-mix()`. Surveyed but skipped for lack of a usable upstream anchor:
+  datalist-item, pagination, icon-button, and the alert brand-info tone.
 - Broadened the Layer 2 colour conformance audit to 4 more component families —
   select, dialog, toast, and progress-bar (15 new claims, 45 → 60 total; the
   CI conformant floor rises 41 → 55). Tabs was surveyed but box-ui-elements
