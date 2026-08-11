@@ -43,8 +43,10 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 
 Conformance against box-ui-elements is enforced in CI and regenerated on demand
 (reports write to `docs/audits/`, which is git-ignored — the committed input is
-the live-Box reference snapshot `audits/box-webapp-reference.data.json`):
+the live-Box reference snapshot `audits/box-webapp-reference.data.json`). See
+the [Conformance Program](./audits/README.md) for the verdict model, current
+coverage, and the snapshot refresh runbook:
 
 - `bun run bue-conformance` — Layer 1 geometry, diffed against upstream SCSS (strict)
-- `bun run bue-conformance:color` — Layer 2 colour/state, diffed against the compiled upstream Storybook CSS (conformant-count floor)
+- `bun run bue-conformance:color` — Layer 2 colour/state, diffed against the compiled upstream Storybook CSS (strict + conformant-count floor)
 - `bun run bue-conformance:webapp` — colour + geometry + interaction states, diffed against the live Box web app (strict)
