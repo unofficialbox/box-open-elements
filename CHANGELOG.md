@@ -10,6 +10,10 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Broadened the Layer 2 colour conformance audit to 4 more component families —
+  select, dialog, toast, and progress-bar (15 new claims, 45 → 60 total; the
+  CI conformant floor rises 41 → 55). Tabs was surveyed but box-ui-elements
+  ships no tabs styling in its Storybook CSS, so it has no upstream anchor.
 - Cross-referenced the Layer 2 colour conformance audit's `review` verdicts
   against the live-Box-app capture (`docs/audits/box-webapp-reference.data.json`):
   4 previously-ambiguous Storybook-vs-live-Box differences now auto-resolve to a

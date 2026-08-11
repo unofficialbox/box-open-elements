@@ -16,7 +16,7 @@
  * that Layer 1 could not resolve from source.
  */
 import { boxDefaultDesignSystem } from "../../src/foundations/tokens/box-defaults.js";
-import { boeControl } from "../../src/foundations/geometry/index.js";
+import { boeControl, boeOverlay } from "../../src/foundations/geometry/index.js";
 import type { ColorKind, State } from "./css-extract.js";
 
 const T = boxDefaultDesignSystem.tokens;
@@ -122,6 +122,10 @@ const DATE_FIELD = "src/components/forms/date-field.ts";
 const CALENDAR = "src/components/forms/calendar.ts";
 const DROPDOWN = "src/components/forms/dropdown.ts";
 const MENU = "src/components/actions/menu.ts";
+const SELECT = "src/components/forms/select.ts";
+const DIALOG = "src/components/overlays/dialog.ts";
+const TOAST = "src/components/feedback/toast.ts";
+const PROGRESS_BAR = "src/components/feedback/progress-bar.ts";
 
 export const COLOR_CLAIMS: readonly ColorClaim[] = [
   // === Primary button (box-button, default tone) ↔ upstream `.btn-primary` ===
@@ -722,5 +726,209 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     upstream: { selector: ".aria-menu", state: "base", property: "border" },
     tolerance: 0,
     citation: ".aria-menu border (BUIK Menu surface stroke; boeOverlay.border = stroke-stroke)",
+  },
+
+  // === Round-7 broadening: select, dialog (modal), toast (notification),
+  // progress-bar. Upstream select rules sit behind descendant selectors
+  // (`.select-container …`), so they use rawSelector like the checkbox/radio
+  // marks do. ===
+  {
+    id: "select.text",
+    surface: "select",
+    boeConst: "TextText",
+    boeValue: T.TextText,
+    kind: "color",
+    boeComponent: SELECT,
+    boeAnchor: "color: var(--boe-token-text-text, #222222)",
+    upstream: { rawSelector: ".select-container select", property: "color" },
+    tolerance: 0,
+    citation: ".select-container select color (native select text)",
+  },
+  {
+    id: "select.control.background",
+    surface: "select",
+    boeConst: "SurfaceSurface",
+    boeValue: T.SurfaceSurface,
+    kind: "color",
+    boeComponent: SELECT,
+    boeAnchor: "var(--boe-token-surface-surface, #ffffff)",
+    upstream: {
+      rawSelector: ".select-container .select-overlay",
+      property: "background-color",
+    },
+    tolerance: 0,
+    citation: ".select-container .select-overlay background-color (select control fill)",
+  },
+  {
+    id: "select.control.border",
+    surface: "select",
+    boeConst: "boeControl.inputBorder",
+    boeValue: boeControl.inputBorder,
+    kind: "color",
+    boeComponent: SELECT,
+    boeAnchor: "border: 1px solid ${boeControl.inputBorder}",
+    upstream: { rawSelector: ".select-container .select-overlay", property: "border" },
+    tolerance: 0,
+    citation: ".select-container .select-overlay border (select control resting border)",
+  },
+  {
+    id: "select.control.focus.border",
+    surface: "select",
+    boeConst: "SurfaceSurfaceBrand",
+    boeValue: T.SurfaceSurfaceBrand,
+    kind: "color",
+    boeComponent: SELECT,
+    boeAnchor: "border-color: var(--boe-token-surface-surface-brand, #0061d5)",
+    upstream: {
+      rawSelector: ".select-container .bdl-SelectButton:focus",
+      property: "border",
+    },
+    tolerance: 0,
+    citation: ".select-container .bdl-SelectButton:focus border (focused select brand border)",
+  },
+
+  // === Dialog (box-dialog) ↔ upstream Modal (`.modal-dialog` / `.modal-backdrop`) ===
+  {
+    id: "dialog.surface.background",
+    surface: "dialog",
+    boeConst: "SurfaceSurface",
+    boeValue: T.SurfaceSurface,
+    kind: "color",
+    boeComponent: DIALOG,
+    boeAnchor: "background: var(--boe-token-surface-surface, #ffffff)",
+    upstream: { selector: ".modal-dialog", state: "base", property: "background-color" },
+    tolerance: 0,
+    citation: ".modal-dialog background-color (Modal.scss dialog surface)",
+  },
+  {
+    id: "dialog.backdrop",
+    surface: "dialog",
+    boeConst: "boeOverlay.modalBackdrop",
+    boeValue: boeOverlay.modalBackdrop,
+    kind: "color",
+    boeComponent: DIALOG,
+    boeAnchor: "background: ${boeOverlay.modalBackdrop}",
+    upstream: { selector: ".modal-backdrop", state: "base", property: "background" },
+    tolerance: 0,
+    citation: ".modal-backdrop background (Modal.scss scrim)",
+  },
+  {
+    id: "dialog.surface.shadow",
+    surface: "dialog",
+    boeConst: "boeOverlay.modalShadow",
+    boeValue: boeOverlay.modalShadow,
+    kind: "shadow",
+    boeComponent: DIALOG,
+    boeAnchor: "box-shadow: ${boeOverlay.modalShadow}",
+    upstream: { selector: ".modal-dialog", state: "base", property: "box-shadow" },
+    tolerance: 0,
+    citation: ".modal-dialog box-shadow (Modal.scss dialog elevation)",
+  },
+
+  // === Toast (box-toast) ↔ upstream `.notification` (Notification.scss) ===
+  {
+    id: "toast.text",
+    surface: "toast",
+    boeConst: "TextText",
+    boeValue: T.TextText,
+    kind: "color",
+    boeComponent: TOAST,
+    boeAnchor: "color: var(--boe-token-text-text, #222222)",
+    upstream: { selector: ".notification", state: "base", property: "color" },
+    tolerance: 0,
+    citation: ".notification color (toast message text)",
+  },
+  {
+    id: "toast.border",
+    surface: "toast",
+    boeConst: "TextText",
+    boeValue: T.TextText,
+    kind: "color",
+    boeComponent: TOAST,
+    boeAnchor: "border: 2px solid var(--boe-token-text-text, #222222)",
+    upstream: { selector: ".notification", state: "base", property: "border" },
+    tolerance: 0,
+    citation: ".notification border (toast neutral outline)",
+  },
+  {
+    id: "toast.neutral.background",
+    surface: "toast",
+    boeConst: "SurfaceSurfaceSecondary",
+    boeValue: T.SurfaceSurfaceSecondary,
+    kind: "color",
+    boeComponent: TOAST,
+    boeAnchor: "background: var(--boe-token-surface-surface-secondary, #f4f4f4)",
+    upstream: { selector: ".notification", state: "base", property: "background-color" },
+    tolerance: 0,
+    citation: ".notification background-color (toast neutral fill)",
+    // Same modernised secondary-surface story as badge.neutral.background: the
+    // live Box app renders #fbfbfb where the legacy Storybook keeps #e8e8e8.
+    webappToken: "SurfaceSurfaceSecondary",
+  },
+  {
+    id: "toast.shadow",
+    surface: "toast",
+    boeConst: "toast.ts container shadow",
+    boeValue: "0 2px 6px rgb(0 0 0 / 15%)",
+    kind: "shadow",
+    boeComponent: TOAST,
+    boeAnchor: "box-shadow: 0 2px 6px rgb(0 0 0 / 15%)",
+    upstream: { selector: ".notification", state: "base", property: "box-shadow" },
+    tolerance: 0,
+    citation: ".notification box-shadow (toast elevation)",
+  },
+  {
+    id: "toast.success.border",
+    surface: "toast/status",
+    boeConst: "SurfaceStatusSurfaceSuccess",
+    boeValue: T.SurfaceStatusSurfaceSuccess,
+    kind: "color",
+    boeComponent: TOAST,
+    boeAnchor: "border-color: var(--boe-token-surface-status-surface-success, #26c281)",
+    // Upstream names the green toast `info`; box-open-elements calls it success.
+    upstream: { selector: ".notification.info", state: "base", property: "border-color" },
+    tolerance: 0,
+    citation: ".notification.info border-color (green toast; upstream's `info` = box-open-elements success)",
+  },
+  {
+    id: "toast.error.border",
+    surface: "toast/status",
+    boeConst: "SurfaceStatusSurfaceError",
+    boeValue: T.SurfaceStatusSurfaceError,
+    kind: "color",
+    boeComponent: TOAST,
+    boeAnchor: "border-color: var(--boe-token-surface-status-surface-error, #ed3757)",
+    upstream: { selector: ".notification.error", state: "base", property: "border-color" },
+    tolerance: 0,
+    citation: ".notification.error border-color (error toast)",
+  },
+  {
+    id: "toast.warning.border",
+    surface: "toast/status",
+    boeConst: "SurfaceStatusSurfaceInprogress",
+    boeValue: T.SurfaceStatusSurfaceInprogress,
+    kind: "color",
+    boeComponent: TOAST,
+    boeAnchor: "border-color: var(--boe-token-surface-status-surface-inprogress, #f5b31b)",
+    upstream: { selector: ".notification.warn", state: "base", property: "border-color" },
+    tolerance: 0,
+    citation: ".notification.warn border-color (warning toast)",
+  },
+
+  // === Progress bar (box-progress-bar) ↔ upstream ContentUploader progress ===
+  {
+    id: "progress-bar.fill",
+    surface: "progress-bar",
+    boeConst: "SurfaceSurfaceBrand",
+    boeValue: T.SurfaceSurfaceBrand,
+    kind: "color",
+    boeComponent: PROGRESS_BAR,
+    boeAnchor: "background: var(--boe-token-surface-surface-brand, #0061d5)",
+    upstream: {
+      rawSelector: ".bcu-progress-container .bcu-progress",
+      property: "background",
+    },
+    tolerance: 0,
+    citation: ".bcu-progress-container .bcu-progress background (upload progress brand fill)",
   },
 ] as const;
