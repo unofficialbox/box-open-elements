@@ -126,6 +126,9 @@ const SELECT = "src/components/forms/select.ts";
 const DIALOG = "src/components/overlays/dialog.ts";
 const TOAST = "src/components/feedback/toast.ts";
 const PROGRESS_BAR = "src/components/feedback/progress-bar.ts";
+const ALERT = "src/components/feedback/alert.ts";
+const CHIP = "src/components/feedback/chip.ts";
+const BREADCRUMB = "src/components/navigation/breadcrumb.ts";
 
 export const COLOR_CLAIMS: readonly ColorClaim[] = [
   // === Primary button (box-button, default tone) ↔ upstream `.btn-primary` ===
@@ -930,5 +933,223 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     },
     tolerance: 0,
     citation: ".bcu-progress-container .bcu-progress background (upload progress brand fill)",
+  },
+
+  // === Round-8 broadening: alert (upstream InlineNotice `.inline-alert`),
+  // breadcrumb, chip. Surveyed but skipped: datalist-item (upstream declares no
+  // base/hover colour; its `.is-active` fill diverges without a live-Box token
+  // to vouch), pagination (upstream border is an unresolved Blueprint var()),
+  // icon-button (upstream `.btn-plain` declares no colours). ===
+  //
+  // Upstream's inline-alert tone palette is produced by Sass tint() — the same
+  // 10%/50%-white mixes alert.ts ships as color-mix(), so the resolved values
+  // land exactly on upstream's hex (±1 channel rounding). The brand `info` tone
+  // is NOT claimed: upstream tints from legacy #0074fe-family blue, so the
+  // resolved fills differ by ~3/channel with no live-Box token to vouch.
+  {
+    id: "alert.text",
+    surface: "alert",
+    boeConst: "TextText",
+    boeValue: T.TextText,
+    kind: "color",
+    boeComponent: ALERT,
+    boeAnchor: "color: var(--boe-token-text-text, #222222)",
+    upstream: { selector: ".inline-alert", state: "base", property: "color" },
+    tolerance: 0,
+    citation: ".inline-alert color (alert body text)",
+  },
+  {
+    id: "alert.neutral.background",
+    surface: "alert",
+    boeConst: "SurfaceSurfaceSecondary",
+    boeValue: T.SurfaceSurfaceSecondary,
+    kind: "color",
+    boeComponent: ALERT,
+    boeAnchor: "background: var(--boe-token-surface-surface-secondary, #f4f4f4)",
+    upstream: {
+      selector: ".inline-alert.inline-alert-generic",
+      state: "base",
+      property: "background-color",
+    },
+    tolerance: 0,
+    citation: ".inline-alert.inline-alert-generic background-color (neutral alert fill)",
+    // Modernised secondary surface (live Box #fbfbfb vs legacy #e8e8e8) —
+    // same story as badge/toast neutral fills.
+    webappToken: "SurfaceSurfaceSecondary",
+  },
+  {
+    id: "alert.neutral.border",
+    surface: "alert",
+    boeConst: "TextTextSecondary",
+    boeValue: T.TextTextSecondary,
+    kind: "color",
+    boeComponent: ALERT,
+    boeAnchor: "border: 1px solid var(--boe-token-text-text-secondary, #6f6f6f)",
+    upstream: {
+      selector: ".inline-alert.inline-alert-generic",
+      state: "base",
+      property: "border",
+    },
+    tolerance: 0,
+    citation: ".inline-alert.inline-alert-generic border (neutral alert outline; upstream #909090)",
+    webappToken: "TextTextSecondary",
+  },
+  {
+    id: "alert.success.background",
+    surface: "alert/status",
+    boeConst: "success 10% + #fff (color-mix)",
+    boeValue:
+      "color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 10%, #fff)",
+    kind: "color",
+    boeComponent: ALERT,
+    boeAnchor:
+      "background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 10%, #fff)",
+    upstream: {
+      selector: ".inline-alert.inline-alert-success",
+      state: "base",
+      property: "background-color",
+    },
+    // ±1: sRGB mix rounding vs upstream's Sass tint() (#e9f9f2 vs #e9f8f2).
+    tolerance: 1,
+    citation: ".inline-alert.inline-alert-success background-color",
+  },
+  {
+    id: "alert.success.border",
+    surface: "alert/status",
+    boeConst: "SurfaceStatusSurfaceSuccess",
+    boeValue: T.SurfaceStatusSurfaceSuccess,
+    kind: "color",
+    boeComponent: ALERT,
+    boeAnchor: "border-color: var(--boe-token-surface-status-surface-success, #26c281)",
+    upstream: {
+      selector: ".inline-alert.inline-alert-success",
+      state: "base",
+      property: "border",
+    },
+    tolerance: 0,
+    citation: ".inline-alert.inline-alert-success border",
+  },
+  {
+    id: "alert.error.background",
+    surface: "alert/status",
+    boeConst: "error 10% + #fff (color-mix)",
+    boeValue:
+      "color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, #fff)",
+    kind: "color",
+    boeComponent: ALERT,
+    boeAnchor:
+      "background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, #fff)",
+    upstream: {
+      selector: ".inline-alert.inline-alert-error",
+      state: "base",
+      property: "background-color",
+    },
+    tolerance: 1,
+    citation: ".inline-alert.inline-alert-error background-color",
+  },
+  {
+    id: "alert.error.border",
+    surface: "alert/status",
+    boeConst: "error 50% + #fff (color-mix)",
+    boeValue:
+      "color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 50%, #fff)",
+    kind: "color",
+    boeComponent: ALERT,
+    boeAnchor:
+      "border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 50%, #fff)",
+    upstream: {
+      selector: ".inline-alert.inline-alert-error",
+      state: "base",
+      property: "border",
+    },
+    tolerance: 1,
+    citation: ".inline-alert.inline-alert-error border",
+  },
+  {
+    id: "alert.warning.background",
+    surface: "alert/status",
+    boeConst: "inprogress 10% + #fff (color-mix)",
+    boeValue:
+      "color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 10%, #fff)",
+    kind: "color",
+    boeComponent: ALERT,
+    boeAnchor:
+      "background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 10%, #fff)",
+    upstream: {
+      selector: ".inline-alert.inline-alert-warning",
+      state: "base",
+      property: "background-color",
+    },
+    tolerance: 1,
+    citation: ".inline-alert.inline-alert-warning background-color",
+  },
+  {
+    id: "alert.warning.border",
+    surface: "alert/status",
+    boeConst: "inprogress 50% + #fff (color-mix)",
+    boeValue:
+      "color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 50%, #fff)",
+    kind: "color",
+    boeComponent: ALERT,
+    boeAnchor:
+      "border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 50%, #fff)",
+    upstream: {
+      selector: ".inline-alert.inline-alert-warning",
+      state: "base",
+      property: "border",
+    },
+    tolerance: 1,
+    citation: ".inline-alert.inline-alert-warning border",
+  },
+
+  // === Breadcrumb (box-breadcrumb) ↔ upstream `.breadcrumbs .breadcrumb-item` ===
+  // Both claims diverge from the legacy Storybook greys (#909090 / #4e4e4e) to
+  // Blueprint's text tokens — vouched by the live-Box capture.
+  {
+    id: "breadcrumb.link.text",
+    surface: "breadcrumb",
+    boeConst: "TextTextSecondary",
+    boeValue: T.TextTextSecondary,
+    kind: "color",
+    boeComponent: BREADCRUMB,
+    boeAnchor: "color: var(--boe-token-text-text-secondary, #6f6f6f)",
+    upstream: { rawSelector: ".breadcrumbs .breadcrumb-item *", property: "color" },
+    tolerance: 0,
+    citation: ".breadcrumbs .breadcrumb-item * color (crumb link; upstream #909090)",
+    webappToken: "TextTextSecondary",
+  },
+  {
+    id: "breadcrumb.current.text",
+    surface: "breadcrumb",
+    boeConst: "TextText",
+    boeValue: T.TextText,
+    kind: "color",
+    boeComponent: BREADCRUMB,
+    boeAnchor: "color: var(--boe-token-text-text, #222222)",
+    upstream: {
+      rawSelector: ".breadcrumbs .breadcrumb-item.breadcrumb-item-last *",
+      property: "color",
+    },
+    tolerance: 0,
+    citation:
+      ".breadcrumbs .breadcrumb-item.breadcrumb-item-last * color (current crumb; upstream #4e4e4e)",
+    webappToken: "TextText",
+  },
+
+  // === Chip (box-chip) ↔ upstream `.bdl-LabelPill` ===
+  // Only the label text is claimed: box-open-elements' tonal chip fills are
+  // deliberate soft color-mixes, while LabelPill ships flat saturated fills
+  // (#f69bab etc.) with no live-Box token to vouch for the divergence.
+  {
+    id: "chip.text",
+    surface: "chip",
+    boeConst: "TextText",
+    boeValue: T.TextText,
+    kind: "color",
+    boeComponent: CHIP,
+    boeAnchor: "color: var(--boe-token-text-text, #222222)",
+    upstream: { selector: ".bdl-LabelPill", state: "base", property: "color" },
+    tolerance: 0,
+    citation: ".bdl-LabelPill color (chip label text)",
   },
 ] as const;
