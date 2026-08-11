@@ -31,7 +31,10 @@ import {
   parseChunkNames,
 } from "./css-extract.js";
 import {
+  canonicalColor,
+  colorDelta,
   compareColor,
+  extractColor,
   resolveCssVars,
   type Verdict,
 } from "./color-signals.js";
@@ -41,6 +44,7 @@ import {
   buildTokenMap,
   type ColorClaim,
 } from "./color-manifest.js";
+import type { Reference } from "./webapp-audit.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(HERE, "..", "..");
@@ -49,6 +53,7 @@ const CSS_CACHE = join(CACHE_DIR, "storybook-compiled.css");
 const BUNDLES_CACHE = join(CACHE_DIR, "storybook-bundles.json");
 const REPORT_MD = join(REPO_ROOT, "docs/audits/bue-conformance-color-audit.md");
 const REPORT_JSON = join(REPO_ROOT, "docs/audits/bue-conformance-color-audit.data.json");
+const WEBAPP_REFERENCE = join(REPO_ROOT, "docs/audits/box-webapp-reference.data.json");
 const CA_BUNDLE = "/root/.ccr/ca-bundle.crt";
 
 export interface Args {
@@ -219,6 +224,65 @@ async function loadCompiledCss(args: Args): Promise<CompiledCss> {
   return fallback();
 }
 
+/**
+ * Load the Layer 2 live-Box-app capture (`box-webapp-reference.data.json`) as a
+ * token-key → hex-value map, for cross-referencing `review` verdicts against
+ * ground truth stronger than the Storybook this audit otherwise compares
+ * against. Missing/unreadable file → empty map (cross-reference is best-effort,
+ * never fatal).
+ */
+export function loadWebappTokens(path: string = WEBAPP_REFERENCE): Map<string, string> {
+  const map = new Map<string, string>();
+  if (!existsSync(path)) {
+    return map;
+  }
+  try {
+    const reference = JSON.parse(readFileSync(path, "utf8")) as Reference;
+    for (const [key, token] of Object.entries(reference.tokens ?? {})) {
+      map.set(key, token.value);
+    }
+  } catch {
+    return new Map();
+  }
+  return map;
+}
+
+/**
+ * A `review` verdict whose claim names a `webappToken` found in the live-Box
+ * capture, and whose resolved colour matches that capture, is not unverified
+ * drift — it is a *confirmed* intentional modernisation (box-open-elements
+ * tracks the live Box app; the Storybook it's compared against here may still
+ * render legacy styles). Downgrades such rows to `accepted-divergence`;
+ * anything else passes through unchanged.
+ */
+export function crossReferenceWebapp(
+  row: Pick<Row, "claim" | "verdict" | "boeCanonical">,
+  webappTokens: Map<string, string>,
+): Pick<Row, "verdict" | "note"> {
+  if (row.verdict !== "review" || !row.claim.webappToken || !row.boeCanonical) {
+    return { verdict: row.verdict };
+  }
+  const refValue = webappTokens.get(row.claim.webappToken);
+  if (refValue === undefined) {
+    return { verdict: row.verdict };
+  }
+  const refColor = extractColor(refValue);
+  const boeColor = extractColor(row.boeCanonical);
+  if (!refColor || !boeColor) {
+    return { verdict: row.verdict };
+  }
+  if (colorDelta(boeColor, refColor) > row.claim.tolerance) {
+    return { verdict: row.verdict };
+  }
+  return {
+    verdict: "accepted-divergence",
+    note:
+      `Matches the live Box web app capture (${row.claim.webappToken} = ` +
+      `${canonicalColor(refColor)}, docs/audits/box-webapp-reference.data.json) — ` +
+      "the Storybook comparison reflects legacy vs modernised styling, not drift.",
+  };
+}
+
 export interface Row {
   claim: ColorClaim;
   boeResolved: string | null;
@@ -246,6 +310,7 @@ export function anchorPresent(
 export function evaluate(
   css: string,
   componentSource: Map<string, string | null>,
+  webappTokens: Map<string, string> = new Map(),
 ): Row[] {
   const tokenMap = buildTokenMap();
   return COLOR_CLAIMS.map(claim => {
@@ -277,7 +342,7 @@ export function evaluate(
       kind: claim.kind,
       tolerance: claim.tolerance,
     });
-    return {
+    const row: Row = {
       claim,
       boeResolved,
       upstreamRaw,
@@ -287,22 +352,37 @@ export function evaluate(
       delta: comparison.delta,
       note: comparison.note,
     };
+    const crossRef = crossReferenceWebapp(row, webappTokens);
+    if (crossRef.verdict !== row.verdict) {
+      row.verdict = crossRef.verdict;
+      row.note = crossRef.note;
+    }
+    return row;
   });
 }
 
 const VERDICT_ICON: Record<Verdict, string> = {
   conformant: "✅",
+  "accepted-divergence": "🎯",
   review: "🔍",
   "missing-upstream": "⚠️",
   "missing-boe": "🚫",
 };
 
-/** Strict mode: anything other than `conformant` is a failure. */
+/**
+ * Strict mode: anything other than `conformant` or `accepted-divergence` is a
+ * failure. `accepted-divergence` is a deliberate, live-Box-app-confirmed choice
+ * (see `crossReferenceWebapp`), not unverified drift, so it passes.
+ */
 export function computeExitCode(rows: Row[], strict: boolean): number {
   if (!strict) {
     return 0;
   }
-  return rows.every(row => row.verdict === "conformant") ? 0 : 1;
+  return rows.every(
+    row => row.verdict === "conformant" || row.verdict === "accepted-divergence",
+  )
+    ? 0
+    : 1;
 }
 
 /**
@@ -323,6 +403,7 @@ export function conformantFloorExitCode(rows: Row[], floor: number | null): numb
 export function renderMarkdown(rows: Row[], bundles: string[]): string {
   const counts: Record<Verdict, number> = {
     conformant: 0,
+    "accepted-divergence": 0,
     review: 0,
     "missing-upstream": 0,
     "missing-boe": 0,
@@ -348,10 +429,13 @@ export function renderMarkdown(rows: Row[], bundles: string[]): string {
   lines.push(
     "> **Reading the verdicts.** box-open-elements deliberately tracks Box's " +
       "modernised *Blueprint* palette, while the public Storybook may still render " +
-      "legacy component styles. A `🔍 Review` is therefore **not** an assertion of a " +
-      "defect — it flags a resolved difference for a human to judge (intentional " +
-      "modernisation vs real drift). Both resolved values and the channel delta are " +
-      "shown so that judgement needs no browser.",
+      "legacy component styles. Where a resolved difference matches the live-Box-app " +
+      "capture in `docs/audits/box-webapp-reference.data.json` (Layer 2's stronger " +
+      "ground truth), the audit auto-labels it `🎯 Accepted divergence` — a confirmed " +
+      "modernisation, not drift. Anything else that differs is `🔍 Review`: **not** an " +
+      "assertion of a defect, but a resolved difference with no live-Box confirmation " +
+      "yet, for a human to judge. Both resolved values and the channel delta are shown " +
+      "so that judgement needs no browser.",
   );
   lines.push("");
   lines.push(
@@ -378,6 +462,7 @@ export function renderMarkdown(rows: Row[], bundles: string[]): string {
   lines.push("| Verdict | Count |");
   lines.push("| --- | ---: |");
   lines.push(`| ✅ Conformant | ${counts.conformant} |`);
+  lines.push(`| 🎯 Accepted divergence | ${counts["accepted-divergence"]} |`);
   lines.push(`| 🔍 Review | ${counts.review} |`);
   lines.push(`| ⚠️ Missing upstream | ${counts["missing-upstream"]} |`);
   lines.push(`| 🚫 Missing box-open-elements | ${counts["missing-boe"]} |`);
@@ -400,7 +485,8 @@ export function renderMarkdown(rows: Row[], bundles: string[]): string {
   lines.push("## Legend");
   lines.push("");
   lines.push("- ✅ **Conformant** — resolved colour/shadow matches upstream within tolerance.");
-  lines.push("- 🔍 **Review** — resolved values differ; judge intentional Blueprint modernisation vs drift (delta = max per-channel difference, 0-255).");
+  lines.push("- 🎯 **Accepted divergence** — resolved values differ from the Storybook, but box-open-elements' value matches the live Box app capture (`docs/audits/box-webapp-reference.data.json`); a confirmed modernisation, not drift.");
+  lines.push("- 🔍 **Review** — resolved values differ with no live-Box confirmation; judge intentional Blueprint modernisation vs drift (delta = max per-channel difference, 0-255).");
   lines.push("- ⚠️ **Missing upstream** — selector/state/property not found in the compiled Storybook CSS.");
   lines.push("- 🚫 **Missing box-open-elements** — the component no longer declares the cited value (manifest anchor stale).");
   lines.push("");
@@ -429,7 +515,8 @@ async function main(): Promise<void> {
     process.exit(args.strict ? 1 : 0);
   }
 
-  const rows = evaluate(css, componentSource);
+  const webappTokens = loadWebappTokens();
+  const rows = evaluate(css, componentSource, webappTokens);
 
   const data = {
     upstream: STORYBOOK_BASE,
@@ -458,7 +545,8 @@ async function main(): Promise<void> {
   const by = (v: Verdict): number => rows.filter(r => r.verdict === v).length;
   // eslint-disable-next-line no-console
   console.log(
-    `BUE colour conformance: ${by("conformant")} conformant, ${by("review")} review, ` +
+    `BUE colour conformance: ${by("conformant")} conformant, ` +
+      `${by("accepted-divergence")} accepted, ${by("review")} review, ` +
       `${by("missing-upstream")} missing-upstream, ${by("missing-boe")} missing-boe ` +
       `(of ${rows.length}). Report: ${REPORT_MD}`,
   );

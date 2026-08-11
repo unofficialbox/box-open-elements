@@ -352,7 +352,12 @@ export function resolveCssVars(
 
 export type ColorKind = "color" | "shadow";
 
-export type Verdict = "conformant" | "review" | "missing-upstream" | "missing-boe";
+export type Verdict =
+  | "conformant"
+  | "accepted-divergence"
+  | "review"
+  | "missing-upstream"
+  | "missing-boe";
 
 export interface ColorComparisonInput {
   boeValue: string | null;

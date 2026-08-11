@@ -10,6 +10,11 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Cross-referenced the Layer 2 colour conformance audit's `review` verdicts
+  against the live-Box-app capture (`docs/audits/box-webapp-reference.data.json`):
+  4 previously-ambiguous Storybook-vs-live-Box differences now auto-resolve to a
+  confirmed `accepted-divergence`, and a genuine tooltip-text drift got fixed —
+  0 `review` rows remain, so CI now gates the audit with `--strict`.
 - Promoted React, Angular, Vue, and Svelte adapters to lockstep `0.1.0` release
   candidates with production package exports and one trusted-publishing train.
 - Added typed `Dialog` and `useExplorerSelectionController` integrations plus

@@ -27,7 +27,9 @@ import {
   anchorPresent,
   computeExitCode,
   conformantFloorExitCode,
+  crossReferenceWebapp,
   evaluate,
+  loadWebappTokens,
   parseArgs,
   parseBundleNames,
   renderMarkdown,
@@ -535,6 +537,9 @@ const readSrc = (rel: string): string => readFileSync(join(process.cwd(), rel), 
 const COMPONENT_SOURCE = new Map<string, string | null>(
   [...new Set(COLOR_CLAIMS.map(c => c.boeComponent))].map(rel => [rel, readSrc(rel)]),
 );
+// The real committed live-Box capture — same source production reads — so the
+// `evaluate` tests below exercise the full cross-reference behaviour end to end.
+const WEBAPP_TOKENS = loadWebappTokens();
 
 describe("anchorPresent", () => {
   it("is true when the component still declares the anchor", () => {
@@ -558,7 +563,7 @@ describe("anchorPresent", () => {
 });
 
 describe("evaluate", () => {
-  const rows = evaluate(FIXTURE_CSS, COMPONENT_SOURCE);
+  const rows = evaluate(FIXTURE_CSS, COMPONENT_SOURCE, WEBAPP_TOKENS);
 
   it("resolves every claim against the compiled CSS", () => {
     expect(rows).toHaveLength(COLOR_CLAIMS.length);
@@ -566,16 +571,22 @@ describe("evaluate", () => {
     expect(byId("button.primary.background").verdict).toBe("conformant");
     expect(byId("button.primary.focus.shadow").verdict).toBe("conformant");
     expect(byId("button.neutral.focus.shadow").verdict).toBe("conformant");
-    expect(byId("button.primary.hover.background").verdict).toBe("review");
-    // box-open-elements hover is now #006ae9 (matches the real Box app); the
-    // Storybook fixture is the legacy #0074fe, so the delta is 21.
+    // box-open-elements hover is now #006ae9 (matches the real Box app, per
+    // box-webapp-reference.data.json); the Storybook fixture is the legacy
+    // #0074fe, so it cross-references to accepted-divergence, not review.
+    expect(byId("button.primary.hover.background").verdict).toBe("accepted-divergence");
     expect(byId("button.primary.hover.background").delta).toBe(21);
   });
 
-  it("yields the expected verdict mix (40 conformant, 5 review)", () => {
+  it("yields the expected verdict mix (41 conformant, 4 accepted-divergence, 0 review)", () => {
     const conformant = rows.filter(r => r.verdict === "conformant").length;
+    const accepted = rows.filter(r => r.verdict === "accepted-divergence").length;
     const review = rows.filter(r => r.verdict === "review").length;
-    expect({ conformant, review }).toEqual({ conformant: 40, review: 5 });
+    expect({ conformant, accepted, review }).toEqual({
+      conformant: 41,
+      accepted: 4,
+      review: 0,
+    });
   });
 
   it("resolves the round-6 surfaces (switch, date/calendar, dropdown/menu)", () => {
@@ -609,7 +620,9 @@ describe("evaluate", () => {
     const byId = (id: string): Row => rows.find(r => r.claim.id === id)!;
     expect(byId("menu.item.hover.background").verdict).toBe("conformant");
     expect(byId("badge.success.background").verdict).toBe("conformant");
-    expect(byId("badge.neutral.background").verdict).toBe("review");
+    // #fbfbfb matches the live Box app (SurfaceSurfaceSecondary); the Storybook
+    // fixture's #e8e8e8 is legacy.
+    expect(byId("badge.neutral.background").verdict).toBe("accepted-divergence");
   });
 
   it("resolves the round-3 color-mix surfaces against upstream", () => {
@@ -641,6 +654,68 @@ describe("computeExitCode", () => {
     expect(computeExitCode([mk("conformant"), mk("review")], true)).toBe(1);
     expect(computeExitCode([mk("conformant")], true)).toBe(0);
   });
+
+  it("accepted-divergence passes strict mode (a confirmed, not unverified, difference)", () => {
+    expect(computeExitCode([mk("conformant"), mk("accepted-divergence")], true)).toBe(0);
+  });
+});
+
+describe("loadWebappTokens", () => {
+  it("loads the committed live-Box reference as a token → hex map", () => {
+    expect(WEBAPP_TOKENS.get("SurfaceSurfaceBrandHover")).toBe("#006ae9");
+    expect(WEBAPP_TOKENS.get("TextTextSecondary")).toBe("#6f6f6f");
+  });
+
+  it("returns an empty map for a missing/unreadable file rather than throwing", () => {
+    expect(loadWebappTokens("/nonexistent/box-webapp-reference.data.json").size).toBe(0);
+  });
+});
+
+describe("crossReferenceWebapp", () => {
+  const claim = COLOR_CLAIMS.find(c => c.id === "button.primary.hover.background")!;
+
+  it("downgrades review to accepted-divergence when the live-Box capture confirms the value", () => {
+    const result = crossReferenceWebapp(
+      { claim, verdict: "review", boeCanonical: "rgba(0, 106, 233, 1)" },
+      new Map([["SurfaceSurfaceBrandHover", "#006ae9"]]),
+    );
+    expect(result.verdict).toBe("accepted-divergence");
+    expect(result.note).toContain("box-webapp-reference.data.json");
+  });
+
+  it("leaves review alone when the claim has no webappToken, or the map has no entry for it", () => {
+    const noTokenClaim = COLOR_CLAIMS.find(c => c.id === "button.primary.background")!;
+    expect(
+      crossReferenceWebapp(
+        { claim: noTokenClaim, verdict: "review", boeCanonical: "rgba(0, 0, 0, 1)" },
+        new Map([["SurfaceSurfaceBrandHover", "#006ae9"]]),
+      ).verdict,
+    ).toBe("review");
+    expect(
+      crossReferenceWebapp(
+        { claim, verdict: "review", boeCanonical: "rgba(0, 106, 233, 1)" },
+        new Map(),
+      ).verdict,
+    ).toBe("review");
+  });
+
+  it("leaves review alone when the webapp capture doesn't confirm the value either", () => {
+    expect(
+      crossReferenceWebapp(
+        { claim, verdict: "review", boeCanonical: "rgba(0, 106, 233, 1)" },
+        new Map([["SurfaceSurfaceBrandHover", "#000000"]]),
+      ).verdict,
+    ).toBe("review");
+  });
+
+  it("passes non-review verdicts through unchanged", () => {
+    expect(
+      crossReferenceWebapp(
+        { claim, verdict: "conformant", boeCanonical: "rgba(0, 106, 233, 1)" },
+        new Map([["SurfaceSurfaceBrandHover", "#006ae9"]]),
+      ).verdict,
+    ).toBe("conformant");
+  });
 });
 
 describe("conformantFloorExitCode", () => {
@@ -660,19 +735,20 @@ describe("conformantFloorExitCode", () => {
 
 describe("renderMarkdown", () => {
   it("renders a summary, the bundle list, and every claim row", () => {
-    const rows = evaluate(FIXTURE_CSS, COMPONENT_SOURCE);
+    const rows = evaluate(FIXTURE_CSS, COMPONENT_SOURCE, WEBAPP_TOKENS);
     const md = renderMarkdown(rows, ["main.abc.iframe.bundle.js"]);
     expect(md).toContain("Layer 2");
     expect(md).toContain("**1**");
-    expect(md).toContain("| ✅ Conformant | 40 |");
-    expect(md).toContain("| 🔍 Review | 5 |");
+    expect(md).toContain("| ✅ Conformant | 41 |");
+    expect(md).toContain("| 🎯 Accepted divergence | 4 |");
+    expect(md).toContain("| 🔍 Review | 0 |");
     for (const claim of COLOR_CLAIMS) {
       expect(md).toContain(claim.citation);
     }
   });
 
   it("surfaces the frozen-snapshot refresh cadence", () => {
-    const md = renderMarkdown(evaluate(FIXTURE_CSS, COMPONENT_SOURCE), []);
+    const md = renderMarkdown(evaluate(FIXTURE_CSS, COMPONENT_SOURCE, WEBAPP_TOKENS), []);
     expect(md).toContain("Keeping this current");
     expect(md).toContain("bue-conformance:color --refresh");
     expect(md).toContain("quarterly");
