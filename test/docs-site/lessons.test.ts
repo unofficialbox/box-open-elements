@@ -163,7 +163,6 @@ describe("build-along lessons", () => {
       "adapterState",
       "actions",
       'addEventListener("action"',
-      'addEventListener("provider-action"',
     ]) {
       expect(finalCode).toContain(token);
     }

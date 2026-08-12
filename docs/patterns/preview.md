@@ -2,7 +2,7 @@
 
 The preview pattern stays layered:
 
-- **Compositions** — preview headers, toolbars, sidebars, metadata panels, and annotation surfaces around the rendering engine (`annotation-toolbar`, `annotation-inspector`, `annotation-thread`, `preview-header`)
+- **Compositions** — preview headers, toolbars, and annotation surfaces around the rendering engine (`annotation-toolbar`, `annotation-inspector`, `annotation-thread`, `preview-header`). A tabbed content sidebar (details/activity/metadata/versions) is a known gap — see the patterns catalog.
 - **Workflow shell** — a pluggable preview element that hosts the actual preview provider and orchestrates preview state
 
 The shell behaves like an adapter host, not a hard-coded renderer. The same surrounding shell must work with:
@@ -34,7 +34,16 @@ type PreviewAdapterState = {
 
 The shell accepts `provider` and `adapterState` as plain serializable objects, and shell-level actions emit enough adapter context for an outer orchestrator to route commands into Box Content Preview or another provider.
 
-When an integration needs lifecycle hooks or live sync, prefer a `providerAdapter` object over ad hoc provider-specific props. In the original repo, `createContentPreviewAdapter()` was the first concrete adapter built on this contract, wrapping Box Content Preview mount/unmount behavior — port it as `patterns/preview/content-preview-adapter`.
+When an integration needs lifecycle hooks or live sync, prefer a `providerAdapter` object over ad hoc provider-specific props. `createContentPreviewAdapter()` (`patterns/preview/content-preview-adapter`) is the concrete adapter for Box Content Preview: pass `createViewer(container)` to boot the real engine into the shell's stable stage node (return a teardown function), and drive it with the typed command channel.
+
+The adapter contract (v2) carries:
+
+- `mount(container)` / `unmount()` — `box-preview-element` hands the adapter its `[part="stage-mount"]` node, which keeps identity across chrome re-renders, and unmounts on disconnect.
+- `PreviewAdapterState.status` (`idle | loading | ready | error`, with `errorMessage`) — the shell renders a busy stage, an error alert, and a status chip from it; the legacy `ready` flag still resolves via `resolvePreviewStatus()`.
+- Numeric `page` / `pageCount` / `zoomPercent` — when present alongside `sendCommand`, the shell renders paging/zoom controls that emit typed `PreviewCommand`s (`next-page`, `go-to-page`, `zoom-in`, `set-zoom`, …) and a `command` DOM event.
+- Rejected `performAction` / `sendCommand` promises surface as an `action-error` DOM event instead of vanishing.
+
+The shell emits a single `action` event per action (the former duplicate `provider-action` event was removed).
 
 Guidance:
 

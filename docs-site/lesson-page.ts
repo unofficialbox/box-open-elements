@@ -291,12 +291,9 @@ const runContentPreview = (key: PreviewKey, canvas: HTMLElement, log: LogFn): ((
 
   if (key === "preview-actions") {
     const onAction = (event: Event): void => log("action", (event as CustomEvent).detail);
-    const onProviderAction = (event: Event): void => log("provider-action", (event as CustomEvent).detail);
     preview.addEventListener("action", onAction);
-    preview.addEventListener("provider-action", onProviderAction);
     cleanups.push(() => {
       preview.removeEventListener("action", onAction);
-      preview.removeEventListener("provider-action", onProviderAction);
     });
   }
 

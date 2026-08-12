@@ -10,6 +10,18 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Preview rework (patterns round 2): the provider-adapter contract can now
+  actually drive a preview engine — `mount`/`unmount` with a stable stage node
+  the shell owns (`createViewer(container)` boots the real engine and returns
+  a teardown), a typed `sendCommand` channel with numeric `page`/`pageCount`/
+  `zoomPercent` state rendered as paging/zoom controls, and a
+  `status`/`errorMessage` lifecycle rendered as a busy stage, error alert, and
+  status chip. Fixes: detach + reattach no longer kills live adapter sync,
+  unmount resets stale readiness, rejected provider actions surface as
+  `action-error` instead of vanishing, the sidebar column collapses when
+  empty, and the duplicate `provider-action` event was removed (listen to
+  `action`).
+
 - Content Explorer rework (patterns round 1 of the deep patterns review):
   headless sorting (`setSort` + transport sort params, mapped to the Box API),
   a mutation layer (`createFolder` / `renameItem` / `deleteItem` transport

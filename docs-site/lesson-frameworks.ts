@@ -1082,14 +1082,11 @@ export function Preview() {
       { id: "download", label: "Download" },
     ];
 
-    const onAction = event => console.log("action", event.detail.action);
-    const onProviderAction = event =>
-      console.log("provider-action", event.detail.action, event.detail.providerId);
+    const onAction = event =>
+      console.log("action", event.detail.action, event.detail.providerId);
     el.addEventListener("action", onAction);
-    el.addEventListener("provider-action", onProviderAction);
     return () => {
       el.removeEventListener("action", onAction);
-      el.removeEventListener("provider-action", onProviderAction);
     };
   }, []);
 
@@ -1207,7 +1204,6 @@ import "@unofficialbox/box-open-elements/preview";
       [adapterState]="adapterState"
       [actions]="actions"
       (action)="onAction($event)"
-      (provider-action)="onProviderAction($event)"
     ></box-preview-element>
   \`,
 })
@@ -1220,11 +1216,7 @@ export class PreviewComponent {
   ];
 
   onAction(event: CustomEvent) {
-    console.log("action", event.detail.action);
-  }
-
-  onProviderAction(event: CustomEvent) {
-    console.log("provider-action", event.detail.action, event.detail.providerId);
+    console.log("action", event.detail.action, event.detail.providerId);
   }
 }`,
   ],
@@ -1301,9 +1293,8 @@ const actions = [
   { id: "download", label: "Download" },
 ];
 
-const onAction = (event: CustomEvent) => console.log("action", event.detail.action);
-const onProviderAction = (event: CustomEvent) =>
-  console.log("provider-action", event.detail.action, event.detail.providerId);
+const onAction = (event: CustomEvent) =>
+  console.log("action", event.detail.action, event.detail.providerId);
 </script>
 
 <template>
@@ -1316,7 +1307,6 @@ const onProviderAction = (event: CustomEvent) =>
     :adapterState="adapterState"
     :actions="actions"
     @action="onAction"
-    @provider-action="onProviderAction"
   ></box-preview-element>
 </template>`,
   ],
@@ -1399,9 +1389,8 @@ const onProviderAction = (event: CustomEvent) =>
   item-label="PDF · 2.4 MB"
   status="Ready"
   message="Rendered by the active preview provider."
-  on:action={event => console.log("action", event.detail.action)}
-  on:provider-action={event =>
-    console.log("provider-action", event.detail.action, event.detail.providerId)}
+  on:action={event =>
+    console.log("action", event.detail.action, event.detail.providerId)}
 ></box-preview-element>`,
   ],
 };

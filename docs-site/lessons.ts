@@ -787,16 +787,13 @@ preview.adapterState = {
 
 const PREVIEW_STEP5 = `${PREVIEW_STEP4}
 
-// Host-owned actions; listen for action (and provider-action with context).
+// Host-owned actions; the action event carries provider context.
 preview.actions = [
   { id: "open-provider", label: "Open provider", tone: "primary" },
   { id: "download", label: "Download" },
 ];
 preview.addEventListener("action", event => {
-  console.log("action", event.detail.action);
-});
-preview.addEventListener("provider-action", event => {
-  console.log("provider-action", event.detail.action, event.detail.providerId);
+  console.log("action", event.detail.action, event.detail.providerId);
 });`;
 
 export const previewLesson: Lesson = {
@@ -808,7 +805,7 @@ export const previewLesson: Lesson = {
   why: "Preview is where users open a file after they find it. Wiring the preview element with provider JSON and adapter state shows how the pattern stays provider-neutral — the host owns chrome and events; a real adapter can replace the static props later.",
   outcomePreview: "preview-actions",
   wrapup:
-    "You have a preview shell that shows item chrome, provider metadata, adapter page/zoom state, and host actions — and reports action and provider-action events to your app. Next: slot a real toolbar/stage, or wire selection from the Explorer build-along into this heading.",
+    "You have a preview shell that shows item chrome, provider metadata, adapter page/zoom state, and host actions — and reports action events (with provider context) to your app. Next: slot a real toolbar/stage, or wire selection from the Explorer build-along into this heading.",
   starterHtml: starterHtml("Box Preview — build along", "The preview element mounts here."),
   install:
     "Save index.html and app.js together and serve the folder with any static server (e.g. `npx serve`), then open index.html. The import map pulls box-open-elements from a CDN, so there is nothing to install and no build step; no Box account is needed — the lesson wires properties and events only.",
@@ -875,7 +872,7 @@ export const previewLesson: Lesson = {
       file: "app.js",
       anchor: "at the end of app.js",
       code: PREVIEW_STEP5,
-      why: "actions are host-defined buttons; action and provider-action are plain DOM CustomEvents (provider-action includes provider context), so your app reacts without reaching inside the shell.",
+      why: "actions are host-defined buttons; action is a plain DOM CustomEvent carrying the provider context, so your app reacts without reaching inside the shell.",
       result: "Open provider and Download appear; clicks log to the Events panel (and the console).",
       preview: "preview-actions",
     },
@@ -906,10 +903,7 @@ export const previewLesson: Lesson = {
   ];
 
   preview.addEventListener("action", event => {
-    console.log("action", event.detail.action);
-  });
-  preview.addEventListener("provider-action", event => {
-    console.log("provider-action", event.detail.action, event.detail.providerId);
+    console.log("action", event.detail.action, event.detail.providerId);
   });
 </script>`,
     react: `import { useEffect, useRef } from "react";
@@ -929,14 +923,11 @@ export function Preview() {
       { id: "download", label: "Download" },
     ];
 
-    const onAction = event => console.log("action", event.detail.action);
-    const onProviderAction = event =>
-      console.log("provider-action", event.detail.action, event.detail.providerId);
+    const onAction = event =>
+      console.log("action", event.detail.action, event.detail.providerId);
     el.addEventListener("action", onAction);
-    el.addEventListener("provider-action", onProviderAction);
     return () => {
       el.removeEventListener("action", onAction);
-      el.removeEventListener("provider-action", onProviderAction);
     };
   }, []);
 
@@ -966,7 +957,6 @@ import "@unofficialbox/box-open-elements/preview";
       [adapterState]="adapterState"
       [actions]="actions"
       (action)="onAction($event)"
-      (provider-action)="onProviderAction($event)"
     ></box-preview-element>
   \`,
 })
@@ -979,11 +969,7 @@ export class PreviewComponent {
   ];
 
   onAction(event: CustomEvent) {
-    console.log("action", event.detail.action);
-  }
-
-  onProviderAction(event: CustomEvent) {
-    console.log("provider-action", event.detail.action, event.detail.providerId);
+    console.log("action", event.detail.action, event.detail.providerId);
   }
 }`,
     vue: `<script setup lang="ts">
@@ -997,9 +983,8 @@ const actions = [
   { id: "download", label: "Download" },
 ];
 
-const onAction = (event: CustomEvent) => console.log("action", event.detail.action);
-const onProviderAction = (event: CustomEvent) =>
-  console.log("provider-action", event.detail.action, event.detail.providerId);
+const onAction = (event: CustomEvent) =>
+  console.log("action", event.detail.action, event.detail.providerId);
 </script>
 
 <template>
@@ -1011,7 +996,6 @@ const onProviderAction = (event: CustomEvent) =>
     :adapterState="adapterState"
     :actions="actions"
     @action="onAction"
-    @provider-action="onProviderAction"
   ></box-preview-element>
 </template>`,
     svelte: `<script lang="ts">
@@ -1034,9 +1018,8 @@ const onProviderAction = (event: CustomEvent) =>
   heading="Quarterly Plan.pdf"
   item-label="PDF · 2.4 MB"
   status="Ready"
-  on:action={event => console.log("action", event.detail.action)}
-  on:provider-action={event =>
-    console.log("provider-action", event.detail.action, event.detail.providerId)}
+  on:action={event =>
+    console.log("action", event.detail.action, event.detail.providerId)}
 ></box-preview-element>`,
   },
   stepFrameworks: previewStepFrameworks,

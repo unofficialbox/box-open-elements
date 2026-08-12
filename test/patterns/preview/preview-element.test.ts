@@ -77,9 +77,10 @@ describe("Preview", () => {
     });
   });
 
-  it("emits provider-action with provider context", () => {
+  it("emits a single action event with provider context (no provider-action duplicate)", () => {
     const element = document.createElement("box-preview-element") as Preview;
     const action = vi.fn();
+    const legacyDuplicate = vi.fn();
     element.provider = {
       id: "box-content-preview",
       label: "Box Content Preview",
@@ -89,13 +90,15 @@ describe("Preview", () => {
       mode: "Review",
     };
     element.actions = [{ id: "open-provider", label: "Open provider", tone: "primary" }];
-    element.addEventListener("provider-action", action);
+    element.addEventListener("action", action);
+    element.addEventListener("provider-action", legacyDuplicate);
 
     document.body.append(element);
 
     const button = element.shadowRoot?.querySelector('[part="action"][data-action-id="open-provider"]') as HTMLButtonElement | null;
     button?.click();
 
+    expect(legacyDuplicate).not.toHaveBeenCalled();
     expect(action).toHaveBeenCalledTimes(1);
     expect(action.mock.calls[0]?.[0]?.detail).toEqual({
       action: "open-provider",
