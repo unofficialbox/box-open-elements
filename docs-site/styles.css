@@ -307,11 +307,13 @@ body {
 }
 
 .rail-item:hover { background: rgba(255, 255, 255, 0.07); color: #ffffff; }
+/* Active page: a solid coral fill with ink text — the coral half of the
+   blue/coral accent pair (the tier tabs fill blue). Coral clears AA contrast
+   against ink in both themes (#ff6658 ≈ 5.9:1, dark's #ff8175 higher). */
 .rail-item[aria-current="page"] {
-  background: rgba(8, 102, 217, 0.22);
-  color: #ffffff;
+  background: var(--accent-coral);
+  color: var(--community-ink);
   font-weight: 600;
-  box-shadow: inset 3px 0 0 var(--community-coral);
 }
 .rail-item:focus-visible { outline: 2px solid var(--community-sky); outline-offset: -2px; }
 
