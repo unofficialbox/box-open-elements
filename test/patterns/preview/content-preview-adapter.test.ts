@@ -31,10 +31,13 @@ describe("createContentPreviewAdapter", () => {
     expect(adapter.getState()).toEqual({
       mode: "Review",
       ready: true,
+      status: "ready",
     });
 
     adapter.unmount();
     expect(onUnmount).toHaveBeenCalledTimes(1);
+    // Unmount resets readiness — a remount cycle must not report stale "ready".
+    expect(adapter.getState()).toMatchObject({ ready: false, status: "idle" });
   });
 
   it("forwards provider actions through the configured handler", async () => {

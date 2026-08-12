@@ -121,7 +121,7 @@ describe("docs-site Preview lesson page previews", () => {
     const eventList = stage.querySelector("#lesson-event-list")!;
     const eventNames = [...eventList.querySelectorAll(".event-name")].map(node => node.textContent);
     expect(eventNames).toContain("action");
-    expect(eventNames).toContain("provider-action");
+    expect(eventNames).not.toContain("provider-action");
 
     teardown();
     expect(stage.querySelectorAll("box-preview-element")).toHaveLength(0);

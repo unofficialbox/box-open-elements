@@ -126,7 +126,7 @@ const renderDesignProfilesPage = (): void => {
 const SHARED_EVENTS = [
   "value-changed", "open-changed", "checked-changed", "selected-changed",
   "action", "confirm", "cancel", "dismiss", "search", "clear", "toggle",
-  "item-selected", "item-invoked", "item-activated", "provider-action",
+  "item-selected", "item-invoked", "item-activated",
   "filter-changed", "page-changed", "navigate", "select", "ratio-changed",
   "tool-selected", "color-selected", "point-selected",
 ];
