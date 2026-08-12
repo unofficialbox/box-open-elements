@@ -721,20 +721,21 @@ body {
   padding: 14px 16px;
   background: var(--surface-card);
   border: 1px solid var(--line);
-  border-left: 3px solid var(--accent-coral);
   border-radius: 12px;
   color: var(--ink);
   font-size: 13px;
   line-height: 1.5;
 }
 
+/* Card titles (Usage / Best practices / Keyboard) carry the coral accent
+   instead of an edge bar on the card. */
 .guidance-title {
   margin: 0;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent-dark);
+  color: var(--accent-coral);
 }
 
 .guidance-lead {

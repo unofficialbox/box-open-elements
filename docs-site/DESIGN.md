@@ -87,7 +87,7 @@ chrome, cards, tables and prose retheme automatically.
   than scrolling horizontally. Token classes are `.tok-*`; the palette lives
   next to `pre.code-block` in `styles.css`.
 - **Cards** (related / guidance / token / icon) — soft-bordered with small offset
-  shadows; guidance cards carry a coral left border.
+  shadows; guidance cards title in coral (Usage / Best practices / Keyboard).
 - **Hard editorial borders** use `--edge` (navy in light, a lighter navy in dark)
   so they stay visible against the dark stage.
 

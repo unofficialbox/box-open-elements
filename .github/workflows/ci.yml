@@ -94,3 +94,17 @@ jobs:
           name: screenshot-diffs
           path: .regression-tmp/diff/
           if-no-files-found: ignore
+
+      # The fresh captures are container-rendered — exactly what committed
+      # baselines must be. Uploading them on failure lets an intentional visual
+      # change adopt new baselines straight from CI (download, review, commit)
+      # without needing a local docker daemon to run the pinned container.
+      - name: Upload fresh captures on failure (baseline adoption)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fresh-captures
+          path: |
+            .regression-tmp/docs-site/
+            .regression-tmp/gallery/
+          if-no-files-found: ignore
