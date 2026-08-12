@@ -17,13 +17,16 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-type AnnotationThreadAction = {
+const escapeSelectorValue = (value: string): string =>
+  value.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
+
+export type AnnotationThreadAction = {
   id: string;
   label: string;
   tone?: string;
 };
 
-type AnnotationThreadEntry = {
+export type AnnotationThreadEntry = {
   author: string;
   body: string;
   createdAt?: string;
@@ -31,6 +34,11 @@ type AnnotationThreadEntry = {
   initials?: string;
   status?: string;
   toolLabel?: string;
+};
+
+export type AnnotationThreadEntrySubmittedDetail = {
+  body: string;
+  inReplyToId: string | null;
 };
 
 
@@ -71,11 +79,19 @@ const elementStyles = `
         [part="entries"] {
           display: grid;
           gap: 0.6rem;
+          margin: 0;
+          padding: 0;
+          list-style: none;
+        }
+
+        [part="entry-item"] {
+          display: block;
         }
 
         [part="entry"] {
           appearance: none;
           display: grid;
+          inline-size: 100%;
           grid-template-columns: auto 1fr;
           gap: ${boePanel.gap};
           align-items: start;
@@ -169,9 +185,48 @@ const elementStyles = `
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
+        [part="composer"] {
+          display: grid;
+          gap: 0.5rem;
+        }
+
+        [part="composer-label"] {
+          font-size: 0.74rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
+        }
+
+        [part="composer-input"] {
+          min-height: 4rem;
+          padding: 0.55rem;
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 60%, transparent);
+          border-radius: ${boePanel.radius};
+          background: var(--boe-token-surface-surface, #ffffff);
+          color: inherit;
+          font: inherit;
+          line-height: 1.5;
+          resize: vertical;
+        }
+
+        [part="composer-submit"] {
+          appearance: none;
+          justify-self: start;
+          min-height: 2rem;
+          padding: 0.4rem 0.7rem;
+          border: 1px solid transparent;
+          border-radius: 999px;
+          background: var(--boe-token-surface-surface-brand, #0061d5);
+          color: var(--boe-token-text-text-on-brand, #ffffff);
+          font: inherit;
+          cursor: pointer;
+        }
+
         ${boeNeutralInteractiveStyles('[part="entry"]')}
         ${boeNeutralInteractiveStyles('[part="action"]')}
         ${boeBrandInteractiveStyles('[part="action"][data-tone="primary"]')}
+        ${boeBrandInteractiveStyles('[part="composer-submit"]')}
 
         [part="entry"][aria-pressed="true"],
         [part="entry"][aria-pressed="true"]:hover:not(:disabled) {
@@ -189,14 +244,33 @@ const elementStyles = `
 export class AnnotationThread extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["actions", "entries", "message", "selected-entry-id", "heading"];
+    return ["actions", "composable", "entries", "message", "selected-entry-id", "heading"];
   }
+
+  private titleEl!: HTMLElement;
+  private messageEl!: HTMLElement;
+  private entriesEl!: HTMLElement;
+  private emptyEl!: HTMLElement;
+  private actionsEl!: HTMLElement;
+  private composerEl!: HTMLElement;
+  private composerInputEl!: HTMLTextAreaElement;
+  private entriesSignature = "";
+  private actionsSignature = "";
+
   get actions(): AnnotationThreadAction[] {
     return this.parseJsonAttribute<AnnotationThreadAction[]>("actions", []);
   }
 
   set actions(value: AnnotationThreadAction[]) {
     this.setAttribute("actions", JSON.stringify(value));
+  }
+
+  get composable(): boolean {
+    return this.hasAttribute("composable");
+  }
+
+  set composable(value: boolean) {
+    this.toggleAttribute("composable", value);
   }
 
   get entries(): AnnotationThreadEntry[] {
@@ -241,15 +315,6 @@ export class AnnotationThread extends BaseElement {
     this.setAttribute("heading", value);
   }
 
-  connectedCallback(): void {
-    super.connectedCallback();
-  }
-
-  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-
-    super.attributeChangedCallback(name, oldValue, newValue);
-  }
-
   private parseJsonAttribute<T>(name: string, fallback: T): T {
     const raw = this.getAttribute(name);
     if (!raw) {
@@ -287,6 +352,94 @@ export class AnnotationThread extends BaseElement {
     );
   }
 
+  private submitComposer(): void {
+    const body = this.composerInputEl.value.trim();
+    if (!this.composable || !body) {
+      return;
+    }
+
+    this.dispatchEvent(
+      new CustomEvent<AnnotationThreadEntrySubmittedDetail>("entry-submitted", {
+        bubbles: true,
+        composed: true,
+        detail: {
+          body,
+          inReplyToId: this.selectedEntryId || null,
+        },
+      }),
+    );
+    this.composerInputEl.value = "";
+  }
+
+  private entriesKey(): string {
+    return this.getAttribute("entries") ?? "";
+  }
+
+  private actionsKey(): string {
+    return JSON.stringify(this.actions.map(action => action.id));
+  }
+
+  private rebuildEntries(): void {
+    this.entriesEl.innerHTML = this.entries
+      .map(entry => {
+        const selected = entry.id === this.selectedEntryId;
+        return `
+          <li part="entry-item" role="listitem">
+            <button
+              type="button"
+              part="entry"
+              data-entry-id="${escapeHtml(entry.id)}"
+              aria-pressed="${selected ? "true" : "false"}"
+            >
+              <span part="entry-avatar">${escapeHtml(entry.initials ?? entry.author.slice(0, 2).toUpperCase())}</span>
+              <span part="entry-copy">
+                <span part="entry-topline">
+                  <span part="entry-author">${escapeHtml(entry.author)}</span>
+                  ${entry.toolLabel ? `<span part="entry-tool">${escapeHtml(entry.toolLabel)}</span>` : ""}
+                  ${entry.status ? `<span part="entry-status">${escapeHtml(entry.status)}</span>` : ""}
+                </span>
+                <span part="entry-body">${escapeHtml(entry.body)}</span>
+                ${entry.createdAt ? `<span part="entry-time">${escapeHtml(entry.createdAt)}</span>` : ""}
+              </span>
+            </button>
+          </li>
+        `;
+      })
+      .join("");
+  }
+
+  private patchEntrySelection(): void {
+    this.entriesEl.querySelectorAll('[part="entry"]').forEach(button => {
+      const selected = button.getAttribute("data-entry-id") === this.selectedEntryId;
+      button.setAttribute("aria-pressed", selected ? "true" : "false");
+    });
+  }
+
+  private rebuildActions(): void {
+    this.actionsEl.innerHTML = this.actions
+      .map(
+        action => `
+          <button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">
+            ${escapeHtml(action.label)}
+          </button>
+        `,
+      )
+      .join("");
+  }
+
+  private patchActionLabels(): void {
+    this.actions.forEach(action => {
+      const button = this.actionsEl.querySelector(
+        `[data-action-id="${escapeSelectorValue(action.id)}"]`,
+      ) as HTMLButtonElement | null;
+      if (!button) {
+        return;
+      }
+      button.textContent = action.label;
+      button.dataset.tone = action.tone ?? "neutral";
+    });
+  }
+
   protected renderTemplate(): void {
     if (!this.shadowRoot) {
       return;
@@ -294,98 +447,109 @@ export class AnnotationThread extends BaseElement {
 
     this.shadowRoot.innerHTML = `
       <style>${elementStyles}</style>
-      <div part="content-host"></div>
+      <article part="thread">
+        <header part="header">
+          <h2 part="title"></h2>
+          <div part="message" hidden></div>
+        </header>
+        <ul part="entries" role="list" hidden></ul>
+        <div part="empty" hidden>No annotation thread entries available.</div>
+        <div part="actions" hidden></div>
+        <div part="composer" hidden>
+          <label part="composer-label" for="annotation-thread-composer-input">Reply</label>
+          <textarea
+            part="composer-input"
+            id="annotation-thread-composer-input"
+            placeholder="Add a reply"
+          ></textarea>
+          <button type="button" part="composer-submit">Reply</button>
+        </div>
+      </article>
     `;
+    this.titleEl = this.shadowRoot.querySelector('[part="title"]')!;
+    this.messageEl = this.shadowRoot.querySelector('[part="message"]')!;
+    this.entriesEl = this.shadowRoot.querySelector('[part="entries"]')!;
+    this.emptyEl = this.shadowRoot.querySelector('[part="empty"]')!;
+    this.actionsEl = this.shadowRoot.querySelector('[part="actions"]')!;
+    this.composerEl = this.shadowRoot.querySelector('[part="composer"]')!;
+    this.composerInputEl = this.shadowRoot.querySelector('[part="composer-input"]')!;
+  }
+
+  protected setupListeners(): void {
+    this.entriesEl.addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest('[part="entry"]') as HTMLButtonElement | null;
+      if (!button || !this.entriesEl.contains(button)) {
+        return;
+      }
+
+      const entryId = button.getAttribute("data-entry-id");
+      const entry = this.entries.find(item => item.id === entryId);
+      if (entry) {
+        this.emitEntrySelected(entry);
+      }
+    });
+
+    this.actionsEl.addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest('[part="action"]') as HTMLButtonElement | null;
+      if (!button || !this.actionsEl.contains(button)) {
+        return;
+      }
+
+      const actionId = button.getAttribute("data-action-id");
+      if (actionId) {
+        this.emitAction(actionId);
+      }
+    });
+
+    this.composerEl.addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest('[part="composer-submit"]');
+      if (button) {
+        this.submitComposer();
+      }
+    });
+
+    this.composerInputEl.addEventListener("keydown", event => {
+      if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        this.submitComposer();
+      }
+    });
   }
 
   protected update(): void {
-    if (!this.shadowRoot) {
+    if (!this.entriesEl) {
       return;
     }
 
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
+    this.titleEl.textContent = this.heading;
+    this.messageEl.hidden = !this.message;
+    this.messageEl.textContent = this.message;
 
-    const entriesMarkup = this.entries.length
-      ? `
-          <div part="entries" role="list" aria-label="${escapeHtml(this.heading)} entries">
-            ${this.entries
-              .map(entry => {
-                const selected = entry.id === this.selectedEntryId;
-                return `
-                  <button
-                    type="button"
-                    part="entry"
-                    data-entry-id="${escapeHtml(entry.id)}"
-                    aria-pressed="${selected ? "true" : "false"}"
-                  >
-                    <span part="entry-avatar">${escapeHtml(entry.initials ?? entry.author.slice(0, 2).toUpperCase())}</span>
-                    <span part="entry-copy">
-                      <span part="entry-topline">
-                        <span part="entry-author">${escapeHtml(entry.author)}</span>
-                        ${entry.toolLabel ? `<span part="entry-tool">${escapeHtml(entry.toolLabel)}</span>` : ""}
-                        ${entry.status ? `<span part="entry-status">${escapeHtml(entry.status)}</span>` : ""}
-                      </span>
-                      <span part="entry-body">${escapeHtml(entry.body)}</span>
-                      ${entry.createdAt ? `<span part="entry-time">${escapeHtml(entry.createdAt)}</span>` : ""}
-                    </span>
-                  </button>
-                `;
-              })
-              .join("")}
-          </div>
-        `
-      : `<div part="empty">No annotation thread entries available.</div>`;
-
-    const host = this.shadowRoot.querySelector('[part="content-host"]');
-    if (!host) {
-      return;
+    const entries = this.entries;
+    this.entriesEl.hidden = entries.length === 0;
+    this.emptyEl.hidden = entries.length > 0;
+    this.entriesEl.setAttribute("aria-label", `${this.heading} entries`);
+    const nextEntries = this.entriesKey();
+    if (nextEntries !== this.entriesSignature) {
+      this.entriesSignature = nextEntries;
+      this.rebuildEntries();
+    } else {
+      this.patchEntrySelection();
     }
 
-    host.innerHTML = `
-      <article part="thread">
-        <header part="header">
-          <h2 part="title">${escapeHtml(this.heading)}</h2>
-          ${messageMarkup}
-        </header>
-        ${entriesMarkup}
-        ${actionsMarkup}
-      </article>
-    `;
+    const actions = this.actions;
+    this.actionsEl.hidden = actions.length === 0;
+    const nextActions = this.actionsKey();
+    if (nextActions !== this.actionsSignature || this.actionsEl.childElementCount === 0) {
+      this.actionsSignature = nextActions;
+      this.rebuildActions();
+    } else {
+      this.patchActionLabels();
+    }
 
-    this.shadowRoot.querySelectorAll('[part="entry"]').forEach(button => {
-      button.addEventListener("click", () => {
-        const entryId = button.getAttribute("data-entry-id");
-        const entry = this.entries.find(item => item.id === entryId);
-        if (entry) {
-          this.emitEntrySelected(entry);
-        }
-      });
-    });
-
-    this.shadowRoot.querySelectorAll('[part="action"]').forEach(button => {
-      button.addEventListener("click", () => {
-        const actionId = button.getAttribute("data-action-id");
-        if (actionId) {
-          this.emitAction(actionId);
-        }
-      });
-    });
-  
+    const composable = this.composable;
+    this.composerEl.hidden = !composable;
+    this.composerInputEl.disabled = !composable;
   }
 }
 

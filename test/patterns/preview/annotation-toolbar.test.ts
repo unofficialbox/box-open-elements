@@ -82,6 +82,63 @@ describe("AnnotationToolbar", () => {
     expect(element.currentColor).toBe("#f59e0b");
   });
 
+  it("keeps focus on the clicked tool button and patches aria-pressed in place", () => {
+    const element = document.createElement("box-annotation-toolbar") as AnnotationToolbar;
+    element.tools = [
+      { id: "highlight", label: "Highlight", icon: "H" },
+      { id: "comment", label: "Comment", icon: "C" },
+    ];
+
+    document.body.append(element);
+
+    const comment = element.shadowRoot?.querySelector('[part="tool"][data-tool-id="comment"]') as HTMLButtonElement;
+    const highlight = element.shadowRoot?.querySelector('[part="tool"][data-tool-id="highlight"]') as HTMLButtonElement;
+    comment.focus();
+    comment.click();
+
+    expect(element.activeToolId).toBe("comment");
+    expect(element.shadowRoot?.activeElement).toBe(comment);
+    expect(element.shadowRoot?.querySelector('[part="tool"][data-tool-id="comment"]')).toBe(comment);
+    expect(comment.getAttribute("aria-pressed")).toBe("true");
+    expect(highlight.getAttribute("aria-pressed")).toBe("false");
+    expect(comment.tabIndex).toBe(0);
+    expect(highlight.tabIndex).toBe(-1);
+  });
+
+  it("keeps focus on the clicked color swatch after selection", () => {
+    const element = document.createElement("box-annotation-toolbar") as AnnotationToolbar;
+    element.colorOptions = [
+      { id: "amber", label: "Amber", value: "#f59e0b" },
+      { id: "blue", label: "Blue", value: "#3b82f6" },
+    ];
+
+    document.body.append(element);
+
+    const blue = element.shadowRoot?.querySelector('[part="color"][data-color-id="blue"]') as HTMLButtonElement;
+    blue.focus();
+    blue.click();
+
+    expect(element.currentColor).toBe("#3b82f6");
+    expect(element.shadowRoot?.activeElement).toBe(blue);
+    expect(blue.getAttribute("aria-pressed")).toBe("true");
+    expect(blue.tabIndex).toBe(0);
+  });
+
+  it("omits the swatch style for hostile color values", () => {
+    const element = document.createElement("box-annotation-toolbar") as AnnotationToolbar;
+    element.colorOptions = [
+      { id: "amber", label: "Amber", value: "#f59e0b" },
+      { id: "sneaky", label: "Sneaky", value: "red;background:url(https://evil.example/x)" },
+    ];
+
+    document.body.append(element);
+
+    const safe = element.shadowRoot?.querySelector('[part="color"][data-color-id="amber"]') as HTMLButtonElement;
+    const hostile = element.shadowRoot?.querySelector('[part="color"][data-color-id="sneaky"]') as HTMLButtonElement;
+    expect(safe.getAttribute("style")).toContain("--annotation-color:#f59e0b");
+    expect(hostile.getAttribute("style")).toBeNull();
+  });
+
   it("includes brand focus-visible and interactive states for tools", () => {
     const element = document.createElement("box-annotation-toolbar") as AnnotationToolbar;
     document.body.append(element);
