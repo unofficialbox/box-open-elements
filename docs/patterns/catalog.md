@@ -121,13 +121,40 @@ Headless blocks (see [content-explorer.md](./content-explorer.md) for the compos
 - `line-chart` — **built**
 - `metric-card` — **built**
 
-## Scoped workflow gap candidates
+## Known gaps vs upstream box-ui-elements
 
-From the upstream `box/box-ui-elements` comparison:
+Honest inventory of what upstream ships that has **no counterpart here yet** —
+the roadmap for the next pattern rounds, in rough priority order:
 
-- **Compositions**: `access-stats`, `collaborator-avatars` — **both built** in the Share section above
-- **Workflows**: `unified-share-modal` (Box's most orchestration-heavy share surface), `invite-collaborators-modal` (multi-step, transport-aware), and `presence` (live data subscription) — **all built** in the Share section above
-- Cross-system candidates: coach mark / product tour (sequenced multi-anchor onboarding), timeline / activity feed
+- **ContentPicker** — a constrained explorer shell with choose/cancel footer,
+  `maxSelectable`, and extension filtering. The explorer headless blocks
+  (selection, navigation, collection) are the intended foundation; the picker
+  shell and contract do not exist yet.
+- **ContentUploader** — upload queue with per-file progress/retry/cancel and a
+  chunked-upload transport contract. Only the `box-drop-zone` primitive and
+  generic progress components exist today.
+- **ContentSidebar** — the tabbed details/activity/metadata/versions sidebar.
+  Parts exist scattered (`item-details-panel`, `metadata-inspector`, `tabs`)
+  but there is no composed sidebar or tab-content contract.
+- **Versions** — no version history, restore, or promote surface anywhere.
+- **Comments / activity feed** — `annotation-thread` is annotation-scoped;
+  there is no general comment create/edit/delete/mention contract. (Also the
+  `timeline / activity feed` candidate from earlier rounds.)
+- **ContentOpenWith** — deliberately deferred to a sibling repo.
+- Cross-system candidates: coach mark / product tour (sequenced multi-anchor
+  onboarding).
+
+Previously listed candidates now built: `access-stats`, `collaborator-avatars`
+(compositions), `unified-share-modal`, `invite-collaborators-modal`, `presence`
+(workflows) — see the Share section above.
+
+### Known depth limitations
+
+"Built" does not mean feature-complete against upstream. Current intentional
+limitations, tracked for future rounds: explorer grid view + sortable table
+headers (the headless sort/mutation layer landed first), marker-based
+pagination for >1000-item folders, drag-and-drop, i18n of pattern strings, and
+the static-shell depth of the task / governance / file-request areas.
 
 ## Design rules
 

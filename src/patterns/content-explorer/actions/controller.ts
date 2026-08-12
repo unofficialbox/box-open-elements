@@ -36,7 +36,7 @@ export class ExplorerActionsController extends Controller<ExplorerActionsState, 
     }
 
     const action = this.getItemActions(itemId).find(entry => entry.id === actionId);
-    if (!action) {
+    if (!action || action.disabled) {
       return;
     }
 
@@ -44,6 +44,16 @@ export class ExplorerActionsController extends Controller<ExplorerActionsState, 
   }
 
   private resolveActionsForItem(item: ExplorerItem): ExplorerItemAction[] {
-    return this.itemActions.filter(action => (action.itemTypes ? action.itemTypes.includes(item.type) : true));
+    return this.itemActions
+      .filter(action => (action.itemTypes ? action.itemTypes.includes(item.type) : true))
+      .map(action => {
+        if (!action.requiresPermission) {
+          return action;
+        }
+        // Only an explicit `false` denies: items without permission data keep
+        // the action enabled rather than guessing.
+        const allowed = item.permissions?.[action.requiresPermission] !== false;
+        return allowed ? action : { ...action, disabled: true };
+      });
   }
 }

@@ -10,6 +10,21 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Content Explorer rework (patterns round 1 of the deep patterns review):
+  headless sorting (`setSort` + transport sort params, mapped to the Box API),
+  a mutation layer (`createFolder` / `renameItem` / `deleteItem` transport
+  capabilities, controller methods with post-mutation refresh, and
+  `itemMutated` / `mutationFailed` events), permission-gated item actions
+  (`requiresPermission` on `ExplorerItemAction`, rendered disabled), abortable
+  in-flight loads, and real-Box folder-metadata resolution (a metadata-less
+  first page now fetches `GET /folders/:id` for the name and breadcrumb path).
+  Fixes: ancestor breadcrumb clicks truncate the trail instead of reordering
+  it, `disconnect()` resets to the root consistently, the composed shell no
+  longer steals focus on unrelated state updates, hostile item ids are escaped,
+  and the shell exposes its live controller for adapter pairing. The patterns
+  catalog now carries an honest gap list vs upstream box-ui-elements
+  (ContentPicker, ContentUploader, ContentSidebar, versions, comments).
+
 - Docs-site design pass on the coral accent: the active rail item is now a
   haloed coral dot with a uniform item indent (was a coral edge bar), and
   guidance-card titles (Usage / Best practices / Keyboard) render in coral
