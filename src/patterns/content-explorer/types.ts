@@ -80,6 +80,24 @@ export interface ExplorerItemAction {
   id: string;
   itemTypes?: ExplorerItem["type"][];
   label: string;
+  /**
+   * Permission flag an item must not explicitly deny for this action to be
+   * enabled. An item with the flag `false` gets the action `disabled`; an item
+   * without permission data keeps it enabled (permissions unknown ≠ denied).
+   */
+  requiresPermission?: keyof ExplorerItemPermissions;
+  /** Resolved availability — populated by the actions controller, not authored. */
+  disabled?: boolean;
+}
+
+/** Sort field vocabulary mirroring box-ui-elements' ContentExplorer. */
+export type ExplorerSortBy = "name" | "date" | "size";
+
+export type ExplorerSortDirection = "ASC" | "DESC";
+
+export interface ExplorerSortState {
+  sortBy: ExplorerSortBy;
+  direction: ExplorerSortDirection;
 }
 
 export interface ExplorerFolder {
@@ -102,6 +120,8 @@ export interface ExplorerTransportRequest {
   folderId: string;
   limit?: number;
   offset?: number;
+  sortBy?: ExplorerSortBy;
+  sortDirection?: ExplorerSortDirection;
   token: string;
   language?: string;
   signal?: AbortSignal;
@@ -112,10 +132,37 @@ export interface ExplorerSearchRequest {
   ancestorFolderId?: string;
   limit?: number;
   offset?: number;
+  sortBy?: ExplorerSortBy;
+  sortDirection?: ExplorerSortDirection;
   token: string;
   language?: string;
   signal?: AbortSignal;
 }
+
+/** Shared shape for the mutation requests a transport may support. */
+export interface ExplorerMutationContext {
+  token: string;
+  language?: string;
+  signal?: AbortSignal;
+}
+
+export interface ExplorerCreateFolderRequest extends ExplorerMutationContext {
+  parentFolderId: string;
+  name: string;
+}
+
+export interface ExplorerRenameItemRequest extends ExplorerMutationContext {
+  itemId: string;
+  itemType: ExplorerItem["type"];
+  name: string;
+}
+
+export interface ExplorerDeleteItemRequest extends ExplorerMutationContext {
+  itemId: string;
+  itemType: ExplorerItem["type"];
+}
+
+export type ExplorerMutationKind = "create-folder" | "rename" | "delete";
 
 export interface ExplorerPaginationState {
   hasMoreItems: boolean;
@@ -148,6 +195,9 @@ export interface ExplorerSearchResult {
 export interface ExplorerTransport {
   loadFolderItems(request: ExplorerTransportRequest): Promise<ExplorerTransportResult>;
   searchItems?(request: ExplorerSearchRequest): Promise<ExplorerSearchResult>;
+  createFolder?(request: ExplorerCreateFolderRequest): Promise<ExplorerItem>;
+  renameItem?(request: ExplorerRenameItemRequest): Promise<ExplorerItem>;
+  deleteItem?(request: ExplorerDeleteItemRequest): Promise<void>;
 }
 
 export interface ExplorerFetchLike {
@@ -166,7 +216,7 @@ export interface ExplorerSessionConfig {
 }
 
 export interface ExplorerErrorState {
-  code: "load_failed";
+  code: "load_failed" | "mutation_failed";
   message: string;
 }
 
@@ -181,6 +231,7 @@ export interface ExplorerState {
   loading: boolean;
   pagination: ExplorerPaginationState;
   selectedItemIds: string[];
+  sort: ExplorerSortState | null;
   view: ExplorerViewState;
 }
 
@@ -203,10 +254,22 @@ export interface ExplorerEvents {
   itemActionInvoked: { action: ExplorerItemAction; item: ExplorerItem };
   paginationChanged: { pagination: ExplorerPaginationState };
   selectionChanged: { selectedItemIds: string[] };
+  sortChanged: { sort: ExplorerSortState | null };
   viewChanged: { view: ExplorerViewState };
   searchSucceeded: {
     query: string;
     items: ExplorerItem[];
     pagination: ExplorerPaginationState;
+  };
+  itemMutated: {
+    kind: ExplorerMutationKind;
+    /** Present for create-folder and rename; absent for delete. */
+    item?: ExplorerItem;
+    itemId: string;
+  };
+  mutationFailed: {
+    kind: ExplorerMutationKind;
+    message: string;
+    itemId?: string;
   };
 }

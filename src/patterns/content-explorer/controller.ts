@@ -6,9 +6,13 @@ import { ExplorerSelectionController } from "./selection/controller.js";
 import type {
   ExplorerEvents,
   ExplorerItem,
+  ExplorerMutationKind,
   ExplorerSearchResult,
   ExplorerSelectionMode,
   ExplorerSessionConfig,
+  ExplorerSortBy,
+  ExplorerSortDirection,
+  ExplorerSortState,
   ExplorerState,
   ExplorerTransportResult,
   ExplorerViewState,
@@ -31,6 +35,7 @@ const createInitialState = (config: ExplorerSessionConfig): ExplorerState => ({
     totalCount: null,
   },
   selectedItemIds: [],
+  sort: null,
   view: createInitialExplorerViewState(),
 });
 
@@ -38,6 +43,8 @@ export class ContentExplorerController extends Controller<ExplorerState, Explore
   readonly config: ExplorerSessionConfig;
 
   private activeLoadRequestId = 0;
+
+  private activeLoadAbortController: AbortController | null = null;
 
   private readonly actionsController: ExplorerActionsController;
 
@@ -129,11 +136,22 @@ export class ContentExplorerController extends Controller<ExplorerState, Explore
       return;
     }
 
+    // Invalidate and abort any in-flight load, then reset the sub-controllers
+    // BEFORE snapshotting their state so the facade and navigation agree on
+    // being back at the root.
+    this.activeLoadRequestId += 1;
+    this.activeLoadAbortController?.abort();
+    this.activeLoadAbortController = null;
+    this.collectionController.reset();
+    this.navigationController.reset();
+
     this.setState({
       ...this.state,
+      availableActionsByItemId: {},
       breadcrumbs: [],
       connected: false,
-      currentFolder: this.navigationController.getState().currentFolder,
+      currentFolder: null,
+      currentFolderId: this.config.rootFolderId,
       error: null,
       items: [],
       loading: false,
@@ -142,9 +160,6 @@ export class ContentExplorerController extends Controller<ExplorerState, Explore
       view: createInitialExplorerViewState(),
     });
 
-    this.activeLoadRequestId += 1;
-    this.collectionController.reset();
-    this.navigationController.reset();
     this.emit("viewChanged", { view: this.state.view });
     this.emit("disconnected", undefined);
   }
@@ -314,6 +329,133 @@ export class ContentExplorerController extends Controller<ExplorerState, Explore
     }
   }
 
+  /**
+   * Set (or clear) the collection sort and reload from the first page. The
+   * transport receives the sort with every request; passing `null` restores
+   * the server's default ordering.
+   */
+  async setSort(sort: ExplorerSortState | null): Promise<void>;
+  async setSort(sortBy: ExplorerSortBy, direction: ExplorerSortDirection): Promise<void>;
+  async setSort(
+    sortOrSortBy: ExplorerSortState | ExplorerSortBy | null,
+    direction?: ExplorerSortDirection,
+  ): Promise<void> {
+    const sort: ExplorerSortState | null =
+      sortOrSortBy === null
+        ? null
+        : typeof sortOrSortBy === "string"
+          ? { sortBy: sortOrSortBy, direction: direction ?? "ASC" }
+          : sortOrSortBy;
+
+    const current = this.state.sort;
+    if (current?.sortBy === sort?.sortBy && current?.direction === sort?.direction) {
+      return;
+    }
+
+    this.setState({
+      ...this.state,
+      sort,
+    });
+    this.emit("sortChanged", { sort });
+
+    if (this.state.connected) {
+      this.collectionController.reset();
+      await this.reload();
+    }
+  }
+
+  /** Create a folder in the current folder, then refresh the collection. */
+  async createFolder(name: string): Promise<ExplorerItem | null> {
+    const createFolder = this.config.transport.createFolder;
+    if (!createFolder) {
+      throw new Error("Explorer transport does not support folder creation");
+    }
+    const trimmed = name.trim();
+    if (!trimmed || !this.state.connected) {
+      return null;
+    }
+
+    return this.runMutation("create-folder", undefined, async () => {
+      const item = await createFolder({
+        parentFolderId: this.state.currentFolderId,
+        name: trimmed,
+        token: this.config.token,
+        language: this.config.language,
+      });
+      this.emit("itemMutated", { kind: "create-folder", item, itemId: item.id });
+      return item;
+    });
+  }
+
+  /** Rename an item in the current collection, then refresh. */
+  async renameItem(itemId: string, name: string): Promise<ExplorerItem | null> {
+    const renameItem = this.config.transport.renameItem;
+    if (!renameItem) {
+      throw new Error("Explorer transport does not support rename");
+    }
+    const item = this.state.items.find(entry => entry.id === itemId);
+    const trimmed = name.trim();
+    if (!item || !trimmed || !this.state.connected) {
+      return null;
+    }
+
+    return this.runMutation("rename", itemId, async () => {
+      const renamed = await renameItem({
+        itemId,
+        itemType: item.type,
+        name: trimmed,
+        token: this.config.token,
+        language: this.config.language,
+      });
+      this.emit("itemMutated", { kind: "rename", item: renamed, itemId });
+      return renamed;
+    });
+  }
+
+  /** Delete an item from the current collection, then refresh. */
+  async deleteItem(itemId: string): Promise<boolean> {
+    const deleteItem = this.config.transport.deleteItem;
+    if (!deleteItem) {
+      throw new Error("Explorer transport does not support delete");
+    }
+    const item = this.state.items.find(entry => entry.id === itemId);
+    if (!item || !this.state.connected) {
+      return false;
+    }
+
+    const result = await this.runMutation("delete", itemId, async () => {
+      await deleteItem({
+        itemId,
+        itemType: item.type,
+        token: this.config.token,
+        language: this.config.language,
+      });
+      this.emit("itemMutated", { kind: "delete", itemId });
+      return true;
+    });
+    return result ?? false;
+  }
+
+  private async runMutation<T>(
+    kind: ExplorerMutationKind,
+    itemId: string | undefined,
+    perform: () => Promise<T>,
+  ): Promise<T | null> {
+    try {
+      const result = await perform();
+      await this.reload();
+      return result;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : `Explorer ${kind} failed`;
+      this.setState({
+        ...this.state,
+        error: { code: "mutation_failed", message },
+      });
+      this.emit("mutationFailed", { kind, message, ...(itemId ? { itemId } : {}) });
+      return null;
+    }
+  }
+
   async reload(): Promise<void> {
     await this.loadPage({ append: false });
   }
@@ -338,6 +480,12 @@ export class ContentExplorerController extends Controller<ExplorerState, Explore
     const requestId = this.activeLoadRequestId + 1;
     this.activeLoadRequestId = requestId;
 
+    // Abort the superseded in-flight request so the transport can cancel its
+    // network work; the requestId guard already discards its response.
+    this.activeLoadAbortController?.abort();
+    const abortController = typeof AbortController === "function" ? new AbortController() : null;
+    this.activeLoadAbortController = abortController;
+
     this.setState({
       ...this.state,
       error: null,
@@ -346,6 +494,7 @@ export class ContentExplorerController extends Controller<ExplorerState, Explore
 
     const pagination = this.collectionController.getState().pagination;
     const requestOffset = append ? (pagination.nextOffset ?? this.collectionController.getState().items.length) : 0;
+    const sort = this.state.sort;
 
     try {
       if (this.state.view.mode === "search") {
@@ -359,8 +508,10 @@ export class ContentExplorerController extends Controller<ExplorerState, Explore
           ancestorFolderId: this.state.view.searchAncestorFolderId ?? undefined,
           limit: pagination.limit,
           offset: requestOffset,
+          ...(sort ? { sortBy: sort.sortBy, sortDirection: sort.direction } : {}),
           token: this.config.token,
           language: this.config.language,
+          ...(abortController ? { signal: abortController.signal } : {}),
         });
         this.applyLoadedSearch(requestId, result, append);
         return;
@@ -370,13 +521,19 @@ export class ContentExplorerController extends Controller<ExplorerState, Explore
         folderId: this.state.currentFolderId,
         limit: pagination.limit,
         offset: requestOffset,
+        ...(sort ? { sortBy: sort.sortBy, sortDirection: sort.direction } : {}),
         token: this.config.token,
         language: this.config.language,
+        ...(abortController ? { signal: abortController.signal } : {}),
       });
 
       this.applyLoadedFolder(requestId, result, append);
     } catch (error) {
       this.applyLoadFailure(requestId, error, append);
+    } finally {
+      if (this.activeLoadAbortController === abortController) {
+        this.activeLoadAbortController = null;
+      }
     }
   }
 

@@ -50,6 +50,7 @@ describe("ContentExplorerController", () => {
       language: undefined,
       limit: 100,
       offset: 0,
+      signal: expect.any(AbortSignal),
       token: "token",
     });
     expect(controller.getState()).toMatchObject({
@@ -107,6 +108,7 @@ describe("ContentExplorerController", () => {
       language: undefined,
       limit: 1,
       offset: 0,
+      signal: expect.any(AbortSignal),
       token: "token",
     });
     expect(transport.loadFolderItems).toHaveBeenNthCalledWith(2, {
@@ -114,6 +116,7 @@ describe("ContentExplorerController", () => {
       language: undefined,
       limit: 1,
       offset: 1,
+      signal: expect.any(AbortSignal),
       token: "token",
     });
     expect(controller.getState().items).toEqual([
@@ -234,6 +237,7 @@ describe("ContentExplorerController", () => {
       language: undefined,
       limit: 100,
       offset: 0,
+      signal: expect.any(AbortSignal),
       token: "token",
     });
     expect(controller.getState().currentFolder).toEqual({ id: "0", name: "All Files", type: "folder" });

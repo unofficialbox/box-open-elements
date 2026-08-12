@@ -9,6 +9,7 @@ import {
   type ExplorerSessionConfig,
   type ExplorerItemGesture,
   type ExplorerSelectionMode,
+  type ExplorerSortState,
   type ExplorerState,
   type ExplorerTransport,
 } from "./types.js";
@@ -489,6 +490,31 @@ export class ContentExplorer extends BaseElement {
     this.controller?.invokeItemAction(itemId, actionId);
   }
 
+  async setSort(sort: ExplorerSortState | null): Promise<void> {
+    await this.controller?.setSort(sort);
+  }
+
+  async createFolder(name: string): Promise<ExplorerItem | null> {
+    return (await this.controller?.createFolder(name)) ?? null;
+  }
+
+  async renameItem(itemId: string, name: string): Promise<ExplorerItem | null> {
+    return (await this.controller?.renameItem(itemId, name)) ?? null;
+  }
+
+  async deleteItem(itemId: string): Promise<boolean> {
+    return (await this.controller?.deleteItem(itemId)) ?? false;
+  }
+
+  /**
+   * The live session controller, for pairing the shell with the standalone
+   * adapter elements (`box-explorer-toolbar`, `box-explorer-breadcrumbs`, …)
+   * or host-chrome bindings. Null until connected.
+   */
+  get explorerController(): ContentExplorerController | null {
+    return this.controller;
+  }
+
   private updateStringAttribute(name: string, value: string | null): void {
     if (value === null || value === "") {
       this.removeAttribute(name);
@@ -691,6 +717,7 @@ export class ContentExplorer extends BaseElement {
                       "data-item-id": item.id,
                       part: "item-action",
                       type: "button",
+                      ...(action.disabled ? { disabled: "", "aria-disabled": "true" } : {}),
                     });
                     return this.templatesValue.renderItemAction
                       ? this.templatesValue.renderItemAction({
@@ -723,7 +750,7 @@ export class ContentExplorer extends BaseElement {
                     itemButtonAttributes,
                     state,
                   })
-                : `<li data-item-id="${item.id}" role="presentation">
+                : `<li data-item-id="${escapeHtml(item.id)}" role="presentation">
                     <button ${itemButtonAttributes}><span part="item-name">${escapeHtml(item.name)}</span>${
                       meta ? `<span part="item-meta">${escapeHtml(meta)}</span>` : ""
                     }</button>
@@ -750,13 +777,18 @@ export class ContentExplorer extends BaseElement {
       return;
     }
 
+    // Sample focus BEFORE the rebuild wipes the focused node.
+    const hadFocusInside = this.isFocusInsideHost();
+
     host.innerHTML = `
       <section aria-busy="${state?.loading ? "true" : "false"}">
         ${folderMarkup}
         <p part="status" data-status="${statusText}" role="status" aria-live="polite">${statusText}</p>
         ${errorMarkup}
         <button type="button" part="refresh" aria-label="Refresh items" ${refreshDisabled}>Refresh</button>
-        <ul part="items" role="listbox" aria-label="Explorer items">${itemsMarkup}</ul>
+        <ul part="items" role="listbox" aria-label="Explorer items" aria-multiselectable="${
+          (this.selectionMode ?? "multiple") === "multiple" ? "true" : "false"
+        }">${itemsMarkup}</ul>
         ${loadMoreMarkup ? `<div part="load-more-region">${loadMoreMarkup}</div>` : ""}
       </section>
     `;
@@ -862,7 +894,10 @@ export class ContentExplorer extends BaseElement {
       });
     });
 
-    if (this.focusItemId) {
+    // Restore focus only when it already lived inside this element before the
+    // rebuild — an unrelated state update (loading tick, selection change from
+    // the API) must never steal focus from elsewhere on the page.
+    if (this.focusItemId && hadFocusInside) {
       queueMicrotask(() => {
         const target = Array.from(this.shadowRoot?.querySelectorAll('[part="item"]') ?? []).find(
           node => (node as HTMLButtonElement).dataset.itemId === this.focusItemId,
@@ -870,7 +905,15 @@ export class ContentExplorer extends BaseElement {
         target?.focus();
       });
     }
-  
+  }
+
+  private isFocusInsideHost(): boolean {
+    const active = document.activeElement;
+    if (!active) {
+      return false;
+    }
+
+    return active === this || (this.shadowRoot?.contains(active) ?? false);
   }
 }
 

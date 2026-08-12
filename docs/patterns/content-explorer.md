@@ -22,7 +22,10 @@ A content picker is essentially a constrained explorer shell with a specialized 
 
 Responsibility: auth token, language, transport, root folder, feature flags.
 
-Headless API shape: `ContentExplorerController` with `connect()`, `disconnect()`, `refresh()`.
+Headless API shape: `ContentExplorerController` with `connect()`, `disconnect()`, `refresh()`,
+`setSort(sort)`, and the mutation methods `createFolder(name)`, `renameItem(id, name)`,
+`deleteItem(id)` (each requiring the matching optional transport capability, refreshing the
+collection on success, and emitting `itemMutated` / `mutationFailed`).
 
 This becomes the shared root context for all explorer blocks.
 
@@ -30,7 +33,8 @@ This becomes the shared root context for all explorer blocks.
 
 Responsibility: current folder, breadcrumb path, navigate to folder, back/up behavior.
 
-Headless API shape: `ExplorerNavigationController` with `currentFolder`, `breadcrumbs`, `navigateTo(folderId)`, `navigateUp()`.
+Headless API shape: `ExplorerNavigationController` with `currentFolder`, `breadcrumbs`, `navigateTo(folderId)`
+(navigating to an ancestor crumb truncates the trail back to it; there is no separate `navigateUp()`).
 
 Many custom experiences want a different nav treatment from the default explorer.
 
@@ -38,7 +42,9 @@ Many custom experiences want a different nav treatment from the default explorer
 
 Responsibility: list of visible items, pagination, loading state, refresh state, empty state.
 
-Headless API shape: `ExplorerCollectionController` with `items`, `pagination`, `loadNextPage()`, `refreshCollection()`.
+Headless API shape: `ExplorerCollectionController` with `items`, `pagination`, `startLoading()`,
+`applyLoadResult()`, `applyLoadFailure()`, `canLoadNextPage()` — paging itself is driven by the
+facade's `loadNextPage()` / `reload()`, which also abort a superseded in-flight request.
 
 A grid, table, masonry view, and carousel can all consume the same collection state.
 

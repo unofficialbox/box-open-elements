@@ -127,6 +127,7 @@ describe("ContentExplorer", () => {
       language: undefined,
       limit: 1,
       offset: 1,
+      signal: expect.any(AbortSignal),
       token: "token",
     });
     expect(element.shadowRoot?.textContent).toContain("Page 2");
@@ -314,6 +315,9 @@ describe("ContentExplorer", () => {
     expect(list?.getAttribute("role")).toBe("listbox");
     expect(firstItem?.getAttribute("role")).toBe("option");
 
+    // Real keyboard interaction implies focus inside the element; the shell
+    // only restores focus when it already owns it (no focus stealing).
+    firstItem?.focus();
     firstItem?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
     await flushMicrotasks();
 

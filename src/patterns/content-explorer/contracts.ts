@@ -1,6 +1,9 @@
 import type {
   ExplorerFetchLike,
+  ExplorerItem,
   ExplorerSearchResult,
+  ExplorerSortBy,
+  ExplorerSortDirection,
   ExplorerTransport,
   ExplorerTransportResult,
 } from "./types.js";
@@ -15,6 +18,8 @@ export interface ContentExplorerListFolderInput {
   folderId: string;
   limit?: number;
   offset?: number;
+  sortBy?: ExplorerSortBy;
+  sortDirection?: ExplorerSortDirection;
   context?: ContentExplorerRequestContext;
 }
 
@@ -23,12 +28,36 @@ export interface ContentExplorerSearchInput {
   ancestorFolderId?: string;
   limit?: number;
   offset?: number;
+  sortBy?: ExplorerSortBy;
+  sortDirection?: ExplorerSortDirection;
+  context?: ContentExplorerRequestContext;
+}
+
+export interface ContentExplorerCreateFolderInput {
+  parentFolderId: string;
+  name: string;
+  context?: ContentExplorerRequestContext;
+}
+
+export interface ContentExplorerRenameItemInput {
+  itemId: string;
+  itemType: ExplorerItem["type"];
+  name: string;
+  context?: ContentExplorerRequestContext;
+}
+
+export interface ContentExplorerDeleteItemInput {
+  itemId: string;
+  itemType: ExplorerItem["type"];
   context?: ContentExplorerRequestContext;
 }
 
 export interface ContentExplorerDataSource {
   listFolderItems(input: ContentExplorerListFolderInput): Promise<ExplorerTransportResult>;
   search?(input: ContentExplorerSearchInput): Promise<ExplorerSearchResult>;
+  createFolder?(input: ContentExplorerCreateFolderInput): Promise<ExplorerItem>;
+  renameItem?(input: ContentExplorerRenameItemInput): Promise<ExplorerItem>;
+  deleteItem?(input: ContentExplorerDeleteItemInput): Promise<void>;
 }
 
 export interface ContentExplorerHttpDataSourceOptions {
@@ -59,15 +88,26 @@ const resolveUrlBase = (): string => {
   return "http://localhost";
 };
 
-const defaultListFolderUrl = (baseUrl: string, input: ContentExplorerListFolderInput): string => {
-  const root = baseUrl.replace(/\/$/, "");
-  const url = new URL(`${root}/folders/${encodeURIComponent(input.folderId)}/items`, resolveUrlBase());
+const applyPageAndSortParams = (
+  url: URL,
+  input: { limit?: number; offset?: number; sortBy?: ExplorerSortBy; sortDirection?: ExplorerSortDirection },
+): void => {
   if (typeof input.limit === "number") {
     url.searchParams.set("limit", String(input.limit));
   }
   if (typeof input.offset === "number") {
     url.searchParams.set("offset", String(input.offset));
   }
+  if (input.sortBy) {
+    url.searchParams.set("sortBy", input.sortBy);
+    url.searchParams.set("sortDirection", input.sortDirection ?? "ASC");
+  }
+};
+
+const defaultListFolderUrl = (baseUrl: string, input: ContentExplorerListFolderInput): string => {
+  const root = baseUrl.replace(/\/$/, "");
+  const url = new URL(`${root}/folders/${encodeURIComponent(input.folderId)}/items`, resolveUrlBase());
+  applyPageAndSortParams(url, input);
   return url.toString();
 };
 
@@ -78,12 +118,7 @@ const defaultSearchUrl = (baseUrl: string, input: ContentExplorerSearchInput): s
   if (input.ancestorFolderId) {
     url.searchParams.set("ancestorFolderId", input.ancestorFolderId);
   }
-  if (typeof input.limit === "number") {
-    url.searchParams.set("limit", String(input.limit));
-  }
-  if (typeof input.offset === "number") {
-    url.searchParams.set("offset", String(input.offset));
-  }
+  applyPageAndSortParams(url, input);
   return url.toString();
 };
 
@@ -109,6 +144,8 @@ export const createExplorerTransportFromDataSource = (
         folderId: request.folderId,
         limit: request.limit,
         offset: request.offset,
+        sortBy: request.sortBy,
+        sortDirection: request.sortDirection,
         context: {
           locale: request.language,
           signal: request.signal,
@@ -125,10 +162,43 @@ export const createExplorerTransportFromDataSource = (
         ancestorFolderId: request.ancestorFolderId,
         limit: request.limit,
         offset: request.offset,
+        sortBy: request.sortBy,
+        sortDirection: request.sortDirection,
         context: {
           locale: request.language,
           signal: request.signal,
         },
+      });
+  }
+
+  if (dataSource.createFolder) {
+    const createFolder = dataSource.createFolder.bind(dataSource);
+    transport.createFolder = request =>
+      createFolder({
+        parentFolderId: request.parentFolderId,
+        name: request.name,
+        context: { locale: request.language, signal: request.signal },
+      });
+  }
+
+  if (dataSource.renameItem) {
+    const renameItem = dataSource.renameItem.bind(dataSource);
+    transport.renameItem = request =>
+      renameItem({
+        itemId: request.itemId,
+        itemType: request.itemType,
+        name: request.name,
+        context: { locale: request.language, signal: request.signal },
+      });
+  }
+
+  if (dataSource.deleteItem) {
+    const deleteItem = dataSource.deleteItem.bind(dataSource);
+    transport.deleteItem = request =>
+      deleteItem({
+        itemId: request.itemId,
+        itemType: request.itemType,
+        context: { locale: request.language, signal: request.signal },
       });
   }
 
@@ -141,17 +211,23 @@ export const createHttpContentExplorerDataSource = (
   const fetchImpl = resolveFetch(options.fetch);
   const baseUrl = options.baseUrl ?? "/api/content-explorer";
 
-  const requestJson = async <T>(url: string, input: { context?: ContentExplorerRequestContext }): Promise<T> => {
+  const request = async (
+    url: string,
+    input: { context?: ContentExplorerRequestContext },
+    init: { method: string; body?: unknown } = { method: "GET" },
+  ): Promise<Response> => {
     const response = await fetchImpl(url, {
-      method: "GET",
+      method: init.method,
       credentials: "same-origin",
       cache: "no-store",
       headers: {
         accept: "application/json",
+        ...(init.body !== undefined ? { "content-type": "application/json" } : {}),
         ...(input.context?.locale ? { "accept-language": input.context.locale } : {}),
         ...(input.context?.requestId ? { "x-request-id": input.context.requestId } : {}),
         ...options.headers,
       },
+      ...(init.body !== undefined ? { body: JSON.stringify(init.body) } : {}),
       signal: input.context?.signal,
     });
 
@@ -159,8 +235,19 @@ export const createHttpContentExplorerDataSource = (
       throw new Error(await getErrorMessage(response));
     }
 
+    return response;
+  };
+
+  const requestJson = async <T>(
+    url: string,
+    input: { context?: ContentExplorerRequestContext },
+    init?: { method: string; body?: unknown },
+  ): Promise<T> => {
+    const response = await request(url, input, init);
     return (await response.json()) as T;
   };
+
+  const root = baseUrl.replace(/\/$/, "");
 
   return {
     async listFolderItems(input) {
@@ -170,6 +257,25 @@ export const createHttpContentExplorerDataSource = (
     async search(input) {
       const url = options.buildSearchUrl?.(input) ?? defaultSearchUrl(baseUrl, input);
       return requestJson<ExplorerSearchResult>(url, input);
+    },
+    async createFolder(input) {
+      const url = new URL(`${root}/folders`, resolveUrlBase()).toString();
+      return requestJson<ExplorerItem>(url, input, {
+        method: "POST",
+        body: { parentFolderId: input.parentFolderId, name: input.name },
+      });
+    },
+    async renameItem(input) {
+      const url = new URL(`${root}/items/${encodeURIComponent(input.itemId)}`, resolveUrlBase()).toString();
+      return requestJson<ExplorerItem>(url, input, {
+        method: "PUT",
+        body: { itemType: input.itemType, name: input.name },
+      });
+    },
+    async deleteItem(input) {
+      const url = new URL(`${root}/items/${encodeURIComponent(input.itemId)}`, resolveUrlBase());
+      url.searchParams.set("itemType", input.itemType);
+      await request(url.toString(), input, { method: "DELETE" });
     },
   };
 };

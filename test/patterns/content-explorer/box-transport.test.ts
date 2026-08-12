@@ -177,6 +177,13 @@ describe("createBoxExplorerTransport", () => {
           { status: 200 },
         ),
       )
+      // Metadata-less first page → the transport fetches GET /folders/:id.
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ id: "0", name: "All Files", path_collection: { entries: [] } }),
+          { status: 200 },
+        ),
+      )
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
@@ -217,7 +224,10 @@ describe("createBoxExplorerTransport", () => {
       offset: 0,
       token: "secret",
     });
-    const [searchUrl] = fetchMock.mock.calls[1] as [string];
+    const [searchUrl] = fetchMock.mock.calls[2] as [string];
+    const [infoUrl] = fetchMock.mock.calls[1] as [string];
+    expect(infoUrl).toContain("/folders/0?");
+    expect(infoUrl).toContain("path_collection");
     expect(searchUrl).toContain("/search?");
     expect(searchUrl).toContain("query=hit");
     expect(searchUrl).toContain("ancestor_folder_ids=0");
@@ -244,6 +254,12 @@ describe("createBoxExplorerTransport", () => {
           }),
           { status: 200 },
         ),
+      )
+      // Metadata-less first page → the transport fetches GET /folders/:id.
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ id: "123", name: "Docs", path_collection: { entries: [] } }), {
+          status: 200,
+        }),
       )
       .mockResolvedValueOnce(
         new Response(
@@ -281,6 +297,6 @@ describe("createBoxExplorerTransport", () => {
       token: "secret",
     });
     expect(second.items.map(item => item.id)).toEqual(["2", "3"]);
-    expect(fetchMock.mock.calls[1]?.[0]).toContain("offset=2");
+    expect(fetchMock.mock.calls[2]?.[0]).toContain("offset=2");
   });
 });

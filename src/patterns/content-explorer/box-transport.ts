@@ -1,5 +1,7 @@
 import type {
   ExplorerBreadcrumb,
+  ExplorerCreateFolderRequest,
+  ExplorerDeleteItemRequest,
   ExplorerFetchLike,
   ExplorerFolder,
   ExplorerItem,
@@ -7,8 +9,11 @@ import type {
   ExplorerItemOwner,
   ExplorerItemPermissions,
   ExplorerItemSharedLinkSummary,
+  ExplorerRenameItemRequest,
   ExplorerSearchRequest,
   ExplorerSearchResult,
+  ExplorerSortBy,
+  ExplorerSortDirection,
   ExplorerTransport,
   ExplorerTransportRequest,
   ExplorerTransportResult,
@@ -227,43 +232,60 @@ const resolveFetch = (providedFetch?: ExplorerFetchLike): ExplorerFetchLike => {
   return globalThis.fetch.bind(globalThis) as ExplorerFetchLike;
 };
 
+/** Box folder-items sort param values match our vocabulary directly. */
+const applySortParams = (url: URL, sortBy?: ExplorerSortBy, sortDirection?: ExplorerSortDirection): void => {
+  if (sortBy) {
+    url.searchParams.set("sort", sortBy);
+    url.searchParams.set("direction", sortDirection ?? "ASC");
+  }
+};
+
 const createFolderItemsUrl = (
   apiBaseUrl: string,
   folderId: string,
   fields: string[],
-  limit?: number,
-  offset?: number,
+  request: ExplorerTransportRequest,
 ): string => {
   const url = new URL(`${apiBaseUrl.replace(/\/$/, "")}/folders/${folderId}/items`);
   url.searchParams.set("fields", fields.join(","));
-  if (typeof limit === "number") {
-    url.searchParams.set("limit", String(limit));
+  if (typeof request.limit === "number") {
+    url.searchParams.set("limit", String(request.limit));
   }
-  if (typeof offset === "number") {
-    url.searchParams.set("offset", String(offset));
+  if (typeof request.offset === "number") {
+    url.searchParams.set("offset", String(request.offset));
   }
+  applySortParams(url, request.sortBy, request.sortDirection);
+  return url.toString();
+};
+
+const createFolderInfoUrl = (apiBaseUrl: string, folderId: string): string => {
+  const url = new URL(`${apiBaseUrl.replace(/\/$/, "")}/folders/${folderId}`);
+  url.searchParams.set("fields", "id,name,path_collection");
   return url.toString();
 };
 
 const createSearchUrl = (
   apiBaseUrl: string,
-  query: string,
   fields: string[],
-  ancestorFolderId?: string,
-  limit?: number,
-  offset?: number,
+  request: ExplorerSearchRequest,
 ): string => {
   const url = new URL(`${apiBaseUrl.replace(/\/$/, "")}/search`);
-  url.searchParams.set("query", query);
+  url.searchParams.set("query", request.query);
   url.searchParams.set("fields", fields.join(","));
-  if (ancestorFolderId) {
-    url.searchParams.set("ancestor_folder_ids", ancestorFolderId);
+  if (request.ancestorFolderId) {
+    url.searchParams.set("ancestor_folder_ids", request.ancestorFolderId);
   }
-  if (typeof limit === "number") {
-    url.searchParams.set("limit", String(limit));
+  if (typeof request.limit === "number") {
+    url.searchParams.set("limit", String(request.limit));
   }
-  if (typeof offset === "number") {
-    url.searchParams.set("offset", String(offset));
+  if (typeof request.offset === "number") {
+    url.searchParams.set("offset", String(request.offset));
+  }
+  // Box search only sorts by modified date (or relevance, its default); name
+  // and size sorts stay client concerns there, so only "date" maps through.
+  if (request.sortBy === "date") {
+    url.searchParams.set("sort", "modified_at");
+    url.searchParams.set("direction", (request.sortDirection ?? "DESC") === "ASC" ? "ASC" : "DESC");
   }
   return url.toString();
 };
@@ -304,19 +326,18 @@ export const createBoxExplorerTransport = (options: BoxExplorerTransportOptions 
   const fields = options.fields ?? DEFAULT_FIELDS;
   const fetchImpl = resolveFetch(options.fetch);
 
+  const requestHeaders = (request: { token: string; language?: string }): Record<string, string> => ({
+    Authorization: `Bearer ${request.token}`,
+    "Accept-Language": request.language ?? "en-US",
+  });
+
   return {
     async loadFolderItems(request: ExplorerTransportRequest): Promise<ExplorerTransportResult> {
-      const response = await fetchImpl(
-        createFolderItemsUrl(apiBaseUrl, request.folderId, fields, request.limit, request.offset),
-        {
-          headers: {
-            Authorization: `Bearer ${request.token}`,
-            "Accept-Language": request.language ?? "en-US",
-          },
-          method: "GET",
-          signal: request.signal,
-        },
-      );
+      const response = await fetchImpl(createFolderItemsUrl(apiBaseUrl, request.folderId, fields, request), {
+        headers: requestHeaders(request),
+        method: "GET",
+        signal: request.signal,
+      });
 
       if (!response.ok) {
         throw new Error(await getErrorMessage(response));
@@ -325,10 +346,41 @@ export const createBoxExplorerTransport = (options: BoxExplorerTransportOptions 
       const payload = (await response.json()) as BoxFolderItemsResponse;
       const rawEntries = payload.entries ?? [];
       const { entries } = normalizeItems(rawEntries);
-      const folder = normalizeFolder(payload, request.folderId);
+
+      // The real `GET /folders/:id/items` payload carries no folder metadata
+      // (no id/name/path_collection), which would degrade the folder header
+      // and breadcrumbs to raw ids. When the first page lacks it, fetch
+      // `GET /folders/:id` for the metadata — best-effort: a failed info
+      // request keeps the listing usable rather than failing it.
+      let folderSource = payload;
+      const missingMetadata =
+        payload.name === undefined || payload.id === undefined || payload.path_collection === undefined;
+      if (!request.offset && missingMetadata) {
+        const info = await Promise.resolve()
+          .then(() =>
+            fetchImpl(createFolderInfoUrl(apiBaseUrl, request.folderId), {
+              headers: requestHeaders(request),
+              method: "GET",
+              signal: request.signal,
+            }),
+          )
+          .then(infoResponse =>
+            infoResponse?.ok ? (infoResponse.json() as Promise<BoxFolderItemsResponse>) : null,
+          )
+          .catch(() => null);
+        if (info) {
+          folderSource = {
+            ...payload,
+            id: payload.id ?? info.id,
+            name: payload.name ?? info.name,
+            path_collection: payload.path_collection ?? info.path_collection,
+          };
+        }
+      }
+      const folder = normalizeFolder(folderSource, request.folderId);
 
       return {
-        breadcrumbs: normalizeBreadcrumbs(payload, folder),
+        breadcrumbs: normalizeBreadcrumbs(folderSource, folder),
         folder,
         folderId: request.folderId,
         items: entries,
@@ -337,24 +389,11 @@ export const createBoxExplorerTransport = (options: BoxExplorerTransportOptions 
     },
 
     async searchItems(request: ExplorerSearchRequest): Promise<ExplorerSearchResult> {
-      const response = await fetchImpl(
-        createSearchUrl(
-          apiBaseUrl,
-          request.query,
-          fields,
-          request.ancestorFolderId,
-          request.limit,
-          request.offset,
-        ),
-        {
-          headers: {
-            Authorization: `Bearer ${request.token}`,
-            "Accept-Language": request.language ?? "en-US",
-          },
-          method: "GET",
-          signal: request.signal,
-        },
-      );
+      const response = await fetchImpl(createSearchUrl(apiBaseUrl, fields, request), {
+        headers: requestHeaders(request),
+        method: "GET",
+        signal: request.signal,
+      });
 
       if (!response.ok) {
         throw new Error(await getErrorMessage(response));
@@ -370,6 +409,64 @@ export const createBoxExplorerTransport = (options: BoxExplorerTransportOptions 
         items: entries,
         pagination: toPagination(payload, rawEntries.length, request),
       };
+    },
+
+    async createFolder(request: ExplorerCreateFolderRequest): Promise<ExplorerItem> {
+      const response = await fetchImpl(`${apiBaseUrl.replace(/\/$/, "")}/folders`, {
+        headers: { ...requestHeaders(request), "Content-Type": "application/json" },
+        method: "POST",
+        body: JSON.stringify({ name: request.name, parent: { id: request.parentFolderId } }),
+        signal: request.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+      }
+
+      const payload = (await response.json()) as BoxFolderItem;
+      const item = normalizeBoxExplorerItem(payload);
+      if (!item) {
+        throw new Error("Box API returned an unsupported item for the created folder");
+      }
+      return item;
+    },
+
+    async renameItem(request: ExplorerRenameItemRequest): Promise<ExplorerItem> {
+      const segment = request.itemType === "folder" ? "folders" : request.itemType === "web_link" ? "web_links" : "files";
+      const response = await fetchImpl(`${apiBaseUrl.replace(/\/$/, "")}/${segment}/${request.itemId}`, {
+        headers: { ...requestHeaders(request), "Content-Type": "application/json" },
+        method: "PUT",
+        body: JSON.stringify({ name: request.name }),
+        signal: request.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+      }
+
+      const payload = (await response.json()) as BoxFolderItem;
+      const item = normalizeBoxExplorerItem(payload);
+      if (!item) {
+        throw new Error("Box API returned an unsupported item for the rename");
+      }
+      return item;
+    },
+
+    async deleteItem(request: ExplorerDeleteItemRequest): Promise<void> {
+      const segment = request.itemType === "folder" ? "folders" : request.itemType === "web_link" ? "web_links" : "files";
+      const url = new URL(`${apiBaseUrl.replace(/\/$/, "")}/${segment}/${request.itemId}`);
+      if (request.itemType === "folder") {
+        url.searchParams.set("recursive", "true");
+      }
+      const response = await fetchImpl(url.toString(), {
+        headers: requestHeaders(request),
+        method: "DELETE",
+        signal: request.signal,
+      });
+
+      if (!response.ok && response.status !== 204) {
+        throw new Error(await getErrorMessage(response));
+      }
     },
   };
 };

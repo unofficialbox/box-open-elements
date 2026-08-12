@@ -35,15 +35,19 @@ export class ExplorerNavigationController extends Controller<
       return null;
     }
 
-    const nextFolder: ExplorerFolder = {
-      id: folderId,
-      name: folderId,
-      type: "folder",
-    };
-    const nextBreadcrumbs: ExplorerBreadcrumb[] = [
-      ...this.state.breadcrumbs.filter(crumb => crumb.id !== folderId),
-      nextFolder,
-    ];
+    // Navigating to a crumb already in the trail truncates back to it (a
+    // breadcrumb is a path, so an ancestor click must drop its descendants);
+    // navigating anywhere else appends a provisional crumb that the loaded
+    // folder's real metadata replaces via applyLoadedFolder.
+    const existingIndex = this.state.breadcrumbs.findIndex(crumb => crumb.id === folderId);
+    const nextFolder: ExplorerFolder =
+      existingIndex >= 0
+        ? { ...this.state.breadcrumbs[existingIndex], type: "folder" }
+        : { id: folderId, name: folderId, type: "folder" };
+    const nextBreadcrumbs: ExplorerBreadcrumb[] =
+      existingIndex >= 0
+        ? this.state.breadcrumbs.slice(0, existingIndex + 1)
+        : [...this.state.breadcrumbs, nextFolder];
 
     this.setState({
       breadcrumbs: nextBreadcrumbs,
