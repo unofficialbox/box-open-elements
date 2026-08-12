@@ -30,6 +30,19 @@ describe("AnnotationThread", () => {
     expect(element.shadowRoot?.textContent).toContain("Resolved after export.");
   });
 
+  it("patches action labels in place for IDs that would break a CSS selector", () => {
+    const element = document.createElement("box-annotation-thread") as AnnotationThread;
+    element.actions = [{ id: 'resolve\n"all"', label: "Resolve" }];
+    document.body.append(element);
+
+    const button = element.shadowRoot?.querySelector('[part="action"]') as HTMLButtonElement;
+    element.actions = [{ id: 'resolve\n"all"', label: "Resolve all", tone: "primary" }];
+
+    expect(element.shadowRoot?.querySelector('[part="action"]')).toBe(button);
+    expect(button.textContent?.trim()).toBe("Resolve all");
+    expect(button.dataset.tone).toBe("primary");
+  });
+
   it("emits entry-selected when an entry is clicked", () => {
     const element = document.createElement("box-annotation-thread") as AnnotationThread;
     const selected = vi.fn();

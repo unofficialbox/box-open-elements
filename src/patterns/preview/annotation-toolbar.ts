@@ -16,9 +16,6 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-const escapeSelectorValue = (value: string): string =>
-  value.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
-
 const isSafeColorValue = (value: string): boolean =>
   /^#[0-9a-fA-F]{3,8}$/.test(value) || /^[a-zA-Z]+$/.test(value);
 
@@ -524,10 +521,13 @@ export class AnnotationToolbar extends BaseElement {
   }
 
   private patchActionLabels(): void {
+    // Action IDs are arbitrary strings (quotes, newlines, …) — match on the
+    // dataset instead of interpolating them into a CSS selector.
+    const buttons = Array.from(
+      this.actionsEl.querySelectorAll<HTMLButtonElement>('[part="action"]'),
+    );
     this.actions.forEach(action => {
-      const button = this.actionsEl.querySelector(
-        `[data-action-id="${escapeSelectorValue(action.id)}"]`,
-      ) as HTMLButtonElement | null;
+      const button = buttons.find(candidate => candidate.dataset.actionId === action.id);
       if (!button) {
         return;
       }

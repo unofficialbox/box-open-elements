@@ -17,9 +17,6 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-const escapeSelectorValue = (value: string): string =>
-  value.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
-
 export type AnnotationThreadAction = {
   id: string;
   label: string;
@@ -434,10 +431,13 @@ export class AnnotationThread extends BaseElement {
   }
 
   private patchActionLabels(): void {
+    // Action IDs are arbitrary strings (quotes, newlines, …) — match on the
+    // dataset instead of interpolating them into a CSS selector.
+    const buttons = Array.from(
+      this.actionsEl.querySelectorAll<HTMLButtonElement>('[part="action"]'),
+    );
     this.actions.forEach(action => {
-      const button = this.actionsEl.querySelector(
-        `[data-action-id="${escapeSelectorValue(action.id)}"]`,
-      ) as HTMLButtonElement | null;
+      const button = buttons.find(candidate => candidate.dataset.actionId === action.id);
       if (!button) {
         return;
       }

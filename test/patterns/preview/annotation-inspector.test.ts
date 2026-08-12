@@ -38,6 +38,19 @@ describe("AnnotationInspector", () => {
     expect(element.shadowRoot?.textContent).toContain("Agreed, I’ll update the draft.");
   });
 
+  it("patches action labels in place for IDs that would break a CSS selector", () => {
+    const element = document.createElement("box-annotation-inspector") as AnnotationInspector;
+    element.actions = [{ id: 'resolve\n"now"', label: "Resolve" }];
+    document.body.append(element);
+
+    const button = element.shadowRoot?.querySelector('[part="action"]') as HTMLButtonElement;
+    element.actions = [{ id: 'resolve\n"now"', label: "Resolve thread", tone: "primary" }];
+
+    expect(element.shadowRoot?.querySelector('[part="action"]')).toBe(button);
+    expect(button.textContent?.trim()).toBe("Resolve thread");
+    expect(button.dataset.tone).toBe("primary");
+  });
+
   it("emits action when an action button is clicked", () => {
     const element = document.createElement("box-annotation-inspector") as AnnotationInspector;
     const action = vi.fn();

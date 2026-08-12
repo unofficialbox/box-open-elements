@@ -139,6 +139,57 @@ describe("AnnotationToolbar", () => {
     expect(hostile.getAttribute("style")).toBeNull();
   });
 
+  it("toggles the actions section as actions are removed and restored", () => {
+    const element = document.createElement("box-annotation-toolbar") as AnnotationToolbar;
+    document.body.append(element);
+
+    const section = element.shadowRoot
+      ?.querySelector('[part="actions"]')
+      ?.closest("section") as HTMLElement;
+    expect(section.hidden).toBe(true);
+
+    element.actions = [{ id: "undo", label: "Undo" }];
+    expect(section.hidden).toBe(false);
+
+    element.actions = [];
+    expect(section.hidden).toBe(true);
+  });
+
+  it("patches action labels in place for IDs that would break a CSS selector", () => {
+    const element = document.createElement("box-annotation-toolbar") as AnnotationToolbar;
+    element.actions = [{ id: 'undo\n"all"', label: "Undo" }];
+    document.body.append(element);
+
+    const button = element.shadowRoot?.querySelector('[part="action"]') as HTMLButtonElement;
+    element.actions = [{ id: 'undo\n"all"', label: "Undo everything", tone: "primary" }];
+
+    expect(element.shadowRoot?.querySelector('[part="action"]')).toBe(button);
+    expect(button.textContent?.trim()).toBe("Undo everything");
+    expect(button.dataset.tone).toBe("primary");
+  });
+
+  it("moves focus between tools with ArrowRight and ArrowLeft", async () => {
+    const element = document.createElement("box-annotation-toolbar") as AnnotationToolbar;
+    element.tools = [
+      { id: "highlight", label: "Highlight", icon: "H" },
+      { id: "comment", label: "Comment", icon: "C" },
+    ];
+    document.body.append(element);
+
+    const highlight = element.shadowRoot?.querySelector('[data-tool-id="highlight"]') as HTMLButtonElement;
+    const comment = element.shadowRoot?.querySelector('[data-tool-id="comment"]') as HTMLButtonElement;
+    highlight.focus();
+
+    // focusRovingItem defers the focus() call to a microtask.
+    highlight.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    await Promise.resolve();
+    expect(element.shadowRoot?.activeElement).toBe(comment);
+
+    comment.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+    await Promise.resolve();
+    expect(element.shadowRoot?.activeElement).toBe(highlight);
+  });
+
   it("includes brand focus-visible and interactive states for tools", () => {
     const element = document.createElement("box-annotation-toolbar") as AnnotationToolbar;
     document.body.append(element);
