@@ -56,6 +56,12 @@ export type AnnotationInspectorReplySubmittedDetail = {
 
 
 const elementStyles = `
+        /* Author display rules on parts would otherwise defeat the UA's
+           [hidden] rule — state toggling relies on the hidden attribute. */
+        [hidden] {
+          display: none !important;
+        }
+
         :host {
           display: block;
           color: inherit;
