@@ -38,8 +38,8 @@ chrome, cards, tables and prose retheme automatically.
   56px tall; the rail and stage sit beneath it (`top: 56px`). The same blue/coral
   `B/` mark appears in `favicon.svg` on a navy rounded-square field.
 - **Rail** (`.rail`) — 272px deep-navy sidebar, always navy in both themes.
-  Active item fills solid coral with ink text; the active tier tab fills blue
-  (the two halves of the accent pair). The
+  Active item gets a soft coral-tinted pill with a leading coral dot; the
+  active tier tab fills blue. The
   tier tabs use sentence case and content widths — uppercase or equal thirds
   overflow the rail and truncate. Rail scroll is persisted in `sessionStorage`
   so clicking an item (a full page load on the static build) doesn't jump the
