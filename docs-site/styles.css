@@ -294,10 +294,13 @@ body {
 .rail-group { display: grid; gap: 1px; }
 
 .rail-item {
+  position: relative;
   font: inherit;
   font-size: 13.5px;
   text-align: left;
-  padding: 6px 10px;
+  /* Uniform left gutter on every item so the active dot never shifts the
+     label — active and inactive items share the same text indent. */
+  padding: 6px 10px 6px 24px;
   border: none;
   border-radius: 7px;
   background: transparent;
@@ -307,11 +310,23 @@ body {
 }
 
 .rail-item:hover { background: rgba(255, 255, 255, 0.07); color: #ffffff; }
+/* Active page: no fill — just a coral dot with a soft coral halo sitting in
+   the shared gutter, plus bold white text. */
 .rail-item[aria-current="page"] {
-  background: rgba(8, 102, 217, 0.22);
   color: #ffffff;
   font-weight: 600;
-  box-shadow: inset 3px 0 0 var(--community-coral);
+}
+.rail-item[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-coral);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-coral) 30%, transparent);
+  transform: translateY(-50%);
 }
 .rail-item:focus-visible { outline: 2px solid var(--community-sky); outline-offset: -2px; }
 
