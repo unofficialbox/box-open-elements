@@ -10,6 +10,12 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Docs-site design pass on the coral accent: the active rail item is now a
+  haloed coral dot with a uniform item indent (was a coral edge bar), and
+  guidance-card titles (Usage / Best practices / Keyboard) render in coral
+  with the card edge bar removed. Added an opt-in `[regen-baselines]` CI
+  workflow that adopts container-rendered visual baselines from the runner,
+  for environments that can't run the pinned container locally.
 - Added the committed conformance-program home (`docs/audits/README.md`): the
   three audits, the verdict model, current coverage, the surveyed-and-skipped
   list, and the quarterly snapshot refresh runbook (next due ≈ 2026-10-18);
