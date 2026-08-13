@@ -50,9 +50,10 @@ describe("resolveSidebarTabs", () => {
     ]);
   });
 
-  it("lets an explicit configuration win verbatim", () => {
+  it("lets an explicit configuration win verbatim, including an empty one", () => {
     const configured = [{ id: "custom", label: "Custom" }];
     expect(resolveSidebarTabs(configured, new Set(["details"]))).toEqual(configured);
+    expect(resolveSidebarTabs([], new Set(["details"]))).toEqual([]);
   });
 
   it("exposes the four upstream tabs as defaults", () => {
@@ -148,6 +149,29 @@ describe("box-content-sidebar", () => {
     expect(element.resolvedTabs.map(tab => tab.id)).toEqual(["insights", "details"]);
     const tabsHost = element.shadowRoot?.querySelector('[part="tabs"]');
     expect(tabsHost?.shadowRoot?.textContent).toContain("Insights");
+  });
+
+  it("treats an explicit empty tabs configuration as no tabs", async () => {
+    const element = await mountSidebar(el => {
+      el.tabs = [];
+      el.append(panel("details", "D"));
+    });
+
+    expect(element.resolvedTabs).toEqual([]);
+    expect((element.shadowRoot?.querySelector('[part="empty"]') as HTMLElement).hidden).toBe(false);
+  });
+
+  it("ignores malformed tabs payloads and falls back to slot detection", async () => {
+    const element = await mountSidebar(el => {
+      el.append(panel("details", "D"));
+    });
+
+    for (const payload of ["[null]", '[{"id":1,"label":"Bad"}]', '[{"id":"","label":"Bad"}]', "{}", "not json"]) {
+      element.setAttribute("tabs", payload);
+      await flush();
+      expect(element.tabs).toBeNull();
+      expect(element.resolvedTabs.map(tab => tab.id)).toEqual(["details"]);
+    }
   });
 
   it("collapses and expands with the toggle, announcing state", async () => {

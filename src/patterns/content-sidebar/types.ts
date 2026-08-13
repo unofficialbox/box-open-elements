@@ -17,15 +17,16 @@ export const DEFAULT_SIDEBAR_TABS: readonly SidebarTab[] = [
 
 /**
  * Resolve which tabs the sidebar shows. An explicit configuration wins
- * verbatim (the host is declaring its surface); otherwise the default tabs
- * are filtered to the ones with slotted panel content, so an integration
- * that only provides a details panel gets a details-only sidebar.
+ * verbatim (the host is declaring its surface — an empty array means "no
+ * tabs", not "use the defaults"); otherwise the default tabs are filtered
+ * to the ones with slotted panel content, so an integration that only
+ * provides a details panel gets a details-only sidebar.
  */
 export const resolveSidebarTabs = (
   configured: readonly SidebarTab[] | null,
   presentSlots: ReadonlySet<string>,
 ): SidebarTab[] => {
-  if (configured?.length) {
+  if (configured) {
     return [...configured];
   }
 

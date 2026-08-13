@@ -15,6 +15,16 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
+/** Attribute payloads are author input — validate every record, not just the array. */
+const isSidebarTabRecord = (value: unknown): value is SidebarTab => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const tab = value as Record<string, unknown>;
+  return typeof tab.id === "string" && tab.id.length > 0 && typeof tab.label === "string";
+};
+
 
 const elementStyles = `
         :host {
@@ -122,7 +132,11 @@ export class ContentSidebar extends BaseElement {
     this.setAttribute("heading", value);
   }
 
-  /** Explicit tab configuration; JSON `[{"id","label"}]`. Overrides slot detection. */
+  /**
+   * Explicit tab configuration; JSON `[{"id","label"}]`. Overrides slot
+   * detection — an explicit `[]` renders no tabs. Malformed payloads
+   * (non-array JSON, records without a string id/label) are ignored.
+   */
   get tabs(): SidebarTab[] | null {
     const raw = this.getAttribute("tabs");
     if (!raw) {
@@ -130,15 +144,15 @@ export class ContentSidebar extends BaseElement {
     }
 
     try {
-      const parsed = JSON.parse(raw) as SidebarTab[];
-      return Array.isArray(parsed) ? parsed : null;
+      const parsed: unknown = JSON.parse(raw);
+      return Array.isArray(parsed) && parsed.every(isSidebarTabRecord) ? parsed : null;
     } catch {
       return null;
     }
   }
 
   set tabs(value: SidebarTab[] | null) {
-    if (value?.length) {
+    if (value) {
       this.setAttribute("tabs", JSON.stringify(value));
       return;
     }

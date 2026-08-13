@@ -10,8 +10,8 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
-- Content Sidebar (patterns round 3d): new `content-sidebar` pattern closing
-  the last workflow entry of the catalog's known-gaps list. The
+- Content Sidebar (patterns round 3d): new `content-sidebar` composition
+  pattern closing the ContentSidebar entry of the catalog's known-gaps list. The
   `box-content-sidebar` element composes the catalog's `box-tabs` into the
   upstream tabbed details/activity/metadata/versions shell: hosts supply
   panels through named slots (`slot="details"` etc.), and
