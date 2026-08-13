@@ -10,6 +10,23 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Work Queue (patterns round 4e — opportunity 5 of the component roadmap):
+  new `work-queue` workflow pattern with two projections over one headless
+  session. `WorkQueueController` runs filtered, abort-superseded loads over
+  a narrow `WorkQueueTransport` (`loadItems` plus optional
+  claim/reassign/complete/escalate capabilities) with mutation-then-reload
+  and full lifecycle events. `box-work-queue` is the individual triage
+  list — rows grouped by pure due buckets (Overdue → Due today → Due this
+  week → Later; deterministic via `reference-time`), risk/priority badges,
+  per-row Claim/Complete/Escalate, and Reassign surfaced as a
+  `reassign-requested` intent event for the host's confirm-before-apply
+  flow. `box-workload-board` is the supervisor view — swimlanes by
+  assignee (roster-ordered with visible spare capacity, overdue counts,
+  `wip-limit` over-capacity flags) or by status (the pipeline/kanban
+  projection), with a summary strip. Both elements accept an external
+  `queueController` to share one session on the same page. Drag-and-drop
+  lane moves are a tracked depth limitation.
+
 - Diff viewer (patterns round 4d — CLM gap 2, the M1-critical clause
   comparison surface): new `diff` pattern with a pure, DOM-free engine —
   line-level LCS (prefix/suffix trim; a DP-size cap degrades to

@@ -51,6 +51,11 @@ src/patterns/
     types.ts          # built — segment/row/stats model
     engine.ts         # built — pure line+word diff engine
     diff-viewer.ts    # built — box-diff-viewer split/inline shell
+  work-queue/
+    types.ts          # built — WorkItem model, transport contract, due buckets, workload lanes
+    controller.ts     # built — headless queue session (filters, mutations)
+    work-queue.ts     # built — box-work-queue individual triage list
+    workload-board.ts # built — box-workload-board supervisor swimlanes
   preview/          # built — provider adapter, content-preview adapter, annotations, box-preview-element
   search/             # built — filter-bar, saved-view-picker, search-results-header
   item/             # built — item-form, item-details-panel, bulk-action-bar, preview-header
@@ -141,6 +146,18 @@ version-graph and clause-lineage surfaces —
 
 - `engine` (pure and DOM-free: line-level LCS with prefix/suffix trim and a DP-size cap that degrades to whole-replacement, similar-line pairing into `changed` rows, word-level segments with whitespace coalescing, stats + navigable change ranges) — **built**
 - composed surface: `box-diff-viewer` (side-by-side `split` and unified `inline` modes over one table — synchronized scrolling by construction, per-document line-number gutters, `del`/`ins` word-level semantics, stats chip, prev/next change navigation emitting `change-focused`, escaped content) — **built**
+
+### Work Queue (workflow)
+
+Governed task queues in two projections over one session (opportunity 5 of
+`plans/component-opportunities.md`; upgrades the task area beyond its
+static shells):
+
+- `types` (`WorkItem` model with an open `type` vocabulary, `WorkQueueTransport` — `loadItems` + optional `claim`/`reassign`/`complete`/`escalate` capabilities, pure `resolveDueBucket` urgency buckets and `summarizeWorkload` per-assignee lanes) — **built**
+- `controller` (`WorkQueueController`: filtered loads with abort-superseded requests, mutation-with-reload, capability guards, full lifecycle events) — **built**
+- composed surface: `box-work-queue` (individual triage list grouped Overdue → Due today → Due this week → Later, per-row Claim/Complete/Escalate wired to the controller, Reassign surfaced as `reassign-requested` intent for the host's confirm-before-apply modal, `item-selected` row activation, deterministic `reference-time`) — **built**
+- composed surface: `box-workload-board` (supervisor swimlanes by `assignee` — roster-ordered with visible spare capacity, overdue counts, `wip-limit` over-capacity flagging — or by `status` for the pipeline/kanban view; summary strip; cards emit `item-selected` and `reassign-requested`) — **built**
+- Both elements accept an external `queueController` so one session drives the queue and the board on the same page. Drag-and-drop lane moves are a tracked depth limitation (reassignment ships as intent events).
 
 ### Preview (workflow + compositions)
 
