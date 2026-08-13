@@ -63,6 +63,15 @@ describe("computeTextDiff", () => {
     expect(result.rows[second!.start]?.kind).not.toBe("equal");
   });
 
+  it("normalizes CRLF/CR line endings before comparing", () => {
+    const result = computeTextDiff("a\r\nb\r\nc", "a\nb\nc");
+    expect(result.stats).toEqual({ added: 0, removed: 0, changed: 0 });
+    expect(result.rows.every(row => row.kind === "equal")).toBe(true);
+
+    const legacyMac = computeTextDiff("a\rb", "a\nb\nc");
+    expect(legacyMac.stats).toEqual({ added: 1, removed: 0, changed: 0 });
+  });
+
   it("handles empty documents", () => {
     expect(computeTextDiff("", "").rows).toEqual([]);
     const onlyAfter = computeTextDiff("", "a\nb");

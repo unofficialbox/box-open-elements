@@ -139,6 +139,24 @@ describe("box-diff-viewer", () => {
     expect(element.diff?.stats.added).toBe(2);
   });
 
+  it("patches column labels and the aria-label in place when labels change", async () => {
+    const element = await mountViewer();
+    const table = element.shadowRoot?.querySelector('[part="table"]');
+
+    element.beforeLabel = "Executed v2";
+    element.afterLabel = "Redline v3";
+    element.heading = "Clause comparison";
+    await flush();
+
+    const patched = element.shadowRoot?.querySelector('[part="table"]');
+    expect(patched).toBe(table);
+    expect(patched?.getAttribute("aria-label")).toBe("Clause comparison: Executed v2 vs Redline v3");
+    const labels = Array.from(patched?.querySelectorAll('[part="column-label"]') ?? []).map(
+      cell => cell.textContent,
+    );
+    expect(labels).toEqual(["Executed v2", "Redline v3"]);
+  });
+
   it("escapes markup in document content", async () => {
     const element = await mountViewer(el => {
       el.beforeText = "safe";

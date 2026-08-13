@@ -23,7 +23,7 @@ workflow pattern, not a widget:
   attachments (composes `box-content-picker` to attach content to the
   conversation), and two message-card types that matter more than the
   bubbles: **citation/evidence chips** (same contract as `box-timeline`
-  evidence, deep-linking into `preview-element`) and **HITL action
+  evidence, deep-linking into `box-preview-element`) and **HITL action
   cards** — the agent proposes an action, the card renders
   Approve/Reject/Modify inline. The HITL card *is* the CLM
   "human-governed AI recommendations" requirement, delivered where the
@@ -122,7 +122,7 @@ static-shell depth. One work-item model, two projections:
 
 - **`box-stage-path`** — horizontal chevron lifecycle tracker (Draft →
   In Review → Approved → Executed), Salesforce-Path-style; every record
-  header wants it. (`progress-steps` is a vertical setup rail — a
+  header wants it. (`box-progress-steps` is a vertical setup rail — a
   different affordance.)
 - **Notification inbox** — bell + inbox panel (read/unread, entity
   links, grouped by type) for approvals waiting / SLA breaches /

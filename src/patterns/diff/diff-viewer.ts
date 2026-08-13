@@ -441,8 +441,9 @@ export class DiffViewer extends BaseElement {
     this.scrollerEl.hidden = !hasContent;
 
     // The diff and the table rebuild only when the inputs (or mode) change;
-    // navigation just re-marks the active rows.
-    const signature = JSON.stringify([before.length, after.length, this.mode, before, after]);
+    // navigation re-marks the active rows and label/heading changes patch the
+    // header cells + aria-label in place (see below), preserving the table.
+    const signature = [this.mode, String(before.length), String(after.length), before, after].join(" ");
     if (signature !== this.resultSignature) {
       this.resultSignature = signature;
       this.result = hasContent ? computeTextDiff(before, after) : null;
@@ -461,6 +462,20 @@ export class DiffViewer extends BaseElement {
         row.dataset.active =
           activeRange && index >= activeRange.start && index <= activeRange.end ? "true" : "false";
       });
+    }
+
+    // Labels and heading are patched into the existing table so renaming a
+    // column (or the heading) never resets scroll position or row identity.
+    const table = this.scrollerEl.querySelector('[part="table"]');
+    if (table) {
+      table.setAttribute("aria-label", `${this.heading}: ${this.beforeLabel} vs ${this.afterLabel}`);
+      const labels = table.querySelectorAll('[part="column-label"]');
+      if (this.mode === "inline") {
+        labels[1]!.textContent = `${this.beforeLabel} → ${this.afterLabel}`;
+      } else {
+        labels[0]!.textContent = this.beforeLabel;
+        labels[1]!.textContent = this.afterLabel;
+      }
     }
 
     const stats = this.result?.stats ?? { added: 0, removed: 0, changed: 0 };

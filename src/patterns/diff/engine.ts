@@ -180,8 +180,12 @@ const isChangedPair = (before: string, after: string): boolean => {
  * enough; otherwise they stay as distinct removals and additions.
  */
 export const computeTextDiff = (before: string, after: string): DiffResult => {
-  const beforeLines = before.length ? before.split("\n") : [];
-  const afterLines = after.length ? after.split("\n") : [];
+  // Normalize EOL styles first — two documents differing only in CRLF vs LF
+  // must not read as a full-document replacement.
+  const toLines = (text: string): string[] =>
+    text.length ? text.replaceAll("\r\n", "\n").replaceAll("\r", "\n").split("\n") : [];
+  const beforeLines = toLines(before);
+  const afterLines = toLines(after);
   const ops = editScript(beforeLines, afterLines);
 
   const rows: DiffRow[] = [];
