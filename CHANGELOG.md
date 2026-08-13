@@ -10,6 +10,21 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Diff viewer (patterns round 4d — CLM gap 2, the M1-critical clause
+  comparison surface): new `diff` pattern with a pure, DOM-free engine —
+  line-level LCS (prefix/suffix trim; a DP-size cap degrades to
+  whole-replacement instead of blowing up on hostile input), similar
+  removed/added lines paired into `changed` rows, word-level segments
+  with whitespace coalescing, and stats plus navigable change ranges.
+  `box-diff-viewer` renders `split` (side-by-side) and `inline` (unified)
+  modes from one table — synchronized scrolling by construction —
+  with per-document line-number gutters, `del`/`ins` word-level
+  semantics, a stats chip, and prev/next change navigation emitting
+  `change-focused`. Also adds `plans/component-opportunities.md`: the
+  five roadmap-review opportunity areas (AI agent chat, clause lineage,
+  audit aggregation, git-style version graph, work-queue family) with
+  designs and the resequenced build order.
+
 - Timeline (patterns round 4c — CLM gap 3): new `timeline` composition
   pattern, the append-only activity feed the approvals history, audit
   trail, and sidebar `activity` tab all need. `box-timeline` renders a
