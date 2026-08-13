@@ -96,6 +96,10 @@
       "types": "./dist/patterns/work-queue/index.d.ts",
       "import": "./dist/patterns/work-queue/index.js"
     },
+    "./patterns/versions": {
+      "types": "./dist/patterns/versions/index.d.ts",
+      "import": "./dist/patterns/versions/index.js"
+    },
     "./patterns/search": {
       "types": "./dist/patterns/search/index.d.ts",
       "import": "./dist/patterns/search/index.js"

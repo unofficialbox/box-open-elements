@@ -10,6 +10,23 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Versions (patterns round 4f — CLM gap 5 + opportunity 4 of the component
+  roadmap): new `versions` workflow pattern — one branch/merge history
+  model, two projections. `VersionNode` carries topology through a
+  `parents[]` array exactly as git does; the pure `computeVersionGraphLayout`
+  assigns lanes git-network style (first child continues its parent's lane,
+  siblings branch to the lowest free lane, merges release lanes for reuse)
+  and degrades with warnings on malformed topology instead of throwing.
+  `box-version-list` is the accessible core contract: topological
+  newest-first rows with kind markers and status tones, `version-selected`,
+  two-toggle compare pairing emitting `compare-requested` with the older
+  side as `baseId` (feeding `box-diff-viewer` directly), and
+  `can-restore`/`can-promote` gated intent events for confirm-before-apply
+  hosts. `box-version-graph` renders the same model as a git network — SVG
+  branch/merge curves under one HTML button per node with roving arrow-key
+  focus — as progressive enhancement over the list. The layout engine is
+  shared machinery for the future clause-lineage graph.
+
 - Work Queue (patterns round 4e — opportunity 5 of the component roadmap):
   new `work-queue` workflow pattern with two projections over one headless
   session. `WorkQueueController` runs filtered, abort-superseded loads over
