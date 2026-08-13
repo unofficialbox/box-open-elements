@@ -56,6 +56,11 @@ src/patterns/
     controller.ts     # built — headless queue session (filters, mutations)
     work-queue.ts     # built — box-work-queue individual triage list
     workload-board.ts # built — box-workload-board supervisor swimlanes
+  versions/
+    types.ts          # built — VersionNode model (parents[] topology) + record validation
+    graph-layout.ts   # built — pure git-network layout (lanes, branch/merge edges)
+    version-list.ts   # built — box-version-list accessible history contract
+    version-graph.ts  # built — box-version-graph git-style network shell
   preview/          # built — provider adapter, content-preview adapter, annotations, box-preview-element
   search/             # built — filter-bar, saved-view-picker, search-results-header
   item/             # built — item-form, item-details-panel, bulk-action-bar, preview-header
@@ -158,6 +163,18 @@ static shells):
 - composed surface: `box-work-queue` (individual triage list grouped Overdue → Due today → Due this week → Later, per-row Claim/Complete/Escalate wired to the controller, Reassign surfaced as `reassign-requested` intent for the host's confirm-before-apply modal, `item-selected` row activation, deterministic `reference-time`) — **built**
 - composed surface: `box-workload-board` (supervisor swimlanes by `assignee` — roster-ordered with visible spare capacity, overdue counts, `wip-limit` over-capacity flagging — or by `status` for the pipeline/kanban view; summary strip; cards emit `item-selected` and `reassign-requested`) — **built**
 - Both elements accept an external `queueController` so one session drives the queue and the board on the same page. Drag-and-drop lane moves are a tracked depth limitation (reassignment ships as intent events).
+
+### Versions (workflow)
+
+The versions surface (CLM gap 5) plus its git-graph visual layer
+(opportunity 4 of `plans/component-opportunities.md`) — one model, two
+projections; fills the sidebar's reserved `versions` tab slot:
+
+- `types` (`VersionNode` — `parents[]` carries branch/merge topology exactly as git does, `kind` major/minor/merge/draft, `status` current/executed/superseded/abandoned rendered as tone; per-record validation for attribute payloads) — **built**
+- `graph-layout` (pure `computeVersionGraphLayout`: topological order with input-order tie-breaks, first child continues its parent's lane, siblings branch to the lowest free lane, merges release the lanes they close for reuse; malformed topology — duplicates, unknown parents, cycles — degrades with warnings instead of throwing. `orderVersionsForDisplay` gives both projections the same newest-first order by construction) — **built**
+- composed surface: `box-version-list` (the accessible core contract: newest-first rows with kind markers and status chips, `version-selected` activation, two-toggle compare pairing emitting `compare-requested` with the older side as `baseId` — the diff viewer's input contract — and `can-restore`/`can-promote` gated intent events for the host's confirm-before-apply flow) — **built**
+- composed surface: `box-version-graph` (git-network rendering: SVG branch/merge curves under one HTML button per node, so activation/focus stay native; roving arrow-key focus in display order; click → `version-selected`, modified click or `toggleCompare` → the same compare pairing) — **built**
+- The graph is progressive enhancement; the list is the accessible fallback. The layout engine is shared machinery for the future clause-lineage graph.
 
 ### Preview (workflow + compositions)
 
