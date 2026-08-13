@@ -84,6 +84,10 @@
       "types": "./dist/patterns/form-wizard/index.d.ts",
       "import": "./dist/patterns/form-wizard/index.js"
     },
+    "./patterns/timeline": {
+      "types": "./dist/patterns/timeline/index.d.ts",
+      "import": "./dist/patterns/timeline/index.js"
+    },
     "./patterns/search": {
       "types": "./dist/patterns/search/index.d.ts",
       "import": "./dist/patterns/search/index.js"

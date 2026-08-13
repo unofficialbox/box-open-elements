@@ -44,6 +44,9 @@ src/patterns/
     types.ts          # built — step model, validation contract, wizard state
     controller.ts     # built — headless step/session controller
     form-wizard.ts    # built — box-form-wizard rail + slot-per-step shell
+  timeline/
+    types.ts          # built — event/evidence model + record validation
+    timeline.ts       # built — box-timeline append-only activity feed
   preview/          # built — provider adapter, content-preview adapter, annotations, box-preview-element
   search/             # built — filter-bar, saved-view-picker, search-results-header
   item/             # built — item-form, item-details-panel, bulk-action-bar, preview-header
@@ -117,6 +120,14 @@ wizard owns the choreography:
 - `controller` (`FormWizardController`: value store, forward-gating validation — backward navigation and visited-step jumps never re-validate, optional steps skip gates, `saveDraft` never validates, `submit` validates all required steps and navigates to the first failure) — **built**
 - composed surface: `box-form-wizard` (composes `box-progress-steps` as the rail with gated step jumps, slot-per-step panels, `role="alert"` step errors, Back/Next/Submit footer with an opt-in Save-draft button) — **built**
 
+### Timeline (composition)
+
+Append-only activity feed (CLM gap 3 — approvals history, audit trail, the
+sidebar `activity` tab):
+
+- `types` (`TimelineEvent` — actor/action/summary/timestamp/tone/badge/`correlationId`/evidence — with per-record validation and tone resolution) — **built**
+- composed surface: `box-timeline` (tone-marked spine, evidence chips emitting `evidence-selected` — unsafe hrefs downgrade to buttons, monospace correlation ids, `has-more` → `load-more` paging contract, optional composer gated on `composable` emitting `entry-submitted`) — **built**
+
 ### Preview (workflow + compositions)
 
 - provider-adapter contract (`PreviewProvider`, `PreviewAdapterState`, `PreviewProviderAdapter`) — **built**
@@ -182,9 +193,9 @@ the roadmap for the next pattern rounds, in rough priority order:
 
 - **Versions** — no version history, restore, or promote surface anywhere.
   (`box-content-sidebar` reserves a `versions` tab slot for it.)
-- **Comments / activity feed** — `annotation-thread` is annotation-scoped;
-  there is no general comment create/edit/delete/mention contract. (Also the
-  `timeline / activity feed` candidate from earlier rounds.)
+- **Comments write path** — `box-timeline` now covers the general activity
+  feed (display + a `composable` comment submit); a full comment
+  create/edit/delete/mention transport contract is still future work.
 - **ContentOpenWith** — deliberately deferred to a sibling repo.
 - Cross-system candidates: coach mark / product tour (sequenced multi-anchor
   onboarding).
