@@ -40,6 +40,10 @@ src/patterns/
   content-sidebar/
     types.ts          # built — SidebarTab model + resolveSidebarTabs
     content-sidebar.ts # built — box-content-sidebar tabbed slot shell
+  form-wizard/
+    types.ts          # built — step model, validation contract, wizard state
+    controller.ts     # built — headless step/session controller
+    form-wizard.ts    # built — box-form-wizard rail + slot-per-step shell
   preview/          # built — provider adapter, content-preview adapter, annotations, box-preview-element
   search/             # built — filter-bar, saved-view-picker, search-results-header
   item/             # built — item-form, item-details-panel, bulk-action-bar, preview-header
@@ -102,6 +106,16 @@ catalog's `box-tabs`; panels are supplied by the host through named slots
 
 - `types` (`SidebarTab`, `DEFAULT_SIDEBAR_TABS`, `resolveSidebarTabs` — explicit config wins, otherwise defaults filtered to slots with content) — **built**
 - composed surface: `box-content-sidebar` (labelled complementary region, tab strip with full ARIA tabs semantics via `box-tabs`, `active-tab` reflection + `tab-changed`, collapsible body with `collapsed-changed`, custom tabs via the `tabs` attribute with matching slot names, empty state) — **built**
+
+### Form Wizard (workflow)
+
+Multi-step form orchestration (first gap from the CLM horizontal coverage
+plan — `plans/clm-horizontal-coverage.md`); the host owns the fields, the
+wizard owns the choreography:
+
+- `types` (`WizardStepConfig` — a step id doubles as its slot name, `WizardStepValidator` gate contract with message + field errors) — **built**
+- `controller` (`FormWizardController`: value store, forward-gating validation — backward navigation and visited-step jumps never re-validate, optional steps skip gates, `saveDraft` never validates, `submit` validates all required steps and navigates to the first failure) — **built**
+- composed surface: `box-form-wizard` (composes `box-progress-steps` as the rail with gated step jumps, slot-per-step panels, `role="alert"` step errors, Back/Next/Submit footer with an opt-in Save-draft button) — **built**
 
 ### Preview (workflow + compositions)
 

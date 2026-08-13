@@ -10,6 +10,20 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Form Wizard (patterns round 4b — first gap from the CLM horizontal
+  coverage plan): new `form-wizard` workflow pattern for multi-step forms
+  such as contract-intake flows. `FormWizardController` owns the step
+  sequence, a value store, and per-step validation gating: Next and
+  forward jumps run the step's `WizardStepValidator` (message +
+  field-error contract), backward navigation and visited-step jumps never
+  re-validate, optional steps skip gates, `saveDraft` emits unvalidated
+  values for the host to persist, and `submit` validates every required
+  step — navigating to the first failure — before emitting `submitted`.
+  The `box-form-wizard` element composes `box-progress-steps` as a gated
+  step rail with slot-per-step panels (a step's id doubles as its slot
+  name), a `role="alert"` step-error line, and a Back/Next/Submit footer
+  with an opt-in Save-draft button.
+
 - Content Sidebar (patterns round 3d): new `content-sidebar` composition
   pattern closing the ContentSidebar entry of the catalog's known-gaps list. The
   `box-content-sidebar` element composes the catalog's `box-tabs` into the
