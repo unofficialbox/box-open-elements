@@ -32,6 +32,11 @@ src/patterns/
     types.ts          # built — pick constraints (types/extensions/max) + eligibility
     controller.ts     # built — roster facade composing the explorer controller
     content-picker.ts # built — box-content-picker choose/cancel shell
+  content-uploader/
+    types.ts          # built — queue item/status model, UploadTransport contract, constraints
+    controller.ts     # built — headless queue (concurrency, cancel/retry/remove)
+    box-transport.ts  # built — Box multipart upload transport
+    content-uploader.ts # built — box-content-uploader drop-zone + queue shell
   preview/          # built — provider adapter, content-preview adapter, annotations, box-preview-element
   search/             # built — filter-bar, saved-view-picker, search-results-header
   item/             # built — item-form, item-details-panel, bulk-action-bar, preview-header
@@ -75,6 +80,16 @@ headless blocks (same transport contract, navigation, search, pagination):
 - `types` (pick constraints — `selectableTypes`, `extensions`, `maxSelectable` — and the `isItemPickable` eligibility check) — **built**
 - `controller` (`ContentPickerController`: cross-folder pick roster over `ContentExplorerController`, `togglePick`/`choose`/`cancel`, `chosen`/`cancelled`/`selectionChanged`/`selectionRejected` events) — **built**
 - composed surface: `box-content-picker` (browse + pick shell with a choose/cancel footer, selection count, disabled non-eligible rows, folders always navigable) — **built**
+
+### Content Uploader (workflow)
+
+An upload queue over a narrow transport contract; the drop-zone and progress
+primitives come from the component catalog:
+
+- `types` (`UploadQueueItem` status model, `UploadTransport` contract, `resolveUploadRejection` constraints — extension allowlist + max size, `summarizeUploadQueue`) — **built**
+- `controller` (`ContentUploaderController`: validated enqueue, concurrency-limited pump, per-item AbortController cancel, retry/remove/clearCompleted, full lifecycle events + `queueDrained`) — **built**
+- `box-transport` (`createBoxUploadTransport`: multipart `POST /files/content` against the upload host; chunked upload sessions are a future transport behind the same contract) — **built**
+- composed surface: `box-content-uploader` (drop zone + queue rows with progress bars patched in place, per-row cancel/retry/remove, live summary footer) — **built**
 
 ### Preview (workflow + compositions)
 
@@ -139,9 +154,6 @@ headless blocks (same transport contract, navigation, search, pagination):
 Honest inventory of what upstream ships that has **no counterpart here yet** —
 the roadmap for the next pattern rounds, in rough priority order:
 
-- **ContentUploader** — upload queue with per-file progress/retry/cancel and a
-  chunked-upload transport contract. Only the `box-drop-zone` primitive and
-  generic progress components exist today.
 - **ContentSidebar** — the tabbed details/activity/metadata/versions sidebar.
   Parts exist scattered (`item-details-panel`, `metadata-inspector`, `tabs`)
   but there is no composed sidebar or tab-content contract.
@@ -162,8 +174,11 @@ Previously listed candidates now built: `access-stats`, `collaborator-avatars`
 "Built" does not mean feature-complete against upstream. Current intentional
 limitations, tracked for future rounds: explorer grid view + sortable table
 headers (the headless sort/mutation layer landed first), marker-based
-pagination for >1000-item folders, drag-and-drop, i18n of pattern strings, and
-the static-shell depth of the task / governance / file-request areas.
+pagination for >1000-item folders, drag-and-drop, i18n of pattern strings,
+chunked upload sessions for large files (the multipart transport landed
+first; the `UploadTransport` contract already accommodates a chunked
+implementation with real progress fractions), and the static-shell depth of
+the task / governance / file-request areas.
 
 ## Design rules
 
