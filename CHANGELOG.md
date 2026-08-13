@@ -10,6 +10,21 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Content Uploader (patterns round 3c): new `content-uploader` workflow
+  pattern closing the next entry of the catalog's known-gaps list.
+  `ContentUploaderController` is a headless upload queue over a narrow
+  `UploadTransport` contract: constraint-validated enqueue (extension
+  allowlist + max file size, `itemRejected` reasons), a concurrency-limited
+  pump (default 2), per-item AbortController cancellation, retry/remove/
+  clear-completed, and full lifecycle events ending in `queueDrained`.
+  `createBoxUploadTransport` implements the contract with multipart
+  `POST /files/content` against the Box upload host (chunked upload sessions
+  are a future transport behind the same contract). The
+  `box-content-uploader` element composes the existing `box-drop-zone` and
+  `box-progress-bar` primitives into a drop-zone + queue surface: rows are
+  rebuilt only on structural changes while progress bars are patched in
+  place, with per-row cancel/retry/remove and a live summary footer.
+
 - Content Picker (patterns round 3b): new `content-picker` workflow pattern
   closing the top entry of the catalog's known-gaps list.
   `ContentPickerController` composes the explorer headless blocks (same
