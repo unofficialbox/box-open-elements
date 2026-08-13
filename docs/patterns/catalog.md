@@ -47,6 +47,10 @@ src/patterns/
   timeline/
     types.ts          # built — event/evidence model + record validation
     timeline.ts       # built — box-timeline append-only activity feed
+  diff/
+    types.ts          # built — segment/row/stats model
+    engine.ts         # built — pure line+word diff engine
+    diff-viewer.ts    # built — box-diff-viewer split/inline shell
   preview/          # built — provider adapter, content-preview adapter, annotations, box-preview-element
   search/             # built — filter-bar, saved-view-picker, search-results-header
   item/             # built — item-form, item-details-panel, bulk-action-bar, preview-header
@@ -127,6 +131,16 @@ sidebar `activity` tab):
 
 - `types` (`TimelineEvent` — actor/action/summary/timestamp/tone/badge/`correlationId`/evidence — with per-record validation and tone resolution) — **built**
 - composed surface: `box-timeline` (tone-marked spine, evidence chips emitting `evidence-selected` — unsafe hrefs downgrade to buttons, monospace correlation ids, `has-more` → `load-more` paging contract, optional composer gated on `composable` emitting `entry-submitted`) — **built**
+
+### Diff (composition)
+
+Text comparison for clause/redline review (CLM gap 2 —
+`plans/clm-horizontal-coverage.md`; the compare target for the planned
+version-graph and clause-lineage surfaces —
+`plans/component-opportunities.md`):
+
+- `engine` (pure and DOM-free: line-level LCS with prefix/suffix trim and a DP-size cap that degrades to whole-replacement, similar-line pairing into `changed` rows, word-level segments with whitespace coalescing, stats + navigable change ranges) — **built**
+- composed surface: `box-diff-viewer` (side-by-side `split` and unified `inline` modes over one table — synchronized scrolling by construction, per-document line-number gutters, `del`/`ins` word-level semantics, stats chip, prev/next change navigation emitting `change-focused`, escaped content) — **built**
 
 ### Preview (workflow + compositions)
 
