@@ -131,6 +131,9 @@ describe("box-version-list", () => {
         { id: "ok", label: "v1" },
         { id: "", label: "missing id" },
         { id: "bad-parents", label: "x", parents: [7] },
+        { id: "bad-note", label: "x", note: 5 },
+        { id: "bad-timestamp", label: "x", timestamp: 12345 },
+        { id: "bad-initials", label: "x", actor: { name: "A", initials: 9 } },
         "not a record",
       ]),
     );
@@ -142,6 +145,21 @@ describe("box-version-list", () => {
     element.setAttribute("versions", "not json");
     await flush();
     expect(element.shadowRoot?.querySelector('[part="empty"]')).not.toBeNull();
+  });
+
+  it("keeps keyboard focus inside the list when the focused version is removed", async () => {
+    const element = await mountList();
+
+    const title = element.shadowRoot?.querySelector(
+      '[part="row-title"][data-id="r1"]',
+    ) as HTMLButtonElement;
+    title.focus();
+    element.versions = history.filter(node => node.id !== "r1" && node.id !== "r2");
+    await flush();
+
+    const activeElement = element.shadowRoot?.activeElement as HTMLElement | null;
+    expect(activeElement).not.toBeNull();
+    expect(element.shadowRoot?.contains(activeElement)).toBe(true);
   });
 });
 
@@ -176,6 +194,38 @@ describe("box-version-graph", () => {
     expect(compare).toHaveBeenCalledTimes(1);
     expect(compare.mock.calls[0]?.[0]?.detail).toEqual({ baseId: "v2", targetId: "v3" });
     expect(selected).toHaveBeenCalledTimes(1);
+
+    // The compare-selected state is announced, not just styled.
+    expect(node("v2").getAttribute("aria-label")).toContain("selected for comparison");
+    expect(node("v21").getAttribute("aria-label")).not.toContain("selected for comparison");
+  });
+
+  it("restores focus safely for hostile ids and falls back when the node is removed", async () => {
+    const hostile: VersionNode[] = [
+      { id: 'bad\\"id\\', label: "v1" },
+      { id: "v2", label: "v2", parents: ['bad\\"id\\'] },
+    ];
+    const element = await mountGraph(el => {
+      el.versions = hostile;
+    });
+
+    const first = element.shadowRoot?.querySelector(
+      '[part="node"][tabindex="0"]',
+    ) as HTMLButtonElement;
+    first.focus();
+    // A rebuild with the focused hostile id must neither throw nor lose focus.
+    element.versions = [...hostile];
+    await flush();
+    expect(
+      (element.shadowRoot?.activeElement as HTMLElement | null)?.getAttribute("part"),
+    ).toBe("node");
+
+    // Removing the focused node keeps focus on a surviving node button.
+    element.versions = [{ id: "only", label: "v1" }];
+    await flush();
+    expect(
+      (element.shadowRoot?.activeElement as HTMLElement | null)?.getAttribute("data-id"),
+    ).toBe("only");
   });
 
   it("moves roving focus through nodes with the arrow keys", async () => {

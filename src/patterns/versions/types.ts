@@ -68,9 +68,17 @@ export const isVersionNodeRecord = (value: unknown): value is VersionNode => {
       }
     }
   }
+  for (const field of ["kind", "status", "timestamp", "note"] as const) {
+    if (node[field] !== undefined && typeof node[field] !== "string") {
+      return false;
+    }
+  }
   if (node.actor !== undefined) {
     const actor = node.actor as Record<string, unknown> | null;
     if (typeof actor !== "object" || actor === null || typeof actor.name !== "string") {
+      return false;
+    }
+    if (actor.initials !== undefined && typeof actor.initials !== "string") {
       return false;
     }
   }

@@ -1,4 +1,5 @@
 import { orderVersionsForDisplay } from "./graph-layout.js";
+import { escapeHtml, STATUS_LABELS } from "./shared.js";
 import { isVersionNodeRecord, resolveVersionKind, resolveVersionStatus } from "./types.js";
 import type { VersionNode } from "./types.js";
 import { formatItemDate } from "../content-explorer/adapters/item-summary.js";
@@ -7,21 +8,6 @@ import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/ind
 import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-version-list";
-
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-
-const STATUS_LABELS: Record<string, string> = {
-  current: "Current",
-  executed: "Executed",
-  superseded: "Superseded",
-  abandoned: "Abandoned",
-};
 
 const elementStyles = `
         [hidden] {
@@ -459,7 +445,12 @@ export class VersionList extends BaseElement {
           node.getAttribute("data-id") === focusKey.id &&
           (!focusKey.action || node.getAttribute("data-action") === focusKey.action),
       ) as HTMLElement | undefined;
-      target?.focus();
+      // The rebuild removed the focused control's version (or its action):
+      // keep keyboard focus inside the component instead of dropping to body.
+      const fallback = this.hostEl.querySelector<HTMLElement>(
+        '[part="row-title"], [part="row-action"]',
+      );
+      (target ?? fallback)?.focus();
     }
   }
 }

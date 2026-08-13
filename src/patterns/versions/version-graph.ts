@@ -1,4 +1,5 @@
 import { computeVersionGraphLayout, orderVersionsForDisplay } from "./graph-layout.js";
+import { escapeHtml, STATUS_LABELS } from "./shared.js";
 import { isVersionNodeRecord, resolveVersionKind, resolveVersionStatus } from "./types.js";
 import type { VersionNode } from "./types.js";
 import { formatItemDate } from "../content-explorer/adapters/item-summary.js";
@@ -7,24 +8,9 @@ import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-version-graph";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-
 const LANE_WIDTH = 26;
 const ROW_HEIGHT = 46;
 const EDGE_PAD = 8;
-
-const STATUS_LABELS: Record<string, string> = {
-  current: "Current",
-  executed: "Executed",
-  superseded: "Superseded",
-  abandoned: "Abandoned",
-};
 
 const elementStyles = `
         [hidden] {
@@ -435,6 +421,7 @@ export class VersionGraph extends BaseElement {
           kind,
           status ? STATUS_LABELS[status] : "",
           node.actor?.name ?? "",
+          compareSelected ? "selected for comparison" : "",
         ]
           .filter(Boolean)
           .join(", ");
@@ -477,9 +464,14 @@ export class VersionGraph extends BaseElement {
     `;
 
     if (focusedId) {
-      const target = this.hostEl.querySelector(
-        `[part="node"][data-id="${focusedId.replaceAll('"', '\\"')}"]`,
-      ) as HTMLElement | null;
+      // Compare data-id directly — ids are author input, and building a CSS
+      // selector from one can throw. Fall back to the current tab stop so
+      // focus stays inside the component when the focused node was removed.
+      const buttons = this.nodeButtons();
+      const target =
+        buttons.find(button => button.getAttribute("data-id") === focusedId) ??
+        buttons.find(button => button.tabIndex === 0) ??
+        buttons[0];
       target?.focus();
     }
   }

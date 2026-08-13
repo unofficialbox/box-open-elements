@@ -70,6 +70,26 @@ describe("computeVersionGraphLayout", () => {
     expect(layout.laneCount).toBe(2);
   });
 
+  it("returns an empty layout with a minimum lane count", () => {
+    const layout = computeVersionGraphLayout([]);
+
+    expect(layout.placements).toEqual([]);
+    expect(layout.edges).toEqual([]);
+    expect(layout.rowCount).toBe(0);
+    expect(layout.laneCount).toBe(1);
+    expect(layout.warnings).toEqual([]);
+  });
+
+  it("warns on self parents and collapses duplicate parent entries into one edge", () => {
+    const layout = computeVersionGraphLayout([
+      { id: "a", label: "v1", parents: ["a"] },
+      { id: "b", label: "v2", parents: ["a", "a"] },
+    ]);
+
+    expect(layout.warnings).toEqual(["Self parent ignored: a"]);
+    expect(layout.edges).toHaveLength(1);
+  });
+
   it("degrades on malformed topology instead of throwing", () => {
     const layout = computeVersionGraphLayout([
       { id: "a", label: "v1" },
@@ -90,6 +110,15 @@ describe("computeVersionGraphLayout", () => {
 });
 
 describe("orderVersionsForDisplay", () => {
+  it("keeps the first record when ids repeat, matching the layout's resolution", () => {
+    const ordered = orderVersionsForDisplay([
+      { id: "a", label: "first" },
+      { id: "a", label: "duplicate" },
+    ]);
+
+    expect(ordered.map(node => node.label)).toEqual(["first"]);
+  });
+
   it("orders topologically (newest first) even when the input is shuffled", () => {
     const shuffled = [history[3]!, history[0]!, history[5]!, history[1]!, history[4]!, history[2]!];
     // Topology dominates: v1 -> v2 always precede their descendants, v3

@@ -55,11 +55,20 @@ export const computeVersionGraphLayout = (nodes: readonly VersionNode[]): Versio
   const parentsOf = new Map<string, string[]>();
   for (const node of ordered) {
     const known: string[] = [];
+    const seen = new Set<string>();
     for (const parentId of node.parents ?? []) {
-      if (parentId === node.id || !byId.has(parentId)) {
+      if (parentId === node.id) {
+        warnings.push(`Self parent ignored: ${node.id}`);
+        continue;
+      }
+      if (!byId.has(parentId)) {
         warnings.push(`Unknown parent ignored: ${node.id} -> ${parentId}`);
         continue;
       }
+      if (seen.has(parentId)) {
+        continue;
+      }
+      seen.add(parentId);
       known.push(parentId);
     }
     parentsOf.set(node.id, known);
@@ -180,6 +189,13 @@ export const computeVersionGraphLayout = (nodes: readonly VersionNode[]): Versio
  * order from the same layout.
  */
 export const orderVersionsForDisplay = (nodes: readonly VersionNode[]): VersionNode[] => {
-  const byId = new Map(nodes.map(node => [node.id, node]));
+  // Keep the first record per id — the same resolution the layout applies —
+  // so the returned records match the topology the layout placed.
+  const byId = new Map<string, VersionNode>();
+  for (const node of nodes) {
+    if (!byId.has(node.id)) {
+      byId.set(node.id, node);
+    }
+  }
   return computeVersionGraphLayout(nodes).placements.map(placement => byId.get(placement.id)!);
 };
