@@ -135,6 +135,49 @@ describe("box-work-queue", () => {
     expect(selected.mock.calls[0]?.[0]?.detail.item.id).toBe("w1");
   });
 
+  it("escapes hostile wire values in status/risk/priority markup", async () => {
+    const hostile: WorkItem = {
+      id: "wx",
+      title: "Injected row",
+      type: "review",
+      status: '"><img data-pwn src=x>' as WorkItem["status"],
+      riskLevel: '"><script data-pwn>alert(1)</script>' as WorkItem["riskLevel"],
+      priority: "<b data-pwn>urgent</b>" as WorkItem["priority"],
+    };
+    const element = await mountQueue(
+      createTransport({ loadItems: vi.fn().mockResolvedValue({ items: [hostile] }) }),
+    );
+
+    expect(element.shadowRoot?.querySelector("[data-pwn]")).toBeNull();
+    // The escaped attribute round-trips to the original wire value.
+    expect(
+      element.shadowRoot?.querySelector('[part="row"]')?.getAttribute("data-status"),
+    ).toBe('"><img data-pwn src=x>');
+  });
+
+  it("falls back to its owned session when a shared controller is cleared", async () => {
+    const sharedTransport = createTransport();
+    const shared = new WorkQueueController({ token: "token", transport: sharedTransport });
+    await shared.connect();
+
+    const ownTransport = createTransport({
+      loadItems: vi.fn().mockResolvedValue({ items: [items[1]!] }),
+    });
+    const element = await mountQueue(ownTransport, el => {
+      el.queueController = shared;
+    });
+    expect(ownTransport.loadItems).not.toHaveBeenCalled();
+    expect(element.shadowRoot?.textContent).toContain("Review MSA_Acme_v4");
+
+    element.queueController = null;
+    await flush();
+
+    expect(ownTransport.loadItems).toHaveBeenCalledTimes(1);
+    expect(element.shadowRoot?.textContent).toContain("Approve NDA_Globex");
+    // Clearing must not destroy the shared session it never owned.
+    expect(shared.getState().connected).toBe(true);
+  });
+
   it("renders load failures as an alert", async () => {
     const element = await mountQueue(
       createTransport({ loadItems: vi.fn().mockRejectedValue(new Error("backend down")) }),
@@ -233,6 +276,24 @@ describe("box-workload-board", () => {
 
     expect(reassignRequested).toHaveBeenCalledTimes(1);
     expect(selected).toHaveBeenCalledTimes(1);
+  });
+
+  it("escapes hostile wire values on cards", async () => {
+    const hostile: WorkItem = {
+      id: "wx",
+      title: "Injected card",
+      type: "review",
+      status: '"><img data-pwn src=x>' as WorkItem["status"],
+      riskLevel: '"><script data-pwn>alert(1)</script>' as WorkItem["riskLevel"],
+    };
+    const element = await mountBoard(
+      createTransport({ loadItems: vi.fn().mockResolvedValue({ items: [hostile] }) }),
+    );
+
+    expect(element.shadowRoot?.querySelector("[data-pwn]")).toBeNull();
+    expect(
+      element.shadowRoot?.querySelector('[part="card"]')?.getAttribute("data-status"),
+    ).toBe('"><img data-pwn src=x>');
   });
 
   it("shares one session between the queue and the board via queueController", async () => {

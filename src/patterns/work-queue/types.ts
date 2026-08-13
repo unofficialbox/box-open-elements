@@ -49,8 +49,10 @@ export interface WorkQueueMutationRequest {
 
 /**
  * One narrow contract for queue data and the four governed mutations. All
- * mutations are optional capabilities; the controller refuses gracefully
- * when a transport does not provide one.
+ * mutations are optional capabilities: the shells only render actions for
+ * capabilities the transport provides, and invoking a missing capability on
+ * the controller throws a descriptive error (a programming error, not a
+ * runtime state).
  */
 export interface WorkQueueTransport {
   loadItems(request: WorkQueueLoadRequest): Promise<{ items: WorkItem[] }>;
@@ -105,8 +107,11 @@ export const DUE_BUCKET_LABELS: Record<DueBucket, string> = {
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
- * Bucket a due timestamp relative to `now`. Pure — callers supply the
- * reference time so tests and deterministic demos never read the clock.
+ * Bucket a due timestamp relative to `now`. Pure and timezone-independent:
+ * callers supply the reference time and day boundaries resolve against the
+ * reference time's UTC day, so the same inputs bucket identically on every
+ * host. A host that wants local-day semantics offsets the reference time it
+ * passes.
  */
 export const resolveDueBucket = (dueAt: string | undefined, now: Date): DueBucket => {
   if (!dueAt) {
@@ -121,13 +126,12 @@ export const resolveDueBucket = (dueAt: string | undefined, now: Date): DueBucke
     return "overdue";
   }
 
-  const endOfToday = new Date(now);
-  endOfToday.setHours(23, 59, 59, 999);
-  if (due.getTime() <= endOfToday.getTime()) {
+  const endOfToday = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1) - 1;
+  if (due.getTime() <= endOfToday) {
     return "today";
   }
 
-  if (due.getTime() <= endOfToday.getTime() + 6 * DAY_MS) {
+  if (due.getTime() <= endOfToday + 6 * DAY_MS) {
     return "this-week";
   }
 

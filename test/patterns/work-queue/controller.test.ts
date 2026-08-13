@@ -111,6 +111,36 @@ describe("WorkQueueController", () => {
     expect(transport.loadItems).toHaveBeenCalledTimes(3);
   });
 
+  it("discards a superseded load so a stale response cannot overwrite a newer one", async () => {
+    type LoadResult = { items: WorkItem[] };
+    const deferred = (): { promise: Promise<LoadResult>; resolve: (value: LoadResult) => void } => {
+      let resolve!: (value: LoadResult) => void;
+      const promise = new Promise<LoadResult>(res => {
+        resolve = res;
+      });
+      return { promise, resolve };
+    };
+    const stale = deferred();
+    const fresh = deferred();
+    const loadItems = vi
+      .fn()
+      .mockResolvedValueOnce({ items })
+      .mockReturnValueOnce(stale.promise)
+      .mockReturnValueOnce(fresh.promise);
+    const controller = createController(createTransport({ loadItems }));
+    await controller.connect();
+
+    const first = controller.reload();
+    const second = controller.reload();
+    fresh.resolve({ items: [items[1]!] });
+    // The superseded response lands last — it must not win.
+    stale.resolve({ items: [items[0]!] });
+    await Promise.all([first, second]);
+
+    expect(controller.getState().items.map(item => item.id)).toEqual(["w2"]);
+    expect(controller.getState().loading).toBe(false);
+  });
+
   it("reports load failures", async () => {
     const transport = createTransport({
       loadItems: vi.fn().mockRejectedValue(new Error("queue backend down")),

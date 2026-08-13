@@ -384,6 +384,8 @@ export class WorkQueue extends BaseElement {
       if (this.isRendered) {
         this.update();
       }
+      // Fall back to the documented owned session from transport + token.
+      this.scheduleStart();
       return;
     }
     this.controller = controller;
@@ -474,12 +476,12 @@ export class WorkQueue extends BaseElement {
   private rowHtml(item: WorkItem, bucket: DueBucket): string {
     const due = item.dueAt ? formatItemDate(item.dueAt) : "";
     return `
-      <li part="row" data-item-id="${escapeHtml(item.id)}" data-bucket="${bucket}" data-status="${item.status}">
+      <li part="row" data-item-id="${escapeHtml(item.id)}" data-bucket="${bucket}" data-status="${escapeHtml(item.status)}">
         <div part="row-header">
           <button type="button" part="row-title" data-item-id="${escapeHtml(item.id)}">${escapeHtml(item.title)}</button>
           <span part="type">${escapeHtml(item.type)}</span>
-          ${item.riskLevel ? `<span part="risk" data-risk="${item.riskLevel}">Risk: ${item.riskLevel}</span>` : ""}
-          ${item.priority ? `<span part="priority" data-priority="${item.priority}">${item.priority}</span>` : ""}
+          ${item.riskLevel ? `<span part="risk" data-risk="${escapeHtml(item.riskLevel)}">Risk: ${escapeHtml(item.riskLevel)}</span>` : ""}
+          ${item.priority ? `<span part="priority" data-priority="${escapeHtml(item.priority)}">${escapeHtml(item.priority)}</span>` : ""}
           ${item.assignee ? `<span part="assignee">${escapeHtml(item.assignee.name)}</span>` : ""}
           ${due ? `<time part="due" data-bucket="${bucket}" datetime="${escapeHtml(item.dueAt ?? "")}">${bucket === "overdue" ? "Overdue · " : ""}${escapeHtml(due)}</time>` : ""}
         </div>
@@ -554,6 +556,18 @@ export class WorkQueue extends BaseElement {
       return;
     }
 
+    // Sample in-element focus before the rebuild so a mutation-driven
+    // re-render puts focus back on the equivalent control.
+    const active = this.shadowRoot?.activeElement as HTMLElement | null;
+    const focusKey =
+      active && this.hostEl.contains(active)
+        ? {
+            part: active.getAttribute("part") ?? "",
+            itemId: active.getAttribute("data-item-id"),
+            action: active.getAttribute("data-action"),
+          }
+        : null;
+
     const state = this.controller?.getState() ?? null;
     const items = state?.items ?? [];
     const now = this.now();
@@ -585,6 +599,15 @@ export class WorkQueue extends BaseElement {
         ${sections || `<div part="empty">No work items.</div>`}
       </section>
     `;
+
+    if (focusKey?.part) {
+      const target = Array.from(this.hostEl.querySelectorAll(`[part="${focusKey.part}"]`)).find(
+        node =>
+          node.getAttribute("data-item-id") === focusKey.itemId &&
+          (!focusKey.action || node.getAttribute("data-action") === focusKey.action),
+      ) as HTMLElement | undefined;
+      target?.focus();
+    }
   }
 }
 

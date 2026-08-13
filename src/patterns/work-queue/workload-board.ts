@@ -354,6 +354,12 @@ export class WorkloadBoard extends BaseElement {
 
   set team(value: WorkItemAssignee[]) {
     this.teamValue = value;
+    // An owned controller carries the roster in its config — re-create it so
+    // shared consumers reading config.team never see a stale roster.
+    if (this.ownsController) {
+      this.scheduleStart();
+      return;
+    }
     if (this.isRendered) {
       this.update();
     }
@@ -457,6 +463,8 @@ export class WorkloadBoard extends BaseElement {
       if (this.isRendered) {
         this.update();
       }
+      // Fall back to the documented owned session from transport + token.
+      this.scheduleStart();
       return;
     }
     this.controller = controller;
@@ -512,11 +520,11 @@ export class WorkloadBoard extends BaseElement {
     const canReassign = Boolean(this.controller?.config.transport.reassignItem);
 
     return `
-      <li part="card" data-item-id="${escapeHtml(item.id)}" data-status="${item.status}" data-overdue="${overdue ? "true" : "false"}">
+      <li part="card" data-item-id="${escapeHtml(item.id)}" data-status="${escapeHtml(item.status)}" data-overdue="${overdue ? "true" : "false"}">
         <button type="button" part="card-title" data-item-id="${escapeHtml(item.id)}">${escapeHtml(item.title)}</button>
         <div part="card-meta">
           <span part="card-type">${escapeHtml(item.type)}</span>
-          ${item.riskLevel ? `<span>Risk: ${item.riskLevel}</span>` : ""}
+          ${item.riskLevel ? `<span>Risk: ${escapeHtml(item.riskLevel)}</span>` : ""}
           ${due ? `<time part="card-due" data-overdue="${overdue ? "true" : "false"}" datetime="${escapeHtml(item.dueAt ?? "")}">${overdue ? "Overdue · " : ""}${escapeHtml(due)}</time>` : ""}
         </div>
         ${canReassign ? `<button type="button" part="card-reassign" data-item-id="${escapeHtml(item.id)}" aria-label="Reassign ${escapeHtml(item.title)}">Reassign</button>` : ""}
@@ -600,6 +608,17 @@ export class WorkloadBoard extends BaseElement {
       return;
     }
 
+    // Sample in-element focus before the rebuild so a mutation-driven
+    // re-render puts focus back on the equivalent control.
+    const active = this.shadowRoot?.activeElement as HTMLElement | null;
+    const focusKey =
+      active && this.hostEl.contains(active)
+        ? {
+            part: active.getAttribute("part") ?? "",
+            itemId: active.getAttribute("data-item-id"),
+          }
+        : null;
+
     const state = this.controller?.getState() ?? null;
     const items = state?.items ?? [];
     const now = this.now();
@@ -668,6 +687,13 @@ export class WorkloadBoard extends BaseElement {
         ${lanesMarkup ? `<div part="lanes">${lanesMarkup}</div>` : `<div part="empty">No work items.</div>`}
       </section>
     `;
+
+    if (focusKey?.part) {
+      const target = Array.from(this.hostEl.querySelectorAll(`[part="${focusKey.part}"]`)).find(
+        node => node.getAttribute("data-item-id") === focusKey.itemId,
+      ) as HTMLElement | undefined;
+      target?.focus();
+    }
   }
 }
 
