@@ -10,6 +10,22 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Lineage (patterns round 4g — opportunity 2 of the component roadmap):
+  new `lineage` workflow pattern for clause provenance, pairing with the
+  diff viewer. `LineageNode` reuses the git-style `parents[]` topology but
+  types each link (`LineageParentLink`) with a deviation severity
+  (none/minor/major) and note — the "show me every executed contract that
+  deviates from clause 4.2, and what the deviation is" contract.
+  `box-lineage-graph` renders the provenance DAG over the versions
+  pattern's `computeVersionGraphLayout` (the shared-machinery payoff from
+  round 4f) with deviation-toned SVG edges; every node is an HTML button
+  emitting `node-selected` with roving arrow-key focus, and every
+  derivation edge is also a per-row chip button emitting `edge-selected`
+  with the parent/child pair — the diff viewer's input — so edge
+  activation is keyboard-accessible without SVG hit targets.
+  `box-provenance-strip` is the linear ancestry sibling for record
+  headers (oldest → newest chips, newest marked current).
+
 - Versions (patterns round 4f — CLM gap 5 + opportunity 4 of the component
   roadmap): new `versions` workflow pattern — one branch/merge history
   model, two projections. `VersionNode` carries topology through a
