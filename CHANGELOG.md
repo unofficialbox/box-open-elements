@@ -10,6 +10,19 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Content Sidebar (patterns round 3d): new `content-sidebar` pattern closing
+  the last workflow entry of the catalog's known-gaps list. The
+  `box-content-sidebar` element composes the catalog's `box-tabs` into the
+  upstream tabbed details/activity/metadata/versions shell: hosts supply
+  panels through named slots (`slot="details"` etc.), and
+  `resolveSidebarTabs` shows the default tabs that actually have slotted
+  content — or an explicit `tabs` configuration verbatim, including custom
+  tab ids with matching slot names. `active-tab` reflects and falls back to
+  the first tab when invalid, tab clicks emit `tab-changed`, a `collapsible`
+  sidebar collapses its body with `collapsed-changed`, and the region is a
+  labelled `complementary` landmark. The `versions` tab slot reserves space
+  for the still-missing versions surface.
+
 - Content Uploader (patterns round 3c): new `content-uploader` workflow
   pattern closing the next entry of the catalog's known-gaps list.
   `ContentUploaderController` is a headless upload queue over a narrow

@@ -37,6 +37,9 @@ src/patterns/
     controller.ts     # built — headless queue (concurrency, cancel/retry/remove)
     box-transport.ts  # built — Box multipart upload transport
     content-uploader.ts # built — box-content-uploader drop-zone + queue shell
+  content-sidebar/
+    types.ts          # built — SidebarTab model + resolveSidebarTabs
+    content-sidebar.ts # built — box-content-sidebar tabbed slot shell
   preview/          # built — provider adapter, content-preview adapter, annotations, box-preview-element
   search/             # built — filter-bar, saved-view-picker, search-results-header
   item/             # built — item-form, item-details-panel, bulk-action-bar, preview-header
@@ -90,6 +93,15 @@ primitives come from the component catalog:
 - `controller` (`ContentUploaderController`: validated enqueue, concurrency-limited pump, per-item AbortController cancel, retry/remove/clearCompleted, full lifecycle events + `queueDrained`) — **built**
 - `box-transport` (`createBoxUploadTransport`: multipart `POST /files/content` against the upload host; chunked upload sessions are a future transport behind the same contract) — **built**
 - composed surface: `box-content-uploader` (drop zone + queue rows with progress bars patched in place, per-row cancel/retry/remove, live summary footer) — **built**
+
+### Content Sidebar (composition)
+
+The tabbed details/activity/metadata/versions shell, composed over the
+catalog's `box-tabs`; panels are supplied by the host through named slots
+(`slot="details"` etc. — e.g. `box-item-details-panel`, `box-metadata-inspector`):
+
+- `types` (`SidebarTab`, `DEFAULT_SIDEBAR_TABS`, `resolveSidebarTabs` — explicit config wins, otherwise defaults filtered to slots with content) — **built**
+- composed surface: `box-content-sidebar` (labelled complementary region, tab strip with full ARIA tabs semantics via `box-tabs`, `active-tab` reflection + `tab-changed`, collapsible body with `collapsed-changed`, custom tabs via the `tabs` attribute with matching slot names, empty state) — **built**
 
 ### Preview (workflow + compositions)
 
@@ -154,10 +166,8 @@ primitives come from the component catalog:
 Honest inventory of what upstream ships that has **no counterpart here yet** —
 the roadmap for the next pattern rounds, in rough priority order:
 
-- **ContentSidebar** — the tabbed details/activity/metadata/versions sidebar.
-  Parts exist scattered (`item-details-panel`, `metadata-inspector`, `tabs`)
-  but there is no composed sidebar or tab-content contract.
 - **Versions** — no version history, restore, or promote surface anywhere.
+  (`box-content-sidebar` reserves a `versions` tab slot for it.)
 - **Comments / activity feed** — `annotation-thread` is annotation-scoped;
   there is no general comment create/edit/delete/mention contract. (Also the
   `timeline / activity feed` candidate from earlier rounds.)

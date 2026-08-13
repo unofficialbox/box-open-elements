@@ -194,6 +194,7 @@ export * from "./components/overlays/tooltip.js";
 export * from "./patterns/content-explorer/index.js";
 export * from "./patterns/content-picker/index.js";
 export * from "./patterns/content-uploader/index.js";
+export * from "./patterns/content-sidebar/index.js";
 
 // Patterns: compositions and workflow areas
 export * from "./patterns/search/index.js";
