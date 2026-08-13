@@ -33,6 +33,15 @@ import contentExplorer from "./stories/content-explorer.stories.js";
 import contentPicker from "./stories/content-picker.stories.js";
 import contentSidebar from "./stories/content-sidebar.stories.js";
 import contentUploader from "./stories/content-uploader.stories.js";
+import diffViewer from "./stories/diff-viewer.stories.js";
+import formWizard from "./stories/form-wizard.stories.js";
+import lineageGraph from "./stories/lineage-graph.stories.js";
+import provenanceStrip from "./stories/provenance-strip.stories.js";
+import timelinePattern from "./stories/timeline.stories.js";
+import versionGraph from "./stories/version-graph.stories.js";
+import versionList from "./stories/version-list.stories.js";
+import workQueue from "./stories/work-queue.stories.js";
+import workloadBoard from "./stories/workload-board.stories.js";
 import datalistItem from "./stories/datalist-item.stories.js";
 import dateField from "./stories/date-field.stories.js";
 import dialog from "./stories/dialog.stories.js";
@@ -158,6 +167,15 @@ export const storyModules: StoryModule[] = [
   contentPicker,
   contentSidebar,
   contentUploader,
+  diffViewer,
+  formWizard,
+  lineageGraph,
+  provenanceStrip,
+  timelinePattern,
+  versionGraph,
+  versionList,
+  workQueue,
+  workloadBoard,
   datalistItem,
   dateField,
   dialog,

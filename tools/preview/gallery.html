@@ -197,6 +197,49 @@
   </div>
 </section>
 
+<section id="section-clm-workflows">
+  <h2>Patterns · Wizard, Timeline, Diff, Work Queue, Versions &amp; Lineage</h2>
+  <div class="row">
+    <div class="col">
+      <box-form-wizard id="gallery-wizard" heading="Contract intake" submit-label="Submit request">
+        <div slot="parties">Counterparty and owner fields go here.</div>
+        <div slot="terms">Value, dates, and renewal fields go here.</div>
+        <div slot="review">Review the request, then submit for legal triage.</div>
+      </box-form-wizard>
+    </div>
+    <div class="col">
+      <box-timeline id="gallery-timeline" heading="Contract activity" composable has-more></box-timeline>
+    </div>
+  </div>
+  <div class="row">
+    <box-diff-viewer id="gallery-diff" heading="Clause 4.2 — template vs executed" before-label="Template 2026" after-label="MSA_Acme" style="flex:1 1 100%"></box-diff-viewer>
+  </div>
+  <div class="row">
+    <div class="col">
+      <box-work-queue id="gallery-work-queue" heading="My work" token="preview-token" assignee-id="morgan" reference-time="2026-08-13T12:00:00.000Z"></box-work-queue>
+    </div>
+    <div class="col">
+      <box-workload-board id="gallery-workload-board" heading="Team workload" token="preview-token" wip-limit="2" reference-time="2026-08-13T12:00:00.000Z"></box-workload-board>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <box-version-list id="gallery-version-list" heading="Version history" can-restore></box-version-list>
+    </div>
+    <div class="col">
+      <box-version-graph id="gallery-version-graph" heading="Version graph"></box-version-graph>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <box-lineage-graph id="gallery-lineage-graph" heading="Clause 4.2 lineage"></box-lineage-graph>
+    </div>
+    <div class="col">
+      <box-provenance-strip id="gallery-provenance-strip"></box-provenance-strip>
+    </div>
+  </div>
+</section>
+
 <section id="section-specialized">
   <h2>Components · Specialized</h2>
   <div class="row">
@@ -547,6 +590,58 @@
     { id: "a1", author: "Morgan Lee", body: "Tighten the hero spacing before export.", toolLabel: "Comment", status: "Open" },
     { id: "a2", author: "Avery Chen", body: "Updated the draft — resolved.", toolLabel: "Highlight", status: "Resolved" },
   ];
+
+  // CLM workflow demos (wizard / timeline / diff / work-queue / versions / lineage).
+  byId("gallery-wizard").steps = [
+    { id: "parties", label: "Parties", description: "Who is contracting" },
+    { id: "terms", label: "Key terms", description: "Value, dates, renewal" },
+    { id: "review", label: "Review & submit", description: "Confirm the request" },
+  ];
+  byId("gallery-timeline").events = [
+    { id: "e1", action: "Contract executed", actor: { name: "Avery Chen" }, summary: "MSA_Acme_v4 fully signed; renewal reminder scheduled.", timestamp: "2026-08-12T16:20:00.000Z", tone: "success", badge: "Signature complete", evidence: [{ id: "ev1", label: "Signed PDF" }] },
+    { id: "e2", action: "Legal approval granted", actor: { name: "Morgan Lee" }, summary: "Liability cap deviation approved with note.", timestamp: "2026-08-11T10:05:00.000Z", tone: "brand", correlationId: "wf-9042" },
+    { id: "e3", action: "Policy check flagged clause 4.2", summary: "Major deviation from Template 2026 detected by review.", timestamp: "2026-08-10T08:40:00.000Z", tone: "warning", badge: "Deviation: major", evidence: [{ id: "ev2", label: "Clause comparison" }] },
+  ];
+  const galleryDiff = byId("gallery-diff");
+  galleryDiff.beforeText = "4.2 Limitation of Liability.\nNeither party's aggregate liability shall exceed\nthe fees paid in the twelve (12) months preceding\nthe claim.\nExcluded: breaches of confidentiality.";
+  galleryDiff.afterText = "4.2 Limitation of Liability.\nNeither party's aggregate liability shall exceed\ntwo times (2x) the fees paid in the twelve (12)\nmonths preceding the claim.\nExcluded: breaches of confidentiality and\nindemnification obligations.";
+  const clmTeam = [
+    { id: "morgan", name: "Morgan Lee" },
+    { id: "avery", name: "Avery Chen" },
+    { id: "sam", name: "Sam Rivera" },
+  ];
+  const clmWorkItems = [
+    { id: "w1", title: "Review MSA_Acme_v4", type: "review", status: "open", dueAt: "2026-08-12T09:00:00.000Z", assignee: { id: "morgan", name: "Morgan Lee" }, riskLevel: "high", priority: "urgent", entityRef: { id: "c-1", label: "Acme master services agreement" } },
+    { id: "w2", title: "Approve NDA_Globex", type: "approval", status: "in-progress", dueAt: "2026-08-13T20:00:00.000Z", assignee: { id: "avery", name: "Avery Chen" }, priority: "high" },
+    { id: "w3", title: "Signature: SOW_Initech", type: "signature", status: "open", dueAt: "2026-08-17T09:00:00.000Z" },
+    { id: "w4", title: "Intake: Umbrella DPA", type: "intake", status: "open", assignee: { id: "morgan", name: "Morgan Lee" }, riskLevel: "medium" },
+  ];
+  const workQueueTransport = () => ({
+    loadItems: () => Promise.resolve({ items: clmWorkItems.map((item) => ({ ...item })) }),
+  });
+  byId("gallery-work-queue").transport = workQueueTransport();
+  const galleryBoard = byId("gallery-workload-board");
+  galleryBoard.team = clmTeam;
+  galleryBoard.transport = workQueueTransport();
+  const clmVersions = [
+    { id: "v1", label: "v1.0", kind: "major", status: "executed", actor: { name: "Morgan Lee" }, timestamp: "2026-05-01T09:00:00.000Z" },
+    { id: "v2", label: "v2.0", kind: "major", status: "superseded", parents: ["v1"], timestamp: "2026-06-10T09:00:00.000Z" },
+    { id: "v21", label: "v2.1", kind: "minor", parents: ["v2"], note: "Renewal dates corrected", timestamp: "2026-06-24T09:00:00.000Z" },
+    { id: "r1", label: "Redline r1", kind: "draft", parents: ["v2"], actor: { name: "Counterparty" }, timestamp: "2026-07-02T09:00:00.000Z" },
+    { id: "r2", label: "Redline r2", kind: "draft", parents: ["r1"], actor: { name: "Avery Chen" }, timestamp: "2026-07-15T09:00:00.000Z" },
+    { id: "v3", label: "v3.0", kind: "merge", status: "current", parents: ["v21", "r2"], actor: { name: "Avery Chen" }, timestamp: "2026-08-01T09:00:00.000Z", note: "Accepted redline round merged" },
+  ];
+  byId("gallery-version-list").versions = clmVersions;
+  byId("gallery-version-graph").versions = clmVersions;
+  const clmLineage = [
+    { id: "clause-5", label: "Clause 4.2 v5", kind: "clause", actor: { name: "Morgan Lee" }, timestamp: "2026-04-01T09:00:00.000Z" },
+    { id: "tpl-2026", label: "Template 2026", kind: "template", parents: [{ id: "clause-5", deviation: "none" }], timestamp: "2026-05-01T09:00:00.000Z" },
+    { id: "tpl-2026-emea", label: "Template 2026 EMEA", kind: "template", parents: [{ id: "clause-5", deviation: "minor", note: "GDPR annex added" }], timestamp: "2026-05-15T09:00:00.000Z" },
+    { id: "msa-acme", label: "MSA_Acme §4.2", kind: "contract", parents: [{ id: "tpl-2026", deviation: "major", note: "Liability cap reworded" }], timestamp: "2026-07-20T09:00:00.000Z" },
+    { id: "nda-globex", label: "NDA_Globex §4.2", kind: "contract", parents: [{ id: "tpl-2026-emea", deviation: "none" }], timestamp: "2026-08-02T09:00:00.000Z" },
+  ];
+  byId("gallery-lineage-graph").nodes = clmLineage;
+  byId("gallery-provenance-strip").nodes = [clmLineage[0], clmLineage[1], clmLineage[3]];
 
   const settled = (ready) =>
     new Promise((resolve, reject) => {

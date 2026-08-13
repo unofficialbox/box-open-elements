@@ -1918,6 +1918,559 @@
       ]
     },
     {
+      "id": "diff-viewer",
+      "tag": "box-diff-viewer",
+      "title": "Patterns/Diff/Diff Viewer",
+      "category": "Diff",
+      "shortDescription": "Side-by-side and unified text comparison over a pure line+word diff engine.",
+      "docsDescription": "The engine is DOM-free and deterministic: line-level LCS with prefix/suffix trimming (a DP-size cap degrades to whole-replacement on hostile input), similar removed/added lines paired into changed rows, and word-level segments with whitespace coalescing. The shell renders split and inline modes from one table — synchronized scrolling by construction — with per-document line-number gutters, del/ins word semantics, a stats chip, and prev/next change navigation.",
+      "sourceSnippet": "<box-diff-viewer heading=\"Clause 4.2\" before-label=\"Template 2026\" after-label=\"MSA_Acme\"></box-diff-viewer>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Panel heading."
+        },
+        {
+          "kind": "attribute",
+          "name": "mode",
+          "type": "string",
+          "description": "`split` (side-by-side, default) or `inline` (unified)."
+        },
+        {
+          "kind": "attribute",
+          "name": "before-label",
+          "type": "string",
+          "description": "Left/old document label."
+        },
+        {
+          "kind": "attribute",
+          "name": "after-label",
+          "type": "string",
+          "description": "Right/new document label."
+        },
+        {
+          "kind": "attribute",
+          "name": "before-text",
+          "type": "string",
+          "description": "Old text (attribute form)."
+        },
+        {
+          "kind": "attribute",
+          "name": "after-text",
+          "type": "string",
+          "description": "New text (attribute form)."
+        },
+        {
+          "kind": "property",
+          "name": "beforeText",
+          "type": "string",
+          "description": "Old text; preferred for multi-line content."
+        },
+        {
+          "kind": "property",
+          "name": "afterText",
+          "type": "string",
+          "description": "New text; preferred for multi-line content."
+        },
+        {
+          "kind": "event",
+          "name": "change-focused",
+          "description": "Prev/next navigation focused a change range."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Template vs executed clause",
+          "html": "<box-diff-viewer heading=\"Clause 4.2 — template vs executed\" before-label=\"Template 2026\" after-label=\"MSA_Acme\"></box-diff-viewer>",
+          "note": "The liability-cap rewording renders as a paired changed row with word-level emphasis."
+        }
+      ]
+    },
+    {
+      "id": "form-wizard",
+      "tag": "box-form-wizard",
+      "title": "Patterns/Form Wizard/Form Wizard",
+      "category": "Form Wizard",
+      "shortDescription": "Multi-step form shell with validation-gated navigation over a headless step controller.",
+      "docsDescription": "FormWizardController owns the step sequence, a value store, and per-step validation gating: Next and forward jumps run the step's validator, visited steps allow free back-navigation, optional steps skip, Save draft persists without validating, and Submit re-validates every gated step and jumps to the first failure. The shell composes a box-progress-steps rail with one slot per step — a step's id doubles as its slot name — so hosts bring their own form fields.",
+      "sourceSnippet": "<box-form-wizard heading=\"Contract intake\" submit-label=\"Submit request\">\n  <div slot=\"parties\">…</div>\n  <div slot=\"terms\">…</div>\n  <div slot=\"review\">…</div>\n</box-form-wizard>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Panel heading."
+        },
+        {
+          "kind": "attribute",
+          "name": "steps",
+          "type": "json",
+          "description": "Step configs (id, label, description, optional). A step's id doubles as its slot name."
+        },
+        {
+          "kind": "attribute",
+          "name": "draft-label",
+          "type": "string",
+          "description": "Save-draft button label."
+        },
+        {
+          "kind": "attribute",
+          "name": "submit-label",
+          "type": "string",
+          "description": "Final-step submit label."
+        },
+        {
+          "kind": "property",
+          "name": "steps",
+          "type": "WizardStepConfig[]",
+          "description": "Property form of the step configs."
+        },
+        {
+          "kind": "property",
+          "name": "wizardController",
+          "type": "FormWizardController",
+          "description": "The live session; assign to share or configure validators."
+        },
+        {
+          "kind": "event",
+          "name": "step-changed",
+          "description": "Active step moved (Next, Back, or rail jump)."
+        },
+        {
+          "kind": "event",
+          "name": "step-invalid",
+          "description": "A gated step blocked forward navigation."
+        },
+        {
+          "kind": "event",
+          "name": "draft-saved",
+          "description": "Save draft pressed; detail carries the value store."
+        },
+        {
+          "kind": "event",
+          "name": "submitted",
+          "description": "All gated steps passed; detail carries the values."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Contract intake",
+          "html": "<box-form-wizard heading=\"Contract intake\" submit-label=\"Submit request\">\n  <div slot=\"parties\">Party fields…</div>\n  <div slot=\"terms\">Key-term fields…</div>\n  <div slot=\"review\">Review summary…</div>\n</box-form-wizard>",
+          "note": "Three steps with the review step gated by the earlier validators; the rail marks visited steps navigable."
+        }
+      ]
+    },
+    {
+      "id": "lineage-graph",
+      "tag": "box-lineage-graph",
+      "title": "Patterns/Lineage/Lineage Graph",
+      "category": "Lineage",
+      "shortDescription": "Clause provenance DAG with deviation-toned edges, pairing with the diff viewer.",
+      "docsDescription": "The 'show me every executed contract that deviates from clause 4.2, and what the deviation is' surface: source clause → template versions → executed contracts, laid out by the versions pattern's shared graph engine. Each parent link carries a deviation severity (none/minor/major) that tones its SVG edge. Every node is an HTML button emitting node-selected with roving arrow-key focus, and every derivation edge is also a per-row chip button emitting edge-selected with the parent/child pair — the diff viewer's input — so edge activation needs no SVG hit targets.",
+      "sourceSnippet": "<box-lineage-graph heading=\"Clause 4.2 lineage\"></box-lineage-graph>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Panel heading."
+        },
+        {
+          "kind": "attribute",
+          "name": "nodes",
+          "type": "json",
+          "description": "LineageNode records; parent links carry deviation + note."
+        },
+        {
+          "kind": "property",
+          "name": "nodes",
+          "type": "LineageNode[]",
+          "description": "Property form of the provenance DAG."
+        },
+        {
+          "kind": "event",
+          "name": "node-selected",
+          "description": "A node button was activated."
+        },
+        {
+          "kind": "event",
+          "name": "edge-selected",
+          "description": "A derivation chip was activated — detail carries parent, child, deviation, and note."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Clause 4.2 estate",
+          "html": "<box-lineage-graph heading=\"Clause 4.2 lineage\"></box-lineage-graph>",
+          "note": "Two templates derive from the clause (one with a minor GDPR annex); MSA_Acme carries a major liability-cap deviation."
+        }
+      ]
+    },
+    {
+      "id": "provenance-strip",
+      "tag": "box-provenance-strip",
+      "title": "Patterns/Lineage/Provenance Strip",
+      "category": "Lineage",
+      "shortDescription": "Linear ancestry chips for record headers — the high-frequency lineage sibling.",
+      "docsDescription": "The cheap companion to box-lineage-graph: a linear ancestry strip (Library clause v5 → Template 2026 → MSA_Acme §4.2) for record headers and the sidebar. It reads the same LineageNode topology contract, renders the chain oldest-first with the newest entry marked current, and emits node-selected on chip activation. Branched input degrades to topological order.",
+      "sourceSnippet": "<box-provenance-strip></box-provenance-strip>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "nodes",
+          "type": "json",
+          "description": "LineageNode records forming the ancestry chain."
+        },
+        {
+          "kind": "property",
+          "name": "nodes",
+          "type": "LineageNode[]",
+          "description": "Property form of the chain."
+        },
+        {
+          "kind": "event",
+          "name": "node-selected",
+          "description": "An ancestry chip was activated."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Record header ancestry",
+          "html": "<box-provenance-strip></box-provenance-strip>",
+          "note": "Clause → template → executed contract, newest marked current."
+        }
+      ]
+    },
+    {
+      "id": "timeline",
+      "tag": "box-timeline",
+      "title": "Patterns/Timeline/Timeline",
+      "category": "Timeline",
+      "shortDescription": "Append-only activity feed with tone markers, evidence chips, and an optional composer.",
+      "docsDescription": "The activity spine the approvals history, audit trail, and sidebar activity tab all need: validated events render actor, action, badge, summary, and timestamps with tone markers; evidence chips emit evidence-selected (unsafe hrefs downgrade from links to buttons); has-more drives a load-more paging contract; and the composable flag adds an entry composer emitting entry-submitted.",
+      "sourceSnippet": "<box-timeline heading=\"Contract activity\" composable has-more></box-timeline>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Panel heading."
+        },
+        {
+          "kind": "attribute",
+          "name": "events",
+          "type": "json",
+          "description": "TimelineEvent records; each is validated before rendering."
+        },
+        {
+          "kind": "attribute",
+          "name": "composable",
+          "type": "boolean",
+          "description": "Shows the entry composer."
+        },
+        {
+          "kind": "attribute",
+          "name": "has-more",
+          "type": "boolean",
+          "description": "Shows the Load more affordance."
+        },
+        {
+          "kind": "property",
+          "name": "events",
+          "type": "TimelineEvent[]",
+          "description": "Property form of the event list."
+        },
+        {
+          "kind": "event",
+          "name": "evidence-selected",
+          "description": "An evidence chip was activated."
+        },
+        {
+          "kind": "event",
+          "name": "load-more",
+          "description": "The paging affordance was activated."
+        },
+        {
+          "kind": "event",
+          "name": "entry-submitted",
+          "description": "The composer submitted a new entry body."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Contract activity",
+          "html": "<box-timeline heading=\"Contract activity\" composable has-more></box-timeline>",
+          "note": "Execution, approval, and policy-flag events with success/brand/warning tones and evidence chips."
+        }
+      ]
+    },
+    {
+      "id": "version-graph",
+      "tag": "box-version-graph",
+      "title": "Patterns/Versions/Version Graph",
+      "category": "Versions",
+      "shortDescription": "Git-network rendering of a version history — branch and merge lanes from a pure layout engine.",
+      "docsDescription": "The visual layer of the versions surface, depicted the way git networks render branches and merges: computeVersionGraphLayout assigns lanes in topological order (first child continues its parent's lane, siblings branch to the lowest free lane, merges release lanes for reuse) and the shell draws SVG curves under one HTML button per node, so activation and focus stay native. Click emits version-selected; a modified click (Shift/Ctrl/Meta) or toggleCompare() pairs two nodes into compare-requested. Malformed topology degrades with warnings instead of throwing.",
+      "sourceSnippet": "<box-version-graph heading=\"Version graph\"></box-version-graph>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Panel heading."
+        },
+        {
+          "kind": "attribute",
+          "name": "versions",
+          "type": "json",
+          "description": "Same VersionNode records as box-version-list."
+        },
+        {
+          "kind": "property",
+          "name": "versions",
+          "type": "VersionNode[]",
+          "description": "Property form of the history. The toggleCompare(id) method drives host-side compare pairing."
+        },
+        {
+          "kind": "event",
+          "name": "version-selected",
+          "description": "A node button was activated."
+        },
+        {
+          "kind": "event",
+          "name": "compare-requested",
+          "description": "Two nodes paired — baseId is the older side."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Branch and merge",
+          "html": "<box-version-graph heading=\"Version graph\"></box-version-graph>",
+          "note": "The redline branch takes a side lane and merges back as v3.0; lanes are released for reuse after the merge."
+        }
+      ]
+    },
+    {
+      "id": "version-list",
+      "tag": "box-version-list",
+      "title": "Patterns/Versions/Version List",
+      "category": "Versions",
+      "shortDescription": "Accessible version history with status tones, compare pairing, and restore/promote intents.",
+      "docsDescription": "The core contract of the versions surface. Rows render in topological newest-first order (parents[] defines the topology, exactly as git does) with kind markers and status tones. Toggling Compare on two rows emits compare-requested with the older side as baseId — the diff viewer's input contract. can-restore / can-promote gate per-row intent buttons (hidden on the current version) for the host's confirm-before-apply flow. box-version-graph renders the same model as a git network; this list is the accessible fallback.",
+      "sourceSnippet": "<box-version-list heading=\"Version history\" can-restore></box-version-list>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Panel heading."
+        },
+        {
+          "kind": "attribute",
+          "name": "versions",
+          "type": "json",
+          "description": "VersionNode records with parents[] topology; each is validated."
+        },
+        {
+          "kind": "attribute",
+          "name": "can-restore",
+          "type": "boolean",
+          "description": "Shows Restore on non-current rows."
+        },
+        {
+          "kind": "attribute",
+          "name": "can-promote",
+          "type": "boolean",
+          "description": "Shows Promote on non-current rows."
+        },
+        {
+          "kind": "property",
+          "name": "versions",
+          "type": "VersionNode[]",
+          "description": "Property form of the history."
+        },
+        {
+          "kind": "event",
+          "name": "version-selected",
+          "description": "A row title was activated."
+        },
+        {
+          "kind": "event",
+          "name": "compare-requested",
+          "description": "Two rows toggled — detail carries baseId (older) and targetId."
+        },
+        {
+          "kind": "event",
+          "name": "restore-requested",
+          "description": "Restore intent for the host's confirm flow."
+        },
+        {
+          "kind": "event",
+          "name": "promote-requested",
+          "description": "Promote intent for the host's confirm flow."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Contract history",
+          "html": "<box-version-list heading=\"Version history\" can-restore></box-version-list>",
+          "note": "Majors, a minor, a counterparty redline branch, and the merge that became the current v3.0."
+        }
+      ]
+    },
+    {
+      "id": "work-queue",
+      "tag": "box-work-queue",
+      "title": "Patterns/Work Queue/Work Queue",
+      "category": "Work Queue",
+      "shortDescription": "Individual triage list grouped by urgency buckets over a shared queue session.",
+      "docsDescription": "The contract manager's 'what should I do next' view. WorkQueueController runs filtered, abort-superseded loads over a narrow WorkQueueTransport (loadItems plus optional claim/reassign/complete/escalate capabilities) with mutation-then-reload. Rows group by pure due buckets — Overdue → Due today → Due this week → Later — resolved against reference-time so renders are deterministic. Action buttons appear only for capabilities the transport provides; Reassign is intent-only for the host's confirm-before-apply flow.",
+      "sourceSnippet": "<box-work-queue heading=\"My work\" token=\"…\" assignee-id=\"morgan\"></box-work-queue>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Panel heading."
+        },
+        {
+          "kind": "attribute",
+          "name": "token",
+          "type": "string",
+          "description": "Session token for the transport."
+        },
+        {
+          "kind": "attribute",
+          "name": "assignee-id",
+          "type": "string",
+          "description": "Current user; enables Claim on unassigned open items."
+        },
+        {
+          "kind": "attribute",
+          "name": "reference-time",
+          "type": "string",
+          "description": "ISO reference for the urgency buckets; defaults to now."
+        },
+        {
+          "kind": "property",
+          "name": "transport",
+          "type": "WorkQueueTransport",
+          "description": "Queue data + governed mutation capabilities."
+        },
+        {
+          "kind": "property",
+          "name": "queueController",
+          "type": "WorkQueueController",
+          "description": "Assign to share one session with a workload board."
+        },
+        {
+          "kind": "event",
+          "name": "item-selected",
+          "description": "A row title was activated."
+        },
+        {
+          "kind": "event",
+          "name": "reassign-requested",
+          "description": "Reassign intent — the host owns choosing the target person."
+        },
+        {
+          "kind": "event",
+          "name": "item-mutated",
+          "description": "A claim/complete/escalate succeeded (before reload)."
+        },
+        {
+          "kind": "event",
+          "name": "mutation-failed",
+          "description": "A mutation was refused by the transport."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Triage list",
+          "html": "<box-work-queue heading=\"My work\" token=\"…\" assignee-id=\"morgan\" reference-time=\"2026-08-13T12:00:00.000Z\"></box-work-queue>",
+          "note": "An overdue high-risk review, a due-today approval, and an unassigned signature offering Claim."
+        }
+      ]
+    },
+    {
+      "id": "workload-board",
+      "tag": "box-workload-board",
+      "title": "Patterns/Work Queue/Workload Board",
+      "category": "Work Queue",
+      "shortDescription": "Supervisor swimlanes over the same queue session — team workload or status pipeline.",
+      "docsDescription": "The supervisor projection of the work-queue session. Lanes by assignee show team workload: roster-ordered with visible spare capacity (zero-item members still get a lane), overdue counts, and wip-limit over-capacity flagging, under a summary strip of totals. Lanes by status render the pipeline/kanban view. Cards emit item-selected and reassign-requested; assign the same queueController as a box-work-queue to drive both projections from one session.",
+      "sourceSnippet": "<box-workload-board heading=\"Team workload\" token=\"…\" wip-limit=\"2\"></box-workload-board>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Panel heading."
+        },
+        {
+          "kind": "attribute",
+          "name": "token",
+          "type": "string",
+          "description": "Session token for the transport."
+        },
+        {
+          "kind": "attribute",
+          "name": "lane-by",
+          "type": "string",
+          "description": "`assignee` (default) or `status` for the pipeline view."
+        },
+        {
+          "kind": "attribute",
+          "name": "wip-limit",
+          "type": "number",
+          "description": "Items-per-person threshold that flags a lane over capacity."
+        },
+        {
+          "kind": "attribute",
+          "name": "reference-time",
+          "type": "string",
+          "description": "ISO reference for overdue detection; defaults to now."
+        },
+        {
+          "kind": "property",
+          "name": "transport",
+          "type": "WorkQueueTransport",
+          "description": "Same contract as box-work-queue."
+        },
+        {
+          "kind": "property",
+          "name": "team",
+          "type": "WorkItemAssignee[]",
+          "description": "Roster that fixes lane order and shows spare capacity."
+        },
+        {
+          "kind": "property",
+          "name": "queueController",
+          "type": "WorkQueueController",
+          "description": "Assign to share the queue's session."
+        },
+        {
+          "kind": "event",
+          "name": "item-selected",
+          "description": "A card title was activated."
+        },
+        {
+          "kind": "event",
+          "name": "reassign-requested",
+          "description": "Card reassign intent for the host's confirm flow."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Team workload",
+          "html": "<box-workload-board heading=\"Team workload\" token=\"…\" wip-limit=\"2\" reference-time=\"2026-08-13T12:00:00.000Z\"></box-workload-board>",
+          "note": "Roster-ordered lanes with an over-capacity flag and a trailing unassigned lane."
+        }
+      ]
+    },
+    {
       "id": "datalist-item",
       "tag": "box-datalist-item",
       "title": "Components/Collections/Datalist Item",

@@ -25,6 +25,17 @@ import {
   contentExplorerMetadataChromeNote,
   setupContentExplorerMetadataChrome,
 } from "./explorer-metadata-demo.js";
+import {
+  clmClauseAfter,
+  clmClauseBefore,
+  clmIntakeSteps,
+  clmLineage,
+  clmProvenanceChain,
+  clmTeam,
+  clmTimelineEvents,
+  clmVersionHistory,
+  createWorkQueueDemoTransport,
+} from "./clm-demo-data.js";
 import type { ContentPicker } from "../src/patterns/content-picker/content-picker.js";
 import type { ContentUploader } from "../src/patterns/content-uploader/content-uploader.js";
 import type { UploadTransport } from "../src/patterns/content-uploader/types.js";
@@ -676,6 +687,84 @@ export const examples: Record<string, ComponentExample> = {
       });
     },
     note: "Tabs resolve from which named slots have content (`details` / `activity` / `metadata` / `versions`); an explicit `tabs` attribute overrides.",
+  },
+  "form-wizard": {
+    html: `<box-form-wizard heading="Contract intake" submit-label="Submit request">
+  <div slot="parties">
+    <box-text-field label="Counterparty" value="Acme Corp"></box-text-field>
+    <box-text-field label="Contract owner" value="Morgan Lee"></box-text-field>
+  </div>
+  <div slot="terms">
+    <box-text-field label="Contract value" value="$250,000"></box-text-field>
+    <box-date-field label="Start date"></box-date-field>
+  </div>
+  <div slot="review">
+    <p>Review the request, then submit for legal triage.</p>
+  </div>
+</box-form-wizard>`,
+    setup: root => {
+      set(root, "box-form-wizard", { steps: clmIntakeSteps });
+    },
+    note: "A step's id doubles as the slot name feeding its panel. `FormWizardController` gates Next behind per-step validators; Save draft skips validation; `submitted` fires with the value store.",
+  },
+  timeline: {
+    html: `<box-timeline heading="Contract activity" composable has-more></box-timeline>`,
+    setup: root => {
+      set(root, "box-timeline", { events: clmTimelineEvents });
+    },
+    note: "Append-only activity spine with tone markers, evidence chips (`evidence-selected`), a `load-more` paging contract, and an optional composer emitting `entry-submitted`.",
+  },
+  "diff-viewer": {
+    html: `<box-diff-viewer heading="Clause 4.2 — template vs executed" before-label="Template 2026" after-label="MSA_Acme"></box-diff-viewer>`,
+    setup: root => {
+      set(root, "box-diff-viewer", { beforeText: clmClauseBefore, afterText: clmClauseAfter });
+    },
+    note: "Pure line+word diff engine under a split/inline shell — synchronized scrolling by construction, word-level `del`/`ins`, stats chip, and prev/next change navigation emitting `change-focused`.",
+  },
+  "work-queue": {
+    html: `<box-work-queue heading="My work" token="demo-token" assignee-id="morgan" reference-time="2026-08-13T12:00:00.000Z"></box-work-queue>`,
+    setup: root => {
+      set(root, "box-work-queue", { transport: createWorkQueueDemoTransport() });
+    },
+    note: "Rows group by pure due buckets (Overdue → Due today → Due this week → Later) against `reference-time`. Claim/Complete/Escalate run through the transport; Reassign emits `reassign-requested` intent for the host's confirm flow.",
+  },
+  "workload-board": {
+    html: `<box-workload-board heading="Team workload" token="demo-token" wip-limit="2" reference-time="2026-08-13T12:00:00.000Z"></box-workload-board>`,
+    setup: root => {
+      set(root, "box-workload-board", {
+        transport: createWorkQueueDemoTransport(),
+        team: clmTeam,
+      });
+    },
+    note: "Supervisor swimlanes by assignee (roster-ordered, visible spare capacity, overdue counts, `wip-limit` flagging) or by status via `lane-by=\"status\"` — the pipeline/kanban projection. Share one session with a queue via `queueController`.",
+  },
+  "version-list": {
+    html: `<box-version-list heading="Version history" can-restore></box-version-list>`,
+    setup: root => {
+      set(root, "box-version-list", { versions: clmVersionHistory });
+    },
+    note: "The accessible core of the versions surface: topological newest-first rows, status tones, two-toggle compare pairing (`compare-requested` with the older side as `baseId` — the diff viewer's input), and gated Restore/Promote intent events.",
+  },
+  "version-graph": {
+    html: `<box-version-graph heading="Version graph"></box-version-graph>`,
+    setup: root => {
+      set(root, "box-version-graph", { versions: clmVersionHistory });
+    },
+    note: "Git-network rendering of the same model — branch and merge lanes from the pure layout engine, one HTML button per node (roving arrow-key focus). Modified click pairs two nodes into `compare-requested`. Pair with `box-version-list` as the accessible fallback.",
+  },
+  "lineage-graph": {
+    html: `<box-lineage-graph heading="Clause 4.2 lineage"></box-lineage-graph>`,
+    setup: root => {
+      set(root, "box-lineage-graph", { nodes: clmLineage });
+    },
+    note: "Provenance DAG over the shared graph engine: clause → templates → executed contracts, edges tone-coloured by deviation severity. Every edge is also a per-row chip emitting `edge-selected` with the parent/child pair — feed it straight into `box-diff-viewer`.",
+  },
+  "provenance-strip": {
+    html: `<box-provenance-strip></box-provenance-strip>`,
+    setup: root => {
+      set(root, "box-provenance-strip", { nodes: clmProvenanceChain });
+    },
+    note: "The high-frequency lineage sibling for record headers: linear ancestry oldest → newest, newest marked current, `node-selected` on activation.",
   },
   "explorer-breadcrumbs": { html: `<box-explorer-breadcrumbs></box-explorer-breadcrumbs>`, setup: explorerAdapterSetup("box-explorer-breadcrumbs"), note: "Driven by a shared ContentExplorerController with a mock transport." },
   "explorer-toolbar": { html: `<box-explorer-toolbar></box-explorer-toolbar>`, setup: explorerAdapterSetup("box-explorer-toolbar"), note: "Driven by a shared ContentExplorerController with a mock transport." },
