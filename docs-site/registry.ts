@@ -35,6 +35,9 @@ export const catalog: CatalogEntry[] = [
   // Patterns
   { id: "content-explorer", tier: "patterns", category: "Content Explorer", tag: "box-content-explorer" },
   ...p("Content Explorer", ["explorer-breadcrumbs", "explorer-toolbar", "explorer-list", "explorer-table", "explorer-items", "explorer-action-menu"], "box-"),
+  { id: "content-picker", tier: "patterns", category: "Content Picker", tag: "box-content-picker" },
+  { id: "content-uploader", tier: "patterns", category: "Content Uploader", tag: "box-content-uploader" },
+  { id: "content-sidebar", tier: "patterns", category: "Content Sidebar", tag: "box-content-sidebar" },
   ...p("Search", ["filter-bar", "search-results-header", "saved-view-picker"]),
   ...p("Item", ["item-form", "item-details-panel", "bulk-action-bar", "preview-header"]),
   ...p("Metadata", ["metadata-filter-builder", "metadata-inspector"]),

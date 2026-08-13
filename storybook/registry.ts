@@ -30,6 +30,9 @@ import colorPicker from "./stories/color-picker.stories.js";
 import combobox from "./stories/combobox.stories.js";
 import contactDatalistItem from "./stories/contact-datalist-item.stories.js";
 import contentExplorer from "./stories/content-explorer.stories.js";
+import contentPicker from "./stories/content-picker.stories.js";
+import contentSidebar from "./stories/content-sidebar.stories.js";
+import contentUploader from "./stories/content-uploader.stories.js";
 import datalistItem from "./stories/datalist-item.stories.js";
 import dateField from "./stories/date-field.stories.js";
 import dialog from "./stories/dialog.stories.js";
@@ -152,6 +155,9 @@ export const storyModules: StoryModule[] = [
   combobox,
   contactDatalistItem,
   contentExplorer,
+  contentPicker,
+  contentSidebar,
+  contentUploader,
   datalistItem,
   dateField,
   dialog,
