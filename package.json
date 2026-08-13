@@ -100,6 +100,10 @@
       "types": "./dist/patterns/versions/index.d.ts",
       "import": "./dist/patterns/versions/index.js"
     },
+    "./patterns/lineage": {
+      "types": "./dist/patterns/lineage/index.d.ts",
+      "import": "./dist/patterns/lineage/index.js"
+    },
     "./patterns/search": {
       "types": "./dist/patterns/search/index.d.ts",
       "import": "./dist/patterns/search/index.js"

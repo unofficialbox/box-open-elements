@@ -61,6 +61,10 @@ src/patterns/
     graph-layout.ts   # built — pure git-network layout (lanes, branch/merge edges)
     version-list.ts   # built — box-version-list accessible history contract
     version-graph.ts  # built — box-version-graph git-style network shell
+  lineage/
+    types.ts          # built — LineageNode model with deviation-typed parent links
+    lineage-graph.ts  # built — box-lineage-graph provenance DAG (reuses versions layout)
+    provenance-strip.ts # built — box-provenance-strip linear ancestry chips
   preview/          # built — provider adapter, content-preview adapter, annotations, box-preview-element
   search/             # built — filter-bar, saved-view-picker, search-results-header
   item/             # built — item-form, item-details-panel, bulk-action-bar, preview-header
@@ -175,6 +179,15 @@ projections; fills the sidebar's reserved `versions` tab slot:
 - composed surface: `box-version-list` (the accessible core contract: newest-first rows with kind markers and status chips, `version-selected` activation, two-toggle compare pairing emitting `compare-requested` with the older side as `baseId` — the diff viewer's input contract — and `can-restore`/`can-promote` gated intent events for the host's confirm-before-apply flow) — **built**
 - composed surface: `box-version-graph` (git-network rendering: SVG branch/merge curves under one HTML button per node, so activation/focus stay native; roving arrow-key focus in display order; click → `version-selected`, modified click or `toggleCompare` → the same compare pairing) — **built**
 - The graph is progressive enhancement; the list is the accessible fallback. The layout engine is shared machinery for the future clause-lineage graph.
+
+### Lineage (workflow)
+
+Clause provenance across the template/contract estate (opportunity 2 of
+`plans/component-opportunities.md`); pairs with the diff viewer:
+
+- `types` (`LineageNode` with an open `kind` vocabulary — `clause`/`template`/`contract` conventional — and `parents` as typed `LineageParentLink`s carrying `deviation` severity none/minor/major plus a one-line note; per-record validation incl. nested links, entityRef, actor) — **built**
+- composed surface: `box-lineage-graph` (provenance DAG over the versions pattern's `computeVersionGraphLayout` — the shared-machinery payoff; SVG edges tone-coloured by deviation; one HTML button per node emitting `node-selected` with roving arrow-key focus; every derivation edge is also a per-row chip button emitting `edge-selected` with the parent/child pair — the diff viewer's input contract — so edge activation needs no SVG hit targets; the row rail is the accessible contract, the SVG is presentation) — **built**
+- composed surface: `box-provenance-strip` (the cheap, high-frequency sibling: linear ancestry chips oldest → newest for record headers and the sidebar, newest marked `aria-current`, `node-selected` on chip activation; branched input degrades to topological order) — **built**
 
 ### Preview (workflow + compositions)
 
