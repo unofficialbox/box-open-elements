@@ -10,6 +10,17 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Annotation lifecycle (patterns round 3): the three annotation components
+  gain write paths and fixes from the patterns review. `box-annotation-thread`
+  and `box-annotation-inspector` get composers (gated on a `composable`
+  attribute) emitting `entry-submitted` / `reply-submitted`; replies can carry
+  `id`/`createdAt`; all payload types are exported. Fixes: valid ARIA list
+  semantics in the thread (ul/li/listitem), tool/color selection in the
+  toolbar no longer destroys focus (in-place aria-pressed/tabindex patching),
+  composer drafts and focus survive attribute updates, and annotation colors
+  are validated before being interpolated into inline styles (CSS-injection
+  guard).
+
 - Preview rework (patterns round 2): the provider-adapter contract can now
   actually drive a preview engine — `mount`/`unmount` with a stable stage node
   the shell owns (`createViewer(container)` boots the real engine and returns

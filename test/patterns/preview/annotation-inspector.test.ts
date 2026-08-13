@@ -38,6 +38,19 @@ describe("AnnotationInspector", () => {
     expect(element.shadowRoot?.textContent).toContain("Agreed, I’ll update the draft.");
   });
 
+  it("patches action labels in place for IDs that would break a CSS selector", () => {
+    const element = document.createElement("box-annotation-inspector") as AnnotationInspector;
+    element.actions = [{ id: 'resolve\n"now"', label: "Resolve" }];
+    document.body.append(element);
+
+    const button = element.shadowRoot?.querySelector('[part="action"]') as HTMLButtonElement;
+    element.actions = [{ id: 'resolve\n"now"', label: "Resolve thread", tone: "primary" }];
+
+    expect(element.shadowRoot?.querySelector('[part="action"]')).toBe(button);
+    expect(button.textContent?.trim()).toBe("Resolve thread");
+    expect(button.dataset.tone).toBe("primary");
+  });
+
   it("emits action when an action button is clicked", () => {
     const element = document.createElement("box-annotation-inspector") as AnnotationInspector;
     const action = vi.fn();
@@ -90,6 +103,95 @@ describe("AnnotationInspector", () => {
           annotationId: "a1",
         },
       }),
+    );
+  });
+
+  it("renders reply timestamps when provided", () => {
+    const element = document.createElement("box-annotation-inspector") as AnnotationInspector;
+    element.annotation = {
+      id: "a1",
+      author: "Morgan Lee",
+      body: "Tighten the tagline hierarchy near the hero title.",
+      replies: [{ id: "r1", author: "Avery Chen", body: "Agreed.", createdAt: "2h ago" }],
+    };
+
+    document.body.append(element);
+
+    const time = element.shadowRoot?.querySelector('[part="reply-time"]');
+    expect(time?.textContent).toContain("2h ago");
+  });
+
+  it("emits reply-submitted from the composer", () => {
+    const element = document.createElement("box-annotation-inspector") as AnnotationInspector;
+    const submitted = vi.fn();
+    element.composable = true;
+    element.annotation = {
+      id: "a1",
+      author: "Morgan Lee",
+      body: "Tighten the tagline hierarchy near the hero title.",
+    };
+    element.addEventListener("reply-submitted", submitted);
+
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="composer-input"]') as HTMLTextAreaElement;
+    const submit = element.shadowRoot?.querySelector('[part="composer-submit"]') as HTMLButtonElement;
+    input.value = "  On it.  ";
+    submit.click();
+
+    expect(submitted).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: {
+          annotationId: "a1",
+          body: "On it.",
+        },
+      }),
+    );
+    expect(input.value).toBe("");
+  });
+
+  it("hides the composer unless composable is set", () => {
+    const element = document.createElement("box-annotation-inspector") as AnnotationInspector;
+    document.body.append(element);
+
+    const composer = element.shadowRoot?.querySelector('[part="composer"]') as HTMLElement | null;
+    expect(composer?.hidden).toBe(true);
+
+    element.composable = true;
+    expect(composer?.hidden).toBe(false);
+  });
+
+  it("renders the color chip for safe color values", () => {
+    const element = document.createElement("box-annotation-inspector") as AnnotationInspector;
+    element.annotation = {
+      id: "a1",
+      author: "Morgan Lee",
+      body: "Tighten the tagline hierarchy near the hero title.",
+      color: "#f59e0b",
+    };
+
+    document.body.append(element);
+
+    const chip = element.shadowRoot?.querySelector('[part="color-chip"]') as HTMLElement | null;
+    expect(chip).not.toBeNull();
+    expect(chip?.getAttribute("style")).toContain("--annotation-color:#f59e0b");
+  });
+
+  it("omits the color chip style for hostile color values", () => {
+    const element = document.createElement("box-annotation-inspector") as AnnotationInspector;
+    element.annotation = {
+      id: "a1",
+      author: "Morgan Lee",
+      body: "Tighten the tagline hierarchy near the hero title.",
+      color: "red;background:url(https://evil.example/x)",
+    };
+
+    document.body.append(element);
+
+    const chip = element.shadowRoot?.querySelector('[part="color-chip"]');
+    expect(chip).toBeNull();
+    expect(element.shadowRoot?.querySelector('[part="annotation"]')?.innerHTML ?? "").not.toContain(
+      "evil.example",
     );
   });
 });
