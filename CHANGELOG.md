@@ -10,6 +10,18 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Content Picker (patterns round 3b): new `content-picker` workflow pattern
+  closing the top entry of the catalog's known-gaps list.
+  `ContentPickerController` composes the explorer headless blocks (same
+  transport contract, navigation, search, pagination) with a cross-folder pick
+  roster: type / extension / `maxSelectable` constraints (`isItemPickable`),
+  `togglePick` with `selectionRejected` reasons (`not-selectable`,
+  `limit-reached`; `maxSelectable: 1` replaces instead), and a
+  `choose`/`cancel` contract emitting `chosen`/`cancelled`. The
+  `box-content-picker` element renders the browse surface with a
+  choose/cancel footer, live selection count, disabled non-eligible rows
+  (folders stay navigable), and configurable button labels.
+
 - Annotation lifecycle (patterns round 3): the three annotation components
   gain write paths and fixes from the patterns review. `box-annotation-thread`
   and `box-annotation-inspector` get composers (gated on a `composable`
