@@ -10,6 +10,17 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Timeline (patterns round 4c — CLM gap 3): new `timeline` composition
+  pattern, the append-only activity feed the approvals history, audit
+  trail, and sidebar `activity` tab all need. `box-timeline` renders a
+  tone-marked event spine from a validated `events` payload — actor,
+  action, badge, summary, `<time>` timestamps, monospace correlation ids —
+  with evidence chips emitting `evidence-selected` (unsafe hrefs downgrade
+  from links to buttons), a `has-more` → `load-more` paging contract, and
+  an optional composer gated on `composable` emitting `entry-submitted`.
+  Closes the known-gaps activity-feed entry at display level; a full
+  comment create/edit/delete transport contract remains future work.
+
 - Form Wizard (patterns round 4b — first gap from the CLM horizontal
   coverage plan): new `form-wizard` workflow pattern for multi-step forms
   such as contract-intake flows. `FormWizardController` owns the step

@@ -196,6 +196,7 @@ export * from "./patterns/content-picker/index.js";
 export * from "./patterns/content-uploader/index.js";
 export * from "./patterns/content-sidebar/index.js";
 export * from "./patterns/form-wizard/index.js";
+export * from "./patterns/timeline/index.js";
 
 // Patterns: compositions and workflow areas
 export * from "./patterns/search/index.js";
