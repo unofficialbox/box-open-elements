@@ -15,6 +15,7 @@
  */
 import {
   explorerStepFrameworks,
+  intakeStepFrameworks,
   shareStepFrameworks,
   previewStepFrameworks,
   type StepFrameworks,
@@ -37,7 +38,12 @@ export type PreviewKey =
   | "preview-meta" // + item label, status, message
   | "preview-provider" // + provider JSON
   | "preview-adapter" // + adapter state (page/zoom)
-  | "preview-actions"; // + actions + event listeners
+  | "preview-actions" // + actions + event listeners
+  | "intake-shell" // form wizard mounted with steps + slotted panels
+  | "intake-validate" // + value store wiring + validator gating
+  | "intake-queue" // + work queue; submission files a work item
+  | "intake-timeline" // + timeline recording submissions
+  | "intake-workspace"; // + claim/complete flowing onto the timeline
 
 export interface LessonStep {
   /** 0 is the mandatory Setup step; 1..n are teaching steps. */
@@ -1025,6 +1031,306 @@ const onAction = (event: CustomEvent) =>
   stepFrameworks: previewStepFrameworks,
 };
 
-export const lessons: Lesson[] = [explorerLesson, shareLesson, previewLesson];
+// ── Intake lesson source, built up cumulatively ──────────────────────────────
+// The composition lesson: three patterns — form wizard, work queue, timeline —
+// wired together through their events into one contract-intake workspace.
+
+const INTAKE_STEP0 = `import {
+  registerBoxDefaultDesignSystem,
+  applyDesignTokens,
+  FormWizard,
+} from "@unofficialbox/box-open-elements";
+
+// Register the Box design system and paint its tokens onto the page.
+registerBoxDefaultDesignSystem({ setActive: true });
+applyDesignTokens(document.documentElement, "box-default");
+
+// Teach the browser about the <box-form-wizard> element.
+`;
+
+const INTAKE_STEP1 = `${INTAKE_STEP0}
+
+// Create the intake wizard and describe its steps. A step's id doubles as
+// the slot name feeding that step's panel.
+const wizard = document.createElement("box-form-wizard");
+wizard.setAttribute("heading", "Contract intake");
+wizard.setAttribute("submit-label", "Submit request");
+wizard.steps = [
+  { id: "parties", label: "Parties", description: "Who is contracting" },
+  { id: "terms", label: "Key terms", description: "Value and dates" },
+  { id: "review", label: "Review & submit", description: "Confirm the request" },
+];
+
+// Each panel is ordinary slotted markup — bring your own fields.
+const panel = (slot, html) => {
+  const host = document.createElement("div");
+  host.setAttribute("slot", slot);
+  host.innerHTML = html;
+  return host;
+};
+wizard.append(
+  panel("parties", '<label>Counterparty <input id="counterparty" /></label>'),
+  panel("terms", '<label>Contract value <input id="value" /></label>'),
+  panel("review", "<p>Review the request, then submit for triage.</p>"),
+);
+
+document.getElementById("app").append(wizard);`;
+
+const INTAKE_STEP2 = `${INTAKE_STEP1}
+
+// Wire the fields into the wizard's value store, and gate the first step:
+// Next runs the step's validator and refuses to advance until it passes.
+const bindField = (id) => {
+  const input = document.getElementById(id);
+  input.addEventListener("input", () => {
+    wizard.wizardController.setValue(id, input.value);
+  });
+};
+bindField("counterparty");
+bindField("value");
+
+wizard.validators = {
+  parties: (values) =>
+    values.counterparty
+      ? { valid: true }
+      : { valid: false, message: "Name the counterparty before continuing." },
+};
+
+wizard.addEventListener("step-invalid", (event) => {
+  console.log("blocked:", event.detail.validation.message);
+});`;
+
+const INTAKE_STEP3 = `${INTAKE_STEP2}
+
+// The submission becomes governed work. The package-root import in Setup
+// already registered every element, so <box-work-queue> is ready to use.
+// A transport answers the queue's data requests; this in-memory one keeps
+// the requests in an array — swap it for your task system's API.
+const requests = [];
+const queueTransport = {
+  loadItems: () => Promise.resolve({ items: requests.map((item) => ({ ...item })) }),
+  completeItem: ({ itemId }) => {
+    const item = requests.find((entry) => entry.id === itemId);
+    item.status = "completed";
+    return Promise.resolve({ ...item });
+  },
+};
+
+const queue = document.createElement("box-work-queue");
+queue.setAttribute("heading", "Intake queue");
+queue.setAttribute("token", "developer-token");
+queue.transport = queueTransport;
+document.getElementById("app").append(queue);
+
+// Compose the two patterns: a submitted wizard files a work item.
+wizard.addEventListener("submitted", (event) => {
+  const values = event.detail.values;
+  requests.push({
+    id: "req-" + (requests.length + 1),
+    title: "Intake: " + (values.counterparty || "New request"),
+    type: "intake",
+    status: "open",
+  });
+  queue.refresh();
+});`;
+
+const INTAKE_STEP4 = `${INTAKE_STEP3}
+
+// Record every workflow action on an append-only activity feed. The
+// timeline renders whatever validated events you hand it — newest first.
+const timeline = document.createElement("box-timeline");
+timeline.setAttribute("heading", "Activity");
+let activity = [];
+const record = (action, summary) => {
+  activity = [
+    { id: "a-" + (activity.length + 1), action, summary, timestamp: new Date().toISOString() },
+    ...activity,
+  ];
+  timeline.events = activity;
+};
+document.getElementById("app").append(timeline);
+
+wizard.addEventListener("submitted", (event) => {
+  record(
+    "Intake submitted",
+    "Request from " + (event.detail.values.counterparty || "unknown") + " entered triage.",
+  );
+});`;
+
+const INTAKE_STEP5 = `${INTAKE_STEP4}
+
+// Give the queue a current user so open, unassigned items offer Claim, and
+// mirror every queue mutation onto the timeline — the audit trail writes
+// itself because the patterns already announce what they do.
+queue.setAttribute("assignee-id", "you");
+queueTransport.claimItem = ({ itemId, assigneeId }) => {
+  const item = requests.find((entry) => entry.id === itemId);
+  item.assignee = { id: assigneeId, name: "You" };
+  return Promise.resolve({ ...item });
+};
+
+queue.addEventListener("item-mutated", (event) => {
+  record("Work item " + event.detail.kind + "d", event.detail.item.title);
+});
+queue.addEventListener("item-selected", (event) => {
+  console.log("open:", event.detail.item.title);
+});`;
+
+export const intakeLesson: Lesson = {
+  id: "intake",
+  title: "Intake Workspace",
+  area: "Build Alongs",
+  outcome:
+    "Compose three patterns — form wizard, work queue, and timeline — into a contract-intake workspace where a submission becomes governed, auditable work.",
+  why: "Every pattern in the catalog is designed to compose: shells own their own rendering, narrow transports own the data, and intent events announce what happened. This lesson makes that concrete — the wizard's submitted event files a work item, the queue's mutations write the activity feed, and none of the three patterns knows the others exist. The same wiring builds approval flows, review pipelines, and any other workflow surface.",
+  outcomePreview: "intake-workspace",
+  wrapup:
+    "You composed a working intake workspace from three independent patterns connected only by events and one shared array. From here the same seams extend naturally: pair box-diff-viewer with the queue's item-selected to review clause changes, add box-version-list when each request grows a history, or swap the in-memory transport for your task system's API — the elements never change.",
+  starterHtml: starterHtml("Contract intake — build along", "The intake workspace mounts here."),
+  install:
+    "Save index.html and app.js together and serve the folder with any static server (e.g. `npx serve`), then open index.html. The import map pulls box-open-elements from a CDN, so there is nothing to install and no build step; the queue's transport is the in-memory array above, so no backend is needed.",
+  steps: [
+    {
+      n: 0,
+      title: "Setup",
+      goal: "Register the design system and the wizard element.",
+      file: "app.js",
+      anchor: "Top of the file",
+      code: INTAKE_STEP0,
+      why: "Importing FormWizard registers <box-form-wizard> with the browser, and the design-system call paints the Box tokens every element reads.",
+      result: "A blank page with the design tokens applied — nothing mounted yet.",
+      preview: "empty",
+    },
+    {
+      n: 1,
+      title: "Mount the intake wizard",
+      goal: "Create the wizard, describe its steps, and slot in your own fields.",
+      file: "app.js",
+      anchor: "After the setup block",
+      code: INTAKE_STEP1,
+      why: "The steps property drives the progress rail and panel sequence, and each step's id doubles as a slot name — the wizard owns navigation while you own the form markup.",
+      result: "A three-step wizard with a progress rail; Next walks the steps freely because nothing is gated yet.",
+      preview: "intake-shell",
+    },
+    {
+      n: 2,
+      title: "Capture values and gate the first step",
+      goal: "Write field input into the value store and refuse to advance without a counterparty.",
+      file: "app.js",
+      anchor: "Below the wizard mount",
+      code: INTAKE_STEP2,
+      why: "The controller owns one value store for the whole wizard; a validator keyed by step id gates Next and forward jumps, while Back and visited steps stay free.",
+      result: "Pressing Next on an empty Parties step shows the block message; filling the field lets it pass.",
+      preview: "intake-validate",
+    },
+    {
+      n: 3,
+      title: "File the submission as governed work",
+      goal: "Mount a work queue and turn the wizard's submitted event into a work item.",
+      file: "app.js",
+      anchor: "Below the validators",
+      code: INTAKE_STEP3,
+      why: "This is the composition seam: the wizard announces submitted, your handler appends to the transport's array, and queue.refresh() reloads — neither pattern knows the other exists.",
+      result: "Submitting the wizard makes an intake item appear in the queue's No-due-date bucket.",
+      preview: "intake-queue",
+    },
+    {
+      n: 4,
+      title: "Record activity on a timeline",
+      goal: "Mount a timeline and record each submission as an activity event.",
+      file: "app.js",
+      anchor: "Below the queue wiring",
+      code: INTAKE_STEP4,
+      why: "The timeline is display-only — you hand it a validated events array whenever something happens, so any part of the workspace can write history through one record() helper.",
+      result: "Each submission adds an 'Intake submitted' entry at the top of the activity feed.",
+      preview: "intake-timeline",
+    },
+    {
+      n: 5,
+      title: "Work the queue, audit for free",
+      goal: "Enable Claim and Complete, and mirror queue mutations onto the timeline.",
+      file: "app.js",
+      anchor: "Bottom of the file",
+      code: INTAKE_STEP5,
+      why: "Adding claimItem to the transport is all the capability gating needs, and item-mutated announces every claim and completion — so the audit trail writes itself from events the queue already emits.",
+      result: "Claiming or completing an item updates the queue and appends a matching activity entry.",
+      preview: "intake-workspace",
+    },
+  ],
+  frameworks: {
+    html: `<box-form-wizard id="wizard" heading="Contract intake" submit-label="Submit request">
+  <div slot="parties"><label>Counterparty <input id="counterparty" /></label></div>
+  <div slot="terms"><label>Contract value <input id="value" /></label></div>
+  <div slot="review"><p>Review the request, then submit for triage.</p></div>
+</box-form-wizard>
+<box-work-queue id="queue" heading="Intake queue" token="developer-token" assignee-id="you"></box-work-queue>
+<box-timeline id="activity" heading="Activity"></box-timeline>
+
+<script type="module">
+  import {
+    FormWizard,
+    WorkQueue,
+    Timeline,
+    registerBoxDefaultDesignSystem,
+  } from "@unofficialbox/box-open-elements";
+
+  registerBoxDefaultDesignSystem();
+
+  const wizard = document.getElementById("wizard");
+  wizard.steps = [
+    { id: "parties", label: "Parties" },
+    { id: "terms", label: "Key terms" },
+    { id: "review", label: "Review & submit" },
+  ];
+  wizard.validators = {
+    parties: values => (values.counterparty ? { valid: true } : { valid: false, message: "Name the counterparty." }),
+  };
+
+  const queue = document.getElementById("queue");
+  const requests = [];
+  queue.transport = {
+    loadItems: () => Promise.resolve({ items: requests.map(item => ({ ...item })) }),
+    claimItem: ({ itemId, assigneeId }) => {
+      const item = requests.find(entry => entry.id === itemId);
+      item.assignee = { id: assigneeId, name: "You" };
+      return Promise.resolve({ ...item });
+    },
+    completeItem: ({ itemId }) => {
+      const item = requests.find(entry => entry.id === itemId);
+      item.status = "completed";
+      return Promise.resolve({ ...item });
+    },
+  };
+
+  const timeline = document.getElementById("activity");
+  let activity = [];
+  const record = (action, summary) => {
+    activity = [{ id: "a-" + (activity.length + 1), action, summary, timestamp: new Date().toISOString() }, ...activity];
+    timeline.events = activity;
+  };
+
+  wizard.addEventListener("submitted", event => {
+    requests.push({
+      id: "req-" + (requests.length + 1),
+      title: "Intake: " + (event.detail.values.counterparty || "New request"),
+      type: "intake",
+      status: "open",
+    });
+    queue.refresh();
+    record("Intake submitted", "Request entered triage.");
+  });
+  queue.addEventListener("item-mutated", event => {
+    record("Work item " + event.detail.kind + "d", event.detail.item.title);
+  });
+</script>`,
+    react: intakeStepFrameworks.react[5],
+    angular: intakeStepFrameworks.angular[5],
+    vue: intakeStepFrameworks.vue[5],
+    svelte: intakeStepFrameworks.svelte[5],
+  },
+  stepFrameworks: intakeStepFrameworks,
+};
+
+export const lessons: Lesson[] = [explorerLesson, shareLesson, previewLesson, intakeLesson];
 
 export const lessonById = (id: string): Lesson | undefined => lessons.find(lesson => lesson.id === id);

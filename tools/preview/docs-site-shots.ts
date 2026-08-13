@@ -42,6 +42,7 @@ const routes: Array<[name: string, hash: string, readyMarker: string, scrollTo?:
   ["patterns-provenance-strip", "#patterns/provenance-strip", "patterns/provenance-strip"],
   ["lessons-share", "#lessons/share", "lessons/share", ".lesson-frameworks"],
   ["lessons-explorer-step", "#lessons/explorer", "lessons/explorer", "#step-0"],
+  ["lessons-intake", "#lessons/intake", "lessons/intake", "#step-5"],
   ["patterns-share-panel", "#patterns/share-panel", "patterns/share-panel"],
   ["foundations-tokens", "#foundations/tokens", "foundations/tokens"],
   ["foundations-theming", "#foundations/theming", "foundations/theming"],

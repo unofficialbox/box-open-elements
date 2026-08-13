@@ -10,6 +10,19 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Build Along: Intake Workspace — the composition lesson. Five steps
+  assemble a contract-intake workspace from three independent patterns:
+  the form wizard captures and validates the request, its `submitted`
+  event files a work item into a work-queue transport, and the queue's
+  `item-mutated` events write the timeline — none of the three patterns
+  knows the others exist. Ships the full build-along treatment: cumulative
+  vanilla steps with delta highlighting, live per-step previews (the
+  outcome preview is fully interactive end-to-end), per-step React /
+  Angular / Vue / Svelte components, and flat package entries
+  (`form-wizard`, `timeline`, `diff-viewer`, `work-queue`,
+  `workload-board`, `version-list`, `version-graph`, `lineage-graph`,
+  `provenance-strip`) so framework imports load one element at a time.
+
 - Lineage (patterns round 4g — opportunity 2 of the component roadmap):
   new `lineage` workflow pattern for clause provenance, pairing with the
   diff viewer. `LineageNode` reuses the git-style `parents[]` topology but
