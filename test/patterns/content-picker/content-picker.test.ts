@@ -173,6 +173,39 @@ describe("box-content-picker", () => {
     expect(element.shadowRoot?.textContent).toContain("1 of 1 selected");
   });
 
+  it("skips disabled rows in arrow-key navigation", async () => {
+    const element = await mountPicker(el => {
+      el.extensions = ["pdf"];
+    });
+
+    const f1 = element.shadowRoot?.querySelector('[part="item"][data-item-id="f1"]') as HTMLButtonElement;
+    const f2 = element.shadowRoot?.querySelector('[part="item"][data-item-id="f2"]') as HTMLButtonElement;
+    f1.focus();
+    f1.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    await flushMicrotasks();
+
+    // notes.txt is disabled by the extension filter — focus lands on the folder.
+    expect(
+      (element.shadowRoot?.activeElement as HTMLElement | null)?.getAttribute("data-item-id"),
+    ).toBe("sub");
+    expect(f2.tabIndex).toBe(-1);
+  });
+
+  it("moves the tab stop to the new folder's first interactive row after navigation", async () => {
+    const element = await mountPicker();
+
+    const sub = element.shadowRoot?.querySelector('[part="item"][data-item-id="sub"]') as HTMLButtonElement;
+    sub.focus();
+    sub.click();
+    await flushMicrotasks();
+
+    const f3 = element.shadowRoot?.querySelector('[part="item"][data-item-id="f3"]') as HTMLButtonElement;
+    expect(f3.tabIndex).toBe(0);
+    expect(
+      (element.shadowRoot?.activeElement as HTMLElement | null)?.getAttribute("data-item-id"),
+    ).toBe("f3");
+  });
+
   it("honours custom footer labels", async () => {
     const element = await mountPicker(el => {
       el.chooseLabel = "Attach";

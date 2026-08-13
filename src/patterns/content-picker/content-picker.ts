@@ -304,6 +304,13 @@ export class ContentPicker extends BaseElement {
 
   private focusItemId: string | null = null;
 
+  /**
+   * Set when a rebuild destroyed in-element focus before its target existed
+   * (e.g. navigation is still loading the next folder); the next update keeps
+   * trying to restore until a target renders.
+   */
+  private pendingFocusRestore = false;
+
   private unsubscribeFns: Array<() => void> = [];
 
   private transportValue: ExplorerTransport | null = null;
@@ -593,8 +600,21 @@ export class ContentPicker extends BaseElement {
     this.controller = null;
   }
 
+  /**
+   * Only interactive rows (pickable items and navigable folders) participate
+   * in keyboard navigation — disabled rows cannot take focus, so including
+   * them would strand arrow-key movement and the roving tab stop.
+   */
   private getFocusableItemIds(): string[] {
-    return this.controller?.explorer.getState().items.map(item => item.id) ?? [];
+    const controller = this.controller;
+    if (!controller) {
+      return [];
+    }
+
+    return controller.explorer
+      .getState()
+      .items.filter(item => controller.isItemPickable(item) || item.type === "folder")
+      .map(item => item.id);
   }
 
   protected renderTemplate(): void {
@@ -629,6 +649,20 @@ export class ContentPicker extends BaseElement {
       ? `<header part="folder">${breadcrumbMarkup}<h2>${escapeHtml(explorerState.currentFolder.name)}</h2></header>`
       : `<header part="folder"><h2>No folder loaded</h2></header>`;
 
+    // Resolve the roving tab stop against the rows that can actually take
+    // focus; a stale target (e.g. an id from the previous folder) falls back
+    // to the first interactive row so the list always keeps a tab stop.
+    const focusableItemIds = this.getFocusableItemIds();
+    const focusTarget =
+      this.focusItemId && focusableItemIds.includes(this.focusItemId)
+        ? this.focusItemId
+        : (focusableItemIds[0] ?? "");
+    // Keep the stale target while the collection is transiently empty
+    // (mid-navigation) so the pending focus restore can land on the fallback.
+    if (focusTarget) {
+      this.focusItemId = focusTarget;
+    }
+
     const itemsMarkup = explorerState?.items.length
       ? explorerState.items
           .map(item => {
@@ -636,7 +670,6 @@ export class ContentPicker extends BaseElement {
             const picked = controller?.isPicked(item.id) ?? false;
             const navigable = item.type === "folder";
             const interactive = pickable || navigable;
-            const focusTarget = this.focusItemId ?? explorerState.items[0]?.id ?? "";
             const meta = formatItemMetaLine(item);
 
             return `<li data-item-id="${escapeHtml(item.id)}" role="presentation">
@@ -787,13 +820,22 @@ export class ContentPicker extends BaseElement {
     });
 
     // Restore focus only when it already lived inside this element before the
-    // rebuild — an unrelated state update must never steal focus.
-    if (this.focusItemId && hadFocusInside) {
+    // rebuild — an unrelated state update must never steal focus. A restore
+    // whose target has not rendered yet (navigation still loading) stays
+    // pending and is retried on the next update.
+    if (this.focusItemId && (hadFocusInside || this.pendingFocusRestore)) {
+      this.pendingFocusRestore = true;
       queueMicrotask(() => {
+        if (!this.pendingFocusRestore) {
+          return;
+        }
         const target = Array.from(this.shadowRoot?.querySelectorAll('[part="item"]') ?? []).find(
           node => (node as HTMLButtonElement).dataset.itemId === this.focusItemId,
         ) as HTMLButtonElement | undefined;
-        target?.focus();
+        if (target) {
+          this.pendingFocusRestore = false;
+          target.focus();
+        }
       });
     }
   }
