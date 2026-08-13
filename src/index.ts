@@ -192,6 +192,7 @@ export * from "./components/overlays/tooltip.js";
 
 // Patterns: content explorer (headless blocks, contracts, transport, adapters)
 export * from "./patterns/content-explorer/index.js";
+export * from "./patterns/content-picker/index.js";
 
 // Patterns: compositions and workflow areas
 export * from "./patterns/search/index.js";

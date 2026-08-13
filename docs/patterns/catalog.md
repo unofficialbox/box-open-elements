@@ -28,6 +28,10 @@ src/patterns/
     controller.ts     # built — composition-root facade
     schemas.ts        # built — wire schemas
     types.ts          # built
+  content-picker/
+    types.ts          # built — pick constraints (types/extensions/max) + eligibility
+    controller.ts     # built — roster facade composing the explorer controller
+    content-picker.ts # built — box-content-picker choose/cancel shell
   preview/          # built — provider adapter, content-preview adapter, annotations, box-preview-element
   search/             # built — filter-bar, saved-view-picker, search-results-header
   item/             # built — item-form, item-details-panel, bulk-action-bar, preview-header
@@ -62,6 +66,15 @@ Headless blocks (see [content-explorer.md](./content-explorer.md) for the compos
 - `contracts` + `box-transport` (data-source contracts, HTTP adapter, Box API transport, wire schemas) — **built**
 - presentation adapters (`box-explorer-action-menu`, `box-explorer-toolbar`, `box-explorer-list`, `box-explorer-table`, `box-explorer-items`, `box-explorer-breadcrumbs`) — **built**
 - composed surface: `box-content-explorer` — **built**
+
+### Content Picker (workflow)
+
+A constrained explorer session for choosing content, composed from the explorer
+headless blocks (same transport contract, navigation, search, pagination):
+
+- `types` (pick constraints — `selectableTypes`, `extensions`, `maxSelectable` — and the `isItemPickable` eligibility check) — **built**
+- `controller` (`ContentPickerController`: cross-folder pick roster over `ContentExplorerController`, `togglePick`/`choose`/`cancel`, `chosen`/`cancelled`/`selectionChanged`/`selectionRejected` events) — **built**
+- composed surface: `box-content-picker` (browse + pick shell with a choose/cancel footer, selection count, disabled non-eligible rows, folders always navigable) — **built**
 
 ### Preview (workflow + compositions)
 
@@ -126,10 +139,6 @@ Headless blocks (see [content-explorer.md](./content-explorer.md) for the compos
 Honest inventory of what upstream ships that has **no counterpart here yet** —
 the roadmap for the next pattern rounds, in rough priority order:
 
-- **ContentPicker** — a constrained explorer shell with choose/cancel footer,
-  `maxSelectable`, and extension filtering. The explorer headless blocks
-  (selection, navigation, collection) are the intended foundation; the picker
-  shell and contract do not exist yet.
 - **ContentUploader** — upload queue with per-file progress/retry/cancel and a
   chunked-upload transport contract. Only the `box-drop-zone` primitive and
   generic progress components exist today.

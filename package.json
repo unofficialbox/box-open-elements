@@ -68,6 +68,10 @@
       "types": "./dist/patterns/content-explorer/actions/index.d.ts",
       "import": "./dist/patterns/content-explorer/actions/index.js"
     },
+    "./patterns/content-picker": {
+      "types": "./dist/patterns/content-picker/index.d.ts",
+      "import": "./dist/patterns/content-picker/index.js"
+    },
     "./patterns/search": {
       "types": "./dist/patterns/search/index.d.ts",
       "import": "./dist/patterns/search/index.js"
