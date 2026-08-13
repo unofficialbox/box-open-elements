@@ -76,6 +76,10 @@
       "types": "./dist/patterns/content-uploader/index.d.ts",
       "import": "./dist/patterns/content-uploader/index.js"
     },
+    "./patterns/content-sidebar": {
+      "types": "./dist/patterns/content-sidebar/index.d.ts",
+      "import": "./dist/patterns/content-sidebar/index.js"
+    },
     "./patterns/search": {
       "types": "./dist/patterns/search/index.d.ts",
       "import": "./dist/patterns/search/index.js"
