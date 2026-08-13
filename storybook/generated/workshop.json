@@ -1685,6 +1685,239 @@
       ]
     },
     {
+      "id": "content-picker",
+      "tag": "box-content-picker",
+      "title": "Patterns/Content Picker/Content Picker",
+      "category": "Content Picker",
+      "shortDescription": "Constrained browse-and-choose surface composed from the explorer headless blocks.",
+      "docsDescription": "The picker is a worked example of pattern composition: ContentPickerController wraps the same ContentExplorerController (navigation, collection, search, transport contract) the explorer uses, and adds only what choosing needs — a cross-folder pick roster, type/extension/max constraints, and a choose/cancel contract. Nothing is reimplemented; a host that outgrows the shell can compose the same blocks with its own chrome.",
+      "sourceSnippet": "<box-content-picker root-folder-id=\"0\" token=\"…\" max-selectable=\"2\" extensions=\"pdf\" choose-label=\"Attach\"></box-content-picker>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "root-folder-id",
+          "type": "string",
+          "description": "Folder session root."
+        },
+        {
+          "kind": "attribute",
+          "name": "token",
+          "type": "string",
+          "description": "Session token for the transport."
+        },
+        {
+          "kind": "attribute",
+          "name": "max-selectable",
+          "type": "number",
+          "description": "Roster limit; 1 switches to single-select replacement."
+        },
+        {
+          "kind": "attribute",
+          "name": "extensions",
+          "type": "string",
+          "description": "Comma-separated file-extension allowlist."
+        },
+        {
+          "kind": "attribute",
+          "name": "selectable-types",
+          "type": "string",
+          "description": "Pickable item types (default: file). Folders always navigate."
+        },
+        {
+          "kind": "attribute",
+          "name": "choose-label",
+          "type": "string",
+          "description": "Footer confirm-button label."
+        },
+        {
+          "kind": "property",
+          "name": "transport",
+          "type": "ExplorerTransport",
+          "description": "The same data-source contract the explorer uses."
+        },
+        {
+          "kind": "event",
+          "name": "chosen",
+          "description": "Choose confirmed — detail carries the picked items in pick order."
+        },
+        {
+          "kind": "event",
+          "name": "cancelled",
+          "description": "Session abandoned; the roster is cleared."
+        },
+        {
+          "kind": "event",
+          "name": "selection-rejected",
+          "description": "A pick was refused: not-selectable or limit-reached."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Attach flow",
+          "html": "<box-content-picker root-folder-id=\"0\" token=\"…\" max-selectable=\"2\" extensions=\"pdf\" choose-label=\"Attach\"></box-content-picker>",
+          "note": "Only PDFs are pickable; folders stay navigable. The roster survives navigating between folders."
+        }
+      ]
+    },
+    {
+      "id": "content-sidebar",
+      "tag": "box-content-sidebar",
+      "title": "Patterns/Content Sidebar/Content Sidebar",
+      "category": "Content Sidebar",
+      "shortDescription": "Tabbed details/activity/metadata/versions shell composed over box-tabs with slot-fed panels.",
+      "docsDescription": "The sidebar is pure composition: box-tabs supplies the ARIA tabs machinery, and every panel comes from the host through a named slot — box-item-details-panel, box-metadata-inspector, an activity feed, or your own element. A tab's id doubles as its slot name, so custom tabs are first-class: declare them in the tabs attribute and slot matching content. By default only tabs with slotted content render, so the same element scales from a details-only panel to the full upstream sidebar.",
+      "sourceSnippet": "<box-content-sidebar heading=\"Quarterly Plan.pdf\" collapsible>\n  <box-item-details-panel slot=\"details\" heading=\"Quarterly Plan.pdf\"></box-item-details-panel>\n  <box-metadata-inspector slot=\"metadata\" heading=\"Metadata\"></box-metadata-inspector>\n</box-content-sidebar>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Names the complementary landmark and the tab strip."
+        },
+        {
+          "kind": "attribute",
+          "name": "tabs",
+          "type": "json",
+          "description": "Explicit [{id,label}] configuration; overrides slot detection, [] renders no tabs."
+        },
+        {
+          "kind": "attribute",
+          "name": "active-tab",
+          "type": "string",
+          "description": "Reflected current tab; falls back to the first tab when invalid."
+        },
+        {
+          "kind": "attribute",
+          "name": "collapsible",
+          "type": "boolean",
+          "description": "Renders the Expand/Collapse toggle."
+        },
+        {
+          "kind": "attribute",
+          "name": "collapsed",
+          "type": "boolean",
+          "description": "Hides the tab body while collapsed."
+        },
+        {
+          "kind": "slot",
+          "name": "details",
+          "description": "Details panel content (default tab 1)."
+        },
+        {
+          "kind": "slot",
+          "name": "activity",
+          "description": "Activity feed content (default tab 2)."
+        },
+        {
+          "kind": "slot",
+          "name": "metadata",
+          "description": "Metadata panel content (default tab 3)."
+        },
+        {
+          "kind": "slot",
+          "name": "versions",
+          "description": "Version history content (default tab 4; surface not yet built)."
+        },
+        {
+          "kind": "event",
+          "name": "tab-changed",
+          "description": "User switched tabs — detail carries the tabId."
+        },
+        {
+          "kind": "event",
+          "name": "collapsed-changed",
+          "description": "Collapse toggle used — detail carries the collapsed state."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Slot-resolved tabs",
+          "html": "<box-content-sidebar heading=\"Quarterly Plan.pdf\" collapsible>\n  <box-item-details-panel slot=\"details\" heading=\"Quarterly Plan.pdf\" eyebrow=\"PDF · 2.4 MB\" status=\"Shared\"></box-item-details-panel>\n  <box-metadata-inspector slot=\"metadata\" heading=\"Metadata\"></box-metadata-inspector>\n</box-content-sidebar>",
+          "note": "Only the details and metadata tabs render — activity and versions have no slotted content here."
+        }
+      ]
+    },
+    {
+      "id": "content-uploader",
+      "tag": "box-content-uploader",
+      "title": "Patterns/Content Uploader/Content Uploader",
+      "category": "Content Uploader",
+      "shortDescription": "Upload queue composed from the drop-zone and progress components over a narrow transport contract.",
+      "docsDescription": "The uploader shows how a workflow pattern layers on the catalog: box-drop-zone and box-progress-bar provide the chrome, ContentUploaderController owns the queue (constraint-validated enqueue, concurrency-limited pump, per-item cancel/retry), and the UploadTransport contract is one method — uploadFile — so multipart, chunked sessions, or a BFF are interchangeable behind it without touching the queue or the shell.",
+      "sourceSnippet": "<box-content-uploader folder-id=\"0\" token=\"…\" concurrency=\"2\" extensions=\"pdf,docx\" max-file-size=\"10485760\"></box-content-uploader>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "folder-id",
+          "type": "string",
+          "description": "Destination folder for every upload."
+        },
+        {
+          "kind": "attribute",
+          "name": "token",
+          "type": "string",
+          "description": "Session token handed to the transport."
+        },
+        {
+          "kind": "attribute",
+          "name": "concurrency",
+          "type": "number",
+          "description": "Simultaneous uploads (default 2)."
+        },
+        {
+          "kind": "attribute",
+          "name": "auto-start",
+          "type": "string",
+          "description": "Set \"false\" to queue without uploading until start()."
+        },
+        {
+          "kind": "attribute",
+          "name": "extensions",
+          "type": "string",
+          "description": "Comma-separated extension allowlist."
+        },
+        {
+          "kind": "attribute",
+          "name": "max-file-size",
+          "type": "number",
+          "description": "Reject files larger than this many bytes."
+        },
+        {
+          "kind": "property",
+          "name": "transport",
+          "type": "UploadTransport",
+          "description": "One capability: uploadFile(request) → { fileId }."
+        },
+        {
+          "kind": "event",
+          "name": "item-rejected",
+          "description": "A file failed the constraints: extension-not-allowed or file-too-large."
+        },
+        {
+          "kind": "event",
+          "name": "item-succeeded",
+          "description": "An upload finished — detail carries the remote fileId."
+        },
+        {
+          "kind": "event",
+          "name": "item-failed",
+          "description": "An upload errored; the row keeps a Retry action."
+        },
+        {
+          "kind": "event",
+          "name": "queue-drained",
+          "description": "The last active item settled — detail tallies succeeded/failed/cancelled."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Queue states",
+          "html": "<box-content-uploader folder-id=\"0\" token=\"…\" drop-label=\"Upload to All Files\"></box-content-uploader>",
+          "note": "Rows rebuild only on status changes; progress bars are patched in place so in-row focus survives ticks."
+        }
+      ]
+    },
+    {
       "id": "datalist-item",
       "tag": "box-datalist-item",
       "title": "Components/Collections/Datalist Item",

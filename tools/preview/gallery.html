@@ -178,6 +178,25 @@
   </div>
 </section>
 
+<section id="section-content-workflows">
+  <h2>Patterns · Picker, Uploader &amp; Sidebar</h2>
+  <div class="row">
+    <box-content-picker id="gallery-picker" root-folder-id="0" token="preview-token" max-selectable="2" extensions="pdf" choose-label="Attach" style="flex:1 1 100%"></box-content-picker>
+  </div>
+  <div class="row">
+    <div class="col">
+      <box-content-uploader id="gallery-uploader" folder-id="0" token="preview-token" drop-label="Upload to All Files"></box-content-uploader>
+    </div>
+    <div class="col">
+      <box-content-sidebar id="gallery-sidebar" heading="Quarterly Plan.pdf" collapsible>
+        <box-item-details-panel id="gallery-sidebar-details" slot="details" heading="Quarterly Plan.pdf" eyebrow="PDF · 2.4 MB" status="Shared" message="Latest board-ready plan with updated forecasts."></box-item-details-panel>
+        <box-annotation-thread id="gallery-sidebar-activity" slot="activity" heading="Activity"></box-annotation-thread>
+        <box-metadata-inspector slot="metadata" heading="Metadata"></box-metadata-inspector>
+      </box-content-sidebar>
+    </div>
+  </div>
+</section>
+
 <section id="section-specialized">
   <h2>Components · Specialized</h2>
   <div class="row">
@@ -496,6 +515,73 @@
     resolvePreset: id => explorerPresets.find(preset => preset.id === id),
   });
   void explorerController.connect();
+
+  // Picker / uploader / sidebar workflows — settle every async state before
+  // the gallery marks itself ready so captures are deterministic.
+  const galleryPicker = byId("gallery-picker");
+  galleryPicker.transport = mockTransport;
+  const uploaderTransport = {
+    uploadFile({ fileName, onProgress }) {
+      if (fileName === "Board Deck.pdf") {
+        onProgress?.(0.62);
+        return new Promise(() => {});
+      }
+      if (fileName === "Launch Video.mp4") {
+        return Promise.reject(new Error("Storage quota exceeded"));
+      }
+      onProgress?.(1);
+      return Promise.resolve({ fileId: `demo-${fileName}` });
+    },
+  };
+  const galleryUploader = byId("gallery-uploader");
+  galleryUploader.transport = uploaderTransport;
+  byId("gallery-sidebar-details").actions = [
+    { id: "share", label: "Share" },
+    { id: "download", label: "Download" },
+  ];
+  byId("gallery-sidebar-details").meta = [
+    { label: "Owner", value: "Morgan Lee" },
+    { label: "Modified", value: "Jul 10, 2026" },
+  ];
+  byId("gallery-sidebar-activity").entries = [
+    { id: "a1", author: "Morgan Lee", body: "Tighten the hero spacing before export.", toolLabel: "Comment", status: "Open" },
+    { id: "a2", author: "Avery Chen", body: "Updated the draft — resolved.", toolLabel: "Highlight", status: "Resolved" },
+  ];
+
+  const settled = (ready) =>
+    new Promise((resolve, reject) => {
+      let attempts = 0;
+      const poll = () => {
+        if (ready()) {
+          resolve();
+          return;
+        }
+        attempts += 1;
+        if (attempts > 200) {
+          reject(new Error("gallery workflow demo never settled"));
+          return;
+        }
+        setTimeout(poll, 25);
+      };
+      poll();
+    });
+
+  await settled(() => (galleryPicker.explorerState?.items.length ?? 0) > 0);
+  galleryPicker.togglePick("123");
+  await settled(() => galleryUploader.uploaderController !== null);
+  galleryUploader.addFiles([
+    { name: "Quarterly Plan.pdf", size: 2_400_000 },
+    { name: "Board Deck.pdf", size: 5_100_000 },
+    { name: "Launch Video.mp4", size: 8_300_000 },
+  ]);
+  await settled(() => {
+    const items = galleryUploader.state?.items ?? [];
+    return (
+      items.length === 3 &&
+      items.some(item => item.status === "succeeded") &&
+      items.some(item => item.status === "failed")
+    );
+  });
 
   document.body.dataset.galleryReady = "true";
 </script>

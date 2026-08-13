@@ -25,6 +25,9 @@ import {
   contentExplorerMetadataChromeNote,
   setupContentExplorerMetadataChrome,
 } from "./explorer-metadata-demo.js";
+import type { ContentPicker } from "../src/patterns/content-picker/content-picker.js";
+import type { ContentUploader } from "../src/patterns/content-uploader/content-uploader.js";
+import type { UploadTransport } from "../src/patterns/content-uploader/types.js";
 import { boxIconography } from "@unofficialbox/box-open-elements";
 
 /** Inline a Box iconography glyph by name (for slotted demo icons). */
@@ -51,6 +54,41 @@ export interface ComponentExample {
 
 /** Re-export for gallery / tests that still import the mock transport by this name. */
 export const createMockTransport = createExplorerDemoTransport;
+
+/**
+ * Deterministic uploader demo: one file finishes, one stays in flight at 62%,
+ * one fails — so the queue shows every row state without timers.
+ */
+export const createUploaderDemoTransport = (): UploadTransport => ({
+  uploadFile({ fileName, onProgress }) {
+    if (fileName === "Board Deck.pdf") {
+      onProgress?.(0.62);
+      return new Promise(() => {});
+    }
+    if (fileName === "Launch Video.mp4") {
+      return Promise.reject(new Error("Storage quota exceeded"));
+    }
+    onProgress?.(1);
+    return Promise.resolve({ fileId: `demo-${fileName}` });
+  },
+});
+
+export const uploaderDemoFiles = [
+  { name: "Quarterly Plan.pdf", size: 2_400_000 },
+  { name: "Board Deck.pdf", size: 5_100_000 },
+  { name: "Launch Video.mp4", size: 8_300_000 },
+];
+
+/** Retry until the element's async session is up, then run the interaction. */
+const whenSessionReady = (ready: () => boolean, run: () => void, attempts = 40): void => {
+  if (ready()) {
+    run();
+    return;
+  }
+  if (attempts > 0) {
+    setTimeout(() => whenSessionReady(ready, run, attempts - 1), 25);
+  }
+};
 
 const explorerAdapterSetup =
   (selector: string, options?: { selectItemId?: string; itemId?: string }): SetupFn =>
@@ -580,6 +618,64 @@ export const examples: Record<string, ComponentExample> = {
         note: contentExplorerMetadataChromeNote,
       },
     ],
+  },
+  "content-picker": {
+    html: `<box-content-picker root-folder-id="0" token="demo-token" max-selectable="2" extensions="pdf" choose-label="Attach"></box-content-picker>`,
+    setup: root => {
+      const picker = root.querySelector("box-content-picker") as ContentPicker | null;
+      if (!picker) {
+        return;
+      }
+      picker.transport = createMockTransport();
+      whenSessionReady(
+        () => (picker.explorerState?.items.length ?? 0) > 0,
+        () => picker.togglePick("123"),
+      );
+    },
+    note: "Cross-folder pick roster over the explorer headless blocks — only PDFs are pickable here; folders stay navigable. Choose emits `chosen` with the roster.",
+  },
+  "content-uploader": {
+    html: `<box-content-uploader folder-id="0" token="demo-token" drop-label="Upload to All Files"></box-content-uploader>`,
+    setup: root => {
+      const uploader = root.querySelector("box-content-uploader") as ContentUploader | null;
+      if (!uploader) {
+        return;
+      }
+      uploader.transport = createUploaderDemoTransport();
+      whenSessionReady(
+        () => uploader.uploaderController !== null,
+        () => {
+          uploader.addFiles(uploaderDemoFiles);
+        },
+      );
+    },
+    note: "Queue over the `UploadTransport` contract: one finished upload, one in flight at 62%, one failed with retry. Rows rebuild on status changes; progress patches in place.",
+  },
+  "content-sidebar": {
+    html: `<box-content-sidebar heading="Quarterly Plan.pdf" collapsible>
+  <box-item-details-panel slot="details" heading="Quarterly Plan.pdf" eyebrow="PDF · 2.4 MB" status="Shared" message="Latest board-ready plan with updated forecasts."></box-item-details-panel>
+  <box-annotation-thread slot="activity" heading="Activity"></box-annotation-thread>
+  <box-metadata-inspector slot="metadata" heading="Metadata"></box-metadata-inspector>
+</box-content-sidebar>`,
+    setup: root => {
+      set(root, '[slot="details"]', {
+        actions: [
+          { id: "share", label: "Share" },
+          { id: "download", label: "Download" },
+        ],
+        meta: [
+          { label: "Owner", value: "Morgan Lee" },
+          { label: "Modified", value: "Jul 10, 2026" },
+        ],
+      });
+      set(root, '[slot="activity"]', {
+        entries: [
+          { id: "a1", author: "Morgan Lee", body: "Tighten the hero spacing before export.", toolLabel: "Comment", status: "Open" },
+          { id: "a2", author: "Avery Chen", body: "Updated the draft — resolved.", toolLabel: "Highlight", status: "Resolved" },
+        ],
+      });
+    },
+    note: "Tabs resolve from which named slots have content (`details` / `activity` / `metadata` / `versions`); an explicit `tabs` attribute overrides.",
   },
   "explorer-breadcrumbs": { html: `<box-explorer-breadcrumbs></box-explorer-breadcrumbs>`, setup: explorerAdapterSetup("box-explorer-breadcrumbs"), note: "Driven by a shared ContentExplorerController with a mock transport." },
   "explorer-toolbar": { html: `<box-explorer-toolbar></box-explorer-toolbar>`, setup: explorerAdapterSetup("box-explorer-toolbar"), note: "Driven by a shared ContentExplorerController with a mock transport." },
