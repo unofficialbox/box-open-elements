@@ -65,6 +65,10 @@ src/patterns/
     types.ts          # built — LineageNode model with deviation-typed parent links
     lineage-graph.ts  # built — box-lineage-graph provenance DAG (reuses versions layout)
     provenance-strip.ts # built — box-provenance-strip linear ancestry chips
+  agent-chat/
+    types.ts          # built — message/citation/proposal model + streaming transport contract
+    controller.ts     # built — headless streaming session (deltas, stop, HITL decisions)
+    agent-chat.ts     # built — box-agent-chat thread, citation chips, HITL action cards
   preview/          # built — provider adapter, content-preview adapter, annotations, box-preview-element
   search/             # built — filter-bar, saved-view-picker, search-results-header
   item/             # built — item-form, item-details-panel, bulk-action-bar, preview-header
@@ -188,6 +192,17 @@ Clause provenance across the template/contract estate (opportunity 2 of
 - `types` (`LineageNode` with an open `kind` vocabulary — `clause`/`template`/`contract` conventional — and `parents` as typed `LineageParentLink`s carrying `deviation` severity none/minor/major plus a one-line note; per-record validation incl. nested links, entityRef, actor) — **built**
 - composed surface: `box-lineage-graph` (provenance DAG over the versions pattern's `computeVersionGraphLayout` — the shared-machinery payoff; SVG edges tone-coloured by deviation; one HTML button per node emitting `node-selected` with roving arrow-key focus; every derivation edge is also a per-row chip button emitting `edge-selected` with the parent/child pair — the diff viewer's input contract — so edge activation needs no SVG hit targets; the row rail is the accessible contract, the SVG is presentation) — **built**
 - composed surface: `box-provenance-strip` (the cheap, high-frequency sibling: linear ancestry chips oldest → newest for record headers and the sidebar, newest marked `aria-current`, `node-selected` on chip activation; branched input degrades to topological order) — **built**
+
+### Agent Chat (workflow)
+
+The AI agent conversation surface (opportunity 1 of
+`plans/component-opportunities.md` — the largest and most strategic gap),
+shaped as a workflow pattern rather than a widget:
+
+- `types` (`AgentChatMessage` with roles and a `streaming`/`complete`/`error` status, `AgentCitation` reusing the timeline's evidence shape, `AgentActionProposal` for human-in-the-loop review; `AgentChatTransport` — `sendMessage` streaming typed `AgentStreamEvent`s (`delta`/`citation`/`proposal`) through an `onEvent` channel, plus an optional `resolveAction` capability) — **built**
+- `controller` (`AgentChatController`: folds stream events into one growing agent message, `stop()` aborts a generation while keeping the partial reply — a stop is not a failure, transport failures mark the reply errored and emit `sendFailed`, and HITL decisions route through the `resolveAction` capability with a guard that throws when absent) — **built**
+- composed surface: `box-agent-chat` (thread with role bubbles, per-message avatars and a streaming caret; **citation chips** emitting `citation-selected` with the timeline's unsafe-href downgrade; **HITL action cards** rendering Approve/Reject only when the transport can resolve them, with Modify surfaced as `proposal-modify-requested` intent for the host's own editor; Enter-to-send composer with a Stop affordance) — **built**
+- The composer lives outside the patched thread region, so a streaming reply never disturbs what the reader is typing, and the thread only auto-scrolls when they are already at the bottom. Attachment composition with `box-content-picker` is a tracked depth limitation.
 
 ### Preview (workflow + compositions)
 
