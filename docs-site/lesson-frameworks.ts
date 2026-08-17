@@ -1646,8 +1646,9 @@ export function IntakeWorkspace() {
       queueEl.refresh();
       record("Intake submitted", "Request entered triage.");
     };
+    const actionLabels = { claim: "Work item claimed", complete: "Work item completed" };
     const onMutated = (event) =>
-      record("Work item " + event.detail.kind + "d", event.detail.item.title);
+      record(actionLabels[event.detail.kind] || "Work item updated", event.detail.item.title);
     el.addEventListener("submitted", onSubmitted);
     queueEl.addEventListener("item-mutated", onMutated);
     return () => {
@@ -1983,7 +1984,8 @@ export class IntakeComponent implements AfterViewInit {
 
   onMutated(event: Event) {
     const detail = (event as CustomEvent).detail;
-    this.record("Work item " + detail.kind + "d", detail.item.title);
+    const actionLabels: Record<string, string> = { claim: "Work item claimed", complete: "Work item completed" };
+    this.record(actionLabels[detail.kind] ?? "Work item updated", detail.item.title);
   }
 }`,
   ],
@@ -2243,8 +2245,9 @@ const onSubmitted = (event: CustomEvent) => {
   record("Intake submitted", "Request entered triage.");
 };
 
+const actionLabels: Record<string, string> = { claim: "Work item claimed", complete: "Work item completed" };
 const onMutated = (event: CustomEvent) => {
-  record("Work item " + event.detail.kind + "d", event.detail.item.title);
+  record(actionLabels[event.detail.kind] ?? "Work item updated", event.detail.item.title);
 };
 </script>
 
@@ -2273,6 +2276,8 @@ const onMutated = (event: CustomEvent) => {
   <box-timeline ref="timeline" heading="Activity"></box-timeline>
 </template>`,
   ],
+  // Svelte snippets target Svelte 5's default legacy mode — `$:` reactivity
+  // and `on:` event syntax do not compile under runes mode.
   svelte: [
     intakeSetup.svelte,
     // 1
@@ -2508,8 +2513,9 @@ const onMutated = (event: CustomEvent) => {
     record("Intake submitted", "Request entered triage.");
   };
 
+  const actionLabels = { claim: "Work item claimed", complete: "Work item completed" };
   const onMutated = (event) =>
-    record("Work item " + event.detail.kind + "d", event.detail.item.title);
+    record(actionLabels[event.detail.kind] || "Work item updated", event.detail.item.title);
 </script>
 
 <box-form-wizard

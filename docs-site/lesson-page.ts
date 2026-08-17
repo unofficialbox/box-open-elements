@@ -420,9 +420,13 @@ const runIntakePreview = (key: PreviewKey, canvas: HTMLElement, log: LogFn): (()
       item.assignee = { id: assigneeId, name: "You" };
       return Promise.resolve({ ...item });
     };
+    const actionLabels: Record<string, string> = {
+      claim: "Work item claimed",
+      complete: "Work item completed",
+    };
     const onMutated = (event: Event): void => {
       const detail = (event as CustomEvent).detail as { kind: string; item: { title: string } };
-      record(`Work item ${detail.kind}d`, detail.item.title);
+      record(actionLabels[detail.kind] ?? "Work item updated", detail.item.title);
       log("item-mutated", detail);
     };
     queue.addEventListener("item-mutated", onMutated);

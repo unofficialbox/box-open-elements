@@ -1169,8 +1169,9 @@ queueTransport.claimItem = ({ itemId, assigneeId }) => {
   return Promise.resolve({ ...item });
 };
 
+const actionLabels = { claim: "Work item claimed", complete: "Work item completed" };
 queue.addEventListener("item-mutated", (event) => {
-  record("Work item " + event.detail.kind + "d", event.detail.item.title);
+  record(actionLabels[event.detail.kind] || "Work item updated", event.detail.item.title);
 });
 queue.addEventListener("item-selected", (event) => {
   console.log("open:", event.detail.item.title);
@@ -1319,8 +1320,9 @@ export const intakeLesson: Lesson = {
     queue.refresh();
     record("Intake submitted", "Request entered triage.");
   });
+  const actionLabels = { claim: "Work item claimed", complete: "Work item completed" };
   queue.addEventListener("item-mutated", event => {
-    record("Work item " + event.detail.kind + "d", event.detail.item.title);
+    record(actionLabels[event.detail.kind] || "Work item updated", event.detail.item.title);
   });
 </script>`,
     react: intakeStepFrameworks.react[5],
