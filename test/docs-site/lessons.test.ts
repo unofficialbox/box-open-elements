@@ -8,6 +8,7 @@ import {
   explorerLesson,
   shareLesson,
   previewLesson,
+  intakeLesson,
   type Lesson,
   type PreviewKey,
 } from "../../docs-site/lessons.js";
@@ -33,6 +34,14 @@ const CONTENT_PREVIEW_KEYS: PreviewKey[] = [
   "preview-provider",
   "preview-adapter",
   "preview-actions",
+];
+const INTAKE_PREVIEW_KEYS: PreviewKey[] = [
+  "empty",
+  "intake-shell",
+  "intake-validate",
+  "intake-queue",
+  "intake-timeline",
+  "intake-workspace",
 ];
 
 /** Lines that carry real content (skip blanks and pure-brace lines). */
@@ -93,14 +102,16 @@ const assertLessonShape = (lesson: Lesson, previewKeys: PreviewKey[]): void => {
 };
 
 describe("build-along lessons", () => {
-  it("exposes Explorer, Share, and Preview lessons", () => {
-    expect(lessons).toHaveLength(3);
+  it("exposes Explorer, Share, Preview, and Intake lessons", () => {
+    expect(lessons).toHaveLength(4);
     expect(lessons[0]).toBe(explorerLesson);
     expect(lessons[1]).toBe(shareLesson);
     expect(lessons[2]).toBe(previewLesson);
+    expect(lessons[3]).toBe(intakeLesson);
     expect(lessonById("explorer")).toBe(explorerLesson);
     expect(lessonById("share")).toBe(shareLesson);
     expect(lessonById("preview")).toBe(previewLesson);
+    expect(lessonById("intake")).toBe(intakeLesson);
     expect(lessonById("nope")).toBeUndefined();
   });
 
@@ -163,6 +174,29 @@ describe("build-along lessons", () => {
       "adapterState",
       "actions",
       'addEventListener("action"',
+    ]) {
+      expect(finalCode).toContain(token);
+    }
+  });
+
+  it("keeps Intake lesson shape and public API surface", () => {
+    assertLessonShape(intakeLesson, INTAKE_PREVIEW_KEYS);
+    const finalCode = intakeLesson.steps[intakeLesson.steps.length - 1].code;
+    for (const token of [
+      'from "@unofficialbox/box-open-elements"',
+      "registerBoxDefaultDesignSystem",
+      "FormWizard",
+      "box-form-wizard",
+      "wizard.steps",
+      "wizard.validators",
+      "wizardController.setValue",
+      "box-work-queue",
+      "queue.transport = queueTransport",
+      'addEventListener("submitted"',
+      "box-timeline",
+      "timeline.events",
+      'addEventListener("item-mutated"',
+      "assignee-id",
     ]) {
       expect(finalCode).toContain(token);
     }

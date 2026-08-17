@@ -35,6 +35,7 @@ applyDesignTokens(document.documentElement, "box-default");`;
 const explorerSetup = setup("content-explorer", "main");
 const shareSetup = setup("share-panel", "main");
 const previewSetup = setup("preview", "main");
+const intakeSetup = setup("form-wizard", "main");
 
 // ── Explorer ─────────────────────────────────────────────────────────────────
 
@@ -1392,5 +1393,1152 @@ const onAction = (event: CustomEvent) =>
   on:action={event =>
     console.log("action", event.detail.action, event.detail.providerId)}
 ></box-preview-element>`,
+  ],
+};
+
+// ── Intake workspace (form wizard + work queue + timeline) ───────────────────
+
+const INTAKE_STEPS_SNIPPET = `[
+    { id: "parties", label: "Parties" },
+    { id: "terms", label: "Key terms" },
+    { id: "review", label: "Review & submit" },
+  ]`;
+
+export const intakeStepFrameworks: StepFrameworks = {
+  react: [
+    intakeSetup.react,
+    // 1 — wizard shell with steps + slotted panels
+    `// IntakeWorkspace.tsx
+import { useEffect, useRef } from "react";
+import "@unofficialbox/box-open-elements/form-wizard";
+
+
+export function IntakeWorkspace() {
+  const wizard = useRef(null);
+
+  useEffect(() => {
+    if (!wizard.current) return;
+    // steps is an array, so set it as a property, not an attribute.
+    wizard.current.steps = ${INTAKE_STEPS_SNIPPET};
+  }, []);
+
+  return (
+    <box-form-wizard ref={wizard} heading="Contract intake" submit-label="Submit request">
+      <div slot="parties"><label>Counterparty <input id="counterparty" /></label></div>
+      <div slot="terms"><label>Contract value <input id="value" /></label></div>
+      <div slot="review"><p>Review the request, then submit for triage.</p></div>
+    </box-form-wizard>
+  );
+}`,
+    // 2 — value store + validator gating
+    `// IntakeWorkspace.tsx
+import { useEffect, useRef } from "react";
+import "@unofficialbox/box-open-elements/form-wizard";
+
+
+export function IntakeWorkspace() {
+  const wizard = useRef(null);
+
+  useEffect(() => {
+    const el = wizard.current;
+    if (!el) return;
+    el.steps = ${INTAKE_STEPS_SNIPPET};
+    el.validators = {
+      parties: values =>
+        values.counterparty
+          ? { valid: true }
+          : { valid: false, message: "Name the counterparty before continuing." },
+    };
+  }, []);
+
+  const setValue = (field) => (event) =>
+    wizard.current?.wizardController?.setValue(field, event.target.value);
+
+  return (
+    <box-form-wizard ref={wizard} heading="Contract intake" submit-label="Submit request">
+      <div slot="parties"><label>Counterparty <input onInput={setValue("counterparty")} /></label></div>
+      <div slot="terms"><label>Contract value <input onInput={setValue("value")} /></label></div>
+      <div slot="review"><p>Review the request, then submit for triage.</p></div>
+    </box-form-wizard>
+  );
+}`,
+    // 3 — queue + transport; submitted files a work item
+    `// IntakeWorkspace.tsx
+import { useEffect, useRef } from "react";
+import "@unofficialbox/box-open-elements/form-wizard";
+import "@unofficialbox/box-open-elements/work-queue";
+
+
+export function IntakeWorkspace() {
+  const wizard = useRef(null);
+  const queue = useRef(null);
+  const requests = useRef([]);
+
+  useEffect(() => {
+    const el = wizard.current;
+    const queueEl = queue.current;
+    if (!el || !queueEl) return;
+    el.steps = ${INTAKE_STEPS_SNIPPET};
+    el.validators = {
+      parties: values =>
+        values.counterparty
+          ? { valid: true }
+          : { valid: false, message: "Name the counterparty before continuing." },
+    };
+    queueEl.transport = {
+      loadItems: () => Promise.resolve({ items: requests.current.map(item => ({ ...item })) }),
+      completeItem: ({ itemId }) => {
+        const item = requests.current.find(entry => entry.id === itemId);
+        item.status = "completed";
+        return Promise.resolve({ ...item });
+      },
+    };
+    const onSubmitted = (event) => {
+      requests.current.push({
+        id: "req-" + (requests.current.length + 1),
+        title: "Intake: " + (event.detail.values.counterparty || "New request"),
+        type: "intake",
+        status: "open",
+      });
+      queueEl.refresh();
+    };
+    el.addEventListener("submitted", onSubmitted);
+    return () => el.removeEventListener("submitted", onSubmitted);
+  }, []);
+
+  const setValue = (field) => (event) =>
+    wizard.current?.wizardController?.setValue(field, event.target.value);
+
+  return (
+    <>
+      <box-form-wizard ref={wizard} heading="Contract intake" submit-label="Submit request">
+        <div slot="parties"><label>Counterparty <input onInput={setValue("counterparty")} /></label></div>
+        <div slot="terms"><label>Contract value <input onInput={setValue("value")} /></label></div>
+        <div slot="review"><p>Review the request, then submit for triage.</p></div>
+      </box-form-wizard>
+      <box-work-queue ref={queue} heading="Intake queue" token="developer-token" />
+    </>
+  );
+}`,
+    // 4 — timeline records submissions
+    `// IntakeWorkspace.tsx
+import { useEffect, useRef } from "react";
+import "@unofficialbox/box-open-elements/form-wizard";
+import "@unofficialbox/box-open-elements/work-queue";
+import "@unofficialbox/box-open-elements/timeline";
+
+
+export function IntakeWorkspace() {
+  const wizard = useRef(null);
+  const queue = useRef(null);
+  const timeline = useRef(null);
+  const requests = useRef([]);
+  const activity = useRef([]);
+
+  useEffect(() => {
+    const el = wizard.current;
+    const queueEl = queue.current;
+    if (!el || !queueEl) return;
+    el.steps = ${INTAKE_STEPS_SNIPPET};
+    el.validators = {
+      parties: values =>
+        values.counterparty
+          ? { valid: true }
+          : { valid: false, message: "Name the counterparty before continuing." },
+    };
+    queueEl.transport = {
+      loadItems: () => Promise.resolve({ items: requests.current.map(item => ({ ...item })) }),
+      completeItem: ({ itemId }) => {
+        const item = requests.current.find(entry => entry.id === itemId);
+        item.status = "completed";
+        return Promise.resolve({ ...item });
+      },
+    };
+    const record = (action, summary) => {
+      activity.current = [
+        { id: "a-" + (activity.current.length + 1), action, summary, timestamp: new Date().toISOString() },
+        ...activity.current,
+      ];
+      if (timeline.current) timeline.current.events = activity.current;
+    };
+    const onSubmitted = (event) => {
+      requests.current.push({
+        id: "req-" + (requests.current.length + 1),
+        title: "Intake: " + (event.detail.values.counterparty || "New request"),
+        type: "intake",
+        status: "open",
+      });
+      queueEl.refresh();
+      record("Intake submitted", "Request entered triage.");
+    };
+    el.addEventListener("submitted", onSubmitted);
+    return () => el.removeEventListener("submitted", onSubmitted);
+  }, []);
+
+  const setValue = (field) => (event) =>
+    wizard.current?.wizardController?.setValue(field, event.target.value);
+
+  return (
+    <>
+      <box-form-wizard ref={wizard} heading="Contract intake" submit-label="Submit request">
+        <div slot="parties"><label>Counterparty <input onInput={setValue("counterparty")} /></label></div>
+        <div slot="terms"><label>Contract value <input onInput={setValue("value")} /></label></div>
+        <div slot="review"><p>Review the request, then submit for triage.</p></div>
+      </box-form-wizard>
+      <box-work-queue ref={queue} heading="Intake queue" token="developer-token" />
+      <box-timeline ref={timeline} heading="Activity" />
+    </>
+  );
+}`,
+    // 5 — claim/complete flow onto the timeline
+    `// IntakeWorkspace.tsx
+import { useEffect, useRef } from "react";
+import "@unofficialbox/box-open-elements/form-wizard";
+import "@unofficialbox/box-open-elements/work-queue";
+import "@unofficialbox/box-open-elements/timeline";
+
+
+export function IntakeWorkspace() {
+  const wizard = useRef(null);
+  const queue = useRef(null);
+  const timeline = useRef(null);
+  const requests = useRef([]);
+  const activity = useRef([]);
+
+  useEffect(() => {
+    const el = wizard.current;
+    const queueEl = queue.current;
+    if (!el || !queueEl) return;
+    el.steps = ${INTAKE_STEPS_SNIPPET};
+    el.validators = {
+      parties: values =>
+        values.counterparty
+          ? { valid: true }
+          : { valid: false, message: "Name the counterparty before continuing." },
+    };
+    queueEl.transport = {
+      loadItems: () => Promise.resolve({ items: requests.current.map(item => ({ ...item })) }),
+      claimItem: ({ itemId, assigneeId }) => {
+        const item = requests.current.find(entry => entry.id === itemId);
+        item.assignee = { id: assigneeId, name: "You" };
+        return Promise.resolve({ ...item });
+      },
+      completeItem: ({ itemId }) => {
+        const item = requests.current.find(entry => entry.id === itemId);
+        item.status = "completed";
+        return Promise.resolve({ ...item });
+      },
+    };
+    const record = (action, summary) => {
+      activity.current = [
+        { id: "a-" + (activity.current.length + 1), action, summary, timestamp: new Date().toISOString() },
+        ...activity.current,
+      ];
+      if (timeline.current) timeline.current.events = activity.current;
+    };
+    const onSubmitted = (event) => {
+      requests.current.push({
+        id: "req-" + (requests.current.length + 1),
+        title: "Intake: " + (event.detail.values.counterparty || "New request"),
+        type: "intake",
+        status: "open",
+      });
+      queueEl.refresh();
+      record("Intake submitted", "Request entered triage.");
+    };
+    const actionLabels = { claim: "Work item claimed", complete: "Work item completed" };
+    const onMutated = (event) =>
+      record(actionLabels[event.detail.kind] || "Work item updated", event.detail.item.title);
+    el.addEventListener("submitted", onSubmitted);
+    queueEl.addEventListener("item-mutated", onMutated);
+    return () => {
+      el.removeEventListener("submitted", onSubmitted);
+      queueEl.removeEventListener("item-mutated", onMutated);
+    };
+  }, []);
+
+  const setValue = (field) => (event) =>
+    wizard.current?.wizardController?.setValue(field, event.target.value);
+
+  return (
+    <>
+      <box-form-wizard ref={wizard} heading="Contract intake" submit-label="Submit request">
+        <div slot="parties"><label>Counterparty <input onInput={setValue("counterparty")} /></label></div>
+        <div slot="terms"><label>Contract value <input onInput={setValue("value")} /></label></div>
+        <div slot="review"><p>Review the request, then submit for triage.</p></div>
+      </box-form-wizard>
+      <box-work-queue ref={queue} heading="Intake queue" token="developer-token" assignee-id="you" />
+      <box-timeline ref={timeline} heading="Activity" />
+    </>
+  );
+}`,
+  ],
+  angular: [
+    intakeSetup.angular,
+    // 1
+    `// intake.component.ts
+import { AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild } from "@angular/core";
+import "@unofficialbox/box-open-elements/form-wizard";
+
+
+@Component({
+  standalone: true,
+  selector: "app-intake",
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  template: \`
+    <box-form-wizard #wizard heading="Contract intake" submit-label="Submit request">
+      <div slot="parties"><label>Counterparty <input id="counterparty" /></label></div>
+      <div slot="terms"><label>Contract value <input id="value" /></label></div>
+      <div slot="review"><p>Review the request, then submit for triage.</p></div>
+    </box-form-wizard>
+  \`,
+})
+export class IntakeComponent implements AfterViewInit {
+  @ViewChild("wizard") wizard!: ElementRef;
+
+  ngAfterViewInit() {
+    // steps is an array, so it is set as a property, not an attribute.
+    this.wizard.nativeElement.steps = ${INTAKE_STEPS_SNIPPET};
+  }
+}`,
+    // 2
+    `// intake.component.ts
+import { AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild } from "@angular/core";
+import "@unofficialbox/box-open-elements/form-wizard";
+
+
+@Component({
+  standalone: true,
+  selector: "app-intake",
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  template: \`
+    <box-form-wizard #wizard heading="Contract intake" submit-label="Submit request">
+      <div slot="parties">
+        <label>Counterparty <input (input)="setValue('counterparty', $event)" /></label>
+      </div>
+      <div slot="terms">
+        <label>Contract value <input (input)="setValue('value', $event)" /></label>
+      </div>
+      <div slot="review"><p>Review the request, then submit for triage.</p></div>
+    </box-form-wizard>
+  \`,
+})
+export class IntakeComponent implements AfterViewInit {
+  @ViewChild("wizard") wizard!: ElementRef;
+
+  ngAfterViewInit() {
+    this.wizard.nativeElement.steps = ${INTAKE_STEPS_SNIPPET};
+    this.wizard.nativeElement.validators = {
+      parties: (values: Record<string, unknown>) =>
+        values["counterparty"]
+          ? { valid: true }
+          : { valid: false, message: "Name the counterparty before continuing." },
+    };
+  }
+
+  setValue(field: string, event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.wizard.nativeElement.wizardController?.setValue(field, input.value);
+  }
+}`,
+    // 3
+    `// intake.component.ts
+import { AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild } from "@angular/core";
+import "@unofficialbox/box-open-elements/form-wizard";
+import "@unofficialbox/box-open-elements/work-queue";
+
+
+@Component({
+  standalone: true,
+  selector: "app-intake",
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  template: \`
+    <box-form-wizard
+      #wizard
+      heading="Contract intake"
+      submit-label="Submit request"
+      (submitted)="onSubmitted($event)"
+    >
+      <div slot="parties">
+        <label>Counterparty <input (input)="setValue('counterparty', $event)" /></label>
+      </div>
+      <div slot="terms">
+        <label>Contract value <input (input)="setValue('value', $event)" /></label>
+      </div>
+      <div slot="review"><p>Review the request, then submit for triage.</p></div>
+    </box-form-wizard>
+    <box-work-queue #queue heading="Intake queue" token="developer-token"></box-work-queue>
+  \`,
+})
+export class IntakeComponent implements AfterViewInit {
+  @ViewChild("wizard") wizard!: ElementRef;
+  @ViewChild("queue") queue!: ElementRef;
+  requests: Array<Record<string, unknown>> = [];
+
+  ngAfterViewInit() {
+    this.wizard.nativeElement.steps = ${INTAKE_STEPS_SNIPPET};
+    this.wizard.nativeElement.validators = {
+      parties: (values: Record<string, unknown>) =>
+        values["counterparty"]
+          ? { valid: true }
+          : { valid: false, message: "Name the counterparty before continuing." },
+    };
+    this.queue.nativeElement.transport = {
+      loadItems: () => Promise.resolve({ items: this.requests.map(item => ({ ...item })) }),
+      completeItem: ({ itemId }: { itemId: string }) => {
+        const item = this.requests.find(entry => entry["id"] === itemId)!;
+        item["status"] = "completed";
+        return Promise.resolve({ ...item });
+      },
+    };
+  }
+
+  setValue(field: string, event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.wizard.nativeElement.wizardController?.setValue(field, input.value);
+  }
+
+  onSubmitted(event: Event) {
+    const values = (event as CustomEvent).detail.values;
+    this.requests.push({
+      id: "req-" + (this.requests.length + 1),
+      title: "Intake: " + (values.counterparty || "New request"),
+      type: "intake",
+      status: "open",
+    });
+    this.queue.nativeElement.refresh();
+  }
+}`,
+    // 4
+    `// intake.component.ts
+import { AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild } from "@angular/core";
+import "@unofficialbox/box-open-elements/form-wizard";
+import "@unofficialbox/box-open-elements/work-queue";
+import "@unofficialbox/box-open-elements/timeline";
+
+
+@Component({
+  standalone: true,
+  selector: "app-intake",
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  template: \`
+    <box-form-wizard
+      #wizard
+      heading="Contract intake"
+      submit-label="Submit request"
+      (submitted)="onSubmitted($event)"
+    >
+      <div slot="parties">
+        <label>Counterparty <input (input)="setValue('counterparty', $event)" /></label>
+      </div>
+      <div slot="terms">
+        <label>Contract value <input (input)="setValue('value', $event)" /></label>
+      </div>
+      <div slot="review"><p>Review the request, then submit for triage.</p></div>
+    </box-form-wizard>
+    <box-work-queue #queue heading="Intake queue" token="developer-token"></box-work-queue>
+    <box-timeline #timeline heading="Activity"></box-timeline>
+  \`,
+})
+export class IntakeComponent implements AfterViewInit {
+  @ViewChild("wizard") wizard!: ElementRef;
+  @ViewChild("queue") queue!: ElementRef;
+  @ViewChild("timeline") timeline!: ElementRef;
+  requests: Array<Record<string, unknown>> = [];
+  activity: Array<Record<string, unknown>> = [];
+
+  ngAfterViewInit() {
+    this.wizard.nativeElement.steps = ${INTAKE_STEPS_SNIPPET};
+    this.wizard.nativeElement.validators = {
+      parties: (values: Record<string, unknown>) =>
+        values["counterparty"]
+          ? { valid: true }
+          : { valid: false, message: "Name the counterparty before continuing." },
+    };
+    this.queue.nativeElement.transport = {
+      loadItems: () => Promise.resolve({ items: this.requests.map(item => ({ ...item })) }),
+      completeItem: ({ itemId }: { itemId: string }) => {
+        const item = this.requests.find(entry => entry["id"] === itemId)!;
+        item["status"] = "completed";
+        return Promise.resolve({ ...item });
+      },
+    };
+  }
+
+  record(action: string, summary: string) {
+    this.activity = [
+      { id: "a-" + (this.activity.length + 1), action, summary, timestamp: new Date().toISOString() },
+      ...this.activity,
+    ];
+    this.timeline.nativeElement.events = this.activity;
+  }
+
+  setValue(field: string, event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.wizard.nativeElement.wizardController?.setValue(field, input.value);
+  }
+
+  onSubmitted(event: Event) {
+    const values = (event as CustomEvent).detail.values;
+    this.requests.push({
+      id: "req-" + (this.requests.length + 1),
+      title: "Intake: " + (values.counterparty || "New request"),
+      type: "intake",
+      status: "open",
+    });
+    this.queue.nativeElement.refresh();
+    this.record("Intake submitted", "Request entered triage.");
+  }
+}`,
+    // 5
+    `// intake.component.ts
+import { AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild } from "@angular/core";
+import "@unofficialbox/box-open-elements/form-wizard";
+import "@unofficialbox/box-open-elements/work-queue";
+import "@unofficialbox/box-open-elements/timeline";
+
+
+@Component({
+  standalone: true,
+  selector: "app-intake",
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  template: \`
+    <box-form-wizard
+      #wizard
+      heading="Contract intake"
+      submit-label="Submit request"
+      (submitted)="onSubmitted($event)"
+    >
+      <div slot="parties">
+        <label>Counterparty <input (input)="setValue('counterparty', $event)" /></label>
+      </div>
+      <div slot="terms">
+        <label>Contract value <input (input)="setValue('value', $event)" /></label>
+      </div>
+      <div slot="review"><p>Review the request, then submit for triage.</p></div>
+    </box-form-wizard>
+    <box-work-queue
+      #queue
+      heading="Intake queue"
+      token="developer-token"
+      assignee-id="you"
+      (item-mutated)="onMutated($event)"
+    ></box-work-queue>
+    <box-timeline #timeline heading="Activity"></box-timeline>
+  \`,
+})
+export class IntakeComponent implements AfterViewInit {
+  @ViewChild("wizard") wizard!: ElementRef;
+  @ViewChild("queue") queue!: ElementRef;
+  @ViewChild("timeline") timeline!: ElementRef;
+  requests: Array<Record<string, unknown>> = [];
+  activity: Array<Record<string, unknown>> = [];
+
+  ngAfterViewInit() {
+    this.wizard.nativeElement.steps = ${INTAKE_STEPS_SNIPPET};
+    this.wizard.nativeElement.validators = {
+      parties: (values: Record<string, unknown>) =>
+        values["counterparty"]
+          ? { valid: true }
+          : { valid: false, message: "Name the counterparty before continuing." },
+    };
+    this.queue.nativeElement.transport = {
+      loadItems: () => Promise.resolve({ items: this.requests.map(item => ({ ...item })) }),
+      claimItem: ({ itemId, assigneeId }: { itemId: string; assigneeId: string }) => {
+        const item = this.requests.find(entry => entry["id"] === itemId)!;
+        item["assignee"] = { id: assigneeId, name: "You" };
+        return Promise.resolve({ ...item });
+      },
+      completeItem: ({ itemId }: { itemId: string }) => {
+        const item = this.requests.find(entry => entry["id"] === itemId)!;
+        item["status"] = "completed";
+        return Promise.resolve({ ...item });
+      },
+    };
+  }
+
+  record(action: string, summary: string) {
+    this.activity = [
+      { id: "a-" + (this.activity.length + 1), action, summary, timestamp: new Date().toISOString() },
+      ...this.activity,
+    ];
+    this.timeline.nativeElement.events = this.activity;
+  }
+
+  setValue(field: string, event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.wizard.nativeElement.wizardController?.setValue(field, input.value);
+  }
+
+  onSubmitted(event: Event) {
+    const values = (event as CustomEvent).detail.values;
+    this.requests.push({
+      id: "req-" + (this.requests.length + 1),
+      title: "Intake: " + (values.counterparty || "New request"),
+      type: "intake",
+      status: "open",
+    });
+    this.queue.nativeElement.refresh();
+    this.record("Intake submitted", "Request entered triage.");
+  }
+
+  onMutated(event: Event) {
+    const detail = (event as CustomEvent).detail;
+    const actionLabels: Record<string, string> = { claim: "Work item claimed", complete: "Work item completed" };
+    this.record(actionLabels[detail.kind] ?? "Work item updated", detail.item.title);
+  }
+}`,
+  ],
+  vue: [
+    intakeSetup.vue,
+    // 1
+    `<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import "@unofficialbox/box-open-elements/form-wizard";
+
+
+const wizard = ref();
+
+onMounted(() => {
+  // steps is an array, so it is set as a property, not an attribute.
+  wizard.value.steps = ${INTAKE_STEPS_SNIPPET};
+});
+</script>
+
+<template>
+  <box-form-wizard ref="wizard" heading="Contract intake" submit-label="Submit request">
+    <div slot="parties"><label>Counterparty <input /></label></div>
+    <div slot="terms"><label>Contract value <input /></label></div>
+    <div slot="review"><p>Review the request, then submit for triage.</p></div>
+  </box-form-wizard>
+</template>`,
+    // 2
+    `<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import "@unofficialbox/box-open-elements/form-wizard";
+
+
+const wizard = ref();
+
+onMounted(() => {
+  wizard.value.steps = ${INTAKE_STEPS_SNIPPET};
+  wizard.value.validators = {
+    parties: (values: Record<string, unknown>) =>
+      values.counterparty
+        ? { valid: true }
+        : { valid: false, message: "Name the counterparty before continuing." },
+  };
+});
+
+const setValue = (field: string, event: Event) => {
+  const input = event.target as HTMLInputElement;
+  wizard.value.wizardController?.setValue(field, input.value);
+};
+</script>
+
+<template>
+  <box-form-wizard ref="wizard" heading="Contract intake" submit-label="Submit request">
+    <div slot="parties">
+      <label>Counterparty <input @input="setValue('counterparty', $event)" /></label>
+    </div>
+    <div slot="terms">
+      <label>Contract value <input @input="setValue('value', $event)" /></label>
+    </div>
+    <div slot="review"><p>Review the request, then submit for triage.</p></div>
+  </box-form-wizard>
+</template>`,
+    // 3
+    `<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import "@unofficialbox/box-open-elements/form-wizard";
+import "@unofficialbox/box-open-elements/work-queue";
+
+
+const wizard = ref();
+const queue = ref();
+const requests: Array<Record<string, unknown>> = [];
+
+onMounted(() => {
+  wizard.value.steps = ${INTAKE_STEPS_SNIPPET};
+  wizard.value.validators = {
+    parties: (values: Record<string, unknown>) =>
+      values.counterparty
+        ? { valid: true }
+        : { valid: false, message: "Name the counterparty before continuing." },
+  };
+  queue.value.transport = {
+    loadItems: () => Promise.resolve({ items: requests.map(item => ({ ...item })) }),
+    completeItem: ({ itemId }: { itemId: string }) => {
+      const item = requests.find(entry => entry.id === itemId)!;
+      item.status = "completed";
+      return Promise.resolve({ ...item });
+    },
+  };
+});
+
+const setValue = (field: string, event: Event) => {
+  const input = event.target as HTMLInputElement;
+  wizard.value.wizardController?.setValue(field, input.value);
+};
+
+const onSubmitted = (event: CustomEvent) => {
+  requests.push({
+    id: "req-" + (requests.length + 1),
+    title: "Intake: " + (event.detail.values.counterparty || "New request"),
+    type: "intake",
+    status: "open",
+  });
+  queue.value.refresh();
+};
+</script>
+
+<template>
+  <box-form-wizard
+    ref="wizard"
+    heading="Contract intake"
+    submit-label="Submit request"
+    @submitted="onSubmitted"
+  >
+    <div slot="parties">
+      <label>Counterparty <input @input="setValue('counterparty', $event)" /></label>
+    </div>
+    <div slot="terms">
+      <label>Contract value <input @input="setValue('value', $event)" /></label>
+    </div>
+    <div slot="review"><p>Review the request, then submit for triage.</p></div>
+  </box-form-wizard>
+  <box-work-queue ref="queue" heading="Intake queue" token="developer-token"></box-work-queue>
+</template>`,
+    // 4
+    `<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import "@unofficialbox/box-open-elements/form-wizard";
+import "@unofficialbox/box-open-elements/work-queue";
+import "@unofficialbox/box-open-elements/timeline";
+
+
+const wizard = ref();
+const queue = ref();
+const timeline = ref();
+const requests: Array<Record<string, unknown>> = [];
+let activity: Array<Record<string, unknown>> = [];
+
+onMounted(() => {
+  wizard.value.steps = ${INTAKE_STEPS_SNIPPET};
+  wizard.value.validators = {
+    parties: (values: Record<string, unknown>) =>
+      values.counterparty
+        ? { valid: true }
+        : { valid: false, message: "Name the counterparty before continuing." },
+  };
+  queue.value.transport = {
+    loadItems: () => Promise.resolve({ items: requests.map(item => ({ ...item })) }),
+    completeItem: ({ itemId }: { itemId: string }) => {
+      const item = requests.find(entry => entry.id === itemId)!;
+      item.status = "completed";
+      return Promise.resolve({ ...item });
+    },
+  };
+});
+
+const record = (action: string, summary: string) => {
+  activity = [
+    { id: "a-" + (activity.length + 1), action, summary, timestamp: new Date().toISOString() },
+    ...activity,
+  ];
+  timeline.value.events = activity;
+};
+
+const setValue = (field: string, event: Event) => {
+  const input = event.target as HTMLInputElement;
+  wizard.value.wizardController?.setValue(field, input.value);
+};
+
+const onSubmitted = (event: CustomEvent) => {
+  requests.push({
+    id: "req-" + (requests.length + 1),
+    title: "Intake: " + (event.detail.values.counterparty || "New request"),
+    type: "intake",
+    status: "open",
+  });
+  queue.value.refresh();
+  record("Intake submitted", "Request entered triage.");
+};
+</script>
+
+<template>
+  <box-form-wizard
+    ref="wizard"
+    heading="Contract intake"
+    submit-label="Submit request"
+    @submitted="onSubmitted"
+  >
+    <div slot="parties">
+      <label>Counterparty <input @input="setValue('counterparty', $event)" /></label>
+    </div>
+    <div slot="terms">
+      <label>Contract value <input @input="setValue('value', $event)" /></label>
+    </div>
+    <div slot="review"><p>Review the request, then submit for triage.</p></div>
+  </box-form-wizard>
+  <box-work-queue ref="queue" heading="Intake queue" token="developer-token"></box-work-queue>
+  <box-timeline ref="timeline" heading="Activity"></box-timeline>
+</template>`,
+    // 5
+    `<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import "@unofficialbox/box-open-elements/form-wizard";
+import "@unofficialbox/box-open-elements/work-queue";
+import "@unofficialbox/box-open-elements/timeline";
+
+
+const wizard = ref();
+const queue = ref();
+const timeline = ref();
+const requests: Array<Record<string, unknown>> = [];
+let activity: Array<Record<string, unknown>> = [];
+
+onMounted(() => {
+  wizard.value.steps = ${INTAKE_STEPS_SNIPPET};
+  wizard.value.validators = {
+    parties: (values: Record<string, unknown>) =>
+      values.counterparty
+        ? { valid: true }
+        : { valid: false, message: "Name the counterparty before continuing." },
+  };
+  queue.value.transport = {
+    loadItems: () => Promise.resolve({ items: requests.map(item => ({ ...item })) }),
+    claimItem: ({ itemId, assigneeId }: { itemId: string; assigneeId: string }) => {
+      const item = requests.find(entry => entry.id === itemId)!;
+      item.assignee = { id: assigneeId, name: "You" };
+      return Promise.resolve({ ...item });
+    },
+    completeItem: ({ itemId }: { itemId: string }) => {
+      const item = requests.find(entry => entry.id === itemId)!;
+      item.status = "completed";
+      return Promise.resolve({ ...item });
+    },
+  };
+});
+
+const record = (action: string, summary: string) => {
+  activity = [
+    { id: "a-" + (activity.length + 1), action, summary, timestamp: new Date().toISOString() },
+    ...activity,
+  ];
+  timeline.value.events = activity;
+};
+
+const setValue = (field: string, event: Event) => {
+  const input = event.target as HTMLInputElement;
+  wizard.value.wizardController?.setValue(field, input.value);
+};
+
+const onSubmitted = (event: CustomEvent) => {
+  requests.push({
+    id: "req-" + (requests.length + 1),
+    title: "Intake: " + (event.detail.values.counterparty || "New request"),
+    type: "intake",
+    status: "open",
+  });
+  queue.value.refresh();
+  record("Intake submitted", "Request entered triage.");
+};
+
+const actionLabels: Record<string, string> = { claim: "Work item claimed", complete: "Work item completed" };
+const onMutated = (event: CustomEvent) => {
+  record(actionLabels[event.detail.kind] ?? "Work item updated", event.detail.item.title);
+};
+</script>
+
+<template>
+  <box-form-wizard
+    ref="wizard"
+    heading="Contract intake"
+    submit-label="Submit request"
+    @submitted="onSubmitted"
+  >
+    <div slot="parties">
+      <label>Counterparty <input @input="setValue('counterparty', $event)" /></label>
+    </div>
+    <div slot="terms">
+      <label>Contract value <input @input="setValue('value', $event)" /></label>
+    </div>
+    <div slot="review"><p>Review the request, then submit for triage.</p></div>
+  </box-form-wizard>
+  <box-work-queue
+    ref="queue"
+    heading="Intake queue"
+    token="developer-token"
+    assignee-id="you"
+    @item-mutated="onMutated"
+  ></box-work-queue>
+  <box-timeline ref="timeline" heading="Activity"></box-timeline>
+</template>`,
+  ],
+  // Svelte snippets target Svelte 5's default legacy mode — `$:` reactivity
+  // and `on:` event syntax do not compile under runes mode.
+  svelte: [
+    intakeSetup.svelte,
+    // 1
+    `<script lang="ts">
+  import "@unofficialbox/box-open-elements/form-wizard";
+
+
+  let wizard;
+  // steps is an array, so it is assigned as a property, not an attribute.
+  $: if (wizard)
+    wizard.steps = ${INTAKE_STEPS_SNIPPET};
+</script>
+
+<box-form-wizard bind:this={wizard} heading="Contract intake" submit-label="Submit request">
+  <div slot="parties"><label>Counterparty <input /></label></div>
+  <div slot="terms"><label>Contract value <input /></label></div>
+  <div slot="review"><p>Review the request, then submit for triage.</p></div>
+</box-form-wizard>`,
+    // 2
+    `<script lang="ts">
+  import "@unofficialbox/box-open-elements/form-wizard";
+
+
+  let wizard;
+  $: if (wizard) {
+    wizard.steps = ${INTAKE_STEPS_SNIPPET};
+    wizard.validators = {
+      parties: values =>
+        values.counterparty
+          ? { valid: true }
+          : { valid: false, message: "Name the counterparty before continuing." },
+    };
+  }
+
+  const setValue = (field) => (event) =>
+    wizard?.wizardController?.setValue(field, event.target.value);
+</script>
+
+<box-form-wizard bind:this={wizard} heading="Contract intake" submit-label="Submit request">
+  <div slot="parties">
+    <label>Counterparty <input on:input={setValue("counterparty")} /></label>
+  </div>
+  <div slot="terms">
+    <label>Contract value <input on:input={setValue("value")} /></label>
+  </div>
+  <div slot="review"><p>Review the request, then submit for triage.</p></div>
+</box-form-wizard>`,
+    // 3
+    `<script lang="ts">
+  import "@unofficialbox/box-open-elements/form-wizard";
+  import "@unofficialbox/box-open-elements/work-queue";
+
+
+  let wizard;
+  let queue;
+  const requests = [];
+
+  $: if (wizard) {
+    wizard.steps = ${INTAKE_STEPS_SNIPPET};
+    wizard.validators = {
+      parties: values =>
+        values.counterparty
+          ? { valid: true }
+          : { valid: false, message: "Name the counterparty before continuing." },
+    };
+  }
+  $: if (queue)
+    queue.transport = {
+      loadItems: () => Promise.resolve({ items: requests.map(item => ({ ...item })) }),
+      completeItem: ({ itemId }) => {
+        const item = requests.find(entry => entry.id === itemId);
+        item.status = "completed";
+        return Promise.resolve({ ...item });
+      },
+    };
+
+  const setValue = (field) => (event) =>
+    wizard?.wizardController?.setValue(field, event.target.value);
+
+  const onSubmitted = (event) => {
+    requests.push({
+      id: "req-" + (requests.length + 1),
+      title: "Intake: " + (event.detail.values.counterparty || "New request"),
+      type: "intake",
+      status: "open",
+    });
+    queue.refresh();
+  };
+</script>
+
+<box-form-wizard
+  bind:this={wizard}
+  heading="Contract intake"
+  submit-label="Submit request"
+  on:submitted={onSubmitted}
+>
+  <div slot="parties">
+    <label>Counterparty <input on:input={setValue("counterparty")} /></label>
+  </div>
+  <div slot="terms">
+    <label>Contract value <input on:input={setValue("value")} /></label>
+  </div>
+  <div slot="review"><p>Review the request, then submit for triage.</p></div>
+</box-form-wizard>
+<box-work-queue bind:this={queue} heading="Intake queue" token="developer-token"></box-work-queue>`,
+    // 4
+    `<script lang="ts">
+  import "@unofficialbox/box-open-elements/form-wizard";
+  import "@unofficialbox/box-open-elements/work-queue";
+  import "@unofficialbox/box-open-elements/timeline";
+
+
+  let wizard;
+  let queue;
+  let timeline;
+  const requests = [];
+  let activity = [];
+
+  $: if (wizard) {
+    wizard.steps = ${INTAKE_STEPS_SNIPPET};
+    wizard.validators = {
+      parties: values =>
+        values.counterparty
+          ? { valid: true }
+          : { valid: false, message: "Name the counterparty before continuing." },
+    };
+  }
+  $: if (queue)
+    queue.transport = {
+      loadItems: () => Promise.resolve({ items: requests.map(item => ({ ...item })) }),
+      completeItem: ({ itemId }) => {
+        const item = requests.find(entry => entry.id === itemId);
+        item.status = "completed";
+        return Promise.resolve({ ...item });
+      },
+    };
+
+  const record = (action, summary) => {
+    activity = [
+      { id: "a-" + (activity.length + 1), action, summary, timestamp: new Date().toISOString() },
+      ...activity,
+    ];
+    timeline.events = activity;
+  };
+
+  const setValue = (field) => (event) =>
+    wizard?.wizardController?.setValue(field, event.target.value);
+
+  const onSubmitted = (event) => {
+    requests.push({
+      id: "req-" + (requests.length + 1),
+      title: "Intake: " + (event.detail.values.counterparty || "New request"),
+      type: "intake",
+      status: "open",
+    });
+    queue.refresh();
+    record("Intake submitted", "Request entered triage.");
+  };
+</script>
+
+<box-form-wizard
+  bind:this={wizard}
+  heading="Contract intake"
+  submit-label="Submit request"
+  on:submitted={onSubmitted}
+>
+  <div slot="parties">
+    <label>Counterparty <input on:input={setValue("counterparty")} /></label>
+  </div>
+  <div slot="terms">
+    <label>Contract value <input on:input={setValue("value")} /></label>
+  </div>
+  <div slot="review"><p>Review the request, then submit for triage.</p></div>
+</box-form-wizard>
+<box-work-queue bind:this={queue} heading="Intake queue" token="developer-token"></box-work-queue>
+<box-timeline bind:this={timeline} heading="Activity"></box-timeline>`,
+    // 5
+    `<script lang="ts">
+  import "@unofficialbox/box-open-elements/form-wizard";
+  import "@unofficialbox/box-open-elements/work-queue";
+  import "@unofficialbox/box-open-elements/timeline";
+
+
+  let wizard;
+  let queue;
+  let timeline;
+  const requests = [];
+  let activity = [];
+
+  $: if (wizard) {
+    wizard.steps = ${INTAKE_STEPS_SNIPPET};
+    wizard.validators = {
+      parties: values =>
+        values.counterparty
+          ? { valid: true }
+          : { valid: false, message: "Name the counterparty before continuing." },
+    };
+  }
+  $: if (queue)
+    queue.transport = {
+      loadItems: () => Promise.resolve({ items: requests.map(item => ({ ...item })) }),
+      claimItem: ({ itemId, assigneeId }) => {
+        const item = requests.find(entry => entry.id === itemId);
+        item.assignee = { id: assigneeId, name: "You" };
+        return Promise.resolve({ ...item });
+      },
+      completeItem: ({ itemId }) => {
+        const item = requests.find(entry => entry.id === itemId);
+        item.status = "completed";
+        return Promise.resolve({ ...item });
+      },
+    };
+
+  const record = (action, summary) => {
+    activity = [
+      { id: "a-" + (activity.length + 1), action, summary, timestamp: new Date().toISOString() },
+      ...activity,
+    ];
+    timeline.events = activity;
+  };
+
+  const setValue = (field) => (event) =>
+    wizard?.wizardController?.setValue(field, event.target.value);
+
+  const onSubmitted = (event) => {
+    requests.push({
+      id: "req-" + (requests.length + 1),
+      title: "Intake: " + (event.detail.values.counterparty || "New request"),
+      type: "intake",
+      status: "open",
+    });
+    queue.refresh();
+    record("Intake submitted", "Request entered triage.");
+  };
+
+  const actionLabels = { claim: "Work item claimed", complete: "Work item completed" };
+  const onMutated = (event) =>
+    record(actionLabels[event.detail.kind] || "Work item updated", event.detail.item.title);
+</script>
+
+<box-form-wizard
+  bind:this={wizard}
+  heading="Contract intake"
+  submit-label="Submit request"
+  on:submitted={onSubmitted}
+>
+  <div slot="parties">
+    <label>Counterparty <input on:input={setValue("counterparty")} /></label>
+  </div>
+  <div slot="terms">
+    <label>Contract value <input on:input={setValue("value")} /></label>
+  </div>
+  <div slot="review"><p>Review the request, then submit for triage.</p></div>
+</box-form-wizard>
+<box-work-queue
+  bind:this={queue}
+  heading="Intake queue"
+  token="developer-token"
+  assignee-id="you"
+  on:item-mutated={onMutated}
+></box-work-queue>
+<box-timeline bind:this={timeline} heading="Activity"></box-timeline>`,
   ],
 };

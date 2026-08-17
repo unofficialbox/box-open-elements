@@ -300,6 +300,142 @@ const runContentPreview = (key: PreviewKey, canvas: HTMLElement, log: LogFn): ((
   return () => cleanups.forEach(fn => fn());
 };
 
+type IntakeWizardElement = HTMLElement & {
+  steps: Array<{ id: string; label: string; description?: string }>;
+  validators: Record<string, (values: Record<string, unknown>) => { valid: boolean; message?: string }>;
+  wizardController: { setValue: (field: string, value: unknown) => void } | null;
+};
+type IntakeQueueElement = HTMLElement & {
+  transport: unknown;
+  refresh: () => Promise<void>;
+};
+type IntakeTimelineElement = HTMLElement & {
+  events: Array<{ id: string; action: string; summary?: string; timestamp?: string }>;
+};
+
+const runIntakePreview = (key: PreviewKey, canvas: HTMLElement, log: LogFn): (() => void) => {
+  const cleanups: Array<() => void> = [];
+
+  const wizard = document.createElement("box-form-wizard") as IntakeWizardElement;
+  wizard.setAttribute("heading", "Contract intake");
+  wizard.setAttribute("submit-label", "Submit request");
+  wizard.steps = [
+    { id: "parties", label: "Parties", description: "Who is contracting" },
+    { id: "terms", label: "Key terms", description: "Value and dates" },
+    { id: "review", label: "Review & submit", description: "Confirm the request" },
+  ];
+  const panel = (slot: string, html: string): HTMLElement => {
+    const host = document.createElement("div");
+    host.setAttribute("slot", slot);
+    host.innerHTML = html;
+    return host;
+  };
+  wizard.append(
+    panel("parties", "<label>Counterparty <input data-field=\"counterparty\" /></label>"),
+    panel("terms", "<label>Contract value <input data-field=\"value\" /></label>"),
+    panel("review", "<p>Review the request, then submit for triage.</p>"),
+  );
+  canvas.append(wizard);
+  cleanups.push(() => wizard.remove());
+
+  if (key !== "intake-shell") {
+    for (const input of Array.from(wizard.querySelectorAll("input"))) {
+      input.addEventListener("input", () => {
+        wizard.wizardController?.setValue(input.getAttribute("data-field") ?? "", input.value);
+      });
+    }
+    wizard.validators = {
+      parties: values =>
+        values.counterparty
+          ? { valid: true }
+          : { valid: false, message: "Name the counterparty before continuing." },
+    };
+    const onInvalid = (event: Event): void => log("step-invalid", (event as CustomEvent).detail);
+    wizard.addEventListener("step-invalid", onInvalid);
+    cleanups.push(() => wizard.removeEventListener("step-invalid", onInvalid));
+  }
+
+  if (key === "intake-shell" || key === "intake-validate") {
+    return () => cleanups.forEach(fn => fn());
+  }
+
+  const requests: Array<Record<string, unknown>> = [];
+  const queueTransport: Record<string, unknown> = {
+    loadItems: () => Promise.resolve({ items: requests.map(item => ({ ...item })) }),
+    completeItem: ({ itemId }: { itemId: string }) => {
+      const item = requests.find(entry => entry.id === itemId)!;
+      item.status = "completed";
+      return Promise.resolve({ ...item });
+    },
+  };
+  const queue = document.createElement("box-work-queue") as IntakeQueueElement;
+  queue.setAttribute("heading", "Intake queue");
+  queue.setAttribute("token", "developer-token");
+  queue.transport = queueTransport;
+  canvas.append(queue);
+  cleanups.push(() => queue.remove());
+
+  const onSubmitted = (event: Event): void => {
+    const values = (event as CustomEvent).detail.values as Record<string, unknown>;
+    requests.push({
+      id: `req-${String(requests.length + 1)}`,
+      title: `Intake: ${String(values.counterparty ?? "New request")}`,
+      type: "intake",
+      status: "open",
+    });
+    void queue.refresh();
+    log("submitted", (event as CustomEvent).detail);
+  };
+  wizard.addEventListener("submitted", onSubmitted);
+  cleanups.push(() => wizard.removeEventListener("submitted", onSubmitted));
+
+  if (key === "intake-queue") {
+    return () => cleanups.forEach(fn => fn());
+  }
+
+  const timeline = document.createElement("box-timeline") as IntakeTimelineElement;
+  timeline.setAttribute("heading", "Activity");
+  let activity: Array<{ id: string; action: string; summary?: string; timestamp?: string }> = [];
+  const record = (action: string, summary: string): void => {
+    activity = [
+      { id: `a-${String(activity.length + 1)}`, action, summary, timestamp: new Date().toISOString() },
+      ...activity,
+    ];
+    timeline.events = activity;
+  };
+  canvas.append(timeline);
+  cleanups.push(() => timeline.remove());
+
+  const onSubmittedRecord = (event: Event): void => {
+    const values = (event as CustomEvent).detail.values as Record<string, unknown>;
+    record("Intake submitted", `Request from ${String(values.counterparty ?? "unknown")} entered triage.`);
+  };
+  wizard.addEventListener("submitted", onSubmittedRecord);
+  cleanups.push(() => wizard.removeEventListener("submitted", onSubmittedRecord));
+
+  if (key === "intake-workspace") {
+    queue.setAttribute("assignee-id", "you");
+    queueTransport.claimItem = ({ itemId, assigneeId }: { itemId: string; assigneeId: string }) => {
+      const item = requests.find(entry => entry.id === itemId)!;
+      item.assignee = { id: assigneeId, name: "You" };
+      return Promise.resolve({ ...item });
+    };
+    const actionLabels: Record<string, string> = {
+      claim: "Work item claimed",
+      complete: "Work item completed",
+    };
+    const onMutated = (event: Event): void => {
+      const detail = (event as CustomEvent).detail as { kind: string; item: { title: string } };
+      record(actionLabels[detail.kind] ?? "Work item updated", detail.item.title);
+      log("item-mutated", detail);
+    };
+    queue.addEventListener("item-mutated", onMutated);
+    cleanups.push(() => queue.removeEventListener("item-mutated", onMutated));
+  }
+
+  return () => cleanups.forEach(fn => fn());
+};
+
 /** Build the live result for a step. Returns a teardown. */
 const runPreview = (key: PreviewKey, canvas: HTMLElement, log: LogFn): (() => void) => {
   canvas.innerHTML = "";
@@ -318,6 +454,10 @@ const runPreview = (key: PreviewKey, canvas: HTMLElement, log: LogFn): (() => vo
 
   if (key.startsWith("preview-")) {
     return runContentPreview(key, canvas, log);
+  }
+
+  if (key.startsWith("intake-")) {
+    return runIntakePreview(key, canvas, log);
   }
 
   return runExplorerPreview(key, canvas, log);
