@@ -146,6 +146,34 @@ describe("AgentChatController", () => {
     expect(resolveAction).toHaveBeenCalledTimes(1);
   });
 
+  it("keeps the receiver so a class-based transport can read `this`", async () => {
+    class ClassTransport implements AgentChatTransport {
+      readonly decided: string[] = [];
+
+      async sendMessage(request: AgentSendRequest): Promise<void> {
+        request.onEvent({ kind: "proposal", proposal: { id: "p1", title: "Apply clause" } });
+        await Promise.resolve();
+      }
+
+      async resolveAction({ proposalId, decision }: { proposalId: string; decision: string }) {
+        // Reads `this`: a detached call would throw here.
+        this.decided.push(proposalId);
+        await Promise.resolve();
+        return { id: proposalId, title: "Apply clause", decision: decision as "approved" };
+      }
+    }
+
+    const transport = new ClassTransport();
+    const controller = createController(transport);
+    controller.connect();
+    await controller.send("propose");
+
+    const result = await controller.resolveAction("p1", "approved");
+
+    expect(result?.decision).toBe("approved");
+    expect(transport.decided).toEqual(["p1"]);
+  });
+
   it("refuses proposal resolution without the transport capability", async () => {
     const controller = createController(streamingTransport(["ok"]));
     controller.connect();
