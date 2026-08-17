@@ -125,42 +125,46 @@ export class WorkQueueController extends Controller<WorkQueueState, WorkQueueEve
 
   /** Claim an item for `assigneeId` (typically the current user). */
   async claimItem(itemId: string, assigneeId: string): Promise<WorkItem | null> {
-    const claimItem = this.config.transport.claimItem;
-    if (!claimItem) {
+    const transport = this.config.transport;
+    if (!transport.claimItem) {
       throw new Error("Work-queue transport does not support claim");
     }
+    // Called on the transport so class-based implementations keep `this`.
     return this.runMutation("claim", itemId, () =>
-      claimItem({ itemId, assigneeId, token: this.config.token }),
+      transport.claimItem!({ itemId, assigneeId, token: this.config.token }),
     );
   }
 
   async reassignItem(itemId: string, assigneeId: string): Promise<WorkItem | null> {
-    const reassignItem = this.config.transport.reassignItem;
-    if (!reassignItem) {
+    const transport = this.config.transport;
+    if (!transport.reassignItem) {
       throw new Error("Work-queue transport does not support reassign");
     }
+    // Called on the transport so class-based implementations keep `this`.
     return this.runMutation("reassign", itemId, () =>
-      reassignItem({ itemId, assigneeId, token: this.config.token }),
+      transport.reassignItem!({ itemId, assigneeId, token: this.config.token }),
     );
   }
 
   async completeItem(itemId: string): Promise<WorkItem | null> {
-    const completeItem = this.config.transport.completeItem;
-    if (!completeItem) {
+    const transport = this.config.transport;
+    if (!transport.completeItem) {
       throw new Error("Work-queue transport does not support complete");
     }
+    // Called on the transport so class-based implementations keep `this`.
     return this.runMutation("complete", itemId, () =>
-      completeItem({ itemId, token: this.config.token }),
+      transport.completeItem!({ itemId, token: this.config.token }),
     );
   }
 
   async escalateItem(itemId: string, reason?: string): Promise<WorkItem | null> {
-    const escalateItem = this.config.transport.escalateItem;
-    if (!escalateItem) {
+    const transport = this.config.transport;
+    if (!transport.escalateItem) {
       throw new Error("Work-queue transport does not support escalate");
     }
+    // Called on the transport so class-based implementations keep `this`.
     return this.runMutation("escalate", itemId, () =>
-      escalateItem({ itemId, reason, token: this.config.token }),
+      transport.escalateItem!({ itemId, reason, token: this.config.token }),
     );
   }
 

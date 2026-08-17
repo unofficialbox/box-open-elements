@@ -457,8 +457,17 @@ export class AgentChat extends BaseElement {
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-    if (name === "token" || name === "agent-name") {
+    if (name === "token") {
       this.scheduleStart();
+    } else if (name === "agent-name") {
+      // A display label must never discard the conversation: keep the live
+      // session and just refresh what new replies will be stamped with.
+      if (this.controller && this.ownsController) {
+        this.controller.config.agentName = this.agentName;
+      }
+      if (this.isRendered) {
+        this.update();
+      }
     }
     super.attributeChangedCallback(name, oldValue, newValue);
   }
@@ -478,10 +487,13 @@ export class AgentChat extends BaseElement {
     if (!text.trim()) {
       return;
     }
-    if (body === undefined && this.inputEl) {
+    // Clear only once the controller has accepted the turn, so a refused
+    // send (no controller, or a disconnected session) never loses typing.
+    const sent = await this.controller?.send(text);
+    if (sent && body === undefined && this.inputEl) {
       this.inputEl.value = "";
+      this.syncComposer();
     }
-    await this.controller?.send(text);
   }
 
   /** Stop the in-flight generation; the partial reply is kept. */
@@ -628,7 +640,7 @@ export class AgentChat extends BaseElement {
       .join("");
   }
 
-  private messageHtml(message: AgentChatMessage): string {
+  private messageInnerHtml(message: AgentChatMessage): string {
     const name = message.role === "user" ? "You" : (message.actor?.name ?? this.agentName);
     const initials = message.actor?.initials ?? initialsOf(name);
     const citations = message.citations
@@ -636,17 +648,60 @@ export class AgentChat extends BaseElement {
       .join("");
 
     return `
-      <li part="message" data-message-id="${escapeHtml(message.id)}" data-role="${escapeHtml(message.role)}" data-status="${escapeHtml(message.status)}">
-        <div part="message-header">
-          <span part="avatar" aria-hidden="true">${escapeHtml(initials)}</span>
-          <span part="author">${escapeHtml(name)}</span>
-        </div>
-        <p part="body">${escapeHtml(message.body)}${message.status === "streaming" ? `<span part="caret" aria-hidden="true"></span>` : ""}</p>
-        ${message.status === "error" && message.errorMessage ? `<p part="error" role="alert">${escapeHtml(message.errorMessage)}</p>` : ""}
-        ${citations ? `<div part="citations">${citations}</div>` : ""}
-        ${this.proposalHtml(message)}
-      </li>
+      <div part="message-header">
+        <span part="avatar" aria-hidden="true">${escapeHtml(initials)}</span>
+        <span part="author">${escapeHtml(name)}</span>
+      </div>
+      <p part="body">${escapeHtml(message.body)}${message.status === "streaming" ? `<span part="caret" aria-hidden="true"></span>` : ""}</p>
+      ${message.status === "error" && message.errorMessage ? `<p part="error" role="alert">${escapeHtml(message.errorMessage)}</p>` : ""}
+      ${citations ? `<div part="citations">${citations}</div>` : ""}
+      ${this.proposalHtml(message)}
     `;
+  }
+
+  /**
+   * Everything about a message except its body text. While this is stable,
+   * a delta only rewrites one text node — so `role="log"` sees no additions
+   * and assistive tech does not re-announce the conversation per token.
+   */
+  private messageSignature(message: AgentChatMessage): string {
+    return [
+      message.status,
+      message.errorMessage ?? "",
+      message.actor?.name ?? "",
+      this.agentName,
+      message.citations.map(citation => `${citation.id}:${citation.href ?? ""}`).join(","),
+      message.proposals
+        .map(proposal => `${proposal.id}:${proposal.decision ?? ""}:${proposal.note ?? ""}`)
+        .join(","),
+      this.controller?.config.transport.resolveAction ? "resolvable" : "read-only",
+    ].join("|");
+  }
+
+  private createMessageNode(message: AgentChatMessage): HTMLElement {
+    const template = document.createElement("template");
+    template.innerHTML = `
+      <li part="message" data-message-id="${escapeHtml(message.id)}" data-role="${escapeHtml(message.role)}" data-status="${escapeHtml(message.status)}" data-signature="${escapeHtml(this.messageSignature(message))}">
+        ${this.messageInnerHtml(message)}
+      </li>
+    `.trim();
+    return template.content.firstElementChild as HTMLElement;
+  }
+
+  /** The streaming hot path: one text-node write, nothing else touched. */
+  private patchBody(node: HTMLElement, message: AgentChatMessage): void {
+    const body = node.querySelector('[part="body"]');
+    if (!body) {
+      return;
+    }
+    const first = body.firstChild;
+    if (first && first.nodeType === Node.TEXT_NODE) {
+      if (first.textContent !== message.body) {
+        first.textContent = message.body;
+      }
+      return;
+    }
+    body.insertBefore(document.createTextNode(message.body), body.firstChild);
   }
 
   protected renderTemplate(): void {
@@ -772,9 +827,54 @@ export class AgentChat extends BaseElement {
       this.threadEl.scrollHeight - this.threadEl.scrollTop - this.threadEl.clientHeight < 40;
 
     this.shadowRoot!.querySelector('[part="title"]')!.textContent = this.heading;
-    this.threadEl.innerHTML = messages.length
-      ? messages.map(message => this.messageHtml(message)).join("")
-      : `<li part="empty">No messages yet.</li>`;
+
+    if (messages.length === 0) {
+      if (!this.threadEl.querySelector('[part="empty"]')) {
+        this.threadEl.innerHTML = `<li part="empty">No messages yet.</li>`;
+      }
+      this.syncComposer();
+      return;
+    }
+    this.threadEl.querySelector('[part="empty"]')?.remove();
+
+    // Reconcile by message id so a streaming delta touches one text node
+    // rather than replacing every list item.
+    const existing = new Map<string, HTMLElement>();
+    for (const node of Array.from(this.threadEl.children)) {
+      const id = node.getAttribute("data-message-id");
+      if (id) {
+        existing.set(id, node as HTMLElement);
+      }
+    }
+
+    let previous: ChildNode | null = null;
+    for (const message of messages) {
+      let node = existing.get(message.id);
+      if (node) {
+        existing.delete(message.id);
+        const signature = this.messageSignature(message);
+        if (node.getAttribute("data-signature") === signature) {
+          this.patchBody(node, message);
+        } else {
+          node.setAttribute("data-signature", signature);
+          node.setAttribute("data-status", message.status);
+          node.innerHTML = this.messageInnerHtml(message);
+        }
+      } else {
+        node = this.createMessageNode(message);
+      }
+
+      const anchor: ChildNode | null = previous
+        ? previous.nextSibling
+        : this.threadEl.firstChild;
+      if (node !== anchor) {
+        this.threadEl.insertBefore(node, anchor);
+      }
+      previous = node;
+    }
+    for (const stale of existing.values()) {
+      stale.remove();
+    }
 
     if (focusKey?.part) {
       const target = Array.from(this.threadEl.querySelectorAll(`[part="${focusKey.part}"]`)).find(

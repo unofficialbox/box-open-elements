@@ -171,8 +171,8 @@ export class AgentChatController extends Controller<AgentChatState, AgentChatEve
     decision: AgentActionDecision,
     note?: string,
   ): Promise<AgentActionProposal | null> {
-    const resolveAction = this.config.transport.resolveAction;
-    if (!resolveAction) {
+    const transport = this.config.transport;
+    if (!transport.resolveAction) {
       throw new Error("Agent-chat transport does not support resolveAction");
     }
     const holder = this.state.messages.find(message =>
@@ -184,7 +184,8 @@ export class AgentChatController extends Controller<AgentChatState, AgentChatEve
     }
 
     try {
-      const resolved = await resolveAction({
+      // Called on the transport so class-based implementations keep `this`.
+      const resolved = await transport.resolveAction({
         proposalId,
         decision,
         ...(note !== undefined ? { note } : {}),

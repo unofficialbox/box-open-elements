@@ -107,6 +107,74 @@ describe("box-agent-chat", () => {
     expect(shadow(element, '[part="stop"]')?.hidden).toBe(true);
   });
 
+  it("reconciles the thread in place so streaming deltas do not replace messages", async () => {
+    let emit: ((text: string) => void) | null = null;
+    let release: (() => void) | null = null;
+    const transport: AgentChatTransport = {
+      sendMessage: (request: AgentSendRequest) =>
+        new Promise<void>(resolve => {
+          emit = text => request.onEvent({ kind: "delta", text });
+          release = resolve;
+          request.onEvent({ kind: "delta", text: "One" });
+        }),
+    };
+    const element = await mount(transport);
+
+    const pending = element.send("stream");
+    await flush();
+    const userNode = element.shadowRoot?.querySelector('[part="message"][data-role="user"]');
+    const agentNode = element.shadowRoot?.querySelector('[part="message"][data-role="agent"]');
+    const bodyNode = agentNode?.querySelector('[part="body"]');
+
+    emit?.(" two");
+    emit?.(" three");
+    await flush();
+
+    // Same nodes across deltas: role="log" sees no additions, so assistive
+    // tech does not re-announce the conversation token by token.
+    expect(element.shadowRoot?.querySelector('[part="message"][data-role="user"]')).toBe(userNode);
+    expect(element.shadowRoot?.querySelector('[part="message"][data-role="agent"]')).toBe(agentNode);
+    expect(agentNode?.querySelector('[part="body"]')).toBe(bodyNode);
+    expect(bodyNode?.textContent).toContain("One two three");
+    // The streaming caret survives the text patch.
+    expect(agentNode?.querySelector('[part="caret"]')).not.toBeNull();
+
+    release?.();
+    await pending;
+    await flush();
+    expect(agentNode?.getAttribute("data-status")).toBe("complete");
+    expect(agentNode?.querySelector('[part="caret"]')).toBeNull();
+  });
+
+  it("keeps the conversation when only the agent-name label changes", async () => {
+    const element = await mount(createTransport());
+    await element.send("hello");
+    await flush();
+    const before = element.chatController;
+
+    element.agentName = "Contract Copilot";
+    await flush();
+
+    // A display label must not discard the session or its messages.
+    expect(element.chatController).toBe(before);
+    expect(element.shadowRoot?.querySelectorAll('[part="message"]')).toHaveLength(2);
+    expect(element.chatController?.getState().messages).toHaveLength(2);
+  });
+
+  it("keeps typed text when the send is refused", async () => {
+    const element = document.createElement("box-agent-chat") as AgentChat;
+    document.body.append(element);
+    await flush();
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLTextAreaElement;
+    input.value = "no session yet";
+    input.dispatchEvent(new Event("input"));
+    await element.send();
+
+    // No transport/token means no controller — the typing must survive.
+    expect(input.value).toBe("no session yet");
+  });
+
   it("emits citation-selected and downgrades unsafe hrefs to buttons", async () => {
     const element = await mount(
       createTransport({}, request => {
