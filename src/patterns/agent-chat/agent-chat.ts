@@ -665,17 +665,27 @@ export class AgentChat extends BaseElement {
    * and assistive tech does not re-announce the conversation per token.
    */
   private messageSignature(message: AgentChatMessage): string {
-    return [
-      message.status,
-      message.errorMessage ?? "",
-      message.actor?.name ?? "",
-      this.agentName,
-      message.citations.map(citation => `${citation.id}:${citation.href ?? ""}`).join(","),
-      message.proposals
-        .map(proposal => `${proposal.id}:${proposal.decision ?? ""}:${proposal.note ?? ""}`)
-        .join(","),
-      this.controller?.config.transport.resolveAction ? "resolvable" : "read-only",
-    ].join("|");
+    // Every non-body field this renders must be here, or a changed label,
+    // title, or param would keep the old markup on the fast path.
+    return JSON.stringify({
+      status: message.status,
+      errorMessage: message.errorMessage ?? "",
+      actor: {
+        name: message.actor?.name ?? "",
+        initials: message.actor?.initials ?? "",
+      },
+      agentName: this.agentName,
+      citations: message.citations.map(({ id, href, label }) => ({ id, href, label })),
+      proposals: message.proposals.map(({ id, title, summary, params, decision, note }) => ({
+        id,
+        title,
+        summary,
+        params,
+        decision,
+        note,
+      })),
+      resolvable: Boolean(this.controller?.config.transport.resolveAction),
+    });
   }
 
   private createMessageNode(message: AgentChatMessage): HTMLElement {

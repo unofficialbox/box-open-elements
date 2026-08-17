@@ -146,6 +146,41 @@ describe("box-agent-chat", () => {
     expect(agentNode?.querySelector('[part="caret"]')).toBeNull();
   });
 
+  it("re-renders a card when proposal metadata changes without a new decision", async () => {
+    // A transport may return an updated proposal with no `decision` field —
+    // the ids and decision are unchanged, so only richer signature data
+    // distinguishes the new content from the old.
+    const resolveAction = vi.fn().mockResolvedValue({
+      id: "p1",
+      title: "Apply 2026 liability clause",
+      params: [{ label: "Clause", value: "7.1" }],
+    });
+    const element = await mount(
+      createTransport({ resolveAction }, request => {
+        request.onEvent({
+          kind: "proposal",
+          proposal: {
+            id: "p1",
+            title: "Apply standard liability clause",
+            params: [{ label: "Clause", value: "4.2" }],
+          },
+        });
+      }),
+    );
+
+    await element.send("propose");
+    await flush();
+    expect(shadow(element, '[part="proposal"]')?.textContent).toContain("4.2");
+
+    (shadow(element, '[part="proposal-action"][data-action="approve"]') as HTMLButtonElement).click();
+    await flush();
+
+    const card = shadow(element, '[part="proposal"]');
+    expect(card?.textContent).toContain("7.1");
+    expect(card?.textContent).toContain("Apply 2026 liability clause");
+    expect(card?.textContent).not.toContain("4.2");
+  });
+
   it("keeps the conversation when only the agent-name label changes", async () => {
     const element = await mount(createTransport());
     await element.send("hello");
