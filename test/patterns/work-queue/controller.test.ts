@@ -205,6 +205,58 @@ describe("WorkQueueController", () => {
     expect(controller.getState().items).toHaveLength(3);
   });
 
+  it("keeps the receiver so a class-based transport can read `this`", async () => {
+    class ClassTransport implements WorkQueueTransport {
+      readonly calls: string[] = [];
+
+      async loadItems() {
+        await Promise.resolve();
+        return { items };
+      }
+
+      async claimItem({ itemId }: { itemId: string }) {
+        // Each capability reads `this`: a detached call would throw here.
+        this.calls.push(`claim:${itemId}`);
+        await Promise.resolve();
+        return items[2]!;
+      }
+
+      async reassignItem({ itemId }: { itemId: string }) {
+        this.calls.push(`reassign:${itemId}`);
+        await Promise.resolve();
+        return items[0]!;
+      }
+
+      async completeItem({ itemId }: { itemId: string }) {
+        this.calls.push(`complete:${itemId}`);
+        await Promise.resolve();
+        return items[0]!;
+      }
+
+      async escalateItem({ itemId }: { itemId: string }) {
+        this.calls.push(`escalate:${itemId}`);
+        await Promise.resolve();
+        return items[0]!;
+      }
+    }
+
+    const transport = new ClassTransport();
+    const controller = createController(transport);
+    await controller.connect();
+
+    await controller.claimItem("w3", "morgan");
+    await controller.reassignItem("w1", "avery");
+    await controller.completeItem("w1");
+    await controller.escalateItem("w1", "SLA breach");
+
+    expect(transport.calls).toEqual([
+      "claim:w3",
+      "reassign:w1",
+      "complete:w1",
+      "escalate:w1",
+    ]);
+  });
+
   it("refuses mutations without the transport capability", async () => {
     const controller = createController(createTransport());
     await controller.connect();

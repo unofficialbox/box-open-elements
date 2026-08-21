@@ -10,6 +10,26 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Agent Chat (patterns round 4h — opportunity 1 of the component roadmap,
+  the largest and most strategic gap): new `agent-chat` workflow pattern,
+  shaped as a workflow rather than a widget. `AgentChatController` runs a
+  streaming session over a narrow `AgentChatTransport` whose `sendMessage`
+  emits typed events (`delta` / `citation` / `proposal`) through an
+  `onEvent` channel, folding them into one growing agent message; `stop()`
+  aborts a generation and keeps the partial reply (a stop is not a
+  failure), transport failures mark the reply errored, and human-in-the-loop
+  decisions route through an optional `resolveAction` capability.
+  `box-agent-chat` renders the thread with role bubbles, avatars, and a
+  streaming caret, plus the two card types that matter more than the
+  bubbles: **citation chips** (the timeline's evidence contract, including
+  its unsafe-href downgrade) emitting `citation-selected`, and **HITL
+  action cards** where a proposed action is approved or rejected inline —
+  the CLM "human-governed AI recommendations" requirement delivered where
+  the conversation happens — with Modify surfaced as intent for the host's
+  own editor. The composer sits outside the patched thread region so a
+  streaming reply never disturbs what the reader is typing, and the thread
+  only follows the stream when they are already scrolled to the bottom.
+
 - Build Along: Intake Workspace — the composition lesson. Five steps
   assemble a contract-intake workspace from three independent patterns:
   the form wizard captures and validates the request, its `submitted`

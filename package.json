@@ -104,6 +104,10 @@
       "types": "./dist/patterns/lineage/index.d.ts",
       "import": "./dist/patterns/lineage/index.js"
     },
+    "./patterns/agent-chat": {
+      "types": "./dist/patterns/agent-chat/index.d.ts",
+      "import": "./dist/patterns/agent-chat/index.js"
+    },
     "./patterns/search": {
       "types": "./dist/patterns/search/index.d.ts",
       "import": "./dist/patterns/search/index.js"
