@@ -50,7 +50,8 @@ Pairs with the diff viewer. Two components over one data model:
 ### 3. Timeline / audit aggregation views
 
 `box-timeline` (round 4c) is the flat feed; the audit and managerial
-layer is aggregation:
+layer is aggregation. **Built in round 4i** — see the Audit section of
+`docs/patterns/catalog.md`:
 
 - **`box-audit-log`** — group-by day / actor / action-type with
   collapsible sections and counts, faceted filters (composing
@@ -153,8 +154,11 @@ static-shell depth. One work-item model, two projections:
    list contract, layout engine, SVG shell.
 4. **Clause lineage** (opportunity 2) — reuses the graph engine.
 5. **AI agent chat** (opportunity 1) — its own track; largest scope.
-6. **Audit aggregation layer** (opportunity 3) + command palette +
-   inbox + remaining micro-components.
+6. **Audit aggregation layer** (opportunity 3) — *built* (round 4i):
+   `box-audit-log` (grouping, facets, correlation drill-down, CSV export)
+   and `box-activity-density` over the timeline event contract. Remaining
+   in this slot: command palette + notification inbox + the micro-components
+   above.
 
 Docs-site integration (registry/examples/stories + one baseline regen)
 and the CLM-flavoured composition Build Along ride alongside these in
