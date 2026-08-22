@@ -61,7 +61,14 @@ state reaches users only through colour; there is no live region.
   properties directly; a framework wrapper contradicts the library's
   zero-dependency premise and is declined.
 
-## Round 4 — `box-run-timeline` (the accepted gap)
+## Round 4 — `box-run-trace` (the accepted gap)
+
+Dispatch proposed the name `box-run-timeline`; renamed to `box-run-trace`
+at the owner's direction — "trace" is the established word for a machine
+execution record, and borrowing "timeline" would name it after the one
+component it explicitly is not. The family reads: `box-timeline` = what
+people did, `box-audit-log` = what was recorded, `box-run-trace` = what
+the machine executed.
 
 `box-timeline` is an append-only *human* activity feed (newest-first,
 actors, comment composer, correlation IDs) and is fully JSON-driven with
