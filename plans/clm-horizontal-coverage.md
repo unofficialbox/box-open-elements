@@ -108,7 +108,7 @@ notifications, control actions via `button` + confirm `dialog`.
 | Scenario mode switcher | ✅ `segmented-control`. |
 | Role-aware sidebar | ✅ `nav-sidebar` (host filters items by role). |
 | Global search with suggestions | 🧩 `search-field` + `combobox`/`datalist-item`. |
-| **Command bar / quick actions** | ❌ **Gap 4 — command palette** (keyboard-first global actions). |
+| **Command bar / quick actions** | ✅ `command-palette` — gap 4 closed (keyboard-first global actions over the overlay + listbox machinery). |
 | Version footer, empty states, skeletons, error fallbacks | ✅ `empty-state`, `skeleton`, `spinner`, `error-mask`, `illustration`. |
 
 Cross-cutting Section-5 requirements are already foundation-level
@@ -132,8 +132,10 @@ element state.
    list with actor/action/timestamp/evidence slots; feeds approvals
    history, audit trail, and the sidebar `activity` tab. Closes an
    existing known-gaps entry (MVP audit baseline).
-4. **Command palette** (`components/command-bar`) — keyboard-first action
-   launcher over the existing overlay + listbox machinery.
+4. **Command palette** (`components/overlays/command-palette`) — *built*:
+   keyboard-first action launcher over the existing overlay + listbox
+   machinery. Landed as `box-command-palette`, with the match/rank/group
+   engine kept pure so a host can drive its own launcher from it.
 5. **Versions surface** (`patterns/versions`) — version list + restore/
    promote contract; lands in the sidebar's reserved `versions` slot.
    Closes the second existing known-gaps entry.
