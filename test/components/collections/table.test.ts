@@ -136,3 +136,136 @@ describe("Table", () => {
     expect(changed).not.toHaveBeenCalled();
   });
 });
+
+describe("Table cell descriptors, expansion, and states (dispatch intake round 5)", () => {
+  beforeEach(() => {
+    Table.register();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  const COLS = [
+    { key: "name", label: "Name" },
+    { key: "status", label: "Status" },
+  ];
+
+  it("renders badge and link descriptors, escaped, never as raw HTML", () => {
+    const el = document.createElement("box-table") as Table;
+    el.columns = COLS as never;
+    el.rows = [
+      {
+        id: "1",
+        cells: {
+          name: { kind: "link", text: "MSA_Acme.pdf", href: "https://box.com/f/1" },
+          status: { kind: "badge", text: "Approved", tone: "success" },
+        },
+      },
+      {
+        id: "2",
+        cells: {
+          name: { kind: "link", text: "evil", href: "javascript:alert(1)" },
+          status: "<img src=x onerror=alert(1)>",
+        },
+      },
+    ] as never;
+    document.body.append(el);
+
+    const link = el.shadowRoot?.querySelector('[part="cell-link"]');
+    expect(link?.getAttribute("href")).toBe("https://box.com/f/1");
+    expect(el.shadowRoot?.querySelector('[part="cell-badge"]')?.textContent).toBe("Approved");
+
+    // Unsafe href renders as plain text, not a link.
+    const links = el.shadowRoot?.querySelectorAll('[part="cell-link"]') ?? [];
+    expect(links.length).toBe(1);
+    // And a string cell is escaped like always.
+    expect(el.shadowRoot?.querySelector("img")).toBeNull();
+  });
+
+  it("expands and collapses row detail without selecting the row", () => {
+    const el = document.createElement("box-table") as Table;
+    el.columns = COLS as never;
+    el.selectionMode = "multiple" as never;
+    el.rows = [
+      { id: "1", cells: { name: "A", status: "ok" }, detail: "Uploaded by <b>Morgan</b>." },
+      { id: "2", cells: { name: "B", status: "ok" } },
+    ] as never;
+    document.body.append(el);
+
+    const toggled = vi.fn();
+    const selected = vi.fn();
+    el.addEventListener("row-toggled", toggled);
+    el.addEventListener("selection-changed", selected);
+
+    const expander = el.shadowRoot?.querySelector('[part="expander"]') as HTMLButtonElement;
+    expect(expander).not.toBeNull();
+    // Row 2 has no detail: no expander rendered for it.
+    expect(el.shadowRoot?.querySelectorAll('[part="expander"]').length).toBe(1);
+
+    expander.click();
+    expect(toggled).toHaveBeenCalledWith(
+      expect.objectContaining({ detail: { rowId: "1", expanded: true } }),
+    );
+    expect(selected).not.toHaveBeenCalled(); // expanding is not selecting
+    expect(el.expandedRows).toEqual(["1"]);
+
+    const detailRow = el.shadowRoot?.querySelector('[part="detail-row"]');
+    expect(detailRow?.textContent).toContain("Uploaded by <b>Morgan</b>.");
+    // Detail is data like any cell: escaped, never parsed as markup.
+    expect(detailRow?.querySelector("b")).toBeNull();
+    // A named slot lets the host project rich detail per row.
+    expect(detailRow?.querySelector('slot[name="detail-1"]')).not.toBeNull();
+
+    (el.shadowRoot?.querySelector('[part="expander"]') as HTMLButtonElement).click();
+    expect(el.shadowRoot?.querySelector('[part="detail-row"]')).toBeNull();
+  });
+
+  it("states loading, error, and empty in words — loading wins over a stale error", () => {
+    const el = document.createElement("box-table") as Table;
+    el.columns = COLS as never;
+    el.rows = [] as never;
+    document.body.append(el);
+
+    const stateRow = (): HTMLElement | null | undefined =>
+      el.shadowRoot?.querySelector<HTMLElement>('[part="state-row"]');
+
+    expect(stateRow()?.dataset.state).toBe("empty");
+    expect(stateRow()?.textContent).toContain("No rows");
+
+    el.setAttribute("empty-text", "No documents match");
+    expect(stateRow()?.textContent).toContain("No documents match");
+
+    el.setAttribute("error-text", "Could not load documents");
+    expect(stateRow()?.dataset.state).toBe("error");
+    expect(stateRow()?.textContent).toContain("Could not load documents");
+
+    el.setAttribute("loading", "");
+    expect(stateRow()?.dataset.state).toBe("loading");
+    expect(stateRow()?.textContent).toContain("Loading rows…");
+    expect(el.shadowRoot?.querySelector('[part="table"]')?.getAttribute("aria-busy")).toBe("true");
+
+    el.removeAttribute("loading");
+    el.removeAttribute("error-text");
+    el.rows = [{ id: "1", cells: { name: "A", status: "ok" } }] as never;
+    expect(stateRow()).toBeNull();
+    expect(el.shadowRoot?.querySelector('[part="table"]')?.hasAttribute("aria-busy")).toBe(false);
+  });
+
+  it("marks every cell with its column label for the stacked layout", () => {
+    const el = document.createElement("box-table") as Table;
+    el.columns = COLS as never;
+    el.rows = [{ id: "1", cells: { name: "A", status: "ok" } }] as never;
+    el.setAttribute("stacked", "auto");
+    document.body.append(el);
+
+    const cells = Array.from(el.shadowRoot?.querySelectorAll("tbody td") ?? []);
+    expect(cells.map(cell => cell.getAttribute("data-label"))).toEqual(["Name", "Status"]);
+
+    // The stacked rules exist for both the forced and the container-driven mode.
+    const styles = el.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain('@container (max-width: 560px)');
+    expect(styles).toContain(':host([stacked]:not([stacked="auto"]))');
+    expect(styles).toContain("content: attr(data-label)");
+  });
+});

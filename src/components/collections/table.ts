@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boePanel, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
+import { isSafeHref } from "../../patterns/internal/safe-href.js";
 
 const DEFAULT_TAG_NAME = "box-table";
 
@@ -12,13 +13,59 @@ export interface TableColumn {
   sortable?: boolean;
 }
 
+export type TableCellTone = "neutral" | "brand" | "success" | "warning" | "error";
+
+/**
+ * Declarative cell content beyond plain text. Deliberately a descriptor the
+ * table renders itself, never an HTML string or a render callback: cell data
+ * is server-supplied and stays escaped — a string renderer would reopen the
+ * injection hole the escaping exists to close.
+ */
+export interface TableCellDescriptor {
+  kind: "text" | "badge" | "link";
+  text: string;
+  /** Badge colour; the text still carries the meaning. */
+  tone?: TableCellTone;
+  /** Link target; non-http(s) schemes render as plain text. */
+  href?: string;
+}
+
+export type TableCellValue = string | TableCellDescriptor;
+
 export interface TableRow {
   id: string;
-  /** Cell text keyed by column key, or positional strings matching `columns`. */
-  cells: Record<string, string> | string[];
+  /** Cell values keyed by column key, or positional, matching `columns`. */
+  cells: Record<string, TableCellValue> | TableCellValue[];
+  /**
+   * Expandable detail. Renders a per-row toggle and a full-width detail row
+   * holding this text plus a `detail-<id>` slot for rich host content.
+   */
+  detail?: string;
 }
 
 export type TableSelectionMode = "none" | "single" | "multiple";
+
+/** Detail of the `sort` event, for typed listeners. */
+export interface TableSortDetail {
+  key: string;
+  direction: "ascending" | "descending";
+}
+
+/** Detail of the `selection-changed` event, for typed listeners. */
+export interface TableSelectionChangedDetail {
+  selectedIds: string[];
+}
+
+/** Detail of the `row-toggled` event, for typed listeners. */
+export interface TableRowToggledDetail {
+  rowId: string;
+  expanded: boolean;
+}
+
+const CELL_TONES = new Set<TableCellTone>(["neutral", "brand", "success", "warning", "error"]);
+
+const isCellDescriptor = (value: TableCellValue | undefined): value is TableCellDescriptor =>
+  typeof value === "object" && value !== null && typeof value.text === "string";
 
 const escapeHtml = (value: string): string =>
   value
@@ -124,7 +171,143 @@ const tableStyles = `
   tbody tr[part="row"]:focus-visible td {
     box-shadow: inset 0 0 0 2px var(--boe-token-surface-surface-brand, #0061d5);
   }
+
+  [part="cell-badge"] {
+    display: inline-block;
+    padding: 0.08rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: color-mix(in srgb, var(--cell-tone, var(--boe-token-text-text-secondary, #6f6f6f)) 76%, black 24%);
+    background: color-mix(in srgb, var(--cell-tone, var(--boe-token-text-text-secondary, #6f6f6f)) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--cell-tone, var(--boe-token-text-text-secondary, #6f6f6f)) 30%, transparent);
+  }
+
+  [part="cell-link"] {
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+    text-decoration: none;
+  }
+
+  [part="cell-link"]:hover {
+    text-decoration: underline;
+  }
+
+  [part="expander"] {
+    appearance: none;
+    display: inline-grid;
+    place-items: center;
+    inline-size: 1.4rem;
+    block-size: 1.4rem;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    font: inherit;
+    font-size: 0.72rem;
+    cursor: pointer;
+  }
+
+  [part="expander"]:hover {
+    background: var(--boe-token-surface-surface-hover, #f4f4f4);
+  }
+
+  [part="expander"]:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+    outline-offset: 1px;
+  }
+
+  [part="expander"]::before {
+    content: "▸";
+    transition: transform 120ms ease;
+  }
+
+  [part="expander"][aria-expanded="true"]::before {
+    transform: rotate(90deg);
+  }
+
+  tr[part="detail-row"] td {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 80%, transparent);
+    font-size: 0.84rem;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+  }
+
+  tr[part="state-row"] td {
+    padding: 1.1rem ${boeSpace[3]};
+    text-align: center;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+  }
+
+  tr[part="state-row"][data-state="error"] td {
+    color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 76%, black 24%);
+  }
+
+  [part="state-spinner"] {
+    display: inline-block;
+    vertical-align: -0.15rem;
+    margin-inline-end: 0.45rem;
+    inline-size: 0.95rem;
+    block-size: 0.95rem;
+    border-radius: 999px;
+    border: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 20%, transparent);
+    border-top-color: var(--boe-token-surface-surface-brand, #0061d5);
+    animation: boe-table-spin 0.9s linear infinite;
+  }
+
+  @keyframes boe-table-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [part="state-spinner"] { animation-duration: 1.6s; }
+  }
+
+  /* Stacked rows: each row becomes a card, each cell states its column via
+     data-label. Roles are explicit on rows and cells, so the grid semantics
+     survive the display change. stacked="always" forces it; stacked="auto"
+     stacks when the host container narrows. */
+  :host {
+    container-type: inline-size;
+  }
+` +
+  ((): string => {
+    const rules = (scope: string): string => `
+  ${scope} thead { display: none; }
+  ${scope} tr[part="row"] {
+    display: block;
+    padding: ${boeSpace[2]} 0;
+  }
+  ${scope} tbody td {
+    display: grid;
+    grid-template-columns: minmax(7.5rem, 9rem) 1fr;
+    gap: 0.5rem;
+    border-bottom: none;
+    padding-block: 0.18rem;
+    text-align: start;
+  }
+  ${scope} tbody td[data-label]::before {
+    content: attr(data-label);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    align-self: center;
+  }
+  ${scope} tr[part="row"]:not(:last-child) {
+    border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
+  }
+  ${scope} tr[part="detail-row"] td,
+  ${scope} tr[part="state-row"] td {
+    display: block;
+  }
 `;
+    return `
+  ${rules(':host([stacked]:not([stacked="auto"]))')}
+  @container (max-width: 560px) {
+    ${rules(':host([stacked="auto"])')}
+  }
+`;
+  })();
 
 /**
  * A semantic, selectable data table — box-ui-elements `Table` + `makeSelectable`.
@@ -136,13 +319,61 @@ const tableStyles = `
 export class Table extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["columns", "rows", "selection-mode", "label", "sort-key", "sort-direction"];
+    return [
+      "columns",
+      "empty-text",
+      "error-text",
+      "label",
+      "loading",
+      "rows",
+      "selection-mode",
+      "sort-direction",
+      "sort-key",
+      "stacked",
+    ];
   }
 
   private bodyEl!: HTMLElement;
   private headEl!: HTMLElement;
   private selected = new Set<string>();
   private anchorIndex = -1;
+  private readonly expandedIds = new Set<string>();
+
+  /** True while rows are being fetched: the body states "Loading rows…". */
+  get loading(): boolean {
+    return this.hasAttribute("loading");
+  }
+
+  set loading(value: boolean) {
+    this.toggleAttribute("loading", Boolean(value));
+  }
+
+  /** What the body says when there are no rows and nothing is loading. */
+  get emptyText(): string {
+    return this.getAttribute("empty-text") ?? "No rows";
+  }
+
+  set emptyText(value: string) {
+    this.setAttribute("empty-text", value);
+  }
+
+  /** Non-empty puts the table in an error state stating this text. */
+  get errorText(): string {
+    return this.getAttribute("error-text") ?? "";
+  }
+
+  set errorText(value: string) {
+    if (value) {
+      this.setAttribute("error-text", value);
+    } else {
+      this.removeAttribute("error-text");
+    }
+  }
+
+  /** Ids of the rows whose detail is expanded (host-readable). */
+  get expandedRows(): string[] {
+    return [...this.expandedIds];
+  }
 
   get columns(): TableColumn[] {
     return this.parseJson<TableColumn[]>("columns", []);
@@ -199,11 +430,36 @@ export class Table extends BaseElement {
     }
   }
 
-  private cellText(row: TableRow, column: TableColumn, index: number): string {
+  private cellValue(row: TableRow, column: TableColumn, index: number): TableCellValue {
     if (Array.isArray(row.cells)) {
       return row.cells[index] ?? "";
     }
     return row.cells[column.key] ?? "";
+  }
+
+  /**
+   * Descriptor rendering. Everything is escaped; a link with a non-http(s)
+   * href renders as plain text; a badge's tone colours a word that already
+   * carries the meaning.
+   */
+  private cellMarkup(value: TableCellValue): string {
+    if (!isCellDescriptor(value)) {
+      return escapeHtml(typeof value === "string" ? value : "");
+    }
+    if (value.kind === "badge") {
+      const tone = value.tone && CELL_TONES.has(value.tone) ? value.tone : "neutral";
+      const toneVar =
+        tone === "neutral"
+          ? "var(--boe-token-text-text-secondary, #6f6f6f)"
+          : tone === "brand"
+            ? "var(--boe-token-surface-surface-brand, #0061d5)"
+            : `var(--boe-token-surface-status-surface-${tone}, #6f6f6f)`;
+      return `<span part="cell-badge" style="--cell-tone:${toneVar};">${escapeHtml(value.text)}</span>`;
+    }
+    if (value.kind === "link" && value.href && isSafeHref(value.href)) {
+      return `<a part="cell-link" href="${escapeHtml(value.href)}">${escapeHtml(value.text)}</a>`;
+    }
+    return escapeHtml(value.text);
   }
 
   protected renderTemplate(): void {
@@ -229,6 +485,11 @@ export class Table extends BaseElement {
     });
 
     this.bodyEl.addEventListener("click", event => {
+      const expander = (event.target as HTMLElement).closest<HTMLElement>('[part="expander"]');
+      if (expander) {
+        this.toggleRowDetail(expander.dataset.rowId ?? "");
+        return; // expanding is not selecting
+      }
       const row = (event.target as HTMLElement).closest<HTMLElement>('[part="row"]');
       if (!row) return;
       const mouse = event as MouseEvent;
@@ -242,7 +503,28 @@ export class Table extends BaseElement {
     return Array.from(this.bodyEl.querySelectorAll<HTMLElement>('[part="row"]'));
   }
 
+  private toggleRowDetail(rowId: string): void {
+    if (!rowId) return;
+    const expanded = !this.expandedIds.has(rowId);
+    if (expanded) {
+      this.expandedIds.add(rowId);
+    } else {
+      this.expandedIds.delete(rowId);
+    }
+    this.dispatchEvent(
+      new CustomEvent<TableRowToggledDetail>("row-toggled", {
+        bubbles: true,
+        composed: true,
+        detail: { rowId, expanded },
+      }),
+    );
+    this.update();
+  }
+
   private onBodyKeydown(event: KeyboardEvent): void {
+    // Keys aimed at the expander button (Enter/Space activate it natively)
+    // must not double as row selection.
+    if ((event.target as HTMLElement).closest('[part="expander"]')) return;
     const rows = this.rowElements();
     if (rows.length === 0) return;
     const currentRow = (event.target as HTMLElement).closest<HTMLElement>('[part="row"]');
@@ -288,7 +570,11 @@ export class Table extends BaseElement {
     const currentDir = this.getAttribute("sort-direction");
     const direction = currentKey === key && currentDir === "ascending" ? "descending" : "ascending";
     this.dispatchEvent(
-      new CustomEvent("sort", { bubbles: true, composed: true, detail: { key, direction } }),
+      new CustomEvent<TableSortDetail>("sort", {
+        bubbles: true,
+        composed: true,
+        detail: { key, direction },
+      }),
     );
   }
 
@@ -333,7 +619,7 @@ export class Table extends BaseElement {
     this.selected = new Set(ids);
     this.applySelectionState();
     this.dispatchEvent(
-      new CustomEvent("selection-changed", {
+      new CustomEvent<TableSelectionChangedDetail>("selection-changed", {
         bubbles: true,
         composed: true,
         detail: { selectedIds: [...this.selected] },
@@ -355,42 +641,84 @@ export class Table extends BaseElement {
     const selectable = this.selectionMode !== "none";
     const sortKey = this.getAttribute("sort-key");
     const sortDir = this.getAttribute("sort-direction");
+    const expandable = rows.some(row => row.detail !== undefined);
+    const columnCount = columns.length + (expandable ? 1 : 0);
 
-    this.shadowRoot?.querySelector('[part="table"]')?.setAttribute("aria-label", this.label);
-    this.shadowRoot?.querySelector('[part="table"]')?.setAttribute("role", selectable ? "grid" : "table");
+    const tableEl = this.shadowRoot?.querySelector('[part="table"]');
+    tableEl?.setAttribute("aria-label", this.label);
+    tableEl?.setAttribute("role", selectable ? "grid" : "table");
+    if (this.loading) {
+      tableEl?.setAttribute("aria-busy", "true");
+    } else {
+      tableEl?.removeAttribute("aria-busy");
+    }
 
-    this.headEl.innerHTML = columns
-      .map(column => {
-        const align = column.align ? ` data-align="${column.align}"` : "";
-        if (column.sortable) {
-          const sorted = sortKey === column.key;
-          const sort = sorted
-            ? ` aria-sort="${sortDir === "descending" ? "descending" : "ascending"}"`
-            : ' aria-sort="none"';
-          // The state, in words as well as the arrow glyph.
-          const stateLabel = sorted
-            ? `, sorted ${sortDir === "descending" ? "descending" : "ascending"}`
-            : ", not sorted";
-          return `<th part="sortable" scope="col" data-key="${escapeHtml(column.key)}"${align}${sort}><button type="button" part="sort-button" aria-label="Sort by ${escapeHtml(column.label)}${stateLabel}">${escapeHtml(column.label)}<span class="boe-sort-arrow" aria-hidden="true"></span></button></th>`;
-        }
-        return `<th scope="col"${align}>${escapeHtml(column.label)}</th>`;
-      })
-      .join("");
+    this.headEl.innerHTML =
+      (expandable ? `<th scope="col" aria-label="Row details"></th>` : "") +
+      columns
+        .map(column => {
+          const align = column.align ? ` data-align="${column.align}"` : "";
+          if (column.sortable) {
+            const sorted = sortKey === column.key;
+            const sort = sorted
+              ? ` aria-sort="${sortDir === "descending" ? "descending" : "ascending"}"`
+              : ' aria-sort="none"';
+            // The state, in words as well as the arrow glyph.
+            const stateLabel = sorted
+              ? `, sorted ${sortDir === "descending" ? "descending" : "ascending"}`
+              : ", not sorted";
+            return `<th part="sortable" scope="col" data-key="${escapeHtml(column.key)}"${align}${sort}><button type="button" part="sort-button" aria-label="Sort by ${escapeHtml(column.label)}${stateLabel}">${escapeHtml(column.label)}<span class="boe-sort-arrow" aria-hidden="true"></span></button></th>`;
+          }
+          return `<th scope="col"${align}>${escapeHtml(column.label)}</th>`;
+        })
+        .join("");
+
+    // Loading, error, and empty are stated in words in the body — a blank
+    // grid reads as broken. Loading wins; a stale error must not outlive a
+    // retry that is visibly in flight.
+    if (this.loading) {
+      this.bodyEl.innerHTML = `<tr part="state-row" data-state="loading" role="row"><td role="${selectable ? "gridcell" : "cell"}" colspan="${String(columnCount)}"><span part="state-spinner" aria-hidden="true"></span>Loading rows…</td></tr>`;
+      return;
+    }
+    if (this.errorText) {
+      this.bodyEl.innerHTML = `<tr part="state-row" data-state="error" role="row"><td role="${selectable ? "gridcell" : "cell"}" colspan="${String(columnCount)}">${escapeHtml(this.errorText)}</td></tr>`;
+      return;
+    }
+    if (rows.length === 0) {
+      this.bodyEl.innerHTML = `<tr part="state-row" data-state="empty" role="row"><td role="${selectable ? "gridcell" : "cell"}" colspan="${String(columnCount)}">${escapeHtml(this.emptyText)}</td></tr>`;
+      return;
+    }
 
     this.bodyEl.innerHTML = rows
       .map((row, index) => {
         const selected = this.selected.has(row.id);
+        const cellRole = selectable ? ' role="gridcell"' : ' role="cell"';
         const rowAttrs = selectable
           ? ` part="row" role="row" tabindex="${index === 0 ? "0" : "-1"}" aria-selected="${selected}"`
           : ' part="row" role="row"';
+        const expanded = this.expandedIds.has(row.id);
+        const expanderCell = expandable
+          ? `<td${cellRole} part="expander-cell">${
+              row.detail !== undefined
+                ? `<button type="button" part="expander" data-row-id="${escapeHtml(row.id)}" aria-expanded="${String(expanded)}" aria-label="${expanded ? "Hide" : "Show"} details for row ${escapeHtml(row.id)}"></button>`
+                : ""
+            }</td>`
+          : "";
         const cells = columns
           .map(column => {
             const align = column.align ? ` data-align="${column.align}"` : "";
-            const role = selectable ? ' role="gridcell"' : ' role="cell"';
-            return `<td${align}${role}>${escapeHtml(this.cellText(row, column, columns.indexOf(column)))}</td>`;
+            const value = this.cellValue(row, column, columns.indexOf(column));
+            return `<td${align}${cellRole} data-label="${escapeHtml(column.label)}">${this.cellMarkup(value)}</td>`;
           })
           .join("");
-        return `<tr${rowAttrs} data-index="${index}" data-id="${escapeHtml(row.id)}">${cells}</tr>`;
+        const rowMarkup = `<tr${rowAttrs} data-index="${index}" data-id="${escapeHtml(row.id)}">${expanderCell}${cells}</tr>`;
+        // The detail row renders only while expanded, keeping the roving
+        // tabindex and shift-range math on visible [part="row"] rows only.
+        const detailRow =
+          row.detail !== undefined && expanded
+            ? `<tr part="detail-row" role="row" data-for="${escapeHtml(row.id)}"><td${cellRole} colspan="${String(columnCount)}">${escapeHtml(row.detail)}<slot name="detail-${escapeHtml(row.id)}"></slot></td></tr>`
+            : "";
+        return rowMarkup + detailRow;
       })
       .join("");
   }
