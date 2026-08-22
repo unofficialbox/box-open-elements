@@ -1,0 +1,91 @@
+name: Cut release
+
+# Creates the vX.Y.Z tag and the GitHub Release for the version currently in
+# package.json on main — the two steps a remote Claude Code session cannot do
+# itself, because its push credential is scoped to branch refs and cannot
+# write tags. Everything else stays as it was: publishing the GitHub Release
+# fires release.yml, which runs the verify gate and the npm OIDC trusted
+# publish with provenance.
+#
+# Flow for a release:
+#   1. Merge the "Prepare vX.Y.Z release" PR (version bump + changelog).
+#   2. Dispatch this workflow on main. It tags vX.Y.Z at HEAD and publishes a
+#      GitHub Release whose notes are that version's CHANGELOG section.
+#
+# Idempotence and safety:
+#   - Refuses to run off main.
+#   - Refuses to move an existing tag; a re-run after a partial failure only
+#     fills in whatever is missing (tag or release).
+#   - The release body is extracted from CHANGELOG.md; an absent section
+#     fails the run rather than publishing an empty release.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cut:
+    name: Tag + GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse to run off main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "Releases are cut from main; got ${GITHUB_REF}." >&2
+          exit 1
+
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Resolve version
+        id: version
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Extract release notes from CHANGELOG.md
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          awk -v ver="$VERSION" '
+            $0 ~ "^## " ver " " { found=1; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md > /tmp/notes.md
+          if ! grep -q "[^[:space:]]" /tmp/notes.md; then
+            echo "No CHANGELOG.md section found for $VERSION — refusing to publish an empty release." >&2
+            exit 1
+          fi
+
+      - name: Create tag (skip if it already exists at HEAD)
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            REMOTE_SHA="$(git ls-remote origin "refs/tags/$TAG" | cut -f1)"
+            if [ "$REMOTE_SHA" != "$GITHUB_SHA" ]; then
+              echo "Tag $TAG already exists at $REMOTE_SHA (HEAD is $GITHUB_SHA) — refusing to move it." >&2
+              exit 1
+            fi
+            echo "Tag $TAG already at HEAD; skipping."
+          else
+            git tag "$TAG" "$GITHUB_SHA"
+            git push origin "refs/tags/$TAG"
+          fi
+
+      - name: Publish GitHub Release (skip if it already exists)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; skipping."
+          else
+            gh release create "$TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "$TAG" \
+              --notes-file /tmp/notes.md \
+              --verify-tag
+          fi
