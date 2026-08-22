@@ -33,6 +33,8 @@ import {
   clmClauseAfter,
   clmClauseBefore,
   clmIntakeSteps,
+  clmIntakeSummaryFields,
+  clmIntakeValues,
   clmLineage,
   clmProvenanceChain,
   clmStages,
@@ -138,6 +140,15 @@ const notificationInboxSetup = (root: HTMLElement): void => {
   inbox.addEventListener("dismiss-requested", event => {
     const { item } = (event as CustomEvent<{ item: { id: string } }>).detail;
     inbox.notifications = inbox.notifications.filter(entry => entry.id !== item.id);
+  });
+};
+
+/** Shared by the wizard-summary variants; fields carry a `format`, so property-set. */
+const wizardSummarySetup = (root: HTMLElement): void => {
+  set(root, "box-wizard-summary", {
+    steps: clmIntakeSteps,
+    fields: clmIntakeSummaryFields,
+    values: clmIntakeValues,
   });
 };
 
@@ -755,6 +766,31 @@ export const examples: Record<string, ComponentExample> = {
       set(root, "box-form-wizard", { steps: clmIntakeSteps });
     },
     note: "A step's id doubles as the slot name feeding its panel. `FormWizardController` gates Next behind per-step validators; Save draft skips validation; `submitted` fires with the value store.",
+  },
+  "wizard-summary": {
+    html: `<box-wizard-summary heading="Review your answers"></box-wizard-summary>`,
+    setup: wizardSummarySetup,
+    note: "The wizard's review step. Sections follow **step order**, so the summary reads back in the order the wizard asked — the field list behind this demo is deliberately declared out of order to prove it. *Auto-renew* shows as **No** rather than a blank, because a negative answer is an answer; *Internal notes* was never filled in, so it shows the placeholder instead of an empty line. Edit emits `edit-requested` with the step id rather than navigating: the host owns the wizard. Each Edit button is named for its step, so a screen reader announces \"Edit Key terms\", not a fifth anonymous \"Edit\".",
+    variants: [
+      {
+        name: "Collected answers",
+        html: `<box-wizard-summary heading="Review your answers"></box-wizard-summary>`,
+        setup: wizardSummarySetup,
+        note: "Contract value carries a `format` function — which is why the fields are set as a property here, since a function cannot survive a JSON attribute.",
+      },
+      {
+        name: "Nothing collected yet",
+        html: `<box-wizard-summary heading="Review your answers"></box-wizard-summary>`,
+        setup: root => {
+          set(root, "box-wizard-summary", {
+            steps: clmIntakeSteps,
+            fields: clmIntakeSummaryFields,
+            values: {},
+          });
+        },
+        note: "Every row still appears, each showing the placeholder. A review card that hid unanswered questions would be hiding exactly what the reader needs to notice.",
+      },
+    ],
   },
   timeline: {
     html: `<box-timeline heading="Contract activity" composable has-more></box-timeline>`,

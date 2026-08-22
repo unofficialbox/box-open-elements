@@ -20,7 +20,10 @@ import type {
   WorkItemAssignee,
   WorkQueueTransport,
 } from "../src/patterns/work-queue/types.js";
-import type { WizardStepConfig } from "../src/patterns/form-wizard/types.js";
+import type {
+  WizardStepConfig,
+  WizardSummaryField,
+} from "../src/patterns/form-wizard/types.js";
 
 export const REFERENCE_TIME = "2026-08-13T12:00:00.000Z";
 
@@ -429,6 +432,34 @@ export const clmCommands: CommandDescriptor[] = [
   { id: "archive", label: "Archive contract", description: "Only available on executed contracts", disabled: true },
   { id: "settings", label: "Open settings", shortcut: "⌘+," },
   { id: "show-shortcuts", label: "Show keyboard shortcuts", shortcut: "?" },
+];
+
+/**
+ * What the intake wizard has collected by the time the reader reaches its
+ * review step, and how to present it. `notes` is deliberately absent from the
+ * values so the not-provided placeholder is visible, and `autoRenew` is
+ * `false` so the demo shows a negative answer reading as "No" rather than as
+ * an unanswered blank.
+ */
+export const clmIntakeValues: Record<string, unknown> = {
+  counterparty: "Acme Corp",
+  owner: "Morgan Lee",
+  contractValue: 250000,
+  startDate: "2026-09-01",
+  autoRenew: false,
+  reviewers: ["Legal", "Finance"],
+};
+
+export const clmIntakeSummaryFields: WizardSummaryField[] = [
+  // Declared out of step order on purpose: the card sections by step, so the
+  // summary reads back in the order the wizard asked, not the order below.
+  { key: "contractValue", label: "Contract value", stepId: "terms", format: value => (typeof value === "number" ? `$${value.toLocaleString("en-US")}` : "") },
+  { key: "counterparty", label: "Counterparty", stepId: "parties" },
+  { key: "startDate", label: "Start date", stepId: "terms" },
+  { key: "owner", label: "Contract owner", stepId: "parties" },
+  { key: "autoRenew", label: "Auto-renew", stepId: "terms" },
+  { key: "reviewers", label: "Reviewers", stepId: "parties" },
+  { key: "notes", label: "Internal notes", stepId: "review" },
 ];
 
 /** The lifecycle a contract record moves through, for `box-stage-path`. */

@@ -269,6 +269,11 @@
        whole sheet rather than add a row to it. -->
   <div class="row">
     <div class="col">
+      <box-wizard-summary id="gallery-wizard-summary" heading="Review your answers"></box-wizard-summary>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
       <box-stage-path id="gallery-stage-path" label="Contract lifecycle" current="in-review"></box-stage-path>
     </div>
     <div class="col">
@@ -719,6 +724,30 @@
   byId("gallery-notification-inbox").notifications = clmNotifications;
   byId("gallery-notification-inbox").typeLabels = { "sla-breach": "SLA breaches", approval: "Approvals", mention: "Mentions" };
   byId("gallery-notification-bell").notifications = clmNotifications;
+
+  const clmIntakeSteps = [
+    { id: "parties", label: "Parties", description: "Who is contracting" },
+    { id: "terms", label: "Key terms", description: "Value, dates, renewal" },
+    { id: "review", label: "Review & submit", description: "Confirm the request" },
+  ];
+  byId("gallery-wizard-summary").steps = clmIntakeSteps;
+  byId("gallery-wizard-summary").fields = [
+    { key: "contractValue", label: "Contract value", stepId: "terms", format: v => (typeof v === "number" ? `$${v.toLocaleString("en-US")}` : "") },
+    { key: "counterparty", label: "Counterparty", stepId: "parties" },
+    { key: "startDate", label: "Start date", stepId: "terms" },
+    { key: "owner", label: "Contract owner", stepId: "parties" },
+    { key: "autoRenew", label: "Auto-renew", stepId: "terms" },
+    { key: "reviewers", label: "Reviewers", stepId: "parties" },
+    { key: "notes", label: "Internal notes", stepId: "review" },
+  ];
+  byId("gallery-wizard-summary").values = {
+    counterparty: "Acme Corp",
+    owner: "Morgan Lee",
+    contractValue: 250000,
+    startDate: "2026-09-01",
+    autoRenew: false,
+    reviewers: ["Legal", "Finance"],
+  };
 
   byId("gallery-stage-path").stages = [
     { id: "draft", label: "Draft" },
