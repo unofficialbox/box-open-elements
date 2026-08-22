@@ -205,6 +205,7 @@ export * from "./patterns/versions/index.js";
 export * from "./patterns/lineage/index.js";
 export * from "./patterns/agent-chat/index.js";
 export * from "./patterns/audit/index.js";
+export * from "./patterns/notifications/index.js";
 
 // Patterns: compositions and workflow areas
 export * from "./patterns/search/index.js";

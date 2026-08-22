@@ -10,6 +10,32 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Notification inbox: `box-notification-bell` + `box-notification-inbox`,
+  the triage surface for approvals waiting, SLA breaches, and mentions.
+  Toasts are transient and unordered, which is the wrong shape for work you
+  have to come back to.
+  The engine is pure: `groupNotifications` sections by `type`, leading with
+  the most unread, then the most items, then label — so what needs attention
+  rises and order never depends on input order — while inside a section
+  unread lead read and then run newest first, with undated records sinking.
+  `type` is an open vocabulary, humanized into headings unless the host
+  supplies `type-labels`.
+  The bell puts the unread count in its **accessible name** ("Notifications,
+  3 unread"), not only in a badge, because a red dot alone tells a
+  screen-reader user nothing; past `max` the badge abbreviates to `9+` while
+  the label keeps the true number, since the abbreviation is a layout
+  concession and the number is the fact. It derives the count from records
+  when given them, or accepts a bare `unread-count` when the host keeps the
+  list server-side.
+  The inbox filters All/Unread, offers per-row Mark read / Dismiss and bulk
+  Mark all read, downgrades unsafe entity hrefs to plain text, and samples
+  and restores focus across rebuilds so acting on a row does not drop the
+  reader to the top of the panel.
+  **Mutations are intents, never local state changes**: the element never
+  marks anything read on its own — the host owns the write and feeds back a
+  new list, so the inbox can never disagree with the server about what has
+  been seen. Server-side paging is a tracked depth limitation.
+
 - Command palette (CLM gap 4 — the last unbuilt numbered gap in
   `plans/clm-horizontal-coverage.md`): `box-command-palette`, a
   keyboard-first action launcher over the existing overlay and listbox

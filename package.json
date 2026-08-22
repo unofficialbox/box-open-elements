@@ -112,6 +112,10 @@
       "types": "./dist/patterns/audit/index.d.ts",
       "import": "./dist/patterns/audit/index.js"
     },
+    "./patterns/notifications": {
+      "types": "./dist/patterns/notifications/index.d.ts",
+      "import": "./dist/patterns/notifications/index.js"
+    },
     "./patterns/search": {
       "types": "./dist/patterns/search/index.d.ts",
       "import": "./dist/patterns/search/index.js"
