@@ -15,6 +15,11 @@ import {
 
 const DEFAULT_TAG_NAME = "box-text-field";
 
+/** Detail of this element's `value-changed` event, for typed listeners. */
+export interface TextFieldValueChangedDetail {
+  value: string;
+}
+
 const VALID_INPUT_TYPES = new Set(["text", "email", "tel", "url", "password", "search", "number"]);
 
 const spinnerMarkup = '<span part="spinner" aria-hidden="true"></span>';
@@ -125,6 +130,47 @@ const textFieldStyles = `
     color: var(--boe-token-surface-status-surface-success, #26c281);
   }
 
+  /* Password visibility toggle: a word, not an eye glyph, so the state is
+     stated. Hidden entirely unless reveal is opted in on a password. */
+  [part="reveal"] {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-end: 0.35rem;
+    transform: translateY(-50%);
+    appearance: none;
+    border: 0;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    background: transparent;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+    cursor: pointer;
+  }
+
+  [part="reveal"]:hover {
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, transparent);
+  }
+
+  [part="reveal"]:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
+    outline-offset: 1px;
+  }
+
+  [part="control"][data-reveal="true"] [part="input"] {
+    padding-inline-end: 3.4rem;
+  }
+
+  /* Reveal and a trailing status can coexist: the status shifts inward. */
+  [part="control"][data-reveal="true"] [part="status"] {
+    inset-inline-end: 3.4rem;
+  }
+
+  [part="control"][data-reveal="true"][data-status] [part="input"] {
+    padding-inline-end: 5rem;
+  }
+
   ${boeFormFieldErrorStyles}
   ${boeFormFieldSupportStyles}
 `;
@@ -134,9 +180,11 @@ export class TextField extends FormAssociatedElement {
   static get observedAttributes(): string[] {
     return [
       ...FormAssociatedElement.fieldObservedAttributes,
+      "autocomplete",
       "disabled",
       "label",
       "placeholder",
+      "reveal",
       "type",
       "loading",
       "valid",
@@ -145,6 +193,7 @@ export class TextField extends FormAssociatedElement {
   }
 
   private valueInternal = "";
+  private revealed = false;
   private inputEl!: HTMLInputElement;
   private labelEl!: HTMLElement;
   private descriptionEl!: HTMLElement;
@@ -152,6 +201,7 @@ export class TextField extends FormAssociatedElement {
   private controlEl!: HTMLElement;
   private iconSlot!: HTMLSlotElement;
   private statusEl!: HTMLElement;
+  private revealEl!: HTMLButtonElement;
 
   /** Input type passthrough (text/email/tel/url/password/search/number). */
   get type(): string {
@@ -161,6 +211,37 @@ export class TextField extends FormAssociatedElement {
 
   set type(value: string) {
     this.setAttribute("type", value);
+  }
+
+  /**
+   * `autocomplete` passthrough to the inner input ("email",
+   * "current-password", "off", …). Without it password managers and
+   * autofill cannot classify the field — the shadow boundary hides any
+   * autocomplete the host writes on the custom element itself.
+   */
+  get autocomplete(): string {
+    return this.getAttribute("autocomplete") ?? "";
+  }
+
+  set autocomplete(value: string) {
+    if (value) {
+      this.setAttribute("autocomplete", value);
+    } else {
+      this.removeAttribute("autocomplete");
+    }
+  }
+
+  /**
+   * Opt-in visibility toggle for `type="password"`: renders a Show/Hide
+   * control that swaps the inner input between password and text without
+   * changing the field's declared `type`.
+   */
+  get reveal(): boolean {
+    return this.hasAttribute("reveal");
+  }
+
+  set reveal(value: boolean) {
+    this.toggleAttribute("reveal", Boolean(value));
   }
 
   /** Shows a trailing spinner (e.g. while validating/looking up asynchronously). */
@@ -251,6 +332,7 @@ export class TextField extends FormAssociatedElement {
           <slot name="icon" part="icon"></slot>
           <input type="text" part="input" />
           <span part="status" aria-hidden="true"></span>
+          <button type="button" part="reveal" aria-pressed="false" hidden></button>
         </span>
         ${formErrorMessageMarkup()}
       </label>
@@ -262,10 +344,16 @@ export class TextField extends FormAssociatedElement {
     this.controlEl = this.shadowRoot.querySelector('[part="control"]')!;
     this.iconSlot = this.shadowRoot.querySelector('slot[name="icon"]')!;
     this.statusEl = this.shadowRoot.querySelector('[part="status"]')!;
+    this.revealEl = this.shadowRoot.querySelector('[part="reveal"]')!;
   }
 
   protected setupListeners(): void {
     this.iconSlot.addEventListener("slotchange", () => this.syncIconSlot());
+
+    this.revealEl.addEventListener("click", () => {
+      this.revealed = !this.revealed;
+      this.update();
+    });
 
     this.inputEl.addEventListener("input", event => {
       const nextValue = (event.currentTarget as HTMLInputElement).value;
@@ -273,7 +361,7 @@ export class TextField extends FormAssociatedElement {
       this.setAttribute("value", nextValue);
       this.syncFormAssociation();
       this.dispatchEvent(
-        new CustomEvent("value-changed", {
+        new CustomEvent<TextFieldValueChangedDetail>("value-changed", {
           bubbles: true,
           composed: true,
           detail: { value: nextValue },
@@ -297,9 +385,28 @@ export class TextField extends FormAssociatedElement {
     }
 
     this.labelEl.textContent = this.label;
-    this.inputEl.type = this.type;
+    const revealActive = this.reveal && this.type === "password";
+    this.inputEl.type = revealActive && this.revealed ? "text" : this.type;
     this.inputEl.placeholder = this.placeholder;
+    if (this.autocomplete) {
+      this.inputEl.setAttribute("autocomplete", this.autocomplete);
+    } else {
+      this.inputEl.removeAttribute("autocomplete");
+    }
     this.syncIconSlot();
+
+    // The reveal control only exists for a password with reveal opted in.
+    this.revealEl.hidden = !revealActive;
+    this.controlEl.dataset.reveal = revealActive ? "true" : "false";
+    if (revealActive) {
+      // The visible word and the accessible name agree; aria-pressed makes
+      // the toggle state machine explicit to AT.
+      this.revealEl.textContent = this.revealed ? "Hide" : "Show";
+      this.revealEl.setAttribute("aria-label", this.revealed ? "Hide password" : "Show password");
+      this.revealEl.setAttribute("aria-pressed", String(this.revealed));
+    } else {
+      this.revealed = false;
+    }
 
     // Trailing status: loading spinner takes precedence over the valid check.
     if (this.loading) {

@@ -9,6 +9,11 @@ import {
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
 import { boeControl, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
+import {
+  boeMotionDuration,
+  boeMotionEasing,
+  boeReducedMotionStyles,
+} from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-select";
 
@@ -17,6 +22,21 @@ type SelectOption = {
   value: string;
   disabled?: boolean;
   group?: string;
+};
+
+/** Detail of this element's `value-changed` event; `values` only when `multiple`. */
+export interface SelectValueChangedDetail {
+  value: string;
+  values?: string[];
+}
+
+/** Attribute payloads are author input — validate every record. */
+const isSelectOptionRecord = (value: unknown): value is SelectOption => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const option = value as Record<string, unknown>;
+  return typeof option.value === "string" && typeof option.label === "string";
 };
 
 const escapeHtml = (value: string): string =>
@@ -97,9 +117,48 @@ const selectStyles = `
     border-radius: ${boeRadius.size};
   }
 
+  /* Control wrapper exists for the trailing status; with no status it is
+     layout-neutral. */
+  [part="control"] {
+    position: relative;
+    display: block;
+  }
+
+  [part="status"] {
+    position: absolute;
+    inset-block-start: 50%;
+    /* Left of the chevron. */
+    inset-inline-end: 2rem;
+    transform: translateY(-50%);
+    display: none;
+    align-items: center;
+    pointer-events: none;
+  }
+
+  [part="control"][data-status="loading"] [part="status"] {
+    display: inline-flex;
+  }
+
+  [part="spinner"] {
+    inline-size: 1rem;
+    block-size: 1rem;
+    border-radius: 999px;
+    border: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 20%, transparent);
+    border-top-color: var(--boe-token-surface-surface-brand, #0061d5);
+    animation: boe-select-spin ${boeMotionDuration.spin} ${boeMotionEasing.linear} infinite;
+  }
+
+  @keyframes boe-select-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  ${boeReducedMotionStyles('[part="spinner"]', "animation-duration: 1.6s;")}
+
   ${boeFormFieldErrorStyles}
   ${boeFormFieldSupportStyles}
 `;
+
+const spinnerMarkup = '<span part="spinner" aria-hidden="true"></span>';
 
 export class Select extends FormAssociatedElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
@@ -107,7 +166,9 @@ export class Select extends FormAssociatedElement {
     return [
       ...FormAssociatedElement.fieldObservedAttributes,
       "disabled",
+      "empty-text",
       "label",
+      "loading",
       "multiple",
       "options",
       "value",
@@ -120,6 +181,8 @@ export class Select extends FormAssociatedElement {
   private labelEl!: HTMLElement;
   private descriptionEl!: HTMLElement;
   private errorEl!: HTMLElement;
+  private controlEl!: HTMLElement;
+  private statusEl!: HTMLElement;
 
   /** Allow selecting several options (native multi-select list box). */
   get multiple(): boolean {
@@ -178,6 +241,32 @@ export class Select extends FormAssociatedElement {
     this.setAttribute("label", value);
   }
 
+  /**
+   * True while options are being fetched: shows a trailing spinner (matching
+   * `box-text-field`'s status vocabulary) and states "Loading options…" in
+   * the control instead of leaving it blank.
+   */
+  get loading(): boolean {
+    return this.hasAttribute("loading");
+  }
+
+  set loading(value: boolean) {
+    this.toggleAttribute("loading", Boolean(value));
+  }
+
+  /**
+   * What the control says when it has no options and is not loading. An
+   * async-loaded select with an empty result must say so — a silently blank
+   * control reads as broken.
+   */
+  get emptyText(): string {
+    return this.getAttribute("empty-text") ?? "No options available";
+  }
+
+  set emptyText(value: string) {
+    this.setAttribute("empty-text", value);
+  }
+
   get options(): SelectOption[] {
     const raw = this.getAttribute("options");
     if (!raw) {
@@ -185,8 +274,10 @@ export class Select extends FormAssociatedElement {
     }
 
     try {
-      const parsed = JSON.parse(raw) as SelectOption[];
-      return Array.isArray(parsed) ? parsed : [];
+      const parsed: unknown = JSON.parse(raw);
+      return Array.isArray(parsed) && parsed.every(isSelectOptionRecord)
+        ? (parsed as SelectOption[])
+        : [];
     } catch {
       return [];
     }
@@ -239,7 +330,10 @@ export class Select extends FormAssociatedElement {
       <label part="field">
         <span part="label"></span>
         ${formDescriptionMarkup()}
-        <select part="select"></select>
+        <span part="control">
+          <select part="select"></select>
+          <span part="status" aria-hidden="true"></span>
+        </span>
         ${formErrorMessageMarkup()}
       </label>
     `;
@@ -247,6 +341,8 @@ export class Select extends FormAssociatedElement {
     this.descriptionEl = this.shadowRoot.querySelector('[part="description"]')!;
     this.selectEl = this.shadowRoot.querySelector('[part="select"]')!;
     this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
+    this.controlEl = this.shadowRoot.querySelector('[part="control"]')!;
+    this.statusEl = this.shadowRoot.querySelector('[part="status"]')!;
   }
 
   protected setupListeners(): void {
@@ -262,7 +358,7 @@ export class Select extends FormAssociatedElement {
       this.setAttribute("value", this.valueInternal);
       this.syncFormAssociation();
       this.dispatchEvent(
-        new CustomEvent("value-changed", {
+        new CustomEvent<SelectValueChangedDetail>("value-changed", {
           bubbles: true,
           composed: true,
           detail: this.multiple
@@ -307,8 +403,23 @@ export class Select extends FormAssociatedElement {
     this.labelEl.textContent = this.label;
 
     // Rebuild options (the list itself may change), grouping by `group`.
+    // While loading — and when an async load came back empty — the control
+    // says so in words instead of presenting a silently blank select.
     this.selectEl.multiple = this.multiple;
-    this.selectEl.innerHTML = this.optionsMarkup();
+    const options = this.options;
+    if (this.loading) {
+      this.controlEl.dataset.status = "loading";
+      this.statusEl.innerHTML = spinnerMarkup;
+      this.selectEl.innerHTML = `<option value="" disabled selected>Loading options…</option>`;
+    } else if (options.length === 0) {
+      this.controlEl.removeAttribute("data-status");
+      this.statusEl.innerHTML = "";
+      this.selectEl.innerHTML = `<option value="" disabled selected>${escapeHtml(this.emptyText)}</option>`;
+    } else {
+      this.controlEl.removeAttribute("data-status");
+      this.statusEl.innerHTML = "";
+      this.selectEl.innerHTML = this.optionsMarkup();
+    }
 
     // Patch selected value(s) and disabled after rebuilding options.
     if (this.multiple) {

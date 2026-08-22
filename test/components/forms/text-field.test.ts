@@ -201,3 +201,81 @@ describe("TextField — shared field features", () => {
     expect(control.hasAttribute("data-status")).toBe(false);
   });
 });
+
+describe("TextField autocomplete + reveal (dispatch intake round 3)", () => {
+  beforeEach(() => {
+    TextField.register();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  const create = (attrs: Record<string, string> = {}): TextField => {
+    const element = document.createElement("box-text-field") as TextField;
+    for (const [name, value] of Object.entries(attrs)) {
+      element.setAttribute(name, value);
+    }
+    document.body.append(element);
+    return element;
+  };
+
+  const inputOf = (element: TextField): HTMLInputElement =>
+    element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
+
+  const revealOf = (element: TextField): HTMLButtonElement =>
+    element.shadowRoot?.querySelector('[part="reveal"]') as HTMLButtonElement;
+
+  it("forwards autocomplete to the inner input, and removes it when cleared", () => {
+    const element = create({ autocomplete: "current-password", type: "password" });
+    expect(inputOf(element).getAttribute("autocomplete")).toBe("current-password");
+
+    element.removeAttribute("autocomplete");
+    expect(inputOf(element).hasAttribute("autocomplete")).toBe(false);
+  });
+
+  it("hides the reveal control unless opted in on a password", () => {
+    // Not opted in.
+    expect(revealOf(create({ type: "password" })).hidden).toBe(true);
+    // Opted in but not a password.
+    expect(revealOf(create({ type: "email", reveal: "" })).hidden).toBe(true);
+    // Opted in on a password.
+    expect(revealOf(create({ type: "password", reveal: "" })).hidden).toBe(false);
+  });
+
+  it("toggles the input between password and text, in words and aria-pressed", () => {
+    const element = create({ type: "password", reveal: "" });
+    const input = inputOf(element);
+    const reveal = revealOf(element);
+
+    expect(input.type).toBe("password");
+    expect(reveal.textContent).toBe("Show");
+    expect(reveal.getAttribute("aria-label")).toBe("Show password");
+    expect(reveal.getAttribute("aria-pressed")).toBe("false");
+
+    reveal.click();
+    expect(input.type).toBe("text");
+    expect(reveal.textContent).toBe("Hide");
+    expect(reveal.getAttribute("aria-label")).toBe("Hide password");
+    expect(reveal.getAttribute("aria-pressed")).toBe("true");
+
+    // The declared type never changes — the swap is presentation only.
+    expect(element.type).toBe("password");
+    expect(element.getAttribute("type")).toBe("password");
+
+    reveal.click();
+    expect(input.type).toBe("password");
+  });
+
+  it("re-hides a revealed password when the type changes", () => {
+    const element = create({ type: "password", reveal: "" });
+    revealOf(element).click();
+    expect(inputOf(element).type).toBe("text");
+
+    // Away and back: the next password starts hidden.
+    element.setAttribute("type", "text");
+    element.setAttribute("type", "password");
+    expect(inputOf(element).type).toBe("password");
+    expect(revealOf(element).getAttribute("aria-pressed")).toBe("false");
+  });
+});
