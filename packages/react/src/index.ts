@@ -8,6 +8,10 @@ export { createWebComponent, type WebComponentProps } from "./create-web-compone
 export type { CustomEventHandler, ValueChangedDetail } from "./events.js";
 export { Button, type ButtonProps } from "./button.js";
 export { Dialog, type DialogProps, type DialogSize } from "./dialog.js";
-export { useExplorerSelectionController } from "./explorer-selection.js";
+export {
+  ExplorerSelectionController,
+  useExplorerSelectionController,
+  type ExplorerSelectionState,
+} from "./explorer-selection.js";
 export { Select, type SelectOption, type SelectProps } from "./select.js";
 export { TextField, type TextFieldProps } from "./text-field.js";

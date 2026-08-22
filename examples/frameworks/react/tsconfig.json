@@ -3,11 +3,33 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "lib": ["ES2022", "DOM"],
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
     "jsx": "react-jsx",
     "strict": true,
     "skipLibCheck": true,
-    "types": ["react", "react-dom", "vite/client"]
+    "types": [
+      "react",
+      "react-dom",
+      "vite/client"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@unofficialbox/box-open-elements": [
+        "../../../dist/index.d.ts"
+      ],
+      "@unofficialbox/box-open-elements/patterns/content-explorer/selection": [
+        "../../../dist/patterns/content-explorer/selection/index.d.ts"
+      ],
+      "@unofficialbox/box-open-elements/*": [
+        "../../../dist/entries/*.d.ts"
+      ]
+    }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ]
 }

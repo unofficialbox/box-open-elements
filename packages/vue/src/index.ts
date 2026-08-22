@@ -4,3 +4,4 @@ export { Dialog, type DialogSize, type OpenChangedEvent } from "./dialog.js";
 export { useExplorerSelectionController } from "./explorer-selection.js";
 export { Select, type SelectOption } from "./select.js";
 export { TextField, type ValueChangedDetail, type ValueChangedEvent } from "./text-field.js";
+export { ExplorerSelectionController, type ExplorerSelectionState } from "./explorer-selection.js";

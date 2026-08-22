@@ -8,7 +8,7 @@
     createExplorerSelectionStore,
   } from "@unofficialbox/box-open-elements-svelte";
   import type { Select as SelectElement } from "@unofficialbox/box-open-elements/select";
-  import { ExplorerSelectionController } from "@unofficialbox/box-open-elements/patterns/content-explorer/selection";
+  import { ExplorerSelectionController } from "@unofficialbox/box-open-elements-svelte";
 
   let name = "Apollo";
   let status = "draft";

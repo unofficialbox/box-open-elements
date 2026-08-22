@@ -14,7 +14,7 @@ import {
   applyDesignTokens,
   registerBoxDefaultDesignSystem,
 } from "@unofficialbox/box-open-elements/foundations/tokens";
-import { ExplorerSelectionController } from "@unofficialbox/box-open-elements/patterns/content-explorer/selection";
+import { ExplorerSelectionController } from "@unofficialbox/box-open-elements-angular";
 import "../../shared.css";
 
 registerBoxDefaultDesignSystem({ setActive: true });
