@@ -10,6 +10,29 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Signature ceremony status: `box-signature-ceremony`, party-oriented signing
+  progress — who signs, in what order, and who can act right now.
+
+  `resolveCeremony` is pure, so the rules that decide who may sign are
+  testable on their own and a host can drive its own surface, or its reminder
+  emails, from the same function rather than reimplementing the ordering and
+  drifting from what the UI shows.
+
+  Three rules in priority order. **A decline stops the ceremony** — nobody
+  who has not already signed is shown as able to act, not even in parallel
+  mode where they otherwise all could. That is the one worth being strict
+  about: a declined document is dead until the host revives it, and inviting
+  someone to sign against it wastes their time and can produce a signature on
+  a document the counterparty has already refused. **Sequential grants
+  exactly one turn**, to the first unsigned party, so a later party can never
+  appear actionable before an earlier one has signed. **Parallel grants every
+  turn at once.**
+
+  Read-only by design: signing happens in the signature provider's own flow,
+  so the component states position rather than offering a button that would
+  have to duplicate that flow's authority. Every state is stated in words as
+  well as colour.
+
 - Docs-site, workshop, and gallery coverage for `box-compare-view`
   (137 extracted workshop stories), with two slotted contract sections of
   **different lengths** so the page demonstrates why the default is

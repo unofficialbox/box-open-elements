@@ -147,8 +147,12 @@ static-shell depth. One work-item model, two projections:
   table. `mapScrollPosition` is pure, so the mapping is testable without a
   layout engine; proportional by default (unequal document lengths stay
   aligned), absolute for two renderings of the same document.
-- **Signature ceremony status** — party-oriented signing progress
-  (who signs, in what order, who is pending).
+- **Signature ceremony status** — *built*: `box-signature-ceremony`,
+  party-oriented signing progress over a pure `resolveCeremony`. Sequential
+  mode grants exactly one turn and parallel opens them all, but the rule
+  that matters is that a decline stops the ceremony outright: nobody behind
+  a refusal is shown as able to act, in either mode. Read-only — signing
+  belongs to the provider's flow.
 - **Virtualized table rows** — audit logs at production scale; the depth
   gap behind several sections.
 - **Keyboard shortcuts overlay** — *built*: `box-shortcuts-overlay`, over
