@@ -119,6 +119,8 @@ export * from "./components/feedback/alert.js";
 export * from "./components/feedback/badge.js";
 export * from "./components/feedback/badgeable.js";
 export * from "./components/feedback/chip.js";
+export * from "./components/feedback/due-badge.js";
+export * from "./components/feedback/due-types.js";
 export * from "./components/feedback/empty-state.js";
 export * from "./components/feedback/error-mask.js";
 export * from "./components/feedback/help-text.js";
@@ -128,6 +130,7 @@ export * from "./components/feedback/progress-ring.js";
 export * from "./components/feedback/progress-steps.js";
 export * from "./components/feedback/skeleton.js";
 export * from "./components/feedback/spinner.js";
+export * from "./components/feedback/stage-path.js";
 export * from "./components/feedback/toast.js";
 
 // Components: files

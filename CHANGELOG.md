@@ -10,6 +10,33 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Two supporting micro-components from build-order slot 6.
+
+  **`box-stage-path`** — the horizontal chevron lifecycle tracker every
+  record header wants (Draft → In Review → Approved → Executed). Distinct
+  from `box-progress-steps`, which is a vertical setup rail for a task the
+  reader is working through: this states where a *record* sits, is read-only,
+  and lives in a header. Rendered as an ordered list with the current stage
+  marked `aria-current="step"` and completed stages carrying a ✓, so sequence
+  and position both survive without the chevron geometry — which is
+  decoration, and collapses on narrow viewports. An unknown `current` id
+  leaves every stage upcoming rather than silently marking the path done.
+
+  **`box-due-badge`** — SLA/aging urgency, stating the answer to the question
+  a due badge exists for: *how late is this?* "Overdue by 3 days" rather than
+  a bare date. The label always carries the urgency in words, so colour is
+  never the only signal, and a supplied `label` overrides the wording but not
+  the derived tone — an override must not make a breach look calm. Day counts
+  are measured between UTC day boundaries, so "tomorrow" is 1 whether it is
+  23 hours away or 25.
+
+  The due-bucket engine moved to `components/feedback/due-types` and is
+  re-exported from `patterns/work-queue/types`, so that public import path is
+  unchanged. Patterns compose components, not the reverse. The work-queue
+  keeps rendering its due column inline — it already had the affordance, and
+  the duplication worth removing was the *bucketing logic*, not five lines of
+  CSS; the badge exists for the surfaces that have no such column.
+
 - Docs site + workshop pages for the three elements that landed since the
   last batch: **Command Palette**, **Notification Bell**, and **Notification
   Inbox**. Registry entries, live examples, Storybook stories (132 extracted
