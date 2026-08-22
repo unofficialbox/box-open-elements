@@ -10,6 +10,27 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Synchronized-scroll comparison shell: `box-compare-view`, scroll-locked
+  side-by-side panes for doc-vs-doc review — the cases the diff table cannot
+  serve, where the things being compared are rendered documents rather than
+  lines of text.
+
+  `mapScrollPosition` is pure, so the mapping is testable without a layout
+  engine and a host can reuse it to drive its own panes. Proportional by
+  default, mapping by fraction of the scrollable range, because that is the
+  only sane behaviour when the two documents are different lengths — the
+  shorter one would otherwise run out long before the longer one finished.
+  Absolute mode keeps the same pixel offset, for two renderings of the *same*
+  document where proportional mapping would slowly drift them apart.
+
+  The subtle part is the **feedback loop**. Scrolling the left pane sets the
+  right pane's `scrollTop`, which fires the right pane's own scroll event,
+  which would scroll the left pane back. Each programmatic scroll marks the
+  pane it is about to move so that pane's next scroll event is swallowed —
+  and the mark is dropped immediately when the assignment does not actually
+  move anything (already there, or clamped at an end), since no event will
+  arrive and a stale mark would swallow the user's next real scroll instead.
+
 - Docs-site, workshop, and gallery coverage for `box-wizard-summary`
   (136 extracted workshop stories). The demo's field list is deliberately
   declared out of step order, so the page demonstrates the section ordering
