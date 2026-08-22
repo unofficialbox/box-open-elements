@@ -59,7 +59,10 @@ export const isProgressStepRecord = (value: unknown): value is ProgressStepItem 
     step.value.length > 0 &&
     typeof step.label === "string" &&
     step.label.length > 0 &&
-    (step.status === undefined || STEP_STATUSES.has(step.status as ProgressStepStatus))
+    (step.status === undefined || STEP_STATUSES.has(step.status as ProgressStepStatus)) &&
+    // Non-string text fields would reach escapeHtml and throw mid-render.
+    (step.description === undefined || typeof step.description === "string") &&
+    (step.statusNote === undefined || typeof step.statusNote === "string")
   );
 };
 

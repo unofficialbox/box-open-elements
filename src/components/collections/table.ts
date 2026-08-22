@@ -64,8 +64,19 @@ export interface TableRowToggledDetail {
 
 const CELL_TONES = new Set<TableCellTone>(["neutral", "brand", "success", "warning", "error"]);
 
+const CELL_ALIGNS = new Set(["start", "end", "center"]);
+
+/** `align` is author input from a JSON attribute like everything else — an
+ * unvalidated value would close the attribute and inject markup. */
+const alignAttr = (align: string | undefined): string =>
+  align && CELL_ALIGNS.has(align) ? ` data-align="${align}"` : "";
+
 const isCellDescriptor = (value: TableCellValue | undefined): value is TableCellDescriptor =>
   typeof value === "object" && value !== null && typeof value.text === "string";
+
+/** Escape a value for use inside a double-quoted attribute selector. */
+const cssAttrValue = (value: string): string =>
+  value.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
 
 const escapeHtml = (value: string): string =>
   value
@@ -519,6 +530,11 @@ export class Table extends BaseElement {
       }),
     );
     this.update();
+    // update() rewrote the body, destroying the button that was activated;
+    // put focus on its replacement so a keyboard user is not dropped.
+    this.bodyEl
+      .querySelector<HTMLButtonElement>(`[part="expander"][data-row-id="${cssAttrValue(rowId)}"]`)
+      ?.focus();
   }
 
   private onBodyKeydown(event: KeyboardEvent): void {
@@ -641,7 +657,8 @@ export class Table extends BaseElement {
     const selectable = this.selectionMode !== "none";
     const sortKey = this.getAttribute("sort-key");
     const sortDir = this.getAttribute("sort-direction");
-    const expandable = rows.some(row => row.detail !== undefined);
+    // A non-string detail is malformed input, not a crash: it gets no expander.
+    const expandable = rows.some(row => typeof row.detail === "string");
     const columnCount = columns.length + (expandable ? 1 : 0);
 
     const tableEl = this.shadowRoot?.querySelector('[part="table"]');
@@ -657,7 +674,7 @@ export class Table extends BaseElement {
       (expandable ? `<th scope="col" aria-label="Row details"></th>` : "") +
       columns
         .map(column => {
-          const align = column.align ? ` data-align="${column.align}"` : "";
+          const align = alignAttr(column.align);
           if (column.sortable) {
             const sorted = sortKey === column.key;
             const sort = sorted
@@ -699,14 +716,14 @@ export class Table extends BaseElement {
         const expanded = this.expandedIds.has(row.id);
         const expanderCell = expandable
           ? `<td${cellRole} part="expander-cell">${
-              row.detail !== undefined
+              typeof row.detail === "string"
                 ? `<button type="button" part="expander" data-row-id="${escapeHtml(row.id)}" aria-expanded="${String(expanded)}" aria-label="${expanded ? "Hide" : "Show"} details for row ${escapeHtml(row.id)}"></button>`
                 : ""
             }</td>`
           : "";
         const cells = columns
           .map(column => {
-            const align = column.align ? ` data-align="${column.align}"` : "";
+            const align = alignAttr(column.align);
             const value = this.cellValue(row, column, columns.indexOf(column));
             return `<td${align}${cellRole} data-label="${escapeHtml(column.label)}">${this.cellMarkup(value)}</td>`;
           })
@@ -715,7 +732,7 @@ export class Table extends BaseElement {
         // The detail row renders only while expanded, keeping the roving
         // tabindex and shift-range math on visible [part="row"] rows only.
         const detailRow =
-          row.detail !== undefined && expanded
+          typeof row.detail === "string" && expanded
             ? `<tr part="detail-row" role="row" data-for="${escapeHtml(row.id)}"><td${cellRole} colspan="${String(columnCount)}">${escapeHtml(row.detail)}<slot name="detail-${escapeHtml(row.id)}"></slot></td></tr>`
             : "";
         return rowMarkup + detailRow;

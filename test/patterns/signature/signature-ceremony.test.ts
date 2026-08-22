@@ -281,3 +281,20 @@ describe("box-signature-ceremony", () => {
     expect(q(element, '[part="empty"]')).not.toBeNull();
   });
 });
+
+describe("SignatureCeremony cache clearing (same class as the PR #188 run-trace fix)", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("clears the cached roster when signatories is set to an empty array", () => {
+    const element = document.createElement("box-signature-ceremony") as SignatureCeremony;
+    element.signatories = [{ id: "m", name: "Morgan Lee" }];
+    document.body.append(element);
+    expect(element.signatories.length).toBe(1);
+
+    element.signatories = [];
+    expect(element.signatories).toEqual([]);
+    expect(element.shadowRoot?.querySelector('[part="empty"]')).not.toBeNull();
+  });
+});

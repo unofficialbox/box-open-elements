@@ -82,6 +82,10 @@ export const isRunStepRecord = (value: unknown): value is RunStep => {
   if (step.status !== undefined && !STEP_STATUSES.has(step.status as RunStepStatus)) {
     return false;
   }
+  // A non-string description would reach escapeHtml and throw mid-render.
+  if (step.description !== undefined && typeof step.description !== "string") {
+    return false;
+  }
   if (step.children !== undefined) {
     if (!Array.isArray(step.children)) {
       return false;

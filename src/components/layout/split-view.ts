@@ -204,6 +204,12 @@ export class SplitView extends BaseElement {
       if (keyboardEvent.key !== "Escape" || !this.detailOpen || this.collapse !== "auto") {
         return;
       }
+      // The slide-over only exists under the 640px container query; on a wide
+      // container the secondary pane is an ordinary pane and Escape means
+      // nothing. Mirror the CSS condition rather than emitting a phantom ask.
+      if (this.offsetWidth > 640) {
+        return;
+      }
       keyboardEvent.preventDefault();
       this.dispatchEvent(
         new CustomEvent<SplitViewDetailDismissedDetail>("detail-dismissed", {

@@ -239,3 +239,31 @@ describe("Drawer slots, sizes, busy, and cancelable dismiss (dispatch intake rou
     ).toBe(false);
   });
 });
+
+describe("Drawer busy inert (PR #188 review)", () => {
+  beforeEach(() => {
+    Drawer.register();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("makes the body inert while busy — the veil blocks pointer, inert blocks keyboard", () => {
+    const element = document.createElement("box-drawer") as Drawer;
+    element.heading = "Saving";
+    document.body.append(element);
+    element.setAttribute("open", "");
+    element.setAttribute("busy", "");
+
+    const body = element.shadowRoot?.querySelector('[part="body"]');
+    expect(body?.hasAttribute("inert")).toBe(true);
+    // Close lives in the header, outside the inert region.
+    expect(
+      element.shadowRoot?.querySelector('[part="close"]')?.closest('[part="body"]'),
+    ).toBeNull();
+
+    element.removeAttribute("busy");
+    expect(body?.hasAttribute("inert")).toBe(false);
+  });
+});

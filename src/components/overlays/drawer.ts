@@ -468,6 +468,10 @@ export class Drawer extends BaseElement {
     if (busyEl) {
       busyEl.hidden = !this.busy;
     }
+    // The veil blocks the pointer; inert blocks the keyboard. Both or the
+    // busy state is a suggestion. Close (header) and footer actions stay out.
+    const bodyEl = this.hostEl.querySelector('[part="body"]') as HTMLElement | null;
+    bodyEl?.toggleAttribute("inert", this.busy);
     this.syncFooter();
     if (this.titleEl) {
       this.titleEl.textContent = this.heading;

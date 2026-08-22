@@ -264,6 +264,10 @@ export class SignatureCeremony extends BaseElement {
       this.setAttribute("signatories", JSON.stringify(value));
       return;
     }
+    // Clear the cache too: the no-attribute branch of the getter serves from
+    // it, and a stale cache would make an emptied roster un-clearable.
+    this.signatoriesCache = [];
+    this.signatoriesRaw = null;
     this.removeAttribute("signatories");
   }
 

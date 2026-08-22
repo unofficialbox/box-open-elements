@@ -171,3 +171,38 @@ describe("SplitView master-detail collapse (dispatch intake round 6)", () => {
     expect(dismissed).not.toHaveBeenCalled();
   });
 });
+
+describe("SplitView Escape gating on actual width (PR #188 review)", () => {
+  beforeEach(() => {
+    SplitView.register();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  const createOpen = (width: number): SplitView => {
+    const element = document.createElement("box-split-view") as SplitView;
+    element.setAttribute("collapse", "auto");
+    element.detailOpen = true;
+    Object.defineProperty(element, "offsetWidth", { value: width, configurable: true });
+    document.body.append(element);
+    return element;
+  };
+
+  it("emits detail-dismissed only while the container is actually narrow", () => {
+    // Wide: the slide-over does not exist, so Escape must mean nothing.
+    const wide = createOpen(1200);
+    const wideDismissed = vi.fn();
+    wide.addEventListener("detail-dismissed", wideDismissed);
+    wide.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(wideDismissed).not.toHaveBeenCalled();
+
+    // Narrow: the slide-over is visible; Escape asks the host to close it.
+    const narrow = createOpen(480);
+    const narrowDismissed = vi.fn();
+    narrow.addEventListener("detail-dismissed", narrowDismissed);
+    narrow.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(narrowDismissed).toHaveBeenCalledTimes(1);
+  });
+});

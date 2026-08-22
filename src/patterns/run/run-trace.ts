@@ -11,6 +11,10 @@ import { boePanel } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-run-trace";
 
+/** Escape a value for use inside a double-quoted attribute selector. */
+const cssAttrValue = (value: string): string =>
+  value.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
+
 const escapeHtml = (value: string): string =>
   value
     .replaceAll("&", "&amp;")
@@ -327,6 +331,10 @@ export class RunTrace extends BaseElement {
       this.setAttribute("steps", JSON.stringify(value));
       return;
     }
+    // Clear the cache too: the no-attribute branch of the getter serves from
+    // it, and a stale cache would make an emptied run un-clearable.
+    this.stepsCache = [];
+    this.stepsRaw = null;
     this.removeAttribute("steps");
   }
 
@@ -349,6 +357,13 @@ export class RunTrace extends BaseElement {
   }
 
   protected setupListeners(): void {
+    // Slot-only detail can be appended after render; watch the light DOM so
+    // the step's toggle appears without the host having to touch `steps`.
+    // Shallow, and update() never mutates the light DOM, so this cannot loop.
+    new MutationObserver(() => {
+      this.update();
+    }).observe(this, { childList: true });
+
     this.hostEl.addEventListener("click", event => {
       const toggle = (event.target as HTMLElement).closest('[part="toggle"]') as HTMLElement | null;
       if (!toggle || !this.hostEl.contains(toggle)) {
@@ -410,7 +425,10 @@ export class RunTrace extends BaseElement {
       .map(entry => {
         const { step, status, position } = entry;
         const duration = formatRunDuration(step.startedAt, step.finishedAt);
-        const hasDetail = Boolean(step.description) || Boolean(step.children?.length);
+        // Slot-only detail counts: a host projecting logs for a step with no
+        // JSON description still needs the toggle that reveals them.
+        const hasSlotted = this.querySelector(`[slot="detail-${cssAttrValue(step.id)}"]`) !== null;
+        const hasDetail = Boolean(step.description) || Boolean(step.children?.length) || hasSlotted;
         const expanded = this.expandedIds.has(step.id);
         // The detail slot renders even without JSON detail so a host can
         // project rich content (logs, links) for any step by id.

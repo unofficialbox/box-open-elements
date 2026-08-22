@@ -269,3 +269,62 @@ describe("Table cell descriptors, expansion, and states (dispatch intake round 5
     expect(styles).toContain("content: attr(data-label)");
   });
 });
+
+describe("Table review fixes (PR #188)", () => {
+  beforeEach(() => {
+    Table.register();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  const COLS = [
+    { key: "name", label: "Name" },
+    { key: "status", label: "Status" },
+  ];
+
+  it("rejects a forged align value instead of interpolating it into markup", () => {
+    const el = document.createElement("box-table") as Table;
+    el.setAttribute(
+      "columns",
+      JSON.stringify([{ key: "name", label: "Name", align: `end"><img src=x onerror=alert(1)>` }]),
+    );
+    el.rows = [{ id: "1", cells: { name: "A" } }] as never;
+    document.body.append(el);
+
+    expect(el.shadowRoot?.querySelector("img")).toBeNull();
+    expect(el.shadowRoot?.querySelector("th")?.hasAttribute("data-align")).toBe(false);
+    // A legitimate value still lands.
+    el.setAttribute("columns", JSON.stringify([{ key: "name", label: "Name", align: "end" }]));
+    expect(el.shadowRoot?.querySelector("th")?.getAttribute("data-align")).toBe("end");
+  });
+
+  it("restores focus to the re-rendered expander after a toggle", () => {
+    const el = document.createElement("box-table") as Table;
+    el.columns = COLS as never;
+    el.rows = [{ id: "r-1", cells: { name: "A", status: "ok" }, detail: "More." }] as never;
+    document.body.append(el);
+
+    const expander = el.shadowRoot?.querySelector('[part="expander"]') as HTMLButtonElement;
+    expander.focus();
+    expander.click();
+
+    const replacement = el.shadowRoot?.querySelector('[part="expander"]') as HTMLButtonElement;
+    expect(replacement).not.toBe(expander); // the body was rewritten
+    expect(el.shadowRoot?.activeElement).toBe(replacement);
+  });
+
+  it("treats a non-string detail as malformed input, not a crash", () => {
+    const el = document.createElement("box-table") as Table;
+    el.columns = COLS as never;
+    el.setAttribute(
+      "rows",
+      JSON.stringify([{ id: "1", cells: { name: "A", status: "ok" }, detail: 7 }]),
+    );
+    document.body.append(el);
+
+    expect(el.shadowRoot?.querySelector('[part="expander"]')).toBeNull();
+    expect(el.shadowRoot?.querySelectorAll('[part="row"]').length).toBe(1);
+  });
+});

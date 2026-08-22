@@ -139,6 +139,9 @@ describe("ProgressSteps", () => {
     expect(isProgressStepRecord({ label: "A", value: "a", status: "blocked" })).toBe(true);
     expect(isProgressStepRecord({ label: "A", value: "a", status: "bogus" })).toBe(false);
     expect(isProgressStepRecord({ label: "A" })).toBe(false);
+    // Non-string text fields would reach escapeHtml and throw mid-render.
+    expect(isProgressStepRecord({ label: "A", value: "a", description: 1 })).toBe(false);
+    expect(isProgressStepRecord({ label: "A", value: "a", statusNote: {} })).toBe(false);
 
     const element = document.createElement("box-progress-steps") as ProgressSteps;
     element.setAttribute("items", JSON.stringify([{ label: "A", value: "a", status: "bogus" }]));

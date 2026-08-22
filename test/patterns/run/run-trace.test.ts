@@ -166,3 +166,44 @@ describe("RunTrace", () => {
     expect(element.shadowRoot?.querySelector("script")).toBeNull();
   });
 });
+
+describe("RunTrace review fixes (PR #188)", () => {
+  beforeEach(() => {
+    RunTrace.register();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("clears the cached steps when steps is set to an empty array", () => {
+    const element = create();
+    expect(element.steps.length).toBe(3);
+
+    element.steps = [];
+    expect(element.steps).toEqual([]);
+    expect(element.shadowRoot?.querySelector('[part="empty"]')).not.toBeNull();
+  });
+
+  it("gives slot-only detail a toggle", async () => {
+    const element = create();
+    const log = document.createElement("pre");
+    log.slot = "detail-deploy"; // the deploy step has no description or children
+    log.textContent = "$ deploy --dry-run";
+    element.append(log);
+    // The light-DOM observer re-renders asynchronously.
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    const toggle = element.shadowRoot?.querySelector(
+      '[part="toggle"][data-step-id="deploy"]',
+    ) as HTMLElement | null;
+    expect(toggle).not.toBeNull();
+    toggle?.click();
+    const detail = element.shadowRoot?.querySelector(
+      '[part="detail"][data-step-id="deploy"]',
+    ) as HTMLElement | null;
+    expect(detail?.hidden).toBe(false);
+    const slot = detail?.querySelector('slot[name="detail-deploy"]') as HTMLSlotElement | null;
+    expect(slot?.assignedElements()).toEqual([log]);
+  });
+});

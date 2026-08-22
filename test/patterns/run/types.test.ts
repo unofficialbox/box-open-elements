@@ -133,6 +133,8 @@ describe("isRunStepRecord", () => {
     ).toBe(true);
     expect(isRunStepRecord({ id: "a" })).toBe(false);
     expect(isRunStepRecord({ id: "a", title: "Fetch", status: "bogus" })).toBe(false);
+    // A non-string description would reach escapeHtml and throw mid-render.
+    expect(isRunStepRecord({ id: "a", title: "Fetch", description: 1 })).toBe(false);
     expect(isRunStepRecord({ id: "a", title: "Fetch", children: [{ id: "c1" }] })).toBe(false);
     expect(
       isRunStepRecord({ id: "a", title: "Fetch", children: [{ id: "c1", label: "x", status: "nah" }] }),
