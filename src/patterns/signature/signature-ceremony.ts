@@ -297,12 +297,18 @@ export class SignatureCeremony extends BaseElement {
         // rendering "Signed " with nothing after it.
         const signedDay = signatory.signedAt ? signedOnDay(signatory.signedAt) : "";
         const declinedDay = signatory.declinedAt ? signedOnDay(signatory.declinedAt) : "";
+        // "Not yet their turn" would be a lie once someone has refused: their
+        // turn is not coming. A stopped ceremony says so.
+        const waitingLabel =
+          resolution.status === "declined" ? "Ceremony stopped" : STATE_LABEL.waiting!;
         const detail =
           state === "signed" && signedDay
             ? `Signed ${signedDay}`
             : state === "declined" && declinedDay
               ? `Declined ${declinedDay}`
-              : STATE_LABEL[state]!;
+              : state === "waiting"
+                ? waitingLabel
+                : STATE_LABEL[state]!;
         const reason =
           state === "declined" && signatory.declineReason
             ? `<span part="reason">${escapeHtml(signatory.declineReason)}</span>`

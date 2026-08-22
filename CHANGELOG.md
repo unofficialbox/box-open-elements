@@ -10,6 +10,18 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Docs-site, workshop, and gallery coverage for `box-signature-ceremony`
+  (138 extracted workshop stories), under a new Signature category. Three
+  variants — sequential mid-ceremony, parallel, and **declined** — because
+  the declined case is the rule the component exists to enforce, and a docs
+  page that only showed the happy path would leave it invisible.
+
+- Fixed `box-signature-ceremony` telling a party their turn had not come yet
+  when the ceremony had actually stopped. After a decline, everyone behind it
+  read "Not yet their turn", which implies the document is still moving
+  toward them; it now reads "Ceremony stopped". Building the declined variant
+  is what surfaced it — the state was right, the wording was not.
+
 - Signature ceremony status: `box-signature-ceremony`, party-oriented signing
   progress — who signs, in what order, and who can act right now.
 

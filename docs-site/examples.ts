@@ -37,6 +37,8 @@ import {
   clmIntakeValues,
   clmLineage,
   clmProvenanceChain,
+  clmSignatories,
+  clmDeclinedSignatories,
   clmStages,
   clmTeam,
   clmTimelineEvents,
@@ -1011,6 +1013,39 @@ export const examples: Record<string, ComponentExample> = {
       set(root, "box-provenance-strip", { nodes: clmProvenanceChain });
     },
     note: "The high-frequency lineage sibling for record headers: linear ancestry oldest → newest, newest marked current, `node-selected` on activation.",
+  },
+  "signature-ceremony": {
+    html: `<box-signature-ceremony heading="Signatures — MSA_Acme v4"></box-signature-ceremony>`,
+    setup: root => {
+      set(root, "box-signature-ceremony", { signatories: clmSignatories });
+    },
+    note: "Sequential by default: **exactly one** party is awaiting signature, and everyone behind them reads *Not yet their turn* rather than looking actionable. Switch `mode` to `parallel` and every unsigned party opens at once. Every state is stated in words as well as colour, and `resolveCeremony` is pure — a host can drive its reminder emails from the same function that renders this card, so the two cannot disagree about whose turn it is.",
+    variants: [
+      {
+        name: "Sequential, mid-ceremony",
+        html: `<box-signature-ceremony heading="Signatures — MSA_Acme v4"></box-signature-ceremony>`,
+        setup: root => {
+          set(root, "box-signature-ceremony", { signatories: clmSignatories });
+        },
+        note: "One signed, one awaiting, two waiting. The counterparty cannot be invited before General Counsel has signed.",
+      },
+      {
+        name: "Parallel",
+        html: `<box-signature-ceremony heading="Signatures — MSA_Acme v4" mode="parallel"></box-signature-ceremony>`,
+        setup: root => {
+          set(root, "box-signature-ceremony", { signatories: clmSignatories });
+        },
+        note: "The same roster sent to everyone at once: all three unsigned parties are awaiting.",
+      },
+      {
+        name: "Declined",
+        html: `<box-signature-ceremony heading="Signatures — MSA_Acme v4"></box-signature-ceremony>`,
+        setup: root => {
+          set(root, "box-signature-ceremony", { signatories: clmDeclinedSignatories });
+        },
+        note: "The rule the component exists for. The counterparty refused, so the **witness behind them is not invited to sign** — a declined document is dead until the host revives it, and a signature collected against it would be worse than useless. Note this holds in parallel mode too, where everyone otherwise could act.",
+      },
+    ],
   },
   "agent-chat": {
     html: `<box-agent-chat

@@ -214,6 +214,19 @@ describe("box-signature-ceremony", () => {
     expect(element.resolution.awaiting).toEqual([]);
   });
 
+  it("says the ceremony stopped rather than 'not yet their turn' after a decline", async () => {
+    const element = await mount(el => {
+      el.signatories = parties.map(party =>
+        party.id === "avery" ? { ...party, declinedAt: "2026-08-11T09:00:00.000Z" } : party,
+      );
+    });
+
+    // Their turn is not coming, so saying it has not arrived yet would mislead.
+    const details = all(element, '[part="state"]').map(n => n.textContent?.trim());
+    expect(details[2]).toBe("Ceremony stopped");
+    expect(details).not.toContain("Not yet their turn");
+  });
+
   it("opens every turn in parallel mode", async () => {
     const element = await mount(el => (el.mode = "parallel"));
 
