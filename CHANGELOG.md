@@ -10,6 +10,21 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Keyboard shortcuts overlay: `box-shortcuts-overlay`, the pair to
+  `box-command-palette` that makes keyboard-first real.
+  It reads the **same** `CommandDescriptor[]` the palette does and lists only
+  the commands that declare a `shortcut`. One catalogue driving both surfaces
+  is the point: a shortcut cannot end up documented but unreachable, or
+  reachable but undocumented, because there is only one place to add it.
+  `groupShortcutCommands` and `splitShortcutKeys` are pure, so a host can
+  render its own sheet from the same data. Keys render as `<kbd>` elements
+  with the full combination as the accessible name and the `+` separators
+  hidden from assistive tech.
+  The `?` hotkey never fires while someone is typing — it is an ordinary
+  character in every text field on the page — and never with a modifier held.
+  Modal with focus trap and restore; Escape, the close button, and a backdrop
+  press all dismiss.
+
 - Two supporting micro-components from build-order slot 6.
 
   **`box-stage-path`** — the horizontal chevron lifecycle tracker every

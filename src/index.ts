@@ -189,6 +189,7 @@ export * from "./components/layout/split-view.js";
 export * from "./components/overlays/command-palette.js";
 export * from "./components/overlays/command-types.js";
 export * from "./components/overlays/context-menu.js";
+export * from "./components/overlays/shortcuts-overlay.js";
 export * from "./components/overlays/dialog.js";
 export * from "./components/overlays/drawer.js";
 export * from "./components/overlays/guide-tooltip.js";
