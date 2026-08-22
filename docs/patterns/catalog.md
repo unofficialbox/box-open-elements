@@ -69,6 +69,10 @@ src/patterns/
     types.ts          # built — message/citation/proposal model + streaming transport contract
     controller.ts     # built — headless streaming session (deltas, stop, HITL decisions)
     agent-chat.ts     # built — box-agent-chat thread, citation chips, HITL action cards
+  audit/
+    types.ts          # built — aggregation engine over the timeline event contract
+    audit-log.ts      # built — box-audit-log grouped/faceted/exportable audit surface
+    activity-density.ts # built — box-activity-density calendar heatmap
   preview/          # built — provider adapter, content-preview adapter, annotations, box-preview-element
   search/             # built — filter-bar, saved-view-picker, search-results-header
   item/             # built — item-form, item-details-panel, bulk-action-bar, preview-header
@@ -203,6 +207,18 @@ shaped as a workflow pattern rather than a widget:
 - `controller` (`AgentChatController`: folds stream events into one growing agent message, `stop()` aborts a generation while keeping the partial reply — a stop is not a failure, transport failures mark the reply errored and emit `sendFailed`, and HITL decisions route through the `resolveAction` capability with a guard that throws when absent) — **built**
 - composed surface: `box-agent-chat` (thread with role bubbles, per-message avatars and a streaming caret; **citation chips** emitting `citation-selected` with the timeline's unsafe-href downgrade; **HITL action cards** rendering Approve/Reject only when the transport can resolve them, with Modify surfaced as `proposal-modify-requested` intent for the host's own editor; Enter-to-send composer with a Stop affordance) — **built**
 - The composer lives outside the patched thread region, so a streaming reply never disturbs what the reader is typing, and the thread only auto-scrolls when they are already at the bottom. Attachment composition with `box-content-picker` is a tracked depth limitation.
+
+### Audit (workflow)
+
+The aggregation, faceting, drill-down, and export layer over the timeline
+event contract (opportunity 3 of `plans/component-opportunities.md`).
+`AuditEvent` *is* `TimelineEvent`: one source feeds the flat feed and the
+audit view without a second model:
+
+- `types` (pure, DOM-free engine: `groupAuditEvents` — day sections newest-first with a trailing undated section, actor/action sections by count with label tie-breaks so order never depends on input order; `filterAuditEvents` — a date-only bound covers the whole UTC day, an empty facet means unselected, and a date bound excludes undated events rather than implying they fall in the window; `summarizeAuditFacets` — option counts derived from the *unfiltered* set so choosing one facet can never empty another's list; `toAuditCsv` — RFC 4180 with spreadsheet-formula values neutralized; `computeActivityDensity` — whole-week calendar window with levels scaled against the busiest day) — **built**
+- composed surface: `box-audit-log` (collapsible sections with counts and actor tallies, region wired to its toggle; a stable toolbar — group-by, actor/action facets, date range — built once and patched in place, so a re-render below can never close an open dropdown or drop a half-typed date; correlation-id drill-down to one workflow run with a clear affordance; `export-requested` carrying CSV of exactly what the filters left on screen; collapsing is a state flip rather than a rebuild; unsafe evidence hrefs downgrade to buttons) — **built**
+- composed surface: `box-activity-density` (managerial throughput heatmap: days with activity are labelled buttons in a roving-tabindex grid — arrows move by day and by week, Home/End jump to the window's ends — each emitting `day-selected` with that day's events; quiet days are inert cells, so tab stops stay proportional to real activity) — **built**
+- Day keys, day labels, and row timestamps are all resolved in UTC, so a viewer's timezone can never split one audit day across two sections. Aggregation is client-side: server-side paging and row virtualization for production-scale logs are tracked depth limitations.
 
 ### Preview (workflow + compositions)
 

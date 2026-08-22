@@ -115,14 +115,20 @@ describe("box-timeline", () => {
         {
           id: "x",
           action: "attached evidence",
-          // eslint-disable-next-line no-script-url
-          evidence: [{ id: "bad", label: "Sneaky", href: "javascript:alert(1)" }],
+          evidence: [
+            // eslint-disable-next-line no-script-url
+            { id: "bad", label: "Sneaky", href: "javascript:alert(1)" },
+            // A protocol-relative href resolves to an external origin, so it
+            // is no safer than an absolute one to an attacker's host.
+            { id: "proto", label: "Protocol relative", href: "//evil.example/x" },
+            { id: "slash", label: "Backslash", href: "/\\evil.example/x" },
+          ],
         },
       ];
     });
 
     expect(element.shadowRoot?.querySelector('a[part="evidence-link"]')).toBeNull();
-    expect(element.shadowRoot?.querySelector('button[part="evidence-link"]')).not.toBeNull();
+    expect(element.shadowRoot?.querySelectorAll('button[part="evidence-link"]')).toHaveLength(3);
   });
 
   it("shows the load-more affordance only when has-more is set and emits load-more", async () => {

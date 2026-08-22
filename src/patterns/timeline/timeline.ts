@@ -1,6 +1,7 @@
 import { isTimelineEventRecord, resolveTimelineTone } from "./types.js";
 import type { TimelineEntrySubmittedDetail, TimelineEvent } from "./types.js";
 import { formatItemDate } from "../content-explorer/adapters/item-summary.js";
+import { isSafeHref } from "../internal/safe-href.js";
 import { BaseElement } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
@@ -14,9 +15,6 @@ const escapeHtml = (value: string): string =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
-
-const isSafeHref = (value: string): boolean =>
-  /^https?:\/\//.test(value) || value.startsWith("/") || value.startsWith("#");
 
 const toneColor = (tone: string): string => {
   switch (tone) {

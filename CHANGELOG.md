@@ -10,6 +10,42 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Audit (patterns round 4i — opportunity 3 of the component roadmap): the
+  aggregation, faceting, and export layer over the `box-timeline` event
+  contract. `AuditEvent` *is* `TimelineEvent`, so one source feeds the flat
+  feed and the audit view without a second model. The engine is pure and
+  DOM-free: `groupAuditEvents` builds collapsible day/actor/action sections
+  (days newest-first with a trailing undated section; actor and action
+  sections by count with label tie-breaks, so order never depends on input
+  order), `filterAuditEvents` applies the facets — a date-only bound covers
+  the whole UTC day, and a date bound excludes undated events rather than
+  implying they fall inside the window — `summarizeAuditFacets` derives
+  option counts from the unfiltered set so choosing one facet can never
+  empty another's list, `toAuditCsv` renders RFC 4180 output with
+  spreadsheet-formula values neutralized, and `computeActivityDensity`
+  builds the calendar-heatmap window.
+  `box-audit-log` renders the sections with counts and actor tallies, a
+  stable toolbar (group-by, actor/action facets, date range) that survives
+  every content rebuild, correlation-id drill-down to one workflow run, and
+  an Export CSV button that exports exactly what the filters left on screen.
+  `box-activity-density` is the managerial heatmap: days with activity are
+  labelled buttons in a roving-tabindex grid (arrows move by day and week),
+  each emitting `day-selected` with that day's events. Day keys, day labels,
+  and row timestamps are all UTC, so a viewer's timezone can never split one
+  audit day across two sections. Server-side paging and row virtualization
+  for production-scale logs are tracked depth limitations.
+
+- **Security fix — protocol-relative evidence/citation hrefs.** The
+  unsafe-href downgrade that guards evidence and citation chips accepted any
+  value starting with `/`, which includes the protocol-relative form
+  `//evil.example/x` that a browser resolves to an *external* origin (and
+  `/\evil.example`, which some parsers normalize to it). An author-supplied
+  record could therefore still render as an anchor to an attacker's host.
+  The path branch now requires a single leading slash. The check had been
+  copied into three patterns and drifted; it now lives in one internal
+  module that `box-timeline`, `box-agent-chat`, and `box-audit-log` all
+  import, with regression tests in each.
+
 - Agent Chat (patterns round 4h — opportunity 1 of the component roadmap,
   the largest and most strategic gap): new `agent-chat` workflow pattern,
   shaped as a workflow rather than a widget. `AgentChatController` runs a
@@ -29,7 +65,6 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
   own editor. The composer sits outside the patched thread region so a
   streaming reply never disturbs what the reader is typing, and the thread
   only follows the stream when they are already scrolled to the bottom.
-
 - Build Along: Intake Workspace — the composition lesson. Five steps
   assemble a contract-intake workspace from three independent patterns:
   the form wizard captures and validates the request, its `submitted`
