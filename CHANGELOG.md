@@ -10,6 +10,95 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+No unreleased changes.
+
+---
+
+## 0.6.0 — 2026-08-22
+
+Feature release: the CLM horizontal-coverage and component-opportunity
+programs (work queue, versions, lineage, agent chat, audit, command palette,
+notifications, form wizard, timeline, diff, compare view, signature ceremony,
+stage path, due badge, shortcuts overlay) plus the box-dispatch intake
+(`box-run-trace`, per-step progress statuses, table descriptors/expansion/
+states, drawer and master-detail upgrades, form parity, and the generated
+global tag map). Contains
+[#146](https://github.com/unofficialbox/box-open-elements/pull/146) through
+[#188](https://github.com/unofficialbox/box-open-elements/pull/188), with
+1,695 tests and clean conformance and visual-regression gates. 139 workshop
+stories; deterministic visual-baseline capture.
+
+- Dispatch intake rounds 4-7 ([#188](https://github.com/unofficialbox/box-open-elements/pull/188)):
+
+  - **`box-run-trace`** — machine execution trace for a job, pipeline, or
+    agent run, under a new Runs pattern category. `resolveRunSteps` is pure:
+    an explicit per-step status wins; a failure shadows the queue behind it
+    as *Skipped* — a dead run must not show work as still coming, the same
+    rule the signature ceremony applies after a decline; timestamps derive
+    running/succeeded/pending. Durations, expandable per-step detail with a
+    `detail-<id>` slot, child tasks with live `box-progress-bar` rows, and a
+    summary chip that doubles as a polite status region so attribute-driven
+    updates announce themselves. The family reads: `box-timeline` = what
+    people did, `box-audit-log` = what was recorded, `box-run-trace` = what
+    the machine executed. Full docs-site/workshop/gallery coverage
+    (139 extracted workshop stories).
+  - **`box-table`**: declarative cell descriptors (`text | badge | link`) the
+    table renders itself — never HTML strings, so cells stay injection-proof
+    and non-http(s) hrefs render as plain text; row expansion with a
+    `detail-<id>` slot; loading/error/empty states stated in words with
+    loading winning over a stale error; stacked card rows
+    (`stacked="always" | "auto"`) that keep grid semantics; typed
+    `sort` / `selection-changed` / `row-toggled` details.
+  - **`box-drawer`**: `dismiss` is now cancelable and names its source —
+    `preventDefault()` is the whole unsaved-changes guard, and the backdrop
+    now asks before closing where it used to close silently; `header` and
+    sticky `footer` slots; `size` presets small/medium/large/full; every
+    drawer is the whole screen under 640px; `busy` veils and inerts the body
+    while Close stays reachable.
+  - **`box-split-view`**: `collapse="auto"` master-detail — under a 640px
+    container the primary pane takes the full width and the secondary
+    becomes a slide-over the host shows with `detail-open`; Escape asks via
+    `detail-dismissed` without closing anything itself.
+  - Reference rows updated for every API the intake extended, plus
+    composition recipes: master-detail (selection lives in the list),
+    nav-sidebar active item/badges and rail-to-drawer via `box-drawer`, the
+    shared form-field contract on the field pages, and the
+    progress-steps / stage-path / run-trace distinction.
+  - All seven CodeRabbit findings on the PR fixed and mutation-verified,
+    including two latent same-class bugs the review exposed in neighbouring
+    components (`box-signature-ceremony` roster clearing;
+    `box-progress-steps` text-field validation).
+
+- Dispatch intake rounds 1-3 ([#187](https://github.com/unofficialbox/box-open-elements/pull/187)),
+  responding to the box-dispatch project's gaps-and-enhancements document —
+  every claim verified against source before acceptance
+  (`plans/dispatch-intake.md`):
+
+  - **Accessibility fixes found during verification**: `box-table` sorting
+    was mouse-only (WCAG 2.1.1) — sortable headers now wrap a real button
+    with the sort state in its accessible name; `box-nav-sidebar` collapsed
+    rows lost their only accessible name — labels now mirror onto
+    `aria-label` and `title` while collapsed, never overwriting a
+    host-authored name.
+  - **`box-progress-steps` per-step status model**: optional
+    `complete | blocked | failed | disabled` status (plus `statusNote`) over
+    a pure exported `resolveStepStates`; currency stays derived from `value`
+    and is stated separately, so a failed step can be failed *and* current
+    and stays interactive while blocked/disabled are real disabled buttons
+    skipped by keyboard navigation; every state in words with a polite live
+    region.
+  - **Form parity**: `box-select` gains `loading` ("Loading options…") and
+    `empty-text` so an async load that comes back empty says so;
+    `box-text-field` gains `autocomplete` passthrough (password managers
+    could not classify the field through the shadow boundary) and an opt-in
+    Show/Hide `reveal` for passwords.
+  - **Generated global tag map** (`src/element-maps.ts`, `bun run
+    maps:generate`): `HTMLElementTagNameMap` entries for every element plus
+    `BoxElementTagName`, so `createElement`/`querySelector` are typed in any
+    framework — the zero-dependency answer to the typed-callbacks and
+    React-wrapper requests. Typed event details exported where shapes are
+    stable.
+
 - Docs-site, workshop, and gallery coverage for `box-signature-ceremony`
   (138 extracted workshop stories), under a new Signature category. Three
   variants — sequential mid-ceremony, parallel, and **declined** — because
