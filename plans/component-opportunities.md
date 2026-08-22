@@ -142,8 +142,11 @@ static-shell depth. One work-item model, two projections:
   engine, so the badge exists for the surfaces that do not (record headers,
   task cards, item panels) rather than to re-render what the queue already
   does.
-- **Synchronized-scroll comparison shell** — extracted `split-view` +
-  scroll-lock primitive for doc-vs-doc review beyond the diff table.
+- **Synchronized-scroll comparison shell** — *built*: `box-compare-view`,
+  scroll-locked side-by-side panes for doc-vs-doc review beyond the diff
+  table. `mapScrollPosition` is pure, so the mapping is testable without a
+  layout engine; proportional by default (unequal document lengths stay
+  aligned), absolute for two renderings of the same document.
 - **Signature ceremony status** — party-oriented signing progress
   (who signs, in what order, who is pending).
 - **Virtualized table rows** — audit logs at production scale; the depth
