@@ -73,6 +73,7 @@ const routes: Array<[name: string, hash: string, readyMarker: string, scrollTo?:
   ["patterns-lineage-graph", "#patterns/lineage-graph", "patterns/lineage-graph"],
   ["patterns-provenance-strip", "#patterns/provenance-strip", "patterns/provenance-strip"],
   ["patterns-signature-ceremony", "#patterns/signature-ceremony", "patterns/signature-ceremony"],
+  ["patterns-run-trace", "#patterns/run-trace", "patterns/run-trace"],
   ["patterns-agent-chat", "#patterns/agent-chat", "patterns/agent-chat"],
   ["patterns-audit-log", "#patterns/audit-log", "patterns/audit-log"],
   ["patterns-activity-density", "#patterns/activity-density", "patterns/activity-density"],

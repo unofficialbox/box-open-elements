@@ -35,12 +35,53 @@ const splitViewStyles = `
     height: 100%;
     background: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
   }
+
+  :host {
+    container-type: inline-size;
+  }
+
+  /* Master-detail collapse (opt-in via collapse="auto"): when the container
+     narrows, the primary pane takes the full width and the secondary pane
+     becomes a slide-over that the host opens with detail-open — typically on
+     selection — and closes by clearing it (Escape asks via detail-dismissed).
+     The slotted content never moves; only the shadow wrapper changes shape. */
+  @container (max-width: 640px) {
+    :host([collapse="auto"]) [part="split-view"] {
+      grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    :host([collapse="auto"]) [part="separator"] {
+      display: none;
+    }
+
+    :host([collapse="auto"]) [part="secondary"] {
+      display: none;
+    }
+
+    :host([collapse="auto"][detail-open]) [part="secondary"] {
+      display: block;
+      position: fixed;
+      inset-block: 0;
+      inset-inline-end: 0;
+      z-index: 1100;
+      width: min(90vw, 26rem);
+      overflow: auto;
+      background: var(--boe-token-surface-surface, #ffffff);
+      border-inline-start: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
+      box-shadow: -12px 0 32px rgb(0 0 0 / 18%);
+    }
+  }
 `;
+
+/** Detail of `detail-dismissed`: what asked the slide-over to close. */
+export interface SplitViewDetailDismissedDetail {
+  source: "escape";
+}
 
 export class SplitView extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["label", "ratio", "resizable"];
+    return ["collapse", "detail-open", "label", "ratio", "resizable"];
   }
 
   private isResizing = false;
@@ -73,6 +114,32 @@ export class SplitView extends BaseElement {
 
   set resizable(value: boolean) {
     this.toggleAttribute("resizable", value);
+  }
+
+  /** "auto" collapses to master-detail when the container narrows. */
+  get collapse(): string {
+    return this.getAttribute("collapse") ?? "";
+  }
+
+  set collapse(value: string) {
+    if (value) {
+      this.setAttribute("collapse", value);
+    } else {
+      this.removeAttribute("collapse");
+    }
+  }
+
+  /**
+   * Host-controlled: whether the secondary pane shows as a slide-over while
+   * collapsed. The host sets it on selection and clears it on
+   * `detail-dismissed` — selection state stays where it lives, in the list.
+   */
+  get detailOpen(): boolean {
+    return this.hasAttribute("detail-open");
+  }
+
+  set detailOpen(value: boolean) {
+    this.toggleAttribute("detail-open", Boolean(value));
   }
 
   private setRatioFromResize(nextRatio: number): void {
@@ -130,6 +197,29 @@ export class SplitView extends BaseElement {
   }
 
   protected setupListeners(): void {
+    // Escape inside the collapsed slide-over asks the host to close it; the
+    // host owns detail-open, so this only asks.
+    this.addEventListener("keydown", event => {
+      const keyboardEvent = event as KeyboardEvent;
+      if (keyboardEvent.key !== "Escape" || !this.detailOpen || this.collapse !== "auto") {
+        return;
+      }
+      // The slide-over only exists under the 640px container query; on a wide
+      // container the secondary pane is an ordinary pane and Escape means
+      // nothing. Mirror the CSS condition rather than emitting a phantom ask.
+      if (this.offsetWidth > 640) {
+        return;
+      }
+      keyboardEvent.preventDefault();
+      this.dispatchEvent(
+        new CustomEvent<SplitViewDetailDismissedDetail>("detail-dismissed", {
+          bubbles: true,
+          composed: true,
+          detail: { source: "escape" },
+        }),
+      );
+    });
+
     this.separatorEl.addEventListener("pointerdown", event => {
       const pointerEvent = event as PointerEvent;
       this.isResizing = true;

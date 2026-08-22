@@ -108,6 +108,7 @@ import type { RangeSlider } from "./components/forms/range-slider.js";
 import type { Rating } from "./components/forms/rating.js";
 import type { ReviewQueueItem } from "./patterns/task/review-queue-item.js";
 import type { RichTextInput } from "./components/forms/rich-text-input.js";
+import type { RunTrace } from "./patterns/run/run-trace.js";
 import type { SavedViewPicker } from "./patterns/search/saved-view-picker.js";
 import type { SearchField } from "./components/forms/search-field.js";
 import type { SearchResultsHeader } from "./patterns/search/search-results-header.js";
@@ -249,6 +250,7 @@ declare global {
     "box-rating": Rating;
     "box-review-queue-item": ReviewQueueItem;
     "box-rich-text-input": RichTextInput;
+    "box-run-trace": RunTrace;
     "box-saved-view-picker": SavedViewPicker;
     "box-search-field": SearchField;
     "box-search-results-header": SearchResultsHeader;
@@ -392,6 +394,7 @@ export type BoxElementTagName =
   | "box-rating"
   | "box-review-queue-item"
   | "box-rich-text-input"
+  | "box-run-trace"
   | "box-saved-view-picker"
   | "box-search-field"
   | "box-search-results-header"

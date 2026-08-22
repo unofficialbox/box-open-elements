@@ -204,6 +204,7 @@ export * from "./patterns/content-sidebar/index.js";
 export * from "./patterns/form-wizard/index.js";
 export * from "./patterns/signature/index.js";
 export * from "./patterns/timeline/index.js";
+export * from "./patterns/run/index.js";
 export * from "./patterns/diff/index.js";
 export * from "./patterns/work-queue/index.js";
 export * from "./patterns/versions/index.js";

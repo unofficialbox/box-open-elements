@@ -26,15 +26,22 @@ const drawerStyles = `
   }
 
   [part="drawer"] {
-    width: min(${boePanel.drawerWidth}, calc(100vw - 2rem));
+    width: min(var(--drawer-size, ${boePanel.drawerWidth}), calc(100vw - 2rem));
     height: 100%;
     display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
     background: ${boePanel.background};
     color: var(--boe-token-text-text, #222222);
     border: ${boePanel.border};
     box-shadow: ${boeOverlay.modalShadow};
   }
+
+  /* Size presets scale the travel axis: width for side drawers, height for
+     the bottom sheet. */
+  [part="drawer"][data-size="small"] { --drawer-size: 320px; --drawer-block-size: 220px; }
+  [part="drawer"][data-size="medium"] { --drawer-size: ${boePanel.drawerWidth}; --drawer-block-size: 320px; }
+  [part="drawer"][data-size="large"] { --drawer-size: 640px; --drawer-block-size: 480px; }
+  [part="drawer"][data-size="full"] { --drawer-size: 100vw; --drawer-block-size: calc(100vh - 3rem); }
 
   [part="drawer"][data-position="left"] {
     border-left: 0;
@@ -51,12 +58,25 @@ const drawerStyles = `
   [part="drawer"][data-position="bottom"] {
     width: 100%;
     max-width: none;
-    height: min(320px, calc(100vh - 3rem));
+    height: min(var(--drawer-block-size, 320px), calc(100vh - 3rem));
     border-left: 0;
     border-right: 0;
     border-bottom: 0;
     border-top-left-radius: ${boeOverlay.modalRadius};
     border-top-right-radius: ${boeOverlay.modalRadius};
+  }
+
+  /* On a phone every drawer is the screen: partial overlays waste the one
+     dimension the device is short of. */
+  @media (max-width: 640px) {
+    [part="drawer"],
+    [part="drawer"][data-position="bottom"] {
+      width: 100vw;
+      max-width: none;
+      height: 100%;
+      border: 0;
+      border-radius: 0;
+    }
   }
 
   [part="header"] {
@@ -112,15 +132,63 @@ const drawerStyles = `
   ${boeNeutralInteractiveStyles('[part="close"]')}
 
   [part="body"] {
+    position: relative;
     padding: ${boeSpace[4]};
     overflow: auto;
   }
+
+  /* Footer is the third grid row: it stays put while the body scrolls. */
+  [part="footer"] {
+    padding: ${boeSpace[3]} ${boeSpace[4]};
+    border-top: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
+    background: ${boePanel.background};
+  }
+
+  [part="footer"][hidden] {
+    display: none;
+  }
+
+  [part="busy"] {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 65%, transparent);
+  }
+
+  [part="busy"][hidden] {
+    display: none;
+  }
+
+  [part="busy-spinner"] {
+    inline-size: 1.6rem;
+    block-size: 1.6rem;
+    border-radius: 999px;
+    border: 3px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 20%, transparent);
+    border-top-color: var(--boe-token-surface-surface-brand, #0061d5);
+    animation: boe-drawer-spin 0.9s linear infinite;
+  }
+
+  @keyframes boe-drawer-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [part="busy-spinner"] { animation-duration: 1.6s; }
+  }
 `;
+
+const DRAWER_SIZES = new Set(["small", "medium", "large", "full"]);
+
+/** Detail of the cancelable `dismiss` event: what asked the drawer to close. */
+export interface DrawerDismissDetail {
+  source: "close-button" | "backdrop" | "escape";
+}
 
 export class Drawer extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["description", "heading", "open", "position"];
+    return ["busy", "description", "heading", "open", "position", "size"];
   }
 
   private openValue = false;
@@ -168,6 +236,25 @@ export class Drawer extends BaseElement {
 
   set position(value: string) {
     this.setAttribute("position", value);
+  }
+
+  /** Width preset for side drawers, height for the bottom sheet. */
+  get size(): string {
+    const value = this.getAttribute("size");
+    return value && DRAWER_SIZES.has(value) ? value : "medium";
+  }
+
+  set size(value: string) {
+    this.setAttribute("size", value);
+  }
+
+  /** Busy: a saving/loading veil over the body; Close stays reachable. */
+  get busy(): boolean {
+    return this.hasAttribute("busy");
+  }
+
+  set busy(value: boolean) {
+    this.toggleAttribute("busy", Boolean(value));
   }
 
   get heading(): string {
@@ -243,6 +330,26 @@ export class Drawer extends BaseElement {
     this.hostEl = this.shadowRoot.querySelector('[part="host"]')!;
   }
 
+  /**
+   * The unsaved-changes guard, host-owned: `dismiss` is cancelable, and a
+   * host that calls `preventDefault()` keeps the drawer open — the drawer
+   * learns nothing about forms. Programmatic `close()` is not guarded; the
+   * host asked for it.
+   */
+  private requestDismiss(source: DrawerDismissDetail["source"]): void {
+    const proceed = this.dispatchEvent(
+      new CustomEvent<DrawerDismissDetail>("dismiss", {
+        bubbles: true,
+        composed: true,
+        cancelable: true,
+        detail: { source },
+      }),
+    );
+    if (proceed) {
+      this.close();
+    }
+  }
+
   protected setupListeners(): void {
     this.hostEl.addEventListener("click", event => {
       const target = event.target as HTMLElement | null;
@@ -251,13 +358,12 @@ export class Drawer extends BaseElement {
       }
 
       if (target.getAttribute("part") === "backdrop") {
-        this.close();
+        this.requestDismiss("backdrop");
         return;
       }
 
       if (target.closest('[part="close"]')) {
-        this.dispatchEvent(new CustomEvent("dismiss", { bubbles: true, composed: true }));
-        this.close();
+        this.requestDismiss("close-button");
       }
     });
 
@@ -272,8 +378,7 @@ export class Drawer extends BaseElement {
 
       if (keyboardEvent.key === "Escape") {
         keyboardEvent.preventDefault();
-        this.dispatchEvent(new CustomEvent("dismiss", { bubbles: true, composed: true }));
-        this.close();
+        this.requestDismiss("escape");
         return;
       }
 
@@ -317,15 +422,26 @@ export class Drawer extends BaseElement {
               <div part="meta">
                 <h2 id="drawer-title"></h2>
                 <p part="description" hidden></p>
+                <slot name="header"></slot>
               </div>
               <button type="button" part="close" aria-label="Close drawer">Close</button>
             </header>
             <div part="body">
               <slot></slot>
+              <div part="busy" hidden><span part="busy-spinner" aria-hidden="true"></span></div>
             </div>
+            <footer part="footer" hidden>
+              <slot name="footer"></slot>
+            </footer>
           </aside>
         </div>
       `;
+      // The footer row only exists when the host slots one: an empty sticky
+      // bar would just eat drawer height.
+      const footerSlot = this.hostEl.querySelector('slot[name="footer"]') as HTMLSlotElement | null;
+      footerSlot?.addEventListener("slotchange", () => {
+        this.syncFooter();
+      });
     }
 
     this.backdropEl = this.hostEl.querySelector('[part="backdrop"]');
@@ -341,7 +457,22 @@ export class Drawer extends BaseElement {
     }
     if (this.drawerEl) {
       this.drawerEl.dataset.position = this.position;
+      this.drawerEl.dataset.size = this.size;
+      if (this.busy) {
+        this.drawerEl.setAttribute("aria-busy", "true");
+      } else {
+        this.drawerEl.removeAttribute("aria-busy");
+      }
     }
+    const busyEl = this.hostEl.querySelector('[part="busy"]') as HTMLElement | null;
+    if (busyEl) {
+      busyEl.hidden = !this.busy;
+    }
+    // The veil blocks the pointer; inert blocks the keyboard. Both or the
+    // busy state is a suggestion. Close (header) and footer actions stay out.
+    const bodyEl = this.hostEl.querySelector('[part="body"]') as HTMLElement | null;
+    bodyEl?.toggleAttribute("inert", this.busy);
+    this.syncFooter();
     if (this.titleEl) {
       this.titleEl.textContent = this.heading;
     }
@@ -355,6 +486,14 @@ export class Drawer extends BaseElement {
       queueMicrotask(() => {
         (this.hostEl.querySelector('[part="close"]') as HTMLButtonElement | null)?.focus();
       });
+    }
+  }
+
+  private syncFooter(): void {
+    const footerEl = this.hostEl.querySelector('[part="footer"]') as HTMLElement | null;
+    const footerSlot = this.hostEl.querySelector('slot[name="footer"]') as HTMLSlotElement | null;
+    if (footerEl && footerSlot) {
+      footerEl.hidden = footerSlot.assignedNodes({ flatten: true }).length === 0;
     }
   }
 }

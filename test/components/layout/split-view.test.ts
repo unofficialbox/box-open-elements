@@ -109,3 +109,100 @@ describe("SplitView", () => {
   });
 });
 
+
+describe("SplitView master-detail collapse (dispatch intake round 6)", () => {
+  beforeEach(() => {
+    SplitView.register();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("ships the container-driven collapse rules, opt-in via collapse=auto", () => {
+    const element = document.createElement("box-split-view") as SplitView;
+    element.setAttribute("collapse", "auto");
+    document.body.append(element);
+
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("container-type: inline-size");
+    expect(styles).toContain("@container (max-width: 640px)");
+    expect(styles).toContain(':host([collapse="auto"]) [part="secondary"]');
+    expect(styles).toContain(':host([collapse="auto"][detail-open]) [part="secondary"]');
+    expect(element.collapse).toBe("auto");
+  });
+
+  it("reflects detail-open both ways", () => {
+    const element = document.createElement("box-split-view") as SplitView;
+    document.body.append(element);
+
+    element.detailOpen = true;
+    expect(element.hasAttribute("detail-open")).toBe(true);
+    element.removeAttribute("detail-open");
+    expect(element.detailOpen).toBe(false);
+  });
+
+  it("Escape in a collapsed open detail asks the host via detail-dismissed", () => {
+    const element = document.createElement("box-split-view") as SplitView;
+    element.setAttribute("collapse", "auto");
+    element.detailOpen = true;
+    document.body.append(element);
+
+    const dismissed = vi.fn();
+    element.addEventListener("detail-dismissed", dismissed);
+    element.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+
+    expect(dismissed).toHaveBeenCalledTimes(1);
+    expect(dismissed.mock.calls[0][0].detail).toEqual({ source: "escape" });
+    // The host owns detail-open: the component only asks.
+    expect(element.detailOpen).toBe(true);
+  });
+
+  it("Escape does nothing when not collapsed or not open", () => {
+    const element = document.createElement("box-split-view") as SplitView;
+    document.body.append(element);
+    const dismissed = vi.fn();
+    element.addEventListener("detail-dismissed", dismissed);
+
+    element.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    element.setAttribute("collapse", "auto"); // still not open
+    element.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+
+    expect(dismissed).not.toHaveBeenCalled();
+  });
+});
+
+describe("SplitView Escape gating on actual width (PR #188 review)", () => {
+  beforeEach(() => {
+    SplitView.register();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  const createOpen = (width: number): SplitView => {
+    const element = document.createElement("box-split-view") as SplitView;
+    element.setAttribute("collapse", "auto");
+    element.detailOpen = true;
+    Object.defineProperty(element, "offsetWidth", { value: width, configurable: true });
+    document.body.append(element);
+    return element;
+  };
+
+  it("emits detail-dismissed only while the container is actually narrow", () => {
+    // Wide: the slide-over does not exist, so Escape must mean nothing.
+    const wide = createOpen(1200);
+    const wideDismissed = vi.fn();
+    wide.addEventListener("detail-dismissed", wideDismissed);
+    wide.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(wideDismissed).not.toHaveBeenCalled();
+
+    // Narrow: the slide-over is visible; Escape asks the host to close it.
+    const narrow = createOpen(480);
+    const narrowDismissed = vi.fn();
+    narrow.addEventListener("detail-dismissed", narrowDismissed);
+    narrow.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(narrowDismissed).toHaveBeenCalledTimes(1);
+  });
+});

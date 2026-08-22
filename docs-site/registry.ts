@@ -50,6 +50,7 @@ export const catalog: CatalogEntry[] = [
   { id: "lineage-graph", tier: "patterns", category: "Lineage", tag: "box-lineage-graph" },
   { id: "provenance-strip", tier: "patterns", category: "Lineage", tag: "box-provenance-strip" },
   { id: "signature-ceremony", tier: "patterns", category: "Signature", tag: "box-signature-ceremony" },
+  { id: "run-trace", tier: "patterns", category: "Runs", tag: "box-run-trace" },
   { id: "agent-chat", tier: "patterns", category: "Agent Chat", tag: "box-agent-chat" },
   { id: "audit-log", tier: "patterns", category: "Audit", tag: "box-audit-log" },
   { id: "activity-density", tier: "patterns", category: "Audit", tag: "box-activity-density" },

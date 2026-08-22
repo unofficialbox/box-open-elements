@@ -11,6 +11,7 @@ import type {
 import type { AuditEvent } from "../src/patterns/audit/types.js";
 import type { CommandDescriptor } from "../src/components/overlays/command-types.js";
 import type { StagePathStage } from "../src/components/feedback/stage-path.js";
+import type { RunStep } from "../src/patterns/run/types.js";
 import type { Signatory } from "../src/patterns/signature/types.js";
 import type { NotificationItem } from "../src/patterns/notifications/types.js";
 import type { LineageNode } from "../src/patterns/lineage/types.js";
@@ -490,6 +491,56 @@ export const clmDeclinedSignatories: Signatory[] = clmSignatories.map(party =>
         }
       : party,
 );
+
+/**
+ * A document-generation run for the same contract — mid-flight, with the
+ * render step in progress and its per-template children reporting live.
+ */
+export const clmRunSteps: RunStep[] = [
+  {
+    id: "gather",
+    title: "Gather contract data",
+    startedAt: "2026-08-12T09:00:00.000Z",
+    finishedAt: "2026-08-12T09:00:18.000Z",
+  },
+  {
+    id: "render",
+    title: "Render documents",
+    description: "Merging contract data into 3 templates.",
+    startedAt: "2026-08-12T09:00:18.000Z",
+    children: [
+      { id: "msa", label: "MSA_Acme.docx", progress: 100, status: "succeeded" },
+      { id: "sow", label: "SOW_Initech.docx", progress: 55, status: "running" },
+      { id: "dpa", label: "DPA_Acme.docx", status: "pending" },
+    ],
+  },
+  { id: "policy", title: "Policy checks" },
+  { id: "route", title: "Route for signature" },
+];
+
+/**
+ * The same run after the policy step refuses. Worth showing because it is the
+ * rule the engine enforces: routing is *skipped*, not pending — a failed run
+ * must not show work as still coming.
+ */
+export const clmFailedRunSteps: RunStep[] = [
+  { ...clmRunSteps[0]! },
+  {
+    id: "render",
+    title: "Render documents",
+    startedAt: "2026-08-12T09:00:18.000Z",
+    finishedAt: "2026-08-12T09:02:03.000Z",
+  },
+  {
+    id: "policy",
+    title: "Policy checks",
+    status: "failed",
+    description: "Liability cap clause deviates from the approved template.",
+    startedAt: "2026-08-12T09:02:03.000Z",
+    finishedAt: "2026-08-12T09:02:11.000Z",
+  },
+  { id: "route", title: "Route for signature" },
+];
 
 /** The lifecycle a contract record moves through, for `box-stage-path`. */
 export const clmStages: StagePathStage[] = [
