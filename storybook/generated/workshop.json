@@ -2057,6 +2057,175 @@
       ]
     },
     {
+      "id": "shortcuts-overlay",
+      "tag": "box-shortcuts-overlay",
+      "title": "Components/Overlays/Shortcuts Overlay",
+      "category": "Overlays",
+      "shortDescription": "The keyboard shortcuts sheet, driven by the same command catalogue as the palette.",
+      "docsDescription": "The pair to `box-command-palette`. It reads the *same* `CommandDescriptor[]` the palette takes and lists only the commands that declare a `shortcut`. One catalogue driving both surfaces is the point: a shortcut cannot end up documented but unreachable, or reachable but undocumented, because there is only one place to add it — adding `shortcut: \"mod+k\"` to a command puts it in the palette **and** in the sheet. `groupShortcutCommands` and `splitShortcutKeys` are pure and DOM-free, so a host can render its own sheet from the same data. Keys render as `kbd` elements rather than one run of text, with the whole combination as the accessible name and the `+` separators hidden from assistive tech. A bare-character hotkey needs two guards, and `?` has both: it never fires while someone is typing — including inside a shadow-DOM form control, where the event target retargets to the wrapper — and never fires with a modifier held. Modal, with a focus trap and focus restore; Escape closes it from anywhere, not only while the sheet holds focus.",
+      "sourceSnippet": "<box-shortcuts-overlay heading=\"Keyboard shortcuts\"></box-shortcuts-overlay>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "commands",
+          "type": "json",
+          "description": "The same CommandDescriptor records the palette takes; only those with a `shortcut` are listed."
+        },
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Sheet title and its dialog accessible name. Defaults to 'Keyboard shortcuts'."
+        },
+        {
+          "kind": "attribute",
+          "name": "hotkey",
+          "type": "string",
+          "description": "Character that opens the sheet, matched against the produced character. Defaults to '?'; set empty to let the host own the trigger."
+        },
+        {
+          "kind": "attribute",
+          "name": "open",
+          "type": "boolean",
+          "description": "Whether the sheet is showing."
+        },
+        {
+          "kind": "property",
+          "name": "documentedCommands",
+          "type": "CommandDescriptor[]",
+          "description": "Read-only: the commands that declare a shortcut, in catalogue order."
+        },
+        {
+          "kind": "event",
+          "name": "dismissed",
+          "description": "The sheet was closed by Escape, the close button, or a backdrop press."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Documented shortcuts",
+          "html": "<box-shortcuts-overlay heading=\"Keyboard shortcuts\" open></box-shortcuts-overlay>",
+          "note": "Grouped the way the palette sections its results, with the ungrouped section trailing. Each key is its own kbd; the whole combination is the accessible name."
+        },
+        {
+          "name": "Nothing documented yet",
+          "html": "<box-shortcuts-overlay heading=\"Keyboard shortcuts\" open></box-shortcuts-overlay>",
+          "note": "A catalogue where no command declares a shortcut says so, rather than rendering a heading over nothing."
+        }
+      ]
+    },
+    {
+      "id": "stage-path",
+      "tag": "box-stage-path",
+      "title": "Components/Feedback/Stage Path",
+      "category": "Feedback",
+      "shortDescription": "Horizontal chevron lifecycle tracker for a record header.",
+      "docsDescription": "The tracker every record header wants: Draft → In Review → Approved → Executed. Distinct from `box-progress-steps`, which is a vertical setup rail for a task the reader is working through — this states where a *record* sits, is read-only, and lives in a header. It renders as an ordered list with the current stage marked `aria-current=\"step\"` and completed stages carrying a ✓, so the sequence and the position are both available without relying on the chevron geometry, which is decoration and collapses on narrow viewports. An unknown `current` id leaves every stage upcoming rather than silently marking the path done, because a stale value from the host should read as *unknown*, not as *finished*. `resolveStageStates` is pure, so a host can compute the same states for its own chrome.",
+      "sourceSnippet": "<box-stage-path label=\"Contract lifecycle\" current=\"in-review\"></box-stage-path>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "stages",
+          "type": "json",
+          "description": "StagePathStage records: `id`, `label`, and an optional `description` shown on the current stage."
+        },
+        {
+          "kind": "attribute",
+          "name": "current",
+          "type": "string",
+          "description": "Id of the stage the record is at. An unknown id leaves every stage upcoming."
+        },
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible name for the list. Defaults to 'Lifecycle'."
+        },
+        {
+          "kind": "property",
+          "name": "states",
+          "type": "StageState[]",
+          "description": "Read-only: 'complete' | 'current' | 'upcoming' for each stage, in order."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Mid-lifecycle",
+          "html": "<box-stage-path label=\"Contract lifecycle\" current=\"in-review\"></box-stage-path>",
+          "note": "Two stages complete, two upcoming. Only the current stage shows its description."
+        },
+        {
+          "name": "Executed",
+          "html": "<box-stage-path label=\"Contract lifecycle\" current=\"executed\"></box-stage-path>",
+          "note": "The terminal stage, with everything before it complete."
+        },
+        {
+          "name": "Unknown stage",
+          "html": "<box-stage-path label=\"Contract lifecycle\" current=\"withdrawn\"></box-stage-path>",
+          "note": "A `current` id that is not in the list leaves every stage upcoming rather than marking the path done."
+        }
+      ]
+    },
+    {
+      "id": "due-badge",
+      "tag": "box-due-badge",
+      "title": "Components/Feedback/Due Badge",
+      "category": "Feedback",
+      "shortDescription": "SLA and aging urgency for a due date, stated in days.",
+      "docsDescription": "The badge that answers *how late is this?* — so aging is stated in days (\"Overdue by 3 days\", \"Due tomorrow\") rather than as a bare date, because a reader should not have to subtract today from a timestamp to learn a review has slipped. Day distances are measured between UTC day boundaries rather than by elapsed milliseconds, so \"tomorrow\" is 1 whether it is 23 hours away or 25. Only the overdue and due-today buckets carry status colour; the rest stay neutral, so the urgent ones are the ones that shout. `reference-time` pins the clock for deterministic previews and screenshots; omit it and the badge uses now. `resolveDueBucket`, `daysUntilDue`, and `formatDueLabel` are pure and shared with the work-queue pattern, so a table and a badge can never disagree about what counts as overdue.",
+      "sourceSnippet": "<box-due-badge due-at=\"2026-08-20T17:00:00.000Z\"></box-due-badge>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "due-at",
+          "type": "string",
+          "description": "ISO timestamp the badge describes. Absent renders the no-due-date state."
+        },
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Overrides the derived phrasing while keeping the bucket's colour."
+        },
+        {
+          "kind": "attribute",
+          "name": "compact",
+          "type": "boolean",
+          "description": "Denser presentation for table cells; the full phrasing stays available to assistive tech."
+        },
+        {
+          "kind": "attribute",
+          "name": "reference-time",
+          "type": "string",
+          "description": "ISO timestamp used as 'now'. Pins the badge for deterministic rendering."
+        },
+        {
+          "kind": "property",
+          "name": "bucket",
+          "type": "DueBucket",
+          "description": "Read-only: 'overdue' | 'today' | 'this-week' | 'later' | 'none'."
+        },
+        {
+          "kind": "property",
+          "name": "resolvedLabel",
+          "type": "string",
+          "description": "Read-only: the phrasing actually rendered."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Every bucket",
+          "html": "<box-due-badge due-at=\"2026-08-10T17:00:00.000Z\" reference-time=\"2026-08-13T12:00:00.000Z\"></box-due-badge>\n<box-due-badge due-at=\"2026-08-13T17:00:00.000Z\" reference-time=\"2026-08-13T12:00:00.000Z\"></box-due-badge>\n<box-due-badge due-at=\"2026-08-14T09:00:00.000Z\" reference-time=\"2026-08-13T12:00:00.000Z\"></box-due-badge>\n<box-due-badge due-at=\"2026-08-18T09:00:00.000Z\" reference-time=\"2026-08-13T12:00:00.000Z\"></box-due-badge>\n<box-due-badge due-at=\"2026-09-04T09:00:00.000Z\" reference-time=\"2026-08-13T12:00:00.000Z\"></box-due-badge>\n<box-due-badge reference-time=\"2026-08-13T12:00:00.000Z\"></box-due-badge>",
+          "note": "Overdue, today, tomorrow, this week, later, and no due date — all against the same pinned reference time."
+        },
+        {
+          "name": "Compact",
+          "html": "<box-due-badge due-at=\"2026-08-10T17:00:00.000Z\" reference-time=\"2026-08-13T12:00:00.000Z\" compact></box-due-badge>\n<box-due-badge due-at=\"2026-08-18T09:00:00.000Z\" reference-time=\"2026-08-13T12:00:00.000Z\" compact></box-due-badge>",
+          "note": "For dense table cells, where the surrounding row already says what the date is about."
+        }
+      ]
+    },
+    {
       "id": "notification-bell",
       "tag": "box-notification-bell",
       "title": "Patterns/Notifications/Notification Bell",

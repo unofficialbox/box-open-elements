@@ -166,7 +166,8 @@ static-shell depth. One work-item model, two projections:
    in this slot: the remaining micro-components above. The **command
    palette** (CLM gap 4) landed as `box-command-palette`, the **notification
    inbox** as `box-notification-bell` + `box-notification-inbox`, and
-   `box-stage-path`, `box-due-badge`, and `box-shortcuts-overlay` are built.
+   `box-stage-path`, `box-due-badge`, and `box-shortcuts-overlay` are built
+   and all three now carry docs-site, workshop, and gallery coverage.
 
 Docs-site integration (registry/examples/stories + one baseline regen)
 and the CLM-flavoured composition Build Along ride alongside these in

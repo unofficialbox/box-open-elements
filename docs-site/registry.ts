@@ -16,8 +16,8 @@ export const catalog: CatalogEntry[] = [
   ...c("Actions", ["button", "button-group", "icon-button", "link-button", "menu", "menu-item", "segmented-control"]),
   ...c("Collections", ["card", "carousel", "datalist-item", "draggable-list", "grid-view", "pagination", "table", "thumbnail-card", "tree", "tree-grid"]),
   ...c("Feedback", [
-    "alert", "badge", "badgeable", "chip", "empty-state", "error-mask", "help-text", "nudge", "progress-bar", "progress-ring",
-    "progress-steps", "skeleton", "spinner", "toast",
+    "alert", "badge", "badgeable", "chip", "due-badge", "empty-state", "error-mask", "help-text", "nudge", "progress-bar", "progress-ring",
+    "progress-steps", "skeleton", "spinner", "stage-path", "toast",
   ]),
   ...c("Files", ["drop-zone"]),
   ...c("Forms", [
@@ -29,7 +29,7 @@ export const catalog: CatalogEntry[] = [
   ...c("Identity", ["avatar", "contact-datalist-item", "persona"]),
   ...c("Layout", ["app-shell", "divider", "nav-sidebar", "section", "sidebar-toggle-button", "split-view"]),
   ...c("Navigation", ["accordion", "breadcrumb", "tabs"]),
-  ...c("Overlays", ["command-palette", "context-menu", "dialog", "drawer", "guide-tooltip", "popover", "tooltip"]),
+  ...c("Overlays", ["command-palette", "context-menu", "dialog", "drawer", "guide-tooltip", "popover", "shortcuts-overlay", "tooltip"]),
   ...c("Visuals", ["illustration"]),
 
   // Patterns

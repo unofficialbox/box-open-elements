@@ -10,6 +10,7 @@ import type {
 } from "../src/patterns/agent-chat/types.js";
 import type { AuditEvent } from "../src/patterns/audit/types.js";
 import type { CommandDescriptor } from "../src/components/overlays/command-types.js";
+import type { StagePathStage } from "../src/components/feedback/stage-path.js";
 import type { NotificationItem } from "../src/patterns/notifications/types.js";
 import type { LineageNode } from "../src/patterns/lineage/types.js";
 import type { TimelineEvent } from "../src/patterns/timeline/types.js";
@@ -407,18 +408,36 @@ export const createAgentChatDemoTransport = (): AgentChatTransport => ({
   },
 });
 
-/** Global actions a CLM workbench would actually offer. */
+/**
+ * Global actions a CLM workbench would actually offer.
+ *
+ * This one array drives **both** `box-command-palette` and
+ * `box-shortcuts-overlay` — the sheet lists exactly the entries that declare a
+ * `shortcut`, so the demo cannot document a shortcut the palette does not
+ * offer. Shortcuts are written with `+` separators because that is what the
+ * sheet splits on to render each key as its own `kbd`.
+ */
 export const clmCommands: CommandDescriptor[] = [
-  { id: "new-intake", label: "New intake request", group: "Create", shortcut: "⌘N", description: "Start a contract request", keywords: ["contract", "request"] },
-  { id: "new-clause", label: "New clause", group: "Create", description: "Add a clause to the library" },
-  { id: "compare-versions", label: "Compare versions", group: "Review", shortcut: "⌘D", description: "Diff two versions of a contract", keywords: ["diff", "redline"] },
+  { id: "new-intake", label: "New intake request", group: "Create", shortcut: "⌘+N", description: "Start a contract request", keywords: ["contract", "request"] },
+  { id: "new-clause", label: "New clause", group: "Create", shortcut: "⌘+⇧+C", description: "Add a clause to the library" },
+  { id: "compare-versions", label: "Compare versions", group: "Review", shortcut: "⌘+D", description: "Diff two versions of a contract", keywords: ["diff", "redline"] },
   { id: "open-lineage", label: "Open clause lineage", group: "Review", description: "Trace a clause through the estate" },
-  { id: "approve-request", label: "Approve request", group: "Review", description: "Record a second-line approval" },
+  { id: "approve-request", label: "Approve request", group: "Review", shortcut: "⌘+⏎", description: "Record a second-line approval" },
   { id: "escalate", label: "Escalate to legal", group: "Review", description: "Route to the legal queue" },
-  { id: "export-audit", label: "Export audit log", group: "Reporting", description: "Download the filtered trail as CSV" },
+  { id: "export-audit", label: "Export audit log", group: "Reporting", shortcut: "⌘+⇧+E", description: "Download the filtered trail as CSV" },
   { id: "open-workload", label: "Open workload board", group: "Reporting", description: "Team capacity by assignee" },
   { id: "archive", label: "Archive contract", description: "Only available on executed contracts", disabled: true },
-  { id: "settings", label: "Open settings" },
+  { id: "settings", label: "Open settings", shortcut: "⌘+," },
+  { id: "show-shortcuts", label: "Show keyboard shortcuts", shortcut: "?" },
+];
+
+/** The lifecycle a contract record moves through, for `box-stage-path`. */
+export const clmStages: StagePathStage[] = [
+  { id: "draft", label: "Draft" },
+  { id: "in-review", label: "In review", description: "Second-line approval with Morgan Lee" },
+  { id: "approved", label: "Approved" },
+  { id: "signature", label: "Out for signature" },
+  { id: "executed", label: "Executed" },
 ];
 
 /** The triage queue behind the bell, spread across types and read states. */

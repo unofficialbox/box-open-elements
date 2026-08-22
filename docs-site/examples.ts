@@ -35,6 +35,7 @@ import {
   clmIntakeSteps,
   clmLineage,
   clmProvenanceChain,
+  clmStages,
   clmTeam,
   clmTimelineEvents,
   clmVersionHistory,
@@ -139,6 +140,18 @@ const notificationInboxSetup = (root: HTMLElement): void => {
     inbox.notifications = inbox.notifications.filter(entry => entry.id !== item.id);
   });
 };
+
+/** Shared by every shortcuts-overlay variant — the same catalogue the palette gets. */
+const shortcutsOverlaySetup = (root: HTMLElement): void => {
+  set(root, "box-shortcuts-overlay", { commands: clmCommands });
+};
+
+/** Shared by every stage-path variant; only the current stage differs. */
+const stagePathSetup =
+  (current: string) =>
+  (root: HTMLElement): void => {
+    set(root, "box-stage-path", { stages: clmStages, current });
+  };
 
 /** Shared by every audit-log variant so they all render the same trail. */
 const auditLogSetup = (root: HTMLElement): void => {
@@ -858,6 +871,92 @@ export const examples: Record<string, ComponentExample> = {
       set(root, "box-command-palette", { commands: clmCommands, recentIds: ["compare-versions"] });
     },
     note: "Type to filter — matching runs are highlighted, and `cv` finds *Compare versions* by initials. Focus stays in the input while ↑↓ walk the results, because the active option is named through `aria-activedescendant` rather than focused; that is what lets you keep typing. ⏎ runs it, esc closes. **Press ⌘K / Ctrl+K to reopen** — the palette is a fixed overlay, so it deliberately does not reopen itself and leave you unable to reach the page. *Archive contract* is disabled: it still ranks and stays findable, but never runs.",
+  },
+  "shortcuts-overlay": {
+    html: `<box-shortcuts-overlay heading="Keyboard shortcuts" open></box-shortcuts-overlay>`,
+    setup: shortcutsOverlaySetup,
+    note: "Fed the **same** `commands` array as the palette above, and lists only the entries that declare a `shortcut` — so a shortcut cannot end up documented but unreachable, or reachable but undocumented. Each key is its own `kbd`, while the whole combination is the accessible name, so a screen reader hears \"⌘+⇧+E\" rather than \"⌘ plus ⇧ plus E\". **Press `?` to reopen** — it is a fixed overlay, so it does not re-arm itself. `?` is also deliberately dead while you are typing in a field.",
+    // Each variant carries the setup: the docs-site keeps live setups only
+    // when the *example* supplies the variants, so a page with workshop
+    // variants and a single example renders an empty panel.
+    variants: [
+      {
+        name: "Documented shortcuts",
+        html: `<box-shortcuts-overlay heading="Keyboard shortcuts" open></box-shortcuts-overlay>`,
+        setup: shortcutsOverlaySetup,
+        note: "Seven of the eleven commands declare a shortcut, so seven rows appear. Grouping follows the palette's rule, with the ungrouped section trailing.",
+      },
+      {
+        name: "Nothing documented yet",
+        html: `<box-shortcuts-overlay heading="Keyboard shortcuts" open></box-shortcuts-overlay>`,
+        setup: root => {
+          set(root, "box-shortcuts-overlay", {
+            commands: clmCommands.filter(command => !command.shortcut),
+          });
+        },
+        note: "A catalogue with no shortcuts says so rather than rendering an empty sheet with a heading over nothing.",
+      },
+    ],
+  },
+  "stage-path": {
+    html: `<box-stage-path label="Contract lifecycle" current="in-review"></box-stage-path>`,
+    setup: stagePathSetup("in-review"),
+    note: "Read-only: this states where a *record* sits, which is not something a header edits. Distinct from `box-progress-steps`, which is a vertical rail for a task the reader is working through. It renders as an ordered list with the current stage marked `aria-current=\"step\"` and completed stages carrying a ✓, so sequence and position both survive without the chevron geometry — which is decoration, and collapses on narrow viewports.",
+    variants: [
+      {
+        name: "Mid-lifecycle",
+        html: `<box-stage-path label="Contract lifecycle" current="in-review"></box-stage-path>`,
+        setup: stagePathSetup("in-review"),
+        note: "Two behind, two ahead. The current stage is the only one that shows its description.",
+      },
+      {
+        name: "Executed",
+        html: `<box-stage-path label="Contract lifecycle" current="executed"></box-stage-path>`,
+        setup: stagePathSetup("executed"),
+        note: "The terminal stage. Everything before it is complete.",
+      },
+      {
+        name: "Unknown stage",
+        html: `<box-stage-path label="Contract lifecycle" current="withdrawn"></box-stage-path>`,
+        setup: stagePathSetup("withdrawn"),
+        note: "A `current` id that is not in the list leaves every stage upcoming. Better than silently marking the whole path done because the host sent a stale value.",
+      },
+    ],
+  },
+  "due-badge": {
+    html: `<box-due-badge due-at="2026-08-10T17:00:00.000Z"></box-due-badge>`,
+    setup: root => {
+      set(root, "box-due-badge", { referenceTime: REFERENCE_TIME });
+    },
+    note: "Answers *how late is this?*, so aging is stated in days rather than as a bare date — a reader should not have to subtract today from a timestamp to learn a review is three days late. Day distances are measured between UTC day boundaries, so \"tomorrow\" is 1 whether it is 23 hours away or 25. `reference-time` pins the clock here; omit it in production and it uses now.",
+    variants: [
+      {
+        name: "Every bucket",
+        html: `<box-due-badge id="due-overdue" due-at="2026-08-10T17:00:00.000Z"></box-due-badge>
+<box-due-badge id="due-today" due-at="2026-08-13T17:00:00.000Z"></box-due-badge>
+<box-due-badge id="due-tomorrow" due-at="2026-08-14T09:00:00.000Z"></box-due-badge>
+<box-due-badge id="due-week" due-at="2026-08-18T09:00:00.000Z"></box-due-badge>
+<box-due-badge id="due-later" due-at="2026-09-04T09:00:00.000Z"></box-due-badge>
+<box-due-badge id="due-none"></box-due-badge>`,
+        setup: root => {
+          for (const badge of root.querySelectorAll("box-due-badge")) {
+            (badge as HTMLElement & { referenceTime: string }).referenceTime = REFERENCE_TIME;
+          }
+        },
+        note: "Overdue, today, tomorrow, this week, later, and no due date — all against the same pinned reference time. Only overdue and today carry status colour; the rest stay neutral so the urgent ones are the ones that shout.",
+      },
+      {
+        name: "Compact",
+        html: `<box-due-badge due-at="2026-08-10T17:00:00.000Z" compact></box-due-badge>
+<box-due-badge due-at="2026-08-18T09:00:00.000Z" compact></box-due-badge>`,
+        setup: root => {
+          for (const badge of root.querySelectorAll("box-due-badge")) {
+            (badge as HTMLElement & { referenceTime: string }).referenceTime = REFERENCE_TIME;
+          }
+        },
+        note: "For dense table cells, where the row already says what the date is about. The full phrasing stays available to assistive tech.",
+      },
+    ],
   },
   "notification-bell": {
     html: `<box-notification-bell label="Notifications"></box-notification-bell>`,
