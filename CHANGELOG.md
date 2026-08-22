@@ -10,6 +10,15 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Docs-site, workshop, and gallery coverage for `box-wizard-summary`
+  (136 extracted workshop stories). The demo's field list is deliberately
+  declared out of step order, so the page demonstrates the section ordering
+  rather than merely asserting it, and the collected values include a
+  `false` and an unfilled field so the "No" and the placeholder are both
+  visible. Contract value carries a `format` function, which is why the
+  example sets fields as a property — the documented reason that path
+  exists.
+
 - Wizard review step: `box-wizard-summary`, the card that shows everything a
   `box-form-wizard` has collected, grouped by the step that collected it,
   with a per-step Edit control.

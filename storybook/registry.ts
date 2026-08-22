@@ -36,6 +36,7 @@ import contentUploader from "./stories/content-uploader.stories.js";
 import agentChat from "./stories/agent-chat.stories.js";
 import commandPalette from "./stories/command-palette.stories.js";
 import shortcutsOverlay from "./stories/shortcuts-overlay.stories.js";
+import wizardSummary from "./stories/wizard-summary.stories.js";
 import stagePath from "./stories/stage-path.stories.js";
 import dueBadge from "./stories/due-badge.stories.js";
 import notificationBell from "./stories/notification-bell.stories.js";
@@ -179,6 +180,7 @@ export const storyModules: StoryModule[] = [
   agentChat,
   commandPalette,
   shortcutsOverlay,
+  wizardSummary,
   stagePath,
   dueBadge,
   notificationBell,
