@@ -24,6 +24,18 @@ const elementStyles = `
           display: block;
         }
 
+        /*
+         * The height a host sets on the element has to reach the scrollers, or
+         * the panes size to their content, never overflow, and the scroll lock
+         * has nothing to do. Every link in the chain needs a definite height:
+         * one auto-height ancestor and the frame's 100% resolves to content
+         * height instead.
+         */
+        [part="host"] {
+          block-size: 100%;
+          min-block-size: 0;
+        }
+
         [part="frame"] {
           border: ${boePanel.border};
           border-radius: ${boePanel.radius};

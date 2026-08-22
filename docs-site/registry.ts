@@ -42,6 +42,7 @@ export const catalog: CatalogEntry[] = [
   { id: "wizard-summary", tier: "patterns", category: "Form Wizard", tag: "box-wizard-summary" },
   { id: "timeline", tier: "patterns", category: "Timeline", tag: "box-timeline" },
   { id: "diff-viewer", tier: "patterns", category: "Diff", tag: "box-diff-viewer" },
+  { id: "compare-view", tier: "patterns", category: "Diff", tag: "box-compare-view" },
   { id: "work-queue", tier: "patterns", category: "Work Queue", tag: "box-work-queue" },
   { id: "workload-board", tier: "patterns", category: "Work Queue", tag: "box-workload-board" },
   { id: "version-list", tier: "patterns", category: "Versions", tag: "box-version-list" },
