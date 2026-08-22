@@ -11,6 +11,7 @@ import type {
 import type { AuditEvent } from "../src/patterns/audit/types.js";
 import type { CommandDescriptor } from "../src/components/overlays/command-types.js";
 import type { StagePathStage } from "../src/components/feedback/stage-path.js";
+import type { Signatory } from "../src/patterns/signature/types.js";
 import type { NotificationItem } from "../src/patterns/notifications/types.js";
 import type { LineageNode } from "../src/patterns/lineage/types.js";
 import type { TimelineEvent } from "../src/patterns/timeline/types.js";
@@ -461,6 +462,34 @@ export const clmIntakeSummaryFields: WizardSummaryField[] = [
   { key: "reviewers", label: "Reviewers", stepId: "parties" },
   { key: "notes", label: "Internal notes", stepId: "review" },
 ];
+
+/**
+ * The signing roster for the same contract the other demos use — mid-ceremony,
+ * with one party signed and the rest waiting their turn.
+ */
+export const clmSignatories: Signatory[] = [
+  { id: "morgan", name: "Morgan Lee", role: "Contract owner", signedAt: "2026-08-10T09:20:00.000Z" },
+  { id: "avery", name: "Avery Chen", role: "General Counsel" },
+  { id: "dana", name: "Dana Ruiz", role: "Counterparty — Acme Corp" },
+  { id: "sam", name: "Sam Rivera", role: "Witness" },
+];
+
+/**
+ * The same roster after the counterparty refuses. Worth showing on the page
+ * because it is the rule the component exists to enforce: the witness behind
+ * the decline must not be invited to sign a document that is already dead.
+ */
+export const clmDeclinedSignatories: Signatory[] = clmSignatories.map(party =>
+  party.id === "avery"
+    ? { ...party, signedAt: "2026-08-11T08:05:00.000Z" }
+    : party.id === "dana"
+      ? {
+          ...party,
+          declinedAt: "2026-08-12T14:30:00.000Z",
+          declineReason: "Liability cap at 2x is not acceptable; returning redline.",
+        }
+      : party,
+);
 
 /** The lifecycle a contract record moves through, for `box-stage-path`. */
 export const clmStages: StagePathStage[] = [
