@@ -29,7 +29,7 @@ export const catalog: CatalogEntry[] = [
   ...c("Identity", ["avatar", "contact-datalist-item", "persona"]),
   ...c("Layout", ["app-shell", "divider", "nav-sidebar", "section", "sidebar-toggle-button", "split-view"]),
   ...c("Navigation", ["accordion", "breadcrumb", "tabs"]),
-  ...c("Overlays", ["context-menu", "dialog", "drawer", "guide-tooltip", "popover", "tooltip"]),
+  ...c("Overlays", ["command-palette", "context-menu", "dialog", "drawer", "guide-tooltip", "popover", "tooltip"]),
   ...c("Visuals", ["illustration"]),
 
   // Patterns
@@ -50,6 +50,8 @@ export const catalog: CatalogEntry[] = [
   { id: "agent-chat", tier: "patterns", category: "Agent Chat", tag: "box-agent-chat" },
   { id: "audit-log", tier: "patterns", category: "Audit", tag: "box-audit-log" },
   { id: "activity-density", tier: "patterns", category: "Audit", tag: "box-activity-density" },
+  { id: "notification-bell", tier: "patterns", category: "Notifications", tag: "box-notification-bell" },
+  { id: "notification-inbox", tier: "patterns", category: "Notifications", tag: "box-notification-inbox" },
   ...p("Search", ["filter-bar", "search-results-header", "saved-view-picker"]),
   ...p("Item", ["item-form", "item-details-panel", "bulk-action-bar", "preview-header"]),
   ...p("Metadata", ["metadata-filter-builder", "metadata-inspector"]),

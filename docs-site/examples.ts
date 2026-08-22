@@ -28,6 +28,8 @@ import {
 import {
   REFERENCE_TIME,
   clmAuditEvents,
+  clmCommands,
+  clmNotifications,
   clmClauseAfter,
   clmClauseBefore,
   clmIntakeSteps,
@@ -111,6 +113,32 @@ const explorerAdapterSetup =
       selectItemId: options?.selectItemId ?? "123",
       itemId: options?.itemId,
     });
+
+/** Shared by every notification-inbox variant; also plays the host, since
+ * the element emits intents rather than mutating its own list. */
+const notificationInboxSetup = (root: HTMLElement): void => {
+  set(root, "box-notification-inbox", {
+    notifications: clmNotifications,
+    typeLabels: { "sla-breach": "SLA breaches", approval: "Approvals", mention: "Mentions" },
+  });
+  const inbox = root.querySelector("box-notification-inbox") as
+    | (HTMLElement & { notifications: typeof clmNotifications })
+    | null;
+  if (!inbox) return;
+  inbox.addEventListener("mark-read-requested", event => {
+    const { item } = (event as CustomEvent<{ item: { id: string } }>).detail;
+    inbox.notifications = inbox.notifications.map(entry =>
+      entry.id === item.id ? { ...entry, read: true } : entry,
+    );
+  });
+  inbox.addEventListener("mark-all-read-requested", () => {
+    inbox.notifications = inbox.notifications.map(entry => ({ ...entry, read: true }));
+  });
+  inbox.addEventListener("dismiss-requested", event => {
+    const { item } = (event as CustomEvent<{ item: { id: string } }>).detail;
+    inbox.notifications = inbox.notifications.filter(entry => entry.id !== item.id);
+  });
+};
 
 /** Shared by every audit-log variant so they all render the same trail. */
 const auditLogSetup = (root: HTMLElement): void => {
@@ -817,6 +845,46 @@ export const examples: Record<string, ComponentExample> = {
         html: `<box-audit-log heading="Audit log" group-by="day" facet-correlation-id="wf-9042" exportable></box-audit-log>`,
         setup: auditLogSetup,
         note: "The correlation drill-down with its clear affordance. Export CSV now emits only these rows — an export never widens past what the reader filtered to.",
+      },
+    ],
+  },
+  "command-palette": {
+    html: `<box-command-palette
+  hotkey="mod+k"
+  placeholder="Type a command or search…"
+  open
+></box-command-palette>`,
+    setup: root => {
+      set(root, "box-command-palette", { commands: clmCommands, recentIds: ["compare-versions"] });
+    },
+    note: "Type to filter — matching runs are highlighted, and `cv` finds *Compare versions* by initials. Focus stays in the input while ↑↓ walk the results, because the active option is named through `aria-activedescendant` rather than focused; that is what lets you keep typing. ⏎ runs it, esc closes. **Press ⌘K / Ctrl+K to reopen** — the palette is a fixed overlay, so it deliberately does not reopen itself and leave you unable to reach the page. *Archive contract* is disabled: it still ranks and stays findable, but never runs.",
+  },
+  "notification-bell": {
+    html: `<box-notification-bell label="Notifications"></box-notification-bell>`,
+    setup: root => {
+      set(root, "box-notification-bell", { notifications: clmNotifications });
+    },
+    note: "The count is the accessible name — \"Notifications, 3 unread\" — not just a red badge, because colour alone tells a screen-reader user nothing. Past `max` the badge abbreviates to `9+` while the label keeps the true number.",
+  },
+  "notification-inbox": {
+    html: `<box-notification-inbox heading="Notifications"></box-notification-inbox>`,
+    setup: notificationInboxSetup,
+    note: "Sections lead with the most unread, so what needs attention rises. Mark read and Dismiss are **intents** — the element never mutates its own list; this demo plays the host and writes back, which is why the actions take effect here.",
+    // Each variant carries the setup: the docs-site keeps live setups only
+    // when the *example* supplies the variants, so a page with workshop
+    // variants and a single example renders an empty panel.
+    variants: [
+      {
+        name: "Grouped triage queue",
+        html: `<box-notification-inbox heading="Notifications"></box-notification-inbox>`,
+        setup: notificationInboxSetup,
+        note: "Approvals lead because they hold the most unread. Inside a section, unread rows come before read ones, then newest first.",
+      },
+      {
+        name: "Unread only",
+        html: `<box-notification-inbox heading="Notifications" filter="unread"></box-notification-inbox>`,
+        setup: notificationInboxSetup,
+        note: "Sections emptied by the filter disappear rather than rendering as zero-count headings. Mark everything read to watch the panel empty out.",
       },
     ],
   },
