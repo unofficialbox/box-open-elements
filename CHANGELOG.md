@@ -10,6 +10,25 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Docs site + workshop pages for the two patterns that landed after the
+  earlier six-pattern batch: **Agent Chat**, **Audit Log**, and **Activity
+  Density**. Registry entries, live examples, Storybook stories (extracted to
+  129 workshop stories), gallery rows, and docs-site shot routes.
+  The examples are live rather than static: agent-chat streams a real reply
+  on a timer so the preview shows the caret and a composer that stays usable
+  mid-stream, then lands two citation chips and a human-in-the-loop action
+  card whose Approve/Reject exist only because the demo transport implements
+  `resolveAction`. The audit log ships three variants — by day, by actor, and
+  drilled down to one workflow run — each with its own setup, because the
+  docs-site keeps live setups only when the *example* supplies the variants;
+  a page with workshop variants and a single example silently renders an
+  empty surface. The gallery's agent-chat demo uses a synchronous transport
+  and awaits the send before the ready flag, since that page is a pixel-diff
+  baseline and a timer-driven stream would not be reproducible.
+  All three pages were smoke-tested headless end to end (streamed reply with
+  its cards, six day sections narrowing to three on correlation drill-down,
+  and the density grid's tab stop landing on the most recent active day).
+
 - Audit (patterns round 4i — opportunity 3 of the component roadmap): the
   aggregation, faceting, and export layer over the `box-timeline` event
   contract. `AuditEvent` *is* `TimelineEvent`, so one source feeds the flat

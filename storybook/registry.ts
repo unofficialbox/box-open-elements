@@ -33,6 +33,9 @@ import contentExplorer from "./stories/content-explorer.stories.js";
 import contentPicker from "./stories/content-picker.stories.js";
 import contentSidebar from "./stories/content-sidebar.stories.js";
 import contentUploader from "./stories/content-uploader.stories.js";
+import agentChat from "./stories/agent-chat.stories.js";
+import auditLog from "./stories/audit-log.stories.js";
+import activityDensity from "./stories/activity-density.stories.js";
 import diffViewer from "./stories/diff-viewer.stories.js";
 import formWizard from "./stories/form-wizard.stories.js";
 import lineageGraph from "./stories/lineage-graph.stories.js";
@@ -167,6 +170,9 @@ export const storyModules: StoryModule[] = [
   contentPicker,
   contentSidebar,
   contentUploader,
+  agentChat,
+  auditLog,
+  activityDensity,
   diffViewer,
   formWizard,
   lineageGraph,

@@ -1,9 +1,14 @@
 /**
  * Deterministic demo data shared by the docs-site examples for the CLM-era
- * patterns (form-wizard, timeline, diff, work-queue, versions, lineage).
- * Everything is pinned to REFERENCE_TIME so previews and screenshots never
- * drift with the wall clock.
+ * patterns (form-wizard, timeline, diff, work-queue, versions, lineage,
+ * agent-chat, audit). Everything is pinned to REFERENCE_TIME so previews and
+ * screenshots never drift with the wall clock.
  */
+import type {
+  AgentChatTransport,
+  AgentSendRequest,
+} from "../src/patterns/agent-chat/types.js";
+import type { AuditEvent } from "../src/patterns/audit/types.js";
 import type { LineageNode } from "../src/patterns/lineage/types.js";
 import type { TimelineEvent } from "../src/patterns/timeline/types.js";
 import type { VersionNode } from "../src/patterns/versions/types.js";
@@ -241,3 +246,161 @@ export const clmIntakeSteps: WizardStepConfig[] = [
   { id: "terms", label: "Key terms", description: "Value, dates, renewal" },
   { id: "review", label: "Review & submit", description: "Confirm the request" },
 ];
+
+/**
+ * The audit trail behind the same contract the other demos use. Deliberately
+ * spread across several UTC days, actors, and action types so the grouping
+ * dimensions, the facet counts, and the density heatmap all have something
+ * real to show; `wf-9042` threads one workflow run for the drill-down.
+ */
+export const clmAuditEvents: AuditEvent[] = [
+  {
+    id: "au1",
+    action: "Contract executed",
+    actor: { name: "Avery Chen" },
+    summary: "MSA_Acme_v4 fully signed; renewal reminder scheduled.",
+    timestamp: "2026-08-13T09:12:00.000Z",
+    tone: "success",
+    badge: "Signature complete",
+    correlationId: "wf-9042",
+    evidence: [{ id: "aev1", label: "Signed PDF" }],
+  },
+  {
+    id: "au2",
+    action: "Approval granted",
+    actor: { name: "Morgan Lee" },
+    summary: "Liability cap deviation approved with note.",
+    timestamp: "2026-08-13T08:05:00.000Z",
+    tone: "brand",
+    correlationId: "wf-9042",
+  },
+  {
+    id: "au3",
+    action: "Policy check flagged clause 4.2",
+    actor: { name: "Policy engine" },
+    summary: "Major deviation from Template 2026 detected.",
+    timestamp: "2026-08-12T16:40:00.000Z",
+    tone: "warning",
+    badge: "Deviation: major",
+    correlationId: "wf-9042",
+    evidence: [{ id: "aev2", label: "Clause comparison", href: "#diff-viewer" }],
+  },
+  {
+    id: "au4",
+    action: "Redlined clause 4.2",
+    actor: { name: "Sam Rivera" },
+    summary: "Cap raised to 2x with confidentiality carve-out.",
+    timestamp: "2026-08-12T11:20:00.000Z",
+    correlationId: "wf-8871",
+  },
+  {
+    id: "au5",
+    action: "Approval granted",
+    actor: { name: "Morgan Lee" },
+    summary: "Commercial terms cleared for signature.",
+    timestamp: "2026-08-11T14:02:00.000Z",
+    tone: "brand",
+    correlationId: "wf-8871",
+  },
+  {
+    id: "au6",
+    action: "Access granted",
+    actor: { name: "Avery Chen" },
+    summary: "External counsel added as reviewer.",
+    timestamp: "2026-08-11T09:30:00.000Z",
+    badge: "Permission change",
+  },
+  {
+    id: "au7",
+    action: "Redlined clause 4.2",
+    actor: { name: "Sam Rivera" },
+    timestamp: "2026-08-07T13:15:00.000Z",
+    correlationId: "wf-8712",
+  },
+  {
+    id: "au8",
+    action: "Policy check flagged clause 4.2",
+    actor: { name: "Policy engine" },
+    timestamp: "2026-08-07T13:10:00.000Z",
+    tone: "warning",
+    correlationId: "wf-8712",
+  },
+  {
+    id: "au9",
+    action: "Intake submitted",
+    actor: { name: "Jordan Blake" },
+    summary: "Acme Corp master services agreement requested.",
+    timestamp: "2026-08-03T10:00:00.000Z",
+  },
+  {
+    id: "au10",
+    action: "Imported from legacy archive",
+    summary: "Migrated from the 2024 repository; actor not recorded.",
+    timestamp: "2026-07-29T06:00:00.000Z",
+  },
+];
+
+const AGENT_REPLY =
+  "Clause 4.2 in MSA_Acme_v4 caps liability at 2x fees, which deviates from " +
+  "the 1x cap in Template 2026. The deviation was approved by Morgan Lee on " +
+  "Aug 11, so the executed contract is compliant — but the template itself " +
+  "has now drifted from three active agreements.";
+
+/**
+ * A scripted agent session: streams the reply a few words at a time, then
+ * attaches a citation and a human-in-the-loop proposal, and resolves that
+ * proposal through the optional capability so Approve/Reject render.
+ *
+ * The pacing is a real timer, so the preview shows the streaming caret and
+ * the composer staying live mid-reply rather than a finished transcript.
+ */
+export const createAgentChatDemoTransport = (): AgentChatTransport => ({
+  async sendMessage(request: AgentSendRequest): Promise<void> {
+    const words = AGENT_REPLY.split(" ");
+    for (let index = 0; index < words.length; index += 3) {
+      if (request.signal?.aborted) {
+        return;
+      }
+      await new Promise(resolve => setTimeout(resolve, 55));
+      request.onEvent({ kind: "delta", text: `${words.slice(index, index + 3).join(" ")} ` });
+    }
+
+    request.onEvent({
+      kind: "citation",
+      citation: { id: "c1", label: "MSA_Acme_v4 §4.2", href: "#lineage-graph" },
+    });
+    request.onEvent({
+      kind: "citation",
+      citation: { id: "c2", label: "Template 2026 §4.2", href: "#diff-viewer" },
+    });
+    request.onEvent({
+      kind: "proposal",
+      proposal: {
+        id: "p1",
+        title: "Update Template 2026 to the 2x cap",
+        summary: "Aligns the template with the three agreements that already deviate.",
+        params: [
+          { label: "Current cap", value: "1x fees" },
+          { label: "Proposed cap", value: "2x fees" },
+          { label: "Affected agreements", value: "3" },
+        ],
+      },
+    });
+  },
+
+  async resolveAction({ proposalId, decision, note }) {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return {
+      id: proposalId,
+      title: "Update Template 2026 to the 2x cap",
+      summary: "Aligns the template with the three agreements that already deviate.",
+      params: [
+        { label: "Current cap", value: "1x fees" },
+        { label: "Proposed cap", value: "2x fees" },
+        { label: "Affected agreements", value: "3" },
+      ],
+      decision,
+      ...(note !== undefined ? { note } : {}),
+    };
+  },
+});

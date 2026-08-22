@@ -1918,6 +1918,248 @@
       ]
     },
     {
+      "id": "agent-chat",
+      "tag": "box-agent-chat",
+      "title": "Patterns/Agent Chat/Agent Chat",
+      "category": "Agent Chat",
+      "shortDescription": "Streaming agent conversation with citation chips and human-in-the-loop action cards.",
+      "docsDescription": "The AI surface shaped as a workflow pattern rather than a widget. AgentChatTransport is one narrow contract: sendMessage streams typed AgentStreamEvents (delta / citation / proposal) through an onEvent channel and settles when generation ends, so any backend is interchangeable; resolveAction is an optional capability. The controller folds the stream into one growing message — stop() aborts a generation and keeps the partial reply, because a stop is not a failure. Two details carry most of the value: the composer lives outside the patched thread region, so a streaming reply never disturbs what the reader is typing, and the thread follows the stream only when they are already at the bottom. Citation chips reuse the timeline's evidence contract, including its unsafe-href downgrade; action cards render Approve/Reject only when the transport can resolve them, with Modify surfaced as intent for the host's own editor.",
+      "sourceSnippet": "<box-agent-chat heading=\"Contract assistant\" agent-name=\"Box AI\" token=\"…\"></box-agent-chat>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Panel heading."
+        },
+        {
+          "kind": "attribute",
+          "name": "agent-name",
+          "type": "string",
+          "description": "Display name on agent turns. Changing it re-renders without discarding the session."
+        },
+        {
+          "kind": "attribute",
+          "name": "placeholder",
+          "type": "string",
+          "description": "Composer placeholder."
+        },
+        {
+          "kind": "attribute",
+          "name": "token",
+          "type": "string",
+          "description": "Auth token passed to the transport. Changing it restarts the session."
+        },
+        {
+          "kind": "property",
+          "name": "transport",
+          "type": "AgentChatTransport",
+          "description": "sendMessage streams events; resolveAction is the optional HITL capability."
+        },
+        {
+          "kind": "property",
+          "name": "chatController",
+          "type": "AgentChatController",
+          "description": "Adopt an external session so several surfaces share one conversation."
+        },
+        {
+          "kind": "event",
+          "name": "citation-selected",
+          "description": "A citation chip was activated — deep-link into a preview."
+        },
+        {
+          "kind": "event",
+          "name": "action-resolved",
+          "description": "A proposal was approved or rejected through the transport."
+        },
+        {
+          "kind": "event",
+          "name": "proposal-modify-requested",
+          "description": "Modify was activated — the host opens its own editor."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Streaming reply with citations and an action card",
+          "html": "<box-agent-chat heading=\"Contract assistant\" agent-name=\"Box AI\" placeholder=\"Ask about MSA_Acme_v4…\" token=\"demo-token\"></box-agent-chat>",
+          "note": "The reply streams a few words at a time, then attaches two citation chips and a human-in-the-loop proposal. Approve/Reject appear because this transport implements resolveAction."
+        }
+      ]
+    },
+    {
+      "id": "audit-log",
+      "tag": "box-audit-log",
+      "title": "Patterns/Audit/Audit Log",
+      "category": "Audit",
+      "shortDescription": "Grouped, faceted, exportable audit trail over the timeline event contract.",
+      "docsDescription": "box-timeline is the flat feed; this is the aggregation layer over the same records — AuditEvent *is* TimelineEvent, so one source feeds both without a second model. Sections group by day, actor, or action, with counts and actor tallies; days run newest-first with a trailing undated section, while actor and action sections run by count with label tie-breaks so order never depends on input order. Facet options are derived from the unfiltered set, so choosing one facet can never empty another's list. A correlation id drills down to a single workflow run, and Export CSV emits exactly what the filters left on screen — an export that silently widens past the reader's filters is a compliance hazard. Day keys, day labels, and row timestamps are all resolved in UTC, so a row can never appear outside the day section holding it. Aggregation is client-side; server-side paging and row virtualization are tracked limitations.",
+      "sourceSnippet": "<box-audit-log heading=\"Audit log\" group-by=\"day\" exportable></box-audit-log>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Panel heading."
+        },
+        {
+          "kind": "attribute",
+          "name": "group-by",
+          "type": "\"day\" | \"actor\" | \"action\"",
+          "description": "Section dimension. Changing it clears the collapse state, since keys belong to a dimension."
+        },
+        {
+          "kind": "attribute",
+          "name": "events",
+          "type": "json",
+          "description": "AuditEvent records, validated per record."
+        },
+        {
+          "kind": "attribute",
+          "name": "facet-actor",
+          "type": "string",
+          "description": "Exact actor-name match; empty means unselected."
+        },
+        {
+          "kind": "attribute",
+          "name": "facet-action",
+          "type": "string",
+          "description": "Exact action match."
+        },
+        {
+          "kind": "attribute",
+          "name": "facet-correlation-id",
+          "type": "string",
+          "description": "Workflow-run drill-down."
+        },
+        {
+          "kind": "attribute",
+          "name": "facet-from",
+          "type": "string",
+          "description": "Inclusive lower bound; a date-only value covers the whole UTC day."
+        },
+        {
+          "kind": "attribute",
+          "name": "facet-to",
+          "type": "string",
+          "description": "Inclusive upper bound; a date-only value covers the whole UTC day."
+        },
+        {
+          "kind": "attribute",
+          "name": "exportable",
+          "type": "boolean",
+          "description": "Renders the Export CSV button."
+        },
+        {
+          "kind": "attribute",
+          "name": "reference-time",
+          "type": "string",
+          "description": "Pins Today/Yesterday labels for deterministic rendering."
+        },
+        {
+          "kind": "property",
+          "name": "visibleEvents",
+          "type": "AuditEvent[]",
+          "description": "The full set narrowed by the current facets."
+        },
+        {
+          "kind": "event",
+          "name": "event-selected",
+          "description": "An audit row was activated."
+        },
+        {
+          "kind": "event",
+          "name": "evidence-selected",
+          "description": "An evidence chip was activated; unsafe hrefs render as buttons."
+        },
+        {
+          "kind": "event",
+          "name": "correlation-selected",
+          "description": "A correlation id was activated — detail carries that run's events."
+        },
+        {
+          "kind": "event",
+          "name": "export-requested",
+          "description": "Detail carries the CSV and the exported events; the host owns delivery."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Grouped by day",
+          "html": "<box-audit-log heading=\"Audit log\" group-by=\"day\" exportable></box-audit-log>",
+          "note": "Newest day first with counts and actor tallies. Collapsing a section is a state flip, not a rebuild, so scroll position and focus survive."
+        },
+        {
+          "name": "Grouped by actor",
+          "html": "<box-audit-log heading=\"Audit log\" group-by=\"actor\" exportable></box-audit-log>",
+          "note": "Sections by descending event count, ties broken by label; unattributed events land in a trailing section."
+        },
+        {
+          "name": "Drilled down to one workflow run",
+          "html": "<box-audit-log heading=\"Audit log\" group-by=\"day\" facet-correlation-id=\"wf-9042\" exportable></box-audit-log>",
+          "note": "The correlation drill-down with its clear affordance. Export CSV now emits only these three rows."
+        }
+      ]
+    },
+    {
+      "id": "activity-density",
+      "tag": "box-activity-density",
+      "title": "Patterns/Audit/Activity Density",
+      "category": "Audit",
+      "shortDescription": "Calendar heatmap of audit volume per UTC day, for spotting throughput at a glance.",
+      "docsDescription": "The managerial companion to box-audit-log, over the same records. The window is whole week columns ending on the reference day, rows Sunday → Saturday, with levels scaled against the busiest day in the window. Days with activity are buttons in a roving-tabindex grid — arrows move by day and by week, Home/End jump to the ends of the window by date rather than by DOM order — and each button's accessible name carries its own count and date, since colour alone carries no meaning. Quiet days are inert cells, so tab stops stay proportional to real activity. Selecting a day emits day-selected with that day's events: the drill-down into the log.",
+      "sourceSnippet": "<box-activity-density heading=\"Activity density\" weeks=\"8\"></box-activity-density>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Panel heading."
+        },
+        {
+          "kind": "attribute",
+          "name": "events",
+          "type": "json",
+          "description": "AuditEvent records, validated per record."
+        },
+        {
+          "kind": "attribute",
+          "name": "weeks",
+          "type": "number",
+          "description": "Week columns in the trailing window; clamped to 1–53, defaults to 12."
+        },
+        {
+          "kind": "attribute",
+          "name": "reference-time",
+          "type": "string",
+          "description": "The day the window ends on — pin it for deterministic rendering."
+        },
+        {
+          "kind": "property",
+          "name": "density",
+          "type": "ActivityDensity",
+          "description": "The computed window: cells, totals, and the busiest day's count."
+        },
+        {
+          "kind": "property",
+          "name": "eventsOn",
+          "type": "(date: string) => AuditEvent[]",
+          "description": "Every event on the given UTC day."
+        },
+        {
+          "kind": "event",
+          "name": "day-selected",
+          "description": "A day with activity was activated — detail carries the date, count, and events."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Eight-week window",
+          "html": "<box-activity-density heading=\"Activity density\" weeks=\"8\"></box-activity-density>",
+          "note": "Levels scale against the busiest day, so the strip reads the same whether the period saw ten events or ten thousand."
+        }
+      ]
+    },
+    {
       "id": "diff-viewer",
       "tag": "box-diff-viewer",
       "title": "Patterns/Diff/Diff Viewer",
