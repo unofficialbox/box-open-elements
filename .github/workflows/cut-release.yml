@@ -24,6 +24,10 @@ on:
 
 permissions:
   contents: write
+  # Needed to dispatch release.yml: a Release created with GITHUB_TOKEN does
+  # not fire `release: published` (GitHub suppresses workflow runs for events
+  # caused by GITHUB_TOKEN), but workflow_dispatch is exempt from that rule.
+  actions: write
 
 jobs:
   cut:
@@ -48,8 +52,9 @@ jobs:
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Extract release notes from CHANGELOG.md
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
           awk -v ver="$VERSION" '
             $0 ~ "^## " ver " " { found=1; next }
             found && /^## / { exit }
@@ -61,8 +66,9 @@ jobs:
           fi
 
       - name: Create tag (skip if it already exists at HEAD)
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
         run: |
-          TAG="${{ steps.version.outputs.tag }}"
           if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
             REMOTE_SHA="$(git ls-remote origin "refs/tags/$TAG" | cut -f1)"
             if [ "$REMOTE_SHA" != "$GITHUB_SHA" ]; then
@@ -78,8 +84,8 @@ jobs:
       - name: Publish GitHub Release (skip if it already exists)
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
         run: |
-          TAG="${{ steps.version.outputs.tag }}"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Release $TAG already exists; skipping."
           else
@@ -88,4 +94,24 @@ jobs:
               --title "$TAG" \
               --notes-file /tmp/notes.md \
               --verify-tag
+          fi
+
+      # A Release created with GITHUB_TOKEN does not fire `release: published`
+      # (suppressed by GitHub to prevent recursion), so the npm publish must be
+      # dispatched explicitly — workflow_dispatch is exempt from suppression,
+      # and release.yml already supports it. Dispatching on the tag ref builds
+      # exactly the tagged tree. Skipped when the version is already on npm,
+      # so a re-run after a partial failure never double-publishes.
+      - name: Trigger npm publish via release.yml dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          PUBLISHED="$(curl -sf "https://registry.npmjs.org/@unofficialbox%2Fbox-open-elements" | node -p "Object.hasOwn(JSON.parse(require('fs').readFileSync(0,'utf8')).versions ?? {}, process.env.VERSION)" || echo unknown)"
+          if [ "$PUBLISHED" = "true" ]; then
+            echo "npm already has $VERSION; not dispatching a publish."
+          else
+            gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref "$TAG"
+            echo "Dispatched release.yml on $TAG."
           fi
