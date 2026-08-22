@@ -21,7 +21,19 @@
         "name": "next"
       }
     ],
-    "incremental": true
+    "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@unofficialbox/box-open-elements": [
+        "../../../dist/index.js"
+      ],
+      "@unofficialbox/box-open-elements/patterns/content-explorer/selection": [
+        "../../../dist/patterns/content-explorer/selection/index.js"
+      ],
+      "@unofficialbox/box-open-elements/*": [
+        "../../../dist/entries/*.js"
+      ]
+    }
   },
   "include": [
     "next-env.d.ts",

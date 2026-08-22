@@ -4,9 +4,9 @@ import { createRoot } from "react-dom/client";
 import {
   Button,
   Dialog,
+  ExplorerSelectionController,
   useExplorerSelectionController,
 } from "@unofficialbox/box-open-elements-react";
-import { ExplorerSelectionController } from "@unofficialbox/box-open-elements/patterns/content-explorer/selection";
 import "../../shared.css";
 
 const selectionController = new ExplorerSelectionController();

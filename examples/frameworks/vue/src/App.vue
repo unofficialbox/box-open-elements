@@ -7,7 +7,7 @@ import {
   TextField,
   useExplorerSelectionController,
 } from "@unofficialbox/box-open-elements-vue";
-import { ExplorerSelectionController } from "@unofficialbox/box-open-elements/patterns/content-explorer/selection";
+import { ExplorerSelectionController } from "@unofficialbox/box-open-elements-vue";
 
 const name = ref("Apollo");
 const status = ref("draft");

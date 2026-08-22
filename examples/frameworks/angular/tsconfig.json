@@ -7,10 +7,24 @@
     "useDefineForClassFields": false,
     "strict": true,
     "skipLibCheck": true,
-    "outDir": "../../../.framework-validation/angular-tsc"
+    "outDir": "../../../.framework-validation/angular-tsc",
+    "baseUrl": ".",
+    "paths": {
+      "@unofficialbox/box-open-elements": [
+        "../../../dist/index.d.ts"
+      ],
+      "@unofficialbox/box-open-elements/patterns/content-explorer/selection": [
+        "../../../dist/patterns/content-explorer/selection/index.d.ts"
+      ],
+      "@unofficialbox/box-open-elements/*": [
+        "../../../dist/entries/*.d.ts"
+      ]
+    }
   },
   "angularCompilerOptions": {
     "strictTemplates": true
   },
-  "files": ["src/main.ts"]
+  "files": [
+    "src/main.ts"
+  ]
 }
