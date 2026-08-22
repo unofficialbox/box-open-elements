@@ -91,52 +91,21 @@ export interface WorkQueueEvents {
   mutationFailed: { kind: WorkQueueMutationKind; itemId: string; message: string };
 }
 
-/** Urgency buckets for the triage list, most urgent first. */
-export type DueBucket = "overdue" | "today" | "this-week" | "later" | "none";
-
-export const DUE_BUCKET_ORDER: readonly DueBucket[] = ["overdue", "today", "this-week", "later", "none"];
-
-export const DUE_BUCKET_LABELS: Record<DueBucket, string> = {
-  overdue: "Overdue",
-  today: "Due today",
-  "this-week": "Due this week",
-  later: "Later",
-  none: "No due date",
-};
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
 /**
- * Bucket a due timestamp relative to `now`. Pure and timezone-independent:
- * callers supply the reference time and day boundaries resolve against the
- * reference time's UTC day, so the same inputs bucket identically on every
- * host. A host that wants local-day semantics offsets the reference time it
- * passes.
+ * Urgency buckets live with `box-due-badge` — patterns compose components,
+ * not the other way round — and are re-exported here so this pattern's
+ * public import path is unchanged.
  */
-export const resolveDueBucket = (dueAt: string | undefined, now: Date): DueBucket => {
-  if (!dueAt) {
-    return "none";
-  }
-  const due = new Date(dueAt);
-  if (Number.isNaN(due.getTime())) {
-    return "none";
-  }
+export {
+  DUE_BUCKET_LABELS,
+  DUE_BUCKET_ORDER,
+  daysUntilDue,
+  formatDueLabel,
+  resolveDueBucket,
+} from "../../components/feedback/due-types.js";
+export type { DueBucket } from "../../components/feedback/due-types.js";
 
-  if (due.getTime() < now.getTime()) {
-    return "overdue";
-  }
-
-  const endOfToday = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1) - 1;
-  if (due.getTime() <= endOfToday) {
-    return "today";
-  }
-
-  if (due.getTime() <= endOfToday + 6 * DAY_MS) {
-    return "this-week";
-  }
-
-  return "later";
-};
+import { resolveDueBucket as bucketOf } from "../../components/feedback/due-types.js";
 
 export interface WorkloadLane {
   /** Null for the unassigned lane. */
@@ -176,7 +145,7 @@ export const summarizeWorkload = (
     const lane = laneFor(item.assignee ?? null);
     lane.items.push(item);
     lane.total += 1;
-    if (resolveDueBucket(item.dueAt, now) === "overdue" && item.status !== "completed") {
+    if (bucketOf(item.dueAt, now) === "overdue" && item.status !== "completed") {
       lane.overdue += 1;
     }
     if (item.status === "in-progress") {

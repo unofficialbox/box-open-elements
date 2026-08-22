@@ -121,18 +121,22 @@ static-shell depth. One work-item model, two projections:
 
 ## Supporting micro-components
 
-- **`box-stage-path`** — horizontal chevron lifecycle tracker (Draft →
-  In Review → Approved → Executed), Salesforce-Path-style; every record
-  header wants it. (`box-progress-steps` is a vertical setup rail — a
-  different affordance.)
+- **`box-stage-path`** — *built*: horizontal chevron lifecycle tracker
+  (Draft → In Review → Approved → Executed), Salesforce-Path-style; every
+  record header wants it. (`box-progress-steps` is a vertical setup rail —
+  a different affordance.)
 - **Notification inbox** — *built*: `box-notification-bell` +
   `box-notification-inbox` (read/unread filtering, entity links, grouped
   by type, per-row and bulk intents) for approvals waiting / SLA breaches
   / mentions; toasts are the wrong UX for triage.
 - **Wizard review-summary card** — auto summary of collected values with
   per-step Edit links for the final `form-wizard` step.
-- **`box-due-badge`** — SLA/aging urgency with overdue tones and `<time>`
-  semantics; required by the work-queue rows.
+- **`box-due-badge`** — *built*: SLA/aging urgency with overdue tones,
+  stating aging in days rather than a bare date. The work-queue already
+  implements the affordance inline; both now share one `resolveDueBucket`
+  engine, so the badge exists for the surfaces that do not (record headers,
+  task cards, item panels) rather than to re-render what the queue already
+  does.
 - **Synchronized-scroll comparison shell** — extracted `split-view` +
   scroll-lock primitive for doc-vs-doc review beyond the diff table.
 - **Signature ceremony status** — party-oriented signing progress
@@ -157,9 +161,10 @@ static-shell depth. One work-item model, two projections:
 6. **Audit aggregation layer** (opportunity 3) — *built* (round 4i):
    `box-audit-log` (grouping, facets, correlation drill-down, CSV export)
    and `box-activity-density` over the timeline event contract. Remaining
-   in this slot: the micro-components above. The **command palette** (CLM
-   gap 4) landed as `box-command-palette`, and the **notification inbox**
-   as `box-notification-bell` + `box-notification-inbox`.
+   in this slot: the remaining micro-components above. The **command
+   palette** (CLM gap 4) landed as `box-command-palette`, the **notification
+   inbox** as `box-notification-bell` + `box-notification-inbox`, and
+   `box-stage-path` + `box-due-badge` are built.
 
 Docs-site integration (registry/examples/stories + one baseline regen)
 and the CLM-flavoured composition Build Along ride alongside these in
