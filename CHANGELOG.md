@@ -25,6 +25,16 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
   Modal with focus trap and restore; Escape, the close button, and a backdrop
   press all dismiss.
 
+  Three follow-up fixes from review. The typing guard read `event.target` on a
+  document listener, which is retargeted to the shadow host once an event
+  crosses a shadow boundary — and seventeen components here wrap a native
+  input in shadow DOM, so `?` typed into a `box-text-field` saw the wrapper
+  and the sheet stole the character; it reads `event.composedPath()[0]` now.
+  `splitShortcutKeys` dropped a literal `+` key, so `mod++` rendered as just
+  `mod` while the accessible name still announced the full combination. And
+  Escape only closed the sheet while focus was still inside it, which makes a
+  modal a trap the moment focus leaves.
+
 - Two supporting micro-components from build-order slot 6.
 
   **`box-stage-path`** — the horizontal chevron lifecycle tracker every

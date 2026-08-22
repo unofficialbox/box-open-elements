@@ -21,7 +21,7 @@ const escapeHtml = (value: string): string =>
 /** Editable targets where a bare-character hotkey must never fire. */
 const isTypingTarget = (target: EventTarget | null): boolean => {
   const element = target as HTMLElement | null;
-  if (!element || typeof element.closest !== "function") {
+  if (!element || typeof element.tagName !== "string") {
     return false;
   }
   if (element.isContentEditable) {
@@ -30,6 +30,15 @@ const isTypingTarget = (target: EventTarget | null): boolean => {
   const tag = element.tagName;
   return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
 };
+
+/**
+ * The element the key was actually typed into. `event.target` is retargeted to
+ * the shadow host once an event crosses a shadow boundary, and this library
+ * wraps native controls in shadow DOM — so reading `target` on a document
+ * listener sees `box-text-field`, not the `input` inside it.
+ */
+const keyOrigin = (event: KeyboardEvent): EventTarget | null =>
+  event.composedPath()[0] ?? event.target;
 
 const elementStyles = `
         [hidden] {
@@ -199,13 +208,24 @@ export class ShortcutsOverlay extends BaseElement {
   private commandsCache: CommandDescriptor[] = [];
 
   private readonly onDocumentKeydown = (event: KeyboardEvent): void => {
+    if (this.open) {
+      // Escape closes from anywhere. Focus can end up outside the sheet — the
+      // browser chrome, a host that moves it — and a modal that only closes
+      // while it still holds focus is a trap. The sheet's own handler runs
+      // first and clears `open`, so this never dismisses twice.
+      if (event.key === "Escape") {
+        event.preventDefault();
+        this.dismiss();
+      }
+      return;
+    }
     const hotkey = this.hotkey;
-    if (!hotkey || this.open) {
+    if (!hotkey) {
       return;
     }
     // A bare-character hotkey must never fire while someone is typing —
     // "?" is a legitimate character in every text field on the page.
-    if (isTypingTarget(event.target)) {
+    if (isTypingTarget(keyOrigin(event))) {
       return;
     }
     if (event.metaKey || event.ctrlKey || event.altKey) {

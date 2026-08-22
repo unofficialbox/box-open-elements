@@ -263,12 +263,37 @@ export const groupShortcutCommands = (
  * Split a shortcut string into its keys: `mod+shift+k` → `["mod","shift","k"]`.
  * Rendering each key separately is what lets a sheet show them as `<kbd>`
  * elements rather than one opaque run of text.
+ *
+ * `+` is both the separator and a real key — `mod++` is how you write the zoom
+ * shortcut. A `+` with no key pending in front of it is the key itself, so
+ * `mod++` and `ctrl + +` both give `["mod", "+"]` rather than dropping it.
  */
-export const splitShortcutKeys = (shortcut: string): string[] =>
-  shortcut
-    .split("+")
-    .map(part => part.trim())
-    .filter(Boolean);
+export const splitShortcutKeys = (shortcut: string): string[] => {
+  const keys: string[] = [];
+  let buffer = "";
+
+  const flush = (): void => {
+    const key = buffer.trim();
+    if (key) {
+      keys.push(key);
+    }
+    buffer = "";
+  };
+
+  for (const character of shortcut) {
+    if (character !== "+") {
+      buffer += character;
+      continue;
+    }
+    if (!buffer.trim()) {
+      buffer = "+";
+    }
+    flush();
+  }
+  flush();
+
+  return keys;
+};
 
 /** Split a label into highlighted and plain runs for rendering. */
 export const splitCommandLabel = (
