@@ -221,6 +221,11 @@ describe("box-agent-chat", () => {
           kind: "citation",
           citation: { id: "c2", label: "Hostile", href: "javascript:alert(1)" },
         });
+        // Protocol-relative: a browser resolves this to an external origin.
+        request.onEvent({
+          kind: "citation",
+          citation: { id: "c3", label: "Protocol relative", href: "//evil.example/doc" },
+        });
       }),
     );
     const selected = vi.fn();
@@ -234,6 +239,7 @@ describe("box-agent-chat", () => {
     const citations = Array.from(element.shadowRoot?.querySelectorAll('[part="citation"]') ?? []);
     expect(citations[0]?.tagName).toBe("A");
     expect(citations[1]?.tagName).toBe("BUTTON");
+    expect(citations[2]?.tagName).toBe("BUTTON");
 
     (citations[0] as HTMLElement).click();
     expect(selected.mock.calls[0]?.[0]?.detail.citation.id).toBe("c1");

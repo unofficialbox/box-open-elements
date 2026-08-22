@@ -275,6 +275,17 @@ export class ActivityDensityStrip extends BaseElement {
     return Array.from(this.gridEl.querySelectorAll('[part="cell-button"]'));
   }
 
+  /**
+   * Buttons oldest → newest. DOM order is weekday-major (the grid renders one
+   * row per weekday), so it is *not* chronological — anything that means
+   * "first" or "last day in the window" has to sort by date.
+   */
+  private buttonsByDate(): HTMLButtonElement[] {
+    return this.buttons().sort((left, right) =>
+      (left.getAttribute("data-date") ?? "").localeCompare(right.getAttribute("data-date") ?? ""),
+    );
+  }
+
   private buttonAt(week: number, weekday: number): HTMLButtonElement | null {
     return this.gridEl.querySelector(
       `[part="cell-button"][data-week="${String(week)}"][data-weekday="${String(weekday)}"]`,
@@ -416,7 +427,8 @@ export class ActivityDensityStrip extends BaseElement {
 
       const week = Number(button.getAttribute("data-week") ?? "0");
       const weekday = Number(button.getAttribute("data-weekday") ?? "0");
-      const all = this.buttons();
+      // Home/End mean the ends of the *window*, not the ends of the DOM.
+      const byDate = this.buttonsByDate();
       let next: HTMLButtonElement | null = null;
 
       switch (event.key) {
@@ -433,10 +445,10 @@ export class ActivityDensityStrip extends BaseElement {
           next = this.step(week, weekday, 0, 1);
           break;
         case "Home":
-          next = all[0] ?? null;
+          next = byDate[0] ?? null;
           break;
         case "End":
-          next = all[all.length - 1] ?? null;
+          next = byDate[byDate.length - 1] ?? null;
           break;
         default:
           return;
@@ -473,6 +485,7 @@ export class ActivityDensityStrip extends BaseElement {
     this.gridEl.setAttribute("aria-label", this.heading);
 
     const all = this.buttons();
+    const byDate = this.buttonsByDate();
     const active =
       (this.activeKey
         ? all.find(
@@ -481,8 +494,9 @@ export class ActivityDensityStrip extends BaseElement {
               this.activeKey,
           )
         : undefined) ??
-      // Default the tab stop to the most recent day with activity.
-      all[all.length - 1];
+      // Default the tab stop to the most recent day with activity — the last
+      // by date, not the last in the weekday-major DOM order.
+      byDate[byDate.length - 1];
 
     for (const button of all) {
       button.tabIndex = button === active ? 0 : -1;

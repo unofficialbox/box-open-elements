@@ -35,6 +35,17 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
   audit day across two sections. Server-side paging and row virtualization
   for production-scale logs are tracked depth limitations.
 
+- **Security fix — protocol-relative evidence/citation hrefs.** The
+  unsafe-href downgrade that guards evidence and citation chips accepted any
+  value starting with `/`, which includes the protocol-relative form
+  `//evil.example/x` that a browser resolves to an *external* origin (and
+  `/\evil.example`, which some parsers normalize to it). An author-supplied
+  record could therefore still render as an anchor to an attacker's host.
+  The path branch now requires a single leading slash. The check had been
+  copied into three patterns and drifted; it now lives in one internal
+  module that `box-timeline`, `box-agent-chat`, and `box-audit-log` all
+  import, with regression tests in each.
+
 - Agent Chat (patterns round 4h — opportunity 1 of the component roadmap,
   the largest and most strategic gap): new `agent-chat` workflow pattern,
   shaped as a workflow rather than a widget. `AgentChatController` runs a

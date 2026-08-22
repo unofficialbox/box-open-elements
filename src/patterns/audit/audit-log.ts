@@ -19,9 +19,9 @@ import {
   auditToneColor,
   escapeHtml,
   formatAuditTimestamp,
-  isSafeHref,
   resolveReferenceTime,
 } from "./shared.js";
+import { isSafeHref } from "../internal/safe-href.js";
 import { isTimelineEventRecord, resolveTimelineTone } from "../timeline/types.js";
 import { BaseElement } from "../../core/index.js";
 import { boeInputControlStyles, boePanel, boeRadius } from "../../foundations/geometry/index.js";

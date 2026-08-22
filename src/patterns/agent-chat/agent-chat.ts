@@ -5,6 +5,7 @@ import type {
   AgentChatTransport,
   AgentCitation,
 } from "./types.js";
+import { isSafeHref } from "../internal/safe-href.js";
 import { BaseElement } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
@@ -20,9 +21,6 @@ const escapeHtml = (value: string): string =>
     .replaceAll("'", "&#39;");
 
 /** Same downgrade rule as the timeline: unsafe hrefs render as buttons. */
-const isSafeHref = (value: string): boolean =>
-  /^https?:\/\//.test(value) || value.startsWith("/") || value.startsWith("#");
-
 const initialsOf = (name: string): string =>
   name
     .split(/\s+/)

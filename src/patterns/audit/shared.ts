@@ -10,9 +10,6 @@ export const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-export const isSafeHref = (value: string): boolean =>
-  /^https?:\/\//.test(value) || value.startsWith("/") || value.startsWith("#");
-
 export const auditToneColor = (tone: string): string => {
   switch (tone) {
     case "brand":

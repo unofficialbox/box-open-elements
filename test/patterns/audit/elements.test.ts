@@ -289,19 +289,39 @@ describe("box-audit-log", () => {
     expect(evidenceSelected.mock.calls[0]?.[0].detail.evidence.id).toBe("e1");
   });
 
-  it("downgrades an unsafe evidence href to a button", async () => {
+  it("downgrades unsafe evidence hrefs to buttons and keeps safe ones as links", async () => {
     const element = await mountLog([
       {
         id: "u1",
         action: "Escalated",
         timestamp: "2026-08-13T09:00:00.000Z",
-        evidence: [{ id: "e1", label: "Report", href: "javascript:alert(1)" }],
+        evidence: [
+          { id: "js", label: "Script", href: "javascript:alert(1)" },
+          // Protocol-relative and backslash-normalized forms both resolve to
+          // an external origin, so neither may become an anchor.
+          { id: "proto", label: "Protocol relative", href: "//evil.example/report" },
+          { id: "slash", label: "Backslash", href: "/\\evil.example/report" },
+          { id: "path", label: "Rooted path", href: "/contracts/1" },
+          { id: "root", label: "Root", href: "/" },
+          { id: "frag", label: "Fragment", href: "#clause-4-2" },
+          { id: "upper", label: "Uppercase scheme", href: "HTTPS://example.com/x" },
+        ],
       },
     ]);
 
-    const chip = queryAll(element, '[part="evidence-link"]')[0]!;
-    expect(chip.tagName).toBe("BUTTON");
-    expect(chip.hasAttribute("href")).toBe(false);
+    const byId = new Map(
+      queryAll(element, '[part="evidence-link"]').map(chip => [
+        chip.getAttribute("data-evidence-id"),
+        chip.tagName,
+      ]),
+    );
+    expect(byId.get("js")).toBe("BUTTON");
+    expect(byId.get("proto")).toBe("BUTTON");
+    expect(byId.get("slash")).toBe("BUTTON");
+    expect(byId.get("path")).toBe("A");
+    expect(byId.get("root")).toBe("A");
+    expect(byId.get("frag")).toBe("A");
+    expect(byId.get("upper")).toBe("A");
   });
 
   it("escapes hostile content in every rendered field", async () => {
@@ -450,8 +470,11 @@ describe("box-activity-density", () => {
     const element = await mountStrip();
 
     const buttons = queryAll(element, '[part="cell-button"]') as HTMLButtonElement[];
-    // The most recent day with activity holds the tab stop.
-    expect(buttons.map(button => button.tabIndex)).toEqual([-1, -1, 0]);
+    // DOM order is weekday-major, so the tab stop is asserted by date: the
+    // most recent day with activity, not whichever button lands last.
+    const tabStop = buttons.find(button => button.tabIndex === 0);
+    expect(tabStop?.getAttribute("data-date")).toBe("2026-08-13");
+    expect(buttons.filter(button => button.tabIndex === 0)).toHaveLength(1);
 
     const aug13 = buttons.find(button => button.getAttribute("data-date") === "2026-08-13")!;
     aug13.focus();
@@ -468,10 +491,16 @@ describe("box-activity-density", () => {
       (element.shadowRoot!.activeElement as HTMLElement).getAttribute("data-date"),
     ).toBe("2026-08-12");
 
+    // Home/End reach the ends of the window by date. Weekday-major DOM order
+    // would land on Aug 12 and Aug 1 respectively — both wrong.
     active.dispatchEvent(new KeyboardEvent("keydown", { key: "Home", bubbles: true }));
+    const home = element.shadowRoot!.activeElement as HTMLButtonElement;
+    expect(home.getAttribute("data-date")).toBe("2026-08-01");
+
+    home.dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true }));
     expect(
       (element.shadowRoot!.activeElement as HTMLElement).getAttribute("data-date"),
-    ).toBe("2026-08-12");
+    ).toBe("2026-08-13");
   });
 
   it("exposes the computed window and per-day events", async () => {
