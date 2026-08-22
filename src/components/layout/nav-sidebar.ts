@@ -137,6 +137,12 @@ const navSidebarStyles = `
  * Collapsed icon contract: slot `a`/`button` rows with an icon and a
  * `[data-nav-label]` span. Host exposes `--boe-nav-label-display` (`none` when
  * collapsed) so light-DOM CSS can hide labels without piercing the shadow tree.
+ *
+ * Hiding the label span removes the row's only accessible name, so while
+ * collapsed this element mirrors each row's label text onto `aria-label` (and
+ * `title`, for the hover tooltip) — but only on rows the host has not named
+ * itself, and it removes exactly what it added on expand. The host stays the
+ * authority: an author-set `aria-label` or `title` is never overwritten.
  */
 export class NavSidebar extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
@@ -184,6 +190,49 @@ export class NavSidebar extends BaseElement {
     this.sidebarEl = this.shadowRoot.querySelector('[part="sidebar"]')!;
   }
 
+  protected setupListeners(): void {
+    // Rows slotted in while already collapsed still need their names mirrored.
+    this.shadowRoot
+      ?.querySelector('[part="body"] slot')
+      ?.addEventListener("slotchange", () => {
+        this.update();
+      });
+  }
+
+  /**
+   * Collapsing hides `[data-nav-label]`, which is a row's only accessible
+   * name. Mirror the label text onto `aria-label`/`title` while collapsed —
+   * marked, so expand removes only what collapse added and a host-authored
+   * name is never touched.
+   */
+  private syncCollapsedRowNames(): void {
+    for (const row of Array.from(this.querySelectorAll<HTMLElement>("a, button"))) {
+      if (this.collapsed) {
+        const label = row.querySelector("[data-nav-label]")?.textContent?.trim();
+        if (!label) {
+          continue;
+        }
+        if (!row.hasAttribute("aria-label")) {
+          row.setAttribute("aria-label", label);
+          row.setAttribute("data-boe-managed-name", "");
+        }
+        if (!row.hasAttribute("title")) {
+          row.setAttribute("title", label);
+          row.setAttribute("data-boe-managed-title", "");
+        }
+      } else {
+        if (row.hasAttribute("data-boe-managed-name")) {
+          row.removeAttribute("aria-label");
+          row.removeAttribute("data-boe-managed-name");
+        }
+        if (row.hasAttribute("data-boe-managed-title")) {
+          row.removeAttribute("title");
+          row.removeAttribute("data-boe-managed-title");
+        }
+      }
+    }
+  }
+
   protected update(): void {
     if (!this.sidebarEl) {
       return;
@@ -191,6 +240,7 @@ export class NavSidebar extends BaseElement {
 
     this.sidebarEl.dataset.collapsed = this.collapsed ? "true" : "false";
     this.sidebarEl.setAttribute("aria-label", this.label);
+    this.syncCollapsedRowNames();
   }
 }
 

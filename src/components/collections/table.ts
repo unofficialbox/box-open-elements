@@ -68,8 +68,35 @@ const tableStyles = `
   th[part="sortable"] {
     cursor: pointer;
     user-select: none;
+    /* The button carries the padding so its hit area fills the cell. */
+    padding: 0;
   }
   th[part="sortable"]:hover { color: var(--boe-token-text-text, #222222); }
+
+  /* A real button, so sorting is reachable by keyboard: focus, Enter and
+     Space come from the platform instead of a keydown reimplementation. */
+  [part="sort-button"] {
+    appearance: none;
+    display: block;
+    width: 100%;
+    padding: ${boeSpace[2]} ${boeSpace[3]};
+    border: 0;
+    background: transparent;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    text-align: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  th[data-align="end"] [part="sort-button"] { text-align: end; }
+  th[data-align="center"] [part="sort-button"] { text-align: center; }
+
+  [part="sort-button"]:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--boe-token-surface-surface-brand, #0061d5);
+  }
   th[aria-sort] .boe-sort-arrow::after { content: " ↕"; opacity: 0.5; }
   th[aria-sort="ascending"] .boe-sort-arrow::after { content: " ↑"; opacity: 1; }
   th[aria-sort="descending"] .boe-sort-arrow::after { content: " ↓"; opacity: 1; }
@@ -336,9 +363,15 @@ export class Table extends BaseElement {
       .map(column => {
         const align = column.align ? ` data-align="${column.align}"` : "";
         if (column.sortable) {
-          const sort =
-            sortKey === column.key ? ` aria-sort="${sortDir === "descending" ? "descending" : "ascending"}"` : ' aria-sort="none"';
-          return `<th part="sortable" scope="col" data-key="${escapeHtml(column.key)}"${align}${sort}>${escapeHtml(column.label)}<span class="boe-sort-arrow" aria-hidden="true"></span></th>`;
+          const sorted = sortKey === column.key;
+          const sort = sorted
+            ? ` aria-sort="${sortDir === "descending" ? "descending" : "ascending"}"`
+            : ' aria-sort="none"';
+          // The state, in words as well as the arrow glyph.
+          const stateLabel = sorted
+            ? `, sorted ${sortDir === "descending" ? "descending" : "ascending"}`
+            : ", not sorted";
+          return `<th part="sortable" scope="col" data-key="${escapeHtml(column.key)}"${align}${sort}><button type="button" part="sort-button" aria-label="Sort by ${escapeHtml(column.label)}${stateLabel}">${escapeHtml(column.label)}<span class="boe-sort-arrow" aria-hidden="true"></span></button></th>`;
         }
         return `<th scope="col"${align}>${escapeHtml(column.label)}</th>`;
       })
