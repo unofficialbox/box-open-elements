@@ -658,7 +658,7 @@
           "kind": "attribute",
           "name": "rows",
           "type": "TableRow[] (JSON)",
-          "description": "{ id, cells } — cells keyed by column key or positional."
+          "description": "{ id, cells, detail? } — cells keyed by column key or positional; detail adds an expander and a detail-<id> slot."
         },
         {
           "kind": "attribute",
@@ -727,7 +727,7 @@
         {
           "name": "Descriptors and expandable rows",
           "html": "<box-table label=\"Contracts\" columns='[{\"key\":\"name\",\"label\":\"Name\"},{\"key\":\"status\",\"label\":\"Status\"}]' rows='[{\"id\":\"1\",\"cells\":{\"name\":{\"kind\":\"link\",\"text\":\"MSA_Acme.pdf\",\"href\":\"https://example.com/f/1\"},\"status\":{\"kind\":\"badge\",\"text\":\"Approved\",\"tone\":\"success\"}},\"detail\":\"Uploaded by Morgan Lee on Jul 10, 2026.\"},{\"id\":\"2\",\"cells\":{\"name\":{\"kind\":\"link\",\"text\":\"SOW_Initech.pdf\",\"href\":\"https://example.com/f/2\"},\"status\":{\"kind\":\"badge\",\"text\":\"In review\",\"tone\":\"warning\"}}}]'></box-table>",
-          "note": "Badge and link cells are descriptors the table renders itself — never HTML strings. The first row expands."
+          "note": "Badge and link cells are descriptors the table renders itself — never HTML strings. The first row is expandable."
         },
         {
           "name": "Loading",

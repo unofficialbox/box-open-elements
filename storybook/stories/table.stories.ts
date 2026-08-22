@@ -23,7 +23,7 @@ const table: StoryModule = {
     sourceSnippet: `<box-table label="Files" selection-mode="multiple"></box-table>`,
     referenceRows: [
       { kind: "attribute", name: "columns", type: "TableColumn[] (JSON)", description: "{ key, label, align?, sortable? }." },
-      { kind: "attribute", name: "rows", type: "TableRow[] (JSON)", description: "{ id, cells } — cells keyed by column key or positional." },
+      { kind: "attribute", name: "rows", type: "TableRow[] (JSON)", description: "{ id, cells, detail? } — cells keyed by column key or positional; detail adds an expander and a detail-<id> slot." },
       { kind: "attribute", name: "selection-mode", type: '"none" | "single" | "multiple"', description: "Row selection behaviour." },
       { kind: "event", name: "selection-changed", type: "CustomEvent", description: "Fires with the selected row ids." },
       { kind: "event", name: "sort", type: "CustomEvent", description: "Fires when a sortable header is activated (click or keyboard) — detail { key, direction }." },
@@ -41,7 +41,7 @@ const table: StoryModule = {
     {
       name: "Descriptors and expandable rows",
       html: `<box-table label="Contracts" columns='[{"key":"name","label":"Name"},{"key":"status","label":"Status"}]' rows='[{"id":"1","cells":{"name":{"kind":"link","text":"MSA_Acme.pdf","href":"https://example.com/f/1"},"status":{"kind":"badge","text":"Approved","tone":"success"}},"detail":"Uploaded by Morgan Lee on Jul 10, 2026."},{"id":"2","cells":{"name":{"kind":"link","text":"SOW_Initech.pdf","href":"https://example.com/f/2"},"status":{"kind":"badge","text":"In review","tone":"warning"}}}]'></box-table>`,
-      note: "Badge and link cells are descriptors the table renders itself — never HTML strings. The first row expands.",
+      note: "Badge and link cells are descriptors the table renders itself — never HTML strings. The first row is expandable.",
     },
     { name: "Loading", html: `<box-table label="Files" columns='${columns}' rows='[]' loading></box-table>` },
     { name: "Empty", html: `<box-table label="Files" columns='${columns}' rows='[]' empty-text="No documents match your filter"></box-table>` },

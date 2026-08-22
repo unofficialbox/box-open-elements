@@ -179,6 +179,8 @@ describe("Table cell descriptors, expansion, and states (dispatch intake round 5
     // Unsafe href renders as plain text, not a link.
     const links = el.shadowRoot?.querySelectorAll('[part="cell-link"]') ?? [];
     expect(links.length).toBe(1);
+    // The rejected link's text still renders — as escaped plain text.
+    expect(el.shadowRoot?.textContent).toContain("evil");
     // And a string cell is escaped like always.
     expect(el.shadowRoot?.querySelector("img")).toBeNull();
   });

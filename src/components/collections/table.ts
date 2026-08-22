@@ -722,9 +722,9 @@ export class Table extends BaseElement {
             }</td>`
           : "";
         const cells = columns
-          .map(column => {
+          .map((column, columnIndex) => {
             const align = alignAttr(column.align);
-            const value = this.cellValue(row, column, columns.indexOf(column));
+            const value = this.cellValue(row, column, columnIndex);
             return `<td${align}${cellRole} data-label="${escapeHtml(column.label)}">${this.cellMarkup(value)}</td>`;
           })
           .join("");
