@@ -9,6 +9,8 @@ import type {
   AgentSendRequest,
 } from "../src/patterns/agent-chat/types.js";
 import type { AuditEvent } from "../src/patterns/audit/types.js";
+import type { CommandDescriptor } from "../src/components/overlays/command-types.js";
+import type { NotificationItem } from "../src/patterns/notifications/types.js";
 import type { LineageNode } from "../src/patterns/lineage/types.js";
 import type { TimelineEvent } from "../src/patterns/timeline/types.js";
 import type { VersionNode } from "../src/patterns/versions/types.js";
@@ -404,3 +406,65 @@ export const createAgentChatDemoTransport = (): AgentChatTransport => ({
     };
   },
 });
+
+/** Global actions a CLM workbench would actually offer. */
+export const clmCommands: CommandDescriptor[] = [
+  { id: "new-intake", label: "New intake request", group: "Create", shortcut: "⌘N", description: "Start a contract request", keywords: ["contract", "request"] },
+  { id: "new-clause", label: "New clause", group: "Create", description: "Add a clause to the library" },
+  { id: "compare-versions", label: "Compare versions", group: "Review", shortcut: "⌘D", description: "Diff two versions of a contract", keywords: ["diff", "redline"] },
+  { id: "open-lineage", label: "Open clause lineage", group: "Review", description: "Trace a clause through the estate" },
+  { id: "approve-request", label: "Approve request", group: "Review", description: "Record a second-line approval" },
+  { id: "escalate", label: "Escalate to legal", group: "Review", description: "Route to the legal queue" },
+  { id: "export-audit", label: "Export audit log", group: "Reporting", description: "Download the filtered trail as CSV" },
+  { id: "open-workload", label: "Open workload board", group: "Reporting", description: "Team capacity by assignee" },
+  { id: "archive", label: "Archive contract", description: "Only available on executed contracts", disabled: true },
+  { id: "settings", label: "Open settings" },
+];
+
+/** The triage queue behind the bell, spread across types and read states. */
+export const clmNotifications: NotificationItem[] = [
+  {
+    id: "nt1",
+    title: "Approval needed on MSA_Acme_v4",
+    type: "approval",
+    summary: "Second-line approval is blocking execution.",
+    actor: { name: "Morgan Lee" },
+    timestamp: "2026-08-13T09:12:00.000Z",
+    tone: "warning",
+    entityRef: { id: "msa-acme", label: "MSA_Acme_v4", href: "#patterns/audit-log" },
+  },
+  {
+    id: "nt2",
+    title: "Approval needed on NDA_Globex",
+    type: "approval",
+    actor: { name: "Avery Chen" },
+    timestamp: "2026-08-13T08:40:00.000Z",
+  },
+  {
+    id: "nt3",
+    title: "SLA breach: clause review overdue by 2 days",
+    type: "sla-breach",
+    summary: "Clause 4.2 review passed its due date on Aug 11.",
+    timestamp: "2026-08-13T07:00:00.000Z",
+    tone: "error",
+    entityRef: { id: "clause-42", label: "Clause 4.2", href: "#patterns/lineage-graph" },
+  },
+  {
+    id: "nt4",
+    title: "Sam Rivera mentioned you on clause 4.2",
+    type: "mention",
+    actor: { name: "Sam Rivera" },
+    summary: "\u201cCan you confirm the 2x cap is signed off?\u201d",
+    timestamp: "2026-08-12T16:20:00.000Z",
+    read: true,
+  },
+  {
+    id: "nt5",
+    title: "Contract executed: MSA_Initech",
+    type: "approval",
+    actor: { name: "Avery Chen" },
+    timestamp: "2026-08-12T11:05:00.000Z",
+    tone: "success",
+    read: true,
+  },
+];

@@ -1987,6 +1987,213 @@
       ]
     },
     {
+      "id": "command-palette",
+      "tag": "box-command-palette",
+      "title": "Components/Overlays/Command Palette",
+      "category": "Overlays",
+      "shortDescription": "Keyboard-first action launcher over the overlay + listbox machinery.",
+      "docsDescription": "The global command bar (CLM gap 4). Matching is pure and DOM-free, so a host can drive its own launcher from the same functions: exact label ranks above prefix above substring above subsequence, word starts and consecutive runs score higher (so 'cv' finds 'Compare versions' by initials), hidden keywords match without highlighting since they are not on screen, and disabled commands rank last but stay findable. The shell follows the ARIA combobox-with-listbox pattern — focus never leaves the search input and the active option is named through aria-activedescendant, which is what lets Up/Down browse results while the query stays editable. Arrows cross section headings in one flat index space and wrap at both ends; Home/End jump; Escape and backdrop press dismiss; focus returns to whatever opened it. An optional hotkey (mod+k, where mod is Cmd or Ctrl per platform) opens it globally, and its listener is removed on disconnect. The host owns what commands mean — the palette only reports the choice.",
+      "sourceSnippet": "<box-command-palette hotkey=\"mod+k\"></box-command-palette>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "open",
+          "type": "boolean",
+          "description": "Visibility. Each opening starts from a clean query."
+        },
+        {
+          "kind": "attribute",
+          "name": "hotkey",
+          "type": "string",
+          "description": "Global shortcut such as `mod+k`; `mod` is Cmd or Ctrl per platform. Omit to let the host own the trigger."
+        },
+        {
+          "kind": "attribute",
+          "name": "placeholder",
+          "type": "string",
+          "description": "Search placeholder, also the input's accessible name."
+        },
+        {
+          "kind": "attribute",
+          "name": "hide-disabled",
+          "type": "boolean",
+          "description": "Drop disabled commands instead of ranking them last."
+        },
+        {
+          "kind": "attribute",
+          "name": "commands",
+          "type": "json",
+          "description": "CommandDescriptor records, validated per record."
+        },
+        {
+          "kind": "property",
+          "name": "recentIds",
+          "type": "string[]",
+          "description": "Recently run ids, most recent first; boosts ranking."
+        },
+        {
+          "kind": "property",
+          "name": "visibleCommands",
+          "type": "CommandDescriptor[]",
+          "description": "The ranked matches currently on screen."
+        },
+        {
+          "kind": "event",
+          "name": "command-selected",
+          "description": "A command was run — detail carries the descriptor."
+        },
+        {
+          "kind": "event",
+          "name": "dismissed",
+          "description": "Closed by Escape or a backdrop press."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Open with grouped commands",
+          "html": "<box-command-palette hotkey=\"mod+k\" placeholder=\"Type a command or search…\" open></box-command-palette>",
+          "note": "Sections come from each command's group, with the ungrouped section trailing. Arrows cross headings in one flat index space, so the highlighted option is always the one Enter runs."
+        }
+      ]
+    },
+    {
+      "id": "notification-bell",
+      "tag": "box-notification-bell",
+      "title": "Patterns/Notifications/Notification Bell",
+      "category": "Notifications",
+      "shortDescription": "Unread count trigger for the app chrome, with the count in its accessible name.",
+      "docsDescription": "The bell that opens the inbox. The unread count is the accessible name — 'Notifications, 3 unread' — not merely a red badge, because colour and a dot alone tell a screen-reader user nothing. Past `max` the badge abbreviates to '9+' while the label keeps the true number: the abbreviation is a layout concession, the number is the fact, and assistive tech should never be told '9+' when it is 240. The count derives from `notifications` when records are supplied, or from a bare `unread-count` when the host keeps the list server-side, so the same element works in both architectures.",
+      "sourceSnippet": "<box-notification-bell label=\"Notifications\"></box-notification-bell>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Base accessible name; the unread count is appended."
+        },
+        {
+          "kind": "attribute",
+          "name": "max",
+          "type": "number",
+          "description": "Largest number rendered before the badge abbreviates. Defaults to 99."
+        },
+        {
+          "kind": "attribute",
+          "name": "expanded",
+          "type": "boolean",
+          "description": "Reflects the inbox's open state onto `aria-expanded`."
+        },
+        {
+          "kind": "attribute",
+          "name": "unread-count",
+          "type": "number",
+          "description": "Count when the host keeps the list server-side; ignored if `notifications` is set."
+        },
+        {
+          "kind": "attribute",
+          "name": "notifications",
+          "type": "json",
+          "description": "NotificationItem records; the count derives from them."
+        },
+        {
+          "kind": "event",
+          "name": "toggle",
+          "description": "The trigger was activated — detail carries `expanded` and `unreadCount`."
+        }
+      ],
+      "variants": [
+        {
+          "name": "With unread notifications",
+          "html": "<box-notification-bell label=\"Notifications\"></box-notification-bell>",
+          "note": "Three unread. Inspect the trigger's aria-label — the count is in the accessible name, not only the badge."
+        }
+      ]
+    },
+    {
+      "id": "notification-inbox",
+      "tag": "box-notification-inbox",
+      "title": "Patterns/Notifications/Notification Inbox",
+      "category": "Notifications",
+      "shortDescription": "Grouped triage panel for approvals waiting, SLA breaches, and mentions.",
+      "docsDescription": "Toasts are transient and unordered, which is the wrong shape for work you have to come back to; this is the list you triage from. Sections group by an open `type` vocabulary and lead with the most unread, then the most items, then label — so what needs attention rises and the order never depends on input order. Inside a section unread lead read and then run newest first, with undated records sinking rather than being dropped. The load-bearing decision is that mutations are intents, never local state changes: the element never marks anything read on its own, so the host owns the write and feeds back a new list, and the inbox can never disagree with the server about what has been seen. Mark read is offered only on rows that are actually unread, bulk mark-all carries only the unread records, unsafe entity hrefs downgrade to plain text, and focus is sampled and restored across rebuilds so acting on a row does not drop the reader to the top.",
+      "sourceSnippet": "<box-notification-inbox heading=\"Notifications\"></box-notification-inbox>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Panel heading."
+        },
+        {
+          "kind": "attribute",
+          "name": "filter",
+          "type": "\"all\" | \"unread\"",
+          "description": "Which records are shown."
+        },
+        {
+          "kind": "attribute",
+          "name": "notifications",
+          "type": "json",
+          "description": "NotificationItem records, validated per record."
+        },
+        {
+          "kind": "attribute",
+          "name": "type-labels",
+          "type": "json",
+          "description": "`{ type: heading }` overrides; unmapped types are humanized."
+        },
+        {
+          "kind": "property",
+          "name": "unreadCount",
+          "type": "number",
+          "description": "Unread total across all records."
+        },
+        {
+          "kind": "property",
+          "name": "visibleNotifications",
+          "type": "NotificationItem[]",
+          "description": "Records on screen after the filter."
+        },
+        {
+          "kind": "event",
+          "name": "notification-selected",
+          "description": "A row title was activated."
+        },
+        {
+          "kind": "event",
+          "name": "mark-read-requested",
+          "description": "Intent — the host performs the write."
+        },
+        {
+          "kind": "event",
+          "name": "mark-all-read-requested",
+          "description": "Intent carrying only the unread records."
+        },
+        {
+          "kind": "event",
+          "name": "dismiss-requested",
+          "description": "Intent — the host removes the record."
+        },
+        {
+          "kind": "event",
+          "name": "filter-changed",
+          "description": "All/Unread was switched."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Grouped triage queue",
+          "html": "<box-notification-inbox heading=\"Notifications\"></box-notification-inbox>",
+          "note": "Approvals lead because they hold the most unread. Mark read and Dismiss emit intents; the docs-site demo plays the host so they take effect."
+        },
+        {
+          "name": "Unread only",
+          "html": "<box-notification-inbox heading=\"Notifications\" filter=\"unread\"></box-notification-inbox>",
+          "note": "Sections emptied by the filter disappear rather than rendering as zero-count headings."
+        }
+      ]
+    },
+    {
       "id": "audit-log",
       "tag": "box-audit-log",
       "title": "Patterns/Audit/Audit Log",

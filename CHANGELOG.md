@@ -10,6 +10,24 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Docs site + workshop pages for the three elements that landed since the
+  last batch: **Command Palette**, **Notification Bell**, and **Notification
+  Inbox**. Registry entries, live examples, Storybook stories (132 extracted
+  workshop stories), gallery rows, and docs-site shot routes.
+  The notification-inbox example ships two variants, each carrying the setup
+  — the docs-site keeps live setups only when the *example* supplies the
+  variants, so a page whose story has multiple variants and whose example has
+  one renders an empty panel. The inbox demo also plays the *host*: because
+  the element emits intents rather than mutating its own list, Mark read and
+  Dismiss only take effect when something writes back, and the demo does.
+  The palette example opens on load for the screenshot but deliberately does
+  not reopen itself on dismiss: it is a fixed full-viewport overlay, and
+  re-arming it would leave a reader unable to reach the page behind it.
+  All three pages were smoke-tested headless end to end — the recency boost
+  putting Review first, `cv` finding *Compare versions* by initials with two
+  highlighted runs, the bell's count reaching its accessible name, and the
+  inbox's host write-back dropping the unread pill from 3 to 2.
+
 - Notification inbox: `box-notification-bell` + `box-notification-inbox`,
   the triage surface for approvals waiting, SLA breaches, and mentions.
   Toasts are transient and unordered, which is the wrong shape for work you

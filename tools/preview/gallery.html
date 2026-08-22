@@ -258,6 +258,14 @@
   </div>
   <div class="row">
     <div class="col">
+      <box-notification-inbox id="gallery-notification-inbox" heading="Notifications"></box-notification-inbox>
+    </div>
+    <div class="col">
+      <box-notification-bell id="gallery-notification-bell" label="Notifications"></box-notification-bell>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
       <box-audit-log
         id="gallery-audit-log"
         heading="Audit log"
@@ -684,6 +692,17 @@
   ];
   byId("gallery-audit-log").events = clmAudit;
   byId("gallery-activity-density").events = clmAudit;
+
+  const clmNotifications = [
+    { id: "nt1", title: "Approval needed on MSA_Acme_v4", type: "approval", summary: "Second-line approval is blocking execution.", actor: { name: "Morgan Lee" }, timestamp: "2026-08-13T09:12:00.000Z", tone: "warning", entityRef: { id: "msa", label: "MSA_Acme_v4", href: "#audit" } },
+    { id: "nt2", title: "Approval needed on NDA_Globex", type: "approval", actor: { name: "Avery Chen" }, timestamp: "2026-08-13T08:40:00.000Z" },
+    { id: "nt3", title: "SLA breach: clause review overdue by 2 days", type: "sla-breach", summary: "Clause 4.2 review passed its due date on Aug 11.", timestamp: "2026-08-13T07:00:00.000Z", tone: "error" },
+    { id: "nt4", title: "Sam Rivera mentioned you on clause 4.2", type: "mention", actor: { name: "Sam Rivera" }, timestamp: "2026-08-12T16:20:00.000Z", read: true },
+    { id: "nt5", title: "Contract executed: MSA_Initech", type: "approval", actor: { name: "Avery Chen" }, timestamp: "2026-08-12T11:05:00.000Z", tone: "success", read: true },
+  ];
+  byId("gallery-notification-inbox").notifications = clmNotifications;
+  byId("gallery-notification-inbox").typeLabels = { "sla-breach": "SLA breaches", approval: "Approvals", mention: "Mentions" };
+  byId("gallery-notification-bell").notifications = clmNotifications;
 
   // The docs-site demo streams on a timer; the gallery is a pixel-diff
   // baseline, so this transport delivers the whole reply synchronously and
