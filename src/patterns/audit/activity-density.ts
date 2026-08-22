@@ -1,4 +1,9 @@
-import { computeActivityDensity, resolveAuditDay } from "./types.js";
+import {
+  computeActivityDensity,
+  formatUtcDay,
+  formatUtcMonth,
+  resolveAuditDay,
+} from "./types.js";
 import type { ActivityDensity, ActivityDensityCell, AuditEvent } from "./types.js";
 import { escapeHtml, resolveReferenceTime } from "./shared.js";
 import { isTimelineEventRecord } from "../timeline/types.js";
@@ -9,28 +14,6 @@ const DEFAULT_TAG_NAME = "box-activity-density";
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-] as const;
-
-const formatCellDate = (date: string): string => {
-  const parsed = new Date(`${date}T00:00:00.000Z`);
-  if (Number.isNaN(parsed.getTime())) {
-    return date;
-  }
-  return `${MONTHS[parsed.getUTCMonth()]!} ${String(parsed.getUTCDate())}, ${String(parsed.getUTCFullYear())}`;
-};
 
 const elementStyles = `
         [hidden] {
@@ -201,6 +184,11 @@ export class ActivityDensityStrip extends BaseElement {
 
   private renderedWeeks = 0;
 
+  /** Raw `events` attribute the parse cache was built from. */
+  private eventsRaw: string | null = null;
+
+  private eventsCache: AuditEvent[] = [];
+
   get heading(): string {
     return this.getAttribute("heading") ?? "Activity density";
   }
@@ -209,18 +197,29 @@ export class ActivityDensityStrip extends BaseElement {
     this.setAttribute("heading", value);
   }
 
+  /**
+   * Memoized on the raw attribute for the same reason as `box-audit-log`:
+   * `density`, `eventsOn`, and `update` each read it, and an arrow keypress
+   * must not re-parse the payload. Returns a copy.
+   */
   get events(): AuditEvent[] {
     const raw = this.getAttribute("events");
     if (!raw) {
       return [];
     }
-
-    try {
-      const parsed: unknown = JSON.parse(raw);
-      return Array.isArray(parsed) && parsed.every(isTimelineEventRecord) ? parsed : [];
-    } catch {
-      return [];
+    if (raw !== this.eventsRaw) {
+      this.eventsRaw = raw;
+      try {
+        const parsed: unknown = JSON.parse(raw);
+        this.eventsCache =
+          Array.isArray(parsed) && parsed.every(isTimelineEventRecord)
+            ? (parsed as AuditEvent[])
+            : [];
+      } catch {
+        this.eventsCache = [];
+      }
     }
+    return [...this.eventsCache];
   }
 
   set events(value: AuditEvent[]) {
@@ -331,7 +330,7 @@ export class ActivityDensityStrip extends BaseElement {
   private cellHtml(cell: ActivityDensityCell): string {
     const date = escapeHtml(cell.date);
     const label = escapeHtml(
-      `${String(cell.count)} ${cell.count === 1 ? "event" : "events"} on ${formatCellDate(cell.date)}`,
+      `${String(cell.count)} ${cell.count === 1 ? "event" : "events"} on ${formatUtcDay(cell.date)}`,
     );
     const body =
       cell.count > 0
@@ -356,7 +355,7 @@ export class ActivityDensityStrip extends BaseElement {
     let lastMonth = "";
     const monthCells = firstRow.map(cell => {
       const month = cell.date.slice(0, 7);
-      const label = month === lastMonth ? "" : MONTHS[Number(cell.date.slice(5, 7)) - 1]!;
+      const label = month === lastMonth ? "" : formatUtcMonth(cell.date);
       lastMonth = month;
       return `<th scope="col" part="month">${label}</th>`;
     });
@@ -481,7 +480,7 @@ export class ActivityDensityStrip extends BaseElement {
       this.activeKey = null;
     }
 
-    this.captionEl.textContent = `${String(density.total)} ${density.total === 1 ? "event" : "events"} from ${formatCellDate(density.start)} to ${formatCellDate(density.end)}`;
+    this.captionEl.textContent = `${String(density.total)} ${density.total === 1 ? "event" : "events"} from ${formatUtcDay(density.start)} to ${formatUtcDay(density.end)}`;
     this.gridEl.setAttribute("aria-label", this.heading);
 
     const all = this.buttons();

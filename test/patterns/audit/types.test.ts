@@ -5,6 +5,8 @@ import {
   computeActivityDensity,
   filterAuditEvents,
   formatAuditDay,
+  formatUtcDay,
+  formatUtcMonth,
   groupAuditEvents,
   hasAuditFacets,
   resolveAuditDay,
@@ -55,6 +57,21 @@ describe("resolveAuditDay", () => {
     expect(resolveAuditDay(events[1]!)).toBe("2026-08-13");
     expect(resolveAuditDay(events[4]!)).toBeNull();
     expect(resolveAuditDay({ id: "x", action: "y", timestamp: "not a date" })).toBeNull();
+  });
+});
+
+describe("formatUtcDay / formatUtcMonth", () => {
+  it("formats a day key and an instant identically, in UTC", () => {
+    expect(formatUtcDay("2026-08-13")).toBe("Aug 13, 2026");
+    // 23:30 UTC is still the 13th — a local-time formatter would say the 14th
+    // east of UTC, which is exactly the split the day grouping forbids.
+    expect(formatUtcDay(new Date("2026-08-13T23:30:00.000Z"))).toBe("Aug 13, 2026");
+    expect(formatUtcMonth("2026-01-05")).toBe("Jan");
+  });
+
+  it("returns an unparseable key unchanged", () => {
+    expect(formatUtcDay("not-a-day")).toBe("not-a-day");
+    expect(formatUtcMonth("not-a-day")).toBe("");
   });
 });
 

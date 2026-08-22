@@ -1,3 +1,5 @@
+import { formatUtcDay } from "./types.js";
+
 // Internal helpers shared by the two audit projections. Kept in one place so
 // escaping and formatting can never drift between the log and the density
 // strip — they render the same records.
@@ -25,21 +27,6 @@ export const auditToneColor = (tone: string): string => {
   }
 };
 
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-] as const;
-
 const pad = (value: number): string => String(value).padStart(2, "0");
 
 /**
@@ -55,7 +42,7 @@ export const formatAuditTimestamp = (value: string | undefined): string => {
   if (Number.isNaN(date.getTime())) {
     return "";
   }
-  return `${MONTHS[date.getUTCMonth()]!} ${String(date.getUTCDate())}, ${String(date.getUTCFullYear())}, ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())} UTC`;
+  return `${formatUtcDay(date)}, ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())} UTC`;
 };
 
 /** Reference time for deterministic day labels; falls back to the wall clock. */

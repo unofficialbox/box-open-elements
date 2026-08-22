@@ -366,6 +366,22 @@ describe("box-audit-log", () => {
     expect(query(element, '[part="empty"]')?.hidden).toBe(false);
   });
 
+  it("re-reads events when the payload changes and never hands out its cache", async () => {
+    const element = await mountLog();
+
+    // The parse is memoized on the raw attribute; a stale cache here would
+    // silently render the previous payload.
+    expect(element.events.map(event => event.id)).toEqual(["a1", "a2", "a3", "a4"]);
+    element.events = [{ id: "z1", action: "Sealed", timestamp: "2026-08-13T01:00:00.000Z" }];
+    await flush();
+    expect(element.events.map(event => event.id)).toEqual(["z1"]);
+
+    // Two reads must not share one array, or a caller could mutate the cache.
+    const first = element.events;
+    first.push({ id: "injected", action: "Nope" });
+    expect(element.events.map(event => event.id)).toEqual(["z1"]);
+  });
+
   it("restores focus to the equivalent control after a rebuild", async () => {
     const element = await mountLog();
 

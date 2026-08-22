@@ -402,6 +402,11 @@ export class AuditLog extends BaseElement {
 
   private optionsSignature = "";
 
+  /** Raw `events` attribute the parse cache was built from. */
+  private eventsRaw: string | null = null;
+
+  private eventsCache: AuditEvent[] = [];
+
   get heading(): string {
     return this.getAttribute("heading") ?? "Audit log";
   }
@@ -410,19 +415,33 @@ export class AuditLog extends BaseElement {
     this.setAttribute("heading", value);
   }
 
-  /** Audit records; JSON payloads are validated per record before rendering. */
+  /**
+   * Audit records; JSON payloads are validated per record before rendering.
+   *
+   * Memoized on the raw attribute so a single keystroke in the date field
+   * does not re-parse and re-validate the whole payload once per reader
+   * (`update`, `visibleEvents`, and each click-handler branch all read it).
+   * The cache invalidates itself when the attribute changes; the returned
+   * array is a copy, so a caller cannot mutate the log out from under it.
+   */
   get events(): AuditEvent[] {
     const raw = this.getAttribute("events");
     if (!raw) {
       return [];
     }
-
-    try {
-      const parsed: unknown = JSON.parse(raw);
-      return Array.isArray(parsed) && parsed.every(isTimelineEventRecord) ? parsed : [];
-    } catch {
-      return [];
+    if (raw !== this.eventsRaw) {
+      this.eventsRaw = raw;
+      try {
+        const parsed: unknown = JSON.parse(raw);
+        this.eventsCache =
+          Array.isArray(parsed) && parsed.every(isTimelineEventRecord)
+            ? (parsed as AuditEvent[])
+            : [];
+      } catch {
+        this.eventsCache = [];
+      }
     }
+    return [...this.eventsCache];
   }
 
   set events(value: AuditEvent[]) {

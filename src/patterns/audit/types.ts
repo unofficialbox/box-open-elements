@@ -126,9 +126,29 @@ const MONTHS = [
 ] as const;
 
 /**
- * Label a `YYYY-MM-DD` day key. Formatted in UTC to match the key, with
- * Today/Yesterday relative labels resolved against the caller's reference
- * time so the output is deterministic rather than clock-dependent.
+ * The one absolute-day formatter — `Aug 13, 2026`, always in UTC. Accepts a
+ * `YYYY-MM-DD` key or an instant. Every audit surface formats days through
+ * this, so a rendered date can never disagree with the UTC day key that
+ * grouped it. An unparseable key is returned unchanged.
+ */
+export const formatUtcDay = (value: Date | string): string => {
+  const date = typeof value === "string" ? new Date(`${value}T00:00:00.000Z`) : value;
+  if (Number.isNaN(date.getTime())) {
+    return typeof value === "string" ? value : "";
+  }
+  return `${MONTHS[date.getUTCMonth()]!} ${String(date.getUTCDate())}, ${String(date.getUTCFullYear())}`;
+};
+
+/** The short UTC month name — `Aug` — for sparse calendar column headers. */
+export const formatUtcMonth = (value: Date | string): string => {
+  const date = typeof value === "string" ? new Date(`${value}T00:00:00.000Z`) : value;
+  return Number.isNaN(date.getTime()) ? "" : MONTHS[date.getUTCMonth()]!;
+};
+
+/**
+ * Label a `YYYY-MM-DD` day key, with Today/Yesterday relative labels resolved
+ * against the caller's reference time so the output is deterministic rather
+ * than clock-dependent.
  */
 export const formatAuditDay = (day: string, now?: Date): string => {
   const parsed = new Date(`${day}T00:00:00.000Z`);
@@ -147,7 +167,7 @@ export const formatAuditDay = (day: string, now?: Date): string => {
     }
   }
 
-  return `${MONTHS[parsed.getUTCMonth()]!} ${String(parsed.getUTCDate())}, ${String(parsed.getUTCFullYear())}`;
+  return formatUtcDay(parsed);
 };
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
