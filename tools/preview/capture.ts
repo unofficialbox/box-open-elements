@@ -72,13 +72,48 @@ try {
   await applyDeterministicFonts(page);
   await page.waitForTimeout(250);
 
-  const sections = await page.locator("section[id]").all();
-  for (const section of sections) {
-    const id = await section.getAttribute("id");
-    const target = join(OUT_DIR, `${id!.replace(/^section-/, "")}.png`);
-    await section.screenshot({ path: target });
+  // Reserve the scrollbar gutter for the whole run. Sections are captured one
+  // at a time with the others hidden (below), which leaves the page short
+  // enough to lose its scrollbar — and a scrollbar appearing or disappearing
+  // changes the content width, which would move everything horizontally.
+  await page.addStyleTag({ content: "html { overflow-y: scroll !important; }" });
+
+  const sectionIds = await page.locator("section[id]").evaluateAll(nodes =>
+    nodes.map(node => node.id),
+  );
+
+  for (const id of sectionIds) {
+    const target = join(OUT_DIR, `${id.replace(/^section-/, "")}.png`);
+
+    // Photograph each section alone.
+    //
+    // An element screenshot clips at the element's bounding box, and glyphs
+    // are rasterised against their position in the viewport. While every
+    // section shares one tall page, that position depends on how much content
+    // sits above — so adding a single row to the CLM section shifted two
+    // untouched baselines by a pixel and dragged them into the diff, one of
+    // them by 12,601 pixels. Hiding the siblings puts every section at the
+    // same content-independent offset, so a section's capture can only change
+    // when that section changes.
+    await page.evaluate(visible => {
+      for (const node of document.querySelectorAll<HTMLElement>("section[id]")) {
+        node.style.display = node.id === visible ? "" : "none";
+      }
+      window.scrollTo(0, 0);
+    }, id);
+
+    // `animations: "disabled"` rewinds CSS animations to their first frame
+    // rather than catching them mid-flight — without it the spinner lands on
+    // a different rotation phase every run and feedback.png drifts forever.
+    await page.locator(`#${id}`).screenshot({ path: target, animations: "disabled" });
     console.log(`captured ${target}`);
   }
+
+  await page.evaluate(() => {
+    for (const node of document.querySelectorAll<HTMLElement>("section[id]")) {
+      node.style.display = "";
+    }
+  });
 } finally {
   await browser.close();
   server.stop();

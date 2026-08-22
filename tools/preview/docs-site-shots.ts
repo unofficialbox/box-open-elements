@@ -3,7 +3,7 @@
  *
  * Usage: bun run build && bun tools/preview/docs-site-shots.ts
  */
-import { chromium, type Browser } from "playwright-core";
+import { chromium, type Browser, type Page } from "playwright-core";
 import { existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { applyDeterministicFonts, blockRemoteFonts } from "./deterministic-fonts.js";
@@ -18,6 +18,36 @@ const ROOT = new URL("../..", import.meta.url).pathname;
 const OUT_DIR = process.env.DOCS_SHOTS_OUT_DIR ?? join(ROOT, "docs/screenshots/docs-site");
 const PORT = 4601;
 const BANNER_TIMEOUT_MS = 20_000;
+const SETTLE_INTERVAL_MS = 250;
+const SETTLE_ATTEMPTS = 24;
+
+/**
+ * Wait until two consecutive frames are byte-identical.
+ *
+ * A route's ready marker says it rendered, not that it finished moving. The
+ * agent-chat demo streams its reply on a timer, so a shot taken at the ready
+ * marker lands wherever the stream happens to have reached — two runs of the
+ * *same commit* produced baselines differing by 43,000 pixels, one caught
+ * mid-sentence with the caret showing. Comparing frames is route-agnostic, so
+ * it also covers whichever asynchronous demo is added next.
+ *
+ * Frames are compared with animations disabled, matching how the real shot is
+ * taken; otherwise a spinner would keep the page looking unsettled forever.
+ */
+const waitForVisualSettle = async (page: Page, label: string): Promise<void> => {
+  let previous = await page.screenshot({ animations: "disabled" });
+  for (let attempt = 0; attempt < SETTLE_ATTEMPTS; attempt += 1) {
+    await page.waitForTimeout(SETTLE_INTERVAL_MS);
+    const current = await page.screenshot({ animations: "disabled" });
+    if (current.equals(previous)) {
+      return;
+    }
+    previous = current;
+  }
+  // Capture anyway rather than failing the run: a genuinely unsettleable page
+  // is a baseline problem to diagnose, not a reason to produce no shots.
+  console.warn(`[settle] ${label} never stabilised in ${String(SETTLE_ATTEMPTS)} frames`);
+};
 
 const routes: Array<[name: string, hash: string, readyMarker: string, scrollTo?: string]> = [
   ["home", "#home", "home/home"],
@@ -126,7 +156,10 @@ try {
       await page.locator(scrollTo).first().scrollIntoViewIfNeeded({ timeout: 15_000 });
     }
     await page.waitForTimeout(150);
-    await page.screenshot({ path: join(OUT_DIR, `${name}.png`) });
+    await waitForVisualSettle(page, name);
+    // Rewind CSS animations to their first frame; otherwise anything spinning
+    // on the page is caught at an arbitrary phase and the baseline drifts.
+    await page.screenshot({ path: join(OUT_DIR, `${name}.png`), animations: "disabled" });
     console.log(`captured ${name}.png`);
   }
 
@@ -146,7 +179,8 @@ try {
     await page.waitForSelector('html[data-theme="dark"]', { timeout: 5_000 });
     await applyDeterministicFonts(page);
     await page.waitForTimeout(200);
-    await page.screenshot({ path: join(OUT_DIR, `${name}.png`) });
+    await waitForVisualSettle(page, name);
+    await page.screenshot({ path: join(OUT_DIR, `${name}.png`), animations: "disabled" });
     console.log(`captured ${name}.png`);
   }
 } finally {

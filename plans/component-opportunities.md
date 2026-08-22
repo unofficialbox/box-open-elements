@@ -172,3 +172,9 @@ static-shell depth. One work-item model, two projections:
 Docs-site integration (registry/examples/stories + one baseline regen)
 and the CLM-flavoured composition Build Along ride alongside these in
 batches, as with rounds 3 and 4.
+
+Baseline regens are now cheap to read: capture was made deterministic
+(animations rewound, sections photographed in isolation, streamed demos
+allowed to settle), so a changed screenshot means changed UI. Before that
+fix a regen routinely moved images the batch had never touched, and each
+one had to be cleared by hand.

@@ -10,6 +10,37 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Visual baselines are now deterministic. Three separate sources of churn
+  meant a screenshot could change without the UI changing, so every regen
+  needed forensic work to tell a real change from noise — the last batch
+  needed a shift-scoring script to clear two images it had never touched.
+
+  **Animations were caught mid-flight.** The spinner landed on a different
+  rotation phase every run, drifting `feedback.png` for three rounds
+  running. Both capture scripts now screenshot with `animations: "disabled"`,
+  which rewinds animations to their first frame.
+
+  **Section clips moved with the page.** Gallery sections were photographed
+  from one tall page, and glyphs rasterise against their position in the
+  viewport — so adding a row to any section shifted every section below it
+  by a pixel. That is how `explorer-element.png` (12,601 pixels) and
+  `specialized.png` entered the last diff untouched. Each section is now
+  photographed alone, with its siblings hidden and the scrollbar gutter
+  pinned, so its capture cannot depend on anything else on the page.
+
+  **Streamed demos were captured mid-stream.** A route's ready marker says
+  it rendered, not that it stopped moving: the agent-chat demo streams on a
+  timer, and two runs of the same commit produced baselines 43,000 pixels
+  apart — one caught mid-sentence with the caret showing. Docs-site shots
+  now wait for two consecutive frames to be byte-identical before capturing.
+  The gate is route-agnostic, so it also covers whatever asynchronous demo
+  comes next.
+
+  Verified empirically rather than by inspection: two full capture runs of
+  an unchanged tree are byte-identical, and adding a row to one gallery
+  section now changes that section's baseline **and nothing else** — where
+  before the same edit moved two unrelated images.
+
 - Docs-site, workshop, and gallery coverage for the three elements that
   landed since the last docs batch: `box-shortcuts-overlay`,
   `box-stage-path`, and `box-due-badge`. Registry entries, live examples with
