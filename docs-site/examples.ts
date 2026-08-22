@@ -806,6 +806,167 @@ export const examples: Record<string, ComponentExample> = {
     },
     note: "Pure line+word diff engine under a split/inline shell — synchronized scrolling by construction, word-level `del`/`ins`, stats chip, and prev/next change navigation emitting `change-focused`.",
   },
+  "compare-view": {
+    html: `<box-compare-view
+  heading="Clause 4 — template vs executed"
+  left-label="Template 2026"
+  right-label="MSA_Acme v4"
+  style="block-size: 22rem"
+>
+  <div slot="left">
+    <h4>4.1 Term</h4>
+    <p>Commences on the Effective Date and continues for twelve (12)
+       months, renewing automatically for successive twelve (12) month
+       terms.</p>
+    <h4>4.2 Limitation of Liability</h4>
+    <p>Neither party's aggregate liability shall exceed the fees paid in
+       the twelve (12) months preceding the claim.</p>
+    <p>Excluded: breaches of confidentiality.</p>
+    <h4>4.3 Indemnification</h4>
+    <p>Each party indemnifies the other against third-party claims arising
+       from its own negligence or wilful misconduct.</p>
+    <h4>4.4 Governing Law</h4>
+    <p>Governed by the laws of the State of California, without regard to
+       conflict-of-laws principles.</p>
+    <h4>4.5 Notices</h4>
+    <p>Notices must be in writing, delivered to the addresses on the cover
+       page.</p>
+  </div>
+  <div slot="right">
+    <h4>4.1 Term</h4>
+    <p>Commences on the Effective Date and continues for twenty-four (24)
+       months, renewing automatically for successive twelve (12) month
+       terms.</p>
+    <h4>4.2 Limitation of Liability</h4>
+    <p>Neither party's aggregate liability shall exceed two times (2x) the
+       fees paid in the twelve (12) months preceding the claim.</p>
+    <p>Excluded: breaches of confidentiality and indemnification
+       obligations.</p>
+    <h4>4.3 Indemnification</h4>
+    <p>Each party indemnifies the other against third-party claims arising
+       from its own negligence or wilful misconduct.</p>
+    <h4>4.4 Governing Law</h4>
+    <p>Governed by the laws of the State of New York, without regard to
+       conflict-of-laws principles.</p>
+    <h4>4.5 Notices</h4>
+    <p>Notices must be in writing, delivered to the addresses on the cover
+       page.</p>
+    <h4>4.6 Assignment</h4>
+    <p>Neither party may assign without the other's prior written consent,
+       not to be unreasonably withheld.</p>
+  </div>
+</box-compare-view>`,
+    note: "Scroll either pane and the other follows. The right document is **longer** than the left, which is why the default is proportional: mapping by fraction of the scrollable range keeps the two ends aligned, where matching pixel offsets would run the shorter one out early. Switch `sync-mode` to `absolute` for two renderings of the *same* document. The toolbar button disengages the lock — and re-engaging realigns straight away rather than waiting for the next scroll, so the panes never claim to be locked while sitting out of step.",
+    variants: [
+      {
+        name: "Proportional (default)",
+        html: `<box-compare-view
+  heading="Clause 4 — template vs executed"
+  left-label="Template 2026"
+  right-label="MSA_Acme v4"
+  style="block-size: 22rem"
+>
+  <div slot="left">
+    <h4>4.1 Term</h4>
+    <p>Commences on the Effective Date and continues for twelve (12)
+       months, renewing automatically for successive twelve (12) month
+       terms.</p>
+    <h4>4.2 Limitation of Liability</h4>
+    <p>Neither party's aggregate liability shall exceed the fees paid in
+       the twelve (12) months preceding the claim.</p>
+    <p>Excluded: breaches of confidentiality.</p>
+    <h4>4.3 Indemnification</h4>
+    <p>Each party indemnifies the other against third-party claims arising
+       from its own negligence or wilful misconduct.</p>
+    <h4>4.4 Governing Law</h4>
+    <p>Governed by the laws of the State of California, without regard to
+       conflict-of-laws principles.</p>
+    <h4>4.5 Notices</h4>
+    <p>Notices must be in writing, delivered to the addresses on the cover
+       page.</p>
+  </div>
+  <div slot="right">
+    <h4>4.1 Term</h4>
+    <p>Commences on the Effective Date and continues for twenty-four (24)
+       months, renewing automatically for successive twelve (12) month
+       terms.</p>
+    <h4>4.2 Limitation of Liability</h4>
+    <p>Neither party's aggregate liability shall exceed two times (2x) the
+       fees paid in the twelve (12) months preceding the claim.</p>
+    <p>Excluded: breaches of confidentiality and indemnification
+       obligations.</p>
+    <h4>4.3 Indemnification</h4>
+    <p>Each party indemnifies the other against third-party claims arising
+       from its own negligence or wilful misconduct.</p>
+    <h4>4.4 Governing Law</h4>
+    <p>Governed by the laws of the State of New York, without regard to
+       conflict-of-laws principles.</p>
+    <h4>4.5 Notices</h4>
+    <p>Notices must be in writing, delivered to the addresses on the cover
+       page.</p>
+    <h4>4.6 Assignment</h4>
+    <p>Neither party may assign without the other's prior written consent,
+       not to be unreasonably withheld.</p>
+  </div>
+</box-compare-view>`,
+        note: "Different-length documents. Drag either pane to the bottom and both land at the end together.",
+      },
+      {
+        name: "Lock disengaged",
+        html: `<box-compare-view
+  heading="Clause 4 — template vs executed"
+  left-label="Template 2026"
+  right-label="MSA_Acme v4"
+  sync="off"
+  style="block-size: 22rem"
+>
+  <div slot="left">
+    <h4>4.1 Term</h4>
+    <p>Commences on the Effective Date and continues for twelve (12)
+       months, renewing automatically for successive twelve (12) month
+       terms.</p>
+    <h4>4.2 Limitation of Liability</h4>
+    <p>Neither party's aggregate liability shall exceed the fees paid in
+       the twelve (12) months preceding the claim.</p>
+    <p>Excluded: breaches of confidentiality.</p>
+    <h4>4.3 Indemnification</h4>
+    <p>Each party indemnifies the other against third-party claims arising
+       from its own negligence or wilful misconduct.</p>
+    <h4>4.4 Governing Law</h4>
+    <p>Governed by the laws of the State of California, without regard to
+       conflict-of-laws principles.</p>
+    <h4>4.5 Notices</h4>
+    <p>Notices must be in writing, delivered to the addresses on the cover
+       page.</p>
+  </div>
+  <div slot="right">
+    <h4>4.1 Term</h4>
+    <p>Commences on the Effective Date and continues for twenty-four (24)
+       months, renewing automatically for successive twelve (12) month
+       terms.</p>
+    <h4>4.2 Limitation of Liability</h4>
+    <p>Neither party's aggregate liability shall exceed two times (2x) the
+       fees paid in the twelve (12) months preceding the claim.</p>
+    <p>Excluded: breaches of confidentiality and indemnification
+       obligations.</p>
+    <h4>4.3 Indemnification</h4>
+    <p>Each party indemnifies the other against third-party claims arising
+       from its own negligence or wilful misconduct.</p>
+    <h4>4.4 Governing Law</h4>
+    <p>Governed by the laws of the State of New York, without regard to
+       conflict-of-laws principles.</p>
+    <h4>4.5 Notices</h4>
+    <p>Notices must be in writing, delivered to the addresses on the cover
+       page.</p>
+    <h4>4.6 Assignment</h4>
+    <p>Neither party may assign without the other's prior written consent,
+       not to be unreasonably withheld.</p>
+  </div>
+</box-compare-view>`,
+        note: "Panes scroll independently. Press *Scroll unlocked* to re-engage — the right pane jumps into alignment immediately.",
+      },
+    ],
+  },
   "work-queue": {
     html: `<box-work-queue heading="My work" token="demo-token" assignee-id="morgan" reference-time="2026-08-13T12:00:00.000Z"></box-work-queue>`,
     setup: root => {
