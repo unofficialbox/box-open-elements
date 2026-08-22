@@ -157,8 +157,8 @@ static-shell depth. One work-item model, two projections:
 6. **Audit aggregation layer** (opportunity 3) — *built* (round 4i):
    `box-audit-log` (grouping, facets, correlation drill-down, CSV export)
    and `box-activity-density` over the timeline event contract. Remaining
-   in this slot: command palette + notification inbox + the micro-components
-   above.
+   in this slot: notification inbox + the micro-components above. The
+   **command palette** (CLM gap 4) landed as `box-command-palette`.
 
 Docs-site integration (registry/examples/stories + one baseline regen)
 and the CLM-flavoured composition Build Along ride alongside these in

@@ -10,6 +10,26 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Command palette (CLM gap 4 — the last unbuilt numbered gap in
+  `plans/clm-horizontal-coverage.md`): `box-command-palette`, a
+  keyboard-first action launcher over the existing overlay and listbox
+  machinery. The match/rank/group engine is pure and DOM-free, so a host can
+  drive its own launcher from the same functions: `matchCommands` scores an
+  exact label above a prefix above a substring above a subsequence, rewards
+  word starts and consecutive runs (so `cv` finds "**C**ompare **v**ersions"),
+  matches hidden `keywords` without highlighting them, ranks disabled
+  commands last, and breaks ties by input order rather than object identity;
+  `groupCommandMatches` buckets into sections with the ungrouped section
+  trailing; `splitCommandLabel` yields the highlight runs.
+  The shell follows the ARIA combobox-with-listbox pattern: focus stays in
+  the search input and the active option is named through
+  `aria-activedescendant`, which is what lets Up/Down browse while the query
+  stays editable. Arrow keys cross section headings in one flat index space
+  and wrap at both ends; Home/End jump; Escape and backdrop press dismiss;
+  focus returns to whatever opened it. An optional `hotkey` (`mod+k`, where
+  `mod` is Cmd or Ctrl per platform) opens it globally, and the listener is
+  removed on disconnect.
+
 - Docs site + workshop pages for the two patterns that landed after the
   earlier six-pattern batch: **Agent Chat**, **Audit Log**, and **Activity
   Density**. Registry entries, live examples, Storybook stories (extracted to
