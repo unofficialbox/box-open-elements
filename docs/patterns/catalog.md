@@ -69,6 +69,10 @@ src/patterns/
     types.ts          # built — message/citation/proposal model + streaming transport contract
     controller.ts     # built — headless streaming session (deltas, stop, HITL decisions)
     agent-chat.ts     # built — box-agent-chat thread, citation chips, HITL action cards
+  notifications/
+    types.ts          # built — notification model + grouping/unread engine
+    notification-bell.ts  # built — box-notification-bell unread count trigger
+    notification-inbox.ts # built — box-notification-inbox triage panel
   audit/
     types.ts          # built — aggregation engine over the timeline event contract
     audit-log.ts      # built — box-audit-log grouped/faceted/exportable audit surface
@@ -219,6 +223,17 @@ audit view without a second model:
 - composed surface: `box-audit-log` (collapsible sections with counts and actor tallies, region wired to its toggle; a stable toolbar — group-by, actor/action facets, date range — built once and patched in place, so a re-render below can never close an open dropdown or drop a half-typed date; correlation-id drill-down to one workflow run with a clear affordance; `export-requested` carrying CSV of exactly what the filters left on screen; collapsing is a state flip rather than a rebuild; unsafe evidence hrefs downgrade to buttons) — **built**
 - composed surface: `box-activity-density` (managerial throughput heatmap: days with activity are labelled buttons in a roving-tabindex grid — arrows move by day and by week, Home/End jump to the window's ends — each emitting `day-selected` with that day's events; quiet days are inert cells, so tab stops stay proportional to real activity) — **built**
 - Day keys, day labels, and row timestamps are all resolved in UTC, so a viewer's timezone can never split one audit day across two sections. Aggregation is client-side: server-side paging and row virtualization for production-scale logs are tracked depth limitations.
+
+### Notifications (composition)
+
+The triage surface for approvals waiting, SLA breaches, and mentions —
+toasts are transient and unordered, which is the wrong shape for work you
+have to come back to:
+
+- `types` (pure engine: `groupNotifications` — sections by `type` leading with the most unread, then the most items, then label, so what needs attention rises and order never depends on input order; inside a section unread lead read, then newest first, with undated records sinking; `countUnreadNotifications`; an open `type` vocabulary humanized into headings unless the host supplies `type-labels`) — **built**
+- composed surface: `box-notification-bell` (unread count for the app chrome — the count is the *accessible name*, "Notifications, 3 unread", because a red dot alone tells a screen-reader user nothing; past `max` the badge abbreviates to `9+` while the label keeps the true number, since the abbreviation is a layout concession and the number is the fact; derives its count from records when given them, or takes a bare `unread-count` when the host keeps the list server-side) — **built**
+- composed surface: `box-notification-inbox` (grouped triage panel with All/Unread filtering, per-row Mark read / Dismiss, and bulk Mark all read; unsafe entity hrefs downgrade to plain text; focus is sampled and restored across rebuilds so acting on a row does not drop the reader to the top) — **built**
+- **Mutations are intents, never local state changes.** The element does not mark anything read on its own — the host owns the write and feeds back a new list, so the inbox can never disagree with the server about what has been seen. Server-side paging is a tracked depth limitation.
 
 ### Preview (workflow + compositions)
 

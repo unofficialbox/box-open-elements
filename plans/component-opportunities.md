@@ -125,10 +125,10 @@ static-shell depth. One work-item model, two projections:
   In Review → Approved → Executed), Salesforce-Path-style; every record
   header wants it. (`box-progress-steps` is a vertical setup rail — a
   different affordance.)
-- **Notification inbox** — bell + inbox panel (read/unread, entity
-  links, grouped by type) for approvals waiting / SLA breaches /
-  mentions; toasts are the wrong UX for triage. Composes
-  `drawer`/`popover` + `datalist-item` + `badgeable`.
+- **Notification inbox** — *built*: `box-notification-bell` +
+  `box-notification-inbox` (read/unread filtering, entity links, grouped
+  by type, per-row and bulk intents) for approvals waiting / SLA breaches
+  / mentions; toasts are the wrong UX for triage.
 - **Wizard review-summary card** — auto summary of collected values with
   per-step Edit links for the final `form-wizard` step.
 - **`box-due-badge`** — SLA/aging urgency with overdue tones and `<time>`
@@ -157,8 +157,9 @@ static-shell depth. One work-item model, two projections:
 6. **Audit aggregation layer** (opportunity 3) — *built* (round 4i):
    `box-audit-log` (grouping, facets, correlation drill-down, CSV export)
    and `box-activity-density` over the timeline event contract. Remaining
-   in this slot: notification inbox + the micro-components above. The
-   **command palette** (CLM gap 4) landed as `box-command-palette`.
+   in this slot: the micro-components above. The **command palette** (CLM
+   gap 4) landed as `box-command-palette`, and the **notification inbox**
+   as `box-notification-bell` + `box-notification-inbox`.
 
 Docs-site integration (registry/examples/stories + one baseline regen)
 and the CLM-flavoured composition Build Along ride alongside these in
