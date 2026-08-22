@@ -279,6 +279,11 @@
   </div>
   <div class="row">
     <div class="col">
+      <box-run-trace id="gallery-run-trace" heading="Generate documents — MSA_Acme v4"></box-run-trace>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
       <box-compare-view heading="Clause 4 — template vs executed" left-label="Template 2026" right-label="MSA_Acme v4" style="block-size: 15rem">
         <div slot="left">
           <h4>4.2 Limitation of Liability</h4>
@@ -755,6 +760,21 @@
     { id: "terms", label: "Key terms", description: "Value, dates, renewal" },
     { id: "review", label: "Review & submit", description: "Confirm the request" },
   ];
+  byId("gallery-run-trace").steps = [
+    { id: "gather", title: "Gather contract data", startedAt: "2026-08-12T09:00:00.000Z", finishedAt: "2026-08-12T09:00:18.000Z" },
+    {
+      id: "render", title: "Render documents", description: "Merging contract data into 3 templates.",
+      startedAt: "2026-08-12T09:00:18.000Z",
+      children: [
+        { id: "msa", label: "MSA_Acme.docx", progress: 100, status: "succeeded" },
+        { id: "sow", label: "SOW_Initech.docx", progress: 55, status: "running" },
+        { id: "dpa", label: "DPA_Acme.docx", status: "pending" },
+      ],
+    },
+    { id: "policy", title: "Policy checks" },
+    { id: "route", title: "Route for signature" },
+  ];
+
   byId("gallery-signature-ceremony").signatories = [
     { id: "morgan", name: "Morgan Lee", role: "Contract owner", signedAt: "2026-08-10T09:20:00.000Z" },
     { id: "avery", name: "Avery Chen", role: "General Counsel" },

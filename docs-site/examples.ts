@@ -39,6 +39,8 @@ import {
   clmProvenanceChain,
   clmSignatories,
   clmDeclinedSignatories,
+  clmRunSteps,
+  clmFailedRunSteps,
   clmStages,
   clmTeam,
   clmTimelineEvents,
@@ -1044,6 +1046,31 @@ export const examples: Record<string, ComponentExample> = {
           set(root, "box-signature-ceremony", { signatories: clmDeclinedSignatories });
         },
         note: "The rule the component exists for. The counterparty refused, so the **witness behind them is not invited to sign** — a declined document is dead until the host revives it, and a signature collected against it would be worse than useless. Note this holds in parallel mode too, where everyone otherwise could act.",
+      },
+    ],
+  },
+  "run-trace": {
+    html: `<box-run-trace heading="Generate documents — MSA_Acme v4"></box-run-trace>`,
+    setup: root => {
+      set(root, "box-run-trace", { steps: clmRunSteps });
+    },
+    note: "A machine execution trace, forward-chronological — deliberately not `box-timeline`, which is the newest-first *human* activity feed. `resolveRunSteps` is pure: an explicit status wins, a failure shadows everything queued behind it as *Skipped* (the same rule the signature ceremony applies after a decline), and timestamps derive running/succeeded/pending. The summary chip is a polite status region, so a run driven by attribute updates announces its own progress. Expand a step for its description, its child tasks with live `box-progress-bar` rows, and a `detail-<id>` slot for anything richer.",
+    variants: [
+      {
+        name: "Running, with child tasks",
+        html: `<box-run-trace heading="Generate documents — MSA_Acme v4"></box-run-trace>`,
+        setup: root => {
+          set(root, "box-run-trace", { steps: clmRunSteps });
+        },
+        note: "One step in flight; expand *Render documents* for its per-template children reporting live progress.",
+      },
+      {
+        name: "Failed",
+        html: `<box-run-trace heading="Generate documents — MSA_Acme v4"></box-run-trace>`,
+        setup: root => {
+          set(root, "box-run-trace", { steps: clmFailedRunSteps });
+        },
+        note: "The rule the engine enforces: after *Policy checks* fails, routing is **Skipped**, not queued — a dead run must not show work as still coming. The summary names the failed step.",
       },
     ],
   },

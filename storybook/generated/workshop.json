@@ -645,7 +645,7 @@
       "title": "Components/Collections/Table",
       "category": "Collections",
       "shortDescription": "A semantic, selectable data table.",
-      "docsDescription": "Columns and rows from JSON. `selection-mode=\"single|multiple\"` enables row selection: click, Ctrl/Cmd-click to toggle, Shift-click for a range; Arrow/Home/End move focus, Space toggles, Shift+Arrow extends, Ctrl/Cmd+A selects all, Escape clears. Sorting is host-owned — `sortable` headers emit `sort` and you reorder `rows`.",
+      "docsDescription": "Columns and rows from JSON. `selection-mode=\"single|multiple\"` enables row selection: click, Ctrl/Cmd-click to toggle, Shift-click for a range; Arrow/Home/End move focus, Space toggles, Shift+Arrow extends, Ctrl/Cmd+A selects all, Escape clears. **Sorting and selection are controlled**: `sortable` headers emit `sort` with `{key, direction}` and the table never reorders its own rows — you sort, set `sort-key`/`sort-direction`, and `aria-sort` follows; selection round-trips through `selectedIds` and `selection-changed`. Cells accept **descriptors** beyond plain text — `{kind: \"badge\"}` and `{kind: \"link\"}` objects the table renders itself. Deliberately never an HTML string or a render callback: cell data is server-supplied and stays escaped, and a non-http(s) href renders as plain text. Rows with `detail` get an expander and a full-width detail row (plus a `detail-<id>` slot for rich content); expanding is not selecting. `loading`, `error-text` and empty states are stated in words, and `stacked=\"always\"|\"auto\"` turns rows into labelled cards on narrow containers without losing grid semantics.",
       "sourceSnippet": "<box-table label=\"Files\" selection-mode=\"multiple\"></box-table>",
       "referenceRows": [
         {
@@ -676,7 +676,43 @@
           "kind": "event",
           "name": "sort",
           "type": "CustomEvent",
-          "description": "Fires when a sortable header is clicked."
+          "description": "Fires when a sortable header is activated (click or keyboard) — detail { key, direction }."
+        },
+        {
+          "kind": "event",
+          "name": "row-toggled",
+          "type": "CustomEvent",
+          "description": "A row's detail was expanded or collapsed — detail { rowId, expanded }."
+        },
+        {
+          "kind": "attribute",
+          "name": "loading",
+          "type": "boolean",
+          "description": "States 'Loading rows…' with a spinner and sets aria-busy."
+        },
+        {
+          "kind": "attribute",
+          "name": "error-text",
+          "type": "string",
+          "description": "Non-empty puts the body in an error state stating this text."
+        },
+        {
+          "kind": "attribute",
+          "name": "empty-text",
+          "type": "string",
+          "description": "What the body says with zero rows (default 'No rows')."
+        },
+        {
+          "kind": "attribute",
+          "name": "stacked",
+          "type": "\"always\" | \"auto\"",
+          "description": "Card layout for narrow containers; auto stacks under a 560px container query."
+        },
+        {
+          "kind": "slot",
+          "name": "detail-<id>",
+          "type": "slot",
+          "description": "Rich host content projected into that row's expanded detail."
         }
       ],
       "variants": [
@@ -687,6 +723,19 @@
         {
           "name": "Read-only",
           "html": "<box-table label=\"Files\" columns='[{\"key\":\"name\",\"label\":\"Name\",\"sortable\":true},{\"key\":\"owner\",\"label\":\"Owner\"},{\"key\":\"modified\",\"label\":\"Modified\",\"align\":\"end\"}]' rows='[{\"id\":\"123\",\"cells\":{\"name\":\"Quarterly Plan.pdf\",\"owner\":\"Morgan Lee\",\"modified\":\"Jul 10, 2026\"}},{\"id\":\"124\",\"cells\":{\"name\":\"Brand Guidelines.pdf\",\"owner\":\"Alex Kim\",\"modified\":\"Jun 2, 2026\"}},{\"id\":\"42\",\"cells\":{\"name\":\"Marketing\",\"owner\":\"Morgan Lee\",\"modified\":\"May 30, 2026\"}}]'></box-table>"
+        },
+        {
+          "name": "Descriptors and expandable rows",
+          "html": "<box-table label=\"Contracts\" columns='[{\"key\":\"name\",\"label\":\"Name\"},{\"key\":\"status\",\"label\":\"Status\"}]' rows='[{\"id\":\"1\",\"cells\":{\"name\":{\"kind\":\"link\",\"text\":\"MSA_Acme.pdf\",\"href\":\"https://example.com/f/1\"},\"status\":{\"kind\":\"badge\",\"text\":\"Approved\",\"tone\":\"success\"}},\"detail\":\"Uploaded by Morgan Lee on Jul 10, 2026.\"},{\"id\":\"2\",\"cells\":{\"name\":{\"kind\":\"link\",\"text\":\"SOW_Initech.pdf\",\"href\":\"https://example.com/f/2\"},\"status\":{\"kind\":\"badge\",\"text\":\"In review\",\"tone\":\"warning\"}}}]'></box-table>",
+          "note": "Badge and link cells are descriptors the table renders itself — never HTML strings. The first row expands."
+        },
+        {
+          "name": "Loading",
+          "html": "<box-table label=\"Files\" columns='[{\"key\":\"name\",\"label\":\"Name\",\"sortable\":true},{\"key\":\"owner\",\"label\":\"Owner\"},{\"key\":\"modified\",\"label\":\"Modified\",\"align\":\"end\"}]' rows='[]' loading></box-table>"
+        },
+        {
+          "name": "Empty",
+          "html": "<box-table label=\"Files\" columns='[{\"key\":\"name\",\"label\":\"Name\",\"sortable\":true},{\"key\":\"owner\",\"label\":\"Owner\"},{\"key\":\"modified\",\"label\":\"Modified\",\"align\":\"end\"}]' rows='[]' empty-text=\"No documents match your filter\"></box-table>"
         }
       ]
     },
@@ -2305,6 +2354,65 @@
       ]
     },
     {
+      "id": "run-trace",
+      "tag": "box-run-trace",
+      "title": "Patterns/Runs/Run Trace",
+      "category": "Runs",
+      "shortDescription": "Machine execution trace: a job, pipeline, or agent run, top-down.",
+      "docsDescription": "The execution surface for a job, pipeline, or agent run — deliberately not `box-timeline`, which is the newest-first *human* activity feed with actors and comments. A run reads forward, has one step in flight, and takes no comments. `resolveRunSteps` is pure and DOM-free, so a host can drive notifications or a retry-from-here affordance from the same rules the surface renders. Three rules, in priority order: **an explicit status wins**; **a failure shadows the queue behind it** — later steps derive `skipped`, never `pending`, because a dead run must not show work as still coming (the same rule `resolveCeremony` applies after a decline), while an explicit later status still overrides the shadow so a cleanup hook that ran anyway can say so; **timestamps decide the rest** — `finishedAt` means succeeded, `startedAt` alone means running, neither means pending. Every status is stated in words, the summary chip is a polite `role=\"status\"` region so attribute-driven live updates announce themselves, and per-step detail expands in place: description, child tasks composing `box-progress-bar`, and a `detail-<id>` slot for logs or links. Expansion survives steps updates — a live run must not snap shut on every patch.",
+      "sourceSnippet": "<box-run-trace heading=\"Generate documents\"></box-run-trace>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "steps",
+          "type": "json",
+          "description": "Step records: `id`, `title`, optional `description`, `status`, `startedAt`, `finishedAt`, `children` (each `id`, `label`, optional `progress` 0–100, `status`)."
+        },
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Panel title and its accessible name. Defaults to 'Run'."
+        },
+        {
+          "kind": "property",
+          "name": "resolution",
+          "type": "RunResolution",
+          "description": "Read-only: resolved per-step statuses, overall run status, and settled counts — same object the render uses."
+        },
+        {
+          "kind": "property",
+          "name": "expandedSteps",
+          "type": "string[]",
+          "description": "Read-only: ids of the steps whose detail is currently expanded."
+        },
+        {
+          "kind": "event",
+          "name": "step-toggled",
+          "type": "{ stepId, expanded }",
+          "description": "A step's detail was expanded or collapsed."
+        },
+        {
+          "kind": "slot",
+          "name": "detail-<id>",
+          "type": "slot",
+          "description": "Rich host content (logs, links) projected into that step's expanded detail."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Running, with child tasks",
+          "html": "<box-run-trace heading=\"Generate documents — MSA_Acme v4\"></box-run-trace>",
+          "note": "One step in flight; its per-template children report live progress."
+        },
+        {
+          "name": "Failed",
+          "html": "<box-run-trace heading=\"Generate documents — MSA_Acme v4\"></box-run-trace>",
+          "note": "After the failure, routing is Skipped — never still queued. The summary names the failed step."
+        }
+      ]
+    },
+    {
       "id": "stage-path",
       "tag": "box-stage-path",
       "title": "Components/Feedback/Stage Path",
@@ -3595,7 +3703,7 @@
       "title": "Components/Overlays/Drawer",
       "category": "Overlays",
       "shortDescription": "A side panel overlay for details and tasks.",
-      "docsDescription": "Toggle with `open`. Set `heading` and optional `description` / `position`.",
+      "docsDescription": "Toggle with `open` (reflected; `open-changed` reports both directions, and `show()`/`close()` are the imperative pair). **`dismiss` is cancelable and names its source** (close-button / backdrop / escape): call `preventDefault()` to keep the drawer open — that is the whole unsaved-changes guard, and the drawer learns nothing about your form. Slot `header` content under the heading and `footer` actions into the sticky footer row (rendered only when slotted). `size` presets small/medium/large/full scale the travel axis; under 640px every drawer is the whole screen. `busy` veils the body with a spinner and sets `aria-busy` while Close stays reachable. For a mobile nav drawer, slot a `box-nav-sidebar` straight into the body — that is the rail-to-drawer recipe.",
       "sourceSnippet": "<box-drawer heading=\"Details\" open></box-drawer>",
       "referenceRows": [
         {
@@ -3620,7 +3728,43 @@
           "kind": "attribute",
           "name": "position",
           "type": "string",
-          "description": "Edge the drawer anchors to."
+          "description": "Edge the drawer anchors to: right (default), left, bottom."
+        },
+        {
+          "kind": "attribute",
+          "name": "size",
+          "type": "\"small\" | \"medium\" | \"large\" | \"full\"",
+          "description": "Width preset for side drawers, height for the bottom sheet."
+        },
+        {
+          "kind": "attribute",
+          "name": "busy",
+          "type": "boolean",
+          "description": "Saving/loading veil over the body plus aria-busy; Close stays reachable."
+        },
+        {
+          "kind": "slot",
+          "name": "header",
+          "type": "slot",
+          "description": "Extra header content under the heading."
+        },
+        {
+          "kind": "slot",
+          "name": "footer",
+          "type": "slot",
+          "description": "Sticky footer actions; the row renders only when content is slotted."
+        },
+        {
+          "kind": "event",
+          "name": "open-changed",
+          "type": "CustomEvent",
+          "description": "Open state changed — detail { open }."
+        },
+        {
+          "kind": "event",
+          "name": "dismiss",
+          "type": "CustomEvent (cancelable)",
+          "description": "The user asked to close (close-button / backdrop / escape). preventDefault() keeps it open."
         }
       ],
       "variants": [
@@ -5093,7 +5237,7 @@
       "title": "Components/Layout/Nav Sidebar",
       "category": "Layout",
       "shortDescription": "A labelled, collapsible navigation rail for workspace shells.",
-      "docsDescription": "Slot header, navigation rows, and footer content; pair icon/label spans with `data-nav-icon` and `data-nav-label` for collapsed rails.",
+      "docsDescription": "Slot header, navigation rows, and footer content; pair icon/label spans with `data-nav-icon` and `data-nav-label` for collapsed rails. Nav rows are your own light-DOM anchors, so the common asks are host markup, not component API: **active item** — set `aria-current=\"page\"` on the active link and style `[aria-current=\"page\"]`; **badges** — drop a `box-badge` inside the row after the label. While collapsed the rail mirrors each row's label onto `aria-label` and `title` (hover tooltip) so icon-only rows keep their accessible names — host-authored names are never overwritten. **Rail to drawer on phones** is a composition: render the same `box-nav-sidebar` inside a `box-drawer` (`position=\"left\"`), which is already full-screen under 640px.",
       "sourceSnippet": "<box-nav-sidebar label=\"Workspace\"><button type=\"button\" aria-label=\"All Files\"><span data-nav-icon>A</span><span data-nav-label>All Files</span></button></box-nav-sidebar>",
       "referenceRows": [
         {
@@ -5806,7 +5950,7 @@
       "title": "Components/Feedback/Progress Steps",
       "category": "Feedback",
       "shortDescription": "A stepped progress indicator.",
-      "docsDescription": "Pass steps as JSON `items` and the active `value`.",
+      "docsDescription": "The vertical setup rail for a multi-step flow — for a horizontal record-lifecycle tracker use `box-stage-path`, and for a machine run with failures use `box-run-trace`. Steps derive complete/current/upcoming from their position relative to `value`; an optional per-item `status` (**complete, blocked, failed, disabled**) wins over the derivation, so out-of-order completion and stuck steps are expressible. Currency and condition are stated separately — a failed step can be the current one and stays clickable, while blocked and disabled steps are real disabled buttons that keyboard navigation skips. Every state is stated in words (blocked/failed/disabled visibly, with an optional `statusNote`; the positional states as screen-reader text), and a polite live region announces user-driven step changes. `resolveStepStates` is pure, so a host can decide whether Continue is enabled from the same rules the rail renders.",
       "sourceSnippet": "<box-progress-steps label=\"Migration\" items='[{\"label\":\"Scan\",\"value\":\"scan\"}]' value=\"scan\"></box-progress-steps>",
       "referenceRows": [
         {
@@ -5819,19 +5963,36 @@
           "kind": "attribute",
           "name": "items",
           "type": "json",
-          "description": "Array of { label, value, description? }."
+          "description": "Array of { label, value, description?, status?, statusNote? }; status is complete | blocked | failed | disabled."
         },
         {
           "kind": "attribute",
           "name": "value",
           "type": "string",
-          "description": "Active step value."
+          "description": "Active step value (controlled)."
+        },
+        {
+          "kind": "property",
+          "name": "resolvedSteps",
+          "type": "ResolvedProgressStep[]",
+          "description": "Read-only: per-step state, currency, and interactivity — same objects the render uses."
+        },
+        {
+          "kind": "event",
+          "name": "value-changed",
+          "type": "CustomEvent",
+          "description": "A step was selected — detail { value }."
         }
       ],
       "variants": [
         {
           "name": "Default",
           "html": "<box-progress-steps label=\"Migration\" items='[{\"label\":\"Scan\",\"value\":\"scan\"},{\"label\":\"Copy\",\"value\":\"copy\",\"description\":\"In progress\"},{\"label\":\"Verify\",\"value\":\"verify\"}]' value=\"copy\"></box-progress-steps>"
+        },
+        {
+          "name": "With statuses",
+          "html": "<box-progress-steps label=\"Workspace setup\" items='[{\"label\":\"Connect account\",\"value\":\"connect\",\"status\":\"complete\"},{\"label\":\"Configure sync\",\"value\":\"configure\",\"status\":\"failed\",\"statusNote\":\"Credentials were rejected\"},{\"label\":\"Choose folders\",\"value\":\"choose\"},{\"label\":\"Invite team\",\"value\":\"invite\",\"status\":\"blocked\",\"statusNote\":\"Fix configuration first\"},{\"label\":\"Archive import\",\"value\":\"archive\",\"status\":\"disabled\"}]' value=\"choose\"></box-progress-steps>",
+          "note": "Failed stays clickable — it is where the user needs to go. Blocked and disabled are real disabled buttons, skipped by arrow keys, with their condition stated in words."
         }
       ]
     },
@@ -6351,7 +6512,7 @@
       "title": "Components/Forms/Select",
       "category": "Forms",
       "shortDescription": "A single-select dropdown field.",
-      "docsDescription": "Form-associated select. Provide choices as JSON `options` and the current `value`. Options may carry a `group` (rendered as native `<optgroup>` dividers) and a `disabled` flag. Set `multiple` for a native multi-select list box — read/write the selection via the `values` array, and each choice mirrors into the form under the field `name`. (For a searchable, tokenised picker use `box-combobox` / `box-pill-selector-dropdown`.)",
+      "docsDescription": "Form-associated select. Provide choices as JSON `options` and the current `value`. Options may carry a `group` (rendered as native `<optgroup>` dividers) and a `disabled` flag. Set `multiple` for a native multi-select list box — read/write the selection via the `values` array, and each choice mirrors into the form under the field `name`. Like every form field it carries the shared contract: `required`, `description`, `invalid` + `error-message`, `hide-label`. For async options set `loading` — the control says 'Loading options…' with a spinner — and when a load comes back with nothing, the control states `empty-text` instead of sitting blank. (For a searchable, tokenised picker use `box-combobox` / `box-pill-selector-dropdown`.)",
       "sourceSnippet": "<box-select label=\"Owner\" options='[{\"label\":\"Morgan Lee\",\"value\":\"morgan\"}]' value=\"morgan\"></box-select>",
       "referenceRows": [
         {
@@ -6389,6 +6550,36 @@
           "name": "disabled",
           "type": "boolean",
           "description": "Makes the field inert."
+        },
+        {
+          "kind": "attribute",
+          "name": "loading",
+          "type": "boolean",
+          "description": "Trailing spinner; the control says 'Loading options…'."
+        },
+        {
+          "kind": "attribute",
+          "name": "empty-text",
+          "type": "string",
+          "description": "What the control says with zero options (default 'No options available')."
+        },
+        {
+          "kind": "attribute",
+          "name": "required",
+          "type": "boolean",
+          "description": "Shared field contract: required mark + aria-required."
+        },
+        {
+          "kind": "attribute",
+          "name": "description",
+          "type": "string",
+          "description": "Shared field contract: help text linked via aria-describedby."
+        },
+        {
+          "kind": "event",
+          "name": "value-changed",
+          "type": "CustomEvent",
+          "description": "Selection changed — detail { value, values? } (SelectValueChangedDetail)."
         }
       ],
       "variants": [
@@ -6407,6 +6598,14 @@
         {
           "name": "Disabled",
           "html": "<box-select label=\"Owner\" options='[{\"label\":\"Morgan Lee\",\"value\":\"morgan\"},{\"label\":\"Alex Kim\",\"value\":\"alex\"}]' value=\"morgan\" disabled></box-select>"
+        },
+        {
+          "name": "Loading",
+          "html": "<box-select label=\"Team\" loading description=\"Fetching teams…\"></box-select>"
+        },
+        {
+          "name": "Empty",
+          "html": "<box-select label=\"Team\" empty-text=\"No teams match your filter\"></box-select>"
         }
       ]
     },
@@ -6689,7 +6888,7 @@
       "title": "Components/Layout/Split View",
       "category": "Layout",
       "shortDescription": "A two-pane layout with optional pointer resizing.",
-      "docsDescription": "Slot primary content into `primary`, place secondary content in the default slot, and use `ratio` plus `resizable` to control the split.",
+      "docsDescription": "Slot primary content into `primary`, secondary content in the default slot, `ratio` plus `resizable` for the split. **Master-detail is a composition, not a split-view API**: put a `box-table` (controlled selection built in) or list in the primary pane, a detail surface (`box-item-details-panel`, `box-empty-state` before anything is selected, `box-skeleton` while it loads) in the secondary, and wire `selection-changed` to the detail — selection lives in the list, where it belongs. For narrow containers opt in with `collapse=\"auto\"`: the primary pane takes the full width and the secondary becomes a slide-over shown while you set `detail-open` (typically on selection). Escape asks via `detail-dismissed` and does not close anything itself — the host owns the state.",
       "sourceSnippet": "<box-split-view label=\"Master detail\" ratio=\"0.4\" resizable></box-split-view>",
       "referenceRows": [
         {
@@ -6709,6 +6908,24 @@
           "name": "resizable",
           "type": "boolean",
           "description": "Shows a draggable separator."
+        },
+        {
+          "kind": "attribute",
+          "name": "collapse",
+          "type": "\"auto\"",
+          "description": "Collapses to master-detail when the container narrows past 640px."
+        },
+        {
+          "kind": "attribute",
+          "name": "detail-open",
+          "type": "boolean",
+          "description": "Host-controlled: shows the secondary pane as a slide-over while collapsed."
+        },
+        {
+          "kind": "event",
+          "name": "detail-dismissed",
+          "type": "CustomEvent",
+          "description": "Escape asked to close the slide-over — clear detail-open to comply."
         },
         {
           "kind": "slot",
@@ -7016,7 +7233,7 @@
       "title": "Components/Forms/Text Field",
       "category": "Forms",
       "shortDescription": "A single-line labelled text input.",
-      "docsDescription": "Form-associated text input with label, optional placeholder, and validation hooks (`invalid`, `error-message`).",
+      "docsDescription": "Form-associated text input with label, optional placeholder, and the shared field contract every form field carries: `required`, `description`, `invalid` + `error-message`, `hide-label`. Forward `autocomplete` so password managers and autofill can classify the field — the shadow boundary hides anything written on the custom element itself. On `type=\"password\"`, opt into `reveal` for a Show/Hide toggle that swaps the inner input without changing the declared type; the word and `aria-pressed` state the toggle, and a revealed password re-hides whenever the field stops being a password.",
       "sourceSnippet": "<box-text-field label=\"Folder name\" placeholder=\"Marketing\"></box-text-field>",
       "referenceRows": [
         {
@@ -7068,6 +7285,36 @@
           "description": "Shows a trailing success check."
         },
         {
+          "kind": "attribute",
+          "name": "autocomplete",
+          "type": "string",
+          "description": "Forwarded to the inner input ('email', 'current-password', 'off', …)."
+        },
+        {
+          "kind": "attribute",
+          "name": "reveal",
+          "type": "boolean",
+          "description": "Show/Hide toggle on type=password; presentation-only swap."
+        },
+        {
+          "kind": "attribute",
+          "name": "required",
+          "type": "boolean",
+          "description": "Shared field contract: required mark + aria-required."
+        },
+        {
+          "kind": "attribute",
+          "name": "description",
+          "type": "string",
+          "description": "Shared field contract: help text linked via aria-describedby."
+        },
+        {
+          "kind": "event",
+          "name": "value-changed",
+          "type": "CustomEvent",
+          "description": "Value changed while typing — detail { value } (TextFieldValueChangedDetail)."
+        },
+        {
           "kind": "slot",
           "name": "icon",
           "type": "slot",
@@ -7108,6 +7355,11 @@
         {
           "name": "Loading",
           "html": "<box-text-field label=\"Workspace URL\" value=\"acme\" loading></box-text-field>"
+        },
+        {
+          "name": "Password with reveal",
+          "html": "<box-text-field label=\"Password\" type=\"password\" reveal autocomplete=\"current-password\" value=\"hunter2-plus-entropy\"></box-text-field>",
+          "note": "The toggle is a word, not an eye glyph, so the state is stated; aria-pressed carries it to AT."
         },
         {
           "name": "Valid",
