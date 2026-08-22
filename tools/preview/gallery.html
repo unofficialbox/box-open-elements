@@ -238,6 +238,35 @@
       <box-provenance-strip id="gallery-provenance-strip"></box-provenance-strip>
     </div>
   </div>
+  <div class="row">
+    <div class="col">
+      <box-agent-chat
+        id="gallery-agent-chat"
+        heading="Contract assistant"
+        agent-name="Box AI"
+        token="gallery-token"
+      ></box-agent-chat>
+    </div>
+    <div class="col">
+      <box-activity-density
+        id="gallery-activity-density"
+        heading="Activity density"
+        weeks="6"
+        reference-time="2026-08-13T12:00:00.000Z"
+      ></box-activity-density>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <box-audit-log
+        id="gallery-audit-log"
+        heading="Audit log"
+        group-by="day"
+        reference-time="2026-08-13T12:00:00.000Z"
+        exportable
+      ></box-audit-log>
+    </div>
+  </div>
 </section>
 
 <section id="section-specialized">
@@ -643,6 +672,48 @@
   byId("gallery-lineage-graph").nodes = clmLineage;
   byId("gallery-provenance-strip").nodes = [clmLineage[0], clmLineage[1], clmLineage[3]];
 
+  const clmAudit = [
+    { id: "au1", action: "Contract executed", actor: { name: "Avery Chen" }, summary: "MSA_Acme_v4 fully signed.", timestamp: "2026-08-13T09:12:00.000Z", tone: "success", badge: "Signature complete", correlationId: "wf-9042" },
+    { id: "au2", action: "Approval granted", actor: { name: "Morgan Lee" }, summary: "Liability cap deviation approved.", timestamp: "2026-08-13T08:05:00.000Z", tone: "brand", correlationId: "wf-9042" },
+    { id: "au3", action: "Policy check flagged clause 4.2", actor: { name: "Policy engine" }, timestamp: "2026-08-12T16:40:00.000Z", tone: "warning", badge: "Deviation: major", correlationId: "wf-9042" },
+    { id: "au4", action: "Redlined clause 4.2", actor: { name: "Sam Rivera" }, timestamp: "2026-08-12T11:20:00.000Z", correlationId: "wf-8871" },
+    { id: "au5", action: "Approval granted", actor: { name: "Morgan Lee" }, timestamp: "2026-08-11T14:02:00.000Z", tone: "brand", correlationId: "wf-8871" },
+    { id: "au6", action: "Access granted", actor: { name: "Avery Chen" }, timestamp: "2026-08-11T09:30:00.000Z", badge: "Permission change" },
+    { id: "au7", action: "Redlined clause 4.2", actor: { name: "Sam Rivera" }, timestamp: "2026-08-07T13:15:00.000Z" },
+    { id: "au8", action: "Intake submitted", actor: { name: "Jordan Blake" }, timestamp: "2026-08-03T10:00:00.000Z" },
+  ];
+  byId("gallery-audit-log").events = clmAudit;
+  byId("gallery-activity-density").events = clmAudit;
+
+  // The docs-site demo streams on a timer; the gallery is a pixel-diff
+  // baseline, so this transport delivers the whole reply synchronously and
+  // the send below is awaited before the ready flag flips.
+  const galleryAgentChat = byId("gallery-agent-chat");
+  galleryAgentChat.transport = {
+    async sendMessage(request) {
+      request.onEvent({
+        kind: "delta",
+        text: "Clause 4.2 caps liability at 2x fees, deviating from the 1x cap in Template 2026. Morgan Lee approved the deviation on Aug 11.",
+      });
+      request.onEvent({ kind: "citation", citation: { id: "c1", label: "MSA_Acme_v4 §4.2", href: "#lineage" } });
+      request.onEvent({
+        kind: "proposal",
+        proposal: {
+          id: "p1",
+          title: "Update Template 2026 to the 2x cap",
+          summary: "Aligns the template with the three agreements that already deviate.",
+          params: [
+            { label: "Current cap", value: "1x fees" },
+            { label: "Proposed cap", value: "2x fees" },
+          ],
+        },
+      });
+    },
+    async resolveAction({ proposalId, decision }) {
+      return { id: proposalId, title: "Update Template 2026 to the 2x cap", decision };
+    },
+  };
+
   const settled = (ready) =>
     new Promise((resolve, reject) => {
       let attempts = 0;
@@ -677,6 +748,10 @@
       items.some(item => item.status === "failed")
     );
   });
+
+  await settled(() => galleryAgentChat.chatController !== null);
+  await galleryAgentChat.send("Why does clause 4.2 deviate from the template?");
+  await settled(() => (galleryAgentChat.chatController?.getState().messages.length ?? 0) === 2);
 
   document.body.dataset.galleryReady = "true";
 </script>

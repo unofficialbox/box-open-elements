@@ -26,6 +26,8 @@ import {
   setupContentExplorerMetadataChrome,
 } from "./explorer-metadata-demo.js";
 import {
+  REFERENCE_TIME,
+  clmAuditEvents,
   clmClauseAfter,
   clmClauseBefore,
   clmIntakeSteps,
@@ -34,6 +36,7 @@ import {
   clmTeam,
   clmTimelineEvents,
   clmVersionHistory,
+  createAgentChatDemoTransport,
   createWorkQueueDemoTransport,
 } from "./clm-demo-data.js";
 import type { ContentPicker } from "../src/patterns/content-picker/content-picker.js";
@@ -108,6 +111,11 @@ const explorerAdapterSetup =
       selectItemId: options?.selectItemId ?? "123",
       itemId: options?.itemId,
     });
+
+/** Shared by every audit-log variant so they all render the same trail. */
+const auditLogSetup = (root: HTMLElement): void => {
+  set(root, "box-audit-log", { events: clmAuditEvents, referenceTime: REFERENCE_TIME });
+};
 
 const set = (root: HTMLElement, selector: string, props: Record<string, unknown>): void => {
   const element = root.querySelector(selector) as (HTMLElement & Record<string, unknown>) | null;
@@ -765,6 +773,59 @@ export const examples: Record<string, ComponentExample> = {
       set(root, "box-provenance-strip", { nodes: clmProvenanceChain });
     },
     note: "The high-frequency lineage sibling for record headers: linear ancestry oldest → newest, newest marked current, `node-selected` on activation.",
+  },
+  "agent-chat": {
+    html: `<box-agent-chat
+  heading="Contract assistant"
+  agent-name="Box AI"
+  placeholder="Ask about MSA_Acme_v4…"
+  token="demo-token"
+></box-agent-chat>`,
+    setup: root => {
+      set(root, "box-agent-chat", { transport: createAgentChatDemoTransport() });
+      // Ask the opening question so the preview shows a live stream rather
+      // than an empty thread; the composer stays usable throughout.
+      const chat = root.querySelector("box-agent-chat") as
+        | (HTMLElement & { send?: (body: string) => Promise<void> })
+        | null;
+      setTimeout(() => void chat?.send?.("Why does clause 4.2 deviate from the template?"), 400);
+    },
+    note: "Type a follow-up while the reply streams — the composer lives outside the patched thread region, so it never loses what you're typing. The reply lands with **citation chips** (deep links into the lineage and diff surfaces) and a **human-in-the-loop action card**: Approve/Reject render only because this transport implements `resolveAction`, while Modify is surfaced as intent for your own editor.",
+  },
+  "audit-log": {
+    html: `<box-audit-log heading="Audit log" group-by="day" exportable></box-audit-log>`,
+    setup: auditLogSetup,
+    note: "The same `TimelineEvent` records the flat feed renders, aggregated. Switch Day/Actor/Action to regroup, narrow with the facets, or click a monospace correlation id to drill down to one workflow run. Export CSV emits exactly what the filters left on screen. Day keys and labels are both UTC, so a row can never appear outside the day section holding it.",
+    // Every variant carries its own setup: the docs-site only keeps live
+    // setups when the *example* supplies the variants, so a page with
+    // workshop variants and a single example would render an empty log.
+    variants: [
+      {
+        name: "Grouped by day",
+        html: `<box-audit-log heading="Audit log" group-by="day" exportable></box-audit-log>`,
+        setup: auditLogSetup,
+        note: "Newest day first with counts and actor tallies. Collapsing a section is a state flip rather than a rebuild, so scroll position and focus survive.",
+      },
+      {
+        name: "Grouped by actor",
+        html: `<box-audit-log heading="Audit log" group-by="actor" exportable></box-audit-log>`,
+        setup: auditLogSetup,
+        note: "Sections by descending event count, ties broken by label so order never depends on input order; unattributed events land in a trailing section.",
+      },
+      {
+        name: "Drilled down to one workflow run",
+        html: `<box-audit-log heading="Audit log" group-by="day" facet-correlation-id="wf-9042" exportable></box-audit-log>`,
+        setup: auditLogSetup,
+        note: "The correlation drill-down with its clear affordance. Export CSV now emits only these rows — an export never widens past what the reader filtered to.",
+      },
+    ],
+  },
+  "activity-density": {
+    html: `<box-activity-density heading="Activity density" weeks="8"></box-activity-density>`,
+    setup: root => {
+      set(root, "box-activity-density", { events: clmAuditEvents, referenceTime: REFERENCE_TIME });
+    },
+    note: "Throughput at a glance. Days with activity are buttons in a roving-tabindex grid — arrows move by day and by week, Home/End jump to the window's ends — and each carries its own count and date as its accessible name, since colour alone carries no meaning. Selecting one emits `day-selected` with that day's events.",
   },
   "explorer-breadcrumbs": { html: `<box-explorer-breadcrumbs></box-explorer-breadcrumbs>`, setup: explorerAdapterSetup("box-explorer-breadcrumbs"), note: "Driven by a shared ContentExplorerController with a mock transport." },
   "explorer-toolbar": { html: `<box-explorer-toolbar></box-explorer-toolbar>`, setup: explorerAdapterSetup("box-explorer-toolbar"), note: "Driven by a shared ContentExplorerController with a mock transport." },
