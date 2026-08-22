@@ -10,96 +10,49 @@
 
 > **Community project — not affiliated with, authorized, or endorsed by Box, Inc.** “Box” is a trademark of Box, Inc. This library tracks Box’s public design language for interoperability; it ships no Box code.
 
-The library is organized around three layers:
+Browse the full catalog on the **[live docs site](https://unofficialbox.github.io/box-open-elements)** — live previews, an events/properties inspector, per-framework code snippets (React / Angular / Vue / Svelte / HTML), and the foundations pages.
+
+The library is organized around three layers (see [docs/taxonomy.md](./docs/taxonomy.md) for the canonical model):
 
 - **Foundations** — design decisions as data: tokens, color, typography, iconography, accessibility, theming
 - **Components** — accessible Web Components for single controls, organized by category
 - **Patterns** — combinations of components that address user objectives with sequences and flows: headless controllers, transport contracts, and composed workflow surfaces, grouped by Box noun
 
-See [docs/taxonomy.md](./docs/taxonomy.md) for the canonical model.
-
 Core implementation principles:
 
-- plain TypeScript modules, no React requirement in the core package
+- plain TypeScript modules, no React requirement in the core package — zero runtime dependencies
 - state and business logic separate from rendering: controllers and stores, not framework components
 - standard DOM events where a UI layer needs them
 - accessibility semantics and keyboard support as part of the component contract
 - injected transport contracts instead of SDK coupling
 
-## Preview
-
-[![The box-open-elements documentation site](https://raw.githubusercontent.com/unofficialbox/box-open-elements/main/docs/screenshots/docs-site/home.png)](https://unofficialbox.github.io/box-open-elements)
-
-The **[live docs site](https://unofficialbox.github.io/box-open-elements)** browses the full catalog with live previews, an events/properties inspector, per-framework code snippets (React / Angular / Vue / Svelte / HTML), and the foundations pages.
-
-Components track Box’s design language out of the box — tokens-driven, light and dark, keyboard-accessible:
-
-![A selection of form components — text field, search, select, checkboxes, radios, and a pill-selector dropdown](https://raw.githubusercontent.com/unofficialbox/box-open-elements/main/docs/screenshots/gallery/forms.png)
-
-## Setup
-
-This package uses Bun as its package manager and task runner.
+## Install
 
 ```bash
-bun install
+npm install @unofficialbox/box-open-elements
 ```
 
-## Common commands
-
-```bash
-bun run typecheck
-bun run test
-bun run test:coverage
-bun run build
-bun run verify
-bun run docs
-```
-
-`bun run docs` builds the library and serves the component-documentation site at `http://localhost:4600` — browse the full catalog with live previews, events/properties inspectors, and foundations pages.
-
-`bun run verify` is the main safety check and runs typecheck, **coverage-gated** tests (`test:coverage`), and build in sequence.
-
-## Current state
-
-Full catalog parity with the reference repo, plus every scoped gap the research surfaced:
-
-- `src/core` — typed event emitter, controller base class, `BaseElement` (in-place shadow DOM render contract), and `FormAssociatedElement` (native form participation + invalid state)
-- `src/foundations/tokens` — the design-system registry (tokens, icons, illustrations), the Box default bundle, and the Box dark bundle, retoned to Box's modernized Blueprint palette with an Inter typography baseline; shared interaction helpers (`interaction.ts`) for focus/hover/active/disabled
-- `src/foundations/motion` — shared duration/easing vocabulary and reduced-motion CSS helper
-- `src/foundations/profiles` — typed runtime profiles for density, geometry, typography, elevation, and motion
-- `src/foundations/icons` — the generated Box iconography manifest and alias layer
-- `tools/style-bridge` — CSS/SCSS → BOE token/selector bridge (`bun run style-bridge`; BUE explorer: `bun run style-bridge:bue-explorer`)
-- `src/components` — 78 components across all ten categories, including the Phase 5 gap fills (`box-chip`, `box-divider`, `box-calendar`, `box-tag-input`, `box-nav-sidebar`, `box-sidebar-toggle-button`, `box-grid-view`, `box-fieldset`, `box-section`, `box-error-mask`, `box-draggable-list`, `box-nudge`, `box-pill-cloud`, `box-pill-selector-dropdown`, `box-datalist-item`, `box-contact-datalist-item`, `box-category-selector`)
-- `src/patterns/content-explorer` — the full headless explorer stack (collection, navigation, selection, actions, facade controller, data-source contracts, Box transport, wire schemas) plus the `box-explorer-*` presentation adapters and the composed `box-content-explorer` surface
-- `src/patterns/{search,item,metadata,share,preview,file-request,task,governance,insights}` — all nine composition/workflow areas, including contracts and wire schemas for metadata and share, the provider-neutral preview adapter stack, the pluggable `box-preview-element`, and the share workflows (`box-presence`, `box-invite-collaborators-modal`, `box-unified-share-modal`, `box-access-stats`, `box-collaborator-avatars`)
-- `packages/box-server` — a dependency-free server-side adapter: CCG auth + REST client, Box-backed explorer/share/metadata data sources, DTO mappers, and framework-neutral route handlers (see [docs/integration/box-server.md](./docs/integration/box-server.md))
-- `packages/{react,angular,vue,svelte}` — lockstep `0.1.0` framework adapters for `Button`, `TextField`, `Select`, `Dialog`, and explorer selection composition. Progress is tracked in [docs/integration/framework-adapters.md](./docs/integration/framework-adapters.md).
-- `storybook/` — a Bun-native workshop: typed stories → identity-guarded extracted JSON → a self-contained, separately-deployable static site, with no Storybook/Vite runtime or consumer dependency (see [storybook/README.md](./storybook/README.md))
-- Docs site + CI — live GitHub Pages deploy, Storybook-backed variant dropdown, and a strict pixel-diff visual-regression gate in CI
-
-**Fidelity program**: complete — Batches 0–7, the medium/low audit nits, and the design-heavy leftovers have shipped.
-
-Everything in the [components catalog](./docs/components/catalog.md) and [patterns catalog](./docs/patterns/catalog.md) that carries a **built** marker is implemented here with dedicated tests. Remaining catalog entries are intentional generic-component gaps whose current implementations are explorer-bound; future additions are gap-driven rather than phase-gated ports.
-
-## Example: foundations + components
+Importing the root registers the full `box-*` catalog; flat entrypoints register only the imported component:
 
 ```ts
-import {
-  createThemeController,
-} from "@unofficialbox/box-open-elements/foundations/theming";
-import { Button } from "@unofficialbox/box-open-elements";
-
-const theme = createThemeController();
-theme.start();
+import { Accordion, Avatar, Button, Switch } from "@unofficialbox/box-open-elements";
+import { TextField } from "@unofficialbox/box-open-elements/text-field";
 ```
 
 ```html
 <box-button label="Save" tone="primary"></box-button>
 ```
 
-Components consume foundation tokens (`--boe-token-*`) with safe fallbacks, so they render sensibly with no design system registered and restyle automatically when one is active.
+Components consume foundation tokens (`--boe-token-*`) with safe fallbacks, so they render sensibly with no design system registered and restyle automatically when one is active:
 
-## Example: headless patterns
+```ts
+import { createThemeController } from "@unofficialbox/box-open-elements/foundations/theming";
+
+const theme = createThemeController();
+theme.start();
+```
+
+Workflow patterns begin as headless behavior and gain presentation adapters, so custom React components, Angular templates, Vue SFCs, Svelte components, Web Components, and plain DOM can all consume the same state:
 
 ```ts
 import { ExplorerSelectionController } from "@unofficialbox/box-open-elements/patterns/content-explorer/selection";
@@ -114,8 +67,6 @@ selection.setItems([{ id: "1" }, { id: "2" }]);
 selection.toggleSelection("1");
 ```
 
-Workflow patterns begin as headless behavior and gain presentation adapters, so custom React components, Angular templates, Vue SFCs, Svelte components, Web Components, and plain DOM can all consume the same state.
-
 ## Import contract
 
 - root exports: `@unofficialbox/box-open-elements`
@@ -124,15 +75,17 @@ Workflow patterns begin as headless behavior and gain presentation adapters, so 
 - optimized component entrypoints: `@unofficialbox/box-open-elements/<name>`
 - patterns: `@unofficialbox/box-open-elements/patterns/<area>` and `@unofficialbox/box-open-elements/patterns/<area>/<module>`
 
-The root entrypoint is the concise convenience API and registers the full
-catalog. Flat component entrypoints register only the imported component:
-
-```ts
-import { Accordion, Avatar, Button, Switch } from "@unofficialbox/box-open-elements";
-import { TextField } from "@unofficialbox/box-open-elements/text-field";
-```
-
 See [docs/api-guidelines.md](./docs/api-guidelines.md).
+
+## Developing
+
+This repo uses Bun as its package manager and task runner.
+
+```bash
+bun install
+bun run verify   # the main safety gate: typecheck, coverage-gated tests, build
+bun run docs     # build + serve the docs site at http://localhost:4600
+```
 
 ## Documentation
 
@@ -141,6 +94,7 @@ The docs index is at [docs/README.md](./docs/README.md). The most important entr
 - [Taxonomy](./docs/taxonomy.md)
 - [Architecture](./docs/architecture.md)
 - [API Guidelines](./docs/api-guidelines.md)
+- [Components catalog](./docs/components/catalog.md) and [patterns catalog](./docs/patterns/catalog.md)
 - [Using with React, Angular, Vue, and Svelte](./docs/integration/frameworks.md)
 - [Design Tokens](./docs/foundations/tokens.md)
 - [Content Explorer](./docs/patterns/content-explorer.md)
