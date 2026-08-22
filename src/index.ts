@@ -222,3 +222,4 @@ export * from "./patterns/file-request/index.js";
 export * from "./patterns/task/index.js";
 export * from "./patterns/governance/index.js";
 export * from "./patterns/insights/index.js";
+export * from "./element-maps.js";

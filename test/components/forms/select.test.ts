@@ -109,3 +109,77 @@ describe("Select", () => {
     expect(names).toEqual(["list", "grid"]);
   });
 });
+
+describe("Select loading/empty states (dispatch intake round 3)", () => {
+  beforeEach(() => {
+    Select.register();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  const OPTIONS = JSON.stringify([
+    { label: "Legal", value: "legal" },
+    { label: "Sales", value: "sales" },
+  ]);
+
+  const selectOf = (element: Select): HTMLSelectElement =>
+    element.shadowRoot?.querySelector('[part="select"]') as HTMLSelectElement;
+
+  it("states loading in words and shows the spinner while options load", () => {
+    const element = document.createElement("box-select") as Select;
+    element.setAttribute("loading", "");
+    document.body.append(element);
+
+    expect(selectOf(element).textContent).toContain("Loading options…");
+    expect(selectOf(element).options[0]?.disabled).toBe(true);
+    expect(
+      element.shadowRoot?.querySelector('[part="control"]')?.getAttribute("data-status"),
+    ).toBe("loading");
+    expect(element.shadowRoot?.querySelector('[part="spinner"]')).not.toBeNull();
+  });
+
+  it("states emptiness instead of rendering a silently blank control", () => {
+    const element = document.createElement("box-select") as Select;
+    document.body.append(element);
+
+    expect(selectOf(element).textContent).toContain("No options available");
+    expect(selectOf(element).options[0]?.disabled).toBe(true);
+    // No spinner when merely empty.
+    expect(element.shadowRoot?.querySelector('[part="spinner"]')).toBeNull();
+  });
+
+  it("honours a custom empty-text", () => {
+    const element = document.createElement("box-select") as Select;
+    element.setAttribute("empty-text", "No teams match your filter");
+    document.body.append(element);
+
+    expect(selectOf(element).textContent).toContain("No teams match your filter");
+  });
+
+  it("clears the loading state and renders real options when they arrive", () => {
+    const element = document.createElement("box-select") as Select;
+    element.setAttribute("loading", "");
+    document.body.append(element);
+
+    element.removeAttribute("loading");
+    element.setAttribute("options", OPTIONS);
+
+    expect(selectOf(element).options.length).toBe(2);
+    expect(selectOf(element).textContent).not.toContain("Loading options…");
+    expect(
+      element.shadowRoot?.querySelector('[part="control"]')?.hasAttribute("data-status"),
+    ).toBe(false);
+  });
+
+  it("rejects malformed option payloads whole", () => {
+    const element = document.createElement("box-select") as Select;
+    element.setAttribute("options", JSON.stringify([{ label: "ok", value: "ok" }, { nope: true }]));
+    document.body.append(element);
+
+    expect(element.options).toEqual([]);
+    // And the control says so rather than showing half a list.
+    expect(selectOf(element).textContent).toContain("No options available");
+  });
+});

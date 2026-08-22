@@ -95,6 +95,39 @@ describe("Table", () => {
     expect(sorted.mock.calls[0][0].detail).toEqual({ key: "name", direction: "ascending" });
   });
 
+  it("renders sortable headers as real buttons so sorting is keyboard-reachable", () => {
+    const el = create("none");
+    // A native button gives focus, Enter and Space for free; a bare th with a
+    // click listener gives none of them.
+    const button = el.shadowRoot?.querySelector(
+      'th[part="sortable"] button[part="sort-button"]',
+    ) as HTMLButtonElement | null;
+    expect(button).not.toBeNull();
+
+    const sorted = vi.fn();
+    el.addEventListener("sort", sorted);
+    button!.click(); // what the browser synthesises for Enter/Space on a button
+    expect(sorted).toHaveBeenCalledTimes(1);
+    expect(sorted.mock.calls[0][0].detail).toEqual({ key: "name", direction: "ascending" });
+
+    // Non-sortable headers stay plain.
+    const headers = Array.from(el.shadowRoot!.querySelectorAll("thead th"));
+    expect(headers[1]?.querySelector("button")).toBeNull();
+  });
+
+  it("states the sort state in the button's accessible name", () => {
+    const el = create("none");
+    const buttonName = (): string =>
+      el.shadowRoot
+        ?.querySelector('button[part="sort-button"]')
+        ?.getAttribute("aria-label") ?? "";
+    expect(buttonName()).toBe("Sort by Name, not sorted");
+
+    el.setAttribute("sort-key", "name");
+    el.setAttribute("sort-direction", "descending");
+    expect(buttonName()).toBe("Sort by Name, sorted descending");
+  });
+
   it("does not select when selection-mode is none", () => {
     const el = create("none");
     const changed = vi.fn();
