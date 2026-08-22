@@ -218,6 +218,58 @@ export const groupCommandMatches = (matches: readonly CommandMatch[]): CommandGr
   return [...ordered.filter(group => group.key !== COMMAND_UNGROUPED_KEY), trailing];
 };
 
+export interface ShortcutGroup {
+  key: string;
+  label: string;
+  commands: CommandDescriptor[];
+}
+
+/**
+ * The commands that declare a keyboard shortcut, grouped for a shortcuts
+ * sheet. Takes the same catalogue the palette does, so one list drives both
+ * surfaces and a shortcut can never be documented but unreachable — or
+ * reachable but undocumented.
+ *
+ * Groups keep catalogue order, with the ungrouped section trailing, matching
+ * how the palette sections its results.
+ */
+export const groupShortcutCommands = (
+  commands: readonly CommandDescriptor[],
+): ShortcutGroup[] => {
+  const groups = new Map<string, ShortcutGroup>();
+
+  for (const command of commands) {
+    if (!command.shortcut) {
+      continue;
+    }
+    const key = command.group ?? COMMAND_UNGROUPED_KEY;
+    let group = groups.get(key);
+    if (!group) {
+      group = { key, label: key || COMMAND_UNGROUPED_LABEL, commands: [] };
+      groups.set(key, group);
+    }
+    group.commands.push(command);
+  }
+
+  const ordered = [...groups.values()];
+  const trailing = groups.get(COMMAND_UNGROUPED_KEY);
+  if (!trailing) {
+    return ordered;
+  }
+  return [...ordered.filter(group => group.key !== COMMAND_UNGROUPED_KEY), trailing];
+};
+
+/**
+ * Split a shortcut string into its keys: `mod+shift+k` → `["mod","shift","k"]`.
+ * Rendering each key separately is what lets a sheet show them as `<kbd>`
+ * elements rather than one opaque run of text.
+ */
+export const splitShortcutKeys = (shortcut: string): string[] =>
+  shortcut
+    .split("+")
+    .map(part => part.trim())
+    .filter(Boolean);
+
 /** Split a label into highlighted and plain runs for rendering. */
 export const splitCommandLabel = (
   label: string,
