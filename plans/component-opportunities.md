@@ -129,8 +129,13 @@ static-shell depth. One work-item model, two projections:
   `box-notification-inbox` (read/unread filtering, entity links, grouped
   by type, per-row and bulk intents) for approvals waiting / SLA breaches
   / mentions; toasts are the wrong UX for triage.
-- **Wizard review-summary card** — auto summary of collected values with
-  per-step Edit links for the final `form-wizard` step.
+- **Wizard review-summary card** — *built*: `box-wizard-summary`, the
+  review step's auto summary of collected values grouped by the step that
+  collected them, with a per-step Edit intent. Sections follow step order
+  so the summary reads back in the sequence it was filled in, and a field
+  naming a step that does not exist surfaces in a trailing section rather
+  than vanishing — a review card that silently drops a row lets someone
+  confirm a value they were never shown.
 - **`box-due-badge`** — *built*: SLA/aging urgency with overdue tones,
   stating aging in days rather than a bare date. The work-queue already
   implements the affordance inline; both now share one `resolveDueBucket`

@@ -10,6 +10,30 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Wizard review step: `box-wizard-summary`, the card that shows everything a
+  `box-form-wizard` has collected, grouped by the step that collected it,
+  with a per-step Edit control.
+
+  It is read-only and emits `edit-requested` rather than navigating itself,
+  so the host stays in charge of the wizard — the same intent contract the
+  other patterns use. `summarizeWizardValues` and `formatWizardValue` are
+  pure, so a host can drive its own review surface from the same functions.
+
+  Two decisions are load-bearing. Sections follow **step order**, not the
+  order fields were declared, so the summary reads back in the sequence it
+  was filled in. And a field naming a step that does not exist lands in a
+  trailing section instead of being dropped — a review card exists so
+  someone can confirm what they are about to submit, and a mistyped `stepId`
+  silently hiding a row would let them confirm a value they never saw. A
+  visibly odd extra section is a bug someone reports; a missing row is a bug
+  nobody notices.
+
+  Smaller things that matter: `false` renders as "No" rather than a blank,
+  because a false answer is an answer and must not read as unanswered; an
+  uncollected field renders a placeholder rather than an empty line; and
+  each Edit control is named for its step, since five buttons all called
+  "Edit" tell a screen-reader user nothing about which one goes where.
+
 - Visual baselines are now deterministic. Three separate sources of churn
   meant a screenshot could change without the UI changing, so every regen
   needed forensic work to tell a real change from noise — the last batch
