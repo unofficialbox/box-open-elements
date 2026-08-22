@@ -75,6 +75,13 @@ describe("splitShortcutKeys", () => {
     expect(splitShortcutKeys("?")).toEqual(["?"]);
     expect(splitShortcutKeys("")).toEqual([]);
   });
+
+  it("keeps a literal + as its own key", () => {
+    // "mod++" is how the zoom shortcut is written: mod, then the plus key.
+    expect(splitShortcutKeys("mod++")).toEqual(["mod", "+"]);
+    expect(splitShortcutKeys("ctrl + +")).toEqual(["ctrl", "+"]);
+    expect(splitShortcutKeys("+")).toEqual(["+"]);
+  });
 });
 
 describe("box-shortcuts-overlay", () => {
@@ -145,7 +152,9 @@ describe("box-shortcuts-overlay", () => {
       await flush();
 
       expect(element.open).toBe(false);
-      expect(dismissed).toHaveBeenCalled();
+      // Exactly once: Escape from inside the sheet also reaches the document
+      // listener, which must see `open` already cleared and stand down.
+      expect(dismissed).toHaveBeenCalledTimes(1);
       element.remove();
     }
   });
@@ -196,12 +205,65 @@ describe("box-shortcuts-overlay", () => {
     expect(element.open).toBe(false);
   });
 
-  it("ignores the hotkey when a modifier is held", async () => {
+  it("sees a field inside a shadow root, not the host it retargets to", async () => {
     const element = await mount();
 
-    document.dispatchEvent(new KeyboardEvent("keydown", { key: "?", ctrlKey: true, bubbles: true }));
+    // This library wraps native controls in shadow DOM (box-text-field and
+    // friends), and `event.target` on a document listener is retargeted to the
+    // host. Reading `target` would see the wrapper and steal the character.
+    const wrapper = document.createElement("div");
+    document.body.append(wrapper);
+    const shadow = wrapper.attachShadow({ mode: "open" });
+    const input = document.createElement("input");
+    shadow.append(input);
+
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "?", bubbles: true, composed: true }),
+    );
     await flush();
+
     expect(element.open).toBe(false);
+  });
+
+  it("ignores the hotkey when any modifier is held", async () => {
+    const element = await mount();
+
+    for (const modifier of ["ctrlKey", "metaKey", "altKey"]) {
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "?", [modifier]: true, bubbles: true }),
+      );
+      await flush();
+      expect(element.open).toBe(false);
+    }
+  });
+
+  it("does nothing when the hotkey fires while the sheet is already open", async () => {
+    const element = await mount(el => (el.open = true));
+    const dismissed = vi.fn();
+    element.addEventListener("dismissed", dismissed);
+
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "?", bubbles: true }));
+    await flush();
+
+    expect(element.open).toBe(true);
+    expect(dismissed).not.toHaveBeenCalled();
+  });
+
+  it("closes on Escape even when focus has left the sheet", async () => {
+    const element = await mount(el => (el.open = true));
+    const outside = document.createElement("button");
+    document.body.append(outside);
+    outside.focus();
+
+    const dismissed = vi.fn();
+    element.addEventListener("dismissed", dismissed);
+
+    outside.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    await flush();
+
+    expect(element.open).toBe(false);
+    // A modal that only closes while it still holds focus is a trap.
+    expect(dismissed).toHaveBeenCalledTimes(1);
   });
 
   it("honours a custom hotkey and an empty one", async () => {
