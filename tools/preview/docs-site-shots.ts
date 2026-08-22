@@ -65,6 +65,7 @@ const routes: Array<[name: string, hash: string, readyMarker: string, scrollTo?:
   ["patterns-wizard-summary", "#patterns/wizard-summary", "patterns/wizard-summary"],
   ["patterns-timeline", "#patterns/timeline", "patterns/timeline"],
   ["patterns-diff-viewer", "#patterns/diff-viewer", "patterns/diff-viewer"],
+  ["patterns-compare-view", "#patterns/compare-view", "patterns/compare-view"],
   ["patterns-work-queue", "#patterns/work-queue", "patterns/work-queue"],
   ["patterns-workload-board", "#patterns/workload-board", "patterns/workload-board"],
   ["patterns-version-list", "#patterns/version-list", "patterns/version-list"],

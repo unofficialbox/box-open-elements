@@ -10,6 +10,18 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Docs-site, workshop, and gallery coverage for `box-compare-view`
+  (137 extracted workshop stories), with two slotted contract sections of
+  **different lengths** so the page demonstrates why the default is
+  proportional rather than merely asserting it.
+
+- Fixed `box-compare-view` ignoring a height set on the element. The frame's
+  `block-size: 100%` resolved against the internal host wrapper, which had
+  auto height, so the panes sized to their content, never overflowed, and the
+  scroll lock had nothing to do — the component's whole purpose was inert in
+  its most obvious usage. Building the docs page is what surfaced it: the
+  demo scrolled nowhere.
+
 - Synchronized-scroll comparison shell: `box-compare-view`, scroll-locked
   side-by-side panes for doc-vs-doc review — the cases the diff table cannot
   serve, where the things being compared are rendered documents rather than

@@ -37,6 +37,7 @@ import agentChat from "./stories/agent-chat.stories.js";
 import commandPalette from "./stories/command-palette.stories.js";
 import shortcutsOverlay from "./stories/shortcuts-overlay.stories.js";
 import wizardSummary from "./stories/wizard-summary.stories.js";
+import compareView from "./stories/compare-view.stories.js";
 import stagePath from "./stories/stage-path.stories.js";
 import dueBadge from "./stories/due-badge.stories.js";
 import notificationBell from "./stories/notification-bell.stories.js";
@@ -181,6 +182,7 @@ export const storyModules: StoryModule[] = [
   commandPalette,
   shortcutsOverlay,
   wizardSummary,
+  compareView,
   stagePath,
   dueBadge,
   notificationBell,
