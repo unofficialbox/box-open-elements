@@ -264,6 +264,22 @@
       <box-notification-bell id="gallery-notification-bell" label="Notifications"></box-notification-bell>
     </div>
   </div>
+  <!-- box-shortcuts-overlay is deliberately absent: like the command palette it
+       is a fixed full-viewport overlay, so mounting it here would cover the
+       whole sheet rather than add a row to it. -->
+  <div class="row">
+    <div class="col">
+      <box-stage-path id="gallery-stage-path" label="Contract lifecycle" current="in-review"></box-stage-path>
+    </div>
+    <div class="col">
+      <box-due-badge due-at="2026-08-10T17:00:00.000Z" reference-time="2026-08-13T12:00:00.000Z"></box-due-badge>
+      <box-due-badge due-at="2026-08-13T17:00:00.000Z" reference-time="2026-08-13T12:00:00.000Z"></box-due-badge>
+      <box-due-badge due-at="2026-08-14T09:00:00.000Z" reference-time="2026-08-13T12:00:00.000Z"></box-due-badge>
+      <box-due-badge due-at="2026-08-18T09:00:00.000Z" reference-time="2026-08-13T12:00:00.000Z"></box-due-badge>
+      <box-due-badge due-at="2026-09-04T09:00:00.000Z" reference-time="2026-08-13T12:00:00.000Z"></box-due-badge>
+      <box-due-badge reference-time="2026-08-13T12:00:00.000Z"></box-due-badge>
+    </div>
+  </div>
   <div class="row">
     <div class="col">
       <box-audit-log
@@ -703,6 +719,14 @@
   byId("gallery-notification-inbox").notifications = clmNotifications;
   byId("gallery-notification-inbox").typeLabels = { "sla-breach": "SLA breaches", approval: "Approvals", mention: "Mentions" };
   byId("gallery-notification-bell").notifications = clmNotifications;
+
+  byId("gallery-stage-path").stages = [
+    { id: "draft", label: "Draft" },
+    { id: "in-review", label: "In review", description: "Second-line approval with Morgan Lee" },
+    { id: "approved", label: "Approved" },
+    { id: "signature", label: "Out for signature" },
+    { id: "executed", label: "Executed" },
+  ];
 
   // The docs-site demo streams on a timer; the gallery is a pixel-diff
   // baseline, so this transport delivers the whole reply synchronously and

@@ -10,6 +10,23 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Docs-site, workshop, and gallery coverage for the three elements that
+  landed since the last docs batch: `box-shortcuts-overlay`,
+  `box-stage-path`, and `box-due-badge`. Registry entries, live examples with
+  per-variant setups, Storybook stories (135 extracted workshop stories), a
+  gallery row, and three docs-site shot routes.
+
+  The shortcuts sheet is fed the **same** `clmCommands` array the command
+  palette gets, which is the demonstration the component exists for — so
+  `clmCommands` gained more shortcuts, written with `+` separators since that
+  is what the sheet splits on to render each key as its own `<kbd>`. The
+  palette's hints change with it, which is the point: one catalogue, two
+  surfaces, no way to document a shortcut the palette does not offer.
+
+  `box-shortcuts-overlay` is deliberately absent from the pixel-diff gallery.
+  Like the palette it is a fixed full-viewport overlay, so mounting it there
+  would cover the sheet rather than add a row to it.
+
 - Keyboard shortcuts overlay: `box-shortcuts-overlay`, the pair to
   `box-command-palette` that makes keyboard-first real.
   It reads the **same** `CommandDescriptor[]` the palette does and lists only
