@@ -23,7 +23,10 @@ import {
 } from "./shared.js";
 import { isSafeHref } from "../internal/safe-href.js";
 import { isTimelineEventRecord, resolveTimelineTone } from "../timeline/types.js";
-import { BaseElement } from "../../core/index.js";
+import { BaseElement, sameRowWindow } from "../../core/index.js";
+import type { RowWindow } from "../../core/index.js";
+import { flattenAuditRows, planAuditWindow } from "./window.js";
+import type { AuditRowHeights, AuditWindowPlan } from "./window.js";
 import { boeInputControlStyles, boePanel, boeRadius } from "../../foundations/geometry/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
@@ -166,6 +169,20 @@ const elementStyles = `
         [part="groups"] {
           display: grid;
           gap: 0.5rem;
+        }
+
+        /* Windowing needs a bounded viewport to scroll within:
+           --boe-audit-height is the host's knob, defaulting to a page-sized
+           band. */
+        :host([virtualize]) [part="groups"] {
+          max-block-size: var(--boe-audit-height, 32rem);
+          overflow-y: auto;
+        }
+
+        [part="spacer"] {
+          /* The grid gap must not apply to the spacers, or the scroll range
+             gains a gap's height at each end and the content drifts. */
+          margin-block: calc(-0.25rem);
         }
 
         [part="group"] {
@@ -346,8 +363,9 @@ const elementStyles = `
  * sections with counts, narrowed by facets and a date range, drillable to one
  * workflow run by correlation id, and exportable as CSV.
  *
- * Aggregation is client-side and pure. Server-side paging and row
- * virtualization for production-scale logs are tracked depth limitations.
+ * Aggregation is client-side and pure. `virtualize` windows the log for
+ * production-scale volumes; server-side paging remains a tracked depth
+ * limitation.
  */
 export class AuditLog extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
@@ -364,6 +382,9 @@ export class AuditLog extends BaseElement {
       "group-by",
       "heading",
       "reference-time",
+      "virtualize",
+      "row-height",
+      "heading-height",
     ];
   }
 
@@ -397,6 +418,17 @@ export class AuditLog extends BaseElement {
 
   /** Section keys the reader has collapsed. Absent means expanded. */
   private collapsedGroups = new Set<string>();
+
+  /** The row window the last render used; null when it rendered everything. */
+  private lastWindow: RowWindow | null = null;
+
+  private scrollFrame = 0;
+
+  private measuredHeights: AuditRowHeights | null = null;
+
+  private measureFrame = 0;
+
+  private viewportObserver: ResizeObserver | null = null;
 
   private contentSignature = "";
 
@@ -504,6 +536,17 @@ export class AuditLog extends BaseElement {
     return filterAuditEvents(this.events, this.facets);
   }
 
+  /**
+   * The sections the current facets and grouping produce.
+   *
+   * Public because windowing takes away the alternative: a host used to be
+   * able to read the sections off the DOM, and once only a slice is rendered,
+   * that stops being the whole picture.
+   */
+  get groups(): AuditGroup[] {
+    return this.currentGroups();
+  }
+
   toggleGroup(key: string, expanded?: boolean): void {
     const next = expanded ?? this.collapsedGroups.has(key);
     if (next) {
@@ -558,6 +601,19 @@ export class AuditLog extends BaseElement {
     return csv;
   }
 
+  disconnectedCallback(): void {
+    // The observer holds a reference to the scroller and the pending frames
+    // hold one to the element; a log removed mid-scroll should not keep either
+    // alive, or re-render into a shadow root nobody is looking at.
+    this.viewportObserver?.disconnect();
+    this.viewportObserver = null;
+    if (this.scrollFrame) cancelAnimationFrame(this.scrollFrame);
+    if (this.measureFrame) cancelAnimationFrame(this.measureFrame);
+    this.scrollFrame = 0;
+    this.measureFrame = 0;
+    super.disconnectedCallback?.();
+  }
+
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     // A different grouping dimension mints different section keys, so the
     // collapse state from the old dimension cannot be carried over.
@@ -565,6 +621,94 @@ export class AuditLog extends BaseElement {
       this.collapsedGroups.clear();
     }
     super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  /**
+   * Render only the sections near the viewport. Opt-in for the same reason
+   * `box-table`'s is: a windowed surface needs a bounded height to scroll
+   * within, and silently windowing an unbounded one would render nothing.
+   *
+   * Unlike the table, this *can* window a grouped, variable-height surface —
+   * it plans over a cumulative offset index rather than a row count times a
+   * row height. Grouping is the whole point of an audit log, so refusing to
+   * window it would mean refusing the only shape it comes in.
+   */
+  get virtualize(): boolean {
+    return this.hasAttribute("virtualize");
+  }
+
+  set virtualize(value: boolean) {
+    this.toggleAttribute("virtualize", Boolean(value));
+  }
+
+  /**
+   * Starting height estimates, in pixels — not contracts. The real heights
+   * depend on density, font, and how much an event's summary wraps; after the
+   * first paint the element measures one of each and uses that instead.
+   */
+  get rowHeight(): number {
+    return this.measuredHeights?.event ?? this.declaredHeight("row-height", 76);
+  }
+
+  get headingHeight(): number {
+    return this.measuredHeights?.heading ?? this.declaredHeight("heading-height", 40);
+  }
+
+  set rowHeight(value: number) {
+    this.measuredHeights = null;
+    this.setAttribute("row-height", String(value));
+  }
+
+  set headingHeight(value: number) {
+    this.measuredHeights = null;
+    this.setAttribute("heading-height", String(value));
+  }
+
+  private declaredHeight(attribute: string, fallback: number): number {
+    const raw = Number(this.getAttribute(attribute));
+    return Number.isFinite(raw) && raw > 0 ? raw : fallback;
+  }
+
+  /** The window the last render used, or null when it rendered every section. */
+  get renderedWindow(): RowWindow | null {
+    return this.virtualize ? this.lastWindow : null;
+  }
+
+  /**
+   * Adopt the real rendered heights, once, when they differ from the ones the
+   * last plan used. Re-planning with the measured heights settles immediately —
+   * the next measurement matches — so this cannot loop.
+   */
+  private measureRowHeights(): void {
+    if (!this.virtualize || this.measureFrame) return;
+    const heading = this.groupsEl.querySelector<HTMLElement>('[part="group-heading"]');
+    const event = this.groupsEl.querySelector<HTMLElement>('[part="event"]');
+    const headingHeight = heading?.getBoundingClientRect().height ?? 0;
+    const eventHeight = event?.getBoundingClientRect().height ?? 0;
+    if (headingHeight <= 0 || eventHeight <= 0) return;
+    if (
+      Math.abs(headingHeight - this.headingHeight) < 0.5 &&
+      Math.abs(eventHeight - this.rowHeight) < 0.5
+    ) {
+      return;
+    }
+    this.measuredHeights = { heading: headingHeight, event: eventHeight };
+    this.measureFrame = requestAnimationFrame(() => {
+      this.measureFrame = 0;
+      this.update();
+    });
+  }
+
+  private currentPlan(groups: AuditGroup[]): AuditWindowPlan {
+    return planAuditWindow(
+      flattenAuditRows(groups, this.collapsedGroups),
+      { heading: this.headingHeight, event: this.rowHeight },
+      {
+        viewportHeight: this.groupsEl.clientHeight,
+        scrollTop: this.groupsEl.scrollTop,
+        contentHeight: this.groupsEl.scrollHeight,
+      },
+    );
   }
 
   private now(): Date {
@@ -619,9 +763,18 @@ export class AuditLog extends BaseElement {
     `;
   }
 
-  private groupHtml(group: AuditGroup, index: number): string {
+  private groupHtml(
+    group: AuditGroup,
+    index: number,
+    slice?: { start: number; end: number },
+  ): string {
     const toggleId = `audit-group-toggle-${String(index)}`;
     const bodyId = `audit-group-body-${String(index)}`;
+    // Windowed: only the events inside the window. The heading always renders
+    // for an intersecting section — [part="group-body"] is aria-labelledby the
+    // toggle inside it, so a section without its heading is both unlabelled and
+    // impossible to collapse.
+    const events = slice ? group.events.slice(slice.start, slice.end) : group.events;
     const actors = group.actorCount
       ? ` · ${String(group.actorCount)} ${group.actorCount === 1 ? "actor" : "actors"}`
       : "";
@@ -635,7 +788,7 @@ export class AuditLog extends BaseElement {
           </button>
         </h3>
         <div part="group-body" id="${bodyId}" role="region" aria-labelledby="${toggleId}">
-          <ol part="events" role="list">${group.events.map(event => this.eventHtml(event)).join("")}</ol>
+          <ol part="events" role="list"${slice && slice.start > 0 ? ` start="${String(slice.start + 1)}"` : ""}>${events.map(event => this.eventHtml(event)).join("")}</ol>
         </div>
       </section>
     `;
@@ -711,6 +864,39 @@ export class AuditLog extends BaseElement {
   }
 
   protected setupListeners(): void {
+    // A windowed surface cannot bootstrap itself from an unmeasured viewport:
+    // an empty scroller is zero pixels tall, a zero-height viewport plans an
+    // empty window, and an empty window renders nothing to measure. Left alone
+    // the log stays blank until something else happens to trigger a render.
+    // The observer breaks that circle on the first layout, and keeps earning
+    // its place afterwards — a resized container changes how much fits.
+    if (typeof ResizeObserver !== "undefined") {
+      this.viewportObserver = new ResizeObserver(() => {
+        if (!this.virtualize) return;
+        const next = this.currentPlan(this.currentGroups()).window;
+        if (this.lastWindow && sameRowWindow(this.lastWindow, next)) return;
+        this.update();
+      });
+      this.viewportObserver.observe(this.groupsEl);
+    }
+
+    // Scroll fires continuously; coalesce to one re-render per frame, and skip
+    // entirely while the resolved slice is unchanged — most scroll events move
+    // the viewport within the sections already rendered.
+    this.groupsEl.addEventListener(
+      "scroll",
+      () => {
+        if (!this.virtualize || this.scrollFrame) return;
+        this.scrollFrame = requestAnimationFrame(() => {
+          this.scrollFrame = 0;
+          const next = this.currentPlan(this.currentGroups()).window;
+          if (this.lastWindow && sameRowWindow(this.lastWindow, next)) return;
+          this.update();
+        });
+      },
+      { passive: true },
+    );
+
     // The toolbar is built once and patched in place, so a select stays open
     // and a half-typed date survives every re-render of the sections below.
     this.toolbarEl.addEventListener("click", event => {
@@ -877,11 +1063,24 @@ export class AuditLog extends BaseElement {
 
     // The section markup depends on content only. Collapse state is applied
     // separately below, so expanding a section never rebuilds the log.
+    // Windowed renders depend on the scroll position too, so the resolved
+    // slice joins the signature — otherwise scrolling would keep the sections
+    // that were already on screen and never draw the ones scrolled into view.
+    const plan = this.virtualize ? this.currentPlan(groups) : null;
+    this.lastWindow = plan?.window ?? null;
+
     const contentSignature = JSON.stringify([
       this.getAttribute("events") ?? "",
       groupBy,
       facets,
       this.referenceTime,
+      // The whole rendered geometry, not just the slice: collapsing a section
+      // *below* the window leaves the slice and the top spacer untouched while
+      // making the log shorter, and a stale bottom spacer outlives the content
+      // it described.
+      plan
+        ? [plan.window.startIndex, plan.window.endIndex, plan.paddingTop, plan.paddingBottom]
+        : null,
     ]);
     if (contentSignature !== this.contentSignature) {
       this.contentSignature = contentSignature;
@@ -896,7 +1095,23 @@ export class AuditLog extends BaseElement {
             }
           : null;
 
-      this.groupsEl.innerHTML = groups.map((group, index) => this.groupHtml(group, index)).join("");
+      const spacer = (height: number, position: string): string =>
+        height > 0
+          ? `<div part="spacer" data-position="${position}" aria-hidden="true" style="block-size:${String(height)}px;"></div>`
+          : "";
+
+      this.groupsEl.innerHTML = plan
+        ? spacer(plan.paddingTop, "top") +
+          plan.groups
+            .map(planned =>
+              this.groupHtml(groups[planned.groupIndex]!, planned.groupIndex, {
+                start: planned.eventStart,
+                end: planned.eventEnd,
+              }),
+            )
+            .join("") +
+          spacer(plan.paddingBottom, "bottom")
+        : groups.map((group, index) => this.groupHtml(group, index)).join("");
 
       if (focusKey?.part) {
         const restored = Array.from(
@@ -922,6 +1137,10 @@ export class AuditLog extends BaseElement {
 
     this.groupsEl.hidden = groups.length === 0;
     this.emptyEl.hidden = groups.length > 0;
+
+    if (this.virtualize) {
+      this.measureRowHeights();
+    }
   }
 }
 

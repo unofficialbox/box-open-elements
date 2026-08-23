@@ -16,13 +16,36 @@ No unreleased changes.
 
 ## 0.7.0 — 2026-08-23
 
-Row virtualization for `box-table` over a new shared windowing engine, a
+Row virtualization across both shapes it comes in — a fixed-height engine for
+`box-table` and a cumulative-offset engine for the grouped `box-audit-log` — a
 docs-site rail that reveals where you are, and the framework adapters brought
 into strict lockstep with the core package — they now ship the *same* version
 number and peer-depend on exactly it, enforced in CI. Contains
-[#193](https://github.com/unofficialbox/box-open-elements/pull/193) and
-[#194](https://github.com/unofficialbox/box-open-elements/pull/194), with 1,733
-tests and clean conformance and visual-regression gates.
+[#193](https://github.com/unofficialbox/box-open-elements/pull/193) onward,
+with 1,778 tests and clean conformance and visual-regression gates.
+
+- **`box-audit-log` windows a grouped log** with `virtualize`, over a new
+  `resolveOffsetWindow` (`src/core/offset-window.ts`). `box-table`'s engine
+  multiplies a row count by one row height; an audit log mixes short headings
+  with tall event rows, and a collapsed section is a heading alone — so this
+  one walks a cumulative offset index, O(n) to build and O(log n) to search.
+  A section scrolled into from the middle still renders its own heading,
+  because `[part="group-body"]` is `aria-labelledby` the toggle inside it;
+  the heading's height comes back out of the top spacer so the content does
+  not drift. The plan is a pure function for the usual reason, and the usual
+  reason paid twice — a browser check caught two faults jsdom cannot show:
+
+  - An unmeasured scroller plans an empty window, and an empty window renders
+    nothing to measure, so the log stayed **blank on first paint** and never
+    recovered. A `ResizeObserver` breaks the circle and earns its place
+    afterwards on container resize.
+  - Two heights per row kind is an estimate, and on a 2,000-event log it ran
+    0.9% long — 116,061px against 115,002px real. Scrolled fully down, the
+    plan still believed a screenful remained, and **the last 14 events could
+    not be reached at all**. The plan now reads the scroll position as a
+    fraction of the real range and applies it to the estimated one, so both
+    ends agree. Per-row measured heights would remove the drift itself; that
+    is the same work the wrapped-cell case in `box-table` is waiting on.
 
 - **Adapters are versioned identically to the core package**, not on their own
   line. `tools/adapters/version-check.ts` now fails the build unless every

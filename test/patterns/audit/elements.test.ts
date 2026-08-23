@@ -527,3 +527,228 @@ describe("box-activity-density", () => {
     expect(element.eventsOn("2026-08-11")).toEqual([]);
   });
 });
+
+describe("AuditLog virtualization", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  const manyEvents = (days: number, perDay: number): AuditEvent[] => {
+    const all: AuditEvent[] = [];
+    for (let day = 0; day < days; day++) {
+      const date = `2026-${String(1 + Math.floor(day / 28)).padStart(2, "0")}-${String((day % 28) + 1).padStart(2, "0")}`;
+      for (let index = 0; index < perDay; index++) {
+        all.push({
+          id: `d${String(day)}-e${String(index)}`,
+          action: `Action ${String(index)}`,
+          actor: { name: "Morgan Lee" },
+          timestamp: `${date}T09:${String(index % 60).padStart(2, "0")}:00.000Z`,
+        });
+      }
+    }
+    return all;
+  };
+
+  /**
+   * jsdom has no layout, so the scrolling viewport is faked before the events
+   * exist: the element renders its shell on connect, and assigning events
+   * afterwards is what drives the first windowed render.
+   */
+  const create = (
+    days: number,
+    perDay: number,
+    { virtualize = true, viewportHeight = 600 } = {},
+  ): AuditLog => {
+    const element = document.createElement("box-audit-log") as AuditLog;
+    element.setAttribute("reference-time", "2026-06-01T00:00:00.000Z");
+    if (virtualize) element.setAttribute("virtualize", "");
+    element.setAttribute("heading-height", "28");
+    element.setAttribute("row-height", "64");
+    document.body.append(element);
+
+    const scroller = element.shadowRoot?.querySelector('[part="groups"]') as HTMLElement;
+    Object.defineProperty(scroller, "clientHeight", {
+      value: viewportHeight,
+      configurable: true,
+    });
+
+    element.events = manyEvents(days, perDay);
+    return element;
+  };
+
+  const scrollerOf = (element: AuditLog): HTMLElement =>
+    element.shadowRoot?.querySelector('[part="groups"]') as HTMLElement;
+
+  const scrollTo = async (element: AuditLog, top: number): Promise<void> => {
+    const scroller = scrollerOf(element);
+    scroller.scrollTop = top;
+    scroller.dispatchEvent(new Event("scroll"));
+    await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
+  };
+
+  const renderedEvents = (element: AuditLog): number =>
+    element.shadowRoot?.querySelectorAll('[part="event"]').length ?? 0;
+
+  const renderedGroupKeys = (element: AuditLog): string[] =>
+    Array.from(element.shadowRoot?.querySelectorAll('[part="group"]') ?? []).map(
+      section => section.getAttribute("data-group-key") ?? "",
+    );
+
+  it("renders every section when virtualization is off", () => {
+    const element = create(6, 5, { virtualize: false });
+    expect(renderedEvents(element)).toBe(30);
+    expect(element.renderedWindow).toBeNull();
+  });
+
+  it("renders a slice of a long log instead of every event", () => {
+    const element = create(40, 50); // 2,000 events across 40 sections
+    expect(renderedEvents(element)).toBeGreaterThan(0);
+    expect(renderedEvents(element)).toBeLessThan(40);
+    expect(element.renderedWindow?.totalHeight).toBe(40 * (28 + 50 * 64));
+  });
+
+  it("pads with spacers so the scroll range covers the whole log", async () => {
+    const element = create(40, 50);
+    await scrollTo(element, 20_000);
+
+    const spacers = Array.from(
+      element.shadowRoot?.querySelectorAll<HTMLElement>('[part="spacer"]') ?? [],
+    );
+    expect(spacers.map(spacer => spacer.dataset.position)).toEqual(["top", "bottom"]);
+    // Spacers are not sections: nothing that walks groups may see them.
+    expect(spacers.every(spacer => spacer.getAttribute("part") !== "group")).toBe(true);
+    expect(spacers.every(spacer => spacer.getAttribute("aria-hidden") === "true")).toBe(true);
+  });
+
+  it("moves the window to sections further down the log", async () => {
+    const element = create(40, 50);
+    const before = renderedGroupKeys(element);
+    await scrollTo(element, 60_000);
+    const after = renderedGroupKeys(element);
+
+    expect(after).not.toEqual(before);
+    expect(after.some(key => before.includes(key))).toBe(false);
+  });
+
+  it("renders the heading of a section scrolled into from the middle", async () => {
+    // The straddling case: [part="group-body"] is aria-labelledby the toggle in
+    // its own heading, so a section that arrives without one is unlabelled and
+    // cannot be collapsed.
+    const element = create(40, 50);
+    await scrollTo(element, 1_000); // inside the first section
+
+    const first = element.shadowRoot?.querySelector('[part="group"]');
+    const toggle = first?.querySelector('[part="group-toggle"]');
+    const body = first?.querySelector('[part="group-body"]');
+    expect(toggle).not.toBeNull();
+    expect(body?.getAttribute("aria-labelledby")).toBe(toggle?.getAttribute("id"));
+  });
+
+  it("skips the re-render while the resolved window is unchanged", async () => {
+    const element = create(40, 50);
+    const before = element.renderedWindow;
+    const firstSection = element.shadowRoot?.querySelector('[part="group"]');
+
+    await scrollTo(element, 4); // same slice
+    expect(element.renderedWindow).toEqual(before);
+    expect(element.shadowRoot?.querySelector('[part="group"]')).toBe(firstSection);
+
+    await scrollTo(element, 30_000); // a different slice
+    expect(element.renderedWindow).not.toEqual(before);
+  });
+
+  it("ignores scroll entirely when not virtualizing", async () => {
+    const element = create(6, 5, { virtualize: false });
+    const firstSection = element.shadowRoot?.querySelector('[part="group"]');
+    await scrollTo(element, 3_000);
+    expect(element.shadowRoot?.querySelector('[part="group"]')).toBe(firstSection);
+    expect(renderedEvents(element)).toBe(30);
+  });
+
+  it("shrinks the scroll range when a section is collapsed", () => {
+    const element = create(40, 50);
+    const before = element.renderedWindow!.totalHeight;
+
+    element.collapseAll();
+
+    // Every section is now a heading only, so the log is a fraction as tall.
+    expect(element.renderedWindow!.totalHeight).toBe(40 * 28);
+    expect(element.renderedWindow!.totalHeight).toBeLessThan(before);
+    expect(renderedEvents(element)).toBe(0);
+  });
+
+  it("restores the scroll range when sections are expanded again", () => {
+    const element = create(40, 50);
+    const expanded = element.renderedWindow!.totalHeight;
+    element.collapseAll();
+    element.expandAll();
+    expect(element.renderedWindow!.totalHeight).toBe(expanded);
+    expect(renderedEvents(element)).toBeGreaterThan(0);
+  });
+
+  it("does no work at all while the resolved window is unchanged", () => {
+    // The content signature already prevents a needless DOM rebuild, so node
+    // identity cannot distinguish this. What the scroll-frame check buys is
+    // skipping the whole update pass — re-filtering, re-grouping and
+    // re-summarising several thousand events — dozens of times a second.
+    const element = create(40, 50);
+    const update = vi.spyOn(
+      element as unknown as { update: () => void },
+      "update",
+    );
+
+    const scroller = scrollerOf(element);
+    for (const top of [1, 2, 3, 4]) {
+      scroller.scrollTop = top;
+      scroller.dispatchEvent(new Event("scroll"));
+    }
+    return new Promise<void>(resolve => {
+      requestAnimationFrame(() => {
+        expect(update).not.toHaveBeenCalled();
+
+        scroller.scrollTop = 40_000;
+        scroller.dispatchEvent(new Event("scroll"));
+        requestAnimationFrame(() => {
+          expect(update).toHaveBeenCalledTimes(1);
+          update.mockRestore();
+          resolve();
+        });
+      });
+    });
+  });
+
+  it("updates the bottom spacer when a section below the window collapses", () => {
+    // Collapsing something off-screen does not move the window — same slice,
+    // same top spacer — but it does make the log shorter. If the render is
+    // keyed only on the window, the bottom spacer keeps the old height and the
+    // scroll range outlives the content it described.
+    const element = create(40, 50);
+    const bottomOf = (): number =>
+      Number.parseFloat(
+        (
+          element.shadowRoot?.querySelector<HTMLElement>('[part="spacer"][data-position="bottom"]')
+            ?.style.blockSize ?? "0"
+        ).replace("px", ""),
+      );
+
+    const before = bottomOf();
+    const windowBefore = element.renderedWindow!;
+
+    // A section far below the viewport, so the window itself cannot move.
+    element.toggleGroup(element.groups[30]!.key);
+
+    expect(element.renderedWindow!.startIndex).toBe(windowBefore.startIndex);
+    expect(element.renderedWindow!.endIndex).toBe(windowBefore.endIndex);
+    expect(bottomOf()).toBeLessThan(before);
+    expect(bottomOf()).toBe(element.renderedWindow!.paddingBottom);
+  });
+
+  it("keeps the export tied to the filtered set, not the rendered window", () => {
+    // Windowing is a rendering concern. An export that shipped only what
+    // happened to be on screen would be a compliance hazard.
+    const element = create(10, 20);
+    const csv = element.exportCsv();
+    expect(csv.trim().split("\n")).toHaveLength(200 + 1); // + header
+    expect(renderedEvents(element)).toBeLessThan(200);
+  });
+});
