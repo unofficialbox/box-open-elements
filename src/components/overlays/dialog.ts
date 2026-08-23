@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { dismissModal, promoteModal } from "../../foundations/overlay/index.js";
 import { FocusRestore, trapTabKey } from "../../foundations/a11y/index.js";
 import { boeControl, boeOverlay, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import {
@@ -14,6 +15,12 @@ const dialogStyles = `
     font: inherit;
   }
 
+  /* A <dialog> promoted with showModal(), not a plain box — see
+     foundations/overlay/top-layer.ts. The top layer keeps the scrim above the
+     page without moving the host node, so an ancestor with a transform,
+     filter, or contain cannot clip it. The UA sheet's border/padding/margin and
+     max-* are reset because this element is the full-viewport scrim rather
+     than a centred card. */
   [part="backdrop"] {
     position: fixed;
     inset: 0;
@@ -22,6 +29,24 @@ const dialogStyles = `
     display: grid;
     place-items: center;
     padding: ${boeOverlay.modalPadding};
+    border: 0;
+    margin: 0;
+    max-width: none;
+    max-height: none;
+    width: auto;
+    height: auto;
+    color: inherit;
+  }
+
+  /* The scrim paints itself; the UA pseudo must not double it up. */
+  [part="backdrop"]::backdrop {
+    background: transparent;
+  }
+
+  /* Without showModal support the element stays hidden, which is the correct
+     closed state anyway. */
+  [part="backdrop"]:not([open]) {
+    display: none;
   }
 
   [part="dialog"] {
@@ -123,6 +148,7 @@ export class Dialog extends BaseElement {
   private hostEl!: HTMLElement;
   private titleEl: HTMLElement | null = null;
   private descriptionEl: HTMLElement | null = null;
+  private backdropEl: HTMLElement | null = null;
   private confirmEl: HTMLButtonElement | null = null;
   private readonly focusRestore = new FocusRestore();
 
@@ -278,6 +304,9 @@ export class Dialog extends BaseElement {
     if (!this.openValue) {
       const wasOpen = this.wasOpen;
       this.setScrollLock(false);
+      // Leave the top layer before the element is discarded, not after.
+      dismissModal(this.backdropEl);
+      this.backdropEl = null;
       this.hostEl.innerHTML = "";
       this.titleEl = null;
       this.descriptionEl = null;
@@ -299,8 +328,8 @@ export class Dialog extends BaseElement {
     if (!this.hostEl.querySelector('[part="dialog"]')) {
       this.hostEl.innerHTML = `
         <style>${dialogStyles}</style>
-        <div part="backdrop">
-          <section part="dialog" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="dialog-title" data-size="${this.size}">
+        <dialog part="backdrop" aria-labelledby="dialog-title">
+          <section part="dialog" tabindex="-1" data-size="${this.size}">
             <header part="header">
               <h2 id="dialog-title"></h2>
             </header>
@@ -311,9 +340,21 @@ export class Dialog extends BaseElement {
               <button type="button" part="confirm"></button>
             </footer>
           </section>
-        </div>
+        </dialog>
       `;
     }
+
+    const freshScrim = this.backdropEl === null;
+    this.backdropEl = this.hostEl.querySelector('[part="backdrop"]');
+    if (freshScrim && this.backdropEl) {
+      // A modal dialog closes itself on Escape and fires `cancel`. Left alone
+      // that would bypass close(), leaving `open` true with the dialog gone.
+      this.backdropEl.addEventListener("cancel", event => {
+        event.preventDefault();
+        this.close();
+      });
+    }
+    promoteModal(this.backdropEl);
 
     this.titleEl = this.hostEl.querySelector("#dialog-title");
     this.descriptionEl = this.hostEl.querySelector('[part="description"]');

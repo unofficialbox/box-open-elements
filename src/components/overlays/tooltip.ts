@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { dismissPopover, promotePopover } from "../../foundations/overlay/index.js";
 import { boeRadius } from "../../foundations/geometry/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 import {
@@ -49,7 +50,12 @@ const tooltipStyles = `
 
   /* Positioned by JS (foundations/overlay) as position: fixed, so it escapes
      ancestor overflow and flips/shifts to stay in the viewport. */
+  /* display is stated explicitly because the element carries
+     popover="manual": the UA sheet hides a popover that is not open, and an
+     author declaration outranks it. If showPopover() is unavailable or fails,
+     this still renders as before and only the top layer is lost. */
   [part="tooltip"] {
+    display: block;
     position: fixed;
     inset-block-start: 0;
     inset-inline-start: 0;
@@ -211,7 +217,7 @@ export class Tooltip extends BaseElement {
         <span part="trigger-host">
           <slot><button type="button" part="trigger">?</button></slot>
         </span>
-        <div id="${this.tooltipId}" part="tooltip" role="tooltip" hidden><span part="label"></span><slot name="content"></slot></div>
+        <div id="${this.tooltipId}" part="tooltip" popover="manual" role="tooltip" hidden><span part="label"></span><slot name="content"></slot></div>
       </span>
     `;
     this.triggerHostEl = this.shadowRoot.querySelector('[part="trigger-host"]')!;
@@ -265,6 +271,13 @@ export class Tooltip extends BaseElement {
       this.tooltipEl.setAttribute("data-theme", theme);
     }
     this.tooltipEl.hidden = !this.openValue;
+    // Top layer keeps it above the page even inside an ancestor with a
+    // transform/filter/contain, which position:fixed alone cannot escape.
+    if (this.openValue) {
+      promotePopover(this.tooltipEl);
+    } else {
+      dismissPopover(this.tooltipEl);
+    }
 
     const trigger = this.resolveDescribedTrigger();
     if (trigger === this.fallbackTriggerEl) {

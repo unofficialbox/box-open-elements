@@ -5,6 +5,7 @@ import {
 } from "./command-types.js";
 import type { CommandDescriptor } from "./command-types.js";
 import { BaseElement } from "../../core/index.js";
+import { dismissModal, promoteModal } from "../../foundations/overlay/index.js";
 import { FocusRestore, trapTabKey } from "../../foundations/a11y/index.js";
 import { boeOverlay, boePanel, boeRadius } from "../../foundations/geometry/index.js";
 
@@ -49,6 +50,10 @@ const elementStyles = `
           display: contents;
         }
 
+        /* A <dialog> promoted with showModal() — see
+           foundations/overlay/top-layer.ts. The top layer keeps the scrim above
+           the page without moving the host node. UA border/margin/max-* reset
+           because this is the full-viewport scrim, not a centred card. */
         [part="backdrop"] {
           position: fixed;
           inset: 0;
@@ -58,6 +63,24 @@ const elementStyles = `
           padding: 1rem;
           background: ${boeOverlay.modalBackdrop};
           z-index: 1000;
+          border: 0;
+          margin: 0;
+          max-width: none;
+          max-height: none;
+          width: auto;
+          height: auto;
+          color: inherit;
+        }
+
+        /* The scrim paints itself; the UA pseudo must not double it up. */
+        [part="backdrop"]::backdrop {
+          background: transparent;
+        }
+
+        /* Without showModal support the element stays hidden, which is the
+           correct closed state anyway. */
+        [part="backdrop"]:not([open]) {
+          display: none;
         }
 
         [part="sheet"] {
@@ -198,6 +221,7 @@ export class ShortcutsOverlay extends BaseElement {
   }
 
   private hostEl!: HTMLElement;
+  private backdropEl: HTMLElement | null = null;
 
   private readonly focusRestore = new FocusRestore();
 
@@ -372,6 +396,9 @@ export class ShortcutsOverlay extends BaseElement {
 
     if (!this.open) {
       const wasOpen = this.wasOpen;
+      // Leave the top layer before the element is discarded, not after.
+      dismissModal(this.backdropEl);
+      this.backdropEl = null;
       this.hostEl.innerHTML = "";
       this.wasOpen = false;
       if (wasOpen) {
@@ -407,8 +434,8 @@ export class ShortcutsOverlay extends BaseElement {
       .join("");
 
     this.hostEl.innerHTML = `
-      <div part="backdrop">
-        <div part="sheet" role="dialog" aria-modal="true" aria-label="${escapeHtml(this.heading)}">
+      <dialog part="backdrop" aria-label="Keyboard shortcuts">
+        <div part="sheet">
           <div part="header">
             <h2 part="title">${escapeHtml(this.heading)}</h2>
             <button type="button" part="close">Close</button>
@@ -419,8 +446,19 @@ export class ShortcutsOverlay extends BaseElement {
               : `<div part="empty">No keyboard shortcuts are defined.</div>`
           }
         </div>
-      </div>
+      </dialog>
     `;
+
+    this.backdropEl = this.hostEl.querySelector('[part="backdrop"]');
+    if (this.backdropEl) {
+      // A modal dialog closes itself on Escape and fires `cancel`; route it
+      // through the component's own dismissal so state stays in sync.
+      this.backdropEl.addEventListener("cancel", event => {
+        event.preventDefault();
+        this.dismiss();
+      });
+    }
+    promoteModal(this.backdropEl);
 
     if (justOpened) {
       (this.hostEl.querySelector('[part="close"]') as HTMLElement | null)?.focus();

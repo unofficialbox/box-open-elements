@@ -6,6 +6,7 @@ import {
 } from "./command-types.js";
 import type { CommandDescriptor, CommandMatch } from "./command-types.js";
 import { BaseElement } from "../../core/index.js";
+import { dismissModal, promoteModal } from "../../foundations/overlay/index.js";
 import { FocusRestore, trapTabKey } from "../../foundations/a11y/index.js";
 import { boeOverlay, boePanel, boeRadius } from "../../foundations/geometry/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
@@ -29,6 +30,10 @@ const elementStyles = `
           display: contents;
         }
 
+        /* A <dialog> promoted with showModal() — see
+           foundations/overlay/top-layer.ts. The top layer keeps the scrim above
+           the page without moving the host node. UA border/margin/max-* reset
+           because this is the full-viewport scrim, not a centred card. */
         [part="backdrop"] {
           position: fixed;
           inset: 0;
@@ -38,6 +43,24 @@ const elementStyles = `
           padding-block-start: 12vh;
           background: ${boeOverlay.modalBackdrop};
           z-index: 1000;
+          border: 0;
+          margin: 0;
+          max-width: none;
+          max-height: none;
+          width: auto;
+          height: auto;
+          color: inherit;
+        }
+
+        /* The scrim paints itself; the UA pseudo must not double it up. */
+        [part="backdrop"]::backdrop {
+          background: transparent;
+        }
+
+        /* Without showModal support the element stays hidden, which is the
+           correct closed state anyway. */
+        [part="backdrop"]:not([open]) {
+          display: none;
         }
 
         [part="palette"] {
@@ -198,6 +221,7 @@ export class CommandPalette extends BaseElement {
   }
 
   private hostEl!: HTMLElement;
+  private backdropEl: HTMLElement | null = null;
 
   private readonly focusRestore = new FocusRestore();
 
@@ -511,6 +535,9 @@ export class CommandPalette extends BaseElement {
     this.openValue = this.open;
     if (!this.openValue) {
       const wasOpen = this.wasOpen;
+      // Leave the top layer before the element is discarded, not after.
+      dismissModal(this.backdropEl);
+      this.backdropEl = null;
       this.hostEl.innerHTML = "";
       this.rankedMatches = [];
       this.wasOpen = false;
@@ -556,8 +583,8 @@ export class CommandPalette extends BaseElement {
 
     if (justOpened || !this.hostEl.querySelector('[part="palette"]')) {
       this.hostEl.innerHTML = `
-        <div part="backdrop">
-          <div part="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+        <dialog part="backdrop" aria-label="Command palette">
+          <div part="palette">
             <div part="search-row">
               <span part="search-icon" aria-hidden="true">⌕</span>
               <input
@@ -581,9 +608,22 @@ export class CommandPalette extends BaseElement {
               <span><span part="footer-key">esc</span> close</span>
             </div>
           </div>
-        </div>
+        </dialog>
       `;
     }
+
+    const freshScrim = this.backdropEl === null;
+    this.backdropEl = this.hostEl.querySelector('[part="backdrop"]');
+    if (freshScrim && this.backdropEl) {
+      // A modal dialog closes itself on Escape and fires `cancel`; route it
+      // through the component's own dismissal so `open` stays in sync.
+      this.backdropEl.addEventListener("cancel", event => {
+        event.preventDefault();
+        this.dispatchEvent(new CustomEvent("dismissed", { bubbles: true, composed: true }));
+        this.open = false;
+      });
+    }
+    promoteModal(this.backdropEl);
 
     const input = this.hostEl.querySelector('[part="search"]') as HTMLInputElement;
     const results = this.hostEl.querySelector('[part="results"]') as HTMLElement;

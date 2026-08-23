@@ -10,6 +10,59 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- **Every overlay now uses the top layer, not just `box-drawer`.** 0.9.0 fixed
+  the drawer by promoting its scrim with `showModal()` instead of relocating the
+  host node. The other seven overlays still painted with `position: fixed`
+  alone, which an ancestor with a `transform`, `filter`, `perspective`,
+  `contain`, or `will-change` overrides — that ancestor becomes the containing
+  block, and the overlay is positioned and clipped against it instead of the
+  viewport. None of them had the drawer's node-moving bug, because none of them
+  moved; they had the clipping bug the moving was working around.
+
+  A new `foundations/overlay/top-layer` module owns the promotion, and the
+  drawer moved onto it too, so there is one implementation rather than eight.
+  It exposes two primitives because the choice is about modality, not taste:
+
+  - `promoteModal` / `dismissModal` — `<dialog>` + `showModal()`, for overlays
+    that own the screen: `box-dialog`, `box-drawer`, `box-command-palette`,
+    `box-shortcuts-overlay`.
+  - `promotePopover` / `dismissPopover` — `[popover="manual"]` +
+    `showPopover()`, for anchored surfaces that must **not** trap focus or block
+    the page: `box-popover`, `box-tooltip`, `box-context-menu`,
+    `box-guide-tooltip`. Using the modal primitive for these would be a
+    behaviour regression, not merely an overreach.
+
+  Verified in Chromium, since jsdom implements neither API: with a host inside a
+  clipping, transformed ancestor, the host stays put and the surface renders
+  outside the clip — the modal scrim covers the full viewport, and the anchored
+  popover's box extends past the ancestor's bounds.
+
+  **Behaviour changes worth knowing:**
+
+  - Escape on the modal overlays now arrives as the dialog's native `cancel`
+    event, routed through each component's existing dismissal so cancelable
+    `dismiss` guards and `open` state still hold.
+  - Dialog semantics moved onto the `<dialog>` element in each modal overlay.
+    The inner panel no longer carries `role="dialog"`/`aria-modal`, which would
+    have nested a dialog inside a dialog.
+  - The anchored surfaces declare `display` explicitly. They carry
+    `popover="manual"`, and the UA sheet hides a popover that is not open — an
+    author declaration outranks it, so if `showPopover()` is unavailable or
+    fails they render exactly as before and only the top layer is lost.
+
+- **Adapter tests now run against this tree's core, not the published one.**
+  `packages/*/test` resolved `@unofficialbox/box-open-elements` to whatever was
+  last released, so a core change could not be validated by an adapter test
+  until after it shipped — while `box-drawer` was being rewritten, the React
+  test covering that behaviour was exercising the previous release's drawer and
+  passing. Worse, it disagreed with the type layer: `tsconfig` already mapped
+  those specifiers to `src`, so types came from the working tree while runtime
+  came from the registry.
+
+  `vitest.config.ts` now resolves the core to `src`, mirroring the `exports`
+  map, and a regression test asserts the identity (`pkg.X === src.X`) that
+  cannot be faked by coincidentally identical source.
+
 ## 0.9.0 — 2026-08-23
 
 A minor because the change below is breaking, per the pre-1.0 policy: `^0.8.0`
