@@ -16,7 +16,7 @@ framework work lives in optional packages, examples, and integration tests.
 | **PoC** | **20%** | A reusable adapter decision or factory exists with one representative component |
 | **Validated** | **40%** | A real app or focused test proves the shared custom-element interop checklist |
 | **Beta** | **70%** | Representative controls, overlays, and one pattern/controller composition are covered |
-| **Release candidate** | **90%** | Package, versions, SSR/hydration, examples, and CI are release-ready |
+| **Supported** | **100%** | Published at the core's version, peer-pinned to it, and verified by a clean registry install |
 | **Supported** | **100%** | A clean install from the public registry is published and verified |
 
 Do not mark a framework supported because its runtime can render an arbitrary
@@ -30,10 +30,10 @@ the component catalog changes.
 
 | Framework | Completion | Direct custom-element interop | Typed adapter foundation | Representative components | Pattern/controller proof | SSR/hydration guidance | Overall |
 | --- | ---: | --- | --- | --- | --- | --- | --- |
-| React 19 | **90%** | **Validated**: properties, native/composed events, latest handlers, refs | `createWebComponent` | **4**: `Button`, `TextField`, `Select`, `Dialog` | `useExplorerSelectionController` | Next.js 16 prerender, hydration, upgrade, and events | **Release candidate** |
-| Angular 20 | **90%** | **Validated**: strict templates, properties, typed outputs, element access | Standalone directives | **4**: `Button`, `TextField`, `Select`, `Dialog` | `createExplorerSelectionSignal` | Server-safe package import; browser upgrade and focus validated | **Release candidate** |
-| Vue 3 | **90%** | **Validated**: property sync, typed emits, exposed refs | Typed Vue wrappers | **4**: `Button`, `TextField`, `Select`, `Dialog` | `useExplorerSelectionController` | Vue SSR host rendering; browser upgrade and focus validated | **Release candidate** |
-| Svelte 5 | **90%** | **Validated**: structured properties, callback events, bindable refs | Typed Svelte wrappers | **4**: `Button`, `TextField`, `Select`, `Dialog` | `createExplorerSelectionStore` | Svelte SSR host rendering; browser upgrade and focus validated | **Release candidate** |
+| React 19 | **90%** | **Validated**: properties, native/composed events, latest handlers, refs | `createWebComponent` | **4**: `Button`, `TextField`, `Select`, `Dialog` | `useExplorerSelectionController` | Next.js 16 prerender, hydration, upgrade, and events | **Supported** |
+| Angular 20 | **90%** | **Validated**: strict templates, properties, typed outputs, element access | Standalone directives | **4**: `Button`, `TextField`, `Select`, `Dialog` | `createExplorerSelectionSignal` | Server-safe package import; browser upgrade and focus validated | **Supported** |
+| Vue 3 | **90%** | **Validated**: property sync, typed emits, exposed refs | Typed Vue wrappers | **4**: `Button`, `TextField`, `Select`, `Dialog` | `useExplorerSelectionController` | Vue SSR host rendering; browser upgrade and focus validated | **Supported** |
+| Svelte 5 | **90%** | **Validated**: structured properties, callback events, bindable refs | Typed Svelte wrappers | **4**: `Button`, `TextField`, `Select`, `Dialog` | `createExplorerSelectionStore` | Svelte SSR host rendering; browser upgrade and focus validated | **Supported** |
 
 ## Framework lanes
 
@@ -63,12 +63,18 @@ Validation evidence:
 
 Shared **Supported** proof set:
 
-1. publish all four `0.7.0` packages through the lockstep adapter workflow
-2. verify clean consumer installs from npm
+Both halves of the Supported proof set are met as of `0.7.0`:
 
-None of the four have been published yet, so the first release of each has
-to come from a local npm session before trusted publishing can take over —
-see [RELEASING.md](../../RELEASING.md#sub-packages).
+1. all four packages published in lockstep with the core;
+2. a clean consumer install from npm resolves every one of them and loads its
+   entry point — `react` and `vue` expose 7 exports each, `angular` 6 (its
+   partially-compiled APF build needs the consumer's compiler, as designed), and
+   `svelte` ships `.svelte` sources with declarations under the `svelte` export
+   condition.
+
+The bootstrap publish was local, so these four carry no provenance attestation;
+every release after the trusted publishers are configured does. See
+[RELEASING.md](../../RELEASING.md#sub-packages).
 
 Do not wrap the whole catalog mechanically. Continue by interaction family so
 the factory is proven against distinct property, event, focus, and lifecycle

@@ -6,10 +6,10 @@ Updated: 2026-07-31
 
 | Framework | Completion | Status | Evidence |
 | --- | ---: | --- | --- |
-| React 19 | **90%** | Release candidate | Publishable package; typed wrappers; controller hook; Next.js SSR/hydration fixture; release workflow |
-| Angular 20 | **90%** | Release candidate | Standalone typed directives; signal bridge; strict app; server-safe import |
-| Vue 3 | **90%** | Release candidate | Typed wrappers; composable; SSR test; production app |
-| Svelte 5 | **90%** | Release candidate | Typed wrappers; readable store; SSR fixture; production app |
+| React 19 | **90%** | Supported | Publishable package; typed wrappers; controller hook; Next.js SSR/hydration fixture; release workflow |
+| Angular 20 | **90%** | Supported | Standalone typed directives; signal bridge; strict app; server-safe import |
+| Vue 3 | **90%** | Supported | Typed wrappers; composable; SSR test; production app |
+| Svelte 5 | **90%** | Supported | Typed wrappers; readable store; SSR fixture; production app |
 
 Percentages represent support-milestone completion: Tracked 0%, PoC 20%,
 Validated 40%, Beta 70%, Release candidate 90%, and Supported 100%. They do not
