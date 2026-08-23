@@ -33,6 +33,7 @@
  */
 
 import { buildOffsetIndex, resolveOffsetWindow } from "../../core/offset-window.js";
+import type { OffsetIndex } from "../../core/offset-window.js";
 import type { RowWindow } from "../../core/virtualize.js";
 import type { AuditGroup } from "./types.js";
 
@@ -130,6 +131,15 @@ const mapScrollToEstimate = (
  * Returns an empty plan for an empty window rather than a plan with no groups
  * and stale padding, so a caller can treat "nothing to render" uniformly.
  */
+/**
+ * The offset index for a row set, so a caller can build it once and reuse it
+ * across scroll frames. The index only changes when the rows or the heights do.
+ */
+export const buildAuditIndex = (
+  rows: readonly AuditRow[],
+  heights: AuditRowHeights,
+): OffsetIndex => buildOffsetIndex(auditRowHeights(rows, heights));
+
 export const planAuditWindow = (
   rows: readonly AuditRow[],
   heights: AuditRowHeights,
@@ -153,8 +163,16 @@ export const planAuditWindow = (
      */
     contentHeight?: number;
   },
+  /**
+   * A prebuilt index for these rows and heights, from `buildAuditIndex`.
+   *
+   * Optional purely for callers that plan once. The scroll path should pass one:
+   * building the index is O(n), and rebuilding it per frame would put the O(n)
+   * back that the binary search exists to remove.
+   */
+  prebuilt?: OffsetIndex,
 ): AuditWindowPlan => {
-  const index = buildOffsetIndex(auditRowHeights(rows, heights));
+  const index = prebuilt ?? buildAuditIndex(rows, heights);
 
   const window = resolveOffsetWindow(index, {
     ...viewport,

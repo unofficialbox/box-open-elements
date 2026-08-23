@@ -46,6 +46,28 @@ with 1,778 tests and clean conformance and visual-regression gates.
     fraction of the real range and applies it to the estimated one, so both
     ends agree. Per-row measured heights would remove the drift itself; that
     is the same work the wrapped-cell case in `box-table` is waiting on.
+  - Sampling *one* event row's height and adopting it ran away: rows are not
+    uniform (`summary`, `evidence` and `correlationId` are each optional), so
+    adopting one row's height moved the window, which rendered a different
+    first row, which measured differently. **55 full rebuilds in 0.9 seconds
+    while nothing was scrolling**, the sample flipping between 33px and
+    166.5px. Heights are now averaged across every rendered row, and adoption
+    is capped per row set — the average being stable is an argument about
+    typical data, and this is a path where being wrong costs the frame rate.
+  - The viewport observer is re-armed on reconnection. `setupListeners` runs
+    once, on first connect, but the teardown runs every disconnect, so a
+    re-inserted log kept its listeners and lost its observer.
+  - Grouping, flattening and the offset index are cached per row set. The
+    scroll path asks "did the window move?" every frame, and answering it was
+    re-parsing the whole `events` attribute and rebuilding the index — twice
+    per frame, O(n), on the surface whose point is not being O(n).
+
+- The adapter publish is resumable
+  ([#195](https://github.com/unofficialbox/box-open-elements/pull/195)). Four
+  unconditional `npm publish` steps fail fast, so a re-run after a partial
+  release hit the first already-published package and never reached the ones
+  still missing — the documented recovery could not actually recover. Each
+  package now checks its own published version and skips only an exact match.
 
 - **Adapters are versioned identically to the core package**, not on their own
   line. `tools/adapters/version-check.ts` now fails the build unless every

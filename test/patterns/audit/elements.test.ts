@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ActivityDensityStrip } from "../../../src/patterns/audit/activity-density.js";
 import { AuditLog } from "../../../src/patterns/audit/audit-log.js";
@@ -529,8 +529,36 @@ describe("box-activity-density", () => {
 });
 
 describe("AuditLog virtualization", () => {
+  // jsdom has no ResizeObserver, so the element's observer path is inert here
+  // and only the browser exercises it for real. A stub makes the *wiring*
+  // testable — whether the observer exists and is re-armed — which is the part
+  // that broke.
+  class StubResizeObserver {
+    static instances: StubResizeObserver[] = [];
+    observed: Element[] = [];
+    constructor(readonly callback: () => void) {
+      StubResizeObserver.instances.push(this);
+    }
+    observe(target: Element): void {
+      this.observed.push(target);
+    }
+    disconnect(): void {
+      this.observed = [];
+    }
+    unobserve(): void {
+      /* not used */
+    }
+  }
+
+  beforeEach(() => {
+    StubResizeObserver.instances = [];
+    (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver =
+      StubResizeObserver;
+  });
+
   afterEach(() => {
     document.body.innerHTML = "";
+    delete (globalThis as unknown as { ResizeObserver?: unknown }).ResizeObserver;
   });
 
   const manyEvents = (days: number, perDay: number): AuditEvent[] => {
@@ -741,6 +769,136 @@ describe("AuditLog virtualization", () => {
     expect(element.renderedWindow!.endIndex).toBe(windowBefore.endIndex);
     expect(bottomOf()).toBeLessThan(before);
     expect(bottomOf()).toBe(element.renderedWindow!.paddingBottom);
+  });
+
+  it("stops adopting measured heights instead of re-rendering forever", () => {
+    // Event rows are not uniform — summary, evidence and correlationId are each
+    // optional — so a height sampled from one row can disagree with the next
+    // window's first row. Chromium, before this was bounded: 55 full rebuilds
+    // in 0.9s while nothing scrolled, the sample flipping 33px <-> 166.5px.
+    // jsdom reports zero heights, so the loop itself cannot be reproduced here;
+    // what is testable is the budget that stops it.
+    const element = create(40, 50);
+    let call = 0;
+    const heights = [40, 90, 40, 90, 40, 90, 40, 90];
+    // Alternating measurements: the pathological case, forced.
+    vi.spyOn(
+      element as unknown as { meanHeight: (part: string) => number },
+      "meanHeight",
+    ).mockImplementation((part: string) =>
+      part === "group-heading" ? 28 : (heights[call++ % heights.length] ?? 40),
+    );
+
+    const update = vi.spyOn(element as unknown as { update: () => void }, "update");
+    for (let attempt = 0; attempt < 20; attempt++) {
+      (element as unknown as { measureRowHeights: () => void }).measureRowHeights();
+      (element as unknown as { measureFrame: number }).measureFrame = 0;
+    }
+
+    // Bounded per row set, however many times it is asked.
+    expect(update.mock.calls.length).toBe(0); // adoption schedules a frame, not a sync update
+    expect(
+      (element as unknown as { adoptionCount: number }).adoptionCount,
+    ).toBeLessThanOrEqual(3);
+  });
+
+  it("plans a window as soon as an unmeasured viewport becomes measurable", () => {
+    // The circle this breaks: an unmeasured scroller plans an empty window, an
+    // empty window renders nothing, and nothing rendered means nothing to
+    // measure. In Chromium the log stayed blank on first paint and never
+    // recovered. Here the viewport starts at zero and the observer fires.
+    const element = document.createElement("box-audit-log") as AuditLog;
+    element.setAttribute("reference-time", "2026-06-01T00:00:00.000Z");
+    element.setAttribute("virtualize", "");
+    element.setAttribute("heading-height", "28");
+    element.setAttribute("row-height", "64");
+    document.body.append(element);
+
+    const scroller = element.shadowRoot?.querySelector('[part="groups"]') as HTMLElement;
+    Object.defineProperty(scroller, "clientHeight", { value: 0, configurable: true });
+    element.events = manyEvents(10, 20);
+
+    expect(element.shadowRoot?.querySelectorAll('[part="event"]').length).toBe(0);
+
+    // Layout arrives; the observer is the only thing that can notice.
+    Object.defineProperty(scroller, "clientHeight", { value: 600, configurable: true });
+    StubResizeObserver.instances.at(-1)?.callback();
+
+    expect(element.shadowRoot?.querySelectorAll('[part="event"]').length).toBeGreaterThan(0);
+  });
+
+  it("measures the mean rendered height, not the first row's", () => {
+    // Averaging is what makes the estimate insensitive to which rows happen to
+    // be on screen; sampling one row is what let the adoption loop alternate.
+    // jsdom reports every height as zero, so the rects are faked directly.
+    const element = create(6, 5);
+    const events = Array.from(
+      element.shadowRoot?.querySelectorAll<HTMLElement>('[part="event"]') ?? [],
+    );
+    expect(events.length).toBeGreaterThan(2);
+
+    events.forEach((node, index) => {
+      const height = index === 0 ? 200 : 20; // one tall outlier, the rest short
+      node.getBoundingClientRect = () => ({ height }) as DOMRect;
+    });
+
+    const mean = (element as unknown as { meanHeight: (part: string) => number }).meanHeight(
+      "event",
+    );
+    const expected = (200 + 20 * (events.length - 1)) / events.length;
+    expect(mean).toBeCloseTo(expected, 5);
+    expect(mean).not.toBe(200); // the first row's height, which is the bug
+  });
+
+  it("re-arms the viewport observer after being removed and re-inserted", () => {
+    // BaseElement.setupListeners runs once, on first connection, but
+    // disconnectedCallback tears the observer down every time. Without
+    // re-arming, a re-inserted log keeps its listeners and loses its observer,
+    // so container resizes silently stop re-planning.
+    const element = create(40, 50);
+    const observerOf = (): unknown =>
+      (element as unknown as { viewportObserver: unknown }).viewportObserver;
+
+    expect(observerOf()).not.toBeNull();
+
+    element.remove();
+    expect(observerOf()).toBeNull();
+
+    document.body.append(element);
+    expect(observerOf()).not.toBeNull();
+  });
+
+  it("reuses the grouped rows and offset index across scroll frames", async () => {
+    // The scroll path asks "did the window move?" every frame. Recomputing that
+    // answer meant re-parsing the whole events attribute, re-filtering,
+    // re-grouping, re-flattening and rebuilding the offset array — O(n) twice
+    // per frame on the surface whose point is not being O(n).
+    const element = create(40, 50);
+    const build = vi.spyOn(
+      element as unknown as { cachedRows: () => unknown },
+      "cachedRows",
+    );
+    const grouped = vi.fn();
+    const original = (element as unknown as { rowCache: { signature: string } | null }).rowCache;
+    expect(original).not.toBeNull();
+
+    await scrollTo(element, 10);
+    await scrollTo(element, 20);
+    await scrollTo(element, 30);
+
+    // Same signature throughout, so the cached object is never replaced.
+    expect(
+      (element as unknown as { rowCache: unknown }).rowCache,
+    ).toBe(original);
+    expect(build.mock.calls.length).toBeGreaterThan(0);
+    expect(grouped).not.toHaveBeenCalled();
+  });
+
+  it("rebuilds the cached rows when the collapse state changes", () => {
+    const element = create(40, 50);
+    const before = (element as unknown as { rowCache: unknown }).rowCache;
+    element.collapseAll();
+    expect((element as unknown as { rowCache: unknown }).rowCache).not.toBe(before);
   });
 
   it("keeps the export tied to the filtered set, not the rendered window", () => {

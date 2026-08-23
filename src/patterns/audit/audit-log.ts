@@ -25,10 +25,18 @@ import { isSafeHref } from "../internal/safe-href.js";
 import { isTimelineEventRecord, resolveTimelineTone } from "../timeline/types.js";
 import { BaseElement, sameRowWindow } from "../../core/index.js";
 import type { RowWindow } from "../../core/index.js";
-import { flattenAuditRows, planAuditWindow } from "./window.js";
-import type { AuditRowHeights, AuditWindowPlan } from "./window.js";
+import { buildAuditIndex, flattenAuditRows, planAuditWindow } from "./window.js";
+import type { AuditRow, AuditRowHeights, AuditWindowPlan } from "./window.js";
+import type { OffsetIndex } from "../../core/offset-window.js";
 import { boeInputControlStyles, boePanel, boeRadius } from "../../foundations/geometry/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
+
+/**
+ * How many times the element will adopt a fresh height measurement for one row
+ * set. A hard stop, not a tuning knob: without it a non-uniform list can adopt,
+ * re-window, re-measure and adopt again on every animation frame forever.
+ */
+const MAX_HEIGHT_ADOPTIONS = 3;
 
 const DEFAULT_TAG_NAME = "box-audit-log";
 
@@ -428,6 +436,11 @@ export class AuditLog extends BaseElement {
 
   private measureFrame = 0;
 
+  /** Row set the adoption budget below is counted against. */
+  private adoptedFor: string | null = null;
+
+  private adoptionCount = 0;
+
   private viewportObserver: ResizeObserver | null = null;
 
   private contentSignature = "";
@@ -601,6 +614,33 @@ export class AuditLog extends BaseElement {
     return csv;
   }
 
+  /**
+   * Watch the scroller so a measurable — or resized — viewport re-plans.
+   *
+   * Separate from `setupListeners` because that runs *once*, on the element's
+   * first connection, while `disconnectedCallback` tears the observer down
+   * every time. A log removed and re-inserted would otherwise come back with
+   * its listeners intact and its observer gone, so resizing its container
+   * would silently stop re-planning. Idempotent, so both callers are safe.
+   */
+  private observeViewport(): void {
+    if (this.viewportObserver || typeof ResizeObserver === "undefined") return;
+    this.viewportObserver = new ResizeObserver(() => {
+      if (!this.virtualize) return;
+      const next = this.currentPlan().window;
+      if (this.lastWindow && sameRowWindow(this.lastWindow, next)) return;
+      this.update();
+    });
+    this.viewportObserver.observe(this.groupsEl);
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    // Re-arm after a disconnect; no-op on the first connection, where
+    // setupListeners has already done it.
+    this.observeViewport();
+  }
+
   disconnectedCallback(): void {
     // The observer holds a reference to the scroller and the pending frames
     // hold one to the element; a log removed mid-scroll should not keep either
@@ -679,19 +719,54 @@ export class AuditLog extends BaseElement {
    * last plan used. Re-planning with the measured heights settles immediately —
    * the next measurement matches — so this cannot loop.
    */
+  /** Mean rendered height of the elements matching a part, or 0 if none. */
+  private meanHeight(part: string): number {
+    const nodes = Array.from(this.groupsEl.querySelectorAll<HTMLElement>(`[part="${part}"]`));
+    if (nodes.length === 0) return 0;
+    const total = nodes.reduce((sum, node) => sum + node.getBoundingClientRect().height, 0);
+    return total / nodes.length;
+  }
+
+  /**
+   * Adopt the real rendered heights when they differ from the ones in use.
+   *
+   * Two things here exist because the obvious version ran away. Sampling *one*
+   * event row and adopting its height looks fine and is not: event rows are not
+   * uniform — `summary`, `evidence` and `correlationId` are each optional — so
+   * adopting the first rendered row's height moves the window, which renders a
+   * different first row, which measures differently, which moves the window.
+   * Measured in Chromium with every third event several lines taller: **55 full
+   * rebuilds in 0.9 seconds while nothing was scrolling**, the sampled height
+   * flipping between 33px and 166.5px.
+   *
+   * So: average across every rendered row rather than sampling one, which makes
+   * the estimate both more representative and far less sensitive to which rows
+   * happen to be on screen. And bound the adoptions per row set anyway, because
+   * "the average is stable" is an argument about typical data, and this is the
+   * code path where being wrong costs a frame-rate collapse rather than a
+   * slightly wrong scrollbar.
+   */
   private measureRowHeights(): void {
     if (!this.virtualize || this.measureFrame) return;
-    const heading = this.groupsEl.querySelector<HTMLElement>('[part="group-heading"]');
-    const event = this.groupsEl.querySelector<HTMLElement>('[part="event"]');
-    const headingHeight = heading?.getBoundingClientRect().height ?? 0;
-    const eventHeight = event?.getBoundingClientRect().height ?? 0;
+
+    const signature = this.heightSignature();
+    if (signature !== this.adoptedFor) {
+      this.adoptedFor = signature;
+      this.adoptionCount = 0;
+    }
+    if (this.adoptionCount >= MAX_HEIGHT_ADOPTIONS) return;
+
+    const headingHeight = this.meanHeight("group-heading");
+    const eventHeight = this.meanHeight("event");
     if (headingHeight <= 0 || eventHeight <= 0) return;
     if (
-      Math.abs(headingHeight - this.headingHeight) < 0.5 &&
-      Math.abs(eventHeight - this.rowHeight) < 0.5
+      Math.abs(headingHeight - this.headingHeight) < 1 &&
+      Math.abs(eventHeight - this.rowHeight) < 1
     ) {
       return;
     }
+
+    this.adoptionCount++;
     this.measuredHeights = { heading: headingHeight, event: eventHeight };
     this.measureFrame = requestAnimationFrame(() => {
       this.measureFrame = 0;
@@ -699,15 +774,31 @@ export class AuditLog extends BaseElement {
     });
   }
 
-  private currentPlan(groups: AuditGroup[]): AuditWindowPlan {
+  /**
+   * What counts as "the same row set" for the adoption budget: change the data,
+   * the grouping, the filters or the collapse state and the rows genuinely
+   * differ, so measuring again is warranted.
+   */
+  private heightSignature(): string {
+    return JSON.stringify([
+      this.getAttribute("events") ?? "",
+      this.groupBy,
+      this.facets,
+      [...this.collapsedGroups].sort(),
+    ]);
+  }
+
+  private currentPlan(): AuditWindowPlan {
+    const { rows, index } = this.cachedRows();
     return planAuditWindow(
-      flattenAuditRows(groups, this.collapsedGroups),
+      rows,
       { heading: this.headingHeight, event: this.rowHeight },
       {
         viewportHeight: this.groupsEl.clientHeight,
         scrollTop: this.groupsEl.scrollTop,
         contentHeight: this.groupsEl.scrollHeight,
       },
+      index,
     );
   }
 
@@ -715,8 +806,43 @@ export class AuditLog extends BaseElement {
     return resolveReferenceTime(this.getAttribute("reference-time"));
   }
 
+  /**
+   * Grouping, flattening and indexing for the current data, computed once and
+   * reused until something that affects them changes.
+   *
+   * The scroll path asks "did the window move?" on every frame that is not
+   * skipped, and answering it used to re-parse the whole `events` attribute,
+   * re-filter, re-group, re-flatten and rebuild the offset array — then
+   * `update()` did all of it again. That is O(n) twice per frame on a surface
+   * whose entire purpose is not being O(n) at scale.
+   */
+  private rowCache: {
+    signature: string;
+    groups: AuditGroup[];
+    rows: AuditRow[];
+    index: OffsetIndex;
+  } | null = null;
+
+  private cachedRows(): { groups: AuditGroup[]; rows: AuditRow[]; index: OffsetIndex } {
+    const heights = { heading: this.headingHeight, event: this.rowHeight };
+    const signature = JSON.stringify([
+      this.getAttribute("events") ?? "",
+      this.groupBy,
+      this.facets,
+      this.referenceTime,
+      [...this.collapsedGroups].sort(),
+      heights,
+    ]);
+    if (this.rowCache?.signature === signature) return this.rowCache;
+
+    const groups = groupAuditEvents(this.visibleEvents, this.groupBy, this.now());
+    const rows = flattenAuditRows(groups, this.collapsedGroups);
+    this.rowCache = { signature, groups, rows, index: buildAuditIndex(rows, heights) };
+    return this.rowCache;
+  }
+
   private currentGroups(): AuditGroup[] {
-    return groupAuditEvents(this.visibleEvents, this.groupBy, this.now());
+    return this.cachedRows().groups;
   }
 
   private patchFacets(patch: AuditFacets): void {
@@ -870,15 +996,7 @@ export class AuditLog extends BaseElement {
     // the log stays blank until something else happens to trigger a render.
     // The observer breaks that circle on the first layout, and keeps earning
     // its place afterwards — a resized container changes how much fits.
-    if (typeof ResizeObserver !== "undefined") {
-      this.viewportObserver = new ResizeObserver(() => {
-        if (!this.virtualize) return;
-        const next = this.currentPlan(this.currentGroups()).window;
-        if (this.lastWindow && sameRowWindow(this.lastWindow, next)) return;
-        this.update();
-      });
-      this.viewportObserver.observe(this.groupsEl);
-    }
+    this.observeViewport();
 
     // Scroll fires continuously; coalesce to one re-render per frame, and skip
     // entirely while the resolved slice is unchanged — most scroll events move
@@ -889,7 +1007,7 @@ export class AuditLog extends BaseElement {
         if (!this.virtualize || this.scrollFrame) return;
         this.scrollFrame = requestAnimationFrame(() => {
           this.scrollFrame = 0;
-          const next = this.currentPlan(this.currentGroups()).window;
+          const next = this.currentPlan().window;
           if (this.lastWindow && sameRowWindow(this.lastWindow, next)) return;
           this.update();
         });
@@ -1066,7 +1184,7 @@ export class AuditLog extends BaseElement {
     // Windowed renders depend on the scroll position too, so the resolved
     // slice joins the signature — otherwise scrolling would keep the sections
     // that were already on screen and never draw the ones scrolled into view.
-    const plan = this.virtualize ? this.currentPlan(groups) : null;
+    const plan = this.virtualize ? this.currentPlan() : null;
     this.lastWindow = plan?.window ?? null;
 
     const contentSignature = JSON.stringify([
