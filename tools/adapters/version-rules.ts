@@ -112,21 +112,56 @@ export const parseLockedCoreVersion = (lockfile: string): string | null => {
 };
 
 /**
- * Whether the lockfile's pinned core matches the version this tree builds.
+ * Released versions, newest first, read from the CHANGELOG's `## X.Y.Z` headings.
+ *
+ * The CHANGELOG is already machine-read at release time — `cut-release.yml`
+ * awks a version's section out for the GitHub Release notes — so treating it as
+ * the record of what has shipped is established, not a new coupling.
+ */
+export const parseReleasedVersions = (changelog: string): string[] =>
+  [...changelog.matchAll(/^## (\d+\.\d+\.\d+)/gm)].map(match => match[1] as string);
+
+/**
+ * Whether the lockfile's pinned core is one this tree may legitimately carry.
  *
  * The mandatory check: the lockfile is committed, so unlike an installed copy
  * it exists in every environment — CI runner, pinned container, and a
  * contributor's laptop alike.
+ *
+ * It accepts *two* versions, and the second one is the whole subtlety. The
+ * lockfile can only pin a version that exists on npm, so during a release the
+ * tree is at the new version while the registry still has only the old one —
+ * the pin cannot be refreshed until after publishing. Demanding an exact match
+ * makes every release PR unpassable, which is precisely what happened on the
+ * first release after this rule landed: the tree said 0.8.0, npm said 0.7.0,
+ * and CI refused a change that was correct.
+ *
+ * So the previous released version is allowed, and the caller reports the lag
+ * rather than passing silently.
+ *
+ * **Known blind spot**, stated rather than hidden: once a release lands, a
+ * lockfile still pinning the previous version keeps passing until the release
+ * after it. Closing that costs the ability to release at all, so the process
+ * carries it instead — RELEASING.md makes refreshing the pin a required
+ * post-publish step. What this still catches is the failure that motivated it:
+ * a pin left behind across *several* releases, silently, for weeks.
  */
-export const checkLockfileCore = (coreVersion: string, locked: string | null): string[] => {
+export const checkLockfileCore = (
+  coreVersion: string,
+  locked: string | null,
+  releasedVersions: readonly string[] = [],
+): string[] => {
   if (locked === null) return [];
-  if (locked !== coreVersion) {
-    return [
-      `bun.lock pins ${CORE_PACKAGE}@${locked} but this tree is ${coreVersion}. ` +
-        `Run \`bun update ${CORE_PACKAGE}\` (and revert the dependency it adds to the root package.json).`,
-    ];
-  }
-  return [];
+  if (locked === coreVersion) return [];
+
+  const previousRelease = releasedVersions.find(version => version !== coreVersion);
+  if (previousRelease !== undefined && locked === previousRelease) return [];
+
+  return [
+    `bun.lock pins ${CORE_PACKAGE}@${locked} but this tree is ${coreVersion}` +
+      (previousRelease === undefined ? "" : ` (previous release: ${previousRelease})`) +
+      `. Run \`bun update ${CORE_PACKAGE}\` (and revert the dependency it adds to the root package.json).`,
+  ];
 };
 
 /**
@@ -141,12 +176,18 @@ export const checkLockfileCore = (coreVersion: string, locked: string | null): s
 export const checkInstalledCore = (
   coreVersion: string,
   installed: string | null,
+  releasedVersions: readonly string[] = [],
 ): string[] => {
   if (installed === null) return [];
-  if (installed !== coreVersion) {
-    return [
-      `${CORE_PACKAGE} resolves to ${installed} but this tree is ${coreVersion} — the installed copy is stale. Run \`bun install\`.`,
-    ];
-  }
-  return [];
+  if (installed === coreVersion) return [];
+
+  // Same release-window tolerance as the lockfile rule, and for the same
+  // reason: the installed copy comes from the registry, which cannot have this
+  // tree's version until after it is published.
+  const previousRelease = releasedVersions.find(version => version !== coreVersion);
+  if (previousRelease !== undefined && installed === previousRelease) return [];
+
+  return [
+    `${CORE_PACKAGE} resolves to ${installed} but this tree is ${coreVersion} — the installed copy is stale. Run \`bun install\`.`,
+  ];
 };

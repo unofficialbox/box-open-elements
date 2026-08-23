@@ -7,7 +7,7 @@ This guide shows the minimal setup and a working example per framework.
 Runnable compiler/build fixtures for all four frameworks live in
 [`examples/frameworks`](../../examples/frameworks) and run as part of
 `bun run verify`. React, Angular, Vue, and Svelte have published adapter packages
-at `0.7.0` — the same version as the core, which they peer-depend on exactly.
+at the same version as the core, which they peer-depend on exactly.
 
 The core package is **`@unofficialbox/box-open-elements`**; every direct example
 below uses it. Framework adapters remain thin optional layers and publish as:

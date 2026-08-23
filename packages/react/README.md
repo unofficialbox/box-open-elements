@@ -76,7 +76,7 @@ Angular, Vue, and Svelte adapters under `adapters-vX.Y.Z`, at the core's version
 | Dependency | Contract |
 | --- | --- |
 | React / React DOM | `^19.0.0` |
-| `@unofficialbox/box-open-elements` | `^0.7.0` |
+| `@unofficialbox/box-open-elements` | `^0.8.0` |
 | Node.js for SSR | `>=20.9.0` |
 | Next.js validation host | `16.2.12` |
 
