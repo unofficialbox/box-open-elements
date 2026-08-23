@@ -367,6 +367,13 @@ export class Table extends BaseElement {
   private anchorIndex = -1;
   private readonly expandedIds = new Set<string>();
   private lastWindow: RowWindow | null = null;
+  /**
+   * Whether the last render actually windowed. Not the same as `virtualize`:
+   * the flag is suppressed for a collection the fixed-height window cannot
+   * describe (see `update`). Cached at render time so the scroll handler does
+   * not re-parse `rows` on every frame to answer the question.
+   */
+  private windowing = false;
   private scrollFrame = 0;
   private measuredRowHeight = 0;
   private measureFrame = 0;
@@ -406,6 +413,11 @@ export class Table extends BaseElement {
    * Render only the rows near the viewport. Opt-in: a windowed table needs a
    * bounded height to scroll within, and silently windowing an unbounded table
    * would render nothing.
+   *
+   * A request, not a guarantee. The window arithmetic is fixed-height, so it is
+   * suppressed for a collection whose rows can change height — today that means
+   * any collection where a row declares `detail`. Read `renderedWindow` to see
+   * whether a render actually windowed.
    */
   get virtualize(): boolean {
     return this.hasAttribute("virtualize");
@@ -449,7 +461,7 @@ export class Table extends BaseElement {
    * settles immediately: the next measurement matches, so this cannot loop.
    */
   private measureRowHeight(): void {
-    if (!this.virtualize || this.measureFrame) return;
+    if (!this.windowing || this.measureFrame) return;
     const row = this.bodyEl.querySelector<HTMLElement>('[part="row"]');
     const height = row?.getBoundingClientRect().height ?? 0;
     if (height <= 0 || Math.abs(height - this.rowHeight) < 0.5) return;
@@ -460,9 +472,13 @@ export class Table extends BaseElement {
     });
   }
 
-  /** The rendered window (null when not virtualizing) — for tests and hosts. */
+  /**
+   * The window the last render used, or null when it rendered every row — for
+   * tests and hosts. Null despite `virtualize` means the collection is one the
+   * fixed-height window cannot describe and windowing was suppressed.
+   */
   get renderedWindow(): RowWindow | null {
-    return this.virtualize ? this.lastWindow : null;
+    return this.windowing ? this.lastWindow : null;
   }
 
   /** Ids of the rows whose detail is expanded (host-readable). */
@@ -580,7 +596,7 @@ export class Table extends BaseElement {
     this.shellEl.addEventListener(
       "scroll",
       () => {
-        if (!this.virtualize || this.scrollFrame) return;
+        if (!this.windowing || this.scrollFrame) return;
         this.scrollFrame = requestAnimationFrame(() => {
           this.scrollFrame = 0;
           const next = this.currentWindow();
@@ -696,7 +712,7 @@ export class Table extends BaseElement {
       this.bodyEl.querySelector<HTMLElement>(`[part="row"][data-index="${String(index)}"]`);
 
     let target = find();
-    if (!target && this.virtualize && this.shellEl) {
+    if (!target && this.windowing && this.shellEl) {
       // Scroll the row to the top of the viewport, then re-render the window
       // synchronously: the scroll event's own re-render lands a frame later,
       // and focus cannot wait for it.
@@ -825,6 +841,12 @@ export class Table extends BaseElement {
         })
         .join("");
 
+    // A state row is never windowed. Cleared up front so a table that drops
+    // into loading/error/empty does not leave the previous window's flag
+    // standing — the scroll handler and `renderedWindow` both read it.
+    this.windowing = false;
+    this.lastWindow = null;
+
     // Loading, error, and empty are stated in words in the body — a blank
     // grid reads as broken. Loading wins; a stale error must not outlive a
     // retry that is visibly in flight.
@@ -845,8 +867,25 @@ export class Table extends BaseElement {
     // rows so the scrollbar still describes the whole collection. Indices stay
     // ABSOLUTE: selection, shift-range, and activateRow all address `rows`, and
     // renumbering the slice would select the wrong record.
-    const virtualizing = this.virtualize;
+    //
+    // `virtualize` is a request, not a guarantee. `resolveRowWindow` derives
+    // the whole scroll range from `rows.length * rowHeight`, so it can only
+    // describe a collection of uniform, fixed-height rows. An expanded row
+    // renders a second `<tr part="detail-row">` the arithmetic knows nothing
+    // about: the real content grows taller than the spacers claim, the scroll
+    // range no longer matches the scrollbar, and scrollTop stops mapping to the
+    // right absolute index — so a windowed table with expandable rows would
+    // scroll to the wrong record. Variable heights are a different algorithm (a
+    // cumulative offset index), not a flag on this one, so windowing is
+    // suppressed rather than approximated.
+    //
+    // The test is `expandable`, not "is anything expanded right now": deciding
+    // from transient UI state would flip windowing on and off mid-scroll, which
+    // jumps the viewport under the pointer. A collection that can expand never
+    // windows; `renderedWindow` returns null so a host can see that it didn't.
+    const virtualizing = this.virtualize && !expandable;
     const rowWindow = virtualizing ? this.currentWindow() : null;
+    this.windowing = virtualizing;
     this.lastWindow = rowWindow;
     const visibleRows = rowWindow
       ? rows.slice(rowWindow.startIndex, rowWindow.endIndex)

@@ -481,4 +481,64 @@ describe("Table row virtualization", () => {
     expect(el.shadowRoot?.querySelector('[part="row"]')).toBe(firstRow);
     expect(renderedIndices(el).length).toBe(300);
   });
+
+  it("refuses to window a collection whose rows can expand", () => {
+    // The window derives the entire scroll range from rows.length * rowHeight.
+    // An expanded row renders a second <tr> that arithmetic knows nothing
+    // about, so the spacers would under-report the real height and scrollTop
+    // would stop mapping to the right absolute index. Rendering everything is
+    // slower; scrolling to the wrong record is wrong.
+    const el = create(300);
+    expect(el.renderedWindow).not.toBeNull(); // windowing while rows are flat
+
+    el.rows = manyRows(300).map(row => ({ ...row, detail: `About ${row.id}` })) as never;
+
+    expect(el.renderedWindow).toBeNull();
+    expect(renderedIndices(el).length).toBe(300);
+    expect(el.shadowRoot?.querySelectorAll('[part="spacer"]').length).toBe(0);
+    // The opt-in is untouched — the element declined it, it was not revoked.
+    expect(el.virtualize).toBe(true);
+  });
+
+  it("keeps an expandable collection unwindowed across expand and scroll", async () => {
+    // The decision is made from the data, not from what happens to be open: a
+    // window that appeared and disappeared as a row toggled would jump the
+    // viewport under the pointer mid-scroll.
+    const el = document.createElement("box-table") as Table;
+    el.columns = COLS as never;
+    el.setAttribute("virtualize", "");
+    el.setAttribute("row-height", "32");
+    document.body.append(el);
+    Object.defineProperty(shellOf(el), "clientHeight", { value: 640, configurable: true });
+    el.rows = manyRows(300).map(row => ({ ...row, detail: `About ${row.id}` })) as never;
+
+    expect(el.renderedWindow).toBeNull();
+
+    // Expand a row: the detail <tr> appears and windowing stays off.
+    el.shadowRoot?.querySelector<HTMLElement>('[part="expander"]')?.click();
+    expect(el.expandedRows).toEqual(["r-0"]);
+    expect(el.shadowRoot?.querySelectorAll('[part="detail-row"]').length).toBe(1);
+    expect(el.renderedWindow).toBeNull();
+
+    // And a scroll past where the window would have moved changes nothing.
+    const firstRow = el.shadowRoot?.querySelector('[part="row"]');
+    await scrollTo(el, 6_400);
+    expect(el.renderedWindow).toBeNull();
+    expect(el.shadowRoot?.querySelector('[part="row"]')).toBe(firstRow);
+    expect(renderedIndices(el).length).toBe(300);
+  });
+
+  it("reports no window while showing a state row", () => {
+    const el = create(10_000);
+    expect(el.renderedWindow).not.toBeNull();
+
+    el.loading = true;
+    expect(el.renderedWindow).toBeNull();
+
+    el.loading = false;
+    expect(el.renderedWindow).not.toBeNull();
+
+    el.rows = [] as never;
+    expect(el.renderedWindow).toBeNull();
+  });
 });
