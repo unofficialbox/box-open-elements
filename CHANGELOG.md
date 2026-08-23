@@ -10,7 +10,42 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
-No unreleased changes.
+- Row virtualization for `box-table`, over a shared windowing engine
+  ([#193](https://github.com/unofficialbox/box-open-elements/pull/193)):
+
+  - **`resolveRowWindow`** (`src/core/virtualize.ts`) — pure, shared, fixed row
+    height. Returns the rendered slice plus the spacer heights, and guarantees
+    `paddingTop + rendered + paddingBottom === totalHeight` at every scroll
+    position, so the scroll range never drifts under the pointer. Shared rather
+    than per-component so `box-table`, `box-audit-log`, and `box-tree-grid`
+    cannot end up with three definitions of "near the viewport".
+  - **`box-table` opts in** with `virtualize`. Row indices stay absolute, so
+    selection, shift-range, and `activateRow` still address the full collection;
+    keyboard bounds come from the data rather than the rendered slice, and
+    `focusRowByIndex` scrolls an unrendered row into the window before focusing
+    it. Spacer rows are not `[part="row"]`, so navigation never lands on one.
+    Scroll coalesces to a frame and skips the render entirely while the resolved
+    slice is unchanged.
+  - `row-height` is an estimate: the element measures a real row after first
+    paint and adopts it. A declared height that is wrong by a few pixels
+    otherwise accumulates into a visibly wrong scroll range over thousands of
+    rows.
+  - `box-audit-log` is deliberately not converted — its rows are grouped, and
+    windowing across group boundaries is a different algorithm.
+
+- Docs-site rail reveals the active entry when the restored scroll leaves it
+  below the fold ([#193](https://github.com/unofficialbox/box-open-elements/pull/193)).
+  The decision is a pure `resolveRailReveal`; an entry taller than the viewport
+  aligns to the top instead of centring, which would push its first line
+  off-screen.
+
+- Framework adapters to 0.2.0, peers on `^0.6.0`
+  ([#193](https://github.com/unofficialbox/box-open-elements/pull/193)). They
+  carry the `ExplorerSelectionController` re-export from #188, and their previous
+  `^0.5.0` peer range excluded the current core release. Example apps now resolve
+  the core package through `paths` to the local build, so a release-prep PR no
+  longer trips TypeScript's private-field nominal check by loading two copies of
+  the same class.
 
 ---
 
