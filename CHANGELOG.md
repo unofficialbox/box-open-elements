@@ -10,6 +10,30 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- Review follow-ups to #193 — findings that arrived after it merged:
+
+  - **`virtualize` no longer windows a collection whose rows can expand.** The
+    window derives the whole scroll range from `rows.length * rowHeight`, but an
+    expanded row renders a second `<tr>` that arithmetic knows nothing about:
+    the spacers under-report the real height, and `scrollTop` stops mapping to
+    the right absolute row, so the table would scroll to the wrong record.
+    Windowing is now suppressed when any row declares `detail`, and
+    `renderedWindow` returns `null` so a host can see that it was. The test is
+    the data, not what happens to be open — flipping windowing as a row toggled
+    would jump the viewport mid-scroll.
+  - **`release.yml` refuses to publish from a non-tag ref.** Its tag/version
+    guard ran only for `release` events, so a manual `workflow_dispatch` — from
+    `main`, the ref the Actions UI offers first — could publish an untagged tree
+    under whatever version `package.json` named. The guard now applies to every
+    trigger; the automated path already dispatches on the tag, so it is
+    unaffected.
+  - `RELEASING.md`: a green Cut release run means the publish was *dispatched*,
+    not that it succeeded — the verify gate and `npm publish` run afterwards in
+    `release.yml`. Documented how to follow that second run to npm. Also
+    replaced the manual release-notes `sed` range, which stapled the next
+    version's heading onto the notes, with the bounded `awk` `cut-release.yml`
+    already uses.
+
 - Row virtualization for `box-table`, over a shared windowing engine
   ([#193](https://github.com/unofficialbox/box-open-elements/pull/193)):
 

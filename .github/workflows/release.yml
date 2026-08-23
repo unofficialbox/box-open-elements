@@ -11,6 +11,9 @@ name: Publish to npm
 #     authorises the tokenless OIDC publish below.
 #   - Cut releases by bumping `version` in package.json, tagging `vX.Y.Z`, and
 #     publishing a GitHub Release for that tag (the tag must match the version).
+#
+# A manual dispatch must select the `vX.Y.Z` tag as its ref. Dispatching from a
+# branch fails the guard below rather than publishing an untagged tree.
 
 on:
   release:
@@ -51,14 +54,22 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # Guard against a tag/version mismatch publishing the wrong version.
-      - name: Check tag matches package version
-        if: github.event_name == 'release'
+      # Guard against publishing an untagged or mismatched tree. This applies to
+      # manual dispatches too, not just Release events: the Actions UI defaults
+      # the ref to main, and a main that has already merged the next version
+      # bump would otherwise publish an untagged tree under that version. The
+      # automated path (cut-release.yml) already dispatches on the tag ref, so
+      # the guard costs it nothing.
+      - name: Check the ref is a version tag matching package.json
         run: |
           PKG="$(node -p "require('./package.json').version")"
+          if [ "$GITHUB_REF_TYPE" != "tag" ]; then
+            echo "Refusing to publish from $GITHUB_REF — run this on the v$PKG tag." >&2
+            exit 1
+          fi
           TAG="${GITHUB_REF_NAME#v}"
           if [ "$PKG" != "$TAG" ]; then
-            echo "package.json version ($PKG) does not match release tag ($TAG)"
+            echo "package.json version ($PKG) does not match the tag ($TAG)" >&2
             exit 1
           fi
 

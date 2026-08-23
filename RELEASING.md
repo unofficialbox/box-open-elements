@@ -53,7 +53,16 @@ The workflow refuses to run off `main`, refuses to move an existing tag, and
 skips the npm dispatch when the version is already published, so a re-run after
 a partial failure fills in only what is missing.
 
-Watch the run: `gh run watch` (or the Actions tab). A green run means it's live.
+**A green Cut release run does not mean the package is published.** Cut release
+only tags, publishes the GitHub Release, and *dispatches* the publish; the verify
+gate and `npm publish` run afterwards in `release.yml` and can still fail there.
+Watch that second run to completion, then confirm the version is actually on npm:
+
+```bash
+gh run watch                                          # the Cut release run
+gh run list --workflow release.yml --limit 1          # then the dispatched publish
+npm view @unofficialbox/box-open-elements version     # the release is live when this matches
+```
 
 ### A version bump quietly dirties every docs-site baseline
 
@@ -75,12 +84,21 @@ Creating the GitHub Release yourself still works and still triggers
 
 ```bash
 git checkout main && git pull
-gh release create v0.6.0 --title v0.6.0 --notes-file <(sed -n '/^## 0.6.0/,/^## /p' CHANGELOG.md)
+gh release create v0.6.0 --title v0.6.0 \
+  --notes-file <(awk '/^## 0.6.0 /{found=1; next} found && /^## /{exit} found' CHANGELOG.md)
 ```
 
-`release.yml` also accepts a manual `workflow_dispatch` — useful for
-re-publishing after a failed run — but the tag/version guard only applies to
-Release events.
+The `awk` extraction stops *before* the next `##` heading — the same bounded
+read `cut-release.yml` uses. A `sed` range (`/^## 0.6.0/,/^## /p`) prints its
+terminating line, so it would staple the following version's heading onto the
+release notes.
+
+`release.yml` also accepts a manual `workflow_dispatch`, useful for re-publishing
+after a failed run. **Select the `vX.Y.Z` tag as the ref, not a branch.** The
+workflow refuses to publish from a non-tag ref, or from a tag that disagrees with
+`package.json` — otherwise a dispatch from `main` (the ref the Actions UI offers
+first) would publish whatever `main` happens to hold, under whatever version its
+`package.json` names.
 
 ## Route B — local publish
 
