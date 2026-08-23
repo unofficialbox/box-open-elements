@@ -10,6 +10,12 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+## 0.8.0 — 2026-08-23
+
+A minor rather than a patch, deliberately. The `Button` type change below is
+breaking, and `^0.7.0` resolves to `>=0.7.0 <0.8.0` — releasing it as `0.7.1`
+would hand every consumer on that range a compile error they never opted into.
+
 - **React `Button` `onClick` works inside `box-drawer`.** The callback was
   routed through React's `onClick`, which is delegated from the React root
   container — and `box-drawer` moves its whole subtree to `document.body` when

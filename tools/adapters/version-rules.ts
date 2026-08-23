@@ -112,21 +112,98 @@ export const parseLockedCoreVersion = (lockfile: string): string | null => {
 };
 
 /**
- * Whether the lockfile's pinned core matches the version this tree builds.
+ * Released versions, newest first, read from the CHANGELOG's `## X.Y.Z` headings.
+ *
+ * The CHANGELOG is already machine-read at release time — `cut-release.yml`
+ * awks a version's section out for the GitHub Release notes — so treating it as
+ * the record of what has shipped is established, not a new coupling.
+ */
+export const parseReleasedVersions = (changelog: string): string[] =>
+  [...changelog.matchAll(/^## (\d+\.\d+\.\d+)/gm)].map(match => match[1] as string);
+
+/** Numeric semver ordering — `0.10.0` must sort above `0.9.0`, not below it. */
+const compareVersions = (left: string, right: string): number => {
+  const l = left.split(".").map(Number);
+  const r = right.split(".").map(Number);
+  for (let index = 0; index < 3; index++) {
+    const difference = (l[index] ?? 0) - (r[index] ?? 0);
+    if (difference !== 0) return difference;
+  }
+  return 0;
+};
+
+/**
+ * The release immediately before `coreVersion`, or undefined when there isn't
+ * one to point at.
+ *
+ * Adjacent selection, not "the first entry that differs". That shortcut was
+ * wrong in a way worth recording: on a tree that is *not* the newest release —
+ * an older branch or tag — the first differing entry is a release **newer**
+ * than the tree, so the gate accepted a lockfile pinned ahead of the code and
+ * rejected the genuine predecessor. Precisely inverted.
+ *
+ * Two legitimate shapes, both handled:
+ *
+ * - `coreVersion` is in the list (the release PR added its heading) — take the
+ *   entry after it.
+ * - `coreVersion` is absent (ordinary development, before a release section
+ *   exists) — the newest release is the one before it.
+ *
+ * The ordering guard is the backstop: whatever the CHANGELOG's shape, a
+ * candidate that is not strictly older than this tree is not a release window,
+ * and no tolerance is granted.
+ */
+const previousReleaseOf = (
+  coreVersion: string,
+  releasedVersions: readonly string[],
+): string | undefined => {
+  const index = releasedVersions.indexOf(coreVersion);
+  const candidate = index === -1 ? releasedVersions[0] : releasedVersions[index + 1];
+  if (candidate === undefined) return undefined;
+  return compareVersions(candidate, coreVersion) < 0 ? candidate : undefined;
+};
+
+/**
+ * Whether the lockfile's pinned core is one this tree may legitimately carry.
  *
  * The mandatory check: the lockfile is committed, so unlike an installed copy
  * it exists in every environment — CI runner, pinned container, and a
  * contributor's laptop alike.
+ *
+ * It accepts *two* versions, and the second one is the whole subtlety. The
+ * lockfile can only pin a version that exists on npm, so during a release the
+ * tree is at the new version while the registry still has only the old one —
+ * the pin cannot be refreshed until after publishing. Demanding an exact match
+ * makes every release PR unpassable, which is precisely what happened on the
+ * first release after this rule landed: the tree said 0.8.0, npm said 0.7.0,
+ * and CI refused a change that was correct.
+ *
+ * So the previous released version is allowed, and the caller reports the lag
+ * rather than passing silently.
+ *
+ * **Known blind spot**, stated rather than hidden: once a release lands, a
+ * lockfile still pinning the previous version keeps passing until the release
+ * after it. Closing that costs the ability to release at all, so the process
+ * carries it instead — RELEASING.md makes refreshing the pin a required
+ * post-publish step. What this still catches is the failure that motivated it:
+ * a pin left behind across *several* releases, silently, for weeks.
  */
-export const checkLockfileCore = (coreVersion: string, locked: string | null): string[] => {
+export const checkLockfileCore = (
+  coreVersion: string,
+  locked: string | null,
+  releasedVersions: readonly string[] = [],
+): string[] => {
   if (locked === null) return [];
-  if (locked !== coreVersion) {
-    return [
-      `bun.lock pins ${CORE_PACKAGE}@${locked} but this tree is ${coreVersion}. ` +
-        `Run \`bun update ${CORE_PACKAGE}\` (and revert the dependency it adds to the root package.json).`,
-    ];
-  }
-  return [];
+  if (locked === coreVersion) return [];
+
+  const previousRelease = previousReleaseOf(coreVersion, releasedVersions);
+  if (previousRelease !== undefined && locked === previousRelease) return [];
+
+  return [
+    `bun.lock pins ${CORE_PACKAGE}@${locked} but this tree is ${coreVersion}` +
+      (previousRelease === undefined ? "" : ` (previous release: ${previousRelease})`) +
+      `. Run \`bun update ${CORE_PACKAGE}\` (and revert the dependency it adds to the root package.json).`,
+  ];
 };
 
 /**
@@ -141,12 +218,18 @@ export const checkLockfileCore = (coreVersion: string, locked: string | null): s
 export const checkInstalledCore = (
   coreVersion: string,
   installed: string | null,
+  releasedVersions: readonly string[] = [],
 ): string[] => {
   if (installed === null) return [];
-  if (installed !== coreVersion) {
-    return [
-      `${CORE_PACKAGE} resolves to ${installed} but this tree is ${coreVersion} — the installed copy is stale. Run \`bun install\`.`,
-    ];
-  }
-  return [];
+  if (installed === coreVersion) return [];
+
+  // Same release-window tolerance as the lockfile rule, and for the same
+  // reason: the installed copy comes from the registry, which cannot have this
+  // tree's version until after it is published.
+  const previousRelease = previousReleaseOf(coreVersion, releasedVersions);
+  if (previousRelease !== undefined && installed === previousRelease) return [];
+
+  return [
+    `${CORE_PACKAGE} resolves to ${installed} but this tree is ${coreVersion} — the installed copy is stale. Run \`bun install\`.`,
+  ];
 };

@@ -7,6 +7,7 @@ import {
   checkInstalledCore,
   checkLockfileCore,
   parseLockedCoreVersion,
+  parseReleasedVersions,
 } from "./version-rules.js";
 import type { AdapterManifest, CorePeer } from "./version-rules.js";
 
@@ -47,6 +48,14 @@ const lockedCore = parseLockedCoreVersion(
     .catch(() => ""),
 );
 
+// The lockfile may legitimately lag by one release — it can only pin what npm
+// already has — so the rule needs to know what the previous release was.
+const releasedVersions = parseReleasedVersions(
+  await Bun.file("CHANGELOG.md")
+    .text()
+    .catch(() => ""),
+);
+
 const installedCore = await Bun.file(`node_modules/${CORE_PACKAGE}/package.json`)
   .json()
   .then((manifest: { version: string }) => manifest.version)
@@ -55,8 +64,8 @@ const installedCore = await Bun.file(`node_modules/${CORE_PACKAGE}/package.json`
 const problems = [
   ...checkAdapterLockstep(coreVersion, manifests),
   ...checkCorePeerRanges(coreVersion, peers),
-  ...checkLockfileCore(coreVersion, lockedCore),
-  ...checkInstalledCore(coreVersion, installedCore),
+  ...checkLockfileCore(coreVersion, lockedCore, releasedVersions),
+  ...checkInstalledCore(coreVersion, installedCore, releasedVersions),
 ];
 
 if (problems.length > 0) {
@@ -73,7 +82,7 @@ console.log(`  peers on the core (${String(peers.length)}): ${peers.map(peer => 
 console.log(
   lockedCore === null
     ? "  bun.lock pins no registry copy of the core"
-    : `  bun.lock pins ${lockedCore}`,
+    : `  bun.lock pins ${lockedCore}${lockedCore === coreVersion ? "" : ` (lagging ${coreVersion} — refresh after publishing)`}`,
 );
 // Say so rather than passing quietly, so a skipped diagnostic is never mistaken
 // for one that ran.

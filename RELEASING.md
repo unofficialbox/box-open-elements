@@ -70,6 +70,33 @@ prints the run, it does not wait for it or fail when it fails. `--exit-status`
 makes a failed run a non-zero exit rather than a line of output you have to
 read.
 
+### Refresh the lockfile pin after publishing — this is a required step
+
+`bun.lock` pins a registry copy of the core, and it can only pin a version that
+npm already has. So during a release the tree is at the new version while the
+pin still names the old one, and it cannot be refreshed until after the publish
+lands:
+
+```bash
+bun update @unofficialbox/box-open-elements   # after the new version is live
+# then revert the `dependencies` block this adds to the root package.json —
+# the root package IS the core, and it must not depend on itself
+```
+
+`tools/adapters/version-check.ts` accommodates that window by accepting a pin
+one release behind, and prints `bun.lock pins X (lagging Y — refresh after
+publishing)` when it does.
+
+**That tolerance is why this step is required rather than tidy.** The gate
+cannot tell a release in flight from a pin nobody refreshed afterwards, so a
+stale pin keeps passing until the *next* release moves the goalposts. The
+process closes what the rule deliberately cannot: refresh it, in its own small
+PR, once the version is live on npm.
+
+An exact-match rule was tried first and had to be relaxed — it made every
+release PR unpassable, since the pin can never match a version that is not
+published yet.
+
 ### A version bump quietly dirties every docs-site baseline
 
 The docs-site rail footer renders the package version, inlined at build time, so

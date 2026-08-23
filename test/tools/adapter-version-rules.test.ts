@@ -10,6 +10,7 @@ import {
   checkLockfileCore,
   expectedPeerRange,
   parseLockedCoreVersion,
+  parseReleasedVersions,
 } from "../../tools/adapters/version-rules.js";
 import type { AdapterManifest } from "../../tools/adapters/version-rules.js";
 
@@ -137,7 +138,25 @@ describe("parseLockedCoreVersion", () => {
   });
 });
 
+describe("parseReleasedVersions", () => {
+  it("reads released versions newest first, ignoring the Unreleased heading", () => {
+    const changelog = "# Changelog\n\n## Unreleased\n\n## 0.8.0 — 2026-08-23\n\n## 0.7.0 — 2026-08-23\n\n## 0.6.0 — 2026-08-22\n";
+    expect(parseReleasedVersions(changelog)).toEqual(["0.8.0", "0.7.0", "0.6.0"]);
+  });
+
+  it("ignores version-looking text that is not a section heading", () => {
+    // Prose mentioning `0.5.0` must not be mistaken for a release record.
+    expect(parseReleasedVersions("Left behind at 0.5.0 for two releases.\n")).toEqual([]);
+  });
+
+  it("returns nothing for a changelog with no releases yet", () => {
+    expect(parseReleasedVersions("# Changelog\n\n## Unreleased\n")).toEqual([]);
+  });
+});
+
 describe("checkLockfileCore", () => {
+  const released = ["0.8.0", "0.7.0", "0.6.0", "0.5.0"];
+
   it("passes when the lockfile pins the version this tree builds", () => {
     expect(checkLockfileCore("0.7.0", "0.7.0")).toEqual([]);
   });
@@ -152,6 +171,80 @@ describe("checkLockfileCore", () => {
     expect(problems[0]).toContain("bun.lock pins");
     expect(problems[0]).toContain("0.5.0");
     expect(problems[0]).toContain("0.7.0");
+  });
+
+  it("still catches that drift when the released history is supplied", () => {
+    // The tolerance below must not swallow the bug the rule exists for: 0.5.0
+    // is a released version, but it is not the one *before* 0.7.0.
+    expect(checkLockfileCore("0.7.0", "0.5.0", released)).toHaveLength(1);
+  });
+
+  it("allows the pin to lag by exactly the release in flight", () => {
+    // The case that made this rule unshippable: during a release the tree is at
+    // the new version while npm still has only the old one, so the lockfile
+    // *cannot* be refreshed yet. Demanding an exact match makes every release
+    // PR unpassable — which is what happened on the first release after the
+    // rule landed.
+    expect(checkLockfileCore("0.8.0", "0.7.0", released)).toEqual([]);
+  });
+
+  it("refuses a lag of more than one release", () => {
+    expect(checkLockfileCore("0.8.0", "0.6.0", released)).toHaveLength(1);
+  });
+
+  it("names the previous release in the message, so the fix is obvious", () => {
+    expect(checkLockfileCore("0.8.0", "0.6.0", released)[0]).toContain("previous release: 0.7.0");
+  });
+
+  it("refuses a pin AHEAD of this tree, on a branch that is not the newest release", () => {
+    // The hole the first implementation had, and it was inverted rather than
+    // merely loose. Picking "the first entry that differs from the tree" means
+    // that on a 0.7.0 branch the entry found is 0.8.0 — a release *newer* than
+    // the code — so a lockfile from the future was accepted.
+    expect(checkLockfileCore("0.7.0", "0.8.0", released)).toHaveLength(1);
+  });
+
+  it("accepts the genuine predecessor on a branch that is not the newest release", () => {
+    // The same bug's other half: 0.6.0 really is the release before 0.7.0, and
+    // it was being rejected while 0.8.0 sailed through.
+    expect(checkLockfileCore("0.7.0", "0.6.0", released)).toEqual([]);
+  });
+
+  it("treats the newest release as the predecessor when the tree is not in the changelog", () => {
+    // Ordinary development: package.json is already at 0.9.0 but no `## 0.9.0`
+    // section exists yet, so the release before it is simply the newest one.
+    expect(checkLockfileCore("0.9.0", "0.8.0", released)).toEqual([]);
+    expect(checkLockfileCore("0.9.0", "0.7.0", released)).toHaveLength(1);
+  });
+
+  it("orders versions numerically, so 0.10.0 is newer than 0.9.0", () => {
+    // String comparison would put "0.10.0" below "0.9.0" and quietly invert the
+    // ordering guard.
+    const history = ["0.10.0", "0.9.0"];
+    expect(checkLockfileCore("0.10.0", "0.9.0", history)).toEqual([]);
+    expect(checkLockfileCore("0.9.0", "0.10.0", history)).toHaveLength(1);
+  });
+
+  it("refuses a pin ahead of an unreleased tree version older than every release", () => {
+    // The case adjacent selection alone does NOT cover, which is why the
+    // ordering guard exists. A hotfix branch sets package.json to 0.7.1 — not
+    // in the CHANGELOG — while the file already lists 0.8.0. "Not found" falls
+    // back to the newest release, and without the guard that hands back 0.8.0:
+    // a pin ahead of the tree, accepted.
+    expect(checkLockfileCore("0.7.1", "0.8.0", released)).toHaveLength(1);
+  });
+
+  it("refuses a newer neighbour when the changelog is not in newest-first order", () => {
+    // Newest-first is convention, not something the file format enforces. If an
+    // edit reorders it, adjacent selection can land on a newer release; the
+    // ordering guard is what stops that becoming a tolerance.
+    expect(checkLockfileCore("0.6.0", "0.7.0", ["0.5.0", "0.6.0", "0.7.0"])).toHaveLength(1);
+  });
+
+  it("does not tolerate a lag when no released history is known", () => {
+    // Absent a CHANGELOG the rule falls back to strict equality rather than
+    // guessing — a tolerance that cannot be justified should not be granted.
+    expect(checkLockfileCore("0.8.0", "0.7.0", [])).toHaveLength(1);
   });
 
   it("accepts a lockfile that pins no registry copy", () => {
@@ -169,6 +262,22 @@ describe("checkInstalledCore", () => {
     expect(checkInstalledCore("0.7.0", "0.5.0")).toEqual([
       expect.stringContaining("resolves to 0.5.0"),
     ]);
+  });
+
+  it("allows the installed copy to lag by exactly the release in flight", () => {
+    // Same reason as the lockfile: the registry cannot have this tree's version
+    // until it is published.
+    expect(checkInstalledCore("0.8.0", "0.7.0", ["0.8.0", "0.7.0"])).toEqual([]);
+  });
+
+  it("still catches an installed copy more than one release behind", () => {
+    expect(checkInstalledCore("0.8.0", "0.6.0", ["0.8.0", "0.7.0", "0.6.0"])).toHaveLength(1);
+  });
+
+  it("refuses an installed copy AHEAD of this tree", () => {
+    // Same inverted-selection bug as the lockfile rule; both validators must
+    // use adjacent-release selection, not "first entry that differs".
+    expect(checkInstalledCore("0.7.0", "0.8.0", ["0.8.0", "0.7.0", "0.6.0"])).toHaveLength(1);
   });
 
   it("accepts no installed copy — that is an environment, not a fault", () => {
