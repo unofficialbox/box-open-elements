@@ -37,3 +37,10 @@ if (problems.length > 0) {
 console.log(
   `Adapters in lockstep at ${coreVersion}: ${manifests.map(manifest => manifest.name).join(", ")}`,
 );
+// Say so rather than passing quietly, so a silently-skipped check is never
+// mistaken for a check that ran.
+console.log(
+  installedCore === null
+    ? "  (no registry copy of the core installed here — resolution check skipped)"
+    : `  registry copy resolves to ${installedCore}`,
+);

@@ -120,10 +120,12 @@ describe("checkInstalledCore", () => {
     expect(problems[0]).toContain("lockfile is behind");
   });
 
-  it("fails when the core is not installed at all", () => {
-    // A peer that resolves to nothing is drift with no warning whatsoever.
-    expect(checkInstalledCore("0.7.0", null)).toEqual([
-      expect.stringContaining("is not installed"),
-    ]);
+  it("accepts no installed copy — that is an environment, not a fault", () => {
+    // The root package IS the core package, so whether a registry copy is
+    // installed alongside the workspace depends on the environment: the pinned
+    // Playwright container installs without one. An earlier version of this
+    // rule failed on absence and broke the visual-regression job. Nothing
+    // installed means nothing to disagree with.
+    expect(checkInstalledCore("0.7.0", null)).toEqual([]);
   });
 });
