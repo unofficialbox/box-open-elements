@@ -10,6 +10,38 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+- **`box-drawer` no longer moves its own node.** It covered the page by
+  relocating itself to `document.body` when opened, leaving a placeholder
+  comment behind. That worked visually and broke every framework that owns the
+  node: React unmounting a tree containing an open drawer threw
+  `NotFoundError: The node to be removed is not a child of this node`, because
+  the node it tried to remove was no longer its child. Fixes #200.
+
+  The scrim is now a `<dialog>` promoted with `showModal()`. The top layer
+  renders outside the normal flow, so the drawer still covers the viewport —
+  including from inside an ancestor with a `transform`, `filter`, or `contain`,
+  which is the case that makes `position: fixed` resolve against that ancestor
+  and is presumably why the node was being moved in the first place.
+
+  Verified in Chromium rather than assumed, since jsdom implements neither
+  `showModal` nor `showPopover`: with the host inside a 300×200 clipping,
+  transformed ancestor, the host stays put and the scrim measures the full
+  1000×700 viewport at the origin.
+
+  **Behaviour changes worth knowing:**
+
+  - The drawer's host element stays where you put it, open or closed. Code
+    depending on `document.body` being its parent while open — or on the
+    `box-drawer-placeholder` comment — will need updating.
+  - Escape is now handled by the dialog's native `cancel` event, routed through
+    the same cancelable `dismiss` guard as the close button and backdrop, so a
+    host calling `preventDefault()` still keeps the drawer open.
+  - Dialog semantics moved to the `<dialog>` itself. `[part="drawer"]` no longer
+    carries `role="dialog"`/`aria-modal`, which would have nested a dialog
+    inside a dialog; the `<dialog>` is labelled by the heading instead.
+  - Where `showModal` is unavailable the drawer still renders and behaves; it
+    simply does not get the top layer.
+
 ## 0.8.0 — 2026-08-23
 
 A minor rather than a patch, deliberately. The `Button` type change below is

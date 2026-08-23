@@ -92,7 +92,28 @@ describe("Drawer", () => {
     expect(drawer?.outerHTML).toContain('data-position="bottom"');
   });
 
-  it("portals to document.body while open and restores on close", () => {
+  it("never moves its own node — open or closed", () => {
+    // The drawer used to relocate itself to document.body while open, which
+    // covered the page but broke every framework that owns the node: React
+    // unmounting a tree with an open drawer threw NotFoundError, because the
+    // node it tried to remove was no longer its child. Covering the page is now
+    // the top layer's job (see promoteTopLayer), and the host stays put.
+    const wrapper = document.createElement("div");
+    const element = document.createElement("box-drawer") as Drawer;
+
+    wrapper.append(element);
+    document.body.append(wrapper);
+
+    element.show();
+    expect(element.parentNode).toBe(wrapper);
+
+    element.close();
+    expect(element.parentNode).toBe(wrapper);
+  });
+
+  it("leaves no stray placeholder node behind in the parent", () => {
+    // The old portal left a comment node standing in for the drawer. Nothing
+    // should now be inserted alongside it at all.
     const wrapper = document.createElement("div");
     const element = document.createElement("box-drawer") as Drawer;
 
@@ -101,11 +122,61 @@ describe("Drawer", () => {
 
     element.show();
 
-    expect(element.parentNode).toBe(document.body);
+    expect(wrapper.childNodes.length).toBe(1);
+    expect(wrapper.firstChild).toBe(element);
+  });
 
-    element.close();
+  it("promotes the scrim into the top layer when the engine supports it", () => {
+    // jsdom implements neither showModal nor showPopover, so the promotion
+    // itself cannot be exercised here — only that it is attempted exactly once
+    // and against the right element. The rendered result is browser-verified.
+    const element = document.createElement("box-drawer") as Drawer;
+    document.body.append(element);
 
-    expect(element.parentNode).toBe(wrapper);
+    const calls: string[] = [];
+    const proto = window.HTMLDialogElement?.prototype as
+      | (HTMLDialogElement & { showModal?: () => void })
+      | undefined;
+    // Stand in for the missing implementation rather than skipping the case.
+    const dialogProto = (proto ?? window.HTMLElement.prototype) as unknown as Record<
+      string,
+      unknown
+    >;
+    const hadShowModal = "showModal" in dialogProto;
+    dialogProto.showModal = function (this: HTMLElement) {
+      calls.push(this.getAttribute("part") ?? "");
+      this.setAttribute("open", "");
+    };
+
+    element.show();
+
+    expect(calls).toEqual(["backdrop"]);
+
+    if (!hadShowModal) {
+      delete dialogProto.showModal;
+    }
+  });
+
+  it("routes the dialog's native Escape through the cancelable dismiss guard", () => {
+    // A modal dialog closes itself on Escape and fires `cancel`. Unguarded that
+    // would bypass `dismiss` entirely: a host calling preventDefault() would
+    // keep `open` true while the dialog had already gone.
+    const element = document.createElement("box-drawer") as Drawer;
+    document.body.append(element);
+    element.show();
+
+    const sources: string[] = [];
+    element.addEventListener("dismiss", event => {
+      sources.push((event as CustomEvent<{ source: string }>).detail.source);
+      event.preventDefault();
+    });
+
+    const dialog = element.shadowRoot?.querySelector('[part="backdrop"]') as HTMLElement;
+    dialog.dispatchEvent(new Event("cancel", { cancelable: true }));
+
+    expect(sources).toEqual(["escape"]);
+    // preventDefault held: the drawer is still open.
+    expect(element.open).toBe(true);
   });
 
   it("uses BUE drawer / sidebar shell styles", () => {

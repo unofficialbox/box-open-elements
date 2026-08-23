@@ -17,12 +17,39 @@ const drawerStyles = `
     font: inherit;
   }
 
+  /* A <dialog> promoted with showModal(), not a plain box. The top layer is
+     what lets the drawer cover the page without the host node being moved
+     there: it renders outside the normal flow, so an ancestor with a
+     transform, filter, or contain — which would otherwise make position:fixed
+     resolve against that ancestor instead of the viewport — cannot clip it.
+     The UA sheet's border, padding, margin, and max-* are reset because this
+     element is the full-viewport scrim, not a centred card. */
   [part="backdrop"] {
     position: fixed;
     inset: 0;
     display: grid;
     z-index: 1200;
     background: ${boeOverlay.modalBackdrop};
+    border: 0;
+    padding: 0;
+    margin: 0;
+    max-width: none;
+    max-height: none;
+    width: auto;
+    height: auto;
+    color: inherit;
+  }
+
+  /* The scrim is painted by the element itself, so the UA backdrop pseudo
+     must not double it up. */
+  [part="backdrop"]::backdrop {
+    background: transparent;
+  }
+
+  /* Only an open dialog participates in layout; without showModal support the
+     element stays display:none, which is the correct closed state anyway. */
+  [part="backdrop"]:not([open]) {
+    display: none;
   }
 
   [part="drawer"] {
@@ -194,8 +221,6 @@ export class Drawer extends BaseElement {
   private openValue = false;
   private wasOpen = false;
   private readonly focusRestore = new FocusRestore();
-  private placeholder: Comment | null = null;
-  private portaled = false;
   private hostEl!: HTMLElement;
   private backdropEl: HTMLElement | null = null;
   private drawerEl: HTMLElement | null = null;
@@ -265,21 +290,9 @@ export class Drawer extends BaseElement {
     this.setAttribute("heading", value);
   }
 
-  connectedCallback(): void {
-    if (this.openValue) {
-      this.portalToBody();
-    }
-    super.connectedCallback();
-  }
-
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "open") {
       this.openValue = this.hasAttribute("open");
-      if (this.openValue) {
-        this.portalToBody();
-      } else {
-        this.restoreFromPortal();
-      }
     }
     super.attributeChangedCallback(name, oldValue, newValue);
   }
@@ -290,34 +303,50 @@ export class Drawer extends BaseElement {
 
   close(): void {
     this.open = false;
-    this.restoreFromPortal();
   }
 
-  private portalToBody(): void {
-    if (this.portaled || !this.isConnected || !this.ownerDocument?.body) {
-      return;
-    }
-
-    const parent = this.parentNode;
-    if (!parent || parent === this.ownerDocument.body) {
-      return;
-    }
-
-    this.placeholder = this.ownerDocument.createComment("box-drawer-placeholder");
-    parent.insertBefore(this.placeholder, this);
-    this.ownerDocument.body.append(this);
-    this.portaled = true;
+  disconnectedCallback(): void {
+    // A dialog removed from the document while modal leaves the top layer
+    // behind it in some engines; closing first keeps that bookkeeping honest.
+    this.dismissTopLayer();
+    super.disconnectedCallback();
   }
 
-  private restoreFromPortal(): void {
-    if (!this.portaled || !this.placeholder?.parentNode) {
+  /**
+   * Promote the scrim into the top layer.
+   *
+   * `showModal` is the whole point of the `<dialog>`: it renders outside the
+   * normal flow, so the drawer covers the viewport without the host node being
+   * moved anywhere. The previous implementation relocated the host to
+   * `document.body`, which worked visually and broke every framework that owns
+   * the node — React unmounting a tree containing an open drawer threw
+   * `NotFoundError`, because the node it tried to remove was no longer its
+   * child.
+   *
+   * Guarded rather than assumed: jsdom implements neither `showModal` nor
+   * `showPopover`, so the unit suite exercises everything except the promotion
+   * itself, and that is verified in a browser.
+   */
+  private promoteTopLayer(): void {
+    const dialog = this.backdropEl as HTMLDialogElement | null;
+    if (!dialog || typeof dialog.showModal !== "function" || dialog.open) {
       return;
     }
+    // A dialog in a detached or hidden tree throws rather than opening.
+    try {
+      dialog.showModal();
+    } catch {
+      // Not promotable here; the drawer still renders and behaves, it simply
+      // does not get the top layer.
+    }
+  }
 
-    this.placeholder.parentNode.insertBefore(this, this.placeholder);
-    this.placeholder.remove();
-    this.placeholder = null;
-    this.portaled = false;
+  private dismissTopLayer(): void {
+    const dialog = this.backdropEl as HTMLDialogElement | null;
+    if (!dialog || typeof dialog.close !== "function" || !dialog.open) {
+      return;
+    }
+    dialog.close();
   }
 
   protected renderTemplate(): void {
@@ -395,6 +424,8 @@ export class Drawer extends BaseElement {
 
     if (!this.openValue) {
       const wasOpen = this.wasOpen;
+      // Leave the top layer before the element is discarded, not after.
+      this.dismissTopLayer();
       this.hostEl.innerHTML = "";
       this.backdropEl = null;
       this.drawerEl = null;
@@ -416,8 +447,8 @@ export class Drawer extends BaseElement {
     if (!this.hostEl.querySelector('[part="drawer"]')) {
       this.hostEl.innerHTML = `
         <style>${drawerStyles}</style>
-        <div part="backdrop">
-          <aside part="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+        <dialog part="backdrop" aria-labelledby="drawer-title">
+          <aside part="drawer">
             <header part="header">
               <div part="meta">
                 <h2 id="drawer-title"></h2>
@@ -434,7 +465,7 @@ export class Drawer extends BaseElement {
               <slot name="footer"></slot>
             </footer>
           </aside>
-        </div>
+        </dialog>
       `;
       // The footer row only exists when the host slots one: an empty sticky
       // bar would just eat drawer height.
@@ -442,9 +473,20 @@ export class Drawer extends BaseElement {
       footerSlot?.addEventListener("slotchange", () => {
         this.syncFooter();
       });
+
+      // A modal dialog closes itself on Escape and fires `cancel`. Left alone
+      // that would bypass the cancelable `dismiss` contract entirely — a host
+      // calling preventDefault() would keep `open` true while the dialog had
+      // already gone. Route it through the same guard as every other dismissal.
+      const dialogEl = this.hostEl.querySelector('[part="backdrop"]') as HTMLElement | null;
+      dialogEl?.addEventListener("cancel", event => {
+        event.preventDefault();
+        this.requestDismiss("escape");
+      });
     }
 
     this.backdropEl = this.hostEl.querySelector('[part="backdrop"]');
+    this.promoteTopLayer();
     this.drawerEl = this.hostEl.querySelector('[part="drawer"]');
     this.titleEl = this.hostEl.querySelector("#drawer-title");
     this.descriptionEl = this.hostEl.querySelector('[part="description"]');

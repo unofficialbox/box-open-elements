@@ -87,11 +87,16 @@ It is not a React `SyntheticEvent`: there is no `.nativeEvent`, and
 `stopPropagation` acts on the real tree.
 
 The reason is portability of the listener rather than purity. React delegates
-from its root container, so an element that relocates itself outside that
-container stops receiving delegated events — and `box-drawer` moves its whole
-subtree to `document.body` when it opens. A `Button` inside an open drawer with
-React's own `onClick` would look wired up and do nothing. A listener bound to
-the element travels with it.
+from its root container, so an element that has been relocated outside that
+container stops receiving delegated events, while a listener bound to the
+element travels with it.
+
+This was found through `box-drawer`, which used to move its whole subtree to
+`document.body` when it opened — a `Button` inside an open drawer with React's
+own `onClick` looked wired up and did nothing. **The drawer no longer moves
+anything**; it uses the top layer instead. But the hazard is not specific to
+that component: any host that relocates a subtree — a third-party portal, an app
+moving nodes by hand — reproduces it.
 
 ```tsx
 <Button
@@ -108,13 +113,14 @@ the element travels with it.
 Anything an adapter does *not* declare is forwarded to the host element as an
 ordinary React prop, including React's own `onClick` on `Select`, `TextField`
 and `Dialog`. Those receive a `SyntheticEvent` and are delegated from the root
-container as usual — which means they **do not fire inside an open
-`box-drawer`**, because the drawer has moved the subtree out of that container.
+container as usual.
 
-That is React's delegation model rather than anything specific to these
-components: a plain `<div onClick>` inside an open drawer is dead in exactly the
-same way. If you need a click handler that survives the portal, put it on a
-`Button`, or bind it yourself with `addEventListener` via a ref.
+Inside a `box-drawer` that is now fine — the drawer keeps its subtree where React
+put it. It stops being fine the moment something *else* relocates the node out
+of the React root, and that is React's delegation model rather than anything
+these components do: a plain `<div onClick>` in a relocated subtree is dead in
+exactly the same way. If a handler has to survive that, put it on a `Button`, or
+bind it yourself with `addEventListener` via a ref.
 
 
 `useExplorerSelectionController(controller)` uses React's external-store
