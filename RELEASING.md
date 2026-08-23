@@ -90,12 +90,12 @@ Creating the GitHub Release yourself still works and still triggers
 
 ```bash
 git checkout main && git pull
-gh release create v0.6.0 --title v0.6.0 \
-  --notes-file <(awk '/^## 0.6.0 /{found=1; next} found && /^## /{exit} found' CHANGELOG.md)
+gh release create v0.7.0 --title v0.7.0 \
+  --notes-file <(awk '/^## 0.7.0 /{found=1; next} found && /^## /{exit} found' CHANGELOG.md)
 ```
 
 The `awk` extraction stops *before* the next `##` heading — the same bounded
-read `cut-release.yml` uses. A `sed` range (`/^## 0.6.0/,/^## /p`) prints its
+read `cut-release.yml` uses. A `sed` range (`/^## 0.7.0/,/^## /p`) prints its
 terminating line, so it would staple the following version's heading onto the
 release notes.
 
@@ -173,24 +173,33 @@ adapters release** on `main` to tag and publish that GitHub Release, which runs
 as Route A, including the explicit dispatch that works around GITHUB_TOKEN
 Releases firing no events.
 
-### First publish (needed once, and not yet done)
+### First publish — done at 0.7.0
 
-**None of the four adapters exist on npm.** Trusted publishing needs the package
-to exist before you can configure a publisher for it, so the first release of
-each has to come from a local session with your npm credentials:
+All four adapters were bootstrapped onto npm at `0.7.0` from a local session, and
+a clean consumer install has been verified against the registry. Nothing here
+needs repeating; it is kept because the *reason* recurs for any new package.
+
+Trusted publishing cannot create a package — npm needs it to exist before you can
+configure a publisher for it. So the first release of any new package has to come
+from a local session with npm credentials:
 
 ```bash
-git checkout main && git pull
-npm login                                    # 2FA as needed
-bun install && bun run build:adapters
+git checkout adapters-vX.Y.Z          # publish exactly what was tagged
+npm login                             # 2FA prompts once per package
+bun install --frozen-lockfile && bun run build:adapters
 for package_name in react angular vue svelte; do
-  npm publish "packages/$package_name" --access public
+  ( cd "packages/$package_name" && npm publish --access public )
 done
 ```
 
-Then, on npmjs.com, configure each package's Trusted Publisher for organization
-`unofficialbox`, this repository, and workflow `release-adapters.yml`. Every
-release after that is OIDC and needs no token.
+A bootstrap publish carries **no provenance attestation** — that requires the
+CI/OIDC environment. The `0.7.0` adapters therefore have none; the core does.
+
+**Remaining one-time step:** on npmjs.com, configure each adapter's Trusted
+Publisher for organization `unofficialbox`, this repository, and workflow
+`release-adapters.yml`. Until that is done, `Cut release` tags the adapters and
+skips their publish rather than failing. After it, every release is OIDC, needs
+no token, and gets provenance.
 
 Verify the public package after release:
 

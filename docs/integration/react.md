@@ -106,7 +106,7 @@ focus restoration after Escape.
 | Dependency | Supported contract |
 | --- | --- |
 | React / React DOM | `^19.0.0` |
-| `@unofficialbox/box-open-elements` | `^0.5.0` |
+| `@unofficialbox/box-open-elements` | `^0.7.0` |
 | Node.js for SSR | `>=20.9.0` |
 | Next.js validated host | `16.2.12` |
 

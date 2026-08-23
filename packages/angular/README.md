@@ -24,6 +24,5 @@ export class Example {
 ```
 
 `createExplorerSelectionSignal(controller)` exposes the shared selection
-controller as a scoped Angular signal. Version `0.1.0` is a release candidate;
-Supported status follows the first public lockstep adapter release and clean
-registry-install verification.
+controller as a scoped Angular signal. **Supported** as of `0.7.0`:
+the first public lockstep adapter release, verified by a clean registry install.

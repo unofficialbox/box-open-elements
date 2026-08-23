@@ -19,6 +19,5 @@ npm install @unofficialbox/box-open-elements @unofficialbox/box-open-elements-sv
 ```
 
 `createExplorerSelectionStore(controller)` exposes the shared selection
-controller as a standard readable store. Version `0.1.0` is a release candidate;
-Supported status follows the first public lockstep adapter release and clean
-registry-install verification.
+controller as a standard readable store. **Supported** as of `0.7.0`:
+the first public lockstep adapter release, verified by a clean registry install.

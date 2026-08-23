@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   CORE_PACKAGE,
   checkAdapterLockstep,
+  checkInstalledCore,
   expectedPeerRange,
 } from "../../tools/adapters/version-rules.js";
 import type { AdapterManifest } from "../../tools/adapters/version-rules.js";
@@ -99,5 +100,32 @@ describe("expectedPeerRange", () => {
   it("is the caret range for the core version", () => {
     expect(expectedPeerRange("0.7.0")).toBe("^0.7.0");
     expect(expectedPeerRange("1.2.3")).toBe("^1.2.3");
+  });
+});
+
+describe("checkInstalledCore", () => {
+  it("passes when the installed core is the version this tree builds", () => {
+    expect(checkInstalledCore("0.7.0", "0.7.0")).toEqual([]);
+  });
+
+  it("catches a lockfile left behind by a peer-range bump", () => {
+    // The real drift: the manifests moved to ^0.7.0 across two releases while
+    // the lockfile still pinned 0.5.0, and the only symptom was a line of
+    // `bun install` output. Comparing declarations with declarations cannot
+    // see this — it takes comparing them with a real resolution.
+    const problems = checkInstalledCore("0.7.0", "0.5.0");
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toContain("0.5.0");
+    expect(problems[0]).toContain("0.7.0");
+    expect(problems[0]).toContain("lockfile is behind");
+  });
+
+  it("accepts no installed copy — that is an environment, not a fault", () => {
+    // The root package IS the core package, so whether a registry copy is
+    // installed alongside the workspace depends on the environment: the pinned
+    // Playwright container installs without one. An earlier version of this
+    // rule failed on absence and broke the visual-regression job. Nothing
+    // installed means nothing to disagree with.
+    expect(checkInstalledCore("0.7.0", null)).toEqual([]);
   });
 });

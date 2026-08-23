@@ -31,6 +31,36 @@ export const CORE_PACKAGE = "@unofficialbox/box-open-elements";
 export const expectedPeerRange = (coreVersion: string): string => `^${coreVersion}`;
 
 /**
+ * Whether the *installed* registry copy of the core package matches the version
+ * the manifests promise.
+ *
+ * The manifest checks above compare declarations with declarations, which is
+ * necessary and not sufficient: bumping the peer ranges without refreshing the
+ * lockfile leaves the workspace resolving an older published core, and the only
+ * symptom is a line of `bun install` output that scrolls past. That is exactly
+ * how the ranges reached `^0.7.0` while the lockfile still pinned 0.5.0.
+ *
+ * `installed` is null when no registry copy is present, and that is a normal
+ * state rather than a fault: the root package *is* `${CORE_PACKAGE}`, so
+ * whether a registry copy of it gets installed alongside the workspace depends
+ * on the environment — the pinned Playwright container installs without one.
+ * Treating absence as a failure turned this check into a broken build there.
+ * Only a disagreement is drift; nothing installed means nothing to disagree.
+ */
+export const checkInstalledCore = (
+  coreVersion: string,
+  installed: string | null,
+): string[] => {
+  if (installed === null) return [];
+  if (installed !== coreVersion) {
+    return [
+      `${CORE_PACKAGE} resolves to ${installed} but this tree is ${coreVersion} — the lockfile is behind the manifests. Run \`bun update ${CORE_PACKAGE}\` (and revert any dependency it adds to the root package.json).`,
+    ];
+  }
+  return [];
+};
+
+/**
  * Every way the adapter manifests can disagree with the core package, as
  * human-readable problems. Empty means they are in lockstep.
  *

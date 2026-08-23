@@ -43,27 +43,27 @@ export function SaveAction() {
 }
 ```
 
-The release-candidate surface also includes a controlled `Dialog` wrapper and
+The supported surface also includes a controlled `Dialog` wrapper and
 `useExplorerSelectionController`, which subscribes React to the existing
 headless selection controller without duplicating its state.
 
 ## Status
 
-**Release candidate** — `Button`, `TextField`, `Select`, and `Dialog` prove native and
-composed events, value and structured property synchronization, latest callback
-routing, forwarded refs, controlled overlay focus behavior, and server-safe host
-rendering. `useExplorerSelectionController` proves headless controller
-composition. Package exports, version contracts, the Next.js hydration fixture,
-and CI validation are release-ready. Supported status follows the first public
-npm publication and a clean registry-install verification. React releases in
-lockstep with the Angular, Vue, and Svelte adapters under `adapters-vX.Y.Z`.
+**Supported** as of `0.7.0` — `Button`, `TextField`, `Select`, and `Dialog` prove
+native and composed events, value and structured property synchronization, latest
+callback routing, forwarded refs, controlled overlay focus behavior, and
+server-safe host rendering. `useExplorerSelectionController` proves headless
+controller composition. The two conditions this section used to defer on are met:
+the first public npm publication happened at `0.7.0`, and a clean registry install
+resolves the package and loads its exports. React releases in lockstep with the
+Angular, Vue, and Svelte adapters under `adapters-vX.Y.Z`, at the core's version.
 
 ## Supported versions
 
 | Dependency | Contract |
 | --- | --- |
 | React / React DOM | `^19.0.0` |
-| `@unofficialbox/box-open-elements` | `^0.5.0` |
+| `@unofficialbox/box-open-elements` | `^0.7.0` |
 | Node.js for SSR | `>=20.9.0` |
 | Next.js validation host | `16.2.12` |
 
