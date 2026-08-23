@@ -10,6 +10,13 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+## 0.10.0 — 2026-08-23
+
+A minor because the overlay change below is breaking, per the pre-1.0 policy.
+Note the ordering: `0.10.0` is **newer** than `0.9.0` — this is the first
+release where that distinction is load-bearing, and `^0.9.0` (which resolves to
+`>=0.9.0 <0.10.0`) correctly excludes it.
+
 - **Every overlay now uses the top layer, not just `box-drawer`.** 0.9.0 fixed
   the drawer by promoting its scrim with `showModal()` instead of relocating the
   host node. The other seven overlays still painted with `position: fixed`
