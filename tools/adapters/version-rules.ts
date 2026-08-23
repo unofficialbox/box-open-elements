@@ -121,6 +121,48 @@ export const parseLockedCoreVersion = (lockfile: string): string | null => {
 export const parseReleasedVersions = (changelog: string): string[] =>
   [...changelog.matchAll(/^## (\d+\.\d+\.\d+)/gm)].map(match => match[1] as string);
 
+/** Numeric semver ordering — `0.10.0` must sort above `0.9.0`, not below it. */
+const compareVersions = (left: string, right: string): number => {
+  const l = left.split(".").map(Number);
+  const r = right.split(".").map(Number);
+  for (let index = 0; index < 3; index++) {
+    const difference = (l[index] ?? 0) - (r[index] ?? 0);
+    if (difference !== 0) return difference;
+  }
+  return 0;
+};
+
+/**
+ * The release immediately before `coreVersion`, or undefined when there isn't
+ * one to point at.
+ *
+ * Adjacent selection, not "the first entry that differs". That shortcut was
+ * wrong in a way worth recording: on a tree that is *not* the newest release —
+ * an older branch or tag — the first differing entry is a release **newer**
+ * than the tree, so the gate accepted a lockfile pinned ahead of the code and
+ * rejected the genuine predecessor. Precisely inverted.
+ *
+ * Two legitimate shapes, both handled:
+ *
+ * - `coreVersion` is in the list (the release PR added its heading) — take the
+ *   entry after it.
+ * - `coreVersion` is absent (ordinary development, before a release section
+ *   exists) — the newest release is the one before it.
+ *
+ * The ordering guard is the backstop: whatever the CHANGELOG's shape, a
+ * candidate that is not strictly older than this tree is not a release window,
+ * and no tolerance is granted.
+ */
+const previousReleaseOf = (
+  coreVersion: string,
+  releasedVersions: readonly string[],
+): string | undefined => {
+  const index = releasedVersions.indexOf(coreVersion);
+  const candidate = index === -1 ? releasedVersions[0] : releasedVersions[index + 1];
+  if (candidate === undefined) return undefined;
+  return compareVersions(candidate, coreVersion) < 0 ? candidate : undefined;
+};
+
 /**
  * Whether the lockfile's pinned core is one this tree may legitimately carry.
  *
@@ -154,7 +196,7 @@ export const checkLockfileCore = (
   if (locked === null) return [];
   if (locked === coreVersion) return [];
 
-  const previousRelease = releasedVersions.find(version => version !== coreVersion);
+  const previousRelease = previousReleaseOf(coreVersion, releasedVersions);
   if (previousRelease !== undefined && locked === previousRelease) return [];
 
   return [
@@ -184,7 +226,7 @@ export const checkInstalledCore = (
   // Same release-window tolerance as the lockfile rule, and for the same
   // reason: the installed copy comes from the registry, which cannot have this
   // tree's version until after it is published.
-  const previousRelease = releasedVersions.find(version => version !== coreVersion);
+  const previousRelease = previousReleaseOf(coreVersion, releasedVersions);
   if (previousRelease !== undefined && installed === previousRelease) return [];
 
   return [
