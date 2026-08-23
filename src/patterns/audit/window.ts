@@ -126,12 +126,6 @@ const mapScrollToEstimate = (
 };
 
 /**
- * Which sections to render, and the spacer heights around them.
- *
- * Returns an empty plan for an empty window rather than a plan with no groups
- * and stale padding, so a caller can treat "nothing to render" uniformly.
- */
-/**
  * The offset index for a row set, so a caller can build it once and reuse it
  * across scroll frames. The index only changes when the rows or the heights do.
  */
@@ -140,6 +134,12 @@ export const buildAuditIndex = (
   heights: AuditRowHeights,
 ): OffsetIndex => buildOffsetIndex(auditRowHeights(rows, heights));
 
+/**
+ * Which sections to render, and the spacer heights around them.
+ *
+ * Returns an empty plan for an empty window rather than a plan with no groups
+ * and stale padding, so a caller can treat "nothing to render" uniformly.
+ */
 export const planAuditWindow = (
   rows: readonly AuditRow[],
   heights: AuditRowHeights,
