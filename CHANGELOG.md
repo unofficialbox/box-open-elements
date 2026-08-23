@@ -10,6 +10,12 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+## 0.9.0 — 2026-08-23
+
+A minor because the change below is breaking, per the pre-1.0 policy: `^0.8.0`
+resolves to `>=0.8.0 <0.9.0`, so a consumer on that range opts in rather than
+being handed the new drawer behaviour on their next install.
+
 - **`box-drawer` no longer moves its own node.** It covered the page by
   relocating itself to `document.body` when opened, leaving a placeholder
   comment behind. That worked visually and broke every framework that owns the
