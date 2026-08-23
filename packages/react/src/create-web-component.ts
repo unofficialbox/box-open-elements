@@ -20,10 +20,29 @@ const assignRef = <T,>(ref: ForwardedRef<T> | undefined, value: T | null): void 
   }
 };
 
+/**
+ * Host props an adapter accepts, minus the ones adapters redeclare themselves.
+ *
+ * `onCancel` and `onClick` are React's own delegated handlers, and both are
+ * omitted so an adapter can declare a native-event version without colliding —
+ * an intersection of two function types is an overload, which no single handler
+ * satisfies.
+ *
+ * For `onClick` the omission is also the safer default. React delegates from
+ * its root container, so a delegated click never reaches an element that has
+ * relocated outside it, and `box-drawer` relocates its whole subtree to
+ * `document.body` when it opens. An adapter that wants a click callback should
+ * declare it and bind through `events` below, as `Button` does; leaving React's
+ * version available would let callers write a handler that works everywhere
+ * except inside an overlay.
+ */
 export type WebComponentProps = {
   className?: string;
   style?: CSSProperties;
-} & Omit<HTMLAttributes<HTMLElement>, "className" | "style" | "children" | "onCancel">;
+} & Omit<
+  HTMLAttributes<HTMLElement>,
+  "className" | "style" | "children" | "onCancel" | "onClick"
+>;
 
 type CreateWebComponentOptions<E extends HTMLElement, P extends WebComponentProps> = {
   tagName: string;

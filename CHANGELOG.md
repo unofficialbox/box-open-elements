@@ -10,7 +10,32 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
-No unreleased changes.
+- **React `Button` `onClick` works inside `box-drawer`.** The callback was
+  routed through React's `onClick`, which is delegated from the React root
+  container — and `box-drawer` moves its whole subtree to `document.body` when
+  it opens, out of that container, so the delegated click never arrived and the
+  handler silently did nothing. Reported by box-dispatch, who were working
+  around it with their own `addEventListener` bridge.
+
+  `Button` now binds `click` through the adapter factory's `events` map, which
+  registers the listener on the element itself so it travels with it. `Select`,
+  `TextField` and `Dialog` already bound this way; `Button` was the one adapter
+  that didn't.
+
+  **Breaking (types):** `onClick` receives a native `MouseEvent`, not a React
+  `SyntheticEvent`, and is typed `NativeEventHandler<ButtonElement, MouseEvent>`
+  to say so. A handler declared as `MouseEventHandler<ButtonElement>` no longer
+  type-checks. React's own `onClick` is also no longer forwarded as a host prop
+  on any adapter — leaving it available would let callers write a handler that
+  works everywhere except inside an overlay.
+
+  Scope, checked rather than assumed: `box-drawer` is the **only** component in
+  the library that relocates itself, so it is the only surface where this can
+  happen — `box-dialog` and the other overlays use the top layer and stay put.
+  And React is the only adapter with root-container delegation: Vue and Angular
+  bind listeners directly to the element, and compiling `Button.svelte` shows
+  Svelte emitting `onclick` as an element property with no `$.delegate` call at
+  all.
 
 ---
 

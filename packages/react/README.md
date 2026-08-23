@@ -6,7 +6,15 @@ The core package stays framework-agnostic. This adapter is a thin layer that:
 
 1. imports the automatically registered custom element
 2. syncs React props onto element **properties** (not fragile attribute stringification)
-3. forwards refs and DOM events
+3. forwards refs, and binds event callbacks directly to the element
+
+Event callbacks receive the **native** DOM event, not a React `SyntheticEvent`.
+They are registered with `addEventListener` on the custom element so the
+listener travels with it: React delegates from its root container, and
+`box-drawer` moves its subtree to `document.body` when it opens, which is enough
+to make a delegated handler silently stop firing. React's own `onClick` is
+therefore not forwarded as a host prop — `Button` declares its own, typed as
+`(event: MouseEvent) => void`.
 
 See [`docs/integration/react.md`](../../docs/integration/react.md) for the React
 boundary and the [framework adapter tracker](../../docs/integration/framework-adapters.md)
