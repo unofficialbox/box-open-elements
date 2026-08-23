@@ -5,9 +5,10 @@ import type { NativeEventHandler } from "./events.js";
 ButtonElement.register();
 
 // `onClick` is redeclared below with a native-event signature, so React's own
-// must come off the base first — an intersection of two function types is an
-// overload, and no single handler would satisfy both. `onCancel` is omitted
-// from WebComponentProps for the same reason, on Dialog's behalf.
+// comes off *here* — an intersection of two function types is an overload, and
+// no single handler would satisfy both. The omission is local to Button on
+// purpose: it stays out of `WebComponentProps` so `Select`, `TextField` and
+// `Dialog` keep React's delegated `onClick`, which works fine for them.
 export type ButtonProps = Omit<WebComponentProps, "onClick"> & {
   /** Button label text (maps to the `label` property / attribute). */
   label?: string;

@@ -22,12 +22,19 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
   `TextField` and `Dialog` already bound this way; `Button` was the one adapter
   that didn't.
 
-  **Breaking (types):** `onClick` receives a native `MouseEvent`, not a React
-  `SyntheticEvent`, and is typed `NativeEventHandler<ButtonElement, MouseEvent>`
-  to say so. A handler declared as `MouseEventHandler<ButtonElement>` no longer
-  type-checks. React's own `onClick` is also no longer forwarded as a host prop
-  on any adapter — leaving it available would let callers write a handler that
-  works everywhere except inside an overlay.
+  **Breaking (types), `Button` only:** `onClick` receives a native `MouseEvent`,
+  not a React `SyntheticEvent`, and is typed
+  `NativeEventHandler<ButtonElement, MouseEvent>` to say so. A handler declared
+  as `MouseEventHandler<ButtonElement>` no longer type-checks. `Select`,
+  `TextField` and `Dialog` are unaffected and keep React's delegated `onClick`.
+
+  That containment took a change to the factory, which now constrains adapter
+  props to what it actually uses (`className`, `style`) instead of the full
+  host-prop type. Under the stricter constraint `Button` narrowing `onClick` was
+  only legal if the prop came off the shared type for *every* adapter — a much
+  wider break than the fix needs. Delegated `onClick` on the other three is a
+  trap inside an open drawer, but it is React's trap and it catches a plain
+  `<div onClick>` identically; it is now documented rather than removed.
 
   Scope, checked rather than assumed: `box-drawer` is the **only** component in
   the library that relocates itself, so it is the only surface where this can

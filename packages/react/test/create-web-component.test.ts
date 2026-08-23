@@ -125,6 +125,26 @@ describe("createWebComponent event bindings", () => {
     spy.mockRestore();
   });
 
+  it("still forwards React's own onClick for an adapter that configures no click event", () => {
+    // Regression guard for a fix that overreached. `Button` narrows `onClick` to
+    // a native-event handler, and an earlier revision paid for that by stripping
+    // `onClick` from the shared host-prop type — which took it away from
+    // `Select`, `TextField` and `Dialog` too, breaking handlers that worked. The
+    // factory constraint asks only for what the factory uses, so one adapter's
+    // narrowing no longer reaches the others.
+    const onClick = vi.fn();
+    const element = render({ marker: "m", onClick });
+
+    act(() => {
+      element.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(onClick).toHaveBeenCalledTimes(1);
+    // Delegated by React, so what arrives is a SyntheticEvent — the trap this
+    // prop carries inside a relocated subtree, documented rather than removed.
+    expect(onClick.mock.calls[0]?.[0]).toHaveProperty("nativeEvent");
+  });
+
   it("removes the listener on unmount", () => {
     const onPing = vi.fn();
     const element = render({ onPing });
