@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   CORE_PACKAGE,
   checkAdapterLockstep,
+  checkInstalledCore,
   expectedPeerRange,
 } from "../../tools/adapters/version-rules.js";
 import type { AdapterManifest } from "../../tools/adapters/version-rules.js";
@@ -99,5 +100,30 @@ describe("expectedPeerRange", () => {
   it("is the caret range for the core version", () => {
     expect(expectedPeerRange("0.7.0")).toBe("^0.7.0");
     expect(expectedPeerRange("1.2.3")).toBe("^1.2.3");
+  });
+});
+
+describe("checkInstalledCore", () => {
+  it("passes when the installed core is the version this tree builds", () => {
+    expect(checkInstalledCore("0.7.0", "0.7.0")).toEqual([]);
+  });
+
+  it("catches a lockfile left behind by a peer-range bump", () => {
+    // The real drift: the manifests moved to ^0.7.0 across two releases while
+    // the lockfile still pinned 0.5.0, and the only symptom was a line of
+    // `bun install` output. Comparing declarations with declarations cannot
+    // see this — it takes comparing them with a real resolution.
+    const problems = checkInstalledCore("0.7.0", "0.5.0");
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toContain("0.5.0");
+    expect(problems[0]).toContain("0.7.0");
+    expect(problems[0]).toContain("lockfile is behind");
+  });
+
+  it("fails when the core is not installed at all", () => {
+    // A peer that resolves to nothing is drift with no warning whatsoever.
+    expect(checkInstalledCore("0.7.0", null)).toEqual([
+      expect.stringContaining("is not installed"),
+    ]);
   });
 });

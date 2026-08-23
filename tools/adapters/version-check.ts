@@ -1,4 +1,4 @@
-import { checkAdapterLockstep } from "./version-rules.js";
+import { checkAdapterLockstep, checkInstalledCore } from "./version-rules.js";
 import type { AdapterManifest } from "./version-rules.js";
 
 const adapterDirectories = ["react", "angular", "vue", "svelte"] as const;
@@ -15,7 +15,17 @@ const manifests: AdapterManifest[] = await Promise.all(
   }),
 );
 
-const problems = checkAdapterLockstep(coreVersion, manifests);
+const installedCore = await Bun.file(
+  "node_modules/@unofficialbox/box-open-elements/package.json",
+)
+  .json()
+  .then((manifest: { version: string }) => manifest.version)
+  .catch(() => null);
+
+const problems = [
+  ...checkAdapterLockstep(coreVersion, manifests),
+  ...checkInstalledCore(coreVersion, installedCore),
+];
 
 if (problems.length > 0) {
   throw new Error(

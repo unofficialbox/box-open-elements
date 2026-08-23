@@ -31,6 +31,36 @@ export const CORE_PACKAGE = "@unofficialbox/box-open-elements";
 export const expectedPeerRange = (coreVersion: string): string => `^${coreVersion}`;
 
 /**
+ * Whether the *installed* registry copy of the core package matches the version
+ * the manifests promise.
+ *
+ * The manifest checks above compare declarations with declarations, which is
+ * necessary and not sufficient: bumping the peer ranges without refreshing the
+ * lockfile leaves the workspace resolving an older published core, and the only
+ * symptom is a line of `bun install` output that scrolls past. That is exactly
+ * how the ranges reached `^0.7.0` while the lockfile still pinned 0.5.0.
+ *
+ * `installed` is null when the copy is absent, which is itself worth failing on:
+ * a peer that resolves to nothing is drift with no warning at all.
+ */
+export const checkInstalledCore = (
+  coreVersion: string,
+  installed: string | null,
+): string[] => {
+  if (installed === null) {
+    return [
+      `${CORE_PACKAGE} is not installed, so the peer ranges cannot be checked against a real resolution. Run \`bun install\`.`,
+    ];
+  }
+  if (installed !== coreVersion) {
+    return [
+      `${CORE_PACKAGE} resolves to ${installed} but this tree is ${coreVersion} — the lockfile is behind the manifests. Run \`bun update ${CORE_PACKAGE}\` (and revert any dependency it adds to the root package.json).`,
+    ];
+  }
+  return [];
+};
+
+/**
  * Every way the adapter manifests can disagree with the core package, as
  * human-readable problems. Empty means they are in lockstep.
  *
