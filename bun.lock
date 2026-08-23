@@ -5,7 +5,7 @@
     "": {
       "name": "box-open-elements",
       "dependencies": {
-        "@unofficialbox/box-open-elements": "^0.7.0",
+        "@unofficialbox/box-open-elements": "^0.8.0",
       },
       "devDependencies": {
         "@angular/compiler": "20.3.27",
@@ -304,7 +304,7 @@
 
     "@types/trusted-types": ["@types/trusted-types@2.0.7", "", {}, "sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw=="],
 
-    "@unofficialbox/box-open-elements": ["@unofficialbox/box-open-elements@0.7.0", "", {}, "sha512-yi5FDNG8ZknPtJq9Qz9NwCgmDI9gpnM+bcVkXkWQHG1JuvCiK25YzKXIDhKs77RMLwm8vAAgRtJL1mQ3P7kDlQ=="],
+    "@unofficialbox/box-open-elements": ["@unofficialbox/box-open-elements@0.8.0", "", {}, "sha512-GitKEjVEWhcd3cSbQ4kVsaobLpUtw7RdXy67BqCYPZZvfZF+0E2SIO0a/2eTJ0fM8mjXWca7faOfHMDwswunww=="],
 
     "@unofficialbox/box-open-elements-angular": ["@unofficialbox/box-open-elements-angular@workspace:packages/angular"],
 
