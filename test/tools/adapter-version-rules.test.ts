@@ -5,8 +5,11 @@ import { describe, expect, it } from "vitest";
 import {
   CORE_PACKAGE,
   checkAdapterLockstep,
+  checkCorePeerRanges,
   checkInstalledCore,
+  checkLockfileCore,
   expectedPeerRange,
+  parseLockedCoreVersion,
 } from "../../tools/adapters/version-rules.js";
 import type { AdapterManifest } from "../../tools/adapters/version-rules.js";
 
@@ -19,22 +22,11 @@ const adapter = (overrides: Partial<AdapterManifest> = {}): AdapterManifest => (
 });
 
 describe("checkAdapterLockstep", () => {
-  it("passes when every adapter matches the core version and peers on it", () => {
+  it("passes when every adapter carries the core version", () => {
     const manifests = ["react", "angular", "vue", "svelte"].map(directory =>
       adapter({ directory, name: `@unofficialbox/box-open-elements-${directory}` }),
     );
     expect(checkAdapterLockstep("0.7.0", manifests)).toEqual([]);
-  });
-
-  it("catches the release that shipped without them — a peer range excluding the core version", () => {
-    // The real bug: adapters sat at ^0.5.0 through the whole 0.6.0 release, a
-    // range that excluded the only published core version, and nothing failed.
-    const problems = checkAdapterLockstep("0.6.0", [
-      adapter({ version: "0.6.0", peerDependencies: { [CORE_PACKAGE]: "^0.5.0" } }),
-    ]);
-    expect(problems).toHaveLength(1);
-    expect(problems[0]).toContain('"^0.5.0"');
-    expect(problems[0]).toContain('"^0.6.0"');
   });
 
   it("catches an adapter left behind at the previous version", () => {
@@ -44,11 +36,9 @@ describe("checkAdapterLockstep", () => {
         directory: "vue",
         name: "@unofficialbox/box-open-elements-vue",
         version: "0.6.0",
-        peerDependencies: { [CORE_PACKAGE]: "^0.7.0" },
       }),
     ]);
-    expect(problems).toHaveLength(1);
-    expect(problems[0]).toContain("box-open-elements-vue");
+    expect(problems).toEqual([expect.stringContaining("box-open-elements-vue")]);
     expect(problems[0]).toContain("0.6.0");
   });
 
@@ -56,24 +46,14 @@ describe("checkAdapterLockstep", () => {
     // A version bump touches five manifests; surfacing them one failed CI run
     // at a time is how a release drags across an afternoon.
     const problems = checkAdapterLockstep("0.7.0", [
-      adapter({ version: "0.6.0", peerDependencies: { [CORE_PACKAGE]: "^0.6.0" } }),
+      adapter({ version: "0.6.0" }),
       adapter({
         directory: "vue",
         name: "@unofficialbox/box-open-elements-vue",
         version: "0.5.0",
-        peerDependencies: { [CORE_PACKAGE]: "^0.5.0" },
       }),
     ]);
-    expect(problems).toHaveLength(4); // two versions + two peer ranges
-  });
-
-  it("catches a missing peer dependency on the core package", () => {
-    const problems = checkAdapterLockstep("0.7.0", [
-      adapter({ peerDependencies: { react: "^19.0.0" } }),
-    ]);
-    expect(problems).toEqual([
-      expect.stringContaining("no peer dependency on @unofficialbox/box-open-elements"),
-    ]);
+    expect(problems).toHaveLength(2);
   });
 
   it("refuses to pass vacuously when no manifests were found", () => {
@@ -83,23 +63,100 @@ describe("checkAdapterLockstep", () => {
       expect.stringContaining("No adapter manifests found"),
     ]);
   });
+});
+
+describe("checkCorePeerRanges", () => {
+  it("passes when every peer pins the current core", () => {
+    expect(
+      checkCorePeerRanges("0.7.0", [
+        { name: "@unofficialbox/box-open-elements-react", range: "^0.7.0" },
+        { name: "@box-open-elements/box-server", range: "^0.7.0" },
+      ]),
+    ).toEqual([]);
+  });
+
+  it("catches the release that shipped without them — a range excluding the core", () => {
+    // The real bug: adapters sat at ^0.5.0 through the whole 0.6.0 release, a
+    // range that excluded the only published core version, and nothing failed.
+    const problems = checkCorePeerRanges("0.6.0", [
+      { name: "@unofficialbox/box-open-elements-react", range: "^0.5.0" },
+    ]);
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toContain('"^0.5.0"');
+    expect(problems[0]).toContain('"^0.6.0"');
+  });
+
+  it("covers a peer that is not one of the four published adapters", () => {
+    // box-server keeps its own version line but peers on the same core. The
+    // 0.7.0 release left it at ^0.6.0 because the gate only looked at adapters.
+    const problems = checkCorePeerRanges("0.7.0", [
+      { name: "@unofficialbox/box-open-elements-react", range: "^0.7.0" },
+      { name: "@box-open-elements/box-server", range: "^0.6.0" },
+    ]);
+    expect(problems).toEqual([expect.stringContaining("box-server")]);
+  });
 
   it("requires the exact caret range, not merely a satisfying one", () => {
     // `>=0.7.0` and `*` both admit the current core version today and admit a
     // breaking 0.8.0 tomorrow. Pre-1.0 that is precisely what must not happen.
-    for (const peer of [">=0.7.0", "*", "^0.7", "0.7.0", "~0.7.0"]) {
-      const problems = checkAdapterLockstep("0.7.0", [
-        adapter({ peerDependencies: { [CORE_PACKAGE]: peer } }),
-      ]);
-      expect(problems, `expected ${peer} to be rejected`).toHaveLength(1);
+    for (const range of [">=0.7.0", "*", "^0.7", "0.7.0", "~0.7.0"]) {
+      const problems = checkCorePeerRanges("0.7.0", [{ name: "pkg", range }]);
+      expect(problems, `expected ${range} to be rejected`).toHaveLength(1);
     }
+  });
+
+  it("refuses to pass vacuously when nothing declares the peer", () => {
+    expect(checkCorePeerRanges("0.7.0", [])).toEqual([
+      expect.stringContaining("No package declares a peer dependency"),
+    ]);
   });
 });
 
-describe("expectedPeerRange", () => {
-  it("is the caret range for the core version", () => {
-    expect(expectedPeerRange("0.7.0")).toBe("^0.7.0");
-    expect(expectedPeerRange("1.2.3")).toBe("^1.2.3");
+describe("parseLockedCoreVersion", () => {
+  const entry = (name: string, version: string): string =>
+    `    "${name}": ["${name}@${version}", "", {}, "sha512-x"],\n`;
+
+  it("reads the core's pinned version out of a lockfile", () => {
+    expect(parseLockedCoreVersion(entry(CORE_PACKAGE, "0.7.0"))).toBe("0.7.0");
+  });
+
+  it("is not fooled by the adapters, whose names share the prefix", () => {
+    // `…-react@0.7.0` starts with the core's name. A loose pattern would report
+    // an adapter's version as the core's, and the gate would compare the wrong
+    // number while looking like it worked.
+    const lockfile =
+      entry(`${CORE_PACKAGE}-react`, "0.9.9") +
+      entry(`${CORE_PACKAGE}-svelte`, "0.9.9") +
+      entry(CORE_PACKAGE, "0.5.0");
+    expect(parseLockedCoreVersion(lockfile)).toBe("0.5.0");
+  });
+
+  it("returns null when the lockfile pins no registry copy", () => {
+    expect(parseLockedCoreVersion(entry(`${CORE_PACKAGE}-vue`, "0.7.0"))).toBeNull();
+    expect(parseLockedCoreVersion("")).toBeNull();
+  });
+});
+
+describe("checkLockfileCore", () => {
+  it("passes when the lockfile pins the version this tree builds", () => {
+    expect(checkLockfileCore("0.7.0", "0.7.0")).toEqual([]);
+  });
+
+  it("catches a lockfile left behind by a peer-range bump", () => {
+    // The real drift: the manifests moved to ^0.7.0 across two releases while
+    // the lockfile still pinned 0.5.0, and the only symptom was a line of
+    // `bun install` output. This is the mandatory check because the lockfile is
+    // committed — unlike an installed copy it exists in every environment.
+    const problems = checkLockfileCore("0.7.0", "0.5.0");
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toContain("bun.lock pins");
+    expect(problems[0]).toContain("0.5.0");
+    expect(problems[0]).toContain("0.7.0");
+  });
+
+  it("accepts a lockfile that pins no registry copy", () => {
+    // Nothing pinned means nothing can drift.
+    expect(checkLockfileCore("0.7.0", null)).toEqual([]);
   });
 });
 
@@ -108,24 +165,25 @@ describe("checkInstalledCore", () => {
     expect(checkInstalledCore("0.7.0", "0.7.0")).toEqual([]);
   });
 
-  it("catches a lockfile left behind by a peer-range bump", () => {
-    // The real drift: the manifests moved to ^0.7.0 across two releases while
-    // the lockfile still pinned 0.5.0, and the only symptom was a line of
-    // `bun install` output. Comparing declarations with declarations cannot
-    // see this — it takes comparing them with a real resolution.
-    const problems = checkInstalledCore("0.7.0", "0.5.0");
-    expect(problems).toHaveLength(1);
-    expect(problems[0]).toContain("0.5.0");
-    expect(problems[0]).toContain("0.7.0");
-    expect(problems[0]).toContain("lockfile is behind");
+  it("catches a stale installed copy", () => {
+    expect(checkInstalledCore("0.7.0", "0.5.0")).toEqual([
+      expect.stringContaining("resolves to 0.5.0"),
+    ]);
   });
 
   it("accepts no installed copy — that is an environment, not a fault", () => {
     // The root package IS the core package, so whether a registry copy is
-    // installed alongside the workspace depends on the environment: the pinned
-    // Playwright container installs without one. An earlier version of this
-    // rule failed on absence and broke the visual-regression job. Nothing
-    // installed means nothing to disagree with.
+    // materialised alongside the workspace depends on the environment: the
+    // pinned Playwright container installs without one. An earlier version of
+    // this rule failed on absence and broke the visual-regression job. The
+    // lockfile check carries the guarantee instead.
     expect(checkInstalledCore("0.7.0", null)).toEqual([]);
+  });
+});
+
+describe("expectedPeerRange", () => {
+  it("is the caret range for the core version", () => {
+    expect(expectedPeerRange("0.7.0")).toBe("^0.7.0");
+    expect(expectedPeerRange("1.2.3")).toBe("^1.2.3");
   });
 });
