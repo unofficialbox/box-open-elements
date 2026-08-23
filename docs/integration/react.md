@@ -74,10 +74,48 @@ applyDesignTokens(document.documentElement, "box-default");
 ```
 
 Component props map only to element **properties**, so booleans and structured
-arrays do not depend on React attribute stringification. Native React handlers
-remain on the host; declared custom-event props use stable DOM subscriptions
-that call the latest handler. Forwarded refs resolve to the underlying custom
-element.
+arrays do not depend on React attribute stringification. Declared event props
+use stable DOM subscriptions that call the latest handler. Forwarded refs
+resolve to the underlying custom element.
+
+### Event callbacks receive native events
+
+Every callback prop an adapter **declares** — `onClick` on `Button`,
+`onValueChanged`, `onOpenChanged`, `onConfirm`, `onCancel` — is registered with
+`addEventListener` on the custom element and receives the **native** DOM event.
+It is not a React `SyntheticEvent`: there is no `.nativeEvent`, and
+`stopPropagation` acts on the real tree.
+
+The reason is portability of the listener rather than purity. React delegates
+from its root container, so an element that relocates itself outside that
+container stops receiving delegated events — and `box-drawer` moves its whole
+subtree to `document.body` when it opens. A `Button` inside an open drawer with
+React's own `onClick` would look wired up and do nothing. A listener bound to
+the element travels with it.
+
+```tsx
+<Button
+  label="Save"
+  onClick={event => {
+    // event is a MouseEvent; event.currentTarget is the <box-button>
+    save();
+  }}
+/>
+```
+
+### Delegated props still behave like React's
+
+Anything an adapter does *not* declare is forwarded to the host element as an
+ordinary React prop, including React's own `onClick` on `Select`, `TextField`
+and `Dialog`. Those receive a `SyntheticEvent` and are delegated from the root
+container as usual — which means they **do not fire inside an open
+`box-drawer`**, because the drawer has moved the subtree out of that container.
+
+That is React's delegation model rather than anything specific to these
+components: a plain `<div onClick>` inside an open drawer is dead in exactly the
+same way. If you need a click handler that survives the portal, put it on a
+`Button`, or bind it yourself with `addEventListener` via a ref.
+
 
 `useExplorerSelectionController(controller)` uses React's external-store
 contract to render the controller snapshot. Selection rules and mutations stay
