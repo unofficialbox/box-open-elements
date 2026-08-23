@@ -153,8 +153,17 @@ static-shell depth. One work-item model, two projections:
   that matters is that a decline stops the ceremony outright: nobody behind
   a refusal is shown as able to act, in either mode. Read-only — signing
   belongs to the provider's flow.
-- **Virtualized table rows** — audit logs at production scale; the depth
-  gap behind several sections.
+- **Virtualized table rows** — *built*: `resolveRowWindow` in `src/core`
+  (pure, shared) plus an opt-in `virtualize` on `box-table`. A 10,000-row
+  table renders ~20 DOM rows, padded with spacers so the scrollbar still
+  describes the whole collection. Indices stay absolute, so selection,
+  shift-range, and keyboard navigation address records rather than the
+  rendered slice — and Home/End reach the ends of the collection, not the
+  edges of the window. The declared `row-height` is only a starting
+  estimate: the element measures a rendered row after first paint, because
+  a value off by a fraction of a pixel makes the scroll range drift.
+  Remaining adopter: `box-audit-log`, whose rows are grouped — windowing
+  across group boundaries is a different algorithm, not a flag flip.
 - **Keyboard shortcuts overlay** — *built*: `box-shortcuts-overlay`, over
   the *same* `CommandDescriptor[]` the palette takes, so one catalogue drives
   both and a shortcut cannot be documented but unreachable — or reachable but

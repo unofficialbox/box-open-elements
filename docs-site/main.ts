@@ -10,6 +10,7 @@ import { inspectPreviewTree } from "./preview-inspect.js";
 import { lessons, lessonById } from "./lessons.js";
 import { renderLessonPage } from "./lesson-page.js";
 import { applyRailVersion } from "./rail-version.js";
+import { resolveRailReveal } from "./rail-reveal.js";
 import workshop from "../storybook/generated/workshop.json" with { type: "json" };
 import accessibilityMd from "../docs/foundations/accessibility.md";
 import brandMd from "../docs/foundations/brand.md";
@@ -330,6 +331,36 @@ const renderRail = (): void => {
   // a rail item (which re-renders, and on the static build reloads the page)
   // doesn't jump the menu back to the top.
   railTree.scrollTop = railScroll;
+  revealActiveRailItem();
+};
+
+/**
+ * Bring the current page's rail entry into view when the restored scroll leaves
+ * it outside the rail viewport — landing on a below-the-fold entry (deep link,
+ * static-page navigation, a category far down the list) otherwise shows a nav
+ * that never says where you are.
+ *
+ * The decision lives in `resolveRailReveal`, which is pure: jsdom reports every
+ * layout box as zero, so a DOM-driven test of this could only ever assert "no
+ * scroll happened". Here the shell just reads geometry and applies the answer.
+ */
+const revealActiveRailItem = (): void => {
+  const active = railTree.querySelector<HTMLElement>('.rail-item[aria-current="page"]');
+  if (!active) {
+    return;
+  }
+  const next = resolveRailReveal({
+    // offsetTop is relative to the offset parent; subtracting the rail's own
+    // offset puts both in the scroll container's coordinate space.
+    itemTop: active.offsetTop - railTree.offsetTop,
+    itemHeight: active.offsetHeight,
+    viewTop: railTree.scrollTop,
+    viewHeight: railTree.clientHeight,
+    scrollHeight: railTree.scrollHeight,
+  });
+  if (next !== null) {
+    railTree.scrollTop = next;
+  }
 };
 
 // ── Component page ───────────────────────────────────────────────────────────

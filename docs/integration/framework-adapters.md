@@ -63,7 +63,7 @@ Validation evidence:
 
 Shared **Supported** proof set:
 
-1. publish all four `0.1.0` packages through the lockstep adapter workflow
+1. publish all four `0.2.0` packages through the lockstep adapter workflow
 2. verify clean consumer installs from npm
 
 Do not wrap the whole catalog mechanically. Continue by interaction family so

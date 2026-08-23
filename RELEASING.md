@@ -32,24 +32,55 @@ publish.
 - The git tag is `v<version>` (e.g. `v0.1.0`). The release workflow **fails** if
   the tag does not match `package.json`'s `version`.
 
-## Route A — GitHub Release (recommended)
+## Route A — Cut release workflow (recommended)
 
 1. Land a PR that bumps `package.json` `version` and updates `CHANGELOG.md`.
-2. Tag and publish a GitHub Release for that version:
-   ```bash
-   git checkout main && git pull
-   gh release create v0.1.0 --title v0.1.0 --generate-notes
-   ```
-3. `.github/workflows/release.yml` runs automatically: it checks the tag matches
-   the version, runs `bun run verify` (typecheck + coverage tests + build), then
-   `npm publish --access public` authenticated via **OIDC trusted publishing**
-   (no token). Provenance is generated automatically, so the npm page shows a
-   provenance badge.
-4. Watch the run: `gh run watch` (or the Actions tab). A green run means it's live.
+2. Dispatch **Cut release** on `main` (Actions tab, or
+   `gh workflow run cut-release.yml --ref main`).
 
-You can also trigger the workflow manually (`workflow_dispatch`) without a
-release — useful for re-publishing after a failed run — but the tag/version
-guard only applies to Release events.
+`.github/workflows/cut-release.yml` reads the version from `package.json`, tags
+`vX.Y.Z` at `main`, and publishes a GitHub Release whose notes are that
+version's `CHANGELOG.md` section — then dispatches `release.yml`, which runs
+`bun run verify` (typecheck + coverage tests + build) and `npm publish --access
+public` via **OIDC trusted publishing** (no token), with provenance.
+
+The extra dispatch is deliberate: a Release created by a workflow's
+`GITHUB_TOKEN` fires no `release: published` event (GitHub suppresses those to
+prevent recursion), so the publish has to be triggered explicitly —
+`workflow_dispatch` is exempt from that rule.
+
+The workflow refuses to run off `main`, refuses to move an existing tag, and
+skips the npm dispatch when the version is already published, so a re-run after
+a partial failure fills in only what is missing.
+
+Watch the run: `gh run watch` (or the Actions tab). A green run means it's live.
+
+### A version bump quietly dirties every docs-site baseline
+
+The docs-site rail footer renders the package version, inlined at build time, so
+bumping `version` changes 23 pixels in all 46 `docs/screenshots/docs-site`
+baselines. That is 0.002% of the frame against a 0.1% gate — the pixel diff never
+fails on it, so the stale badge simply rides along until some later
+`[regen-baselines]` run adopts it alongside whatever that PR actually changed.
+
+Nothing is broken by this, but it does mean a post-release regen shows more
+changed files than the PR's own diff explains. When reading an adopted set, a
+23-pixel change confined to the bottom-left of the rail is the version badge
+catching up, not the PR.
+
+### Route A′ — publish an existing tag by hand
+
+Creating the GitHub Release yourself still works and still triggers
+`release.yml`:
+
+```bash
+git checkout main && git pull
+gh release create v0.6.0 --title v0.6.0 --notes-file <(sed -n '/^## 0.6.0/,/^## /p' CHANGELOG.md)
+```
+
+`release.yml` also accepts a manual `workflow_dispatch` — useful for
+re-publishing after a failed run — but the tag/version guard only applies to
+Release events.
 
 ## Route B — local publish
 
