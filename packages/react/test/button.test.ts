@@ -64,15 +64,15 @@ describe("Button React adapter", () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
-  it("fires onClick once for a button inside an opened, portaled drawer", async () => {
-    // The reported bug, and the arrangement matters: ONE React root, outside
-    // the drawer, rendering the drawer and the button together. React delegates
-    // from that root container. When the drawer opens it moves itself — and the
-    // button with it — to document.body, out of the container, and a delegated
-    // click never arrives.
+  it("fires onClick once for a button inside an opened drawer", async () => {
+    // The originally reported arrangement: ONE React root, outside the drawer,
+    // rendering the drawer and the button together.
     //
-    // Giving the drawer its own React root instead would move the container
-    // along with it and prove nothing; that mistake passed with the bug present.
+    // This no longer reproduces the delegation bug on its own — the drawer used
+    // to move itself to document.body and now stays put, covering the page via
+    // the top layer instead. Kept because a button inside an open drawer is the
+    // real-world case that was reported, and it must keep working; the
+    // delegation hazard itself is provoked directly in the test below.
     const { Drawer } = await import("../../../src/components/overlays/drawer.js");
     Drawer.register();
 
@@ -95,11 +95,6 @@ describe("Button React adapter", () => {
       drawer.open = true;
     });
 
-    // The drawer really did leave the React root container. Without this the
-    // test is exercising the ordinary case under a misleading name.
-    expect(drawer.parentElement).toBe(document.body);
-    expect(container.contains(drawer)).toBe(false);
-
     const element = drawer.querySelector("box-button") as ButtonElement | null;
     expect(element).toBeTruthy();
 
@@ -108,16 +103,43 @@ describe("Button React adapter", () => {
     });
 
     expect(onClick).toHaveBeenCalledTimes(1);
+  });
 
-    // Put the drawer back before the shared teardown unmounts the root: React
-    // cannot remove a node that a third party moved out of its container, and
-    // throws NotFoundError trying. Worth knowing in its own right — an app that
-    // unmounts with a drawer open hits the same thing — but it is the portal's
-    // business, not this fix's.
+  it("fires onClick for a button whose host has been moved out of the React root", () => {
+    // The hazard this fix exists for, now provoked directly rather than through
+    // the drawer. `box-drawer` used to relocate itself to document.body, which
+    // is how the bug was found — it no longer does, so the drawer alone can no
+    // longer prove anything about delegation. Any host that relocates a subtree
+    // (a third-party portal, an app moving nodes by hand) reproduces it, and
+    // React's delegated onClick would still silently die.
+    const onClick = vi.fn();
+    container = document.createElement("div");
+    document.body.append(container);
+    root = createRoot(container);
+
     act(() => {
-      drawer.open = false;
+      root.render(createElement(Button, { label: "Save", onClick }));
     });
-    expect(container.contains(drawer)).toBe(true);
+
+    const element = container.querySelector("box-button") as ButtonElement;
+    expect(element).toBeTruthy();
+
+    // Out of the React root container, exactly as the drawer used to do.
+    const elsewhere = document.createElement("div");
+    document.body.append(elsewhere);
+    elsewhere.append(element);
+    expect(container.contains(element)).toBe(false);
+
+    act(() => {
+      element.shadowRoot?.querySelector("button")?.click();
+    });
+
+    expect(onClick).toHaveBeenCalledTimes(1);
+
+    // React cannot remove a node a third party moved out of its container, so
+    // put it back before the shared teardown unmounts the root.
+    container.append(element);
+    elsewhere.remove();
   });
 
   it("invokes the latest callback after a rerender, not the first", () => {

@@ -11,15 +11,16 @@ The core package stays framework-agnostic. This adapter is a thin layer that:
 Callbacks an adapter **declares** receive the **native** DOM event, not a React
 `SyntheticEvent`. They are registered with `addEventListener` on the custom
 element so the listener travels with it: React delegates from its root
-container, and `box-drawer` moves its subtree to `document.body` when it opens,
-which is enough to make a delegated handler silently stop firing. `Button`
-declares its own `onClick`, typed as `(event: MouseEvent) => void`, for exactly
-that reason.
+container, so a node relocated out of that container silently stops receiving
+delegated handlers. `Button` declares its own `onClick`, typed as
+`(event: MouseEvent) => void`, for exactly that reason.
 
 Props an adapter does not declare — including React's `onClick` on `Select`,
 `TextField` and `Dialog` — are forwarded as ordinary host props and stay
-delegated, so they do not fire inside an open drawer. That is React's delegation
-model rather than these components': a plain `<div onClick>` behaves the same.
+delegated. That is fine unless something moves the node out of the React root,
+and it is React's delegation model rather than these components': a plain
+`<div onClick>` in a relocated subtree behaves the same. (`box-drawer` used to
+relocate its subtree and no longer does — it uses the top layer.)
 
 See [`docs/integration/react.md`](../../docs/integration/react.md) for the React
 boundary and the [framework adapter tracker](../../docs/integration/framework-adapters.md)
