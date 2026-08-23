@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { dismissPopover, promotePopover } from "../../foundations/overlay/index.js";
 import { boeControl, boeOverlay, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
@@ -19,7 +20,12 @@ const guideTooltipStyles = `
 
   /* Positioned by JS (foundations/overlay) as a viewport-fixed callout, so it
      escapes ancestor overflow and flips/shifts to stay on-screen. */
+  /* display is stated explicitly because the element carries
+     popover="manual": the UA sheet hides a popover that is not open, and an
+     author declaration outranks it. If showPopover() is unavailable or fails,
+     this still renders as before and only the top layer is lost. */
   [part="callout"] {
+    display: block;
     position: fixed;
     inset-block-start: 0;
     inset-inline-start: 0;
@@ -318,7 +324,7 @@ export class GuideTooltip extends BaseElement {
     this.shadowRoot.innerHTML = `
       <style>${guideTooltipStyles}</style>
       <slot name="anchor"></slot>
-      <div part="callout" role="dialog" aria-labelledby="${this.headingId}" hidden>
+      <div part="callout" popover="manual" role="dialog" aria-labelledby="${this.headingId}" hidden>
         <button type="button" part="close" aria-label="Close">
           <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         </button>
@@ -370,6 +376,13 @@ export class GuideTooltip extends BaseElement {
     }
 
     this.calloutEl.hidden = !this.openValue;
+    // Top layer keeps it above the page even inside an ancestor with a
+    // transform/filter/contain, which position:fixed alone cannot escape.
+    if (this.openValue) {
+      promotePopover(this.calloutEl);
+    } else {
+      dismissPopover(this.calloutEl);
+    }
 
     const heading = this.heading;
     this.headingEl.hidden = !heading;

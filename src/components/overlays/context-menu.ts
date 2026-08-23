@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { dismissPopover, promotePopover } from "../../foundations/overlay/index.js";
 import { FocusRestore, nextRovingIndex } from "../../foundations/a11y/index.js";
 import { boeOverlay, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import { resolvePosition } from "../../foundations/overlay/index.js";
@@ -31,7 +32,12 @@ const contextMenuStyles = `
     display: contents;
   }
 
+  /* display is stated explicitly because the element carries
+     popover="manual": the UA sheet hides a popover that is not open, and an
+     author declaration outranks it. If showPopover() is unavailable or fails,
+     this still renders as before and only the top layer is lost. */
   [part="surface"] {
+    display: grid;
     position: fixed;
     z-index: 40;
     inset-block-start: 0;
@@ -153,7 +159,7 @@ export class ContextMenu extends BaseElement {
     this.shadowRoot.innerHTML = `
       <style>${contextMenuStyles}</style>
       <div part="target"><slot></slot></div>
-      <div part="surface" role="menu" hidden></div>
+      <div part="surface" popover="manual" role="menu" hidden></div>
     `;
     this.targetEl = this.shadowRoot.querySelector('[part="target"]')!;
     this.surfaceEl = this.shadowRoot.querySelector('[part="surface"]')!;
@@ -214,6 +220,9 @@ export class ContextMenu extends BaseElement {
   private openAt(clientX: number, clientY: number): void {
     this.renderItems();
     this.surfaceEl.hidden = false;
+    // Top layer keeps the menu above the page even inside an ancestor with a
+    // transform/filter/contain, which position:fixed alone cannot escape.
+    promotePopover(this.surfaceEl);
 
     const { width, height } = this.surfaceEl.getBoundingClientRect();
     const { x, y } = resolvePosition(
@@ -237,6 +246,7 @@ export class ContextMenu extends BaseElement {
     if (!this.openValue) return;
     this.openValue = false;
     this.surfaceEl.hidden = true;
+    dismissPopover(this.surfaceEl);
     this.unbindDocument();
     this.dispatchEvent(new CustomEvent("open-changed", { bubbles: true, composed: true, detail: { open: false } }));
     this.focusRestore.restore();

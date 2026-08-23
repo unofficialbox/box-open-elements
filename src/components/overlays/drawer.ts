@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { FocusRestore, trapTabKey } from "../../foundations/a11y/index.js";
+import { dismissModal, promoteModal } from "../../foundations/overlay/index.js";
 import {
   boeControl,
   boeOverlay,
@@ -323,30 +324,14 @@ export class Drawer extends BaseElement {
    * `NotFoundError`, because the node it tried to remove was no longer its
    * child.
    *
-   * Guarded rather than assumed: jsdom implements neither `showModal` nor
-   * `showPopover`, so the unit suite exercises everything except the promotion
-   * itself, and that is verified in a browser.
+   * The guards live in the shared foundation, which every overlay now uses.
    */
   private promoteTopLayer(): void {
-    const dialog = this.backdropEl as HTMLDialogElement | null;
-    if (!dialog || typeof dialog.showModal !== "function" || dialog.open) {
-      return;
-    }
-    // A dialog in a detached or hidden tree throws rather than opening.
-    try {
-      dialog.showModal();
-    } catch {
-      // Not promotable here; the drawer still renders and behaves, it simply
-      // does not get the top layer.
-    }
+    promoteModal(this.backdropEl);
   }
 
   private dismissTopLayer(): void {
-    const dialog = this.backdropEl as HTMLDialogElement | null;
-    if (!dialog || typeof dialog.close !== "function" || !dialog.open) {
-      return;
-    }
-    dialog.close();
+    dismissModal(this.backdropEl);
   }
 
   protected renderTemplate(): void {

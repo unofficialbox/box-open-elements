@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { dismissPopover, promotePopover } from "../../foundations/overlay/index.js";
 import { FocusRestore, getTabbableElements } from "../../foundations/a11y/index.js";
 import { boeControl, boeOverlay, boeRadius } from "../../foundations/geometry/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
@@ -82,7 +83,13 @@ const popoverStyles = `
   /* Positioned by JS (foundations/overlay) as position: fixed in viewport
      coordinates — so it escapes ancestor overflow and flips/shifts to stay in
      view, the job a portal does in box-ui-elements. */
+  /* display is stated explicitly, not left to the initial value, because the
+     element carries popover="manual": the UA sheet hides a popover that is not
+     open, and an author declaration outranks it. So if showPopover() is
+     unavailable or fails, the surface still renders exactly as before and only
+     the top-layer promotion is lost — see foundations/overlay/top-layer.ts. */
   [part="surface"] {
+    display: block;
     position: fixed;
     z-index: 30;
     inset-block-start: 0;
@@ -301,7 +308,7 @@ export class Popover extends BaseElement {
       <style>${popoverStyles}</style>
       <div part="container">
         <button type="button" part="trigger" id="boe-popover-trigger" aria-haspopup="dialog" aria-controls="boe-popover-surface"></button>
-        <div part="surface" role="dialog" id="boe-popover-surface" aria-labelledby="boe-popover-trigger" tabindex="-1" hidden>
+        <div part="surface" popover="manual" role="dialog" id="boe-popover-surface" aria-labelledby="boe-popover-trigger" tabindex="-1" hidden>
           <slot></slot>
         </div>
       </div>
@@ -346,6 +353,13 @@ export class Popover extends BaseElement {
     const justOpened = this.openValue && !this.wasOpen;
     const justClosed = !this.openValue && this.wasOpen;
     this.surfaceEl.hidden = !this.openValue;
+    // Top layer keeps the surface above the page even inside an ancestor with
+    // a transform/filter/contain, which position:fixed alone cannot escape.
+    if (this.openValue) {
+      promotePopover(this.surfaceEl);
+    } else {
+      dismissPopover(this.surfaceEl);
+    }
     this.syncDocumentListeners();
 
     if (this.openValue) {
