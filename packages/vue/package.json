@@ -1,6 +1,6 @@
 {
   "name": "@unofficialbox/box-open-elements-vue",
-  "version": "0.2.0",
+  "version": "0.7.0",
   "description": "Typed Vue adapters for box-open-elements Web Components.",
   "license": "MIT",
   "homepage": "https://unofficialbox.github.io/box-open-elements",
@@ -30,7 +30,7 @@
     "node": ">=20.9.0"
   },
   "peerDependencies": {
-    "@unofficialbox/box-open-elements": "^0.6.0",
+    "@unofficialbox/box-open-elements": "^0.7.0",
     "vue": ">=3.5.0 <4.0.0"
   },
   "scripts": {

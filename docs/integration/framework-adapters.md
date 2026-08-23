@@ -63,8 +63,12 @@ Validation evidence:
 
 Shared **Supported** proof set:
 
-1. publish all four `0.2.0` packages through the lockstep adapter workflow
+1. publish all four `0.7.0` packages through the lockstep adapter workflow
 2. verify clean consumer installs from npm
+
+None of the four have been published yet, so the first release of each has
+to come from a local npm session before trusted publishing can take over —
+see [RELEASING.md](../../RELEASING.md#sub-packages).
 
 Do not wrap the whole catalog mechanically. Continue by interaction family so
 the factory is proven against distinct property, event, focus, and lifecycle
@@ -127,8 +131,15 @@ machine, and document client rendering plus SSR/hydration behavior.
 - Prefer a small representative proof set over shallow full-catalog wrappers.
 - Track framework versions once a runnable integration exists; do not claim a
   version from documentation-only examples.
-- Keep React, Angular, Vue, and Svelte adapter versions identical. The
-  `adapters:version` gate and `adapters-vX.Y.Z` release train enforce lockstep.
+- Keep the adapters' versions identical **to the core package**, not merely to
+  each other, and peer-depend on exactly `^<core version>`. Pre-1.0 a breaking
+  change can land in a minor release, so an adapter built against 0.6 has no
+  business claiming to work with 0.7. The `adapters:version` gate fails the
+  build on either kind of drift; the `adapters-vX.Y.Z` release train ships
+  them together.
+- The gate used to compare the adapters only with each other. Four manifests
+  agreeing on a range that excluded the published core version is exactly the
+  shape the 0.6.0 release shipped in — agreement is not correctness.
 
 ## Updating this tracker
 

@@ -1,29 +1,29 @@
+import { checkAdapterLockstep } from "./version-rules.js";
+import type { AdapterManifest } from "./version-rules.js";
+
 const adapterDirectories = ["react", "angular", "vue", "svelte"] as const;
 
-type PackageManifest = {
-  name: string;
-  version: string;
-};
+const coreVersion = (await Bun.file("package.json").json() as { version: string }).version;
 
-const manifests = await Promise.all(
-  adapterDirectories.map(async directory => ({
-    directory,
-    manifest: await Bun.file(`packages/${directory}/package.json`).json() as PackageManifest,
-  })),
+const manifests: AdapterManifest[] = await Promise.all(
+  adapterDirectories.map(async directory => {
+    const manifest = await Bun.file(`packages/${directory}/package.json`).json() as Omit<
+      AdapterManifest,
+      "directory"
+    >;
+    return { ...manifest, directory };
+  }),
 );
 
-const expectedVersion = process.env.ADAPTER_VERSION ?? manifests[0]!.manifest.version;
-const mismatches = manifests.filter(({ manifest }) => manifest.version !== expectedVersion);
+const problems = checkAdapterLockstep(coreVersion, manifests);
 
-if (mismatches.length > 0) {
-  const details = manifests
-    .map(({ manifest }) => `${manifest.name}: ${manifest.version}`)
-    .join("\n");
+if (problems.length > 0) {
   throw new Error(
-    `Adapter versions must remain in lockstep at ${expectedVersion}.\n${details}`,
+    `Adapters must ship the core version (${coreVersion}) and peer-depend on it:\n` +
+      problems.map(problem => `  - ${problem}`).join("\n"),
   );
 }
 
 console.log(
-  `Adapter version ${expectedVersion}: ${manifests.map(({ manifest }) => manifest.name).join(", ")}`,
+  `Adapters in lockstep at ${coreVersion}: ${manifests.map(manifest => manifest.name).join(", ")}`,
 );

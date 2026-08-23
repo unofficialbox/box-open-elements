@@ -155,16 +155,42 @@ npm pack --dry-run
 
 ## Sub-packages
 
-The React, Angular, Vue, and Svelte adapters are versioned together. Run
-`bun run adapters:version` before release; it fails if any adapter manifest
-drifts. Release tags use `adapters-vX.Y.Z`, and publishing that GitHub Release
-runs `.github/workflows/release-adapters.yml` for all four packages.
+The React, Angular, Vue, and Svelte adapters ship **the same version as the core
+package** and peer-depend on exactly `^<core version>` — five packages, one
+number. `bun run adapters:version` enforces both halves and runs inside `verify`,
+so a drifted manifest fails CI rather than reaching npm.
 
-Before the first automated release, publish each package once from a trusted
-local npm session, then configure each package's npm Trusted Publisher for
-organization `unofficialbox`, this repository, and workflow
-`release-adapters.yml`. Subsequent releases use OIDC and require no long-lived
-npm token.
+That strictness is deliberate. Pre-1.0 a breaking change can land in a minor
+release, so an adapter built against 0.6 has no business claiming compatibility
+with 0.7. The cost is that **every core release is also an adapter release** —
+which is the point of the gate: the 0.6.0 release shipped with the adapters
+peering `^0.5.0`, a range that excluded the only published core version, and
+nothing failed because the old check only compared the adapters with each other.
+
+Release tags are `adapters-vX.Y.Z`, matching the core's `vX.Y.Z`. Dispatch **Cut
+adapters release** on `main` to tag and publish that GitHub Release, which runs
+`.github/workflows/release-adapters.yml` for all four packages — the same shape
+as Route A, including the explicit dispatch that works around GITHUB_TOKEN
+Releases firing no events.
+
+### First publish (needed once, and not yet done)
+
+**None of the four adapters exist on npm.** Trusted publishing needs the package
+to exist before you can configure a publisher for it, so the first release of
+each has to come from a local session with your npm credentials:
+
+```bash
+git checkout main && git pull
+npm login                                    # 2FA as needed
+bun install && bun run build:adapters
+for package_name in react angular vue svelte; do
+  npm publish "packages/$package_name" --access public
+done
+```
+
+Then, on npmjs.com, configure each package's Trusted Publisher for organization
+`unofficialbox`, this repository, and workflow `release-adapters.yml`. Every
+release after that is OIDC and needs no token.
 
 Verify the public package after release:
 

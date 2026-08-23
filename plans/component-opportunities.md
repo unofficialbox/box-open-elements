@@ -162,8 +162,18 @@ static-shell depth. One work-item model, two projections:
   edges of the window. The declared `row-height` is only a starting
   estimate: the element measures a rendered row after first paint, because
   a value off by a fraction of a pixel makes the scroll range drift.
-  Remaining adopter: `box-audit-log`, whose rows are grouped — windowing
-  across group boundaries is a different algorithm, not a flag flip.
+  `box-audit-log` is *also built*, on the second engine it needed:
+  `resolveOffsetWindow` walks a cumulative offset index, so a surface whose
+  rows differ in height — short headings, tall event rows, a collapsed
+  section that is a heading alone — is described exactly rather than
+  approximated. Two lessons came out of the browser, neither visible in
+  jsdom: an unmeasured scroller plans an empty window and then has nothing
+  to measure, so it never recovers without a `ResizeObserver`; and a
+  per-kind height estimate that runs ~1% long makes the last rows
+  permanently unreachable, so the plan maps the real scroll fraction onto
+  the estimated range. The remaining refinement is per-row measured heights
+  instead of two estimates — the same work the wrapped-cell case in
+  `box-table` is waiting on.
 - **Keyboard shortcuts overlay** — *built*: `box-shortcuts-overlay`, over
   the *same* `CommandDescriptor[]` the palette takes, so one catalogue drives
   both and a shortcut cannot be documented but unreachable — or reachable but

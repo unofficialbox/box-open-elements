@@ -19,3 +19,5 @@ export {
 export type { FormValue } from "./form-associated.js";
 export { resolveRowWindow, sameRowWindow } from "./virtualize.js";
 export type { RowWindow, WindowMetrics } from "./virtualize.js";
+export { buildOffsetIndex, offsetOfItem, resolveOffsetWindow } from "./offset-window.js";
+export type { OffsetIndex, OffsetWindowMetrics } from "./offset-window.js";

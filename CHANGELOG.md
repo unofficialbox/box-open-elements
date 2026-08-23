@@ -10,6 +10,75 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+No unreleased changes.
+
+---
+
+## 0.7.0 — 2026-08-23
+
+Row virtualization across both shapes it comes in — a fixed-height engine for
+`box-table` and a cumulative-offset engine for the grouped `box-audit-log` — a
+docs-site rail that reveals where you are, and the framework adapters brought
+into strict lockstep with the core package — they now ship the *same* version
+number and peer-depend on exactly it, enforced in CI. Contains
+[#193](https://github.com/unofficialbox/box-open-elements/pull/193) onward,
+with 1,778 tests and clean conformance and visual-regression gates.
+
+- **`box-audit-log` windows a grouped log** with `virtualize`, over a new
+  `resolveOffsetWindow` (`src/core/offset-window.ts`). `box-table`'s engine
+  multiplies a row count by one row height; an audit log mixes short headings
+  with tall event rows, and a collapsed section is a heading alone — so this
+  one walks a cumulative offset index, O(n) to build and O(log n) to search.
+  A section scrolled into from the middle still renders its own heading,
+  because `[part="group-body"]` is `aria-labelledby` the toggle inside it;
+  the heading's height comes back out of the top spacer so the content does
+  not drift. The plan is a pure function for the usual reason, and the usual
+  reason paid twice — a browser check caught two faults jsdom cannot show:
+
+  - An unmeasured scroller plans an empty window, and an empty window renders
+    nothing to measure, so the log stayed **blank on first paint** and never
+    recovered. A `ResizeObserver` breaks the circle and earns its place
+    afterwards on container resize.
+  - Two heights per row kind is an estimate, and on a 2,000-event log it ran
+    0.9% long — 116,061px against 115,002px real. Scrolled fully down, the
+    plan still believed a screenful remained, and **the last 14 events could
+    not be reached at all**. The plan now reads the scroll position as a
+    fraction of the real range and applies it to the estimated one, so both
+    ends agree. Per-row measured heights would remove the drift itself; that
+    is the same work the wrapped-cell case in `box-table` is waiting on.
+  - Sampling *one* event row's height and adopting it ran away: rows are not
+    uniform (`summary`, `evidence` and `correlationId` are each optional), so
+    adopting one row's height moved the window, which rendered a different
+    first row, which measured differently. **55 full rebuilds in 0.9 seconds
+    while nothing was scrolling**, the sample flipping between 33px and
+    166.5px. Heights are now averaged across every rendered row, and adoption
+    is capped per row set — the average being stable is an argument about
+    typical data, and this is a path where being wrong costs the frame rate.
+  - The viewport observer is re-armed on reconnection. `setupListeners` runs
+    once, on first connect, but the teardown runs every disconnect, so a
+    re-inserted log kept its listeners and lost its observer.
+  - Grouping, flattening and the offset index are cached per row set. The
+    scroll path asks "did the window move?" every frame, and answering it was
+    re-parsing the whole `events` attribute and rebuilding the index — twice
+    per frame, O(n), on the surface whose point is not being O(n).
+
+- The adapter publish is resumable
+  ([#195](https://github.com/unofficialbox/box-open-elements/pull/195)). Four
+  unconditional `npm publish` steps fail fast, so a re-run after a partial
+  release hit the first already-published package and never reached the ones
+  still missing — the documented recovery could not actually recover. Each
+  package now checks its own published version and skips only an exact match.
+
+- **Adapters are versioned identically to the core package**, not on their own
+  line. `tools/adapters/version-check.ts` now fails the build unless every
+  adapter's `version` equals the core version *and* its peer range is exactly
+  `^<core version>` — it previously only checked the adapters agreed with each
+  other, which is why `^0.5.0` sat there through the whole 0.6.0 release,
+  excluding the only published core version, without anything failing. The rules
+  live in a pure `version-rules.ts` so they are testable without reading
+  manifests off disk. The four adapters jump 0.2.0 → 0.7.0; none had been
+  published, so no consumer is affected by the renumbering.
+
 - Review follow-ups to #193 — findings that arrived after it merged:
 
   - **`virtualize` no longer windows a collection whose rows can expand.** The
