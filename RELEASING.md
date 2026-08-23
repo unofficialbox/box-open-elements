@@ -55,6 +55,19 @@ a partial failure fills in only what is missing.
 
 Watch the run: `gh run watch` (or the Actions tab). A green run means it's live.
 
+### A version bump quietly dirties every docs-site baseline
+
+The docs-site rail footer renders the package version, inlined at build time, so
+bumping `version` changes 23 pixels in all 46 `docs/screenshots/docs-site`
+baselines. That is 0.002% of the frame against a 0.1% gate — the pixel diff never
+fails on it, so the stale badge simply rides along until some later
+`[regen-baselines]` run adopts it alongside whatever that PR actually changed.
+
+Nothing is broken by this, but it does mean a post-release regen shows more
+changed files than the PR's own diff explains. When reading an adopted set, a
+23-pixel change confined to the bottom-left of the rail is the version badge
+catching up, not the PR.
+
 ### Route A′ — publish an existing tag by hand
 
 Creating the GitHub Release yourself still works and still triggers
