@@ -65,7 +65,7 @@ jobs:
             exit 1
           fi
 
-      - name: Create tag (skip if it already exists at HEAD)
+      - name: Create the core tag (skip if it already exists at HEAD)
         env:
           TAG: ${{ steps.version.outputs.tag }}
         run: |
@@ -81,7 +81,7 @@ jobs:
             git push origin "refs/tags/$TAG"
           fi
 
-      - name: Publish GitHub Release (skip if it already exists)
+      - name: Publish the core GitHub Release (skip if it already exists)
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.version.outputs.tag }}
@@ -95,6 +95,82 @@ jobs:
               --notes-file /tmp/notes.md \
               --verify-tag
           fi
+
+      # The adapters ship the core's version, so the same cut releases all five
+      # packages: one number, one dispatch, no second thing to remember. The
+      # `adapters-v` tag is what release-adapters.yml validates its ref against.
+      - name: Create the adapter tag (skip if it already exists at HEAD)
+        env:
+          TAG: adapters-v${{ steps.version.outputs.version }}
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            REMOTE_SHA="$(git ls-remote origin "refs/tags/$TAG" | cut -f1)"
+            if [ "$REMOTE_SHA" != "$GITHUB_SHA" ]; then
+              echo "Tag $TAG already exists at $REMOTE_SHA (HEAD is $GITHUB_SHA) — refusing to move it." >&2
+              exit 1
+            fi
+            echo "Tag $TAG already at HEAD; skipping."
+          else
+            git tag "$TAG" "$GITHUB_SHA"
+            git push origin "refs/tags/$TAG"
+          fi
+
+      - name: Publish the adapter GitHub Release (skip if it already exists)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: adapters-v${{ steps.version.outputs.version }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; skipping."
+          else
+            gh release create "$TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "$TAG" \
+              --notes "Framework adapters for core $VERSION. See the v$VERSION release notes." \
+              --verify-tag
+          fi
+
+      # Same GITHUB_TOKEN suppression as the core publish, so the same explicit
+      # dispatch. Two guards, and they mean different things:
+      #   - a package MISSING from npm entirely has never had its first publish,
+      #     which trusted publishing cannot do — that needs a local `npm publish`
+      #     once (RELEASING.md § Sub-packages), so skip rather than fail a run
+      #     the maintainer cannot fix from here;
+      #   - a package already AT this version means a re-run after a partial
+      #     failure, so skip that too.
+      - name: Trigger adapter npm publish via release-adapters.yml dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: adapters-v${{ steps.version.outputs.version }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          missing=""
+          published=0
+          total=0
+          for name in react angular vue svelte; do
+            total=$((total + 1))
+            body="$(curl -sf "https://registry.npmjs.org/@unofficialbox%2Fbox-open-elements-$name" || true)"
+            if [ -z "$body" ]; then
+              missing="$missing $name"
+              continue
+            fi
+            if printf '%s' "$body" | node -pe "Object.hasOwn(JSON.parse(require('fs').readFileSync(0,'utf8')).versions ?? {}, process.env.VERSION)" | grep -q true; then
+              published=$((published + 1))
+            fi
+          done
+
+          if [ -n "$missing" ]; then
+            echo "::notice::Adapters never published:$missing — the first publish of each must come from a local npm session (RELEASING.md § Sub-packages). Tag $TAG is in place; dispatch release-adapters.yml on it once they exist."
+            exit 0
+          fi
+          if [ "$published" -eq "$total" ]; then
+            echo "npm already has all four adapters at $VERSION; not dispatching a publish."
+            exit 0
+          fi
+
+          gh workflow run release-adapters.yml --repo "$GITHUB_REPOSITORY" --ref "$TAG"
+          echo "Dispatched release-adapters.yml on $TAG."
 
       # A Release created with GITHUB_TOKEN does not fire `release: published`
       # (suppressed by GitHub to prevent recursion), so the npm publish must be

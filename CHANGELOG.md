@@ -10,6 +10,30 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+No unreleased changes.
+
+---
+
+## 0.7.0 — 2026-08-23
+
+Row virtualization for `box-table` over a new shared windowing engine, a
+docs-site rail that reveals where you are, and the framework adapters brought
+into strict lockstep with the core package — they now ship the *same* version
+number and peer-depend on exactly it, enforced in CI. Contains
+[#193](https://github.com/unofficialbox/box-open-elements/pull/193) and
+[#194](https://github.com/unofficialbox/box-open-elements/pull/194), with 1,733
+tests and clean conformance and visual-regression gates.
+
+- **Adapters are versioned identically to the core package**, not on their own
+  line. `tools/adapters/version-check.ts` now fails the build unless every
+  adapter's `version` equals the core version *and* its peer range is exactly
+  `^<core version>` — it previously only checked the adapters agreed with each
+  other, which is why `^0.5.0` sat there through the whole 0.6.0 release,
+  excluding the only published core version, without anything failing. The rules
+  live in a pure `version-rules.ts` so they are testable without reading
+  manifests off disk. The four adapters jump 0.2.0 → 0.7.0; none had been
+  published, so no consumer is affected by the renumbering.
+
 - Review follow-ups to #193 — findings that arrived after it merged:
 
   - **`virtualize` no longer windows a collection whose rows can expand.** The
