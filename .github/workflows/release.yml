@@ -35,6 +35,35 @@ jobs:
         with:
           persist-credentials: false
 
+      # FIRST, before anything runs code from the checkout. This job holds
+      # `id-token: write`, so the OIDC request variables are in the runner
+      # environment from the start; `bun install` executes the *root* package's
+      # own lifecycle scripts (Bun's trust model gates dependency scripts, not
+      # the project's), so a hostile ref could mint and exfiltrate a publish
+      # credential before a guard placed after the install ever ran. Reading
+      # package.json with `node -p require()` only parses JSON — it runs no
+      # scripts — and the runner's preinstalled Node serves for that.
+      #
+      # The guard applies to every trigger, not just Release events: the Actions
+      # UI defaults a manual dispatch to main, and a main that has merged the
+      # next version bump would otherwise publish an untagged tree under that
+      # version. cut-release.yml already dispatches on the tag ref, so the
+      # automated path is unaffected.
+      - name: Check the ref is a version tag matching package.json
+        run: |
+          PKG="$(node -p "require('./package.json').version")"
+          if [ "$GITHUB_REF_TYPE" != "tag" ]; then
+            echo "Refusing to publish from $GITHUB_REF — run this on the v$PKG tag." >&2
+            exit 1
+          fi
+          # Compared whole, not with the `v` stripped: `${GITHUB_REF_NAME#v}`
+          # leaves an unprefixed `X.Y.Z` tag untouched, so it would pass a guard
+          # that only compares the remainder.
+          if [ "$GITHUB_REF_NAME" != "v$PKG" ]; then
+            echo "Ref $GITHUB_REF_NAME is not the expected tag v$PKG for this tree." >&2
+            exit 1
+          fi
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.11
@@ -53,25 +82,6 @@ jobs:
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
-
-      # Guard against publishing an untagged or mismatched tree. This applies to
-      # manual dispatches too, not just Release events: the Actions UI defaults
-      # the ref to main, and a main that has already merged the next version
-      # bump would otherwise publish an untagged tree under that version. The
-      # automated path (cut-release.yml) already dispatches on the tag ref, so
-      # the guard costs it nothing.
-      - name: Check the ref is a version tag matching package.json
-        run: |
-          PKG="$(node -p "require('./package.json').version")"
-          if [ "$GITHUB_REF_TYPE" != "tag" ]; then
-            echo "Refusing to publish from $GITHUB_REF — run this on the v$PKG tag." >&2
-            exit 1
-          fi
-          TAG="${GITHUB_REF_NAME#v}"
-          if [ "$PKG" != "$TAG" ]; then
-            echo "package.json version ($PKG) does not match the tag ($TAG)" >&2
-            exit 1
-          fi
 
       - name: Verify (typecheck + coverage tests + build)
         run: bun run verify

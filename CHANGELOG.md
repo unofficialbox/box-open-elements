@@ -21,15 +21,22 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
     `renderedWindow` returns `null` so a host can see that it was. The test is
     the data, not what happens to be open — flipping windowing as a row toggled
     would jump the viewport mid-scroll.
-  - **`release.yml` refuses to publish from a non-tag ref.** Its tag/version
-    guard ran only for `release` events, so a manual `workflow_dispatch` — from
-    `main`, the ref the Actions UI offers first — could publish an untagged tree
-    under whatever version `package.json` named. The guard now applies to every
-    trigger; the automated path already dispatches on the tag, so it is
-    unaffected.
+  - **`release.yml` refuses to publish from a non-tag ref, before it runs
+    anything from the checkout.** The tag/version guard ran only for `release`
+    events, so a manual `workflow_dispatch` — from `main`, the ref the Actions
+    UI offers first — could publish an untagged tree under whatever version
+    `package.json` named. The guard now applies to every trigger, and runs as
+    the first step after checkout: the job holds `id-token: write`, and
+    `bun install` executes the root package's own lifecycle scripts, so a guard
+    sitting after the install left a window where a hostile ref could mint a
+    publish credential first. It also compares the ref name whole rather than
+    stripping the `v`, which had let a bare `X.Y.Z` tag through. The automated
+    path already dispatches on the tag, so it is unaffected.
   - `RELEASING.md`: a green Cut release run means the publish was *dispatched*,
     not that it succeeded — the verify gate and `npm publish` run afterwards in
-    `release.yml`. Documented how to follow that second run to npm. Also
+    `release.yml`. Documented watching that second run through to completion
+    with `--exit-status`, since `gh run list` neither waits for a run nor fails
+    when it fails, before checking npm for the version. Also
     replaced the manual release-notes `sed` range, which stapled the next
     version's heading onto the notes, with the bounded `awk` `cut-release.yml`
     already uses.

@@ -59,10 +59,16 @@ gate and `npm publish` run afterwards in `release.yml` and can still fail there.
 Watch that second run to completion, then confirm the version is actually on npm:
 
 ```bash
-gh run watch                                          # the Cut release run
-gh run list --workflow release.yml --limit 1          # then the dispatched publish
-npm view @unofficialbox/box-open-elements version     # the release is live when this matches
+gh run watch --exit-status                            # 1. the Cut release run
+gh run list --workflow release.yml --limit 1          # 2. find the run it dispatched
+gh run watch <release-run-id> --exit-status           # 3. wait for the publish itself
+npm view @unofficialbox/box-open-elements version     # 4. live when this matches
 ```
+
+Step 3 is the one that matters and the easy one to skip: `gh run list` only
+prints the run, it does not wait for it or fail when it fails. `--exit-status`
+makes a failed run a non-zero exit rather than a line of output you have to
+read.
 
 ### A version bump quietly dirties every docs-site baseline
 
@@ -95,10 +101,11 @@ release notes.
 
 `release.yml` also accepts a manual `workflow_dispatch`, useful for re-publishing
 after a failed run. **Select the `vX.Y.Z` tag as the ref, not a branch.** The
-workflow refuses to publish from a non-tag ref, or from a tag that disagrees with
-`package.json` — otherwise a dispatch from `main` (the ref the Actions UI offers
-first) would publish whatever `main` happens to hold, under whatever version its
-`package.json` names.
+workflow's first step — before it installs anything from the checkout — refuses
+any ref that is not a tag named exactly `v<package.json version>`. Otherwise a
+dispatch from `main` (the ref the Actions UI offers first) would publish whatever
+`main` happens to hold, under whatever version its `package.json` names, and the
+job holds a live npm publishing credential while doing it.
 
 ## Route B — local publish
 
