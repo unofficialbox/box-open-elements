@@ -17,3 +17,5 @@ export {
   stringValuesFromFormValue,
 } from "./form-associated.js";
 export type { FormValue } from "./form-associated.js";
+export { resolveRowWindow, sameRowWindow } from "./virtualize.js";
+export type { RowWindow, WindowMetrics } from "./virtualize.js";

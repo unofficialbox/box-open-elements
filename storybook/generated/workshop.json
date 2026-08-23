@@ -645,7 +645,7 @@
       "title": "Components/Collections/Table",
       "category": "Collections",
       "shortDescription": "A semantic, selectable data table.",
-      "docsDescription": "Columns and rows from JSON. `selection-mode=\"single|multiple\"` enables row selection: click, Ctrl/Cmd-click to toggle, Shift-click for a range; Arrow/Home/End move focus, Space toggles, Shift+Arrow extends, Ctrl/Cmd+A selects all, Escape clears. **Sorting and selection are controlled**: `sortable` headers emit `sort` with `{key, direction}` and the table never reorders its own rows — you sort, set `sort-key`/`sort-direction`, and `aria-sort` follows; selection round-trips through `selectedIds` and `selection-changed`. Cells accept **descriptors** beyond plain text — `{kind: \"badge\"}` and `{kind: \"link\"}` objects the table renders itself. Deliberately never an HTML string or a render callback: cell data is server-supplied and stays escaped, and a non-http(s) href renders as plain text. Rows with `detail` get an expander and a full-width detail row (plus a `detail-<id>` slot for rich content); expanding is not selecting. `loading`, `error-text` and empty states are stated in words, and `stacked=\"always\"|\"auto\"` turns rows into labelled cards on narrow containers without losing grid semantics.",
+      "docsDescription": "Columns and rows from JSON. `selection-mode=\"single|multiple\"` enables row selection: click, Ctrl/Cmd-click to toggle, Shift-click for a range; Arrow/Home/End move focus, Space toggles, Shift+Arrow extends, Ctrl/Cmd+A selects all, Escape clears. **Sorting and selection are controlled**: `sortable` headers emit `sort` with `{key, direction}` and the table never reorders its own rows — you sort, set `sort-key`/`sort-direction`, and `aria-sort` follows; selection round-trips through `selectedIds` and `selection-changed`. Cells accept **descriptors** beyond plain text — `{kind: \"badge\"}` and `{kind: \"link\"}` objects the table renders itself. Deliberately never an HTML string or a render callback: cell data is server-supplied and stays escaped, and a non-http(s) href renders as plain text. Rows with `detail` get an expander and a full-width detail row (plus a `detail-<id>` slot for rich content); expanding is not selecting. `loading`, `error-text` and empty states are stated in words, and `stacked=\"always\"|\"auto\"` turns rows into labelled cards on narrow containers without losing grid semantics. For production-scale collections add `virtualize`: the table then renders only the rows near the viewport, padding the rest with spacers so the scrollbar still describes the whole collection — a 10,000-row table renders around 20 DOM rows. Indices stay absolute, so selection, shift-range, and keyboard navigation address records rather than the rendered slice, and Home/End reach the ends of the *collection*.",
       "sourceSnippet": "<box-table label=\"Files\" selection-mode=\"multiple\"></box-table>",
       "referenceRows": [
         {
@@ -707,6 +707,24 @@
           "name": "stacked",
           "type": "\"always\" | \"auto\"",
           "description": "Card layout for narrow containers; auto stacks under a 560px container query."
+        },
+        {
+          "kind": "attribute",
+          "name": "virtualize",
+          "type": "boolean",
+          "description": "Render only the rows near the viewport; the shell scrolls within --boe-table-height (default 26rem)."
+        },
+        {
+          "kind": "attribute",
+          "name": "row-height",
+          "type": "number",
+          "description": "Starting row-height estimate for windowing (default 37). The element measures a real row after first paint and uses that."
+        },
+        {
+          "kind": "property",
+          "name": "renderedWindow",
+          "type": "RowWindow | null",
+          "description": "Read-only: the rendered slice and spacer heights while virtualizing."
         },
         {
           "kind": "slot",

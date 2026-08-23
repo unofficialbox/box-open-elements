@@ -1,4 +1,5 @@
-import { BaseElement } from "../../core/index.js";
+import { BaseElement, resolveRowWindow, sameRowWindow } from "../../core/index.js";
+import type { RowWindow } from "../../core/index.js";
 import { boePanel, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import { isSafeHref } from "../../patterns/internal/safe-href.js";
 
@@ -183,6 +184,19 @@ const tableStyles = `
     box-shadow: inset 0 0 0 2px var(--boe-token-surface-surface-brand, #0061d5);
   }
 
+  /* Windowing needs a bounded viewport to scroll within: --boe-table-height is
+     the host's knob, defaulting to a sensible page-sized band. Sticky headers
+     already work inside this scroller. */
+  :host([virtualize]) [part="shell"] {
+    max-block-size: var(--boe-table-height, 26rem);
+    overflow-y: auto;
+  }
+
+  tr[part="spacer"] td {
+    border: 0;
+    padding: 0;
+  }
+
   [part="cell-badge"] {
     display: inline-block;
     padding: 0.08rem 0.5rem;
@@ -341,14 +355,21 @@ export class Table extends BaseElement {
       "sort-direction",
       "sort-key",
       "stacked",
+      "virtualize",
+      "row-height",
     ];
   }
 
   private bodyEl!: HTMLElement;
   private headEl!: HTMLElement;
+  private shellEl!: HTMLElement;
   private selected = new Set<string>();
   private anchorIndex = -1;
   private readonly expandedIds = new Set<string>();
+  private lastWindow: RowWindow | null = null;
+  private scrollFrame = 0;
+  private measuredRowHeight = 0;
+  private measureFrame = 0;
 
   /** True while rows are being fetched: the body states "Loading rows…". */
   get loading(): boolean {
@@ -379,6 +400,69 @@ export class Table extends BaseElement {
     } else {
       this.removeAttribute("error-text");
     }
+  }
+
+  /**
+   * Render only the rows near the viewport. Opt-in: a windowed table needs a
+   * bounded height to scroll within, and silently windowing an unbounded table
+   * would render nothing.
+   */
+  get virtualize(): boolean {
+    return this.hasAttribute("virtualize");
+  }
+
+  set virtualize(value: boolean) {
+    this.toggleAttribute("virtualize", Boolean(value));
+  }
+
+  /**
+   * Row height in pixels for the window arithmetic — a starting estimate, not
+   * a contract. The real height depends on density, font, and zoom, and a
+   * declared value that is off by a fraction of a pixel makes the scroll range
+   * drift as you scroll (a 10k-row table measured ~55px of wobble at 37px
+   * declared). After the first paint the element measures a rendered row and
+   * uses that instead, so the estimate only has to be close enough to pick a
+   * sane first window.
+   */
+  get rowHeight(): number {
+    if (this.measuredRowHeight > 0) {
+      return this.measuredRowHeight;
+    }
+    return this.declaredRowHeight;
+  }
+
+  private get declaredRowHeight(): number {
+    const raw = Number(this.getAttribute("row-height"));
+    return Number.isFinite(raw) && raw > 0 ? raw : 37;
+  }
+
+  set rowHeight(value: number) {
+    // A new declaration supersedes the old measurement; the next paint
+    // measures again.
+    this.measuredRowHeight = 0;
+    this.setAttribute("row-height", String(value));
+  }
+
+  /**
+   * Adopt the real rendered row height, once, when it differs from the value
+   * the last window was computed with. Re-rendering with the measured height
+   * settles immediately: the next measurement matches, so this cannot loop.
+   */
+  private measureRowHeight(): void {
+    if (!this.virtualize || this.measureFrame) return;
+    const row = this.bodyEl.querySelector<HTMLElement>('[part="row"]');
+    const height = row?.getBoundingClientRect().height ?? 0;
+    if (height <= 0 || Math.abs(height - this.rowHeight) < 0.5) return;
+    this.measuredRowHeight = height;
+    this.measureFrame = requestAnimationFrame(() => {
+      this.measureFrame = 0;
+      this.update();
+    });
+  }
+
+  /** The rendered window (null when not virtualizing) — for tests and hosts. */
+  get renderedWindow(): RowWindow | null {
+    return this.virtualize ? this.lastWindow : null;
   }
 
   /** Ids of the rows whose detail is expanded (host-readable). */
@@ -486,9 +570,27 @@ export class Table extends BaseElement {
     `;
     this.headEl = this.shadowRoot.querySelector('[part="header-row"]')!;
     this.bodyEl = this.shadowRoot.querySelector('[part="body"]')!;
+    this.shellEl = this.shadowRoot.querySelector('[part="shell"]')!;
   }
 
   protected setupListeners(): void {
+    // Scroll fires continuously; coalesce to one re-render per frame, and skip
+    // entirely while the resolved slice is unchanged — most scroll events move
+    // the viewport within the rows already rendered.
+    this.shellEl.addEventListener(
+      "scroll",
+      () => {
+        if (!this.virtualize || this.scrollFrame) return;
+        this.scrollFrame = requestAnimationFrame(() => {
+          this.scrollFrame = 0;
+          const next = this.currentWindow();
+          if (this.lastWindow && sameRowWindow(this.lastWindow, next)) return;
+          this.update();
+        });
+      },
+      { passive: true },
+    );
+
     this.headEl.addEventListener("click", event => {
       const th = (event.target as HTMLElement).closest<HTMLElement>('th[part="sortable"]');
       if (!th) return;
@@ -541,8 +643,7 @@ export class Table extends BaseElement {
     // Keys aimed at the expander button (Enter/Space activate it natively)
     // must not double as row selection.
     if ((event.target as HTMLElement).closest('[part="expander"]')) return;
-    const rows = this.rowElements();
-    if (rows.length === 0) return;
+    if (this.rowElements().length === 0) return;
     const currentRow = (event.target as HTMLElement).closest<HTMLElement>('[part="row"]');
     const index = currentRow ? Number(currentRow.dataset.index) : -1;
 
@@ -566,19 +667,44 @@ export class Table extends BaseElement {
       return;
     }
 
+    // Bounds come from the data, not the DOM: when windowing, the rendered
+    // rows are a slice and `rows.length` would stop End at the bottom of the
+    // window instead of the bottom of the collection.
+    const lastIndex = this.rows.length - 1;
     let nextIndex = index;
-    if (event.key === "ArrowDown") nextIndex = Math.min(index + 1, rows.length - 1);
+    if (event.key === "ArrowDown") nextIndex = Math.min(index + 1, lastIndex);
     else if (event.key === "ArrowUp") nextIndex = Math.max(index - 1, 0);
     else if (event.key === "Home") nextIndex = 0;
-    else if (event.key === "End") nextIndex = rows.length - 1;
+    else if (event.key === "End") nextIndex = lastIndex;
     else return;
 
     event.preventDefault();
-    rows[nextIndex]?.focus();
+    this.focusRowByIndex(nextIndex);
     // Shift+Arrow extends the selection from the anchor.
     if (event.shiftKey && this.selectionMode === "multiple") {
       this.selectRange(this.anchorIndex < 0 ? index : this.anchorIndex, nextIndex);
     }
+  }
+
+  /**
+   * Focus a row by its absolute index, bringing it into the window first when
+   * virtualizing — keyboard navigation must be able to reach a row that is not
+   * currently rendered, or Home/End stop at the edge of the window.
+   */
+  private focusRowByIndex(index: number): void {
+    const find = (): HTMLElement | null =>
+      this.bodyEl.querySelector<HTMLElement>(`[part="row"][data-index="${String(index)}"]`);
+
+    let target = find();
+    if (!target && this.virtualize && this.shellEl) {
+      // Scroll the row to the top of the viewport, then re-render the window
+      // synchronously: the scroll event's own re-render lands a frame later,
+      // and focus cannot wait for it.
+      this.shellEl.scrollTop = index * this.rowHeight;
+      this.update();
+      target = find();
+    }
+    target?.focus();
   }
 
   private toggleSort(key: string): void {
@@ -650,6 +776,15 @@ export class Table extends BaseElement {
     }
   }
 
+  private currentWindow(): RowWindow {
+    return resolveRowWindow({
+      totalRows: this.rows.length,
+      rowHeight: this.rowHeight,
+      viewportHeight: this.shellEl?.clientHeight ?? 0,
+      scrollTop: this.shellEl?.scrollTop ?? 0,
+    });
+  }
+
   protected update(): void {
     if (!this.bodyEl || !this.headEl) return;
     const columns = this.columns;
@@ -706,12 +841,34 @@ export class Table extends BaseElement {
       return;
     }
 
-    this.bodyEl.innerHTML = rows
-      .map((row, index) => {
+    // Windowing renders only the rows near the viewport, padded with spacer
+    // rows so the scrollbar still describes the whole collection. Indices stay
+    // ABSOLUTE: selection, shift-range, and activateRow all address `rows`, and
+    // renumbering the slice would select the wrong record.
+    const virtualizing = this.virtualize;
+    const rowWindow = virtualizing ? this.currentWindow() : null;
+    this.lastWindow = rowWindow;
+    const visibleRows = rowWindow
+      ? rows.slice(rowWindow.startIndex, rowWindow.endIndex)
+      : rows;
+    const indexOffset = rowWindow?.startIndex ?? 0;
+    // The tab stop belongs to the first row that is actually rendered; row 0
+    // may be scrolled far out of the window.
+    const tabbableIndex = indexOffset;
+    const spacer = (height: number, position: string): string =>
+      height > 0
+        ? `<tr part="spacer" data-position="${position}" aria-hidden="true"><td colspan="${String(columnCount)}" style="height:${String(height)}px;padding:0;border:0;"></td></tr>`
+        : "";
+
+    this.bodyEl.innerHTML =
+      (rowWindow ? spacer(rowWindow.paddingTop, "top") : "") +
+      visibleRows
+      .map((row, offset) => {
+        const index = offset + indexOffset;
         const selected = this.selected.has(row.id);
         const cellRole = selectable ? ' role="gridcell"' : ' role="cell"';
         const rowAttrs = selectable
-          ? ` part="row" role="row" tabindex="${index === 0 ? "0" : "-1"}" aria-selected="${selected}"`
+          ? ` part="row" role="row" tabindex="${index === tabbableIndex ? "0" : "-1"}" aria-selected="${selected}"`
           : ' part="row" role="row"';
         const expanded = this.expandedIds.has(row.id);
         const expanderCell = expandable
@@ -737,7 +894,12 @@ export class Table extends BaseElement {
             : "";
         return rowMarkup + detailRow;
       })
-      .join("");
+      .join("") +
+      (rowWindow ? spacer(rowWindow.paddingBottom, "bottom") : "");
+
+    if (virtualizing) {
+      this.measureRowHeight();
+    }
   }
 }
 
