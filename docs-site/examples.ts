@@ -162,7 +162,7 @@ const shortcutsOverlaySetup = (root: HTMLElement): void => {
 };
 
 /** Shared by every path variant; only the current stage differs. */
-const stagePathSetup =
+const pathSetup =
   (current: string) =>
   (root: HTMLElement): void => {
     set(root, "box-path", { stages: clmStages, current });
@@ -1159,25 +1159,37 @@ export const examples: Record<string, ComponentExample> = {
   },
   "path": {
     html: `<box-path label="Contract lifecycle" current="in-review"></box-path>`,
-    setup: stagePathSetup("in-review"),
-    note: "Read-only: this states where a *record* sits, which is not something a header edits. Distinct from `box-progress-steps`, which is a vertical rail for a task the reader is working through. It renders as an ordered list with the current stage marked `aria-current=\"step\"` and completed stages carrying a ✓, so sequence and position both survive without the chevron geometry — which is decoration, and collapses on narrow viewports.",
+    setup: pathSetup("in-review"),
+    note: "Read-only: this states where a *record* sits, which is not something a header edits. Distinct from `box-progress-steps`, which is a vertical rail for a task the reader is working through. It renders as an ordered list with the current stage marked `aria-current=\"step\"`, a visually hidden state word on every stage and a ✓ on completed ones, so sequence, position and state all survive without the chevron geometry — which is decoration, and collapses on narrow viewports. Two shapes: `chevron` (default) and `base`, the marker rail.",
     variants: [
       {
         name: "Mid-lifecycle",
         html: `<box-path label="Contract lifecycle" current="in-review"></box-path>`,
-        setup: stagePathSetup("in-review"),
-        note: "Two behind, two ahead. The current stage is the only one that shows its description.",
+        setup: pathSetup("in-review"),
+        note: "One behind, two ahead. Labels only — a chevron is too narrow to carry a description without wrapping, so the detail belongs to the base rail.",
+      },
+      {
+        name: "Base rail",
+        html: `<box-path variant="base" label="Contract lifecycle" current="in-review"></box-path>`,
+        setup: pathSetup("in-review"),
+        note: "A marker per stage on a connector line, label beneath. Every marker occupies the same box whatever its state, so the connector meets all of them on one line even where the current stage carries a description.",
+      },
+      {
+        name: "Failed at the current stage",
+        html: `<box-path variant="base" has-error label="Contract lifecycle" current="in-review"></box-path>`,
+        setup: pathSetup("in-review"),
+        note: "`has-error` fails the stage the record stopped on. The incoming connector stays brand-coloured — the record did travel that far — and the stage keeps `aria-current` while gaining `aria-invalid`.",
       },
       {
         name: "Executed",
         html: `<box-path label="Contract lifecycle" current="executed"></box-path>`,
-        setup: stagePathSetup("executed"),
+        setup: pathSetup("executed"),
         note: "The terminal stage. Everything before it is complete.",
       },
       {
         name: "Unknown stage",
         html: `<box-path label="Contract lifecycle" current="withdrawn"></box-path>`,
-        setup: stagePathSetup("withdrawn"),
+        setup: pathSetup("withdrawn"),
         note: "A `current` id that is not in the list leaves every stage upcoming. Better than silently marking the whole path done because the host sent a stale value.",
       },
     ],

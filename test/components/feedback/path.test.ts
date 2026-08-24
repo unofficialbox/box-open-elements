@@ -80,6 +80,37 @@ describe("resolveStageStates", () => {
   });
 });
 
+describe("resolveStageStates with an error", () => {
+  it("fails the path at the stage it stopped on, not before it", () => {
+    // The work behind the failure did happen — an approval rejected at "In
+    // Review" does not un-draft the contract.
+    expect(resolveStageStates(stages, "approved", true)).toEqual([
+      "complete",
+      "complete",
+      "error",
+      "upcoming",
+    ]);
+  });
+
+  it("has nothing to fail when the current id is unknown", () => {
+    expect(resolveStageStates(stages, "nonsense", true)).toEqual([
+      "upcoming",
+      "upcoming",
+      "upcoming",
+      "upcoming",
+    ]);
+  });
+
+  it("leaves the current stage current when no error is reported", () => {
+    expect(resolveStageStates(stages, "approved", false)).toEqual([
+      "complete",
+      "complete",
+      "current",
+      "upcoming",
+    ]);
+  });
+});
+
 describe("isPathStageRecord", () => {
   it("requires a non-empty id and label", () => {
     expect(isPathStageRecord({ id: "a", label: "A" })).toBe(true);
@@ -120,11 +151,24 @@ describe("box-path", () => {
   it("gives completed stages a marker, so 'done' is not colour-only", async () => {
     const element = await mount(el => (el.current = "approved"));
 
+    // A marker box exists on every stage — the base variant styles it into the
+    // rail — but only the states with a glyph carry one, and CSS hides the
+    // empty ones. Assert on the glyphs, which is the actual signal.
+    const glyphs = all(element, '[part="stage-marker"]')
+      .map(node => node.textContent)
+      .filter(text => text !== "");
+    expect(glyphs).toEqual(["✓", "✓"]);
+
     const markers = all(element, '[part="stage-marker"]');
-    expect(markers).toHaveLength(2);
-    expect(markers[0]?.textContent).toBe("✓");
-    // Decoration: the state is already in data-state and aria-current.
+    // Decoration: the state is already in data-state, aria-current and the
+    // assistive state text.
     expect(markers[0]?.getAttribute("aria-hidden")).toBe("true");
+    expect(all(element, '[part="stage-state"]').map(node => node.textContent)).toEqual([
+      "Completed",
+      "Completed",
+      "Current stage",
+      "Not started",
+    ]);
   });
 
   it("shows the description only on the current stage", async () => {
@@ -155,6 +199,50 @@ describe("box-path", () => {
 
     expect(states(element).every(state => state === "upcoming")).toBe(true);
     expect(all(element, '[part="stage"]').some(n => n.hasAttribute("aria-current"))).toBe(false);
+  });
+
+  it("marks the failed stage invalid while keeping it the current step", async () => {
+    const element = await mount(el => {
+      el.current = "approved";
+      el.hasError = true;
+    });
+
+    expect(states(element)).toEqual(["complete", "complete", "error", "upcoming"]);
+    const failed = all(element, '[part="stage"]')[2]!;
+    expect(failed.getAttribute("aria-invalid")).toBe("true");
+    // Still where the record sits, so it keeps aria-current: an error is a
+    // property of the position, not a different position.
+    expect(failed.getAttribute("aria-current")).toBe("step");
+    expect(failed.querySelector('[part="stage-marker"]')?.textContent).toBe("!");
+    expect(failed.querySelector('[part="stage-state"]')?.textContent).toBe("Error");
+
+    element.hasError = false;
+    await flush();
+    expect(states(element)).toEqual(["complete", "complete", "current", "upcoming"]);
+    expect(all(element, '[part="stage"]')[2]?.hasAttribute("aria-invalid")).toBe(false);
+  });
+
+  it("keeps the description on a failed stage", async () => {
+    // The detail is what says *why* it failed, so losing it at exactly the
+    // moment it matters would be the wrong trade.
+    const element = await mount(el => {
+      el.current = "review";
+      el.hasError = true;
+    });
+
+    expect(all(element, '[part="stage-description"]').map(n => n.textContent)).toEqual([
+      "Legal second pass",
+    ]);
+  });
+
+  it("reflects has-error as an attribute", async () => {
+    const element = await mount(el => (el.current = "review"));
+    expect(element.hasError).toBe(false);
+
+    element.hasError = true;
+    expect(element.hasAttribute("has-error")).toBe(true);
+    element.hasError = false;
+    expect(element.hasAttribute("has-error")).toBe(false);
   });
 
   it("escapes hostile stage content", async () => {
@@ -204,7 +292,7 @@ describe("box-path", () => {
   });
 });
 
-describe("stage path variants", () => {
+describe("path variants", () => {
   const stages = JSON.stringify([
     { id: "draft", label: "Draft" },
     { id: "review", label: "In review", description: "With Morgan Lee" },
@@ -228,12 +316,12 @@ describe("stage path variants", () => {
     ).toBe("chevron");
   });
 
-  it("renders the rounded shape when asked", () => {
-    const element = mount("rounded");
-    expect(element.variant).toBe("rounded");
+  it("renders the base marker rail when asked", () => {
+    const element = mount("base");
+    expect(element.variant).toBe("base");
     expect(
       element.shadowRoot?.querySelector('[part="path"]')?.getAttribute("data-variant"),
-    ).toBe("rounded");
+    ).toBe("base");
   });
 
   it("falls back to chevron for an unknown variant", () => {
@@ -245,8 +333,8 @@ describe("stage path variants", () => {
 
   it("reflects a variant set as a property", () => {
     const element = mount();
-    element.variant = "rounded";
-    expect(element.getAttribute("variant")).toBe("rounded");
+    element.variant = "base";
+    expect(element.getAttribute("variant")).toBe("base");
   });
 
   it("centres stage content and sizes every stage alike", () => {
@@ -258,6 +346,24 @@ describe("stage path variants", () => {
     expect(styles).toContain("align-items: stretch");
     expect(styles).toContain("text-align: center");
     expect(styles).toContain("justify-content: center");
+  });
+
+  it("keeps a chevron stage to one line by not rendering the description in it", () => {
+    // The reported defect: a chevron is ~190px at four stages in a 760px
+    // header, so the description wrapped to a second line and — with
+    // align-items: stretch — took the whole row from 27.5px to 43.3px in
+    // Chromium. Hiding it in the chevron holds every row at 27.5px. jsdom has
+    // no layout, so this asserts the rule; the pixels are in the browser check.
+    const styles = mount().shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toMatch(
+      /\[data-variant="chevron"\] \[part="stage-description"\] \{\s*display: none;/,
+    );
+    // Still in the DOM, so a host with the width can re-show it via ::part.
+    expect(mount().shadowRoot?.querySelector('[part="stage-description"]')?.textContent).toBe(
+      "With Morgan Lee",
+    );
+    // The base rail stacks and shows it by default.
+    expect(styles).toMatch(/\[data-variant="base"\] \[part="stage"\] \{\s*flex-direction: column;/);
   });
 
   it("takes its density from the segmented control", () => {
