@@ -55,6 +55,7 @@ const routes: Array<[name: string, hash: string, readyMarker: string, scrollTo?:
   ["components-forms", "#components/multi-select", "components/multi-select"],
   ["components-chip", "#components/chip", "components/chip"],
   ["components-divider", "#components/divider", "components/divider"],
+  ["components-grid", "#components/grid", "components/grid"],
   ["components-calendar", "#components/calendar", "components/calendar"],
   ["components-tag-input", "#components/tag-input", "components/tag-input"],
   ["patterns-content-explorer", "#patterns/content-explorer", "patterns/content-explorer"],

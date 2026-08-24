@@ -27,7 +27,7 @@ export const catalog: CatalogEntry[] = [
     "tag-input", "text-area", "text-field", "time-field",
   ]),
   ...c("Identity", ["avatar", "contact-datalist-item", "persona"]),
-  ...c("Layout", ["app-shell", "divider", "nav-sidebar", "section", "sidebar-toggle-button", "split-view"]),
+  ...c("Layout", ["app-shell", "divider", "grid", "nav-sidebar", "section", "sidebar-toggle-button", "split-view"]),
   ...c("Navigation", ["accordion", "breadcrumb", "tabs"]),
   ...c("Overlays", ["command-palette", "context-menu", "dialog", "drawer", "guide-tooltip", "popover", "shortcuts-overlay", "tooltip"]),
   ...c("Visuals", ["illustration"]),

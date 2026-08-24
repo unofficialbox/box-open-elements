@@ -404,6 +404,22 @@ export const examples: Record<string, ComponentExample> = {
       },
     ],
   },
+  grid: {
+    html: `<box-grid style="--demo:1"><article data-span="8" style="background:var(--boe-token-surface-surface-secondary,#fbfbfb);border:1px solid var(--boe-token-stroke-stroke,#e8e8e8);border-radius:8px;padding:12px">Main (8)</article><aside data-span="4" style="background:var(--boe-token-surface-surface-secondary,#fbfbfb);border:1px solid var(--boe-token-stroke-stroke,#e8e8e8);border-radius:8px;padding:12px">Sidebar (4)</aside></box-grid>`,
+    note: "Adobe Spectrum's responsive grid: twelve columns, gutters stepping 16 → 24 → 32 → 40 → 48px across the breakpoints. Children declare their own placement with `data-span`, `data-offset` and `data-row-span`, applied as generated CSS rules so the author's markup is never written to. `box-skeleton`'s grid variant reads the same `--boe-grid-gutter` and column model, so a placeholder matches the layout it stands in for.",
+    variants: [
+      {
+        name: "Offset",
+        html: `<box-grid><div data-span="6" data-offset="3" style="background:var(--boe-token-surface-surface-secondary,#fbfbfb);border:1px solid var(--boe-token-stroke-stroke,#e8e8e8);border-radius:8px;padding:12px">Centred (6, offset 3)</div></box-grid>`,
+        note: "Three empty columns, then a six-column region.",
+      },
+      {
+        name: "Spanning rows",
+        html: `<box-grid row-height="60px"><div data-span="4" data-row-span="2" style="background:var(--boe-token-surface-surface-secondary,#fbfbfb);border:1px solid var(--boe-token-stroke-stroke,#e8e8e8);border-radius:8px;padding:12px">Tall (4 × 2)</div><div data-span="8" style="background:var(--boe-token-surface-surface-secondary,#fbfbfb);border:1px solid var(--boe-token-stroke-stroke,#e8e8e8);border-radius:8px;padding:12px">A (8)</div><div data-span="8" style="background:var(--boe-token-surface-surface-secondary,#fbfbfb);border:1px solid var(--boe-token-stroke-stroke,#e8e8e8);border-radius:8px;padding:12px">B (8)</div></box-grid>`,
+        note: "The tall region measures 144px in Chromium — two 60px rows plus the 24px gutter between them.",
+      },
+    ],
+  },
   "drop-zone": { html: `<box-drop-zone label="Upload files" message="Drag files here or browse."></box-drop-zone>` },
   checkbox: { html: `<box-checkbox label="Enable shared links" checked></box-checkbox>` },
   "checkbox-group": {

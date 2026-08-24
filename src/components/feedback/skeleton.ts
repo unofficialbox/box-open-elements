@@ -1,6 +1,15 @@
 import { BaseElement } from "../../core/index.js";
 import { boeRadius } from "../../foundations/geometry/index.js";
 import {
+  BOE_GRID_COLUMNS,
+  BOE_GRID_GUTTER_PROPERTY,
+  boeGridGutterStyles,
+  isBoeGridPlacementRecord,
+  resolveBoeGridPlacement,
+  resolveGridCount,
+} from "../../foundations/layout/index.js";
+import type { BoeGridPlacement, ResolvedBoeGridPlacement } from "../../foundations/layout/index.js";
+import {
   boeMotionDuration,
   boeMotionEasing,
   boeReducedMotionStyles,
@@ -31,71 +40,28 @@ export const resolveSkeletonVariant = (value: string | null | undefined): Skelet
 /**
  * The columns in Adobe Spectrum's responsive grid.
  *
- * Twelve divides by 2, 3, 4 and 6, so the common layouts — halves, thirds,
- * quarters, sidebar-plus-content — all land on whole columns.
+ * Delegated to the layout foundation that `box-grid` also builds on: a
+ * skeleton stands in for a real layout, so if the two disagreed about what a
+ * column is worth the placeholder would stop matching what replaces it.
  */
-export const SKELETON_DEFAULT_COLUMNS = 12;
+export const SKELETON_DEFAULT_COLUMNS = BOE_GRID_COLUMNS;
 
-/**
- * One region of the grid, in Spectrum's terms: a block that spans some number
- * of columns and rows, optionally pushed right by an offset.
- */
-export interface SkeletonGridItem {
-  /** Columns to span. Clamped to what is left after `offset`. */
-  span?: number;
-  /** Rows to span. Clamped to the grid's `rows`, so a region cannot exceed it. */
-  rowSpan?: number;
-  /** Empty columns before this region. Clamped to leave room for one column. */
-  offset?: number;
-}
+/** One region of the grid, in Spectrum's terms. */
+export type SkeletonGridItem = BoeGridPlacement;
 
 /** A resolved region: every field present, every value in range. */
-export interface ResolvedSkeletonGridItem {
-  span: number;
-  rowSpan: number;
-  offset: number;
-}
+export type ResolvedSkeletonGridItem = ResolvedBoeGridPlacement;
 
 /** Attribute payloads are author input — validate every record. */
-export const isSkeletonGridItemRecord = (value: unknown): value is SkeletonGridItem => {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return false;
-  }
-  const item = value as Record<string, unknown>;
-  // Absent is fine — each field has a default. Present-but-not-a-number is not:
-  // it means the host built the payload wrong, and silently substituting a
-  // default would hide that.
-  return (["span", "rowSpan", "offset"] as const).every(key => {
-    const raw = item[key];
-    return raw === undefined || (typeof raw === "number" && Number.isFinite(raw));
-  });
-};
-
-const clamp = (value: number, min: number, max: number): number =>
-  Math.min(Math.max(Math.trunc(value), min), max);
+export const isSkeletonGridItemRecord = isBoeGridPlacementRecord;
 
 /**
- * Fit a region to the grid.
+ * Fit a region to the grid, clamping every value to the declared totals.
  *
- * Every value is clamped rather than rejected, because a placeholder that
- * renders slightly wrong beats one that vanishes while the real content is
- * still loading. The clamps are what confine a region to the grid: a span of 9
- * in a 3-column grid becomes 3, and a `rowSpan` of 5 in a 3-row grid becomes 3,
- * so no region can push the layout past the totals the author declared.
+ * Still exported here because it is part of this component's published
+ * surface; the behaviour now lives in the foundation.
  */
-export const resolveSkeletonGridItem = (
-  item: SkeletonGridItem,
-  columns: number,
-  rows: number,
-): ResolvedSkeletonGridItem => {
-  // Leave at least one column for the region itself.
-  const offset = clamp(item.offset ?? 0, 0, Math.max(columns - 1, 0));
-  return {
-    offset,
-    span: clamp(item.span ?? 1, 1, Math.max(columns - offset, 1)),
-    rowSpan: clamp(item.rowSpan ?? 1, 1, Math.max(rows, 1)),
-  };
-};
+export const resolveSkeletonGridItem = resolveBoeGridPlacement;
 
 const skeletonStyles = `
   :host {
@@ -103,37 +69,9 @@ const skeletonStyles = `
     color: inherit;
     font: inherit;
 
-    /* Spectrum's gutters, which are fixed values per breakpoint rather than a
-       proportion of the grid. Declared on :host so a consumer can override the
-       whole scale with one custom property. */
-    --boe-skeleton-gutter: 16px;
   }
 
-  /* Spectrum's breakpoints, as min-widths: a viewport between two of them
-     inherits the smaller one's dimensions. */
-  @media (min-width: 768px) {
-    :host {
-      --boe-skeleton-gutter: 24px;
-    }
-  }
-
-  @media (min-width: 1280px) {
-    :host {
-      --boe-skeleton-gutter: 32px;
-    }
-  }
-
-  @media (min-width: 1768px) {
-    :host {
-      --boe-skeleton-gutter: 40px;
-    }
-  }
-
-  @media (min-width: 2160px) {
-    :host {
-      --boe-skeleton-gutter: 48px;
-    }
-  }
+${boeGridGutterStyles(":host")}
 
   /* The multi-part variants are layout, so they take the full width they are
      given rather than shrink-wrapping like the single box. */
@@ -174,9 +112,9 @@ const skeletonStyles = `
 
   [part="grid"] {
     display: grid;
-    grid-template-columns: repeat(var(--boe-skeleton-columns, ${SKELETON_DEFAULT_COLUMNS}), minmax(0, 1fr));
+    grid-template-columns: repeat(var(--boe-skeleton-columns, ${BOE_GRID_COLUMNS}), minmax(0, 1fr));
     grid-auto-rows: var(--boe-skeleton-row-height, 48px);
-    gap: var(--boe-skeleton-gutter);
+    gap: var(${BOE_GRID_GUTTER_PROPERTY});
   }
 
   /* Offsets are spacers rather than an explicit grid-column-start, so they
@@ -251,8 +189,7 @@ export class Skeleton extends BaseElement {
 
   /** Columns in the `grid` variant. Defaults to Spectrum's twelve. */
   get columns(): number {
-    const parsed = Number.parseInt(this.getAttribute("columns") ?? "", 10);
-    return Number.isFinite(parsed) ? Math.max(parsed, 1) : SKELETON_DEFAULT_COLUMNS;
+    return resolveGridCount(this.getAttribute("columns"), BOE_GRID_COLUMNS);
   }
 
   set columns(value: number) {
@@ -261,8 +198,7 @@ export class Skeleton extends BaseElement {
 
   /** Rows in the `grid` variant. Also the ceiling for any region's `rowSpan`. */
   get rows(): number {
-    const parsed = Number.parseInt(this.getAttribute("rows") ?? "", 10);
-    return Number.isFinite(parsed) ? Math.max(parsed, 1) : 1;
+    return resolveGridCount(this.getAttribute("rows"), 1);
   }
 
   set rows(value: number) {

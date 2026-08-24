@@ -48,6 +48,7 @@ import type { DateField } from "./components/forms/date-field.js";
 import type { Dialog } from "./components/overlays/dialog.js";
 import type { DiffViewer } from "./patterns/diff/diff-viewer.js";
 import type { Divider } from "./components/layout/divider.js";
+import type { Grid } from "./components/layout/grid.js";
 import type { DonutChart } from "./patterns/insights/donut-chart.js";
 import type { DraggableList } from "./components/collections/draggable-list.js";
 import type { Drawer } from "./components/overlays/drawer.js";
@@ -190,6 +191,7 @@ declare global {
     "box-dialog": Dialog;
     "box-diff-viewer": DiffViewer;
     "box-divider": Divider;
+    "box-grid": Grid;
     "box-donut-chart": DonutChart;
     "box-draggable-list": DraggableList;
     "box-drawer": Drawer;
@@ -334,6 +336,7 @@ export type BoxElementTagName =
   | "box-dialog"
   | "box-diff-viewer"
   | "box-divider"
+  | "box-grid"
   | "box-donut-chart"
   | "box-draggable-list"
   | "box-drawer"
