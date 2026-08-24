@@ -1,26 +1,10 @@
 import { BaseElement } from "../../core/index.js";
+import { toneAccessibleLabel } from "./tone.js";
 import { boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-alert";
-
-const toneAccessibleLabel = (tone: string): string => {
-  switch (tone) {
-    case "success":
-      return "Success";
-    case "error":
-      return "Error";
-    case "warning":
-      return "Warning";
-    case "inprogress":
-      return "In progress";
-    case "info":
-      return "Info";
-    default:
-      return tone.charAt(0).toUpperCase() + tone.slice(1);
-  }
-};
 
 const alertStyles = `
   :host {

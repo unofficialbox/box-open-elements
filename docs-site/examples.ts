@@ -360,6 +360,7 @@ export const examples: Record<string, ComponentExample> = {
   },
   spinner: { html: `<box-spinner label="Loading"></box-spinner>` },
   toast: {
+    note: "A status glyph, an optional bold `heading` over the `message`, and an icon-only close control. The glyph differs in shape as well as colour — a round tick against a warning triangle — so the tone survives for a reader who cannot separate green from amber, and it is repeated as a visually hidden word for screen readers. Fill, border, shadow and text colour deliberately track box-ui-elements' `.notification` and are pinned by the colour conformance manifest; the structure is where the refinement lives.",
     html: `<div style="display:grid;gap:0.5rem;justify-items:start;max-inline-size:min(100%,24rem)">
   <box-toast open tone="info" message="Link copied — anyone in the company can view."></box-toast>
   <box-toast open tone="success" message="Upload complete."></box-toast>
@@ -382,6 +383,16 @@ export const examples: Record<string, ComponentExample> = {
       {
         name: "Error",
         html: `<box-toast open message="Upload failed" tone="error"></box-toast>`,
+      },
+      {
+        name: "Heading and message",
+        html: `<box-toast open heading="Upload failed" message="3 of 12 files could not be read." tone="error"></box-toast>`,
+        note: "An optional bold `heading` above the message. Without one the message carries the heading's weight, so the shipped single-line shape is unchanged.",
+      },
+      {
+        name: "Sticky",
+        html: `<box-toast open mode="sticky" heading="Approval overdue" message="Waiting on Morgan Lee since Tuesday." tone="warning"></box-toast>`,
+        note: "`mode=\"sticky\"` stays until the reader closes it and overrides any `duration`. It keeps the close control — a toast the reader cannot get rid of is a trap.",
       },
     ],
   },
