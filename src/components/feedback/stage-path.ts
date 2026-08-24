@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { boeRadius } from "../../foundations/geometry/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-stage-path";
@@ -20,6 +21,21 @@ export interface StagePathStage {
 }
 
 export type StageState = "complete" | "current" | "upcoming";
+
+/** Shape of the path: a continuous directed ribbon, or separated pills. */
+export type StagePathVariant = "chevron" | "rounded";
+
+const STAGE_PATH_VARIANTS = new Set<StagePathVariant>(["chevron", "rounded"]);
+
+/**
+ * Narrow an author-supplied variant, falling back to `chevron`.
+ *
+ * A typo should render the default shape rather than an unstyled row, which is
+ * what an unrecognised `data-variant` would produce — every variant rule is
+ * scoped to a known value.
+ */
+export const resolveStagePathVariant = (value: string | null | undefined): StagePathVariant =>
+  STAGE_PATH_VARIANTS.has(value as StagePathVariant) ? (value as StagePathVariant) : "chevron";
 
 /** Attribute payloads are author input — validate every record. */
 export const isStagePathStageRecord = (value: unknown): value is StagePathStage => {
@@ -62,47 +78,36 @@ const elementStyles = `
         [part="path"] {
           display: flex;
           flex-wrap: wrap;
+          /* stretch, not start: every stage is the height of the tallest, so a
+             stage carrying a description does not stand proud of its
+             neighbours. The old rule let each stage size itself and the row
+             came out ragged. */
+          align-items: stretch;
           margin: 0;
           padding: 0;
           list-style: none;
         }
 
+        /* Sizing is taken from box-segmented-control, deliberately: both are a
+           horizontal row of equal-weight labels, and they should read at the
+           same density rather than each inventing a height. */
         [part="stage"] {
           position: relative;
           flex: 1 1 0;
           min-inline-size: 6rem;
-          padding: 0.45rem 0.7rem 0.45rem 1.35rem;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          gap: 0.1rem;
+          padding: 0.45em 1em;
+          font-size: 0.82rem;
+          font-weight: 600;
+          line-height: 1.2;
           background: var(--boe-token-surface-surface-hover, #f4f4f4);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
-          font-size: 0.82rem;
           transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
-        }
-
-        [part="stage"]:first-child {
-          padding-inline-start: 0.8rem;
-          border-start-start-radius: 999px;
-          border-end-start-radius: 999px;
-        }
-
-        [part="stage"]:last-child {
-          border-start-end-radius: 999px;
-          border-end-end-radius: 999px;
-        }
-
-        /* The chevron: a notch cut from the following stage plus an arrow on
-           this one, so the path reads as a directed sequence rather than a row
-           of pills. Drawn with clip-path so no extra elements are needed. */
-        [part="stage"]:not(:last-child) {
-          clip-path: polygon(0 0, calc(100% - 0.7rem) 0, 100% 50%, calc(100% - 0.7rem) 100%, 0 100%, 0.7rem 50%);
-          margin-inline-end: -0.55rem;
-        }
-
-        [part="stage"]:first-child:not(:last-child) {
-          clip-path: polygon(0 0, calc(100% - 0.7rem) 0, 100% 50%, calc(100% - 0.7rem) 100%, 0 100%);
-        }
-
-        [part="stage"]:last-child:not(:first-child) {
-          clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0.7rem 50%);
         }
 
         [part="stage"][data-state="complete"] {
@@ -122,7 +127,6 @@ const elementStyles = `
 
         [part="stage-description"] {
           display: block;
-          margin-block-start: 0.1rem;
           font-size: 0.72rem;
           font-weight: 400;
           opacity: 0.85;
@@ -131,6 +135,53 @@ const elementStyles = `
         [part="stage-marker"] {
           margin-inline-end: 0.3rem;
           font-weight: 700;
+        }
+
+        /* ── variant: chevron (default) ──────────────────────────────────────
+           A notch cut from the following stage plus an arrow on this one, so
+           the path reads as a directed sequence rather than a row of pills.
+           Drawn with clip-path so no extra elements are needed. The inline
+           padding absorbs the arrow so centred text stays optically centred
+           rather than drifting into the notch. */
+        [part="path"][data-variant="chevron"] [part="stage"] {
+          padding-inline: 1.35em;
+        }
+
+        [part="path"][data-variant="chevron"] [part="stage"]:first-child {
+          border-start-start-radius: 999px;
+          border-end-start-radius: 999px;
+          padding-inline-start: 1em;
+        }
+
+        [part="path"][data-variant="chevron"] [part="stage"]:last-child {
+          border-start-end-radius: 999px;
+          border-end-end-radius: 999px;
+          padding-inline-end: 1em;
+        }
+
+        [part="path"][data-variant="chevron"] [part="stage"]:not(:last-child) {
+          clip-path: polygon(0 0, calc(100% - 0.7rem) 0, 100% 50%, calc(100% - 0.7rem) 100%, 0 100%, 0.7rem 50%);
+          margin-inline-end: -0.55rem;
+        }
+
+        [part="path"][data-variant="chevron"] [part="stage"]:first-child:not(:last-child) {
+          clip-path: polygon(0 0, calc(100% - 0.7rem) 0, 100% 50%, calc(100% - 0.7rem) 100%, 0 100%);
+        }
+
+        [part="path"][data-variant="chevron"] [part="stage"]:last-child:not(:first-child) {
+          clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0.7rem 50%);
+        }
+
+        /* ── variant: rounded ────────────────────────────────────────────────
+           Separated pills rather than a continuous ribbon. The sequence still
+           reads left to right, and the list semantics carry the order, so this
+           loses decoration rather than meaning. */
+        [part="path"][data-variant="rounded"] {
+          gap: 0.25rem;
+        }
+
+        [part="path"][data-variant="rounded"] [part="stage"] {
+          border-radius: ${boeRadius.control};
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -142,12 +193,12 @@ const elementStyles = `
         @media (max-width: 34rem) {
           /* Chevrons collapse below the width where they stop being legible;
              the states still read from tone and the completed marker. */
-          [part="stage"],
-          [part="stage"]:first-child:not(:last-child),
-          [part="stage"]:last-child:not(:first-child) {
+          [part="path"][data-variant="chevron"] [part="stage"],
+          [part="path"][data-variant="chevron"] [part="stage"]:first-child:not(:last-child),
+          [part="path"][data-variant="chevron"] [part="stage"]:last-child:not(:first-child) {
             clip-path: none;
             margin-inline-end: 0;
-            padding-inline-start: 0.8rem;
+            padding-inline: 1em;
             border-radius: 0;
           }
         }
@@ -169,7 +220,7 @@ export class StagePath extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
 
   static get observedAttributes(): string[] {
-    return ["current", "label", "stages"];
+    return ["current", "label", "stages", "variant"];
   }
 
   private pathEl!: HTMLElement;
@@ -184,6 +235,19 @@ export class StagePath extends BaseElement {
 
   set label(value: string) {
     this.setAttribute("label", value);
+  }
+
+  /**
+   * Shape of the path: `chevron` (default) draws a continuous directed ribbon;
+   * `rounded` draws separated pills. An unknown value falls back to `chevron`
+   * rather than rendering an unstyled row.
+   */
+  get variant(): StagePathVariant {
+    return resolveStagePathVariant(this.getAttribute("variant"));
+  }
+
+  set variant(value: StagePathVariant) {
+    this.setAttribute("variant", value);
   }
 
   /** Id of the stage the record is at. An unknown id leaves every stage upcoming. */
@@ -249,6 +313,7 @@ export class StagePath extends BaseElement {
     const states = resolveStageStates(stages, this.current);
 
     this.pathEl.setAttribute("aria-label", this.label);
+    this.pathEl.dataset.variant = this.variant;
     this.pathEl.innerHTML = stages
       .map((stage, index) => {
         const state = states[index]!;

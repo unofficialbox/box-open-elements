@@ -3,7 +3,6 @@ import {
   groupNotifications,
   isNotificationItemRecord,
   resolveNotificationFilter,
-  resolveNotificationTone,
 } from "./types.js";
 import type { NotificationFilter, NotificationItem } from "./types.js";
 import { BaseElement } from "../../core/index.js";
@@ -21,20 +20,6 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-const toneColor = (tone: string): string => {
-  switch (tone) {
-    case "brand":
-      return "var(--boe-token-surface-surface-brand, #0061d5)";
-    case "success":
-      return "var(--boe-token-surface-status-surface-success, #26a27b)";
-    case "warning":
-      return "var(--boe-token-surface-status-surface-warning, #f5b31b)";
-    case "error":
-      return "var(--boe-token-surface-status-surface-error, #ed3757)";
-    default:
-      return "var(--boe-token-text-text-secondary, #6f6f6f)";
-  }
-};
 
 const elementStyles = `
         [hidden] {
@@ -172,7 +157,6 @@ const elementStyles = `
           align-items: start;
           padding: 0.5rem 0.55rem;
           border-radius: ${boeRadius.med};
-          border-left: 3px solid var(--notification-tone, transparent);
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 6%, transparent);
           transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
@@ -417,7 +401,6 @@ export class NotificationInbox extends BaseElement {
   }
 
   private itemHtml(item: NotificationItem): string {
-    const tone = resolveNotificationTone(item.tone);
     const read = Boolean(item.read);
     const entity = item.entityRef;
     const entityHtml = entity
@@ -427,7 +410,7 @@ export class NotificationInbox extends BaseElement {
       : "";
 
     return `
-      <li part="item" data-item-id="${escapeHtml(item.id)}" data-read="${String(read)}" data-type="${escapeHtml(item.type)}" style="--notification-tone:${toneColor(tone)};">
+      <li part="item" data-item-id="${escapeHtml(item.id)}" data-read="${String(read)}" data-type="${escapeHtml(item.type)}">
         <span part="unread-dot" aria-hidden="true"></span>
         <span part="item-body">
           <button type="button" part="item-title" data-item-id="${escapeHtml(item.id)}">${escapeHtml(item.title)}</button>

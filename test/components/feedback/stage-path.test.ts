@@ -203,3 +203,68 @@ describe("box-stage-path", () => {
     expect(element.stages.map(stage => stage.id)).toEqual(["only"]);
   });
 });
+
+describe("stage path variants", () => {
+  const stages = JSON.stringify([
+    { id: "draft", label: "Draft" },
+    { id: "review", label: "In review", description: "With Morgan Lee" },
+    { id: "done", label: "Executed" },
+  ]);
+
+  const mount = (variant?: string): StagePath => {
+    const element = document.createElement("box-stage-path") as StagePath;
+    element.setAttribute("stages", stages);
+    element.setAttribute("current", "review");
+    if (variant !== undefined) element.setAttribute("variant", variant);
+    document.body.append(element);
+    return element;
+  };
+
+  it("defaults to the chevron shape", () => {
+    const element = mount();
+    expect(element.variant).toBe("chevron");
+    expect(
+      element.shadowRoot?.querySelector('[part="path"]')?.getAttribute("data-variant"),
+    ).toBe("chevron");
+  });
+
+  it("renders the rounded shape when asked", () => {
+    const element = mount("rounded");
+    expect(element.variant).toBe("rounded");
+    expect(
+      element.shadowRoot?.querySelector('[part="path"]')?.getAttribute("data-variant"),
+    ).toBe("rounded");
+  });
+
+  it("falls back to chevron for an unknown variant", () => {
+    // Every variant rule is scoped to a known value, so an unrecognised one
+    // would otherwise render an unstyled row rather than a path.
+    expect(mount("hexagon").variant).toBe("chevron");
+    expect(mount("").variant).toBe("chevron");
+  });
+
+  it("reflects a variant set as a property", () => {
+    const element = mount();
+    element.variant = "rounded";
+    expect(element.getAttribute("variant")).toBe("rounded");
+  });
+
+  it("centres stage content and sizes every stage alike", () => {
+    // The reported defect: the current stage carries a description, so it grew
+    // taller than its neighbours and the row read as ragged. Stretch alignment
+    // plus centred content is what keeps the row level — jsdom has no layout,
+    // so this asserts the declarations that produce it.
+    const styles = mount().shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("align-items: stretch");
+    expect(styles).toContain("text-align: center");
+    expect(styles).toContain("justify-content: center");
+  });
+
+  it("takes its density from the segmented control", () => {
+    // Both are a horizontal row of equal-weight labels; they should read at the
+    // same density rather than each inventing a height.
+    const styles = mount().shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("padding: 0.45em 1em");
+    expect(styles).toContain("line-height: 1.2");
+  });
+});
