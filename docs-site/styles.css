@@ -657,7 +657,14 @@ body {
   background: var(--surface-card);
   background-image: radial-gradient(var(--line) 1px, transparent 1px);
   background-size: 16px 16px;
-  border: 2px solid var(--edge);
+  /* 1px, not the 2px the sticker-style surfaces use. This frame is chrome
+     around someone else's component: at 2px in the near-black --edge it read
+     heavier than whatever was inside it, and the heavy outline people noticed
+     around box-dialog, box-drawer and box-popover was this, not the components
+     — those set border: 0 or 1px themselves. The home page's cards and CTAs
+     keep 2px, where the chunky edge pairs with a hard offset shadow and is the
+     point rather than an accident. */
+  border: 1px solid var(--edge);
   border-radius: 14px;
   box-shadow: var(--card-shadow);
   padding: 20px;
