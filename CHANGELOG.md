@@ -10,6 +10,90 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+## 0.11.0 — 2026-08-24
+
+A minor because the rename below is breaking, per the pre-1.0 policy. Consumers
+on `^0.10.0` are not handed it on their next install.
+
+- **`box-stage-path` is now `box-path`.** The old name described the data it was
+  given rather than the thing on screen, and it collided with the vocabulary of
+  the surfaces around it. The rename is total, so there are three edits for a
+  consumer, not one:
+
+  | Was | Now |
+  | --- | --- |
+  | `<box-stage-path>` | `<box-path>` |
+  | `import { StagePath }` | `import { Path }` |
+  | `".../stage-path"` | `".../path"` |
+
+  The supporting exports moved with it — `StagePathVariant` is `PathVariant`,
+  `resolveStagePathVariant` is `resolvePathVariant`, and so on. No alias is
+  left behind: pre-1.0, a deprecation shim that has to survive to 1.0 costs
+  more than the one-line change it saves.
+
+  The component was reworked against Salesforce's `lightning-progress-indicator`
+  at the same time. `variant` is now `"chevron" | "base"` — `"rounded"` is gone,
+  along with the button bar it carried. `"base"` is Salesforce's path type: a
+  horizontal rail with markers sitting on it, which is what the vertical
+  `box-timeline` spine was rebuilt on too, so the two now read as one idea in
+  two orientations.
+
+- **New `box-grid`, and a responsive-grid foundation under it.** Adobe
+  Spectrum's twelve-column grid, with gutters stepping 16 → 24 → 32 → 40 → 48px
+  across Spectrum's breakpoints. Children declare their own placement with
+  `data-span`, `data-offset` and `data-row-span`:
+
+  ```html
+  <box-grid>
+    <article data-span="8">Main</article>
+    <aside data-span="4">Sidebar</aside>
+  </box-grid>
+  ```
+
+  Placement lives on the children rather than in an `items` payload on the host
+  because the children are arbitrary content the author already writes — a
+  positional payload would silently mis-place everything the moment one was
+  inserted. It is applied as generated CSS rules, not inline styles, so the
+  author's markup is left untouched.
+
+  The model itself is exported from `foundations/layout` (`BOE_GRID_COLUMNS`,
+  `BOE_GRID_BREAKPOINTS`, `boeGridGutterStyles`, `resolveBoeGridPlacement`).
+  `box-skeleton` gained a `grid` variant that reads the same
+  `--boe-grid-gutter` and the same column model, so a placeholder matches the
+  layout it stands in for rather than approximating it.
+
+- **`box-toast` restructured after Salesforce's `lightning-toast`.** Adds
+  `heading`, a `mode` of `dismissible` or `sticky`, tone icons, and a
+  `borderless` attribute that drops the frame. Colours are unchanged — the
+  Salesforce palette would have broken BUE conformance, so the refinement is
+  structural only. Tone labelling moved into a shared `tone` module that
+  `box-alert` uses too.
+
+- **The graph surfaces now agree on how an edge is drawn.**
+  `box-version-graph` and `box-lineage-graph` share one cubic-Bézier
+  construction and one arrowhead marker, so a curve looks the same whichever
+  surface renders it. Both take an `arrows` attribute — `none`, `start`, `end`
+  or `both`, defaulting to `end`.
+
+  `box-provenance-strip` was rebuilt to read as a flow diagram rather than a
+  breadcrumb, following React Flow's node anatomy: 6px connection ports on each
+  node, arrowhead separators, and a dot-grid ground.
+
+### Fixed
+
+- **The docs-site preview canvas no longer collapses block-level demos.** It was
+  a centred wrapping flex container, so every demo laid out at its intrinsic
+  width: `box-table`, `box-app-shell` and `box-split-view` measured 0–2px in a
+  918px canvas. It is a block container now, so each demo uses the display its
+  own stylesheet declares. Its frame also went from 2px to 1px — the heaviness
+  around Dialog, Drawer and Popover previews was this frame, not those
+  components.
+
+- **`box-contact-datalist-item` was missing from the package barrel**, so the
+  tag never upgraded — one of 135 tags, silently inert, with no console error
+  and no failing test. A barrel test now compares every entry against
+  `src/index.ts` and names any that are unreachable.
+
 ## 0.10.0 — 2026-08-23
 
 A minor because the overlay change below is breaking, per the pre-1.0 policy.
