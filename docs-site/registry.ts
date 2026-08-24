@@ -16,8 +16,8 @@ export const catalog: CatalogEntry[] = [
   ...c("Actions", ["button", "button-group", "icon-button", "link-button", "menu", "menu-item", "segmented-control"]),
   ...c("Collections", ["card", "carousel", "datalist-item", "draggable-list", "grid-view", "pagination", "table", "thumbnail-card", "tree", "tree-grid"]),
   ...c("Feedback", [
-    "alert", "badge", "badgeable", "chip", "due-badge", "empty-state", "error-mask", "help-text", "nudge", "progress-bar", "progress-ring",
-    "progress-steps", "skeleton", "spinner", "stage-path", "toast",
+    "alert", "badge", "badgeable", "chip", "due-badge", "empty-state", "error-mask", "help-text", "nudge", "path", "progress-bar", "progress-ring",
+    "progress-steps", "skeleton", "spinner", "toast",
   ]),
   ...c("Files", ["drop-zone"]),
   ...c("Forms", [

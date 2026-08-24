@@ -124,7 +124,7 @@ import type { Slider } from "./components/forms/slider.js";
 import type { SpinButton } from "./components/forms/spin-button.js";
 import type { Spinner } from "./components/feedback/spinner.js";
 import type { SplitView } from "./components/layout/split-view.js";
-import type { StagePath } from "./components/feedback/stage-path.js";
+import type { Path } from "./components/feedback/path.js";
 import type { Switch } from "./components/forms/switch.js";
 import type { Table } from "./components/collections/table.js";
 import type { Tabs } from "./components/navigation/tabs.js";
@@ -266,7 +266,7 @@ declare global {
     "box-spin-button": SpinButton;
     "box-spinner": Spinner;
     "box-split-view": SplitView;
-    "box-stage-path": StagePath;
+    "box-path": Path;
     "box-switch": Switch;
     "box-table": Table;
     "box-tabs": Tabs;
@@ -410,7 +410,7 @@ export type BoxElementTagName =
   | "box-spin-button"
   | "box-spinner"
   | "box-split-view"
-  | "box-stage-path"
+  | "box-path"
   | "box-switch"
   | "box-table"
   | "box-tabs"

@@ -2,7 +2,7 @@ import { BaseElement } from "../../core/index.js";
 import { boeRadius } from "../../foundations/geometry/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
-const DEFAULT_TAG_NAME = "box-stage-path";
+const DEFAULT_TAG_NAME = "box-path";
 
 const escapeHtml = (value: string): string =>
   value
@@ -13,7 +13,7 @@ const escapeHtml = (value: string): string =>
     .replaceAll("'", "&#39;");
 
 /** One point in a record's lifecycle. */
-export interface StagePathStage {
+export interface PathStage {
   id: string;
   label: string;
   /** Optional detail shown under the label on the current stage. */
@@ -23,9 +23,9 @@ export interface StagePathStage {
 export type StageState = "complete" | "current" | "upcoming";
 
 /** Shape of the path: a continuous directed ribbon, or separated pills. */
-export type StagePathVariant = "chevron" | "rounded";
+export type PathVariant = "chevron" | "rounded";
 
-const STAGE_PATH_VARIANTS = new Set<StagePathVariant>(["chevron", "rounded"]);
+const PATH_VARIANTS = new Set<PathVariant>(["chevron", "rounded"]);
 
 /**
  * Narrow an author-supplied variant, falling back to `chevron`.
@@ -34,11 +34,11 @@ const STAGE_PATH_VARIANTS = new Set<StagePathVariant>(["chevron", "rounded"]);
  * what an unrecognised `data-variant` would produce — every variant rule is
  * scoped to a known value.
  */
-export const resolveStagePathVariant = (value: string | null | undefined): StagePathVariant =>
-  STAGE_PATH_VARIANTS.has(value as StagePathVariant) ? (value as StagePathVariant) : "chevron";
+export const resolvePathVariant = (value: string | null | undefined): PathVariant =>
+  PATH_VARIANTS.has(value as PathVariant) ? (value as PathVariant) : "chevron";
 
 /** Attribute payloads are author input — validate every record. */
-export const isStagePathStageRecord = (value: unknown): value is StagePathStage => {
+export const isPathStageRecord = (value: unknown): value is PathStage => {
   if (typeof value !== "object" || value === null) {
     return false;
   }
@@ -53,7 +53,7 @@ export const isStagePathStageRecord = (value: unknown): value is StagePathStage 
 
 /** State of each stage relative to the current one. */
 export const resolveStageStates = (
-  stages: readonly StagePathStage[],
+  stages: readonly PathStage[],
   currentId: string,
 ): StageState[] => {
   const index = stages.findIndex(stage => stage.id === currentId);
@@ -216,7 +216,7 @@ const elementStyles = `
  * so the sequence and the position are both available without relying on the
  * chevron geometry — which is decoration, and collapses on narrow viewports.
  */
-export class StagePath extends BaseElement {
+export class Path extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
 
   static get observedAttributes(): string[] {
@@ -227,7 +227,7 @@ export class StagePath extends BaseElement {
 
   private stagesRaw: string | null = null;
 
-  private stagesCache: StagePathStage[] = [];
+  private stagesCache: PathStage[] = [];
 
   get label(): string {
     return this.getAttribute("label") ?? "Lifecycle";
@@ -242,11 +242,11 @@ export class StagePath extends BaseElement {
    * `rounded` draws separated pills. An unknown value falls back to `chevron`
    * rather than rendering an unstyled row.
    */
-  get variant(): StagePathVariant {
-    return resolveStagePathVariant(this.getAttribute("variant"));
+  get variant(): PathVariant {
+    return resolvePathVariant(this.getAttribute("variant"));
   }
 
-  set variant(value: StagePathVariant) {
+  set variant(value: PathVariant) {
     this.setAttribute("variant", value);
   }
 
@@ -259,7 +259,7 @@ export class StagePath extends BaseElement {
     this.setAttribute("current", value);
   }
 
-  get stages(): StagePathStage[] {
+  get stages(): PathStage[] {
     const raw = this.getAttribute("stages");
     if (!raw) {
       return [];
@@ -269,8 +269,8 @@ export class StagePath extends BaseElement {
       try {
         const parsed: unknown = JSON.parse(raw);
         this.stagesCache =
-          Array.isArray(parsed) && parsed.every(isStagePathStageRecord)
-            ? (parsed as StagePathStage[])
+          Array.isArray(parsed) && parsed.every(isPathStageRecord)
+            ? (parsed as PathStage[])
             : [];
       } catch {
         this.stagesCache = [];
@@ -279,7 +279,7 @@ export class StagePath extends BaseElement {
     return [...this.stagesCache];
   }
 
-  set stages(value: StagePathStage[]) {
+  set stages(value: PathStage[]) {
     if (value.length) {
       this.setAttribute("stages", JSON.stringify(value));
       return;
@@ -339,4 +339,4 @@ export class StagePath extends BaseElement {
   }
 }
 
-StagePath.register();
+Path.register();

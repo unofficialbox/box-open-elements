@@ -81,7 +81,7 @@ const routes: Array<[name: string, hash: string, readyMarker: string, scrollTo?:
   ["patterns-notification-inbox", "#patterns/notification-inbox", "patterns/notification-inbox"],
   ["components-command-palette", "#components/command-palette", "components/command-palette"],
   ["components-shortcuts-overlay", "#components/shortcuts-overlay", "components/shortcuts-overlay"],
-  ["components-stage-path", "#components/stage-path", "components/stage-path"],
+  ["components-path", "#components/path", "components/path"],
   ["components-due-badge", "#components/due-badge", "components/due-badge"],
   ["lessons-share", "#lessons/share", "lessons/share", ".lesson-frameworks"],
   ["lessons-explorer-step", "#lessons/explorer", "lessons/explorer", "#step-0"],

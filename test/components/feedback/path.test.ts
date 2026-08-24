@@ -1,28 +1,28 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
-  StagePath,
-  isStagePathStageRecord,
+  Path,
+  isPathStageRecord,
   resolveStageStates,
-} from "../../../src/components/feedback/stage-path.js";
-import type { StagePathStage } from "../../../src/components/feedback/stage-path.js";
+} from "../../../src/components/feedback/path.js";
+import type { PathStage } from "../../../src/components/feedback/path.js";
 
-StagePath.register();
+Path.register();
 
 const flush = async (): Promise<void> => {
   await Promise.resolve();
   await new Promise(resolve => setTimeout(resolve, 0));
 };
 
-const stages: StagePathStage[] = [
+const stages: PathStage[] = [
   { id: "draft", label: "Draft" },
   { id: "review", label: "In Review", description: "Legal second pass" },
   { id: "approved", label: "Approved" },
   { id: "executed", label: "Executed" },
 ];
 
-const mount = async (configure: (element: StagePath) => void = () => {}): Promise<StagePath> => {
-  const element = document.createElement("box-stage-path") as StagePath;
+const mount = async (configure: (element: Path) => void = () => {}): Promise<Path> => {
+  const element = document.createElement("box-path") as Path;
   element.stages = stages;
   configure(element);
   document.body.append(element);
@@ -30,10 +30,10 @@ const mount = async (configure: (element: StagePath) => void = () => {}): Promis
   return element;
 };
 
-const all = (element: StagePath, selector: string): HTMLElement[] =>
+const all = (element: Path, selector: string): HTMLElement[] =>
   Array.from(element.shadowRoot!.querySelectorAll(selector));
 
-const states = (element: StagePath): (string | null)[] =>
+const states = (element: Path): (string | null)[] =>
   all(element, '[part="stage"]').map(node => node.getAttribute("data-state"));
 
 afterEach(() => {
@@ -80,17 +80,17 @@ describe("resolveStageStates", () => {
   });
 });
 
-describe("isStagePathStageRecord", () => {
+describe("isPathStageRecord", () => {
   it("requires a non-empty id and label", () => {
-    expect(isStagePathStageRecord({ id: "a", label: "A" })).toBe(true);
-    expect(isStagePathStageRecord({ id: "", label: "A" })).toBe(false);
-    expect(isStagePathStageRecord({ id: "a", label: "" })).toBe(false);
-    expect(isStagePathStageRecord({ label: "A" })).toBe(false);
-    expect(isStagePathStageRecord(null)).toBe(false);
+    expect(isPathStageRecord({ id: "a", label: "A" })).toBe(true);
+    expect(isPathStageRecord({ id: "", label: "A" })).toBe(false);
+    expect(isPathStageRecord({ id: "a", label: "" })).toBe(false);
+    expect(isPathStageRecord({ label: "A" })).toBe(false);
+    expect(isPathStageRecord(null)).toBe(false);
   });
 });
 
-describe("box-stage-path", () => {
+describe("box-path", () => {
   it("renders an ordered list so the sequence survives without the chevrons", async () => {
     const element = await mount(el => (el.current = "approved"));
 
@@ -181,7 +181,7 @@ describe("box-stage-path", () => {
   });
 
   it("ignores a malformed stages payload", async () => {
-    const element = document.createElement("box-stage-path") as StagePath;
+    const element = document.createElement("box-path") as Path;
     element.setAttribute("stages", '[{"id":"ok","label":"Fine"},{"label":"no id"}]');
     document.body.append(element);
     await flush();
@@ -211,8 +211,8 @@ describe("stage path variants", () => {
     { id: "done", label: "Executed" },
   ]);
 
-  const mount = (variant?: string): StagePath => {
-    const element = document.createElement("box-stage-path") as StagePath;
+  const mount = (variant?: string): Path => {
+    const element = document.createElement("box-path") as Path;
     element.setAttribute("stages", stages);
     element.setAttribute("current", "review");
     if (variant !== undefined) element.setAttribute("variant", variant);

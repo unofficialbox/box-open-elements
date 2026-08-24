@@ -130,7 +130,7 @@ export * from "./components/feedback/progress-ring.js";
 export * from "./components/feedback/progress-steps.js";
 export * from "./components/feedback/skeleton.js";
 export * from "./components/feedback/spinner.js";
-export * from "./components/feedback/stage-path.js";
+export * from "./components/feedback/path.js";
 export * from "./components/feedback/toast.js";
 
 // Components: files

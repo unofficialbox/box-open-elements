@@ -161,11 +161,11 @@ const shortcutsOverlaySetup = (root: HTMLElement): void => {
   set(root, "box-shortcuts-overlay", { commands: clmCommands });
 };
 
-/** Shared by every stage-path variant; only the current stage differs. */
+/** Shared by every path variant; only the current stage differs. */
 const stagePathSetup =
   (current: string) =>
   (root: HTMLElement): void => {
-    set(root, "box-stage-path", { stages: clmStages, current });
+    set(root, "box-path", { stages: clmStages, current });
   };
 
 /** Shared by every audit-log variant so they all render the same trail. */
@@ -1157,26 +1157,26 @@ export const examples: Record<string, ComponentExample> = {
       },
     ],
   },
-  "stage-path": {
-    html: `<box-stage-path label="Contract lifecycle" current="in-review"></box-stage-path>`,
+  "path": {
+    html: `<box-path label="Contract lifecycle" current="in-review"></box-path>`,
     setup: stagePathSetup("in-review"),
     note: "Read-only: this states where a *record* sits, which is not something a header edits. Distinct from `box-progress-steps`, which is a vertical rail for a task the reader is working through. It renders as an ordered list with the current stage marked `aria-current=\"step\"` and completed stages carrying a ✓, so sequence and position both survive without the chevron geometry — which is decoration, and collapses on narrow viewports.",
     variants: [
       {
         name: "Mid-lifecycle",
-        html: `<box-stage-path label="Contract lifecycle" current="in-review"></box-stage-path>`,
+        html: `<box-path label="Contract lifecycle" current="in-review"></box-path>`,
         setup: stagePathSetup("in-review"),
         note: "Two behind, two ahead. The current stage is the only one that shows its description.",
       },
       {
         name: "Executed",
-        html: `<box-stage-path label="Contract lifecycle" current="executed"></box-stage-path>`,
+        html: `<box-path label="Contract lifecycle" current="executed"></box-path>`,
         setup: stagePathSetup("executed"),
         note: "The terminal stage. Everything before it is complete.",
       },
       {
         name: "Unknown stage",
-        html: `<box-stage-path label="Contract lifecycle" current="withdrawn"></box-stage-path>`,
+        html: `<box-path label="Contract lifecycle" current="withdrawn"></box-path>`,
         setup: stagePathSetup("withdrawn"),
         note: "A `current` id that is not in the list leaves every stage upcoming. Better than silently marking the whole path done because the host sent a stale value.",
       },
