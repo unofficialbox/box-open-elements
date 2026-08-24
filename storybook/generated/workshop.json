@@ -2431,25 +2431,37 @@
       ]
     },
     {
-      "id": "stage-path",
-      "tag": "box-stage-path",
-      "title": "Components/Feedback/Stage Path",
+      "id": "path",
+      "tag": "box-path",
+      "title": "Components/Feedback/Path",
       "category": "Feedback",
-      "shortDescription": "Horizontal chevron lifecycle tracker for a record header.",
-      "docsDescription": "The tracker every record header wants: Draft → In Review → Approved → Executed. Distinct from `box-progress-steps`, which is a vertical setup rail for a task the reader is working through — this states where a *record* sits, is read-only, and lives in a header. It renders as an ordered list with the current stage marked `aria-current=\"step\"` and completed stages carrying a ✓, so the sequence and the position are both available without relying on the chevron geometry, which is decoration and collapses on narrow viewports. An unknown `current` id leaves every stage upcoming rather than silently marking the path done, because a stale value from the host should read as *unknown*, not as *finished*. `resolveStageStates` is pure, so a host can compute the same states for its own chrome.",
-      "sourceSnippet": "<box-stage-path label=\"Contract lifecycle\" current=\"in-review\"></box-stage-path>",
+      "shortDescription": "Horizontal lifecycle tracker for a record header.",
+      "docsDescription": "The tracker every record header wants: Draft → In Review → Approved → Executed. Distinct from `box-progress-steps`, which is a vertical setup rail for a task the reader is working through — this states where a *record* sits, is read-only, and lives in a header. It renders as an ordered list with the current stage marked `aria-current=\"step\"`, a visually hidden state word on every stage, and a ✓ on completed ones, so the sequence, the position and each state are all available without relying on the chevron geometry, which is decoration and collapses on narrow viewports. Two shapes are available: `chevron` (default) is a ribbon carrying each label inside the fill; `base` is a marker rail with labels beneath, which keeps a long sequence readable where chevrons would crush the text. A stage's `description` renders in the `base` rail only — a chevron is too narrow to carry one without wrapping to a second line and taking the whole row with it, which is why Salesforce's path type shows labels alone. It stays in the DOM, so a host with the width can re-show it via `::part(stage-description)`. `has-error` reports a failure at the stage the record stopped on — stages behind it stay complete, because the work up to the failure did happen. An unknown `current` id leaves every stage upcoming rather than silently marking the path done, because a stale value from the host should read as *unknown*, not as *finished*. `resolveStageStates` is pure, so a host can compute the same states for its own chrome.",
+      "sourceSnippet": "<box-path label=\"Contract lifecycle\" current=\"in-review\"></box-path>",
       "referenceRows": [
         {
           "kind": "attribute",
           "name": "stages",
           "type": "json",
-          "description": "StagePathStage records: `id`, `label`, and an optional `description` shown on the current stage."
+          "description": "PathStage records: `id`, `label`, and an optional `description` shown on the current stage in the `base` variant."
         },
         {
           "kind": "attribute",
           "name": "current",
           "type": "string",
           "description": "Id of the stage the record is at. An unknown id leaves every stage upcoming."
+        },
+        {
+          "kind": "attribute",
+          "name": "variant",
+          "type": "'chevron' | 'base'",
+          "description": "Shape of the path. `chevron` carries the label in the fill; `base` is a marker rail with labels beneath. Defaults to `chevron`; an unknown value falls back to it."
+        },
+        {
+          "kind": "attribute",
+          "name": "has-error",
+          "type": "boolean",
+          "description": "The record failed at the stage it is currently on. Earlier stages stay complete."
         },
         {
           "kind": "attribute",
@@ -2461,23 +2473,33 @@
           "kind": "property",
           "name": "states",
           "type": "StageState[]",
-          "description": "Read-only: 'complete' | 'current' | 'upcoming' for each stage, in order."
+          "description": "Read-only: 'complete' | 'current' | 'upcoming' | 'error' for each stage, in order."
         }
       ],
       "variants": [
         {
           "name": "Mid-lifecycle",
-          "html": "<box-stage-path label=\"Contract lifecycle\" current=\"in-review\"></box-stage-path>",
-          "note": "Two stages complete, two upcoming. Only the current stage shows its description."
+          "html": "<box-path label=\"Contract lifecycle\" current=\"in-review\"></box-path>",
+          "note": "One stage complete, two upcoming. Labels only: the chevron leaves the description to the base rail."
+        },
+        {
+          "name": "Base rail",
+          "html": "<box-path variant=\"base\" label=\"Contract lifecycle\" current=\"in-review\"></box-path>",
+          "note": "A marker per stage on a connector line, label beneath. Every marker occupies the same box whatever its state, so the connector meets all of them on one line even when the current stage carries a description."
+        },
+        {
+          "name": "Failed at the current stage",
+          "html": "<box-path variant=\"base\" has-error label=\"Contract lifecycle\" current=\"in-review\"></box-path>",
+          "note": "`has-error` fails the stage the record stopped on. The incoming connector stays brand-coloured — the record did travel that far — and the stage keeps `aria-current` while gaining `aria-invalid`."
         },
         {
           "name": "Executed",
-          "html": "<box-stage-path label=\"Contract lifecycle\" current=\"executed\"></box-stage-path>",
+          "html": "<box-path label=\"Contract lifecycle\" current=\"executed\"></box-path>",
           "note": "The terminal stage, with everything before it complete."
         },
         {
           "name": "Unknown stage",
-          "html": "<box-stage-path label=\"Contract lifecycle\" current=\"withdrawn\"></box-stage-path>",
+          "html": "<box-path label=\"Contract lifecycle\" current=\"withdrawn\"></box-path>",
           "note": "A `current` id that is not in the list leaves every stage upcoming rather than marking the path done."
         }
       ]
@@ -3007,6 +3029,12 @@
       "referenceRows": [
         {
           "kind": "attribute",
+          "name": "arrows",
+          "type": "'none' | 'start' | 'end' | 'both'",
+          "description": "Which ends of each edge carry an arrowhead. Defaults to `end` — the head on the derived node, matching the direction the layout builds edges in. An unknown value falls back to `end` rather than silently dropping the direction."
+        },
+        {
+          "kind": "attribute",
           "name": "heading",
           "type": "string",
           "description": "Panel heading."
@@ -3048,7 +3076,7 @@
       "title": "Patterns/Lineage/Provenance Strip",
       "category": "Lineage",
       "shortDescription": "Linear ancestry chips for record headers — the high-frequency lineage sibling.",
-      "docsDescription": "The cheap companion to box-lineage-graph: a linear ancestry strip (Library clause v5 → Template 2026 → MSA_Acme §4.2) for record headers and the sidebar. It reads the same LineageNode topology contract, renders the chain oldest-first with the newest entry marked current, and emits node-selected on chip activation. Branched input degrades to topological order.",
+      "docsDescription": "The cheap companion to box-lineage-graph: a linear ancestry strip (Library clause v5 → Template 2026 → MSA_Acme §4.2) for record headers and the sidebar. It reads the same LineageNode topology contract, renders the chain oldest-first with the newest entry marked current, and emits node-selected on chip activation. Branched input degrades to topological order. Presented as a flow diagram rather than a breadcrumb, on React Flow's anatomy: nodes are bordered boxes with a small radius, each carries 6px round ports on the edges it connects through (the first and last node get one port each, like React Flow's input and output nodes), and the connection is a drawn edge with an arrowhead instead of a printed arrow character. The chain scrolls rather than wrapping — wrapping left an edge at the start of the second line with its arrow pointing into nothing.",
       "sourceSnippet": "<box-provenance-strip></box-provenance-strip>",
       "referenceRows": [
         {
@@ -3149,6 +3177,12 @@
       "docsDescription": "The visual layer of the versions surface, depicted the way git networks render branches and merges: computeVersionGraphLayout assigns lanes in topological order (first child continues its parent's lane, siblings branch to the lowest free lane, merges release lanes for reuse) and the shell draws SVG curves under one HTML button per node, so activation and focus stay native. Click emits version-selected; a modified click (Shift/Ctrl/Meta) or toggleCompare() pairs two nodes into compare-requested. Malformed topology degrades with warnings instead of throwing.",
       "sourceSnippet": "<box-version-graph heading=\"Version graph\"></box-version-graph>",
       "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "arrows",
+          "type": "'none' | 'start' | 'end' | 'both'",
+          "description": "Which ends of each edge carry an arrowhead. Defaults to `end` — the head on the derived node, matching the direction the layout builds edges in. An unknown value falls back to `end` rather than silently dropping the direction."
+        },
         {
           "kind": "attribute",
           "name": "heading",
@@ -5968,7 +6002,7 @@
       "title": "Components/Feedback/Progress Steps",
       "category": "Feedback",
       "shortDescription": "A stepped progress indicator.",
-      "docsDescription": "The vertical setup rail for a multi-step flow — for a horizontal record-lifecycle tracker use `box-stage-path`, and for a machine run with failures use `box-run-trace`. Steps derive complete/current/upcoming from their position relative to `value`; an optional per-item `status` (**complete, blocked, failed, disabled**) wins over the derivation, so out-of-order completion and stuck steps are expressible. Currency and condition are stated separately — a failed step can be the current one and stays clickable, while blocked and disabled steps are real disabled buttons that keyboard navigation skips. Every state is stated in words (blocked/failed/disabled visibly, with an optional `statusNote`; the positional states as screen-reader text), and a polite live region announces user-driven step changes. `resolveStepStates` is pure, so a host can decide whether Continue is enabled from the same rules the rail renders.",
+      "docsDescription": "The vertical setup rail for a multi-step flow — for a horizontal record-lifecycle tracker use `box-path`, and for a machine run with failures use `box-run-trace`. Steps derive complete/current/upcoming from their position relative to `value`; an optional per-item `status` (**complete, blocked, failed, disabled**) wins over the derivation, so out-of-order completion and stuck steps are expressible. Currency and condition are stated separately — a failed step can be the current one and stays clickable, while blocked and disabled steps are real disabled buttons that keyboard navigation skips. Every state is stated in words (blocked/failed/disabled visibly, with an optional `statusNote`; the positional states as screen-reader text), and a polite live region announces user-driven step changes. `resolveStepStates` is pure, so a host can decide whether Continue is enabled from the same rules the rail renders.",
       "sourceSnippet": "<box-progress-steps label=\"Migration\" items='[{\"label\":\"Scan\",\"value\":\"scan\"}]' value=\"scan\"></box-progress-steps>",
       "referenceRows": [
         {
@@ -6740,30 +6774,89 @@
       "title": "Components/Feedback/Skeleton",
       "category": "Feedback",
       "shortDescription": "A placeholder block for loading layouts.",
-      "docsDescription": "Reserves space with `width` and `height` while content loads.",
+      "docsDescription": "Reserves space while content loads. `box` (the default) is a single rectangle sized by `width` and `height`. `line` is a stack of `lines` text bars, the last one stopping short so it reads as a paragraph rather than a table. `grid` is a column layout after Adobe Spectrum's responsive grid: twelve columns by default, gutters that step 16 → 24 → 32 → 40 → 48px across Spectrum's breakpoints, and regions that span columns and rows. Every region is clamped to the `columns` and `rows` declared — a `span` of 9 in a three-column grid renders as 3 — so a bad number from the host makes the placeholder slightly wrong rather than blowing the layout out. Offsets render as hidden spacers rather than an explicit `grid-column-start`, which would make the region hunt for a row with that exact column free and reorder the list the author wrote. The gutter is exposed as `--boe-skeleton-gutter`, so a consumer can replace the whole scale with one custom property.",
       "sourceSnippet": "<box-skeleton width=\"320px\" height=\"18px\"></box-skeleton>",
       "referenceRows": [
         {
           "kind": "attribute",
+          "name": "variant",
+          "type": "'box' | 'line' | 'grid'",
+          "description": "Shape of the placeholder. Defaults to `box`; an unknown value falls back to it."
+        },
+        {
+          "kind": "attribute",
           "name": "width",
           "type": "string",
-          "description": "CSS width for the placeholder."
+          "description": "CSS width for the `box` variant."
         },
         {
           "kind": "attribute",
           "name": "height",
           "type": "string",
-          "description": "CSS height for the placeholder."
+          "description": "CSS height for the `box` variant, and for each bar of the `line` variant."
+        },
+        {
+          "kind": "attribute",
+          "name": "lines",
+          "type": "number",
+          "description": "Bars drawn by the `line` variant. Defaults to 3; values below 1 draw one."
+        },
+        {
+          "kind": "attribute",
+          "name": "columns",
+          "type": "number",
+          "description": "Columns in the `grid` variant. Defaults to Spectrum's 12."
+        },
+        {
+          "kind": "attribute",
+          "name": "rows",
+          "type": "number",
+          "description": "Rows in the `grid` variant, and the ceiling for any region's `rowSpan`. Defaults to 1."
+        },
+        {
+          "kind": "attribute",
+          "name": "row-height",
+          "type": "string",
+          "description": "Height of one grid row. A region spanning two is twice this plus a gutter. Defaults to 48px."
+        },
+        {
+          "kind": "attribute",
+          "name": "items",
+          "type": "json",
+          "description": "Grid regions: `span`, `rowSpan` and `offset`, each clamped to the declared totals. With none given the grid is filled with rows × columns single cells."
+        },
+        {
+          "kind": "property",
+          "name": "resolvedItems",
+          "type": "ResolvedSkeletonGridItem[]",
+          "description": "Read-only: the regions as rendered, after clamping."
         }
       ],
       "variants": [
         {
-          "name": "Line",
-          "html": "<box-skeleton width=\"320px\" height=\"18px\"></box-skeleton>"
+          "name": "Box",
+          "html": "<box-skeleton width=\"240px\" height=\"120px\"></box-skeleton>",
+          "note": "The default: one rectangle, sized directly."
         },
         {
-          "name": "Block",
-          "html": "<box-skeleton width=\"240px\" height=\"120px\"></box-skeleton>"
+          "name": "Lines",
+          "html": "<box-skeleton variant=\"line\" lines=\"4\"></box-skeleton>",
+          "note": "Four text bars. The last stops at 62% so the stack reads as a paragraph. Bars are added and removed in place when `lines` changes, rather than rebuilt, so the shimmer does not restart."
+        },
+        {
+          "name": "Grid",
+          "html": "<box-skeleton variant=\"grid\" columns=\"3\" rows=\"3\" items='[{\"span\":3},{\"span\":1,\"rowSpan\":2},{\"span\":2}]'></box-skeleton>",
+          "note": "Three columns: a full-width band, then a single column standing two rows tall beside a two-column region. The tall region is 2 rows plus the gutter between them, and cannot exceed the three rows declared."
+        },
+        {
+          "name": "Grid with an offset",
+          "html": "<box-skeleton variant=\"grid\" columns=\"4\" items='[{\"span\":2,\"offset\":2}]'></box-skeleton>",
+          "note": "Spectrum's offset: two empty columns, then a two-column region. The offset is a hidden spacer, so it composes with auto-placement instead of fighting it."
+        },
+        {
+          "name": "Uniform grid",
+          "html": "<box-skeleton variant=\"grid\" columns=\"3\" rows=\"2\"></box-skeleton>",
+          "note": "With no `items`, `rows` and `columns` alone describe a uniform grid — here six single cells."
         }
       ]
     },
@@ -7432,7 +7525,7 @@
       "title": "Components/Feedback/Toast",
       "category": "Feedback",
       "shortDescription": "A transient status message.",
-      "docsDescription": "Shows a short `message` with an optional tone. Toggle visibility with `open`, or call `show(message, { duration, tone })`. A declarative `duration` (ms) auto-dismisses the toast; slot an `action` (e.g. an Undo button/link) before the dismiss control. Long unbroken tokens wrap instead of overflowing.",
+      "docsDescription": "Shows a short `message`, optionally under a bold `heading`, with a status glyph and a tone. Toggle visibility with `open`, or call `show(message, { duration, tone })`. `mode` decides whether it clears itself: `dismissible` (default) auto-dismisses after `duration`, `sticky` stays until the reader closes it and overrides any duration — both keep the close control, because a toast the reader cannot get rid of is a trap. The glyph differs in shape as well as colour (a round tick against a warning triangle), so the tone survives for a reader who cannot separate green from amber, and it is repeated as a visually hidden word for screen readers. Fill, border, shadow and text colour deliberately track box-ui-elements' `.notification` and are pinned by the colour conformance manifest; the structure — glyph, heading, icon-only close — is where the refinement lives. `borderless` drops the outline for a softer, fill-only toast: the colour goes transparent rather than the width going to zero, so a borderless toast is exactly the size of a bordered one and a mixed stack does not jump. The bordered default stays, because that outline is one of the pinned declarations. Slot an `action` (e.g. an Undo button/link) before the dismiss control. Long unbroken tokens wrap instead of overflowing.",
       "sourceSnippet": "<box-toast open message=\"Upload complete\" tone=\"success\"></box-toast>",
       "referenceRows": [
         {
@@ -7440,6 +7533,24 @@
           "name": "message",
           "type": "string",
           "description": "Toast body copy."
+        },
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Optional bold line above the message. Collapses entirely when unset, and the message then carries the heading's weight."
+        },
+        {
+          "kind": "attribute",
+          "name": "borderless",
+          "type": "boolean",
+          "description": "Drop the outline for a fill-only toast. Geometry is unchanged; the bordered default tracks box-ui-elements."
+        },
+        {
+          "kind": "attribute",
+          "name": "mode",
+          "type": "'dismissible' | 'sticky'",
+          "description": "Whether the toast clears itself. `sticky` overrides any `duration`. Defaults to `dismissible`; an unknown value falls back to it."
         },
         {
           "kind": "attribute",
@@ -7480,6 +7591,22 @@
         {
           "name": "Error",
           "html": "<box-toast open message=\"Upload failed\" tone=\"error\"></box-toast>"
+        },
+        {
+          "name": "Heading and message",
+          "html": "<box-toast open heading=\"Upload failed\" message=\"3 of 12 files could not be read.\" tone=\"error\"></box-toast>"
+        },
+        {
+          "name": "Warning",
+          "html": "<box-toast open heading=\"Approval overdue\" message=\"Waiting on Morgan Lee since Tuesday.\" tone=\"warning\"></box-toast>"
+        },
+        {
+          "name": "Sticky",
+          "html": "<box-toast open mode=\"sticky\" heading=\"This is a toast notification\" message=\"Stays until you close it, whatever the duration says.\" tone=\"info\"></box-toast>"
+        },
+        {
+          "name": "Borderless",
+          "html": "<box-toast open borderless heading=\"Contract executed\" message=\"All parties have signed.\" tone=\"success\"></box-toast>"
         },
         {
           "name": "With action",

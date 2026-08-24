@@ -161,11 +161,11 @@ const shortcutsOverlaySetup = (root: HTMLElement): void => {
   set(root, "box-shortcuts-overlay", { commands: clmCommands });
 };
 
-/** Shared by every stage-path variant; only the current stage differs. */
-const stagePathSetup =
+/** Shared by every path variant; only the current stage differs. */
+const pathSetup =
   (current: string) =>
   (root: HTMLElement): void => {
-    set(root, "box-stage-path", { stages: clmStages, current });
+    set(root, "box-path", { stages: clmStages, current });
   };
 
 /** Shared by every audit-log variant so they all render the same trail. */
@@ -327,9 +327,40 @@ export const examples: Record<string, ComponentExample> = {
       value: "copy",
     }),
   },
-  skeleton: { html: `<box-skeleton width="320px" height="18px"></box-skeleton>` },
+  skeleton: {
+    html: `<box-skeleton width="320px" height="18px"></box-skeleton>`,
+    note: "Reserves space while content loads. `box` (the default) is one rectangle sized by `width`/`height`; `line` is a stack of `lines` bars; `grid` is a column layout after Adobe Spectrum's responsive grid — twelve columns by default, gutters stepping 16 → 24 → 32 → 40 → 48px across Spectrum's breakpoints. Every region is clamped to the `columns` and `rows` declared, so a bad number from the host makes the placeholder slightly wrong rather than blowing the layout out.",
+    variants: [
+      {
+        name: "Box",
+        html: `<box-skeleton width="240px" height="120px"></box-skeleton>`,
+        note: "The default: one rectangle, sized directly.",
+      },
+      {
+        name: "Lines",
+        html: `<box-skeleton variant="line" lines="4"></box-skeleton>`,
+        note: "Four text bars. The last stops at 62% so the stack reads as a paragraph rather than a table. Bars are added and removed in place when `lines` changes, so the shimmer does not restart.",
+      },
+      {
+        name: "Grid",
+        html: `<box-skeleton variant="grid" columns="3" rows="3" items='[{"span":3},{"span":1,"rowSpan":2},{"span":2}]'></box-skeleton>`,
+        note: "Three columns: a full-width band, then a single column standing two rows tall beside a two-column region. The tall region is two rows plus the gutter between them, and cannot exceed the three rows declared.",
+      },
+      {
+        name: "Grid with an offset",
+        html: `<box-skeleton variant="grid" columns="4" items='[{"span":2,"offset":2}]'></box-skeleton>`,
+        note: "Spectrum's offset: two empty columns, then a two-column region. Rendered as a hidden spacer, so it composes with auto-placement instead of fighting it.",
+      },
+      {
+        name: "Uniform grid",
+        html: `<box-skeleton variant="grid" columns="3" rows="2"></box-skeleton>`,
+        note: "With no `items`, `rows` and `columns` alone describe a uniform grid — here six single cells.",
+      },
+    ],
+  },
   spinner: { html: `<box-spinner label="Loading"></box-spinner>` },
   toast: {
+    note: "A status glyph, an optional bold `heading` over the `message`, and an icon-only close control. The glyph differs in shape as well as colour — a round tick against a warning triangle — so the tone survives for a reader who cannot separate green from amber, and it is repeated as a visually hidden word for screen readers. Fill, border, shadow and text colour deliberately track box-ui-elements' `.notification` and are pinned by the colour conformance manifest; the structure is where the refinement lives.",
     html: `<div style="display:grid;gap:0.5rem;justify-items:start;max-inline-size:min(100%,24rem)">
   <box-toast open tone="info" message="Link copied — anyone in the company can view."></box-toast>
   <box-toast open tone="success" message="Upload complete."></box-toast>
@@ -352,6 +383,24 @@ export const examples: Record<string, ComponentExample> = {
       {
         name: "Error",
         html: `<box-toast open message="Upload failed" tone="error"></box-toast>`,
+      },
+      {
+        name: "Heading and message",
+        html: `<box-toast open heading="Upload failed" message="3 of 12 files could not be read." tone="error"></box-toast>`,
+        note: "An optional bold `heading` above the message. Without one the message carries the heading's weight, so the shipped single-line shape is unchanged.",
+      },
+      {
+        name: "Borderless",
+        html: `<div style="display:grid;gap:0.5rem;justify-items:start;max-inline-size:min(100%,24rem)">
+  <box-toast open borderless tone="success" heading="Contract executed" message="All parties have signed."></box-toast>
+  <box-toast open borderless tone="error" heading="Upload failed" message="3 of 12 files could not be read."></box-toast>
+</div>`,
+        note: "`borderless` drops the outline for a softer, fill-only toast. The border colour goes transparent rather than its width going to zero, so a borderless toast is exactly the size of a bordered one — measured at 330.5×72 either way — and a mixed stack does not jump.",
+      },
+      {
+        name: "Sticky",
+        html: `<box-toast open mode="sticky" heading="Approval overdue" message="Waiting on Morgan Lee since Tuesday." tone="warning"></box-toast>`,
+        note: "`mode=\"sticky\"` stays until the reader closes it and overrides any `duration`. It keeps the close control — a toast the reader cannot get rid of is a trap.",
       },
     ],
   },
@@ -1157,27 +1206,39 @@ export const examples: Record<string, ComponentExample> = {
       },
     ],
   },
-  "stage-path": {
-    html: `<box-stage-path label="Contract lifecycle" current="in-review"></box-stage-path>`,
-    setup: stagePathSetup("in-review"),
-    note: "Read-only: this states where a *record* sits, which is not something a header edits. Distinct from `box-progress-steps`, which is a vertical rail for a task the reader is working through. It renders as an ordered list with the current stage marked `aria-current=\"step\"` and completed stages carrying a ✓, so sequence and position both survive without the chevron geometry — which is decoration, and collapses on narrow viewports.",
+  "path": {
+    html: `<box-path label="Contract lifecycle" current="in-review"></box-path>`,
+    setup: pathSetup("in-review"),
+    note: "Read-only: this states where a *record* sits, which is not something a header edits. Distinct from `box-progress-steps`, which is a vertical rail for a task the reader is working through. It renders as an ordered list with the current stage marked `aria-current=\"step\"`, a visually hidden state word on every stage and a ✓ on completed ones, so sequence, position and state all survive without the chevron geometry — which is decoration, and collapses on narrow viewports. Two shapes: `chevron` (default) and `base`, the marker rail.",
     variants: [
       {
         name: "Mid-lifecycle",
-        html: `<box-stage-path label="Contract lifecycle" current="in-review"></box-stage-path>`,
-        setup: stagePathSetup("in-review"),
-        note: "Two behind, two ahead. The current stage is the only one that shows its description.",
+        html: `<box-path label="Contract lifecycle" current="in-review"></box-path>`,
+        setup: pathSetup("in-review"),
+        note: "One behind, two ahead. Labels only — a chevron is too narrow to carry a description without wrapping, so the detail belongs to the base rail.",
+      },
+      {
+        name: "Base rail",
+        html: `<box-path variant="base" label="Contract lifecycle" current="in-review"></box-path>`,
+        setup: pathSetup("in-review"),
+        note: "A marker per stage on a connector line, label beneath. Every marker occupies the same box whatever its state, so the connector meets all of them on one line even where the current stage carries a description.",
+      },
+      {
+        name: "Failed at the current stage",
+        html: `<box-path variant="base" has-error label="Contract lifecycle" current="in-review"></box-path>`,
+        setup: pathSetup("in-review"),
+        note: "`has-error` fails the stage the record stopped on. The incoming connector stays brand-coloured — the record did travel that far — and the stage keeps `aria-current` while gaining `aria-invalid`.",
       },
       {
         name: "Executed",
-        html: `<box-stage-path label="Contract lifecycle" current="executed"></box-stage-path>`,
-        setup: stagePathSetup("executed"),
+        html: `<box-path label="Contract lifecycle" current="executed"></box-path>`,
+        setup: pathSetup("executed"),
         note: "The terminal stage. Everything before it is complete.",
       },
       {
         name: "Unknown stage",
-        html: `<box-stage-path label="Contract lifecycle" current="withdrawn"></box-stage-path>`,
-        setup: stagePathSetup("withdrawn"),
+        html: `<box-path label="Contract lifecycle" current="withdrawn"></box-path>`,
+        setup: pathSetup("withdrawn"),
         note: "A `current` id that is not in the list leaves every stage upcoming. Better than silently marking the whole path done because the host sent a stale value.",
       },
     ],

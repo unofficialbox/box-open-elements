@@ -10,6 +10,7 @@ const versionGraph: StoryModule = {
       "The visual layer of the versions surface, depicted the way git networks render branches and merges: computeVersionGraphLayout assigns lanes in topological order (first child continues its parent's lane, siblings branch to the lowest free lane, merges release lanes for reuse) and the shell draws SVG curves under one HTML button per node, so activation and focus stay native. Click emits version-selected; a modified click (Shift/Ctrl/Meta) or toggleCompare() pairs two nodes into compare-requested. Malformed topology degrades with warnings instead of throwing.",
     sourceSnippet: `<box-version-graph heading="Version graph"></box-version-graph>`,
     referenceRows: [
+      { kind: "attribute", name: "arrows", type: "'none' | 'start' | 'end' | 'both'", description: "Which ends of each edge carry an arrowhead. Defaults to `end` — the head on the derived node, matching the direction the layout builds edges in. An unknown value falls back to `end` rather than silently dropping the direction." },
       { kind: "attribute", name: "heading", type: "string", description: "Panel heading." },
       { kind: "attribute", name: "versions", type: "json", description: "Same VersionNode records as box-version-list." },
       { kind: "property", name: "versions", type: "VersionNode[]", description: "Property form of the history. The toggleCompare(id) method drives host-side compare pairing." },

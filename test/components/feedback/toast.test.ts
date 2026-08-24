@@ -91,3 +91,204 @@ describe("Toast", () => {
     });
   });
 });
+
+describe("Toast structure", () => {
+  beforeEach(() => {
+    Toast.register();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+    vi.useRealTimers();
+  });
+
+  const shown = (configure: (element: Toast) => void = () => {}): Toast => {
+    const element = document.createElement("box-toast") as Toast;
+    document.body.append(element);
+    element.message = "3 of 12 files could not be read";
+    configure(element);
+    element.open = true;
+    return element;
+  };
+
+  const part = (element: Toast, name: string): HTMLElement | null =>
+    element.shadowRoot!.querySelector(`[part="${name}"]`);
+
+  it("states the tone in words, not only in colour and glyph", () => {
+    // The glyph is aria-hidden and the fill is colour, so without this the tone
+    // reaches a screen reader not at all.
+    const element = shown(el => (el.tone = "error"));
+    expect(part(element, "tone-label")?.textContent).toBe("Error");
+    expect(part(element, "icon")?.getAttribute("aria-hidden")).toBe("true");
+
+    element.tone = "inprogress";
+    expect(part(element, "tone-label")?.textContent).toBe("In progress");
+  });
+
+  it("draws a distinct glyph per tone", () => {
+    // Shape before colour: a reader who cannot separate green from amber still
+    // gets a tick versus a triangle.
+    const glyphs = new Set<string>();
+    for (const tone of ["info", "success", "warning", "error"]) {
+      const element = shown(el => (el.tone = tone));
+      const svg = part(element, "icon")?.innerHTML ?? "";
+      expect(svg).toContain("<svg");
+      glyphs.add(svg);
+      document.body.innerHTML = "";
+    }
+    expect(glyphs.size).toBe(4);
+  });
+
+  it("falls back to the info glyph for an unknown tone", () => {
+    const unknown = shown(el => (el.tone = "banana"));
+    const unknownSvg = part(unknown, "icon")?.innerHTML;
+    document.body.innerHTML = "";
+    const info = shown(el => (el.tone = "info"));
+    expect(unknownSvg).toBe(part(info, "icon")?.innerHTML);
+  });
+
+  it("rewrites the glyph only when the tone actually changes", () => {
+    // update() runs on every attribute write and this re-parses SVG markup.
+    const element = shown(el => (el.tone = "success"));
+    const icon = part(element, "icon")!;
+    const first = icon.firstElementChild;
+
+    element.message = "a different message";
+    expect(icon.firstElementChild).toBe(first);
+
+    element.tone = "error";
+    expect(icon.firstElementChild).not.toBe(first);
+  });
+
+  it("shows a heading above the message when given one", () => {
+    const element = shown(el => (el.heading = "Upload failed"));
+    expect(part(element, "heading")?.textContent).toBe("Upload failed");
+    expect(part(element, "message")?.textContent).toBe("3 of 12 files could not be read");
+  });
+
+  it("leaves the heading empty when none is set, so CSS can collapse it", () => {
+    expect(part(shown(), "heading")?.textContent).toBe("");
+  });
+
+  it("gives the dismiss control an accessible name now that it is an icon", () => {
+    // It lost its "Dismiss" text; without a name it would be an unlabelled button.
+    expect(part(shown(), "dismiss")?.getAttribute("aria-label")).toBe("Dismiss");
+    expect(part(shown(), "dismiss")?.querySelector("svg")).not.toBeNull();
+  });
+
+  it("keeps box-ui-elements' notification fill, border and shadow", () => {
+    // The Salesforce-derived refinement is structural only: these four
+    // declarations are pinned by the colour conformance manifest against
+    // upstream Notification.scss, and drifting from them fails strict mode.
+    const styles = shown().shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("border: 2px solid var(--boe-token-text-text, #222222)");
+    expect(styles).toContain("background: var(--boe-token-surface-surface-secondary, #f4f4f4)");
+    expect(styles).toContain("color: var(--boe-token-text-text, #222222)");
+    expect(styles).toContain("box-shadow: 0 2px 6px rgb(0 0 0 / 15%)");
+  });
+});
+
+describe("Toast mode", () => {
+  beforeEach(() => {
+    Toast.register();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+    vi.useRealTimers();
+  });
+
+  it("defaults to dismissible and falls back for an unknown mode", () => {
+    const element = document.createElement("box-toast") as Toast;
+    document.body.append(element);
+    expect(element.mode).toBe("dismissible");
+    element.setAttribute("mode", "pester");
+    expect(element.mode).toBe("dismissible");
+  });
+
+  it("keeps a sticky toast open past its duration", () => {
+    vi.useFakeTimers();
+    const element = document.createElement("box-toast") as Toast;
+    document.body.append(element);
+    element.mode = "sticky";
+    element.show("Still here", { duration: 100 });
+
+    vi.advanceTimersByTime(5000);
+    expect(element.open).toBe(true);
+
+    // And it is still closable by hand — sticky must not mean trapped.
+    (element.shadowRoot?.querySelector('[part="dismiss"]') as HTMLButtonElement).click();
+    expect(element.open).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it("auto-dismisses when the mode goes back to dismissible", () => {
+    vi.useFakeTimers();
+    const element = document.createElement("box-toast") as Toast;
+    document.body.append(element);
+    element.mode = "sticky";
+    element.show("Wait", { duration: 100 });
+    vi.advanceTimersByTime(500);
+    expect(element.open).toBe(true);
+
+    element.mode = "dismissible";
+    element.show("Now go", { duration: 100 });
+    vi.advanceTimersByTime(100);
+    expect(element.open).toBe(false);
+    vi.useRealTimers();
+  });
+});
+
+describe("Toast borderless", () => {
+  beforeEach(() => {
+    Toast.register();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("keeps the conformance-pinned border by default", () => {
+    const element = document.createElement("box-toast") as Toast;
+    document.body.append(element);
+    expect(element.borderless).toBe(false);
+    // The literal the colour conformance manifest anchors on. Losing it fails
+    // strict mode, so the opt-in must not be implemented by deleting it.
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("border: 2px solid var(--boe-token-text-text, #222222)");
+  });
+
+  it("hides the outline without changing the geometry when asked", () => {
+    // Transparent rather than zero-width: a borderless toast has to be exactly
+    // the size of a bordered one, or a mixed stack jumps.
+    const element = document.createElement("box-toast") as Toast;
+    document.body.append(element);
+    element.borderless = true;
+
+    expect(element.hasAttribute("borderless")).toBe(true);
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toMatch(/:host\(\[borderless\]\) \[part="toast"\] \{\s*border-color: transparent;/);
+    expect(styles).not.toContain("border-width: 0");
+
+    element.borderless = false;
+    expect(element.hasAttribute("borderless")).toBe(false);
+  });
+
+  it("beats the per-tone border colour", () => {
+    // Each tone sets its own border-color, so the opt-in has to out-specify
+    // them or it would only work on the neutral toast.
+    const styles = (() => {
+      const element = document.createElement("box-toast") as Toast;
+      document.body.append(element);
+      return element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    })();
+    const borderless = styles.indexOf(':host([borderless]) [part="toast"]');
+    const successTone = styles.indexOf('[part="toast"][data-tone="success"]');
+    expect(borderless).toBeGreaterThan(-1);
+    expect(successTone).toBeGreaterThan(-1);
+    // :host([borderless]) [part="toast"] is (0,3,0) against the tone rule's
+    // (0,2,0), so it wins regardless of order — but assert order too, so a
+    // reshuffle that relied on it would still be caught.
+    expect(borderless).toBeLessThan(successTone);
+  });
+});

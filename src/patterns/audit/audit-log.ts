@@ -249,7 +249,6 @@ const elementStyles = `
           gap: 0.25rem;
           padding: 0.5rem 0.65rem;
           border-top: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 55%, transparent);
-          border-left: 3px solid var(--audit-tone, transparent);
         }
 
         [part="event-topline"] {

@@ -28,7 +28,13 @@
       "mcp__Claude_Code_Remote__delete_trigger",
       "Bash(bun run test *)",
       "mcp__github__actions_list",
-      "mcp__github__get_job_logs"
+      "mcp__github__get_job_logs",
+      "Bash(bunx tsc --noEmit)",
+      "Bash(npx tsc --noEmit *)",
+      "Bash(npx tsc -p tsconfig.json --noEmit)",
+      "Bash(bunx vitest *)",
+      "Bash(bun run vitest *)",
+      "Bash(bun run typecheck *)"
     ]
   }
 }

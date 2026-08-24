@@ -1,9 +1,45 @@
 import { BaseElement } from "../../core/index.js";
+import { toneAccessibleLabel } from "./tone.js";
 import { boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-toast";
+
+/**
+ * Whether the toast clears itself.
+ *
+ * `dismissible` auto-dismisses after `duration` and can also be closed by hand;
+ * `sticky` stays until the reader closes it, whatever `duration` says. Both
+ * carry the close control — a toast the reader cannot get rid of is a trap.
+ */
+export type ToastMode = "dismissible" | "sticky";
+
+const TOAST_MODES = new Set<ToastMode>(["dismissible", "sticky"]);
+
+/** Narrow an author-supplied mode, falling back to `dismissible`. */
+export const resolveToastMode = (value: string | null | undefined): ToastMode =>
+  TOAST_MODES.has(value as ToastMode) ? (value as ToastMode) : "dismissible";
+
+/**
+ * Status glyphs, one per tone.
+ *
+ * A toast is read at a glance and often out of the corner of an eye, so the
+ * shape has to carry the meaning before the colour does — a round tick and a
+ * warning triangle are distinguishable to a reader who cannot separate green
+ * from amber. Literal markup, never author input, so innerHTML is safe here.
+ */
+const TONE_ICONS: Record<string, string> = {
+  info: `<svg viewBox="0 0 20 20" fill="currentColor" focusable="false"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 3.4a1.15 1.15 0 110 2.3 1.15 1.15 0 010-2.3zM11.1 15H8.9V9.3h2.2V15z"/></svg>`,
+  success: `<svg viewBox="0 0 20 20" fill="currentColor" focusable="false"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm4.06 5.86-5 5.2a1 1 0 01-1.44 0L5.94 11.3A1 1 0 117.38 9.9l1.04 1.08 4.28-4.52a1 1 0 011.36 1.38z"/></svg>`,
+  warning: `<svg viewBox="0 0 20 20" fill="currentColor" focusable="false"><path d="M9.13 2.6 1.4 15.9a1 1 0 00.87 1.5h15.46a1 1 0 00.87-1.5L10.87 2.6a1 1 0 00-1.74 0zM11.1 15.4H8.9v-2.2h2.2v2.2zm0-3.4H8.9V7.6h2.2V12z"/></svg>`,
+  error: `<svg viewBox="0 0 20 20" fill="currentColor" focusable="false"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 2c1.29 0 2.48.41 3.46 1.1L5.1 13.46A6 6 0 0110 4zm0 12c-1.29 0-2.48-.41-3.46-1.1l8.36-8.36A6 6 0 0110 16z"/></svg>`,
+};
+
+/** The tone glyph, falling back to the info mark for an unknown tone. */
+const toneIcon = (tone: string): string => TONE_ICONS[tone] ?? TONE_ICONS.info!;
+
+const DISMISS_ICON = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" focusable="false"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9"/></svg>`;
 
 const toastStyles = `
   :host {
@@ -18,9 +54,18 @@ const toastStyles = `
     display: none;
   }
 
+  /* Fill, border, text colour and shadow all track box-ui-elements'
+     .notification and are pinned by the colour conformance manifest — they are
+     deliberately not derived from the tone accent. The --toast-accent property
+     exists only to colour the status glyph, which upstream has no equivalent
+     for, so adding it costs no conformance. */
   [part="toast"] {
+    --toast-accent: var(--boe-token-text-text, #222222);
+
     display: inline-flex;
-    align-items: center;
+    /* Top, not centre: with a heading above the message the glyph belongs on
+       the heading's line, and centring floats it into the gap between them. */
+    align-items: flex-start;
     gap: ${boeSpace[3]};
     min-height: 48px;
     max-inline-size: min(100%, 572px);
@@ -32,31 +77,105 @@ const toastStyles = `
     box-shadow: 0 2px 6px rgb(0 0 0 / 15%);
   }
 
+  /* Opt-in softer treatment: the outline goes, the geometry does not. Setting
+     the colour to transparent rather than the width to 0 keeps the 2px in the
+     box model, so a borderless toast is exactly the size of a bordered one and
+     the two can sit in the same stack without jumping. The background paints
+     under the border by default, so the fill simply extends into it.
+
+     The bordered default stays: the 2px solid text-colour rule below is pinned
+     by the colour conformance manifest against upstream's .notification, and
+     strict mode fails if that declaration goes. */
+  :host([borderless]) [part="toast"] {
+    border-color: transparent;
+  }
+
+  /* The neutral toast keeps upstream's grey fill and near-black border, so the
+     glyph is the only place the "this is information" signal can live. */
+  [part="toast"][data-tone="info"] {
+    --toast-accent: var(--boe-token-surface-surface-brand, #0061d5);
+  }
+
   [part="toast"][data-tone="success"] {
+    --toast-accent: var(--boe-token-surface-status-surface-success, #26c281);
     background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 20%, #fff);
     border-color: var(--boe-token-surface-status-surface-success, #26c281);
   }
 
   [part="toast"][data-tone="error"] {
+    --toast-accent: var(--boe-token-surface-status-surface-error, #ed3757);
     background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 20%, #fff);
     border-color: var(--boe-token-surface-status-surface-error, #ed3757);
   }
 
   [part="toast"][data-tone="warning"],
   [part="toast"][data-tone="inprogress"] {
+    --toast-accent: var(--boe-token-surface-status-surface-inprogress, #f5b31b);
     background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 20%, #fff);
     border-color: var(--boe-token-surface-status-surface-inprogress, #f5b31b);
   }
 
-  [part="message"] {
+  .sr-only {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  [part="icon"] {
+    flex: 0 0 auto;
+    inline-size: 20px;
+    block-size: 20px;
+    /* The accent at full strength: the glyph is the one element that should
+       read as the status colour rather than a darkened version of it. */
+    color: var(--toast-accent);
+  }
+
+  [part="icon"] svg {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+
+  [part="content"] {
     flex: 1 1 auto;
     min-inline-size: 0;
-    padding-inline-end: ${boeSpace[3]};
+    padding-inline-end: ${boeSpace[2]};
+  }
+
+  [part="heading"] {
+    display: block;
     font-size: 15px;
     font-weight: 700;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+
+  /* Optional: with no heading the message stands alone, and an empty element
+     would still contribute its line box. */
+  [part="heading"]:empty {
+    display: none;
+  }
+
+  [part="message"] {
+    display: block;
+    font-size: 14px;
+    font-weight: 400;
     line-height: 1.35;
     /* Long unbroken tokens (URLs, filenames) wrap instead of overflowing. */
     overflow-wrap: anywhere;
+  }
+
+  /* Without a heading the message is the toast's only line, so it carries the
+     weight the heading would have had. */
+  [part="heading"]:empty + [part="message"] {
+    font-size: 15px;
+    font-weight: 700;
   }
 
   /* Optional action affordance (e.g. "Undo") before the dismiss button.
@@ -79,19 +198,31 @@ const toastStyles = `
     cursor: pointer;
   }
 
+  /* An icon button rather than a "Dismiss" label: the toast is chrome over the
+     reader's work, and a word-width button competes with the message it sits
+     beside. The accessible name is on the button, so nothing is lost. */
   [part="dismiss"] {
     appearance: none;
     flex: 0 0 auto;
-    border: 1px solid var(--boe-token-text-text, #222222);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 24px;
+    block-size: 24px;
+    padding: 4px;
+    border: 0;
     border-radius: ${boeRadius.med};
     background: transparent;
-    color: var(--boe-token-text-text, #222222);
+    color: inherit;
     font: inherit;
-    font-size: 13px;
-    font-weight: 700;
-    padding: 7px 13px;
     cursor: pointer;
     transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard}, color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
+  }
+
+  [part="dismiss"] svg {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
   }
 
   [part="dismiss"]:hover:not(:disabled) {
@@ -114,13 +245,17 @@ const toastStyles = `
 export class Toast extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["message", "open", "tone", "duration"];
+    return ["duration", "heading", "message", "mode", "open", "tone"];
   }
 
   private openValue = false;
   private timeoutId: ReturnType<typeof setTimeout> | null = null;
   private toastEl!: HTMLElement;
+  private iconEl!: HTMLElement;
+  private headingEl!: HTMLElement;
+  private toneLabelEl!: HTMLElement;
   private messageEl!: HTMLElement;
+  private renderedTone: string | null = null;
   private actionSlot!: HTMLSlotElement;
   private dismissEl!: HTMLButtonElement;
 
@@ -172,7 +307,8 @@ export class Toast extends BaseElement {
       clearTimeout(this.timeoutId);
       this.timeoutId = null;
     }
-    if (duration > 0) {
+    // Sticky wins over any duration, including one passed to show().
+    if (duration > 0 && this.mode !== "sticky") {
       this.timeoutId = setTimeout(() => this.hide(), duration);
     }
   }
@@ -183,6 +319,48 @@ export class Toast extends BaseElement {
 
   set message(value: string) {
     this.setAttribute("message", value);
+  }
+
+  /**
+   * Optional bold line above the message — "Upload failed" over "3 of 12 files
+   * could not be read". Named to match `box-alert`, which established the
+   * heading-plus-message shape in this family. Salesforce calls it `label`.
+   */
+  get heading(): string {
+    return this.getAttribute("heading") ?? "";
+  }
+
+  set heading(value: string) {
+    this.setAttribute("heading", value);
+  }
+
+  /**
+   * Drop the outline for a softer, fill-only toast.
+   *
+   * Purely presentational and handled entirely in CSS, so it is deliberately
+   * not an observed attribute — there is nothing to re-render. The default
+   * stays bordered: that outline tracks box-ui-elements' `.notification` and
+   * is pinned by the colour conformance manifest.
+   */
+  get borderless(): boolean {
+    return this.hasAttribute("borderless");
+  }
+
+  set borderless(value: boolean) {
+    this.toggleAttribute("borderless", value);
+  }
+
+  /**
+   * Whether the toast clears itself. `sticky` overrides any `duration`: a
+   * caller that has said "this one stays" should not have it taken away by a
+   * duration set elsewhere.
+   */
+  get mode(): ToastMode {
+    return resolveToastMode(this.getAttribute("mode"));
+  }
+
+  set mode(value: ToastMode) {
+    this.setAttribute("mode", value);
   }
 
   get tone(): string {
@@ -234,12 +412,20 @@ export class Toast extends BaseElement {
     this.shadowRoot.innerHTML = `
       <style>${toastStyles}</style>
       <div part="toast" role="status" aria-live="polite">
-        <span part="message"></span>
+        <span part="icon" aria-hidden="true"></span>
+        <div part="content">
+          <span part="tone-label" class="sr-only"></span>
+          <span part="heading"></span>
+          <span part="message"></span>
+        </div>
         <slot name="action" part="action"></slot>
-        <button type="button" part="dismiss">Dismiss</button>
+        <button type="button" part="dismiss" aria-label="Dismiss">${DISMISS_ICON}</button>
       </div>
     `;
     this.toastEl = this.shadowRoot.querySelector('[part="toast"]')!;
+    this.iconEl = this.shadowRoot.querySelector('[part="icon"]')!;
+    this.headingEl = this.shadowRoot.querySelector('[part="heading"]')!;
+    this.toneLabelEl = this.shadowRoot.querySelector('[part="tone-label"]')!;
     this.messageEl = this.shadowRoot.querySelector('[part="message"]')!;
     this.actionSlot = this.shadowRoot.querySelector('slot[name="action"]')!;
     this.dismissEl = this.shadowRoot.querySelector('[part="dismiss"]')!;
@@ -267,7 +453,18 @@ export class Toast extends BaseElement {
       return;
     }
 
-    this.toastEl.dataset.tone = this.tone;
+    const tone = this.tone;
+    this.toastEl.dataset.tone = tone;
+    // Only when it actually changes: this re-parses SVG markup, and update()
+    // runs on every attribute write.
+    if (tone !== this.renderedTone) {
+      this.iconEl.innerHTML = toneIcon(tone);
+      this.renderedTone = tone;
+    }
+    // The glyph is aria-hidden and the fill is colour, so without this the
+    // tone reaches a screen reader not at all.
+    this.toneLabelEl.textContent = toneAccessibleLabel(tone);
+    this.headingEl.textContent = this.heading;
     this.messageEl.textContent = this.message;
   }
 }

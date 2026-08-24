@@ -304,7 +304,7 @@
   </div>
   <div class="row">
     <div class="col">
-      <box-stage-path id="gallery-stage-path" label="Contract lifecycle" current="in-review"></box-stage-path>
+      <box-path id="gallery-path" label="Contract lifecycle" current="in-review"></box-path>
     </div>
     <div class="col">
       <box-due-badge due-at="2026-08-10T17:00:00.000Z" reference-time="2026-08-13T12:00:00.000Z"></box-due-badge>
@@ -801,7 +801,7 @@
     reviewers: ["Legal", "Finance"],
   };
 
-  byId("gallery-stage-path").stages = [
+  byId("gallery-path").stages = [
     { id: "draft", label: "Draft" },
     { id: "in-review", label: "In review", description: "Second-line approval with Morgan Lee" },
     { id: "approved", label: "Approved" },

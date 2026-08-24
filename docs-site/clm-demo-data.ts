@@ -10,7 +10,7 @@ import type {
 } from "../src/patterns/agent-chat/types.js";
 import type { AuditEvent } from "../src/patterns/audit/types.js";
 import type { CommandDescriptor } from "../src/components/overlays/command-types.js";
-import type { StagePathStage } from "../src/components/feedback/stage-path.js";
+import type { PathStage } from "../src/components/feedback/path.js";
 import type { RunStep } from "../src/patterns/run/types.js";
 import type { Signatory } from "../src/patterns/signature/types.js";
 import type { NotificationItem } from "../src/patterns/notifications/types.js";
@@ -542,8 +542,8 @@ export const clmFailedRunSteps: RunStep[] = [
   { id: "route", title: "Route for signature" },
 ];
 
-/** The lifecycle a contract record moves through, for `box-stage-path`. */
-export const clmStages: StagePathStage[] = [
+/** The lifecycle a contract record moves through, for `box-path`. */
+export const clmStages: PathStage[] = [
   { id: "draft", label: "Draft" },
   { id: "in-review", label: "In review", description: "Second-line approval with Morgan Lee" },
   { id: "approved", label: "Approved" },
