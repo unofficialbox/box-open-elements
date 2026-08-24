@@ -77,6 +77,19 @@ const toastStyles = `
     box-shadow: 0 2px 6px rgb(0 0 0 / 15%);
   }
 
+  /* Opt-in softer treatment: the outline goes, the geometry does not. Setting
+     the colour to transparent rather than the width to 0 keeps the 2px in the
+     box model, so a borderless toast is exactly the size of a bordered one and
+     the two can sit in the same stack without jumping. The background paints
+     under the border by default, so the fill simply extends into it.
+
+     The bordered default stays: the 2px solid text-colour rule below is pinned
+     by the colour conformance manifest against upstream's .notification, and
+     strict mode fails if that declaration goes. */
+  :host([borderless]) [part="toast"] {
+    border-color: transparent;
+  }
+
   /* The neutral toast keeps upstream's grey fill and near-black border, so the
      glyph is the only place the "this is information" signal can live. */
   [part="toast"][data-tone="info"] {
@@ -319,6 +332,22 @@ export class Toast extends BaseElement {
 
   set heading(value: string) {
     this.setAttribute("heading", value);
+  }
+
+  /**
+   * Drop the outline for a softer, fill-only toast.
+   *
+   * Purely presentational and handled entirely in CSS, so it is deliberately
+   * not an observed attribute — there is nothing to re-render. The default
+   * stays bordered: that outline tracks box-ui-elements' `.notification` and
+   * is pinned by the colour conformance manifest.
+   */
+  get borderless(): boolean {
+    return this.hasAttribute("borderless");
+  }
+
+  set borderless(value: boolean) {
+    this.toggleAttribute("borderless", value);
   }
 
   /**

@@ -390,6 +390,14 @@ export const examples: Record<string, ComponentExample> = {
         note: "An optional bold `heading` above the message. Without one the message carries the heading's weight, so the shipped single-line shape is unchanged.",
       },
       {
+        name: "Borderless",
+        html: `<div style="display:grid;gap:0.5rem;justify-items:start;max-inline-size:min(100%,24rem)">
+  <box-toast open borderless tone="success" heading="Contract executed" message="All parties have signed."></box-toast>
+  <box-toast open borderless tone="error" heading="Upload failed" message="3 of 12 files could not be read."></box-toast>
+</div>`,
+        note: "`borderless` drops the outline for a softer, fill-only toast. The border colour goes transparent rather than its width going to zero, so a borderless toast is exactly the size of a bordered one — measured at 330.5×72 either way — and a mixed stack does not jump.",
+      },
+      {
         name: "Sticky",
         html: `<box-toast open mode="sticky" heading="Approval overdue" message="Waiting on Morgan Lee since Tuesday." tone="warning"></box-toast>`,
         note: "`mode=\"sticky\"` stays until the reader closes it and overrides any `duration`. It keeps the close control — a toast the reader cannot get rid of is a trap.",

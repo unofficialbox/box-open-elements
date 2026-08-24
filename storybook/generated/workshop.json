@@ -7513,7 +7513,7 @@
       "title": "Components/Feedback/Toast",
       "category": "Feedback",
       "shortDescription": "A transient status message.",
-      "docsDescription": "Shows a short `message`, optionally under a bold `heading`, with a status glyph and a tone. Toggle visibility with `open`, or call `show(message, { duration, tone })`. `mode` decides whether it clears itself: `dismissible` (default) auto-dismisses after `duration`, `sticky` stays until the reader closes it and overrides any duration — both keep the close control, because a toast the reader cannot get rid of is a trap. The glyph differs in shape as well as colour (a round tick against a warning triangle), so the tone survives for a reader who cannot separate green from amber, and it is repeated as a visually hidden word for screen readers. Fill, border, shadow and text colour deliberately track box-ui-elements' `.notification` and are pinned by the colour conformance manifest; the structure — glyph, heading, icon-only close — is where the refinement lives. Slot an `action` (e.g. an Undo button/link) before the dismiss control. Long unbroken tokens wrap instead of overflowing.",
+      "docsDescription": "Shows a short `message`, optionally under a bold `heading`, with a status glyph and a tone. Toggle visibility with `open`, or call `show(message, { duration, tone })`. `mode` decides whether it clears itself: `dismissible` (default) auto-dismisses after `duration`, `sticky` stays until the reader closes it and overrides any duration — both keep the close control, because a toast the reader cannot get rid of is a trap. The glyph differs in shape as well as colour (a round tick against a warning triangle), so the tone survives for a reader who cannot separate green from amber, and it is repeated as a visually hidden word for screen readers. Fill, border, shadow and text colour deliberately track box-ui-elements' `.notification` and are pinned by the colour conformance manifest; the structure — glyph, heading, icon-only close — is where the refinement lives. `borderless` drops the outline for a softer, fill-only toast: the colour goes transparent rather than the width going to zero, so a borderless toast is exactly the size of a bordered one and a mixed stack does not jump. The bordered default stays, because that outline is one of the pinned declarations. Slot an `action` (e.g. an Undo button/link) before the dismiss control. Long unbroken tokens wrap instead of overflowing.",
       "sourceSnippet": "<box-toast open message=\"Upload complete\" tone=\"success\"></box-toast>",
       "referenceRows": [
         {
@@ -7527,6 +7527,12 @@
           "name": "heading",
           "type": "string",
           "description": "Optional bold line above the message. Collapses entirely when unset, and the message then carries the heading's weight."
+        },
+        {
+          "kind": "attribute",
+          "name": "borderless",
+          "type": "boolean",
+          "description": "Drop the outline for a fill-only toast. Geometry is unchanged; the bordered default tracks box-ui-elements."
         },
         {
           "kind": "attribute",
@@ -7585,6 +7591,10 @@
         {
           "name": "Sticky",
           "html": "<box-toast open mode=\"sticky\" heading=\"This is a toast notification\" message=\"Stays until you close it, whatever the duration says.\" tone=\"info\"></box-toast>"
+        },
+        {
+          "name": "Borderless",
+          "html": "<box-toast open borderless heading=\"Contract executed\" message=\"All parties have signed.\" tone=\"success\"></box-toast>"
         },
         {
           "name": "With action",

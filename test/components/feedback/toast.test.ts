@@ -238,3 +238,57 @@ describe("Toast mode", () => {
     vi.useRealTimers();
   });
 });
+
+describe("Toast borderless", () => {
+  beforeEach(() => {
+    Toast.register();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("keeps the conformance-pinned border by default", () => {
+    const element = document.createElement("box-toast") as Toast;
+    document.body.append(element);
+    expect(element.borderless).toBe(false);
+    // The literal the colour conformance manifest anchors on. Losing it fails
+    // strict mode, so the opt-in must not be implemented by deleting it.
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("border: 2px solid var(--boe-token-text-text, #222222)");
+  });
+
+  it("hides the outline without changing the geometry when asked", () => {
+    // Transparent rather than zero-width: a borderless toast has to be exactly
+    // the size of a bordered one, or a mixed stack jumps.
+    const element = document.createElement("box-toast") as Toast;
+    document.body.append(element);
+    element.borderless = true;
+
+    expect(element.hasAttribute("borderless")).toBe(true);
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toMatch(/:host\(\[borderless\]\) \[part="toast"\] \{\s*border-color: transparent;/);
+    expect(styles).not.toContain("border-width: 0");
+
+    element.borderless = false;
+    expect(element.hasAttribute("borderless")).toBe(false);
+  });
+
+  it("beats the per-tone border colour", () => {
+    // Each tone sets its own border-color, so the opt-in has to out-specify
+    // them or it would only work on the neutral toast.
+    const styles = (() => {
+      const element = document.createElement("box-toast") as Toast;
+      document.body.append(element);
+      return element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    })();
+    const borderless = styles.indexOf(':host([borderless]) [part="toast"]');
+    const successTone = styles.indexOf('[part="toast"][data-tone="success"]');
+    expect(borderless).toBeGreaterThan(-1);
+    expect(successTone).toBeGreaterThan(-1);
+    // :host([borderless]) [part="toast"] is (0,3,0) against the tone rule's
+    // (0,2,0), so it wins regardless of order — but assert order too, so a
+    // reshuffle that relied on it would still be caught.
+    expect(borderless).toBeLessThan(successTone);
+  });
+});
