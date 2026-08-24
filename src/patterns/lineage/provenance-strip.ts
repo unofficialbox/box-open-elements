@@ -26,37 +26,100 @@ const elementStyles = `
           font: inherit;
         }
 
+        /* Read as a flow diagram rather than a breadcrumb. The anatomy is
+           React Flow's, taken from its stylesheet: nodes are bordered boxes
+           with a small radius (not pills), ports are 6px circles sitting on
+           the node's edge, and the connection between them is a drawn edge
+           with an arrowhead rather than a text glyph.
+
+           The canvas dot grid is the other half of the signal — a node graph
+           reads as a canvas, not as a line of text. */
         [part="strip"] {
           display: flex;
-          flex-wrap: wrap;
+          /* A canvas scrolls; it does not reflow. Wrapping put an edge at the
+             start of the second line with its arrow pointing into nothing,
+             which reads as broken rather than as a continuation. */
+          flex-wrap: nowrap;
+          overflow-x: auto;
           align-items: center;
-          gap: 0.35rem;
+          gap: 0;
           margin: 0;
-          padding: 0;
+          padding: 0.75rem;
           list-style: none;
+          border-radius: ${boeRadius.large};
+          background-image: radial-gradient(
+            color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 85%, transparent) 1px,
+            transparent 1px
+          );
+          background-size: 12px 12px;
+          background-position: -1px -1px;
         }
 
         [part="item"] {
           display: inline-flex;
           align-items: center;
-          gap: 0.35rem;
+          /* No shrinking: with nowrap a long chain must scroll, not compress
+             the nodes until their labels ellipsize. */
+          flex: 0 0 auto;
         }
 
+        /* The node. React Flow's default: 10px padding, a small radius, a 1px
+           border and a centred 12px label. Width is left to the content —
+           React Flow fixes it at 150px because it lays out on a free canvas,
+           whereas this strip is a row in a header and the labels are short. */
         [part="chip"] {
           appearance: none;
+          position: relative;
           display: inline-flex;
           align-items: center;
-          gap: 0.3rem;
+          gap: 0.35rem;
           font: inherit;
-          font-size: 0.8rem;
+          font-size: 0.78rem;
           font-weight: 600;
-          padding: 0.22rem 0.55rem;
-          border-radius: 999px;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 60%, transparent);
+          padding: 0.4rem 0.6rem;
+          /* 4px, the nearest token to React Flow's 3px. The control radius is
+             20px here, which rendered the nodes as stadium pills — the shape
+             the strip was moving away from. */
+          border-radius: ${boeRadius.size};
+          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 90%, var(--boe-token-text-text, #222222));
           background: var(--boe-token-surface-surface, #ffffff);
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
+          color: var(--boe-token-text-text, #222222);
+          box-shadow: 0 1px 2px rgb(0 0 0 / 6%);
           cursor: pointer;
-          transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
+          transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+            border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
+        }
+
+        /* Ports. 6px circles straddling the node's edge, ringed in the surface
+           colour so they read as attached to the node rather than floating —
+           the same construction React Flow uses for its handles. */
+        [part="chip"]::before,
+        [part="chip"]::after {
+          content: "";
+          position: absolute;
+          inset-block-start: 50%;
+          inline-size: 6px;
+          block-size: 6px;
+          border-radius: 100%;
+          background: var(--boe-token-text-text-secondary, #6f6f6f);
+          border: 1px solid var(--boe-token-surface-surface, #ffffff);
+          transform: translateY(-50%);
+        }
+
+        [part="chip"]::before {
+          inset-inline-start: -4px;
+        }
+
+        [part="chip"]::after {
+          inset-inline-end: -4px;
+        }
+
+        /* The first node has nothing feeding it and the last nothing leaving
+           it, so they carry one port each — React Flow's input and output
+           nodes do the same. */
+        [part="item"]:first-child [part="chip"]::before,
+        [part="item"]:last-child [part="chip"]::after {
+          display: none;
         }
 
         [part="chip"]:hover {
@@ -64,15 +127,19 @@ const elementStyles = `
         }
 
         [part="chip"][aria-current="true"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 45%, transparent);
+          border-color: var(--boe-token-surface-surface-brand, #0061d5);
           color: var(--boe-token-surface-surface-brand, #0061d5);
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff));
+        }
+
+        [part="chip"][aria-current="true"]::before,
+        [part="chip"][aria-current="true"]::after {
+          background: var(--boe-token-surface-surface-brand, #0061d5);
         }
 
         [part="chip"]:focus-visible {
           outline: none;
           box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-          border-radius: ${boeRadius.large};
         }
 
         [part="kind-dot"] {
@@ -90,10 +157,34 @@ const elementStyles = `
           border-radius: 2px;
         }
 
+        /* The edge: a drawn line between two ports with an arrowhead, in place
+           of the "→" character the strip used to print. Two co-linear handles
+           are exactly the case where React Flow's bezier degenerates to a
+           straight line, so a straight edge is the faithful shape here rather
+           than a simplification. */
         [part="separator"] {
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          inline-size: 1.6rem;
+          block-size: 2px;
+          margin-inline: 4px;
+          background: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 90%, var(--boe-token-text-text, #222222));
           user-select: none;
         }
+
+        [part="separator"]::after {
+          content: "";
+          position: absolute;
+          inset-inline-end: -1px;
+          inset-block-start: 50%;
+          inline-size: 0;
+          block-size: 0;
+          border-block: 4px solid transparent;
+          border-inline-start: 6px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 90%, var(--boe-token-text-text, #222222));
+          transform: translateY(-50%);
+        }
+
       `;
 
 /**
@@ -196,7 +287,7 @@ export class ProvenanceStrip extends BaseElement {
         const kind = node.kind ?? "";
         return `
           <li part="item"${kind ? ` data-kind="${escapeHtml(kind)}"` : ""}>
-            ${index > 0 ? `<span part="separator" aria-hidden="true">→</span>` : ""}
+            ${index > 0 ? `<span part="separator" aria-hidden="true"></span>` : ""}
             <button
               type="button"
               part="chip"

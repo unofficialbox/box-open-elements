@@ -19,6 +19,14 @@ const escapeHtml = (value: string): string =>
 const LANE_WIDTH = 26;
 const ROW_HEIGHT = 56;
 const EDGE_PAD = 8;
+/**
+ * How far short of a node's centre an edge stops.
+ *
+ * The arrowhead marks the path's end vertex, so an edge running to the centre
+ * would bury its head under the node disc. The largest node here is ~1.05rem
+ * across, so backing off 9px leaves the head just clear of the biggest one.
+ */
+const NODE_EDGE_OFFSET = 9;
 
 const DEVIATION_LABELS: Record<string, string> = {
   none: "in sync",
@@ -64,6 +72,21 @@ const elementStyles = `
           inset-block-start: 0;
           inset-inline-start: 0;
           pointer-events: none;
+        }
+
+        /* The arrowhead. Same colour as the stroke it terminates, stated
+           rather than inherited: context-stroke is not supported everywhere. */
+        [part="edge-arrow"] {
+          fill: color-mix(in srgb, var(--boe-token-text-text-secondary, #6f6f6f) 45%, transparent);
+          stroke: none;
+        }
+
+        [part="edge-arrow"][data-deviation="minor"] {
+          fill: color-mix(in srgb, var(--boe-token-surface-status-surface-warning, #f5b31b) 75%, transparent);
+        }
+
+        [part="edge-arrow"][data-deviation="major"] {
+          fill: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 70%, transparent);
         }
 
         [part="edge"] {
@@ -406,8 +429,18 @@ export class LineageGraph extends BaseElement {
         // one row bowed backwards into an S while a longer one looked almost
         // straight.
         const dy = (y2 - y1) / 2;
-        const d = `M ${x1} ${y1} C ${x1} ${y1 + dy}, ${x2} ${y2 - dy}, ${x2} ${y2}`;
-        return `<path part="edge" data-deviation="${deviationFor(edge.fromId, edge.toId)}" d="${d}"></path>`;
+        // Stop at the node's edge, not its centre: the arrowhead marks the
+        // vertex, and a vertex inside the node disc would bury it. Backing off
+        // by the node's radius along the direction of travel leaves the head
+        // just outside the child it points at.
+        const yEnd = y2 + Math.sign(y1 - y2) * NODE_EDGE_OFFSET;
+        const d = `M ${x1} ${y1} C ${x1} ${y1 + dy}, ${x2} ${yEnd - dy}, ${x2} ${yEnd}`;
+        const deviation = deviationFor(edge.fromId, edge.toId);
+        // One marker per deviation rather than context-stroke, which is not
+        // supported everywhere: an arrowhead in the wrong colour reads as a
+        // different edge.
+        const marker = deviation === "minor" || deviation === "major" ? `boe-graph-arrow-${deviation}` : "boe-graph-arrow";
+        return `<path part="edge" data-deviation="${deviation}" d="${d}" marker-end="url(#${marker})"></path>`;
       })
       .join("");
 
@@ -468,7 +501,7 @@ export class LineageGraph extends BaseElement {
           layout.placements.length > 0
             ? `
               <div part="graph">
-                <svg part="edges" width="${String(graphWidth)}" height="${String(graphHeight)}" viewBox="0 0 ${String(graphWidth)} ${String(graphHeight)}" aria-hidden="true">${edgePaths}</svg>
+                <svg part="edges" width="${String(graphWidth)}" height="${String(graphHeight)}" viewBox="0 0 ${String(graphWidth)} ${String(graphHeight)}" aria-hidden="true"><defs><marker id="boe-graph-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto"><path part="edge-arrow" d="M 0 0 L 8 4 L 0 8 z"></path></marker><marker id="boe-graph-arrow-minor" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto"><path part="edge-arrow" data-deviation="minor" d="M 0 0 L 8 4 L 0 8 z"></path></marker><marker id="boe-graph-arrow-major" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto"><path part="edge-arrow" data-deviation="major" d="M 0 0 L 8 4 L 0 8 z"></path></marker></defs>${edgePaths}</svg>
                 <ol part="rows" role="list">${rows}</ol>
               </div>
             `

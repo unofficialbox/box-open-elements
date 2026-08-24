@@ -11,6 +11,14 @@ const DEFAULT_TAG_NAME = "box-version-graph";
 const LANE_WIDTH = 26;
 const ROW_HEIGHT = 46;
 const EDGE_PAD = 8;
+/**
+ * How far short of a node's centre an edge stops.
+ *
+ * The arrowhead marks the path's end vertex, so an edge running to the centre
+ * would bury its head under the node disc. The largest node here is ~1.05rem
+ * across, so backing off 9px leaves the head just clear of the biggest one.
+ */
+const NODE_EDGE_OFFSET = 9;
 
 const elementStyles = `
         [hidden] {
@@ -50,6 +58,13 @@ const elementStyles = `
           inset-block-start: 0;
           inset-inline-start: 0;
           pointer-events: none;
+        }
+
+        /* The arrowhead. Same colour as the stroke it terminates, stated
+           rather than inherited: context-stroke is not supported everywhere. */
+        [part="edge-arrow"] {
+          fill: color-mix(in srgb, var(--boe-token-text-text-secondary, #6f6f6f) 55%, transparent);
+          stroke: none;
         }
 
         [part="edge"] {
@@ -410,8 +425,13 @@ export class VersionGraph extends BaseElement {
         // one row bowed backwards into an S while a longer one looked almost
         // straight.
         const dy = (y2 - y1) / 2;
-        const d = `M ${x1} ${y1} C ${x1} ${y1 + dy}, ${x2} ${y2 - dy}, ${x2} ${y2}`;
-        return `<path part="edge" data-from="${escapeHtml(edge.fromId)}" data-to="${escapeHtml(edge.toId)}" d="${d}"></path>`;
+        // Stop at the node's edge, not its centre: the arrowhead marks the
+        // vertex, and a vertex inside the node disc would bury it. Backing off
+        // by the node's radius along the direction of travel leaves the head
+        // just outside the child it points at.
+        const yEnd = y2 + Math.sign(y1 - y2) * NODE_EDGE_OFFSET;
+        const d = `M ${x1} ${y1} C ${x1} ${y1 + dy}, ${x2} ${yEnd - dy}, ${x2} ${yEnd}`;
+        return `<path part="edge" data-from="${escapeHtml(edge.fromId)}" data-to="${escapeHtml(edge.toId)}" d="${d}" marker-end="url(#boe-graph-arrow)"></path>`;
       })
       .join("");
 
@@ -465,7 +485,7 @@ export class VersionGraph extends BaseElement {
           layout.placements.length > 0
             ? `
               <div part="graph">
-                <svg part="edges" width="${String(graphWidth)}" height="${String(graphHeight)}" viewBox="0 0 ${String(graphWidth)} ${String(graphHeight)}" aria-hidden="true">${edgePaths}</svg>
+                <svg part="edges" width="${String(graphWidth)}" height="${String(graphHeight)}" viewBox="0 0 ${String(graphWidth)} ${String(graphHeight)}" aria-hidden="true"><defs><marker id="boe-graph-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto"><path part="edge-arrow" d="M 0 0 L 8 4 L 0 8 z"></path></marker></defs>${edgePaths}</svg>
                 <ol part="rows" role="list">${rows}</ol>
               </div>
             `
