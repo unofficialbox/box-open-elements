@@ -1,6 +1,8 @@
 import { isLineageNodeRecord, resolveLineageDeviation } from "./types.js";
 import type { LineageNode } from "./types.js";
 import { computeVersionGraphLayout } from "../versions/graph-layout.js";
+import { hasEndArrow, hasStartArrow, resolveGraphArrows } from "../versions/graph-arrows.js";
+import type { GraphArrows } from "../versions/graph-arrows.js";
 import { formatItemDate } from "../content-explorer/adapters/item-summary.js";
 import { BaseElement } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
@@ -227,7 +229,19 @@ const elementStyles = `
 export class LineageGraph extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["heading", "nodes"];
+    return ["arrows", "heading", "nodes"];
+  }
+
+  /**
+   * Which ends of each edge carry an arrowhead. Defaults to `end`, the head on
+   * the derived node, because the layout builds edges source → derived.
+   */
+  get arrows(): GraphArrows {
+    return resolveGraphArrows(this.getAttribute("arrows"));
+  }
+
+  set arrows(value: GraphArrows) {
+    this.setAttribute("arrows", value);
   }
 
   private nodesValue: LineageNode[] = [];
@@ -409,6 +423,8 @@ export class LineageGraph extends BaseElement {
     const centerX = (lane: number): number => EDGE_PAD + lane * LANE_WIDTH + LANE_WIDTH / 2;
     const centerY = (row: number): number => row * ROW_HEIGHT + ROW_HEIGHT / 2;
 
+    const arrows = this.arrows;
+
     const edgePaths = layout.edges
       .map(edge => {
         const x1 = centerX(edge.fromLane);
@@ -428,19 +444,23 @@ export class LineageGraph extends BaseElement {
         // start, down from the end on a downward edge), so an edge spanning
         // one row bowed backwards into an S while a longer one looked almost
         // straight.
-        const dy = (y2 - y1) / 2;
-        // Stop at the node's edge, not its centre: the arrowhead marks the
-        // vertex, and a vertex inside the node disc would bury it. Backing off
-        // by the node's radius along the direction of travel leaves the head
-        // just outside the child it points at.
+        // Stop at each node's edge rather than its centre. A marker sits on
+        // the path's end vertex, so a vertex inside the node disc buries it —
+        // and an edge that starts and ends at the rim reads as connecting two
+        // nodes rather than as passing through them, which is what React Flow
+        // gets from anchoring edges to handles.
+        const yStart = y1 + Math.sign(y2 - y1) * NODE_EDGE_OFFSET;
         const yEnd = y2 + Math.sign(y1 - y2) * NODE_EDGE_OFFSET;
-        const d = `M ${x1} ${y1} C ${x1} ${y1 + dy}, ${x2} ${yEnd - dy}, ${x2} ${yEnd}`;
+        const dy = (yEnd - yStart) / 2;
+        const d = `M ${x1} ${yStart} C ${x1} ${yStart + dy}, ${x2} ${yEnd - dy}, ${x2} ${yEnd}`;
         const deviation = deviationFor(edge.fromId, edge.toId);
         // One marker per deviation rather than context-stroke, which is not
         // supported everywhere: an arrowhead in the wrong colour reads as a
         // different edge.
         const marker = deviation === "minor" || deviation === "major" ? `boe-graph-arrow-${deviation}` : "boe-graph-arrow";
-        return `<path part="edge" data-deviation="${deviation}" d="${d}" marker-end="url(#${marker})"></path>`;
+        const startMarker = hasStartArrow(arrows) ? ` marker-start="url(#${marker})"` : "";
+        const endMarker = hasEndArrow(arrows) ? ` marker-end="url(#${marker})"` : "";
+        return `<path part="edge" data-deviation="${deviation}" d="${d}"${startMarker}${endMarker}></path>`;
       })
       .join("");
 
@@ -501,7 +521,7 @@ export class LineageGraph extends BaseElement {
           layout.placements.length > 0
             ? `
               <div part="graph">
-                <svg part="edges" width="${String(graphWidth)}" height="${String(graphHeight)}" viewBox="0 0 ${String(graphWidth)} ${String(graphHeight)}" aria-hidden="true"><defs><marker id="boe-graph-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto"><path part="edge-arrow" d="M 0 0 L 8 4 L 0 8 z"></path></marker><marker id="boe-graph-arrow-minor" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto"><path part="edge-arrow" data-deviation="minor" d="M 0 0 L 8 4 L 0 8 z"></path></marker><marker id="boe-graph-arrow-major" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto"><path part="edge-arrow" data-deviation="major" d="M 0 0 L 8 4 L 0 8 z"></path></marker></defs>${edgePaths}</svg>
+                <svg part="edges" width="${String(graphWidth)}" height="${String(graphHeight)}" viewBox="0 0 ${String(graphWidth)} ${String(graphHeight)}" aria-hidden="true"><defs><marker id="boe-graph-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path part="edge-arrow" d="M 0 0 L 8 4 L 0 8 z"></path></marker><marker id="boe-graph-arrow-minor" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path part="edge-arrow" data-deviation="minor" d="M 0 0 L 8 4 L 0 8 z"></path></marker><marker id="boe-graph-arrow-major" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path part="edge-arrow" data-deviation="major" d="M 0 0 L 8 4 L 0 8 z"></path></marker></defs>${edgePaths}</svg>
                 <ol part="rows" role="list">${rows}</ol>
               </div>
             `
