@@ -327,7 +327,37 @@ export const examples: Record<string, ComponentExample> = {
       value: "copy",
     }),
   },
-  skeleton: { html: `<box-skeleton width="320px" height="18px"></box-skeleton>` },
+  skeleton: {
+    html: `<box-skeleton width="320px" height="18px"></box-skeleton>`,
+    note: "Reserves space while content loads. `box` (the default) is one rectangle sized by `width`/`height`; `line` is a stack of `lines` bars; `grid` is a column layout after Adobe Spectrum's responsive grid — twelve columns by default, gutters stepping 16 → 24 → 32 → 40 → 48px across Spectrum's breakpoints. Every region is clamped to the `columns` and `rows` declared, so a bad number from the host makes the placeholder slightly wrong rather than blowing the layout out.",
+    variants: [
+      {
+        name: "Box",
+        html: `<box-skeleton width="240px" height="120px"></box-skeleton>`,
+        note: "The default: one rectangle, sized directly.",
+      },
+      {
+        name: "Lines",
+        html: `<box-skeleton variant="line" lines="4"></box-skeleton>`,
+        note: "Four text bars. The last stops at 62% so the stack reads as a paragraph rather than a table. Bars are added and removed in place when `lines` changes, so the shimmer does not restart.",
+      },
+      {
+        name: "Grid",
+        html: `<box-skeleton variant="grid" columns="3" rows="3" items='[{"span":3},{"span":1,"rowSpan":2},{"span":2}]'></box-skeleton>`,
+        note: "Three columns: a full-width band, then a single column standing two rows tall beside a two-column region. The tall region is two rows plus the gutter between them, and cannot exceed the three rows declared.",
+      },
+      {
+        name: "Grid with an offset",
+        html: `<box-skeleton variant="grid" columns="4" items='[{"span":2,"offset":2}]'></box-skeleton>`,
+        note: "Spectrum's offset: two empty columns, then a two-column region. Rendered as a hidden spacer, so it composes with auto-placement instead of fighting it.",
+      },
+      {
+        name: "Uniform grid",
+        html: `<box-skeleton variant="grid" columns="3" rows="2"></box-skeleton>`,
+        note: "With no `items`, `rows` and `columns` alone describe a uniform grid — here six single cells.",
+      },
+    ],
+  },
   spinner: { html: `<box-spinner label="Loading"></box-spinner>` },
   toast: {
     html: `<div style="display:grid;gap:0.5rem;justify-items:start;max-inline-size:min(100%,24rem)">
