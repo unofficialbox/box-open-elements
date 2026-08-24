@@ -138,6 +138,7 @@ export * from "./components/files/drop-zone.js";
 
 // Components: identity
 export * from "./components/identity/avatar.js";
+export * from "./components/identity/contact-datalist-item.js";
 export * from "./components/identity/persona.js";
 
 // Components: navigation

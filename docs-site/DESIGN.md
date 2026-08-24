@@ -144,3 +144,22 @@ bash tools/preview/container-run.sh 'bun run build && bun tools/preview/docs-sit
 ```
 
 A `home` baseline was added alongside the existing component/foundation shots.
+
+## Preview canvas layout
+
+The component preview canvas is a **block** container, not flex.
+
+It was a centred wrapping flex container, which made every demo a shrink-to-fit
+flex item: a component that fills its container in real use was laid out at its
+intrinsic width and centred, and `min-width: 0` let anything that could collapse
+do so. `box-table` and `box-app-shell` rendered as a single vertical line and
+`box-split-view` as nothing at all.
+
+Block layout lets each demo use the display its own stylesheet declares —
+block-level components fill, inline-level ones stay at their natural size — so
+the canvas no longer overrides what a component says about itself. That is why
+buttons, badges and chips need no exception.
+
+Centring originally kept flyouts (tooltip, popover, menu) from spilling left
+over the rail. Those overlays render in the top layer now and are not laid out
+in this container at all, so the constraint no longer applies.

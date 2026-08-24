@@ -661,16 +661,27 @@ body {
   border-radius: 14px;
   box-shadow: var(--card-shadow);
   padding: 20px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  /* Centred horizontally so flyout components (tooltip, popover, menu) that
-     anchor a wider surface under their trigger stay inside the canvas instead
-     of spilling left over the rail. Pairs with the `> *` width cap below —
-     centring alone would make over-wide content spill from *both* edges. */
-  justify-content: center;
-  align-items: flex-start;
-  align-content: flex-start;
+  /* Block, not flex — deliberately.
+
+     This was a centred wrapping flex container, which made every demo a
+     shrink-to-fit flex item: a component that fills its container in real use
+     was laid out at its *intrinsic* width and centred. Combined with the
+     `min-width: 0` cap below, anything that could collapse did. `box-table`
+     and `box-app-shell` rendered as a single vertical line, `box-split-view`
+     as nothing at all, and `box-tree` as a huddle of pills in the middle of an
+     empty frame.
+
+     A block container instead lets every demo use the display its own stylesheet
+     declares: `box-table` and `box-app-shell` fill the width because they are
+     block-level, while `box-button`, `box-badge` and `box-chip` stay at their
+     natural size because theirs are not. The canvas stops overriding what each
+     component says about itself.
+
+     Centring existed so flyouts (tooltip, popover, menu) anchoring a wider
+     surface would not spill left over the rail. That reason is gone: those
+     overlays render in the top layer now, so they are not laid out in this
+     container at all. */
+  display: block;
   min-height: 140px;
   margin: 0 auto;
   width: 100%;
@@ -682,7 +693,11 @@ body {
    inner panels are wider than the host element — inside the canvas. The width
    cap handles the host; `overflow: auto` contains inner layout that the cap
    can't reach, scrolling within the frame instead of escaping it. */
-.preview-canvas > * { max-width: 100%; min-width: 0; }
+.preview-canvas > * { max-width: 100%; }
+
+/* Demos with several siblings (a row of buttons, two contact rows) still need
+   separating; block layout has no `gap`. */
+.preview-canvas > * + * { margin-block-start: 12px; }
 
 .preview-note { grid-column: 1 / -1; font-size: 12.5px; color: var(--ink-soft); margin: 6px 2px 0; }
 
