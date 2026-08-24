@@ -59,6 +59,7 @@ import datalistItem from "./stories/datalist-item.stories.js";
 import dateField from "./stories/date-field.stories.js";
 import dialog from "./stories/dialog.stories.js";
 import divider from "./stories/divider.stories.js";
+import grid from "./stories/grid.stories.js";
 import donutChart from "./stories/donut-chart.stories.js";
 import draggableList from "./stories/draggable-list.stories.js";
 import drawer from "./stories/drawer.stories.js";
@@ -206,6 +207,7 @@ export const storyModules: StoryModule[] = [
   dateField,
   dialog,
   divider,
+  grid,
   donutChart,
   draggableList,
   drawer,

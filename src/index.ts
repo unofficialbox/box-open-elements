@@ -78,6 +78,9 @@ export type {
 } from "./foundations/profiles/index.js";
 export { boxIconography, boxIconographyAliases } from "./foundations/icons/index.js";
 
+// Foundations: Adobe Spectrum's responsive grid (shared by box-grid and box-skeleton)
+export * from "./foundations/layout/index.js";
+
 // Foundations: viewport-aware overlay positioning (for building custom overlays)
 export {
   anchorFloating,
@@ -181,6 +184,7 @@ export * from "./components/forms/text-field.js";
 // Components: layout
 export * from "./components/layout/app-shell.js";
 export * from "./components/layout/divider.js";
+export * from "./components/layout/grid.js";
 export * from "./components/layout/nav-sidebar.js";
 export * from "./components/layout/section.js";
 export * from "./components/layout/sidebar-toggle-button.js";

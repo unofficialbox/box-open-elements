@@ -302,8 +302,11 @@ describe("Skeleton variants", () => {
     ).toBe("12");
   });
 
-  it("carries Spectrum's per-breakpoint gutters", () => {
-    // Fixed values per breakpoint, not a proportion of the grid.
+  it("carries Spectrum's per-breakpoint gutters from the shared foundation", () => {
+    // Fixed values per breakpoint, not a proportion of the grid. The property is
+    // --boe-grid-gutter, not a skeleton-private one: box-grid reads the same
+    // name, so overriding it once keeps a placeholder matching the layout it
+    // stands in for.
     const styles =
       mount(el => (el.variant = "grid")).shadowRoot?.querySelector("style")?.textContent ?? "";
     for (const [width, gutter] of [
@@ -313,9 +316,9 @@ describe("Skeleton variants", () => {
       ["2160px", "48px"],
     ]) {
       expect(styles).toContain(`@media (min-width: ${width})`);
-      expect(styles).toContain(`--boe-skeleton-gutter: ${gutter}`);
+      expect(styles).toContain(`--boe-grid-gutter: ${gutter}`);
     }
-    expect(styles).toContain("gap: var(--boe-skeleton-gutter)");
+    expect(styles).toContain("gap: var(--boe-grid-gutter)");
   });
 
   it("ignores a malformed items payload", () => {
