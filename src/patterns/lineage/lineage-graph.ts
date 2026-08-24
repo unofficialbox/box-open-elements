@@ -392,10 +392,21 @@ export class LineageGraph extends BaseElement {
         const y1 = centerY(edge.fromRow);
         const x2 = centerX(edge.toLane);
         const y2 = centerY(edge.toRow);
-        const d =
-          edge.fromLane === edge.toLane
-            ? `M ${x1} ${y1} L ${x2} ${y2}`
-            : `M ${x1} ${y1} C ${x1} ${y1 - ROW_HEIGHT / 2}, ${x2} ${y2 + ROW_HEIGHT / 2}, ${x2} ${y2}`;
+        // One curve rule for every edge, rather than a straight line for
+        // same-lane edges and a cubic for lane changes: two rules made the
+        // graph read as two different diagrams. A cubic whose ends share an x
+        // degenerates to a straight vertical on its own, so same-lane edges
+        // still render straight without being a special case.
+        //
+        // Control points are pulled *along* the direction of travel — half the
+        // vertical distance each — so the bend always leaves the parent
+        // downward and enters the child from above. The previous version
+        // offset them by a fixed half-row in the wrong direction (up from the
+        // start, down from the end on a downward edge), so an edge spanning
+        // one row bowed backwards into an S while a longer one looked almost
+        // straight.
+        const dy = (y2 - y1) / 2;
+        const d = `M ${x1} ${y1} C ${x1} ${y1 + dy}, ${x2} ${y2 - dy}, ${x2} ${y2}`;
         return `<path part="edge" data-deviation="${deviationFor(edge.fromId, edge.toId)}" d="${d}"></path>`;
       })
       .join("");

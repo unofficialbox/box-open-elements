@@ -67,6 +67,14 @@ const elementStyles = `
           margin: 0;
           padding: 0;
           display: grid;
+
+          /* Named so the spine can derive how far it has to reach rather than
+             restating the numbers. The line has to cross this entry's bottom
+             padding, the next entry's top padding and the marker's own offset
+             to arrive at the next marker; spelling that out as arithmetic
+             keeps it correct if any of the three changes. */
+          --timeline-event-pad: 0.55rem;
+          --timeline-marker-offset: 0.3rem;
         }
 
         [part="event"] {
@@ -74,27 +82,51 @@ const elementStyles = `
           display: grid;
           grid-template-columns: auto 1fr;
           gap: 0.65rem;
-          padding: 0.55rem 0 0.55rem 0.15rem;
+          padding: var(--timeline-event-pad) 0 var(--timeline-event-pad) 0.15rem;
         }
 
-        /* The connecting spine between markers. */
-        [part="event"]:not(:last-child)::after {
-          content: "";
-          position: absolute;
-          left: calc(0.15rem + 0.55rem - 1px);
-          top: 1.9rem;
-          bottom: -0.35rem;
-          width: 2px;
-          background: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 72%, transparent);
+        /* The marker column, built the way box-path's base variant builds its
+           rail: the marker is a fixed box and the spine is a flex sibling that
+           takes whatever height is left, so the line runs from the marker to
+           the bottom of the entry however tall the entry's content turns out
+           to be.
+
+           The previous version positioned the spine with hand-tuned constants
+           (top: 1.9rem, bottom: -0.35rem) that guessed where the marker ended.
+           They were only ever right for one font size and one content height,
+           which is why the line stopped short of the next marker and dangled. */
+        [part="marker-rail"] {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          align-self: stretch;
+          margin-top: var(--timeline-marker-offset);
         }
 
         [part="marker"] {
+          flex: 0 0 auto;
           inline-size: 1.1rem;
           block-size: 1.1rem;
-          margin-top: 0.3rem;
           border-radius: 999px;
           border: 2px solid var(--timeline-tone, var(--boe-token-text-text-secondary, #6f6f6f));
           background: color-mix(in srgb, var(--timeline-tone, var(--boe-token-text-text-secondary, #6f6f6f)) 14%, var(--boe-token-surface-surface, #ffffff) 86%);
+        }
+
+        /* The spine. Grows to fill the column, and the negative bottom margin
+           carries it across the gap into the next entry's marker so the two
+           actually meet. Hidden on the last entry, which leads nowhere. */
+        [part="marker-rail"]::after {
+          content: "";
+          flex: 1 1 auto;
+          inline-size: 2px;
+          margin-block: 0.25rem
+            calc(-1 * (var(--timeline-event-pad) * 2 + var(--timeline-marker-offset)));
+          border-radius: 999px;
+          background: var(--boe-token-stroke-stroke, #e8e8e8);
+        }
+
+        [part="event"]:last-child [part="marker-rail"]::after {
+          display: none;
         }
 
         [part="event-body"] {
@@ -358,7 +390,7 @@ export class Timeline extends BaseElement {
 
         return `
           <li part="event" data-event-id="${escapeHtml(event.id)}" style="--timeline-tone:${toneColor(tone)};">
-            <span part="marker" aria-hidden="true"></span>
+            <span part="marker-rail" aria-hidden="true"><span part="marker"></span></span>
             <div part="event-body">
               <div part="event-topline">
                 ${event.actor ? `<span part="actor">${escapeHtml(event.actor.name)}</span>` : ""}
