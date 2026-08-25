@@ -10,6 +10,45 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+## 0.14.0 — 2026-08-25
+
+A small release: one component gains one attribute. Additive, with no change to
+any existing default.
+
+### `box-formatted-number` can choose how wide to write a unit
+
+The `unit` style shipped in 0.13.0 wired but unexercised — no docs variant
+showed it, and nothing pinned its behaviour. Building those variants surfaced a
+gap rather than just documenting one: `Intl` defaults `unitDisplay` to `short`,
+and with no way to override it **"2.5 megabytes" was unreachable**. That is most
+of the reason to reach for the unit style at all rather than formatting a number
+and writing the unit yourself, so it was worth closing.
+
+`unit-display` takes:
+
+| | |
+| --- | --- |
+| `short` (default) | `2.5 MB` — what a table wants |
+| `narrow` | `2.5MB` |
+| `long` | `2.5 megabytes` — for prose, where an abbreviation the reader has to expand in their head is worse than the words |
+
+Failure behaviour matches the rest of the family, where a bad option never
+erases a good value:
+
+- An **unrecognised width** falls back to `short` rather than being handed to
+  `Intl`, which would throw.
+- A **unit `Intl` does not sanction** still renders the number plainly. `Intl`
+  accepts a closed list, so `unit="widgets"` is not a label it can use — but the
+  number is real.
+- A **missing unit** under `format-style="unit"` renders a plain decimal, the
+  same as a missing currency code does.
+
+Three docs variants were added: a size, the same size spelled out, and a
+duration — units are not only sizes, and `hour`, `day` and `week` come from the
+same sanctioned list. The size variant notes when to reach for
+`box-formatted-file-size` instead: that one takes a raw byte count and reduces
+it, this one takes a magnitude that already knows its unit.
+
 ## 0.13.0 — 2026-08-25
 
 A feature release. Everything here is additive — eight new components, a new
