@@ -10,6 +10,74 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+## 0.12.0 — 2026-08-25
+
+A minor rather than a patch. The API additions below are backward compatible,
+but every toast, alert and nudge changes appearance on upgrade, and `borderless`
+quietly stops meaning anything. `^0.11.0` resolves to `>=0.11.0 <0.12.0`, so a
+consumer opts into the restyle instead of finding it on their next install.
+
+- **Comments are a standalone surface: `box-comment-thread`.** They hang off a
+  file, a folder, a task or a contract clause just as readily as off a region of
+  a document, and until now the only comment-shaped component in the library was
+  `box-annotation-thread` — which meant reaching into `patterns/preview` for
+  something named after a feature you were not using.
+
+  That component was never coupled to annotations. Its observed attributes were
+  `actions`, `composable`, `entries`, `message`, `selected-entry-id` and
+  `heading`; its parts were the generic anatomy of a thread. **Nothing tied an
+  entry to a place in a document** — no page, no region, no coordinates. Every
+  occurrence of the word "annotation" in it was a tag name, a type name, a
+  heading string, or a DOM id.
+
+  `patterns/comments` now owns the thread and the model (`CommentEntry`,
+  `CommentAction`, `CommentSubmittedDetail`). The model is its own module, so a
+  controller, adapter or server route that only transports comments imports the
+  types without pulling a custom element along.
+
+- **`box-annotation-thread` finally earns its name.** It becomes a
+  specialisation of the above and adds the **anchor** — `page`, `region` and/or
+  `quote` — which is the only thing that makes an annotation an annotation. A
+  thread with nothing to anchor to belongs on `box-comment-thread`, and its docs
+  now say so.
+
+  A region is described to the reader as "Page 2 · region" rather than by its
+  coordinates: the numbers place a highlight for a renderer, but they tell a
+  reader nothing and a screen reader least of all.
+
+  **Nothing to change on upgrade.** Every attribute, part and event is inherited
+  unchanged; `AnnotationThreadAction` and `AnnotationThreadEntrySubmittedDetail`
+  alias the new types, `AnnotationThreadEntry` is `CommentEntry & { toolLabel?:
+  string }`, and `toolLabel` still renders through an override rather than
+  making hosts rename fields. The eleven existing tests pass untouched, which is
+  the evidence that nothing moved underneath them.
+
+- **`box-toast`, `box-alert` and `box-nudge` no longer paint borders.** The
+  outlines read as heavy. Toast loses its 2px near-black border and three tone
+  border colours, alert its 1px border and four, nudge its tinted 1px.
+
+  Eight colour conformance claims pinned those declarations against upstream
+  box-ui-elements. They are **retired**, not preserved under an opt-in so the
+  audit could go on reporting them: an audit that reports a border
+  box-open-elements does not paint is worse than one claim short. The counts
+  move 63 → 56 conformant and 9 → 8 accepted — one of the eight was an accepted
+  divergence rather than a conformant match — and the CI floor moves with them.
+
+  Tone survives the change. Every toast tone already set a 20% tinted fill *and*
+  a full-strength glyph accent, every alert tone a 10% tint, and both carry a
+  visually-hidden tone label — so tone was never colour-only, and never rested
+  on the border. Verified in Chromium: `0px` / `none` on all three, each tone
+  still resolving a distinct background.
+
+  `box-toast` keeps `borderless` as a reflected no-op. It shipped in 0.11.0, and
+  removing it would break hosts that set it to get exactly what every toast now
+  gives them anyway.
+
+  **Known softness:** `box-alert` has no glyph, so its tone now rests on a 10%
+  tint plus the hidden label — a weaker visual signal than toast's. Fixing that
+  means either giving alert a tone glyph or touching its conformance-pinned
+  background values, so it is left as it is rather than done quietly here.
+
 ## 0.11.0 — 2026-08-24
 
 A minor because the rename below is breaking, per the pre-1.0 policy. Consumers

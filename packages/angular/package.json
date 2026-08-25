@@ -1,6 +1,6 @@
 {
   "name": "@unofficialbox/box-open-elements-angular",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "Typed Angular adapters for box-open-elements Web Components.",
   "license": "MIT",
   "homepage": "https://unofficialbox.github.io/box-open-elements",
@@ -31,7 +31,7 @@
   },
   "peerDependencies": {
     "@angular/core": ">=20.0.0 <21.0.0",
-    "@unofficialbox/box-open-elements": "^0.11.0"
+    "@unofficialbox/box-open-elements": "^0.12.0"
   },
   "scripts": {
     "build": "ngc -p tsconfig.build.json",
