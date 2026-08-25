@@ -1547,7 +1547,12 @@ export const examples: Record<string, ComponentExample> = {
     html: `<box-annotation-toolbar label="Annotate" active-tool-id="comment" current-color="#f59e0b" tools='[{"id":"comment","label":"Comment"},{"id":"highlight","label":"Highlight"},{"id":"draw","label":"Draw"},{"id":"redact","label":"Redact","disabled":true}]' color-options='[{"id":"amber","label":"Amber","value":"#f59e0b"},{"id":"blue","label":"Blue","value":"#3b82f6"},{"id":"red","label":"Red","value":"#ed3757"}]' actions='[{"id":"undo","label":"Undo"},{"id":"save","label":"Save","tone":"primary"}]'></box-annotation-toolbar>`,
   },
   "annotation-inspector": { html: `<box-annotation-inspector heading="Annotation"></box-annotation-inspector>` },
-  "annotation-thread": { html: `<box-annotation-thread heading="Discussion"></box-annotation-thread>` },
+  "comment-thread": {
+    html: `<box-comment-thread composable heading="Comments" message="Discussion on Master Services Agreement.pdf — not tied to any page." entries='[{"id":"c1","author":"Morgan Lee","body":"Finance signed off on the payment terms.","createdAt":"Yesterday, 4:12 PM","badge":"Finance","status":"Resolved"},{"id":"c2","author":"Avery Chen","body":"Still waiting on the security questionnaire before we counter-sign.","createdAt":"Today, 9:40 AM","badge":"Legal","status":"Open"}]' actions='[{"id":"resolve","label":"Resolve thread","tone":"primary"},{"id":"follow","label":"Follow"}]'></box-comment-thread>`,
+  },
+  "annotation-thread": {
+    html: `<box-annotation-thread composable heading="Discussion" anchor='{"page":4,"quote":"Either party may terminate for convenience upon thirty (30) days written notice."}' entries='[{"id":"a1","author":"Morgan Lee","body":"Thirty days is short for this contract value — push for ninety.","createdAt":"Today, 11:02 AM","toolLabel":"Highlight","status":"Open"}]'></box-annotation-thread>`,
+  },
   "preview-element": {
     html: `<box-preview-element heading="Quarterly Plan.pdf" item-label="PDF · 2.4 MB" status="Ready" message="Rendered by the active preview provider." provider='{"id":"content-preview","label":"Box Content Preview","engine":"pdf.js","status":"ready","capabilities":["annotations","downloads"]}' adapter-state='{"ready":true,"pageLabel":"Page 2 of 34","zoomLabel":"100%","mode":"Review"}' actions='[{"id":"download","label":"Download"}]'>
   <box-annotation-toolbar slot="toolbar" label="Annotate" active-tool-id="comment" current-color="#f59e0b" tools='[{"id":"comment","label":"Comment"},{"id":"highlight","label":"Highlight"}]' color-options='[{"id":"amber","label":"Amber","value":"#f59e0b"},{"id":"blue","label":"Blue","value":"#3b82f6"}]'></box-annotation-toolbar>

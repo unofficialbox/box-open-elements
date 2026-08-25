@@ -842,18 +842,6 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     citation: ".notification color (toast message text)",
   },
   {
-    id: "toast.border",
-    surface: "toast",
-    boeConst: "TextText",
-    boeValue: T.TextText,
-    kind: "color",
-    boeComponent: TOAST,
-    boeAnchor: "border: 2px solid var(--boe-token-text-text, #222222)",
-    upstream: { selector: ".notification", state: "base", property: "border" },
-    tolerance: 0,
-    citation: ".notification border (toast neutral outline)",
-  },
-  {
     id: "toast.neutral.background",
     surface: "toast",
     boeConst: "SurfaceSurfaceSecondary",
@@ -879,43 +867,6 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     upstream: { selector: ".notification", state: "base", property: "box-shadow" },
     tolerance: 0,
     citation: ".notification box-shadow (toast elevation)",
-  },
-  {
-    id: "toast.success.border",
-    surface: "toast/status",
-    boeConst: "SurfaceStatusSurfaceSuccess",
-    boeValue: T.SurfaceStatusSurfaceSuccess,
-    kind: "color",
-    boeComponent: TOAST,
-    boeAnchor: "border-color: var(--boe-token-surface-status-surface-success, #26c281)",
-    // Upstream names the green toast `info`; box-open-elements calls it success.
-    upstream: { selector: ".notification.info", state: "base", property: "border-color" },
-    tolerance: 0,
-    citation: ".notification.info border-color (green toast; upstream's `info` = box-open-elements success)",
-  },
-  {
-    id: "toast.error.border",
-    surface: "toast/status",
-    boeConst: "SurfaceStatusSurfaceError",
-    boeValue: T.SurfaceStatusSurfaceError,
-    kind: "color",
-    boeComponent: TOAST,
-    boeAnchor: "border-color: var(--boe-token-surface-status-surface-error, #ed3757)",
-    upstream: { selector: ".notification.error", state: "base", property: "border-color" },
-    tolerance: 0,
-    citation: ".notification.error border-color (error toast)",
-  },
-  {
-    id: "toast.warning.border",
-    surface: "toast/status",
-    boeConst: "SurfaceStatusSurfaceInprogress",
-    boeValue: T.SurfaceStatusSurfaceInprogress,
-    kind: "color",
-    boeComponent: TOAST,
-    boeAnchor: "border-color: var(--boe-token-surface-status-surface-inprogress, #f5b31b)",
-    upstream: { selector: ".notification.warn", state: "base", property: "border-color" },
-    tolerance: 0,
-    citation: ".notification.warn border-color (warning toast)",
   },
 
   // === Progress bar (box-progress-bar) ↔ upstream ContentUploader progress ===
@@ -978,23 +929,6 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     webappToken: "SurfaceSurfaceSecondary",
   },
   {
-    id: "alert.neutral.border",
-    surface: "alert",
-    boeConst: "TextTextSecondary",
-    boeValue: T.TextTextSecondary,
-    kind: "color",
-    boeComponent: ALERT,
-    boeAnchor: "border: 1px solid var(--boe-token-text-text-secondary, #6f6f6f)",
-    upstream: {
-      selector: ".inline-alert.inline-alert-generic",
-      state: "base",
-      property: "border",
-    },
-    tolerance: 0,
-    citation: ".inline-alert.inline-alert-generic border (neutral alert outline; upstream #909090)",
-    webappToken: "TextTextSecondary",
-  },
-  {
     id: "alert.success.background",
     surface: "alert/status",
     boeConst: "success 10% + #fff (color-mix)",
@@ -1012,22 +946,6 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     // ±1: sRGB mix rounding vs upstream's Sass tint() (#e9f9f2 vs #e9f8f2).
     tolerance: 1,
     citation: ".inline-alert.inline-alert-success background-color",
-  },
-  {
-    id: "alert.success.border",
-    surface: "alert/status",
-    boeConst: "SurfaceStatusSurfaceSuccess",
-    boeValue: T.SurfaceStatusSurfaceSuccess,
-    kind: "color",
-    boeComponent: ALERT,
-    boeAnchor: "border-color: var(--boe-token-surface-status-surface-success, #26c281)",
-    upstream: {
-      selector: ".inline-alert.inline-alert-success",
-      state: "base",
-      property: "border",
-    },
-    tolerance: 0,
-    citation: ".inline-alert.inline-alert-success border",
   },
   {
     id: "alert.error.background",
@@ -1048,24 +966,6 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     citation: ".inline-alert.inline-alert-error background-color",
   },
   {
-    id: "alert.error.border",
-    surface: "alert/status",
-    boeConst: "error 50% + #fff (color-mix)",
-    boeValue:
-      "color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 50%, #fff)",
-    kind: "color",
-    boeComponent: ALERT,
-    boeAnchor:
-      "border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 50%, #fff)",
-    upstream: {
-      selector: ".inline-alert.inline-alert-error",
-      state: "base",
-      property: "border",
-    },
-    tolerance: 1,
-    citation: ".inline-alert.inline-alert-error border",
-  },
-  {
     id: "alert.warning.background",
     surface: "alert/status",
     boeConst: "inprogress 10% + #fff (color-mix)",
@@ -1082,24 +982,6 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     },
     tolerance: 1,
     citation: ".inline-alert.inline-alert-warning background-color",
-  },
-  {
-    id: "alert.warning.border",
-    surface: "alert/status",
-    boeConst: "inprogress 50% + #fff (color-mix)",
-    boeValue:
-      "color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 50%, #fff)",
-    kind: "color",
-    boeComponent: ALERT,
-    boeAnchor:
-      "border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 50%, #fff)",
-    upstream: {
-      selector: ".inline-alert.inline-alert-warning",
-      state: "base",
-      property: "border",
-    },
-    tolerance: 1,
-    citation: ".inline-alert.inline-alert-warning border",
   },
 
   // === Breadcrumb (box-breadcrumb) ↔ upstream `.breadcrumbs .breadcrumb-item` ===

@@ -36,6 +36,7 @@ import type { CollaboratorAvatars } from "./patterns/share/collaborator-avatars.
 import type { ColorPicker } from "./components/forms/color-picker.js";
 import type { Combobox } from "./components/forms/combobox.js";
 import type { CommandPalette } from "./components/overlays/command-palette.js";
+import type { CommentThread } from "./patterns/comments/comment-thread.js";
 import type { CompareView } from "./patterns/diff/compare-view.js";
 import type { ContactDatalistItem } from "./components/identity/contact-datalist-item.js";
 import type { ContentExplorer } from "./patterns/content-explorer/content-explorer.js";
@@ -179,6 +180,7 @@ declare global {
     "box-color-picker": ColorPicker;
     "box-combobox": Combobox;
     "box-command-palette": CommandPalette;
+    "box-comment-thread": CommentThread;
     "box-compare-view": CompareView;
     "box-contact-datalist-item": ContactDatalistItem;
     "box-content-explorer": ContentExplorer;
@@ -324,6 +326,7 @@ export type BoxElementTagName =
   | "box-color-picker"
   | "box-combobox"
   | "box-command-palette"
+  | "box-comment-thread"
   | "box-compare-view"
   | "box-contact-datalist-item"
   | "box-content-explorer"

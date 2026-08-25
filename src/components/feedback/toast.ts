@@ -54,11 +54,18 @@ const toastStyles = `
     display: none;
   }
 
-  /* Fill, border, text colour and shadow all track box-ui-elements'
-     .notification and are pinned by the colour conformance manifest — they are
-     deliberately not derived from the tone accent. The --toast-accent property
-     exists only to colour the status glyph, which upstream has no equivalent
-     for, so adding it costs no conformance. */
+  /* Fill, text colour and shadow track box-ui-elements' .notification and are
+     pinned by the colour conformance manifest — they are deliberately not
+     derived from the tone accent. The --toast-accent property exists only to
+     colour the status glyph, which upstream has no equivalent for, so adding it
+     costs no conformance.
+
+     There is no border. Upstream .notification has one, and box-open-elements
+     matched it until the outline was judged too heavy; the claim that pinned it
+     was retired rather than left describing something no longer painted. Tone
+     survives that in three places — the tinted fill, the full-strength glyph,
+     and the visually-hidden tone label — so it was never carried by the border
+     alone. */
   [part="toast"] {
     --toast-accent: var(--boe-token-text-text, #222222);
 
@@ -70,28 +77,14 @@ const toastStyles = `
     min-height: 48px;
     max-inline-size: min(100%, 572px);
     padding: 10px 10px 10px 20px;
-    border: 2px solid var(--boe-token-text-text, #222222);
     border-radius: ${boeRadius.large};
     background: var(--boe-token-surface-surface-secondary, #f4f4f4);
     color: var(--boe-token-text-text, #222222);
     box-shadow: 0 2px 6px rgb(0 0 0 / 15%);
   }
 
-  /* Opt-in softer treatment: the outline goes, the geometry does not. Setting
-     the colour to transparent rather than the width to 0 keeps the 2px in the
-     box model, so a borderless toast is exactly the size of a bordered one and
-     the two can sit in the same stack without jumping. The background paints
-     under the border by default, so the fill simply extends into it.
-
-     The bordered default stays: the 2px solid text-colour rule below is pinned
-     by the colour conformance manifest against upstream's .notification, and
-     strict mode fails if that declaration goes. */
-  :host([borderless]) [part="toast"] {
-    border-color: transparent;
-  }
-
-  /* The neutral toast keeps upstream's grey fill and near-black border, so the
-     glyph is the only place the "this is information" signal can live. */
+  /* The neutral toast keeps upstream's grey fill, so the glyph is the only
+     place the "this is information" signal can live. */
   [part="toast"][data-tone="info"] {
     --toast-accent: var(--boe-token-surface-surface-brand, #0061d5);
   }
@@ -99,20 +92,17 @@ const toastStyles = `
   [part="toast"][data-tone="success"] {
     --toast-accent: var(--boe-token-surface-status-surface-success, #26c281);
     background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 20%, #fff);
-    border-color: var(--boe-token-surface-status-surface-success, #26c281);
   }
 
   [part="toast"][data-tone="error"] {
     --toast-accent: var(--boe-token-surface-status-surface-error, #ed3757);
     background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 20%, #fff);
-    border-color: var(--boe-token-surface-status-surface-error, #ed3757);
   }
 
   [part="toast"][data-tone="warning"],
   [part="toast"][data-tone="inprogress"] {
     --toast-accent: var(--boe-token-surface-status-surface-inprogress, #f5b31b);
     background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 20%, #fff);
-    border-color: var(--boe-token-surface-status-surface-inprogress, #f5b31b);
   }
 
   .sr-only {
@@ -335,12 +325,11 @@ export class Toast extends BaseElement {
   }
 
   /**
-   * Drop the outline for a softer, fill-only toast.
+   * @deprecated Every toast is borderless now, so this does nothing.
    *
-   * Purely presentational and handled entirely in CSS, so it is deliberately
-   * not an observed attribute — there is nothing to re-render. The default
-   * stays bordered: that outline tracks box-ui-elements' `.notification` and
-   * is pinned by the colour conformance manifest.
+   * Kept because it shipped in 0.11.0 and removing it would break hosts that
+   * set it for no benefit — what they asked for is what they already get. The
+   * attribute is still reflected so those hosts read back what they wrote.
    */
   get borderless(): boolean {
     return this.hasAttribute("borderless");

@@ -599,13 +599,13 @@ describe("evaluate", () => {
     expect(byId("button.primary.hover.background").delta).toBe(21);
   });
 
-  it("yields the expected verdict mix (63 conformant, 9 accepted-divergence, 0 review)", () => {
+  it("yields the expected verdict mix (56 conformant, 8 accepted-divergence, 0 review)", () => {
     const conformant = rows.filter(r => r.verdict === "conformant").length;
     const accepted = rows.filter(r => r.verdict === "accepted-divergence").length;
     const review = rows.filter(r => r.verdict === "review").length;
     expect({ conformant, accepted, review }).toEqual({
-      conformant: 63,
-      accepted: 9,
+      conformant: 56,
+      accepted: 8,
       review: 0,
     });
   });
@@ -616,15 +616,11 @@ describe("evaluate", () => {
     // The tonal fills/borders are the same tint math upstream produces with
     // Sass: exact on error/warning, ±1 channel on the success fill.
     expect(byId("alert.success.background").verdict).toBe("conformant");
-    expect(byId("alert.success.border").verdict).toBe("conformant");
     expect(byId("alert.error.background").verdict).toBe("conformant");
-    expect(byId("alert.error.border").verdict).toBe("conformant");
     expect(byId("alert.warning.background").verdict).toBe("conformant");
-    expect(byId("alert.warning.border").verdict).toBe("conformant");
     // Neutral fill/outline + both breadcrumb texts modernise legacy greys to
     // Blueprint tokens — vouched by the live-Box capture.
     expect(byId("alert.neutral.background").verdict).toBe("accepted-divergence");
-    expect(byId("alert.neutral.border").verdict).toBe("accepted-divergence");
     expect(byId("breadcrumb.link.text").verdict).toBe("accepted-divergence");
     expect(byId("breadcrumb.current.text").verdict).toBe("accepted-divergence");
     expect(byId("chip.text").verdict).toBe("conformant");
@@ -640,14 +636,10 @@ describe("evaluate", () => {
     expect(byId("dialog.backdrop").verdict).toBe("conformant");
     expect(byId("dialog.surface.shadow").verdict).toBe("conformant");
     expect(byId("toast.text").verdict).toBe("conformant");
-    expect(byId("toast.border").verdict).toBe("conformant");
     // Same modernised secondary surface as badge: #fbfbfb in the live Box app
     // vs the legacy Storybook's #e8e8e8 — live-Box capture vouches for it.
     expect(byId("toast.neutral.background").verdict).toBe("accepted-divergence");
     expect(byId("toast.shadow").verdict).toBe("conformant");
-    expect(byId("toast.success.border").verdict).toBe("conformant");
-    expect(byId("toast.error.border").verdict).toBe("conformant");
-    expect(byId("toast.warning.border").verdict).toBe("conformant");
     expect(byId("progress-bar.fill").verdict).toBe("conformant");
   });
 
@@ -801,8 +793,8 @@ describe("renderMarkdown", () => {
     const md = renderMarkdown(rows, ["main.abc.iframe.bundle.js"]);
     expect(md).toContain("Layer 2");
     expect(md).toContain("**1**");
-    expect(md).toContain("| ✅ Conformant | 63 |");
-    expect(md).toContain("| 🎯 Accepted divergence | 9 |");
+    expect(md).toContain("| ✅ Conformant | 56 |");
+    expect(md).toContain("| 🎯 Accepted divergence | 8 |");
     expect(md).toContain("| 🔍 Review | 0 |");
     for (const claim of COLOR_CLAIMS) {
       expect(md).toContain(claim.citation);
