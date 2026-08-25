@@ -149,3 +149,78 @@ describe("Alert", () => {
     expect(styles).toContain("--boe-token-surface-surface-hover");
   });
 });
+
+describe("Alert tone glyph", () => {
+  beforeEach(() => {
+    Alert.register();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  const mount = (tone?: string): Alert => {
+    const element = document.createElement("box-alert") as Alert;
+    element.message = "Shared links expire in 30 days.";
+    if (tone) {
+      element.setAttribute("tone", tone);
+    }
+    document.body.append(element);
+    return element;
+  };
+
+  it("carries a glyph, because a 10% tint is a weak signal on its own", () => {
+    // Removing the border in 0.12.0 left alert's tone resting on the tint plus
+    // the visually-hidden label. The glyph is what puts the signal back.
+    const icon = mount("success").shadowRoot?.querySelector('[part="icon"]');
+
+    expect(icon?.querySelector("svg")).not.toBeNull();
+  });
+
+  it("hides the glyph from assistive technology", () => {
+    // The tone is already spoken by [part="tone-label"]; announcing it twice
+    // would be worse than not announcing it at all.
+    expect(
+      mount("error").shadowRoot?.querySelector('[part="icon"]')?.getAttribute("aria-hidden"),
+    ).toBe("true");
+  });
+
+  it("draws a different shape per tone, not just a different colour", () => {
+    // A reader who cannot separate green from amber still has to be able to
+    // tell a success from a warning.
+    const shapeOf = (tone: string): string =>
+      mount(tone).shadowRoot?.querySelector('[part="icon"]')?.innerHTML ?? "";
+
+    const shapes = ["success", "error", "warning", "info"].map(shapeOf);
+    expect(new Set(shapes).size).toBe(4);
+  });
+
+  it("falls back to the info mark for an unknown tone", () => {
+    expect(mount("banana").shadowRoot?.querySelector('[part="icon"]')?.innerHTML).toBe(
+      mount("info").shadowRoot?.querySelector('[part="icon"]')?.innerHTML,
+    );
+  });
+
+  it("colours the glyph from the accent, leaving the pinned fills alone", () => {
+    // The tinted backgrounds are conformance-pinned against upstream; the
+    // accent is ours, because upstream has no glyph to match.
+    const styles = mount().shadowRoot?.querySelector("style")?.textContent ?? "";
+
+    expect(styles).toContain("color: var(--alert-accent)");
+    expect(styles).toContain("--alert-accent: var(--boe-token-surface-status-surface-success, #26c281)");
+    expect(styles).toContain("background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 10%, #fff)");
+  });
+
+  it("repaints the glyph only when the tone actually changes", () => {
+    const element = mount("info");
+    const icon = element.shadowRoot?.querySelector('[part="icon"]') as HTMLElement;
+    const before = icon.firstElementChild;
+
+    element.message = "A different message entirely.";
+    expect(icon.firstElementChild).toBe(before);
+
+    element.setAttribute("tone", "error");
+    expect(icon.firstElementChild).not.toBe(before);
+  });
+});
+

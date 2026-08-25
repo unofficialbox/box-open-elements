@@ -62,7 +62,9 @@ element registries and test realms.
 - `empty-state` — **built**
 - `error-mask` — **built**
 - `help-text` — **built**
+- `indicator` — **built** (distinct in shape as well as colour, for dense status columns)
 - `nudge` — **built**
+- `path` — **built** (renamed from `stage-path` in 0.11.0)
 - `progress-bar` — **built**
 - `progress-ring` — **built**
 - `progress-steps` — **built**
@@ -73,6 +75,18 @@ element registries and test realms.
 ### Files
 
 - `drop-zone` — **built**
+
+### Output
+
+Read-only renderers for typed values. Each is locale-aware, each hides itself
+rather than rendering `Invalid Date` or `NaN`, and the instant-valued ones keep
+the exact value in a `<time datetime>` beside the human-readable text.
+
+- `formatted-date` — **built**
+- `relative-time` — **built** (pins "now" with `reference-time`, like `due-badge`)
+- `formatted-number` — **built** (`format-style`, not `style` — that one is a global HTML attribute)
+- `formatted-file-size` — **built**
+- `code-block` — **built** (renders code as text, never as markup; no bundled highlighting)
 
 ### Forms
 
@@ -100,6 +114,7 @@ element registries and test realms.
 - `switch` — **built**
 - `text-area` — **built**
 - `text-field` — **built**
+- `tile-group` — **built** (selectable cards over real radios/checkboxes)
 - `time-field` — **built**
 
 ### Identity
@@ -111,6 +126,7 @@ element registries and test realms.
 ### Layout
 
 - `app-shell` — **built**
+- `grid` — **built** (Adobe Spectrum's 12-column responsive grid; shares `foundations/layout` with `skeleton`)
 - `nav-sidebar` — **built**
 - `section` — **built**
 - `sidebar-toggle-button` — **built**

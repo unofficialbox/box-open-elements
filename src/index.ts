@@ -81,6 +81,9 @@ export { boxIconography, boxIconographyAliases } from "./foundations/icons/index
 // Foundations: Adobe Spectrum's responsive grid (shared by box-grid and box-skeleton)
 export * from "./foundations/layout/index.js";
 
+// Foundations: locale-aware typed-value formatting (shared by box-formatted-*)
+export * from "./foundations/format/index.js";
+
 // Foundations: viewport-aware overlay positioning (for building custom overlays)
 export {
   anchorFloating,
@@ -127,6 +130,7 @@ export * from "./components/feedback/due-types.js";
 export * from "./components/feedback/empty-state.js";
 export * from "./components/feedback/error-mask.js";
 export * from "./components/feedback/help-text.js";
+export * from "./components/feedback/indicator.js";
 export * from "./components/feedback/nudge.js";
 export * from "./components/feedback/progress-bar.js";
 export * from "./components/feedback/progress-ring.js";
@@ -166,6 +170,7 @@ export * from "./components/forms/slider.js";
 export * from "./components/forms/spin-button.js";
 export * from "./components/forms/switch.js";
 export * from "./components/forms/tag-input.js";
+export * from "./components/forms/tile-group.js";
 export * from "./components/forms/time-field.js";
 export * from "./components/forms/category-selector.js";
 export * from "./components/forms/checkbox-group.js";
@@ -180,6 +185,14 @@ export * from "./components/forms/search-field.js";
 export * from "./components/forms/select.js";
 export * from "./components/forms/text-area.js";
 export * from "./components/forms/text-field.js";
+
+// Components: output (read-only typed-value renderers)
+export * from "./components/output/formatted-value.js";
+export * from "./components/output/code-block.js";
+export * from "./components/output/formatted-date.js";
+export * from "./components/output/relative-time.js";
+export * from "./components/output/formatted-number.js";
+export * from "./components/output/formatted-file-size.js";
 
 // Components: layout
 export * from "./components/layout/app-shell.js";

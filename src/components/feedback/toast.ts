@@ -1,5 +1,5 @@
 import { BaseElement } from "../../core/index.js";
-import { toneAccessibleLabel } from "./tone.js";
+import { toneAccessibleLabel, toneIcon } from "./tone.js";
 import { boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
@@ -20,24 +20,6 @@ const TOAST_MODES = new Set<ToastMode>(["dismissible", "sticky"]);
 /** Narrow an author-supplied mode, falling back to `dismissible`. */
 export const resolveToastMode = (value: string | null | undefined): ToastMode =>
   TOAST_MODES.has(value as ToastMode) ? (value as ToastMode) : "dismissible";
-
-/**
- * Status glyphs, one per tone.
- *
- * A toast is read at a glance and often out of the corner of an eye, so the
- * shape has to carry the meaning before the colour does — a round tick and a
- * warning triangle are distinguishable to a reader who cannot separate green
- * from amber. Literal markup, never author input, so innerHTML is safe here.
- */
-const TONE_ICONS: Record<string, string> = {
-  info: `<svg viewBox="0 0 20 20" fill="currentColor" focusable="false"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 3.4a1.15 1.15 0 110 2.3 1.15 1.15 0 010-2.3zM11.1 15H8.9V9.3h2.2V15z"/></svg>`,
-  success: `<svg viewBox="0 0 20 20" fill="currentColor" focusable="false"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm4.06 5.86-5 5.2a1 1 0 01-1.44 0L5.94 11.3A1 1 0 117.38 9.9l1.04 1.08 4.28-4.52a1 1 0 011.36 1.38z"/></svg>`,
-  warning: `<svg viewBox="0 0 20 20" fill="currentColor" focusable="false"><path d="M9.13 2.6 1.4 15.9a1 1 0 00.87 1.5h15.46a1 1 0 00.87-1.5L10.87 2.6a1 1 0 00-1.74 0zM11.1 15.4H8.9v-2.2h2.2v2.2zm0-3.4H8.9V7.6h2.2V12z"/></svg>`,
-  error: `<svg viewBox="0 0 20 20" fill="currentColor" focusable="false"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 2c1.29 0 2.48.41 3.46 1.1L5.1 13.46A6 6 0 0110 4zm0 12c-1.29 0-2.48-.41-3.46-1.1l8.36-8.36A6 6 0 0110 16z"/></svg>`,
-};
-
-/** The tone glyph, falling back to the info mark for an unknown tone. */
-const toneIcon = (tone: string): string => TONE_ICONS[tone] ?? TONE_ICONS.info!;
 
 const DISMISS_ICON = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" focusable="false"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9"/></svg>`;
 
