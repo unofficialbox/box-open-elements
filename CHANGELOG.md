@@ -10,6 +10,107 @@ Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
 
 ## Unreleased
 
+## 0.13.0 — 2026-08-25
+
+A feature release. Everything here is additive — eight new components, a new
+foundation, and a new mode on an existing component. Nothing is renamed or
+removed, and no existing default changes except `box-alert`, which gains a
+glyph.
+
+### The formatted-value family
+
+Reviewing six design systems — Lightning, Carbon, ADF core, ADF
+content-services, OpenAI's apps-sdk-ui and Geist — turned up exactly one whole
+*category* missing rather than an individual control: read-only renderers for
+typed values. Lightning ships eleven of them; box-open-elements shipped none, so
+every consumer was hand-rolling locale handling, `<time datetime>` semantics and
+invalid-input behaviour, differently each time.
+
+- **`box-formatted-date`** — a date or time, into `<time datetime>` so the exact
+  instant survives for anything reading the document rather than looking at it.
+- **`box-relative-time`** — how long ago, with `reference-time` pinning what
+  "now" means. `box-due-badge` has one for the same reason: output that depends
+  on the wall clock cannot be tested or screenshotted deterministically, and a
+  list wants every row measured against a single instant.
+- **`box-formatted-number`** — decimal, currency, percent and unit styles.
+- **`box-formatted-file-size`** — bytes to a readable size, decimal units by
+  default to match what the Box product reports.
+
+Three rules are shared in `foundations/format` rather than repeated per
+component:
+
+- **A locale is never guessed.** An absent `locale` means `undefined` to `Intl`,
+  which is "use the host's" — not a hardcoded `en-US`. Substituting one would
+  silently render American dates to a German reader.
+- **Invalid input hides the element.** Not `Invalid Date`, not `NaN`, not the
+  raw string echoed back. A malformed value is a host bug, and putting its
+  wreckage in front of a reader helps nobody.
+- **A bad *option* never hides a good value.** A `currency` style with no code,
+  an unknown time zone, a rejected unit — each falls back to rendering the value
+  plainly rather than erasing it.
+
+`box-formatted-number` takes **`format-style`, not `style`**: `style` is a
+global HTML attribute, so the tidier name would have put CSS on the host and
+been silently ignored as a formatting instruction.
+
+### Gaps two or more design systems agreed on
+
+| Component | Confirmed by |
+| --- | --- |
+| `box-code-block` | Carbon, apps-sdk-ui, Geist |
+| `box-tile-group` | Carbon (RadioTile/TileGroup), Geist (Choicebox) |
+| `box-indicator` | Carbon (Icon/ShapeIndicator), apps-sdk-ui |
+| `box-calendar` `mode="range"` | apps-sdk-ui (DateRangePicker), ADF (`search-date-range`) |
+
+- **`box-indicator`** is distinct in *shape* as well as colour — disc, tick,
+  triangle, diamond, ring. A column of coloured dots is unreadable to anyone who
+  cannot separate the colours, and status is exactly what a reader needs from a
+  dense list. Without a visible label the tone is announced; with one it stays
+  quiet, so nobody hears "Success Signed" where the screen says "Signed".
+- **`box-code-block`** sets code as `textContent`, never as markup — a snippet
+  is the string most likely on any page to contain angle brackets. It ships **no
+  syntax highlighting**, deliberately: doing it properly means a grammar per
+  language, and doing it improperly means mis-colouring code a reader is trying
+  to trust. Hosts slot pre-rendered markup instead. Long lines scroll rather
+  than wrap, because a wrapped line silently changes what the reader believes
+  the source says.
+- **`box-tile-group`** wraps a real `<input type="radio">` or `checkbox` per
+  tile, visually hidden but in the tab order and the accessibility tree, so
+  grouping, arrow-key navigation and form participation come from the platform
+  rather than being reimplemented on `<div>`s.
+- **Range selection lands on `box-calendar`** rather than a new component: the
+  grid, the keyboard model and the min/max clamping already live there. `start`
+  and `end` are separate attributes rather than an overloaded `value`, which
+  would have meant inventing a separator every host then had to parse back out.
+  A second click before the first swaps the ends. **`single` stays the default**
+  and all twelve existing calendar tests pass untouched.
+
+### Fixed
+
+- **`box-alert` gains a tone glyph.** Removing its border in 0.12.0 left tone
+  resting on a 10% tinted fill plus a visually-hidden label — weaker than
+  toast's, which pairs a 20% tint with a full-strength coloured glyph. The
+  glyphs moved into the shared `tone.ts` both components already imported, so a
+  success tick cannot differ between an alert and a toast reporting the same
+  outcome. Nothing conformance-pinned moves: the tinted backgrounds still match
+  upstream exactly, and the glyph is coloured from a new `--alert-accent` that
+  upstream has no equivalent for.
+
+  This is the one visual change consumers will see on upgrade: an icon appears
+  in every alert, and the content shifts right to make room for it.
+
+- **Three docs that stated things that were false.** `components/catalog.md`
+  called itself the canonical map for `src/components` while listing neither
+  `path` nor `grid`. `patterns/catalog.md` still listed a Versions gap that
+  `box-version-list` closed, and described the comments write path as future
+  work the day after `box-comment-thread` shipped. `RELEASING.md` documented
+  dispatching a "Cut adapters release" workflow that does not exist —
+  `cut-release.yml` covers all five packages in one dispatch.
+
+- **Visual coverage for the feedback family.** `box-toast`, `box-alert` and
+  `box-nudge` had no per-page baselines at all; only the gallery composite
+  covered them.
+
 ## 0.12.0 — 2026-08-25
 
 A minor rather than a patch. The API additions below are backward compatible,
