@@ -79,6 +79,7 @@ const routes: Array<[name: string, hash: string, readyMarker: string, scrollTo?:
   ["patterns-audit-log", "#patterns/audit-log", "patterns/audit-log"],
   ["patterns-activity-density", "#patterns/activity-density", "patterns/activity-density"],
   ["patterns-comment-thread", "#patterns/comment-thread", "patterns/comment-thread"],
+  ["patterns-annotation-thread", "#patterns/annotation-thread", "patterns/annotation-thread"],
   ["patterns-notification-bell", "#patterns/notification-bell", "patterns/notification-bell"],
   ["patterns-notification-inbox", "#patterns/notification-inbox", "patterns/notification-inbox"],
   ["components-command-palette", "#components/command-palette", "components/command-palette"],
