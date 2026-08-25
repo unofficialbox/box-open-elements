@@ -235,11 +235,28 @@ have to come back to:
 - composed surface: `box-notification-inbox` (grouped triage panel with All/Unread filtering, per-row Mark read / Dismiss, and bulk Mark all read; unsafe entity hrefs downgrade to plain text; focus is sampled and restored across rebuilds so acting on a row does not drop the reader to the top) — **built**
 - **Mutations are intents, never local state changes.** The element does not mark anything read on its own — the host owns the write and feeds back a new list, so the inbox can never disagree with the server about what has been seen. Server-side paging is a tracked depth limitation.
 
+### Comments (composition)
+
+- `comment-thread` — **built**
+
+- **Comments are standalone, and annotations are the special case.** A comment
+  hangs off a file, a folder, a task or a contract clause; only an *anchor* —
+  a page, a region, or a run of quoted text — makes one an annotation.
+  `box-annotation-thread` is this component plus that anchor, which is why the
+  generic thread lives here rather than under Preview.
+- **Selection doubles as the reply target.** `entry-submitted` carries
+  `inReplyToId` — the selected entry or `null` — so one event serves both a new
+  top-level comment and a reply, and the host decides which by reading it.
+- **The model is its own module.** `CommentEntry` / `CommentAction` /
+  `CommentSubmittedDetail` import without pulling a custom element along, so a
+  controller, adapter or server route can transport comments without the DOM.
+
 ### Preview (workflow + compositions)
 
 - provider-adapter contract (`PreviewProvider`, `PreviewAdapterState`, `PreviewProviderAdapter`) — **built**
 - `content-preview-adapter` (Box Content Preview integration) — **built**
 - `annotation-toolbar`, `annotation-inspector`, `annotation-thread` — **built**
+  (`annotation-thread` is `box-comment-thread` plus a document anchor; see Comments)
 - composed surface: `box-preview-element` (pluggable adapter host) — **built**
 
 ### Search (compositions)
@@ -298,11 +315,10 @@ have to come back to:
 Honest inventory of what upstream ships that has **no counterpart here yet** —
 the roadmap for the next pattern rounds, in rough priority order:
 
-- **Versions** — no version history, restore, or promote surface anywhere.
-  (`box-content-sidebar` reserves a `versions` tab slot for it.)
-- **Comments write path** — `box-timeline` now covers the general activity
-  feed (display + a `composable` comment submit); a full comment
-  create/edit/delete/mention transport contract is still future work.
+- **Comments transport** — `box-comment-thread` (0.12.0) covers the surface:
+  entries, selection, actions and a composer, with `entry-submitted` carrying
+  `inReplyToId`. What is still future work is the *transport* contract behind
+  it — create/edit/delete/mention against a real backend.
 - **ContentOpenWith** — deliberately deferred to a sibling repo.
 - Cross-system candidates: coach mark / product tour (sequenced multi-anchor
   onboarding).

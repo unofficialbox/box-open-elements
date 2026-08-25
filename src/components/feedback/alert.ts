@@ -1,5 +1,5 @@
 import { BaseElement } from "../../core/index.js";
-import { toneAccessibleLabel } from "./tone.js";
+import { toneAccessibleLabel, toneIcon } from "./tone.js";
 import { boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
@@ -17,7 +17,13 @@ const alertStyles = `
     display: none;
   }
 
+  /* The accent colours the glyph only. The tinted backgrounds below are pinned
+     by the colour conformance manifest against upstream box-ui-elements and are
+     deliberately not derived from it; upstream has no glyph, so adding one
+     costs no conformance. */
   [part="alert"] {
+    --alert-accent: var(--boe-token-text-text-secondary, #6f6f6f);
+
     display: flex;
     align-items: start;
     justify-content: space-between;
@@ -31,23 +37,44 @@ const alertStyles = `
   }
 
   [part="alert"][data-tone="info"] {
+    --alert-accent: var(--boe-token-surface-surface-brand, #0061d5);
     background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, #fff);
   }
 
   [part="alert"][data-tone="success"] {
+    --alert-accent: var(--boe-token-surface-status-surface-success, #26c281);
     background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 10%, #fff);
   }
 
   [part="alert"][data-tone="error"] {
+    --alert-accent: var(--boe-token-surface-status-surface-error, #ed3757);
     background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, #fff);
   }
 
   [part="alert"][data-tone="warning"],
   [part="alert"][data-tone="inprogress"] {
+    --alert-accent: var(--boe-token-surface-status-surface-inprogress, #f5b31b);
     background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 10%, #fff);
   }
 
+  [part="icon"] {
+    flex: 0 0 auto;
+    inline-size: 20px;
+    block-size: 20px;
+    /* Full strength: with only a 10% tint behind it, the glyph is where the
+       tone actually reads. */
+    color: var(--alert-accent);
+  }
+
+  [part="icon"] svg {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+
   [part="content"] {
+    flex: 1 1 auto;
+    min-inline-size: 0;
     display: grid;
     gap: ${boeSpace[1]};
     line-height: 1.45;
@@ -127,7 +154,9 @@ export class Alert extends BaseElement {
 
   private openValue = true;
   private alertEl!: HTMLElement;
+  private iconEl!: HTMLElement;
   private toneLabelEl!: HTMLElement;
+  private renderedTone: string | null = null;
   private titleEl!: HTMLElement;
   private messageEl!: HTMLElement;
   private richSlot!: HTMLSlotElement;
@@ -216,6 +245,7 @@ export class Alert extends BaseElement {
     this.shadowRoot.innerHTML = `
       <style>${alertStyles}</style>
       <div part="alert" role="status" aria-live="polite">
+        <span part="icon" aria-hidden="true"></span>
         <div part="content">
           <span part="tone-label" class="sr-only"></span>
           <h2 part="title" id="alert-title" hidden></h2>
@@ -226,6 +256,7 @@ export class Alert extends BaseElement {
       </div>
     `;
     this.alertEl = this.shadowRoot.querySelector('[part="alert"]')!;
+    this.iconEl = this.shadowRoot.querySelector('[part="icon"]')!;
     this.toneLabelEl = this.shadowRoot.querySelector('[part="tone-label"]')!;
     this.titleEl = this.shadowRoot.querySelector('[part="title"]')!;
     this.messageEl = this.shadowRoot.querySelector('[part~="description"]')!;
@@ -262,7 +293,14 @@ export class Alert extends BaseElement {
     }
 
     this.alertEl.dataset.tone = this.tone;
-    this.toneLabelEl.textContent = toneAccessibleLabel(this.tone);
+    const tone = this.tone;
+    this.toneLabelEl.textContent = toneAccessibleLabel(tone);
+    // Literal markup keyed by tone, so re-writing it on every update would be
+    // wasted work — and would restart any transition on the glyph.
+    if (tone !== this.renderedTone) {
+      this.renderedTone = tone;
+      this.iconEl.innerHTML = toneIcon(tone);
+    }
 
     if (this.heading) {
       this.alertEl.setAttribute("aria-labelledby", "alert-title");

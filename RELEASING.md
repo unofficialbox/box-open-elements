@@ -194,11 +194,16 @@ which is the point of the gate: the 0.6.0 release shipped with the adapters
 peering `^0.5.0`, a range that excluded the only published core version, and
 nothing failed because the old check only compared the adapters with each other.
 
-Release tags are `adapters-vX.Y.Z`, matching the core's `vX.Y.Z`. Dispatch **Cut
-adapters release** on `main` to tag and publish that GitHub Release, which runs
-`.github/workflows/release-adapters.yml` for all four packages — the same shape
-as Route A, including the explicit dispatch that works around GITHUB_TOKEN
-Releases firing no events.
+Release tags are `adapters-vX.Y.Z`, matching the core's `vX.Y.Z`. **There is no
+separate adapters dispatch** — the single **Cut release** run in Route A does
+all five packages: it tags `vX.Y.Z` *and* `adapters-vX.Y.Z`, publishes both
+GitHub Releases, and dispatches `.github/workflows/release-adapters.yml` itself
+for the four adapter packages. That last step is the same GITHUB_TOKEN
+workaround Route A uses, applied a second time.
+
+Earlier revisions of this section described dispatching a "Cut adapters
+release" workflow. No such workflow exists, and trying to dispatch one returns
+a 404; `cut-release.yml` has covered the adapters since it was written.
 
 ### First publish — done at 0.7.0
 

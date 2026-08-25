@@ -63,6 +63,7 @@ element registries and test realms.
 - `error-mask` — **built**
 - `help-text` — **built**
 - `nudge` — **built**
+- `path` — **built** (renamed from `stage-path` in 0.11.0)
 - `progress-bar` — **built**
 - `progress-ring` — **built**
 - `progress-steps` — **built**
@@ -111,6 +112,7 @@ element registries and test realms.
 ### Layout
 
 - `app-shell` — **built**
+- `grid` — **built** (Adobe Spectrum's 12-column responsive grid; shares `foundations/layout` with `skeleton`)
 - `nav-sidebar` — **built**
 - `section` — **built**
 - `sidebar-toggle-button` — **built**
