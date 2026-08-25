@@ -1,10 +1,15 @@
 # Changelog
 
-Work merged to `main` and notable in-flight changes for **2026-07-14 through 2026-07-17** (past 3 days from 2026-07-17).
+Notable changes to **`@unofficialbox/box-open-elements`**, newest first, one
+section per released version.
 
-Generated from git: `git log main --since="2026-07-14" --until="2026-07-18"`.
+The four framework adapters ship the same version as the core and are covered by
+the same sections; see [RELEASING.md](./RELEASING.md) for why those five numbers
+move together.
 
-**Summary:** 55 commits on `main`; **52 PRs merged** (#20–#71 in this window). Component fidelity program completed; docs-site/workshop expanded to **108 stories**; density + BUE visual conformance landed; React adapter PoC, agent workflow rules, and the first real style-bridge library config shipped.
+The four sections at the foot of the file are headed by date rather than version.
+They cover 2026-07-14 through 2026-07-17, before the first tagged release, and
+are kept as written.
 
 ---
 

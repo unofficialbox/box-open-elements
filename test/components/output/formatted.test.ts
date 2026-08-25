@@ -219,6 +219,16 @@ describe("box-formatted-number", () => {
     expect(text(long)).toBe("2.5 megabytes");
   });
 
+  it("drops the space on narrow, which is the whole point of it", () => {
+    // The only difference from `short` is the separator, so a regression here
+    // would be invisible in a diff that only checked the unit survived.
+    expect(
+      text(mount("box-formatted-number", {
+        value: "2.5", "format-style": "unit", unit: "megabyte", "unit-display": "narrow", locale: "en-US",
+      })),
+    ).toBe("2.5MB");
+  });
+
   it("defaults the unit width to short, which is what a table wants", () => {
     expect(
       text(mount("box-formatted-number", {
