@@ -41,7 +41,6 @@ describe("Toast", () => {
     expect(styles).toContain("min-height: 48px;");
     expect(styles).toContain("padding: 10px 10px 10px 20px;");
     expect(styles).toContain("border-radius: var(--boe-profile-radius-large, 16px);");
-    expect(styles).toContain("border: 2px solid");
     expect(styles).toContain("font-size: 15px;");
   });
 
@@ -176,12 +175,16 @@ describe("Toast structure", () => {
     expect(part(shown(), "dismiss")?.querySelector("svg")).not.toBeNull();
   });
 
-  it("keeps box-ui-elements' notification fill, border and shadow", () => {
-    // The Salesforce-derived refinement is structural only: these four
-    // declarations are pinned by the colour conformance manifest against
-    // upstream Notification.scss, and drifting from them fails strict mode.
+  it("keeps box-ui-elements' notification fill and shadow, but paints no border", () => {
+    // These three declarations are still pinned by the colour conformance
+    // manifest against upstream Notification.scss. The border is not: upstream
+    // has one, the outline was judged too heavy, and the claim that pinned it
+    // was retired rather than left describing something no longer painted.
     const styles = shown().shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("border: 2px solid var(--boe-token-text-text, #222222)");
+    // `border: 0` resets on .sr-only and the dismiss button are not outlines,
+    // so match the painted declaration rather than the word.
+    expect(styles).not.toContain("border: 2px solid");
+    expect(styles).not.toContain("border-color:");
     expect(styles).toContain("background: var(--boe-token-surface-surface-secondary, #f4f4f4)");
     expect(styles).toContain("color: var(--boe-token-text-text, #222222)");
     expect(styles).toContain("box-shadow: 0 2px 6px rgb(0 0 0 / 15%)");
@@ -239,7 +242,7 @@ describe("Toast mode", () => {
   });
 });
 
-describe("Toast borderless", () => {
+describe("Toast borderless (retired)", () => {
   beforeEach(() => {
     Toast.register();
   });
@@ -248,47 +251,40 @@ describe("Toast borderless", () => {
     document.body.innerHTML = "";
   });
 
-  it("keeps the conformance-pinned border by default", () => {
+  it("paints no border on any tone", () => {
+    const element = document.createElement("box-toast") as Toast;
+    document.body.append(element);
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+
+    // No base outline, no per-tone outline, and nothing left of the opt-in rule
+    // that used to hide them.
+    expect(styles).not.toContain("border: 2px solid");
+    expect(styles).not.toContain("border-color:");
+    expect(styles).not.toContain(":host([borderless])");
+  });
+
+  it("still reflects the attribute so hosts on 0.11.0 keep working", () => {
+    // The attribute is a no-op now rather than an error: what it asked for is
+    // what every toast already gets. Removing it would break those hosts for
+    // no benefit.
     const element = document.createElement("box-toast") as Toast;
     document.body.append(element);
     expect(element.borderless).toBe(false);
-    // The literal the colour conformance manifest anchors on. Losing it fails
-    // strict mode, so the opt-in must not be implemented by deleting it.
-    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toContain("border: 2px solid var(--boe-token-text-text, #222222)");
-  });
 
-  it("hides the outline without changing the geometry when asked", () => {
-    // Transparent rather than zero-width: a borderless toast has to be exactly
-    // the size of a bordered one, or a mixed stack jumps.
-    const element = document.createElement("box-toast") as Toast;
-    document.body.append(element);
     element.borderless = true;
-
     expect(element.hasAttribute("borderless")).toBe(true);
-    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    expect(styles).toMatch(/:host\(\[borderless\]\) \[part="toast"\] \{\s*border-color: transparent;/);
-    expect(styles).not.toContain("border-width: 0");
-
     element.borderless = false;
     expect(element.hasAttribute("borderless")).toBe(false);
   });
 
-  it("beats the per-tone border colour", () => {
-    // Each tone sets its own border-color, so the opt-in has to out-specify
-    // them or it would only work on the neutral toast.
-    const styles = (() => {
-      const element = document.createElement("box-toast") as Toast;
-      document.body.append(element);
-      return element.shadowRoot?.querySelector("style")?.textContent ?? "";
-    })();
-    const borderless = styles.indexOf(':host([borderless]) [part="toast"]');
-    const successTone = styles.indexOf('[part="toast"][data-tone="success"]');
-    expect(borderless).toBeGreaterThan(-1);
-    expect(successTone).toBeGreaterThan(-1);
-    // :host([borderless]) [part="toast"] is (0,3,0) against the tone rule's
-    // (0,2,0), so it wins regardless of order — but assert order too, so a
-    // reshuffle that relied on it would still be caught.
-    expect(borderless).toBeLessThan(successTone);
+  it("keeps tone readable without the border", () => {
+    // Tone was never carried by the outline alone: the tinted fill and the
+    // full-strength glyph accent both remain, and the tone label is text.
+    const element = document.createElement("box-toast") as Toast;
+    document.body.append(element);
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+
+    expect(styles).toContain("--toast-accent: var(--boe-token-surface-status-surface-success, #26c281)");
+    expect(styles).toContain("background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 20%, #fff)");
   });
 });
