@@ -2164,6 +2164,412 @@
       ]
     },
     {
+      "id": "comment-thread",
+      "tag": "box-comment-thread",
+      "title": "Patterns/Comments/Comment Thread",
+      "category": "Comments",
+      "shortDescription": "A comment thread that stands on its own.",
+      "docsDescription": "Comments are a standalone concept. They hang off a file, a folder, a task or a contract clause just as readily as off a region of a document, so this thread does not know what it is attached to — it renders authored entries, selection, actions and a composer, and nothing else. A host that needs comments tied to a place in a document composes an anchor on top; `box-annotation-thread` is exactly that, and the anchor is the only thing that makes an annotation an annotation. Selection doubles as the reply target: `entry-submitted` carries `inReplyToId`, which is the selected entry or `null`, so one event serves both a new top-level comment and a reply and the host decides which by reading it. Bodies are rendered as text rather than markup, because comment bodies are the most author-controlled string on the page.",
+      "sourceSnippet": "<box-comment-thread composable entries='[{\"id\":\"c1\",\"author\":\"Morgan Lee\",\"body\":\"Finance signed off.\"}]'></box-comment-thread>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "entries",
+          "type": "CommentEntry[]",
+          "description": "The comments, as JSON. Each carries `id`, `author`, `body`, and optionally `initials`, `createdAt`, `badge` and `status`."
+        },
+        {
+          "kind": "attribute",
+          "name": "composable",
+          "type": "boolean",
+          "description": "Shows the composer. Absent by default, so a read-only thread stays read-only."
+        },
+        {
+          "kind": "attribute",
+          "name": "selected-entry-id",
+          "type": "string",
+          "description": "The selected comment, which is also the reply target."
+        },
+        {
+          "kind": "attribute",
+          "name": "actions",
+          "type": "CommentAction[]",
+          "description": "Buttons beneath the thread, as JSON. A `tone` of `primary` renders the brand treatment."
+        },
+        {
+          "kind": "attribute",
+          "name": "composer-label",
+          "type": "string",
+          "description": "Composer label and submit text. Defaults to `Comment`; `box-annotation-thread` defaults it to `Reply`."
+        },
+        {
+          "kind": "attribute",
+          "name": "placeholder",
+          "type": "string",
+          "description": "Composer placeholder. Defaults to `Add a comment`."
+        },
+        {
+          "kind": "attribute",
+          "name": "heading",
+          "type": "string",
+          "description": "Thread heading. Defaults to `Comments`."
+        },
+        {
+          "kind": "attribute",
+          "name": "message",
+          "type": "string",
+          "description": "Optional supporting line under the heading."
+        },
+        {
+          "kind": "event",
+          "name": "entry-submitted",
+          "type": "CommentSubmittedDetail",
+          "description": "A comment was composed. `detail: { body, inReplyToId }`."
+        },
+        {
+          "kind": "event",
+          "name": "entry-selected",
+          "type": "CommentEntry",
+          "description": "A comment was selected."
+        },
+        {
+          "kind": "event",
+          "name": "action",
+          "type": "{ action, selectedEntryId }",
+          "description": "A thread action was pressed."
+        },
+        {
+          "kind": "part",
+          "name": "thread",
+          "type": "part",
+          "description": "The thread container."
+        },
+        {
+          "kind": "part",
+          "name": "entry",
+          "type": "part",
+          "description": "One comment button."
+        },
+        {
+          "kind": "part",
+          "name": "composer",
+          "type": "part",
+          "description": "The composer region."
+        }
+      ],
+      "variants": [
+        {
+          "name": "On a file",
+          "html": "<box-comment-thread composable heading=\"Comments\" message=\"Discussion on Master Services Agreement.pdf — not tied to any page.\" entries='[{\"id\":\"c1\",\"author\":\"Morgan Lee\",\"body\":\"Finance signed off on the payment terms.\",\"createdAt\":\"Yesterday, 4:12 PM\",\"badge\":\"Finance\",\"status\":\"Resolved\"},{\"id\":\"c2\",\"author\":\"Avery Chen\",\"body\":\"Still waiting on the security questionnaire before we counter-sign.\",\"createdAt\":\"Today, 9:40 AM\",\"badge\":\"Legal\",\"status\":\"Open\"}]'></box-comment-thread>",
+          "note": "The standalone case. Nothing here refers to a page or a region, because a comment on a file is not an annotation."
+        },
+        {
+          "name": "Read-only",
+          "html": "<box-comment-thread heading=\"Comments\" entries='[{\"id\":\"c1\",\"author\":\"Morgan Lee\",\"body\":\"Archived thread — retained for the audit trail.\"}]'></box-comment-thread>",
+          "note": "Without `composable` the composer is absent rather than disabled, so a retained thread offers no affordance to add to it."
+        },
+        {
+          "name": "Empty",
+          "html": "<box-comment-thread composable heading=\"Comments\"></box-comment-thread>",
+          "note": "The empty state still shows the composer, since the first comment has to start somewhere."
+        },
+        {
+          "name": "With actions",
+          "html": "<box-comment-thread heading=\"Comments\" entries='[{\"id\":\"c1\",\"author\":\"Avery Chen\",\"body\":\"Ready to close this out.\"}]' actions='[{\"id\":\"resolve\",\"label\":\"Resolve thread\",\"tone\":\"primary\"},{\"id\":\"follow\",\"label\":\"Follow\"}]'></box-comment-thread>",
+          "note": "Actions apply to the thread, and carry the selected entry in their event so a host can scope them to one comment."
+        }
+      ]
+    },
+    {
+      "id": "formatted-date",
+      "tag": "box-formatted-date",
+      "title": "Components/Output/Formatted Date",
+      "category": "Output",
+      "shortDescription": "A date or time in the reader's locale.",
+      "docsDescription": "Renders into `<time datetime=\"…\">`, so the exact instant stays available to anything reading the document rather than looking at it — a crawler, a calendar extension, a screen reader offering \"copy date\". The visible text is the reader's format; the attribute is always ISO 8601. An absent `locale` means the host's own, passed to `Intl` as `undefined` rather than a hardcoded `en-US`, because substituting one would silently render American dates to a German reader. With neither `date-style` nor `time-style` set, the date alone is shown at medium width: that is the common case in a file list, and defaulting to a timestamp would put a time nobody asked for beside every filename. A value that cannot be parsed hides the element rather than rendering `Invalid Date` — a malformed value is a host bug, and showing its wreckage helps no reader.",
+      "sourceSnippet": "<box-formatted-date value=\"2026-08-25T14:30:00Z\" date-style=\"medium\"></box-formatted-date>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "The instant, as ISO 8601 or epoch milliseconds."
+        },
+        {
+          "kind": "attribute",
+          "name": "date-style",
+          "type": "string",
+          "description": "`full`, `long`, `medium` or `short`. Unrecognised values are ignored rather than substituted."
+        },
+        {
+          "kind": "attribute",
+          "name": "time-style",
+          "type": "string",
+          "description": "Same vocabulary. Absent renders no time at all."
+        },
+        {
+          "kind": "attribute",
+          "name": "time-zone",
+          "type": "string",
+          "description": "IANA zone, e.g. `America/New_York`. Absent uses the host's."
+        },
+        {
+          "kind": "attribute",
+          "name": "locale",
+          "type": "string",
+          "description": "BCP 47 tag. Absent uses the host's locale."
+        },
+        {
+          "kind": "attribute",
+          "name": "tabular",
+          "type": "boolean",
+          "description": "Tabular figures, so a column of dates aligns."
+        },
+        {
+          "kind": "part",
+          "name": "value",
+          "type": "part",
+          "description": "The `<time>` element."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Date",
+          "html": "<box-formatted-date value=\"2026-08-25T14:30:00Z\" date-style=\"medium\" time-zone=\"UTC\" locale=\"en-GB\"></box-formatted-date>",
+          "note": "The default shape: a date, no time."
+        },
+        {
+          "name": "Date and time",
+          "html": "<box-formatted-date value=\"2026-08-25T14:30:00Z\" date-style=\"medium\" time-style=\"short\" time-zone=\"UTC\" locale=\"en-GB\"></box-formatted-date>"
+        },
+        {
+          "name": "Another locale",
+          "html": "<box-formatted-date value=\"2026-08-25T14:30:00Z\" date-style=\"full\" time-zone=\"UTC\" locale=\"de-DE\"></box-formatted-date>",
+          "note": "Same instant, same markup — the reader's language decides the rest."
+        },
+        {
+          "name": "Unparseable",
+          "html": "<box-formatted-date value=\"banana\"></box-formatted-date>",
+          "note": "Renders nothing at all. There is deliberately no `Invalid Date` to see here."
+        }
+      ]
+    },
+    {
+      "id": "formatted-file-size",
+      "tag": "box-formatted-file-size",
+      "title": "Components/Output/Formatted File Size",
+      "category": "Output",
+      "shortDescription": "A byte count as a readable size.",
+      "docsDescription": "The magnitude goes through `Intl.NumberFormat`, so a German reader sees \"2,52 MB\" rather than \"2.52 MB\". That is the reason this exists as a component rather than a `toFixed` call in each consumer: the decimal separator is not the same everywhere, and a file size is among the most frequently rendered values in a content platform. Defaults to decimal units — powers of 1000 with `kB`/`MB` names — matching what the Box product reports; `units=\"binary\"` switches to powers of 1024 with IEC names (`KiB`/`MiB`) for hosts that need to agree with a filesystem instead. Bytes are reported whole, because \"1.5 B\" is nonsense; above that, one decimal is the convention every file browser uses.",
+      "sourceSnippet": "<box-formatted-file-size value=\"2517630\"></box-formatted-file-size>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "The size in bytes."
+        },
+        {
+          "kind": "attribute",
+          "name": "units",
+          "type": "string",
+          "description": "`decimal` (default, powers of 1000) or `binary` (powers of 1024, IEC names)."
+        },
+        {
+          "kind": "attribute",
+          "name": "maximum-fraction-digits",
+          "type": "number",
+          "description": "Overrides the default of 1 (0 for whole bytes)."
+        },
+        {
+          "kind": "attribute",
+          "name": "locale",
+          "type": "string",
+          "description": "BCP 47 tag. Absent uses the host's locale."
+        },
+        {
+          "kind": "attribute",
+          "name": "tabular",
+          "type": "boolean",
+          "description": "Tabular figures, so a column of sizes aligns."
+        },
+        {
+          "kind": "part",
+          "name": "value",
+          "type": "part",
+          "description": "The rendered size."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Decimal",
+          "html": "<box-formatted-file-size value=\"2517630\" locale=\"en-US\"></box-formatted-file-size>",
+          "note": "Powers of 1000, matching what the Box product reports."
+        },
+        {
+          "name": "Binary",
+          "html": "<box-formatted-file-size value=\"2517630\" units=\"binary\" locale=\"en-US\"></box-formatted-file-size>",
+          "note": "The same bytes, counted the way a filesystem counts them."
+        },
+        {
+          "name": "Another locale",
+          "html": "<box-formatted-file-size value=\"2517630\" locale=\"de-DE\"></box-formatted-file-size>"
+        },
+        {
+          "name": "Bytes",
+          "html": "<box-formatted-file-size value=\"512\" locale=\"en-US\"></box-formatted-file-size>",
+          "note": "Whole, because a fractional byte is not a thing."
+        }
+      ]
+    },
+    {
+      "id": "formatted-number",
+      "tag": "box-formatted-number",
+      "title": "Components/Output/Formatted Number",
+      "category": "Output",
+      "shortDescription": "A number in the reader's locale.",
+      "docsDescription": "The attribute is `format-style`, not `style`, because `style` is a global HTML attribute: naming it after the `Intl` option would be tidier right up until the first host wrote `style=\"currency\"`, put CSS on the element, and watched nothing happen. `percent` follows `Intl`, which multiplies by 100 — pass `0.42` to render \"42%\". Where an option is missing or invalid the number is still rendered, plainly: a `currency` style with no `currency` code, or a code `Intl` rejects, falls back to a decimal rather than hiding a real value over a bad attribute. Only a value that is not a finite number hides the element.",
+      "sourceSnippet": "<box-formatted-number value=\"1234.5\" format-style=\"currency\" currency=\"USD\"></box-formatted-number>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "The number to render."
+        },
+        {
+          "kind": "attribute",
+          "name": "format-style",
+          "type": "string",
+          "description": "`decimal` (default), `currency`, `percent` or `unit`. Named to avoid the global `style` attribute."
+        },
+        {
+          "kind": "attribute",
+          "name": "currency",
+          "type": "string",
+          "description": "ISO 4217 code, required by `Intl` when the style is `currency`."
+        },
+        {
+          "kind": "attribute",
+          "name": "unit",
+          "type": "string",
+          "description": "A sanctioned unit identifier, e.g. `megabyte`, when the style is `unit`."
+        },
+        {
+          "kind": "attribute",
+          "name": "minimum-fraction-digits",
+          "type": "number",
+          "description": "Passed through to `Intl.NumberFormat`."
+        },
+        {
+          "kind": "attribute",
+          "name": "maximum-fraction-digits",
+          "type": "number",
+          "description": "Passed through to `Intl.NumberFormat`."
+        },
+        {
+          "kind": "attribute",
+          "name": "locale",
+          "type": "string",
+          "description": "BCP 47 tag. Absent uses the host's locale."
+        },
+        {
+          "kind": "attribute",
+          "name": "tabular",
+          "type": "boolean",
+          "description": "Tabular figures, so a column of numbers aligns."
+        },
+        {
+          "kind": "part",
+          "name": "value",
+          "type": "part",
+          "description": "The rendered number."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Grouped",
+          "html": "<box-formatted-number value=\"1234567.5\" locale=\"en-US\"></box-formatted-number>"
+        },
+        {
+          "name": "Another locale",
+          "html": "<box-formatted-number value=\"1234567.5\" locale=\"de-DE\"></box-formatted-number>",
+          "note": "The grouping and decimal separators both change; this is why it is a component and not a template literal."
+        },
+        {
+          "name": "Currency",
+          "html": "<box-formatted-number value=\"1234.5\" format-style=\"currency\" currency=\"USD\" locale=\"en-US\"></box-formatted-number>"
+        },
+        {
+          "name": "Percent",
+          "html": "<box-formatted-number value=\"0.42\" format-style=\"percent\" locale=\"en-US\"></box-formatted-number>",
+          "note": "Intl multiplies by 100, so the input is a fraction."
+        }
+      ]
+    },
+    {
+      "id": "relative-time",
+      "tag": "box-relative-time",
+      "title": "Components/Output/Relative Time",
+      "category": "Output",
+      "shortDescription": "How long ago something happened.",
+      "docsDescription": "Renders into `<time datetime=\"…\">` carrying the exact instant, because \"4 days ago\" is an approximation and the precise value is what a reader reaches for when the approximation is not enough — the same trade `box-due-badge` makes. `reference-time` pins what \"now\" means, for the same reason that component has one: output that depends on the wall clock cannot be tested or screenshotted deterministically, and a host rendering a list wants every row measured against one instant rather than each against the moment it happened to render. The unit is the largest that yields a whole number, and it truncates rather than rounds — 47 hours is \"1 day ago\", never \"2 days ago\", because a label should not claim a boundary the instant has not crossed. An unparseable `reference-time` falls back to the current time rather than hiding the element: the instant being described is still valid, and a broken reference must not erase it.",
+      "sourceSnippet": "<box-relative-time value=\"2026-08-21T12:00:00Z\"></box-relative-time>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "The instant being described, as ISO 8601 or epoch milliseconds."
+        },
+        {
+          "kind": "attribute",
+          "name": "reference-time",
+          "type": "string",
+          "description": "What \"now\" means. Absent uses the current time."
+        },
+        {
+          "kind": "attribute",
+          "name": "numeric",
+          "type": "string",
+          "description": "`auto` (default) allows \"yesterday\" where the language has a word for it; `always` forces \"1 day ago\"."
+        },
+        {
+          "kind": "attribute",
+          "name": "locale",
+          "type": "string",
+          "description": "BCP 47 tag. Absent uses the host's locale."
+        },
+        {
+          "kind": "part",
+          "name": "value",
+          "type": "part",
+          "description": "The `<time>` element."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Days ago",
+          "html": "<box-relative-time value=\"2026-08-21T12:00:00Z\" reference-time=\"2026-08-25T12:00:00Z\" locale=\"en\"></box-relative-time>"
+        },
+        {
+          "name": "Idiomatic",
+          "html": "<box-relative-time value=\"2026-08-24T12:00:00Z\" reference-time=\"2026-08-25T12:00:00Z\" locale=\"en\"></box-relative-time>",
+          "note": "`auto` lets Intl say \"yesterday\" rather than \"1 day ago\"."
+        },
+        {
+          "name": "Always numeric",
+          "html": "<box-relative-time value=\"2026-08-24T12:00:00Z\" reference-time=\"2026-08-25T12:00:00Z\" numeric=\"always\" locale=\"en\"></box-relative-time>",
+          "note": "The same instant, forced into a count — useful when rows must read uniformly."
+        },
+        {
+          "name": "Ahead",
+          "html": "<box-relative-time value=\"2026-09-02T12:00:00Z\" reference-time=\"2026-08-25T12:00:00Z\" locale=\"en\"></box-relative-time>",
+          "note": "The future works too; the sign follows `Intl.RelativeTimeFormat`."
+        }
+      ]
+    },
+    {
       "id": "shortcuts-overlay",
       "tag": "box-shortcuts-overlay",
       "title": "Components/Overlays/Shortcuts Overlay",

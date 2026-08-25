@@ -37,6 +37,10 @@ import type { ColorPicker } from "./components/forms/color-picker.js";
 import type { Combobox } from "./components/forms/combobox.js";
 import type { CommandPalette } from "./components/overlays/command-palette.js";
 import type { CommentThread } from "./patterns/comments/comment-thread.js";
+import type { FormattedDate } from "./components/output/formatted-date.js";
+import type { FormattedFileSize } from "./components/output/formatted-file-size.js";
+import type { FormattedNumber } from "./components/output/formatted-number.js";
+import type { RelativeTime } from "./components/output/relative-time.js";
 import type { CompareView } from "./patterns/diff/compare-view.js";
 import type { ContactDatalistItem } from "./components/identity/contact-datalist-item.js";
 import type { ContentExplorer } from "./patterns/content-explorer/content-explorer.js";
@@ -181,6 +185,10 @@ declare global {
     "box-combobox": Combobox;
     "box-command-palette": CommandPalette;
     "box-comment-thread": CommentThread;
+    "box-formatted-date": FormattedDate;
+    "box-formatted-file-size": FormattedFileSize;
+    "box-formatted-number": FormattedNumber;
+    "box-relative-time": RelativeTime;
     "box-compare-view": CompareView;
     "box-contact-datalist-item": ContactDatalistItem;
     "box-content-explorer": ContentExplorer;
@@ -327,6 +335,10 @@ export type BoxElementTagName =
   | "box-combobox"
   | "box-command-palette"
   | "box-comment-thread"
+  | "box-formatted-date"
+  | "box-formatted-file-size"
+  | "box-formatted-number"
+  | "box-relative-time"
   | "box-compare-view"
   | "box-contact-datalist-item"
   | "box-content-explorer"

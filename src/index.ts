@@ -81,6 +81,9 @@ export { boxIconography, boxIconographyAliases } from "./foundations/icons/index
 // Foundations: Adobe Spectrum's responsive grid (shared by box-grid and box-skeleton)
 export * from "./foundations/layout/index.js";
 
+// Foundations: locale-aware typed-value formatting (shared by box-formatted-*)
+export * from "./foundations/format/index.js";
+
 // Foundations: viewport-aware overlay positioning (for building custom overlays)
 export {
   anchorFloating,
@@ -180,6 +183,13 @@ export * from "./components/forms/search-field.js";
 export * from "./components/forms/select.js";
 export * from "./components/forms/text-area.js";
 export * from "./components/forms/text-field.js";
+
+// Components: output (read-only typed-value renderers)
+export * from "./components/output/formatted-value.js";
+export * from "./components/output/formatted-date.js";
+export * from "./components/output/relative-time.js";
+export * from "./components/output/formatted-number.js";
+export * from "./components/output/formatted-file-size.js";
 
 // Components: layout
 export * from "./components/layout/app-shell.js";

@@ -1547,6 +1547,18 @@ export const examples: Record<string, ComponentExample> = {
     html: `<box-annotation-toolbar label="Annotate" active-tool-id="comment" current-color="#f59e0b" tools='[{"id":"comment","label":"Comment"},{"id":"highlight","label":"Highlight"},{"id":"draw","label":"Draw"},{"id":"redact","label":"Redact","disabled":true}]' color-options='[{"id":"amber","label":"Amber","value":"#f59e0b"},{"id":"blue","label":"Blue","value":"#3b82f6"},{"id":"red","label":"Red","value":"#ed3757"}]' actions='[{"id":"undo","label":"Undo"},{"id":"save","label":"Save","tone":"primary"}]'></box-annotation-toolbar>`,
   },
   "annotation-inspector": { html: `<box-annotation-inspector heading="Annotation"></box-annotation-inspector>` },
+  "formatted-date": {
+    html: `<box-formatted-date value="2026-08-25T14:30:00Z" date-style="medium" time-style="short" time-zone="UTC" locale="en-GB"></box-formatted-date>`,
+  },
+  "relative-time": {
+    html: `<box-relative-time value="2026-08-21T12:00:00Z" reference-time="2026-08-25T12:00:00Z" locale="en"></box-relative-time>`,
+  },
+  "formatted-number": {
+    html: `<box-formatted-number value="1234567.5" locale="en-US"></box-formatted-number>`,
+  },
+  "formatted-file-size": {
+    html: `<box-formatted-file-size value="2517630" locale="en-US"></box-formatted-file-size>`,
+  },
   "comment-thread": {
     html: `<box-comment-thread composable heading="Comments" message="Discussion on Master Services Agreement.pdf — not tied to any page." entries='[{"id":"c1","author":"Morgan Lee","body":"Finance signed off on the payment terms.","createdAt":"Yesterday, 4:12 PM","badge":"Finance","status":"Resolved"},{"id":"c2","author":"Avery Chen","body":"Still waiting on the security questionnaire before we counter-sign.","createdAt":"Today, 9:40 AM","badge":"Legal","status":"Open"}]' actions='[{"id":"resolve","label":"Resolve thread","tone":"primary"},{"id":"follow","label":"Follow"}]'></box-comment-thread>`,
   },

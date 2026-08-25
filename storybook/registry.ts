@@ -10,7 +10,12 @@ import avatar from "./stories/avatar.stories.js";
 import badge from "./stories/badge.stories.js";
 import badgeable from "./stories/badgeable.stories.js";
 import breadcrumb from "./stories/breadcrumb.stories.js";
+import commentThread from "./stories/comment-thread.stories.js";
 import contextMenu from "./stories/context-menu.stories.js";
+import formattedDate from "./stories/formatted-date.stories.js";
+import formattedFileSize from "./stories/formatted-file-size.stories.js";
+import formattedNumber from "./stories/formatted-number.stories.js";
+import relativeTime from "./stories/relative-time.stories.js";
 import table from "./stories/table.stories.js";
 import thumbnailCard from "./stories/thumbnail-card.stories.js";
 import barChart from "./stories/bar-chart.stories.js";
@@ -183,6 +188,11 @@ export const storyModules: StoryModule[] = [
   contentUploader,
   agentChat,
   commandPalette,
+  commentThread,
+  formattedDate,
+  formattedFileSize,
+  formattedNumber,
+  relativeTime,
   shortcutsOverlay,
   wizardSummary,
   compareView,

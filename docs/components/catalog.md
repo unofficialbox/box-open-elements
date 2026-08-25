@@ -75,6 +75,17 @@ element registries and test realms.
 
 - `drop-zone` — **built**
 
+### Output
+
+Read-only renderers for typed values. Each is locale-aware, each hides itself
+rather than rendering `Invalid Date` or `NaN`, and the instant-valued ones keep
+the exact value in a `<time datetime>` beside the human-readable text.
+
+- `formatted-date` — **built**
+- `relative-time` — **built** (pins "now" with `reference-time`, like `due-badge`)
+- `formatted-number` — **built** (`format-style`, not `style` — that one is a global HTML attribute)
+- `formatted-file-size` — **built**
+
 ### Forms
 
 - `category-selector` — **built**

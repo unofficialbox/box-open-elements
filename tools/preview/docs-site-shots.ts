@@ -89,6 +89,8 @@ const routes: Array<[name: string, hash: string, readyMarker: string, scrollTo?:
   ["components-alert", "#components/alert", "components/alert"],
   ["components-nudge", "#components/nudge", "components/nudge"],
   ["components-due-badge", "#components/due-badge", "components/due-badge"],
+  ["components-formatted-date", "#components/formatted-date", "components/formatted-date"],
+  ["components-formatted-file-size", "#components/formatted-file-size", "components/formatted-file-size"],
   ["lessons-share", "#lessons/share", "lessons/share", ".lesson-frameworks"],
   ["lessons-explorer-step", "#lessons/explorer", "lessons/explorer", "#step-0"],
   ["lessons-intake", "#lessons/intake", "lessons/intake", "#step-5"],
