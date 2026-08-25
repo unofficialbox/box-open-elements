@@ -1547,6 +1547,15 @@ export const examples: Record<string, ComponentExample> = {
     html: `<box-annotation-toolbar label="Annotate" active-tool-id="comment" current-color="#f59e0b" tools='[{"id":"comment","label":"Comment"},{"id":"highlight","label":"Highlight"},{"id":"draw","label":"Draw"},{"id":"redact","label":"Redact","disabled":true}]' color-options='[{"id":"amber","label":"Amber","value":"#f59e0b"},{"id":"blue","label":"Blue","value":"#3b82f6"},{"id":"red","label":"Red","value":"#ed3757"}]' actions='[{"id":"undo","label":"Undo"},{"id":"save","label":"Save","tone":"primary"}]'></box-annotation-toolbar>`,
   },
   "annotation-inspector": { html: `<box-annotation-inspector heading="Annotation"></box-annotation-inspector>` },
+  "indicator": {
+    html: `<div style="display:grid;gap:0.4rem"><box-indicator tone="success" label="Signed"></box-indicator><box-indicator tone="warning" label="Awaiting counter-signature"></box-indicator><box-indicator tone="error" label="Rejected"></box-indicator><box-indicator tone="pending" label="Not started"></box-indicator></div>`,
+  },
+  "code-block": {
+    html: `<box-code-block language="bash" code="bun add @unofficialbox/box-open-elements"></box-code-block>`,
+  },
+  "tile-group": {
+    html: `<box-tile-group name="retention" legend="Retention policy" value="standard" options='[{"id":"standard","label":"Standard","description":"Delete 7 years after the contract ends."},{"id":"extended","label":"Extended","description":"Retain indefinitely; legal hold applies."}]'></box-tile-group>`,
+  },
   "formatted-date": {
     html: `<box-formatted-date value="2026-08-25T14:30:00Z" date-style="medium" time-style="short" time-zone="UTC" locale="en-GB"></box-formatted-date>`,
   },

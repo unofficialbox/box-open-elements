@@ -62,6 +62,7 @@ element registries and test realms.
 - `empty-state` — **built**
 - `error-mask` — **built**
 - `help-text` — **built**
+- `indicator` — **built** (distinct in shape as well as colour, for dense status columns)
 - `nudge` — **built**
 - `path` — **built** (renamed from `stage-path` in 0.11.0)
 - `progress-bar` — **built**
@@ -85,6 +86,7 @@ the exact value in a `<time datetime>` beside the human-readable text.
 - `relative-time` — **built** (pins "now" with `reference-time`, like `due-badge`)
 - `formatted-number` — **built** (`format-style`, not `style` — that one is a global HTML attribute)
 - `formatted-file-size` — **built**
+- `code-block` — **built** (renders code as text, never as markup; no bundled highlighting)
 
 ### Forms
 
@@ -112,6 +114,7 @@ the exact value in a `<time datetime>` beside the human-readable text.
 - `switch` — **built**
 - `text-area` — **built**
 - `text-field` — **built**
+- `tile-group` — **built** (selectable cards over real radios/checkboxes)
 - `time-field` — **built**
 
 ### Identity

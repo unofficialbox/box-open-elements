@@ -37,7 +37,10 @@ import type { ColorPicker } from "./components/forms/color-picker.js";
 import type { Combobox } from "./components/forms/combobox.js";
 import type { CommandPalette } from "./components/overlays/command-palette.js";
 import type { CommentThread } from "./patterns/comments/comment-thread.js";
+import type { CodeBlock } from "./components/output/code-block.js";
 import type { FormattedDate } from "./components/output/formatted-date.js";
+import type { Indicator } from "./components/feedback/indicator.js";
+import type { TileGroup } from "./components/forms/tile-group.js";
 import type { FormattedFileSize } from "./components/output/formatted-file-size.js";
 import type { FormattedNumber } from "./components/output/formatted-number.js";
 import type { RelativeTime } from "./components/output/relative-time.js";
@@ -185,7 +188,10 @@ declare global {
     "box-combobox": Combobox;
     "box-command-palette": CommandPalette;
     "box-comment-thread": CommentThread;
+    "box-code-block": CodeBlock;
     "box-formatted-date": FormattedDate;
+    "box-indicator": Indicator;
+    "box-tile-group": TileGroup;
     "box-formatted-file-size": FormattedFileSize;
     "box-formatted-number": FormattedNumber;
     "box-relative-time": RelativeTime;
@@ -335,7 +341,10 @@ export type BoxElementTagName =
   | "box-combobox"
   | "box-command-palette"
   | "box-comment-thread"
+  | "box-code-block"
   | "box-formatted-date"
+  | "box-indicator"
+  | "box-tile-group"
   | "box-formatted-file-size"
   | "box-formatted-number"
   | "box-relative-time"

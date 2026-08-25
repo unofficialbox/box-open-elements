@@ -2164,6 +2164,84 @@
       ]
     },
     {
+      "id": "code-block",
+      "tag": "box-code-block",
+      "title": "Components/Output/Code Block",
+      "category": "Output",
+      "shortDescription": "A block of code, rendered as written.",
+      "docsDescription": "The code is set as `textContent`, never as markup — a snippet is the string most likely on any page to contain angle brackets, and rendering it as HTML would both corrupt what the reader sees and hand an injection point to whatever produced the snippet. There is **no syntax highlighting**, deliberately: doing it properly means shipping a grammar per language, and doing it improperly means mis-colouring code a reader is trying to trust. A host that needs highlighting slots pre-rendered markup into the default slot instead, and `language` is surfaced as a `data-language` hook and a `language-*` class for whatever does the highlighting. Long lines scroll rather than wrap, because a wrapped line silently changes what the reader believes the source says; `wrap` opts in where the content has no meaningful column structure. The copy button reports a refused clipboard by simply not confirming — access is denied in plenty of ordinary situations, and none of them deserve an exception in the host's console.",
+      "sourceSnippet": "<box-code-block code=\"bun add @unofficialbox/box-open-elements\"></box-code-block>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "code",
+          "type": "string",
+          "description": "The source to render. Slotted content takes precedence, for pre-highlighted markup."
+        },
+        {
+          "kind": "attribute",
+          "name": "language",
+          "type": "string",
+          "description": "Surfaced as `data-language` and a `language-*` class. Nothing here interprets it."
+        },
+        {
+          "kind": "attribute",
+          "name": "wrap",
+          "type": "boolean",
+          "description": "Wrap long lines instead of scrolling them."
+        },
+        {
+          "kind": "attribute",
+          "name": "inline",
+          "type": "boolean",
+          "description": "Inline presentation; hides the copy button."
+        },
+        {
+          "kind": "attribute",
+          "name": "copy-label",
+          "type": "string",
+          "description": "Accessible name for the copy button. Defaults to `Copy code`."
+        },
+        {
+          "kind": "event",
+          "name": "code-copied",
+          "type": "{ copied: boolean }",
+          "description": "Emitted after a copy attempt, whether or not the clipboard accepted it."
+        },
+        {
+          "kind": "part",
+          "name": "pre",
+          "type": "part",
+          "description": "The scrolling container."
+        },
+        {
+          "kind": "part",
+          "name": "copy",
+          "type": "part",
+          "description": "The copy button."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Command",
+          "html": "<box-code-block language=\"bash\" code=\"bun add @unofficialbox/box-open-elements\"></box-code-block>"
+        },
+        {
+          "name": "Markup",
+          "html": "<box-code-block language=\"html\" code='<box-indicator tone=\"success\" label=\"Signed\"></box-indicator>'></box-code-block>",
+          "note": "Angle brackets survive intact — the snippet is text, not markup."
+        },
+        {
+          "name": "Wrapped",
+          "html": "<box-code-block wrap code=\"https://app.box.com/folder/0/file/123456789?utm_source=example&utm_campaign=a-very-long-query-string-that-has-no-column-structure\"></box-code-block>"
+        },
+        {
+          "name": "Inline",
+          "html": "<p style=\"margin:0\">Install with <box-code-block inline code=\"bun add\"></box-code-block> and restart.</p>"
+        }
+      ]
+    },
+    {
       "id": "comment-thread",
       "tag": "box-comment-thread",
       "title": "Patterns/Comments/Comment Thread",
@@ -2277,6 +2355,132 @@
           "name": "With actions",
           "html": "<box-comment-thread heading=\"Comments\" entries='[{\"id\":\"c1\",\"author\":\"Avery Chen\",\"body\":\"Ready to close this out.\"}]' actions='[{\"id\":\"resolve\",\"label\":\"Resolve thread\",\"tone\":\"primary\"},{\"id\":\"follow\",\"label\":\"Follow\"}]'></box-comment-thread>",
           "note": "Actions apply to the thread, and carry the selected entry in their event so a host can scope them to one comment."
+        }
+      ]
+    },
+    {
+      "id": "indicator",
+      "tag": "box-indicator",
+      "title": "Components/Feedback/Indicator",
+      "category": "Feedback",
+      "shortDescription": "A status mark for dense lists.",
+      "docsDescription": "Distinct in **shape** as well as colour. A column of coloured dots is unreadable to anyone who cannot separate the colours, and status is exactly the information a reader most needs from a dense list — so the shape carries the meaning and colour is the redundant channel rather than the only one. That is the same rule the `box-alert` and `box-toast` glyphs follow. When there is no visible `label`, the tone is still stated for assistive technology, because a bare dot otherwise announces nothing at all; when a label *is* present the tone stays quiet, so a reader does not hear \"Success Signed\" where the screen says \"Signed\". Reach for `box-badge` where the status needs a filled pill, and this where a status column has to stay narrow.",
+      "sourceSnippet": "<box-indicator tone=\"success\" label=\"Signed\"></box-indicator>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "tone",
+          "type": "string",
+          "description": "`info` (default), `success`, `warning`, `error` or `pending`. Unknown tones render the neutral disc."
+        },
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Visible text beside the mark. Optional; without it the tone is announced instead."
+        },
+        {
+          "kind": "part",
+          "name": "shape",
+          "type": "part",
+          "description": "The mark. `aria-hidden`, since the label or tone-label carries the meaning."
+        },
+        {
+          "kind": "part",
+          "name": "label",
+          "type": "part",
+          "description": "The visible text."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Status column",
+          "html": "<div style=\"display:grid;gap:0.4rem\"><box-indicator tone=\"success\" label=\"Signed\"></box-indicator><box-indicator tone=\"warning\" label=\"Awaiting counter-signature\"></box-indicator><box-indicator tone=\"error\" label=\"Rejected\"></box-indicator><box-indicator tone=\"pending\" label=\"Not started\"></box-indicator></div>",
+          "note": "Disc, triangle, diamond and ring — legible in greyscale, which is the test that matters."
+        },
+        {
+          "name": "Bare",
+          "html": "<div style=\"display:flex;gap:0.6rem\"><box-indicator tone=\"success\"></box-indicator><box-indicator tone=\"warning\"></box-indicator><box-indicator tone=\"error\"></box-indicator></div>",
+          "note": "Without a label each mark still announces its tone to a screen reader."
+        },
+        {
+          "name": "Info",
+          "html": "<box-indicator tone=\"info\" label=\"Draft\"></box-indicator>"
+        }
+      ]
+    },
+    {
+      "id": "tile-group",
+      "tag": "box-tile-group",
+      "title": "Components/Forms/Tile Group",
+      "category": "Forms",
+      "shortDescription": "Choose one option, or several, as cards.",
+      "docsDescription": "Each tile wraps a real `<input type=\"radio\">` or `<input type=\"checkbox\">`, visually hidden but present in the tab order and the accessibility tree. That is the whole design: grouping, arrow-key navigation between radios, roving focus and form participation all come from the platform rather than being reimplemented on `<div>`s and then subtly diverging from what a screen reader user expects. Because the control is hidden, the focus ring is drawn on the tile around it — without that, keyboard focus would be invisible. A disabled option disables the control itself, not just its styling, so it is neither focusable nor submitted. Use tiles where the choice deserves explaining — a plan, a permission level, a retention policy — and a bare radio label would not have room; where the options are one word each, radios are smaller and better.",
+      "sourceSnippet": "<box-tile-group name=\"plan\" options='[{\"id\":\"team\",\"label\":\"Team\"}]'></box-tile-group>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "options",
+          "type": "TileOption[]",
+          "description": "The choices, as JSON. Each needs `id` and `label`; `description` and `disabled` are optional."
+        },
+        {
+          "kind": "attribute",
+          "name": "name",
+          "type": "string",
+          "description": "The radio group name. Required for radios to behave as one group."
+        },
+        {
+          "kind": "attribute",
+          "name": "value",
+          "type": "string",
+          "description": "Selected ids, comma-separated. Read `.selected` for an array."
+        },
+        {
+          "kind": "attribute",
+          "name": "multiple",
+          "type": "boolean",
+          "description": "Several selections rather than one; switches radios for checkboxes."
+        },
+        {
+          "kind": "attribute",
+          "name": "legend",
+          "type": "string",
+          "description": "The fieldset legend."
+        },
+        {
+          "kind": "event",
+          "name": "tile-change",
+          "type": "{ selected: string[] }",
+          "description": "Emitted when the selection changes."
+        },
+        {
+          "kind": "part",
+          "name": "tile",
+          "type": "part",
+          "description": "One tile. Carries `data-selected` and `data-disabled`."
+        },
+        {
+          "kind": "part",
+          "name": "control",
+          "type": "part",
+          "description": "The visually hidden native input."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Single choice",
+          "html": "<box-tile-group name=\"retention\" legend=\"Retention policy\" value=\"standard\" options='[{\"id\":\"standard\",\"label\":\"Standard\",\"description\":\"Delete 7 years after the contract ends.\"},{\"id\":\"extended\",\"label\":\"Extended\",\"description\":\"Retain indefinitely; legal hold applies.\"}]'></box-tile-group>",
+          "note": "Where the choice deserves explaining — the description is what a radio label could not carry."
+        },
+        {
+          "name": "Several",
+          "html": "<box-tile-group multiple name=\"notify\" legend=\"Notify me when\" value=\"signed,expiring\" options='[{\"id\":\"signed\",\"label\":\"Signed\",\"description\":\"A counterparty completes the ceremony.\"},{\"id\":\"expiring\",\"label\":\"Expiring\",\"description\":\"30 days before the renewal date.\"},{\"id\":\"shared\",\"label\":\"Shared\",\"description\":\"Someone shares this outside the company.\"}]'></box-tile-group>"
+        },
+        {
+          "name": "With a disabled option",
+          "html": "<box-tile-group name=\"plan\" legend=\"Plan\" value=\"team\" options='[{\"id\":\"team\",\"label\":\"Team\",\"description\":\"Up to 25 people.\"},{\"id\":\"business\",\"label\":\"Business\",\"description\":\"Unlimited storage.\"},{\"id\":\"legacy\",\"label\":\"Legacy\",\"description\":\"No longer available.\",\"disabled\":true}]'></box-tile-group>",
+          "note": "The control is disabled, not merely dimmed, so it is neither focusable nor submitted."
         }
       ]
     },

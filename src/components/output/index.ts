@@ -2,6 +2,7 @@
 // file sizes, all locale-aware and all hiding themselves when handed something
 // they cannot format.
 export * from "./formatted-value.js";
+export * from "./code-block.js";
 export * from "./formatted-date.js";
 export * from "./relative-time.js";
 export * from "./formatted-number.js";

@@ -192,6 +192,15 @@ const calendarStyles = `
     background: var(--boe-token-surface-surface-brand-hover, #006ae9);
   }
 
+  /* The span between the endpoints. A tint rather than the brand fill, so the
+     two chosen dates stay the things the eye lands on — the middle is context,
+     not a selection the reader made. */
+  [part~="day"][data-in-range="true"]:not([data-selected="true"]) {
+    background: var(--boe-token-surface-item-surface-selected, #f2f7fd);
+    border-color: transparent;
+    color: var(--boe-token-text-text, #222222);
+  }
+
   [part~="day"]:focus-visible {
     outline: none;
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 24%, transparent);
@@ -206,7 +215,7 @@ const calendarStyles = `
 export class Calendar extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["disabled", "max", "min", "month", "today", "value"];
+    return ["disabled", "end", "max", "min", "mode", "month", "start", "today", "value"];
   }
 
   /** The date the roving tabindex currently points at. */
@@ -331,9 +340,90 @@ export class Calendar extends BaseElement {
     this.goToMonth(next.getUTCFullYear(), next.getUTCMonth() + 1);
   }
 
+  /**
+   * `single` (default) or `range`.
+   *
+   * Range mode uses `start`/`end` rather than overloading `value`: a single
+   * attribute holding two dates would have to invent a separator, and every
+   * host would then have to parse it back out.
+   */
+  get mode(): string {
+    return this.getAttribute("mode") === "range" ? "range" : "single";
+  }
+
+  set mode(next: string) {
+    this.setAttribute("mode", next);
+  }
+
+  /** First date of the range, ISO. */
+  get start(): string {
+    return this.getAttribute("start") ?? "";
+  }
+
+  set start(next: string) {
+    if (!next) {
+      this.removeAttribute("start");
+      return;
+    }
+    this.setAttribute("start", next);
+  }
+
+  /** Last date of the range, ISO. Empty while only one end has been picked. */
+  get end(): string {
+    return this.getAttribute("end") ?? "";
+  }
+
+  set end(next: string) {
+    if (!next) {
+      this.removeAttribute("end");
+      return;
+    }
+    this.setAttribute("end", next);
+  }
+
+  /**
+   * Advance the range by one click.
+   *
+   * Three states, cycling: nothing chosen picks a start; a start alone closes
+   * the range; a complete range starts over. Picking an earlier day as the
+   * second click swaps the ends rather than rejecting it — a reader dragging
+   * backwards through a calendar means the same thing as dragging forwards,
+   * and refusing it would be pedantry.
+   */
+  private selectRange(iso: string): void {
+    const start = this.start;
+    const end = this.end;
+
+    if (!start || end) {
+      this.start = iso;
+      this.end = "";
+    } else if (iso < start) {
+      this.end = start;
+      this.start = iso;
+    } else {
+      this.end = iso;
+    }
+
+    this.dispatchEvent(
+      new CustomEvent("range-changed", {
+        bubbles: true,
+        composed: true,
+        detail: { end: this.end, start: this.start },
+      }),
+    );
+  }
+
   private selectDate(date: CalendarDate): void {
     const iso = toISO(date);
     if (this.disabled || this.isOutOfRange(iso)) {
+      return;
+    }
+    if (this.mode === "range") {
+      this.selectRange(iso);
+      this.setAttribute("month", `${date.y}-${pad(date.m)}`);
+      this.activeDate = date;
+      this.update();
+      this.focusActive();
       return;
     }
     this.setAttribute("value", iso);
@@ -507,6 +597,9 @@ export class Calendar extends BaseElement {
 
     const { y, m } = this.displayedMonth();
     const selected = parseISO(this.value);
+    const isRange = this.mode === "range";
+    const rangeStart = isRange ? this.start : "";
+    const rangeEnd = isRange ? this.end : "";
     const active = this.resolveActiveDate();
     const activeIso = toISO({ y, m, d: clampDay(y, m, active.d) });
     const todayIso = toISO(this.resolveToday());
@@ -523,7 +616,15 @@ export class Calendar extends BaseElement {
     }
     for (let day = 1; day <= total; day += 1) {
       const iso = toISO({ y, m, d: day });
-      const isSelected = selected ? toISO(selected) === iso : false;
+      const isSelected = isRange
+        ? iso === rangeStart || iso === rangeEnd
+        : selected
+          ? toISO(selected) === iso
+          : false;
+      // Strictly between the ends: the endpoints are "selected", not "in range",
+      // so they keep the brand fill rather than the tint.
+      const inRange =
+        isRange && rangeStart !== "" && rangeEnd !== "" && iso > rangeStart && iso < rangeEnd;
       const isToday = iso === todayIso;
       const isActive = iso === activeIso;
       const outOfRange = this.isOutOfRange(iso);
@@ -535,6 +636,7 @@ export class Calendar extends BaseElement {
           role="gridcell"
           data-date="${iso}"
           data-selected="${isSelected ? "true" : "false"}"
+          data-in-range="${inRange ? "true" : "false"}"
           data-today="${isToday ? "true" : "false"}"
           tabindex="${isActive && !disabled ? "0" : "-1"}"
           aria-selected="${isSelected ? "true" : "false"}"
