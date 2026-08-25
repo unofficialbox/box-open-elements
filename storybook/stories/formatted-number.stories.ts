@@ -28,6 +28,7 @@ const formattedNumber: StoryModule = {
     { name: "Currency", html: `<box-formatted-number value="1234.5" format-style="currency" currency="USD" locale="en-US"></box-formatted-number>` },
     { name: "Percent", html: `<box-formatted-number value="0.42" format-style="percent" locale="en-US"></box-formatted-number>`, note: "Intl multiplies by 100, so the input is a fraction." },
     { name: "Unit", html: `<box-formatted-number value="2.5" format-style="unit" unit="megabyte" locale="en-US"></box-formatted-number>`, note: "For a raw magnitude that already knows its unit. Reach for `box-formatted-file-size` when the input is a byte count that still needs reducing." },
+    { name: "Unit, narrow", html: `<box-formatted-number value="2.5" format-style="unit" unit="megabyte" unit-display="narrow" locale="en-US"></box-formatted-number>`, note: "`narrow` drops the space. For a dense column or an inline figure where the unit is already obvious from the header — not for prose, where it reads as a typo." },
     { name: "Unit, spelled out", html: `<box-formatted-number value="2.5" format-style="unit" unit="megabyte" unit-display="long" locale="en-US"></box-formatted-number>`, note: "`long` is for prose, where an abbreviation the reader has to expand in their head is worse than the words." },
     { name: "Duration", html: `<box-formatted-number value="8" format-style="unit" unit="hour" unit-display="long" locale="en-US"></box-formatted-number>`, note: "Units are not only sizes — `hour`, `day` and `week` all come from the same sanctioned list." },
   ],
