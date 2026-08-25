@@ -5,6 +5,8 @@ const DEFAULT_TAG_NAME = "box-formatted-number";
 
 const NUMBER_STYLES = new Set(["decimal", "currency", "percent", "unit"]);
 
+const UNIT_DISPLAYS = new Set(["short", "narrow", "long"]);
+
 /**
  * A number, rendered in the reader's locale.
  *
@@ -33,6 +35,7 @@ export class FormattedNumber extends FormattedValue {
       "maximum-fraction-digits",
       "minimum-fraction-digits",
       "unit",
+      "unit-display",
       "value",
     ];
   }
@@ -65,13 +68,36 @@ export class FormattedNumber extends FormattedValue {
     this.setAttribute("currency", next);
   }
 
-  /** A sanctioned unit identifier, e.g. `megabyte`, when the style is `unit`. */
+  /**
+   * A sanctioned unit identifier, e.g. `megabyte`, when the style is `unit`.
+   *
+   * `Intl` accepts a closed list and throws on anything else, so this is not a
+   * free-text label — "widgets" will not work, and the component falls back to
+   * a plain number rather than losing the value over it.
+   */
   get unit(): string {
     return this.getAttribute("unit") ?? "";
   }
 
   set unit(next: string) {
     this.setAttribute("unit", next);
+  }
+
+  /**
+   * How wide to write the unit: `short` (2.5 MB), `narrow` (2.5MB) or `long`
+   * (2.5 megabytes).
+   *
+   * `Intl` defaults to `short`, which is what a table wants. `long` is for
+   * prose, where an abbreviation a reader has to expand in their head is worse
+   * than the words.
+   */
+  get unitDisplay(): string {
+    const raw = this.getAttribute("unit-display");
+    return raw && UNIT_DISPLAYS.has(raw) ? raw : "short";
+  }
+
+  set unitDisplay(next: string) {
+    this.setAttribute("unit-display", next);
   }
 
   protected formatted(): { text: string } | null {
@@ -95,6 +121,7 @@ export class FormattedNumber extends FormattedValue {
         options.style = "decimal";
       } else {
         options.unit = this.unit;
+        options.unitDisplay = this.unitDisplay as Intl.NumberFormatOptions["unitDisplay"];
       }
     }
 

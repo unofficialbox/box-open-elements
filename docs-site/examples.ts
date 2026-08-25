@@ -1563,7 +1563,7 @@ export const examples: Record<string, ComponentExample> = {
     html: `<box-relative-time value="2026-08-21T12:00:00Z" reference-time="2026-08-25T12:00:00Z" locale="en"></box-relative-time>`,
   },
   "formatted-number": {
-    html: `<box-formatted-number value="1234567.5" locale="en-US"></box-formatted-number>`,
+    html: `<div style="display:grid;gap:0.3rem"><box-formatted-number value="1234567.5" locale="en-US"></box-formatted-number><box-formatted-number value="1234.5" format-style="currency" currency="USD" locale="en-US"></box-formatted-number><box-formatted-number value="2.5" format-style="unit" unit="megabyte" unit-display="long" locale="en-US"></box-formatted-number></div>`,
   },
   "formatted-file-size": {
     html: `<box-formatted-file-size value="2517630" locale="en-US"></box-formatted-file-size>`,

@@ -205,6 +205,56 @@ describe("box-formatted-number", () => {
     expect(text(element)).toContain("10");
   });
 
+  it("writes a unit at the requested width", () => {
+    const short = mount("box-formatted-number", {
+      value: "2.5", "format-style": "unit", unit: "megabyte", locale: "en-US",
+    });
+    const long = mount("box-formatted-number", {
+      value: "2.5", "format-style": "unit", unit: "megabyte", "unit-display": "long", locale: "en-US",
+    });
+
+    expect(text(short)).toBe("2.5 MB");
+    // `long` is for prose, where an abbreviation the reader has to expand in
+    // their head is worse than the words.
+    expect(text(long)).toBe("2.5 megabytes");
+  });
+
+  it("defaults the unit width to short, which is what a table wants", () => {
+    expect(
+      text(mount("box-formatted-number", {
+        value: "8", "format-style": "unit", unit: "hour", locale: "en-US",
+      })),
+    ).toBe("8 hr");
+  });
+
+  it("ignores an unrecognised unit width rather than passing it to Intl", () => {
+    expect(
+      text(mount("box-formatted-number", {
+        value: "8", "format-style": "unit", unit: "hour", "unit-display": "enormous", locale: "en-US",
+      })),
+    ).toBe("8 hr");
+  });
+
+  it("renders a plain number rather than hiding one over a missing unit", () => {
+    const element = mount("box-formatted-number", {
+      value: "2.5", "format-style": "unit", locale: "en-US",
+    });
+
+    expect(element.hasAttribute("hidden")).toBe(false);
+    expect(text(element)).toBe("2.5");
+  });
+
+  it("survives a unit Intl does not sanction", () => {
+    // Intl accepts a closed list and throws on anything else; "widgets" is not
+    // a unit, but the number is still real.
+    const element = mount("box-formatted-number", {
+      value: "12", "format-style": "unit", unit: "widgets",
+    });
+
+    expect(element.hasAttribute("hidden")).toBe(false);
+    expect(text(element)).toContain("12");
+  });
+
   it("hides itself for a non-numeric value", () => {
     expect(mount("box-formatted-number", { value: "banana" }).hasAttribute("hidden")).toBe(true);
   });
