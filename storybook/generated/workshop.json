@@ -7292,6 +7292,69 @@
       ]
     },
     {
+      "id": "toolbar",
+      "tag": "box-toolbar",
+      "title": "Components/Actions/Toolbar",
+      "category": "Actions",
+      "shortDescription": "A row of independent controls, as one tab stop.",
+      "docsDescription": "The controls are yours; this contributes the three things a toolbar owes and hosts routinely skip: `role=\"toolbar\"`, an accessible name, and roving tabindex — so the whole group is a single tab stop and the arrow keys move within it. Reach for `box-button-group` instead when the controls are not independent: that one is a `radiogroup`, for picking exactly one of a set. Roving tabindex works by moving `tabindex` between elements, so it can only manage controls the browser already considers focusable — a custom element host is not focusable unless it carries its own `tabindex`.",
+      "sourceSnippet": "<box-toolbar label=\"Document actions\">\n  <button type=\"button\">Share</button>\n  <button type=\"button\">Download</button>\n</box-toolbar>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "label",
+          "type": "string",
+          "description": "Accessible name for the group, announced before its controls. Omitted rather than set blank when absent."
+        },
+        {
+          "kind": "attribute",
+          "name": "orientation",
+          "type": "string",
+          "description": "`horizontal` (default) or `vertical`. Picks which arrow keys navigate, and sets `aria-orientation`."
+        },
+        {
+          "kind": "property",
+          "name": "controls",
+          "type": "HTMLElement[]",
+          "description": "The focusable, non-disabled controls being managed, in document order."
+        },
+        {
+          "kind": "slot",
+          "name": "(default)",
+          "type": "slot",
+          "description": "The controls. Nested ones are found, so wrapping for layout is fine."
+        },
+        {
+          "kind": "part",
+          "name": "toolbar",
+          "type": "part",
+          "description": "The container carrying the role and the name."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Actions",
+          "html": "<box-toolbar label=\"Document actions\">\n  <button type=\"button\">Share</button>\n  <button type=\"button\">Download</button>\n  <button type=\"button\">Rename</button>\n</box-toolbar>",
+          "note": "Tab reaches the group once; the arrow keys move between the controls inside it."
+        },
+        {
+          "name": "With a disabled control",
+          "html": "<box-toolbar label=\"Document actions\">\n  <button type=\"button\">Share</button>\n  <button type=\"button\" disabled>Download</button>\n  <button type=\"button\">Rename</button>\n</box-toolbar>",
+          "note": "Arrow keys skip it. A disabled control cannot take focus, so leaving it in the rotation would strand the reader on a dead stop."
+        },
+        {
+          "name": "Vertical",
+          "html": "<box-toolbar label=\"Document actions\" orientation=\"vertical\" style=\"max-width:12rem\">\n  <button type=\"button\">Share</button>\n  <button type=\"button\">Download</button>\n  <button type=\"button\">Rename</button>\n</box-toolbar>",
+          "note": "Up and down navigate instead, and `aria-orientation` follows so the announcement matches the behaviour."
+        },
+        {
+          "name": "Grouped for layout",
+          "html": "<box-toolbar label=\"Editor actions\">\n  <span><button type=\"button\">Bold</button><button type=\"button\">Italic</button></span>\n  <a href=\"#help\">Help</a>\n</box-toolbar>",
+          "note": "Controls nested in a wrapper are still found, and a link counts as a control — a toolbar is not only buttons."
+        }
+      ]
+    },
+    {
       "id": "select",
       "tag": "box-select",
       "title": "Components/Forms/Select",

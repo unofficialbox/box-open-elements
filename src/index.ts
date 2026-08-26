@@ -107,6 +107,7 @@ export * from "./components/actions/link-button.js";
 export * from "./components/actions/menu.js";
 export * from "./components/actions/segmented-control.js";
 export * from "./components/actions/menu-item.js";
+export * from "./components/actions/toolbar.js";
 
 // Components: collections
 export * from "./components/collections/card.js";
