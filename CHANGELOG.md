@@ -15,6 +15,63 @@ are kept as written.
 
 ## Unreleased
 
+## 0.15.0 — 2026-08-26
+
+One new component, and an accuracy pass over documentation that had drifted
+away from the repo it describes. Additive; no existing default changes.
+
+### `box-toolbar`
+
+A row of independent controls, contributing the three things a toolbar owes and
+hosts routinely skip — `role="toolbar"`, an accessible name, and roving
+tabindex — while leaving the controls themselves to the host. Tab reaches the
+group once; the arrow keys move within it. `orientation="vertical"` switches to
+up/down and sets `aria-orientation` so the announcement matches the behaviour.
+
+It is deliberately not `box-button-group`, which is a `radiogroup`: that one is
+for picking exactly one of a set, and its children answer to a shared value. A
+toolbar's controls are independent of each other.
+
+Roving tabindex works by moving `tabindex` between elements, so it can only
+manage controls the browser already considers focusable. A custom element host
+is not focusable unless it carries its own `tabindex`, and the component's scope
+says so rather than implying otherwise.
+
+Testing it in Chromium rather than only in jsdom caught a defect worth
+recording, because the same shape will recur in any roving-tabindex container:
+roving tabindex only writes to the controls it *manages*, and a disabled control
+is excluded — so it kept a button's default `tabIndex` of 0 and the toolbar had
+two tab stops. Invisible while the control stayed disabled, and controls get
+re-enabled at runtime as a matter of course. Every focusable control is now
+claimed before one is handed the stop, and a `MutationObserver` watches for
+`disabled` toggling and for controls added inside a wrapper — neither of which
+fires `slotchange`.
+
+### Documentation that had stopped being true
+
+Four claims were corrected after checking each against the repo or the registry
+rather than reasoning about them:
+
+- The components catalog said a generic version of `action-menu`, `table` and
+  `breadcrumbs` "remains future work". All three already ship, as `box-menu`,
+  `box-table` and `box-breadcrumb` — so the catalog was pointing readers at
+  building things that exist. `toolbar` was the one real gap of the six, which
+  is why it is in this release; `items` and `list` remain genuinely missing.
+- The CHANGELOG's own header described a 2026-07-14..17 snapshot — "55
+  commits", "108 stories" — above a file running through 0.14.0 with 148. Read
+  as the file's description of itself, so those numbers landed as current.
+- `RELEASING.md` said a version bump changes "23 pixels in all 46" docs-site
+  baselines. There are 57, and 0.13.0 to 0.14.0 measured 66. Both were frozen at
+  an earlier release, so the counts are gone rather than refreshed.
+- `RELEASING.md` also listed configuring the adapters' npm Trusted Publishers as
+  a remaining step, warning that until then `Cut release` would skip their
+  publish. It is done: all four adapters carry provenance attestations, which
+  only an OIDC publish produces.
+
+Where a stale number sat in a position that reads as a description of the
+current state, it was replaced with a description rather than a fresher number —
+a count in that position goes stale by design.
+
 ## 0.14.0 — 2026-08-25
 
 A small release: one component gains one attribute. Additive, with no change to
