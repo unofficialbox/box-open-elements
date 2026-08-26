@@ -127,6 +127,7 @@ import searchField from "./stories/search-field.stories.js";
 import searchResultsHeader from "./stories/search-results-header.stories.js";
 import section from "./stories/section.stories.js";
 import segmentedControl from "./stories/segmented-control.stories.js";
+import toolbar from "./stories/toolbar.stories.js";
 import select from "./stories/select.stories.js";
 import sharePanel from "./stories/share-panel.stories.js";
 import sidebarToggleButton from "./stories/sidebar-toggle-button.stories.js";
@@ -283,6 +284,7 @@ export const storyModules: StoryModule[] = [
   searchResultsHeader,
   section,
   segmentedControl,
+  toolbar,
   select,
   sharePanel,
   sidebarToggleButton,

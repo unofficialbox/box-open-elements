@@ -32,14 +32,14 @@ element registries and test realms.
 ### Actions
 
 - `button` — **built**
-- `action-menu` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/action-menu` (`box-explorer-action-menu`); a generic version remains future work*
+- `action-menu` — **built** as `box-menu`, an action menu driven by a JSON item list; `patterns/content-explorer/adapters/action-menu` (`box-explorer-action-menu`) is the controller-bound variant
 - `button-group` — **built**
 - `icon-button` — **built**
 - `link-button` — **built**
 - `menu` — **built**
 - `menu-item` — **built**
 - `segmented-control` — **built**
-- `toolbar` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/toolbar` (`box-explorer-toolbar`); a generic version remains future work*
+- `toolbar` — **built** as `box-toolbar`, which contributes `role="toolbar"`, an accessible name and roving tabindex over slotted controls; `patterns/content-explorer/adapters/toolbar` (`box-explorer-toolbar`) stays controller-bound, rendering its own search, status and selection controls from explorer state
 
 ### Collections
 
@@ -51,7 +51,7 @@ element registries and test realms.
 - `items` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/items` (`box-explorer-items`); a generic version remains future work*
 - `list` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/list` (`box-explorer-list`); a generic version remains future work*
 - `pagination` — **built**
-- `table` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/table` (`box-explorer-table`); a generic version remains future work*
+- `table` — **built** as `box-table`, with cell descriptors, expansion, states, stacked rows and row virtualization; `patterns/content-explorer/adapters/table` (`box-explorer-table`) is the controller-bound variant
 - `tree` — **built**
 - `tree-grid` — **built**
 
@@ -135,7 +135,7 @@ the exact value in a `<time datetime>` beside the human-readable text.
 ### Navigation
 
 - `accordion` — **built**
-- `breadcrumbs` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/breadcrumbs` (`box-explorer-breadcrumbs`); a generic version remains future work*
+- `breadcrumbs` — **built** as `box-breadcrumb`, taking a `BreadcrumbItem[]` of label/href/value and reporting `navigate`; `patterns/content-explorer/adapters/breadcrumbs` (`box-explorer-breadcrumbs`) is the controller-bound variant
 - `tabs` — **built**
 
 ### Overlays

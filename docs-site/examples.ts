@@ -207,6 +207,9 @@ export const examples: Record<string, ComponentExample> = {
     }),
   },
   "menu-item": { html: `<box-menu-item label="Rename"></box-menu-item>` },
+  toolbar: {
+    html: `<box-toolbar label="Document actions"><button type="button">Share</button><button type="button">Download</button><button type="button">Rename</button></box-toolbar>`,
+  },
   "segmented-control": {
     html: `<box-segmented-control label="Density"></box-segmented-control>`,
     setup: root => set(root, "box-segmented-control", {
