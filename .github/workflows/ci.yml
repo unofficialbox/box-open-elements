@@ -4,6 +4,13 @@ on:
   push:
     branches: [main]
   pull_request:
+  # A manual lever, for when a run wedges. GitHub can leave a run reporting
+  # `queued` while refusing both `cancel` ("has not been queued yet") and
+  # `rerun` ("this workflow is already running") — with no jobs ever created,
+  # so nothing has actually executed. Without a dispatch trigger the only ways
+  # out are an empty commit or closing and reopening the pull request, which
+  # are exactly the habits a repository should not need.
+  workflow_dispatch:
 
 permissions:
   contents: read
