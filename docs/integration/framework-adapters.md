@@ -72,8 +72,9 @@ Both halves of the Supported proof set are met as of `0.7.0`:
    `svelte` ships `.svelte` sources with declarations under the `svelte` export
    condition.
 
-The bootstrap publish was local, so these four carry no provenance attestation;
-every release after the trusted publishers are configured does. See
+The bootstrap publish was local, so the `0.7.0` adapters carry no provenance
+attestation. The trusted publishers have since been configured, and every
+adapter release after that one is OIDC-published with provenance. See
 [RELEASING.md](../../RELEASING.md#sub-packages).
 
 Do not wrap the whole catalog mechanically. Continue by interaction family so

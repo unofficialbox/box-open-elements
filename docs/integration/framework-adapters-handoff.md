@@ -48,8 +48,14 @@ under `.framework-validation/`.
   replaced legacy reactive assignments that compiled but did not synchronize
   reliably in the packaged consumer.
 
-## Remaining work
+## Remaining work — none; both items are done
 
-1. Bootstrap-publish all four adapter packages after merge and configure their
-   npm Trusted Publishers for `release-adapters.yml`.
-2. Verify clean registry installs, then mark all four adapters Supported.
+Kept as a record of what this handoff was waiting on, rather than deleted.
+
+1. ~~Bootstrap-publish all four adapter packages after merge and configure their
+   npm Trusted Publishers for `release-adapters.yml`.~~ Bootstrapped at `0.7.0`
+   from a local session; the trusted publishers are configured, and every
+   adapter release since has been OIDC-published with provenance.
+2. ~~Verify clean registry installs, then mark all four adapters Supported.~~
+   Verified, and the table above records all four as Supported — which is what
+   made this list contradict its own document.

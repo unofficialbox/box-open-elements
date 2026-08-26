@@ -99,16 +99,35 @@ published yet.
 
 ### A version bump quietly dirties every docs-site baseline
 
-The docs-site rail footer renders the package version, inlined at build time, so
-bumping `version` changes 23 pixels in all 46 `docs/screenshots/docs-site`
-baselines. That is 0.002% of the frame against a 0.1% gate — the pixel diff never
-fails on it, so the stale badge simply rides along until some later
-`[regen-baselines]` run adopts it alongside whatever that PR actually changed.
+The docs-site rail footer renders the package version, inlined at build time by
+`docs-site/build.ts`, so bumping `version` dirties **every** baseline in
+`docs/screenshots/docs-site` — all of them, whatever the count is when you read
+this. The change is tens of pixels in a glyph-sized box at the bottom-left of
+the rail: 0.13.0 to 0.14.0 measured 66 pixels, 0.0049% of the frame against a
+0.1% gate. The exact count depends on which digits change, so treat the order of
+magnitude as the point rather than the number.
+
+Well under the gate, so the pixel diff never fails on it and the stale badge
+rides along until some later `[regen-baselines]` run adopts it alongside
+whatever that PR actually changed.
 
 Nothing is broken by this, but it does mean a post-release regen shows more
 changed files than the PR's own diff explains. When reading an adopted set, a
-23-pixel change confined to the bottom-left of the rail is the version badge
-catching up, not the PR.
+small change confined to the bottom-left of the rail — and present in *every*
+frame — is the version badge catching up, not the PR.
+
+Contrast a change confined to the left **column** (roughly x19–146 at the
+current rail width) that also appears in every frame: that is the nav rail
+growing a row, which happens when a release adds a component or a category. That
+one **does** exceed the gate — adding `box-toolbar` failed 19 baselines at
+0.157–0.380% — so the visual check goes red until a regen adopts it, and the
+failure is expected rather than a defect.
+
+Those percentages are the ones the check itself reports. A hand-rolled exact-match
+pixel count reads roughly double, because the comparator allows a little
+anti-aliasing tolerance — so when measuring a diff yourself to decide whether a
+regen is benign, compare your number against your own baseline, not against the
+0.1% gate.
 
 ### Route A′ — publish an existing tag by hand
 
@@ -227,18 +246,25 @@ done
 A bootstrap publish carries **no provenance attestation** — that requires the
 CI/OIDC environment. The `0.7.0` adapters therefore have none; the core does.
 
-**Remaining one-time step:** on npmjs.com, configure each adapter's Trusted
-Publisher for organization `unofficialbox`, this repository, and workflow
-`release-adapters.yml`. Until that is done, `Cut release` tags the adapters and
-skips their publish rather than failing. After it, every release is OIDC, needs
-no token, and gets provenance.
+Each adapter's Trusted Publisher **is now configured** on npmjs.com, for
+organization `unofficialbox`, this repository, and workflow
+`release-adapters.yml`. Every adapter release since has been OIDC: no token, and
+provenance on all four. Earlier revisions of this section listed that
+configuration as a remaining one-time step, and warned that until it was done
+`Cut release` would tag the adapters and skip their publish — neither applies
+any more.
 
-Verify the public package after release:
+Verify the public packages after release, including that OIDC actually ran —
+a publish that fell back to some other route would be missing its attestation:
 
 ```bash
 for package_name in react angular vue svelte; do
   npm view "@unofficialbox/box-open-elements-$package_name" version
 done
+
+# Provenance on the version just published; empty output means it is missing.
+npm view "@unofficialbox/box-open-elements-react@$(node -p "require('./package.json').version")" \
+  dist.attestations
 ```
 
 `@box-open-elements/box-server` remains private and is not published.
