@@ -15,6 +15,57 @@ are kept as written.
 
 ## Unreleased
 
+## 0.16.0 — 2026-08-27
+
+One new component. Additive; no existing default changes.
+
+### `box-formatted-duration`
+
+How long something takes or lasts, in the reader's locale — the fifth member of
+the formatted-value family, and the one most obviously missing in a content
+platform. Retention periods, SLAs and processing times are all durations, and
+every host was rendering them by hand.
+
+```html
+<box-formatted-duration value="5400"></box-formatted-duration>   <!-- 1 hr, 30 min -->
+```
+
+`value` takes a count of seconds **or** an ISO 8601 duration, because hosts have
+both: an API field is usually a number, while `<time datetime>` wants the ISO
+form. Whichever comes in, the ISO form goes back out, so the exact quantity
+survives for anything reading the document rather than looking at it.
+
+`format-style` takes `short` (default), `long` or `narrow`, and `max-units`
+controls how much precision to show — two by default, since a duration carries
+more than a reader wants to scan.
+
+What it **refuses** is as deliberate as what it formats:
+
+- A **negative value** hides the element. A duration carries no direction, so a
+  negative one is a host bug; `box-relative-time` is what expresses "ago".
+- **Months and years** are refused. A month is not a fixed number of seconds,
+  and `P1M` is ambiguous with a minute besides, so rendering either as a fixed
+  span would misstate how long it actually is.
+
+`Intl.DurationFormat` renders it where the browser has it. That API is recent,
+so where it is absent the same output is composed from `Intl.NumberFormat`'s
+unit style and `Intl.ListFormat`; the two paths were compared across styles and
+locales before the fallback was relied on, and a test runs it with
+`Intl.DurationFormat` deleted.
+
+Two behaviours came out of testing rather than design, and both are the kind
+that would have shipped silently:
+
+- A **trailing zero unit is dropped**, so an exact hour is "1 hr" rather than
+  "1 hr, 0 min". Only trailing ones — an interior zero is load-bearing, since
+  dropping it would let "1 day, 0 hr" become "1 day, 5 min" and claim a
+  precision the two-unit split does not have.
+- A **zero duration renders "0 sec"**, because `Intl` formats one to the empty
+  string, which would leave a visible element with nothing in it. The option
+  that forces that appends "0 sec" to *every* duration in browsers honouring it,
+  which Node's `Intl` quietly does not — so it passed in jsdom while being
+  visibly wrong in a browser. It is now scoped to the zero case.
+
 ## 0.15.0 — 2026-08-26
 
 One new component, and an accuracy pass over documentation that had drifted
