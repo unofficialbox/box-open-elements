@@ -16,6 +16,7 @@ import indicator from "./stories/indicator.stories.js";
 import tileGroup from "./stories/tile-group.stories.js";
 import contextMenu from "./stories/context-menu.stories.js";
 import formattedDate from "./stories/formatted-date.stories.js";
+import formattedDuration from "./stories/formatted-duration.stories.js";
 import formattedFileSize from "./stories/formatted-file-size.stories.js";
 import formattedNumber from "./stories/formatted-number.stories.js";
 import relativeTime from "./stories/relative-time.stories.js";
@@ -197,6 +198,7 @@ export const storyModules: StoryModule[] = [
   indicator,
   tileGroup,
   formattedDate,
+  formattedDuration,
   formattedFileSize,
   formattedNumber,
   relativeTime,

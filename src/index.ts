@@ -193,6 +193,7 @@ export * from "./components/output/code-block.js";
 export * from "./components/output/formatted-date.js";
 export * from "./components/output/relative-time.js";
 export * from "./components/output/formatted-number.js";
+export * from "./components/output/formatted-duration.js";
 export * from "./components/output/formatted-file-size.js";
 
 // Components: layout

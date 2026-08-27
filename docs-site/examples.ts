@@ -1565,6 +1565,9 @@ export const examples: Record<string, ComponentExample> = {
   "relative-time": {
     html: `<box-relative-time value="2026-08-21T12:00:00Z" reference-time="2026-08-25T12:00:00Z" locale="en"></box-relative-time>`,
   },
+  "formatted-duration": {
+    html: `<div style="display:grid;gap:0.3rem"><box-formatted-duration value="5400" locale="en-US"></box-formatted-duration><box-formatted-duration value="97928" max-units="3" format-style="long" locale="en-US"></box-formatted-duration><box-formatted-duration value="P1DT2H" format-style="narrow" locale="en-US"></box-formatted-duration></div>`,
+  },
   "formatted-number": {
     html: `<div style="display:grid;gap:0.3rem"><box-formatted-number value="1234567.5" locale="en-US"></box-formatted-number><box-formatted-number value="1234.5" format-style="currency" currency="USD" locale="en-US"></box-formatted-number><box-formatted-number value="2.5" format-style="unit" unit="megabyte" unit-display="long" locale="en-US"></box-formatted-number></div>`,
   },

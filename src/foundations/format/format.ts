@@ -168,3 +168,130 @@ export const resolveFileSizeParts = (
   );
   return { suffix: suffixes[exponent]!, value: bytes / base ** exponent };
 };
+
+/** The duration units a formatted duration can be broken into, largest first. */
+export type BoeDurationUnit = "day" | "hour" | "minute" | "second";
+
+/** A duration split into whole units, ready for `Intl` to render. */
+export type BoeDurationParts = Partial<Record<BoeDurationUnit, number>>;
+
+const ISO_DURATION =
+  /^P(?:(\d+(?:\.\d+)?)D)?(?:T(?:(\d+(?:\.\d+)?)H)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)S)?)?$/;
+
+const SECONDS_PER: Record<BoeDurationUnit, number> = {
+  day: 86_400,
+  hour: 3_600,
+  minute: 60,
+  second: 1,
+};
+
+const DURATION_ORDER: readonly BoeDurationUnit[] = ["day", "hour", "minute", "second"];
+
+/**
+ * Parse a duration to whole seconds.
+ *
+ * Accepts a count of seconds (a number, or a numeric string) or an ISO 8601
+ * duration such as `PT1H30M`, because hosts have both: an API field is usually
+ * a number, while `<time datetime>` wants the ISO form. Weeks, months and years
+ * are deliberately not accepted — `P1M` is ambiguous between a month and a
+ * minute in the calendar sense, and a month is not a fixed number of seconds,
+ * so rendering one as though it were would be a lie about how long the duration
+ * actually is.
+ *
+ * Negative and unparseable input is `null`. A duration is an elapsed quantity,
+ * so a negative one is a host bug rather than a direction — `box-relative-time`
+ * is the component that expresses "ago".
+ */
+export const parseDuration = (value: string | number | null | undefined): number | null => {
+  if (value == null || value === "") {
+    return null;
+  }
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) && value >= 0 ? Math.round(value) : null;
+  }
+
+  const trimmed = value.trim();
+  if (/^\d+(\.\d+)?$/.test(trimmed)) {
+    return Math.round(Number(trimmed));
+  }
+
+  const match = ISO_DURATION.exec(trimmed);
+  if (!match || trimmed === "P" || trimmed === "PT") {
+    return null;
+  }
+
+  const [, days, hours, minutes, seconds] = match;
+  const total =
+    Number(days ?? 0) * SECONDS_PER.day +
+    Number(hours ?? 0) * SECONDS_PER.hour +
+    Number(minutes ?? 0) * SECONDS_PER.minute +
+    Number(seconds ?? 0);
+  return Number.isFinite(total) ? Math.round(total) : null;
+};
+
+/**
+ * Split whole seconds into at most `maxUnits` consecutive units.
+ *
+ * Consecutive, not merely the largest: 90061 seconds is "1 day, 1 hour" rather
+ * than "1 day, 1 minute", because a reader scanning a duration wants its
+ * magnitude, and skipping an empty unit to reach a smaller non-empty one
+ * overstates the precision.
+ *
+ * A duration of zero returns whole seconds rather than nothing, so "0 sec"
+ * renders instead of the element disappearing — zero is a real answer.
+ */
+export const resolveDurationParts = (
+  totalSeconds: number,
+  maxUnits = 2,
+): BoeDurationParts => {
+  const limit = Math.max(1, Math.trunc(maxUnits));
+  if (totalSeconds <= 0) {
+    return { second: 0 };
+  }
+
+  const collected: Array<[BoeDurationUnit, number]> = [];
+  let remaining = Math.round(totalSeconds);
+  let started = false;
+
+  for (const unit of DURATION_ORDER) {
+    const size = SECONDS_PER[unit];
+    const amount = Math.floor(remaining / size);
+
+    if (!started && amount === 0) {
+      continue;
+    }
+
+    started = true;
+    collected.push([unit, amount]);
+    remaining -= amount * size;
+
+    if (collected.length === limit) {
+      break;
+    }
+  }
+
+  // Trailing zeroes are noise: an exact hour is "1 hr", not "1 hr, 0 min". Only
+  // trailing ones go — an interior zero is load-bearing, since "1 day, 0 hr" as
+  // the first two units of 1d 0h 5m would otherwise become "1 day, 5 min" and
+  // claim a precision the split does not have.
+  while (collected.length > 1 && collected[collected.length - 1]![1] === 0) {
+    collected.pop();
+  }
+
+  return Object.fromEntries(collected) as BoeDurationParts;
+};
+
+/** Render a parts object back to an ISO 8601 duration, for `<time datetime>`. */
+export const toIsoDuration = (parts: BoeDurationParts): string => {
+  const date = parts.day ? `${parts.day}D` : "";
+  const time = [
+    parts.hour ? `${parts.hour}H` : "",
+    parts.minute ? `${parts.minute}M` : "",
+    parts.second ? `${parts.second}S` : "",
+  ].join("");
+  if (!date && !time) {
+    return "PT0S";
+  }
+  return `P${date}${time ? `T${time}` : ""}`;
+};

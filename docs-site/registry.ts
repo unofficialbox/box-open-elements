@@ -20,7 +20,7 @@ export const catalog: CatalogEntry[] = [
     "progress-steps", "skeleton", "spinner", "toast",
   ]),
   ...c("Files", ["drop-zone"]),
-  ...c("Output", ["formatted-date", "relative-time", "formatted-number", "formatted-file-size", "code-block"]),
+  ...c("Output", ["formatted-date", "formatted-duration", "relative-time", "formatted-number", "formatted-file-size", "code-block"]),
   ...c("Forms", [
     "calendar", "category-selector", "checkbox", "checkbox-group", "color-picker", "combobox", "date-field", "dropdown",
     "dual-listbox", "multi-select", "number-input", "radio-group", "range-slider", "rating",
