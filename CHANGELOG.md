@@ -32,9 +32,16 @@ how a 250-file folder silently becomes a 100-file folder. macOS packages
 whole rather than being walked, which would scatter a bundle's internals.
 
 `files-selected` now carries `entries` — each file with the directory it came
-from — alongside the existing flat `files` list, which is unchanged. A drop or a
+from — alongside the existing flat `files` list, which is unchanged, and
+`skipped`, naming anything the browser refused to hand over. A drop or a
 dismissed picker that carries no files now emits nothing at all, where it
-previously announced an empty selection.
+previously announced an empty selection; a drop where everything was skipped
+still reports, because that is a failure rather than silence.
+
+Traversal never rejects. A directory that cannot be read yields the files read
+before it failed, so one unreadable subfolder no longer discards the hundreds of
+files around it — which it previously did as an unhandled rejection, losing the
+whole drop.
 
 `box-content-uploader` recreates the dropped tree through a new optional
 `createFolder` on `UploadTransport`. It is optional because requiring it would
@@ -43,7 +50,14 @@ it **refuses** a folder drop with a new `folder-unsupported` rejection rather
 than flattening the tree into the destination root, which has no undo. Folders
 are created lazily, when a file in them actually starts uploading, and the
 in-flight promise is shared, so two files racing into the same folder create it
-once rather than making two folders with the same name.
+once rather than making two folders with the same name. Because that request is
+shared it belongs to the controller rather than to whichever file happened to
+start it: cancelling one file cancels that file, not its siblings.
+
+An interrupted folder upload does leave behind the folders it had already
+created, some of them empty. There is no atomic "create this tree" underneath,
+and an uploader deleting folders on a destination it does not own would be worse
+than a stray empty one; a retry reuses them.
 
 `file-limit` caps the queue, defaulting to 100 — matching box-ui-elements. A
 default matters here in a way it did not before: a dropped folder can carry

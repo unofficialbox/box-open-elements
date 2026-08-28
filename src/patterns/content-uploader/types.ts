@@ -78,6 +78,13 @@ export interface UploadTransport {
    * A transport that implements this should be idempotent about an existing
    * name, or map the conflict to the existing folder's id: a retried upload
    * asks for the same folder again.
+   *
+   * Folder creation is **not** undone if the uploads into it then fail or are
+   * cancelled, so an interrupted folder upload leaves the folders it had got to
+   * behind, some of them empty. There is no atomic "create this tree" anywhere
+   * underneath, so the alternative would be the uploader deleting folders on a
+   * destination it does not own — far worse than a stray empty folder. Retrying
+   * reuses them; a host that wants them cleaned up owns that decision.
    */
   createFolder?(request: CreateFolderRequest): Promise<CreateFolderResult>;
 }

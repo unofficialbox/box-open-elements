@@ -199,8 +199,9 @@ export class DropZone extends BaseElement {
       // this handler returns, so awaiting anything before reading it loses the
       // drop entirely. Traversal happens afterwards, off the captured entries.
       const captured = captureDropEntries(event.dataTransfer);
-      void collectEntries(captured).then(entries => {
-        this.emitSelection(entries);
+      const skipped: string[] = [];
+      void collectEntries(captured, name => skipped.push(name)).then(entries => {
+        this.emitSelection(entries, skipped);
       });
     });
     this.inputEl.addEventListener("change", () => {
@@ -215,12 +216,16 @@ export class DropZone extends BaseElement {
    *
    * `files` stays a flat list so existing hosts keep working unchanged;
    * `entries` adds the directory each file came from, which is the only way a
-   * host can recreate a dropped folder. Nothing is dispatched for an empty
-   * selection — a drag that lands on the zone carrying no files is not an
-   * upload of nothing.
+   * host can recreate a dropped folder. `skipped` names anything the browser
+   * refused to read, so a lost file is reported rather than simply absent.
+   *
+   * Nothing is dispatched when there is nothing to say — a drag that lands on
+   * the zone carrying no files is not an upload of nothing. A drop where
+   * everything was skipped still reports, because that is a failure, not
+   * silence.
    */
-  private emitSelection(entries: UploadEntry[]): void {
-    if (!entries.length) {
+  private emitSelection(entries: UploadEntry[], skipped: string[] = []): void {
+    if (!entries.length && !skipped.length) {
       return;
     }
 
@@ -228,7 +233,7 @@ export class DropZone extends BaseElement {
       new CustomEvent("files-selected", {
         bubbles: true,
         composed: true,
-        detail: { entries, files: entries.map(entry => entry.file) },
+        detail: { entries, files: entries.map(entry => entry.file), skipped },
       }),
     );
   }

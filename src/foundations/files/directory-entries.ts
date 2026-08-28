@@ -97,17 +97,27 @@ export const captureDropEntries = (dataTransfer: DataTransfer | null): CapturedD
 
 const readAllEntries = async (
   reader: FileSystemDirectoryReaderLike,
-): Promise<FileSystemEntryLike[]> => {
+): Promise<{ entries: FileSystemEntryLike[]; failed: boolean }> => {
   const all: FileSystemEntryLike[] = [];
 
   // readEntries resolves a batch at a time and signals the end with an empty
   // array. Calling it once truncates any directory past the batch size.
   for (;;) {
-    const batch = await new Promise<FileSystemEntryLike[]>((resolve, reject) => {
-      reader.readEntries(resolve, reject);
+    // A directory that cannot be read yields what was read before it failed,
+    // rather than throwing: one unreadable subfolder must not discard the
+    // hundreds of files that were read successfully around it.
+    const batch = await new Promise<FileSystemEntryLike[] | null>(resolve => {
+      try {
+        reader.readEntries(resolve, () => resolve(null));
+      } catch {
+        resolve(null);
+      }
     });
+    if (batch === null) {
+      return { entries: all, failed: true };
+    }
     if (!batch.length) {
-      return all;
+      return { entries: all, failed: false };
     }
     all.push(...batch);
   }
@@ -131,36 +141,51 @@ const walk = async (
   entry: FileSystemEntryLike,
   path: string,
   out: UploadEntry[],
+  onSkip: (name: string) => void,
 ): Promise<void> => {
   if (entry.isFile) {
     const file = await readFile(entry);
     if (file) {
       out.push({ file, path });
+    } else {
+      onSkip(path ? `${path}/${entry.name}` : entry.name);
     }
     return;
   }
 
   if (!entry.isDirectory || typeof entry.createReader !== "function") {
+    onSkip(path ? `${path}/${entry.name}` : entry.name);
     return;
   }
 
   const childPath = path ? `${path}/${entry.name}` : entry.name;
-  const children = await readAllEntries(entry.createReader());
+  const { entries: children, failed } = await readAllEntries(entry.createReader());
+  if (failed) {
+    onSkip(childPath);
+  }
   for (const child of children) {
-    await walk(child, childPath, out);
+    await walk(child, childPath, out, onSkip);
   }
 };
 
 /**
  * Resolve captured drop items into files, each tagged with the directory path
  * it came from. Files dropped at the top level get an empty path.
+ *
+ * Never rejects. A file the browser refuses to hand over, or a directory it
+ * cannot finish reading, is reported through `onSkip` and everything else still
+ * comes back — losing one file must not lose the drop, but nor should it pass
+ * unmentioned, which is the failure mode this whole module exists to remove.
  */
-export const collectEntries = async (captured: CapturedDropItem[]): Promise<UploadEntry[]> => {
+export const collectEntries = async (
+  captured: CapturedDropItem[],
+  onSkip: (name: string) => void = () => {},
+): Promise<UploadEntry[]> => {
   const out: UploadEntry[] = [];
 
   for (const item of captured) {
     if (item.entry) {
-      await walk(item.entry, "", out);
+      await walk(item.entry, "", out, onSkip);
     } else if (item.file) {
       out.push({ file: item.file, path: "" });
     }

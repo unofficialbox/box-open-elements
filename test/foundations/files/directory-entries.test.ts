@@ -165,6 +165,55 @@ describe("collectEntries", () => {
     expect(entries.map(entry => entry.file.name)).toEqual(["fine.txt"]);
   });
 
+  it("keeps what it read when a directory fails partway through", async () => {
+    // One unreadable subfolder must not discard the files already read around
+    // it — the whole drop used to be lost to an unhandled rejection.
+    const failing = {
+      isDirectory: true,
+      isFile: false,
+      name: "locked",
+      createReader: () => ({
+        readEntries: (
+          _onSuccess: (entries: never[]) => void,
+          onError?: (error: unknown) => void,
+        ) => onError?.(new Error("permission denied")),
+      }),
+    };
+    const skipped: string[] = [];
+    const entries = await collectEntries(
+      [{ entry: dirEntry("docs", [fileEntry("fine.txt"), failing]), file: null }],
+      name => skipped.push(name),
+    );
+
+    expect(entries.map(entry => entry.file.name)).toEqual(["fine.txt"]);
+    expect(skipped).toEqual(["docs/locked"]);
+  });
+
+  it("survives a reader that throws rather than calling back", async () => {
+    const throwing = {
+      isDirectory: true,
+      isFile: false,
+      name: "docs",
+      createReader: () => ({
+        readEntries: () => {
+          throw new Error("gone");
+        },
+      }),
+    };
+
+    await expect(collectEntries([{ entry: throwing, file: null }])).resolves.toEqual([]);
+  });
+
+  it("names a file it could not read instead of dropping it silently", async () => {
+    const skipped: string[] = [];
+    await collectEntries(
+      [{ entry: dirEntry("docs", [unreadableEntry("locked.txt")]), file: null }],
+      name => skipped.push(name),
+    );
+
+    expect(skipped).toEqual(["docs/locked.txt"]);
+  });
+
   it("yields nothing for an empty folder, since there is nothing to upload", async () => {
     expect(await collectEntries([{ entry: dirEntry("empty", []), file: null }])).toEqual([]);
   });

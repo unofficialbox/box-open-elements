@@ -56,6 +56,7 @@ describe("DropZone", () => {
           // flat list so hosts that never cared about folders keep working.
           entries: [{ file, path: "docs/2026" }],
           files: [file],
+          skipped: [],
         },
       }),
     );

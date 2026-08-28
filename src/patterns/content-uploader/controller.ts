@@ -31,6 +31,17 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
   /** Directory path -> the in-flight or settled promise for its folder id. */
   private readonly folderIds = new Map<string, Promise<string>>();
 
+  /**
+   * Aborted only when the controller is destroyed.
+   *
+   * Folder creation is shared by every file in that folder, so it cannot belong
+   * to any one of them: cancelling the file that happened to start first would
+   * abort the shared request and fail all its siblings — as an abort, so they
+   * would report themselves cancelled by the person, which never happened.
+   */
+  private readonly lifetime =
+    typeof AbortController === "function" ? new AbortController() : null;
+
   constructor(config: UploaderSessionConfig) {
     super({ items: [], uploading: false });
     this.config = config;
@@ -66,7 +77,7 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
    * the settled value would let two of them each create "docs" and scatter the
    * files across two folders with the same name.
    */
-  private resolveFolderId(path: string, signal?: AbortSignal): Promise<string> {
+  private resolveFolderId(path: string): Promise<string> {
     if (!path) {
       return Promise.resolve(this.config.folderId);
     }
@@ -81,11 +92,12 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
     const name = separator > 0 ? path.slice(separator + 1) : path;
 
     const pending = (async () => {
-      const parentFolderId = await this.resolveFolderId(parentPath, signal);
+      const parentFolderId = await this.resolveFolderId(parentPath);
       const createFolder = this.config.transport.createFolder;
       if (!createFolder) {
         throw new Error("This transport cannot create folders");
       }
+      const signal = this.lifetime?.signal;
       const result = await createFolder.call(this.config.transport, {
         name,
         parentFolderId,
@@ -248,6 +260,8 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
       abortController.abort();
     }
     this.abortControllers.clear();
+    this.lifetime?.abort();
+    this.folderIds.clear();
     super.destroy();
   }
 
@@ -312,7 +326,17 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
       // Resolved per upload rather than at enqueue time, so a folder is only
       // created when a file in it actually starts — a queue cancelled before it
       // ran leaves no empty folders behind.
-      const folderId = await this.resolveFolderId(item.path ?? "", abortController?.signal);
+      const folderId = await this.resolveFolderId(item.path ?? "");
+      // Cancelling during folder creation cannot abort the shared request, so
+      // the cancellation is honoured here instead, before any bytes move.
+      if (abortController?.signal.aborted) {
+        // A plain Error, not a DOMException: the latter is not `instanceof
+        // Error` in a browser, so the abort check below would miss it and the
+        // item would report itself failed rather than cancelled.
+        const aborted = new Error("AbortError");
+        aborted.name = "AbortError";
+        throw aborted;
+      }
 
       const result = await this.config.transport.uploadFile({
         file,

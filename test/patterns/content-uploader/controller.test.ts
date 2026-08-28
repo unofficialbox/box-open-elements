@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ContentUploaderController } from "../../../src/patterns/content-uploader/controller.js";
 import { resolveUploadRejection, summarizeUploadQueue } from "../../../src/patterns/content-uploader/types.js";
 import type {
+  CreateFolderRequest,
   UploadRequest,
   UploadTransport,
   UploaderSessionConfig,
@@ -409,6 +410,49 @@ describe("ContentUploaderController — folder uploads", () => {
 
     expect(attempts).toBe(2);
     expect(transport.uploadFile).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not fail a folder's siblings when one of its files is cancelled", async () => {
+    // Folder creation is shared by every file in that folder. Binding it to
+    // whichever file started first meant cancelling that one file aborted the
+    // shared request and took its siblings down with it — reported as
+    // cancellations, which the person never asked for.
+    let releaseFolder: ((result: { folderId: string }) => void) | undefined;
+    const transport: UploadTransport = {
+      // Honours its signal, as a real fetch-backed transport does — that is
+      // what made the shared-signal bug bite.
+      createFolder: vi.fn().mockImplementation(
+        (request: CreateFolderRequest) =>
+          new Promise<{ folderId: string }>((resolve, reject) => {
+            releaseFolder = resolve;
+            request.signal?.addEventListener("abort", () => {
+              const aborted = new Error("AbortError");
+              aborted.name = "AbortError";
+              reject(aborted);
+            });
+          }),
+      ),
+      uploadFile: vi.fn().mockImplementation(async (request: UploadRequest) => ({
+        fileId: `remote-${request.fileName}`,
+      })),
+    };
+    const controller = createController(transport, { concurrency: 2 });
+
+    const [first, second] = controller.addEntries([
+      { file: file("a.pdf"), path: "docs" },
+      { file: file("b.pdf"), path: "docs" },
+    ]);
+    await flush();
+
+    // Both are waiting on the one folder; cancel only the first.
+    controller.cancelItem(first!.id);
+    releaseFolder?.({ folderId: "folder-1" });
+    await flush();
+
+    const items = controller.getState().items;
+    expect(items.find(item => item.id === first!.id)?.status).toBe("cancelled");
+    expect(items.find(item => item.id === second!.id)?.status).toBe("succeeded");
+    expect(transport.createFolder).toHaveBeenCalledTimes(1);
   });
 
   it("records the path on the queue item, so a host can show it", () => {
