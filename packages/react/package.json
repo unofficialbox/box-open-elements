@@ -1,6 +1,6 @@
 {
   "name": "@unofficialbox/box-open-elements-react",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "description": "Optional React wrappers for box-open-elements Web Components. Thin adapters — core stays framework-agnostic.",
   "license": "MIT",
   "homepage": "https://unofficialbox.github.io/box-open-elements",
@@ -37,7 +37,7 @@
     "node": ">=20.9.0"
   },
   "peerDependencies": {
-    "@unofficialbox/box-open-elements": "^0.16.0",
+    "@unofficialbox/box-open-elements": "^0.17.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
