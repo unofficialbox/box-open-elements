@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { DropZone } from "../../../src/components/files/drop-zone.js";
 import { ContentUploader } from "../../../src/patterns/content-uploader/content-uploader.js";
 import type {
+  CreateFolderRequest,
   UploadRequest,
   UploadTransport,
 } from "../../../src/patterns/content-uploader/types.js";
@@ -181,6 +183,98 @@ describe("box-content-uploader", () => {
     expect((element.shadowRoot?.querySelector('[part="row"]') as HTMLElement).dataset.status).toBe(
       "succeeded",
     );
+  });
+
+  it("recreates a dropped folder tree through the transport", async () => {
+    const created: Array<{ name: string; parentFolderId: string }> = [];
+    const transport: UploadTransport = {
+      ...resolvingTransport(),
+      createFolder: vi.fn().mockImplementation(async (request: CreateFolderRequest) => {
+        created.push({ name: request.name, parentFolderId: request.parentFolderId });
+        return { folderId: `folder-${created.length}` };
+      }),
+    };
+    const element = await mountUploader(transport);
+
+    const dropZone = element.shadowRoot?.querySelector('[part="drop-zone"]') as HTMLElement;
+    dropZone.dispatchEvent(
+      new CustomEvent("files-selected", {
+        bubbles: true,
+        detail: {
+          entries: [
+            { file: file("q1.pdf"), path: "docs/2026" },
+            { file: file("q2.pdf"), path: "docs/2026" },
+          ],
+        },
+      }),
+    );
+    await flushMicrotasks();
+
+    // "docs" then "2026" inside it — and only once each, though two files
+    // wanted the same folder at the same moment.
+    expect(created).toEqual([
+      { name: "docs", parentFolderId: "0" },
+      { name: "2026", parentFolderId: "folder-1" },
+    ]);
+    const uploads = (transport.uploadFile as ReturnType<typeof vi.fn>).mock.calls;
+    expect(uploads.map(([request]) => request.folderId)).toEqual(["folder-2", "folder-2"]);
+  });
+
+  it("refuses a folder drop the transport cannot recreate rather than flattening it", async () => {
+    const element = await mountUploader(resolvingTransport());
+    const rejected = vi.fn();
+    element.addEventListener("item-rejected", rejected);
+
+    const dropZone = element.shadowRoot?.querySelector('[part="drop-zone"]') as HTMLElement;
+    dropZone.dispatchEvent(
+      new CustomEvent("files-selected", {
+        bubbles: true,
+        detail: { entries: [{ file: file("q1.pdf"), path: "docs" }] },
+      }),
+    );
+    await flushMicrotasks();
+
+    expect(rejected.mock.calls[0]?.[0]?.detail).toMatchObject({ reason: "folder-unsupported" });
+    expect(element.shadowRoot?.querySelectorAll('[part="row"]')).toHaveLength(0);
+  });
+
+  it("caps the queue at the file limit", async () => {
+    const element = await mountUploader(resolvingTransport(), el => {
+      el.fileLimit = 2;
+    });
+    const rejected = vi.fn();
+    element.addEventListener("item-rejected", rejected);
+
+    element.addFiles([file("a.pdf"), file("b.pdf"), file("c.pdf")]);
+    await flushMicrotasks();
+
+    expect(element.shadowRoot?.querySelectorAll('[part="row"]')).toHaveLength(2);
+    expect(rejected).toHaveBeenCalledTimes(1);
+    expect(rejected.mock.calls[0]?.[0]?.detail).toMatchObject({ reason: "file-limit-reached" });
+  });
+
+  it("defaults the file limit to 100", async () => {
+    const element = await mountUploader(resolvingTransport(), el => {
+      el.autoStart = false;
+    });
+
+    element.addFiles(Array.from({ length: 101 }, (_, index) => file(`f-${index}.pdf`)));
+    await flushMicrotasks();
+
+    expect(element.shadowRoot?.querySelectorAll('[part="row"]')).toHaveLength(100);
+  });
+
+  it("passes directories through to the drop zone's browse dialog", async () => {
+    const element = await mountUploader(resolvingTransport(), el => {
+      el.directories = true;
+    });
+
+    const dropZone = element.shadowRoot?.querySelector('[part="drop-zone"]') as DropZone;
+    expect(dropZone.directories).toBe(true);
+
+    element.directories = false;
+    await flushMicrotasks();
+    expect(dropZone.directories).toBe(false);
   });
 
   it("emits queue-drained with the final tally", async () => {

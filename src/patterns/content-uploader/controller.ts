@@ -28,6 +28,9 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
 
   private readonly abortControllers = new Map<string, AbortController>();
 
+  /** Directory path -> the in-flight or settled promise for its folder id. */
+  private readonly folderIds = new Map<string, Promise<string>>();
+
   constructor(config: UploaderSessionConfig) {
     super({ items: [], uploading: false });
     this.config = config;
@@ -43,18 +46,109 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
   }
 
   /**
+   * Slots left before `fileLimit` is reached. Settled items still count: the
+   * limit is on the queue a person is looking at, not on throughput.
+   */
+  private remainingCapacity(): number {
+    const limit = this.config.fileLimit;
+    if (limit === undefined || !Number.isFinite(limit)) {
+      return Number.POSITIVE_INFINITY;
+    }
+    return Math.max(0, Math.floor(limit) - this.state.items.length);
+  }
+
+  /**
+   * Resolve a directory path to a destination folder id, creating each segment
+   * that does not exist yet.
+   *
+   * The **promise** is memoised rather than the id, because concurrent uploads
+   * into the same folder resolve the same path at the same moment; caching only
+   * the settled value would let two of them each create "docs" and scatter the
+   * files across two folders with the same name.
+   */
+  private resolveFolderId(path: string, signal?: AbortSignal): Promise<string> {
+    if (!path) {
+      return Promise.resolve(this.config.folderId);
+    }
+
+    const existing = this.folderIds.get(path);
+    if (existing) {
+      return existing;
+    }
+
+    const separator = path.lastIndexOf("/");
+    const parentPath = separator > 0 ? path.slice(0, separator) : "";
+    const name = separator > 0 ? path.slice(separator + 1) : path;
+
+    const pending = (async () => {
+      const parentFolderId = await this.resolveFolderId(parentPath, signal);
+      const createFolder = this.config.transport.createFolder;
+      if (!createFolder) {
+        throw new Error("This transport cannot create folders");
+      }
+      const result = await createFolder.call(this.config.transport, {
+        name,
+        parentFolderId,
+        token: this.config.token,
+        ...(signal ? { signal } : {}),
+      });
+      return result.folderId;
+    })();
+
+    this.folderIds.set(path, pending);
+    // A failed creation must not be cached, or every file in that folder fails
+    // against a poisoned entry instead of retrying the folder.
+    void pending.catch(() => {
+      if (this.folderIds.get(path) === pending) {
+        this.folderIds.delete(path);
+      }
+    });
+
+    return pending;
+  }
+
+  /**
    * Validate and enqueue files. Rejected files emit `itemRejected` and never
    * enter the queue. Returns the accepted queue items.
    */
   addFiles(files: UploadFileLike[]): UploadQueueItem[] {
-    const added: UploadQueueItem[] = [];
+    return this.addEntries(files.map(file => ({ file, path: "" })));
+  }
 
-    for (const file of files) {
+  /**
+   * Enqueue files that carry a directory path, as a dropped folder does.
+   *
+   * A path is only honoured when the transport can create folders. Without
+   * that capability the files are refused rather than flattened into the
+   * destination root — see `UploadTransport.createFolder`.
+   */
+  addEntries(entries: Array<{ file: UploadFileLike; path?: string }>): UploadQueueItem[] {
+    const added: UploadQueueItem[] = [];
+    const canCreateFolders = typeof this.config.transport.createFolder === "function";
+    // Counted against the live queue, so two drops in a row cannot together
+    // exceed the limit the way two independent checks would let them.
+    let remaining = this.remainingCapacity();
+
+    for (const entry of entries) {
+      const { file } = entry;
+      const path = entry.path ?? "";
+
+      if (path && !canCreateFolders) {
+        this.emit("itemRejected", { file, reason: "folder-unsupported" });
+        continue;
+      }
+
       const rejection = resolveUploadRejection(file, this.config);
       if (rejection) {
         this.emit("itemRejected", { file, reason: rejection });
         continue;
       }
+
+      if (remaining <= 0) {
+        this.emit("itemRejected", { file, reason: "file-limit-reached" });
+        continue;
+      }
+      remaining -= 1;
 
       this.counter += 1;
       const item: UploadQueueItem = {
@@ -63,6 +157,7 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
         size: file.size,
         status: "queued",
         progress: 0,
+        ...(path ? { path } : {}),
       };
       this.files.set(item.id, file);
       added.push(item);
@@ -214,10 +309,15 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
     }
 
     try {
+      // Resolved per upload rather than at enqueue time, so a folder is only
+      // created when a file in it actually starts — a queue cancelled before it
+      // ran leaves no empty folders behind.
+      const folderId = await this.resolveFolderId(item.path ?? "", abortController?.signal);
+
       const result = await this.config.transport.uploadFile({
         file,
         fileName: item.name,
-        folderId: this.config.folderId,
+        folderId,
         token: this.config.token,
         language: this.config.language,
         ...(abortController ? { signal: abortController.signal } : {}),

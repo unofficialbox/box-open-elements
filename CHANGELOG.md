@@ -15,6 +15,46 @@ are kept as written.
 
 ## Unreleased
 
+### Folder uploads, and the drop that used to vanish
+
+`box-drop-zone` read `dataTransfer.files`, which the platform simply cannot use
+to describe a directory. Dropping a folder produced an empty list, so the zone
+reported nothing and the drop disappeared with no error and no rejection — the
+worst kind of failure, because it looks like nothing happened.
+
+The zone now reads the entry list instead, and reads it **synchronously** inside
+the `drop` handler: the item list is emptied the moment that handler returns, so
+awaiting anything before capturing it loses the drop. Traversal happens
+afterwards, off the captured entries, batching through `readEntries` until it
+comes back empty — the call caps at about 100 children, and reading it once is
+how a 250-file folder silently becomes a 100-file folder. macOS packages
+(`.app`, `.rtfd`) arrive as directories the OS also calls a zip; those upload
+whole rather than being walked, which would scatter a bundle's internals.
+
+`files-selected` now carries `entries` — each file with the directory it came
+from — alongside the existing flat `files` list, which is unchanged. A drop or a
+dismissed picker that carries no files now emits nothing at all, where it
+previously announced an empty selection.
+
+`box-content-uploader` recreates the dropped tree through a new optional
+`createFolder` on `UploadTransport`. It is optional because requiring it would
+break every transport already written against the interface; a transport without
+it **refuses** a folder drop with a new `folder-unsupported` rejection rather
+than flattening the tree into the destination root, which has no undo. Folders
+are created lazily, when a file in them actually starts uploading, and the
+in-flight promise is shared, so two files racing into the same folder create it
+once rather than making two folders with the same name.
+
+`file-limit` caps the queue, defaulting to 100 — matching box-ui-elements. A
+default matters here in a way it did not before: a dropped folder can carry
+thousands of files, and the queue had no back pressure at all. Files past the cap
+are rejected with `file-limit-reached`.
+
+Also on the uploader: `directories` turns click-to-browse into a folder picker
+(dropped folders are read either way — the platform only forces the choice on the
+browse path), `addEntries()` queues pathed files directly, and a burst of queue
+events now coalesces into a single re-render, which a 100-file drop needs.
+
 ## 0.16.0 — 2026-08-27
 
 One new component. Additive; no existing default changes.

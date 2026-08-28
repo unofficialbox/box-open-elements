@@ -254,3 +254,169 @@ describe("ContentUploaderController cancel / retry / remove", () => {
     expect(drained).toHaveBeenLastCalledWith({ succeeded: 1, failed: 1, cancelled: 0 });
   });
 });
+
+/** A transport that can also create folders, recording what it was asked for. */
+const folderCapableTransport = (): UploadTransport & {
+  createdFolders: Array<{ name: string; parentFolderId: string }>;
+  uploadedTo: string[];
+} => {
+  const createdFolders: Array<{ name: string; parentFolderId: string }> = [];
+  const uploadedTo: string[] = [];
+  let nextId = 0;
+
+  return {
+    createdFolders,
+    uploadedTo,
+    createFolder: vi.fn().mockImplementation(async request => {
+      createdFolders.push({ name: request.name, parentFolderId: request.parentFolderId });
+      nextId += 1;
+      return { folderId: `folder-${nextId}` };
+    }),
+    uploadFile: vi.fn().mockImplementation(async (request: UploadRequest) => {
+      uploadedTo.push(request.folderId);
+      return { fileId: `remote-${request.fileName}` };
+    }),
+  };
+};
+
+describe("ContentUploaderController — file limit", () => {
+  it("rejects past the limit rather than enqueueing without bound", async () => {
+    const controller = createController(resolvingTransport(), { fileLimit: 2, autoStart: false });
+    const rejected = vi.fn();
+    controller.subscribe("itemRejected", rejected);
+
+    const added = controller.addFiles([file("a"), file("b"), file("c")]);
+
+    expect(added).toHaveLength(2);
+    expect(rejected).toHaveBeenCalledTimes(1);
+    expect(rejected.mock.calls[0]![0].reason).toBe("file-limit-reached");
+  });
+
+  it("counts the live queue, so two drops cannot together exceed the limit", () => {
+    const controller = createController(resolvingTransport(), { fileLimit: 2, autoStart: false });
+
+    expect(controller.addFiles([file("a"), file("b")])).toHaveLength(2);
+    expect(controller.addFiles([file("c")])).toHaveLength(0);
+  });
+
+  it("is unbounded when no limit is configured", () => {
+    const controller = createController(resolvingTransport(), { autoStart: false });
+
+    expect(controller.addFiles([file("a"), file("b"), file("c")])).toHaveLength(3);
+  });
+});
+
+describe("ContentUploaderController — folder uploads", () => {
+  it("refuses a foldered file when the transport cannot create folders", () => {
+    // Flattening into the destination root would scatter a hundred files out of
+    // the structure they were dropped in, and there is no undo for that.
+    const controller = createController(resolvingTransport(), { autoStart: false });
+    const rejected = vi.fn();
+    controller.subscribe("itemRejected", rejected);
+
+    const added = controller.addEntries([{ file: file("q1.pdf"), path: "docs/2026" }]);
+
+    expect(added).toHaveLength(0);
+    expect(rejected.mock.calls[0]![0].reason).toBe("folder-unsupported");
+  });
+
+  it("still accepts loose files when the transport cannot create folders", () => {
+    const controller = createController(resolvingTransport(), { autoStart: false });
+
+    expect(controller.addEntries([{ file: file("a.txt"), path: "" }])).toHaveLength(1);
+  });
+
+  it("creates each path segment and uploads into the leaf", async () => {
+    const transport = folderCapableTransport();
+    const controller = createController(transport);
+
+    controller.addEntries([{ file: file("q1.pdf"), path: "docs/2026" }]);
+    await flush();
+
+    expect(transport.createdFolders).toEqual([
+      { name: "docs", parentFolderId: "0" },
+      { name: "2026", parentFolderId: "folder-1" },
+    ]);
+    expect(transport.uploadedTo).toEqual(["folder-2"]);
+  });
+
+  it("creates a shared folder once even when its files upload concurrently", async () => {
+    // Two files in the same folder resolve the same path at the same moment.
+    // Caching only the settled id would let both create "docs" and split the
+    // upload across two folders with the same name.
+    const transport = folderCapableTransport();
+    const controller = createController(transport, { concurrency: 4 });
+
+    controller.addEntries([
+      { file: file("a.pdf"), path: "docs" },
+      { file: file("b.pdf"), path: "docs" },
+      { file: file("c.pdf"), path: "docs" },
+    ]);
+    await flush();
+
+    expect(transport.createdFolders).toEqual([{ name: "docs", parentFolderId: "0" }]);
+    expect(transport.uploadedTo).toEqual(["folder-1", "folder-1", "folder-1"]);
+  });
+
+  it("uploads a loose file straight to the destination", async () => {
+    const transport = folderCapableTransport();
+    const controller = createController(transport);
+
+    controller.addFiles([file("a.txt")]);
+    await flush();
+
+    expect(transport.createdFolders).toEqual([]);
+    expect(transport.uploadedTo).toEqual(["0"]);
+  });
+
+  it("fails the item, not the queue, when a folder cannot be created", async () => {
+    const transport: UploadTransport = {
+      createFolder: vi.fn().mockRejectedValue(new Error("Insufficient scope")),
+      uploadFile: vi.fn().mockResolvedValue({ fileId: "remote" }),
+    };
+    const controller = createController(transport);
+    const failed = vi.fn();
+    controller.subscribe("itemFailed", failed);
+
+    controller.addEntries([{ file: file("q1.pdf"), path: "docs" }]);
+    await flush();
+
+    expect(failed).toHaveBeenCalledTimes(1);
+    expect(failed.mock.calls[0]![0].item.errorMessage).toBe("Insufficient scope");
+    expect(transport.uploadFile).not.toHaveBeenCalled();
+  });
+
+  it("retries folder creation rather than caching the failure", async () => {
+    // A poisoned cache entry would fail every later file in that folder against
+    // an error that has already been resolved.
+    let attempts = 0;
+    const transport: UploadTransport = {
+      createFolder: vi.fn().mockImplementation(async () => {
+        attempts += 1;
+        if (attempts === 1) {
+          throw new Error("transient");
+        }
+        return { folderId: "folder-ok" };
+      }),
+      uploadFile: vi.fn().mockResolvedValue({ fileId: "remote" }),
+    };
+    const controller = createController(transport, { concurrency: 1 });
+
+    const [first] = controller.addEntries([{ file: file("a.pdf"), path: "docs" }]);
+    await flush();
+    controller.retryItem(first!.id);
+    await flush();
+
+    expect(attempts).toBe(2);
+    expect(transport.uploadFile).toHaveBeenCalledTimes(1);
+  });
+
+  it("records the path on the queue item, so a host can show it", () => {
+    const transport = folderCapableTransport();
+    const controller = createController(transport, { autoStart: false });
+
+    const [item] = controller.addEntries([{ file: file("q1.pdf"), path: "docs/2026" }]);
+
+    expect(item!.path).toBe("docs/2026");
+  });
+});

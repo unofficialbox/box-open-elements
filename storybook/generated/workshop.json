@@ -1990,15 +1990,33 @@
           "description": "Reject files larger than this many bytes."
         },
         {
+          "kind": "attribute",
+          "name": "file-limit",
+          "type": "number",
+          "description": "Most files the queue will hold (default 100)."
+        },
+        {
+          "kind": "attribute",
+          "name": "directories",
+          "type": "boolean",
+          "description": "Make click-to-browse pick a folder; drops read folders either way."
+        },
+        {
           "kind": "property",
           "name": "transport",
           "type": "UploadTransport",
-          "description": "One capability: uploadFile(request) → { fileId }."
+          "description": "uploadFile(request) → { fileId }, plus optional createFolder(request) → { folderId } for folder uploads."
+        },
+        {
+          "kind": "property",
+          "name": "addEntries(entries)",
+          "type": "method",
+          "description": "Queue files carrying a directory path, as a dropped folder does."
         },
         {
           "kind": "event",
           "name": "item-rejected",
-          "description": "A file failed the constraints: extension-not-allowed or file-too-large."
+          "description": "A file failed the constraints: extension-not-allowed, file-too-large, file-limit-reached or folder-unsupported."
         },
         {
           "kind": "event",
@@ -4658,7 +4676,7 @@
       "title": "Components/Files/Drop Zone",
       "category": "Files",
       "shortDescription": "A drag-and-drop upload target.",
-      "docsDescription": "Invite files with a label and supporting message.",
+      "docsDescription": "Invite files with a label and supporting message. Dropped folders are read and traversed; the selection reports the directory each file came from.",
       "sourceSnippet": "<box-drop-zone label=\"Upload files\" message=\"Drag files here or browse.\"></box-drop-zone>",
       "referenceRows": [
         {
@@ -4672,6 +4690,18 @@
           "name": "message",
           "type": "string",
           "description": "Supporting instruction text."
+        },
+        {
+          "kind": "attribute",
+          "name": "directories",
+          "type": "boolean",
+          "description": "Make click-to-browse pick a folder. Dropped folders are read either way."
+        },
+        {
+          "kind": "event",
+          "name": "files-selected",
+          "type": "CustomEvent<{ entries: UploadEntry[]; files: File[] }>",
+          "description": "A non-empty selection. `entries` pairs each file with its directory path; `files` is the flat list."
         }
       ],
       "variants": [

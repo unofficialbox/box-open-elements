@@ -21,6 +21,11 @@ export interface UploadQueueItem {
   errorMessage?: string;
   /** Remote file id from the transport once the upload succeeds. */
   fileId?: string;
+  /**
+   * Directory path relative to the destination folder, e.g. `"docs/2026"`, for
+   * a file that arrived inside a dropped folder. Empty for a loose file.
+   */
+  path?: string;
 }
 
 export interface UploadRequest {
@@ -40,6 +45,18 @@ export interface UploadResult {
   size?: number;
 }
 
+export interface CreateFolderRequest {
+  name: string;
+  /** The folder to create it in. */
+  parentFolderId: string;
+  token: string;
+  signal?: AbortSignal;
+}
+
+export interface CreateFolderResult {
+  folderId: string;
+}
+
 /**
  * One narrow capability: move a single file to the destination folder. How —
  * multipart, chunked upload sessions, a BFF — is the transport's business;
@@ -47,6 +64,22 @@ export interface UploadResult {
  */
 export interface UploadTransport {
   uploadFile(request: UploadRequest): Promise<UploadResult>;
+  /**
+   * Recreate a dropped folder tree in the destination. **Optional**, because
+   * adding it as a requirement would break every transport already written
+   * against this interface, and because plenty of destinations have no notion
+   * of folders at all.
+   *
+   * Without it a folder drop is *refused* — every file in it is rejected with
+   * `folder-unsupported`. The alternative, flattening the tree into the
+   * destination root, silently scatters a hundred files out of the structure
+   * the person dropped them in, and there is no undo for that.
+   *
+   * A transport that implements this should be idempotent about an existing
+   * name, or map the conflict to the existing folder's id: a retried upload
+   * asks for the same folder again.
+   */
+  createFolder?(request: CreateFolderRequest): Promise<CreateFolderResult>;
 }
 
 export interface UploaderConstraints {
@@ -57,6 +90,16 @@ export interface UploaderConstraints {
   extensions?: string[];
   /** Reject files larger than this many bytes. Omitted means no limit. */
   maxFileSizeBytes?: number;
+  /**
+   * Most files the queue will hold. Further files are rejected with
+   * `file-limit-reached` rather than enqueued.
+   *
+   * Omitted means no limit, which is the wrong default for a drop target — a
+   * dropped folder can carry thousands of files, and the queue has no natural
+   * back pressure. Hosts should set one; `box-content-uploader` defaults it to
+   * 100, matching box-ui-elements.
+   */
+  fileLimit?: number;
 }
 
 export interface UploaderSessionConfig extends UploaderConstraints {
@@ -70,7 +113,12 @@ export interface UploaderSessionConfig extends UploaderConstraints {
   autoStart?: boolean;
 }
 
-export type UploadRejectionReason = "extension-not-allowed" | "file-too-large";
+export type UploadRejectionReason =
+  | "extension-not-allowed"
+  | "file-too-large"
+  | "file-limit-reached"
+  /** A folder was dropped but the transport cannot create folders. */
+  | "folder-unsupported";
 
 export interface UploaderState {
   items: UploadQueueItem[];
