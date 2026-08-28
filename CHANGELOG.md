@@ -15,6 +15,14 @@ are kept as written.
 
 ## Unreleased
 
+## 0.18.0 — 2026-08-28
+
+The uploader's empty state, rebuilt. One behaviour change to read before
+upgrading: `directories` on `box-drop-zone` now *adds* a folder-browse control
+rather than converting the file one, and `box-drop-zone`'s internal markup
+changed — a host reaching past `part` into its shadow DOM will need to look
+again.
+
 ### The uploader looks like an uploader
 
 `box-content-uploader`'s empty state was a small dashed box with two lines of

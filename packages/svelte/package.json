@@ -1,6 +1,6 @@
 {
   "name": "@unofficialbox/box-open-elements-svelte",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "description": "Typed Svelte adapters for box-open-elements Web Components.",
   "license": "MIT",
   "homepage": "https://unofficialbox.github.io/box-open-elements",
@@ -32,7 +32,7 @@
     "node": ">=20.9.0"
   },
   "peerDependencies": {
-    "@unofficialbox/box-open-elements": "^0.17.0",
+    "@unofficialbox/box-open-elements": "^0.18.0",
     "svelte": ">=5.0.0 <6.0.0"
   },
   "scripts": {
