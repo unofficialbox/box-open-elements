@@ -50,7 +50,7 @@ const elementStyles = `
   }
 
   :host([hidden]) {
-    display: none;
+    display: none !important;
   }
 
 ${boeGridGutterStyles(":host")}

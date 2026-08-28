@@ -44,6 +44,12 @@ const elementStyles = `
           --_obp-brand-soft: color-mix(in srgb, var(--_obp-brand) 12%, var(--boe-token-surface-surface, #ffffff) 88%);
         }
 
+        /* The host's own display would otherwise beat the UA rule for [hidden],
+           leaving the element on screen when a host hides it. */
+        :host([hidden]) {
+          display: none !important;
+        }
+
         [part="header"] {
           display: grid;
           gap: ${boePanel.gap};

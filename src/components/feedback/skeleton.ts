@@ -71,6 +71,12 @@ const skeletonStyles = `
 
   }
 
+  /* The host's own display would otherwise beat the UA rule for [hidden],
+     leaving the element on screen when a host hides it. */
+  :host([hidden]) {
+    display: none !important;
+  }
+
 ${boeGridGutterStyles(":host")}
 
   /* The multi-part variants are layout, so they take the full width they are

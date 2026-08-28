@@ -34,6 +34,12 @@ const elementStyles = `
           font: inherit;
         }
 
+        /* The host's own display would otherwise beat the UA rule for [hidden],
+           leaving the element on screen when a host hides it. */
+        :host([hidden]) {
+          display: none !important;
+        }
+
         [part="list-shell"] {
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 84%, var(--boe-token-surface-surface, #ffffff) 16%);
           border-radius: ${boePanel.radius};

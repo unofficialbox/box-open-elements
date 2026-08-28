@@ -18,6 +18,12 @@ const guideTooltipStyles = `
     font: inherit;
   }
 
+  /* The host's own display would otherwise beat the UA rule for [hidden],
+     leaving the element on screen when a host hides it. */
+  :host([hidden]) {
+    display: none !important;
+  }
+
   /* Positioned by JS (foundations/overlay) as a viewport-fixed callout, so it
      escapes ancestor overflow and flips/shifts to stay on-screen. */
   /* display is stated explicitly because the element carries
