@@ -13,6 +13,10 @@ import { formatItemSize } from "../content-explorer/adapters/item-summary.js";
 import { DropZone } from "../../components/files/drop-zone.js";
 import { ProgressBar } from "../../components/feedback/progress-bar.js";
 import { BaseElement } from "../../core/index.js";
+import {
+  DESIGN_SYSTEM_CHANGE_EVENT,
+  resolveDesignIllustration,
+} from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 
@@ -192,10 +196,15 @@ const elementStyles = `
           box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
         }
 
+        /* The footer is a bar rather than a caption: Close sits apart on the
+           left, the queue-level actions group on the right, as they do in
+           box-ui-elements. */
         [part="footer"] {
           display: flex;
           align-items: center;
           gap: ${boePanel.gap};
+          padding-block-start: ${boePanel.gap};
+          border-block-start: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
         }
 
         [part="footer"][hidden] {
@@ -208,27 +217,58 @@ const elementStyles = `
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
-        [part="clear-completed"] {
+        [part="footer-actions"] {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        [part~="action"] {
           appearance: none;
           font: inherit;
           font-size: 0.875rem;
           font-weight: 600;
-          padding: 0.4rem 0.7rem;
+          padding: 0.5rem 0.9rem;
           border-radius: ${boeRadius.control};
           border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
           background: var(--boe-token-surface-surface, #ffffff);
           color: var(--boe-token-text-text, #222222);
           cursor: pointer;
+          transition:
+            background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
+            border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
 
-        [part="clear-completed"]:hover {
+        [part~="action"]:hover:not(:disabled) {
           background: var(--boe-token-surface-surface-hover, #f4f4f4);
           border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
         }
 
-        [part="clear-completed"]:focus-visible {
+        [part~="action"]:focus-visible {
           outline: none;
           box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+        }
+
+        /* Disabled, not removed: the control keeps its place so the footer does
+           not reflow as the queue changes, and stays discoverable. */
+        [part~="action"]:disabled {
+          cursor: not-allowed;
+          opacity: 0.5;
+        }
+
+        [part~="action-primary"] {
+          border-color: transparent;
+          background: var(--boe-token-surface-surface-brand, #0061d5);
+          color: var(--boe-token-text-text-on-color, #ffffff);
+        }
+
+        [part~="action-primary"]:hover:not(:disabled) {
+          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 86%, black 14%);
+          border-color: transparent;
+        }
+
+        [part="close"][hidden] {
+          display: none;
         }
       `;
 
@@ -237,6 +277,7 @@ export class ContentUploader extends BaseElement {
   static get observedAttributes(): string[] {
     return [
       "auto-start",
+      "closable",
       "concurrency",
       "drop-label",
       "drop-message",
@@ -269,6 +310,24 @@ export class ContentUploader extends BaseElement {
   private queueSignature = "";
 
   private updateScheduled = false;
+
+  private closeEl!: HTMLButtonElement;
+
+  private cancelEl!: HTMLButtonElement;
+
+  private uploadEl!: HTMLButtonElement;
+
+  private clearCompletedEl!: HTMLButtonElement;
+
+  private illustrationEl!: HTMLElement;
+
+  private illustrationSignature = "";
+
+  private readonly handleDesignSystemChange = (): void => {
+    if (this.isRendered) {
+      this.renderIllustration();
+    }
+  };
 
   get folderId(): string | null {
     return this.getAttribute("folder-id");
@@ -381,16 +440,46 @@ export class ContentUploader extends BaseElement {
     this.toggleAttribute("directories", value);
   }
 
+  /**
+   * Show the Close control. On by default, matching box-ui-elements; a host
+   * that owns its own dismissal (a drawer with its own close button) sets
+   * `closable="false"` rather than styling ours away.
+   */
+  get closable(): boolean {
+    return this.getAttribute("closable") !== "false";
+  }
+
+  set closable(value: boolean) {
+    if (value) {
+      this.removeAttribute("closable");
+      return;
+    }
+
+    this.setAttribute("closable", "false");
+  }
+
+  /**
+   * Headline of the empty state. Defaults to the box-ui-elements wording, and
+   * names folders too when they can be uploaded, so the invitation matches what
+   * the zone will actually accept.
+   */
   get dropLabel(): string {
-    return this.getAttribute("drop-label") ?? "Upload files";
+    return (
+      this.getAttribute("drop-label") ??
+      (this.directories ? "Drag and drop files and folders" : "Drag and drop files")
+    );
   }
 
   set dropLabel(value: string) {
     this.setAttribute("drop-label", value);
   }
 
+  /**
+   * Optional supporting line under the headline. Empty by default: the browse
+   * controls say what to do, and a sentence repeating them is noise.
+   */
   get dropMessage(): string {
-    return this.getAttribute("drop-message") ?? "Drag files here or click to browse.";
+    return this.getAttribute("drop-message") ?? "";
   }
 
   set dropMessage(value: string) {
@@ -420,6 +509,7 @@ export class ContentUploader extends BaseElement {
    * else feeds the session config, so changing it re-creates the queue.
    */
   private static readonly PRESENTATION_ATTRIBUTES = new Set([
+    "closable",
     "directories",
     "drop-label",
     "drop-message",
@@ -433,11 +523,13 @@ export class ContentUploader extends BaseElement {
   }
 
   connectedCallback(): void {
+    globalThis.addEventListener?.(DESIGN_SYSTEM_CHANGE_EVENT, this.handleDesignSystemChange);
     super.connectedCallback();
     this.scheduleStart();
   }
 
   disconnectedCallback(): void {
+    globalThis.removeEventListener?.(DESIGN_SYSTEM_CHANGE_EVENT, this.handleDesignSystemChange);
     this.teardownController();
   }
 
@@ -605,11 +697,18 @@ export class ContentUploader extends BaseElement {
     this.shadowRoot.innerHTML = `
       <style>${elementStyles}</style>
       <div part="panel">
-        <box-drop-zone part="drop-zone"></box-drop-zone>
+        <box-drop-zone part="drop-zone" variant="hero">
+          <span slot="illustration" part="drop-illustration"></span>
+        </box-drop-zone>
         <ul part="queue" aria-label="Upload queue"></ul>
-        <footer part="footer" hidden>
+        <footer part="footer">
+          <button type="button" part="action close">Close</button>
           <span part="summary" role="status" aria-live="polite"></span>
-          <button type="button" part="clear-completed">Clear completed</button>
+          <span part="footer-actions">
+            <button type="button" part="action clear-completed">Clear completed</button>
+            <button type="button" part="action cancel">Cancel</button>
+            <button type="button" part="action action-primary upload">Upload</button>
+          </span>
         </footer>
       </div>
     `;
@@ -617,6 +716,26 @@ export class ContentUploader extends BaseElement {
     this.queueEl = this.shadowRoot.querySelector('[part="queue"]')!;
     this.footerEl = this.shadowRoot.querySelector('[part="footer"]')!;
     this.summaryEl = this.shadowRoot.querySelector('[part="summary"]')!;
+    this.closeEl = this.shadowRoot.querySelector('[part~="close"]')!;
+    this.cancelEl = this.shadowRoot.querySelector('[part~="cancel"]')!;
+    this.uploadEl = this.shadowRoot.querySelector('[part~="upload"]')!;
+    this.clearCompletedEl = this.shadowRoot.querySelector('[part~="clear-completed"]')!;
+    this.illustrationEl = this.shadowRoot.querySelector('[part="drop-illustration"]')!;
+  }
+
+  /**
+   * Paints the empty-state art from the active design system, so a host that
+   * registers its own system gets its own illustration without touching this.
+   *
+   * Resolved during update rather than at template time: a host may register or
+   * switch design systems after the element upgrades, and the art has to follow.
+   */
+  private renderIllustration(): void {
+    const markup = resolveDesignIllustration("upload-cloud") ?? "";
+    if (markup !== this.illustrationSignature) {
+      this.illustrationSignature = markup;
+      this.illustrationEl.innerHTML = markup;
+    }
   }
 
   protected setupListeners(): void {
@@ -656,9 +775,38 @@ export class ContentUploader extends BaseElement {
       }
     });
 
-    this.footerEl.querySelector('[part="clear-completed"]')?.addEventListener("click", () => {
+    this.clearCompletedEl.addEventListener("click", () => {
       this.clearCompleted();
     });
+
+    this.uploadEl.addEventListener("click", () => {
+      this.start();
+    });
+
+    this.cancelEl.addEventListener("click", () => {
+      this.cancelAll();
+    });
+
+    // The uploader does not own the surface it sits in — a dialog, a drawer, a
+    // page — so Close reports the intent and the host decides what closing
+    // means. Cancellable, so a host can refuse.
+    this.closeEl.addEventListener("click", () => {
+      this.dispatchEvent(new CustomEvent("close", { bubbles: true, composed: true, cancelable: true }));
+    });
+  }
+
+  /** Cancel every item still queued or in flight. Settled items are untouched. */
+  cancelAll(): void {
+    const controller = this.controller;
+    if (!controller) {
+      return;
+    }
+
+    for (const item of controller.getState().items) {
+      if (item.status === "queued" || item.status === "uploading") {
+        controller.cancelItem(item.id);
+      }
+    }
   }
 
   private rebuildQueue(items: readonly UploadQueueItem[]): void {
@@ -716,6 +864,7 @@ export class ContentUploader extends BaseElement {
       return;
     }
 
+    this.renderIllustration();
     this.dropZoneEl.label = this.dropLabel;
     this.dropZoneEl.message = this.dropMessage;
     this.dropZoneEl.directories = this.directories;
@@ -741,12 +890,32 @@ export class ContentUploader extends BaseElement {
     this.patchQueueProgress(items);
 
     const summary = summarizeUploadQueue(items);
-    this.footerEl.hidden = summary.total === 0;
     const active = summary.queued + summary.uploading;
+
+    // The empty state and the queue are alternatives, not neighbours: the
+    // illustration is the invitation, and once files are in the queue the list
+    // is what a person needs to see. Dropping still works over the list.
+    this.dropZoneEl.hidden = summary.total > 0;
+
+    // The footer stays put with its controls disabled rather than appearing
+    // when the first file lands — a bar that materialises under the pointer is
+    // how people click the wrong thing.
+    this.uploadEl.disabled = summary.queued === 0;
+    this.cancelEl.disabled = active === 0;
+    this.clearCompletedEl.disabled = summary.succeeded + summary.cancelled === 0;
+    // Closing mid-upload would abandon transfers in flight, so Close waits.
+    // box-ui-elements disables it for any non-empty queue; that would trap a
+    // person on a finished queue with no way out, so it is only held while
+    // something is actually running.
+    this.closeEl.disabled = active > 0;
+    this.closeEl.hidden = !this.closable;
+
     this.summaryEl.textContent =
-      active > 0
-        ? `Uploading ${String(summary.uploading)} · ${String(summary.queued)} queued`
-        : `${String(summary.succeeded)} of ${String(summary.total)} uploaded${summary.failed ? ` · ${String(summary.failed)} failed` : ""}`;
+      summary.total === 0
+        ? ""
+        : active > 0
+          ? `Uploading ${String(summary.uploading)} · ${String(summary.queued)} queued`
+          : `${String(summary.succeeded)} of ${String(summary.total)} uploaded${summary.failed ? ` · ${String(summary.failed)} failed` : ""}`;
   }
 }
 

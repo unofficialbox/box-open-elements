@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { DropZone } from "../../../src/components/files/drop-zone.js";
+import { registerBoxDefaultDesignSystem } from "../../../src/foundations/tokens/index.js";
 import { ContentUploader } from "../../../src/patterns/content-uploader/content-uploader.js";
 import type {
   CreateFolderRequest,
@@ -9,6 +10,10 @@ import type {
 } from "../../../src/patterns/content-uploader/types.js";
 
 ContentUploader.register();
+// The empty-state art comes from the active design system, so that a host with
+// its own system gets its own illustration. Without one registered the uploader
+// degrades to copy plus controls, which is what an unstyled consumer sees.
+registerBoxDefaultDesignSystem({ setActive: true });
 
 const flushMicrotasks = async (): Promise<void> => {
   await Promise.resolve();
@@ -44,11 +49,138 @@ afterEach(() => {
 });
 
 describe("box-content-uploader", () => {
-  it("renders the drop zone and hides the footer while the queue is empty", async () => {
+  it("shows the empty state and a disabled action bar while the queue is empty", async () => {
     const element = await mountUploader(resolvingTransport());
 
-    expect(element.shadowRoot?.querySelector('[part="drop-zone"]')).not.toBeNull();
-    expect((element.shadowRoot?.querySelector('[part="footer"]') as HTMLElement).hidden).toBe(true);
+    const dropZone = element.shadowRoot?.querySelector('[part="drop-zone"]') as HTMLElement;
+    expect(dropZone).not.toBeNull();
+    expect(dropZone.hidden).toBe(false);
+
+    // The bar stays put with its controls disabled rather than appearing when
+    // the first file lands — a footer that materialises under the pointer is
+    // how people click the wrong thing.
+    expect((element.shadowRoot?.querySelector('[part="footer"]') as HTMLElement).hidden).toBe(false);
+    expect((element.shadowRoot?.querySelector('[part~="upload"]') as HTMLButtonElement).disabled).toBe(true);
+    expect((element.shadowRoot?.querySelector('[part~="cancel"]') as HTMLButtonElement).disabled).toBe(true);
+    expect((element.shadowRoot?.querySelector('[part~="close"]') as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("paints the empty state with the design system's upload illustration", async () => {
+    const element = await mountUploader(resolvingTransport());
+
+    const art = element.shadowRoot?.querySelector('[part="drop-illustration"]') as HTMLElement;
+    expect(art.querySelector("svg")).not.toBeNull();
+    expect(art.closest("box-drop-zone")?.getAttribute("variant")).toBe("hero");
+  });
+
+  it("swaps the empty state for the queue once files are added", async () => {
+    const element = await mountUploader(resolvingTransport(), el => {
+      el.autoStart = false;
+    });
+
+    element.addFiles([file("a.pdf")]);
+    await flushMicrotasks();
+
+    // The invitation and the list are alternatives, not neighbours.
+    expect((element.shadowRoot?.querySelector('[part="drop-zone"]') as HTMLElement).hidden).toBe(true);
+    expect(element.shadowRoot?.querySelectorAll('[part="row"]')).toHaveLength(1);
+  });
+
+  it("starts the queue from the Upload button when auto-start is off", async () => {
+    const transport = resolvingTransport();
+    const element = await mountUploader(transport, el => {
+      el.autoStart = false;
+    });
+
+    element.addFiles([file("a.pdf")]);
+    await flushMicrotasks();
+
+    const upload = element.shadowRoot?.querySelector('[part~="upload"]') as HTMLButtonElement;
+    expect(upload.disabled).toBe(false);
+    upload.click();
+    await flushMicrotasks();
+
+    expect((element.shadowRoot?.querySelector('[part="row"]') as HTMLElement).dataset.status).toBe(
+      "succeeded",
+    );
+  });
+
+  it("cancels everything still in flight from the Cancel button", async () => {
+    // Honours its signal, as a real transport does: an upload that ignores
+    // abort can only be abandoned, never confirmed cancelled.
+    const transport: UploadTransport = {
+      uploadFile: vi.fn().mockImplementation(
+        (request: UploadRequest) =>
+          new Promise((_resolve, reject) => {
+            request.signal?.addEventListener("abort", () => {
+              const aborted = new Error("AbortError");
+              aborted.name = "AbortError";
+              reject(aborted);
+            });
+          }),
+      ),
+    };
+    const element = await mountUploader(transport, el => {
+      el.concurrency = 1;
+    });
+
+    element.addFiles([file("a.pdf"), file("b.pdf")]);
+    await flushMicrotasks();
+
+    (element.shadowRoot?.querySelector('[part~="cancel"]') as HTMLButtonElement).click();
+    await flushMicrotasks();
+
+    const statuses = Array.from(element.shadowRoot?.querySelectorAll('[part="row"]') ?? []).map(
+      row => (row as HTMLElement).dataset.status,
+    );
+    expect(statuses).toEqual(["cancelled", "cancelled"]);
+  });
+
+  it("reports Close as an intent rather than closing itself", async () => {
+    const element = await mountUploader(resolvingTransport());
+    const closed = vi.fn();
+    element.addEventListener("close", closed);
+
+    (element.shadowRoot?.querySelector('[part~="close"]') as HTMLButtonElement).click();
+
+    // The uploader does not own the surface it sits in, so the host decides
+    // what closing means; the element stays exactly where it was.
+    expect(closed).toHaveBeenCalledTimes(1);
+    expect(closed.mock.calls[0]?.[0]?.cancelable).toBe(true);
+    expect(element.isConnected).toBe(true);
+  });
+
+  it("holds Close while uploads are running, and releases it when they settle", async () => {
+    let finish: ((result: { fileId: string }) => void) | undefined;
+    const transport: UploadTransport = {
+      uploadFile: vi.fn().mockImplementation(
+        () =>
+          new Promise<{ fileId: string }>(resolve => {
+            finish = resolve;
+          }),
+      ),
+    };
+    const element = await mountUploader(transport);
+    const close = element.shadowRoot?.querySelector('[part~="close"]') as HTMLButtonElement;
+
+    element.addFiles([file("a.pdf")]);
+    await flushMicrotasks();
+    expect(close.disabled).toBe(true);
+
+    finish?.({ fileId: "remote-a" });
+    await flushMicrotasks();
+
+    // box-ui-elements keeps Close disabled for any non-empty queue, which traps
+    // a person on a finished queue; it is only held while work is in flight.
+    expect(close.disabled).toBe(false);
+  });
+
+  it("hides Close when the host owns dismissal", async () => {
+    const element = await mountUploader(resolvingTransport(), el => {
+      el.closable = false;
+    });
+
+    expect((element.shadowRoot?.querySelector('[part~="close"]') as HTMLElement).hidden).toBe(true);
   });
 
   it("queues files selected through the drop zone and uploads them", async () => {
@@ -142,7 +274,7 @@ describe("box-content-uploader", () => {
 
     expect(element.shadowRoot?.querySelector('[part="row-error"]')?.textContent).toBe("quota exceeded");
 
-    (element.shadowRoot?.querySelector('[part="clear-completed"]') as HTMLButtonElement).click();
+    (element.shadowRoot?.querySelector('[part~="clear-completed"]') as HTMLButtonElement).click();
     await flushMicrotasks();
 
     // The failed row stays for retry; the succeeded row is gone.
