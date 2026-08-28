@@ -14,7 +14,7 @@ const contentUploader: StoryModule = {
       { kind: "attribute", name: "token", type: "string", description: "Session token handed to the transport." },
       { kind: "attribute", name: "concurrency", type: "number", description: "Simultaneous uploads (default 2)." },
       { kind: "attribute", name: "auto-start", type: "string", description: "Set \"false\" to queue without uploading until start()." },
-      { kind: "attribute", name: "extensions", type: "string", description: "Comma-separated extension allowlist." },
+      { kind: "attribute", name: "extensions", type: "string", description: "Comma-separated extension allowlist; also narrows the browse dialog." },
       { kind: "attribute", name: "max-file-size", type: "number", description: "Reject files larger than this many bytes." },
       { kind: "attribute", name: "file-limit", type: "number", description: "Most files the queue will hold (default 100)." },
       { kind: "attribute", name: "directories", type: "boolean", description: "Make click-to-browse pick a folder; drops read folders either way." },

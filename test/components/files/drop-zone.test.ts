@@ -74,6 +74,19 @@ describe("DropZone", () => {
     expect(changed).not.toHaveBeenCalled();
   });
 
+  it("passes accept through to the file input", () => {
+    const element = document.createElement("box-drop-zone") as DropZone;
+    element.accept = ".pdf,.docx";
+    document.body.append(element);
+
+    const input = element.shadowRoot?.querySelector('[part="input"]') as HTMLInputElement;
+    expect(input.accept).toBe(".pdf,.docx");
+
+    element.accept = "";
+    expect(input.accept).toBe("");
+    expect(element.hasAttribute("accept")).toBe(false);
+  });
+
   it("turns the browse dialog into a folder picker when directories is set", () => {
     const element = document.createElement("box-drop-zone") as DropZone;
     element.directories = true;

@@ -85,7 +85,7 @@ const dropZoneStyles = `
 export class DropZone extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["description", "directories", "label", "message"];
+    return ["accept", "description", "directories", "label", "message"];
   }
 
   private dragging = false;
@@ -132,6 +132,27 @@ export class DropZone extends BaseElement {
 
   set directories(value: boolean) {
     this.toggleAttribute("directories", value);
+  }
+
+  /**
+   * What the browse dialog offers, in the `<input accept>` syntax —
+   * `".pdf,.docx"` or `"image/*"`.
+   *
+   * A hint, never a guarantee: it greys out other files in the picker, but a
+   * person can still choose "All files", and it has no effect at all on a drop.
+   * Whatever accepts the selection afterwards stays the real check.
+   */
+  get accept(): string {
+    return this.getAttribute("accept") ?? "";
+  }
+
+  set accept(value: string) {
+    if (value) {
+      this.setAttribute("accept", value);
+      return;
+    }
+
+    this.removeAttribute("accept");
   }
 
   protected renderTemplate(): void {
@@ -226,6 +247,7 @@ export class DropZone extends BaseElement {
     const directories = this.directories;
     this.inputEl.toggleAttribute("webkitdirectory", directories);
     (this.inputEl as HTMLInputElement & { webkitdirectory: boolean }).webkitdirectory = directories;
+    this.inputEl.accept = this.accept;
   }
 }
 

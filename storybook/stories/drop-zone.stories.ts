@@ -14,6 +14,13 @@ const dropZone: StoryModule = {
       { kind: "attribute", name: "message", type: "string", description: "Supporting instruction text." },
       {
         kind: "attribute",
+        name: "accept",
+        type: "string",
+        description:
+          "What the browse dialog offers (`.pdf,.docx`). Advisory — it does not filter a drop.",
+      },
+      {
+        kind: "attribute",
         name: "directories",
         type: "boolean",
         description:

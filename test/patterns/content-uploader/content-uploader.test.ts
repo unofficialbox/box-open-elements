@@ -264,6 +264,16 @@ describe("box-content-uploader", () => {
     expect(element.shadowRoot?.querySelectorAll('[part="row"]')).toHaveLength(100);
   });
 
+  it("narrows the browse dialog to the allowed extensions", async () => {
+    const element = await mountUploader(resolvingTransport(), el => {
+      // A leading dot is optional, as it is for the queue's own check.
+      el.extensions = ["pdf", ".docx"];
+    });
+
+    const dropZone = element.shadowRoot?.querySelector('[part="drop-zone"]') as DropZone;
+    expect(dropZone.accept).toBe(".pdf,.docx");
+  });
+
   it("passes directories through to the drop zone's browse dialog", async () => {
     const element = await mountUploader(resolvingTransport(), el => {
       el.directories = true;

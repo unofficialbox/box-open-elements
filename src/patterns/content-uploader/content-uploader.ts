@@ -719,6 +719,13 @@ export class ContentUploader extends BaseElement {
     this.dropZoneEl.label = this.dropLabel;
     this.dropZoneEl.message = this.dropMessage;
     this.dropZoneEl.directories = this.directories;
+    // Greys out the files the queue would reject anyway, so the picker stops
+    // offering a choice that ends in a rejection. The queue's own check still
+    // decides — `accept` is advisory, and does nothing for a drop.
+    // A leading dot is optional in `extensions`, as it is for the queue check.
+    this.dropZoneEl.accept = this.extensions
+      .map(extension => `.${extension.replace(/^\./, "")}`)
+      .join(",");
 
     const items = this.controller?.getState().items ?? [];
 

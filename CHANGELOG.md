@@ -50,6 +50,11 @@ default matters here in a way it did not before: a dropped folder can carry
 thousands of files, and the queue had no back pressure at all. Files past the cap
 are rejected with `file-limit-reached`.
 
+`box-drop-zone` also gained `accept`, and the uploader now fills it in from
+`extensions`, so the browse dialog stops offering files the queue would reject.
+It is advisory only — a person can still pick "All files", and it does nothing
+for a drop — so the queue's own check remains the real one.
+
 Also on the uploader: `directories` turns click-to-browse into a folder picker
 (dropped folders are read either way — the platform only forces the choice on the
 browse path), `addEntries()` queues pathed files directly, and a burst of queue
