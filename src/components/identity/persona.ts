@@ -25,6 +25,12 @@ const personaStyles = `
     font: inherit;
   }
 
+  /* The host's own display would otherwise beat the UA rule for [hidden],
+     leaving the element on screen when a host hides it. */
+  :host([hidden]) {
+    display: none !important;
+  }
+
   [part="persona"] {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;

@@ -15,6 +15,28 @@ are kept as written.
 
 ## Unreleased
 
+### Hiding a component now hides it
+
+`element.hidden = true` silently did nothing on almost every component in the
+library. The HTML stylesheet's `[hidden] { display: none }` has the same
+specificity as a component's own `:host { display: block }`, and the component's
+sheet wins — so the element stayed on screen, with no error to explain it.
+
+133 of the 142 elements that give `:host` a display were affected. All of them
+now carry `:host([hidden]) { display: none !important; }`.
+
+The `!important` is load-bearing rather than habit. Several components set
+display again from a more specific host rule — `:host([variant="line"])` on
+`box-skeleton`, `:host([orientation="vertical"])` on `box-divider`,
+`:host([inline])` on `box-code-block` — and those come later in the sheet, so
+without it they take the display straight back. `box-code-block` already had the
+plain rule and was broken exactly this way.
+
+A test asserts the invariant over the sources, because this bug is invisible to
+jsdom: it never applies `:host` rules at all, and reports `display: none` for a
+hidden element whether or not the fix is present. Real behaviour was confirmed
+across all 150 registered elements in Chromium.
+
 ## 0.18.0 — 2026-08-28
 
 The uploader's empty state, rebuilt. One behaviour change to read before

@@ -37,7 +37,7 @@ const tileStyles = `
   }
 
   :host([hidden]) {
-    display: none;
+    display: none !important;
   }
 
   [part="group"] {

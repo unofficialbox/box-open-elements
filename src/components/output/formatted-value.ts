@@ -9,7 +9,7 @@ const valueStyles = `
   }
 
   :host([hidden]) {
-    display: none;
+    display: none !important;
   }
 
   /* Numbers and dates are scanned in columns far more often than they are read

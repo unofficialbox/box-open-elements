@@ -13,6 +13,12 @@ const progressRingStyles = `
     font: inherit;
   }
 
+  /* The host's own display would otherwise beat the UA rule for [hidden],
+     leaving the element on screen when a host hides it. */
+  :host([hidden]) {
+    display: none !important;
+  }
+
   [part="ring"] {
     display: inline-grid;
     place-items: center;

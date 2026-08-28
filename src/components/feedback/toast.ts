@@ -33,7 +33,7 @@ const toastStyles = `
   }
 
   :host([hidden]) {
-    display: none;
+    display: none !important;
   }
 
   /* Fill, text colour and shadow track box-ui-elements' .notification and are

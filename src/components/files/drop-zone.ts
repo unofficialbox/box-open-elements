@@ -24,7 +24,7 @@ const dropZoneStyles = `
   /* Without this, the host's own display:block beats the UA rule for [hidden]
      and the element stays visible when a host hides it. */
   :host([hidden]) {
-    display: none;
+    display: none !important;
   }
 
   [part="zone"] {

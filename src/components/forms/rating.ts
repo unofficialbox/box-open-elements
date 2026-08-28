@@ -16,6 +16,12 @@ const ratingStyles = `
     font: inherit;
   }
 
+  /* The host's own display would otherwise beat the UA rule for [hidden],
+     leaving the element on screen when a host hides it. */
+  :host([hidden]) {
+    display: none !important;
+  }
+
   [part="field"] {
     display: grid;
     gap: 0.5rem;

@@ -36,6 +36,12 @@ const accessLabel = (access: SharedLinkState["access"]): string =>
 const elementStyles = `
         :host { display: contents; color: inherit; font: inherit; }
 
+        /* The host's own display would otherwise beat the UA rule for [hidden],
+           leaving the element on screen when a host hides it. */
+        :host([hidden]) {
+          display: none !important;
+        }
+
         [part="backdrop"] {
           position: fixed;
           inset: 0;

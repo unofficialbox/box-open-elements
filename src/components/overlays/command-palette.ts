@@ -30,6 +30,12 @@ const elementStyles = `
           display: contents;
         }
 
+        /* The host's own display would otherwise beat the UA rule for [hidden],
+           leaving the element on screen when a host hides it. */
+        :host([hidden]) {
+          display: none !important;
+        }
+
         /* A <dialog> promoted with showModal() — see
            foundations/overlay/top-layer.ts. The top layer keeps the scrim above
            the page without moving the host node. UA border/margin/max-* reset

@@ -39,7 +39,7 @@ const indicatorStyles = `
   }
 
   :host([hidden]) {
-    display: none;
+    display: none !important;
   }
 
   [part="shape"] {

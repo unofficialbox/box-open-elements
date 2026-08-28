@@ -19,6 +19,12 @@ const dividerStyles = `
     font: inherit;
   }
 
+  /* The host's own display would otherwise beat the UA rule for [hidden],
+     leaving the element on screen when a host hides it. */
+  :host([hidden]) {
+    display: none !important;
+  }
+
   :host([orientation="vertical"]) {
     display: inline-block;
     inline-size: auto;

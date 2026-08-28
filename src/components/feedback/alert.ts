@@ -14,7 +14,7 @@ const alertStyles = `
   }
 
   :host([hidden]) {
-    display: none;
+    display: none !important;
   }
 
   /* The accent colours the glyph only. The tinted backgrounds below are pinned

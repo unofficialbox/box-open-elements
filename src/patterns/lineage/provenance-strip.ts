@@ -26,6 +26,12 @@ const elementStyles = `
           font: inherit;
         }
 
+        /* The host's own display would otherwise beat the UA rule for [hidden],
+           leaving the element on screen when a host hides it. */
+        :host([hidden]) {
+          display: none !important;
+        }
+
         /* Read as a flow diagram rather than a breadcrumb. The anatomy is
            React Flow's, taken from its stylesheet: nodes are bordered boxes
            with a small radius (not pills), ports are 6px circles sitting on

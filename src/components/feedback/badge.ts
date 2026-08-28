@@ -61,7 +61,7 @@ const badgeStyles = `
 
   /* Hidden when used as a count that is zero/empty with hide-when-zero. */
   :host([hidden]) {
-    display: none;
+    display: none !important;
   }
 
   /* Count "pop" when the value changes (opt-in via the animate attribute). */
