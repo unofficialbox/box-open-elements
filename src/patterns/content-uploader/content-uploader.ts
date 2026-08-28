@@ -199,10 +199,14 @@ const elementStyles = `
         /* The footer is a bar rather than a caption: Close sits apart on the
            left, the queue-level actions group on the right, as they do in
            box-ui-elements. */
+        /* Wraps rather than squeezes: in a narrow column the summary would
+           otherwise concertina onto three lines and the button labels break
+           mid-phrase. Wrapped, the action group drops to its own row intact. */
         [part="footer"] {
           display: flex;
+          flex-wrap: wrap;
           align-items: center;
-          gap: ${boePanel.gap};
+          gap: 0.5rem ${boePanel.gap};
           padding-block-start: ${boePanel.gap};
           border-block-start: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
         }
@@ -212,14 +216,22 @@ const elementStyles = `
         }
 
         [part="summary"] {
-          flex: 1;
+          /* Takes the slack but never forces a wrap of its own: it is a status
+             line, not a reason for the buttons to be squeezed. */
+          flex: 1 1 auto;
+          min-inline-size: 0;
           font-size: 0.85rem;
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="footer-actions"] {
           display: flex;
+          flex-wrap: wrap;
           align-items: center;
+          justify-content: flex-end;
+          /* Keeps the group right-aligned once the footer wraps it onto its
+             own row. */
+          margin-inline-start: auto;
           gap: 0.5rem;
         }
 
@@ -234,6 +246,8 @@ const elementStyles = `
           background: var(--boe-token-surface-surface, #ffffff);
           color: var(--boe-token-text-text, #222222);
           cursor: pointer;
+          /* A label that breaks mid-phrase reads as two controls. */
+          white-space: nowrap;
           transition:
             background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
             border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
