@@ -37,6 +37,12 @@ jsdom: it never applies `:host` rules at all, and reports `display: none` for a
 hidden element whether or not the fix is present. Real behaviour was confirmed
 across all 150 registered elements in Chromium.
 
+The preview gallery was one of the things the bug had broken. It switches the
+content explorer between list and table with `explorerTable.hidden = mode !==
+"table"`, so the table never went away and the two presentations rendered
+stacked. That is why the gallery's `explorer-element` baseline loses 319px in
+this change: the old picture was showing a bug.
+
 ## 0.18.0 — 2026-08-28
 
 The uploader's empty state, rebuilt. One behaviour change to read before
