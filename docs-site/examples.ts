@@ -102,14 +102,27 @@ export const uploaderDemoFiles = [
   { name: "Launch Video.mp4", size: 8_300_000 },
 ];
 
-/** Adds `createFolder`, which is what turns a folder drop from refused to uploaded. */
+/**
+ * Adds `createFolder`, which is what turns a folder drop from refused to
+ * uploaded.
+ *
+ * Idempotent by name within a parent, as the contract asks: a retried upload
+ * asks for the same folder again, and a transport that minted a fresh id each
+ * time would scatter the retried files into a second folder of the same name.
+ */
 export const createUploaderFolderTransport = (): UploadTransport => {
-  let counter = 0;
+  const folderIds = new Map<string, string>();
   return {
     uploadFile: ({ fileName }) => Promise.resolve({ fileId: `demo-${fileName}` }),
-    createFolder: ({ name }) => {
-      counter += 1;
-      return Promise.resolve({ folderId: `demo-folder-${counter}-${name}` });
+    createFolder: ({ name, parentFolderId }) => {
+      const key = `${parentFolderId}/${name}`;
+      const existing = folderIds.get(key);
+      if (existing) {
+        return Promise.resolve({ folderId: existing });
+      }
+      const folderId = `demo-folder-${folderIds.size + 1}-${name}`;
+      folderIds.set(key, folderId);
+      return Promise.resolve({ folderId });
     },
   };
 };
