@@ -102,6 +102,38 @@ export const uploaderDemoFiles = [
   { name: "Launch Video.mp4", size: 8_300_000 },
 ];
 
+/**
+ * Adds `createFolder`, which is what turns a folder drop from refused to
+ * uploaded.
+ *
+ * Idempotent by name within a parent, as the contract asks: a retried upload
+ * asks for the same folder again, and a transport that minted a fresh id each
+ * time would scatter the retried files into a second folder of the same name.
+ */
+export const createUploaderFolderTransport = (): UploadTransport => {
+  const folderIds = new Map<string, string>();
+  return {
+    uploadFile: ({ fileName }) => Promise.resolve({ fileId: `demo-${fileName}` }),
+    createFolder: ({ name, parentFolderId }) => {
+      const key = `${parentFolderId}/${name}`;
+      const existing = folderIds.get(key);
+      if (existing) {
+        return Promise.resolve({ folderId: existing });
+      }
+      const folderId = `demo-folder-${folderIds.size + 1}-${name}`;
+      folderIds.set(key, folderId);
+      return Promise.resolve({ folderId });
+    },
+  };
+};
+
+export const uploaderDemoEntries = [
+  { file: { name: "Statement of Work.pdf", size: 1_200_000 }, path: "" },
+  { file: { name: "Q1.pdf", size: 840_000 }, path: "Reports/2026" },
+  { file: { name: "Q2.pdf", size: 910_000 }, path: "Reports/2026" },
+  { file: { name: "Signed MSA.pdf", size: 2_100_000 }, path: "Reports/Contracts" },
+];
+
 /** Retry until the element's async session is up, then run the interaction. */
 const whenSessionReady = (ready: () => boolean, run: () => void, attempts = 40): void => {
   if (ready()) {
@@ -423,7 +455,10 @@ export const examples: Record<string, ComponentExample> = {
       },
     ],
   },
-  "drop-zone": { html: `<box-drop-zone label="Upload files" message="Drag files here or browse."></box-drop-zone>` },
+  "drop-zone": {
+    html: `<box-drop-zone label="Upload files" message="Drag files here or browse."></box-drop-zone>`,
+    note: "`files-selected` carries both `entries` — each file with the directory it came from, so a dropped folder can be recreated — and a flat `files` list. A drop that turns out to be empty emits nothing. Dropped folders are read whichever way the zone is configured; the `directories` attribute only switches click-to-browse from a file picker to a folder picker, which is the one place the platform makes it either/or.",
+  },
   checkbox: { html: `<box-checkbox label="Enable shared links" checked></box-checkbox>` },
   "checkbox-group": {
     html: `<box-checkbox-group label="Permissions"></box-checkbox-group>`,
@@ -792,7 +827,45 @@ export const examples: Record<string, ComponentExample> = {
         },
       );
     },
-    note: "Queue over the `UploadTransport` contract: one finished upload, one in flight at 62%, one failed with retry. Rows rebuild on status changes; progress patches in place.",
+    note: "Queue over the `UploadTransport` contract: one finished upload, one in flight at 62%, one failed with retry. Rows rebuild on status changes; progress patches in place. Multi-file selection, drag-and-drop and folder drops all land here; `file-limit` caps the queue at 100 by default.",
+    variants: [
+      {
+        name: "Mixed queue",
+        html: `<box-content-uploader folder-id="0" token="demo-token" drop-label="Upload to All Files"></box-content-uploader>`,
+        setup: root => {
+          const uploader = root.querySelector("box-content-uploader") as ContentUploader | null;
+          if (!uploader) {
+            return;
+          }
+          uploader.transport = createUploaderDemoTransport();
+          whenSessionReady(
+            () => uploader.uploaderController !== null,
+            () => {
+              uploader.addFiles(uploaderDemoFiles);
+            },
+          );
+        },
+        note: "One finished upload, one in flight at 62%, one failed with retry — the three states a queue actually shows at once.",
+      },
+      {
+        name: "Dropped folder",
+        html: `<box-content-uploader folder-id="0" token="demo-token" drop-label="Upload to All Files" directories></box-content-uploader>`,
+        setup: root => {
+          const uploader = root.querySelector("box-content-uploader") as ContentUploader | null;
+          if (!uploader) {
+            return;
+          }
+          uploader.transport = createUploaderFolderTransport();
+          whenSessionReady(
+            () => uploader.uploaderController !== null,
+            () => {
+              uploader.addEntries(uploaderDemoEntries);
+            },
+          );
+        },
+        note: "A dropped folder arrives as entries carrying the directory each file came from, and the tree is recreated in the destination through `createFolder` — *Reports*, then *2026* and *Contracts* inside it, each created once however many files want it. A transport without `createFolder` **refuses** the drop (`folder-unsupported`) rather than flattening a hundred files into the root, which has no undo. The `directories` attribute also turns click-to-browse into a folder picker, which the platform makes either/or.",
+      },
+    ],
   },
   "content-sidebar": {
     html: `<box-content-sidebar heading="Quarterly Plan.pdf" collapsible>

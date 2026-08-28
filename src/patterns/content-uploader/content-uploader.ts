@@ -18,6 +18,9 @@ import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-content-uploader";
 
+/** Matches the box-ui-elements ceiling, so a port behaves the same way. */
+const DEFAULT_FILE_LIMIT = 100;
+
 const escapeHtml = (value: string): string =>
   value
     .replaceAll("&", "&amp;")
@@ -237,7 +240,9 @@ export class ContentUploader extends BaseElement {
       "concurrency",
       "drop-label",
       "drop-message",
+      "directories",
       "extensions",
+      "file-limit",
       "folder-id",
       "language",
       "max-file-size",
@@ -262,6 +267,8 @@ export class ContentUploader extends BaseElement {
   private summaryEl!: HTMLElement;
 
   private queueSignature = "";
+
+  private updateScheduled = false;
 
   get folderId(): string | null {
     return this.getAttribute("folder-id");
@@ -342,6 +349,38 @@ export class ContentUploader extends BaseElement {
     this.removeAttribute("max-file-size");
   }
 
+  /**
+   * Most files the queue will hold, default 100 — the same ceiling
+   * box-ui-elements uses. Further files are rejected with
+   * `file-limit-reached` rather than enqueued.
+   *
+   * A default matters here in a way it does not for the other constraints: a
+   * dropped folder can carry thousands of files, and an unbounded queue has no
+   * back pressure at all.
+   */
+  get fileLimit(): number {
+    const raw = Number(this.getAttribute("file-limit"));
+    return Number.isFinite(raw) && raw >= 1 ? Math.floor(raw) : DEFAULT_FILE_LIMIT;
+  }
+
+  set fileLimit(value: number) {
+    this.setAttribute("file-limit", String(value));
+  }
+
+  /**
+   * Make the browse dialog pick a folder rather than files.
+   *
+   * Dropping a folder works either way; the platform only forces the choice on
+   * the click-to-browse path.
+   */
+  get directories(): boolean {
+    return this.hasAttribute("directories");
+  }
+
+  set directories(value: boolean) {
+    this.toggleAttribute("directories", value);
+  }
+
   get dropLabel(): string {
     return this.getAttribute("drop-label") ?? "Upload files";
   }
@@ -376,9 +415,18 @@ export class ContentUploader extends BaseElement {
     return this.controller;
   }
 
+  /**
+   * Attributes that only affect how the drop zone presents itself. Everything
+   * else feeds the session config, so changing it re-creates the queue.
+   */
+  private static readonly PRESENTATION_ATTRIBUTES = new Set([
+    "directories",
+    "drop-label",
+    "drop-message",
+  ]);
+
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-    // Drop-zone copy is presentation-only; everything else re-creates the queue.
-    if (name !== "drop-label" && name !== "drop-message") {
+    if (!ContentUploader.PRESENTATION_ATTRIBUTES.has(name)) {
       this.scheduleStart();
     }
     super.attributeChangedCallback(name, oldValue, newValue);
@@ -395,6 +443,15 @@ export class ContentUploader extends BaseElement {
 
   addFiles(files: UploadFileLike[]): UploadQueueItem[] {
     return this.controller?.addFiles(files) ?? [];
+  }
+
+  /**
+   * Queue files that carry a directory path relative to the destination, the
+   * way a dropped folder does. Requires `createFolder` on the transport;
+   * without it each pathed file is rejected with `folder-unsupported`.
+   */
+  addEntries(entries: Array<{ file: UploadFileLike; path?: string }>): UploadQueueItem[] {
+    return this.controller?.addEntries(entries) ?? [];
   }
 
   start(): void {
@@ -470,6 +527,7 @@ export class ContentUploader extends BaseElement {
       autoStart: this.autoStart,
       concurrency: this.concurrency,
       extensions: this.extensions.length ? this.extensions : undefined,
+      fileLimit: this.fileLimit,
       folderId: this.folderId,
       language: this.language ?? undefined,
       maxFileSizeBytes: this.maxFileSize,
@@ -501,11 +559,31 @@ export class ContentUploader extends BaseElement {
             detail: payload,
           }),
         );
-        if (this.isRendered) {
-          this.update();
-        }
+        this.scheduleUpdate();
       }),
     );
+  }
+
+  /**
+   * Coalesce the re-render for a burst of controller events.
+   *
+   * A folder drop adds up to `fileLimit` items in one go, each emitting its own
+   * `itemAdded`; rendering per event rebuilt the whole queue once per file,
+   * which is quadratic in the size of the drop. One render per microtask turn
+   * gives the same result for a fraction of the work.
+   */
+  private scheduleUpdate(): void {
+    if (!this.isRendered || this.updateScheduled) {
+      return;
+    }
+
+    this.updateScheduled = true;
+    queueMicrotask(() => {
+      this.updateScheduled = false;
+      if (this.isRendered) {
+        this.update();
+      }
+    });
   }
 
   private teardownController(): void {
@@ -543,9 +621,17 @@ export class ContentUploader extends BaseElement {
 
   protected setupListeners(): void {
     this.dropZoneEl.addEventListener("files-selected", event => {
-      const files = (event as CustomEvent<{ files?: UploadFileLike[] }>).detail?.files ?? [];
-      if (files.length) {
-        this.addFiles(files);
+      const detail = (event as CustomEvent<{
+        entries?: Array<{ file: UploadFileLike; path: string }>;
+        files?: UploadFileLike[];
+      }>).detail;
+
+      // Prefer entries: they carry the folder each file came from. `files` is
+      // the flat fallback for a host dispatching this event by hand.
+      const entries =
+        detail?.entries ?? (detail?.files ?? []).map(file => ({ file, path: "" }));
+      if (entries.length) {
+        this.controller?.addEntries(entries);
       }
     });
 
@@ -632,6 +718,14 @@ export class ContentUploader extends BaseElement {
 
     this.dropZoneEl.label = this.dropLabel;
     this.dropZoneEl.message = this.dropMessage;
+    this.dropZoneEl.directories = this.directories;
+    // Greys out the files the queue would reject anyway, so the picker stops
+    // offering a choice that ends in a rejection. The queue's own check still
+    // decides — `accept` is advisory, and does nothing for a drop.
+    // A leading dot is optional in `extensions`, as it is for the queue check.
+    this.dropZoneEl.accept = this.extensions
+      .map(extension => `.${extension.replace(/^\./, "")}`)
+      .join(",");
 
     const items = this.controller?.getState().items ?? [];
 

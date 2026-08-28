@@ -1,5 +1,11 @@
 import { BaseElement } from "../../core/index.js";
 import {
+  type UploadEntry,
+  captureDropEntries,
+  collectEntries,
+  entriesFromFileList,
+} from "../../foundations/files/index.js";
+import {
   boeFocusRingShadow,
   boeFocusVisibleStyles,
 } from "../../foundations/tokens/index.js";
@@ -79,7 +85,7 @@ const dropZoneStyles = `
 export class DropZone extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["description", "label", "message"];
+    return ["accept", "description", "directories", "label", "message"];
   }
 
   private dragging = false;
@@ -110,6 +116,43 @@ export class DropZone extends BaseElement {
 
   set description(value: string) {
     this.setAttribute("description", value);
+  }
+
+  /**
+   * Make the browse dialog pick a folder rather than files.
+   *
+   * Drag-and-drop reads folders regardless — a dropped directory is always
+   * traversed. This only governs the click-to-browse path, where the platform
+   * makes it either/or: an input is a file picker or a folder picker, never
+   * both.
+   */
+  get directories(): boolean {
+    return this.hasAttribute("directories");
+  }
+
+  set directories(value: boolean) {
+    this.toggleAttribute("directories", value);
+  }
+
+  /**
+   * What the browse dialog offers, in the `<input accept>` syntax —
+   * `".pdf,.docx"` or `"image/*"`.
+   *
+   * A hint, never a guarantee: it greys out other files in the picker, but a
+   * person can still choose "All files", and it has no effect at all on a drop.
+   * Whatever accepts the selection afterwards stays the real check.
+   */
+  get accept(): string {
+    return this.getAttribute("accept") ?? "";
+  }
+
+  set accept(value: string) {
+    if (value) {
+      this.setAttribute("accept", value);
+      return;
+    }
+
+    this.removeAttribute("accept");
   }
 
   protected renderTemplate(): void {
@@ -150,26 +193,49 @@ export class DropZone extends BaseElement {
     this.zoneEl.addEventListener("drop", event => {
       event.preventDefault();
       this.dragging = false;
-      const files = Array.from(event.dataTransfer?.files ?? []);
-      this.dispatchEvent(
-        new CustomEvent("files-selected", {
-          bubbles: true,
-          composed: true,
-          detail: { files },
-        }),
-      );
       this.update();
+
+      // Captured synchronously: the DataTransferItemList is emptied the moment
+      // this handler returns, so awaiting anything before reading it loses the
+      // drop entirely. Traversal happens afterwards, off the captured entries.
+      const captured = captureDropEntries(event.dataTransfer);
+      const skipped: string[] = [];
+      void collectEntries(captured, name => skipped.push(name)).then(entries => {
+        this.emitSelection(entries, skipped);
+      });
     });
     this.inputEl.addEventListener("change", () => {
-      const files = Array.from(this.inputEl.files ?? []);
-      this.dispatchEvent(
-        new CustomEvent("files-selected", {
-          bubbles: true,
-          composed: true,
-          detail: { files },
-        }),
-      );
+      // `webkitdirectory` reports the tree through each file's
+      // webkitRelativePath rather than through entries.
+      this.emitSelection(entriesFromFileList(Array.from(this.inputEl.files ?? [])));
     });
+  }
+
+  /**
+   * Report a selection.
+   *
+   * `files` stays a flat list so existing hosts keep working unchanged;
+   * `entries` adds the directory each file came from, which is the only way a
+   * host can recreate a dropped folder. `skipped` names anything the browser
+   * refused to read, so a lost file is reported rather than simply absent.
+   *
+   * Nothing is dispatched when there is nothing to say — a drag that lands on
+   * the zone carrying no files is not an upload of nothing. A drop where
+   * everything was skipped still reports, because that is a failure, not
+   * silence.
+   */
+  private emitSelection(entries: UploadEntry[], skipped: string[] = []): void {
+    if (!entries.length && !skipped.length) {
+      return;
+    }
+
+    this.dispatchEvent(
+      new CustomEvent("files-selected", {
+        bubbles: true,
+        composed: true,
+        detail: { entries, files: entries.map(entry => entry.file), skipped },
+      }),
+    );
   }
 
   protected update(): void {
@@ -180,6 +246,13 @@ export class DropZone extends BaseElement {
     this.zoneEl.dataset.dragging = String(this.dragging);
     this.labelEl.textContent = this.label;
     this.messageEl.textContent = this.message;
+    // webkitdirectory turns the browse dialog into a folder picker. It is a
+    // property as well as an attribute, and only the property is honoured
+    // reliably once the input exists.
+    const directories = this.directories;
+    this.inputEl.toggleAttribute("webkitdirectory", directories);
+    (this.inputEl as HTMLInputElement & { webkitdirectory: boolean }).webkitdirectory = directories;
+    this.inputEl.accept = this.accept;
   }
 }
 

@@ -84,6 +84,10 @@ export * from "./foundations/layout/index.js";
 // Foundations: locale-aware typed-value formatting (shared by box-formatted-*)
 export * from "./foundations/format/index.js";
 
+// Foundations: reading dropped files and folders (shared by box-drop-zone and
+// the content-uploader pattern)
+export * from "./foundations/files/index.js";
+
 // Foundations: viewport-aware overlay positioning (for building custom overlays)
 export {
   anchorFloating,
