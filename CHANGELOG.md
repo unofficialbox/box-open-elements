@@ -15,6 +15,11 @@ are kept as written.
 
 ## Unreleased
 
+## 0.17.0 — 2026-08-28
+
+Folder uploads, and a silent failure removed. One behaviour change worth reading
+before upgrading: `files-selected` no longer fires for an empty selection.
+
 ### Folder uploads, and the drop that used to vanish
 
 `box-drop-zone` read `dataTransfer.files`, which the platform simply cannot use
