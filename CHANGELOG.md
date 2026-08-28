@@ -59,6 +59,10 @@ Close is held while uploads are running. box-ui-elements disables it for any
 non-empty queue, which leaves a person on a finished queue with no way out, so
 here it is only held while something is actually in flight.
 
+The bar wraps rather than squeezes. Five controls and a status line do not fit a
+narrow column on one row: Close and the status keep the first row, and the
+action group drops to its own row, still right-aligned, with labels intact.
+
 The empty state and the queue are now alternatives rather than neighbours: once
 files are queued the illustration gives way to the list, as it does upstream.
 Dropping still works over the list.
