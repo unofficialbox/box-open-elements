@@ -15,6 +15,58 @@ are kept as written.
 
 ## Unreleased
 
+### The uploader looks like an uploader
+
+`box-content-uploader`'s empty state was a small dashed box with two lines of
+text in it. It now carries an illustration, the box-ui-elements wording, and
+real browse controls, and it gained the action bar that library has had all
+along.
+
+A new `upload-cloud` illustration joins the design system: file cards fanned
+behind a cloud carrying an upload arrow. It is registered art rather than markup
+baked into the pattern, so a host that registers its own design system supplies
+its own drawing and the uploader picks it up — and, since it *is* design-system
+art, a page that registers no system at all still gets working copy and controls,
+just no picture.
+
+`box-drop-zone` gained `variant="hero"`: the tall centred empty state, with an
+`illustration` slot. `variant="compact"` stays the default and keeps the small
+inline shape.
+
+The browse affordance is now a real `<button>`. It was a `<label>` wrapping a
+hidden input — clickable, but the control assistive technology saw was a file
+input, and box-ui-elements has the same shape with a `role="button"` and a
+hand-written keydown handler bolted on. A button needs none of that: correct
+role, keyboard activation, and no nested-interactive ambiguity. Both inputs are
+now `tabindex="-1"` and `aria-hidden`, because they are plumbing rather than the
+control.
+
+**`directories` changed meaning.** It used to convert the single input into a
+folder picker, so browsing was files *or* folders. It now adds a *second*
+control with its own `webkitdirectory` input, so both are offered — which is
+what box-ui-elements does. The 0.17.0 note claiming the platform forces the
+choice was wrong: it forces it per input, not per drop zone.
+
+`box-content-uploader` gained a **Close / Cancel / Upload** bar, always visible,
+with controls disabled rather than absent — a bar that materialises under the
+pointer as the first file lands is how people click the wrong thing. Upload
+starts the queue (which matters with `auto-start="false"`), Cancel stops
+everything still in flight, and Close emits a cancelable `close` event: the
+uploader does not own the surface it sits in, so the host decides what closing
+means. `closable="false"` hides it for hosts with their own dismissal.
+
+Close is held while uploads are running. box-ui-elements disables it for any
+non-empty queue, which leaves a person on a finished queue with no way out, so
+here it is only held while something is actually in flight.
+
+The bar wraps rather than squeezes. Five controls and a status line do not fit a
+narrow column on one row: Close and the status keep the first row, and the
+action group drops to its own row, still right-aligned, with labels intact.
+
+The empty state and the queue are now alternatives rather than neighbours: once
+files are queued the illustration gives way to the list, as it does upstream.
+Dropping still works over the list.
+
 ## 0.17.0 — 2026-08-28
 
 Folder uploads, and a silent failure removed. One behaviour change worth reading

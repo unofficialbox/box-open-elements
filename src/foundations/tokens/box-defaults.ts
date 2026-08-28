@@ -67,6 +67,47 @@ export const boxDefaultDesignSystem: RegisteredDesignSystemDefinition = {
       "0 0 140 140",
       '<g fill="var(--boe-token-surface-illustration-surface-box-neutral, #0061d5)" fill-rule="evenodd" clip-rule="evenodd" opacity="0.1"><path d="M47.11 36H35.383c-1.261 0-2.294.97-2.378 2.198L33 38.36v48.604c0 2.162 1.716 3.926 3.872 4.031l.546.005h.257l.19-.036c1.743-.375 3.062-1.86 3.152-3.663l.005-.197V73.972a.98.98 0 0 1 .017-.18.87.87 0 0 1-.032-.155L41 73.52V56.717c0-4.209 3.7-7.59 8.268-7.713l.26-.004L97 48.999v-2.26c0-3.08-2.463-5.592-5.546-5.707l-.221-.004H54.118a4.402 4.402 0 0 1-3.51-1.738l-.14-.197-1.375-2.042a2.386 2.386 0 0 0-1.8-1.044L47.11 36Z" /><path d="M51 96a7 7 0 1 1 0 14 7 7 0 0 1 0-14Zm47-66c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10Z" /></g><path fill="var(--boe-token-surface-illustration-surface-box-neutral, #0061d5)" fill-rule="evenodd" d="M95 90c0-7.18-5.82-13-13-13s-13 5.82-13 13 5.82 13 13 13 13-5.82 13-13Zm-12.268-6.723a1.03 1.03 0 0 0-1.269-.107l-.105.079-.061.057-.057.061-4.99 5.898-.074.098a1.06 1.06 0 0 0 .187 1.384l.098.076c.17.115.371.177.578.177H79l.001 4.921c0 .596.497 1.08 1.11 1.08h3.779c.614 0 1.11-.484 1.11-1.081V91h1.96l.115-.006c.52-.057.925-.503.925-1.045 0-.249-.087-.489-.246-.679l-4.932-5.898-.09-.095Z" clip-rule="evenodd" /><path fill="var(--boe-token-surface-illustration-surface-box-neutral, #0061d5)" d="M44.156 39c.466 0 .844.448.844 1s-.378 1-.844 1h-6.312c-.466 0-.844-.448-.844-1s.378-1 .844-1h6.312Zm41.952 21c.493 0 .892.448.892 1s-.4 1-.892 1H61.892c-.493 0-.892-.448-.892-1s.4-1 .892-1h24.216Z" /><path fill="var(--boe-token-surface-illustration-surface-box-neutral, #0061d5)" fill-rule="evenodd" d="M99 91a6 6 0 0 0 5.996-5.775L105 85l.005-28.283c0-2.983-2.745-5.672-6.005-5.708l-49.473-.019c-3.55 0-6.403 2.476-6.528 5.518l-.004.209c0 10.13.005 20.255.005 30.387a5.817 5.817 0 0 1-1.497 3.897L65 91a1 1 0 0 1 0 2H37c-3.238 0-5.878-2.521-5.996-5.675L31 87.104V38.347c0-2.33 1.85-4.232 4.174-4.342l.212-.005h11.727a4.4 4.4 0 0 1 3.509 1.739l.14.197 1.376 2.043c.407.607 1.073.99 1.799 1.045l.183.007h37.11c4.208 0 7.636 3.316 7.766 7.456l.004.244v2.284c4.358.24 7.863 3.449 7.996 7.464l.004.238V85a8 8 0 0 1-7.75 7.996L99 93a1 1 0 0 1 0-2ZM35.383 36H47.11l.183.007a2.386 2.386 0 0 1 1.8 1.044l1.375 2.042.14.197a4.402 4.402 0 0 0 3.51 1.738h37.115l.221.004c3.083.115 5.546 2.627 5.546 5.707v2.26L49.528 49l-.26.004C44.7 49.127 41 52.508 41 56.717c0 10.129.022 20.258.022 30.387l-.005.197c-.09 1.803-1.409 3.288-3.152 3.663l-.19.036h-.257l-.546-.005C34.716 90.89 33 89.126 33 86.964V38.36l.005-.162A2.374 2.374 0 0 1 35.383 36Z" clip-rule="evenodd" />',
     ),
+    // Fanned file cards behind a cloud carrying an upload arrow — the empty
+    // state for box-content-uploader, matching what box-ui-elements shows.
+    // Cards are stroked rather than filled so they read on a dark surface too.
+    "upload-cloud": illustrationSvg(
+      "0 0 140 140",
+      [
+        '<ellipse cx="70" cy="116" rx="27" ry="3.5" fill="var(--boe-token-surface-illustration-surface-box-neutral, #0061d5)" opacity="0.1" />',
+        '<g fill="var(--boe-token-surface-surface, #ffffff)" stroke="var(--boe-token-surface-illustration-surface-box-neutral, #0061d5)" stroke-width="2" stroke-linejoin="round">',
+        // Five cards fanned across an arc. Each is drawn at the origin and
+        // placed by transform, so the shape is written once.
+        [
+          { x: 44, y: 72, rotate: -26, glyph: "grid" },
+          { x: 57, y: 65, rotate: -13, glyph: "lines" },
+          { x: 70, y: 62, rotate: 0, glyph: "lines" },
+          { x: 83, y: 65, rotate: 13, glyph: "image" },
+          { x: 96, y: 72, rotate: 26, glyph: "grid" },
+        ]
+          .map(card => {
+            const glyphs: Record<string, string> = {
+              lines:
+                '<rect x="5" y="13" width="16" height="2" rx="1" /><rect x="5" y="18" width="16" height="2" rx="1" /><rect x="5" y="23" width="10" height="2" rx="1" />',
+              image:
+                '<circle cx="9" cy="15" r="2" /><path d="M5 25l5-6 4 5 3-3 4 5v1H5z" />',
+              grid: '<rect x="5" y="13" width="7" height="6" rx="1" /><rect x="14" y="13" width="7" height="6" rx="1" /><rect x="5" y="21" width="7" height="6" rx="1" /><rect x="14" y="21" width="7" height="6" rx="1" />',
+            };
+            return [
+              `<g transform="translate(${String(card.x)} ${String(card.y)}) rotate(${String(card.rotate)}) translate(-13 -17)">`,
+              '<path d="M0 4a4 4 0 0 1 4-4h14l8 8v22a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V4Z" />',
+              '<path d="M18 0v6a2 2 0 0 0 2 2h6" fill="none" />',
+              `<g fill="var(--boe-token-surface-illustration-surface-box-neutral, #0061d5)" stroke="none" opacity="0.45">${glyphs[card.glyph] ?? ""}</g>`,
+              "</g>",
+            ].join("");
+          })
+          .join(""),
+        "</g>",
+        // The cloud sits in front of the cards, so only their tops show.
+        '<path d="M52 108A14 14 0 0 1 52 80A20 20 0 0 1 88 80A14 14 0 0 1 88 108Z" fill="var(--boe-token-surface-surface, #ffffff)" stroke="var(--boe-token-surface-illustration-surface-box-neutral, #0061d5)" stroke-width="2" stroke-linejoin="round" />',
+        '<circle cx="70" cy="89" r="11.5" fill="var(--boe-token-surface-illustration-surface-box-neutral, #0061d5)" fill-opacity="0.12" stroke="var(--boe-token-surface-illustration-surface-box-neutral, #0061d5)" stroke-width="1.75" stroke-dasharray="2 3.5" stroke-linecap="round" />',
+        '<path d="M70 83l5 5h-3v5h-4v-5h-3z" fill="var(--boe-token-surface-illustration-surface-box-neutral, #0061d5)" />',
+      ].join(""),
+    ),
     "files-information": illustrationSvg(
       "0 0 140 140",
       '<path fill="var(--boe-token-surface-illustration-surface-box-neutral, #0061d5)" fill-opacity="0.1" d="M97.5 99a2.5 2.5 0 0 1 2.5 2.5v7a2.5 2.5 0 1 1-5 0v-7a2.5 2.5 0 0 1 2.5-2.5ZM97.5 91a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM74 78a2 2 0 1 1 0 4H57a2 2 0 1 1 0-4h17ZM90.01 67a1.99 1.99 0 0 1 0 3.978H56.99a1.99 1.99 0 0 1 0-3.978h33.02ZM90 56a2 2 0 1 1 0 4H57a2 2 0 1 1 0-4h33ZM80.058 27c.61 0 1.202.206 1.671.595C83.773 29.286 87.784 32.783 92 37c4.641 4.641 8.41 8.877 9.859 10.81a.73.73 0 0 1-1.105.944L98.89 46.89a3.037 3.037 0 0 0-2.148-.89h-9.264A4.479 4.479 0 0 1 83 41.522v-8.743a4.479 4.479 0 0 0-1.22-3.073L79.226 27h.83Z" /><path fill="var(--boe-token-surface-illustration-surface-box-neutral, #0061d5)" fill-opacity="0.25" d="M45 91.001a8 8 0 0 0 8 8h28.068c-.044.494-.068.994-.068 1.499a16.42 16.42 0 0 0 2.966 9.439A7.896 7.896 0 0 1 83 110H43c-5.523 0-10-4.477-10-10V47a7 7 0 0 1 7-7h5v51.001Z" /><path fill="var(--boe-token-surface-illustration-surface-box-neutral, #0061d5)" fill-rule="evenodd" d="M97.5 98.25a3.25 3.25 0 0 1 3.25 3.25v7a3.25 3.25 0 1 1-6.5 0v-7a3.25 3.25 0 0 1 3.25-3.25Zm0 1.5a1.75 1.75 0 0 0-1.75 1.75v7a1.75 1.75 0 0 0 3.5 0v-7a1.75 1.75 0 0 0-1.75-1.75ZM97.5 90.25a3.25 3.25 0 1 1 0 6.5 3.25 3.25 0 0 1 0-6.5Zm0 1.5a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5Z" clip-rule="evenodd" /><path fill="var(--boe-token-surface-illustration-surface-box-neutral, #0061d5)" fill-rule="evenodd" d="M79.1 26.25a7.75 7.75 0 0 1 5.481 2.27l15.899 15.899a7.749 7.749 0 0 1 2.27 5.48v34.165c6.96 2.222 12 8.74 12 16.436 0 9.527-7.723 17.25-17.25 17.25-5.743 0-10.83-2.807-13.965-7.123-.5.08-1.013.123-1.535.123H42c-5.385 0-9.75-4.365-9.75-9.75V47A7.75 7.75 0 0 1 40 39.25h4.25V34A7.75 7.75 0 0 1 52 26.25h27.1Zm18.4 58.5c-8.698 0-15.75 7.052-15.75 15.75s7.052 15.75 15.75 15.75 15.75-7.052 15.75-15.75-7.052-15.75-15.75-15.75Zm-57.5-44A6.25 6.25 0 0 0 33.75 47v54a8.25 8.25 0 0 0 8.25 8.25h40c.207 0 .413-.011.616-.026a17.172 17.172 0 0 1-2.348-9.473H52a7.75 7.75 0 0 1-7.75-7.75V40.75H40Zm12-13A6.25 6.25 0 0 0 45.75 34v58.001a6.25 6.25 0 0 0 6.25 6.25h28.395c1.103-8.464 8.34-15.001 17.105-15.001 1.288 0 2.543.141 3.75.41V51.112c0-.514-.204-1.007-.567-1.37l-1.902-1.901a3.73 3.73 0 0 0-2.637-1.092h-8.666a5.229 5.229 0 0 1-5.228-5.228v-8.743c0-.951-.364-1.866-1.017-2.558l-1.756-1.864a1.938 1.938 0 0 0-1.41-.607H52Zm30.325 1.441a5.23 5.23 0 0 1 1.425 3.588v8.742c0 2.06 1.67 3.729 3.728 3.729h8.666a5.23 5.23 0 0 1 3.698 1.531l1.056 1.057a6.241 6.241 0 0 0-1.48-2.358L83.52 29.581a6.252 6.252 0 0 0-2.15-1.403l.956 1.013Z" clip-rule="evenodd" />',

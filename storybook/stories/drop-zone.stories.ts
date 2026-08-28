@@ -14,6 +14,13 @@ const dropZone: StoryModule = {
       { kind: "attribute", name: "message", type: "string", description: "Supporting instruction text." },
       {
         kind: "attribute",
+        name: "variant",
+        type: '"compact" | "hero"',
+        description:
+          "`hero` is the tall centred empty state with an `illustration` slot; `compact` (default) is the small inline target.",
+      },
+      {
+        kind: "attribute",
         name: "accept",
         type: "string",
         description:
@@ -24,7 +31,12 @@ const dropZone: StoryModule = {
         name: "directories",
         type: "boolean",
         description:
-          "Make click-to-browse pick a folder. Dropped folders are read either way.",
+          "Offer folder selection as a second control alongside files. Dropped folders are read either way.",
+      },
+      {
+        kind: "slot",
+        name: "illustration",
+        description: "Art for the hero empty state. Ignored by the compact variant.",
       },
       {
         kind: "event",

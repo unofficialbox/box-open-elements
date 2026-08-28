@@ -457,7 +457,19 @@ export const examples: Record<string, ComponentExample> = {
   },
   "drop-zone": {
     html: `<box-drop-zone label="Upload files" message="Drag files here or browse."></box-drop-zone>`,
-    note: "`files-selected` carries both `entries` — each file with the directory it came from, so a dropped folder can be recreated — and a flat `files` list. A drop that turns out to be empty emits nothing. Dropped folders are read whichever way the zone is configured; the `directories` attribute only switches click-to-browse from a file picker to a folder picker, which is the one place the platform makes it either/or.",
+    note: "`files-selected` carries both `entries` — each file with the directory it came from, so a dropped folder can be recreated — and a flat `files` list. A drop that turns out to be empty emits nothing. Browsing is a real `<button>` rather than a label wearing `role=\"button\"`, so keyboard activation comes free. Dropped folders are read whichever way the zone is configured; `directories` adds a *second* control, backed by its own `webkitdirectory` input, so files and folders are both reachable rather than either/or.",
+    variants: [
+      {
+        name: "Compact",
+        html: `<box-drop-zone label="Upload files" message="Drag files here or browse."></box-drop-zone>`,
+        note: "The default: a small inline target that sits inside a form or panel.",
+      },
+      {
+        name: "Hero",
+        html: `<box-drop-zone variant="hero" label="Drag and drop files and folders" directories></box-drop-zone>`,
+        note: "`variant=\"hero\"` is the tall centred empty state the content uploader uses — art goes in the `illustration` slot, and with `directories` set both browse controls appear.",
+      },
+    ],
   },
   checkbox: { html: `<box-checkbox label="Enable shared links" checked></box-checkbox>` },
   "checkbox-group": {
@@ -827,7 +839,7 @@ export const examples: Record<string, ComponentExample> = {
         },
       );
     },
-    note: "Queue over the `UploadTransport` contract: one finished upload, one in flight at 62%, one failed with retry. Rows rebuild on status changes; progress patches in place. Multi-file selection, drag-and-drop and folder drops all land here; `file-limit` caps the queue at 100 by default.",
+    note: "Queue over the `UploadTransport` contract: one finished upload, one in flight at 62%, one failed with retry. Rows rebuild on status changes; progress patches in place. Multi-file selection, drag-and-drop and folder drops all land here; `file-limit` caps the queue at 100 by default. The empty state carries the design system's `upload-cloud` illustration and real browse buttons, and the action bar — Close, Cancel, Upload — is always present with its controls disabled rather than appearing once files land.",
     variants: [
       {
         name: "Mixed queue",

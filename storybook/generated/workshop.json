@@ -1999,7 +1999,18 @@
           "kind": "attribute",
           "name": "directories",
           "type": "boolean",
-          "description": "Make click-to-browse pick a folder; drops read folders either way."
+          "description": "Offer folder selection alongside files; drops read folders either way."
+        },
+        {
+          "kind": "attribute",
+          "name": "closable",
+          "type": "boolean",
+          "description": "Show the Close control (default true). Set \"false\" when the host owns dismissal."
+        },
+        {
+          "kind": "event",
+          "name": "close",
+          "description": "Close was pressed — an intent for the host to act on; the uploader never removes itself."
         },
         {
           "kind": "property",
@@ -4693,6 +4704,12 @@
         },
         {
           "kind": "attribute",
+          "name": "variant",
+          "type": "\"compact\" | \"hero\"",
+          "description": "`hero` is the tall centred empty state with an `illustration` slot; `compact` (default) is the small inline target."
+        },
+        {
+          "kind": "attribute",
           "name": "accept",
           "type": "string",
           "description": "What the browse dialog offers (`.pdf,.docx`). Advisory — it does not filter a drop."
@@ -4701,7 +4718,12 @@
           "kind": "attribute",
           "name": "directories",
           "type": "boolean",
-          "description": "Make click-to-browse pick a folder. Dropped folders are read either way."
+          "description": "Offer folder selection as a second control alongside files. Dropped folders are read either way."
+        },
+        {
+          "kind": "slot",
+          "name": "illustration",
+          "description": "Art for the hero empty state. Ignored by the compact variant."
         },
         {
           "kind": "event",
