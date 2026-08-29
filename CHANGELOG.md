@@ -13,7 +13,12 @@ are kept as written.
 
 ---
 
-## Unreleased
+## 0.19.0 — 2026-08-29
+
+A single bug fix, but a broad one: components now honour `hidden`. Read the
+section below before upgrading — elements your app marked hidden and that stayed
+on screen anyway will now disappear, which is the fix working rather than a
+regression.
 
 ### Hiding a component now hides it
 
