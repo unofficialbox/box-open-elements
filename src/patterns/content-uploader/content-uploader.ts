@@ -855,7 +855,8 @@ export class ContentUploader extends BaseElement {
             </div>
             <box-progress-bar
               part="row-progress"
-              label="${escapeHtml(`${item.name} upload progress`)}"
+              hide-label
+              label="${escapeHtml(item.name)}"
               max="100"
               value="${String(Math.round(item.progress * 100))}"
             ></box-progress-bar>

@@ -13,6 +13,40 @@ are kept as written.
 
 ---
 
+## Unreleased
+
+### `box-progress-bar` stopped saying everything twice
+
+The bar wrapped itself in a `role="group"` named `` `${label} progress` ``, while
+the element actually carrying the `progressbar` role was named `label`. Two
+consequences, both audible:
+
+- the name was announced twice, once per element
+- it stuttered, because the suffix was appended whether or not the label already
+  ended in that word. The default label is `Progress`, so an unlabelled bar
+  announced **"Progress progress"**; the uploader's rows announced
+  **"Foo.pdf upload progress progress"**
+
+The wrapper is now an unnamed layout element. The name lives on `[part="track"]`
+and nowhere else, verbatim.
+
+### A progress bar can drop its visible label
+
+New `hide-label` attribute (`hideLabel` property), for a bar sitting under
+something that already names it. The label stays the accessible name; only the
+visible copy goes. The percentage still renders.
+
+Unlike the form fields' `hide-label`, this hides the label outright rather than
+clipping it into a screen-reader-only box. There the label element *is* the
+control's accessible name and has to stay readable; here the name is on the
+track, so a clipped copy would only be read twice.
+
+`box-content-uploader` uses it. Its rows showed the filename, then rendered
+`FOO.PDF UPLOAD PROGRESS` again directly beneath — the uploader baseline is
+shorter by one line per row because of it. `box-run-trace` had been working
+around the same duplication by hiding the whole meta line in CSS; its labels are
+corrected too, with no visual change.
+
 ## 0.19.0 — 2026-08-29
 
 A single bug fix, but a broad one: components now honour `hidden`. Read the

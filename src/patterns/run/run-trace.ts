@@ -411,7 +411,7 @@ export class RunTrace extends BaseElement {
             ${
               clamped === null
                 ? "<span></span>"
-                : `<box-progress-bar label="${escapeHtml(child.label)} progress" value="${String(clamped)}"></box-progress-bar>`
+                : `<box-progress-bar label="${escapeHtml(child.label)}" value="${String(clamped)}"></box-progress-bar>`
             }
             <span part="child-status">${RUN_STEP_STATUS_LABEL[status]}</span>
           </li>
