@@ -43,9 +43,16 @@ track, so a clipped copy would only be read twice.
 
 `box-content-uploader` uses it. Its rows showed the filename, then rendered
 `FOO.PDF UPLOAD PROGRESS` again directly beneath — the uploader baseline is
-shorter by one line per row because of it. `box-run-trace` had been working
-around the same duplication by hiding the whole meta line in CSS; its labels are
-corrected too, with no visual change.
+shorter by one line per row because of it.
+
+A side effect worth knowing about, since it applies to any bar you hide the
+label on: `[part="meta"]` is a `space-between` flex row, so with the label gone
+the percentage is its only child and moves from the far right to the start. In
+the uploader that is an improvement — the figure was pushed out to the edge of
+the row, and now sits under the filename it belongs to.
+
+`box-run-trace` had been working around the same duplication by hiding the whole
+meta line in CSS; its labels are corrected too, with no visual change.
 
 ## 0.19.0 — 2026-08-29
 
