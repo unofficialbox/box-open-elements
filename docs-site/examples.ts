@@ -213,6 +213,21 @@ const set = (root: HTMLElement, selector: string, props: Record<string, unknown>
   }
 };
 
+/**
+ * Subscribe to `box-sidebar-toggle-button`'s `toggle` event.
+ *
+ * The name collides with the DOM's own `toggle` (`<details>`, popover), so
+ * `addEventListener("toggle", …)` narrows its argument to `ToggleEvent` and a
+ * direct cast to the component's `CustomEvent` is rejected as non-overlapping.
+ * Annotating the parameter as the base `Event` and narrowing from there is a
+ * legal downcast, and says what is actually happening.
+ */
+const onSidebarToggle = (target: Element | null, run: (expanded: boolean) => void): void => {
+  target?.addEventListener("toggle", (event: Event) => {
+    run((event as CustomEvent<{ expanded: boolean }>).detail.expanded);
+  });
+};
+
 export const examples: Record<string, ComponentExample> = {
   button: { html: `<box-button label="Save" tone="primary"></box-button>\n<box-button label="Cancel" tone="neutral"></box-button>\n<box-button label="Delete" tone="danger"></box-button>\n<box-button label="Small" size="small"></box-button>\n<box-button label="Disabled" disabled></box-button>` },
   "icon-button": { html: `<box-icon-button icon="+" label="Add item"></box-icon-button>\n<box-icon-button icon="gear" label="Settings"></box-icon-button>` },
@@ -349,7 +364,16 @@ export const examples: Record<string, ComponentExample> = {
   "error-mask": { html: `<box-error-mask heading="Couldn't load files" message="Something went wrong while loading this folder." action-label="Retry"></box-error-mask>` },
   "help-text": { html: `<box-help-text label="Shared links" message="Shared links expire after 30 days."></box-help-text>` },
   nudge: { html: `<box-nudge heading="Try grid view" message="Preview files as thumbnails from the view switcher." action-label="Show me"></box-nudge>` },
-  "progress-bar": { html: `<box-progress-bar label="Storage used" value="64"></box-progress-bar>` },
+  "progress-bar": {
+    html: `<div style="display:grid;gap:1.1rem;width:min(100%,22rem)">
+  <box-progress-bar label="Storage used" value="64"></box-progress-bar>
+  <div>
+    <p style="margin:0 0 0.3rem;font-size:0.85rem">Contract.pdf</p>
+    <box-progress-bar hide-label label="Contract.pdf" value="40"></box-progress-bar>
+  </div>
+</div>`,
+    note: "`hide-label` drops the visible label but keeps it as the bar's accessible name — for a bar sitting under something that already names it, like an upload row. The percentage still shows.",
+  },
   "progress-ring": { html: `<box-progress-ring label="Sync" value="80"></box-progress-ring>` },
   "progress-steps": {
     html: `<box-progress-steps label="Migration"></box-progress-steps>`,
@@ -698,10 +722,9 @@ export const examples: Record<string, ComponentExample> = {
 </box-nav-sidebar>`,
     setup: root => {
       const sidebar = root.querySelector("box-nav-sidebar") as (HTMLElement & { collapsed: boolean }) | null;
-      const toggle = root.querySelector("box-sidebar-toggle-button");
-      toggle?.addEventListener("toggle", event => {
+      onSidebarToggle(root.querySelector("box-sidebar-toggle-button"), expanded => {
         if (sidebar) {
-          sidebar.collapsed = !(event as CustomEvent<{ expanded: boolean }>).detail.expanded;
+          sidebar.collapsed = !expanded;
         }
       });
     },
@@ -719,10 +742,9 @@ export const examples: Record<string, ComponentExample> = {
 </div>`,
     setup: root => {
       const sidebar = root.querySelector("box-nav-sidebar") as (HTMLElement & { collapsed: boolean }) | null;
-      const toggle = root.querySelector("box-sidebar-toggle-button");
-      toggle?.addEventListener("toggle", event => {
+      onSidebarToggle(root.querySelector("box-sidebar-toggle-button"), expanded => {
         if (sidebar) {
-          sidebar.collapsed = !(event as CustomEvent<{ expanded: boolean }>).detail.expanded;
+          sidebar.collapsed = !expanded;
         }
       });
     },
