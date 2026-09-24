@@ -27,6 +27,8 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 ## Patterns
 
 - [Patterns Catalog](./patterns/catalog.md) — inventory by workflow area
+- [Agent UI building blocks](./patterns/agent-ui.md) — results, runs, chat, workspace and developer console
+- [Agent UI guidelines](./patterns/agent-ui-guidelines.md) — principles and pre-ship checklist
 - [Content Explorer](./patterns/content-explorer.md) — the headless block model
 - [Preview](./patterns/preview.md) — provider adapters and annotation-first priorities
 

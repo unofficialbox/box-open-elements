@@ -29,6 +29,18 @@ element registries and test realms.
 
 ## Target inventory by category
 
+### Agent result and status components — built
+
+| Export / package subpath | Custom element | Purpose |
+| --- | --- | --- |
+| `StatusIcon` / `status-icon` | `box-status-icon` | Accessible six-state glyph |
+| `FactList` / `fact-list` | `box-fact-list` | Semantic key/value facts |
+| `CheckList` / `check-list` | `box-check-list` | Checks with words and glyphs |
+| `DocumentList` / `document-list` | `box-document-list` | Safe source links and document selection |
+| `ResultBlocks` / `result-blocks` | `box-result-blocks` | Serializable facts, checks, tables and documents |
+
+See [agent UI contracts](../patterns/agent-ui.md) for data and events.
+
 ### Actions
 
 - `button` — **built**

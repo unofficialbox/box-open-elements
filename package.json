@@ -104,6 +104,18 @@
       "types": "./dist/patterns/lineage/index.d.ts",
       "import": "./dist/patterns/lineage/index.js"
     },
+    "./patterns/agent-workspace": {
+      "types": "./dist/patterns/agent-workspace/index.d.ts",
+      "import": "./dist/patterns/agent-workspace/index.js"
+    },
+    "./patterns/run": {
+      "types": "./dist/patterns/run/index.d.ts",
+      "import": "./dist/patterns/run/index.js"
+    },
+    "./patterns/call-console": {
+      "types": "./dist/patterns/call-console/index.d.ts",
+      "import": "./dist/patterns/call-console/index.js"
+    },
     "./patterns/agent-chat": {
       "types": "./dist/patterns/agent-chat/index.d.ts",
       "import": "./dist/patterns/agent-chat/index.js"

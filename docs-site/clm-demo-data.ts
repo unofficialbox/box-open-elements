@@ -394,6 +394,7 @@ export const createAgentChatDemoTransport = (): AgentChatTransport => ({
         ],
       },
     });
+    request.onEvent({kind: "done", status: "needs_input"});
   },
 
   async resolveAction({ proposalId, decision, note }) {
@@ -408,6 +409,7 @@ export const createAgentChatDemoTransport = (): AgentChatTransport => ({
         { label: "Affected agreements", value: "3" },
       ],
       decision,
+      ...(decision === "approved" ? {outcome: "done" as const} : {}),
       ...(note !== undefined ? { note } : {}),
     };
   },

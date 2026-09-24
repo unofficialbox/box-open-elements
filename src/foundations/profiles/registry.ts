@@ -65,6 +65,9 @@ export const DESIGN_PROFILE_VARIABLES = {
     primaryFocus: "--boe-profile-shadow-primary-focus",
   },
   motion: {
+    arrival: "--boe-profile-motion-arrival",
+    panel: "--boe-profile-motion-panel",
+    stagger: "--boe-profile-motion-stagger",
     fast: "--boe-profile-motion-fast",
     interactive: "--boe-profile-motion-interactive",
     medium: "--boe-profile-motion-medium",

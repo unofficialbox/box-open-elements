@@ -55,6 +55,9 @@ export interface DesignProfileElevation {
 }
 
 export interface DesignProfileMotion {
+  arrival?: string;
+  panel?: string;
+  stagger?: string;
   fast?: string;
   interactive?: string;
   medium?: string;

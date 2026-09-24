@@ -13,6 +13,13 @@ Do not treat a workflow-heavy surface as a composition if it depends on transpor
 
 ## Filesystem layout
 
+Agent UI additions are **built**: `RunSummary` (`run-summary`),
+`AgentWorkspace` (`agent-workspace`) and `CallConsole` (`call-console`).
+The workspace owns conversation selection without unmounting hidden sessions;
+the console is a separate developer surface. Headless contracts and integration
+examples live in [agent UI contracts](./agent-ui.md), with composition rules in
+[agent UI guidelines](./agent-ui-guidelines.md).
+
 Each pattern area owns its headless modules and composed surfaces together:
 
 ```text

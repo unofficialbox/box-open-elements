@@ -58,3 +58,4 @@ export {
 export { createShareRouteHandler, type ShareRouteOptions } from "./routes/share.js";
 export { createMetadataRouteHandler, type MetadataRouteOptions } from "./routes/metadata.js";
 export { type RouteHandler } from "./routes/shared.js";
+export * from "./call-log.js";

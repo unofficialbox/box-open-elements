@@ -176,7 +176,8 @@ describe("box-agent-chat", () => {
     await flush();
 
     const card = shadow(element, '[part="proposal"]');
-    expect(card?.textContent).toContain("7.1");
+    // Decided proposals collapse to a record; parameters belong to the waiting card.
+    expect(card?.querySelector('[part="proposal-params"]')).toBeNull();
     expect(card?.textContent).toContain("Apply 2026 liability clause");
     expect(card?.textContent).not.toContain("4.2");
   });

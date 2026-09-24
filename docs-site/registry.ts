@@ -12,6 +12,11 @@ const p = (category: string, ids: string[], tagPrefix = "box-"): CatalogEntry[] 
   ids.map(id => ({ id, tier: "patterns" as const, category, tag: `${tagPrefix}${id}` }));
 
 export const catalog: CatalogEntry[] = [
+  ...c("Feedback", ["status-icon"]),
+  ...c("Collections", ["fact-list", "check-list", "document-list", "result-blocks"]),
+  ...p("Runs", ["run-summary"]),
+  ...p("Agent Chat", ["agent-workspace"]),
+  ...p("Developer Tools", ["call-console"]),
   // Components
   ...c("Actions", ["button", "button-group", "icon-button", "link-button", "menu", "menu-item", "segmented-control", "toolbar"]),
   ...c("Collections", ["card", "carousel", "datalist-item", "draggable-list", "grid-view", "pagination", "table", "thumbnail-card", "tree", "tree-grid"]),

@@ -10,6 +10,7 @@ import type { AccessStats } from "./patterns/share/access-stats.js";
 import type { Accordion } from "./components/navigation/accordion.js";
 import type { ActivityDensityStrip } from "./patterns/audit/activity-density.js";
 import type { AgentChat } from "./patterns/agent-chat/agent-chat.js";
+import type { AgentWorkspace } from "./patterns/agent-workspace/agent-workspace.js";
 import type { Alert } from "./components/feedback/alert.js";
 import type { AnnotationInspector } from "./patterns/preview/annotation-inspector.js";
 import type { AnnotationThread } from "./patterns/preview/annotation-thread.js";
@@ -25,25 +26,21 @@ import type { BulkActionBar } from "./patterns/item/bulk-action-bar.js";
 import type { Button } from "./components/actions/button.js";
 import type { ButtonGroup } from "./components/actions/button-group.js";
 import type { Calendar } from "./components/forms/calendar.js";
+import type { CallConsole } from "./patterns/call-console/call-console.js";
 import type { Card } from "./components/collections/card.js";
 import type { Carousel } from "./components/collections/carousel.js";
 import type { CategorySelector } from "./components/forms/category-selector.js";
 import type { ChartPanel } from "./patterns/insights/chart-panel.js";
+import type { CheckList } from "./components/collections/check-list.js";
 import type { Checkbox } from "./components/forms/checkbox.js";
 import type { CheckboxGroup } from "./components/forms/checkbox-group.js";
 import type { Chip } from "./components/feedback/chip.js";
+import type { CodeBlock } from "./components/output/code-block.js";
 import type { CollaboratorAvatars } from "./patterns/share/collaborator-avatars.js";
 import type { ColorPicker } from "./components/forms/color-picker.js";
 import type { Combobox } from "./components/forms/combobox.js";
 import type { CommandPalette } from "./components/overlays/command-palette.js";
 import type { CommentThread } from "./patterns/comments/comment-thread.js";
-import type { CodeBlock } from "./components/output/code-block.js";
-import type { FormattedDate } from "./components/output/formatted-date.js";
-import type { Indicator } from "./components/feedback/indicator.js";
-import type { TileGroup } from "./components/forms/tile-group.js";
-import type { FormattedFileSize } from "./components/output/formatted-file-size.js";
-import type { FormattedNumber } from "./components/output/formatted-number.js";
-import type { RelativeTime } from "./components/output/relative-time.js";
 import type { CompareView } from "./patterns/diff/compare-view.js";
 import type { ContactDatalistItem } from "./components/identity/contact-datalist-item.js";
 import type { ContentExplorer } from "./patterns/content-explorer/content-explorer.js";
@@ -56,7 +53,7 @@ import type { DateField } from "./components/forms/date-field.js";
 import type { Dialog } from "./components/overlays/dialog.js";
 import type { DiffViewer } from "./patterns/diff/diff-viewer.js";
 import type { Divider } from "./components/layout/divider.js";
-import type { Grid } from "./components/layout/grid.js";
+import type { DocumentList } from "./components/collections/document-list.js";
 import type { DonutChart } from "./patterns/insights/donut-chart.js";
 import type { DraggableList } from "./components/collections/draggable-list.js";
 import type { Drawer } from "./components/overlays/drawer.js";
@@ -72,16 +69,23 @@ import type { ExplorerItems } from "./patterns/content-explorer/adapters/items.j
 import type { ExplorerList } from "./patterns/content-explorer/adapters/list.js";
 import type { ExplorerTable } from "./patterns/content-explorer/adapters/table.js";
 import type { ExplorerToolbar } from "./patterns/content-explorer/adapters/toolbar.js";
+import type { FactList } from "./components/collections/fact-list.js";
 import type { Fieldset } from "./components/forms/fieldset.js";
 import type { FileRequestBuilder } from "./patterns/file-request/file-request-builder.js";
 import type { FilterBar } from "./patterns/search/filter-bar.js";
 import type { FormWizard } from "./patterns/form-wizard/form-wizard.js";
+import type { FormattedDate } from "./components/output/formatted-date.js";
+import type { FormattedDuration } from "./components/output/formatted-duration.js";
+import type { FormattedFileSize } from "./components/output/formatted-file-size.js";
+import type { FormattedNumber } from "./components/output/formatted-number.js";
 import type { GovernancePanel } from "./patterns/governance/governance-panel.js";
+import type { Grid } from "./components/layout/grid.js";
 import type { GridView } from "./components/collections/grid-view.js";
 import type { GuideTooltip } from "./components/overlays/guide-tooltip.js";
 import type { HelpText } from "./components/feedback/help-text.js";
 import type { IconButton } from "./components/actions/icon-button.js";
 import type { Illustration } from "./components/visuals/illustration.js";
+import type { Indicator } from "./components/feedback/indicator.js";
 import type { InviteCollaboratorsModal } from "./patterns/share/invite-collaborators-modal.js";
 import type { ItemDetailsPanel } from "./patterns/item/item-details-panel.js";
 import type { ItemForm } from "./patterns/item/item-form.js";
@@ -100,6 +104,7 @@ import type { NotificationInbox } from "./patterns/notifications/notification-in
 import type { Nudge } from "./components/feedback/nudge.js";
 import type { NumberInput } from "./components/forms/number-input.js";
 import type { Pagination } from "./components/collections/pagination.js";
+import type { Path } from "./components/feedback/path.js";
 import type { PermissionMatrix } from "./patterns/share/permission-matrix.js";
 import type { Persona } from "./components/identity/persona.js";
 import type { PillCloud } from "./components/forms/pill-cloud.js";
@@ -115,8 +120,11 @@ import type { ProvenanceStrip } from "./patterns/lineage/provenance-strip.js";
 import type { RadioGroup } from "./components/forms/radio-group.js";
 import type { RangeSlider } from "./components/forms/range-slider.js";
 import type { Rating } from "./components/forms/rating.js";
+import type { RelativeTime } from "./components/output/relative-time.js";
+import type { ResultBlocks } from "./components/collections/result-blocks.js";
 import type { ReviewQueueItem } from "./patterns/task/review-queue-item.js";
 import type { RichTextInput } from "./components/forms/rich-text-input.js";
+import type { RunSummary } from "./patterns/run/run-summary.js";
 import type { RunTrace } from "./patterns/run/run-trace.js";
 import type { SavedViewPicker } from "./patterns/search/saved-view-picker.js";
 import type { SearchField } from "./components/forms/search-field.js";
@@ -133,7 +141,7 @@ import type { Slider } from "./components/forms/slider.js";
 import type { SpinButton } from "./components/forms/spin-button.js";
 import type { Spinner } from "./components/feedback/spinner.js";
 import type { SplitView } from "./components/layout/split-view.js";
-import type { Path } from "./components/feedback/path.js";
+import type { StatusIcon } from "./components/feedback/status-icon.js";
 import type { Switch } from "./components/forms/switch.js";
 import type { Table } from "./components/collections/table.js";
 import type { Tabs } from "./components/navigation/tabs.js";
@@ -142,9 +150,11 @@ import type { TaskAssignmentPanel } from "./patterns/task/task-assignment-panel.
 import type { TextArea } from "./components/forms/text-area.js";
 import type { TextField } from "./components/forms/text-field.js";
 import type { ThumbnailCard } from "./components/collections/thumbnail-card.js";
+import type { TileGroup } from "./components/forms/tile-group.js";
 import type { TimeField } from "./components/forms/time-field.js";
 import type { Timeline } from "./patterns/timeline/timeline.js";
 import type { Toast } from "./components/feedback/toast.js";
+import type { Toolbar } from "./components/actions/toolbar.js";
 import type { Tooltip } from "./components/overlays/tooltip.js";
 import type { Tree } from "./components/collections/tree.js";
 import type { TreeGrid } from "./components/collections/tree-grid.js";
@@ -161,6 +171,7 @@ declare global {
     "box-accordion": Accordion;
     "box-activity-density": ActivityDensityStrip;
     "box-agent-chat": AgentChat;
+    "box-agent-workspace": AgentWorkspace;
     "box-alert": Alert;
     "box-annotation-inspector": AnnotationInspector;
     "box-annotation-thread": AnnotationThread;
@@ -176,25 +187,21 @@ declare global {
     "box-button": Button;
     "box-button-group": ButtonGroup;
     "box-calendar": Calendar;
+    "box-call-console": CallConsole;
     "box-card": Card;
     "box-carousel": Carousel;
     "box-category-selector": CategorySelector;
     "box-chart-panel": ChartPanel;
+    "box-check-list": CheckList;
     "box-checkbox": Checkbox;
     "box-checkbox-group": CheckboxGroup;
     "box-chip": Chip;
+    "box-code-block": CodeBlock;
     "box-collaborator-avatars": CollaboratorAvatars;
     "box-color-picker": ColorPicker;
     "box-combobox": Combobox;
     "box-command-palette": CommandPalette;
     "box-comment-thread": CommentThread;
-    "box-code-block": CodeBlock;
-    "box-formatted-date": FormattedDate;
-    "box-indicator": Indicator;
-    "box-tile-group": TileGroup;
-    "box-formatted-file-size": FormattedFileSize;
-    "box-formatted-number": FormattedNumber;
-    "box-relative-time": RelativeTime;
     "box-compare-view": CompareView;
     "box-contact-datalist-item": ContactDatalistItem;
     "box-content-explorer": ContentExplorer;
@@ -207,7 +214,7 @@ declare global {
     "box-dialog": Dialog;
     "box-diff-viewer": DiffViewer;
     "box-divider": Divider;
-    "box-grid": Grid;
+    "box-document-list": DocumentList;
     "box-donut-chart": DonutChart;
     "box-draggable-list": DraggableList;
     "box-drawer": Drawer;
@@ -223,16 +230,23 @@ declare global {
     "box-explorer-list": ExplorerList;
     "box-explorer-table": ExplorerTable;
     "box-explorer-toolbar": ExplorerToolbar;
+    "box-fact-list": FactList;
     "box-fieldset": Fieldset;
     "box-file-request-builder": FileRequestBuilder;
     "box-filter-bar": FilterBar;
     "box-form-wizard": FormWizard;
+    "box-formatted-date": FormattedDate;
+    "box-formatted-duration": FormattedDuration;
+    "box-formatted-file-size": FormattedFileSize;
+    "box-formatted-number": FormattedNumber;
     "box-governance-panel": GovernancePanel;
+    "box-grid": Grid;
     "box-grid-view": GridView;
     "box-guide-tooltip": GuideTooltip;
     "box-help-text": HelpText;
     "box-icon-button": IconButton;
     "box-illustration": Illustration;
+    "box-indicator": Indicator;
     "box-invite-collaborators-modal": InviteCollaboratorsModal;
     "box-item-details-panel": ItemDetailsPanel;
     "box-item-form": ItemForm;
@@ -251,6 +265,7 @@ declare global {
     "box-nudge": Nudge;
     "box-number-input": NumberInput;
     "box-pagination": Pagination;
+    "box-path": Path;
     "box-permission-matrix": PermissionMatrix;
     "box-persona": Persona;
     "box-pill-cloud": PillCloud;
@@ -266,8 +281,11 @@ declare global {
     "box-radio-group": RadioGroup;
     "box-range-slider": RangeSlider;
     "box-rating": Rating;
+    "box-relative-time": RelativeTime;
+    "box-result-blocks": ResultBlocks;
     "box-review-queue-item": ReviewQueueItem;
     "box-rich-text-input": RichTextInput;
+    "box-run-summary": RunSummary;
     "box-run-trace": RunTrace;
     "box-saved-view-picker": SavedViewPicker;
     "box-search-field": SearchField;
@@ -284,7 +302,7 @@ declare global {
     "box-spin-button": SpinButton;
     "box-spinner": Spinner;
     "box-split-view": SplitView;
-    "box-path": Path;
+    "box-status-icon": StatusIcon;
     "box-switch": Switch;
     "box-table": Table;
     "box-tabs": Tabs;
@@ -293,9 +311,11 @@ declare global {
     "box-text-area": TextArea;
     "box-text-field": TextField;
     "box-thumbnail-card": ThumbnailCard;
+    "box-tile-group": TileGroup;
     "box-time-field": TimeField;
     "box-timeline": Timeline;
     "box-toast": Toast;
+    "box-toolbar": Toolbar;
     "box-tooltip": Tooltip;
     "box-tree": Tree;
     "box-tree-grid": TreeGrid;
@@ -314,6 +334,7 @@ export type BoxElementTagName =
   | "box-accordion"
   | "box-activity-density"
   | "box-agent-chat"
+  | "box-agent-workspace"
   | "box-alert"
   | "box-annotation-inspector"
   | "box-annotation-thread"
@@ -329,25 +350,21 @@ export type BoxElementTagName =
   | "box-button"
   | "box-button-group"
   | "box-calendar"
+  | "box-call-console"
   | "box-card"
   | "box-carousel"
   | "box-category-selector"
   | "box-chart-panel"
+  | "box-check-list"
   | "box-checkbox"
   | "box-checkbox-group"
   | "box-chip"
+  | "box-code-block"
   | "box-collaborator-avatars"
   | "box-color-picker"
   | "box-combobox"
   | "box-command-palette"
   | "box-comment-thread"
-  | "box-code-block"
-  | "box-formatted-date"
-  | "box-indicator"
-  | "box-tile-group"
-  | "box-formatted-file-size"
-  | "box-formatted-number"
-  | "box-relative-time"
   | "box-compare-view"
   | "box-contact-datalist-item"
   | "box-content-explorer"
@@ -360,7 +377,7 @@ export type BoxElementTagName =
   | "box-dialog"
   | "box-diff-viewer"
   | "box-divider"
-  | "box-grid"
+  | "box-document-list"
   | "box-donut-chart"
   | "box-draggable-list"
   | "box-drawer"
@@ -376,16 +393,23 @@ export type BoxElementTagName =
   | "box-explorer-list"
   | "box-explorer-table"
   | "box-explorer-toolbar"
+  | "box-fact-list"
   | "box-fieldset"
   | "box-file-request-builder"
   | "box-filter-bar"
   | "box-form-wizard"
+  | "box-formatted-date"
+  | "box-formatted-duration"
+  | "box-formatted-file-size"
+  | "box-formatted-number"
   | "box-governance-panel"
+  | "box-grid"
   | "box-grid-view"
   | "box-guide-tooltip"
   | "box-help-text"
   | "box-icon-button"
   | "box-illustration"
+  | "box-indicator"
   | "box-invite-collaborators-modal"
   | "box-item-details-panel"
   | "box-item-form"
@@ -404,6 +428,7 @@ export type BoxElementTagName =
   | "box-nudge"
   | "box-number-input"
   | "box-pagination"
+  | "box-path"
   | "box-permission-matrix"
   | "box-persona"
   | "box-pill-cloud"
@@ -419,8 +444,11 @@ export type BoxElementTagName =
   | "box-radio-group"
   | "box-range-slider"
   | "box-rating"
+  | "box-relative-time"
+  | "box-result-blocks"
   | "box-review-queue-item"
   | "box-rich-text-input"
+  | "box-run-summary"
   | "box-run-trace"
   | "box-saved-view-picker"
   | "box-search-field"
@@ -437,7 +465,7 @@ export type BoxElementTagName =
   | "box-spin-button"
   | "box-spinner"
   | "box-split-view"
-  | "box-path"
+  | "box-status-icon"
   | "box-switch"
   | "box-table"
   | "box-tabs"
@@ -446,9 +474,11 @@ export type BoxElementTagName =
   | "box-text-area"
   | "box-text-field"
   | "box-thumbnail-card"
+  | "box-tile-group"
   | "box-time-field"
   | "box-timeline"
   | "box-toast"
+  | "box-toolbar"
   | "box-tooltip"
   | "box-tree"
   | "box-tree-grid"

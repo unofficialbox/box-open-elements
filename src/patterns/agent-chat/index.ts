@@ -6,3 +6,4 @@ export * from "./controller.js";
 
 // Composed conversation surface
 export * from "./agent-chat.js";
+export * from "./ndjson.js";

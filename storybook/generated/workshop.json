@@ -1,6 +1,190 @@
 {
   "stories": [
     {
+      "id": "status-icon",
+      "tag": "box-status-icon",
+      "title": "Components/Feedback/Status Icon",
+      "category": "Feedback",
+      "shortDescription": "Shared status glyph with a text alternative.",
+      "docsDescription": "Shared status glyph with a text alternative. See the Agent UI building blocks guide for contracts, lifecycle and examples.",
+      "sourceSnippet": "<box-status-icon></box-status-icon>",
+      "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "kind",
+          "type": "StatusKind",
+          "description": "Shared status glyph with a text alternative."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-status-icon></box-status-icon>"
+        }
+      ]
+    },
+    {
+      "id": "fact-list",
+      "tag": "box-fact-list",
+      "title": "Components/Collections/Fact List",
+      "category": "Collections",
+      "shortDescription": "Label/value facts separated by hairlines.",
+      "docsDescription": "Label/value facts separated by hairlines. See the Agent UI building blocks guide for contracts, lifecycle and examples.",
+      "sourceSnippet": "<box-fact-list></box-fact-list>",
+      "referenceRows": [
+        {
+          "kind": "property",
+          "name": "rows",
+          "type": "{label, value}[]",
+          "description": "Label/value facts separated by hairlines."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-fact-list></box-fact-list>"
+        }
+      ]
+    },
+    {
+      "id": "check-list",
+      "tag": "box-check-list",
+      "title": "Components/Collections/Check List",
+      "category": "Collections",
+      "shortDescription": "Policy checks with glyphs, verdict words and reasons.",
+      "docsDescription": "Policy checks with glyphs, verdict words and reasons. See the Agent UI building blocks guide for contracts, lifecycle and examples.",
+      "sourceSnippet": "<box-check-list></box-check-list>",
+      "referenceRows": [
+        {
+          "kind": "property",
+          "name": "rows",
+          "type": "{label, status, value?, detail?}[]",
+          "description": "Policy checks with glyphs, verdict words and reasons."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-check-list></box-check-list>"
+        }
+      ]
+    },
+    {
+      "id": "document-list",
+      "tag": "box-document-list",
+      "title": "Components/Collections/Document List",
+      "category": "Collections",
+      "shortDescription": "Whole-row safe document links with exposed IDs.",
+      "docsDescription": "Whole-row safe document links with exposed IDs. See the Agent UI building blocks guide for contracts, lifecycle and examples.",
+      "sourceSnippet": "<box-document-list></box-document-list>",
+      "referenceRows": [
+        {
+          "kind": "property",
+          "name": "items",
+          "type": "{id, name, detail?, href?}[]",
+          "description": "Whole-row safe document links with exposed IDs."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-document-list></box-document-list>"
+        }
+      ]
+    },
+    {
+      "id": "result-blocks",
+      "tag": "box-result-blocks",
+      "title": "Components/Collections/Result Blocks",
+      "category": "Collections",
+      "shortDescription": "Semantic streamed facts, checks, tables and documents.",
+      "docsDescription": "Semantic streamed facts, checks, tables and documents. See the Agent UI building blocks guide for contracts, lifecycle and examples.",
+      "sourceSnippet": "<box-result-blocks></box-result-blocks>",
+      "referenceRows": [
+        {
+          "kind": "property",
+          "name": "blocks",
+          "type": "ResultBlock[]",
+          "description": "Semantic streamed facts, checks, tables and documents."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-result-blocks></box-result-blocks>"
+        }
+      ]
+    },
+    {
+      "id": "run-summary",
+      "tag": "box-run-summary",
+      "title": "Patterns/Runs/Run Summary",
+      "category": "Runs",
+      "shortDescription": "Collapsed plan and trace with live progress and elapsed time.",
+      "docsDescription": "Collapsed plan and trace with live progress and elapsed time. See the Agent UI building blocks guide for contracts, lifecycle and examples.",
+      "sourceSnippet": "<box-run-summary></box-run-summary>",
+      "referenceRows": [
+        {
+          "kind": "property",
+          "name": "turn",
+          "type": "RunTurn",
+          "description": "Collapsed plan and trace with live progress and elapsed time."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-run-summary></box-run-summary>"
+        }
+      ]
+    },
+    {
+      "id": "agent-workspace",
+      "tag": "box-agent-workspace",
+      "title": "Patterns/Agent Chat/Agent Workspace",
+      "category": "Agent Chat",
+      "shortDescription": "Persistent conversations with responsive side panes.",
+      "docsDescription": "Persistent conversations with responsive side panes. See the Agent UI building blocks guide for contracts, lifecycle and examples.",
+      "sourceSnippet": "<box-agent-workspace></box-agent-workspace>",
+      "referenceRows": [
+        {
+          "kind": "property",
+          "name": "workspaceController",
+          "type": "AgentWorkspaceController",
+          "description": "Persistent conversations with responsive side panes."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-agent-workspace></box-agent-workspace>"
+        }
+      ]
+    },
+    {
+      "id": "call-console",
+      "tag": "box-call-console",
+      "title": "Patterns/Developer Tools/Call Console",
+      "category": "Developer Tools",
+      "shortDescription": "Separate developer call log with HTTP and tool errors.",
+      "docsDescription": "Separate developer call log with HTTP and tool errors. See the Agent UI building blocks guide for contracts, lifecycle and examples.",
+      "sourceSnippet": "<box-call-console></box-call-console>",
+      "referenceRows": [
+        {
+          "kind": "property",
+          "name": "callController",
+          "type": "CallConsoleController",
+          "description": "Separate developer call log with HTTP and tool errors."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-call-console></box-call-console>"
+        }
+      ]
+    },
+    {
       "id": "access-stats",
       "tag": "box-access-stats",
       "title": "Patterns/Share/Access Stats",
