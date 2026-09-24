@@ -31,12 +31,12 @@ Merged code, verified code, and published packages are separate milestones.
 ## Evidence
 
 - Starting point: main commit `6d652c54a3095882e7fee3152e69bb497e1c30cf`, containing PR #256.
-- Published baseline: 0.20.0. No release from this work has been published.
-- Source and four public adapters are prepared at 0.21.0; `bun.lock` and the installed registry copy remain at 0.20.0 until publication.
+- PR #267 merged as `09c9a9e`; the coordinated `v0.21.0` and `adapters-v0.21.0` releases are published.
+- The core and React, Angular, Vue, and Svelte adapters all resolve to 0.21.0 on npm. `bun.lock` and the installed registry copy were refreshed to 0.21.0 after publication.
 - Focused tests: 53 component/a11y, 32 React, 10 flow/undo, and 4 additional Toast lifecycle checks passed.
 - Final full verification: 2,241 tests across 251 files passed, 86.87% statement coverage, all four adapter typechecks/builds, React/Angular/Vue/Svelte integration builds, React and Svelte SSR passed.
 - Bundle proof: one generated glyph 783 B (480 B gzip), dynamic registry 802,501 B (231,814 B gzip); root and direct React Button bundles both 11,848 B. Core root and subpath registrations survive.
 - Browser proof: docs flow insertion, keyboard End/Home, selection, name edit with focus retained, mobile bottom sheet, validation, remove/Undo and 390px no-page-overflow passed in light/dark; named SVG glyphs render. A wide table remains scrollable inside a 320px card without causing page overflow.
 - Visual review: the new Flow Builder baseline and 20 existing docs baselines were refreshed for intentional sidebar scroll position, icon inventory order, and Toast guidance changes. Pinned pixel comparison passed: 14/14 gallery and 63/63 docs-site baselines healthy.
 - Docs typecheck/build and production bundle check passed. Strict BUE geometry, webapp, and offline colour conformance passed with no new review items.
-- Release and consumer registry proof remain pending until a merged PR and publish workflows succeed.
+- Core and adapter publish workflows passed; the React package exposes an npm provenance attestation. Frozen install and `adapters:version` pass with the refreshed lockfile.
