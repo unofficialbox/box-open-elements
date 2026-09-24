@@ -124,8 +124,11 @@ adopted from CI artifacts. The forms gallery exposed a genuine Search Field
 regression: inline-size containment collapsed a content-sized flex child.
 An intrinsic inline-size fallback repairs it without overriding parent sizing.
 A permanent gallery assertion checks input width and inner control bounds;
-the focused Search Field/responsive unit suite passes (12 tests). The forms
-baseline must be captured again from the corrected code in the pinned container.
+the focused Search Field/responsive unit suite passes (12 tests). Eight flex-layout
+search/clear browser cases and the existing 32 responsive cases also pass.
+Corrected forms and explorer captures from pinned-container CI run 36029736982
+were visually reviewed and adopted; the other 62 docs-site baselines already
+passed that run. CI typecheck/tests/build and strict conformance checks passed.
 
 Review follow-up: repaired the shared focus traversal's fieldset and negative-
 tabindex shadow-host edge cases. Four new regression tests cover first versus
