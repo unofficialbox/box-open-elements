@@ -15,6 +15,8 @@ are kept as written.
 
 ## Unreleased
 
+## 0.20.0 — 2026-09-24
+
 ### Agent UI building blocks and workspace
 
 - Shared motion, reduced-motion policy and six-state status glyphs.
