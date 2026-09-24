@@ -301,7 +301,7 @@
 
     "@types/trusted-types": ["@types/trusted-types@2.0.7", "", {}, "sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw=="],
 
-    "@unofficialbox/box-open-elements": ["@unofficialbox/box-open-elements@0.19.0", "", {}, "sha512-nAmEG2U3xUqCiSHxXPHfCw//1x5nM1JWjrqWQRKjrSxa6ZHOlGBvWJs2O5aa6c8hnMQJWuiw3su/OwgDS1Gx0w=="],
+    "@unofficialbox/box-open-elements": ["@unofficialbox/box-open-elements@0.20.0", "", {}, "sha512-cgIP0loUmtrJPwvuEaIFdTTp3WESYmOf9imXczulTo+UtaSPX2dqfuXNJleVHwvkBl/+qcgpGCbFNKZ/XT632A=="],
 
     "@unofficialbox/box-open-elements-angular": ["@unofficialbox/box-open-elements-angular@workspace:packages/angular"],
 
