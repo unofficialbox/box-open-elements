@@ -1,4 +1,9 @@
+import type { ResultBlock } from "../../components/collections/result-blocks.js";
+import type { RunStep } from "../run/types.js";
+import type { AgentTodo } from "../run/progress.js";
 export type AgentRole = "user" | "agent";
+export interface AgentPromptOption { label: string; prompt: string; }
+export interface AgentCompleteness { status: "streaming" | "complete" | "needs_input" | "error" | "incomplete"; missing: number[]; }
 
 export type AgentMessageStatus = "streaming" | "complete" | "error";
 
@@ -26,6 +31,8 @@ export interface AgentActionProposal {
   params?: Array<{ label: string; value: string }>;
   /** Present once a decision has landed. */
   decision?: AgentActionDecision;
+  outcome?: "done" | "failed";
+  resolving?: AgentActionDecision;
   note?: string;
 }
 
@@ -38,17 +45,32 @@ export interface AgentChatMessage {
   timestamp?: string;
   citations: AgentCitation[];
   proposals: AgentActionProposal[];
+  blocks?: ResultBlock[];
+  trace?: RunStep[];
+  todos?: AgentTodo[];
+  options?: AgentPromptOption[];
+  context?: Record<string, unknown>;
+  completeness?: AgentCompleteness;
+  startedAt?: number;
+  endedAt?: number;
   /** Human-readable failure detail when `status` is "error". */
   errorMessage?: string;
 }
 
 /** Typed stream events a transport delivers while a reply generates. */
-export type AgentStreamEvent =
+export type AgentStreamEvent = { seq?: number } & (
   | { kind: "delta"; text: string }
   | { kind: "citation"; citation: AgentCitation }
-  | { kind: "proposal"; proposal: AgentActionProposal };
+  | { kind: "proposal"; proposal: AgentActionProposal }
+  | { kind: "block"; block: ResultBlock }
+  | { kind: "trace"; step: RunStep }
+  | { kind: "todos"; todos: AgentTodo[] }
+  | { kind: "options"; options: AgentPromptOption[] }
+  | { kind: "context"; context: Record<string, unknown> }
+  | { kind: "done"; status: "complete" | "needs_input" | "error" });
 
 export interface AgentSendRequest {
+  messageId: string;
   body: string;
   token: string;
   signal?: AbortSignal;
@@ -57,6 +79,7 @@ export interface AgentSendRequest {
 }
 
 export interface AgentResolveActionRequest {
+  messageId?: string;
   proposalId: string;
   decision: AgentActionDecision;
   note?: string;

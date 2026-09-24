@@ -15,6 +15,18 @@ are kept as written.
 
 ## Unreleased
 
+### Agent UI building blocks and workspace
+
+- Shared motion, reduced-motion policy and six-state status glyphs.
+- Semantic result blocks, facts, checks, documents and collapsed run summaries.
+- Extended streaming contracts, NDJSON decoding, completeness tracking, safe
+  approval outcomes, intent-based scrolling and an IME-aware composer.
+- Persistent multi-conversation workspace with responsive side drawers.
+- Separate developer call console and server-only redacted HTTP/SSE call logging.
+
+See [agent UI contracts](docs/patterns/agent-ui.md) and
+[composition guidelines](docs/patterns/agent-ui-guidelines.md). Addresses #242–#251.
+
 ### `box-progress-bar` stopped saying everything twice
 
 The bar wrapped itself in a `role="group"` named `` `${label} progress` ``, while

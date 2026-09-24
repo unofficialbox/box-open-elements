@@ -9,6 +9,11 @@ import { isSafeHref } from "../internal/safe-href.js";
 import { BaseElement } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
+import { ScrollPinController, boeEntranceKeyframes, boeReducedMotionPolicy } from "../../foundations/motion/index.js";
+import { boeStatusGlyph, boeStatusStyles } from "../../foundations/status/index.js";
+import { ResultBlocks, resultDocumentIds } from "../../components/collections/result-blocks.js";
+import { RunSummary } from "../run/run-summary.js";
+let chatInstance = 0;
 
 const DEFAULT_TAG_NAME = "box-agent-chat";
 
@@ -378,10 +383,23 @@ const elementStyles = `
 export class AgentChat extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["agent-name", "heading", "placeholder", "token"];
+    return ["agent-name", "heading", "placeholder", "token", "hidden", "hide-citations"];
   }
 
   private controller: AgentChatController | null = null;
+  private readonly scope = `boe-chat-${++chatInstance}`;
+  private composing = false;
+  private scrollPin?: ScrollPinController;
+  private resizeObserver?: ResizeObserver;
+  private messageCount = 0;
+  private jumpEl!: HTMLButtonElement;
+
+  focusComposer(): void { this.inputEl?.focus({preventScroll: true}); }
+  proposalAnchor(messageId: string, proposalId: string): string { return `${this.scope}-${encodeURIComponent(messageId)}-${encodeURIComponent(proposalId)}`; }
+  focusProposal(messageId: string, proposalId: string): void {
+    const card = this.shadowRoot?.getElementById(this.proposalAnchor(messageId, proposalId));
+    card?.scrollIntoView({block: "nearest"}); card?.focus({preventScroll: true});
+  }
 
   private ownsController = false;
 
@@ -461,6 +479,7 @@ export class AgentChat extends BaseElement {
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    if (name === "hidden" && newValue === null && this.isRendered) this.focusComposer();
     if (name === "token") {
       this.scheduleStart();
     } else if (name === "agent-name") {
@@ -478,11 +497,21 @@ export class AgentChat extends BaseElement {
 
   connectedCallback(): void {
     super.connectedCallback();
+    if (this.controller && !this.ownsController && this.unsubscribeFns.length === 0) this.subscribeToController(this.controller);
+    this.scrollPin?.connect();
+    if (typeof ResizeObserver !== "undefined") {
+      this.resizeObserver = new ResizeObserver(() => this.scrollPin?.contentChanged());
+      this.resizeObserver.observe(this.threadEl);
+      for (const child of Array.from(this.threadEl.children)) this.resizeObserver.observe(child);
+    }
     this.scheduleStart();
   }
 
   disconnectedCallback(): void {
-    this.teardownController();
+    this.scrollPin?.disconnect();
+    this.resizeObserver?.disconnect();
+    if (this.ownsController) this.teardownController();
+    else {this.unsubscribeFns.forEach(fn => fn()); this.unsubscribeFns = [];}
   }
 
   /** Send the composer's contents (or an explicit body) as a user turn. */
@@ -493,11 +522,13 @@ export class AgentChat extends BaseElement {
     }
     // Clear only once the controller has accepted the turn, so a refused
     // send (no controller, or a disconnected session) never loses typing.
-    const sent = await this.controller?.send(text);
-    if (sent && body === undefined && this.inputEl) {
+    const accepted = this.controller?.getState().connected;
+    const sending = this.controller?.send(text);
+    if (accepted && body === undefined && this.inputEl) {
       this.inputEl.value = "";
       this.syncComposer();
     }
+    await sending;
   }
 
   /** Stop the in-flight generation; the partial reply is kept. */
@@ -612,6 +643,13 @@ export class AgentChat extends BaseElement {
     const canResolve = Boolean(this.controller?.config.transport.resolveAction);
     return message.proposals
       .map(proposal => {
+        if (proposal.decision) {
+          const failed = proposal.outcome === "failed";
+          return `<div part="proposal" tabindex="-1" id="${this.proposalAnchor(message.id, proposal.id)}" data-proposal-id="${escapeHtml(proposal.id)}" data-decision="${escapeHtml(proposal.decision)}" ${failed ? 'role="alert"' : ""}>
+          <span part="decision">${boeStatusGlyph(failed ? "failed" : proposal.decision === "approved" ? "done" : "skipped")}${proposal.decision === "approved" ? failed ? "Approved · didn't complete" : "Approved" : "Rejected"} · <span part="proposal-title">${escapeHtml(proposal.title)}</span></span>
+          ${proposal.note ? `<p part="proposal-note">${escapeHtml(proposal.note)}</p>` : ""}
+          ${failed ? `<button part="retry" data-message-id="${escapeHtml(message.id)}">Try again</button>` : ""}</div>`;
+        }
         const params = (proposal.params ?? [])
           .map(
             param => `
@@ -624,20 +662,22 @@ export class AgentChat extends BaseElement {
           canResolve && !proposal.decision
             ? `
               <div part="proposal-actions">
-                <button type="button" part="proposal-action" data-action="approve" data-proposal-id="${escapeHtml(proposal.id)}">Approve</button>
-                <button type="button" part="proposal-action" data-action="reject" data-proposal-id="${escapeHtml(proposal.id)}">Reject</button>
-                <button type="button" part="proposal-action" data-action="modify" data-proposal-id="${escapeHtml(proposal.id)}">Modify</button>
+                <button type="button" part="proposal-action" data-action="approve" data-proposal-id="${escapeHtml(proposal.id)}" ${proposal.resolving ? "disabled" : ""} aria-busy="${proposal.resolving === "approved"}">${proposal.resolving === "approved" ? boeStatusGlyph("active") : ""}Approve</button>
+                <button type="button" part="proposal-action" data-action="reject" data-proposal-id="${escapeHtml(proposal.id)}" ${proposal.resolving ? "disabled" : ""} aria-busy="${proposal.resolving === "rejected"}">${proposal.resolving === "rejected" ? boeStatusGlyph("active") : ""}Reject</button>
+                <button type="button" part="proposal-action" data-action="modify" data-proposal-id="${escapeHtml(proposal.id)}" ${proposal.resolving ? "disabled" : ""}>Modify</button>
               </div>
             `
             : "";
         return `
-          <div part="proposal" data-proposal-id="${escapeHtml(proposal.id)}"${proposal.decision ? ` data-decision="${escapeHtml(proposal.decision)}"` : ""}>
+          <div part="proposal" tabindex="-1" id="${this.proposalAnchor(message.id, proposal.id)}" data-proposal-id="${escapeHtml(proposal.id)}">
+            <span>${boeStatusGlyph("pending")} Needs your approval</span>
             <span part="proposal-title">${escapeHtml(proposal.title)}</span>
             ${proposal.summary ? `<p part="proposal-summary">${escapeHtml(proposal.summary)}</p>` : ""}
             ${params ? `<dl part="proposal-params">${params}</dl>` : ""}
             ${proposal.decision ? `<span part="decision">${proposal.decision === "approved" ? "Approved" : "Rejected"}</span>` : ""}
             ${proposal.note ? `<p part="proposal-note">${escapeHtml(proposal.note)}</p>` : ""}
             ${actions}
+            <p part="proposal-note">To change it, reply with the new values.</p>
           </div>
         `;
       })
@@ -647,7 +687,8 @@ export class AgentChat extends BaseElement {
   private messageInnerHtml(message: AgentChatMessage): string {
     const name = message.role === "user" ? "You" : (message.actor?.name ?? this.agentName);
     const initials = message.actor?.initials ?? initialsOf(name);
-    const citations = message.citations
+    const documentIds = resultDocumentIds(message.blocks ?? []);
+    const citations = (this.hasAttribute("hide-citations") ? [] : message.citations.filter(c => !documentIds.includes(c.id)))
       .map(citation => this.citationHtml(message.id, citation))
       .join("");
 
@@ -656,10 +697,14 @@ export class AgentChat extends BaseElement {
         <span part="avatar" aria-hidden="true">${escapeHtml(initials)}</span>
         <span part="author">${escapeHtml(name)}</span>
       </div>
-      <p part="body">${escapeHtml(message.body)}${message.status === "streaming" ? `<span part="caret" aria-hidden="true"></span>` : ""}</p>
+      ${message.role === "agent" ? '<box-run-summary></box-run-summary>' : ""}
+      <p part="body">${escapeHtml(message.body)}${message.status === "streaming" && !message.blocks?.length ? `<span part="caret" aria-hidden="true"></span>` : ""}</p>
+      <box-result-blocks></box-result-blocks>
+      ${message.completeness?.status === "incomplete" ? '<p part="incomplete" role="status">This reply may be incomplete.</p>' : ""}
       ${message.status === "error" && message.errorMessage ? `<p part="error" role="alert">${escapeHtml(message.errorMessage)}</p>` : ""}
       ${citations ? `<div part="citations">${citations}</div>` : ""}
       ${this.proposalHtml(message)}
+      ${message.proposals.some(p => p.outcome === "failed") ? "" : (message.options ?? []).map((o, i) => `<button part="option" data-option="${i}">${escapeHtml(o.label)}</button>`).join("")}
     `;
   }
 
@@ -680,7 +725,12 @@ export class AgentChat extends BaseElement {
       },
       agentName: this.agentName,
       citations: message.citations.map(({ id, href, label }) => ({ id, href, label })),
-      proposals: message.proposals.map(({ id, title, summary, params, decision, note }) => ({
+      hideCitations: this.hasAttribute("hide-citations"),
+      blocks: message.blocks,
+      completeness: message.completeness?.status,
+      options: message.options,
+      proposals: message.proposals.map(({ id, title, summary, params, decision, note, outcome, resolving }) => ({
+        outcome, resolving,
         id,
         title,
         summary,
@@ -719,6 +769,7 @@ export class AgentChat extends BaseElement {
   }
 
   protected renderTemplate(): void {
+    ResultBlocks.register(); RunSummary.register();
     if (!this.shadowRoot) {
       return;
     }
@@ -726,15 +777,30 @@ export class AgentChat extends BaseElement {
     // The composer is part of the stable shell: a streaming reply patches
     // only [part="thread"], so typing is never interrupted.
     this.shadowRoot.innerHTML = `
-      <style>${elementStyles}</style>
+      <style>${elementStyles}
+      [part="message"][data-role="agent"]{border:0;background:transparent;padding-inline:0;max-width:75ch;min-width:0}
+      [part="message"][data-role="user"]{background:var(--boe-token-surface-surface-secondary,#f4f4f4)}
+      [part="proposal"]{border:1px solid var(--boe-token-stroke-stroke,#ddd);background:var(--boe-token-surface-surface,#fff);box-shadow:var(--boe-profile-shadow-overlay,0 3px 14px #0001)}
+      [part="proposal"][data-decision]{border:0;background:transparent;box-shadow:none;padding-inline:0}
+      [part="decision"]{background:none;border-radius:0;padding:0;gap:.4rem;font:inherit}
+      [part="proposal-action"][data-action="approve"],[part="proposal-action"][aria-busy="true"]{background:var(--boe-token-surface-surface-brand,#0061d5);color:var(--boe-token-text-text-on-brand,#fff);border-color:transparent}
+      [part="proposal-action"]:disabled:not([aria-busy="true"]){opacity:.5}
+      [part="composer"]{position:relative;border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:12px;padding:.4rem}
+      [part="input"]{border:0;resize:none;max-height:180px;padding-right:5rem;box-sizing:border-box}
+      [part="composer-actions"]{position:absolute;right:.5rem;bottom:.5rem}
+      [part="jump"]{justify-self:center;border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:999px;padding:.4rem .8rem;background:var(--boe-token-surface-surface,#fff);color:inherit;cursor:pointer}
+      .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+      ${boeEntranceKeyframes}${boeStatusStyles}${boeReducedMotionPolicy}</style>
       <section part="panel">
         <div part="header">
           <h2 part="title"></h2>
           <span part="status" role="status" aria-live="polite"></span>
         </div>
-        <ol part="thread" role="log" aria-live="polite" aria-relevant="additions"></ol>
+        <ol part="thread" role="log" aria-live="polite" aria-relevant="additions" tabindex="0"></ol>
+        <button part="jump" hidden>Jump to latest</button>
         <div part="composer">
-          <textarea part="input" rows="2"></textarea>
+          <label class="sr-only" id="${this.scope}-label">Message</label>
+          <textarea part="input" rows="2" aria-labelledby="${this.scope}-label"></textarea>
           <div part="composer-actions">
             <button type="button" part="stop" hidden>Stop</button>
             <button type="button" part="send">Send</button>
@@ -750,6 +816,11 @@ export class AgentChat extends BaseElement {
   }
 
   protected setupListeners(): void {
+    this.jumpEl = this.shadowRoot!.querySelector('[part="jump"]')!;
+    this.scrollPin = new ScrollPinController(this.threadEl, show => { this.jumpEl.hidden = !show; });
+    this.jumpEl.addEventListener("click", () => this.scrollPin?.jump());
+    this.inputEl.addEventListener("compositionstart", () => { this.composing = true; });
+    this.inputEl.addEventListener("compositionend", () => { this.composing = false; });
     this.sendEl.addEventListener("click", () => {
       void this.send();
     });
@@ -758,7 +829,7 @@ export class AgentChat extends BaseElement {
     });
     this.inputEl.addEventListener("keydown", event => {
       // Enter sends, Shift+Enter makes a newline — the conversational default.
-      if (event.key === "Enter" && !event.shiftKey) {
+      if (event.key === "Enter" && !event.shiftKey && !event.isComposing && !this.composing && event.keyCode !== 229) {
         event.preventDefault();
         void this.send();
       }
@@ -769,15 +840,24 @@ export class AgentChat extends BaseElement {
 
     this.threadEl.addEventListener("click", event => {
       const target = event.target as HTMLElement;
+      const messageId = target.closest('[part="message"]')?.getAttribute("data-message-id") ?? "";
+      const option = target.closest<HTMLElement>("[data-option]");
+      if (option) { const prompt = this.controller?.getMessage(messageId)?.options?.[Number(option.dataset.option)]?.prompt; if (prompt) void this.send(prompt); return; }
+      if (target.closest('[part="retry"]')) {
+        const messages = this.controller?.getState().messages ?? [];
+        const index = messages.findIndex(m => m.id === messageId);
+        const request = messages.slice(0, index).reverse().find(m => m.role === "user");
+        if (request) void this.send(request.body); return;
+      }
 
       const proposalButton = target.closest('[part="proposal-action"]') as HTMLButtonElement | null;
       if (proposalButton && this.threadEl.contains(proposalButton)) {
         const proposalId = proposalButton.getAttribute("data-proposal-id") ?? "";
         const action = proposalButton.getAttribute("data-action") ?? "";
         if (action === "approve") {
-          void this.controller?.resolveAction(proposalId, "approved");
+          void this.controller?.resolveAction(proposalId, "approved", undefined, messageId);
         } else if (action === "reject") {
-          void this.controller?.resolveAction(proposalId, "rejected");
+          void this.controller?.resolveAction(proposalId, "rejected", undefined, messageId);
         } else if (action === "modify") {
           // Modifying needs the host's own editor, so this surfaces intent.
           this.dispatchEvent(
@@ -815,6 +895,9 @@ export class AgentChat extends BaseElement {
     const streaming = this.controller?.getState().streaming ?? false;
     this.inputEl.placeholder = this.placeholder;
     this.sendEl.disabled = streaming || this.inputEl.value.trim().length === 0;
+    this.sendEl.hidden = streaming;
+    this.inputEl.style.height = "auto";
+    this.inputEl.style.height = `${Math.min(180, Math.max(56, this.inputEl.scrollHeight))}px`;
     this.stopEl.hidden = !streaming;
     this.statusEl.textContent = streaming ? "Agent is responding…" : "";
   }
@@ -837,8 +920,8 @@ export class AgentChat extends BaseElement {
 
     const state = this.controller?.getState() ?? null;
     const messages = state?.messages ?? [];
-    const atBottom =
-      this.threadEl.scrollHeight - this.threadEl.scrollTop - this.threadEl.clientHeight < 40;
+    const newMessage = messages.length > this.messageCount;
+    this.messageCount = messages.length;
 
     this.shadowRoot!.querySelector('[part="title"]')!.textContent = this.heading;
 
@@ -872,7 +955,11 @@ export class AgentChat extends BaseElement {
         } else {
           node.setAttribute("data-signature", signature);
           node.setAttribute("data-status", message.status);
+          const summary = node.querySelector("box-run-summary");
+          const results = node.querySelector("box-result-blocks");
           node.innerHTML = this.messageInnerHtml(message);
+          if (summary) node.querySelector("box-run-summary")?.replaceWith(summary);
+          if (results) node.querySelector("box-result-blocks")?.replaceWith(results);
         }
       } else {
         node = this.createMessageNode(message);
@@ -885,8 +972,16 @@ export class AgentChat extends BaseElement {
         this.threadEl.insertBefore(node, anchor);
       }
       previous = node;
+      this.resizeObserver?.observe(node);
+      const blocks = node.querySelector("box-result-blocks") as ResultBlocks | null;
+      if (blocks && blocks.blocks !== message.blocks) blocks.blocks = message.blocks ?? [];
+      const summary = node.querySelector("box-run-summary") as RunSummary | null;
+      if (summary) { summary.toggleAttribute("failed", message.status === "error"); summary.turn = { steps: message.trace ?? [], todos: message.todos ?? [], startedAt: message.startedAt ?? 0,
+        ...(message.endedAt !== undefined ? {endedAt: message.endedAt} : {}), incomplete: message.completeness?.status === "incomplete" };
+      }
     }
     for (const stale of existing.values()) {
+      this.resizeObserver?.unobserve(stale);
       stale.remove();
     }
 
@@ -901,9 +996,7 @@ export class AgentChat extends BaseElement {
     }
 
     // Follow the stream only when the reader is already at the bottom.
-    if (atBottom) {
-      this.threadEl.scrollTop = this.threadEl.scrollHeight;
-    }
+    this.scrollPin?.contentChanged(newMessage);
 
     this.syncComposer();
   }

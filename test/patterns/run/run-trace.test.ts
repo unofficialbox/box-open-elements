@@ -62,6 +62,14 @@ describe("RunTrace", () => {
     expect(stepEls(element)[0]?.querySelector('[part="duration"]')?.textContent).toBe("42s");
   });
 
+  it("only settles a completed glyph when its status changes", () => {
+    const element = create([{ id: "one", title: "One", status: "running" }]);
+    element.steps = [{ id: "one", title: "One", status: "succeeded" }];
+    expect(element.shadowRoot?.querySelector('[part="marker"]')?.hasAttribute("data-settled")).toBe(false);
+    element.heading = "Updated heading";
+    expect(element.shadowRoot?.querySelector('[part="marker"]')?.hasAttribute("data-settled")).toBe(true);
+  });
+
   it("summarises the run in a polite status region", () => {
     const element = create();
     const summary = element.shadowRoot?.querySelector('[part="summary"]');

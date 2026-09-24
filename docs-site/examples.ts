@@ -5,6 +5,7 @@
  * back to a bare element with a `label` attribute.
  */
 import {
+  AgentChatController, AgentWorkspaceController, CallConsoleController,
   type InviteCollaboratorsTransport,
   type PresenceTransport,
   type PresenceUser,
@@ -229,6 +230,20 @@ const onSidebarToggle = (target: Element | null, run: (expanded: boolean) => voi
 };
 
 export const examples: Record<string, ComponentExample> = {
+  "status-icon": { html: '<box-status-icon kind="done"></box-status-icon><box-status-icon kind="warning"></box-status-icon><box-status-icon kind="active"></box-status-icon>' },
+  "fact-list": {html:'<box-fact-list></box-fact-list>',setup(root){set(root,"box-fact-list",{rows:[{label:"Amount",value:"$4,800,000"},{label:"Record",value:"LN-1042"}]});}},
+  "check-list": {html:'<box-check-list></box-check-list>',setup(root){set(root,"box-check-list",{rows:[{label:"Loan to value",status:"pass",value:"Within policy"},{label:"Coverage",status:"warn",detail:"Exception requires approval"}]});}},
+  "document-list": {html:'<box-document-list></box-document-list>',setup(root){set(root,"box-document-list",{items:[{id:"1",name:"Loan package.pdf",detail:"Source document",href:"https://app.box.com"}]});}},
+  "result-blocks": {html:'<box-result-blocks></box-result-blocks>',setup(root){set(root,"box-result-blocks",{blocks:[{type:"facts",title:"Extracted terms",rows:[{label:"Amount",value:"$4,800,000"}]},{type:"table",title:"Comparison",columns:["Term","Precedent","This record"],rows:[{cells:["LTV","70%","80%"],status:"warn",note:"Needs exception"}]},{type:"checks",rows:[{label:"Source verified",status:"pass"}]}]});}},
+  "run-summary": {html:'<box-run-summary></box-run-summary>',setup(root){set(root,"box-run-summary",{turn:{startedAt:0,endedAt:2400,todos:[{id:"1",content:"Extract terms",status:"completed"}],steps:[{id:"1",title:"Box · Extract terms",status:"succeeded",description:"Reviewed the package",startedAt:"2026-01-01T00:00:00Z",finishedAt:"2026-01-01T00:00:02Z"}]}});}},
+  "agent-workspace": {html:'<box-agent-workspace style="height:560px" viewer-key="docs-demo"></box-agent-workspace>',setup(root){
+    const workspace=new AgentWorkspaceController(()=>new AgentChatController({token:"demo",transport:{async sendMessage(r){r.onEvent({kind:"delta",text:"The package is ready for review."});r.onEvent({kind:"block",block:{type:"facts",rows:[{label:"Amount",value:"$4,800,000"}]}});r.onEvent({kind:"done",status:"complete"});}}}));
+    workspace.newChat();set(root,"box-agent-workspace",{workspaceController:workspace});
+  }},
+  "call-console": {html:'<box-call-console></box-call-console>',setup(root){
+    const controller=new CallConsoleController({async snapshot(){return [{id:"1",startedAt:0,durationMs:142,pending:false,service:"Box",summary:"tools/call get_file",method:"POST",url:"https://api.box.com/mcp",requestHeaders:{authorization:"[redacted]"},status:200,statusText:"OK",responseHeaders:{},responseBody:'{"result":{"isError":true}}',rpcError:"Tool result reported isError"}];},subscribe(_event,state){state("live");return ()=>{};},async clear(){}});
+    set(root,"box-call-console",{callController:controller});void controller.connect();
+  }},
   button: { html: `<box-button label="Save" tone="primary"></box-button>\n<box-button label="Cancel" tone="neutral"></box-button>\n<box-button label="Delete" tone="danger"></box-button>\n<box-button label="Small" size="small"></box-button>\n<box-button label="Disabled" disabled></box-button>` },
   "icon-button": { html: `<box-icon-button icon="+" label="Add item"></box-icon-button>\n<box-icon-button icon="gear" label="Settings"></box-icon-button>` },
   "link-button": { html: `<box-link-button label="Open documentation" href="#"></box-link-button>` },

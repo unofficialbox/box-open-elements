@@ -8,6 +8,22 @@ character while preserving reduced-motion behavior.
 
 ## Vocabulary
 
+Agent surfaces use `arrival` (200ms), `panel` (320ms), and `fast` (120ms).
+Existing duration keys remain compatible. `boeEntranceKeyframes` supplies
+`rise`, `pop`, `fade-in`, status spin and check-stroke animations.
+`boeEntrance(name)` uses the enter easing; `boeStaggerStyles` uses `--i` times
+`--boe-profile-motion-stagger` (50ms).
+
+`boeDisclosureStyles(selector)` animates grid rows from 0fr to 1fr. Toggle
+`data-open` and set `inert` while closed. The direct child has no vertical
+padding; place spacing one level deeper so the panel fully collapses.
+
+Include `boeReducedMotionPolicy` in both document and shadow styles. Under
+reduced motion it sets animation/transition durations to 1ms, iterations to
+one, and delays to zero. Continuous indicators hold at their settled frame.
+Keep `boeReducedMotionStyles` for additional component-specific overrides.
+Motion is eased out and never bouncy; it communicates arrival or state change.
+
 ```ts
 import {
   boeMotionDuration,

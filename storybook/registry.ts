@@ -156,7 +156,9 @@ import unifiedShareModal from "./stories/unified-share-modal.stories.js";
  * surfaces so docs-site Usage cards stay real (see docs/workshop/storybook.md).
  * Controller-bound explorer stories also ship live `setup()` for the workshop UI.
  */
+import { agentUiStories } from "./stories/agent-ui.stories.js";
 export const storyModules: StoryModule[] = [
+  ...agentUiStories,
   accessStats,
   accordion,
   alert,

@@ -8,6 +8,8 @@ import type { RunResolution, RunStep, RunStepStatus } from "./types.js";
 import { ProgressBar } from "../../components/feedback/progress-bar.js";
 import { BaseElement } from "../../core/index.js";
 import { boePanel } from "../../foundations/geometry/index.js";
+import { boeStatusGlyph, boeStatusStyles, toStatusKind } from "../../foundations/status/index.js";
+import { boeEntranceKeyframes, boeReducedMotionPolicy } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-run-trace";
 
@@ -305,6 +307,7 @@ export class RunTrace extends BaseElement {
   private stepsCache: RunStep[] = [];
 
   private readonly expandedIds = new Set<string>();
+  private readonly previousStatuses = new Map<string, string>();
 
   get heading(): string {
     return this.getAttribute("heading") ?? "Run";
@@ -358,7 +361,11 @@ export class RunTrace extends BaseElement {
     if (!this.shadowRoot) {
       return;
     }
-    this.shadowRoot.innerHTML = `<style>${elementStyles}</style><div part="host"></div>`;
+    this.shadowRoot.innerHTML = `<style>${elementStyles}
+    [part="step"] [part="marker"]{border:0;background:none;display:inline-flex}
+    ${boeEntranceKeyframes}${boeStatusStyles}
+    [data-settled] .boe-status[data-kind="done"], [data-settled] .boe-status[data-kind="done"] path { animation: none; }
+    ${boeReducedMotionPolicy}</style><div part="host"></div>`;
     this.hostEl = this.shadowRoot.querySelector('[part="host"]')!;
   }
 
@@ -430,6 +437,7 @@ export class RunTrace extends BaseElement {
     const rows = resolution.steps
       .map(entry => {
         const { step, status, position } = entry;
+        const settled = this.previousStatuses.get(step.id) === status;
         const duration = formatRunDuration(step.startedAt, step.finishedAt);
         // Slot-only detail counts: a host projecting logs for a step with no
         // JSON description still needs the toggle that reveals them.
@@ -447,7 +455,7 @@ export class RunTrace extends BaseElement {
         `;
         return `
           <li part="step" data-status="${status}" data-step-id="${escapeHtml(step.id)}" style="--run-tone:${STATUS_TONE[status]};">
-            <span part="marker" aria-hidden="true"></span>
+            <span part="marker" aria-hidden="true" ${settled ? "data-settled" : ""}>${boeStatusGlyph(toStatusKind(status))}</span>
             <div part="step-body">
               <div part="topline">
                 <span part="step-title">${escapeHtml(step.title)}</span>
@@ -468,6 +476,8 @@ export class RunTrace extends BaseElement {
       .join("");
 
     const summary = formatRunSummary(resolution);
+    this.previousStatuses.clear();
+    for (const { step, status } of resolution.steps) this.previousStatuses.set(step.id, status);
     this.hostEl.innerHTML = `
       <section part="panel" aria-label="${escapeHtml(this.heading)}">
         <div part="header">

@@ -1,0 +1,34 @@
+export type StatusKind = "pending" | "active" | "done" | "warning" | "failed" | "skipped";
+const mappings: Record<string, StatusKind> = {
+  pending: "pending", info: "pending", active: "active", running: "active", in_progress: "active",
+  done: "done", succeeded: "done", completed: "done", pass: "done", approved: "done",
+  warning: "warning", warn: "warning", failed: "failed", fail: "failed", error: "failed",
+  skipped: "skipped", rejected: "skipped",
+};
+export const toStatusKind = (status: string): StatusKind => mappings[status] ?? "pending";
+export const statusLabel = (kind: StatusKind): string => ({
+  pending: "Pending", active: "In progress", done: "Done", warning: "Done with a warning",
+  failed: "Failed", skipped: "Skipped",
+})[kind];
+/** Decorative markup. Pair with visible words or the StatusIcon component. */
+export const boeStatusGlyph = (kind: StatusKind): string => {
+  const state = toStatusKind(kind);
+  const path = state === "done" ? '<path d="m4 8 3 3 5-6"/>'
+    : state === "failed" ? '<path d="m5 5 6 6m0-6-6 6"/>'
+    : state === "warning" ? '<path d="M5 8h6"/>'
+    : state === "active" ? '<path d="M8 1a7 7 0 0 1 7 7"/>' : "";
+  return `<svg class="boe-status" data-kind="${state}" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="7"/>${path}</svg>`;
+};
+export const boeStatusStyles = `
+.boe-status { flex: none; vertical-align: middle; fill: none; stroke: currentColor; stroke-width: 1.5; }
+.boe-status[data-kind="active"] { color: var(--boe-token-surface-surface-brand, #0061d5); animation: boe-status-spin .8s linear infinite; }
+.boe-status[data-kind="active"] circle { opacity: .25; }
+.boe-status[data-kind="done"] { color: var(--boe-token-text-status-text-success, #187657); }
+.boe-status[data-kind="warning"] { color: var(--boe-token-text-status-text-warning, #946400); }
+.boe-status[data-kind="failed"] { color: var(--boe-token-text-status-text-error, #c52a46); }
+.boe-status[data-kind="skipped"] circle { stroke-dasharray: 2 2; }
+.boe-status:is([data-kind="done"], [data-kind="warning"], [data-kind="failed"]) circle { fill: currentColor; }
+.boe-status:is([data-kind="done"], [data-kind="warning"], [data-kind="failed"]) path { stroke: var(--boe-token-surface-surface, #fff); stroke-linecap: round; }
+.boe-status[data-kind="done"] { animation: boe-pop 200ms ease-out both; }
+.boe-status[data-kind="done"] path { stroke-dasharray: 20; animation: boe-status-check 200ms ease-out both; }
+`;

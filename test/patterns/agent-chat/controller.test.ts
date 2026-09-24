@@ -134,6 +134,7 @@ describe("AgentChatController", () => {
 
     expect(result?.decision).toBe("approved");
     expect(resolveAction).toHaveBeenCalledWith({
+      messageId: "agent-1",
       proposalId: "p1",
       decision: "approved",
       token: "token",

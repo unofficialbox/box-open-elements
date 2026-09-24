@@ -7,6 +7,8 @@
  */
 
 export const boeMotionDuration = {
+  arrival: "var(--boe-profile-motion-arrival, 200ms)",
+  panel: "var(--boe-profile-motion-panel, 320ms)",
   /** Quick accent transitions (charts, micro-feedback) */
   fast: "var(--boe-profile-motion-fast, 120ms)",
   /**
