@@ -72,6 +72,7 @@ export const catalog: CatalogEntry[] = [
   ...p("Task", ["task-assignment-panel", "review-queue-item"]),
   ...p("Governance", ["governance-panel"]),
   ...p("Insights", ["metric-card", "chart-panel", "bar-chart", "line-chart", "donut-chart"]),
+  ...p("Builders", ["flow-builder"]),
 ];
 
 export const titleOf = (id: string): string =>

@@ -7,6 +7,7 @@ import type {
 } from "./types.js";
 import { isSafeHref } from "../internal/safe-href.js";
 import { BaseElement } from "../../core/index.js";
+import { announce } from "../../foundations/a11y/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 import { ScrollPinController, boeEntranceKeyframes, boeReducedMotionPolicy } from "../../foundations/motion/index.js";
@@ -605,6 +606,11 @@ export class AgentChat extends BaseElement {
 
     this.unsubscribeFns = events.map(([eventName, domEventName]) =>
       controller.subscribe(eventName, payload => {
+        if (eventName === "actionResolved") {
+          const { proposal, decision } = payload as AgentChatEvents["actionResolved"];
+          const failed = proposal.outcome === "failed";
+          announce(`${proposal.title}: ${failed ? "Approved, but did not complete" : decision === "approved" ? "Approved" : "Rejected"}${proposal.note ? `. ${proposal.note}` : ""}`, failed ? "assertive" : "polite", this.ownerDocument);
+        }
         this.dispatchEvent(
           new CustomEvent(domEventName, {
             bubbles: true,
@@ -647,7 +653,7 @@ export class AgentChat extends BaseElement {
       .map(proposal => {
         if (proposal.decision) {
           const failed = proposal.outcome === "failed";
-          return `<div part="proposal" tabindex="-1" id="${this.proposalAnchor(message.id, proposal.id)}" data-proposal-id="${escapeHtml(proposal.id)}" data-decision="${escapeHtml(proposal.decision)}" ${failed ? 'role="alert"' : ""}>
+          return `<div part="proposal" aria-live="off" tabindex="-1" id="${this.proposalAnchor(message.id, proposal.id)}" data-proposal-id="${escapeHtml(proposal.id)}" data-decision="${escapeHtml(proposal.decision)}" ${failed ? 'role="alert"' : ""}>
           <span part="decision">${boeStatusGlyph(failed ? "failed" : proposal.decision === "approved" ? "done" : "skipped")}${proposal.decision === "approved" ? failed ? "Approved · didn't complete" : "Approved" : "Rejected"} · <span part="proposal-title">${escapeHtml(proposal.title)}</span></span>
           ${proposal.note ? `<p part="proposal-note">${escapeHtml(proposal.note)}</p>` : ""}
           ${failed ? `<button part="retry" data-message-id="${escapeHtml(message.id)}">Try again</button>` : ""}</div>`;

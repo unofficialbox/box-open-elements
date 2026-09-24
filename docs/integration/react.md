@@ -34,10 +34,22 @@ flowchart LR
 | `TextField` | `<box-text-field>` value control + typed `onValueChanged` |
 | `Select` | `<box-select>` + structured `options` property + typed `onValueChanged` |
 | `Dialog` | `<box-dialog>` + controlled `open`, typed close events, focus/ref behavior |
+| `NumberInput`, `Checkbox`, `Tabs`, `Card`, `Alert`, `Toast`, `Drawer`, `CodeBlock` | Studio controls, feedback, composition and editing surfaces |
 | `createWebComponent` | Shared property/event/ref adapter factory |
 | `useExplorerSelectionController` | React subscription to the framework-neutral selection controller |
 
 ## Usage
+
+The root import remains convenient and tree shakes unused wrappers. Direct subpaths are also available when a host wants explicit imports:
+
+```ts
+import { Button, NumberInput, Toast } from "@unofficialbox/box-open-elements-react";
+import { NumberInput as DirectNumberInput } from "@unofficialbox/box-open-elements-react/number-input";
+```
+
+An omitted `open`, `value`, or other property leaves the underlying element's imperative state alone. Supply a prop to control it from React. NumberInput emits a numeric `event.detail.value`; refs use the underlying custom element type. `Toast` reports `dismiss` with `detail.source` as `timeout` or `close-button`.
+
+The adapter package marks its modules tree shakable. Core custom elements keep their registration side effects. `bun run bundles:check` verifies a root Button import includes only Button, and that its registration survives optimization.
 
 ```ts
 import { Button, Dialog, Select, TextField } from "@unofficialbox/box-open-elements-react";
@@ -150,14 +162,13 @@ focus restoration after Escape.
 | Dependency | Supported contract |
 | --- | --- |
 | React / React DOM | `^19.0.0` |
-| `@unofficialbox/box-open-elements` | `^0.10.0` |
+| `@unofficialbox/box-open-elements` | Same release line as the adapter |
 | Node.js for SSR | `>=20.9.0` |
 | Next.js validated host | `16.2.12` |
 
-## Non-goals (current phase)
+## Scope
 
-- Wrapping the full catalog
-- Framework-specific helpers beyond the validated Next.js host contract
+The adapter covers the validated interaction families above. Other catalog items remain usable as custom elements in React; add wrappers when typed props or event handling bring a practical benefit.
 - Replacing headless controllers with React state libraries
 
 ## Related

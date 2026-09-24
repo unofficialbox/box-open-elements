@@ -30,6 +30,8 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 - [Patterns Catalog](./patterns/catalog.md) — inventory by workflow area
 - [Agent UI building blocks](./patterns/agent-ui.md) — results, runs, chat, workspace and developer console
 - [Agent UI guidelines](./patterns/agent-ui-guidelines.md) — principles and pre-ship checklist
+- [Builder and editor guidelines](./patterns/builder-editor-guidelines.md) — intent, states, anti-patterns and checklist
+- [Flow builder and undo](./patterns/flow-builder.md) — host-owned editing and reversible removal
 - [Content Explorer](./patterns/content-explorer.md) — the headless block model
 - [Preview](./patterns/preview.md) — provider adapters and annotation-first priorities
 

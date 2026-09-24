@@ -1,3 +1,6 @@
+export { announce, installAnnouncer } from "./announcer.js";
+export type { Politeness } from "./announcer.js";
+
 export {
   applyRovingTabindex,
   focusRovingItem,

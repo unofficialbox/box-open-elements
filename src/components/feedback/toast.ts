@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { FeedbackAnnouncement } from "../../foundations/a11y/announcer.js";
 import { toneAccessibleLabel, toneIcon } from "./tone.js";
 import { boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
@@ -212,6 +213,10 @@ export class Toast extends BaseElement {
 
   private openValue = false;
   private timeoutId: ReturnType<typeof setTimeout> | null = null;
+  private remaining = 0;
+  private deadline = 0;
+  private holds = new Set<"pointer" | "focus">();
+  private announcement = new FeedbackAnnouncement();
   private toastEl!: HTMLElement;
   private iconEl!: HTMLElement;
   private headingEl!: HTMLElement;
@@ -269,10 +274,36 @@ export class Toast extends BaseElement {
       clearTimeout(this.timeoutId);
       this.timeoutId = null;
     }
-    // Errors must remain available for recovery, regardless of caller timing.
-    if (duration > 0 && this.mode !== "sticky" && this.tone !== "error") {
-      this.timeoutId = setTimeout(() => this.hide(), duration);
+    this.remaining = Number.isFinite(duration) ? Math.max(0, duration) : 0;
+    this.resumeTimer();
+  }
+
+  private resumeTimer(): void {
+    if (!this.isConnected || !this.open || this.holds.size || this.remaining <= 0 || this.mode === "sticky" || this.tone === "error") return;
+    this.deadline = Date.now() + this.remaining;
+    this.timeoutId = setTimeout(() => {
+      this.timeoutId = null;
+      this.remaining = 0;
+      this.dismiss("timeout");
+    }, this.remaining);
+  }
+
+  private hold(reason: "pointer" | "focus", active: boolean): void {
+    if (active) {
+      this.holds.add(reason);
+      if (this.timeoutId !== null) {
+        this.remaining = Math.max(0, this.deadline - Date.now());
+        clearTimeout(this.timeoutId);
+        this.timeoutId = null;
+      }
+    } else if (this.holds.delete(reason) && !this.holds.size) {
+      this.resumeTimer();
     }
+  }
+
+  private dismiss(source: "timeout" | "close-button"): void {
+    this.hide();
+    this.dispatchEvent(new CustomEvent("dismiss", { bubbles: true, composed: true, detail: { source } }));
   }
 
   get message(): string {
@@ -333,10 +364,18 @@ export class Toast extends BaseElement {
   }
 
   disconnectedCallback(): void {
+    this.announcement.reset();
+    this.holds.clear();
     if (this.timeoutId) {
+      this.remaining = Math.max(0, this.deadline - Date.now());
       clearTimeout(this.timeoutId);
       this.timeoutId = null;
     }
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.resumeTimer();
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
@@ -362,6 +401,9 @@ export class Toast extends BaseElement {
     // options.duration wins; else a declarative `duration` attribute; else 2500.
     const duration = options?.duration ?? (this.hasAttribute("duration") ? this.duration : 2500);
     this.scheduleAutoDismiss(duration);
+    // Re-showing the same text is a new feedback event, even when already open.
+    this.announcement.reset();
+    if (this.isRendered) this.update();
   }
 
   hide(): void {
@@ -375,7 +417,7 @@ export class Toast extends BaseElement {
 
     this.shadowRoot.innerHTML = `
       <style>${toastStyles}</style>
-      <div part="toast" role="status" aria-live="polite">
+      <div part="toast" role="group" aria-label="Notification">
         <span part="icon" aria-hidden="true"></span>
         <div part="content">
           <span part="tone-label" class="sr-only"></span>
@@ -396,9 +438,16 @@ export class Toast extends BaseElement {
   }
 
   protected setupListeners(): void {
+    this.addEventListener("pointerenter", () => this.hold("pointer", true));
+    this.addEventListener("pointerleave", () => this.hold("pointer", false));
+    this.addEventListener("focusin", () => this.hold("focus", true));
+    this.addEventListener("focusout", event => {
+      const target = event.relatedTarget;
+      if (target instanceof Node && (this.contains(target) || this.shadowRoot?.contains(target))) return;
+      this.hold("focus", false);
+    });
     this.dismissEl.addEventListener("click", () => {
-      this.dispatchEvent(new CustomEvent("dismiss", { bubbles: true, composed: true }));
-      this.hide();
+      this.dismiss("close-button");
     });
     this.actionSlot.addEventListener("slotchange", () => {
       const hasContent = this.actionSlot.assignedNodes({ flatten: true }).length > 0;
@@ -413,6 +462,7 @@ export class Toast extends BaseElement {
 
     const visible = this.openValue && Boolean(this.message);
     this.hidden = !visible;
+    this.announcement.update(this, visible ? [toneAccessibleLabel(this.tone), this.heading, this.message].filter(Boolean).join(": ") : "", this.tone === "error" ? "assertive" : "polite");
     if (!visible) {
       return;
     }

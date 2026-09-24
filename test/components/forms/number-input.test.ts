@@ -6,6 +6,22 @@ import { NumberInput } from "../../../src/components/forms/number-input.js";
 import { getMirroredFormValue } from "../../../src/core/index.js";
 
 describe("NumberInput", () => {
+  it("shares sentence-case labels, hidden-label support, required and description semantics", () => {
+    const element = new NumberInput();
+    element.label = "Retry count";
+    element.hideLabel = true;
+    element.required = true;
+    element.description = "Maximum retry attempts";
+    document.body.append(element);
+    const styles = element.shadowRoot!.querySelector("style")!.textContent!;
+    expect(styles).not.toContain("text-transform: uppercase");
+    expect(styles).toContain(":host([hide-label])");
+    expect(element.shadowRoot!.querySelector('[part="label"]')!.textContent).toBe("Retry count*");
+    expect(element.shadowRoot!.querySelector("input")!.getAttribute("aria-required")).toBe("true");
+    const description = element.shadowRoot!.querySelector('[part="description"]')!;
+    expect(description.textContent).toBe("Maximum retry attempts");
+    expect(element.shadowRoot!.querySelector("input")!.getAttribute("aria-describedby")).toContain(description.id);
+  });
   beforeEach(() => {
     NumberInput.register();
   });

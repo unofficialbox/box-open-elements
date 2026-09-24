@@ -157,9 +157,11 @@ import unifiedShareModal from "./stories/unified-share-modal.stories.js";
  * Controller-bound explorer stories also ship live `setup()` for the workshop UI.
  */
 import { agentUiStories } from "./stories/agent-ui.stories.js";
+import flowBuilder from "./stories/flow-builder.stories.js";
 import { purposeExamples } from "./fixtures/purpose-demos.js";
 export const storyModules: StoryModule[] = [
   ...agentUiStories,
+  flowBuilder,
   accessStats,
   accordion,
   alert,

@@ -1,12 +1,14 @@
 import {
   FormAssociatedElement,
   boeFormFieldErrorStyles,
+  boeFormFieldSupportStyles,
+  formDescriptionMarkup,
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
-import { boeRadius } from "../../foundations/geometry/index.js";
+import { boeControl, boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-number-input";
 
@@ -38,11 +40,9 @@ const numberInputStyles = `
   }
 
   [part="label"] {
-    font-size: 0.8rem;
+    font-size: ${boeControl.fontSize};
     font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    color: var(--boe-token-text-text, #222222);
   }
 
   [part="input"] {
@@ -69,6 +69,7 @@ const numberInputStyles = `
   }
 
   ${boeFormFieldErrorStyles}
+  ${boeFormFieldSupportStyles}
 `;
 
 export class NumberInput extends FormAssociatedElement {
@@ -90,6 +91,7 @@ export class NumberInput extends FormAssociatedElement {
   private inputEl!: HTMLInputElement;
   private labelEl!: HTMLElement;
   private errorEl!: HTMLElement;
+  private descriptionEl!: HTMLElement;
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -225,6 +227,7 @@ export class NumberInput extends FormAssociatedElement {
       <style>${numberInputStyles}</style>
       <label part="field">
         <span part="label"></span>
+        ${formDescriptionMarkup()}
         <input type="number" part="input" />
         ${formErrorMessageMarkup()}
       </label>
@@ -232,6 +235,7 @@ export class NumberInput extends FormAssociatedElement {
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
     this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
+    this.descriptionEl = this.shadowRoot.querySelector('[part="description"]')!;
   }
 
   protected setupListeners(): void {
@@ -276,6 +280,7 @@ export class NumberInput extends FormAssociatedElement {
       this.inputEl.removeAttribute("disabled");
     }
 
+    this.applyFieldSupport(this.labelEl, this.inputEl, this.descriptionEl);
     this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }

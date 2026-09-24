@@ -60,6 +60,7 @@ const routes: Array<[name: string, hash: string, readyMarker: string, scrollTo?:
   ["components-tag-input", "#components/tag-input", "components/tag-input"],
   ["patterns-content-explorer", "#patterns/content-explorer", "patterns/content-explorer"],
   ["patterns-call-console", "#patterns/call-console", "patterns/call-console"],
+  ["patterns-flow-builder", "#patterns/flow-builder", "patterns/flow-builder"],
   ["patterns-content-picker", "#patterns/content-picker", "patterns/content-picker"],
   ["patterns-content-uploader", "#patterns/content-uploader", "patterns/content-uploader"],
   ["patterns-content-sidebar", "#patterns/content-sidebar", "patterns/content-sidebar"],

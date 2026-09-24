@@ -34,6 +34,11 @@ const walk = (dir: string): void => {
       continue;
     }
     const source = readFileSync(full, "utf8");
+    // Composed pattern modules may define several independent primitives.
+    const literalClasses = source.matchAll(/export class (\w+) extends [\w.]+ \{\s*\n\s*static (?:override )?readonly tagName(?:\s*:\s*string)? = "([a-z0-9-]+)"/g);
+    for (const match of literalClasses) {
+      entries.push({ tag: match[2], className: match[1], importPath: `./${relative(SRC, full).replace(/\.ts$/, ".js")}` });
+    }
     const tagMatch = /const DEFAULT_TAG_NAME = "([a-z0-9-]+)"/.exec(source);
     if (!tagMatch) {
       continue;

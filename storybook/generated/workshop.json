@@ -287,6 +287,63 @@
       ]
     },
     {
+      "id": "flow-builder",
+      "tag": "box-flow-builder",
+      "title": "Patterns/Builders/Flow Builder",
+      "category": "Builders",
+      "shortDescription": "A typed step spine with named insertion, nested branches, validation and a responsive inspector.",
+      "docsDescription": "Provide host-owned nodes and a shared kind catalog. The pattern handles insertion, selection, keyboard navigation and responsive inspection. The host owns domain fields, validation, persistence and Undo of removals.",
+      "sourceSnippet": "<box-flow-builder></box-flow-builder>\n<script type=\"module\">\nimport { FlowBuilder } from \"@unofficialbox/box-open-elements/patterns/flow-builder\";\nimport { offerUndo, removeAt } from \"@unofficialbox/box-open-elements/patterns/undo\";\n\nconst builder = document.querySelector(\"box-flow-builder\");\nlet undoOffer;\nbuilder.catalog = [{ kind: \"call\", label: \"Call API\", description: \"Calls an endpoint\", create: () => ({ kind: \"call\", title: \"New call\" }) }];\nbuilder.nodes = [{ kind: \"call\", title: \"Read contract\", description: \"Gets the source document\" }];\nbuilder.renderInspector = (node, container) => {\n  // Host owns its editor, validation, persistence, and saved state.\n  const remove = document.createElement(\"button\");\n  remove.textContent = \"Remove step\";\n  remove.onclick = () => {\n    const index = builder.nodes.indexOf(node);\n    if (index < 0) return;\n    const restore = removeAt(builder.nodes, index);\n    builder.select(null);\n    builder.refresh();\n    undoOffer?.dispose();\n    undoOffer = offerUndo(\"Step removed\", restore, { onRestore: () => builder.refresh() });\n  };\n  container.append(remove);\n};\nbuilder.addEventListener(\"flow-changed\", () => { /* mark unsaved and persist on Save */ });\n// On route teardown: undoOffer?.dispose();\n</script>",
+      "referenceRows": [
+        {
+          "kind": "property",
+          "name": "nodes",
+          "type": "FlowNode[]",
+          "description": "Mutable host-owned sequence. Call refresh() after host edits."
+        },
+        {
+          "kind": "property",
+          "name": "catalog",
+          "type": "FlowKind[]",
+          "description": "Shared kind names, descriptions and node factories for palette and insertion."
+        },
+        {
+          "kind": "property",
+          "name": "renderInspector",
+          "type": "InspectorRenderer",
+          "description": "Host editor callback; may return teardown cleanup."
+        },
+        {
+          "kind": "event",
+          "name": "flow-changed",
+          "type": "{ nodes, node, reason }",
+          "description": "A kind was inserted into the host document."
+        },
+        {
+          "kind": "event",
+          "name": "selection-changed",
+          "type": "{ node }",
+          "description": "Selected node changed, including sheet close."
+        },
+        {
+          "kind": "part",
+          "name": "layout",
+          "description": "Responsive flow and inspector arrangement."
+        },
+        {
+          "kind": "part",
+          "name": "error",
+          "description": "Persistent validation summary."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Editable flow",
+          "html": "<div style=\"display:grid;gap:12px;min-width:0\"><div style=\"display:flex;gap:8px;flex-wrap:wrap\"><box-button data-flow-error label=\"Show validation error\" tone=\"neutral\"></box-button><box-button data-flow-reset label=\"Reset flow\" tone=\"neutral\"></box-button><span data-flow-state aria-live=\"polite\">Saved</span></div><box-flow-builder></box-flow-builder></div>"
+        }
+      ]
+    },
+    {
       "id": "access-stats",
       "tag": "box-access-stats",
       "title": "Patterns/Share/Access Stats",

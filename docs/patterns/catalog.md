@@ -15,6 +15,9 @@ Do not treat a workflow-heavy surface as a composition if it depends on transpor
 
 Agent UI additions are **built**: `RunSummary` (`run-summary`),
 `AgentWorkspace` (`agent-workspace`) and `CallConsole` (`call-console`).
+Builder additions are **built**: `FlowBuilder` (`flow-builder`) and the headless
+`undo` helpers. See [Flow builder and undo](./flow-builder.md) and
+[builder/editor guidelines](./builder-editor-guidelines.md).
 The workspace owns conversation selection without unmounting hidden sessions;
 the console is a separate developer surface. Headless contracts and integration
 examples live in [agent UI contracts](./agent-ui.md), with composition rules in
