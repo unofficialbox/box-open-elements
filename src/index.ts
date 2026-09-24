@@ -259,3 +259,5 @@ export * from "./patterns/agent-workspace/index.js";
 export * from "./patterns/call-console/index.js";
 export * from "./foundations/status/index.js";
 export * from "./patterns/run/progress.js";
+export * from "./patterns/undo/index.js";
+export * from "./patterns/flow-builder/index.js";

@@ -33,6 +33,8 @@ describe("Card", () => {
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("gap: 0.55rem;");
     expect(styles).toContain("padding: 0.7rem;");
+    expect(styles).toContain('[part="header"],\n  [part="body"] {\n    min-width: 0;');
+    expect(styles).toContain("overflow-x: auto;");
     expect(styles).toContain("border-radius: var(--boe-profile-radius-large, 16px);");
   });
 

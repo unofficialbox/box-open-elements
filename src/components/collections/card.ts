@@ -27,6 +27,11 @@ const cardStyles = `
       0 14px 28px rgba(15, 23, 42, 0.04);
   }
 
+  [part="header"],
+  [part="body"] {
+    min-width: 0;
+  }
+
   [part="header"] {
     display: grid;
     gap: 0.35rem;
@@ -50,6 +55,7 @@ const cardStyles = `
   }
 
   [part="body"] {
+    overflow-x: auto;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     line-height: 1.55;
   }

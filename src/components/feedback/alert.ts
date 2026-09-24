@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { FeedbackAnnouncement } from "../../foundations/a11y/announcer.js";
 import { toneAccessibleLabel, toneIcon } from "./tone.js";
 import { boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
@@ -215,8 +216,13 @@ export class Alert extends BaseElement {
   }
 
   connectedCallback(): void {
-    this.openValue = this.hasAttribute("open") || !this.hasAttribute("open");
     super.connectedCallback();
+  }
+
+  private announcement = new FeedbackAnnouncement();
+
+  disconnectedCallback(): void {
+    this.announcement.reset();
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
@@ -242,7 +248,7 @@ export class Alert extends BaseElement {
 
     this.shadowRoot.innerHTML = `
       <style>${alertStyles}</style>
-      <div part="alert" role="status" aria-live="polite">
+      <div part="alert" role="group">
         <span part="icon" aria-hidden="true"></span>
         <div part="content">
           <span part="tone-label" class="sr-only"></span>
@@ -285,6 +291,8 @@ export class Alert extends BaseElement {
     const hasRich = this.hasRichContent();
     const visible = this.openValue && Boolean(this.heading || this.message || hasRich);
     this.hidden = !visible;
+    const richText = this.richSlot.assignedNodes({ flatten: true }).map(node => node.textContent ?? "").join(" ").trim();
+    this.announcement.update(this, visible ? [toneAccessibleLabel(this.tone), this.heading, this.message, richText].filter(Boolean).join(": ") : "", this.tone === "error" ? "assertive" : "polite");
     this.richSlot.classList.toggle("has-content", hasRich);
     if (!visible) {
       return;

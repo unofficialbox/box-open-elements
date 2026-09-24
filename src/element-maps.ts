@@ -73,6 +73,9 @@ import type { FactList } from "./components/collections/fact-list.js";
 import type { Fieldset } from "./components/forms/fieldset.js";
 import type { FileRequestBuilder } from "./patterns/file-request/file-request-builder.js";
 import type { FilterBar } from "./patterns/search/filter-bar.js";
+import type { FlowBuilder } from "./patterns/flow-builder/flow-builder.js";
+import type { FlowCard } from "./patterns/flow-builder/primitives.js";
+import type { FlowSpine } from "./patterns/flow-builder/primitives.js";
 import type { FormWizard } from "./patterns/form-wizard/form-wizard.js";
 import type { FormattedDate } from "./components/output/formatted-date.js";
 import type { FormattedDuration } from "./components/output/formatted-duration.js";
@@ -86,9 +89,11 @@ import type { HelpText } from "./components/feedback/help-text.js";
 import type { IconButton } from "./components/actions/icon-button.js";
 import type { Illustration } from "./components/visuals/illustration.js";
 import type { Indicator } from "./components/feedback/indicator.js";
+import type { InsertPoint } from "./patterns/flow-builder/primitives.js";
 import type { InviteCollaboratorsModal } from "./patterns/share/invite-collaborators-modal.js";
 import type { ItemDetailsPanel } from "./patterns/item/item-details-panel.js";
 import type { ItemForm } from "./patterns/item/item-form.js";
+import type { KindPicker } from "./patterns/flow-builder/primitives.js";
 import type { LineChart } from "./patterns/insights/line-chart.js";
 import type { LineageGraph } from "./patterns/lineage/lineage-graph.js";
 import type { LinkButton } from "./components/actions/link-button.js";
@@ -234,6 +239,9 @@ declare global {
     "box-fieldset": Fieldset;
     "box-file-request-builder": FileRequestBuilder;
     "box-filter-bar": FilterBar;
+    "box-flow-builder": FlowBuilder;
+    "box-flow-card": FlowCard;
+    "box-flow-spine": FlowSpine;
     "box-form-wizard": FormWizard;
     "box-formatted-date": FormattedDate;
     "box-formatted-duration": FormattedDuration;
@@ -247,9 +255,11 @@ declare global {
     "box-icon-button": IconButton;
     "box-illustration": Illustration;
     "box-indicator": Indicator;
+    "box-insert-point": InsertPoint;
     "box-invite-collaborators-modal": InviteCollaboratorsModal;
     "box-item-details-panel": ItemDetailsPanel;
     "box-item-form": ItemForm;
+    "box-kind-picker": KindPicker;
     "box-line-chart": LineChart;
     "box-lineage-graph": LineageGraph;
     "box-link-button": LinkButton;
@@ -397,6 +407,9 @@ export type BoxElementTagName =
   | "box-fieldset"
   | "box-file-request-builder"
   | "box-filter-bar"
+  | "box-flow-builder"
+  | "box-flow-card"
+  | "box-flow-spine"
   | "box-form-wizard"
   | "box-formatted-date"
   | "box-formatted-duration"
@@ -410,9 +423,11 @@ export type BoxElementTagName =
   | "box-icon-button"
   | "box-illustration"
   | "box-indicator"
+  | "box-insert-point"
   | "box-invite-collaborators-modal"
   | "box-item-details-panel"
   | "box-item-form"
+  | "box-kind-picker"
   | "box-line-chart"
   | "box-lineage-graph"
   | "box-link-button"

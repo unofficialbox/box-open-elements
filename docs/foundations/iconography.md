@@ -34,11 +34,19 @@ Accepted source layouts:
 - `pack/2023-Icon-collection-blue-svg/*.svg` and `pack/2023-Icon-collection-white-svg/*.svg`
 - Any directory tree containing `Icon_*_{blue|white}*.svg` files
 
-Output: `src/foundations/icons/box-iconography.generated.ts` (aliases and bespoke assets are left alone).
+Output: `src/foundations/icons/box-iconography.generated.ts` and `src/foundations/icons/glyphs/index.ts` (aliases and bespoke assets are left alone).
 
 Key allocation: process blue filenames first (sorted), then white; slug from the name segment; on collision append `-2`, `-3`, ….
 
 ## Usage
+
+Import a named glyph when the icon is known at build time. This avoids loading the full registry:
+
+```ts
+import { iconCloud } from "@unofficialbox/box-open-elements/foundations/icons/glyphs";
+```
+
+The generated name is `icon` followed by the key in PascalCase (for example `cloud` becomes `iconCloud`). Bundling this import alone produces under 1 KB of JavaScript; importing the dynamic registry intentionally retains all icon markup. Run `bun run bundles:check` after changing generation or exports.
 
 Icons are resolved through the design-system registry:
 

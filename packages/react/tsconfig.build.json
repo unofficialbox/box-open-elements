@@ -6,6 +6,7 @@
     "outDir": "dist",
     "rootDir": "src",
     "paths": {
+      "@unofficialbox/box-open-elements/*": ["dist/entries/*.d.ts"],
       "@unofficialbox/box-open-elements/button": ["dist/entries/button.d.ts"],
       "@unofficialbox/box-open-elements/dialog": ["dist/entries/dialog.d.ts"],
       "@unofficialbox/box-open-elements/select": ["dist/entries/select.d.ts"],

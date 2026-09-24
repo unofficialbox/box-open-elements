@@ -35,6 +35,9 @@ Shared helpers live in `@unofficialbox/box-open-elements/foundations/a11y`:
 | `nextRovingIndex` / `handleRovingKeydown` / `applyRovingTabindex` | menu, toolbar, listbox, radiogroup composites |
 | `trapTabKey` / `FocusRestore` | modal dialogs and drawers (`aria-modal`) |
 | `renderHeadingHtml` / `headingOpenTag` | rendering a `heading` attribute as a real `<h*>` |
+| `installAnnouncer` / `announce` | persistent polite/assertive announcements, including repeated text and feedback shown after mount |
+
+`installAnnouncer()` mounts one visually hidden status region and one alert region in the document. Call `announce(message, "polite" | "assertive")` for host events. `box-alert` and `box-toast` use these regions automatically, so do not announce their messages a second time. The installer returns cleanup for application teardown; it is safe to import during SSR and does nothing without a document.
 
 Focus helpers traverse open shadow roots and assigned slots, excluding hidden,
 inert and disabled controls. Restoration remembers the inner triggering control

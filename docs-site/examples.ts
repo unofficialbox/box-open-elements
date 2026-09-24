@@ -55,6 +55,7 @@ import type { UploadTransport } from "../src/patterns/content-uploader/types.js"
 import { boxIconography } from "@unofficialbox/box-open-elements";
 import { callConsoleDemoHtml, callConsoleSetupCode, setupCallConsoleDemo } from "../storybook/fixtures/call-console.js";
 import { workspaceDemoHtml, workspaceSetupCode, workspaceDemoModes, setupWorkspaceDemo } from "../storybook/fixtures/agent-workspace.js";
+import { flowBuilderDemoHtml, flowBuilderSetupCode, setupFlowBuilderDemo } from "../storybook/fixtures/flow-builder.js";
 
 /** Inline a Box iconography glyph by name (for slotted demo icons). */
 const icon = (name: keyof typeof boxIconography): string =>
@@ -231,6 +232,7 @@ const onSidebarToggle = (target: Element | null, run: (expanded: boolean) => voi
 };
 
 export const examples: Record<string, ComponentExample> = {
+  "flow-builder": { html: flowBuilderDemoHtml, codeHtml: "<box-flow-builder></box-flow-builder>", setup: setupFlowBuilderDemo, setupCode: flowBuilderSetupCode, note: "Add and select steps, edit a name, show validation, remove and undo. The host owns its workflow document and Save action." },
   "status-icon": { html: statusDemoHtml },
   "fact-list": {html:'<box-fact-list></box-fact-list>',setup(root){set(root,"box-fact-list",{rows:[{label:"Amount",value:"$4,800,000"},{label:"Record",value:"LN-1042"}]});}},
   "check-list": {html:'<box-check-list></box-check-list>',setup(root){set(root,"box-check-list",{rows:[{label:"Loan to value",status:"pass",value:"Within policy"},{label:"Coverage",status:"warn",detail:"Exception requires approval"}]});}},

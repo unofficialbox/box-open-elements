@@ -1,6 +1,6 @@
 {
   "name": "@unofficialbox/box-open-elements",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "description": "Box Open Elements: an open, framework-agnostic design system and web component library for Box-style experiences",
   "license": "MIT",
   "homepage": "https://unofficialbox.github.io/box-open-elements",
@@ -28,6 +28,14 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
+    "./patterns/undo": {
+      "types": "./dist/patterns/undo/index.d.ts",
+      "import": "./dist/patterns/undo/index.js"
+    },
+    "./patterns/flow-builder": {
+      "types": "./dist/patterns/flow-builder/index.d.ts",
+      "import": "./dist/patterns/flow-builder/index.js"
+    },
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
@@ -173,8 +181,9 @@
     "dist"
   ],
   "scripts": {
+    "bundles:check": "bun tools/adapters/bundle-check.ts",
     "build": "bun run build:core && bun run build:adapters",
-    "build:core": "tsc -p tsconfig.json",
+    "build:core": "tsc -p tsconfig.json && cp src/foundations/icons/glyphs/package.json dist/foundations/icons/glyphs/package.json",
     "build:adapters": "bun run adapters:version && bun run --cwd packages/react build && bun run --cwd packages/angular build && bun run --cwd packages/vue build && bun run --cwd packages/svelte build",
     "build:watch": "tsc -p tsconfig.json --watch --preserveWatchOutput",
     "prepublishOnly": "bun run build",

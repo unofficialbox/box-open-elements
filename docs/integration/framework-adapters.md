@@ -30,7 +30,7 @@ the component catalog changes.
 
 | Framework | Completion | Direct custom-element interop | Typed adapter foundation | Representative components | Pattern/controller proof | SSR/hydration guidance | Overall |
 | --- | ---: | --- | --- | --- | --- | --- | --- |
-| React 19 | **90%** | **Validated**: properties, native/composed events, latest handlers, refs | `createWebComponent` | **4**: `Button`, `TextField`, `Select`, `Dialog` | `useExplorerSelectionController` | Next.js 16 prerender, hydration, upgrade, and events | **Supported** |
+| React 19 | **90%** | **Validated**: properties, native/composed events, latest handlers, refs | `createWebComponent` | **12**: existing four plus NumberInput, Checkbox, Tabs, Card, Alert, Toast, Drawer, CodeBlock | `useExplorerSelectionController` | Next.js 16 prerender, hydration, upgrade, and events | **Supported** |
 | Angular 20 | **90%** | **Validated**: strict templates, properties, typed outputs, element access | Standalone directives | **4**: `Button`, `TextField`, `Select`, `Dialog` | `createExplorerSelectionSignal` | Server-safe package import; browser upgrade and focus validated | **Supported** |
 | Vue 3 | **90%** | **Validated**: property sync, typed emits, exposed refs | Typed Vue wrappers | **4**: `Button`, `TextField`, `Select`, `Dialog` | `useExplorerSelectionController` | Vue SSR host rendering; browser upgrade and focus validated | **Supported** |
 | Svelte 5 | **90%** | **Validated**: structured properties, callback events, bindable refs | Typed Svelte wrappers | **4**: `Button`, `TextField`, `Select`, `Dialog` | `createExplorerSelectionStore` | Svelte SSR host rendering; browser upgrade and focus validated | **Supported** |

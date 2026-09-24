@@ -15,6 +15,33 @@ are kept as written.
 
 ## Unreleased
 
+## 0.21.0 — 2026-09-24
+
+### Builder and editor patterns
+
+- Add a framework-free Flow Builder with a typed step catalog, accessible cards,
+  named insertion points, nested bodies and branches, keyboard chooser,
+  responsive inspector and validation path mapping. Add a live docs example.
+- Add identity-preserving removal helpers and an eight-second Undo offer with
+  hover/focus pause, keyboard shortcut, restoration announcement and cleanup.
+- Publish reusable builder/editor principles, anti-patterns and a pre-ship checklist.
+
+### Component and accessibility repairs
+
+- Align NumberInput labels and helper semantics with the shared form-field
+  contract; allow Card grid children to shrink around wide content.
+- Add persistent polite/assertive announcements for Alert, Toast and approval
+  outcomes. Toast now pauses remaining time while hovered or focused and emits
+  dismissal source for timeouts and close controls.
+
+### Selective imports and React
+
+- Generate 472 named icon exports, including `iconCloud`, from the source pack.
+  Direct glyph imports avoid the 800 KB dynamic icon registry.
+- Add tree-shakable React subpaths and typed NumberInput, Checkbox, Tabs, Card,
+  Alert, Toast, Drawer and CodeBlock wrappers. Bundle checks protect registration
+  and selective import sizes.
+
 ### Narrow-container readability
 
 - Lineage graphs keep rows aligned in a named, keyboard-scrollable region instead

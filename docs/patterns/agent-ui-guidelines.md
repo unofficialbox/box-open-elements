@@ -53,3 +53,5 @@ Use the [shared motion helpers](../foundations/motion.md) and honour reduced mot
 
 See [agent UI APIs](./agent-ui.md) for reusable building blocks. These guidelines
 generalize the Loan Copilot review findings recorded in issues #242–#251.
+
+For workflow builders and editors, also use [builder and editor guidelines](./builder-editor-guidelines.md).
