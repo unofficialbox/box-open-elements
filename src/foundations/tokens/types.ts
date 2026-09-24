@@ -30,6 +30,9 @@ export interface SemanticDesignTokenMap {
   textPlaceholder?: string;
   textOnBrand?: string;
   textDanger?: string;
+  textStatusSuccess?: string;
+  textStatusWarning?: string;
+  textStatusError?: string;
   borderDefault?: string;
   borderHover?: string;
 }

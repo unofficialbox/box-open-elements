@@ -20,6 +20,8 @@ const searchSpinnerMarkup = '<span part="spinner" aria-hidden="true"></span>';
 const searchFieldStyles = `
   :host {
     display: block;
+    min-inline-size: 0;
+    container: boe-search-field / inline-size;
     color: inherit;
     font: inherit;
   }
@@ -32,6 +34,7 @@ const searchFieldStyles = `
 
   [part="field"] {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.45rem;
   }
 
@@ -128,6 +131,16 @@ const searchFieldStyles = `
   [part="clear"]:hover:not(:disabled) {
     border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
     background: var(--boe-token-surface-surface-hover, #f4f4f4);
+  }
+
+  @container boe-search-field (max-width: 22rem) {
+    [part="input-shell"] {
+      flex-wrap: wrap;
+      border-radius: ${boeRadius.control};
+    }
+    [part="input"] {
+      flex-basis: 100%;
+    }
   }
 
   [part="submit"]:focus-visible,

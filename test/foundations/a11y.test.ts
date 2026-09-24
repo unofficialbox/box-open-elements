@@ -34,6 +34,78 @@ describe("foundations/a11y keyboard", () => {
 });
 
 describe("foundations/a11y focus", () => {
+  it("keeps first-legend controls and links inside disabled fieldsets", () => {
+    const container = document.createElement("div");
+    container.innerHTML = `<fieldset disabled>
+      <legend><button id="enable">Enable settings</button></legend>
+      <input id="disabled-input"><button id="disabled-button">Disabled</button>
+      <legend><button id="second-legend">Also disabled</button></legend>
+      <a id="help" href="#help">Help</a>
+    </fieldset><button id="last">Last</button>`;
+    document.body.append(container);
+    const first = container.querySelector<HTMLButtonElement>("#enable")!;
+    const last = container.querySelector<HTMLButtonElement>("#last")!;
+    expect(getTabbableElements(container).map(el => el.id)).toEqual(["enable", "help", "last"]);
+    last.focus();
+    trapTabKey(new KeyboardEvent("keydown", { key: "Tab", cancelable: true }), container);
+    expect(document.activeElement).toBe(first);
+    trapTabKey(new KeyboardEvent("keydown", { key: "Tab", shiftKey: true, cancelable: true }), container);
+    expect(document.activeElement).toBe(last);
+    container.querySelector("fieldset")!.setAttribute("aria-disabled", "true");
+    expect(getTabbableElements(container)).toEqual([last]);
+    container.remove();
+  });
+
+  it("excludes controls disabled by an outer fieldset despite an inner legend", () => {
+    const container = document.createElement("div");
+    container.innerHTML = '<fieldset disabled><legend>Outer</legend><fieldset><legend><button>Nested</button></legend><input></fieldset></fieldset>';
+    document.body.append(container);
+    expect(getTabbableElements(container)).toEqual([]);
+    container.remove();
+  });
+
+  it("excludes negative-tabindex shadow scopes but preserves light-DOM descendants", () => {
+    const container = document.createElement("div");
+    const host = document.createElement("div");
+    host.tabIndex = -1;
+    const shadow = host.attachShadow({ mode: "open" });
+    shadow.innerHTML = '<button>Shadow control</button><slot></slot>';
+    const slotted = document.createElement("button");
+    host.append(slotted);
+    const light = document.createElement("div");
+    light.tabIndex = -1;
+    light.innerHTML = '<button>Light control</button>';
+    const last = light.querySelector("button")!;
+    container.append(host, light);
+    document.body.append(container);
+    expect(getTabbableElements(container)).toEqual([last]);
+    last.focus();
+    const reverseTab = new KeyboardEvent("keydown", { key: "Tab", shiftKey: true, cancelable: true });
+    trapTabKey(reverseTab, container);
+    expect(reverseTab.defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(last);
+    host.tabIndex = -2;
+    expect(getTabbableElements(container)).toEqual([last]);
+    host.removeAttribute("tabindex");
+    expect(getTabbableElements(container)).toEqual([shadow.querySelector("button"), slotted, last]);
+    container.remove();
+  });
+
+  it("does not restore a trigger disabled by its fieldset after capture", async () => {
+    const fieldset = document.createElement("fieldset");
+    const trigger = document.createElement("button");
+    fieldset.append(trigger);
+    document.body.append(fieldset);
+    const restore = new FocusRestore();
+    restore.capture(trigger);
+    fieldset.disabled = true;
+    const focus = vi.spyOn(trigger, "focus");
+    restore.restore();
+    await Promise.resolve();
+    expect(focus).not.toHaveBeenCalled();
+    fieldset.remove();
+  });
+
   it("lists tabbable elements and traps Tab at the edges", () => {
     const container = document.createElement("div");
     const first = document.createElement("button");
@@ -91,6 +163,49 @@ describe("foundations/a11y focus", () => {
 
     a.remove();
     b.remove();
+  });
+
+  it("traverses slotted controls and nested shadow roots in visible tab order", () => {
+    const container = document.createElement("div");
+    const host = document.createElement("div");
+    const shadow = host.attachShadow({ mode: "open" });
+    shadow.innerHTML = '<button>First</button><slot></slot><button>Last</button>';
+    const slotted = document.createElement("button");
+    host.append(slotted);
+    container.append(host);
+    document.body.append(container);
+    const [first, last] = shadow.querySelectorAll("button");
+    expect(getTabbableElements(container)).toEqual([first, slotted, last]);
+    last!.focus();
+    trapTabKey(new KeyboardEvent("keydown", { key: "Tab" }), container);
+    expect(shadow.activeElement).toBe(first);
+    host.setAttribute("inert", "");
+    expect(getTabbableElements(container)).toEqual([]);
+    host.removeAttribute("inert");
+    host.style.display = "none";
+    expect(getTabbableElements(container)).toEqual([]);
+    container.remove();
+  });
+
+  it("restores the inner trigger without scrolling and ignores removed triggers", async () => {
+    const host = document.createElement("div");
+    const shadow = host.attachShadow({ mode: "open" });
+    shadow.innerHTML = '<button>Open</button>';
+    document.body.append(host);
+    const button = shadow.querySelector("button")!;
+    button.focus();
+    const restore = new FocusRestore();
+    restore.capture();
+    const focus = vi.spyOn(button, "focus");
+    restore.restore();
+    await Promise.resolve();
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+    restore.capture(button);
+    host.remove();
+    focus.mockClear();
+    restore.restore();
+    await Promise.resolve();
+    expect(focus).not.toHaveBeenCalled();
   });
 });
 

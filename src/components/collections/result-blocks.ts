@@ -30,12 +30,15 @@ export const resultBlockStyles = `
 :host([hidden]){display:none !important} *{box-sizing:border-box} h3{font-size:1em;margin:0 0 .5rem} dl,ul{padding:0;margin:0;list-style:none}
 [part="row"]{border-bottom:1px solid var(--boe-token-stroke-stroke,#ddd);padding:.7rem 0;display:flex;gap:.6rem;align-items:baseline}
 dt{color:var(--boe-token-text-text-secondary,#666)} dd{margin:0 0 0 auto;font-variant-numeric:tabular-nums}
+[part="facts"] [part="row"]{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);overflow-wrap:anywhere}
+[part="facts"] dd{margin:0;text-align:end}
+@container boe-result-block (max-width:28rem){[part="facts"] [part="row"]{grid-template-columns:minmax(0,1fr);gap:.25rem}[part="facts"] dd{text-align:start}}
 p{margin:.25rem 0;color:var(--boe-token-text-text-secondary,#666)} small{display:block;font-weight:normal;color:var(--boe-token-text-text-secondary,#666)}
 [part="verdict"]{margin-left:auto;text-align:right} [data-status="warn"]{color:var(--boe-token-text-status-text-warning,#946400)} [data-status="fail"]{color:var(--boe-token-text-status-text-error,#c52a46)}
 [part="document"]{display:flex;gap:.6rem;align-items:center;width:100%;text-align:left;color:inherit;font:inherit;background:none;border:0;text-decoration:none;cursor:pointer}
 [part="table-frame"]{overflow:auto;max-width:100%} table{border-collapse:collapse;min-width:100%;font-variant-numeric:tabular-nums} td,th{padding:.7rem;text-align:left;border-bottom:1px solid var(--boe-token-stroke-stroke,#ddd)} td:last-child{font-weight:600;background:var(--boe-token-surface-surface-secondary,#f7f7f7)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-[part="block"]{${boeEntrance()}${boeStaggerStyles};margin-block:1rem;min-width:0}
+[part="block"]{${boeEntrance()}${boeStaggerStyles};margin-block:1rem;min-width:0;container:boe-result-block / inline-size}
 ${boeEntranceKeyframes}${boeStatusStyles}${boeReducedMotionPolicy}`;
 const DEFAULT_TAG_NAME = "box-result-blocks";
 export class ResultBlocks extends BaseElement {

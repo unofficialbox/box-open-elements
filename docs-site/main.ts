@@ -372,7 +372,7 @@ const renderComponentPage = (entry: CatalogEntry): void => {
   // Prefer live example variants (with setup) over extracted workshop HTML shells.
   // For single-surface pages, prefer the richer of curated example vs workshop Default
   // (bare curated tags are shorter; slotted/JSON demos win on either side).
-  const useExampleVariants = exampleVariants.length >= 2;
+  const useExampleVariants = exampleVariants.length > 0;
   const variants = useExampleVariants
     ? exampleVariants.map(variant => ({ name: variant.name, html: variant.html, note: variant.note }))
     : workshopVariants;
@@ -437,7 +437,8 @@ const renderComponentPage = (entry: CatalogEntry): void => {
             `<button type="button" class="code-tab" data-code="${framework.id}" role="tab" aria-selected="${index === 0}" title="${framework.label}"><span class="code-tab-icon">${frameworkIconSvg(framework.id)}</span><span class="visually-hidden">${framework.label}</span></button>`,
         ).join("")}
       </div>
-      <pre class="code-block"><code id="code-block">${highlightCode(formatHtml(initialHtml), "html")}</code></pre>
+      <pre class="code-block"><code id="code-block">${highlightCode(formatHtml(example.codeHtml ?? initialHtml), "html")}</code></pre>
+      ${example.setupCode ? `<h2>Controller setup</h2><pre class="code-block"><code>${highlightCode(example.setupCode, "ts")}</code></pre>` : ""}
       <p class="preview-note code-frameworks-note">Snippets show a minimal use; the one-time setup (design tokens, Vue <code>isCustomElement</code>, React custom events) is in the <a href="https://github.com/unofficialbox/box-open-elements/blob/main/docs/integration/frameworks.md" target="_blank" rel="noreferrer">Frameworks guide</a>.</p>
       ${(() => {
         const note = useExampleVariants ? exampleVariants[0]?.note : example.note;
@@ -447,6 +448,8 @@ const renderComponentPage = (entry: CatalogEntry): void => {
     <div data-panel="api" hidden>
       <p class="section-label">Attributes (observed)</p>
       <div id="api-attributes"></div>
+      <p class="section-label">Properties and events</p>
+      <div id="api-contracts"></div>
       <p class="section-label">Styling hooks (parts)</p>
       <div id="api-parts"></div>
       <p class="section-label">Design tokens used</p>
@@ -486,7 +489,7 @@ const renderComponentPage = (entry: CatalogEntry): void => {
   const eventCount = stageBody.querySelector<HTMLElement>("#event-count")!;
   let seenEvents = 0;
   const listeners: Array<[string, EventListener]> = [];
-  for (const name of SHARED_EVENTS) {
+  for (const name of new Set([...SHARED_EVENTS, ...(workshop.stories.find(s=>s.id===entry.id)?.referenceRows.filter(r=>r.kind==="event").map(r=>r.name) ?? [])])) {
     const listener: EventListener = event => {
       seenEvents += 1;
       eventCount.textContent = String(seenEvents);
@@ -515,6 +518,10 @@ const renderComponentPage = (entry: CatalogEntry): void => {
   attributesTarget.innerHTML = observed.length
     ? `<table class="api-table"><tr><th>Attribute</th></tr>${observed.map(name => `<tr><td><code>${escapeHtml(name)}</code></td></tr>`).join("")}</table>`
     : '<p class="inspector-empty">This element observes no attributes.</p>';
+  const contracts = workshop.stories.find(story=>story.id===entry.id)?.referenceRows.filter(row=>row.kind==="property" || row.kind==="event") ?? [];
+  stageBody.querySelector("#api-contracts")!.innerHTML = contracts.length
+    ? `<table class="api-table"><tr><th>Kind</th><th>Name</th><th>Type / usage</th></tr>${contracts.map(row=>`<tr><td>${escapeHtml(row.kind)}</td><td><code>${escapeHtml(row.name)}</code></td><td><code>${escapeHtml(row.type ?? "")}</code><p>${escapeHtml(row.description)}</p></td></tr>`).join("")}</table>`
+    : '<p class="inspector-empty">No property or event contract has been documented for this element.</p>';
 
   // Live inspectors (props / parts / roles) — re-run whenever the variant changes.
   const propList = stageBody.querySelector<HTMLElement>("#prop-list")!;
@@ -530,7 +537,7 @@ const renderComponentPage = (entry: CatalogEntry): void => {
           attribute => `<div class="prop-row"><code>${escapeHtml(attribute.name)}</code><span class="prop-value">${escapeHtml(attribute.value || "—")}</span></div>`,
         )
       : [];
-    propList.innerHTML = rows.length ? rows.join("") : '<span class="inspector-empty">No reflected attributes yet.</span>';
+    propList.innerHTML = rows.length ? rows.join("") : `<span class="inspector-empty">${contracts.some(row=>row.kind==="property") ? "Configured through JavaScript properties. See the API tab for the contract." : "No reflected attributes."}</span>`;
   };
   const refreshInspectors = (): void => {
     observer?.disconnect();
@@ -590,7 +597,7 @@ const renderComponentPage = (entry: CatalogEntry): void => {
   let currentHtml = initialHtml;
   let currentFramework: Framework = "html";
   const renderCode = (): void => {
-    const snippet = frameworkSnippet(currentFramework, entry.id, entry.tag, currentHtml);
+    const snippet = frameworkSnippet(currentFramework, entry.id, entry.tag, example.codeHtml ?? currentHtml);
     codeBlock.innerHTML = highlightCode(snippet, normalizeLang(currentFramework));
   };
   stageBody.querySelectorAll<HTMLButtonElement>(".code-tab").forEach(tab => {

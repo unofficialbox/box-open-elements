@@ -353,6 +353,8 @@ export class FileRequestBuilder extends BaseElement {
       return;
     }
 
+    const focusedSetting = this.shadowRoot.activeElement?.getAttribute("data-setting-id");
+
     host.innerHTML = `
       <section part="builder">
         <header part="header">
@@ -370,6 +372,7 @@ export class FileRequestBuilder extends BaseElement {
     `;
 
     this.shadowRoot.querySelectorAll<HTMLInputElement>("[data-setting-id]").forEach(input => {
+      if (focusedSetting === input.dataset.settingId) input.focus({ preventScroll: true });
       input.addEventListener("change", () => {
         const settingId = input.dataset.settingId;
         if (!settingId) {

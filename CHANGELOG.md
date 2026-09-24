@@ -15,6 +15,57 @@ are kept as written.
 
 ## Unreleased
 
+### Narrow-container readability
+
+- Lineage graphs keep rows aligned in a named, keyboard-scrollable region instead
+  of overlapping labels and comparison actions on mobile.
+- Notification actions move below readable, wrapping content in narrow panels;
+  fact lists stack labels and values without truncating long identifiers.
+- Explorer toolbars and their Search Fields shrink to their available width;
+  search actions wrap onto a separate row in narrow containers.
+- Docs tabs wrap and the smallest-screen header retains space for its logo.
+
+### Task-oriented catalog demonstrations
+
+- Twelve shared docs/workshop examples now demonstrate real local outcomes,
+  including validation/retry, navigation, loading, preview lifecycle and draft saves.
+- Context Menu supports explicit `show()` triggers; Menu Item exposes public focus.
+- Popovers remain reachable when neither side fits; File Request Builder retains
+  keyboard focus after settings change.
+- Explorer Action Menu honors disabled permissions, suppresses denied events and
+  restores trigger focus after selection. Local demo actions never imply provider writes.
+
+### Semantic colors and reliable feedback
+
+- Theme-aware Alert/Toast tints and readable status ink; dark primary actions,
+  annotation details, lineage warnings and notification counts use semantic pairs.
+- Error Toasts persist; zero-duration and attribute-driven timing are respected.
+- Approval/rejection labels no longer imply execution completion/skipping.
+- Modal focus traversal includes open shadow roots and slots; focus restoration
+  preserves page scroll and ignores removed, hidden or disabled triggers.
+- Focus traversal respects disabled-fieldset legend exceptions and negative-tabindex
+  shadow scopes; restoration skips triggers disabled through their fieldset.
+
+### Complete Agent Workspace examples
+
+- Shared docs/workshop scenarios cover populated independent chats, streaming,
+  approvals with failed execution, explicit failures and empty state.
+- Controller teardown aborts demo streams on navigation and variant changes;
+  copyable integration code documents ownership and cleanup.
+- Expandable desktop preview and mobile drawer screenshot checks; styled
+  follow-up and retry controls inherit the shared chat action treatment.
+
+### Complete the developer call console presentation
+
+- Searchable request list with status glyphs, keyboard selection, stable rows,
+  themed surfaces, responsive stacked panes and a request/response inspector.
+- Shared buttons/code blocks, explicit empty/filter/connection states, safe
+  clear feedback, and documented selection/filter/clear events.
+- Stateful simulated documentation examples, copyable controller setup, and
+  property/event contracts in the API tab. Fixed mobile preview-grid overflow.
+- Added a catalog-wide completeness evidence audit; structural presence is
+  tracked separately from behavior and visual sign-off.
+
 ## 0.20.0 — 2026-09-24
 
 ### Agent UI building blocks and workspace

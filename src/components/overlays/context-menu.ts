@@ -156,6 +156,13 @@ export class ContextMenu extends BaseElement {
     return this.openValue;
   }
 
+  /** Open from an explicit keyboard/touch trigger without a synthetic event. */
+  show(): void {
+    if (!this.isConnected || !this.surfaceEl || this.disabled || !this.items.length || this.open) return;
+    const rect = this.getBoundingClientRect();
+    this.openAt(rect.left, rect.bottom);
+  }
+
   disconnectedCallback(): void {
     this.unbindDocument();
   }

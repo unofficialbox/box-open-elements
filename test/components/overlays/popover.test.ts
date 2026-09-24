@@ -121,6 +121,9 @@ describe("Popover", () => {
     // position:fixed lets the surface escape ancestor overflow; JS sets left/top.
     expect(styles).toContain("position: fixed");
     expect(styles).toContain("z-index: 30");
+    expect(styles).toContain("margin: 0");
+    expect(styles).toContain("inset: auto");
+    expect(styles).toContain("max-height: calc(100dvh - 1rem)");
     expect(element.placement).toBe("top");
   });
 

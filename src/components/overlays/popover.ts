@@ -95,13 +95,18 @@ const popoverStyles = `
      unavailable or fails, the surface still renders exactly as before and only
      the top-layer promotion is lost — see foundations/overlay/top-layer.ts. */
   [part="surface"] {
+    box-sizing: border-box;
+    margin: 0;
+    inset: auto;
     display: block;
     position: fixed;
     z-index: 30;
     inset-block-start: 0;
     inset-inline-start: 0;
     width: min(360px, calc(100vw - 5rem));
-    min-width: 200px;
+    min-width: min(200px, calc(100vw - 1rem));
+    max-height: calc(100dvh - 1rem);
+    overflow: auto;
     padding: ${boeOverlay.padding};
     border: ${boeOverlay.border};
     border-radius: ${boeOverlay.radius};

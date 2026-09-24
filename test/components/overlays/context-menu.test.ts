@@ -52,6 +52,20 @@ describe("ContextMenu", () => {
     expect(event.defaultPrevented).toBe(true);
   });
 
+  it("opens through an explicit trigger and respects unavailable states", () => {
+    const el = create();
+    el.show();
+    expect(el.open).toBe(true);
+    el.close();
+    el.disabled = true;
+    el.show();
+    expect(el.open).toBe(false);
+    el.disabled = false;
+    el.items = [];
+    el.show();
+    expect(el.open).toBe(false);
+  });
+
   it("emits item-selected and closes when an item is chosen", () => {
     const el = create();
     const selected = vi.fn();

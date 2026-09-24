@@ -157,6 +157,7 @@ import unifiedShareModal from "./stories/unified-share-modal.stories.js";
  * Controller-bound explorer stories also ship live `setup()` for the workshop UI.
  */
 import { agentUiStories } from "./stories/agent-ui.stories.js";
+import { purposeExamples } from "./fixtures/purpose-demos.js";
 export const storyModules: StoryModule[] = [
   ...agentUiStories,
   accessStats,
@@ -310,3 +311,9 @@ export const storyModules: StoryModule[] = [
   tree,
   unifiedShareModal,
 ];
+
+// Keep the isolated state stories; lead with the same task-oriented example as docs.
+for (const story of storyModules) {
+  const example = purposeExamples[story.meta.id];
+  if (example) story.variants.unshift({ name: "Interactive", html: example.html, setup: example.setup, note: example.note });
+}

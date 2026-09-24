@@ -28,6 +28,8 @@ const elementStyles = `
 
         :host {
           display: block;
+          min-inline-size: 0;
+          container: boe-notification-inbox / inline-size;
           color: inherit;
           font: inherit;
         }
@@ -40,6 +42,7 @@ const elementStyles = `
 
         [part="panel"] {
           display: grid;
+          grid-template-columns: minmax(0, 1fr);
           grid-template-rows: auto auto 1fr;
           gap: ${boePanel.gap};
           padding: ${boePanel.padding};
@@ -51,11 +54,13 @@ const elementStyles = `
 
         [part="header"] {
           display: flex;
+          flex-wrap: wrap;
           align-items: center;
           gap: 0.5rem;
         }
 
         [part="title"] {
+          overflow-wrap: anywhere;
           margin: 0;
           font: inherit;
           font-size: 1.05rem;
@@ -67,7 +72,7 @@ const elementStyles = `
           padding: 0.1rem 0.45rem;
           border-radius: 999px;
           background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 14%, transparent);
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 78%, black 22%);
+          color: var(--boe-token-text-status-text-error, #b92340);
           font-size: 0.72rem;
           font-weight: 700;
         }
@@ -145,7 +150,7 @@ const elementStyles = `
           text-transform: none;
           letter-spacing: normal;
           font-size: 0.7rem;
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 78%, black 22%);
+          color: var(--boe-token-text-status-text-error, #b92340);
         }
 
         [part="items"] {
@@ -158,7 +163,7 @@ const elementStyles = `
 
         [part="item"] {
           display: grid;
-          grid-template-columns: auto 1fr auto;
+          grid-template-columns: auto minmax(0, 1fr) auto;
           gap: 0.5rem;
           align-items: start;
           padding: 0.5rem 0.55rem;
@@ -185,6 +190,7 @@ const elementStyles = `
 
         [part="item-body"] {
           display: grid;
+          overflow-wrap: anywhere;
           gap: 0.15rem;
           min-inline-size: 0;
         }
@@ -234,6 +240,7 @@ const elementStyles = `
 
         [part="item-actions"] {
           display: flex;
+          flex-wrap: wrap;
           gap: 0.25rem;
         }
 
@@ -260,6 +267,15 @@ const elementStyles = `
           border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           text-align: center;
+        }
+
+        @container boe-notification-inbox (max-width: 32rem) {
+          [part="item"] {
+            grid-template-columns: auto minmax(0, 1fr);
+          }
+          [part="item-actions"] {
+            grid-column: 2;
+          }
         }
 
         [part="filter"]:focus-visible,

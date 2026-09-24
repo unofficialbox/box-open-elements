@@ -16,7 +16,7 @@ const contextMenu: StoryModule = {
     tag: "box-context-menu",
     shortDescription: "A right-click menu anchored to the pointer.",
     docsDescription:
-      "Wraps a target area (default slot). Right-clicking — or Shift+F10 / the ContextMenu key while focused — opens a menu at the pointer, positioned to stay in the viewport. Full keyboard menu (arrows, Home/End, Enter/Space, Escape). Emits `item-selected` with the chosen item.",
+      "Wraps a target area (default slot). Right-clicking — or Shift+F10 / the ContextMenu key while focused — opens a menu positioned to stay in the viewport. Call show() from an explicit touch trigger; close() dismisses. Disabled and empty menus do not open. Full keyboard menu (arrows, Home/End, Enter/Space, Escape). Emits `item-selected` with the chosen item.",
     sourceSnippet: `<box-context-menu items='${items}'>${target}</box-context-menu>`,
     referenceRows: [
       { kind: "attribute", name: "items", type: "ContextMenuItem[] (JSON)", description: "Menu items: { id, label, disabled?, separator? }." },

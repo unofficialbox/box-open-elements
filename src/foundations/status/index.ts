@@ -1,19 +1,21 @@
-export type StatusKind = "pending" | "active" | "done" | "warning" | "failed" | "skipped";
+export type StatusKind = "pending" | "active" | "done" | "warning" | "failed" | "skipped" | "approved" | "rejected";
 const mappings: Record<string, StatusKind> = {
   pending: "pending", info: "pending", active: "active", running: "active", in_progress: "active",
-  done: "done", succeeded: "done", completed: "done", pass: "done", approved: "done",
+  done: "done", succeeded: "done", completed: "done", pass: "done", approved: "approved",
   warning: "warning", warn: "warning", failed: "failed", fail: "failed", error: "failed",
-  skipped: "skipped", rejected: "skipped",
+  skipped: "skipped", rejected: "rejected",
 };
 export const toStatusKind = (status: string): StatusKind => mappings[status] ?? "pending";
 export const statusLabel = (kind: StatusKind): string => ({
   pending: "Pending", active: "In progress", done: "Done", warning: "Done with a warning",
   failed: "Failed", skipped: "Skipped",
+  approved: "Approved", rejected: "Rejected",
 })[kind];
 /** Decorative markup. Pair with visible words or the StatusIcon component. */
 export const boeStatusGlyph = (kind: StatusKind): string => {
   const state = toStatusKind(kind);
-  const path = state === "done" ? '<path d="m4 8 3 3 5-6"/>'
+  const path = state === "done" || state === "approved" ? '<path d="m4 8 3 3 5-6"/>'
+    : state === "rejected" ? '<path d="M4 12 12 4"/>'
     : state === "failed" ? '<path d="m5 5 6 6m0-6-6 6"/>'
     : state === "warning" ? '<path d="M5 8h6"/>'
     : state === "active" ? '<path d="M8 1a7 7 0 0 1 7 7"/>' : "";

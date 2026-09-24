@@ -28,6 +28,17 @@ describe("Dialog", () => {
     expect(element.shadowRoot?.textContent ?? "").toBe("");
   });
 
+  it("bounds the complete surface and scrolls the body without losing actions", () => {
+    const element = new Dialog();
+    document.body.append(element);
+    element.show();
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("max-width: 100%");
+    expect(styles).toContain("max-height: calc(100dvh");
+    expect(styles).toContain("overflow: auto");
+    expect(styles).toContain("flex-wrap: wrap");
+  });
+
   it("focuses the dialog surface when it opens", async () => {
     const element = document.createElement("box-dialog") as Dialog;
     document.body.append(element);
@@ -93,9 +104,12 @@ describe("Dialog", () => {
   });
 
   it("traps Tab focus inside the dialog", () => {
+    // jsdom has no top-layer API. Model the browser's open state so hidden
+    // descendants are correctly excluded by the composed-tree focus helper.
     const element = document.createElement("box-dialog") as Dialog;
     document.body.append(element);
     element.show();
+    element.shadowRoot!.querySelector("dialog")!.open = true;
 
     const dialog = element.shadowRoot?.querySelector('[part="dialog"]') as HTMLElement;
     const cancel = element.shadowRoot?.querySelector('[part="cancel"]') as HTMLButtonElement;
@@ -108,6 +122,16 @@ describe("Dialog", () => {
 
     expect(prevent).toHaveBeenCalled();
     expect(element.shadowRoot?.activeElement).toBe(cancel);
+  });
+
+  it("handles Escape from slotted controls", () => {
+    const element = new Dialog();
+    const child = document.createElement("button");
+    element.append(child);
+    document.body.append(element);
+    element.show();
+    child.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, composed: true }));
+    expect(element.open).toBe(false);
   });
 
   it("uses BUE modal dialog shell styles", () => {

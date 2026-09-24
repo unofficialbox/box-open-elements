@@ -36,6 +36,34 @@ describe("ExplorerActionMenu", () => {
     document.body.innerHTML = "";
   });
 
+  it("does not expose denied actions as enabled or emit them, and restores focus after selection", async () => {
+    const controller = new ContentExplorerController({
+      rootFolderId: "0", token: "demo",
+      transport: { loadFolderItems: async () => createResult({ items: [{ id: "1", name: "Plan", type: "file", permissions: { canDelete: false } }] }) },
+      itemActions: [{ id: "delete", label: "Delete", requiresPermission: "canDelete" }, { id: "details", label: "View details" }],
+    });
+    const element = new ExplorerActionMenu();
+    element.itemId = "1";
+    element.controller = controller;
+    document.body.append(element);
+    await controller.connect();
+    const invoked = vi.fn();
+    element.addEventListener("item-action-invoked", invoked);
+    (element.shadowRoot!.querySelector('[part="trigger"]') as HTMLButtonElement).click();
+    await flushMicrotasks();
+    const denied = element.shadowRoot!.querySelector<HTMLButtonElement>('[data-action-id="delete"]')!;
+    const enabled = element.shadowRoot!.querySelector<HTMLButtonElement>('[data-action-id="details"]')!;
+    expect(denied.disabled).toBe(true);
+    expect(element.shadowRoot!.activeElement).toBe(enabled);
+    denied.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(invoked).not.toHaveBeenCalled();
+    enabled.click();
+    await flushMicrotasks();
+    expect(invoked).toHaveBeenCalledTimes(1);
+    expect(element.shadowRoot!.activeElement?.getAttribute("part")).toBe("trigger");
+    await controller.disconnect();
+  });
+
   it("opens item actions and emits item-action-invoked details", async () => {
     const transport: ExplorerTransport = {
       loadFolderItems: vi.fn().mockResolvedValue(

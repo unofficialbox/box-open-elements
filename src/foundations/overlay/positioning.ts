@@ -148,6 +148,14 @@ export const resolvePosition = (
     if (shift) y = clamp(y, padding, viewport.height - floating.height - padding);
   }
 
+  // On a narrow viewport neither side may fit (a right popover can flip to a
+  // still-offscreen left position). Keep the surface reachable after flipping.
+  // Explicit flip/shift opt-outs retain the requested overflow behavior.
+  if (flip && shift) {
+    x = clamp(x, padding, viewport.width - floating.width - padding);
+    y = clamp(y, padding, viewport.height - floating.height - padding);
+  }
+
   return { x, y, side, align };
 };
 

@@ -4,8 +4,9 @@
  * cannot be expressed as simple attributes. Entries without an example fall
  * back to a bare element with a `label` attribute.
  */
+import { statusDemoHtml } from "../storybook/fixtures/status.js";
+import { purposeExamples } from "../storybook/fixtures/purpose-demos.js";
 import {
-  AgentChatController, AgentWorkspaceController, CallConsoleController,
   type InviteCollaboratorsTransport,
   type PresenceTransport,
   type PresenceUser,
@@ -29,7 +30,6 @@ import {
 import {
   REFERENCE_TIME,
   clmAuditEvents,
-  clmCommands,
   clmNotifications,
   clmClauseAfter,
   clmClauseBefore,
@@ -53,6 +53,8 @@ import type { ContentPicker } from "../src/patterns/content-picker/content-picke
 import type { ContentUploader } from "../src/patterns/content-uploader/content-uploader.js";
 import type { UploadTransport } from "../src/patterns/content-uploader/types.js";
 import { boxIconography } from "@unofficialbox/box-open-elements";
+import { callConsoleDemoHtml, callConsoleSetupCode, setupCallConsoleDemo } from "../storybook/fixtures/call-console.js";
+import { workspaceDemoHtml, workspaceSetupCode, workspaceDemoModes, setupWorkspaceDemo } from "../storybook/fixtures/agent-workspace.js";
 
 /** Inline a Box iconography glyph by name (for slotted demo icons). */
 const icon = (name: keyof typeof boxIconography): string =>
@@ -70,6 +72,10 @@ export interface ExampleVariant {
 
 export interface ComponentExample {
   html: string;
+  /** Runnable controller integration, shown separately from framework markup. */
+  setupCode?: string;
+  /** Usage markup without demo-only controls. */
+  codeHtml?: string;
   setup?: SetupFn;
   note?: string;
   /** Live docs-site variants with setup (preferred over extracted workshop HTML). */
@@ -189,11 +195,6 @@ const wizardSummarySetup = (root: HTMLElement): void => {
   });
 };
 
-/** Shared by every shortcuts-overlay variant — the same catalogue the palette gets. */
-const shortcutsOverlaySetup = (root: HTMLElement): void => {
-  set(root, "box-shortcuts-overlay", { commands: clmCommands });
-};
-
 /** Shared by every path variant; only the current stage differs. */
 const pathSetup =
   (current: string) =>
@@ -230,20 +231,20 @@ const onSidebarToggle = (target: Element | null, run: (expanded: boolean) => voi
 };
 
 export const examples: Record<string, ComponentExample> = {
-  "status-icon": { html: '<box-status-icon kind="done"></box-status-icon><box-status-icon kind="warning"></box-status-icon><box-status-icon kind="active"></box-status-icon>' },
+  "status-icon": { html: statusDemoHtml },
   "fact-list": {html:'<box-fact-list></box-fact-list>',setup(root){set(root,"box-fact-list",{rows:[{label:"Amount",value:"$4,800,000"},{label:"Record",value:"LN-1042"}]});}},
   "check-list": {html:'<box-check-list></box-check-list>',setup(root){set(root,"box-check-list",{rows:[{label:"Loan to value",status:"pass",value:"Within policy"},{label:"Coverage",status:"warn",detail:"Exception requires approval"}]});}},
   "document-list": {html:'<box-document-list></box-document-list>',setup(root){set(root,"box-document-list",{items:[{id:"1",name:"Loan package.pdf",detail:"Source document",href:"https://app.box.com"}]});}},
   "result-blocks": {html:'<box-result-blocks></box-result-blocks>',setup(root){set(root,"box-result-blocks",{blocks:[{type:"facts",title:"Extracted terms",rows:[{label:"Amount",value:"$4,800,000"}]},{type:"table",title:"Comparison",columns:["Term","Precedent","This record"],rows:[{cells:["LTV","70%","80%"],status:"warn",note:"Needs exception"}]},{type:"checks",rows:[{label:"Source verified",status:"pass"}]}]});}},
   "run-summary": {html:'<box-run-summary></box-run-summary>',setup(root){set(root,"box-run-summary",{turn:{startedAt:0,endedAt:2400,todos:[{id:"1",content:"Extract terms",status:"completed"}],steps:[{id:"1",title:"Box · Extract terms",status:"succeeded",description:"Reviewed the package",startedAt:"2026-01-01T00:00:00Z",finishedAt:"2026-01-01T00:00:02Z"}]}});}},
-  "agent-workspace": {html:'<box-agent-workspace style="height:560px" viewer-key="docs-demo"></box-agent-workspace>',setup(root){
-    const workspace=new AgentWorkspaceController(()=>new AgentChatController({token:"demo",transport:{async sendMessage(r){r.onEvent({kind:"delta",text:"The package is ready for review."});r.onEvent({kind:"block",block:{type:"facts",rows:[{label:"Amount",value:"$4,800,000"}]}});r.onEvent({kind:"done",status:"complete"});}}}));
-    workspace.newChat();set(root,"box-agent-workspace",{workspaceController:workspace});
-  }},
-  "call-console": {html:'<box-call-console></box-call-console>',setup(root){
-    const controller=new CallConsoleController({async snapshot(){return [{id:"1",startedAt:0,durationMs:142,pending:false,service:"Box",summary:"tools/call get_file",method:"POST",url:"https://api.box.com/mcp",requestHeaders:{authorization:"[redacted]"},status:200,statusText:"OK",responseHeaders:{},responseBody:'{"result":{"isError":true}}',rpcError:"Tool result reported isError"}];},subscribe(_event,state){state("live");return ()=>{};},async clear(){}});
-    set(root,"box-call-console",{callController:controller});void controller.connect();
-  }},
+  "agent-workspace": {html:workspaceDemoHtml, codeHtml:'<box-agent-workspace style="height:600px" viewer-key="reviewer"></box-agent-workspace>', setup:setupWorkspaceDemo, setupCode:workspaceSetupCode,
+    note:"Simulated conversations, stream updates, approvals and failures. Expand workspace to inspect the desktop panes; use the width controls for drawers.",
+    variants:workspaceDemoModes.map(mode=>({name:mode[0].toUpperCase()+mode.slice(1),html:workspaceDemoHtml,setup:root=>setupWorkspaceDemo(root,mode)})),
+  },
+  "call-console": {html:callConsoleDemoHtml,codeHtml:"<box-call-console></box-call-console>",setup:setupCallConsoleDemo,setupCode:callConsoleSetupCode,
+    note:"Simulated developer traffic. Select a request, filter by service or failure, simulate a pending-to-complete update, clear, or reset. No credentials or real requests are used.",
+    variants:(["live","empty","connecting","reconnecting","unavailable"] as const).map(mode=>({name:mode === "live" ? "Populated" : mode[0].toUpperCase()+mode.slice(1),html:callConsoleDemoHtml,setup:root=>setupCallConsoleDemo(root,mode)})),
+  },
   button: { html: `<box-button label="Save" tone="primary"></box-button>\n<box-button label="Cancel" tone="neutral"></box-button>\n<box-button label="Delete" tone="danger"></box-button>\n<box-button label="Small" size="small"></box-button>\n<box-button label="Disabled" disabled></box-button>` },
   "icon-button": { html: `<box-icon-button icon="+" label="Add item"></box-icon-button>\n<box-icon-button icon="gear" label="Settings"></box-icon-button>` },
   "link-button": { html: `<box-link-button label="Open documentation" href="#"></box-link-button>` },
@@ -268,7 +269,7 @@ export const examples: Record<string, ComponentExample> = {
       ],
     }),
   },
-  "menu-item": { html: `<box-menu-item label="Rename"></box-menu-item>` },
+  "menu-item": purposeExamples["menu-item"]!,
   toolbar: {
     html: `<box-toolbar label="Document actions"><button type="button">Share</button><button type="button">Download</button><button type="button">Rename</button></box-toolbar>`,
   },
@@ -401,37 +402,7 @@ export const examples: Record<string, ComponentExample> = {
       value: "copy",
     }),
   },
-  skeleton: {
-    html: `<box-skeleton width="320px" height="18px"></box-skeleton>`,
-    note: "Reserves space while content loads. `box` (the default) is one rectangle sized by `width`/`height`; `line` is a stack of `lines` bars; `grid` is a column layout after Adobe Spectrum's responsive grid — twelve columns by default, gutters stepping 16 → 24 → 32 → 40 → 48px across Spectrum's breakpoints. Every region is clamped to the `columns` and `rows` declared, so a bad number from the host makes the placeholder slightly wrong rather than blowing the layout out.",
-    variants: [
-      {
-        name: "Box",
-        html: `<box-skeleton width="240px" height="120px"></box-skeleton>`,
-        note: "The default: one rectangle, sized directly.",
-      },
-      {
-        name: "Lines",
-        html: `<box-skeleton variant="line" lines="4"></box-skeleton>`,
-        note: "Four text bars. The last stops at 62% so the stack reads as a paragraph rather than a table. Bars are added and removed in place when `lines` changes, so the shimmer does not restart.",
-      },
-      {
-        name: "Grid",
-        html: `<box-skeleton variant="grid" columns="3" rows="3" items='[{"span":3},{"span":1,"rowSpan":2},{"span":2}]'></box-skeleton>`,
-        note: "Three columns: a full-width band, then a single column standing two rows tall beside a two-column region. The tall region is two rows plus the gutter between them, and cannot exceed the three rows declared.",
-      },
-      {
-        name: "Grid with an offset",
-        html: `<box-skeleton variant="grid" columns="4" items='[{"span":2,"offset":2}]'></box-skeleton>`,
-        note: "Spectrum's offset: two empty columns, then a two-column region. Rendered as a hidden spacer, so it composes with auto-placement instead of fighting it.",
-      },
-      {
-        name: "Uniform grid",
-        html: `<box-skeleton variant="grid" columns="3" rows="2"></box-skeleton>`,
-        note: "With no `items`, `rows` and `columns` alone describe a uniform grid — here six single cells.",
-      },
-    ],
-  },
+  "skeleton": purposeExamples["skeleton"]!,
   spinner: { html: `<box-spinner label="Loading"></box-spinner>` },
   toast: {
     note: "A status glyph, an optional bold `heading` over the `message`, and an icon-only close control. The glyph differs in shape as well as colour — a round tick against a warning triangle — so the tone survives for a reader who cannot separate green from amber, and it is repeated as a visually hidden word for screen readers. Fill, border, shadow and text colour deliberately track box-ui-elements' `.notification` and are pinned by the colour conformance manifest; the structure is where the refinement lives.",
@@ -478,22 +449,7 @@ export const examples: Record<string, ComponentExample> = {
       },
     ],
   },
-  grid: {
-    html: `<box-grid style="--demo:1"><article data-span="8" style="background:var(--boe-token-surface-surface-secondary,#fbfbfb);border:1px solid var(--boe-token-stroke-stroke,#e8e8e8);border-radius:8px;padding:12px">Main (8)</article><aside data-span="4" style="background:var(--boe-token-surface-surface-secondary,#fbfbfb);border:1px solid var(--boe-token-stroke-stroke,#e8e8e8);border-radius:8px;padding:12px">Sidebar (4)</aside></box-grid>`,
-    note: "Adobe Spectrum's responsive grid: twelve columns, gutters stepping 16 → 24 → 32 → 40 → 48px across the breakpoints. Children declare their own placement with `data-span`, `data-offset` and `data-row-span`, applied as generated CSS rules so the author's markup is never written to. `box-skeleton`'s grid variant reads the same `--boe-grid-gutter` and column model, so a placeholder matches the layout it stands in for.",
-    variants: [
-      {
-        name: "Offset",
-        html: `<box-grid><div data-span="6" data-offset="3" style="background:var(--boe-token-surface-surface-secondary,#fbfbfb);border:1px solid var(--boe-token-stroke-stroke,#e8e8e8);border-radius:8px;padding:12px">Centred (6, offset 3)</div></box-grid>`,
-        note: "Three empty columns, then a six-column region.",
-      },
-      {
-        name: "Spanning rows",
-        html: `<box-grid row-height="60px"><div data-span="4" data-row-span="2" style="background:var(--boe-token-surface-surface-secondary,#fbfbfb);border:1px solid var(--boe-token-stroke-stroke,#e8e8e8);border-radius:8px;padding:12px">Tall (4 × 2)</div><div data-span="8" style="background:var(--boe-token-surface-surface-secondary,#fbfbfb);border:1px solid var(--boe-token-stroke-stroke,#e8e8e8);border-radius:8px;padding:12px">A (8)</div><div data-span="8" style="background:var(--boe-token-surface-surface-secondary,#fbfbfb);border:1px solid var(--boe-token-stroke-stroke,#e8e8e8);border-radius:8px;padding:12px">B (8)</div></box-grid>`,
-        note: "The tall region measures 144px in Chromium — two 60px rows plus the 24px gutter between them.",
-      },
-    ],
-  },
+  "grid": purposeExamples["grid"]!,
   "drop-zone": {
     html: `<box-drop-zone label="Upload files" message="Drag files here or browse."></box-drop-zone>`,
     note: "`files-selected` carries both `entries` — each file with the directory it came from, so a dropped folder can be recreated — and a flat `files` list. A drop that turns out to be empty emits nothing. Browsing is a real `<button>` rather than a label wearing `role=\"button\"`, so keyboard activation comes free. Dropped folders are read whichever way the zone is configured; `directories` adds a *second* control, backed by its own `webkitdirectory` input, so files and folders are both reachable rather than either/or.",
@@ -806,21 +762,10 @@ export const examples: Record<string, ComponentExample> = {
       },
     ],
   },
-  "context-menu": {
-    html: `<box-context-menu>\n  <div style="display:grid;place-items:center;height:120px;border:1px dashed var(--boe-token-stroke-stroke,#e8e8e8);border-radius:12px;color:var(--boe-token-text-text-secondary,#6f6f6f)">Right-click here</div>\n</box-context-menu>`,
-    setup: root => set(root, "box-context-menu", {
-      items: [
-        { id: "open", label: "Open" },
-        { id: "rename", label: "Rename" },
-        { id: "download", label: "Download" },
-        { id: "delete", label: "Delete", separator: true },
-      ],
-    }),
-    note: "Right-click (or Shift+F10) the area to open the menu at the pointer.",
-  },
+  "context-menu": purposeExamples["context-menu"]!,
   dialog: { html: `<box-dialog heading="Delete file?" message="Quarterly Plan.pdf will be moved to trash." open></box-dialog>` },
   drawer: { html: `<box-drawer heading="Details" open></box-drawer>` },
-  popover: { html: `<box-popover label="More info" placement="top" open>Shared links expire automatically.</box-popover>` },
+  "popover": purposeExamples["popover"]!,
   tooltip: { html: `<box-tooltip label="Copy link" open><box-button label="Share" tone="neutral"></box-button></box-tooltip>` },
   illustration: {
     html: `<box-illustration asset="empty-state-folder" heading="Nothing here yet" message="Upload a file to get started."></box-illustration>`,
@@ -1310,43 +1255,8 @@ export const examples: Record<string, ComponentExample> = {
       },
     ],
   },
-  "command-palette": {
-    html: `<box-command-palette
-  hotkey="mod+k"
-  placeholder="Type a command or search…"
-  open
-></box-command-palette>`,
-    setup: root => {
-      set(root, "box-command-palette", { commands: clmCommands, recentIds: ["compare-versions"] });
-    },
-    note: "Type to filter — matching runs are highlighted, and `cv` finds *Compare versions* by initials. Focus stays in the input while ↑↓ walk the results, because the active option is named through `aria-activedescendant` rather than focused; that is what lets you keep typing. ⏎ runs it, esc closes. **Press ⌘K / Ctrl+K to reopen** — the palette is a fixed overlay, so it deliberately does not reopen itself and leave you unable to reach the page. *Archive contract* is disabled: it still ranks and stays findable, but never runs.",
-  },
-  "shortcuts-overlay": {
-    html: `<box-shortcuts-overlay heading="Keyboard shortcuts" open></box-shortcuts-overlay>`,
-    setup: shortcutsOverlaySetup,
-    note: "Fed the **same** `commands` array as the palette above, and lists only the entries that declare a `shortcut` — so a shortcut cannot end up documented but unreachable, or reachable but undocumented. Each key is its own `kbd`, while the whole combination is the accessible name, so a screen reader hears \"⌘+⇧+E\" rather than \"⌘ plus ⇧ plus E\". **Press `?` to reopen** — it is a fixed overlay, so it does not re-arm itself. `?` is also deliberately dead while you are typing in a field.",
-    // Each variant carries the setup: the docs-site keeps live setups only
-    // when the *example* supplies the variants, so a page with workshop
-    // variants and a single example renders an empty panel.
-    variants: [
-      {
-        name: "Documented shortcuts",
-        html: `<box-shortcuts-overlay heading="Keyboard shortcuts" open></box-shortcuts-overlay>`,
-        setup: shortcutsOverlaySetup,
-        note: "Seven of the eleven commands declare a shortcut, so seven rows appear. Grouping follows the palette's rule, with the ungrouped section trailing.",
-      },
-      {
-        name: "Nothing documented yet",
-        html: `<box-shortcuts-overlay heading="Keyboard shortcuts" open></box-shortcuts-overlay>`,
-        setup: root => {
-          set(root, "box-shortcuts-overlay", {
-            commands: clmCommands.filter(command => !command.shortcut),
-          });
-        },
-        note: "A catalogue with no shortcuts says so rather than rendering an empty sheet with a heading over nothing.",
-      },
-    ],
-  },
+  "command-palette": purposeExamples["command-palette"]!,
+  "shortcuts-overlay": purposeExamples["shortcuts-overlay"]!,
   "path": {
     html: `<box-path label="Contract lifecycle" current="in-review"></box-path>`,
     setup: pathSetup("in-review"),
@@ -1455,16 +1365,12 @@ export const examples: Record<string, ComponentExample> = {
     },
     note: "Throughput at a glance. Days with activity are buttons in a roving-tabindex grid — arrows move by day and by week, Home/End jump to the window's ends — and each carries its own count and date as its accessible name, since colour alone carries no meaning. Selecting one emits `day-selected` with that day's events.",
   },
-  "explorer-breadcrumbs": { html: `<box-explorer-breadcrumbs></box-explorer-breadcrumbs>`, setup: explorerAdapterSetup("box-explorer-breadcrumbs"), note: "Driven by a shared ContentExplorerController with a mock transport." },
+  "explorer-breadcrumbs": purposeExamples["explorer-breadcrumbs"]!,
   "explorer-toolbar": { html: `<box-explorer-toolbar></box-explorer-toolbar>`, setup: explorerAdapterSetup("box-explorer-toolbar"), note: "Driven by a shared ContentExplorerController with a mock transport." },
   "explorer-list": { html: `<box-explorer-list></box-explorer-list>`, setup: explorerAdapterSetup("box-explorer-list"), note: "Driven by a shared ContentExplorerController with a mock transport." },
   "explorer-table": { html: `<box-explorer-table></box-explorer-table>`, setup: explorerAdapterSetup("box-explorer-table"), note: "Driven by a shared ContentExplorerController with a mock transport." },
   "explorer-items": { html: `<box-explorer-items></box-explorer-items>`, setup: explorerAdapterSetup("box-explorer-items"), note: "Driven by a shared ContentExplorerController with a mock transport." },
-  "explorer-action-menu": {
-    html: `<box-explorer-action-menu></box-explorer-action-menu>`,
-    setup: explorerAdapterSetup("box-explorer-action-menu", { itemId: "123", selectItemId: "123" }),
-    note: "Controller-bound item actions for Quarterly Plan.pdf (itemId + ContentExplorerController).",
-  },
+  "explorer-action-menu": purposeExamples["explorer-action-menu"]!,
   "filter-bar": {
     html: `<box-filter-bar label="Filters" query="contract"></box-filter-bar>`,
     setup: root => set(root, "box-filter-bar", {
@@ -1493,15 +1399,7 @@ export const examples: Record<string, ComponentExample> = {
       value: "recent-contracts",
     }),
   },
-  "item-form": {
-    html: `<box-item-form label="File properties"></box-item-form>`,
-    setup: root => set(root, "box-item-form", {
-      fields: [
-        { id: "name", label: "Name", type: "string", value: "Quarterly Plan.pdf" },
-        { id: "status", label: "Status", type: "string", value: "Final" },
-      ],
-    }),
-  },
+  "item-form": purposeExamples["item-form"]!,
   "item-details-panel": {
     html: `<box-item-details-panel heading="Quarterly Plan.pdf" eyebrow="PDF · 2.4 MB" owner='{"name":"Morgan Lee","description":"Enterprise Admin"}' status="Shared" message="Latest board-ready plan with updated forecasts."></box-item-details-panel>`,
     setup: root => set(root, "box-item-details-panel", {
@@ -1702,26 +1600,8 @@ export const examples: Record<string, ComponentExample> = {
   "annotation-thread": {
     html: `<box-annotation-thread composable heading="Discussion" anchor='{"page":4,"quote":"Either party may terminate for convenience upon thirty (30) days written notice."}' entries='[{"id":"a1","author":"Morgan Lee","body":"Thirty days is short for this contract value — push for ninety.","createdAt":"Today, 11:02 AM","toolLabel":"Highlight","status":"Open"}]'></box-annotation-thread>`,
   },
-  "preview-element": {
-    html: `<box-preview-element heading="Quarterly Plan.pdf" item-label="PDF · 2.4 MB" status="Ready" message="Rendered by the active preview provider." provider='{"id":"content-preview","label":"Box Content Preview","engine":"pdf.js","status":"ready","capabilities":["annotations","downloads"]}' adapter-state='{"ready":true,"pageLabel":"Page 2 of 34","zoomLabel":"100%","mode":"Review"}' actions='[{"id":"download","label":"Download"}]'>
-  <box-annotation-toolbar slot="toolbar" label="Annotate" active-tool-id="comment" current-color="#f59e0b" tools='[{"id":"comment","label":"Comment"},{"id":"highlight","label":"Highlight"}]' color-options='[{"id":"amber","label":"Amber","value":"#f59e0b"},{"id":"blue","label":"Blue","value":"#3b82f6"}]'></box-annotation-toolbar>
-  <div slot="stage" style="display:grid;place-items:center;min-block-size:12rem;padding:1rem;color:#6f6f6f;border:1px dashed #e8e8e8;border-radius:0.65rem;background:#fff">Page canvas · Q3 forecast table</div>
-  <box-annotation-thread slot="sidebar" heading="Discussion" entries='[{"id":"a1","author":"Morgan Lee","body":"Tighten the hero spacing.","toolLabel":"Comment","status":"Open"}]'></box-annotation-thread>
-</box-preview-element>`,
-  },
-  "file-request-builder": {
-    html: `<box-file-request-builder heading="Collect vendor W-9s" message="Request tax forms from onboarding vendors."></box-file-request-builder>`,
-    setup: root => set(root, "box-file-request-builder", {
-      fields: [
-        { id: "company", label: "Company name", required: true },
-        { id: "w9", label: "W-9 upload", description: "PDF only", required: true },
-      ],
-      settings: [
-        { id: "due", label: "Due date", description: "Jul 31, 2026" },
-        { id: "notify", label: "Email notifications", description: "On upload" },
-      ],
-    }),
-  },
+  "preview-element": purposeExamples["preview-element"]!,
+  "file-request-builder": purposeExamples["file-request-builder"]!,
   "task-assignment-panel": {
     html: `<box-task-assignment-panel heading="Contract review" status="In progress" priority="High" due-date="Jul 18, 2026" message="Legal review before countersign."></box-task-assignment-panel>`,
     setup: root => {

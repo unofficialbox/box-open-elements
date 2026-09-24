@@ -248,6 +248,7 @@ export class ExplorerActionMenu extends BaseElement {
         if (this.itemIdValue && actionId) {
           const item = this.controllerValue?.getState().items.find(entry => entry.id === this.itemIdValue) ?? null;
           const action = this.controllerValue?.getItemActions(this.itemIdValue).find(entry => entry.id === actionId) ?? null;
+          if (!action || action.disabled) return;
           this.controllerValue?.invokeItemAction(this.itemIdValue, actionId);
           if (item && action) {
             this.dispatchEvent(
@@ -296,7 +297,7 @@ export class ExplorerActionMenu extends BaseElement {
       }
 
       const menuItems = Array.from(
-        this.shadowRoot.querySelectorAll<HTMLButtonElement>('[part="menu-item"]'),
+        this.shadowRoot.querySelectorAll<HTMLButtonElement>('[part="menu-item"]:not(:disabled)'),
       );
       handleRovingKeydown(keyboardEvent, menuItems, { orientation: "vertical" });
     });
@@ -324,7 +325,7 @@ export class ExplorerActionMenu extends BaseElement {
       ? `<div id="${this.menuId}" part="menu" role="menu">${actions
           .map(
             action =>
-              `<button type="button" part="menu-item" role="menuitem" data-action-id="${escapeHtml(action.id)}">${escapeHtml(action.label)}</button>`,
+              `<button type="button" part="menu-item" role="menuitem" data-action-id="${escapeHtml(action.id)}" ${action.disabled ? 'disabled aria-disabled="true" tabindex="-1"' : ''}>${escapeHtml(action.label)}</button>`,
           )
           .join("")}</div>`
       : "";
@@ -345,14 +346,14 @@ export class ExplorerActionMenu extends BaseElement {
 
     if (this.open) {
       const menuItems = Array.from(
-        this.shadowRoot?.querySelectorAll<HTMLButtonElement>('[part="menu-item"]') ?? [],
+        this.shadowRoot?.querySelectorAll<HTMLButtonElement>('[part="menu-item"]:not(:disabled)') ?? [],
       );
       applyRovingTabindex(menuItems, 0);
     }
 
     if (justOpened) {
       queueMicrotask(() => {
-        (this.shadowRoot?.querySelector('[part="menu-item"]') as HTMLButtonElement | null)?.focus();
+        (this.shadowRoot?.querySelector('[part="menu-item"]:not(:disabled)') as HTMLButtonElement | null)?.focus();
       });
       return;
     }
@@ -369,7 +370,7 @@ export class ExplorerActionMenu extends BaseElement {
       return;
     }
 
-    if (focusedTrigger) {
+    if (focusedTrigger || (focusedActionId && !this.open)) {
       queueMicrotask(() => {
         (this.shadowRoot?.querySelector('[part="trigger"]') as HTMLButtonElement | null)?.focus();
       });

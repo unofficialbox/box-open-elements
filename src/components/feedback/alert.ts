@@ -17,10 +17,8 @@ const alertStyles = `
     display: none !important;
   }
 
-  /* The accent colours the glyph only. The tinted backgrounds below are pinned
-     by the colour conformance manifest against upstream box-ui-elements and are
-     deliberately not derived from it; upstream has no glyph, so adding one
-     costs no conformance. */
+  /* Preserve upstream light tints, but mix against the active theme surface.
+     Glyphs use readable status ink, not decorative status fill colours. */
   [part="alert"] {
     --alert-accent: var(--boe-token-text-text-secondary, #6f6f6f);
 
@@ -38,23 +36,23 @@ const alertStyles = `
 
   [part="alert"][data-tone="info"] {
     --alert-accent: var(--boe-token-surface-surface-brand, #0061d5);
-    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, #fff);
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface, #ffffff));
   }
 
   [part="alert"][data-tone="success"] {
-    --alert-accent: var(--boe-token-surface-status-surface-success, #26c281);
-    background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 10%, #fff);
+    --alert-accent: var(--boe-token-text-status-text-success, #187657);
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 10%, var(--boe-token-surface-surface, #ffffff));
   }
 
   [part="alert"][data-tone="error"] {
-    --alert-accent: var(--boe-token-surface-status-surface-error, #ed3757);
-    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, #fff);
+    --alert-accent: var(--boe-token-text-status-text-error, #b92340);
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, var(--boe-token-surface-surface, #ffffff));
   }
 
   [part="alert"][data-tone="warning"],
   [part="alert"][data-tone="inprogress"] {
-    --alert-accent: var(--boe-token-surface-status-surface-inprogress, #f5b31b);
-    background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 10%, #fff);
+    --alert-accent: var(--boe-token-text-status-text-warning, #805600);
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 10%, var(--boe-token-surface-surface, #ffffff));
   }
 
   [part="icon"] {

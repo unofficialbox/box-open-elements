@@ -55,6 +55,51 @@ describe("Toast", () => {
     expect(element.open).toBe(false);
   });
 
+  it("keeps errors visible even with an explicit timeout", () => {
+    vi.useFakeTimers();
+    const element = document.createElement("box-toast") as Toast;
+    document.body.append(element);
+    element.show("Upload failed. Retry the file.", { tone: "error", duration: 100 });
+    vi.advanceTimersByTime(10000);
+    expect(element.open).toBe(true);
+    element.hide();
+    expect(element.open).toBe(false);
+  });
+
+  it("cancels a running success timer when feedback becomes an error", () => {
+    vi.useFakeTimers();
+    const element = document.createElement("box-toast") as Toast;
+    document.body.append(element);
+    element.show("Saving", { duration: 100 });
+    element.tone = "error";
+    vi.advanceTimersByTime(10000);
+    expect(element.open).toBe(true);
+  });
+
+  it("honors a declarative zero duration when show is called", () => {
+    vi.useFakeTimers();
+    const element = document.createElement("box-toast") as Toast;
+    document.body.append(element);
+    element.duration = 0;
+    element.show("Saved", { tone: "success" });
+    vi.advanceTimersByTime(10000);
+    expect(element.open).toBe(true);
+  });
+
+  it("schedules attribute-driven open and cancels when made sticky", () => {
+    vi.useFakeTimers();
+    const element = document.createElement("box-toast") as Toast;
+    document.body.append(element);
+    element.duration = 100;
+    element.setAttribute("open", "");
+    vi.advanceTimersByTime(100);
+    expect(element.open).toBe(false);
+    element.show("Saved", { duration: 100 });
+    element.mode = "sticky";
+    vi.advanceTimersByTime(10000);
+    expect(element.open).toBe(true);
+  });
+
   it("auto-hides per a declarative duration when opened via the property", () => {
     vi.useFakeTimers();
     const element = document.createElement("box-toast") as Toast;
@@ -284,7 +329,7 @@ describe("Toast borderless (retired)", () => {
     document.body.append(element);
     const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
 
-    expect(styles).toContain("--toast-accent: var(--boe-token-surface-status-surface-success, #26c281)");
-    expect(styles).toContain("background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 20%, #fff)");
+    expect(styles).toContain("--toast-accent: var(--boe-token-text-status-text-success, #187657)");
+    expect(styles).toContain("background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 20%, var(--boe-token-surface-surface, #ffffff))");
   });
 });

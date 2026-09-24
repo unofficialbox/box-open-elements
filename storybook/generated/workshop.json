@@ -19,7 +19,7 @@
       "variants": [
         {
           "name": "Default",
-          "html": "<box-status-icon></box-status-icon>"
+          "html": "<div style=\"display:grid;gap:16px\">\n  <section aria-label=\"Execution states\" style=\"display:flex;flex-wrap:wrap;gap:16px\">\n    <span><box-status-icon kind=\"pending\" aria-hidden=\"true\"></box-status-icon> Pending</span><span><box-status-icon kind=\"active\" aria-hidden=\"true\"></box-status-icon> In progress</span><span><box-status-icon kind=\"done\" aria-hidden=\"true\"></box-status-icon> Done</span><span><box-status-icon kind=\"warning\" aria-hidden=\"true\"></box-status-icon> Done with a warning</span><span><box-status-icon kind=\"failed\" aria-hidden=\"true\"></box-status-icon> Failed</span><span><box-status-icon kind=\"skipped\" aria-hidden=\"true\"></box-status-icon> Skipped</span>\n  </section>\n  <section aria-label=\"Decision states\" style=\"display:flex;flex-wrap:wrap;gap:16px\">\n    <span><box-status-icon kind=\"approved\" aria-hidden=\"true\"></box-status-icon> Approved</span>\n    <span><box-status-icon kind=\"rejected\" aria-hidden=\"true\"></box-status-icon> Rejected</span>\n  </section>\n  <p>Approval permits an action. Its execution can still fail.</p>\n</div>"
         }
       ]
     },
@@ -143,21 +143,68 @@
       "tag": "box-agent-workspace",
       "title": "Patterns/Agent Chat/Agent Workspace",
       "category": "Agent Chat",
-      "shortDescription": "Persistent conversations with responsive side panes.",
-      "docsDescription": "Persistent conversations with responsive side panes. See the Agent UI building blocks guide for contracts, lifecycle and examples.",
-      "sourceSnippet": "<box-agent-workspace></box-agent-workspace>",
+      "shortDescription": "Independent conversations with responsive chats and details panes.",
+      "docsDescription": "The host owns AgentWorkspaceController and destroys it on teardown. Hidden conversations stay connected. Below 900px, chats and details become exclusive drawers; at 1200px details defaults open. Expand the simulated preview for the three-pane layout. Approval demonstrates a failed execution, not a successful write.",
+      "sourceSnippet": "<box-agent-workspace style=\"height:600px\"></box-agent-workspace>\n<script type=\"module\">\nimport { AgentWorkspace, AgentWorkspaceController, AgentChatController } from \"@unofficialbox/box-open-elements\";\n\nAgentWorkspace.register();\n// Implement your authorized AgentChatTransport. Never embed a server secret.\nfunction mountWorkspace(host, transport, token) {\n  const workspace = new AgentWorkspaceController(() =>\n    new AgentChatController({ token, transport, agentName: \"Review assistant\" }));\n  workspace.newChat();\n  host.workspaceController = workspace;\n  return () => {\n    host.workspaceController = null;\n    workspace.destroy(); // aborts streams and tears down every owned session\n  };\n}\n// On route mount: const dispose = mountWorkspace(host, transport, token);\n// On route teardown: dispose();\n</script>",
       "referenceRows": [
         {
           "kind": "property",
           "name": "workspaceController",
-          "type": "AgentWorkspaceController",
-          "description": "Persistent conversations with responsive side panes."
+          "type": "AgentWorkspaceController | null",
+          "description": "Owns independent sessions. Assign after mounting and destroy on host teardown."
+        },
+        {
+          "kind": "attribute",
+          "name": "viewer-key",
+          "type": "string",
+          "description": "Scopes saved desktop pane preferences per viewer."
+        },
+        {
+          "kind": "slot",
+          "name": "chats",
+          "description": "Optional replacement conversation list."
+        },
+        {
+          "kind": "slot",
+          "name": "conversation",
+          "description": "Optional replacement conversation area."
+        },
+        {
+          "kind": "slot",
+          "name": "details",
+          "description": "Optional replacement context, approval and source details."
+        },
+        {
+          "kind": "part",
+          "name": "workspace",
+          "description": "Outer workspace layout."
+        },
+        {
+          "kind": "part",
+          "name": "chat",
+          "description": "Conversation selection buttons."
         }
       ],
       "variants": [
         {
-          "name": "Default",
-          "html": "<box-agent-workspace></box-agent-workspace>"
+          "name": "Overview",
+          "html": "<div data-workspace-demo style=\"display:flex;flex-direction:column;gap:12px;min-width:0;background:var(--boe-token-surface-surface,#fff);color:var(--boe-token-text-text,#222)\">\n<style>[data-workspace-demo]:fullscreen{padding:16px;overflow:auto}[data-workspace-demo]:fullscreen box-agent-workspace{height:auto!important;flex:1;min-height:0}</style>\n<div style=\"display:flex;gap:8px;flex-wrap:wrap;align-items:center\"><box-button data-run label=\"Run scenario\" tone=\"neutral\"></box-button><box-button data-expand label=\"Expand workspace\" tone=\"neutral\"></box-button><small>Simulated data · no network requests. Expand for the desktop three-pane layout.</small></div>\n<box-agent-workspace style=\"height:600px;min-height:0\" viewer-key=\"docs-workspace\"></box-agent-workspace></div>"
+        },
+        {
+          "name": "Streaming",
+          "html": "<div data-workspace-demo style=\"display:flex;flex-direction:column;gap:12px;min-width:0;background:var(--boe-token-surface-surface,#fff);color:var(--boe-token-text-text,#222)\">\n<style>[data-workspace-demo]:fullscreen{padding:16px;overflow:auto}[data-workspace-demo]:fullscreen box-agent-workspace{height:auto!important;flex:1;min-height:0}</style>\n<div style=\"display:flex;gap:8px;flex-wrap:wrap;align-items:center\"><box-button data-run label=\"Run scenario\" tone=\"neutral\"></box-button><box-button data-expand label=\"Expand workspace\" tone=\"neutral\"></box-button><small>Simulated data · no network requests. Expand for the desktop three-pane layout.</small></div>\n<box-agent-workspace style=\"height:600px;min-height:0\" viewer-key=\"docs-workspace\"></box-agent-workspace></div>"
+        },
+        {
+          "name": "Approval",
+          "html": "<div data-workspace-demo style=\"display:flex;flex-direction:column;gap:12px;min-width:0;background:var(--boe-token-surface-surface,#fff);color:var(--boe-token-text-text,#222)\">\n<style>[data-workspace-demo]:fullscreen{padding:16px;overflow:auto}[data-workspace-demo]:fullscreen box-agent-workspace{height:auto!important;flex:1;min-height:0}</style>\n<div style=\"display:flex;gap:8px;flex-wrap:wrap;align-items:center\"><box-button data-run label=\"Run scenario\" tone=\"neutral\"></box-button><box-button data-expand label=\"Expand workspace\" tone=\"neutral\"></box-button><small>Simulated data · no network requests. Expand for the desktop three-pane layout.</small></div>\n<box-agent-workspace style=\"height:600px;min-height:0\" viewer-key=\"docs-workspace\"></box-agent-workspace></div>"
+        },
+        {
+          "name": "Failure",
+          "html": "<div data-workspace-demo style=\"display:flex;flex-direction:column;gap:12px;min-width:0;background:var(--boe-token-surface-surface,#fff);color:var(--boe-token-text-text,#222)\">\n<style>[data-workspace-demo]:fullscreen{padding:16px;overflow:auto}[data-workspace-demo]:fullscreen box-agent-workspace{height:auto!important;flex:1;min-height:0}</style>\n<div style=\"display:flex;gap:8px;flex-wrap:wrap;align-items:center\"><box-button data-run label=\"Run scenario\" tone=\"neutral\"></box-button><box-button data-expand label=\"Expand workspace\" tone=\"neutral\"></box-button><small>Simulated data · no network requests. Expand for the desktop three-pane layout.</small></div>\n<box-agent-workspace style=\"height:600px;min-height:0\" viewer-key=\"docs-workspace\"></box-agent-workspace></div>"
+        },
+        {
+          "name": "Empty",
+          "html": "<div data-workspace-demo style=\"display:flex;flex-direction:column;gap:12px;min-width:0;background:var(--boe-token-surface-surface,#fff);color:var(--boe-token-text-text,#222)\">\n<style>[data-workspace-demo]:fullscreen{padding:16px;overflow:auto}[data-workspace-demo]:fullscreen box-agent-workspace{height:auto!important;flex:1;min-height:0}</style>\n<div style=\"display:flex;gap:8px;flex-wrap:wrap;align-items:center\"><box-button data-run label=\"Run scenario\" tone=\"neutral\"></box-button><box-button data-expand label=\"Expand workspace\" tone=\"neutral\"></box-button><small>Simulated data · no network requests. Expand for the desktop three-pane layout.</small></div>\n<box-agent-workspace style=\"height:600px;min-height:0\" viewer-key=\"docs-workspace\"></box-agent-workspace></div>"
         }
       ]
     },
@@ -166,21 +213,76 @@
       "tag": "box-call-console",
       "title": "Patterns/Developer Tools/Call Console",
       "category": "Developer Tools",
-      "shortDescription": "Separate developer call log with HTTP and tool errors.",
-      "docsDescription": "Separate developer call log with HTTP and tool errors. See the Agent UI building blocks guide for contracts, lifecycle and examples.",
-      "sourceSnippet": "<box-call-console></box-call-console>",
+      "shortDescription": "A developer-only request log with a searchable list and request/response inspector.",
+      "docsDescription": "Bind a CallConsoleController to callController, then connect it. Search and service/error filters narrow the list; tool failures remain failures even on HTTP 200. Copy each HTTP section or both. The host owns connection teardown and must authorize the /calls endpoints. The docs use simulated data, never live credentials.",
+      "sourceSnippet": "<box-call-console></box-call-console>\n<script type=\"module\">\nimport { CallConsole, CallConsoleController, createCallConsoleTransport } from \"@unofficialbox/box-open-elements/call-console\";\n\nCallConsole.register(); // Explicit use also keeps registration in optimized builds.\nconst consoleView = document.querySelector(\"box-call-console\");\nconst controller = new CallConsoleController(createCallConsoleTransport(\"/calls\"));\nconsoleView.callController = controller;\nawait controller.connect();\n\n// Protect /calls and /calls/stream with developer-only authorization.\n// On route teardown (the host owns the controller lifecycle):\n// controller.destroy();\n</script>",
       "referenceRows": [
         {
           "kind": "property",
           "name": "callController",
-          "type": "CallConsoleController",
-          "description": "Separate developer call log with HTTP and tool errors."
+          "type": "CallConsoleController | null",
+          "description": "Controller for redacted call entries and connection state. Call connect() to load/subscribe and destroy() on host teardown."
+        },
+        {
+          "kind": "event",
+          "name": "call-selected",
+          "type": "{ id: string }",
+          "description": "A request was selected. Payload intentionally excludes request bodies and headers."
+        },
+        {
+          "kind": "event",
+          "name": "filters-changed",
+          "type": "{ service: string; errorsOnly: boolean; query: string }",
+          "description": "User changed the search, service or error filter."
+        },
+        {
+          "kind": "event",
+          "name": "calls-cleared",
+          "type": "void",
+          "description": "The server clear request completed successfully."
+        },
+        {
+          "kind": "event",
+          "name": "code-copied",
+          "type": "{ copied: boolean }",
+          "description": "A section copy was attempted by the shared code block."
+        },
+        {
+          "kind": "part",
+          "name": "console",
+          "description": "Outer console surface."
+        },
+        {
+          "kind": "part",
+          "name": "call",
+          "description": "Request selection buttons."
         }
       ],
       "variants": [
         {
-          "name": "Default",
-          "html": "<box-call-console></box-call-console>"
+          "name": "Populated",
+          "html": "<div style=\"display:grid;gap:12px;min-width:0\"><div style=\"display:flex;gap:8px;flex-wrap:wrap;align-items:center\"><box-button data-simulate label=\"Simulate request\" tone=\"neutral\"></box-button><box-button data-reset label=\"Reset demo\" tone=\"neutral\"></box-button><small>Simulated data · no network requests</small></div><box-call-console></box-call-console></div>",
+          "note": "Simulated traffic only. Use Simulate request and Reset demo to exercise updates."
+        },
+        {
+          "name": "Empty",
+          "html": "<div style=\"display:grid;gap:12px;min-width:0\"><div style=\"display:flex;gap:8px;flex-wrap:wrap;align-items:center\"><box-button data-simulate label=\"Simulate request\" tone=\"neutral\"></box-button><box-button data-reset label=\"Reset demo\" tone=\"neutral\"></box-button><small>Simulated data · no network requests</small></div><box-call-console></box-call-console></div>",
+          "note": "Simulated traffic only. Use Simulate request and Reset demo to exercise updates."
+        },
+        {
+          "name": "Connecting",
+          "html": "<div style=\"display:grid;gap:12px;min-width:0\"><div style=\"display:flex;gap:8px;flex-wrap:wrap;align-items:center\"><box-button data-simulate label=\"Simulate request\" tone=\"neutral\"></box-button><box-button data-reset label=\"Reset demo\" tone=\"neutral\"></box-button><small>Simulated data · no network requests</small></div><box-call-console></box-call-console></div>",
+          "note": "Simulated traffic only. Use Simulate request and Reset demo to exercise updates."
+        },
+        {
+          "name": "Reconnecting",
+          "html": "<div style=\"display:grid;gap:12px;min-width:0\"><div style=\"display:flex;gap:8px;flex-wrap:wrap;align-items:center\"><box-button data-simulate label=\"Simulate request\" tone=\"neutral\"></box-button><box-button data-reset label=\"Reset demo\" tone=\"neutral\"></box-button><small>Simulated data · no network requests</small></div><box-call-console></box-call-console></div>",
+          "note": "Simulated traffic only. Use Simulate request and Reset demo to exercise updates."
+        },
+        {
+          "name": "Unavailable",
+          "html": "<div style=\"display:grid;gap:12px;min-width:0\"><div style=\"display:flex;gap:8px;flex-wrap:wrap;align-items:center\"><box-button data-simulate label=\"Simulate request\" tone=\"neutral\"></box-button><box-button data-reset label=\"Reset demo\" tone=\"neutral\"></box-button><small>Simulated data · no network requests</small></div><box-call-console></box-call-console></div>",
+          "note": "Simulated traffic only. Use Simulate request and Reset demo to exercise updates."
         }
       ]
     },
@@ -828,7 +930,7 @@
       "title": "Components/Overlays/Context Menu",
       "category": "Overlays",
       "shortDescription": "A right-click menu anchored to the pointer.",
-      "docsDescription": "Wraps a target area (default slot). Right-clicking — or Shift+F10 / the ContextMenu key while focused — opens a menu at the pointer, positioned to stay in the viewport. Full keyboard menu (arrows, Home/End, Enter/Space, Escape). Emits `item-selected` with the chosen item.",
+      "docsDescription": "Wraps a target area (default slot). Right-clicking — or Shift+F10 / the ContextMenu key while focused — opens a menu positioned to stay in the viewport. Call show() from an explicit touch trigger; close() dismisses. Disabled and empty menus do not open. Full keyboard menu (arrows, Home/End, Enter/Space, Escape). Emits `item-selected` with the chosen item.",
       "sourceSnippet": "<box-context-menu items='[{\"id\":\"open\",\"label\":\"Open\"},{\"id\":\"rename\",\"label\":\"Rename\"},{\"id\":\"download\",\"label\":\"Download\"},{\"id\":\"delete\",\"label\":\"Delete\",\"separator\":true}]'><div style=\"display:grid;place-items:center;height:120px;width:240px;border:1px dashed #ccc;border-radius:12px\">Right-click here</div></box-context-menu>",
       "referenceRows": [
         {
@@ -857,6 +959,11 @@
         }
       ],
       "variants": [
+        {
+          "name": "Interactive",
+          "html": "<style>\n.purpose-demo{display:grid;gap:16px;min-width:0;container:purpose / inline-size}\n.purpose-demo [data-controls]{display:flex;flex-wrap:wrap;gap:8px}\n.purpose-demo p{margin:0;max-width:75ch;overflow-wrap:anywhere}\n.purpose-demo [data-status]{min-height:1.5em}\n.purpose-demo [data-error]:empty{display:none}\n.purpose-demo [data-error]{color:var(--boe-token-text-status-text-error,#b92340)}\n.purpose-demo [hidden]{display:none!important}\n.purpose-demo .purpose-grid>section{padding:16px;background:var(--boe-token-surface-surface,#fff);border:1px solid var(--boe-token-stroke-stroke,#ddd);min-width:0;overflow-wrap:anywhere}\n@container purpose (max-width:540px){.purpose-demo .purpose-grid>section{grid-column:1 / -1}}\n</style><div class=\"purpose-demo\"><box-context-menu><div tabindex=\"0\" data-context-target><h3>Quarterly Plan.pdf</h3><p>Right-click or press Shift+F10. On touch, use File actions.</p><box-button data-demo=\"open\" label=\"File actions\" tone=\"neutral\"></box-button></div></box-context-menu><section data-detail hidden><h3>Quarterly Plan.pdf</h3><p>Owner: Morgan Lee. Version: 4. Access: view only.</p></section><p data-error role=\"alert\"></p><p data-status role=\"status\"></p></div>",
+          "note": "Pointer, keyboard and explicit touch entry points share the same menu and local result. Delete is unavailable for this view-only file."
+        },
         {
           "name": "Default",
           "html": "<box-context-menu items='[{\"id\":\"open\",\"label\":\"Open\"},{\"id\":\"rename\",\"label\":\"Rename\"},{\"id\":\"download\",\"label\":\"Download\"},{\"id\":\"delete\",\"label\":\"Delete\",\"separator\":true}]'><div style=\"display:grid;place-items:center;height:120px;width:240px;border:1px dashed #ccc;border-radius:12px\">Right-click here</div></box-context-menu>"
@@ -2370,6 +2477,11 @@
       ],
       "variants": [
         {
+          "name": "Interactive",
+          "html": "<style>\n.purpose-demo{display:grid;gap:16px;min-width:0;container:purpose / inline-size}\n.purpose-demo [data-controls]{display:flex;flex-wrap:wrap;gap:8px}\n.purpose-demo p{margin:0;max-width:75ch;overflow-wrap:anywhere}\n.purpose-demo [data-status]{min-height:1.5em}\n.purpose-demo [data-error]:empty{display:none}\n.purpose-demo [data-error]{color:var(--boe-token-text-status-text-error,#b92340)}\n.purpose-demo [hidden]{display:none!important}\n.purpose-demo .purpose-grid>section{padding:16px;background:var(--boe-token-surface-surface,#fff);border:1px solid var(--boe-token-stroke-stroke,#ddd);min-width:0;overflow-wrap:anywhere}\n@container purpose (max-width:540px){.purpose-demo .purpose-grid>section{grid-column:1 / -1}}\n</style><div class=\"purpose-demo\"><div data-controls><box-button data-demo=\"open\" label=\"Find a command\" tone=\"neutral\"></box-button></div><box-command-palette placeholder=\"Find a file command\" hotkey=\"mod+k\"></box-command-palette><section data-detail hidden><h3>Quarterly Plan.pdf</h3><p>Owner: Morgan Lee. Version: 4. Access: view only.</p></section><section data-activity hidden><h3>File activity</h3><p>Morgan Lee uploaded version 4 today.</p></section><p data-error role=\"alert\"></p><p data-status role=\"status\"></p></div>",
+          "note": "Search, try an unmatched query, then execute Show file details. Delete is disabled. Escape returns focus to the trigger; the palette opens in the full viewport."
+        },
+        {
           "name": "Open with grouped commands",
           "html": "<box-command-palette hotkey=\"mod+k\" placeholder=\"Type a command or search…\" open></box-command-palette>",
           "note": "Sections come from each command's group, with the ungrouped section trailing. Arrows cross headings in one flat index space, so the highlighted option is always the one Enter runs."
@@ -3147,6 +3259,11 @@
         }
       ],
       "variants": [
+        {
+          "name": "Interactive",
+          "html": "<style>\n.purpose-demo{display:grid;gap:16px;min-width:0;container:purpose / inline-size}\n.purpose-demo [data-controls]{display:flex;flex-wrap:wrap;gap:8px}\n.purpose-demo p{margin:0;max-width:75ch;overflow-wrap:anywhere}\n.purpose-demo [data-status]{min-height:1.5em}\n.purpose-demo [data-error]:empty{display:none}\n.purpose-demo [data-error]{color:var(--boe-token-text-status-text-error,#b92340)}\n.purpose-demo [hidden]{display:none!important}\n.purpose-demo .purpose-grid>section{padding:16px;background:var(--boe-token-surface-surface,#fff);border:1px solid var(--boe-token-stroke-stroke,#ddd);min-width:0;overflow-wrap:anywhere}\n@container purpose (max-width:540px){.purpose-demo .purpose-grid>section{grid-column:1 / -1}}\n</style><div class=\"purpose-demo\"><div data-controls><box-button data-demo=\"open\" label=\"Keyboard shortcuts\" tone=\"neutral\"></box-button></div><p>Shortcuts apply while focus is in this preview.</p><box-shortcuts-overlay heading=\"Keyboard shortcuts\"></box-shortcuts-overlay><section data-detail hidden><h3>Quarterly Plan.pdf</h3><p>Owner: Morgan Lee. Version: 4. Access: view only.</p></section><section data-activity hidden><h3>File activity</h3><p>Morgan Lee uploaded version 4 today.</p></section><p data-error role=\"alert\"></p><p data-status role=\"status\"></p></div>",
+          "note": "Open with the button or its keyboard activation. The full-viewport overlay presents platform-aware shortcuts; Escape returns to the trigger."
+        },
         {
           "name": "Documented shortcuts",
           "html": "<box-shortcuts-overlay heading=\"Keyboard shortcuts\" open></box-shortcuts-overlay>",
@@ -4664,6 +4781,11 @@
       ],
       "variants": [
         {
+          "name": "Interactive",
+          "html": "<style>\n.purpose-demo{display:grid;gap:16px;min-width:0;container:purpose / inline-size}\n.purpose-demo [data-controls]{display:flex;flex-wrap:wrap;gap:8px}\n.purpose-demo p{margin:0;max-width:75ch;overflow-wrap:anywhere}\n.purpose-demo [data-status]{min-height:1.5em}\n.purpose-demo [data-error]:empty{display:none}\n.purpose-demo [data-error]{color:var(--boe-token-text-status-text-error,#b92340)}\n.purpose-demo [hidden]{display:none!important}\n.purpose-demo .purpose-grid>section{padding:16px;background:var(--boe-token-surface-surface,#fff);border:1px solid var(--boe-token-stroke-stroke,#ddd);min-width:0;overflow-wrap:anywhere}\n@container purpose (max-width:540px){.purpose-demo .purpose-grid>section{grid-column:1 / -1}}\n</style><div class=\"purpose-demo\"><box-grid class=\"purpose-grid\"><section data-span=\"8\"><h3>Quarterly plan</h3><p>Review the launch milestones, budget and owners before sharing the approved plan.</p><box-button data-demo=\"review\" label=\"Review plan\"></box-button></section><section data-span=\"4\"><h3>File details</h3><p>Owner: Morgan Lee</p><p>Updated today</p></section></box-grid><section data-detail hidden><h3>Quarterly Plan.pdf</h3><p>Owner: Morgan Lee. Version: 4. Access: view only.</p></section><p data-error role=\"alert\"></p><p data-status role=\"status\"></p></div>",
+          "note": "An eight/four-column content layout stacks to full-width sections below 540px of available preview width."
+        },
+        {
           "name": "Sidebar and content",
           "html": "<box-grid><article data-span=\"8\">Main (8)</article><aside data-span=\"4\">Sidebar (4)</aside></box-grid>",
           "note": "The canonical split. Eight and four are whole columns of twelve, so nothing lands on a fraction."
@@ -5115,6 +5237,11 @@
       ],
       "variants": [
         {
+          "name": "Interactive",
+          "html": "<style>\n.purpose-demo{display:grid;gap:16px;min-width:0;container:purpose / inline-size}\n.purpose-demo [data-controls]{display:flex;flex-wrap:wrap;gap:8px}\n.purpose-demo p{margin:0;max-width:75ch;overflow-wrap:anywhere}\n.purpose-demo [data-status]{min-height:1.5em}\n.purpose-demo [data-error]:empty{display:none}\n.purpose-demo [data-error]{color:var(--boe-token-text-status-text-error,#b92340)}\n.purpose-demo [hidden]{display:none!important}\n.purpose-demo .purpose-grid>section{padding:16px;background:var(--boe-token-surface-surface,#fff);border:1px solid var(--boe-token-stroke-stroke,#ddd);min-width:0;overflow-wrap:anywhere}\n@container purpose (max-width:540px){.purpose-demo .purpose-grid>section{grid-column:1 / -1}}\n</style><div class=\"purpose-demo\"><p>Quarterly Plan.pdf — view-only file</p><div style=\"display:flex;justify-content:flex-end\"><box-explorer-action-menu></box-explorer-action-menu></div><section data-detail hidden><h3>Quarterly Plan.pdf</h3><p>Owner: Morgan Lee. Version: 4. Access: view only.</p></section><p data-error role=\"alert\"></p><p data-status role=\"status\"></p></div>",
+          "note": "View details opens the selected file details. Delete is explicitly denied by the local item permissions and cannot be invoked."
+        },
+        {
           "name": "Connected item",
           "html": "<box-explorer-action-menu></box-explorer-action-menu>",
           "note": "itemId=123 (Quarterly Plan.pdf) with Share / Download actions."
@@ -5138,6 +5265,11 @@
         }
       ],
       "variants": [
+        {
+          "name": "Interactive",
+          "html": "<style>\n.purpose-demo{display:grid;gap:16px;min-width:0;container:purpose / inline-size}\n.purpose-demo [data-controls]{display:flex;flex-wrap:wrap;gap:8px}\n.purpose-demo p{margin:0;max-width:75ch;overflow-wrap:anywhere}\n.purpose-demo [data-status]{min-height:1.5em}\n.purpose-demo [data-error]:empty{display:none}\n.purpose-demo [data-error]{color:var(--boe-token-text-status-text-error,#b92340)}\n.purpose-demo [hidden]{display:none!important}\n.purpose-demo .purpose-grid>section{padding:16px;background:var(--boe-token-surface-surface,#fff);border:1px solid var(--boe-token-stroke-stroke,#ddd);min-width:0;overflow-wrap:anywhere}\n@container purpose (max-width:540px){.purpose-demo .purpose-grid>section{grid-column:1 / -1}}\n</style><div class=\"purpose-demo\"><box-explorer-breadcrumbs></box-explorer-breadcrumbs><box-explorer-list></box-explorer-list><p data-error role=\"alert\"></p><p data-status role=\"status\"></p></div>",
+          "note": "Start inside Marketing. All Files changes the shared controller and the list; opening Legal updates the breadcrumb and list together. Data is local."
+        },
         {
           "name": "Connected",
           "html": "<box-explorer-breadcrumbs></box-explorer-breadcrumbs>",
@@ -5333,6 +5465,11 @@
         }
       ],
       "variants": [
+        {
+          "name": "Interactive",
+          "html": "<style>\n.purpose-demo{display:grid;gap:16px;min-width:0;container:purpose / inline-size}\n.purpose-demo [data-controls]{display:flex;flex-wrap:wrap;gap:8px}\n.purpose-demo p{margin:0;max-width:75ch;overflow-wrap:anywhere}\n.purpose-demo [data-status]{min-height:1.5em}\n.purpose-demo [data-error]:empty{display:none}\n.purpose-demo [data-error]{color:var(--boe-token-text-status-text-error,#b92340)}\n.purpose-demo [hidden]{display:none!important}\n.purpose-demo .purpose-grid>section{padding:16px;background:var(--boe-token-surface-surface,#fff);border:1px solid var(--boe-token-stroke-stroke,#ddd);min-width:0;overflow-wrap:anywhere}\n@container purpose (max-width:540px){.purpose-demo .purpose-grid>section{grid-column:1 / -1}}\n</style><div class=\"purpose-demo\"><p>Local draft only; no public upload link is created.</p><box-text-field data-title label=\"Request title\" value=\"Collect vendor documents\"></box-text-field><box-file-request-builder></box-file-request-builder><section data-request-preview hidden><h3 data-preview-title></h3><p>Company name and signed document are required.</p><p data-preview-settings></p></section><p data-error role=\"alert\"></p><p data-status role=\"status\"></p></div>",
+          "note": "Edit the title and notification setting, preview the current draft, and save locally. Empty titles are rejected. Copy link explains the unpublished boundary instead of pretending publication succeeded."
+        },
         {
           "name": "Default",
           "html": "<box-file-request-builder heading=\"Collect vendor W-9s\" message=\"Request tax forms from onboarding vendors.\" fields='[{\"id\":\"company\",\"label\":\"Company name\",\"required\":true},{\"id\":\"w9\",\"label\":\"W-9 upload\",\"description\":\"PDF only\",\"required\":true}]' settings='[{\"id\":\"due\",\"label\":\"Due date\",\"description\":\"Jul 31, 2026\"},{\"id\":\"notify\",\"label\":\"Email notifications\",\"description\":\"On upload\"}]'></box-file-request-builder>"
@@ -5946,6 +6083,11 @@
       ],
       "variants": [
         {
+          "name": "Interactive",
+          "html": "<style>\n.purpose-demo{display:grid;gap:16px;min-width:0;container:purpose / inline-size}\n.purpose-demo [data-controls]{display:flex;flex-wrap:wrap;gap:8px}\n.purpose-demo p{margin:0;max-width:75ch;overflow-wrap:anywhere}\n.purpose-demo [data-status]{min-height:1.5em}\n.purpose-demo [data-error]:empty{display:none}\n.purpose-demo [data-error]{color:var(--boe-token-text-status-text-error,#b92340)}\n.purpose-demo [hidden]{display:none!important}\n.purpose-demo .purpose-grid>section{padding:16px;background:var(--boe-token-surface-surface,#fff);border:1px solid var(--boe-token-stroke-stroke,#ddd);min-width:0;overflow-wrap:anywhere}\n@container purpose (max-width:540px){.purpose-demo .purpose-grid>section{grid-column:1 / -1}}\n</style><div class=\"purpose-demo\"><p>Local save demonstration; no server changes.</p><box-item-form label=\"File properties\" submit-label=\"Save changes\"></box-item-form><div data-controls><box-button data-demo=\"fail\" label=\"Fail next save\" tone=\"neutral\"></box-button></div><p data-error role=\"alert\"></p><p data-status role=\"status\"></p></div>",
+          "note": "Edit populated fields, submit an empty Name, cancel, or simulate a failed save and retry. Dirty, saving, error and successful outcomes are host-owned."
+        },
+        {
           "name": "Default",
           "html": "<box-item-form label=\"File properties\" submit-label=\"Save properties\" fields='[{\"id\":\"name\",\"label\":\"Name\",\"section\":\"Details\"},{\"id\":\"status\",\"label\":\"Status\",\"section\":\"Details\"},{\"id\":\"description\",\"label\":\"Description\",\"section\":\"Details\",\"type\":\"textarea\"}]' value='{\"name\":\"Quarterly Plan.pdf\",\"status\":\"Final\",\"description\":\"Latest board-ready plan with updated forecasts.\"}'></box-item-form>"
         }
@@ -6087,7 +6229,7 @@
       "title": "Components/Actions/Menu Item",
       "category": "Actions",
       "shortDescription": "A single menu row for composed menus.",
-      "docsDescription": "Use inside custom menu compositions when you are not driving `box-menu` from JSON `items`.",
+      "docsDescription": "Use inside custom menu compositions when you are not driving `box-menu` from JSON `items`. The host owns selection and arrow-key navigation; focus(options) moves focus to the inner control without shadow-root access.",
       "sourceSnippet": "<box-menu-item label=\"Rename\"></box-menu-item>",
       "referenceRows": [
         {
@@ -6104,6 +6246,11 @@
         }
       ],
       "variants": [
+        {
+          "name": "Interactive",
+          "html": "<style>\n.purpose-demo{display:grid;gap:16px;min-width:0;container:purpose / inline-size}\n.purpose-demo [data-controls]{display:flex;flex-wrap:wrap;gap:8px}\n.purpose-demo p{margin:0;max-width:75ch;overflow-wrap:anywhere}\n.purpose-demo [data-status]{min-height:1.5em}\n.purpose-demo [data-error]:empty{display:none}\n.purpose-demo [data-error]{color:var(--boe-token-text-status-text-error,#b92340)}\n.purpose-demo [hidden]{display:none!important}\n.purpose-demo .purpose-grid>section{padding:16px;background:var(--boe-token-surface-surface,#fff);border:1px solid var(--boe-token-stroke-stroke,#ddd);min-width:0;overflow-wrap:anywhere}\n@container purpose (max-width:540px){.purpose-demo .purpose-grid>section{grid-column:1 / -1}}\n</style><div class=\"purpose-demo\"><p>Choose how files are ordered.</p><div role=\"menu\" aria-label=\"Sort files\"><box-menu-item label=\"Name\" value=\"name\" selected></box-menu-item><box-menu-item label=\"Recently modified\" value=\"modified\"></box-menu-item><box-menu-item label=\"Size (not available)\" value=\"size\" disabled></box-menu-item></div><ol data-files><li>Brand Guidelines.pdf</li><li>Quarterly Plan.pdf</li></ol><p data-error role=\"alert\"></p><p data-status role=\"status\"></p></div>",
+          "note": "A host-owned selection updates both the checked item and the actual file order. Size is unavailable."
+        },
         {
           "name": "Default",
           "html": "<box-menu-item label=\"Rename\"></box-menu-item>"
@@ -6774,6 +6921,11 @@
       ],
       "variants": [
         {
+          "name": "Interactive",
+          "html": "<style>\n.purpose-demo{display:grid;gap:16px;min-width:0;container:purpose / inline-size}\n.purpose-demo [data-controls]{display:flex;flex-wrap:wrap;gap:8px}\n.purpose-demo p{margin:0;max-width:75ch;overflow-wrap:anywhere}\n.purpose-demo [data-status]{min-height:1.5em}\n.purpose-demo [data-error]:empty{display:none}\n.purpose-demo [data-error]{color:var(--boe-token-text-status-text-error,#b92340)}\n.purpose-demo [hidden]{display:none!important}\n.purpose-demo .purpose-grid>section{padding:16px;background:var(--boe-token-surface-surface,#fff);border:1px solid var(--boe-token-stroke-stroke,#ddd);min-width:0;overflow-wrap:anywhere}\n@container purpose (max-width:540px){.purpose-demo .purpose-grid>section{grid-column:1 / -1}}\n</style><div class=\"purpose-demo\"><div style=\"display:flex;justify-content:flex-end\"><box-popover label=\"Sharing details\" placement=\"right\"><p>Only invited collaborators can view this file.</p><box-button data-demo=\"acknowledge\" label=\"Got it\" tone=\"neutral\"></box-button></box-popover></div><p data-error role=\"alert\"></p><p data-status role=\"status\"></p></div>",
+          "note": "Open near the right edge to exercise placement flipping. Escape or Got it dismisses; focus returns to Sharing details."
+        },
+        {
           "name": "Open",
           "html": "<box-popover label=\"More info\" placement=\"top\" open>Shared links expire automatically.</box-popover>"
         },
@@ -6909,6 +7061,11 @@
         }
       ],
       "variants": [
+        {
+          "name": "Interactive",
+          "html": "<style>\n.purpose-demo{display:grid;gap:16px;min-width:0;container:purpose / inline-size}\n.purpose-demo [data-controls]{display:flex;flex-wrap:wrap;gap:8px}\n.purpose-demo p{margin:0;max-width:75ch;overflow-wrap:anywhere}\n.purpose-demo [data-status]{min-height:1.5em}\n.purpose-demo [data-error]:empty{display:none}\n.purpose-demo [data-error]{color:var(--boe-token-text-status-text-error,#b92340)}\n.purpose-demo [hidden]{display:none!important}\n.purpose-demo .purpose-grid>section{padding:16px;background:var(--boe-token-surface-surface,#fff);border:1px solid var(--boe-token-stroke-stroke,#ddd);min-width:0;overflow-wrap:anywhere}\n@container purpose (max-width:540px){.purpose-demo .purpose-grid>section{grid-column:1 / -1}}\n</style><div class=\"purpose-demo\"><div data-controls><box-button data-demo=\"ready\" label=\"Show document\" tone=\"neutral\"></box-button><box-button data-demo=\"loading\" label=\"Loading\" tone=\"neutral\"></box-button><box-button data-demo=\"error\" label=\"Load error\" tone=\"neutral\"></box-button><box-button data-demo=\"unsupported\" label=\"Unsupported file\" tone=\"neutral\"></box-button></div><box-preview-element heading=\"Quarterly plan\" item-label=\"Local document\"></box-preview-element><p data-error role=\"alert\"></p><p data-status role=\"status\"></p></div>",
+          "note": "A deterministic provider mounts actual document content into the supported adapter container. No PDF engine or live Box provider is implied. Switch lifecycle states, then retry."
+        },
         {
           "name": "Default",
           "html": "<box-preview-element heading=\"Quarterly Plan.pdf\" item-label=\"PDF - 2.4 MB\" status=\"Ready\" message=\"Rendered by the active preview provider.\" provider='{\"id\":\"content-preview\",\"label\":\"Box Content Preview\",\"engine\":\"pdf.js\",\"status\":\"ready\",\"capabilities\":[\"annotations\",\"downloads\"]}' adapter-state='{\"ready\":true,\"pageLabel\":\"Page 2 of 34\",\"zoomLabel\":\"100%\",\"mode\":\"Review\"}' actions='[{\"id\":\"open-provider\",\"label\":\"Open provider\",\"tone\":\"primary\"}]'><box-annotation-toolbar slot=\"toolbar\" label=\"Annotate\" active-tool-id=\"comment\" tools='[{\"id\":\"comment\",\"label\":\"Comment\"},{\"id\":\"highlight\",\"label\":\"Highlight\"}]'></box-annotation-toolbar><div slot=\"stage\">Preview stage</div><box-annotation-thread slot=\"sidebar\" heading=\"Discussion\" entries='[{\"id\":\"a1\",\"author\":\"Morgan Lee\",\"body\":\"Tighten the hero spacing.\",\"toolLabel\":\"Comment\",\"status\":\"Open\"}]'></box-annotation-thread></box-preview-element>"
@@ -7960,6 +8117,11 @@
         }
       ],
       "variants": [
+        {
+          "name": "Interactive",
+          "html": "<style>\n.purpose-demo{display:grid;gap:16px;min-width:0;container:purpose / inline-size}\n.purpose-demo [data-controls]{display:flex;flex-wrap:wrap;gap:8px}\n.purpose-demo p{margin:0;max-width:75ch;overflow-wrap:anywhere}\n.purpose-demo [data-status]{min-height:1.5em}\n.purpose-demo [data-error]:empty{display:none}\n.purpose-demo [data-error]{color:var(--boe-token-text-status-text-error,#b92340)}\n.purpose-demo [hidden]{display:none!important}\n.purpose-demo .purpose-grid>section{padding:16px;background:var(--boe-token-surface-surface,#fff);border:1px solid var(--boe-token-stroke-stroke,#ddd);min-width:0;overflow-wrap:anywhere}\n@container purpose (max-width:540px){.purpose-demo .purpose-grid>section{grid-column:1 / -1}}\n</style><div class=\"purpose-demo\"><div data-controls><box-button data-demo=\"load\" label=\"Load files again\" tone=\"neutral\"></box-button></div><section aria-label=\"Files\" data-loading aria-busy=\"true\"><box-skeleton variant=\"line\" lines=\"3\"></box-skeleton></section><ul data-loaded hidden><li>Quarterly Plan.pdf — Modified today</li><li>Brand Guidelines.pdf — Modified yesterday</li><li>Launch checklist.txt — Modified Monday</li></ul><p data-error role=\"alert\"></p><p data-status role=\"status\"></p></div>",
+          "note": "A deterministic local loading transition. The placeholder represents the three rows that replace it; it is not a provider request."
+        },
         {
           "name": "Box",
           "html": "<box-skeleton width=\"240px\" height=\"120px\"></box-skeleton>",
