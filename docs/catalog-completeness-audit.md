@@ -118,6 +118,15 @@ Firefox/WebKit, screen readers, live providers, arbitrary localization and all
 
 ### Catalog-wide verdict
 
+CI visual follow-up: the pinned-container comparison found eight changed
+baselines. Seven reflect intentional demo/layout changes and were reviewed and
+adopted from CI artifacts. The forms gallery exposed a genuine Search Field
+regression: inline-size containment collapsed a content-sized flex child.
+An intrinsic inline-size fallback repairs it without overriding parent sizing.
+A permanent gallery assertion checks input width and inner control bounds;
+the focused Search Field/responsive unit suite passes (12 tests). The forms
+baseline must be captured again from the corrected code in the pinned container.
+
 Review follow-up: repaired the shared focus traversal's fieldset and negative-
 tabindex shadow-host edge cases. Four new regression tests cover first versus
 later/nested legends, retained links, negative shadow/slot scopes versus ordinary

@@ -22,6 +22,9 @@ const searchFieldStyles = `
     display: block;
     min-inline-size: 0;
     container: boe-search-field / inline-size;
+    /* Inline-size containment otherwise contributes zero intrinsic width in
+       content-sized flex/grid rows. Explicit parent widths still take priority. */
+    contain-intrinsic-inline-size: 20rem;
     color: inherit;
     font: inherit;
   }

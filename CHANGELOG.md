@@ -23,6 +23,8 @@ are kept as written.
   fact lists stack labels and values without truncating long identifiers.
 - Explorer toolbars and their Search Fields shrink to their available width;
   search actions wrap onto a separate row in narrow containers.
+- Search Field preserves an intrinsic width in content-sized flex/grid layouts,
+  preventing query-container sizing from collapsing its input and actions.
 - Docs tabs wrap and the smallest-screen header retains space for its logo.
 
 ### Task-oriented catalog demonstrations

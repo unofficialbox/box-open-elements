@@ -102,6 +102,21 @@ try {
       window.scrollTo(0, 0);
     }, id);
 
+    // Container-query hosts must not collapse in content-sized flex rows.
+    // Check actual inner controls, not only page overflow or the host's bounds.
+    if (id === "section-forms") {
+      const usable = await page.locator("#section-forms box-search-field").evaluate(host => {
+        const bounds = host.getBoundingClientRect();
+        const input = host.shadowRoot!.querySelector('input')!.getBoundingClientRect();
+        const controls = [...host.shadowRoot!.querySelectorAll('input,button')];
+        return input.width >= 80 && controls.every(control => {
+          const rect = control.getBoundingClientRect();
+          return rect.left >= bounds.left - 1 && rect.right <= bounds.right + 1;
+        });
+      });
+      if (!usable) throw new Error("Search Field collapsed or clipped controls in the forms gallery");
+    }
+
     // `animations: "disabled"` rewinds CSS animations to their first frame
     // rather than catching them mid-flight — without it the spinner lands on
     // a different rotation phase every run and feedback.png drifts forever.
