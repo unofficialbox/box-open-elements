@@ -22,11 +22,13 @@ const dialogStyles = `
      max-* are reset because this element is the full-viewport scrim rather
      than a centred card. */
   [part="backdrop"] {
+    box-sizing: border-box;
     position: fixed;
     inset: 0;
     z-index: 1200;
     background: ${boeOverlay.modalBackdrop};
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     place-items: center;
     padding: ${boeOverlay.modalPadding};
     border: 0;
@@ -50,13 +52,18 @@ const dialogStyles = `
   }
 
   [part="dialog"] {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    max-height: calc(100dvh - ${boeOverlay.modalPadding} - ${boeOverlay.modalPadding});
     width: min(${boeOverlay.modalWidth}, calc(100vw - 3rem));
     background: var(--boe-token-surface-surface, #ffffff);
     border: 0;
     border-radius: ${boeOverlay.modalRadius};
     box-shadow: ${boeOverlay.modalShadow};
     padding: ${boeOverlay.modalPadding};
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: ${boeSpace[5]};
     color: var(--boe-token-text-text, #222222);
   }
@@ -67,7 +74,7 @@ const dialogStyles = `
   [part="dialog"][data-size="fullscreen"] {
     width: calc(100vw - 2rem);
     height: calc(100vh - 2rem);
-    max-width: none;
+    max-width: 100%;
     border-radius: ${boeRadius.large};
   }
 
@@ -91,6 +98,9 @@ const dialogStyles = `
   }
 
   [part="body"] {
+    min-height: 0;
+    overflow: auto;
+    overflow-wrap: anywhere;
     color: var(--boe-token-text-text, #222222);
     font-size: 14px;
     line-height: 20px;
@@ -98,6 +108,8 @@ const dialogStyles = `
 
   [part="footer"] {
     display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
     justify-content: end;
     gap: ${boeSpace[2]};
     margin-top: ${boeSpace[2]};
@@ -276,9 +288,12 @@ export class Dialog extends BaseElement {
 
     this.hostEl.addEventListener("keydown", event => {
       const keyboardEvent = event as KeyboardEvent;
-      const dialog = (keyboardEvent.target as HTMLElement | null)?.closest(
-        '[part="dialog"]',
-      ) as HTMLElement | null;
+      if (keyboardEvent.defaultPrevented) return;
+      // Slotted controls are not DOM descendants of the surface; their event
+      // path still crosses it. closest() misses keyboard events from slots.
+      const dialog = keyboardEvent.composedPath().find(node =>
+        node instanceof HTMLElement && node.getAttribute("part") === "dialog",
+      ) as HTMLElement | undefined;
       if (!dialog || !this.hostEl.contains(dialog)) {
         return;
       }

@@ -43,6 +43,7 @@ const elementStyles = `
 
         :host {
           display: block;
+          min-inline-size: 0;
           color: inherit;
           font: inherit;
         }
@@ -55,6 +56,7 @@ const elementStyles = `
 
         section[part="panel"] {
           display: grid;
+          grid-template-columns: minmax(0, 1fr);
           gap: ${boePanel.gap};
           padding: ${boePanel.padding};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
@@ -63,6 +65,7 @@ const elementStyles = `
         }
 
         [part="title"] {
+          overflow-wrap: anywhere;
           margin: 0;
           font: inherit;
           font-size: 1.1rem;
@@ -73,11 +76,24 @@ const elementStyles = `
         [part="graph"] {
           position: relative;
           overflow-x: auto;
+          min-inline-size: 0;
+          padding-block: 3px;
+        }
+
+        [part="graph"]:focus-visible {
+          outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
+          outline-offset: 2px;
+        }
+
+        [part="scroll-hint"] {
+          margin: 0;
+          font-size: 0.78rem;
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
         [part="edges"] {
           position: absolute;
-          inset-block-start: 0;
+          inset-block-start: 3px;
           inset-inline-start: 0;
           pointer-events: none;
         }
@@ -112,6 +128,8 @@ const elementStyles = `
         }
 
         [part="rows"] {
+          inline-size: max-content;
+          min-inline-size: 100%;
           list-style: none;
           margin: 0;
           padding: 0;
@@ -121,7 +139,8 @@ const elementStyles = `
         [part="row"] {
           position: relative;
           display: flex;
-          flex-wrap: wrap;
+          flex-wrap: nowrap;
+          white-space: nowrap;
           align-items: center;
           gap: 0.45rem;
           block-size: ${ROW_HEIGHT}px;
@@ -200,13 +219,13 @@ const elementStyles = `
         }
 
         [part="edge-chip"][data-deviation="minor"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-warning, #f5b31b) 55%, transparent);
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-warning, #f5b31b) 46%, black 54%);
+          border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 55%, transparent);
+          color: var(--boe-token-text-status-text-warning, #805600);
         }
 
         [part="edge-chip"][data-deviation="major"] {
           border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 45%, transparent);
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 74%, black 26%);
+          color: var(--boe-token-text-status-text-error, #b92340);
         }
 
         [part="edge-chip"]:focus-visible {
@@ -526,7 +545,8 @@ export class LineageGraph extends BaseElement {
         ${
           layout.placements.length > 0
             ? `
-              <div part="graph">
+              <p part="scroll-hint">Scroll horizontally to explore nodes and comparisons.</p>
+              <div part="graph" role="region" aria-label="${escapeHtml(this.heading)} — scroll horizontally to explore" tabindex="0">
                 <svg part="edges" width="${String(graphWidth)}" height="${String(graphHeight)}" viewBox="0 0 ${String(graphWidth)} ${String(graphHeight)}" aria-hidden="true"><defs><marker id="boe-graph-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path part="edge-arrow" d="M 0 0 L 8 4 L 0 8 z"></path></marker><marker id="boe-graph-arrow-minor" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path part="edge-arrow" data-deviation="minor" d="M 0 0 L 8 4 L 0 8 z"></path></marker><marker id="boe-graph-arrow-major" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path part="edge-arrow" data-deviation="major" d="M 0 0 L 8 4 L 0 8 z"></path></marker></defs>${edgePaths}</svg>
                 <ol part="rows" role="list">${rows}</ol>
               </div>

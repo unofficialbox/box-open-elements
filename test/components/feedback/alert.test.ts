@@ -201,14 +201,12 @@ describe("Alert tone glyph", () => {
     );
   });
 
-  it("colours the glyph from the accent, leaving the pinned fills alone", () => {
-    // The tinted backgrounds are conformance-pinned against upstream; the
-    // accent is ours, because upstream has no glyph to match.
+  it("uses readable status ink and derives the tint from the theme surface", () => {
     const styles = mount().shadowRoot?.querySelector("style")?.textContent ?? "";
 
     expect(styles).toContain("color: var(--alert-accent)");
-    expect(styles).toContain("--alert-accent: var(--boe-token-surface-status-surface-success, #26c281)");
-    expect(styles).toContain("background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 10%, #fff)");
+    expect(styles).toContain("--alert-accent: var(--boe-token-text-status-text-success, #187657)");
+    expect(styles).toContain("background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 10%, var(--boe-token-surface-surface, #ffffff))");
   });
 
   it("repaints the glyph only when the tone actually changes", () => {
@@ -223,4 +221,3 @@ describe("Alert tone glyph", () => {
     expect(icon.firstElementChild).not.toBe(before);
   });
 });
-

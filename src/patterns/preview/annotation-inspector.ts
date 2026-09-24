@@ -109,7 +109,7 @@ const elementStyles = `
           padding: 0.65rem;
           border-radius: ${boePanel.radius};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
-          background: rgba(255, 255, 255, 0.72);
+          background: var(--boe-token-surface-surface, #ffffff);
         }
 
         [part="annotation-header"] {
@@ -297,7 +297,7 @@ const elementStyles = `
         [part="action"][data-tone="primary"] {
           border-color: transparent;
           background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: #fff;
+          color: var(--boe-token-text-text-on-brand, #ffffff);
         }
       `;
 

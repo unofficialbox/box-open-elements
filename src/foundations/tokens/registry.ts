@@ -41,6 +41,9 @@ export const SEMANTIC_TOKEN_ALIASES = {
   textPlaceholder: "TextTextPlaceholder",
   textOnBrand: "TextTextOnBrand",
   textDanger: "TextTextDanger",
+  textStatusSuccess: "TextStatusTextSuccess",
+  textStatusWarning: "TextStatusTextWarning",
+  textStatusError: "TextStatusTextError",
   borderDefault: "StrokeStroke",
   borderHover: "StrokeStrokeHover",
 } as const;

@@ -51,6 +51,13 @@ describe("MenuItem", () => {
     expect(selected).not.toHaveBeenCalled();
   });
 
+  it("supports public focus for composed menu navigation", () => {
+    const element = new MenuItem();
+    document.body.append(element);
+    element.focus({ preventScroll: true });
+    expect(element.shadowRoot?.activeElement).toBe(element.shadowRoot?.querySelector("button"));
+  });
+
   it("exposes menu item semantics and selected state", () => {
     const element = document.createElement("box-menu-item") as MenuItem;
     element.label = "Rename";

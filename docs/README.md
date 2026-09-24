@@ -8,6 +8,7 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 - [Architecture](./architecture.md) — layers, headless-first design, transport boundary, `BaseElement` render contract
 - [API Guidelines](./api-guidelines.md) — shared attribute/event/schema vocabulary
 - [CHANGELOG.md](../CHANGELOG.md) — release history
+- [Catalog completeness audit](./catalog-completeness-audit.md) — all 158 components/patterns, evidence gaps and prioritized follow-ups
 
 ## Foundations
 

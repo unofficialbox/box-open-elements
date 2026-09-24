@@ -12,6 +12,15 @@ const floating: Size = { width: 200, height: 120 };
 const viewport: Size = { width: 1000, height: 800 };
 
 describe("foundations/overlay resolvePosition", () => {
+  it("keeps a flipped surface visible when neither side has enough room", () => {
+    const r = resolvePosition({ left: 218, top: 780, width: 140, height: 32 }, { width: 310, height: 103 }, { width: 390, height: 1000 }, { placement: { side: "right", align: "start" } });
+    expect(r.side).toBe("left");
+    expect(r.x).toBe(8);
+    expect(r.x + 310).toBeLessThanOrEqual(382);
+    const tall = resolvePosition({ left: 40, top: 300, width: 100, height: 30 }, { width: 200, height: 600 }, { width: 390, height: 700 });
+    expect(tall.y).toBeGreaterThanOrEqual(8);
+    expect(tall.y + 600).toBeLessThanOrEqual(692);
+  });
   it("places bottom-start directly below the anchor's left edge", () => {
     const r = resolvePosition(anchor, floating, viewport, {
       placement: { side: "bottom", align: "start" },

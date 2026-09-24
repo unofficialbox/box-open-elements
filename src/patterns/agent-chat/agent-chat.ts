@@ -254,7 +254,7 @@ const elementStyles = `
           gap: 0.4rem;
         }
 
-        [part="proposal-action"] {
+        [part="proposal-action"], [part="option"], [part="retry"] {
           appearance: none;
           font: inherit;
           font-size: 0.78rem;
@@ -268,7 +268,9 @@ const elementStyles = `
           transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
         }
 
-        [part="proposal-action"]:hover {
+        [part="option"], [part="retry"] { justify-self: start; min-height: 32px; text-align: left; }
+
+        [part="proposal-action"]:hover, [part="option"]:hover, [part="retry"]:hover {
           background: var(--boe-token-surface-surface-hover, #f4f4f4);
         }
 
@@ -282,7 +284,7 @@ const elementStyles = `
           color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 74%, black 26%);
         }
 
-        [part="proposal-action"]:focus-visible {
+        [part="proposal-action"]:focus-visible, [part="option"]:focus-visible, [part="retry"]:focus-visible {
           outline: none;
           box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
         }

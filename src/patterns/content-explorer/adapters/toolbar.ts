@@ -16,6 +16,7 @@ const toKebabCase = (value: string): string =>
 const elementStyles = `
         :host {
           display: block;
+          min-inline-size: 0;
           color: inherit;
           font: inherit;
         }
@@ -40,14 +41,15 @@ const elementStyles = `
 
         [part="search"] {
           flex: 1 1 14rem;
-          min-width: 12rem;
+          min-width: 0;
+          max-width: 100%;
         }
 
         [part="status"],
         [part="selection-count"] {
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: 0.85rem;
-          white-space: nowrap;
+          overflow-wrap: anywhere;
           padding-bottom: 0.45rem;
         }
 
@@ -61,6 +63,8 @@ const elementStyles = `
 
         [part="refresh"],
         [part="clear-selection"] {
+          max-inline-size: 100%;
+          overflow-wrap: anywhere;
           appearance: none;
           font: inherit;
           font-size: 0.88rem;

@@ -59,6 +59,7 @@ const routes: Array<[name: string, hash: string, readyMarker: string, scrollTo?:
   ["components-calendar", "#components/calendar", "components/calendar"],
   ["components-tag-input", "#components/tag-input", "components/tag-input"],
   ["patterns-content-explorer", "#patterns/content-explorer", "patterns/content-explorer"],
+  ["patterns-call-console", "#patterns/call-console", "patterns/call-console"],
   ["patterns-content-picker", "#patterns/content-picker", "patterns/content-picker"],
   ["patterns-content-uploader", "#patterns/content-uploader", "patterns/content-uploader"],
   ["patterns-content-sidebar", "#patterns/content-sidebar", "patterns/content-sidebar"],
@@ -180,6 +181,7 @@ try {
 
   // Dark-theme pass: toggle dark, then capture a component page and a foundations page.
   const darkRoutes: Array<[string, string, string]> = [
+    ["patterns-call-console-dark", "#patterns/call-console", "patterns/call-console"],
     ["components-button-dark", "#components/button", "components/button"],
     ["foundations-tokens-dark", "#foundations/tokens", "foundations/tokens"],
   ];
@@ -198,6 +200,40 @@ try {
     await page.screenshot({ path: join(OUT_DIR, `${name}.png`), animations: "disabled" });
     console.log(`captured ${name}.png`);
   }
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(`http://localhost:${PORT}/#patterns/call-console`,{waitUntil:"networkidle"});
+  await page.waitForSelector('body[data-route-ready="patterns/call-console"]');
+  await applyDeterministicFonts(page);
+  // Populated event details must not widen the docs inspector on narrow screens.
+  const consoleSearch = page.locator("box-call-console").getByRole("searchbox");
+  await consoleSearch.fill("no-such-call");
+  await consoleSearch.fill("");
+  if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)) {
+    throw new Error("Call-console mobile preview overflows after filtering");
+  }
+  await page.addStyleTag({content:".masthead{position:static!important}"});
+  await waitForVisualSettle(page,"patterns-call-console-mobile");
+  await page.locator("box-call-console").first().screenshot({path:join(OUT_DIR,"patterns-call-console-mobile.png"),animations:"disabled"});
+  console.log("captured patterns-call-console-mobile.png");
+
+  await page.setViewportSize({width:1440,height:940});
+  await page.goto(`http://localhost:${PORT}/#patterns/agent-workspace`,{waitUntil:"networkidle"});
+  await page.waitForSelector('body[data-route-ready="patterns/agent-workspace"]');
+  await page.evaluate(() => {
+    if (document.documentElement.dataset.theme !== "light") document.getElementById("theme-toggle")?.click();
+  });
+  await applyDeterministicFonts(page);
+  await page.getByRole("button",{name:"Expand workspace",exact:true}).click();
+  await waitForVisualSettle(page,"patterns-agent-workspace-wide");
+  if (await page.locator("box-agent-workspace").evaluate(el=>el.clientWidth<1200)) throw new Error("Workspace desktop fixture is not wide enough");
+  await page.screenshot({path:join(OUT_DIR,"patterns-agent-workspace-wide.png"),animations:"disabled"});
+  await page.getByRole("button",{name:"Exit expanded view",exact:true}).click();
+  await page.setViewportSize({width:390,height:844});
+  await page.locator("box-agent-workspace").getByRole("button",{name:"Details",exact:true}).click();
+  await page.getByRole("dialog",{name:"Conversation details"}).waitFor();
+  await waitForVisualSettle(page,"patterns-agent-workspace-mobile");
+  await page.locator("box-agent-workspace").screenshot({path:join(OUT_DIR,"patterns-agent-workspace-mobile.png"),animations:"disabled"});
+  console.log("captured workspace wide and mobile fixtures");
 } finally {
   await browser?.close();
   server.kill();

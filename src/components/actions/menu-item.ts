@@ -72,6 +72,11 @@ export class MenuItem extends BaseElement {
 
   private itemEl!: HTMLButtonElement;
 
+  /** Let composed menus move focus without reaching into the shadow root. */
+  focus(options?: FocusOptions): void {
+    this.itemEl?.focus(options);
+  }
+
   get disabled(): boolean {
     return this.hasAttribute("disabled");
   }

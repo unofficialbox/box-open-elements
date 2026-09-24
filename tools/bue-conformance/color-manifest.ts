@@ -933,11 +933,11 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     surface: "alert/status",
     boeConst: "success 10% + #fff (color-mix)",
     boeValue:
-      "color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 10%, #fff)",
+      "color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 10%, var(--boe-token-surface-surface, #ffffff))",
     kind: "color",
     boeComponent: ALERT,
     boeAnchor:
-      "background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 10%, #fff)",
+      "background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 10%, var(--boe-token-surface-surface, #ffffff))",
     upstream: {
       selector: ".inline-alert.inline-alert-success",
       state: "base",
@@ -952,11 +952,11 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     surface: "alert/status",
     boeConst: "error 10% + #fff (color-mix)",
     boeValue:
-      "color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, #fff)",
+      "color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, var(--boe-token-surface-surface, #ffffff))",
     kind: "color",
     boeComponent: ALERT,
     boeAnchor:
-      "background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, #fff)",
+      "background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, var(--boe-token-surface-surface, #ffffff))",
     upstream: {
       selector: ".inline-alert.inline-alert-error",
       state: "base",
@@ -970,11 +970,11 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     surface: "alert/status",
     boeConst: "inprogress 10% + #fff (color-mix)",
     boeValue:
-      "color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 10%, #fff)",
+      "color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 10%, var(--boe-token-surface-surface, #ffffff))",
     kind: "color",
     boeComponent: ALERT,
     boeAnchor:
-      "background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 10%, #fff)",
+      "background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 10%, var(--boe-token-surface-surface, #ffffff))",
     upstream: {
       selector: ".inline-alert.inline-alert-warning",
       state: "base",

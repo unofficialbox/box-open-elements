@@ -36,6 +36,15 @@ Shared helpers live in `@unofficialbox/box-open-elements/foundations/a11y`:
 | `trapTabKey` / `FocusRestore` | modal dialogs and drawers (`aria-modal`) |
 | `renderHeadingHtml` / `headingOpenTag` | rendering a `heading` attribute as a real `<h*>` |
 
+Focus helpers traverse open shadow roots and assigned slots, excluding hidden,
+inert and disabled controls. Restoration remembers the inner triggering control
+and uses `preventScroll`; removed or unavailable triggers are not focused.
+Disabled fieldsets retain enabled first-legend controls and links; native
+disabled-state matching excludes affected form controls, including nested ones.
+An explicit negative `tabindex` on a shadow host excludes its shadow/slot focus
+scope. A negative `tabindex` on an ordinary light-DOM container does not exclude
+its enabled descendants.
+
 Form controls that submit values extend `FormAssociatedElement` (`@unofficialbox/box-open-elements/core`): set
 `name`, toggle `invalid` + `error-message` for validation UI (`aria-invalid` /
 `aria-errormessage` + `part="error-message"`), and keep `syncFormAssociation()` in sync with the

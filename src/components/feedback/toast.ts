@@ -9,7 +9,8 @@ const DEFAULT_TAG_NAME = "box-toast";
 /**
  * Whether the toast clears itself.
  *
- * `dismissible` auto-dismisses after `duration` and can also be closed by hand;
+ * `dismissible` auto-dismisses non-error feedback after `duration`;
+ * errors always persist until explicitly dismissed or replaced.
  * `sticky` stays until the reader closes it, whatever `duration` says. Both
  * carry the close control — a toast the reader cannot get rid of is a trap.
  */
@@ -36,18 +37,8 @@ const toastStyles = `
     display: none !important;
   }
 
-  /* Fill, text colour and shadow track box-ui-elements' .notification and are
-     pinned by the colour conformance manifest — they are deliberately not
-     derived from the tone accent. The --toast-accent property exists only to
-     colour the status glyph, which upstream has no equivalent for, so adding it
-     costs no conformance.
-
-     There is no border. Upstream .notification has one, and box-open-elements
-     matched it until the outline was judged too heavy; the claim that pinned it
-     was retired rather than left describing something no longer painted. Tone
-     survives that in three places — the tinted fill, the full-strength glyph,
-     and the visually-hidden tone label — so it was never carried by the border
-     alone. */
+  /* Preserve upstream light tints while deriving dark fills from the active
+     surface. Status ink, tinted fill and a text label communicate the tone. */
   [part="toast"] {
     --toast-accent: var(--boe-token-text-text, #222222);
 
@@ -72,19 +63,19 @@ const toastStyles = `
   }
 
   [part="toast"][data-tone="success"] {
-    --toast-accent: var(--boe-token-surface-status-surface-success, #26c281);
-    background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 20%, #fff);
+    --toast-accent: var(--boe-token-text-status-text-success, #187657);
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 20%, var(--boe-token-surface-surface, #ffffff));
   }
 
   [part="toast"][data-tone="error"] {
-    --toast-accent: var(--boe-token-surface-status-surface-error, #ed3757);
-    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 20%, #fff);
+    --toast-accent: var(--boe-token-text-status-text-error, #b92340);
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 20%, var(--boe-token-surface-surface, #ffffff));
   }
 
   [part="toast"][data-tone="warning"],
   [part="toast"][data-tone="inprogress"] {
-    --toast-accent: var(--boe-token-surface-status-surface-inprogress, #f5b31b);
-    background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 20%, #fff);
+    --toast-accent: var(--boe-token-text-status-text-warning, #805600);
+    background: color-mix(in srgb, var(--boe-token-surface-status-surface-inprogress, #f5b31b) 20%, var(--boe-token-surface-surface, #ffffff));
   }
 
   .sr-only {
@@ -103,8 +94,7 @@ const toastStyles = `
     flex: 0 0 auto;
     inline-size: 20px;
     block-size: 20px;
-    /* The accent at full strength: the glyph is the one element that should
-       read as the status colour rather than a darkened version of it. */
+    /* Readable status ink is separate from the decorative fill colour. */
     color: var(--toast-accent);
   }
 
@@ -279,8 +269,8 @@ export class Toast extends BaseElement {
       clearTimeout(this.timeoutId);
       this.timeoutId = null;
     }
-    // Sticky wins over any duration, including one passed to show().
-    if (duration > 0 && this.mode !== "sticky") {
+    // Errors must remain available for recovery, regardless of caller timing.
+    if (duration > 0 && this.mode !== "sticky" && this.tone !== "error") {
       this.timeoutId = setTimeout(() => this.hide(), duration);
     }
   }
@@ -354,6 +344,9 @@ export class Toast extends BaseElement {
       this.openValue = this.hasAttribute("open");
     }
     super.attributeChangedCallback(name, oldValue, newValue);
+    if (oldValue !== newValue && ["open", "duration", "mode", "tone"].includes(name)) {
+      this.scheduleAutoDismiss(this.open ? this.duration : 0);
+    }
   }
 
   show(message?: string, options?: { duration?: number; tone?: string }): void {
@@ -367,7 +360,7 @@ export class Toast extends BaseElement {
     this.open = true;
 
     // options.duration wins; else a declarative `duration` attribute; else 2500.
-    const duration = options?.duration ?? (this.duration || 2500);
+    const duration = options?.duration ?? (this.hasAttribute("duration") ? this.duration : 2500);
     this.scheduleAutoDismiss(duration);
   }
 

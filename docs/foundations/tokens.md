@@ -66,6 +66,13 @@ applyDesignTokens(document.documentElement, "box-default");
 
 ## Dark theme
 
+Status text and glyphs use `textStatusSuccess`, `textStatusWarning`, and
+`textStatusError`; status surface colors are decorative fills, not readable ink.
+Alert and Toast mix those fills with `surfacePrimary`, never hardcoded white.
+Keep `textOnBrand` paired with all three brand fill states: the dark bundle uses
+dark ink on bright blue, while the light bundle uses white on darker blue.
+Custom themes must check normal, hover and pressed text at 4.5:1 or better.
+
 `box-dark` is a built-in bundle with the same token keys, icons, and illustrations as `box-default` — only the surface / text / stroke / status values change. Because every component reads `--boe-token-*`, switching the active bundle re-themes the whole catalog with no markup change:
 
 ```ts

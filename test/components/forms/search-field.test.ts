@@ -13,6 +13,12 @@ describe("SearchField", () => {
     document.body.innerHTML = "";
   });
 
+  it("retains an intrinsic sizing fallback for content-sized layouts", () => {
+    const element = new SearchField();
+    document.body.append(element);
+    expect(element.shadowRoot!.querySelector("style")!.textContent).toContain("contain-intrinsic-inline-size: 20rem");
+  });
+
   it("emits value changes and search submissions", () => {
     const element = document.createElement("box-search-field") as SearchField;
     const valueChanged = vi.fn();

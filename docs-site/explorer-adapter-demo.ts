@@ -5,6 +5,7 @@
 import { ContentExplorerController } from "../src/patterns/content-explorer/controller.js";
 import type {
   ExplorerItem,
+  ExplorerItemAction,
   ExplorerTransport,
 } from "../src/patterns/content-explorer/types.js";
 
@@ -129,15 +130,16 @@ export const createExplorerDemoTransport = (
 
 export const createExplorerDemoController = (
   transport: ExplorerTransport = createExplorerDemoTransport(),
+  itemActions: ExplorerItemAction[] = [
+    { id: "share", label: "Share" },
+    { id: "download", label: "Download", itemTypes: ["file"] },
+  ],
 ): ContentExplorerController =>
   new ContentExplorerController({
     rootFolderId: "0",
     token: "docs-token",
     transport,
-    itemActions: [
-      { id: "share", label: "Share" },
-      { id: "download", label: "Download", itemTypes: ["file"] },
-    ],
+    itemActions,
   });
 
 /** Bind a controller to one adapter element and connect. */

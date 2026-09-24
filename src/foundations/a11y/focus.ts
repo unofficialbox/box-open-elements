@@ -12,39 +12,52 @@ const TABBABLE_SELECTOR = [
 ].join(", ");
 
 const isDisabled = (element: HTMLElement): boolean =>
+  element.matches(":disabled") ||
   element.hasAttribute("disabled") ||
   (element as HTMLButtonElement).disabled === true ||
   element.getAttribute("aria-disabled") === "true";
 
 const isVisible = (element: HTMLElement): boolean => {
-  if (element.hidden || element.getAttribute("aria-hidden") === "true") {
-    return false;
-  }
-  // Closest [hidden] ancestor (common pattern for closed panels).
-  if (element.closest("[hidden]")) {
-    return false;
-  }
-  const style = element.ownerDocument.defaultView?.getComputedStyle(element);
-  if (!style) {
-    return true;
-  }
-  if (style.display === "none" || style.visibility === "hidden") {
-    return false;
+  for (let current: Element | null = element; current;) {
+    if (current.hasAttribute("hidden") || current.hasAttribute("inert") || current.getAttribute("aria-hidden") === "true") return false;
+    const style = current.ownerDocument.defaultView?.getComputedStyle(current);
+    if (style?.display === "none" || style?.visibility === "hidden") return false;
+    const root = current.getRootNode();
+    current = current.assignedSlot ?? current.parentElement ?? (root instanceof ShadowRoot ? root.host : null);
   }
   return true;
 };
 
+const deepActiveElement = (root: Document | ShadowRoot): Element | null => {
+  let active = root.activeElement;
+  while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
+  return active;
+};
+
 /** Visible, enabled tabbable controls inside `container` (light or shadow). */
 export const getTabbableElements = (container: ParentNode): HTMLElement[] => {
-  return Array.from(container.querySelectorAll<HTMLElement>(TABBABLE_SELECTOR)).filter(element => {
-    if (isDisabled(element)) {
-      return false;
+  const result: HTMLElement[] = [];
+  const visit = (node: ParentNode): void => {
+    const children = node instanceof HTMLSlotElement
+      ? (node.assignedElements().length ? node.assignedElements() : Array.from(node.children))
+      : Array.from(node.children);
+    for (const child of children) {
+      if (!(child instanceof HTMLElement) || !isVisible(child)) continue;
+      const disabled = isDisabled(child);
+      // A disabled fieldset still permits controls in its first legend and
+      // non-form controls such as links. Let native :disabled filter each
+      // descendant instead of pruning the entire fieldset subtree.
+      if (disabled && (!(child instanceof HTMLFieldSetElement) || child.getAttribute("aria-disabled") === "true")) continue;
+      if (!disabled && child.matches(TABBABLE_SELECTOR) && child.tabIndex >= 0) result.push(child);
+      // An explicit negative tabindex removes a shadow host's entire focus
+      // scope from sequential navigation. Ordinary light-DOM containers with
+      // tabindex=-1 do not have that behavior.
+      if (child.shadowRoot && child.hasAttribute("tabindex") && child.tabIndex < 0) continue;
+      visit(child.shadowRoot ?? child);
     }
-    if (element.tabIndex < 0) {
-      return false;
-    }
-    return isVisible(element);
-  });
+  };
+  visit(container);
+  return result;
 };
 
 /**
@@ -65,7 +78,7 @@ export const trapTabKey = (event: KeyboardEvent, container: ParentNode): void =>
   const first = focusables[0]!;
   const last = focusables[focusables.length - 1]!;
   const root = (container as Element).getRootNode?.() as Document | ShadowRoot | undefined;
-  const active = (root?.activeElement as HTMLElement | null) ?? (document.activeElement as HTMLElement | null);
+  const active = deepActiveElement(root ?? document) ?? deepActiveElement(document);
 
   if (event.shiftKey) {
     if (active === first || !focusables.includes(active as HTMLElement)) {
@@ -86,6 +99,7 @@ export class FocusRestore {
   private previous: HTMLElement | null = null;
 
   capture(from: Element | null = document.activeElement): void {
+    while (from?.shadowRoot?.activeElement) from = from.shadowRoot.activeElement;
     this.previous = from instanceof HTMLElement ? from : null;
   }
 
@@ -96,8 +110,8 @@ export class FocusRestore {
       return;
     }
     queueMicrotask(() => {
-      if (typeof target.focus === "function") {
-        target.focus();
+      if (target.isConnected && isVisible(target) && !isDisabled(target)) {
+        target.focus({ preventScroll: true });
       }
     });
   }

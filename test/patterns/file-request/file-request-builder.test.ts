@@ -15,6 +15,17 @@ describe("FileRequestBuilder", () => {
     document.body.innerHTML = "";
   });
 
+  it("preserves keyboard focus when a setting updates the draft", () => {
+    const element = new FileRequestBuilder();
+    element.settings = [{ id: "notify", label: "Email notifications" }];
+    document.body.append(element);
+    const input = element.shadowRoot!.querySelector<HTMLInputElement>("input")!;
+    input.focus();
+    input.click();
+    expect(element.value.notify).toBe(true);
+    expect(element.shadowRoot!.activeElement?.getAttribute("data-setting-id")).toBe("notify");
+  });
+
   it("renders settings and upload fields", () => {
     const element = document.createElement("box-file-request-builder") as FileRequestBuilder;
     element.settings = [
