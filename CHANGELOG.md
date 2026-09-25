@@ -15,6 +15,27 @@ are kept as written.
 
 ## Unreleased
 
+## 0.23.0 — 2026-09-24
+
+### Agent UI and developer tooling
+
+- Make the default Box icon registry lazy so a themed component no longer pulls
+  the full icon inventory into its initial bundle. Export
+  `preloadBoxDefaultIcons()` for hosts that need named icons before first render.
+- Refine run summaries, status glyphs, result blocks, and motion: quieter
+  nested traces, consistent step durations, honest static document rows,
+  configurable verdict language, and scroll-following only for unseen content.
+- Give agent approvals result details and inline resolution errors. Invalid
+  stream sequence values now mark a reply incomplete; hosts can skip malformed
+  NDJSON records explicitly. `resolveAction()` now rejects on transport failure
+  instead of returning `null`.
+- Add restorable workspace chats, public pane controls and events, a header
+  slot, and single-mount behavior for host-supplied conversations.
+- Extend call-console failure classification, untyped SSE support, service
+  labels, heading controls, and bounded history. Use shared Button styling for
+  Undo offers.
+- Include versioned agent UI, motion, and API guidance in the npm package.
+
 ## 0.22.0 — 2026-09-24
 
 ### Flow builder: host-shaped documents
