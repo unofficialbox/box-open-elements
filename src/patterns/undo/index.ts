@@ -1,4 +1,5 @@
 import { Toast } from "../../components/feedback/toast.js";
+import { Button } from "../../components/actions/button.js";
 import { announce } from "../../foundations/a11y/index.js";
 
 /** Remove once and return an idempotent restore preserving the original object's identity. */
@@ -60,10 +61,11 @@ export function offerUndo(message: string, restore: () => void, options: UndoOpt
   if (!doc?.body) return { toast: null, undo() {}, dispose() {} };
   offers.get(doc)?.dispose();
   const toast = doc.createElement(Toast.tagName) as Toast;
-  const action = doc.createElement("button");
-  action.type = "button";
+  const action = doc.createElement(Button.tagName) as Button;
+  action.tone = "neutral";
+  action.size = "small";
+  action.label = "Undo";
   action.slot = "action";
-  action.textContent = "Undo";
   const mac = /Mac|iPhone|iPad/.test(doc.defaultView?.navigator.platform ?? "");
   const shortcut = mac ? "Command-Z" : "Control-Z";
   action.setAttribute("aria-keyshortcuts", mac ? "Meta+Z" : "Control+Z");

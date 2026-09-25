@@ -1,5 +1,5 @@
 import { BaseElement } from "../../core/index.js";
-import { boeFocusRingShadow } from "../../foundations/tokens/index.js";
+import { boeFocusRingShadow } from "../../foundations/tokens/interaction.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 

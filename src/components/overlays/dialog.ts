@@ -5,7 +5,7 @@ import { boeControl, boeOverlay, boeRadius, boeSpace } from "../../foundations/g
 import {
   boeBrandInteractiveStyles,
   boeNeutralInteractiveStyles,
-} from "../../foundations/tokens/index.js";
+} from "../../foundations/tokens/interaction.js";
 
 const DEFAULT_TAG_NAME = "box-dialog";
 

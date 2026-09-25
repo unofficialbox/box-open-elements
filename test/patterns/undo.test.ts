@@ -27,6 +27,11 @@ describe("undo removal", () => {
   it("offers one undo with keyboard ownership and cleanup", () => {
     vi.useFakeTimers(); const restore = vi.fn();
     const offer = offerUndo("Step removed", restore);
+    const action = offer.toast?.querySelector("box-button");
+    expect(action?.getAttribute("label")).toBe("Undo");
+    expect(action?.getAttribute("tone")).toBe("neutral");
+    expect(action?.getAttribute("size")).toBe("small");
+    expect(action?.getAttribute("aria-keyshortcuts")).toMatch(/(?:Meta|Control)\+Z/);
     const input = document.createElement("input"); document.body.append(input);
     input.dispatchEvent(new KeyboardEvent("keydown", { key: "z", ctrlKey: true, bubbles: true, composed: true }));
     expect(restore).not.toHaveBeenCalled();

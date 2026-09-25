@@ -123,6 +123,7 @@ export class AgentChatController extends Controller<AgentChatState, AgentChatEve
 
     const sequences = new Set<number>();
     let highSequence = 0;
+    let invalidSequence = false;
     let done: "complete" | "needs_input" | "error" | undefined;
     const missing = (): number[] => Array.from({length: highSequence}, (_, i) => i + 1).filter(i => !sequences.has(i));
     const upsert = <T extends {id?: string}>(items: T[], item: T): T[] => item.id && items.some(i => i.id === item.id)
@@ -133,7 +134,7 @@ export class AgentChatController extends Controller<AgentChatState, AgentChatEve
         return;
       }
       if (event.seq !== undefined) {
-        if (!Number.isSafeInteger(event.seq) || event.seq < 1 || event.seq > 100000) throw new Error("Invalid stream sequence");
+        if (!Number.isSafeInteger(event.seq) || event.seq < 1 || event.seq > 100000) { invalidSequence = true; return; }
         if (sequences.has(event.seq)) return;
         sequences.add(event.seq); highSequence = Math.max(highSequence, event.seq);
       }
@@ -166,7 +167,7 @@ export class AgentChatController extends Controller<AgentChatState, AgentChatEve
       finished = true;
       const gaps = missing();
       patchAgentMessage({...patch, endedAt: Date.now(), completeness: {
-        status: patch.status === "error" ? "error" : !done || gaps.length ? "incomplete" : done,
+        status: patch.status === "error" && done === "error" ? "error" : !done || gaps.length || invalidSequence ? "incomplete" : done,
         missing: gaps,
       }});
       // A superseded send must not clear the newer send's streaming flag.
@@ -264,9 +265,10 @@ export class AgentChatController extends Controller<AgentChatState, AgentChatEve
       return { ...pending, ...resolved };
     } catch (error) {
       const message = error instanceof Error ? error.message : `Agent action ${decision} failed`;
+      patch({ resolveError: message });
       this.setState({ ...this.state, error: message });
       this.emit("sendFailed", { message });
-      return null;
+      throw error;
     } finally {
       this.resolving.delete(key);
       const current = this.getMessage(holder.id)?.proposals.find(p => p.id === proposalId);

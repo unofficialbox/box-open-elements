@@ -67,6 +67,7 @@ export interface DesignProfileMotion {
   easingStandard?: string;
   easingEnter?: string;
   easingExit?: string;
+  easingInOut?: string;
   easingLinear?: string;
 }
 

@@ -4,7 +4,7 @@ import {
   SearchField,
 } from "../../../components/forms/search-field.js";
 import { applyRovingTabindex, handleRovingKeydown } from "../../../foundations/a11y/index.js";
-import { boeNeutralInteractiveStyles } from "../../../foundations/tokens/index.js";
+import { boeNeutralInteractiveStyles } from "../../../foundations/tokens/interaction.js";
 import { boeMotionDuration, boeMotionEasing } from "../../../foundations/motion/index.js";
 import { boePanel } from "../../../foundations/geometry/index.js";
 

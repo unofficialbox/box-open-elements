@@ -5,7 +5,7 @@ import {
   nextRovingIndex,
 } from "../../foundations/a11y/index.js";
 import { boeControl, boeOverlay, boeSpace } from "../../foundations/geometry/index.js";
-import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/interaction.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-menu";

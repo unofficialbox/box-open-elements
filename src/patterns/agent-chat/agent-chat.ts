@@ -232,7 +232,7 @@ const elementStyles = `
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
-        [part="proposal-params"] {
+        [part="proposal-params"], [part="proposal-details"] {
           margin: 0;
           display: grid;
           grid-template-columns: auto 1fr;
@@ -248,6 +248,7 @@ const elementStyles = `
           margin: 0;
           color: var(--boe-token-text-text, #1f1e1b);
         }
+        .boe-sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 
         [part="proposal-actions"] {
           display: flex;
@@ -386,7 +387,7 @@ const elementStyles = `
 export class AgentChat extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["agent-name", "heading", "placeholder", "token", "hidden", "hide-citations"];
+    return ["agent-name", "heading", "placeholder", "token", "hidden", "hide-citations", "hide-modify"];
   }
 
   private controller: AgentChatController | null = null;
@@ -655,6 +656,8 @@ export class AgentChat extends BaseElement {
           const failed = proposal.outcome === "failed";
           return `<div part="proposal" aria-live="off" tabindex="-1" id="${this.proposalAnchor(message.id, proposal.id)}" data-proposal-id="${escapeHtml(proposal.id)}" data-decision="${escapeHtml(proposal.decision)}" ${failed ? 'role="alert"' : ""}>
           <span part="decision">${boeStatusGlyph(failed ? "failed" : proposal.decision === "approved" ? "done" : "skipped")}${proposal.decision === "approved" ? failed ? "Approved · didn't complete" : "Approved" : "Rejected"} · <span part="proposal-title">${escapeHtml(proposal.title)}</span></span>
+          ${proposal.summary ? `<p part="proposal-summary">${escapeHtml(proposal.summary)}</p>` : ""}
+          ${proposal.details?.length ? `<dl part="proposal-details">${proposal.details.map(detail => `<dt part="param-label">${escapeHtml(detail.label)}</dt><dd part="param-value">${detail.href && isSafeHref(detail.href) ? `<a href="${escapeHtml(detail.href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(detail.value)} <span aria-hidden="true">↗</span><span class="boe-sr-only"> (opens in a new tab)</span></a>` : escapeHtml(detail.value)}</dd>`).join("")}</dl>` : ""}
           ${proposal.note ? `<p part="proposal-note">${escapeHtml(proposal.note)}</p>` : ""}
           ${failed ? `<button part="retry" data-message-id="${escapeHtml(message.id)}">Try again</button>` : ""}</div>`;
         }
@@ -672,7 +675,7 @@ export class AgentChat extends BaseElement {
               <div part="proposal-actions">
                 <button type="button" part="proposal-action" data-action="approve" data-proposal-id="${escapeHtml(proposal.id)}" ${proposal.resolving ? "disabled" : ""} aria-busy="${proposal.resolving === "approved"}">${proposal.resolving === "approved" ? boeStatusGlyph("active") : ""}Approve</button>
                 <button type="button" part="proposal-action" data-action="reject" data-proposal-id="${escapeHtml(proposal.id)}" ${proposal.resolving ? "disabled" : ""} aria-busy="${proposal.resolving === "rejected"}">${proposal.resolving === "rejected" ? boeStatusGlyph("active") : ""}Reject</button>
-                <button type="button" part="proposal-action" data-action="modify" data-proposal-id="${escapeHtml(proposal.id)}" ${proposal.resolving ? "disabled" : ""}>Modify</button>
+                ${this.hasAttribute("hide-modify") ? "" : `<button type="button" part="proposal-action" data-action="modify" data-proposal-id="${escapeHtml(proposal.id)}" ${proposal.resolving ? "disabled" : ""}>Modify</button>`}
               </div>
             `
             : "";
@@ -684,6 +687,7 @@ export class AgentChat extends BaseElement {
             ${params ? `<dl part="proposal-params">${params}</dl>` : ""}
             ${proposal.decision ? `<span part="decision">${proposal.decision === "approved" ? "Approved" : "Rejected"}</span>` : ""}
             ${proposal.note ? `<p part="proposal-note">${escapeHtml(proposal.note)}</p>` : ""}
+            ${proposal.resolveError ? `<p part="error" role="alert">${escapeHtml(proposal.resolveError)}</p>` : ""}
             ${actions}
             <p part="proposal-note">To change it, reply with the new values.</p>
           </div>
@@ -825,7 +829,7 @@ export class AgentChat extends BaseElement {
 
   protected setupListeners(): void {
     this.jumpEl = this.shadowRoot!.querySelector('[part="jump"]')!;
-    this.scrollPin = new ScrollPinController(this.threadEl, show => { this.jumpEl.hidden = !show; });
+    this.scrollPin = new ScrollPinController(this.threadEl, ({ behind }) => { this.jumpEl.hidden = !behind; });
     this.jumpEl.addEventListener("click", () => this.scrollPin?.jump());
     this.inputEl.addEventListener("compositionstart", () => { this.composing = true; });
     this.inputEl.addEventListener("compositionend", () => { this.composing = false; });
@@ -867,14 +871,7 @@ export class AgentChat extends BaseElement {
         } else if (action === "reject") {
           void this.controller?.resolveAction(proposalId, "rejected", undefined, messageId);
         } else if (action === "modify") {
-          // Modifying needs the host's own editor, so this surfaces intent.
-          this.dispatchEvent(
-            new CustomEvent("proposal-modify-requested", {
-              bubbles: true,
-              composed: true,
-              detail: { proposalId },
-            }),
-          );
+          this.dispatchEvent(new CustomEvent("proposal-modify-requested", {bubbles:true,composed:true,detail:{proposalId,messageId}}));
         }
         return;
       }

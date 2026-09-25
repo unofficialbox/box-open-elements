@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   IconButton,
 } from "../../../src/components/actions/icon-button.js";
-import { registerBoxDefaultDesignSystem, setActiveDesignSystem } from "../../../src/index.js";
+import { preloadBoxDefaultIcons, registerBoxDefaultDesignSystem, setActiveDesignSystem } from "../../../src/index.js";
 
 describe("IconButton", () => {
   beforeEach(() => {
@@ -18,12 +18,13 @@ describe("IconButton", () => {
     setActiveDesignSystem(null);
   });
 
-  it("renders a registered Box svg icon for aliased icon names and preserves the label", () => {
+  it("renders a registered Box svg icon for aliased icon names and preserves the label", async () => {
     const element = document.createElement("box-icon-button") as IconButton;
     element.icon = "+";
     element.label = "Add item";
 
     document.body.append(element);
+    await preloadBoxDefaultIcons();
 
     const button = element.shadowRoot?.querySelector('[part="button"]') as HTMLButtonElement | null;
     const icon = element.shadowRoot?.querySelector('[part="icon"]') as HTMLElement | null;

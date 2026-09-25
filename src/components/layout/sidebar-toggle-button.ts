@@ -1,5 +1,5 @@
 import { BaseElement } from "../../core/index.js";
-import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/interaction.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 import { boeRadius } from "../../foundations/geometry/index.js";
 

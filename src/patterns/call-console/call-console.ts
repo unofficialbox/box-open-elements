@@ -5,7 +5,7 @@ import { CodeBlock } from "../../components/output/code-block.js";
 import { boeControl, boeRadius } from "../../foundations/geometry/index.js";
 import { boeStatusGlyph, boeStatusStyles } from "../../foundations/status/index.js";
 import { boeEntrance, boeEntranceKeyframes, boeReducedMotionPolicy } from "../../foundations/motion/index.js";
-import { callFailed, callStatus, formatCallHttp } from "./types.js";
+import { callFailed, callStatus, formatCallHttp, type CallEntry } from "./types.js";
 import type { CallConsoleController } from "./controller.js";
 const DEFAULT_TAG_NAME = "box-call-console";
 export async function copyCallText(text: string, doc: Document = document): Promise<boolean> {
@@ -16,13 +16,22 @@ export async function copyCallText(text: string, doc: Document = document): Prom
 }
 export class CallConsole extends BaseElement {
   static readonly tagName = DEFAULT_TAG_NAME;
+  static get observedAttributes(): string[] { return ["heading", "hide-heading"]; }
   private model: CallConsoleController | null = null;
+  private labels: Record<string, string> = {};
+  private failureRule: (entry: CallEntry) => boolean = callFailed;
   private unsubscribe?: () => void;
   private selected = "";
   private clearing = false;
   private rowSignatures = new WeakMap<HTMLButtonElement, string>();
   get callController(): CallConsoleController | null {return this.model;}
   set callController(value: CallConsoleController | null) {this.unsubscribe?.(); this.model = value; if (this.isConnected) this.listen(); if (this.isRendered) this.update();}
+  get heading(): string { return this.getAttribute("heading") ?? "API calls"; }
+  set heading(value: string) { this.setAttribute("heading", value); }
+  get serviceLabels(): Record<string, string> { return this.labels; }
+  set serviceLabels(value: Record<string, string>) { this.labels = value; if (this.isRendered) this.update(); }
+  get isFailed(): (entry: CallEntry) => boolean { return this.failureRule; }
+  set isFailed(value: (entry: CallEntry) => boolean) { this.failureRule = value; if (this.isRendered) this.update(); }
   private listen(): void {this.unsubscribe?.(); this.unsubscribe = this.model?.subscribe(() => this.update());}
   connectedCallback(): void {super.connectedCallback(); this.listen();}
   disconnectedCallback(): void {this.unsubscribe?.();}
@@ -55,7 +64,7 @@ export class CallConsole extends BaseElement {
     @container(max-width:640px){box-split-view::part(split-view){grid-template-columns:minmax(0,1fr)!important}box-split-view::part(separator){display:none}#list{min-height:0;max-height:17rem}#inspector{border-top:1px solid var(--boe-token-stroke-stroke,#ddd)}.search{flex-basis:100%}}
     ${boeEntranceKeyframes}${boeStatusStyles}${boeReducedMotionPolicy}</style>
     <section part="console" aria-label="API call console">
-    <header><div><h2>API calls</h2><small>Inspect requests, responses, and tool outcomes</small></div><span id="connection" role="status"></span><box-button id="retry" label="Reconnect" tone="neutral" hidden></box-button></header>
+    <header><div part="heading"><h2></h2><small>Inspect requests, responses, and tool outcomes</small></div><span id="connection" role="status"></span><box-button id="retry" label="Reconnect" tone="neutral" hidden></box-button></header>
     <div class="filters"><label class="search">Search <input id="search" type="search" placeholder="Method, URL, or summary"></label><label>Service <select id="service" aria-label="Service"><option value="">All services</option></select></label><label><input type="checkbox" id="errors"> Errors only</label><box-button id="clear" label="Clear calls" tone="neutral"></box-button></div>
     <box-split-view resizable ratio="0.42" label="Calls and request inspector"><section slot="primary" aria-label="Calls"><div class="pane-heading"><h3>Requests</h3><span id="count" class="muted" role="status"></span></div><div id="list"></div><p id="list-empty" role="status" hidden></p></section><section aria-label="Request inspector"><div class="pane-heading"><h3>Inspector</h3><box-button data-copy="both" label="Copy both" tone="neutral"></box-button><span id="copy-status" role="status"></span></div><p id="detail-empty">Select a request to inspect its details.</p><div id="inspector" hidden><h3 id="summary"></h3><p id="metadata" class="muted"></p><p id="outcome" role="status" hidden></p><h3 class="code-heading">Request</h3><box-code-block id="request" copy-label="Copy request" wrap></box-code-block><h3 class="code-heading">Response</h3><box-code-block id="response" copy-label="Copy response" wrap></box-code-block></div></section></box-split-view></section>`;
   }
@@ -91,6 +100,8 @@ export class CallConsole extends BaseElement {
   }
   protected update(): void {
     if (!this.isRendered) return;
+    this.shadowRoot!.querySelector<HTMLElement>('[part="heading"]')!.hidden=this.hasAttribute("hide-heading");
+    this.shadowRoot!.querySelector("h2")!.textContent=this.heading;
     const state = this.model?.connection ?? "connecting";
     const connection=this.shadowRoot!.querySelector("#connection")!;
     connection.textContent = this.model ? ({live:"Live",connecting:"Connecting…",reconnecting:"Reconnecting…",unavailable:"Endpoint unavailable"}[state]) : "Not connected";
@@ -98,11 +109,12 @@ export class CallConsole extends BaseElement {
     const clear=this.shadowRoot!.querySelector<Button>("#clear")!;clear.disabled=this.clearing || !this.model?.entries.length;clear.label=this.clearing ? "Clearing…" : "Clear calls";
     const service = this.shadowRoot!.querySelector<HTMLSelectElement>("#service")!;
     const services = [...new Set(this.model?.entries.map(e => e.service) ?? [])];
-    for (const name of services) if (!Array.from(service.options).some(o => o.value === name)) {const option = document.createElement("option"); option.value = name; option.textContent = name; service.append(option);}
+    for (const name of services) if (!Array.from(service.options).some(o => o.value === name)) {const option = document.createElement("option"); option.value = name; service.append(option);}
+    for (const option of Array.from(service.options)) if (option.value) option.textContent=this.labels[option.value] ?? option.value;
     const errors = this.shadowRoot!.querySelector<HTMLInputElement>("#errors")!.checked;
-    const entries = this.model?.entries.filter(e => (!service.value || e.service === service.value) && (!errors || callFailed(e))) ?? [];
+    const entries = this.model?.entries.filter(e => (!service.value || e.service === service.value) && (!errors || this.failureRule(e))) ?? [];
     const query=this.filters.query.trim().toLowerCase();
-    const filtered=entries.filter(e=>`${e.method} ${e.url} ${e.summary} ${e.service}`.toLowerCase().includes(query));
+    const filtered=entries.filter(e=>`${e.method} ${e.url} ${e.summary} ${e.service} ${this.labels[e.service] ?? ""}`.toLowerCase().includes(query));
     entries.splice(0,entries.length,...filtered);
     if (!entries.some(e => e.id === this.selected)) this.selected = entries[0]?.id ?? "";
     const list = this.shadowRoot!.querySelector("#list")!;
@@ -113,10 +125,10 @@ export class CallConsole extends BaseElement {
       let button = existing.get(entry.id) as HTMLButtonElement | undefined; existing.delete(entry.id);
       if (!button) {button = document.createElement("button"); button.type="button";button.setAttribute("part", "call"); button.dataset.callId = entry.id; button.addEventListener("click", () => {this.selected = entry.id; this.update();this.dispatchEvent(new CustomEvent("call-selected",{bubbles:true,composed:true,detail:{id:entry.id}}));});}
       button.setAttribute("aria-current", String(entry.id === this.selected));
-      const labels=[callStatus(entry),entry.service,entry.summary,entry.pending ? "In progress" : `${Math.round(entry.durationMs)} ms`];
+      const labels=[callStatus(entry,this.failureRule),this.labels[entry.service] ?? entry.service,entry.summary,entry.pending ? "In progress" : `${Math.round(entry.durationMs)} ms`];
       const signature=JSON.stringify(labels);
       if(this.rowSignatures.get(button)!==signature){
-        button.replaceChildren(...labels.map((text,index) => {const span = document.createElement("span"); span.textContent = text;span.className=["state","muted","summary","duration"][index]!;if(index===0){const icon=document.createElement("span");icon.innerHTML=boeStatusGlyph(entry.pending ? "active" : callFailed(entry) ? "failed" : entry.expected ? "skipped" : "done");span.prepend(icon);}return span;}));
+        button.replaceChildren(...labels.map((text,index) => {const span = document.createElement("span"); span.textContent = text;span.className=["state","muted","summary","duration"][index]!;if(index===0){const icon=document.createElement("span");icon.innerHTML=boeStatusGlyph(this.failureRule(entry) ? "failed" : entry.pending ? "active" : entry.expected ? "skipped" : "done");span.prepend(icon);}return span;}));
         this.rowSignatures.set(button,signature);
       }
       if(list.children[index]!==button)list.insertBefore(button,list.children[index] ?? null);
@@ -127,13 +139,13 @@ export class CallConsole extends BaseElement {
     this.shadowRoot!.querySelector("#count")!.textContent=`${entries.length} of ${this.model?.entries.length ?? 0}`;
     const empty=this.shadowRoot!.querySelector<HTMLElement>("#list-empty")!;
     empty.hidden=entries.length>0 || !!this.model && state==="connecting";
-    empty.textContent=!this.model ? "Connect a call controller to inspect requests." : state==="unavailable" ? "The /calls endpoint is unavailable. Start the agent, then reconnect." : state==="reconnecting" ? "Connection interrupted. Reconnect to load calls." : this.model.entries.length ? "No requests match these filters." : "No calls yet. New requests will appear here.";
+    empty.textContent=!this.model ? "Connect a call controller to inspect requests." : state==="unavailable" ? "Call history is unavailable. Reconnect when the service is ready." : state==="reconnecting" ? "Connection interrupted. Reconnect to load calls." : this.model.entries.length ? "No requests match these filters." : "No calls yet. New requests will appear here.";
     const entry = entries.find(e => e.id === this.selected);
     this.shadowRoot!.querySelector<Button>('[data-copy="both"]')!.disabled=!entry;
     this.shadowRoot!.querySelector<HTMLElement>("#inspector")!.hidden=!entry;
     this.shadowRoot!.querySelector<HTMLElement>("#detail-empty")!.hidden=!!entry;
     this.shadowRoot!.querySelector("#summary")!.textContent=entry?.summary ?? "";
-    this.shadowRoot!.querySelector("#metadata")!.textContent=entry ? `${entry.service} · ${entry.method} · ${entry.pending ? "In progress" : `${entry.durationMs} ms`} · ${new Date(entry.startedAt).toLocaleTimeString()}` : "";
+    this.shadowRoot!.querySelector("#metadata")!.textContent=entry ? `${this.labels[entry.service] ?? entry.service} · ${entry.method} · ${entry.pending ? "In progress" : `${entry.durationMs} ms`} · ${new Date(entry.startedAt).toLocaleTimeString()}` : "";
     const outcome=this.shadowRoot!.querySelector<HTMLElement>("#outcome")!;
     outcome.hidden=!entry || !(entry.error || entry.rpcError || entry.expected || entry.pending);
     outcome.textContent=entry?.rpcError ? `Tool failed despite HTTP ${entry.status}: ${entry.rpcError}` : entry?.error ?? entry?.expected ?? (entry?.pending ? "Waiting for the response…" : "");

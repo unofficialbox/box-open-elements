@@ -77,6 +77,7 @@ export const DESIGN_PROFILE_VARIABLES = {
     easingStandard: "--boe-profile-easing-standard",
     easingEnter: "--boe-profile-easing-enter",
     easingExit: "--boe-profile-easing-exit",
+    easingInOut: "--boe-profile-easing-in-out",
     easingLinear: "--boe-profile-easing-linear",
   },
 } as const satisfies ProfileVariableMap;

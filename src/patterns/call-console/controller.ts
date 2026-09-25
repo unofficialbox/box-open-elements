@@ -11,13 +11,13 @@ export class CallConsoleController {
   private listeners = new Set<() => void>();
   private abort?: AbortController;
   private close?: () => void;
-  constructor(readonly transport: CallConsoleTransport) {}
+  constructor(readonly transport: CallConsoleTransport, readonly maxEntries = 300) {}
   subscribe(fn: () => void): () => void {this.listeners.add(fn); return () => this.listeners.delete(fn);}
   private emit(): void {this.listeners.forEach(fn => fn());}
   apply(event: CallEvent): void {
-    if (event.type === "snapshot") this.entries = event.entries;
+    if (event.type === "snapshot") this.entries = event.entries.slice(0, this.maxEntries);
     else if (event.type === "clear") this.entries = [];
-    else this.entries = this.entries.some(e => e.id === event.entry.id) ? this.entries.map(e => e.id === event.entry.id ? event.entry : e) : [event.entry, ...this.entries];
+    else this.entries = (this.entries.some(e => e.id === event.entry.id) ? this.entries.map(e => e.id === event.entry.id ? event.entry : e) : [event.entry, ...this.entries]).slice(0, this.maxEntries);
     this.emit();
   }
   async connect(): Promise<void> {

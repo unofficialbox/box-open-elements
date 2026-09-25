@@ -8,8 +8,9 @@ can be used directly or composed from their headless contracts.
 ## Status and results
 
 `foundations/status` exports `toStatusKind`, `statusLabel`, `boeStatusGlyph` and
-`boeStatusStyles`. `StatusIcon` renders a decorative 16px circle plus a hidden
-label. Use the same vocabulary for trace, todo, verdict and approval states.
+`boeStatusStyles` and `boeStatusDocumentStyles`. `StatusIcon` renders a decorative
+16px circle plus a hidden label; set `label` to override its spoken name.
+Use the same vocabulary for trace, todo, verdict and approval states.
 
 `approved` and `rejected` retain their own labels and neutral, outlined glyphs;
 they never map to `done` or `skipped`. An approved action can still fail during
@@ -22,10 +23,13 @@ only in a dismissible notification.
 
 `ResultBlock` is a serializable union of `facts`, `checks`, `table` and
 `documents`. `ResultBlocks.blocks` renders any sequence, using an optional
-block `id` for stream updates. `FactList.rows`, `CheckList.rows`, and
-`DocumentList.items` offer the standalone forms. Tables scroll within a
-focusable region; the final subject column is emphasized. Document rows emit
-`document-selected` with `{ id }`; safe URLs open in a new tab.
+block `id` for stream updates. Set `ResultBlocks.labels` for host verdict
+language and `title-style="eyebrow"` for quieter headings. `FactList.rows`,
+`CheckList.rows`, and `DocumentList.items` offer standalone forms. Tables
+scroll within a focusable region. Unlinked documents are static unless
+`selectable-documents` is set; safe URLs open in a new tab with an external
+marker and spoken suffix (customizable with `link-suffix`). Selectable rows
+emit `document-selected` with `{ id }`.
 `resultDocumentIds(blocks)` and `ResultBlocks.documentIds` support citation
 deduplication. Never place tokens or private URLs in a public demo.
 
@@ -42,6 +46,10 @@ document.body.append(summary);
 ```
 
 `turn` contains `steps`, `todos`, `startedAt` and optional `endedAt`/`incomplete`.
+`incomplete` may be a reason string. With no steps or todos, the settled line
+is static rather than a disclosure. Nested traces use `variant="plain"`, with
+their parts re-exported as `trace-*`; step sources have their own part and
+step durations use the same formatter as the summary.
 Set `failed` for a failed turn. `open` defaults to false; `elapsed-threshold`
 defaults to 2000ms. The live status label excludes the ticking clock.
 `progress`, `formatElapsed` and `splitStepTitle` are pure helpers exported from
@@ -63,14 +71,20 @@ unique within a controller; use a conversation ID as well across controllers.
 | `done` | `status: complete / needs_input / error` | `completeness` |
 
 Optional `seq` starts at 1. Duplicate sequence numbers are ignored. Missing
-numbers or a missing `done` produce `completeness.status = "incomplete"` and
+numbers, invalid sequence values, or a missing `done` produce `completeness.status = "incomplete"` and
 `missing[]`. Old transports still finish normally but now show an honest
 incompleteness notice until they emit `done`. Messages also carry numeric
 `startedAt`/`endedAt` timestamps in milliseconds. `readNdjson(stream)` handles
-chunked UTF-8 and CRLF, rejects invalid JSON or oversized lines, and releases
-its reader on completion, error, cancellation, or an early iterator return.
+chunked UTF-8 and CRLF. An `onInvalidLine(line, error)` callback can return
+`"skip"` for malformed JSON; without it, malformed JSON throws. Oversized
+lines and invalid UTF-8 still throw. The reader releases on completion, error,
+cancellation, or early iterator return.
 
 `AgentActionProposal.outcome` is `done` or `failed`, separate from `decision`.
+`details` can show result IDs or links below a decided action. Safe links open
+in a new tab; unsafe URLs remain text. Set `hide-modify` if the host does not
+offer an editor. A failed `resolveAction` rejects and puts `resolveError` on
+the affected proposal for an inline alert.
 The controller exposes `resolving` while awaiting a decision and suppresses
 duplicate submissions. Failed approved actions render an alert and a retry of
 the originating request; success suggestions are suppressed. Supply
@@ -81,20 +95,27 @@ anchor; `focusComposer()` uses `preventScroll`.
 `ScrollPinController` is reusable for live lists. Call `connect(content)` with
 an inner content element for resize observation, `contentChanged(true)` for a
 new message, and `disconnect()` on teardown. Upward wheel/touch/keyboard or
-scrollbar motion unpins; passive scroll events do not. `jump()` re-pins and
+scrollbar-gutter drag unpins; passive scroll events do not. `behind` becomes
+true only when content grows while unpinned; `jump()` re-pins and
 honours reduced motion.
 
 ## Workspace
 
 `AgentWorkspaceController(createSession)` owns independent chat controllers.
-`newChat()` reuses an untouched chat, `select(id)` keeps other sessions alive,
-and `destroy()` tears down owned controllers. `summaries` exposes word-cut
+The factory receives `(id, seed?)`. `newChat()` reuses an untouched chat,
+`restore(id, seed?)` adds a persisted conversation, `remove(id)` can be undone
+with `restore(id)`, `select(id)` keeps other sessions alive, and `destroy()`
+tears down owned controllers. `summaries` exposes word-cut
 titles and waiting/working status. `details` exposes context, approvals with
 message IDs, and deduplicated sources in first-seen order.
 
-Assign it to `AgentWorkspace.workspaceController`. `chats`, `conversation`,
-and `details` slots allow host compositions. Default conversations remain
-mounted while hidden, preserving their controllers and scroll positions.
+Assign it to `AgentWorkspace.workspaceController`. `header`, `chats`,
+`conversation`, and `details` slots allow host compositions. `hide-toggles`
+suppresses the default controls; `open(pane, boolean)` and `toggle(pane)` let
+hosts control panes. `pane-change`, `chats-change`, and
+`conversation-selected` events report state. Default conversations remain
+mounted while hidden, preserving their controllers and scroll positions, but
+are not created when the `conversation` slot is filled.
 At widths below 900px, side panes become mutually exclusive drawers. At wide
 widths, `viewer-key` scopes persisted pane preferences; details starts open at
 1200px. Storage failures fall back to in-memory defaults.
@@ -120,12 +141,16 @@ Place `CallConsole` on a separate developer page. Assign a
 
 - `GET /calls`: `CallEntry[]` snapshot.
 - `GET /calls/stream`: SSE named `snapshot`, `call`, `clear`; each data payload
-  is a matching `CallEvent` object. Same IDs replace pending entries.
+  is a matching `CallEvent` object. Bare event payloads are also accepted.
+  Same IDs replace pending entries.
 - `DELETE /calls`: clear, returning 204.
 
 The console filters by service/errors, distinguishes `rpcError` from HTTP
 success, provides a keyboard-resizable split view, and copies HTTP text with a
 textarea fallback. Hosts own controller connection lifetimes.
+Use `heading`, `hide-heading`, and `serviceLabels` for host language;
+`isFailed(entry)` overrides failure classification. `CallConsoleController`
+keeps the newest 300 entries by default; pass `maxEntries` to change the cap.
 
 Search matches method, URL, summary and service. Arrow Up/Down and Home/End
 select requests while focus is in the list; Tab reaches filters and copy

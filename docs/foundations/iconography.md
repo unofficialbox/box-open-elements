@@ -12,7 +12,7 @@ The Box design system adapts an external icon inventory (the `2023-Icon-collecti
 
 ## Current status in this repo
 
-The generated manifest and its alias layer are vendored at `src/foundations/icons/` (`box-iconography.generated.ts` + `box-iconography.ts`) and wired into `boxDefaultDesignSystem.icons`. The bundle also keeps a few bespoke assets (`info`, `alert`, `folder-shared`, `file-pdf`) because they are not clean one-to-one matches in the source icon pack.
+The generated manifest and its alias layer are vendored at `src/foundations/icons/` (`box-iconography.generated.ts` + `box-iconography.ts`). The built-in themes load that registry only when a named icon is requested, so theme setup does not ship the full icon inventory in the initial chunk. The bundle keeps a few immediate bespoke assets (`info`, `alert`, `folder-shared`, `file-pdf`) because they are not clean one-to-one matches in the source icon pack.
 
 The generator lives at `tools/iconography/generate-box-iconography.ts`. Fixture coverage is under `test/fixtures/iconography/` and `test/tools/iconography-generator.test.ts`. The committed 472-icon manifest stays until someone regenerates from an updated pack.
 

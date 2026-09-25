@@ -15,6 +15,7 @@ describe("motion foundation", () => {
     expect(boeMotionDuration.spin).toBe("var(--boe-profile-motion-spin, 0.8s)");
     expect(boeMotionEasing.standard).toBe("var(--boe-profile-easing-standard, ease)");
     expect(boeMotionEasing.linear).toBe("var(--boe-profile-easing-linear, linear)");
+    expect(boeMotionEasing.inOut).toBe("var(--boe-profile-easing-in-out, ease-in-out)");
   });
 
   it("builds transition shorthand from the vocabulary", () => {

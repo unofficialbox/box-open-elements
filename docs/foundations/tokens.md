@@ -23,6 +23,7 @@ import {
   boxDefaultDesignSystem,
   createDesignTokenStyleText,
   normalizeDesignTokens,
+  preloadBoxDefaultIcons,
   registerBoxDefaultDesignSystem,
   registerDesignSystem,
   setActiveDesignSystem,
@@ -39,6 +40,7 @@ import {
 | `applyDesignTokens()` | write token values onto an element as CSS custom properties |
 | `createDesignTokenStyleText()` | generate a CSS block for SSR or stylesheet injection |
 | `resolveDesignIcon()` / `resolveDesignIllustration()` | look up a registered asset by name |
+| `preloadBoxDefaultIcons()` | load the full named Box icon registry before a synchronous lookup |
 
 Custom bundles should use the typed, lower-camel-case semantic names. The
 registry translates them to Box-compatible keys and then applies kebab-cased CSS
@@ -63,6 +65,12 @@ import {
 registerBoxDefaultDesignSystem({ setActive: true });
 applyDesignTokens(document.documentElement, "box-default");
 ```
+
+Theme registration does not load the full icon registry. The four bespoke icons
+(`info`, `alert`, `folder-shared`, `file-pdf`) resolve immediately. Other named
+icons load on first lookup; icon controls refresh when loading finishes. Call
+`await preloadBoxDefaultIcons()` before `resolveDesignIcon(name)` if synchronous
+markup is required. Known icons should use the direct glyph subpath instead.
 
 ## Dark theme
 

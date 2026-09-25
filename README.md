@@ -12,7 +12,7 @@
 
 Browse the full catalog on the **[live docs site](https://unofficialbox.github.io/box-open-elements)** — live previews, an events/properties inspector, per-framework code snippets (React / Angular / Vue / Svelte / HTML), and the foundations pages.
 
-The library is organized around three layers (see [docs/taxonomy.md](./docs/taxonomy.md) for the canonical model):
+The library is organized around three layers (see [taxonomy](https://github.com/unofficialbox/box-open-elements/blob/v0.22.0/docs/taxonomy.md) for the canonical model):
 
 - **Foundations** — design decisions as data: tokens, color, typography, iconography, accessibility, theming
 - **Components** — accessible Web Components for single controls, organized by category
@@ -75,7 +75,7 @@ selection.toggleSelection("1");
 - optimized component entrypoints: `@unofficialbox/box-open-elements/<name>`
 - patterns: `@unofficialbox/box-open-elements/patterns/<area>` and `@unofficialbox/box-open-elements/patterns/<area>/<module>`
 
-See [docs/api-guidelines.md](./docs/api-guidelines.md).
+See the versioned [API guidelines](https://github.com/unofficialbox/box-open-elements/blob/v0.22.0/docs/api-guidelines.md).
 
 ## Developing
 
@@ -89,16 +89,17 @@ bun run docs     # build + serve the docs site at http://localhost:4600
 
 ## Documentation
 
-The docs index is at [docs/README.md](./docs/README.md). The most important entries:
+The versioned docs index is at [docs/README.md](https://github.com/unofficialbox/box-open-elements/blob/v0.22.0/docs/README.md). The most important entries:
 
-- [Taxonomy](./docs/taxonomy.md)
-- [Architecture](./docs/architecture.md)
-- [API Guidelines](./docs/api-guidelines.md)
-- [Components catalog](./docs/components/catalog.md) and [patterns catalog](./docs/patterns/catalog.md)
-- [Using with React, Angular, Vue, and Svelte](./docs/integration/frameworks.md)
-- [Design Tokens](./docs/foundations/tokens.md)
-- [Content Explorer](./docs/patterns/content-explorer.md)
-- [Box Server Integration](./docs/integration/box-server.md)
+- [Taxonomy](https://github.com/unofficialbox/box-open-elements/blob/v0.22.0/docs/taxonomy.md)
+- [Architecture](https://github.com/unofficialbox/box-open-elements/blob/v0.22.0/docs/architecture.md)
+- [API Guidelines](https://github.com/unofficialbox/box-open-elements/blob/v0.22.0/docs/api-guidelines.md)
+- [Components catalog](https://github.com/unofficialbox/box-open-elements/blob/v0.22.0/docs/components/catalog.md) and [patterns catalog](https://github.com/unofficialbox/box-open-elements/blob/v0.22.0/docs/patterns/catalog.md)
+- [Using with React, Angular, Vue, and Svelte](https://github.com/unofficialbox/box-open-elements/blob/v0.22.0/docs/integration/frameworks.md)
+- [Design Tokens](https://github.com/unofficialbox/box-open-elements/blob/v0.22.0/docs/foundations/tokens.md)
+- [Content Explorer](https://github.com/unofficialbox/box-open-elements/blob/v0.22.0/docs/patterns/content-explorer.md)
+- [Box Server Integration](https://github.com/unofficialbox/box-open-elements/blob/v0.22.0/docs/integration/box-server.md)
+- [Agent UI guidelines](https://github.com/unofficialbox/box-open-elements/blob/v0.22.0/docs/patterns/agent-ui-guidelines.md), [building blocks](https://github.com/unofficialbox/box-open-elements/blob/v0.22.0/docs/patterns/agent-ui.md), and [motion](https://github.com/unofficialbox/box-open-elements/blob/v0.22.0/docs/foundations/motion.md)
 
 ## Contributing
 

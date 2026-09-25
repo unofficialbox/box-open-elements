@@ -4,7 +4,7 @@ import {
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
-import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/interaction.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 import { boeOverlay, boeRadius } from "../../foundations/geometry/index.js";
 import {

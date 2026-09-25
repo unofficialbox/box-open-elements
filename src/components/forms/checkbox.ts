@@ -4,7 +4,7 @@ import {
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
-import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
+import { boeFocusVisibleStyles } from "../../foundations/tokens/interaction.js";
 import { boeControl, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 

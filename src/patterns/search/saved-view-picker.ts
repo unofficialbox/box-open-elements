@@ -1,6 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { applyRovingTabindex, handleRovingKeydown } from "../../foundations/a11y/index.js";
-import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/interaction.js";
 import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-saved-view-picker";

@@ -2,7 +2,7 @@ import { BaseElement } from "../../core/index.js";
 import { FeedbackAnnouncement } from "../../foundations/a11y/announcer.js";
 import { toneAccessibleLabel, toneIcon } from "./tone.js";
 import { boeRadius, boeSpace } from "../../foundations/geometry/index.js";
-import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
+import { boeFocusVisibleStyles } from "../../foundations/tokens/interaction.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-toast";

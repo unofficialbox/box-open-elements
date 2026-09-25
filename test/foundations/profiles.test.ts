@@ -73,11 +73,13 @@ describe("foundations/profiles", () => {
 
     controller.start();
     expect(root.style.getPropertyValue("--boe-profile-modal-width")).toBe("460px");
+    expect(root.style.getPropertyValue("--boe-profile-motion-arrival")).toBe("200ms");
 
     controller.setProfile(compactNeutralDesignProfile.name);
 
     expect(root.dataset.designProfile).toBe("compact-neutral");
     expect(root.style.getPropertyValue("--boe-profile-radius-control")).toBe("6px");
+    expect(root.style.getPropertyValue("--boe-profile-easing-in-out")).toBe("cubic-bezier(0.65, 0, 0.35, 1)");
     expect(root.style.getPropertyValue("--boe-profile-modal-width")).toBe("");
     expect(localStorage.getItem("test-profile")).toBe("compact-neutral");
     expect(details.at(-1)).toEqual({ profileName: "compact-neutral" });

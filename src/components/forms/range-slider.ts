@@ -6,7 +6,7 @@ import {
   rangeFromFormValue,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
-import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
+import { boeFocusVisibleStyles } from "../../foundations/tokens/interaction.js";
 
 const DEFAULT_TAG_NAME = "box-range-slider";
 

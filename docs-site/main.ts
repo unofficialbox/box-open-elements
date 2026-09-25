@@ -719,7 +719,9 @@ const renderIconsPage = (): void => {
     <div class="icon-grid">
       ${aliasEntries
         .map(([alias]) => {
-          const svg = lib.resolveDesignIcon(alias) ?? "";
+          // This reference gallery already imports the complete icon manifest.
+          // Render its aliases directly so lazy theme loading cannot leave blanks.
+          const svg = (lib.boxIconography as Record<string, string>)[alias] ?? "";
           return `<div class="icon-card"><span class="glyph">${svg}</span><code>${escapeHtml(alias)}</code></div>`;
         })
         .join("")}

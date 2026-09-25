@@ -1,6 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeRadius } from "../../foundations/geometry/index.js";
-import { boeBrandInteractiveStyles } from "../../foundations/tokens/index.js";
+import { boeBrandInteractiveStyles } from "../../foundations/tokens/interaction.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-empty-state";

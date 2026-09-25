@@ -50,8 +50,9 @@ describe("stream extensions",()=>{
     const sent=c.send("x"); c.stop(); request.onEvent({kind:"delta",text:"late"}); finish();
     expect((await sent)?.completeness?.status).toBe("incomplete"); expect(c.getMessage("agent-1")?.body).toBe("");
   });
-  it("rejects invalid sequence input",async()=>{
-    const m=await session(async r=>r.onEvent({kind:"delta",text:"x",seq:-1})).send("x"); expect(m?.status).toBe("error");
+  it("marks invalid sequence input incomplete without losing the reply",async()=>{
+    const m=await session(async r=>{r.onEvent({kind:"delta",text:"x",seq:-1});r.onEvent({kind:"delta",text:"good",seq:1});r.onEvent({kind:"done",status:"complete",seq:2});}).send("x");
+    expect(m?.status).toBe("complete");expect(m?.body).toBe("good");expect(m?.completeness?.status).toBe("incomplete");
   });
   it("suppresses concurrent approvals and preserves failed execution outcome",async()=>{
     const c=session(async r=>{r.onEvent({kind:"proposal",proposal:{id:"p",title:"Write"}});});
@@ -70,6 +71,11 @@ describe("stream extensions",()=>{
     const out=[];for await(const value of readNdjson(stream))out.push(value);
     expect(out).toEqual([{text:"é"},{n:2}]); expect(stream.locked).toBe(false);
   });
+  it("can skip a malformed NDJSON line with an explicit callback",async()=>{
+    const stream=new ReadableStream<Uint8Array>({start(c){c.enqueue(new TextEncoder().encode('{"a":1}\n{bad}\n{"b":2}\n'));c.close();}});
+    const invalid=vi.fn(()=>"skip" as const);const out=[];for await(const value of readNdjson(stream,{onInvalidLine:invalid}))out.push(value);
+    expect(out).toEqual([{a:1},{b:2}]);expect(invalid).toHaveBeenCalledOnce();
+  });
   it("cancels malformed, oversized and abandoned streams",async()=>{
     for(const [text,limit] of [["{bad}\n",100],["abcdef",2]] as const){
       const cancel=vi.fn(); const stream=new ReadableStream<Uint8Array>({start(c){c.enqueue(new TextEncoder().encode(text));},cancel});
@@ -86,7 +92,7 @@ describe("motion, status and results",()=>{
     expect(boeDisclosureStyles()).toContain("min-height: 0");expect(boeEntrance("pop")).toContain("boe-pop");expect(boeReducedMotionPolicy).toContain("animation-delay: 0ms");
   });
   it("renders semantic escaped results and safe whole-document links",()=>{
-    const el=new ResultBlocks(); el.blocks=[{type:"facts",rows:[{label:"<script>",value:"$4.8M"}]},{type:"checks",rows:[{label:"LTV",status:"warn",detail:"Needs review"}]},{type:"table",columns:["Metric","This record"],rows:[{cells:["LTV","80%"],status:"fail",note:"Mismatch"}],footnote:"Data"},{type:"documents",items:[{id:"1",name:"Unsafe",href:"javascript:alert(1)"},{id:"2",name:"Safe",href:"https://app.box.com/file/2",detail:"PDF"}]}];
+    const el=new ResultBlocks(); el.selectableDocuments=true;el.blocks=[{type:"facts",rows:[{label:"<script>",value:"$4.8M"}]},{type:"checks",rows:[{label:"LTV",status:"warn",detail:"Needs review"}]},{type:"table",columns:["Metric","This record"],rows:[{cells:["LTV","80%"],status:"fail",note:"Mismatch"}],footnote:"Data"},{type:"documents",items:[{id:"1",name:"Unsafe",href:"javascript:alert(1)"},{id:"2",name:"Safe",href:"https://app.box.com/file/2",detail:"PDF"}]}];
     document.body.append(el);expect(el.shadowRoot!.querySelector("script")).toBeNull();expect(el.shadowRoot!.querySelector("dl")).not.toBeNull();
     expect(el.shadowRoot!.querySelector("table th[scope=row]")?.textContent).toContain("Mismatch");expect(el.shadowRoot!.querySelector('[role="region"]')?.getAttribute("tabindex")).toBe("0");
     expect(el.shadowRoot!.querySelector('button[data-document-id="1"]')).not.toBeNull();expect(el.documentIds).toEqual(["1","2"]);
@@ -98,12 +104,39 @@ describe("motion, status and results",()=>{
     const checks=new CheckList();checks.rows=[{label:"a",status:"info"}];expect(checks.rows).toHaveLength(1);
     const docs=new DocumentList();docs.items=[{id:"1",name:"One"}];expect(docs.items).toHaveLength(1);
   });
+  it("uses host verdict words, named blocks, and honest document affordances",()=>{
+    const el=new ResultBlocks();el.labels={pass:"Accepted",info:"Review pending"};el.setAttribute("link-suffix"," (opens in Box)");
+    el.blocks=[{type:"checks",title:"Policy checks",rows:[{label:"Income",status:"pass"}]},{type:"table",columns:["Field"],rows:[{cells:["APR"],status:"info"},{cells:["LTV"],status:"fail",note:"Needs review"}]},{type:"documents",items:[{id:"1",name:"Local"},{id:"2",name:"Box",href:"https://app.box.com/file/2"}]}];
+    document.body.append(el);
+    expect(el.shadowRoot!.querySelector("section")?.getAttribute("aria-label")).toBe("Policy checks");
+    expect(el.shadowRoot!.querySelector('[part="verdict"]')?.textContent).toBe("Accepted");
+    expect(el.shadowRoot!.querySelector('table th[scope="row"]')?.textContent).toContain("Review pending");
+    expect(el.shadowRoot!.querySelectorAll('table .sr')).toHaveLength(1);
+    expect(el.shadowRoot!.querySelector('button[data-document-id="1"]')).toBeNull();
+    expect(el.shadowRoot!.querySelector('a[data-document-id="2"] [part="external"]')?.textContent).toBe("↗");
+    expect(el.shadowRoot!.querySelector('a[data-document-id="2"] .sr')?.textContent).toBe(" (opens in Box)");
+    el.remove();
+  });
   it("keeps scroll pinned through resize but respects upward user intent",()=>{
     const el=document.createElement("div");Object.defineProperties(el,{scrollHeight:{value:1000,configurable:true},clientHeight:{value:100,configurable:true}});document.body.append(el);
     const changed=vi.fn();const pin=new ScrollPinController(el,changed);pin.connect();pin.contentChanged();expect(el.scrollTop).toBe(1000);
     el.dispatchEvent(new WheelEvent("wheel",{deltaY:-10}));el.scrollTop=500;pin.contentChanged();expect(el.scrollTop).toBe(500);expect(pin.pinned).toBe(false);
     el.dispatchEvent(new Event("scroll"));expect(pin.pinned).toBe(false);pin.contentChanged(true);expect(pin.pinned).toBe(true);
     el.dispatchEvent(new KeyboardEvent("keydown",{key:"PageUp"}));expect(pin.pinned).toBe(false);pin.jump();expect(pin.pinned).toBe(true);pin.disconnect();
+  });
+  it("shows jump only after unseen growth and clears scrollbar drag on cancel",()=>{
+    const el=document.createElement("div");let height=1000;
+    Object.defineProperties(el,{scrollHeight:{get:()=>height},clientHeight:{value:100},clientWidth:{value:80}});
+    vi.spyOn(el,"getBoundingClientRect").mockReturnValue({left:0,right:100,width:100} as DOMRect);
+    document.body.append(el);
+    const changed=vi.fn();const pin=new ScrollPinController(el,changed);pin.connect();pin.contentChanged();
+    el.dispatchEvent(new WheelEvent("wheel",{deltaY:-10}));el.scrollTop=500;el.dispatchEvent(new Event("scroll"));
+    expect(pin.behind).toBe(false);expect(changed).toHaveBeenLastCalledWith({pinned:false,behind:false});
+    height=1200;pin.contentChanged();expect(changed).toHaveBeenLastCalledWith({pinned:false,behind:true});
+    pin.jump();expect(pin.behind).toBe(false);
+    el.dispatchEvent(new MouseEvent("pointerdown",{clientX:90}));document.dispatchEvent(new Event("pointercancel"));
+    el.scrollTop=400;el.dispatchEvent(new Event("scroll"));expect(pin.pinned).toBe(true);
+    pin.disconnect();
   });
 });
 describe("run summary",()=>{
@@ -113,6 +146,7 @@ describe("run summary",()=>{
     const turn={startedAt:0,steps:[],todos:[]};expect(progress(turn,false,3000)).toEqual({kind:"active",label:"Thinking…",elapsed:"3 s"});
     expect(progress({...turn,todos:[{id:"1",content:"Extract",status:"in_progress"}]},false,100).label).toBe("Extract…");
     expect(progress({...turn,endedAt:2400}).label).toBe("Worked for 2.4 s");expect(progress({...turn,endedAt:2400,incomplete:true}).kind).toBe("warning");
+    expect(progress({...turn,endedAt:2400,incomplete:"Connection interrupted"}).label).toBe("Connection interrupted after 2.4 s");
     expect(progress({...turn,endedAt:2400},true).kind).toBe("failed");
     expect(progress({...turn,endedAt:2400,steps:[{id:"w",title:"Warning",status:"warning"}]}).label).toContain("1 warning");
   });
@@ -121,6 +155,13 @@ describe("run summary",()=>{
     expect(el.shadowRoot!.querySelector<HTMLElement>("#details")!.inert).toBe(true);el.shadowRoot!.querySelector<HTMLButtonElement>("button")!.click();expect(el.open).toBe(true);
     vi.advanceTimersByTime(1000);expect(el.shadowRoot!.querySelector('[part="clock"]')!.textContent).toBe("6 s");expect(el.shadowRoot!.querySelector('[role="status"]')!.textContent).toBe("Extract…");
     el.turn={...el.turn,endedAt:6000};expect(el.shadowRoot!.querySelector('[part="label"]')!.textContent).toBe("Worked for 6.0 s");el.remove();expect(vi.getTimerCount()).toBe(0);
+  });
+  it("uses a static settled line when there is no work to disclose",()=>{
+    const el=new RunSummary();el.turn={startedAt:0,endedAt:400,steps:[],todos:[]};document.body.append(el);
+    expect(el.shadowRoot!.querySelector<HTMLButtonElement>('[part="trigger"]')!.hidden).toBe(true);
+    expect(el.shadowRoot!.querySelector<HTMLElement>('[part="static-line"]')!.hidden).toBe(false);
+    expect(el.shadowRoot!.querySelector('[part="label"]')?.hasAttribute("role")).toBe(false);
+    expect(el.shadowRoot!.querySelector('box-run-trace')?.getAttribute("variant")).toBe("plain");
   });
 });
 describe("chat and workspace",()=>{
@@ -158,6 +199,18 @@ describe("chat and workspace",()=>{
     const el=new AgentChat();el.chatController=c;document.body.append(el);await c.send("Write");
     expect(el.shadowRoot!.querySelector('[part="proposal"][role="alert"]')?.textContent).toContain("Approved · didn't complete");expect(el.shadowRoot!.querySelector('[part="option"]')).toBeNull();expect(el.shadowRoot!.querySelector('[part="retry"]')).not.toBeNull();
   });
+  it("shows approval output, safe links and inline resolve failures",async()=>{
+    const c=session(async r=>{r.onEvent({kind:"proposal",proposal:{id:"p",title:"Create file",params:[{label:"Folder",value:"Finance"}]}});});
+    c.config.transport.resolveAction=vi.fn(async()=>{throw new Error("Permission denied");});
+    const el=new AgentChat();el.chatController=c;el.setAttribute("hide-modify","");document.body.append(el);await c.send("create");
+    expect(el.shadowRoot!.querySelector('[data-action="modify"]')).toBeNull();
+    await expect(c.resolveAction("p","approved")).rejects.toThrow("Permission denied");
+    expect(el.shadowRoot!.querySelector('[part="proposal"] [role="alert"]')?.textContent).toBe("Permission denied");
+    c.config.transport.resolveAction=vi.fn(async()=>({id:"p",title:"Create file",details:[{label:"File",value:"Open",href:"https://app.box.com/file/1"},{label:"Unsafe",value:"Blocked",href:"javascript:alert(1)"}]}));
+    await c.resolveAction("p","approved");
+    expect(el.shadowRoot!.querySelector('[part="proposal-details"] a')?.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(el.shadowRoot!.querySelectorAll('[part="proposal-details"] a')).toHaveLength(1);
+  });
   it("reuses empty chats and keeps hidden sessions running",async()=>{
     const workspace=new AgentWorkspaceController(()=>session());const first=workspace.newChat();expect(workspace.newChat()).toBe(first);
     await first.controller.send("A first message whose words define the title");const second=workspace.newChat();expect(second).not.toBe(first);
@@ -166,5 +219,13 @@ describe("chat and workspace",()=>{
     expect(workspace.summaries[0]?.title).toContain("A first message");expect(conversationTitle("words words words",10)).toBe("words…");
     expect(conversationDetails(first.controller.getState()).sources).toEqual([]);
     workspace.destroy();expect(first.controller.getState().connected).toBe(false);
+  });
+  it("restores removed chats and accepts stable ids and seeds",()=>{
+    const factory=vi.fn((_id:string,_seed?:unknown)=>session());const workspace=new AgentWorkspaceController(factory);
+    const original=workspace.restore("chat-12",{draft:true})!;
+    expect(factory).toHaveBeenCalledWith("chat-12",{draft:true});
+    expect(workspace.remove(original.id)).toBe(true);expect(workspace.summaries).toHaveLength(0);
+    expect(workspace.restore(original.id)).toBe(original);expect(workspace.newChat().id).toBe("chat-12");
+    expect(conversationTitle("One two three, four five",16)).toBe("One two three…");workspace.destroy();
   });
 });

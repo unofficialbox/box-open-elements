@@ -1,9 +1,9 @@
 import {
   applyDesignTokens,
-  registerBoxDarkDesignSystem,
-  registerBoxDefaultDesignSystem,
   setActiveDesignSystem,
-} from "../tokens/index.js";
+} from "../tokens/registry.js";
+import { registerBoxDarkDesignSystem } from "../tokens/box-dark.js";
+import { registerBoxDefaultDesignSystem } from "../tokens/box-defaults.js";
 
 export const THEME_CHANGE_EVENT = "boe:theme-change";
 export const DEFAULT_THEME_STORAGE_KEY = "boe-theme";

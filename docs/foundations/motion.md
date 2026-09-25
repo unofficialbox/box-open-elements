@@ -8,7 +8,7 @@ character while preserving reduced-motion behavior.
 
 ## Vocabulary
 
-Agent surfaces use `arrival` (200ms), `panel` (320ms), and `fast` (120ms).
+Agent surfaces use `arrival` (200ms), `panel` (320ms), `stagger` (50ms), and `fast` (120ms).
 Existing duration keys remain compatible. `boeEntranceKeyframes` supplies
 `rise`, `pop`, `fade-in`, status spin and check-stroke animations.
 `boeEntrance(name)` uses the enter easing; `boeStaggerStyles` uses `--i` times
@@ -36,7 +36,7 @@ import {
 | Export | Role |
 | --- | --- |
 | `boeMotionDuration` | `fast` (120ms), `interactive` (140ms), `medium` (160ms), `slow` (240ms), `spin`, `shimmer` |
-| `boeMotionEasing` | `standard`, `enter`, `exit`, `linear` |
+| `boeMotionEasing` | `standard`, `enter`, `exit`, `inOut`, `linear` |
 | `boeTransition(property, duration?, easing?)` | CSS transition shorthand |
 | `boeReducedMotionStyles(selector, declarations)` | `prefers-reduced-motion: reduce` block |
 
