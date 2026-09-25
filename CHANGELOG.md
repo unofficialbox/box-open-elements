@@ -15,6 +15,20 @@ are kept as written.
 
 ## Unreleased
 
+### Flow builder: host-shaped documents
+
+- `box-flow-builder` reads documents through a `model` (`children`, `title`,
+  `description`, `status`, `addBranchLabel`), so hosts pass their own node
+  objects in any shape; `FlowBuilder<N>` is generic over the node type and the
+  default model keeps reading `body` / `branches`.
+- Branch management: add and remove controls emit `branch-add-request` and
+  `branch-remove-request` for the host to apply.
+- `start-label` / `end-label` replace "Flow starts" / "Flow ends".
+- `FlowKind.tone` (`accent` | `neutral`) colors icons; the chooser shows icons.
+- `setValidation(…, { showMessage: false })` marks a step without the builder's
+  own error line; `refreshNode(node)` re-renders one card and the inspector heading.
+- Card, spine and chooser parts are exported through `box-flow-builder`.
+
 ## 0.21.0 — 2026-09-24
 
 ### Builder and editor patterns
