@@ -7,6 +7,7 @@ import {
   createDesignTokenStyleText,
   getDesignSystem,
   normalizeDesignTokens,
+  preloadBoxDefaultIcons,
   registerBoxDarkDesignSystem,
   registerBoxDefaultDesignSystem,
   registerDesignSystem,
@@ -82,6 +83,13 @@ describe("foundations/tokens", () => {
 
     expect(resolveDesignIcon("info")).toContain("<svg");
     expect(boxDefaultDesignSystem.tokens?.SurfaceSurfaceBrand).toBe("#0061d5");
+  });
+
+  it("loads named Box icons on demand without delaying theme registration", async () => {
+    registerBoxDefaultDesignSystem({ setActive: true });
+    expect(resolveDesignIcon("cloud")).toBeNull();
+    await preloadBoxDefaultIcons();
+    expect(resolveDesignIcon("cloud")).toContain("<svg");
   });
 
   it("rejects activating an unregistered design system", () => {

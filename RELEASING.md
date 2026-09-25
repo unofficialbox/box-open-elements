@@ -29,6 +29,9 @@ publish.
   minor releases; communicate them in the changelog.
 - Bump `version` in `package.json` and record the change in
   [CHANGELOG.md](./CHANGELOG.md) as part of the release PR.
+- Update the versioned GitHub documentation links in `README.md` to the new
+  `v<version>` tag. The npm tarball also includes the agent UI, motion, and API
+  guidelines so installed hosts can read the matching contract.
 - The git tag is `v<version>` (e.g. `v0.1.0`). The release workflow **fails** if
   the tag does not match `package.json`'s `version`.
 

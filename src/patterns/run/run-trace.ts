@@ -1,10 +1,10 @@
 import {
-  formatRunDuration,
   formatRunSummary,
   isRunStepRecord,
   resolveRunSteps,
 } from "./types.js";
 import type { RunResolution, RunStep, RunStepStatus } from "./types.js";
+import { formatElapsed, splitStepTitle } from "./progress.js";
 import { ProgressBar } from "../../components/feedback/progress-bar.js";
 import { BaseElement } from "../../core/index.js";
 import { boePanel } from "../../foundations/geometry/index.js";
@@ -264,6 +264,15 @@ const elementStyles = `
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
+        :host([variant="plain"]) [part="panel"] { border: 0; border-radius: 0; background: none; padding: 0; }
+        :host([variant="plain"]) [part="header"],
+        :host([variant="plain"]) [part="summary"] { display: none; }
+        :host([variant="plain"]) [part="step"] { padding-block: 0.35rem; }
+        :host([variant="plain"]) [part="step"]::after { display: none; }
+        :host([variant="plain"]) [part="status"] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+        :host([variant="plain"]) [part="toggle"] { display: none; }
+        [part="step-source"] { font-weight: 600; color: var(--boe-token-text-text-secondary, #6f6f6f); }
+
         .boe-sr-only {
           position: absolute;
           width: 1px;
@@ -297,7 +306,7 @@ export class RunTrace extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
 
   static get observedAttributes(): string[] {
-    return ["heading", "steps"];
+    return ["heading", "steps", "variant"];
   }
 
   private hostEl!: HTMLElement;
@@ -438,12 +447,15 @@ export class RunTrace extends BaseElement {
       .map(entry => {
         const { step, status, position } = entry;
         const settled = this.previousStatuses.get(step.id) === status;
-        const duration = formatRunDuration(step.startedAt, step.finishedAt);
+        const start = step.startedAt ? Date.parse(step.startedAt) : NaN;
+        const finish = step.finishedAt ? Date.parse(step.finishedAt) : NaN;
+        const duration = Number.isFinite(start) && Number.isFinite(finish) ? formatElapsed(finish - start) : "";
+        const title = splitStepTitle(step.title);
         // Slot-only detail counts: a host projecting logs for a step with no
         // JSON description still needs the toggle that reveals them.
         const hasSlotted = this.querySelector(`[slot="detail-${cssAttrValue(step.id)}"]`) !== null;
         const hasDetail = Boolean(step.description) || Boolean(step.children?.length) || hasSlotted;
-        const expanded = this.expandedIds.has(step.id);
+        const expanded = this.hasAttribute("variant") && this.getAttribute("variant") === "plain" || this.expandedIds.has(step.id);
         // The detail slot renders even without JSON detail so a host can
         // project rich content (logs, links) for any step by id.
         const detail = `
@@ -458,7 +470,8 @@ export class RunTrace extends BaseElement {
             <span part="marker" aria-hidden="true" ${settled ? "data-settled" : ""}>${boeStatusGlyph(toStatusKind(status))}</span>
             <div part="step-body">
               <div part="topline">
-                <span part="step-title">${escapeHtml(step.title)}</span>
+                ${title.source ? `<span part="step-source">${escapeHtml(title.source)}</span><span aria-hidden="true">·</span>` : ""}
+                <span part="step-title">${escapeHtml(title.action)}</span>
                 <span part="status">${RUN_STEP_STATUS_LABEL[status]}</span>
                 <span class="boe-sr-only">, step ${String(position)} of ${String(resolution.total)}</span>
                 ${duration ? `<span part="duration">${duration}</span>` : ""}

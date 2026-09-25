@@ -30,6 +30,7 @@ export const boeMotionEasing = {
   standard: "var(--boe-profile-easing-standard, ease)",
   enter: "var(--boe-profile-easing-enter, ease-out)",
   exit: "var(--boe-profile-easing-exit, ease-in)",
+  inOut: "var(--boe-profile-easing-in-out, ease-in-out)",
   linear: "var(--boe-profile-easing-linear, linear)",
 } as const;
 

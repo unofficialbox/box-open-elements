@@ -7,8 +7,8 @@ export interface CallEntry {
 }
 export type CallEvent = {type: "snapshot"; entries: CallEntry[]} | {type: "call"; entry: CallEntry} | {type: "clear"};
 export type CallConnection = "connecting" | "live" | "reconnecting" | "unavailable";
-export const callFailed = (entry: CallEntry): boolean => !entry.pending && Boolean(entry.error || entry.rpcError || (!entry.expected && (entry.status < 200 || entry.status >= 300)));
-export const callStatus = (entry: CallEntry): string => entry.pending ? "Pending" : entry.rpcError ? "Tool error" : entry.error ? "Failed" : entry.expected ? "Expected" : callFailed(entry) ? "Failed" : "Done";
+export const callFailed = (entry: CallEntry): boolean => Boolean(entry.rpcError || (!entry.expected && (entry.error || entry.status === 0 || entry.status >= 400)));
+export const callStatus = (entry: CallEntry, isFailed: (entry: CallEntry) => boolean = callFailed): string => entry.rpcError ? "Tool error" : entry.expected && !isFailed(entry) ? "Expected" : isFailed(entry) ? "Failed" : entry.pending ? "Pending" : "Done";
 export const formatCallHttp = (entry: CallEntry, side: "request" | "response" | "both" = "both"): string => {
   const headers = (h: Record<string,string>): string => Object.entries(h).map(([k,v]) => `${k}: ${v}`).join("\n");
   const request = `${entry.method} ${entry.url}\n${headers(entry.requestHeaders)}\n\n${entry.requestBody ?? ""}`;

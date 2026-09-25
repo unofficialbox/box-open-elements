@@ -178,7 +178,11 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "docs/patterns/agent-ui-guidelines.md",
+    "docs/patterns/agent-ui.md",
+    "docs/foundations/motion.md",
+    "docs/api-guidelines.md"
   ],
   "scripts": {
     "bundles:check": "bun tools/adapters/bundle-check.ts",

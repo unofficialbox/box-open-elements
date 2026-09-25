@@ -15,6 +15,7 @@ export {
   getDesignSystem,
   listDesignSystems,
   normalizeDesignTokens,
+  preloadBoxDefaultIcons,
   registerBoxDarkDesignSystem,
   registerBoxDefaultDesignSystem,
   registerDesignSystem,

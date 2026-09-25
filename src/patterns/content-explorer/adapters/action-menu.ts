@@ -4,7 +4,7 @@ import { applyRovingTabindex, handleRovingKeydown } from "../../../foundations/a
 import {
   boeFocusRingShadow,
   boeNeutralInteractiveStyles,
-} from "../../../foundations/tokens/index.js";
+} from "../../../foundations/tokens/interaction.js";
 import { boeMotionDuration, boeMotionEasing } from "../../../foundations/motion/index.js";
 import { boePanel } from "../../../foundations/geometry/index.js";
 

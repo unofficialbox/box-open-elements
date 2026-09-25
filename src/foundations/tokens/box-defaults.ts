@@ -1,12 +1,42 @@
-import { registerDesignSystem } from "./registry.js";
-import { boxIconography } from "../icons/box-iconography.js";
-import type { RegisteredDesignSystemDefinition } from "./types.js";
+import { DESIGN_SYSTEM_CHANGE_EVENT, getActiveDesignSystem, registerDesignSystem } from "./registry.js";
+import type { DesignAssetRenderer, RegisteredDesignSystemDefinition } from "./types.js";
 
 const iconSvg = (viewBox: string, body: string): string =>
   `<svg viewBox="${viewBox}" width="1em" height="1em" role="img" aria-hidden="true" focusable="false">${body}</svg>`;
 
 const illustrationSvg = (viewBox: string, body: string): string =>
   `<svg viewBox="${viewBox}" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" role="presentation" aria-hidden="true" focusable="false">${body}</svg>`;
+
+let loadDefaultIcons: (() => Promise<void>) | undefined;
+
+/** Keep theme setup and token-only components independent of the full icon registry. */
+const lazyBoxIcons = (defaults: Record<string, DesignAssetRenderer>): Record<string, DesignAssetRenderer> => {
+  const icons = { ...defaults };
+  let loading: Promise<void> | null = null;
+  const load = (): Promise<void> => {
+    loading ??= import("../icons/box-iconography.js")
+      .then(({ boxIconography }) => {
+        Object.assign(icons, boxIconography, defaults);
+        if (typeof globalThis.dispatchEvent === "function" && typeof CustomEvent !== "undefined") {
+          globalThis.dispatchEvent(new CustomEvent(DESIGN_SYSTEM_CHANGE_EVENT, {
+            detail: { activeDesignSystemName: getActiveDesignSystem()?.name ?? null },
+          }));
+        }
+      })
+      .catch(error => { loading = null; throw error; });
+    return loading;
+  };
+  loadDefaultIcons = load;
+  return new Proxy(icons, {
+    get(target, name, receiver) {
+      if (typeof name === "string" && !Object.hasOwn(target, name)) void load().catch(() => {});
+      return Reflect.get(target, name, receiver);
+    },
+  });
+};
+
+/** Optional preload for hosts that want named icons ready before first render. */
+export const preloadBoxDefaultIcons = (): Promise<void> => loadDefaultIcons?.() ?? Promise.resolve();
 
 export const boxDefaultDesignSystem: RegisteredDesignSystemDefinition = {
   name: "box-default",
@@ -46,8 +76,7 @@ export const boxDefaultDesignSystem: RegisteredDesignSystemDefinition = {
     StrokeStroke: "#e8e8e8",
     StrokeStrokeHover: "#bcbcbc",
   },
-  icons: {
-    ...boxIconography,
+  icons: lazyBoxIcons({
     info: iconSvg(
       "0 0 16 16",
       '<path fill="currentColor" d="M8.5 6.5H6.25a.75.75 0 0 0 0 1.5H7v4.5h-.75a.75.75 0 1 0 0 1.5H10a.75.75 0 1 0 0-1.5h-.75V7.41s.006-.217-.02-.327A.753.753 0 0 0 8.5 6.5ZM7.75 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" />',
@@ -64,7 +93,7 @@ export const boxDefaultDesignSystem: RegisteredDesignSystemDefinition = {
       "0 0 32 32",
       '<path fill="#FFF" d="M6 4a3 3 0 0 1 3-3h9.757a2 2 0 0 1 1.415.586l5.242 5.242A2 2 0 0 1 26 8.243V25a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V4Z" /><path fill="#D0021B" d="M18 1v6a2 2 0 0 0 2 2h6v16a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V4a3 3 0 0 1 3-3h9Z" opacity="0.12" /><path fill="#D0021B" d="M19 2.414 24.586 8H20a1 1 0 0 1-1-1V2.414Z" /><path fill="#D0021B" d="M9.8 23v-7h2.485c1.526 0 2.415.865 2.415 2.24 0 1.374-.889 2.248-2.415 2.248h-1.03V23H9.8Zm1.455-3.614h.83c.731 0 1.148-.387 1.148-1.146 0-.758-.417-1.137-1.148-1.137h-.83v2.283ZM15.975 23v-7h2.19c2.105 0 3.313 1.273 3.313 3.492 0 2.221-1.208 3.508-3.313 3.508h-2.19Zm1.455-1.22h.597c1.267 0 1.951-.728 1.951-2.288 0-1.557-.684-2.272-1.95-2.272h-.598v4.56ZM22.786 23v-7h4.475v1.22H24.24v1.675h2.796v1.188H24.24V23h-1.454Z" />',
     ),
-  },
+  }),
   illustrations: {
     "empty-state-folder": illustrationSvg(
       "0 0 140 140",

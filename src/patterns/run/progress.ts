@@ -1,7 +1,7 @@
 import { toStatusKind, type StatusKind } from "../../foundations/status/index.js";
 import { resolveRunSteps, type RunStep } from "./types.js";
 export interface AgentTodo { id: string; content: string; status: "pending" | "in_progress" | "completed" | "skipped"; }
-export interface RunTurn { steps: RunStep[]; todos: AgentTodo[]; startedAt: number; endedAt?: number; incomplete?: boolean; }
+export interface RunTurn { steps: RunStep[]; todos: AgentTodo[]; startedAt: number; endedAt?: number; incomplete?: boolean | string; }
 export function formatElapsed(ms: number): string {
   if (!Number.isFinite(ms) || ms < 0) return "";
   if (ms < 100) return "<0.1 s";
@@ -23,7 +23,7 @@ export function progress(turn: RunTurn, failed = false, now = Date.now(), thresh
   }
   const took = formatElapsed(turn.endedAt - turn.startedAt);
   if (failed || resolved.status === "failed") return {kind: "failed", label: `Stopped after ${took}`};
-  if (turn.incomplete) return {kind: "warning", label: `Cut short after ${took}`};
+  if (turn.incomplete) return {kind: "warning", label: `${typeof turn.incomplete === "string" ? turn.incomplete : "Cut short"} after ${took}`};
   const warnings = resolved.steps.filter(s => toStatusKind(s.status) === "warning").length;
   return {kind: warnings ? "warning" : "done", label: `Worked for ${took}${warnings ? ` · ${warnings} warning${warnings === 1 ? "" : "s"}` : ""}`};
 }

@@ -9,8 +9,16 @@ export function createCallConsoleTransport(base = "/calls"): CallConsoleTranspor
       events.onopen = () => onConnection("live"); events.onerror = () => onConnection("reconnecting");
       for (const type of ["snapshot", "call", "clear"] as const) events.addEventListener(type, event => {
         try {
-          const data = JSON.parse((event as MessageEvent).data) as CallEvent;
-          if (data.type === type) onEvent(data);
+          const data = JSON.parse((event as MessageEvent).data) as CallEvent | CallEntry | CallEntry[] | Record<string, unknown>;
+          if (data && typeof data === "object" && "type" in data) {
+            if (data.type === type) onEvent(data as CallEvent);
+          } else if (type === "call" && data && !Array.isArray(data)) {
+            onEvent({ type: "call", entry: data as CallEntry });
+          } else if (type === "snapshot" && (Array.isArray(data) || "entries" in data)) {
+            onEvent({ type: "snapshot", entries: Array.isArray(data) ? data : data.entries as CallEntry[] });
+          } else if (type === "clear") {
+            onEvent({ type: "clear" });
+          }
         } catch { onConnection("reconnecting"); }
       });
       return () => events.close();

@@ -16,7 +16,7 @@ import { BaseElement } from "../../core/index.js";
 import {
   DESIGN_SYSTEM_CHANGE_EVENT,
   resolveDesignIllustration,
-} from "../../foundations/tokens/index.js";
+} from "../../foundations/tokens/registry.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 

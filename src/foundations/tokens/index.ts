@@ -13,7 +13,7 @@ export {
   resolveDesignSystemTokens,
   setActiveDesignSystem,
 } from "./registry.js";
-export { boxDefaultDesignSystem, registerBoxDefaultDesignSystem } from "./box-defaults.js";
+export { boxDefaultDesignSystem, preloadBoxDefaultIcons, registerBoxDefaultDesignSystem } from "./box-defaults.js";
 export { boxDarkDesignSystem, registerBoxDarkDesignSystem } from "./box-dark.js";
 export {
   boeBrandInteractiveStyles,

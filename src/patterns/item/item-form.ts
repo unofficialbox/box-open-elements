@@ -4,7 +4,7 @@ import {
   boeBrandInteractiveStyles,
   boeFocusVisibleStyles,
   boeNeutralInteractiveStyles,
-} from "../../foundations/tokens/index.js";
+} from "../../foundations/tokens/interaction.js";
 
 const DEFAULT_TAG_NAME = "box-item-form";
 

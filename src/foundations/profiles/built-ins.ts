@@ -57,6 +57,9 @@ export const boxDefaultDesignProfile: DesignProfileDefinition = {
       "inset 0 0 0 1px rgb(255 255 255 / 80%), 0 1px 2px rgb(0 0 0 / 10%)",
   },
   motion: {
+    arrival: "200ms",
+    panel: "320ms",
+    stagger: "50ms",
     fast: "120ms",
     interactive: "140ms",
     medium: "160ms",
@@ -66,6 +69,7 @@ export const boxDefaultDesignProfile: DesignProfileDefinition = {
     easingStandard: "ease",
     easingEnter: "ease-out",
     easingExit: "ease-in",
+    easingInOut: "ease-in-out",
     easingLinear: "linear",
   },
 };
@@ -120,6 +124,9 @@ export const compactNeutralDesignProfile: DesignProfileDefinition = {
     inputInset: "none",
   },
   motion: {
+    arrival: "160ms",
+    panel: "240ms",
+    stagger: "35ms",
     fast: "80ms",
     interactive: "100ms",
     medium: "140ms",
@@ -127,6 +134,7 @@ export const compactNeutralDesignProfile: DesignProfileDefinition = {
     easingStandard: "cubic-bezier(0.2, 0, 0, 1)",
     easingEnter: "cubic-bezier(0.16, 1, 0.3, 1)",
     easingExit: "cubic-bezier(0.7, 0, 0.84, 0)",
+    easingInOut: "cubic-bezier(0.65, 0, 0.35, 1)",
   },
 };
 

@@ -8,7 +8,7 @@ import {
   boeRadius,
   boeSpace,
 } from "../../foundations/geometry/index.js";
-import { boeNeutralInteractiveStyles } from "../../foundations/tokens/index.js";
+import { boeNeutralInteractiveStyles } from "../../foundations/tokens/interaction.js";
 
 const DEFAULT_TAG_NAME = "box-drawer";
 

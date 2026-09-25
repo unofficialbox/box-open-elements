@@ -12,6 +12,9 @@ describe("call console",()=>{
     const transport=createCallConsoleTransport();expect(await transport.snapshot(new AbortController().signal)).toEqual([entry]);
     const event=vi.fn(),state=vi.fn();const close=transport.subscribe(event,state);Events.instance.onopen?.();expect(state).toHaveBeenCalledWith("live");
     Events.instance.dispatchEvent(new MessageEvent("call",{data:JSON.stringify({type:"call",entry})}));expect(event).toHaveBeenCalledWith({type:"call",entry});
+    Events.instance.dispatchEvent(new MessageEvent("call",{data:JSON.stringify(entry)}));expect(event).toHaveBeenCalledWith({type:"call",entry});
+    Events.instance.dispatchEvent(new MessageEvent("snapshot",{data:JSON.stringify([entry])}));expect(event).toHaveBeenCalledWith({type:"snapshot",entries:[entry]});
+    Events.instance.dispatchEvent(new MessageEvent("clear",{data:"{}"}));expect(event).toHaveBeenCalledWith({type:"clear"});
     Events.instance.dispatchEvent(new MessageEvent("call",{data:"bad"}));expect(state).toHaveBeenCalledWith("reconnecting");Events.instance.onerror?.();
     await transport.clear();expect(fetcher).toHaveBeenCalledWith("/calls",{method:"DELETE"});close();expect(Events.instance.close).toHaveBeenCalled();
     fetcher.mockImplementation(async()=>({ok:false,status:404} as any));await expect(transport.snapshot(new AbortController().signal)).rejects.toThrow("404");await expect(transport.clear()).rejects.toThrow("404");
@@ -19,6 +22,10 @@ describe("call console",()=>{
   it("counts tool errors as failures and expected responses separately",()=>{
     expect(callFailed({...entry,rpcError:"tool"})).toBe(true);expect(callStatus({...entry,rpcError:"tool"})).toBe("Tool error");
     expect(callFailed({...entry,status:405,expected:"MCP"})).toBe(false);expect(callStatus({...entry,status:405,expected:"MCP"})).toBe("Expected");
+    expect(callFailed({...entry,status:302})).toBe(false);
+    expect(callFailed({...entry,status:0})).toBe(true);
+    expect(callFailed({...entry,pending:true,error:"network"})).toBe(true);
+    expect(callFailed({...entry,error:"network",expected:"known"})).toBe(false);
     expect(callStatus({...entry,pending:true})).toBe("Pending");expect(callStatus({...entry,error:"network"})).toBe("Failed");expect(callStatus(entry)).toBe("Done");
     expect(formatCallHttp(entry)).toContain("HTTP 200 OK");expect(formatCallHttp(entry,"request")).toContain("POST https://example.com");
   });
@@ -32,6 +39,19 @@ describe("call console",()=>{
     const errors=el.shadowRoot!.querySelector<HTMLInputElement>("#errors")!;errors.checked=true;errors.dispatchEvent(new Event("change"));
     expect(el.shadowRoot!.querySelectorAll('[part="call"]')).toHaveLength(1);expect(el.shadowRoot!.querySelector("#response")!.getAttribute("code")).toContain("isError");
     await c.clear();expect(c.entries).toEqual([]);c.destroy();expect(close).toHaveBeenCalled();
+  });
+  it("caps history and lets hosts label services, headings, and failures",async()=>{
+    const c=new CallConsoleController({snapshot:async()=>[entry,{...entry,id:"2"},{...entry,id:"3"}],subscribe:()=>()=>{},clear:async()=>{}},2);
+    const el=new CallConsole();el.heading="Activity";el.serviceLabels={Box:"Box API"};el.isFailed=e=>e.id==="2";el.callController=c;document.body.append(el);await c.connect();
+    expect(c.entries.map(e=>e.id)).toEqual(["1","2"]);
+    expect(el.shadowRoot!.querySelector("h2")?.textContent).toBe("Activity");
+    expect(el.shadowRoot!.querySelector('option[value="Box"]')?.textContent).toBe("Box API");
+    const errors=el.shadowRoot!.querySelector<HTMLInputElement>("#errors")!;errors.checked=true;errors.dispatchEvent(new Event("change"));
+    expect(el.shadowRoot!.querySelectorAll('[part="call"]')).toHaveLength(1);
+    expect(el.shadowRoot!.querySelector("#metadata")?.textContent).toContain("Box API");
+    el.setAttribute("hide-heading","");expect(el.shadowRoot!.querySelector<HTMLElement>('[part="heading"]')?.hidden).toBe(true);
+    c.apply({type:"call",entry:{...entry,id:"4"}});expect(c.entries.map(e=>e.id)).toEqual(["4","1"]);
+    c.destroy();
   });
   it("reports absent endpoints and aborts stale connect results",async()=>{
     const c=new CallConsoleController({snapshot:async()=>{throw new Error("404");},subscribe:()=>()=>{},clear:async()=>{}});await c.connect();expect(c.connection).toBe("unavailable");

@@ -1,6 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { boeRadius } from "../../foundations/geometry/index.js";
-import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
+import { boeFocusVisibleStyles } from "../../foundations/tokens/interaction.js";
 
 const DEFAULT_TAG_NAME = "box-code-block";
 

@@ -34,6 +34,9 @@ export interface AgentActionProposal {
   outcome?: "done" | "failed";
   resolving?: AgentActionDecision;
   note?: string;
+  details?: Array<{ label: string; value: string; href?: string }>;
+  /** A failed approval request is kept with its proposal so the error appears at the decision point. */
+  resolveError?: string;
 }
 
 export interface AgentChatMessage {

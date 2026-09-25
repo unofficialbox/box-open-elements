@@ -9,7 +9,7 @@ import { BaseElement } from "../../../core/index.js";
 import {
   boeFocusVisibleStyles,
   boeNeutralInteractiveStyles,
-} from "../../../foundations/tokens/index.js";
+} from "../../../foundations/tokens/interaction.js";
 import { boeMotionDuration, boeMotionEasing } from "../../../foundations/motion/index.js";
 import { boePanel, boeRadius } from "../../../foundations/geometry/index.js";
 

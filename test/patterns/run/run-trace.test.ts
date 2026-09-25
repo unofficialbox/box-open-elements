@@ -59,7 +59,16 @@ describe("RunTrace", () => {
 
   it("renders the finished step's duration", () => {
     const element = create();
-    expect(stepEls(element)[0]?.querySelector('[part="duration"]')?.textContent).toBe("42s");
+    expect(stepEls(element)[0]?.querySelector('[part="duration"]')?.textContent).toBe("42 s");
+  });
+
+  it("renders a plain nested trace with source and inline detail", () => {
+    const element = create([{id:"file",title:"Box · get_file",description:"Read content",status:"succeeded",startedAt:"2026-08-22T10:00:00Z",finishedAt:"2026-08-22T10:00:00.400Z"}]);
+    element.setAttribute("variant","plain");
+    expect(element.shadowRoot?.querySelector('[part="step-source"]')?.textContent).toBe("Box");
+    expect(element.shadowRoot?.querySelector('[part="step-title"]')?.textContent).toBe("get_file");
+    expect(element.shadowRoot?.querySelector('[part="duration"]')?.textContent).toBe("0.4 s");
+    expect(element.shadowRoot?.querySelector<HTMLElement>('[part="detail"]')?.hidden).toBe(false);
   });
 
   it("only settles a completed glyph when its status changes", () => {

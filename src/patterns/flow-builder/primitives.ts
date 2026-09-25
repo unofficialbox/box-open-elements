@@ -1,5 +1,5 @@
 import { BaseElement } from "../../core/index.js";
-import { boeFocusVisibleStyles } from "../../foundations/tokens/index.js";
+import { boeFocusVisibleStyles } from "../../foundations/tokens/interaction.js";
 import { cardLabel, defaultFlowModel, insertLabel, nodeDescription, nodeTitle, type FlowBranchRequestDetail, type FlowInsertDetail, type FlowKind, type FlowModel, type FlowNodeBase } from "./model.js";
 
 const styles = `
