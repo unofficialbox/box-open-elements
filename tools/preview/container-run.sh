@@ -22,11 +22,26 @@ set -euo pipefail
 IMAGE="mcr.microsoft.com/playwright:v1.61.1-noble"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 CMD="${*:?usage: container-run.sh <command>}"
-DOCKER_ARCH="$(docker info --format '{{.Architecture}}')"
-BUN_CACHE_VOLUME="boe-bun-cache-${DOCKER_ARCH//[^a-zA-Z0-9_.-]/-}"
+
+# Resolve the container platform once and use it for both `--platform` and the
+# Bun cache key, so the cached Bun binary always matches the container that runs
+# it. Honour DOCKER_DEFAULT_PLATFORM (e.g. linux/amd64 on an ARM Mac, as
+# CONTRIBUTING.md recommends); otherwise fall back to the daemon's native arch.
+if [[ -n "${DOCKER_DEFAULT_PLATFORM:-}" ]]; then
+  PLATFORM="$DOCKER_DEFAULT_PLATFORM"
+else
+  case "$(docker info --format '{{.Architecture}}')" in
+    x86_64 | amd64) PLATFORM="linux/amd64" ;;
+    aarch64 | arm64) PLATFORM="linux/arm64" ;;
+    *) PLATFORM="linux/$(docker info --format '{{.Architecture}}')" ;;
+  esac
+fi
+PLATFORM_ARCH="${PLATFORM#*/}"
+BUN_CACHE_VOLUME="boe-bun-cache-${PLATFORM_ARCH//[^a-zA-Z0-9_.-]/-}"
 
 docker_args=(
   --rm --init
+  --platform "$PLATFORM"
   --ipc=host
   -v "$REPO_ROOT:/work"
   # Bun installs architecture-specific binaries. Keep caches separated so a
@@ -43,7 +58,7 @@ docker_args=(
 # target (linux-x64); on macOS/ARM the ELF binary would fail exec-format, so let
 # the container install its own Bun instead.
 HOST_BUN="$(command -v bun || true)"
-if [[ -n "$HOST_BUN" && "$(uname -s)" == "Linux" && "$(uname -m)" == "x86_64" ]]; then
+if [[ -n "$HOST_BUN" && "$(uname -s)" == "Linux" && "$(uname -m)" == "x86_64" && "$PLATFORM_ARCH" == "amd64" ]]; then
   docker_args+=(-v "$HOST_BUN:/usr/local/bin/bun:ro")
 fi
 
