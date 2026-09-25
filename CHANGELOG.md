@@ -15,6 +15,8 @@ are kept as written.
 
 ## Unreleased
 
+## 0.22.0 — 2026-09-24
+
 ### Flow builder: host-shaped documents
 
 - `box-flow-builder` reads documents through a `model` (`children`, `title`,
