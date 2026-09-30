@@ -97,3 +97,13 @@ The docs site runs at `http://localhost:4600`, with the editor under Forms and
 process modeler under Builders. Physical touch, Safari and a real screen-reader
 session remain release follow-up checks, not claimed verified by DOM automation.
 Review and commit this batch before closing the GitHub issues.
+
+## Pull Request Verification
+
+On 2026-09-30, PR #300 passed CI verification and strict conformance. The first
+pixel gate reported 18 changed baselines. All diff images were reviewed: new
+catalog entries shift navigation and related links, sentence-case progress and
+metric labels alter text widths, and alert dismissal contrast becomes darker.
+Only those 18 baselines were adopted from CI run 36706050758's fresh-captures
+artifact, rendered in the gate's pinned Playwright container. Thresholds and
+capture tooling were not changed. A second CI run must pass before merge.
