@@ -29,7 +29,9 @@ Every claim resolves to one of:
 - 🎯 **intentional/accepted divergence** — deliberately differs, with the
   divergence *vouched for*: geometry claims marked `intentional` track the
   live Box app's pill radii; colour claims carry a `webappToken` and pass only
-  if the box-open-elements value matches the live-Box capture. Passes strict.
+  if the box-open-elements value matches the live-Box capture. Explicit
+  issue-linked accessibility rationales may also accept a legacy mismatch.
+  Both still require present source anchors and upstream rules. Passes strict.
 - 🔍 **review** — an unvouched difference. Fails strict CI; a review row must
   be either confirmed against the live Box app (add `webappToken`) or fixed.
 - ⚠️/🚫 **missing** — a stale anchor on either side. Fails strict CI.
@@ -43,12 +45,14 @@ When broadening raises the conformant count, bump the floor to match in
 ## Current coverage (2026-08-11)
 
 - **Layer 1 geometry:** 17 claims — 11 conformant, 6 intentional (pill radii).
-- **Layer 2 colour:** 72 claims across 25 component families — 63 conformant,
-  9 accepted-divergence, 0 review. Floor: 63.
+- **Layer 2 colour:** 64 claims — 54 conformant, 10 accepted-divergence,
+  0 review. Floor: 54. Two accepted differences are explicit accessibility
+  improvements from #287: separated, visible button focus rings replace the
+  legacy shadows. Missing anchors or upstream rules still fail the audit.
 - **Webapp:** 25 tokens (24 conformant + 1 accepted), 6/6 geometry,
   4 interaction states (3 conformant + 1 accepted).
 
-The accepted colour divergences are all confirmed Blueprint modernisations the
+Eight accepted colour divergences are confirmed Blueprint modernisations the
 legacy Storybook hasn't caught up to: the brand hover (`#006ae9` vs legacy
 `#0074fe`), secondary text (`#6f6f6f` vs `#4e4e4e`/`#909090` — neutral-button
 text, alert outline, breadcrumb links), the secondary surface (`#fbfbfb` vs

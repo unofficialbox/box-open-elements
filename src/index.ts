@@ -262,3 +262,4 @@ export * from "./foundations/status/index.js";
 export * from "./patterns/run/progress.js";
 export * from "./patterns/undo/index.js";
 export * from "./patterns/flow-builder/index.js";
+export * from "./patterns/process-modeler/index.js";

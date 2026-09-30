@@ -27,6 +27,7 @@ export const catalog: CatalogEntry[] = [
   ...c("Files", ["drop-zone"]),
   ...c("Output", ["formatted-date", "formatted-duration", "relative-time", "formatted-number", "formatted-file-size", "code-block"]),
   ...c("Forms", [
+    "code-editor",
     "calendar", "category-selector", "checkbox", "checkbox-group", "color-picker", "combobox", "date-field", "dropdown",
     "dual-listbox", "multi-select", "number-input", "radio-group", "range-slider", "rating",
     "fieldset", "pill-cloud", "pill-selector-dropdown", "rich-text-input", "search-field", "select", "slider", "spin-button", "switch",
@@ -72,7 +73,7 @@ export const catalog: CatalogEntry[] = [
   ...p("Task", ["task-assignment-panel", "review-queue-item"]),
   ...p("Governance", ["governance-panel"]),
   ...p("Insights", ["metric-card", "chart-panel", "bar-chart", "line-chart", "donut-chart"]),
-  ...p("Builders", ["flow-builder"]),
+  ...p("Builders", ["flow-builder", "process-modeler"]),
 ];
 
 export const titleOf = (id: string): string =>

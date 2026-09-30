@@ -133,7 +133,7 @@ const alertStyles = `
     border: 0;
     border-radius: ${boeRadius.med};
     background: transparent;
-    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    color: var(--boe-token-text-text, #222222);
     font: inherit;
     font-size: 13px;
     font-weight: 700;

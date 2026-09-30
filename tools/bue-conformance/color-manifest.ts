@@ -102,6 +102,8 @@ export interface ColorClaim {
    * unverified drift. Omit when there is no corresponding capture.
    */
   webappToken?: string;
+  /** Explicit accessibility improvement over legacy styling, with issue evidence. */
+  accessibilityRationale?: string;
 }
 
 const BUTTON = "src/components/actions/button.ts";
@@ -196,11 +198,12 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
   {
     id: "button.primary.focus.shadow",
     surface: "button/primary",
-    boeConst: "boeControl.primaryFocusShadow",
-    boeValue: boeControl.primaryFocusShadow,
+    boeConst: "button.ts accessible :focus-visible box-shadow",
+    boeValue: "0 0 0 2px var(--boe-token-surface-surface, #ffffff), 0 0 0 5px var(--boe-token-surface-surface-brand, #0061d5)",
     kind: "shadow",
     boeComponent: BUTTON,
-    boeAnchor: "box-shadow: ${boeControl.primaryFocusShadow}",
+    boeAnchor: "box-shadow: 0 0 0 2px var(--boe-token-surface-surface, #ffffff), 0 0 0 5px var(--boe-token-surface-surface-brand, #0061d5)",
+    accessibilityRationale: "Issue #287: a separated three-pixel brand ring replaces the subtle legacy focus shadow in light and dark themes.",
     upstream: { selector: ".btn-primary", state: "focus", property: "box-shadow" },
     tolerance: 0,
     citation: ".btn-primary:focus box-shadow",
@@ -286,10 +289,11 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     id: "button.neutral.focus.shadow",
     surface: "button/neutral",
     boeConst: "button.ts neutral :focus-visible box-shadow",
-    boeValue: "0 1px 2px rgb(0 0 0 / 10%)",
+    boeValue: "0 0 0 2px var(--boe-token-surface-surface, #ffffff), 0 0 0 5px var(--boe-token-surface-surface-brand, #0061d5)",
     kind: "shadow",
     boeComponent: BUTTON,
-    boeAnchor: "box-shadow: 0 1px 2px rgb(0 0 0 / 10%)",
+    boeAnchor: "box-shadow: 0 0 0 2px var(--boe-token-surface-surface, #ffffff), 0 0 0 5px var(--boe-token-surface-surface-brand, #0061d5)",
+    accessibilityRationale: "Issue #287: use the same visible separated focus ring for every button tone.",
     upstream: { selector: ".btn", state: "focus", property: "box-shadow" },
     tolerance: 0,
     citation: ".btn:focus box-shadow",

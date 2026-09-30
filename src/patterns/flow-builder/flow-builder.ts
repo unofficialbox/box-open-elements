@@ -1,5 +1,6 @@
 import { BaseElement } from "../../core/index.js";
 import { Drawer } from "../../components/overlays/drawer.js";
+Drawer.register();
 import { announce } from "../../foundations/a11y/index.js";
 import { defaultFlowModel, nodeAtPath, nodeDescription, nodeTitle, type FlowInsertDetail, type FlowKind, type FlowModel, type FlowNode, type FlowNodeBase, type NodePath } from "./model.js";
 import { FLOW_SPINE_PARTS, FlowSpine, InsertPoint, KIND_PICKER_PARTS, KindPicker } from "./primitives.js";
@@ -45,7 +46,9 @@ export class FlowBuilder<N extends FlowNodeBase = FlowNode> extends BaseElement 
   private drawer!: Drawer;
   private error!: HTMLElement;
 
-  static get observedAttributes(): string[] { return ["start-label", "end-label"]; }
+  static get observedAttributes(): string[] { return ["start-label", "end-label", "heading-level"]; }
+  get headingLevel(): number { const level = Number(this.getAttribute("heading-level") ?? 2); return Number.isInteger(level) && level >= 1 && level <= 6 ? level : 2; }
+  set headingLevel(value: number) { this.setAttribute("heading-level", String(value)); }
 
   get nodes(): N[] { return this.nodesValue; }
   set nodes(value: N[]) { this.nodesValue = value; this.refresh(); }
@@ -95,15 +98,15 @@ export class FlowBuilder<N extends FlowNodeBase = FlowNode> extends BaseElement 
     this.shadowRoot!.innerHTML = `<style>
       :host{display:block;min-width:0;font:inherit;color:var(--boe-token-text-text,#222)}
       :host([hidden]){display:none!important}
-      [part=layout]{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,320px);gap:24px;align-items:start}
+      [part=layout]{display:grid;grid-template-columns:minmax(0,1fr) minmax(var(--boe-flow-inspector-min-width,240px),var(--boe-flow-inspector-width,320px));gap:24px;align-items:start}
       [part=layout][data-narrow=true]{grid-template-columns:minmax(0,1fr)}
-      aside{min-width:0;padding:16px;border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:12px;background:var(--boe-token-surface-surface,#fff)}
+      [part=inspector]{min-width:0;position:sticky;top:var(--boe-flow-inspector-top,16px);max-height:calc(100dvh - var(--boe-flow-inspector-top,16px) - 16px);overflow:auto;box-sizing:border-box;padding:16px;border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:12px;background:var(--boe-token-surface-surface,#fff)}
       [part=picker-popup]{position:fixed;z-index:1000;max-width:min(360px,calc(100vw - 24px));max-height:65vh;overflow:auto;padding:16px;background:var(--boe-token-surface-surface,#fff);border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:12px;box-shadow:0 8px 32px #0003}
       [part=error]{color:var(--boe-token-text-status-text-error,#b92340);margin-bottom:16px;overflow-wrap:anywhere}
-      [hidden]{display:none!important} h2{font:inherit;font-weight:650;margin:0 0 12px}
-      </style><div part="error" hidden></div><div part="layout"><box-flow-spine exportparts="${FLOW_SPINE_PARTS.join(", ")}"></box-flow-spine><aside part="inspector"><box-kind-picker exportparts="${KIND_PICKER_PARTS.join(", ")}"></box-kind-picker><div part="editor"></div></aside></div><div part="picker-popup" hidden><box-kind-picker exportparts="${KIND_PICKER_PARTS.join(", ")}"></box-kind-picker></div><box-drawer position="bottom" size="large"></box-drawer>`;
+      [hidden]{display:none!important} [part=inspector-heading]{font:inherit;font-weight:650;margin:0 0 12px}
+      </style><div part="error" hidden></div><div part="layout"><box-flow-spine exportparts="${FLOW_SPINE_PARTS.join(", ")}"></box-flow-spine><div part="inspector" role="region" aria-label="Add a step"><box-kind-picker exportparts="${KIND_PICKER_PARTS.join(", ")}"></box-kind-picker><div part="editor"></div></div></div><div part="picker-popup" hidden><box-kind-picker exportparts="${KIND_PICKER_PARTS.join(", ")}"></box-kind-picker></div><box-drawer position="bottom" size="large"></box-drawer>`;
     this.spine = this.shadowRoot!.querySelector("box-flow-spine")!;
-    this.aside = this.shadowRoot!.querySelector("aside")!;
+    this.aside = this.shadowRoot!.querySelector("[part=inspector]")!;
     this.palette = this.aside.querySelector("box-kind-picker")!;
     this.inspector = this.aside.querySelector("[part=editor]")!;
     this.popup = this.shadowRoot!.querySelector("[part=picker-popup]")!;
@@ -192,17 +195,19 @@ export class FlowBuilder<N extends FlowNodeBase = FlowNode> extends BaseElement 
   }
   protected update(): void {
     this.spine.nodes = this.nodes; this.spine.catalog = this.catalog; this.spine.model = this.model;
+    this.spine.headingLevel = Math.min(6, this.headingLevel + 1);
     this.spine.startLabel = this.startLabel; this.spine.endLabel = this.endLabel;
     this.spine.selected = this.selected; this.spine.invalid = this.invalidValue; this.spine.refresh();
     this.palette.catalog = this.catalog; this.palette.refresh();
     this.updateInspector();
   }
   private updateInspector(): void {
+    this.aside.setAttribute("aria-label", this.selected ? "Step editor" : "Add a step");
     this.aside.hidden = this.narrow;
     this.palette.hidden = Boolean(this.selected);
     const target = this.narrow ? this.drawer : this.aside;
     if (this.inspector.parentElement !== target) target.append(this.inspector);
-    if (this.inspected === this.selected && this.renderedRenderer === this.renderer) {
+    if (this.inspected === this.selected && this.renderedRenderer === this.renderer && (!this.selected || this.headingEl?.tagName === `H${this.headingLevel}`)) {
       this.drawer.open = this.narrow && Boolean(this.selected);
       return;
     }
@@ -211,7 +216,7 @@ export class FlowBuilder<N extends FlowNodeBase = FlowNode> extends BaseElement 
     this.inspected = this.selected;
     this.renderedRenderer = this.renderer;
     if (this.selected) {
-      const heading = document.createElement("h2"); heading.setAttribute("part", "inspector-heading"); heading.textContent = nodeTitle(this.selected, this.catalog, this.model); this.inspector.append(heading); this.headingEl = heading;
+      const heading = document.createElement(`h${this.headingLevel}`); heading.setAttribute("part", "inspector-heading"); heading.textContent = nodeTitle(this.selected, this.catalog, this.model); this.inspector.append(heading); this.headingEl = heading;
       if (this.renderer) this.cleanupInspector = this.renderer(this.selected, this.inspector) || undefined;
       else { const description = document.createElement("p"); description.textContent = nodeDescription(this.selected, this.catalog, this.model) || "Select a step to inspect its configuration."; this.inspector.append(description); }
       this.drawer.heading = nodeTitle(this.selected, this.catalog, this.model);

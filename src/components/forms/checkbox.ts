@@ -1,6 +1,7 @@
 import {
   FormAssociatedElement,
   boeFormFieldErrorStyles,
+  boeFormFieldSupportStyles,
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
@@ -93,13 +94,14 @@ const checkboxStyles = `
   }
 
   ${boeFormFieldErrorStyles}
+  ${boeFormFieldSupportStyles}
 `;
 
 export class Checkbox extends FormAssociatedElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
-      ...FormAssociatedElement.formObservedAttributes,
+      ...FormAssociatedElement.fieldObservedAttributes,
       "checked",
       "description",
       "disabled",
@@ -317,6 +319,7 @@ export class Checkbox extends FormAssociatedElement {
     }
     this.inputEl.setAttribute("aria-label", this.label);
     this.labelEl.textContent = this.label;
+    this.applyFieldSupport(this.labelEl, this.inputEl, null);
 
     const description = this.description;
     if (description) {

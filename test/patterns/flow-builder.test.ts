@@ -6,6 +6,30 @@ const catalog: FlowKind[] = [
 ];
 afterEach(() => { document.body.innerHTML = ""; vi.restoreAllMocks(); });
 describe("flow-builder", () => {
+  it("registers the drawer, uses named inspector regions and exposes sticky size tokens", () => {
+    expect(customElements.get("box-drawer")).toBeDefined();
+    const builder = new FlowBuilder(); document.body.append(builder);
+    expect(builder.shadowRoot!.querySelector("aside")).toBeNull();
+    const region = builder.shadowRoot!.querySelector("[part=inspector]")!;
+    expect(region.getAttribute("role")).toBe("region");
+    expect(region.getAttribute("aria-label")).toBe("Add a step");
+    builder.selected = { kind: "call" };
+    expect(region.getAttribute("aria-label")).toBe("Step editor");
+    builder.headingLevel = 4;
+    expect(builder.shadowRoot!.querySelector("h4[part=inspector-heading]")).not.toBeNull();
+    expect(builder.shadowRoot!.querySelector("style")!.textContent).toContain("--boe-flow-inspector-width");
+    expect(builder.shadowRoot!.querySelector("style")!.textContent).toContain("position:sticky");
+  });
+  it("resolves card presentation from the host model without rewriting node kind", () => {
+    const node = { kind: "step" };
+    const model: FlowModel = { children: () => [], kind: () => "call" };
+    expect(cardLabel(node, catalog, false, model)).toBe("Call API. Calls an endpoint");
+    const card = new FlowCard(); card.node = node; card.model = model; card.catalog = catalog;
+    document.body.append(card);
+    expect(card.shadowRoot!.querySelector("[part=title]")!.textContent).toBe("Call API");
+    expect(card.shadowRoot!.querySelector("[part=icon] svg")).not.toBeNull();
+    expect(node.kind).toBe("step");
+  });
   it("names cards and insertion points without duplicate kind text", () => {
     const nodes: FlowNode[] = [{ kind: "call", title: "Upload" }, { kind: "wait" }];
     expect(cardLabel(nodes[1], catalog)).toBe("Wait. Pauses the flow");
@@ -21,8 +45,11 @@ describe("flow-builder", () => {
   it("renders nested named branches, selection and errors", () => {
     const spine = new FlowSpine(); const node = { kind: "call", title: "Upload" };
     spine.nodes = [{ kind: "parallel", branches: [{ label: "On success", body: [node] }] }]; spine.catalog = catalog;
+    spine.headingLevel = 5;
     document.body.append(spine);
     expect(spine.shadowRoot!.querySelector('[aria-label="On success"]')).not.toBeNull();
+    expect(spine.shadowRoot!.querySelector('h5[part=branch-label]')).not.toBeNull();
+    expect(spine.shadowRoot!.querySelector('style')!.textContent).toContain('[part=branch-label]{font:inherit');
     const point = spine.shadowRoot!.querySelector<InsertPoint>("box-insert-point")!;
     expect(point.shadowRoot!.querySelector("button")!.getAttribute("aria-label")).toContain("before");
     expect(point.shadowRoot!.querySelector("button")!.textContent).toBe("+");
@@ -130,7 +157,7 @@ describe("flow-builder", () => {
       builder.setAttribute("start-label", "Iteration starts"); builder.endLabel = "Iteration ends";
       expect(Array.from(spine.shadowRoot!.querySelectorAll("[part=endpoint]")).map(e => e.textContent)).toEqual(["Iteration starts", "Iteration ends"]);
       expect(cardFor(spine, pause).shadowRoot!.querySelector<HTMLElement>("[part=icon]")!.dataset.tone).toBe("neutral");
-      const palette = builder.shadowRoot!.querySelector<KindPicker>("aside box-kind-picker")!;
+      const palette = builder.shadowRoot!.querySelector<KindPicker>("[part=inspector] box-kind-picker")!;
       const tones = Array.from(palette.shadowRoot!.querySelectorAll<HTMLElement>("[part=choice-icon]")).map(icon => icon.dataset.tone);
       expect(tones).toEqual(["accent", "neutral"]);
       expect(palette.shadowRoot!.querySelector("[part=choice-icon] svg")).not.toBeNull();
@@ -141,7 +168,7 @@ describe("flow-builder", () => {
       const exported = builder.shadowRoot!.querySelector("box-flow-spine")!.getAttribute("exportparts")!;
       for (const part of ["card", "icon", "title", "description", "branch-add", "branch-remove", "insert", "endpoint"]) expect(exported).toContain(part);
       expect(spine.shadowRoot!.querySelector("box-flow-card")!.getAttribute("exportparts")).toContain("icon");
-      expect(builder.shadowRoot!.querySelector("aside box-kind-picker")!.getAttribute("exportparts")).toContain("choice-icon");
+      expect(builder.shadowRoot!.querySelector("[part=inspector] box-kind-picker")!.getAttribute("exportparts")).toContain("choice-icon");
     });
 
     it("marks validation without its own message when the host shows the error", () => {

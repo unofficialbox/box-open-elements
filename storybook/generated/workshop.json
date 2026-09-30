@@ -344,6 +344,88 @@
       ]
     },
     {
+      "id": "code-editor",
+      "tag": "box-code-editor",
+      "title": "Components/Forms/Code Editor",
+      "category": "Forms",
+      "shortDescription": "An optional CodeMirror editor for host-owned code.",
+      "docsDescription": "Import the code-editor entrypoint. Supply value, language, problems and completions; listen to value-changed. Escape then Tab leaves the editor.",
+      "sourceSnippet": "<box-code-editor label=\"Workflow code\" language=\"typescript\"></box-code-editor>",
+      "referenceRows": [
+        {
+          "kind": "property",
+          "name": "value",
+          "type": "string",
+          "description": "Controlled source text. Programmatic changes do not emit events."
+        },
+        {
+          "kind": "property",
+          "name": "problems",
+          "type": "CodeProblem[]",
+          "description": "One-based diagnostics with error, warning or info tone."
+        },
+        {
+          "kind": "property",
+          "name": "completions",
+          "type": "CodeCompletion[]",
+          "description": "Host-owned completion candidates."
+        },
+        {
+          "kind": "event",
+          "name": "value-changed",
+          "type": "{ value: string }",
+          "description": "Debounced edits, flushed on blur."
+        }
+      ],
+      "variants": [
+        {
+          "name": "TypeScript workflow",
+          "html": "<box-code-editor label=\"Workflow code\" language=\"typescript\"></box-code-editor>"
+        }
+      ]
+    },
+    {
+      "id": "process-modeler",
+      "tag": "box-process-modeler",
+      "title": "Patterns/Builders/Process Modeler",
+      "category": "Builders",
+      "shortDescription": "A diagram canvas that projects a host-owned document.",
+      "docsDescription": "Pass document, model, catalog and layout. Accept or refuse process-edit-request in your host; retain layout separately from workflow data.",
+      "sourceSnippet": "<box-process-modeler snap-to-grid></box-process-modeler>",
+      "referenceRows": [
+        {
+          "kind": "property",
+          "name": "model",
+          "type": "ProcessModel",
+          "description": "Projects a host document as boxes and lines."
+        },
+        {
+          "kind": "property",
+          "name": "layout",
+          "type": "ProcessLayout",
+          "description": "Serializable positions, sizes, notes and hand-adjusted lines."
+        },
+        {
+          "kind": "event",
+          "name": "process-edit-request",
+          "type": "ProcessEditRequest",
+          "description": "Host applies an edit and accepts its undo/redo callbacks, or refuses it."
+        },
+        {
+          "kind": "event",
+          "name": "layout-changed",
+          "type": "{ layout }",
+          "description": "Accepted layout edit or history replay."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Editable workflow",
+          "html": "<box-process-modeler snap-to-grid></box-process-modeler>"
+        }
+      ]
+    },
+    {
       "id": "access-stats",
       "tag": "box-access-stats",
       "title": "Patterns/Share/Access Stats",

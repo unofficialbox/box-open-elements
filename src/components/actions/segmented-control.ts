@@ -96,6 +96,7 @@ export class SegmentedControl extends BaseElement {
 
   private valueInternal = "";
   private controlEl!: HTMLElement;
+  private renderedOptions = "";
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -140,7 +141,8 @@ export class SegmentedControl extends BaseElement {
   }
 
   set options(value: SegmentedControlOption[]) {
-    this.setAttribute("options", JSON.stringify(value));
+    const serialized = JSON.stringify(value);
+    if (serialized !== this.getAttribute("options")) this.setAttribute("options", serialized);
   }
 
   get value(): string {
@@ -148,11 +150,8 @@ export class SegmentedControl extends BaseElement {
   }
 
   set value(nextValue: string) {
-    this.valueInternal = nextValue;
+    if (nextValue === this.valueInternal) return;
     this.setAttribute("value", nextValue);
-    if (this.isRendered) {
-      this.update();
-    }
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
@@ -240,7 +239,20 @@ export class SegmentedControl extends BaseElement {
     this.controlEl.setAttribute("aria-label", this.label);
     this.controlEl.setAttribute("aria-disabled", String(this.disabled));
 
-    // Rebuild segments (count may change)
+    const serialized = JSON.stringify(options);
+    if (serialized === this.renderedOptions) {
+      this.controlEl.querySelectorAll<HTMLButtonElement>('[part="segment"]').forEach((button, index) => {
+        const selected = options[index].value === selectedValue;
+        button.dataset.layout = this.layout;
+        button.dataset.selected = String(selected);
+        button.setAttribute("aria-checked", String(selected));
+        button.tabIndex = selected ? 0 : -1;
+        button.disabled = this.disabled || Boolean(options[index].disabled);
+      });
+      return;
+    }
+    this.renderedOptions = serialized;
+    // Rebuild only when the options themselves change.
     this.controlEl.innerHTML = options
       .map((option, index) => {
         const position =

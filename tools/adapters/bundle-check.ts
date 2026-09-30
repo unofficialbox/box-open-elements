@@ -29,12 +29,21 @@ const direct = await bundle(`export { Button } from "${root}/packages/react/dist
 const barrel = await bundle(`export { Button } from "${root}/packages/react/dist/index.js";`);
 const coreButton = await bundle(`export { Button } from "${root}/dist/entries/button.js";`);
 const coreRoot = await bundle(`import "${root}/dist/index.js";`);
+if (coreRoot.code.includes("box-code-editor") || coreButton.code.includes("CodeMirror")) throw new Error("Optional code editor leaked into ordinary component imports");
 const themedButton = await bundle(`
   import { Button } from "${root}/dist/entries/button.js";
   import { createThemeController } from "${root}/dist/foundations/theming/controller.js";
   createThemeController().start();
   export { Button };
 `, true);
+const themedGlyphs = await bundle(`
+  import { Button } from "${root}/dist/entries/button.js";
+  import { createThemeController } from "${root}/dist/foundations/theming/controller.js";
+  export { iconCloud, iconFolder, iconPlus } from "${root}/dist/foundations/icons/glyphs/index.js";
+  createThemeController().start();
+  export { Button };
+`, true);
+if (themedGlyphs.bytes > 100_000 || themedGlyphs.code.includes("boxGeneratedIcons")) throw new Error("Named glyphs pulled the lazy registry into the entry chunk");
 if (glyph.bytes >= icons.bytes / 10) throw new Error("A glyph retained the icon registry");
 if (barrel.code.includes("box-toast") || barrel.code.includes("box-drawer") || barrel.code.includes("box-select")) throw new Error("React root retained unused wrappers");
 if (!barrel.code.includes("box-button") || !barrel.code.includes(".define(")) throw new Error("Used element registration was removed");
@@ -45,4 +54,4 @@ for (const tag of ["box-button", "box-card", "box-content-uploader", "box-flow-b
 if (barrel.bytes > direct.bytes * 1.05) throw new Error("Root import costs more than the direct wrapper");
 if (themedButton.bytes > 80_000 || themedButton.code.includes("boxGeneratedIcons")) throw new Error("A component with the theme controller retained the full icon registry in its entry chunk");
 if (!themedButton.chunks.some(chunk => chunk.bytes > 600_000)) throw new Error("The lazy icon registry chunk was not emitted");
-console.table(Object.fromEntries(Object.entries({ glyph, icons, direct, barrel, coreButton, coreRoot, themedButton }).map(([key, value]) => [key, { bytes: value.bytes, gzip: value.gzip }])));
+console.table(Object.fromEntries(Object.entries({ glyph, icons, direct, barrel, coreButton, coreRoot, themedButton, themedGlyphs }).map(([key, value]) => [key, { bytes: value.bytes, gzip: value.gzip }])));

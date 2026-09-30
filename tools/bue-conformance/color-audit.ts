@@ -352,6 +352,10 @@ export function evaluate(
       delta: comparison.delta,
       note: comparison.note,
     };
+    if (row.verdict === "review" && claim.accessibilityRationale) {
+      row.verdict = "accepted-divergence";
+      row.note = claim.accessibilityRationale;
+    }
     const crossRef = crossReferenceWebapp(row, webappTokens);
     if (crossRef.verdict !== row.verdict) {
       row.verdict = crossRef.verdict;
@@ -432,7 +436,8 @@ export function renderMarkdown(rows: Row[], bundles: string[]): string {
       "legacy component styles. Where a resolved difference matches the live-Box-app " +
       "capture in `docs/audits/box-webapp-reference.data.json` (Layer 2's stronger " +
       "ground truth), the audit auto-labels it `🎯 Accepted divergence` — a confirmed " +
-      "modernisation, not drift. Anything else that differs is `🔍 Review`: **not** an " +
+      "modernisation, not drift. Explicit, issue-linked accessibility improvements " +
+      "are also accepted and identified in each row. Anything else that differs is `🔍 Review`: **not** an " +
       "assertion of a defect, but a resolved difference with no live-Box confirmation " +
       "yet, for a human to judge. Both resolved values and the channel delta are shown " +
       "so that judgement needs no browser.",
