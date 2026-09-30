@@ -15,6 +15,38 @@ are kept as written.
 
 ## Unreleased
 
+## 0.24.0 — 2026-09-30
+
+### Editor and process-modeling surfaces
+
+- Add the optional `box-code-editor` entrypoint with CodeMirror 6, Go and
+  TypeScript highlighting, host completions and diagnostics, debounced edits,
+  read-only mode, selection controls, and keyboard escape instructions.
+  Existing root consumers do not import CodeMirror.
+- Add a host-owned process modeler with projected boxes, frames and connections,
+  searchable catalog, inspector, pan/zoom, minimap, snapping, validation, locking,
+  and shared undo/redo for layout and accepted document edits.
+- Include owning documentation, Storybook examples, and live catalog demos.
+
+### Component and accessibility repairs
+
+- Strengthen button focus visibility, use sentence-case progress and metric
+  labels, preserve segmented-control focus during controlled updates, and
+  improve alert dismissal contrast.
+- Separate form descriptions from accessible names, synchronize shared React
+  field props, and keep number inputs within narrow hosts.
+- Let flow models resolve catalog presentation independently of stored kinds;
+  register the responsive drawer, expose sticky inspector sizing, and use named
+  inspector regions with configurable heading levels.
+
+### Selective icons and verification
+
+- Separate named glyph constants from the lazy registry so themed selective
+  imports no longer pull in the full icon inventory.
+- Cover issues #287 through #299 with focused regression tests, full framework
+  and SSR verification, bundle checks, conformance checks, and reviewed visual
+  baselines. React, Angular, Vue, and Svelte adapters ship at 0.24.0 in lockstep.
+
 ## 0.23.0 — 2026-09-24
 
 ### Agent UI and developer tooling
