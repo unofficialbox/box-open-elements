@@ -59,7 +59,7 @@ const elementStyles = `
           font-size: 0.76rem;
           font-weight: 700;
           letter-spacing: 0.08em;
-          text-transform: uppercase;
+          text-transform: none;
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
@@ -88,7 +88,7 @@ const elementStyles = `
           font-size: 0.74rem;
           font-weight: 700;
           letter-spacing: 0.05em;
-          text-transform: uppercase;
+          text-transform: none;
         }
 
         [part="value"] {

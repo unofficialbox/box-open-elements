@@ -46,6 +46,9 @@ const numberInputStyles = `
   }
 
   [part="input"] {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     font: inherit;
     color: var(--boe-token-text-text, #222222);
     padding: 0.45rem 0.7rem;
@@ -76,7 +79,7 @@ export class NumberInput extends FormAssociatedElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
-      ...FormAssociatedElement.formObservedAttributes,
+      ...FormAssociatedElement.fieldObservedAttributes,
       "disabled",
       "label",
       "max",

@@ -31,6 +31,8 @@ export interface FlowChildList {
  * (selection, undo, validation paths) is preserved.
  */
 export interface FlowModel<N extends FlowNodeBase = FlowNodeBase> {
+  /** Catalog entry used to draw this node; does not change its document kind. */
+  kind?(node: N): string | undefined;
   /** Nested lists under `node`, in display order. */
   children(node: N): FlowChildList[];
   /** A distinct name for the node; falls back to its kind's label. */
@@ -79,13 +81,13 @@ export interface FlowBranchRequestDetail {
 export type NodePath = readonly (string | number)[];
 
 export const nodeTitle = (node: FlowNodeBase, catalog: readonly FlowKind[] = [], model: FlowModel<FlowNodeBase> = defaultFlowModel): string =>
-  model.title?.(node) || catalog.find(kind => kind.kind === node.kind)?.label || "Step";
+  model.title?.(node) || catalog.find(kind => kind.kind === (model.kind?.(node) ?? node.kind))?.label || "Step";
 
 export const nodeDescription = (node: FlowNodeBase, catalog: readonly FlowKind[] = [], model: FlowModel<FlowNodeBase> = defaultFlowModel): string =>
-  model.description?.(node) || catalog.find(kind => kind.kind === node.kind)?.description || "";
+  model.description?.(node) || catalog.find(kind => kind.kind === (model.kind?.(node) ?? node.kind))?.description || "";
 
 export function cardLabel(node: FlowNodeBase, catalog: readonly FlowKind[] = [], invalid = false, model: FlowModel<FlowNodeBase> = defaultFlowModel): string {
-  const kind = catalog.find(entry => entry.kind === node.kind);
+  const kind = catalog.find(entry => entry.kind === (model.kind?.(node) ?? node.kind));
   const title = nodeTitle(node, catalog, model);
   return [title, kind?.label !== title ? kind?.label : "", nodeDescription(node, catalog, model), model.status?.(node), invalid ? "Needs attention" : ""].filter(Boolean).join(". ");
 }

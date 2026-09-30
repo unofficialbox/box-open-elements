@@ -66,7 +66,7 @@ const buttonStyles = `
     outline: none;
     background: var(--boe-token-surface-surface-brand-hover, #006ae9);
     border-color: var(--boe-token-surface-surface-brand, #0061d5);
-    box-shadow: ${boeControl.primaryFocusShadow};
+    box-shadow: 0 0 0 2px var(--boe-token-surface-surface, #ffffff), 0 0 0 5px var(--boe-token-surface-surface-brand, #0061d5);
   }
 
   button[data-tone="neutral"] {
@@ -88,7 +88,7 @@ const buttonStyles = `
 
   button[data-tone="neutral"]:focus-visible {
     border-color: var(--boe-token-text-text, #222222);
-    box-shadow: 0 1px 2px rgb(0 0 0 / 10%);
+    box-shadow: 0 0 0 2px var(--boe-token-surface-surface, #ffffff), 0 0 0 5px var(--boe-token-surface-surface-brand, #0061d5);
   }
 
   button[data-tone="danger"] {
@@ -108,7 +108,7 @@ const buttonStyles = `
   }
 
   button[data-tone="danger"]:focus-visible {
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 80%), 0 1px 2px rgb(0 0 0 / 10%);
+    box-shadow: 0 0 0 2px var(--boe-token-surface-surface, #ffffff), 0 0 0 5px var(--boe-token-surface-surface-brand, #0061d5);
   }
 
   button[data-size="small"] {

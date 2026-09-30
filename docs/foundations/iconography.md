@@ -34,7 +34,11 @@ Accepted source layouts:
 - `pack/2023-Icon-collection-blue-svg/*.svg` and `pack/2023-Icon-collection-white-svg/*.svg`
 - Any directory tree containing `Icon_*_{blue|white}*.svg` files
 
-Output: `src/foundations/icons/box-iconography.generated.ts` and `src/foundations/icons/glyphs/index.ts` (aliases and bespoke assets are left alone).
+Output: `src/foundations/icons/box-iconography.generated.ts`,
+`src/foundations/icons/glyphs/constants.ts` and its `index.ts` barrel (aliases
+and bespoke assets are left alone). Named glyphs import only constants, never
+the full generated registry. A theme controller plus named glyph imports keeps
+the registry in its lazy chunk; `bun run bundles:check` guards this boundary.
 
 Key allocation: process blue filenames first (sorted), then white; slug from the name segment; on collision append `-2`, `-3`, ….
 

@@ -1,0 +1,434 @@
+import { BaseElement } from "../../core/index.js";
+import { basicSetup } from "codemirror";
+import {
+  Compartment,
+  EditorSelection,
+  EditorState,
+  Prec,
+} from "@codemirror/state";
+import { EditorView, keymap } from "@codemirror/view";
+import { indentWithTab } from "@codemirror/commands";
+import { javascript } from "@codemirror/lang-javascript";
+import { go } from "@codemirror/lang-go";
+import {
+  autocompletion,
+  closeCompletion,
+  startCompletion,
+  type Completion,
+} from "@codemirror/autocomplete";
+import { closeSearchPanel } from "@codemirror/search";
+import { lintGutter, setDiagnostics, type Diagnostic } from "@codemirror/lint";
+import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
+import { tags } from "@lezer/highlight";
+
+export interface CodeProblem {
+  /** One-based line and column positions. */
+  line: number;
+  col?: number;
+  endCol?: number;
+  message: string;
+  tone: "error" | "warning" | "info";
+}
+export type CodeCompletion = Completion;
+export interface CodeSelection {
+  anchor: number;
+  head: number;
+}
+
+/** Optional CodeMirror entrypoint. Import `code-editor`, not the root catalog. */
+export class CodeEditor extends BaseElement {
+  static readonly tagName = "box-code-editor";
+  static get observedAttributes(): string[] {
+    return ["language", "readonly", "label", "value"];
+  }
+  private valueInternal = "";
+  private problemsInternal: readonly CodeProblem[] = [];
+  private completionsInternal: readonly CodeCompletion[] = [];
+  private view?: EditorView;
+  private languageConfig = new Compartment();
+  private readonlyConfig = new Compartment();
+  private completionsConfig = new Compartment();
+  private timer?: ReturnType<typeof setTimeout>;
+  private pending = false;
+  private syncing = false;
+  private problemIndex = -1;
+  private savedSelection: CodeSelection = { anchor: 0, head: 0 };
+  private escapeUntil = 0;
+
+  get value(): string {
+    return this.valueInternal;
+  }
+  set value(value: string) {
+    if (this.valueInternal === value) return;
+    this.valueInternal = value;
+    if (this.isRendered) this.update();
+  }
+  get language(): string {
+    return this.getAttribute("language") ?? "typescript";
+  }
+  set language(value: string) {
+    this.setAttribute("language", value);
+  }
+  get readonly(): boolean {
+    return this.hasAttribute("readonly");
+  }
+  set readonly(value: boolean) {
+    this.toggleAttribute("readonly", value);
+  }
+  get label(): string {
+    return this.getAttribute("label") ?? "Code editor";
+  }
+  set label(value: string) {
+    this.setAttribute("label", value);
+  }
+  get problems(): readonly CodeProblem[] {
+    return this.problemsInternal;
+  }
+  set problems(value: readonly CodeProblem[]) {
+    this.problemsInternal = [...value];
+    this.problemIndex = -1;
+    this.syncProblems();
+  }
+  get completions(): readonly CodeCompletion[] {
+    return this.completionsInternal;
+  }
+  set completions(value: readonly CodeCompletion[]) {
+    this.completionsInternal = [...value];
+    if (this.isRendered) this.update();
+  }
+  get selection(): CodeSelection {
+    return this.view
+      ? {
+          anchor: this.view.state.selection.main.anchor,
+          head: this.view.state.selection.main.head,
+        }
+      : this.savedSelection;
+  }
+  set selection(value: CodeSelection) {
+    const clamp = (offset: number) =>
+      Math.max(
+        0,
+        Math.min(this.value.length, Number.isFinite(offset) ? offset : 0),
+      );
+    this.savedSelection = {
+      anchor: clamp(value.anchor),
+      head: clamp(value.head),
+    };
+    this.view?.dispatch({
+      selection: EditorSelection.single(
+        this.savedSelection.anchor,
+        this.savedSelection.head,
+      ),
+      scrollIntoView: true,
+    });
+  }
+  revealLine(line: number): void {
+    if (!this.view) return;
+    const target = this.view.state.doc.line(
+      Math.max(1, Math.min(this.view.state.doc.lines, Math.floor(line) || 1)),
+    );
+    this.selection = { anchor: target.from, head: target.from };
+    this.view.focus();
+  }
+  focus(): void {
+    this.view?.focus();
+  }
+  attributeChangedCallback(
+    name: string,
+    oldValue: string | null,
+    newValue: string | null,
+  ): void {
+    if (name === "value") this.valueInternal = newValue ?? "";
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+  connectedCallback(): void {
+    super.connectedCallback();
+  }
+  disconnectedCallback(): void {
+    this.flushChange();
+    this.savedSelection = this.selection;
+    this.view?.destroy();
+    this.view = undefined;
+  }
+  protected renderTemplate(): void {
+    this.shadowRoot!.innerHTML = `<style>
+      :host{display:block;min-width:0;color:var(--boe-token-text-text,#222);font:inherit}
+      :host([hidden]){display:none!important}
+      [part=editor]{border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:8px;overflow:hidden}
+      .cm-editor{background:var(--boe-token-surface-surface,#fff);color:var(--boe-token-text-text,#222)}
+      [part=editor]:focus-within{box-shadow:0 0 0 3px var(--boe-token-surface-surface-brand,#0061d5)}
+      .cm-editor.cm-focused{outline:none}
+      .cm-scroller{max-height:var(--boe-code-editor-height,420px);min-height:160px;overflow:auto;font-family:monospace;font-size:14px;line-height:1.6}
+      .cm-gutters,.cm-panels,.cm-tooltip{background:var(--boe-token-surface-surface-secondary,#fbfbfb)!important;color:var(--boe-token-text-text,#222)!important;border-color:var(--boe-token-stroke-stroke,#ddd)!important}
+      .cm-cursor{border-left-color:var(--boe-token-text-text,#222)}
+      .cm-activeLine,.cm-activeLineGutter,.cm-selectionBackground{background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 12%,transparent)!important}
+      .cm-matchingBracket,.cm-selectionMatch{background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 15%,transparent)!important;color:inherit!important}
+      .cm-nonmatchingBracket{color:var(--boe-token-text-status-text-error,#b92340)!important}
+      .cm-searchMatch{background:color-mix(in srgb,var(--boe-token-text-status-text-warning,#9a6500) 20%,transparent);outline:none}
+      .cm-searchMatch-selected,.cm-tooltip-autocomplete ul li[aria-selected=true]{background:var(--boe-token-surface-surface-brand,#0061d5)!important;color:var(--boe-token-text-text-on-brand,#fff)!important}
+      .cm-panels input,.cm-panels button,.cm-foldPlaceholder{background:var(--boe-token-surface-surface,#fff);color:var(--boe-token-text-text,#222);border:1px solid var(--boe-token-stroke-stroke,#ddd)}
+      .cm-lintRange-error,.cm-lintRange-warning,.cm-lintRange-info{background-image:none;text-decoration-line:underline;text-decoration-style:wavy;text-decoration-thickness:1px;text-underline-offset:3px}
+      .cm-lintRange-error,.cm-diagnostic-error{color:inherit;text-decoration-color:var(--boe-token-text-status-text-error,#b92340);border-left-color:var(--boe-token-text-status-text-error,#b92340)}
+      .cm-lintRange-warning,.cm-diagnostic-warning{text-decoration-color:var(--boe-token-text-status-text-warning,#9a6500);border-left-color:var(--boe-token-text-status-text-warning,#9a6500)}
+      .cm-lintRange-info,.cm-diagnostic-info{text-decoration-color:var(--boe-token-surface-surface-brand,#0061d5);border-left-color:var(--boe-token-surface-surface-brand,#0061d5)}
+      .cm-lint-marker-error{background-image:radial-gradient(circle,var(--boe-token-text-status-text-error,#b92340) 45%,transparent 50%)!important}
+      .cm-lint-marker-warning{background-image:radial-gradient(circle,var(--boe-token-text-status-text-warning,#9a6500) 45%,transparent 50%)!important}
+      .cm-lint-marker-info{background-image:radial-gradient(circle,var(--boe-token-surface-surface-brand,#0061d5) 45%,transparent 50%)!important}
+      [part=help],[part=problems]{font-size:13px;color:var(--boe-token-text-text-secondary,#666);margin:8px 0}
+      [part=toolbar]{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+      button{font:inherit;color:inherit;background:var(--boe-token-surface-surface,#fff);border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:8px;padding:8px;min-height:36px}
+      button:focus-visible{outline:3px solid var(--boe-token-surface-surface-brand,#0061d5);outline-offset:2px}
+      @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+    </style><div part="editor"></div><p part="help" id="editor-help">Press Escape then Tab to leave the editor. Use Control-Space for suggestions.</p><div part="toolbar"><button type="button" data-direction="-1">Previous problem</button><button type="button" data-direction="1">Next problem</button><span part="problems" role="status" aria-live="polite"></span></div>`;
+  }
+  protected setupListeners(): void {
+    this.shadowRoot!.querySelectorAll<HTMLButtonElement>(
+      "button[data-direction]",
+    ).forEach((button) =>
+      button.addEventListener("click", () =>
+        this.navigateProblem(Number(button.dataset.direction)),
+      ),
+    );
+    // Keep the advertised escape hatch independent of completion/search keymaps.
+    this.shadowRoot!.addEventListener(
+      "keydown",
+      (event) => {
+        const key = event as KeyboardEvent;
+        if (!(key.target as HTMLElement).closest(".cm-content")) return;
+        if (key.ctrlKey && (key.code === "Space" || key.key === " ")) {
+          key.preventDefault();
+          key.stopPropagation();
+          if (this.view && !this.readonly) startCompletion(this.view);
+        } else if (key.key === "Escape") this.escapeUntil = Date.now() + 2000;
+        else if (key.key === "Tab" && Date.now() <= this.escapeUntil) {
+          key.preventDefault();
+          key.stopPropagation();
+          this.escapeUntil = 0;
+          const target =
+            this.shadowRoot!.querySelector<HTMLElement>(
+              "button:not(:disabled)",
+            ) ?? this.shadowRoot!.querySelector<HTMLElement>("[part=help]")!;
+          target.setAttribute("tabindex", "0");
+          target.focus();
+        } else if (
+          !key.ctrlKey &&
+          !key.metaKey &&
+          !key.altKey &&
+          key.key !== "Shift"
+        )
+          this.escapeUntil = 0;
+      },
+      { capture: true },
+    );
+  }
+  private languageExtension() {
+    return this.language === "go"
+      ? go()
+      : javascript({ typescript: this.language === "typescript" });
+  }
+  private completionExtension() {
+    return autocompletion({
+      override: [
+        (context) => {
+          const word = context.matchBefore(/[\w$]+(?:\.[\w$]*)*/);
+          if (!word && !context.explicit) return null;
+          let from = word?.from ?? context.pos;
+          // A full SDK name replaces its prefix; a method replaces only the
+          // identifier after the receiver's dot (for example flow().st).
+          if (
+            word?.text.includes(".") &&
+            !this.completionsInternal.some((option) =>
+              option.label.startsWith(word.text),
+            )
+          ) {
+            from += word.text.lastIndexOf(".") + 1;
+          }
+          return { from, options: [...this.completionsInternal] };
+        },
+      ],
+    });
+  }
+  protected update(): void {
+    if (!this.view) {
+      this.view = new EditorView({
+        parent: this.shadowRoot!.querySelector<HTMLElement>("[part=editor]")!,
+        root: this.shadowRoot!,
+        state: EditorState.create({
+          doc: this.value,
+          extensions: [
+            basicSetup,
+            lintGutter(),
+            keymap.of([indentWithTab]),
+            Prec.highest(
+              keymap.of([
+                {
+                  key: "Escape",
+                  run: (view) => {
+                    closeCompletion(view);
+                    closeSearchPanel(view);
+                    view.setTabFocusMode(2000);
+                    return true;
+                  },
+                },
+              ]),
+            ),
+            this.languageConfig.of(this.languageExtension()),
+            this.readonlyConfig.of([
+              EditorState.readOnly.of(this.readonly),
+              EditorView.editable.of(!this.readonly),
+            ]),
+            this.completionsConfig.of(this.completionExtension()),
+            syntaxHighlighting(
+              HighlightStyle.define([
+                {
+                  tag: [
+                    tags.variableName,
+                    tags.definition(tags.variableName),
+                    tags.propertyName,
+                    tags.operator,
+                    tags.punctuation,
+                  ],
+                  color: "var(--boe-token-text-text,#222)",
+                },
+                {
+                  tag: tags.keyword,
+                  color: "var(--boe-token-surface-surface-brand,#0061d5)",
+                },
+                {
+                  tag: [
+                    tags.typeName,
+                    tags.className,
+                    tags.function(tags.variableName),
+                  ],
+                  color: "var(--boe-token-surface-surface-brand,#0061d5)",
+                },
+                {
+                  tag: tags.string,
+                  color: "var(--boe-token-text-status-text-success,#138a58)",
+                },
+                {
+                  tag: tags.comment,
+                  color: "var(--boe-token-text-text-secondary,#666)",
+                },
+                {
+                  tag: tags.number,
+                  color: "var(--boe-token-text-status-text-warning,#9a6500)",
+                },
+                {
+                  tag: [tags.bool, tags.null, tags.atom],
+                  color: "var(--boe-token-text-status-text-warning,#9a6500)",
+                },
+              ]),
+            ),
+            EditorView.updateListener.of((update) => {
+              if (update.docChanged && !this.syncing) {
+                this.valueInternal = update.state.doc.toString();
+                this.pending = true;
+                clearTimeout(this.timer);
+                this.timer = setTimeout(() => this.flushChange(), 200);
+              }
+            }),
+            EditorView.domEventHandlers({
+              blur: () => {
+                this.flushChange();
+                return false;
+              },
+            }),
+          ],
+        }),
+      });
+      this.selection = this.savedSelection;
+    } else {
+      this.syncing = true;
+      try {
+        if (this.view.state.doc.toString() !== this.value) {
+          clearTimeout(this.timer);
+          this.pending = false;
+          this.view.dispatch({
+            changes: {
+              from: 0,
+              to: this.view.state.doc.length,
+              insert: this.value,
+            },
+          });
+        }
+        this.view.dispatch({
+          effects: [
+            this.languageConfig.reconfigure(this.languageExtension()),
+            this.readonlyConfig.reconfigure([
+              EditorState.readOnly.of(this.readonly),
+              EditorView.editable.of(!this.readonly),
+            ]),
+            this.completionsConfig.reconfigure(this.completionExtension()),
+          ],
+        });
+      } finally {
+        this.syncing = false;
+      }
+    }
+    this.view.contentDOM.setAttribute("aria-label", this.label);
+    this.view.contentDOM.setAttribute("tabindex", "0");
+    this.view.contentDOM.setAttribute("aria-describedby", "editor-help");
+    this.syncProblems();
+  }
+  private flushChange(): void {
+    clearTimeout(this.timer);
+    if (!this.pending) return;
+    this.pending = false;
+    this.dispatchEvent(
+      new CustomEvent("value-changed", {
+        detail: { value: this.value },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+  }
+  private diagnostics(): Diagnostic[] {
+    if (!this.view) return [];
+    const doc = this.view.state.doc;
+    return this.problems
+      .filter(
+        (problem) =>
+          Number.isInteger(problem.line) &&
+          problem.line >= 1 &&
+          problem.line <= doc.lines,
+      )
+      .map((problem) => {
+        const line = doc.line(problem.line);
+        const column = Number.isFinite(problem.col) ? problem.col! : 1;
+        const endColumn = Number.isFinite(problem.endCol)
+          ? problem.endCol!
+          : column + 1;
+        const from = line.from + Math.max(0, Math.min(line.length, column - 1));
+        const to = Math.max(from, Math.min(line.to, line.from + endColumn - 1));
+        return { from, to, message: problem.message, severity: problem.tone };
+      });
+  }
+  private syncProblems(): void {
+    if (!this.view) return;
+    const diagnostics = this.diagnostics();
+    this.view.dispatch(setDiagnostics(this.view.state, diagnostics));
+    this.shadowRoot!.querySelector("[part=problems]")!.textContent =
+      `${diagnostics.length} problem${diagnostics.length === 1 ? "" : "s"}`;
+    this.shadowRoot!.querySelectorAll<HTMLButtonElement>(
+      "button[data-direction]",
+    ).forEach((button) => (button.disabled = diagnostics.length === 0));
+  }
+  navigateProblem(direction: number): void {
+    const diagnostics = this.diagnostics();
+    if (!diagnostics.length) return;
+    this.problemIndex =
+      this.problemIndex < 0
+        ? direction < 0
+          ? diagnostics.length - 1
+          : 0
+        : (this.problemIndex + (direction < 0 ? -1 : 1) + diagnostics.length) %
+          diagnostics.length;
+    const problem = diagnostics[this.problemIndex];
+    this.selection = { anchor: problem.from, head: problem.to };
+    this.focus();
+    this.shadowRoot!.querySelector("[part=problems]")!.textContent =
+      `Problem ${this.problemIndex + 1} of ${diagnostics.length}: ${problem.message}`;
+  }
+}
+CodeEditor.register();

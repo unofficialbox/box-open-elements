@@ -12,6 +12,9 @@ export type TextFieldProps = WebComponentProps & {
   name?: string;
   invalid?: boolean;
   errorMessage?: string;
+  description?: string;
+  required?: boolean;
+  hideLabel?: boolean;
   onValueChanged?: CustomEventHandler<TextFieldElement, ValueChangedDetail>;
 };
 
@@ -27,9 +30,13 @@ export const TextField = createWebComponent<TextFieldElement, TextFieldProps>({
     "name",
     "invalid",
     "errorMessage",
+    "description", "required", "hideLabel",
   ],
   events: [{ propName: "onValueChanged", eventName: "value-changed" }],
   sync: (element, props) => {
+    if (props.description !== undefined) element.description = props.description;
+    if (props.required !== undefined) element.required = props.required;
+    if (props.hideLabel !== undefined) element.hideLabel = props.hideLabel;
     if (props.label !== undefined) {
       element.label = props.label;
     }

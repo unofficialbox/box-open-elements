@@ -27,6 +27,8 @@ describe("package barrel", () => {
     // rather than on the slug, because the barrel groups by directory.
     const missing: string[] = [];
     for (const entry of entries) {
+      // Optional CodeMirror is intentionally not loaded by the root catalog.
+      if (entry === "code-editor.ts") continue;
       const source = await readFile(`src/entries/${entry}`, "utf8");
       const paths = [...source.matchAll(/from "(\.\.\/[^"]+)"/g)].map(match => match[1] as string);
       const componentPaths = paths.filter(path => path.includes("/components/"));

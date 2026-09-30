@@ -13,6 +13,7 @@ export type CheckboxProps = WebComponentProps & {
   value?: string;
   name?: string;
   required?: boolean;
+  hideLabel?: boolean;
   description?: string;
   invalid?: boolean;
   errorMessage?: string;
@@ -23,7 +24,7 @@ export type CheckboxProps = WebComponentProps & {
 export const Checkbox = createWebComponent<CheckboxRef, CheckboxProps>({
   tagName: CheckboxRef.tagName,
   displayName: "Checkbox",
-  propertyNames: ["label","checked","indeterminate","disabled","value","name","required","description","invalid","errorMessage"],
+  propertyNames: ["label","checked","indeterminate","disabled","value","name","required","hideLabel","description","invalid","errorMessage"],
   events: [{ propName: "onCheckedChanged", eventName: "checked-changed" }],
   sync: (element, props) => {
     if (props.label !== undefined) element.label = props.label;
@@ -33,6 +34,7 @@ export const Checkbox = createWebComponent<CheckboxRef, CheckboxProps>({
     if (props.value !== undefined) element.value = props.value;
     if (props.name !== undefined) element.name = props.name;
     if (props.required !== undefined) element.required = props.required;
+    if (props.hideLabel !== undefined) element.hideLabel = props.hideLabel;
     if (props.description !== undefined) element.description = props.description;
     if (props.invalid !== undefined) element.invalid = props.invalid;
     if (props.errorMessage !== undefined) element.errorMessage = props.errorMessage;

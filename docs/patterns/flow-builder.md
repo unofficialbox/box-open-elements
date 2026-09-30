@@ -83,6 +83,9 @@ The builder splices inserted steps into the lists `children` returns. Branch cha
 
 - **Labels.** `start-label` / `end-label` (or `startLabel` / `endLabel`) replace "Flow starts" / "Flow ends".
 - **Icon tone.** `FlowKind.tone` is `"accent"` (default) or `"neutral"`, so a host can keep the accent for its primary step kind. Kind icons also appear in the chooser.
+- **Catalog projection.** `FlowModel.kind(node)` optionally selects the catalog entry used for title/description fallbacks, kind label, icon and tone. The stored `node.kind` is unchanged.
+- **Inspector sizing.** Set `--boe-flow-inspector-min-width` (default `240px`), `--boe-flow-inspector-width` (default `320px`) and `--boe-flow-inspector-top` (default `16px`). The wide inspector is sticky and scrolls within the available viewport; narrow builders retain their bottom drawer, registered by the pattern itself.
+- **Host outline.** `heading-level` / `headingLevel` sets the inspector heading level (1-6, default 2); branch headings use the next level, capped at 6. The inspector is a named region, not an aside nested in the host's main landmark.
 - **Validation without a second message.** A host that already shows the error persistently calls `setValidation(message, path, document, { showMessage: false })`: the step is marked and announced, and the builder's own error line stays hidden.
 - **Styling.** Card parts (`card`, `icon`, `title`, `kind`, `description`, `status`, `error`), spine parts (`spine`, `endpoint`, `body`, `branches`, `branch`, `branch-header`, `branch-label`, `branch-add`, `branch-remove`, `insert`) and chooser parts (`choices`, `group-heading`, `choice`, `choice-icon`, `choice-label`, `choice-description`) are exported through `box-flow-builder`, so `box-flow-builder::part(icon)` works from the page.
 

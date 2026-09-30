@@ -48,6 +48,9 @@ describe("React form adapters", () => {
           name: "projectName",
           invalid: true,
           errorMessage: "A name is required",
+          description: "Choose a distinct name",
+          required: true,
+          hideLabel: true,
         }),
       );
     });
@@ -61,6 +64,9 @@ describe("React form adapters", () => {
     expect(element?.name).toBe("projectName");
     expect(element?.invalid).toBe(true);
     expect(element?.errorMessage).toBe("A name is required");
+    expect(element?.description).toBe("Choose a distinct name");
+    expect(element?.required).toBe(true);
+    expect(element?.hideLabel).toBe(true);
 
     act(() => host.unmount());
     root = undefined;
@@ -123,6 +129,9 @@ describe("React form adapters", () => {
       host.render(
         createElement(Select, {
           label: "Status",
+          description: "Choose a status",
+          required: true,
+          hideLabel: true,
           value: "draft",
           options: initialOptions,
           onValueChanged,
@@ -133,6 +142,9 @@ describe("React form adapters", () => {
     const element = container?.querySelector("box-select") as SelectElement | null;
     expect(optionsSetter).toHaveBeenCalledTimes(1);
     expect(element?.options).toEqual(initialOptions);
+    expect(element?.description).toBe("Choose a status");
+    expect(element?.required).toBe(true);
+    expect(element?.hideLabel).toBe(true);
     expect(element?.shadowRoot?.querySelectorAll("option")).toHaveLength(2);
 
     const nextOptions: SelectOption[] = [

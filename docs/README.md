@@ -23,6 +23,8 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 
 ## Components
 
+- [Code editor](./components/code-editor.md) - optional CodeMirror entrypoint
+
 - [Components Catalog](./components/catalog.md) — inventory by category
 
 ## Patterns
@@ -32,6 +34,7 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 - [Agent UI guidelines](./patterns/agent-ui-guidelines.md) — principles and pre-ship checklist
 - [Builder and editor guidelines](./patterns/builder-editor-guidelines.md) — intent, states, anti-patterns and checklist
 - [Flow builder and undo](./patterns/flow-builder.md) — host-owned editing and reversible removal
+- [Process modeler](./patterns/process-modeler.md) - host-projected diagram editing
 - [Content Explorer](./patterns/content-explorer.md) — the headless block model
 - [Preview](./patterns/preview.md) — provider adapters and annotation-first priorities
 

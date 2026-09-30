@@ -21,6 +21,8 @@ The library is organized around three layers (see [taxonomy](https://github.com/
 Core implementation principles:
 
 - plain TypeScript modules, no React requirement in the core package — zero runtime dependencies
+- Optional `code-editor` entrypoint uses CodeMirror 6; its dependencies are not
+  loaded by the root catalog or other component imports.
 - state and business logic separate from rendering: controllers and stores, not framework components
 - standard DOM events where a UI layer needs them
 - accessibility semantics and keyboard support as part of the component contract

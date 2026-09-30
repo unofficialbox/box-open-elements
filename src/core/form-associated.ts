@@ -173,6 +173,7 @@ export const formErrorMessageMarkup = (): string =>
   `<p part="error-message" id="${FORM_ERROR_MESSAGE_ID}" role="alert" hidden></p>`;
 
 export const FORM_DESCRIPTION_ID = "boe-field-description";
+export const FORM_LABEL_ID = "boe-field-label";
 
 /** Optional help text rendered under the label (shown only when `description` is set). */
 export const formDescriptionMarkup = (): string =>
@@ -393,6 +394,7 @@ export abstract class FormAssociatedElement extends BaseElement {
     const description = this.description;
 
     if (labelEl) {
+      labelEl.id = FORM_LABEL_ID;
       const existing = labelEl.querySelector(".boe-required-mark");
       if (required && !existing) {
         const mark = document.createElement("span");
@@ -406,6 +408,7 @@ export abstract class FormAssociatedElement extends BaseElement {
     }
 
     if (control) {
+      control.setAttribute("aria-labelledby", FORM_LABEL_ID);
       control.toggleAttribute("required", required);
       control.setAttribute("aria-required", String(required));
       if (description) {

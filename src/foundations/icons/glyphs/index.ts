@@ -472,4 +472,4 @@ export {
   iconWriting2,
   iconXBatsu2,
   iconZones2,
-} from "../box-iconography.generated.js";
+} from "./constants.js";

@@ -158,10 +158,14 @@ import unifiedShareModal from "./stories/unified-share-modal.stories.js";
  */
 import { agentUiStories } from "./stories/agent-ui.stories.js";
 import flowBuilder from "./stories/flow-builder.stories.js";
+import codeEditor from "./stories/code-editor.stories.js";
+import processModeler from "./stories/process-modeler.stories.js";
 import { purposeExamples } from "./fixtures/purpose-demos.js";
 export const storyModules: StoryModule[] = [
   ...agentUiStories,
   flowBuilder,
+  codeEditor,
+  processModeler,
   accessStats,
   accordion,
   alert,

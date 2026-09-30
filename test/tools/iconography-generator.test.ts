@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -12,6 +12,8 @@ import {
   parseIconFilename,
   prefixIconIds,
   renderGeneratedManifest,
+  renderGlyphConstants,
+  renderGlyphExports,
 } from "../../tools/iconography/generate-box-iconography.js";
 
 const FIXTURE_DIR = join(dirname(fileURLToPath(import.meta.url)), "../fixtures/iconography");
@@ -101,6 +103,10 @@ describe("iconography generator", () => {
     expect(manifest).toContain("white: 1");
 
     writeFileSync(TMP_MANIFEST, manifest, "utf8");
+    mkdirSync(join(FIXTURE_DIR, "glyphs"), { recursive: true });
+    writeFileSync(join(FIXTURE_DIR, "glyphs/constants.ts"), renderGlyphConstants(icons));
+    expect(renderGlyphExports(icons)).not.toContain("box-iconography.generated");
+    expect(renderGlyphConstants(icons)).not.toContain("boxGeneratedIcons");
     try {
       expect(readFileSync(TMP_MANIFEST, "utf8")).toContain('"arrow-right"');
       const loaded = await import(/* @vite-ignore */ pathToFileURL(TMP_MANIFEST).href);
@@ -114,6 +120,7 @@ describe("iconography generator", () => {
       expect(loaded.boxGeneratedIcons.demo).toContain("currentColor");
     } finally {
       rmSync(TMP_MANIFEST, { force: true });
+      rmSync(join(FIXTURE_DIR, "glyphs"), { recursive: true, force: true });
     }
   });
 

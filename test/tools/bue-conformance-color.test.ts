@@ -590,8 +590,8 @@ describe("evaluate", () => {
     expect(rows).toHaveLength(COLOR_CLAIMS.length);
     const byId = (id: string): Row => rows.find(r => r.claim.id === id)!;
     expect(byId("button.primary.background").verdict).toBe("conformant");
-    expect(byId("button.primary.focus.shadow").verdict).toBe("conformant");
-    expect(byId("button.neutral.focus.shadow").verdict).toBe("conformant");
+    expect(byId("button.primary.focus.shadow").verdict).toBe("accepted-divergence");
+    expect(byId("button.neutral.focus.shadow").verdict).toBe("accepted-divergence");
     // box-open-elements hover is now #006ae9 (matches the real Box app, per
     // box-webapp-reference.data.json); the Storybook fixture is the legacy
     // #0074fe, so it cross-references to accepted-divergence, not review.
@@ -599,13 +599,13 @@ describe("evaluate", () => {
     expect(byId("button.primary.hover.background").delta).toBe(21);
   });
 
-  it("yields the expected verdict mix (56 conformant, 8 accepted-divergence, 0 review)", () => {
+  it("yields the expected verdict mix including two accessibility improvements", () => {
     const conformant = rows.filter(r => r.verdict === "conformant").length;
     const accepted = rows.filter(r => r.verdict === "accepted-divergence").length;
     const review = rows.filter(r => r.verdict === "review").length;
     expect({ conformant, accepted, review }).toEqual({
-      conformant: 56,
-      accepted: 8,
+      conformant: 54,
+      accepted: 10,
       review: 0,
     });
   });
@@ -793,8 +793,8 @@ describe("renderMarkdown", () => {
     const md = renderMarkdown(rows, ["main.abc.iframe.bundle.js"]);
     expect(md).toContain("Layer 2");
     expect(md).toContain("**1**");
-    expect(md).toContain("| ✅ Conformant | 56 |");
-    expect(md).toContain("| 🎯 Accepted divergence | 8 |");
+    expect(md).toContain("| ✅ Conformant | 54 |");
+    expect(md).toContain("| 🎯 Accepted divergence | 10 |");
     expect(md).toContain("| 🔍 Review | 0 |");
     for (const claim of COLOR_CLAIMS) {
       expect(md).toContain(claim.citation);
