@@ -15,6 +15,37 @@ are kept as written.
 
 ## Unreleased
 
+## 0.25.0 — 2026-09-30
+
+### Process Modeler integration
+
+- Add deterministic left-to-right layout, nested frames, obstacle-aware
+  orthogonal routing, directional ports, click/drag connections, line and frame
+  insertion, route editing, branch labels, and connection weights.
+- Add multi-selection, marquee selection, alignment and spacing controls,
+  floating actions, responsive palette/details drawers, and host-backed checks.
+- Add path/fingerprint/version-aware layout restoration, host connections and
+  variables, projection/position events, and controlled selection without echoes.
+- Preserve native undo when modeler history is empty; harden pointer ownership,
+  touch capture transfer, host refusal, and cyclic host document handling.
+
+### Controls and editor APIs
+
+- Add text-style Button actions and independently expandable Accordion panels
+  with summaries and controlled values.
+- Add Code Editor selection events, highlights, line reveal, wrapping,
+  completion sources, silent host updates, and offset diagnostics.
+- Normalize form labels, strengthen control edges, forward public focus calls,
+  make code regions keyboard-scrollable, correct Drawer semantics, and prevent
+  hidden Flow Builder instances from opening an inert-page modal.
+- Fix selective named-glyph bundling with real Vite and Rollup fixtures.
+
+### Verification
+
+- Complete issues #303 through #315 with regression tests, desktop/mobile/touch
+  interaction checks, conformance gates, and reviewed visual baselines.
+- React, Angular, Vue, and Svelte adapters ship at 0.25.0 in lockstep.
+
 ## 0.24.0 — 2026-09-30
 
 ### Editor and process-modeling surfaces
