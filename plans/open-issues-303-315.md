@@ -142,6 +142,13 @@ visual baselines without inspecting the changes. Preserve unrelated edits.
 
 Issue source: https://github.com/unofficialbox/box-open-elements/issues (303-315).
 
+PR #316 contains the completed implementation. Initial CI verification and
+conformance passed. The pinned-container pixel gate identified five intentional
+changes: form-control edges in gallery/forms and patterns/form-wizard, the new
+text-action Button example in light/dark, and accessibility documentation.
+Reviewed the fresh captures and pixel diffs before adopting only these five
+baselines. Pixel thresholds remain unchanged; publication requires green CI.
+
 ## Interfaces and Dependencies
 
 Preserve parts and current attributes. Add focus forwarding, FlowBuilder narrow
