@@ -15,6 +15,24 @@ are kept as written.
 
 ## Unreleased
 
+## 0.26.0 — 2026-10-01
+
+### Process Modeler design rebuild
+
+- Rebuild the Process Modeler around the pinned Riptide Diagram reference:
+  design-sized cards, gateways, events, frames and notes; rounded orthogonal
+  routing, pinned endpoints, line controls, drag previews and a 16px grid.
+- Add a grouped searchable palette, business and technical views, host-supplied
+  run metrics, nested outline, checks, variables, connections and shortcuts,
+  plus a controlled field inspector with action and expression inputs.
+- Strengthen host-authoritative validation and read-back: a readable projection
+  is emitted only after validation succeeds. Riptide remains responsible for
+  workflow conversion, persistence and save policy.
+- Add responsive palette/details drawers, multi-selection and arrangement,
+  keyboard navigation and focus restoration, accessible announcements and
+  reduced-motion handling. Update Storybook examples, documentation and tests.
+- React, Angular, Vue and Svelte adapters ship at 0.26.0 in lockstep.
+
 ## 0.25.0 — 2026-09-30
 
 ### Process Modeler integration
