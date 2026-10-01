@@ -6,7 +6,7 @@ import {
 import type { FormValue } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/interaction.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
-import { boeOverlay, boeRadius } from "../../foundations/geometry/index.js";
+import { boeControl, boeOverlay, boeRadius } from "../../foundations/geometry/index.js";
 import {
   parsePlacement,
   trackAnchor,
@@ -52,11 +52,9 @@ const comboboxStyles = `
   }
 
   [part="label"] {
-    font-size: 0.8rem;
+    font-size: ${boeControl.fontSize};
     font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    color: var(--boe-token-text-text, #222222);
   }
 
   [part="control"] {
@@ -71,7 +69,7 @@ const comboboxStyles = `
     font: inherit;
     color: var(--boe-token-text-text, #222222);
     padding: 0.45rem 0.7rem;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
+    border: 1px solid ${boeControl.inputBorder};
     border-radius: ${boeRadius.control};
     background: var(--boe-token-surface-surface, #ffffff);
     transition:
@@ -85,6 +83,7 @@ const comboboxStyles = `
   }
 
   ${boeNeutralInteractiveStyles('[part="input"]')}
+  [part="input"]:hover:not(:disabled) { border-color: ${boeControl.inputBorder}; }
 
   [part="input"]:focus-visible {
     border-color: var(--boe-token-surface-surface-brand, #0061d5);
@@ -149,8 +148,8 @@ const comboboxStyles = `
     padding: 6px 10px 2px;
     font-size: 0.72rem;
     font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    letter-spacing: normal;
+    text-transform: none;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
   }
 

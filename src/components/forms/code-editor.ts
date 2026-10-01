@@ -5,8 +5,9 @@ import {
   EditorSelection,
   EditorState,
   Prec,
+  Transaction,
 } from "@codemirror/state";
-import { EditorView, keymap } from "@codemirror/view";
+import { Decoration, EditorView, keymap } from "@codemirror/view";
 import { indentWithTab } from "@codemirror/commands";
 import { javascript } from "@codemirror/lang-javascript";
 import { go } from "@codemirror/lang-go";
@@ -15,6 +16,7 @@ import {
   closeCompletion,
   startCompletion,
   type Completion,
+  type CompletionSource,
 } from "@codemirror/autocomplete";
 import { closeSearchPanel } from "@codemirror/search";
 import { lintGutter, setDiagnostics, type Diagnostic } from "@codemirror/lint";
@@ -23,13 +25,18 @@ import { tags } from "@lezer/highlight";
 
 export interface CodeProblem {
   /** One-based line and column positions. */
-  line: number;
+  line?: number;
+  /** UTF-16 offsets; when supplied, these take precedence over line/column. */
+  from?: number;
+  to?: number;
   col?: number;
   endCol?: number;
   message: string;
   tone: "error" | "warning" | "info";
 }
 export type CodeCompletion = Completion;
+export type CodeCompletionSource = CompletionSource;
+export interface CodeHighlight { from: number; to: number; }
 export interface CodeSelection {
   anchor: number;
   head: number;
@@ -39,7 +46,7 @@ export interface CodeSelection {
 export class CodeEditor extends BaseElement {
   static readonly tagName = "box-code-editor";
   static get observedAttributes(): string[] {
-    return ["language", "readonly", "label", "value"];
+    return ["language", "readonly", "label", "value", "wrap"];
   }
   private valueInternal = "";
   private problemsInternal: readonly CodeProblem[] = [];
@@ -48,6 +55,10 @@ export class CodeEditor extends BaseElement {
   private languageConfig = new Compartment();
   private readonlyConfig = new Compartment();
   private completionsConfig = new Compartment();
+  private wrapConfig = new Compartment();
+  private highlightsConfig = new Compartment();
+  private highlightsInternal: readonly CodeHighlight[] = [];
+  private source?: CodeCompletionSource;
   private timer?: ReturnType<typeof setTimeout>;
   private pending = false;
   private syncing = false;
@@ -62,6 +73,40 @@ export class CodeEditor extends BaseElement {
     if (this.valueInternal === value) return;
     this.valueInternal = value;
     if (this.isRendered) this.update();
+  }
+  /** Host replacements are silent and excluded from the typing undo stack. */
+  setValue(value: string, options: { addToHistory?: boolean } = {}): void {
+    if (!options.addToHistory || !this.view) { this.value = value; return; }
+    clearTimeout(this.timer); this.pending = false;
+    this.syncing = true;
+    try {
+      this.view.dispatch({ changes: { from: 0, to: this.view.state.doc.length, insert: value } });
+      this.valueInternal = value;
+    } finally { this.syncing = false; }
+    this.syncProblems();
+  }
+  get wrap(): boolean { return this.hasAttribute("wrap"); }
+  set wrap(value: boolean) { this.toggleAttribute("wrap", value); }
+  get completionSource(): CodeCompletionSource | undefined { return this.source; }
+  set completionSource(value: CodeCompletionSource | undefined) { this.source = value; if (this.isRendered) this.update(); }
+  get highlights(): readonly CodeHighlight[] { return this.highlightsInternal.map(range => ({ ...range })); }
+  set highlights(value: readonly CodeHighlight[]) { this.highlightsInternal = value.map(range => ({ ...range })); if (this.isRendered) this.update(); }
+  private highlightExtension() {
+    return EditorView.decorations.of(view => {
+      const doc = view.state.doc;
+      const lines = new Set<number>();
+      for (const range of this.highlightsInternal) {
+        if (!Number.isFinite(range.from) || !Number.isFinite(range.to)) continue;
+        const from = Math.max(0, Math.min(doc.length, range.from));
+        const to = Math.max(from, Math.min(doc.length, range.to));
+        for (let line = doc.lineAt(from).number; line <= doc.lineAt(Math.max(from, to - 1)).number; line++) {
+          lines.add(doc.line(line).from);
+        }
+      }
+      return Decoration.set([...lines].sort((a, b) => a - b).map(from =>
+        Decoration.line({ class: "boe-code-highlight", attributes: { part: "highlight" } }).range(from),
+      ));
+    });
   }
   get language(): string {
     return this.getAttribute("language") ?? "typescript";
@@ -122,12 +167,13 @@ export class CodeEditor extends BaseElement {
       scrollIntoView: true,
     });
   }
-  revealLine(line: number): void {
+  revealLine(line: number, options: { center?: boolean } = {}): void {
     if (!this.view) return;
     const target = this.view.state.doc.line(
       Math.max(1, Math.min(this.view.state.doc.lines, Math.floor(line) || 1)),
     );
     this.selection = { anchor: target.from, head: target.from };
+    if (options.center) this.view.dispatch({ effects: EditorView.scrollIntoView(target.from, { y: "center" }) });
     this.view.focus();
   }
   focus(): void {
@@ -162,6 +208,7 @@ export class CodeEditor extends BaseElement {
       .cm-gutters,.cm-panels,.cm-tooltip{background:var(--boe-token-surface-surface-secondary,#fbfbfb)!important;color:var(--boe-token-text-text,#222)!important;border-color:var(--boe-token-stroke-stroke,#ddd)!important}
       .cm-cursor{border-left-color:var(--boe-token-text-text,#222)}
       .cm-activeLine,.cm-activeLineGutter,.cm-selectionBackground{background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 12%,transparent)!important}
+      .boe-code-highlight{background:var(--boe-code-highlight-background,color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 10%,transparent))!important;box-shadow:inset 3px 0 var(--boe-token-surface-surface-brand,#0061d5)}
       .cm-matchingBracket,.cm-selectionMatch{background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 15%,transparent)!important;color:inherit!important}
       .cm-nonmatchingBracket{color:var(--boe-token-text-status-text-error,#b92340)!important}
       .cm-searchMatch{background:color-mix(in srgb,var(--boe-token-text-status-text-warning,#9a6500) 20%,transparent);outline:none}
@@ -227,6 +274,7 @@ export class CodeEditor extends BaseElement {
       : javascript({ typescript: this.language === "typescript" });
   }
   private completionExtension() {
+    if (this.source) return autocompletion({ override: [this.source] });
     return autocompletion({
       override: [
         (context) => {
@@ -278,6 +326,8 @@ export class CodeEditor extends BaseElement {
               EditorView.editable.of(!this.readonly),
             ]),
             this.completionsConfig.of(this.completionExtension()),
+            this.wrapConfig.of(this.wrap ? EditorView.lineWrapping : []),
+            this.highlightsConfig.of(this.highlightExtension()),
             syntaxHighlighting(
               HighlightStyle.define([
                 {
@@ -321,6 +371,10 @@ export class CodeEditor extends BaseElement {
               ]),
             ),
             EditorView.updateListener.of((update) => {
+              if (update.selectionSet && !this.syncing && !update.startState.selection.eq(update.state.selection)) {
+                const { anchor, head } = update.state.selection.main;
+                this.dispatchEvent(new CustomEvent("selection-changed", { detail: { anchor, head }, bubbles: true, composed: true }));
+              }
               if (update.docChanged && !this.syncing) {
                 this.valueInternal = update.state.doc.toString();
                 this.pending = true;
@@ -345,6 +399,7 @@ export class CodeEditor extends BaseElement {
           clearTimeout(this.timer);
           this.pending = false;
           this.view.dispatch({
+            annotations: Transaction.addToHistory.of(false),
             changes: {
               from: 0,
               to: this.view.state.doc.length,
@@ -360,6 +415,8 @@ export class CodeEditor extends BaseElement {
               EditorView.editable.of(!this.readonly),
             ]),
             this.completionsConfig.reconfigure(this.completionExtension()),
+            this.wrapConfig.reconfigure(this.wrap ? EditorView.lineWrapping : []),
+            this.highlightsConfig.reconfigure(this.highlightExtension()),
           ],
         });
       } finally {
@@ -389,12 +446,17 @@ export class CodeEditor extends BaseElement {
     return this.problems
       .filter(
         (problem) =>
-          Number.isInteger(problem.line) &&
-          problem.line >= 1 &&
-          problem.line <= doc.lines,
+          Number.isFinite(problem.from) || (Number.isInteger(problem.line) &&
+          problem.line! >= 1 &&
+          problem.line! <= doc.lines),
       )
       .map((problem) => {
-        const line = doc.line(problem.line);
+        if (Number.isFinite(problem.from)) {
+          const from = Math.max(0, Math.min(doc.length, Math.floor(problem.from!)));
+          const to = Math.max(from, Math.min(doc.length, Number.isFinite(problem.to) ? Math.floor(problem.to!) : from + 1));
+          return { from, to, message: problem.message, severity: problem.tone };
+        }
+        const line = doc.line(problem.line!);
         const column = Number.isFinite(problem.col) ? problem.col! : 1;
         const endColumn = Number.isFinite(problem.endCol)
           ? problem.endCol!

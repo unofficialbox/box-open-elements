@@ -1,5 +1,12 @@
 # Flow builder and undo
 
+## Public focus and responsive state
+
+`builder.focusNode(node)` focuses the rendered card without changing selection
+or opening the inspector. `builder.narrow` is read-only; `narrow-changed` emits
+`{ narrow }` when the side-panel/sheet layout changes. Hidden or zero-size
+builders close their sheet and preserve selection for when they become visible.
+
 The flow builder is a reusable editing shell for steps, nested groups and named branches. It does not save a document or define product-specific step schemas. A host owns the document, editor fields, validation and persistence. The [live example](https://unofficialbox.github.io/box-open-elements/#patterns/flow-builder) demonstrates insertion, selection, validation, removal and Undo.
 
 ```ts

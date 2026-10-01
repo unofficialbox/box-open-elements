@@ -1,7 +1,12 @@
 import { BaseElement } from "../../core/index.js";
 import { announce } from "../../foundations/a11y/index.js";
 import { boeFocusVisibleStyles } from "../../foundations/tokens/interaction.js";
+import { dismissModal, promoteModal } from "../../foundations/overlay/index.js";
 import type { FlowKind, NodePath } from "../flow-builder/model.js";
+import { KindPicker } from "../flow-builder/primitives.js";
+import { arrangeProcess, routeProcessLine, lineMidpoint, nearProcessLine } from "./geometry.js";
+import { restoreProcessPositions, snapshotProcessPositions, graphChecks, normalizeProcessSelectionPath } from "./bridge.js";
+import type { ProcessConnection, ProcessVariable, ProcessLoadOptions } from "./model.js";
 import {
   completeLayout,
   ProcessHistory,
@@ -37,7 +42,7 @@ export class ProcessModeler<
 > extends BaseElement {
   static readonly tagName = "box-process-modeler";
   static get observedAttributes(): string[] {
-    return ["locked", "snap-to-grid"];
+    return ["locked", "snap-to-grid", "heading-level", "disable-connections"];
   }
   private documentValue?: D;
   private modelValue: ProcessModel<D, N> = {
@@ -66,6 +71,65 @@ export class ProcessModeler<
   };
   private pinchDistance = 0;
   private gestureZoom = 1;
+  private insertion?: ProcessEdit;
+  private selectedIds = new Set<string>();
+  private versionValue: string | number = 0;
+  private lastProjection = "";
+  private lastDocument?: D;
+  private connectionsValue: readonly ProcessConnection[] = [];
+  private variablesValue: readonly ProcessVariable[] = [];
+  private activePane = "Outline";
+  private portDrag?: { pointerId: number; id: string; side: "north" | "east" | "south" | "west"; start: { x: number; y: number }; point: { x: number; y: number } };
+  private marquee?: { pointerId: number; start: { x: number; y: number }; point: { x: number; y: number } };
+  private segmentDrag?: { pointerId: number; id: string; index: number; points: { x: number; y: number }[] };
+  private dropLine?: string;
+  private narrowValue = false;
+  private suppressClick = false;
+  private resizeObserver?: ResizeObserver;
+  private routedLines = new Map<string, { x: number; y: number }[]>();
+  private computedChecks: readonly ProcessCheck[] = [];
+  get selectedBoxes(): readonly ProcessBox<N>[] { return this.projection.boxes.filter(box => this.selectedIds.has(box.id)); }
+  get selectedPath(): NodePath | null { return this.selected?.path ? [...this.selected.path] : null; }
+  set selectedPath(path: NodePath | null) {
+    if (!this.isRendered && this.documentValue !== undefined) { this.projection = this.model.project(this.documentValue); validateProjection(this.projection); }
+    const normalized = normalizeProcessSelectionPath(this.projection, path);
+    this.select(normalized === null ? null : this.projection.boxes.find(box => JSON.stringify(box.path) === JSON.stringify(normalized))?.id ?? null);
+  }
+  get connections(): readonly ProcessConnection[] { return this.connectionsValue; }
+  set connections(value: readonly ProcessConnection[]) { this.connectionsValue = value; this.refresh(); }
+  get variables(): readonly ProcessVariable[] { return this.variablesValue; }
+  set variables(value: readonly ProcessVariable[]) { this.variablesValue = value; this.refresh(); }
+  get version(): string | number { return this.versionValue; }
+  get narrow(): boolean { return this.narrowValue; }
+  get positions() { return snapshotProcessPositions(this.projection, this.layoutValue); }
+  load(document: D, options: ProcessLoadOptions = {}): void {
+    const projection = this.model.project(document); validateProjection(projection);
+    this.documentValue = document;
+    this.projection = projection;
+    this.versionValue = options.version ?? 0;
+    this.lastProjection = "";
+    this.layoutValue = restoreProcessPositions(projection, options.positions ?? []);
+    this.history.clear(); this.selectedId = null; this.selectedIds.clear();
+    this.refresh();
+    if (options.selectedPath) this.selectedPath = options.selectedPath;
+  }
+  selectMany(ids: readonly string[]): void {
+    if (!this.isRendered && this.documentValue !== undefined) { this.projection = this.model.project(this.documentValue); validateProjection(this.projection); }
+    const next = new Set(ids.filter(id => this.projection.boxes.some(box => box.id === id)));
+    if (next.size === this.selectedIds.size && [...next].every(id => this.selectedIds.has(id))) return;
+    this.selectedIds = next;
+    this.selectedId = this.selectedIds.values().next().value ?? null;
+    this.renderSelection(); if (this.isRendered) this.updateToolbar();
+    emit(this, "selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath });
+  }
+  get headingLevel(): number { const level = Number(this.getAttribute("heading-level") ?? 2); return Number.isInteger(level) && level >= 1 && level <= 6 ? level : 2; }
+  set headingLevel(value: number) { this.setAttribute("heading-level", String(value)); }
+  get disableConnections(): boolean { return this.hasAttribute("disable-connections"); }
+  set disableConnections(value: boolean) { this.toggleAttribute("disable-connections", value); }
+  private arrangedLayout(layout: ProcessLayout): ProcessLayout {
+    const arranged = this.model.arrange?.(this.projection) ?? arrangeProcess(this.projection);
+    return completeLayout(this.projection, { ...layout, boxes: { ...arranged?.boxes, ...layout.boxes } });
+  }
 
   get document(): D | undefined {
     return this.documentValue;
@@ -136,12 +200,18 @@ export class ProcessModeler<
     this.refresh();
   }
   disconnectedCallback(): void {
+    this.resizeObserver?.disconnect();
+    this.shadowRoot?.querySelectorAll<HTMLDialogElement>("[part=pane-drawer]").forEach(dialog => dismissModal(dialog));
+    const chooser = this.shadowRoot?.querySelector<HTMLDialogElement>("[part=insert-chooser]");
+    if (chooser) dismissModal(chooser);
     this.cleanupInspector?.();
     this.cleanupInspector = undefined;
     this.inspected = undefined;
     this.pointers.clear();
     this.drag = undefined;
+    this.portDrag = undefined; this.marquee = undefined; this.segmentDrag = undefined;
   }
+  connectedCallback(): void { super.connectedCallback(); this.resizeObserver?.observe(this); }
   refresh(): void {
     if (this.isRendered) this.update();
   }
@@ -152,10 +222,12 @@ export class ProcessModeler<
     }
     if (id !== null && !this.projection.boxes.some((box) => box.id === id))
       return;
+    if (id === this.selectedId && this.selectedIds.size === (id ? 1 : 0)) return;
     this.selectedId = id;
+    this.selectedIds = new Set(id ? [id] : []);
     this.renderSelection();
     if (this.isRendered) this.updateToolbar();
-    emit(this, "selection-changed", { box: this.selected });
+    emit(this, "selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath });
   }
   setValidation(checks: readonly ProcessCheck[]): void {
     this.checks = checks;
@@ -165,7 +237,7 @@ export class ProcessModeler<
     this.setValidation(message ? [{ message, path }] : []);
   }
   requestEdit(edit: ProcessEdit): void {
-    if (this.locked) return;
+    if (this.locked || (this.disableConnections && (edit.type === "connect" || edit.type === "disconnect"))) return;
     const before = this.layout;
     const previousIds = new Set(this.projection.boxes.map((box) => box.id));
     let accepted = false;
@@ -174,13 +246,15 @@ export class ProcessModeler<
       accept: (command) => {
         if (accepted) return;
         accepted = true;
+        if (command.layout) this.layoutValue = structuredClone(command.layout);
         this.refresh();
         if (
+          !command.layout &&
           edit.position &&
           Number.isFinite(edit.position.x) &&
           Number.isFinite(edit.position.y)
         ) {
-          const added = this.projection.boxes.find(
+          const added = this.projection.boxes.find(box => box.id === edit.boxId) ?? this.projection.boxes.find(
             (box) => !previousIds.has(box.id),
           );
           if (added)
@@ -194,7 +268,7 @@ export class ProcessModeler<
         const restore = (layout: ProcessLayout) => {
           this.layoutValue = structuredClone(layout);
           this.refresh();
-          emit(this, "layout-changed", { layout: this.layout });
+          this.emitPositions();
         };
         this.history.record({
           undo: () => {
@@ -208,7 +282,7 @@ export class ProcessModeler<
         });
         this.refresh();
         if (JSON.stringify(before) !== JSON.stringify(after))
-          emit(this, "layout-changed", { layout: this.layout });
+          this.emitPositions();
         announce("Process updated", "polite", this.ownerDocument);
       },
     };
@@ -231,7 +305,7 @@ export class ProcessModeler<
     const apply = (layout: ProcessLayout) => {
       this.layoutValue = structuredClone(layout);
       this.refresh();
-      emit(this, "layout-changed", { layout: this.layout });
+      this.emitPositions();
     };
     apply(after);
     this.history.record({
@@ -251,6 +325,10 @@ export class ProcessModeler<
     const next = this.translatedLayout(id, x, y);
     if (emit(this, "move-request", { boxId: id, position: next.boxes[id] }))
       this.commitLayout(next);
+  }
+  private emitPositions(): void {
+    emit(this, "layout-changed", { layout: this.layout });
+    emit(this, "positions-changed", { positions: this.positions, version: this.versionValue });
   }
   private translatedLayout(id: string, x: number, y: number): ProcessLayout {
     const snap = (n: number) => (this.snapToGrid ? Math.round(n / 20) * 20 : n);
@@ -282,7 +360,7 @@ export class ProcessModeler<
   tidy(): void {
     if (this.locked) return;
     this.commitLayout(
-      completeLayout(this.projection, { ...this.layout, boxes: {} }),
+      this.arrangedLayout({ ...this.layout, boxes: {} }),
     );
     this.fit();
   }
@@ -403,7 +481,7 @@ export class ProcessModeler<
       *{box-sizing:border-box}button,input{font:inherit;color:inherit}button{background:var(--boe-token-surface-surface,#fff);border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:8px;padding:8px;min-height:36px;cursor:pointer}button:disabled{opacity:.5;cursor:default}
       ${boeFocusVisibleStyles(":is(button,input,[part=canvas],[part=minimap])")}
       [part=toolbar]{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-      [part=layout]{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,280px);gap:16px}
+      [part=layout]{display:grid;grid-template-columns:minmax(0,1fr) minmax(var(--boe-process-inspector-min-width,240px),var(--boe-process-inspector-width,320px));gap:16px}
       [part=canvas]{position:relative;overflow:hidden;height:var(--boe-process-height,560px);background:var(--boe-token-surface-surface-secondary,#fbfbfb);border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:12px;touch-action:none}
       [part=world]{position:absolute;inset:0;transform-origin:0 0}
       [part=lines]{position:absolute;inset:0;width:1px;height:1px;overflow:visible;pointer-events:none}
@@ -414,7 +492,12 @@ export class ProcessModeler<
       [aria-pressed=true]{border-color:var(--boe-token-surface-surface-brand,#0061d5)}[data-invalid=true]{border-color:var(--boe-token-text-status-text-error,#b92340);border-width:2px}
       [part=connection]{position:absolute;display:flex;gap:4px;align-items:center;background:var(--boe-token-surface-surface,#fff);border-radius:8px;padding:4px;font-size:12px;white-space:nowrap}
       [part=connection] button{font-size:12px;min-height:32px;padding:4px}
+      [part=connection] button{opacity:0;pointer-events:none}
+      [part=connection]:hover button,[part=connection]:focus-within button{opacity:1;pointer-events:auto}
+      [part=connection]{min-width:40px;min-height:32px}
+      [part=insert-chooser]{padding:12px;background:var(--boe-token-surface-surface,#fff);border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:12px;max-width:calc(100vw - 32px);max-height:65vh;overflow:auto}
       [part=inspector]{min-width:0;padding:12px;border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:12px;background:var(--boe-token-surface-surface,#fff)}
+      [hidden]{display:none!important}
       [part=palette]{display:grid;gap:8px}[part=palette] input{width:100%;min-width:0;padding:8px;background:var(--boe-token-surface-surface,#fff);border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:8px}
       [part=choices]{display:grid;gap:6px;max-height:300px;overflow:auto}[part=group]{font-weight:600;margin:8px 0 0}
       [part=checks]{display:grid;gap:6px;margin-top:12px}[part=checks] button{text-align:start;color:var(--boe-token-text-status-text-error,#b92340)}
@@ -426,6 +509,134 @@ export class ProcessModeler<
       @media(max-width:800px){[part=layout]{grid-template-columns:minmax(0,1fr)}[part=canvas]{height:420px}}
       @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
     </style><div part="toolbar" role="toolbar" aria-label="Diagram controls"><button data-command="zoom-out">Zoom out</button><button data-command="reset">100%</button><button data-command="zoom-in">Zoom in</button><button data-command="fit">Fit the whole process</button><button data-command="tidy">Tidy up</button><button data-command="undo">Undo</button><button data-command="redo">Redo</button><button data-command="snap" aria-pressed="false">Snap to grid</button><button data-command="lock" aria-pressed="false">Lock diagram</button></div><div part="layout"><div part="canvas" tabindex="0" role="region" aria-label="Process diagram" aria-describedby="process-help"><div part="world"></div><svg part="minimap" role="img" aria-label="Diagram overview. Click to jump"></svg></div><div part="inspector" role="region" aria-label="Process details"><div part="palette"><label>Find a building block<input type="search" part="search"></label><div part="choices"></div></div><div part="editor"></div><div part="checks" role="region" aria-label="Checks"></div></div></div><p part="help" id="process-help">Select a box. Arrow keys move it; C then another box connects it; Delete removes it. Drag the background to pan. Use zoom controls or pinch to zoom. Escape cancels connecting.</p><div part="status" role="status" aria-live="polite"></div>`;
+    const chooser = document.createElement("dialog"); chooser.setAttribute("part", "insert-chooser"); chooser.setAttribute("aria-label", "Insert a building block");
+    const picker = new KindPicker();
+    picker.variant = "menu"; chooser.append(picker); this.shadowRoot!.append(chooser);
+    picker.addEventListener("kind-pick", event => {
+      const insertion = this.insertion; dismissModal(chooser); this.insertion = undefined;
+      if (insertion) this.requestEdit({ ...insertion, kind: (event as CustomEvent).detail.kind });
+    });
+    picker.addEventListener("picker-cancel", () => { dismissModal(chooser); this.insertion = undefined; });
+    this.setupPanes();
+  }
+  private setupPanes(): void {
+    const root = this.shadowRoot!;
+    const style = document.createElement("style");
+    style.textContent = `
+      [part=layout]{grid-template-columns:180px minmax(0,1fr) minmax(var(--boe-process-inspector-min-width,220px),var(--boe-process-inspector-width,280px))}
+      [part=pane-drawer]{display:contents;color:inherit}[part=pane-drawer]::backdrop{background:rgb(0 0 0 / .45)}
+      [part=pane-close],[data-command=palette],[data-command=details]{display:none}
+      [part=palette]{align-content:start;border:1px solid var(--boe-control-edge,#6f6f6f);border-radius:12px;padding:12px;background:var(--boe-token-surface-surface,#fff)}
+      [part=pane-tabs]{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px}[part=pane-tabs] button{font-size:12px;min-height:28px}
+      [part=pane-content]{display:grid;gap:8px}[part=pane-content] button{min-height:28px;text-align:start}
+      [part=port]{position:absolute;width:24px;height:24px;min-height:24px;border-radius:50%;padding:0;background:var(--boe-token-surface-surface-brand,#0061d5);border:2px solid var(--boe-token-surface-surface,#fff);opacity:0;z-index:3}
+      [part=box]:hover [part=port],[part=box]:focus-within [part=port],[part=box][aria-current=true] [part=port],[part=frame]:hover [part=port]{opacity:1}
+      [data-side=north]{left:calc(50% - 12px);top:-12px}[data-side=south]{left:calc(50% - 12px);bottom:-12px}[data-side=east]{right:-12px;top:calc(50% - 12px)}[data-side=west]{left:-12px;top:calc(50% - 12px)}
+      [part=box][aria-current=true],[part=frame][aria-current=true]{border:2px solid var(--boe-token-surface-surface-brand,#0061d5)}
+      [part=line-hit]{fill:none;stroke:transparent;stroke-width:24;pointer-events:stroke}[data-drop=true]{stroke:var(--boe-token-surface-surface-brand,#0061d5);stroke-width:4}
+      [part=connection]{transform:translate(-50%,-50%);font-size:12px}
+      [part=connection-actions]{position:absolute;top:100%;left:50%;transform:translateX(-50%);display:flex;gap:4px;width:max-content;background:var(--boe-token-surface-surface,#fff);border-radius:8px}
+      [part=marquee]{position:absolute;border:2px solid var(--boe-token-surface-surface-brand,#0061d5);background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 12%,transparent);pointer-events:none}
+      [part=guide]{position:absolute;background:var(--boe-token-surface-surface-brand,#0061d5);pointer-events:none}
+      [part=measure]{position:absolute;background:var(--boe-token-surface-surface,#fff);font-size:12px;padding:4px;pointer-events:none}
+      [part=selection-toolbar]{position:absolute;left:12px;bottom:12px;display:flex;gap:4px;flex-wrap:wrap;background:var(--boe-token-surface-surface,#fff);padding:6px;border:1px solid var(--boe-control-edge,#6f6f6f);border-radius:8px;z-index:5}
+      :host([data-narrow]) [part=layout]{grid-template-columns:minmax(0,1fr)}
+      :host([data-narrow]) [part=pane-drawer]{display:none;max-width:calc(100vw - 24px);width:320px;max-height:85vh;overflow:auto;border:1px solid var(--boe-control-edge,#6f6f6f);border-radius:12px;padding:12px;background:var(--boe-token-surface-surface,#fff)}
+      :host([data-narrow]) [part=pane-drawer][open]{display:block}
+      :host([data-narrow]) [part=pane-close],:host([data-narrow]) [data-command=palette],:host([data-narrow]) [data-command=details]{display:inline-block}
+    `;
+    root.append(style);
+    const layout = root.querySelector('[part=layout]')!;
+    for (const [part, label] of [["palette", "Building blocks"], ["inspector", "Process details"]]) {
+      const pane = root.querySelector(`[part=${part}]`)!;
+      const dialog = document.createElement("dialog"); dialog.setAttribute("part", "pane-drawer"); dialog.setAttribute("aria-label", label);
+      const close = document.createElement("button"); close.setAttribute("part", "pane-close"); close.textContent = `Close ${label.toLowerCase()}`;
+      close.onclick = () => dismissModal(dialog); dialog.append(close, pane);
+      if (part === "palette") layout.prepend(dialog); else layout.append(dialog);
+      const trigger = document.createElement("button"); trigger.dataset.command = part === "palette" ? "palette" : "details"; trigger.textContent = label;
+      trigger.onclick = () => promoteModal(dialog); root.querySelector('[part=toolbar]')!.append(trigger);
+    }
+    const inspector = root.querySelector('[part=inspector]')!;
+    const tabs = document.createElement("div"); tabs.setAttribute("part", "pane-tabs"); tabs.setAttribute("role", "tablist"); tabs.setAttribute("aria-label", "Process details");
+    for (const name of ["Outline", "Checks", "Variables", "Connections", "Shortcuts"]) {
+      const button = document.createElement("button"); button.textContent = name; button.setAttribute("role", "tab"); button.id = `process-tab-${name.toLowerCase()}`;
+      button.setAttribute("aria-controls", "process-pane-content");
+      button.onclick = () => { this.activePane = name; this.renderPane(); };
+      button.onkeydown = event => {
+        const buttons = Array.from(tabs.querySelectorAll<HTMLButtonElement>("button")); const index = buttons.indexOf(button);
+        const next = event.key === "ArrowRight" ? (index + 1) % buttons.length : event.key === "ArrowLeft" ? (index + buttons.length - 1) % buttons.length : event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 : -1;
+        if (next >= 0) { event.preventDefault(); buttons[next].click(); buttons[next].focus(); }
+      };
+      tabs.append(button);
+    }
+    const content = document.createElement("div"); content.setAttribute("part", "pane-content"); content.setAttribute("role", "tabpanel"); content.id = "process-pane-content";
+    inspector.prepend(tabs); inspector.append(content);
+    root.querySelector('[part=checks]')!.removeAttribute("role");
+    const canvas = root.querySelector('[part=canvas]')!;
+    const floating = document.createElement("div"); floating.setAttribute("part", "selection-toolbar"); floating.setAttribute("role", "toolbar"); floating.setAttribute("aria-label", "Selected steps");
+    for (const [command, label] of [["align", "Align tops"], ["space", "Space evenly"], ["delete-many", "Delete selected"]]) {
+      const button = document.createElement("button"); button.textContent = label;
+      button.onclick = () => this.selectionCommand(command); floating.append(button);
+    }
+    canvas.append(floating);
+    if (typeof ResizeObserver !== "undefined") {
+      this.resizeObserver = new ResizeObserver(entries => {
+        const narrow = entries[0].contentRect.width < 1000;
+        this.narrowValue = narrow; this.toggleAttribute("data-narrow", narrow);
+        if (!narrow) root.querySelectorAll<HTMLDialogElement>('[part=pane-drawer]').forEach(dialog => dismissModal(dialog));
+      });
+      this.resizeObserver.observe(this);
+    }
+  }
+  private renderPane(): void {
+    if (!this.isRendered) return;
+    const root = this.shadowRoot!;
+    root.querySelectorAll<HTMLButtonElement>('[part=pane-tabs] button').forEach(button => {
+      const selected = button.textContent === this.activePane; button.setAttribute("aria-selected", String(selected)); button.tabIndex = selected ? 0 : -1;
+    });
+    const content = root.querySelector<HTMLElement>('[part=pane-content]')!;
+    content.setAttribute("aria-labelledby", `process-tab-${this.activePane.toLowerCase()}`);
+    const checks = root.querySelector<HTMLElement>('[part=checks]')!;
+    checks.hidden = this.activePane !== "Checks";
+    // Move the checks node out before replacing its parent; keep its handlers.
+    root.querySelector('[part=inspector]')!.append(checks);
+    content.replaceChildren();
+    root.querySelector<HTMLElement>('[part=editor]')!.hidden = this.activePane !== "Outline";
+    if (this.activePane === "Outline") {
+      this.projection.boxes.forEach(box => {
+        const button = document.createElement("button"); button.textContent = box.title; button.setAttribute("aria-current", String(this.selectedIds.has(box.id)));
+        button.onclick = () => { this.select(box.id); this.focusBox(box.id); }; content.append(button);
+      });
+    } else if (this.activePane === "Checks") {
+      content.append(checks);
+      if (!this.allChecks.length) { const message = document.createElement("p"); message.textContent = "No checks to resolve."; content.prepend(message); }
+    } else if (this.activePane === "Connections" || this.activePane === "Variables") {
+      const items = this.activePane === "Connections" ? this.connections : this.variables;
+      for (const item of items) {
+        const row = document.createElement("p"); row.textContent = "kind" in item ? `${item.name} (${item.kind})` : `${item.name}${item.description ? `: ${item.description}` : ""}`; content.append(row);
+      }
+      if (!items.length) content.textContent = "None supplied by the host.";
+    } else if (this.activePane === "Shortcuts") {
+      content.textContent = "Arrow keys: move selected step. Shift+arrows: move farther. C: connect selected step. Shift+drag background: select steps. Delete: remove selected. Escape: cancel. Ctrl/Command+Z: undo. Shift+Ctrl/Command+Z: redo.";
+    }
+  }
+  private selectionCommand(command: string): void {
+    if (this.locked) return;
+    const boxes = this.selectedBoxes;
+    if (command === "delete-many") { for (const box of boxes) this.requestEdit({ type: "delete", boxId: box.id }); return; }
+    if (boxes.length < 2) return;
+    const next = this.layout;
+    const sorted = [...boxes].filter(box => {
+      let parent = box.parentId; while (parent) { if (this.selectedIds.has(parent)) return false; parent = this.projection.boxes.find(box => box.id === parent)?.parentId; } return true;
+    }).sort((a, b) => next.boxes[a.id].x - next.boxes[b.id].x);
+    if (sorted.length < 2) return;
+    const first = next.boxes[sorted[0].id]; const last = next.boxes[sorted.at(-1)!.id];
+    sorted.forEach((box, i) => {
+      const current = next.boxes[box.id];
+      const moved = this.translatedLayout(box.id, command === "align" ? current.x : first.x + i * (last.x - first.x) / (sorted.length - 1), command === "align" ? first.y : current.y);
+      for (const candidate of this.projection.boxes) if (moved.boxes[candidate.id].x !== this.layoutValue.boxes[candidate.id].x || moved.boxes[candidate.id].y !== this.layoutValue.boxes[candidate.id].y) next.boxes[candidate.id] = moved.boxes[candidate.id];
+    });
+    if (emit(this, "move-request", { boxId: sorted[0].id, position: next.boxes[sorted[0].id], boxIds: sorted.map(box => box.id), positions: next.boxes })) this.commitLayout(next);
   }
   protected setupListeners(): void {
     const toolbar = this.shadowRoot!.querySelector("[part=toolbar]")!;
@@ -454,13 +665,13 @@ export class ProcessModeler<
         else if (command === "redo") this.redo();
         else if (command === "snap") this.snapToGrid = !this.snapToGrid;
         else if (command === "lock") this.locked = !this.locked;
-        else if (command === "connect" && this.selected && !this.locked) {
+        else if (command === "connect" && this.selected && !this.locked && !this.disableConnections) {
           this.connecting = this.selected.id;
           this.setStatus(
             `Select the next box to connect from ${this.selected.title}`,
           );
         } else if (command === "delete" && this.selected)
-          this.requestEdit({ type: "delete", boxId: this.selected.id });
+          this.selectionCommand("delete-many");
       },
     );
     this.shadowRoot!.querySelector("[part=search]")!.addEventListener(
@@ -492,6 +703,10 @@ export class ProcessModeler<
     canvas.addEventListener("pointercancel", (event) =>
       this.pointerEnd(event, false),
     );
+    canvas.addEventListener("lostpointercapture", event => {
+      // Touch transfers implicit box capture to the canvas during a drag.
+      if (event.target === canvas) this.pointerEnd(event, false);
+    });
     canvas.addEventListener("gesturestart", (event) => {
       event.preventDefault();
       this.gestureZoom = this.viewport.zoom;
@@ -556,6 +771,7 @@ export class ProcessModeler<
     )
       return;
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
+      if (this.locked || !(event.shiftKey ? this.history.canRedo : this.history.canUndo)) return;
       event.preventDefault();
       if (event.shiftKey) this.redo();
       else this.undo();
@@ -563,19 +779,21 @@ export class ProcessModeler<
     }
     if (event.key === "Escape") {
       this.connecting = null;
+      this.portDrag = undefined; this.marquee = undefined; this.segmentDrag = undefined; this.drag = undefined; this.pointers.clear(); this.refresh();
       this.setStatus("Connecting cancelled");
       return;
     }
     const box = this.selected;
     if (!box || this.locked) return;
-    if (event.key.toLowerCase() === "c") {
+    if (event.key === "Enter" || event.key === " ") return;
+    if (event.key.toLowerCase() === "c" && !this.disableConnections) {
       event.preventDefault();
       this.connecting = box.id;
       this.setStatus(`Select the next box to connect from ${box.title}`);
     }
     if (event.key === "Delete" || event.key === "Backspace") {
       event.preventDefault();
-      this.requestEdit({ type: "delete", boxId: box.id });
+      this.selectionCommand("delete-many");
     }
     const direction = {
       ArrowLeft: [-1, 0],
@@ -596,9 +814,26 @@ export class ProcessModeler<
     }
   }
   private pointerDown(event: PointerEvent): void {
+    if (event.button !== 0) return;
+    this.suppressClick = false;
+    if (this.portDrag || this.segmentDrag || this.marquee) return;
+    const control = (event.target as HTMLElement).closest<HTMLElement>("[part=port]");
+    if (control && !this.locked && !this.disableConnections) {
+      event.preventDefault();
+      const point = this.canvasPoint(event);
+      this.portDrag = { pointerId: event.pointerId, id: control.dataset.owner!, side: control.dataset.side as NonNullable<typeof this.portDrag>["side"], start: point, point };
+      this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.setPointerCapture?.(event.pointerId);
+      return;
+    }
+    const segment = (event.target as HTMLElement).closest<HTMLElement>("[data-segment]");
+    if (segment && !this.locked) {
+      const line = this.projection.lines.find(line => line.id === segment.dataset.lineId)!;
+      this.segmentDrag = { pointerId: event.pointerId, id: line.id, index: Number(segment.dataset.segment), points: routeProcessLine(line, this.layoutValue, this.projection) };
+      this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.setPointerCapture?.(event.pointerId); event.preventDefault(); return;
+    }
     if (
       event.button !== 0 ||
-      (event.target as HTMLElement).closest("[part=connection]")
+      (event.target as HTMLElement).closest("[part=connection],button,input,select,textarea,[contenteditable]")
     )
       return;
     this.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -614,7 +849,8 @@ export class ProcessModeler<
     const id = target?.dataset.boxId;
     const canvas =
       this.shadowRoot!.querySelector<HTMLElement>("[part=canvas]")!;
-    (target ?? canvas).setPointerCapture?.(event.pointerId);
+    if (id && !this.selectedIds.has(id) && !event.shiftKey) this.select(id);
+    if (!id && event.shiftKey && !this.locked) { const point = this.canvasPoint(event); this.marquee = { pointerId: event.pointerId, start: point, point }; canvas.setPointerCapture?.(event.pointerId); event.preventDefault(); return; }
     this.drag = {
       id: this.locked ? undefined : id,
       x: event.clientX,
@@ -629,6 +865,27 @@ export class ProcessModeler<
     return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
   }
   private pointerMove(event: PointerEvent): void {
+    const gesture = this.portDrag ?? this.segmentDrag ?? this.marquee;
+    if (gesture && gesture.pointerId !== event.pointerId) return;
+    const point = this.canvasPoint(event);
+    if (this.portDrag) {
+      this.portDrag.point = point;
+      let ghost = this.shadowRoot!.querySelector<SVGPolylineElement>('[part=connection-preview]');
+      if (!ghost) { ghost = svgElement("polyline"); ghost.setAttribute("part", "connection-preview"); ghost.style.cssText = "fill:none;stroke:var(--boe-token-surface-surface-brand,#0061d5);stroke-width:3"; this.shadowRoot!.querySelector('[part=lines]')!.append(ghost); }
+      const start = this.portDrag.start; ghost.setAttribute("points", `${start.x},${start.y} ${point.x},${start.y} ${point.x},${point.y}`); return;
+    }
+    if (this.segmentDrag) {
+      const { index, points } = this.segmentDrag;
+      if (points[index].x === points[index + 1].x) points[index].x = points[index + 1].x = point.x;
+      else points[index].y = points[index + 1].y = point.y;
+      const path = Array.from(this.shadowRoot!.querySelectorAll<SVGPolylineElement>('[part=line]')).find(path => path.dataset.lineId === this.segmentDrag!.id);
+      path?.setAttribute("points", points.map(p => `${p.x},${p.y}`).join(" ")); return;
+    }
+    if (this.marquee) {
+      this.marquee.point = point; let region = this.shadowRoot!.querySelector<HTMLElement>('[part=marquee]');
+      if (!region) { region = document.createElement("div"); region.setAttribute("part", "marquee"); this.shadowRoot!.querySelector('[part=world]')!.append(region); }
+      this.place(region, { x: Math.min(point.x, this.marquee.start.x), y: Math.min(point.y, this.marquee.start.y), width: Math.abs(point.x - this.marquee.start.x), height: Math.abs(point.y - this.marquee.start.y) }); return;
+    }
     if (!this.pointers.has(event.pointerId)) return;
     this.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (this.pointers.size === 2) {
@@ -640,13 +897,17 @@ export class ProcessModeler<
     if (!this.drag) return;
     const dx = event.clientX - this.drag.x;
     const dy = event.clientY - this.drag.y;
+    if (Math.hypot(dx, dy) <= 4) return;
+    this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.setPointerCapture?.(event.pointerId);
     if (this.drag.id && this.drag.position) {
       const element = Array.from(
         this.shadowRoot!.querySelectorAll<HTMLElement>("[data-box-id]"),
       ).find((box) => box.dataset.boxId === this.drag!.id);
       if (element) {
-        element.style.left = `${this.drag.position.x + dx / this.viewport.zoom}px`;
-        element.style.top = `${this.drag.position.y + dy / this.viewport.zoom}px`;
+        const position = this.alignedPoint(this.drag.id, this.drag.position.x + dx / this.viewport.zoom, this.drag.position.y + dy / this.viewport.zoom);
+        element.style.left = `${position.x}px`;
+        element.style.top = `${position.y}px`;
+        this.markDropLine(point, this.drag.id);
       }
     } else {
       this.viewport.x = this.drag.panX + dx;
@@ -655,6 +916,31 @@ export class ProcessModeler<
     }
   }
   private pointerEnd(event: PointerEvent, commit: boolean): void {
+    const gesture = this.portDrag ?? this.segmentDrag ?? this.marquee;
+    if (gesture && gesture.pointerId !== event.pointerId) return;
+    const point = this.canvasPoint(event);
+    if (this.portDrag) {
+      const port = this.portDrag; this.portDrag = undefined;
+      this.shadowRoot!.querySelector('[part=connection-preview]')?.remove();
+      if (commit) {
+        if (Math.hypot(point.x - port.start.x, point.y - port.start.y) < 8) {
+          const pos = this.layoutValue.boxes[port.id];
+          const offsets = { east: [320, 0], west: [-320, 0], north: [0, -170], south: [0, 170] }[port.side];
+          this.openChooser({ type: "add", from: port.id, fromSide: port.side, position: { x: pos.x + offsets[0], y: pos.y + offsets[1] } });
+        } else {
+          const target = this.boxAt(point, port.id);
+          if (target) this.requestEdit({ type: "connect", from: port.id, to: target.id, fromSide: port.side });
+        }
+      }
+      return;
+    }
+    if (this.segmentDrag) { const segment = this.segmentDrag; this.segmentDrag = undefined; if (commit) this.routeLine(segment.id, segment.points.slice(1, -1)); else this.refresh(); return; }
+    if (this.marquee) {
+      const { start } = this.marquee; this.marquee = undefined;
+      if (commit) this.selectMany(this.projection.boxes.filter(box => { const p = this.layoutValue.boxes[box.id]; return p.x < Math.max(start.x, point.x) && p.x + (p.width ?? 220) > Math.min(start.x, point.x) && p.y < Math.max(start.y, point.y) && p.y + (p.height ?? 96) > Math.min(start.y, point.y); }).map(box => box.id));
+      this.shadowRoot!.querySelector('[part=marquee]')?.remove(); this.pointers.delete(event.pointerId); return;
+    }
+    if (!this.pointers.has(event.pointerId)) return;
     this.pointers.delete(event.pointerId);
     const drag = this.drag;
     this.drag = undefined;
@@ -662,22 +948,98 @@ export class ProcessModeler<
     if (drag?.id && drag.position) {
       const dx = event.clientX - drag.x;
       const dy = event.clientY - drag.y;
-      if (commit && Math.hypot(dx, dy) > 4)
-        this.move(
-          drag.id,
-          drag.position.x + dx / this.viewport.zoom,
-          drag.position.y + dy / this.viewport.zoom,
-        );
+      if (commit && Math.hypot(dx, dy) > 4) {
+        this.suppressClick = true;
+        const position = this.alignedPoint(drag.id, drag.position.x + dx / this.viewport.zoom, drag.position.y + dy / this.viewport.zoom);
+        const line = this.lineAt(point, drag.id);
+        const frame = this.boxAt(point, drag.id, true);
+        if (line) this.requestEdit({ type: "insert", boxId: drag.id, lineId: line.id, from: line.from, to: line.to, position });
+        else if (this.projection.boxes.find(box => box.id === drag.id)?.parentId !== frame?.id) this.requestEdit({ type: "reparent", boxId: drag.id, parentId: frame?.id, position });
+        else if (this.selectedIds.size > 1 && this.selectedIds.has(drag.id)) {
+          const next = this.layout; const dx = position.x - drag.position.x; const dy = position.y - drag.position.y;
+          const moved = new Set(this.selectedIds);
+          for (let changed = true; changed;) { changed = false; for (const box of this.projection.boxes) if (box.parentId && moved.has(box.parentId) && !moved.has(box.id)) { moved.add(box.id); changed = true; } }
+          const primary = next.boxes[drag.id];
+          const shiftX = this.snapToGrid ? Math.round((primary.x + dx) / 20) * 20 - primary.x : dx;
+          const shiftY = this.snapToGrid ? Math.round((primary.y + dy) / 20) * 20 - primary.y : dy;
+          for (const id of moved) next.boxes[id] = { ...next.boxes[id], x: next.boxes[id].x + shiftX, y: next.boxes[id].y + shiftY };
+          if (emit(this, "move-request", { boxId: drag.id, position: next.boxes[drag.id], boxIds: [...moved], positions: next.boxes })) this.commitLayout(next);
+        } else this.move(drag.id, position.x, position.y);
+      }
       else if (!commit) this.refresh();
     }
+    this.shadowRoot!.querySelectorAll('[part=guide],[part=measure]').forEach(element => element.remove());
+    this.markDropLine(undefined);
+    if (drag?.id && (!commit || Math.hypot(event.clientX - drag.x, event.clientY - drag.y) > 4)) this.refresh();
+  }
+  private canvasPoint(event: { clientX: number; clientY: number }) {
+    const rect = this.shadowRoot!.querySelector('[part=canvas]')!.getBoundingClientRect();
+    return { x: (event.clientX - rect.left - this.viewport.x) / this.viewport.zoom, y: (event.clientY - rect.top - this.viewport.y) / this.viewport.zoom };
+  }
+  private boxAt(point: { x: number; y: number }, except?: string, frameOnly = false) {
+    return [...this.projection.boxes].reverse().find(box => {
+      if (box.id === except || (frameOnly && !box.frame)) return false;
+      // A frame cannot be dropped inside its own descendants.
+      let parent = box.parentId;
+      while (parent) { if (parent === except) return false; parent = this.projection.boxes.find(b => b.id === parent)?.parentId; }
+      const p = this.layoutValue.boxes[box.id]; return point.x >= p.x - 12 && point.x <= p.x + (p.width ?? 220) + 12 && point.y >= p.y - 12 && point.y <= p.y + (p.height ?? 96) + 12;
+    });
+  }
+  private lineAt(point: { x: number; y: number }, except?: string) {
+    return this.projection.lines.find(line => line.from !== except && line.to !== except && nearProcessLine(point, this.routedLines.get(line.id) ?? [], 16 / this.viewport.zoom));
+  }
+  private markDropLine(point?: { x: number; y: number }, except?: string): void {
+    this.dropLine = point ? this.lineAt(point, except)?.id : undefined;
+    this.shadowRoot!.querySelectorAll<SVGElement>('[part=line]').forEach(path => path.dataset.drop = String(path.dataset.lineId === this.dropLine));
+  }
+  private alignedPoint(id: string, x: number, y: number) {
+    const world = this.shadowRoot!.querySelector('[part=world]')!;
+    world.querySelectorAll('[part=guide],[part=measure]').forEach(element => element.remove());
+    for (const box of this.projection.boxes) {
+      if (box.id === id) continue;
+      const p = this.layoutValue.boxes[box.id];
+      for (const axis of ["x", "y"] as const) {
+        const value = axis === "x" ? x : y;
+        if (Math.abs(value - p[axis]) < 8 / this.viewport.zoom) {
+          if (axis === "x") x = p.x; else y = p.y;
+          const guide = document.createElement("div"); guide.setAttribute("part", "guide");
+          guide.style.cssText = axis === "x" ? `left:${x}px;top:${Math.min(y, p.y)}px;width:1px;height:${Math.abs(y - p.y) + 96}px` : `left:${Math.min(x, p.x)}px;top:${y}px;height:1px;width:${Math.abs(x - p.x) + 220}px`; world.append(guide);
+        }
+      }
+      if (Math.abs(y - p.y) < 8) {
+        const distance = x - p.x - (p.width ?? 220);
+        if (distance > 0) { const measure = document.createElement("span"); measure.setAttribute("part", "measure"); measure.textContent = `${Math.round(distance)}px`; measure.style.cssText = `left:${p.x + (p.width ?? 220)}px;top:${y + 40}px`; world.append(measure); }
+      }
+    }
+    return { x, y };
+  }
+  private openChooser(edit: ProcessEdit): void {
+    this.insertion = edit;
+    const chooser = this.shadowRoot!.querySelector<HTMLDialogElement>('[part=insert-chooser]')!;
+    const picker = chooser.querySelector<KindPicker>('box-kind-picker')!; picker.catalog = this.catalog; picker.refresh(); promoteModal(chooser); picker.focus();
   }
   protected update(): void {
+    const selectionBefore = JSON.stringify({ ids: [...this.selectedIds], path: this.selectedPath });
     if (this.documentValue !== undefined) {
       this.projection = this.model.project(this.documentValue);
       validateProjection(this.projection);
     } else this.projection = { boxes: [], lines: [] };
-    this.layoutValue = completeLayout(this.projection, this.layoutValue);
+    this.layoutValue = this.arrangedLayout(this.layoutValue);
+    this.routedLines = new Map(this.projection.lines.map(line => [line.id, routeProcessLine(line, this.layoutValue, this.projection)]));
+    this.computedChecks = this.collectChecks();
     if (this.selectedId && !this.selected) this.selectedId = null;
+    this.selectedIds = new Set([...this.selectedIds].filter(id => this.projection.boxes.some(box => box.id === id)));
+    if (!this.selectedId) this.selectedId = this.selectedIds.values().next().value ?? null;
+    const serialized = JSON.stringify({
+      boxes: this.projection.boxes.map(box => ({ id: box.id, kind: box.kind, title: box.title, description: box.description, path: box.path, fingerprint: box.fingerprint, frame: box.frame, parentId: box.parentId })),
+      lines: this.projection.lines,
+    });
+    if (serialized !== this.lastProjection || this.documentValue !== this.lastDocument) {
+      if (this.lastProjection) this.versionValue = typeof this.versionValue === "number" ? this.versionValue + 1 : `${this.versionValue}+1`;
+      this.lastProjection = serialized;
+      this.lastDocument = this.documentValue;
+      emit(this, "projection-changed", { projection: this.projection, version: this.versionValue, checks: this.allChecks });
+    }
     const focused = (this.shadowRoot!.activeElement as HTMLElement | null)
       ?.dataset.boxId;
     this.renderWorld();
@@ -686,7 +1048,14 @@ export class ProcessModeler<
     this.renderSelection();
     this.paintViewport();
     this.updateToolbar();
+    if (selectionBefore !== JSON.stringify({ ids: [...this.selectedIds], path: this.selectedPath })) emit(this, "selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath });
     if (focused) this.focusBox(focused);
+  }
+  private get allChecks(): readonly ProcessCheck[] { return this.computedChecks; }
+  private collectChecks(): readonly ProcessCheck[] {
+    const routes = this.projection.lines.filter(line => !this.routedLines.get(line.id)?.length)
+      .map(line => ({ message: "A connection is blocked by overlapping steps. Move a step or adjust its route.", boxId: line.from }));
+    return [...this.checks, ...graphChecks(this.projection), ...routes, ...(this.documentValue === undefined ? [] : this.model.validate?.(this.documentValue, this.projection) ?? [])];
   }
   private renderWorld(): void {
     const world = this.shadowRoot!.querySelector<HTMLElement>("[part=world]")!;
@@ -701,8 +1070,9 @@ export class ProcessModeler<
     for (const box of [...this.projection.boxes].sort(
       (a, b) => Number(Boolean(b.frame)) - Number(Boolean(a.frame)),
     )) {
-      const element = document.createElement("button");
-      element.type = "button";
+      const element = document.createElement("div");
+      element.tabIndex = 0;
+      element.setAttribute("role", "group");
       element.setAttribute("part", box.frame ? "frame" : "box");
       element.dataset.boxId = box.id;
       element.setAttribute(
@@ -711,7 +1081,7 @@ export class ProcessModeler<
           .filter(Boolean)
           .join(". "),
       );
-      element.setAttribute("aria-pressed", String(box.id === this.selectedId));
+      element.setAttribute("aria-current", String(this.selectedIds.has(box.id)));
       this.place(element, this.layoutValue.boxes[box.id]);
       const kind = this.catalog.find((kind) => kind.kind === box.kind);
       if (kind?.icon) {
@@ -729,7 +1099,11 @@ export class ProcessModeler<
         description.textContent = box.description;
         element.append(description);
       }
-      element.addEventListener("click", () => {
+      element.addEventListener("keydown", event => {
+        if (event.target === element && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); element.click(); }
+      });
+      element.addEventListener("click", event => {
+        if (this.suppressClick && event.detail !== 0) { this.suppressClick = false; return; }
         if (this.connecting && this.connecting !== box.id) {
           this.requestEdit({
             type: "connect",
@@ -738,8 +1112,23 @@ export class ProcessModeler<
           });
           this.connecting = null;
         }
-        this.select(box.id);
+        if (event.shiftKey) this.selectMany(this.selectedIds.has(box.id) ? [...this.selectedIds].filter(id => id !== box.id) : [...this.selectedIds, box.id]);
+        else this.select(box.id);
       });
+      if (!this.disableConnections && !this.locked) {
+        for (const side of ["north", "east", "south", "west"] as const) {
+          const port = document.createElement("button"); port.type = "button"; port.setAttribute("part", "port"); port.dataset.side = side; port.dataset.owner = box.id;
+          port.setAttribute("aria-label", `Add or connect a step ${side} of ${box.title}`);
+          port.addEventListener("click", event => {
+            event.stopPropagation();
+            if (!event.detail) {
+              const pos = this.layoutValue.boxes[box.id]; const offsets = { east: [320, 0], west: [-320, 0], north: [0, -170], south: [0, 170] }[side];
+              this.openChooser({ type: "add", from: box.id, fromSide: side, position: { x: pos.x + offsets[0], y: pos.y + offsets[1] } });
+            }
+          });
+          element.append(port);
+        }
+      }
       world.append(element);
     }
     const lines = svgElement("svg");
@@ -747,52 +1136,74 @@ export class ProcessModeler<
     lines.setAttribute("aria-hidden", "true");
     world.append(lines);
     for (const line of this.projection.lines) {
-      const from = this.layoutValue.boxes[line.from];
-      const to = this.layoutValue.boxes[line.to];
-      const x1 = from.x + (from.width ?? 220) / 2;
-      const y1 = from.y + (from.height ?? 96);
-      const x2 = to.x + (to.width ?? 220) / 2;
-      const y2 = to.y;
+      const points = this.routedLines.get(line.id)!;
+      if (!points.length) continue;
+      const midpoint = lineMidpoint(points);
       const path = svgElement("polyline");
       path.setAttribute("part", "line");
+      path.dataset.lineId = line.id;
+      path.setAttribute("vector-effect", "non-scaling-stroke");
       path.setAttribute(
         "points",
-        [
-          { x: x1, y: y1 },
-          ...(this.layoutValue.lines?.[line.id] ?? line.points ?? []),
-          { x: x2, y: y2 },
-        ]
+        points
           .map((point) => `${point.x},${point.y}`)
           .join(" "),
       );
       if (line.dashed) path.setAttribute("stroke-dasharray", "6 4");
       lines.append(path);
+      for (let i = 1; i < points.length - 2; i++) {
+        const hit = svgElement("polyline"); hit.setAttribute("part", "line-hit"); hit.dataset.lineId = line.id; hit.dataset.segment = String(i);
+        hit.setAttribute("vector-effect", "non-scaling-stroke");
+        hit.setAttribute("points", `${points[i].x},${points[i].y} ${points[i + 1].x},${points[i + 1].y}`); lines.append(hit);
+      }
       const label = document.createElement("div");
       label.setAttribute("part", "connection");
-      label.style.left = `${(x1 + x2) / 2}px`;
-      label.style.top = `${(y1 + y2) / 2}px`;
+      label.style.left = `${midpoint.x}px`;
+      label.style.top = `${midpoint.y}px`;
       const names = `${this.projection.boxes.find((box) => box.id === line.from)!.title} to ${this.projection.boxes.find((box) => box.id === line.to)!.title}${line.label ? `, ${line.label}` : ""}`;
       const text = document.createElement("span");
-      text.textContent = line.label ?? "Connection";
+      const source = this.projection.boxes.find(box => box.id === line.from)!;
+      const branchIndex = this.projection.lines.filter(candidate => candidate.from === line.from).indexOf(line);
+      text.textContent = line.label ?? (line.weight !== undefined ? String(line.weight) : /decision/i.test(source.kind) ? ["Yes", "No"][branchIndex] ?? `Route ${branchIndex + 1}` : /try/i.test(source.kind) && line.dashed ? "If it fails" : "");
       label.append(text);
+      const actions = document.createElement("div"); actions.setAttribute("part", "connection-actions"); label.append(actions);
+      if (points.length >= 4 && !this.locked) {
+        const adjust = document.createElement("button"); adjust.type = "button"; adjust.textContent = "Route";
+        adjust.dataset.segment = "1"; adjust.dataset.lineId = line.id;
+        adjust.setAttribute("aria-label", `Adjust route: ${names}. Use arrow keys`);
+        adjust.onkeydown = event => {
+          const direction = { ArrowLeft: [-10, 0], ArrowRight: [10, 0], ArrowUp: [0, -10], ArrowDown: [0, 10] }[event.key];
+          if (!direction) return; event.preventDefault(); event.stopPropagation();
+          const current = routeProcessLine(line, this.layoutValue, this.projection);
+          const vertical = current[1].x === current[2].x;
+          for (const point of [current[1], current[2]]) { if (vertical) point.x += direction[0]; else point.y += direction[1]; }
+          this.routeLine(line.id, current.slice(1, -1));
+          Array.from(this.shadowRoot!.querySelectorAll<HTMLButtonElement>('[data-segment]')).find(button => button.dataset.lineId === line.id)?.focus();
+        };
+        actions.append(adjust);
+      }
       for (const [type, title] of [
         ["insert", "Insert a step here"],
         ["disconnect", "Remove connection"],
       ] as const) {
+        if (type === "disconnect" && this.disableConnections) continue;
         const button = document.createElement("button");
         button.type = "button";
         button.textContent = type === "insert" ? "+" : "Remove";
         button.setAttribute("aria-label", `${title}: ${names}`);
         button.disabled = this.locked;
-        button.addEventListener("click", () =>
-          this.requestEdit({
+        button.addEventListener("click", () => {
+          const edit: ProcessEdit = {
             type,
             lineId: line.id,
             from: line.from,
             to: line.to,
-          }),
-        );
-        label.append(button);
+          };
+          if (type === "insert" && this.catalog.length) {
+            this.openChooser(edit);
+          } else this.requestEdit(edit);
+        });
+        actions.append(button);
       }
       world.append(label);
     }
@@ -839,7 +1250,7 @@ export class ProcessModeler<
       button.disabled = this.locked;
       button.draggable = !this.locked;
       button.addEventListener("click", () =>
-        this.requestEdit({ type: "add", kind, position: { x: 40, y: 40 } }),
+        this.requestEdit({ type: "add", kind }),
       );
       button.addEventListener("dragstart", (event) =>
         event.dataTransfer?.setData("application/boe-process-kind", kind.kind),
@@ -849,8 +1260,9 @@ export class ProcessModeler<
     const canvas =
       this.shadowRoot!.querySelector<HTMLElement>("[part=canvas]")!;
     canvas.ondragover = (event) => {
-      if (!this.locked) event.preventDefault();
+      if (!this.locked) { event.preventDefault(); this.markDropLine(this.canvasPoint(event)); }
     };
+    canvas.ondragleave = () => this.markDropLine(undefined);
     canvas.ondrop = (event) => {
       event.preventDefault();
       const kind = this.catalog.find(
@@ -858,22 +1270,23 @@ export class ProcessModeler<
           kind.kind ===
           event.dataTransfer?.getData("application/boe-process-kind"),
       );
-      if (!kind) return;
-      const rect = canvas.getBoundingClientRect();
+      if (!kind || this.locked) return;
+      const position = this.canvasPoint(event);
+      const line = this.lineAt(position);
+      const frame = this.boxAt(position, undefined, true);
       this.requestEdit({
-        type: "add",
+        type: line ? "insert" : "add",
         kind,
-        position: {
-          x: (event.clientX - rect.left - this.viewport.x) / this.viewport.zoom,
-          y: (event.clientY - rect.top - this.viewport.y) / this.viewport.zoom,
-        },
+        lineId: line?.id, from: line?.from, to: line?.to, parentId: frame?.id,
+        position,
       });
+      this.markDropLine(undefined);
     };
   }
   private renderChecks(): void {
     const checks = this.shadowRoot!.querySelector("[part=checks]")!;
     checks.replaceChildren();
-    this.checks.forEach((check) => {
+    this.allChecks.forEach((check) => {
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = check.message;
@@ -898,14 +1311,14 @@ export class ProcessModeler<
     this.shadowRoot!.querySelectorAll<HTMLElement>("[data-box-id]").forEach(
       (element) => {
         element.setAttribute(
-          "aria-pressed",
-          String(element.dataset.boxId === this.selectedId),
+          "aria-current",
+          String(this.selectedIds.has(element.dataset.boxId!)),
         );
         const box = this.projection.boxes.find(
           (box) => box.id === element.dataset.boxId,
         )!;
         element.dataset.invalid = String(
-          this.checks.some(
+          this.allChecks.some(
             (check) =>
               check.boxId === box.id ||
               (check.path &&
@@ -917,12 +1330,16 @@ export class ProcessModeler<
     const editor =
       this.shadowRoot!.querySelector<HTMLElement>("[part=editor]")!;
     const selected = this.selected;
+    this.shadowRoot!.querySelector<HTMLElement>("[part=palette]")!.hidden = false;
+    this.shadowRoot!.querySelector<HTMLElement>('[part=selection-toolbar]')!.hidden = this.selectedIds.size === 0;
+    this.shadowRoot!.querySelectorAll<HTMLButtonElement>('[part=selection-toolbar] button').forEach((button, index) => button.disabled = this.locked || (index < 2 && this.selectedIds.size < 2));
+    this.renderPane();
     if (
       this.inspected === selected?.node &&
       this.inspectedId === selected?.id &&
-      editor.childNodes.length
+      editor.querySelector(`[part=inspector-heading]`)?.tagName === `H${this.headingLevel}`
     ) {
-      editor.querySelector("h3")!.textContent = selected?.title ?? "";
+      editor.querySelector("[part=inspector-heading]")!.textContent = selected?.title ?? "";
       return;
     }
     this.cleanupInspector?.();
@@ -931,7 +1348,8 @@ export class ProcessModeler<
     this.inspected = selected?.node;
     this.inspectedId = selected?.id;
     if (selected) {
-      const heading = document.createElement("h3");
+      const heading = document.createElement(`h${this.headingLevel}`);
+      heading.setAttribute("part", "inspector-heading");
       heading.textContent = selected.title;
       editor.append(heading);
       this.cleanupInspector =
@@ -946,7 +1364,7 @@ export class ProcessModeler<
     button("undo").disabled = !this.history.canUndo || this.locked;
     button("redo").disabled = !this.history.canRedo || this.locked;
     button("tidy").disabled = this.locked;
-    button("connect").disabled = !this.selected || this.locked;
+    button("connect").disabled = !this.selected || this.locked || this.disableConnections;
     button("delete").disabled = !this.selected || this.locked;
     button("lock").setAttribute("aria-pressed", String(this.locked));
     button("snap").setAttribute("aria-pressed", String(this.snapToGrid));
@@ -956,6 +1374,7 @@ export class ProcessModeler<
       "[part=world]",
     )!.style.transform =
       `translate(${this.viewport.x}px,${this.viewport.y}px) scale(${this.viewport.zoom})`;
+    this.shadowRoot!.querySelectorAll<HTMLElement>('[part=port]').forEach(port => port.style.transform = `scale(${1 / this.viewport.zoom})`);
     this.shadowRoot!.querySelector("[data-command=reset]")!.textContent =
       `${Math.round(this.viewport.zoom * 100)}%`;
     const minimap =

@@ -114,8 +114,8 @@ export const boeControl = {
   letterSpacing: "var(--boe-profile-control-letter-spacing, 0.035em)",
   /** BUE disabled control opacity */
   disabledOpacity: "var(--boe-profile-disabled-opacity, 0.4)",
-  /** Input border — `$bdl-gray-20` / SurfaceSurfaceQuaternary */
-  inputBorder: "var(--boe-token-surface-surface-quaternary, #d3d3d3)",
+  /** Accessible control edge, separate from low-contrast decorative dividers. */
+  inputBorder: "var(--boe-control-edge, var(--boe-token-text-text-secondary, #6f6f6f))",
   /** Button secondary border — `$bdl-gray-30` / StrokeStrokeHover */
   buttonBorder: "var(--boe-token-stroke-stroke-hover, #bcbcbc)",
   /** `@mixin box-inputs` inset shadow */
@@ -145,7 +145,7 @@ export const boeInputControlStyles = (selector: string): string => `
 
   ${selector}:hover:not(:disabled) {
     box-shadow: ${boeControl.inputInsetShadow};
-    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+    border-color: ${boeControl.inputBorder};
   }
 
   ${selector}:focus-visible {

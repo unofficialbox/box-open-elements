@@ -94,6 +94,7 @@ const codeStyles = `
   }
 
   ${boeFocusVisibleStyles('[part="copy"]')}
+  ${boeFocusVisibleStyles('[part="pre"]')}
 `;
 
 /**
@@ -212,7 +213,7 @@ export class CodeBlock extends BaseElement {
     this.shadowRoot.innerHTML = `
       <style>${codeStyles}</style>
       <div part="block">
-        <pre part="pre"><code part="code"><slot></slot></code></pre>
+        <pre part="pre" tabindex="0" role="region"><code part="code"><slot></slot></code></pre>
         <button type="button" part="copy" data-copied="false"></button>
       </div>
     `;
@@ -244,6 +245,7 @@ export class CodeBlock extends BaseElement {
     }
 
     const language = this.language;
+    this.preEl.setAttribute("aria-label", language ? `${language} code` : "Source code");
     if (language) {
       this.codeEl.setAttribute("data-language", language);
       this.codeEl.setAttribute("class", `language-${language}`);

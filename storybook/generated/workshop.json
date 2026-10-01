@@ -353,6 +353,30 @@
       "sourceSnippet": "<box-code-editor label=\"Workflow code\" language=\"typescript\"></box-code-editor>",
       "referenceRows": [
         {
+          "kind": "attribute",
+          "name": "wrap",
+          "type": "boolean",
+          "description": "Wrap long lines."
+        },
+        {
+          "kind": "property",
+          "name": "highlights",
+          "type": "CodeHighlight[]",
+          "description": "UTF-16 ranges shown with a tint and left bar."
+        },
+        {
+          "kind": "property",
+          "name": "completionSource",
+          "type": "CodeCompletionSource",
+          "description": "Cursor-aware host completions, including asynchronous sources."
+        },
+        {
+          "kind": "event",
+          "name": "selection-changed",
+          "type": "{ anchor, head }",
+          "description": "Immediate cursor and selection changes."
+        },
+        {
           "kind": "property",
           "name": "value",
           "type": "string",
@@ -362,7 +386,7 @@
           "kind": "property",
           "name": "problems",
           "type": "CodeProblem[]",
-          "description": "One-based diagnostics with error, warning or info tone."
+          "description": "One-based line/column or UTF-16 offset diagnostics with error, warning or info tone."
         },
         {
           "kind": "property",
@@ -393,6 +417,48 @@
       "docsDescription": "Pass document, model, catalog and layout. Accept or refuse process-edit-request in your host; retain layout separately from workflow data.",
       "sourceSnippet": "<box-process-modeler snap-to-grid></box-process-modeler>",
       "referenceRows": [
+        {
+          "kind": "property",
+          "name": "connections",
+          "type": "readonly ProcessConnection[]",
+          "description": "Host connection names and kinds shown in the Connections pane."
+        },
+        {
+          "kind": "property",
+          "name": "variables",
+          "type": "readonly ProcessVariable[]",
+          "description": "Host variables shown in the Variables pane."
+        },
+        {
+          "kind": "property",
+          "name": "selectedPath",
+          "type": "NodePath | null",
+          "description": "Host selection normalized to the deepest projected box."
+        },
+        {
+          "kind": "event",
+          "name": "projection-changed",
+          "type": "{ projection, version, checks }",
+          "description": "Changed graph version for host conversion."
+        },
+        {
+          "kind": "event",
+          "name": "positions-changed",
+          "type": "{ positions, version }",
+          "description": "Detached path/fingerprint positions for host persistence."
+        },
+        {
+          "kind": "attribute",
+          "name": "heading-level",
+          "type": "number",
+          "description": "Inspector heading level 1-6 (default 2)."
+        },
+        {
+          "kind": "attribute",
+          "name": "disable-connections",
+          "type": "boolean",
+          "description": "Refuse manual connect/disconnect requests."
+        },
         {
           "kind": "property",
           "name": "model",
@@ -460,7 +526,7 @@
       "title": "Components/Navigation/Accordion",
       "category": "Navigation",
       "shortDescription": "An expandable section list.",
-      "docsDescription": "Pass panels as JSON `items` (`label`/`value`/`content`) and the open panel `value`.",
+      "docsDescription": "Pass panels as JSON items (label/value/content/summary). Use value for single-open mode or multiple with values for independent panels.",
       "sourceSnippet": "<box-accordion label=\"Details\" items='[{\"label\":\"Properties\",\"value\":\"props\",\"content\":\"Owner and size.\"}]' value=\"props\"></box-accordion>",
       "referenceRows": [
         {
@@ -483,6 +549,24 @@
         },
         {
           "kind": "attribute",
+          "name": "multiple",
+          "type": "boolean",
+          "description": "Allow independent expanded panels."
+        },
+        {
+          "kind": "property",
+          "name": "values",
+          "type": "string[]",
+          "description": "Expanded panels in multiple mode (JSON attribute supported)."
+        },
+        {
+          "kind": "event",
+          "name": "values-changed",
+          "type": "{ values: string[] }",
+          "description": "Independent panel state changed."
+        },
+        {
+          "kind": "attribute",
           "name": "borderless",
           "type": "boolean",
           "description": "Flat variant with no outer card chrome."
@@ -495,6 +579,10 @@
         }
       ],
       "variants": [
+        {
+          "name": "Independent sections",
+          "html": "<box-accordion multiple values='[\"options\",\"hosts\"]' items='[{\"label\":\"More options\",\"summary\":\"api.box.com\",\"value\":\"options\",\"content\":\"Configure the service.\"},{\"label\":\"Other hosts\",\"summary\":\"none\",\"value\":\"hosts\",\"content\":\"Add another host.\"}]'></box-accordion>"
+        },
         {
           "name": "Default",
           "html": "<box-accordion label=\"Details\" items='[{\"label\":\"Properties\",\"value\":\"props\",\"content\":\"Owner, size, and classification.\"},{\"label\":\"Activity\",\"value\":\"activity\",\"content\":\"Recent comments and versions.\"}]' value=\"props\"></box-accordion>"
@@ -1483,8 +1571,8 @@
         {
           "kind": "attribute",
           "name": "tone",
-          "type": "\"primary\" | \"neutral\" | \"danger\"",
-          "description": "Visual emphasis."
+          "type": "\"primary\" | \"neutral\" | \"danger\" | \"text\"",
+          "description": "Visual emphasis; text is an in-place action, not a link."
         },
         {
           "kind": "attribute",
@@ -1523,6 +1611,10 @@
         }
       ],
       "variants": [
+        {
+          "name": "Text action",
+          "html": "<box-button label=\"Back to a single amount\" tone=\"text\"></box-button>"
+        },
         {
           "name": "Primary",
           "html": "<box-button label=\"Save\" tone=\"primary\"></box-button>"

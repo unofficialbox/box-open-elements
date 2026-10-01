@@ -433,7 +433,7 @@ export class Drawer extends BaseElement {
       this.hostEl.innerHTML = `
         <style>${drawerStyles}</style>
         <dialog part="backdrop" aria-labelledby="drawer-title">
-          <aside part="drawer">
+          <div part="drawer">
             <header part="header">
               <div part="meta">
                 <h2 id="drawer-title"></h2>
@@ -449,7 +449,7 @@ export class Drawer extends BaseElement {
             <footer part="footer" hidden>
               <slot name="footer"></slot>
             </footer>
-          </aside>
+          </div>
         </dialog>
       `;
       // The footer row only exists when the host slots one: an empty sticky

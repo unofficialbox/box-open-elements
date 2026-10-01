@@ -34,7 +34,11 @@ export class FlowBuilder<N extends FlowNodeBase = FlowNode> extends BaseElement 
   private headingEl?: HTMLElement;
   private renderedRenderer?: InspectorRenderer<N>;
   private observer?: ResizeObserver;
-  private narrow = false;
+  private narrowValue = false;
+  private visible = true;
+  get narrow(): boolean { return this.narrowValue; }
+  /** Focus a rendered card without changing selection or opening the editor. */
+  focusNode(node: N): void { this.spine?.focusNode(node); }
   private insertion?: FlowInsertDetail;
   private invoker?: InsertPoint;
   private spine!: FlowSpine;
@@ -73,12 +77,18 @@ export class FlowBuilder<N extends FlowNodeBase = FlowNode> extends BaseElement 
     if (oldValue !== newValue) this.refresh();
   }
   connectedCallback(): void {
+    this.visible = this.getClientRects().length > 0;
     super.connectedCallback();
     if (typeof ResizeObserver !== "undefined") {
-      this.observer = new ResizeObserver(entries => this.setNarrow(entries[0].contentRect.width < 800));
+      this.observer = new ResizeObserver(entries => {
+        const rect = entries[0].contentRect;
+        this.visible = rect.width > 0 && rect.height > 0 && this.getClientRects().length > 0;
+        this.setNarrow(this.visible && rect.width < 800);
+        this.updateInspector();
+      });
       this.observer.observe(this);
     }
-    this.setNarrow((this.getBoundingClientRect().width || this.ownerDocument.defaultView?.innerWidth || 1024) < 800);
+    this.setNarrow(this.visible && this.getBoundingClientRect().width < 800);
   }
   disconnectedCallback(): void {
     this.observer?.disconnect();
@@ -90,9 +100,10 @@ export class FlowBuilder<N extends FlowNodeBase = FlowNode> extends BaseElement 
   }
   private setNarrow(narrow: boolean): void {
     if (this.narrow === narrow) return;
-    this.narrow = narrow;
+    this.narrowValue = narrow;
     this.shadowRoot!.querySelector<HTMLElement>("[part=layout]")!.dataset.narrow = String(narrow);
     this.updateInspector();
+    this.dispatchEvent(new CustomEvent("narrow-changed", { detail: { narrow }, bubbles: true, composed: true }));
   }
   protected renderTemplate(): void {
     this.shadowRoot!.innerHTML = `<style>
@@ -142,7 +153,7 @@ export class FlowBuilder<N extends FlowNodeBase = FlowNode> extends BaseElement 
     });
     this.palette.addEventListener("kind-pick", event => this.insert((event as CustomEvent<{ kind: FlowKind<N> }>).detail.kind, { list: this.nodes, index: this.nodes.length, label: "Append to flow" }));
     this.drawer.addEventListener("open-changed", event => {
-      if (!(event as CustomEvent<{ open: boolean }>).detail.open && this.narrow && this.selectedValue) this.select(null);
+      if (!(event as CustomEvent<{ open: boolean }>).detail.open && this.visible && this.narrow && this.selectedValue) this.select(null);
     });
   }
   private closePicker(restoreFocus: boolean): void {
@@ -208,7 +219,7 @@ export class FlowBuilder<N extends FlowNodeBase = FlowNode> extends BaseElement 
     const target = this.narrow ? this.drawer : this.aside;
     if (this.inspector.parentElement !== target) target.append(this.inspector);
     if (this.inspected === this.selected && this.renderedRenderer === this.renderer && (!this.selected || this.headingEl?.tagName === `H${this.headingLevel}`)) {
-      this.drawer.open = this.narrow && Boolean(this.selected);
+      this.drawer.open = this.visible && this.narrow && Boolean(this.selected);
       return;
     }
     this.cleanupInspector?.(); this.cleanupInspector = undefined;
@@ -221,7 +232,7 @@ export class FlowBuilder<N extends FlowNodeBase = FlowNode> extends BaseElement 
       else { const description = document.createElement("p"); description.textContent = nodeDescription(this.selected, this.catalog, this.model) || "Select a step to inspect its configuration."; this.inspector.append(description); }
       this.drawer.heading = nodeTitle(this.selected, this.catalog, this.model);
     }
-    this.drawer.open = this.narrow && Boolean(this.selected);
+    this.drawer.open = this.visible && this.narrow && Boolean(this.selected);
   }
 }
 FlowBuilder.register();

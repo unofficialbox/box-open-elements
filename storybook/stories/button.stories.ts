@@ -11,7 +11,7 @@ const button: StoryModule = {
     sourceSnippet: `<box-button label="Save" tone="primary"></box-button>`,
     referenceRows: [
       { kind: "attribute", name: "label", type: "string", description: "Visible button text." },
-      { kind: "attribute", name: "tone", type: '"primary" | "neutral" | "danger"', description: "Visual emphasis." },
+      { kind: "attribute", name: "tone", type: '"primary" | "neutral" | "danger" | "text"', description: "Visual emphasis; text is an in-place action, not a link." },
       { kind: "attribute", name: "size", type: '"small" | "large"', description: "Compact / roomy size; omit for default." },
       { kind: "attribute", name: "disabled", type: "boolean", description: "Renders the button inert." },
       { kind: "attribute", name: "is-loading", type: "boolean", description: "Shows a spinner and blocks activation (stays focusable)." },
@@ -21,6 +21,7 @@ const button: StoryModule = {
     ],
   },
   variants: [
+    { name: "Text action", html: `<box-button label="Back to a single amount" tone="text"></box-button>` },
     { name: "Primary", html: `<box-button label="Save" tone="primary"></box-button>` },
     { name: "Neutral", html: `<box-button label="Cancel" tone="neutral"></box-button>` },
     { name: "Danger", html: `<box-button label="Delete" tone="danger"></box-button>` },

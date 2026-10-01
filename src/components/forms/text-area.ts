@@ -5,7 +5,7 @@ import {
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
-import { boeRadius } from "../../foundations/geometry/index.js";
+import { boeControl, boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-text-area";
 
@@ -28,11 +28,9 @@ const textAreaStyles = `
   }
 
   [part="label"] {
-    font-size: 0.8rem;
+    font-size: ${boeControl.fontSize};
     font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    color: var(--boe-token-text-text, #222222);
   }
 
   [part="textarea"] {
@@ -40,7 +38,7 @@ const textAreaStyles = `
     font: inherit;
     color: var(--boe-token-text-text, #222222);
     padding: 0.45rem 0.7rem;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
+    border: 1px solid ${boeControl.inputBorder};
     border-radius: ${boeRadius.control};
     background: var(--boe-token-surface-surface, #ffffff);
     resize: vertical;
@@ -56,7 +54,7 @@ const textAreaStyles = `
   }
 
   [part="textarea"]:hover:not(:disabled) {
-    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+    border-color: ${boeControl.inputBorder};
   }
 
   [part="textarea"]:focus-visible {

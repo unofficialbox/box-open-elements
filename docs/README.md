@@ -24,6 +24,7 @@ Repo-owned documentation for `box-open-elements`, organized by the [taxonomy](./
 ## Components
 
 - [Code editor](./components/code-editor.md) - optional CodeMirror entrypoint
+- [Disclosure and text actions](./components/disclosure-actions.md) - independent panels and in-place actions
 
 - [Components Catalog](./components/catalog.md) — inventory by category
 

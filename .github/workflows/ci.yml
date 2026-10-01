@@ -70,8 +70,8 @@ jobs:
       # `accepted-divergence` and passes `--strict`; anything left unconfirmed
       # fails it. The conformant-count floor stays as a non-regression backstop.
       - name: Layer 2 colour conformance (--strict, offline)
-        # Two legacy focus shadows intentionally diverge for accessibility (#287).
-        run: bun run bue-conformance:color --offline --strict --min-conformant=54
+        # Two focus shadows and the control edge intentionally diverge for accessibility (#287, #310).
+        run: bun run bue-conformance:color --offline --strict --min-conformant=53
 
   visual-regression:
     name: Visual regression (pixel diff, pinned container)

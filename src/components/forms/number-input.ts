@@ -52,7 +52,7 @@ const numberInputStyles = `
     font: inherit;
     color: var(--boe-token-text-text, #222222);
     padding: 0.45rem 0.7rem;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
+    border: 1px solid ${boeControl.inputBorder};
     border-radius: ${boeRadius.control};
     background: var(--boe-token-surface-surface, #ffffff);
     transition:
@@ -66,6 +66,7 @@ const numberInputStyles = `
   }
 
   ${boeNeutralInteractiveStyles('[part="input"]')}
+  [part="input"]:hover:not(:disabled) { border-color: ${boeControl.inputBorder}; }
 
   [part="input"]:focus-visible {
     border-color: var(--boe-token-surface-surface-brand, #0061d5);
@@ -92,6 +93,7 @@ export class NumberInput extends FormAssociatedElement {
 
   private valueInternal = 0;
   private inputEl!: HTMLInputElement;
+  focus(options?: FocusOptions): void { if (!this.disabled) this.inputEl?.focus(options); }
   private labelEl!: HTMLElement;
   private errorEl!: HTMLElement;
   private descriptionEl!: HTMLElement;
