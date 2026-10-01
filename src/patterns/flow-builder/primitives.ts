@@ -69,12 +69,15 @@ export class KindPicker extends BaseElement {
   static readonly tagName = "box-kind-picker";
   catalog: readonly FlowKind[] = [];
   variant: "inline" | "menu" = "inline";
-  protected renderTemplate(): void { this.shadowRoot!.innerHTML = `<style>${styles} [part=choices]{display:grid;gap:8px} button{text-align:start;padding:10px;border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:8px;background:var(--boe-token-surface-surface,#fff)} button.has-icon{display:grid;grid-template-columns:20px minmax(0,1fr);column-gap:10px;align-items:start} [part=choice-icon]{grid-row:1/span 2;width:20px;height:20px;color:var(--boe-token-surface-surface-brand,#0061d5)} [part=choice-icon][data-tone=neutral]{color:var(--boe-token-text-text-secondary,#666)} [part=choice-icon] svg{display:block;width:20px;height:20px} [part=choice-label]{display:block} small{display:block;color:var(--boe-token-text-text-secondary,#666)} h3{font:inherit;font-weight:650;margin:12px 0 4px}</style><div part="choices"></div>`; }
+  searchable = false;
+  protected renderTemplate(): void { this.shadowRoot!.innerHTML = `<style>${styles} [part=search]{width:100%;min-height:36px;margin-bottom:8px;padding:8px;border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:8px;background:var(--boe-token-surface-surface,#fff);font:inherit;color:inherit} [part=choices]{display:grid;gap:8px} button{text-align:start;padding:10px;border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:8px;background:var(--boe-token-surface-surface,#fff)} button.has-icon{display:grid;grid-template-columns:20px minmax(0,1fr);column-gap:10px;align-items:start} [part=choice-icon]{grid-row:1/span 2;width:20px;height:20px;color:var(--boe-token-surface-surface-brand,#0061d5)} [part=choice-icon][data-tone=neutral]{color:var(--boe-token-text-text-secondary,#666)} [part=choice-icon] svg{display:block;width:20px;height:20px} [part=choice-label]{display:block} small{display:block;color:var(--boe-token-text-text-secondary,#666)} h3{font:inherit;font-weight:650;margin:12px 0 4px}</style><input part="search" type="search" aria-label="Find a building block" placeholder="Find a building block"><div part="choices"></div>`; }
   protected setupListeners(): void {
+    this.shadowRoot!.querySelector<HTMLInputElement>('[part=search]')!.addEventListener('input', () => this.update());
     this.shadowRoot!.addEventListener("keydown", event => {
       const e = event as KeyboardEvent;
       if (this.variant !== "menu") return;
       if (e.key === "Escape") { e.preventDefault(); emit(this, "picker-cancel", {}); return; }
+      if (e.target === this.shadowRoot!.querySelector('[part=search]') && e.key !== "ArrowDown") return;
       const buttons = Array.from(this.shadowRoot!.querySelectorAll("button"));
       if (!buttons.length) return;
       const current = buttons.indexOf(this.shadowRoot!.activeElement as HTMLButtonElement);
@@ -84,14 +87,17 @@ export class KindPicker extends BaseElement {
     });
   }
   refresh(): void { if (this.isRendered) this.update(); }
-  focus(options?: FocusOptions): void { this.shadowRoot?.querySelector("button")?.focus(options); }
+  focus(options?: FocusOptions): void { (this.searchable ? this.shadowRoot?.querySelector<HTMLInputElement>('[part=search]') : this.shadowRoot?.querySelector<HTMLButtonElement>("button"))?.focus(options); }
   protected update(): void {
     const choices = this.shadowRoot!.querySelector<HTMLElement>("[part=choices]")!;
+    const search = this.shadowRoot!.querySelector<HTMLInputElement>('[part=search]')!;
+    search.hidden = !this.searchable;
+    const query = this.searchable ? search.value.trim().toLowerCase() : '';
     choices.setAttribute("role", this.variant === "menu" ? "menu" : "group");
     choices.setAttribute("aria-label", "Choose a step type");
     choices.replaceChildren();
     let group = "";
-    this.catalog.forEach((kind, index) => {
+    this.catalog.filter(kind => `${kind.label} ${kind.description} ${kind.group ?? ''} ${(kind as FlowKind & { aliases?: readonly string[] }).aliases?.join(' ') ?? ''}`.toLowerCase().includes(query)).forEach((kind, index) => {
       if (kind.group && group !== kind.group) { const heading = document.createElement("h3"); heading.textContent = kind.group; heading.setAttribute("role", "presentation"); heading.setAttribute("part", "group-heading"); choices.append(heading); group = kind.group; }
       const button = document.createElement("button"); button.type = "button"; button.setAttribute("part", "choice");
       if (kind.icon) {

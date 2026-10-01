@@ -44,7 +44,7 @@ describe("process modeler", () => {
     expect(builder.shadowRoot!.querySelector("h5[part=inspector-heading]")!.textContent).toBe("Read");
     expect(builder.shadowRoot!.querySelector<HTMLElement>("[part=palette]")!.hidden).toBe(false);
     builder.disableConnections = true;
-    expect(builder.shadowRoot!.querySelector<HTMLButtonElement>('[data-command=connect]')!.disabled).toBe(true);
+    expect(builder.shadowRoot!.querySelector<HTMLButtonElement>('[part=leads-to] > button')!.disabled).toBe(true);
     const connectKey = new KeyboardEvent("keydown", { key: "c", bubbles: true, cancelable: true });
     builder.shadowRoot!.querySelector('[part=canvas]')!.dispatchEvent(connectKey);
     expect(connectKey.defaultPrevented).toBe(false);
@@ -155,7 +155,7 @@ describe("process modeler", () => {
     builder.resize("a", 300, 130);
     expect(builder.layout.boxes.a.width).toBe(300);
     builder.undo();
-    expect(builder.layout.boxes.a.width).toBe(220);
+    expect(builder.layout.boxes.a.width).toBe(224);
     builder.routeLine("ab", [{ x: 4, y: 8 }]);
     expect(builder.layout.lines?.ab).toEqual([{ x: 4, y: 8 }]);
     builder.setNote({ id: "note", text: "Explain", x: 0, y: 0 });
@@ -261,7 +261,7 @@ describe("process modeler", () => {
       builder.shadowRoot!.querySelectorAll("[part=choices] button"),
     ).toHaveLength(0);
     expect(builder.shadowRoot!.querySelector("style")!.textContent).toContain(
-      ":is(button,input,[part=canvas],[part=minimap]):focus-visible",
+      "[part=box],[part=frame]):focus-visible",
     );
   });
   it("validates IDs, preserves layout extras and fills missing positions", () => {
@@ -314,11 +314,11 @@ describe("process modeler", () => {
     const before = builder.layout;
     builder.snapToGrid = true;
     builder.move("a", 117, 103);
-    expect(builder.layout.boxes.a.x).toBe(120);
+    expect(builder.layout.boxes.a.x).toBe(112);
     builder.undo();
     expect(builder.layout).toEqual(before);
     builder.redo();
-    expect(builder.layout.boxes.a.y).toBe(100);
+    expect(builder.layout.boxes.a.y).toBe(96);
     builder.select("a");
     const box =
       builder.shadowRoot!.querySelector<HTMLElement>("[data-box-id=a]")!;
@@ -326,16 +326,16 @@ describe("process modeler", () => {
     box.dispatchEvent(
       new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }),
     );
-    expect(builder.layout.boxes.a.x).toBe(140);
+    expect(builder.layout.boxes.a.x).toBe(128);
     expect(
       (builder.shadowRoot!.activeElement as HTMLElement).dataset.boxId,
     ).toBe("a");
     builder.addEventListener("move-request", (event) => event.preventDefault());
     builder.move("a", 500, 500);
-    expect(builder.layout.boxes.a.x).toBe(140);
+    expect(builder.layout.boxes.a.x).toBe(128);
     builder.locked = true;
     builder.tidy();
-    expect(builder.layout.boxes.a.x).toBe(140);
+    expect(builder.layout.boxes.a.x).toBe(128);
   });
   it("draws named lines and frames, marks checks and cleans the host inspector", () => {
     const builder = new ProcessModeler();
