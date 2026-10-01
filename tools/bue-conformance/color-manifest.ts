@@ -774,6 +774,7 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     kind: "color",
     boeComponent: SELECT,
     boeAnchor: "border: 1px solid ${boeControl.inputBorder}",
+    accessibilityRationale: "Issue #310: control edges use a secondary-text-backed stroke to meet WCAG 1.4.11 in light and dark; legacy decorative borders are below 3:1.",
     upstream: { rawSelector: ".select-container .select-overlay", property: "border" },
     tolerance: 0,
     citation: ".select-container .select-overlay border (select control resting border)",

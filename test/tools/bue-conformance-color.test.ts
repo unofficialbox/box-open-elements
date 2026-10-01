@@ -604,8 +604,8 @@ describe("evaluate", () => {
     const accepted = rows.filter(r => r.verdict === "accepted-divergence").length;
     const review = rows.filter(r => r.verdict === "review").length;
     expect({ conformant, accepted, review }).toEqual({
-      conformant: 54,
-      accepted: 10,
+      conformant: 53,
+      accepted: 11,
       review: 0,
     });
   });
@@ -630,7 +630,7 @@ describe("evaluate", () => {
     const byId = (id: string): Row => rows.find(r => r.claim.id === id)!;
     expect(byId("select.text").verdict).toBe("conformant");
     expect(byId("select.control.background").verdict).toBe("conformant");
-    expect(byId("select.control.border").verdict).toBe("conformant");
+    expect(byId("select.control.border").verdict).toBe("accepted-divergence");
     expect(byId("select.control.focus.border").verdict).toBe("conformant");
     expect(byId("dialog.surface.background").verdict).toBe("conformant");
     expect(byId("dialog.backdrop").verdict).toBe("conformant");
@@ -793,8 +793,8 @@ describe("renderMarkdown", () => {
     const md = renderMarkdown(rows, ["main.abc.iframe.bundle.js"]);
     expect(md).toContain("Layer 2");
     expect(md).toContain("**1**");
-    expect(md).toContain("| ✅ Conformant | 54 |");
-    expect(md).toContain("| 🎯 Accepted divergence | 10 |");
+    expect(md).toContain("| ✅ Conformant | 53 |");
+    expect(md).toContain("| 🎯 Accepted divergence | 11 |");
     expect(md).toContain("| 🔍 Review | 0 |");
     for (const claim of COLOR_CLAIMS) {
       expect(md).toContain(claim.citation);

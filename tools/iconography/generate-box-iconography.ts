@@ -203,7 +203,9 @@ export const renderGlyphConstants = (icons: GeneratedIcon[]): string =>
 export const renderGeneratedManifest = (icons: GeneratedIcon[]): string => {
   const names = icons.map(icon => iconExportName(icon.key));
   if (new Set(names).size !== names.length) throw new Error("Icon export name collision");
-  const constants = `import { ${names.join(", ")} } from "./glyphs/constants.js";\nexport { ${names.join(", ")} } from "./glyphs/constants.js";`;
+  // Do not share a constants module with named imports: Rollup places all of
+  // its exports in the entry chunk when the lazy registry consumes them too.
+  const constants = renderGlyphConstants(icons);
   const iconEntries = icons
     .map(icon => {
       return `  ${JSON.stringify(icon.key)}: ${iconExportName(icon.key)},`;

@@ -10,6 +10,10 @@ const story: StoryModule = {
       "Import the code-editor entrypoint. Supply value, language, problems and completions; listen to value-changed. Escape then Tab leaves the editor.",
     sourceSnippet: editorHtml,
     referenceRows: [
+      { kind: "attribute", name: "wrap", type: "boolean", description: "Wrap long lines." },
+      { kind: "property", name: "highlights", type: "CodeHighlight[]", description: "UTF-16 ranges shown with a tint and left bar." },
+      { kind: "property", name: "completionSource", type: "CodeCompletionSource", description: "Cursor-aware host completions, including asynchronous sources." },
+      { kind: "event", name: "selection-changed", type: "{ anchor, head }", description: "Immediate cursor and selection changes." },
       {
         kind: "property",
         name: "value",
@@ -21,7 +25,7 @@ const story: StoryModule = {
         kind: "property",
         name: "problems",
         type: "CodeProblem[]",
-        description: "One-based diagnostics with error, warning or info tone.",
+        description: "One-based line/column or UTF-16 offset diagnostics with error, warning or info tone.",
       },
       {
         kind: "property",

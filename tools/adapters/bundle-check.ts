@@ -1,6 +1,9 @@
 /** Production bundle regression checks against built package entrypoints. */
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { readFileSync } from "node:fs";
 import { gzipSync } from "node:zlib";
+import { build as viteBuild } from "vite";
+import { rollup, type RollupOutput } from "rollup";
 
 const root = resolve(import.meta.dir, "../..");
 async function bundle(contents: string, splitting = false) {
@@ -55,3 +58,41 @@ if (barrel.bytes > direct.bytes * 1.05) throw new Error("Root import costs more 
 if (themedButton.bytes > 80_000 || themedButton.code.includes("boxGeneratedIcons")) throw new Error("A component with the theme controller retained the full icon registry in its entry chunk");
 if (!themedButton.chunks.some(chunk => chunk.bytes > 600_000)) throw new Error("The lazy icon registry chunk was not emitted");
 console.table(Object.fromEntries(Object.entries({ glyph, icons, direct, barrel, coreButton, coreRoot, themedButton, themedGlyphs }).map(([key, value]) => [key, { bytes: value.bytes, gzip: value.gzip }])));
+
+const vite = await viteBuild({
+  configFile: false, logLevel: "error",
+  plugins: [{ name: "glyph-fixture", resolveId(id) { if (id === "virtual:glyph-fixture") return "\0glyph-fixture"; },
+    load(id) { if (id === "\0glyph-fixture") return `
+      import { createThemeController } from "${root}/dist/foundations/theming/controller.js";
+      import { iconCloud } from "${root}/dist/foundations/icons/glyphs/index.js";
+      createThemeController().start(); globalThis.fixtureGlyph = iconCloud;
+    `; } }],
+  build: { write: false, minify: false, rollupOptions: { input: "virtual:glyph-fixture" } },
+}) as RollupOutput;
+const viteEntry = vite.output.find(chunk => chunk.type === "chunk" && chunk.isEntry);
+if (!viteEntry || viteEntry.type !== "chunk") throw new Error("Vite did not emit an entry");
+const entrySVGs = (viteEntry.code.match(/<svg /g) ?? []).length;
+// The theme also keeps two small bespoke status glyphs available immediately.
+if (entrySVGs !== 3 || viteEntry.code.length > 100_000) throw new Error(`Vite glyph entry retained unused SVGs: ${entrySVGs}`);
+if (!vite.output.some(chunk => chunk.type === "chunk" && !chunk.isEntry && chunk.code.includes("boxGeneratedIcons"))) throw new Error("Vite lost the lazy registry");
+console.log(`Vite single-glyph entry: ${viteEntry.code.length} bytes, ${entrySVGs} SVG`);
+
+const fixture = `import { createThemeController } from "${root}/dist/foundations/theming/controller.js";
+import { iconCloud } from "${root}/dist/foundations/icons/glyphs/index.js";
+createThemeController().start(); globalThis.fixtureGlyph = iconCloud;`;
+const rollupBundle = await rollup({ input: "virtual:rollup-fixture", plugins: [{
+  name: "local-built-fixture",
+  resolveId(id, importer) {
+    if (id === "virtual:rollup-fixture") return id;
+    if (id.startsWith("/")) return id;
+    if (id.startsWith(".") && importer) return resolve(dirname(importer), id);
+    return null;
+  },
+  load(id) { return id === "virtual:rollup-fixture" ? fixture : readFileSync(id, "utf8"); },
+}] });
+try {
+  const output = await rollupBundle.generate({ format: "es" });
+  const entry = output.output.find(chunk => chunk.type === "chunk" && chunk.isEntry);
+  if (!entry || entry.type !== "chunk" || (entry.code.match(/<svg /g) ?? []).length !== 3 || entry.code.length > 100_000) throw new Error("Rollup retained the unused glyph inventory");
+  console.log(`Rollup single-glyph entry: ${entry.code.length} bytes (one named glyph plus two immediate status glyphs)`);
+} finally { await rollupBundle.close(); }

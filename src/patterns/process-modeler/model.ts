@@ -7,6 +7,8 @@ export interface ProcessBox<N = unknown> {
   title: string;
   description?: string;
   path?: NodePath;
+  /** Host identity at this path, used to reject stale saved positions. */
+  fingerprint?: string;
   /** A frame draws behind its children and connects as one box. */
   frame?: boolean;
   parentId?: string;
@@ -16,8 +18,35 @@ export interface ProcessLine {
   from: string;
   to: string;
   label?: string;
+  weight?: number;
+  fromSide?: ProcessSide;
+  toSide?: ProcessSide;
   dashed?: boolean;
   points?: { x: number; y: number }[];
+}
+export type ProcessSide = "north" | "east" | "south" | "west";
+export interface ProcessConnection {
+  name: string;
+  kind: string;
+  id?: string;
+}
+export interface ProcessVariable {
+  name: string;
+  value?: unknown;
+  description?: string;
+}
+export interface ProcessPositionSnapshot {
+  path?: NodePath;
+  fingerprint?: string;
+  id: string;
+  position: BoxPosition;
+}
+export interface ProcessLoadOptions {
+  /** Keys are JSON.stringify(path); snapshots are also accepted. Fingerprints must match. */
+  positions?: Readonly<Record<string, { fingerprint?: string; position: BoxPosition }>> |
+    readonly ProcessPositionSnapshot[];
+  version?: string | number;
+  selectedPath?: NodePath | null;
 }
 export interface ProcessProjection<N = unknown> {
   boxes: readonly ProcessBox<N>[];
@@ -25,6 +54,10 @@ export interface ProcessProjection<N = unknown> {
 }
 export interface ProcessModel<D = unknown, N = unknown> {
   project(document: D): ProcessProjection<N>;
+  /** Optional host arrangement, used by Tidy up and for missing positions. */
+  arrange?(projection: ProcessProjection<N>): ProcessLayout;
+  /** Host-specific semantics supplement the generic free-graph checks. */
+  validate?(document: D, projection: ProcessProjection<N>): readonly ProcessCheck[];
 }
 export interface BoxPosition {
   x: number;
@@ -51,17 +84,22 @@ export interface ProcessCheck {
   path?: NodePath;
 }
 export interface ProcessEdit {
-  type: "add" | "delete" | "connect" | "disconnect" | "insert";
+  type: "add" | "delete" | "connect" | "disconnect" | "insert" | "reparent";
   boxId?: string;
   from?: string;
   to?: string;
   lineId?: string;
   kind?: FlowKind;
   position?: BoxPosition;
+  parentId?: string;
+  fromSide?: ProcessSide;
+  toSide?: ProcessSide;
 }
 export interface ReversibleProcessEdit {
   undo(): void;
   redo(): void;
+  /** The already-applied edit's layout, recorded atomically with the document. */
+  layout?: ProcessLayout;
 }
 /** Host applies the edit, then calls accept with its inverse and replay. */
 export interface ProcessEditRequest extends ProcessEdit {

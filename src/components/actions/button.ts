@@ -76,6 +76,17 @@ const buttonStyles = `
     box-shadow: none;
   }
 
+  button[data-tone="text"], button[data-tone="text"]:hover:not(:disabled),
+  button[data-tone="text"]:active:not(:disabled), button[data-tone="text"]:focus-visible {
+    background: transparent;
+    border-color: transparent;
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+    padding-inline: 0;
+    white-space: normal;
+    text-align: start;
+  }
+  button[data-tone="text"]:hover:not(:disabled) { text-decoration: underline; }
+
   button[data-tone="neutral"]:hover:not(:disabled) {
     background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 97%, black 3%);
     border-color: ${boeControl.buttonBorder};
@@ -183,6 +194,7 @@ export class Button extends BaseElement {
   }
 
   private buttonEl!: HTMLButtonElement;
+  focus(options?: FocusOptions): void { if (!this.disabled) this.buttonEl?.focus(options); }
   private spinnerEl!: HTMLElement;
   private iconEl!: HTMLElement;
   private labelEl!: HTMLElement;

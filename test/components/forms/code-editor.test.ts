@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CodeEditor } from "../../../src/components/forms/code-editor.js";
 import { EditorView } from "@codemirror/view";
+import { undo, undoDepth } from "@codemirror/commands";
 import {
   currentCompletions,
   startCompletion,
@@ -25,6 +26,38 @@ afterEach(() => {
   vi.useRealTimers();
 });
 describe("code editor", () => {
+  it("exposes cursor changes, wrapping, highlighted lines and offset problems", () => {
+    const editor = new CodeEditor(); editor.value = "first\nsecond"; editor.wrap = true;
+    editor.highlights = [{ from: 6, to: 12 }]; document.body.append(editor);
+    const selection = vi.fn(); editor.addEventListener("selection-changed", selection);
+    const view = EditorView.findFromDOM(editor.shadowRoot!.querySelector(".cm-editor")!)!;
+    view.dispatch({ selection: { anchor: 7, head: 9 } });
+    expect(selection.mock.calls[0][0].detail).toEqual({ anchor: 7, head: 9 });
+    expect(editor.shadowRoot!.querySelector(".cm-lineWrapping")).not.toBeNull();
+    expect(editor.shadowRoot!.querySelector('[part=highlight]')!.textContent).toBe("second");
+    editor.problems = [{ from: 6, to: 9, message: "Bad step", tone: "error" }];
+    editor.navigateProblem(1); expect(editor.selection).toEqual({ anchor: 6, head: 9 });
+    editor.revealLine(1, { center: true }); expect(editor.selection.anchor).toBe(0);
+    editor.value = "x"; expect(() => editor.highlights = [{ from: 999, to: 1000 }]).not.toThrow();
+    expect(() => view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: "" } })).not.toThrow();
+  });
+  it("excludes silent host replacements from history and supports opt-in history", () => {
+    const editor = new CodeEditor(); editor.value = "host"; document.body.append(editor);
+    const view = EditorView.findFromDOM(editor.shadowRoot!.querySelector(".cm-editor")!)!;
+    const changed = vi.fn(); editor.addEventListener("value-changed", changed);
+    editor.value = "replacement"; expect(undoDepth(view.state)).toBe(0);
+    editor.setValue("undoable", { addToHistory: true }); expect(undoDepth(view.state)).toBe(1);
+    expect(changed).not.toHaveBeenCalled(); undo(view); expect(editor.value).toBe("replacement");
+  });
+  it("runs the host completion source with the current cursor context", async () => {
+    const editor = new CodeEditor(); editor.value = "Step(\"";
+    const source = vi.fn(context => ({ from: context.pos, options: [{ label: "load.files" }] }));
+    editor.completionSource = source; document.body.append(editor);
+    const view = EditorView.findFromDOM(editor.shadowRoot!.querySelector(".cm-editor")!)!;
+    editor.selection = { anchor: 6, head: 6 }; editor.focus(); startCompletion(view);
+    await vi.waitFor(() => expect(currentCompletions(view.state).map(option => option.label)).toContain("load.files"));
+    expect(source).toHaveBeenCalled();
+  });
   it("offers host methods after a receiver dot and full SDK names without duplicating prefixes", async () => {
     const editor = new CodeEditor();
     editor.value = "flow().st";

@@ -14,6 +14,7 @@ const escapeHtml = (value: string): string =>
 
 type BoxAccordionItem = {
   content?: string;
+  summary?: string;
   label: string;
   value: string;
 };
@@ -76,6 +77,10 @@ const accordionStyles = `
   [part="heading"] {
     font-weight: 600;
   }
+  [part="summary"] {
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    font-weight: 400;
+  }
 
   [part="indicator"] {
     inline-size: 1.35rem;
@@ -114,7 +119,7 @@ const accordionStyles = `
 export class Accordion extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["items", "label", "value", "borderless"];
+    return ["items", "label", "value", "values", "multiple", "borderless"];
   }
 
   /** Flat variant with no outer card border/background. */
@@ -127,6 +132,12 @@ export class Accordion extends BaseElement {
   }
 
   private valueInternal = "";
+  private valuesInternal: string[] = [];
+  get multiple(): boolean { return this.hasAttribute("multiple"); }
+  set multiple(value: boolean) { this.toggleAttribute("multiple", value); }
+  get values(): string[] { return [...this.valuesInternal]; }
+  set values(value: string[]) { this.setAttribute("values", JSON.stringify([...new Set(value)])); }
+  private isOpen(value: string): boolean { return this.multiple ? this.valuesInternal.includes(value) : value === this.valueInternal; }
   private lastItemsJson = "";
   private accordionEl!: HTMLElement;
 
@@ -172,13 +183,19 @@ export class Accordion extends BaseElement {
     if (name === "value") {
       this.valueInternal = this.getAttribute("value") ?? "";
     }
+    if (name === "values") {
+      try {
+        const values: unknown = JSON.parse(newValue ?? "[]");
+        this.valuesInternal = Array.isArray(values) ? [...new Set(values.filter((v): v is string => typeof v === "string"))] : [];
+      } catch { this.valuesInternal = []; }
+    }
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
-  private renderItemsMarkup(items: BoxAccordionItem[], selectedValue: string): string {
+  private renderItemsMarkup(items: BoxAccordionItem[]): string {
     return items
       .map(item => {
-        const isOpen = item.value === selectedValue;
+        const isOpen = this.isOpen(item.value);
         const panelId = `panel-${escapeHtml(item.value)}`;
         const triggerId = `trigger-${escapeHtml(item.value)}`;
 
@@ -193,7 +210,7 @@ export class Accordion extends BaseElement {
                 aria-expanded="${String(isOpen)}"
                 aria-controls="${panelId}"
               >
-                ${escapeHtml(item.label)}
+                <span part="label">${escapeHtml(item.label)}${item.summary ? ` <span part="summary">${escapeHtml(item.summary)}</span>` : ""}</span>
                 <span part="indicator" aria-hidden="true">${isOpen ? "−" : "+"}</span>
               </button>
             </h3>
@@ -235,6 +252,11 @@ export class Accordion extends BaseElement {
       if (!nextValue) {
         return;
       }
+      if (this.multiple) {
+        this.values = this.isOpen(nextValue) ? this.valuesInternal.filter(value => value !== nextValue) : [...this.valuesInternal, nextValue];
+        this.dispatchEvent(new CustomEvent("values-changed", { detail: { values: this.values }, bubbles: true, composed: true }));
+        return;
+      }
 
       if (nextValue === this.valueInternal) {
         this.valueInternal = "";
@@ -271,18 +293,17 @@ export class Accordion extends BaseElement {
     const items = this.items;
     const itemsJson = this.getAttribute("items") ?? "";
 
-    if (!this.hasAttribute("value") && items.length > 0 && this.valueInternal === "") {
+    if (!this.multiple && !this.hasAttribute("value") && items.length > 0 && this.valueInternal === "") {
       this.valueInternal = items[0]!.value;
       this.setAttribute("value", this.valueInternal);
     }
 
-    const selectedValue = this.valueInternal;
 
     this.accordionEl.setAttribute("role", "region");
     this.accordionEl.setAttribute("aria-label", this.label);
 
     if (itemsJson !== this.lastItemsJson) {
-      this.accordionEl.innerHTML = this.renderItemsMarkup(items, selectedValue);
+      this.accordionEl.innerHTML = this.renderItemsMarkup(items);
       this.lastItemsJson = itemsJson;
       return;
     }
@@ -290,7 +311,7 @@ export class Accordion extends BaseElement {
     this.accordionEl.querySelectorAll('[part="item"]').forEach(node => {
       const section = node as HTMLElement;
       const value = section.dataset.value ?? "";
-      const isOpen = value === selectedValue;
+      const isOpen = this.isOpen(value);
       section.dataset.open = String(isOpen);
 
       const trigger = section.querySelector('[part="trigger"]') as HTMLButtonElement | null;

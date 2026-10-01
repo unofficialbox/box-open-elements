@@ -201,6 +201,7 @@ export class TextField extends FormAssociatedElement {
   private valueInternal = "";
   private revealed = false;
   private inputEl!: HTMLInputElement;
+  focus(options?: FocusOptions): void { if (!this.disabled) this.inputEl?.focus(options); }
   private labelEl!: HTMLElement;
   private descriptionEl!: HTMLElement;
   private errorEl!: HTMLElement;

@@ -6,6 +6,25 @@ const catalog: FlowKind[] = [
 ];
 afterEach(() => { document.body.innerHTML = ""; vi.restoreAllMocks(); });
 describe("flow-builder", () => {
+  it("exposes card focus and narrow state, and closes hidden ancestor drawers without losing selection", () => {
+    let resize!: ResizeObserverCallback;
+    vi.stubGlobal("ResizeObserver", class { constructor(callback: ResizeObserverCallback) { resize = callback; } observe() {} disconnect() {} });
+    const builder = new FlowBuilder(); builder.nodes = [{ kind: "call" }]; document.body.append(builder);
+    const rects = vi.spyOn(builder, "getClientRects").mockReturnValue([{}] as unknown as DOMRectList);
+    const changed = vi.fn(); builder.addEventListener("narrow-changed", changed);
+    const size = (width: number, height: number) => resize([{ contentRect: { width, height } } as ResizeObserverEntry], {} as ResizeObserver);
+    size(390, 500); expect(builder.narrow).toBe(true);
+    builder.selected = builder.nodes[0];
+    const drawer = builder.shadowRoot!.querySelector("box-drawer") as import("../../src/components/overlays/drawer.js").Drawer;
+    expect(drawer.open).toBe(true);
+    rects.mockReturnValue([] as unknown as DOMRectList); size(0, 0);
+    expect(builder.narrow).toBe(false); expect(drawer.open).toBe(false); expect(builder.selected).toBe(builder.nodes[0]);
+    rects.mockReturnValue([{}] as unknown as DOMRectList); size(1000, 500);
+    builder.focusNode(builder.nodes[0]);
+    const spine = builder.shadowRoot!.querySelector<FlowSpine>("box-flow-spine")!;
+    expect(spine.shadowRoot!.querySelector<FlowCard>("box-flow-card")!.shadowRoot!.activeElement?.tagName).toBe("BUTTON");
+    expect(changed).toHaveBeenCalledTimes(2); vi.unstubAllGlobals();
+  });
   it("registers the drawer, uses named inspector regions and exposes sticky size tokens", () => {
     expect(customElements.get("box-drawer")).toBeDefined();
     const builder = new FlowBuilder(); document.body.append(builder);
@@ -193,6 +212,7 @@ describe("flow-builder", () => {
   });
   it("keeps validation visible without a mobile sheet and cleans up host inspector", () => {
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({ width: 390 } as DOMRect);
+    vi.spyOn(HTMLElement.prototype, "getClientRects").mockReturnValue([{}] as unknown as DOMRectList);
     const cleanup = vi.fn(); const render = vi.fn(() => cleanup);
     const builder = new FlowBuilder(); builder.catalog = catalog; builder.nodes = [{ kind: "call" }]; builder.renderInspector = render;
     document.body.append(builder); builder.selected = builder.nodes[0];

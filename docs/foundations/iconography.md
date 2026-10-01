@@ -1,5 +1,11 @@
 # Iconography
 
+Named glyph constants and the lazy registry deliberately own separate copies
+of SVG strings. Sharing their constants module makes Rollup pull the whole
+registry into the entry chunk when both static glyphs and lazy themes are used.
+`bun run bundles:check` tests Bun, Vite, and Rollup production splitting; one
+named glyph stays in the entry alongside two tiny immediate status assets.
+
 The Box design system adapts an external icon inventory (the `2023-Icon-collection-{blue,white}-svg` source pack). That pack is not vendored into this repo — a contributor with the source pack runs a generator that emits a repo-local manifest.
 
 ## Adaptation rules

@@ -1,5 +1,16 @@
 # Accessibility
 
+## Programmatic focus and control edges
+
+`TextField`, `Select`, `NumberInput`, `Checkbox`, and `Button` forward
+`focus({ preventScroll })` to their native control. Disabled controls ignore
+focus. Hosts should use this API, not inspect shadow-root internals.
+
+Input edges use `--boe-control-edge`, falling back to the theme's secondary
+text color, separately from decorative panel strokes. Overrides must retain
+3:1 contrast against adjacent surfaces in both light and dark modes. CodeBlock
+provides a named, focusable code region so long lines are keyboard scrollable.
+
 Components expose accessible semantics as part of the default contract, not as optional follow-up polish. These conventions matter for both humans and AI assistants because they make component behavior easy to infer from names alone.
 
 ## General rules

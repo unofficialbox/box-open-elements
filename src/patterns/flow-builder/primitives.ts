@@ -27,7 +27,7 @@ export class FlowCard extends BaseElement {
   protected renderTemplate(): void {
     this.shadowRoot!.innerHTML = `<style>${styles}
       button { width:100%; text-align:start; display:grid; gap:6px; padding:16px; border:1px solid var(--boe-token-stroke-stroke,#ddd); border-radius:var(--boe-profile-radius-med,8px); background:var(--boe-token-surface-surface,#fff); overflow-wrap:anywhere; }
-      button[aria-pressed=true] { border-color:var(--boe-token-surface-surface-brand,#0061d5); background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 8%,var(--boe-token-surface-surface,#fff)); }
+      button[aria-pressed=true] { border-color:var(--boe-token-surface-surface-brand,#0061d5); background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 5%,var(--boe-token-surface-surface,#fff)); }
       button[data-invalid=true] { border-color:var(--boe-token-text-status-text-error,#b92340); }
       button.has-icon{grid-template-columns:20px minmax(0,1fr);column-gap:12px} button.has-icon [part=icon]{grid-column:1;grid-row:1/span 4} button.has-icon [part=title],button.has-icon [part=kind],button.has-icon [part=description],button.has-icon [part=status],button.has-icon [part=error]{grid-column:2}
       [part=icon]{color:var(--boe-token-surface-surface-brand,#0061d5);width:20px;height:20px} [part=icon][data-tone=neutral]{color:var(--boe-token-text-text-secondary,#666)} [part=icon] svg{display:block;width:20px;height:20px} [part=title] { font-weight:650; } [part=kind],[part=description] { color:var(--boe-token-text-text-secondary,#666); } [part=error] { color:var(--boe-token-text-status-text-error,#b92340); }

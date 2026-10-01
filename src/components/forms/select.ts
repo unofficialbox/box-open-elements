@@ -95,7 +95,7 @@ const selectStyles = `
   }
 
   [part="select"]:hover:not(:disabled) {
-    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
+    border-color: ${boeControl.inputBorder};
   }
 
   [part="select"]:focus-visible {
@@ -184,6 +184,7 @@ export class Select extends FormAssociatedElement {
   private valueInternal = "";
   private valuesInternal: string[] = [];
   private selectEl!: HTMLSelectElement;
+  focus(options?: FocusOptions): void { if (!this.disabled) this.selectEl?.focus(options); }
   private labelEl!: HTMLElement;
   private descriptionEl!: HTMLElement;
   private errorEl!: HTMLElement;

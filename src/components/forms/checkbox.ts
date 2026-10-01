@@ -115,6 +115,7 @@ export class Checkbox extends FormAssociatedElement {
   private indeterminateInternal = false;
   private valueInternal = DEFAULT_VALUE;
   private inputEl!: HTMLInputElement;
+  focus(options?: FocusOptions): void { if (!this.disabled) this.inputEl?.focus(options); }
   private labelEl!: HTMLSpanElement;
   private descriptionEl!: HTMLElement;
   private fieldEl!: HTMLElement;
