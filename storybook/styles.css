@@ -101,6 +101,9 @@ body {
 .stage h2 { font-size: 15px; margin: 22px 0 10px; }
 
 .variant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.variant-grid:has(box-process-modeler) { grid-template-columns: minmax(0, 1fr); }
+.variant-canvas:has(box-process-modeler) { display: block; padding: 0; }
+.variant-canvas box-process-modeler { width: 100%; }
 .variant {
   margin: 0;
   border: 1px solid #e8e8e8;

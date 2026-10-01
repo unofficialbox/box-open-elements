@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { arrangeProcess, lineMidpoint, nearProcessLine, routeProcessLine } from "../../src/patterns/process-modeler/geometry.js";
+import { arrangeProcess, lineMidpoint, nearProcessLine, routeProcessLine, roundedProcessPath } from "../../src/patterns/process-modeler/geometry.js";
 import type { ProcessPoint } from "../../src/patterns/process-modeler/geometry.js";
 import type { ProcessBox, ProcessLayout, ProcessLine, ProcessProjection, ProcessSide } from "../../src/patterns/process-modeler/model.js";
 
@@ -23,6 +23,11 @@ function avoids(points: ProcessPoint[], rect: { x: number; y: number; width: num
     expect(intersects).toBe(false);
   }
 }
+
+it("rounds orthogonal route turns without moving their endpoints", () => {
+  expect(roundedProcessPath([{ x: 0, y: 0 }, { x: 20, y: 0 }, { x: 20, y: 20 }])).toBe('M 0 0 L 14 0 Q 20 0 20 6 L 20 20');
+  expect(roundedProcessPath([{ x: 0, y: 0 }, { x: 20, y: 0 }])).toBe('M 0 0 L 20 0');
+});
 
 describe("process arrangement", () => {
   it("layers a branch and merge left-to-right with stable vertical ordering", () => {
@@ -140,7 +145,7 @@ describe("process routing", () => {
 
   it("pins vertical endpoints at the closest edge and supplies default sizes", () => {
     const positions = { boxes: { a: { x: 0, y: 0 }, b: { x: 0, y: 300 } } };
-    expect(routeProcessLine(edge, positions, projection(["a", "b"], [edge]))).toEqual([{ x: 110, y: 96 }, { x: 110, y: 300 }]);
+    expect(routeProcessLine(edge, positions, projection(["a", "b"], [edge]))).toEqual([{ x: 112, y: 64 }, { x: 112, y: 300 }]);
     const backward = routeProcessLine(line("b", "a"), layout, input);
     expect(backward[0]).toEqual({ x: 500, y: 40 });
     expect(backward.at(-1)).toEqual({ x: 100, y: 40 });
@@ -204,7 +209,7 @@ describe("process routing", () => {
 
   it("uses frame defaults for endpoint geometry", () => {
     const framed: ProcessProjection = { boxes: [box("a", undefined, true), box("b")], lines: [edge] };
-    expect(routeProcessLine(edge, { boxes: { a: { x: 0, y: 0 }, b: { x: 500, y: 42 } } }, framed)).toEqual([{ x: 320, y: 90 }, { x: 500, y: 90 }]);
+    expect(routeProcessLine(edge, { boxes: { a: { x: 0, y: 0 }, b: { x: 500, y: 42 } } }, framed)).toEqual([{ x: 320, y: 74 }, { x: 320, y: 90 }, { x: 500, y: 90 }]);
   });
 
   it("handles self loops, duplicate waypoints, and degenerate endpoints", () => {

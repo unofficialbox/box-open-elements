@@ -415,7 +415,7 @@
       "category": "Builders",
       "shortDescription": "A diagram canvas that projects a host-owned document.",
       "docsDescription": "Pass document, model, catalog and layout. Accept or refuse process-edit-request in your host; retain layout separately from workflow data.",
-      "sourceSnippet": "<box-process-modeler snap-to-grid></box-process-modeler>",
+      "sourceSnippet": "<box-process-modeler snap-to-grid style=\"--boe-process-height: calc(100vh - 56px)\"></box-process-modeler>",
       "referenceRows": [
         {
           "kind": "property",
@@ -431,6 +431,30 @@
         },
         {
           "kind": "property",
+          "name": "outline",
+          "type": "readonly ProcessOutlineItem[]",
+          "description": "Nested plain-language steps in the Outline pane."
+        },
+        {
+          "kind": "property",
+          "name": "fields",
+          "type": "Record<string, ProcessField[]>",
+          "description": "Host values rendered as controlled inspector fields."
+        },
+        {
+          "kind": "property",
+          "name": "lastRun",
+          "type": "ProcessLastRun",
+          "description": "Optional per-step run metrics and label."
+        },
+        {
+          "kind": "property",
+          "name": "readback",
+          "type": "{ current, lastReadable, checks, version }",
+          "description": "Current validity and last valid projection."
+        },
+        {
+          "kind": "property",
           "name": "selectedPath",
           "type": "NodePath | null",
           "description": "Host selection normalized to the deepest projected box."
@@ -443,9 +467,27 @@
         },
         {
           "kind": "event",
+          "name": "readable-projection-changed",
+          "type": "{ projection, version }",
+          "description": "Only versions that pass host validation."
+        },
+        {
+          "kind": "event",
           "name": "positions-changed",
           "type": "{ positions, version }",
           "description": "Detached path/fingerprint positions for host persistence."
+        },
+        {
+          "kind": "event",
+          "name": "process-field-change-request",
+          "type": "{ boxId, path, key, value }",
+          "description": "Controlled field edit for the host to validate and apply."
+        },
+        {
+          "kind": "property",
+          "name": "setView()",
+          "type": "({ x, y, zoom }) => void",
+          "description": "Restore a 25–200% canvas view."
         },
         {
           "kind": "attribute",
@@ -487,7 +529,7 @@
       "variants": [
         {
           "name": "Editable workflow",
-          "html": "<box-process-modeler snap-to-grid></box-process-modeler>"
+          "html": "<box-process-modeler snap-to-grid style=\"--boe-process-height: calc(100vh - 56px)\"></box-process-modeler>"
         }
       ]
     },

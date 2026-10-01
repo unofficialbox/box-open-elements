@@ -6,11 +6,17 @@ export interface ProcessBox<N = unknown> {
   kind: string;
   title: string;
   description?: string;
+  /** Description used in Technical view; absent values fall back to description. */
+  technicalDescription?: string;
+  /** Visual anatomy, independent of the host's kind identifier. */
+  shape?: "task" | "gateway" | "event" | "frame";
   path?: NodePath;
   /** Host identity at this path, used to reject stale saved positions. */
   fingerprint?: string;
   /** A frame draws behind its children and connects as one box. */
   frame?: boolean;
+  /** Show the loop mark in a repeating frame without inferring host semantics from its kind name. */
+  loopMark?: boolean;
   parentId?: string;
 }
 export interface ProcessLine {
@@ -23,17 +29,43 @@ export interface ProcessLine {
   toSide?: ProcessSide;
   dashed?: boolean;
   points?: { x: number; y: number }[];
+  /** Optional last-run traffic share, between 0 and 1. */
+  share?: number;
 }
 export type ProcessSide = "north" | "east" | "south" | "west";
 export interface ProcessConnection {
   name: string;
   kind: string;
   id?: string;
+  signIn?: string;
 }
 export interface ProcessVariable {
   name: string;
   value?: unknown;
   description?: string;
+  scope?: string;
+  startingValue?: string;
+  problem?: string;
+}
+/** Host-authored, readable outline; boxId links a row to a projected step. */
+export interface ProcessOutlineItem {
+  title: string;
+  description?: string;
+  boxId?: string;
+  children?: readonly ProcessOutlineItem[];
+}
+/** Host-supplied field values; the modeler draws controls and requests edits. */
+export interface ProcessField {
+  key: string;
+  label: string;
+  kind: "text" | "multiline" | "number" | "choice" | "boolean" | "expression" | "search" | "action";
+  value: string | number | boolean;
+  description?: string;
+  options?: readonly { value: string; label: string; group?: string }[];
+  placeholder?: string;
+  required?: boolean;
+  disabled?: boolean;
+  problem?: string;
 }
 export interface ProcessPositionSnapshot {
   path?: NodePath;
@@ -52,11 +84,35 @@ export interface ProcessProjection<N = unknown> {
   boxes: readonly ProcessBox<N>[];
   lines: readonly ProcessLine[];
 }
+export interface ProcessKind extends FlowKind {
+  /** Alternative terms included in palette search. */
+  aliases?: readonly string[];
+  /** Host kind names never dictate the reusable visual anatomy. */
+  shape?: ProcessBox["shape"];
+  /** Notes and sections live in layout rather than the host workflow graph. */
+  placement?: "note" | "section";
+}
+export interface ProcessStepMetrics {
+  callsPerSecond?: number;
+  p95Ms?: number;
+  failedShare?: number;
+  /** True when the step was not measured in this run. */
+  notInRun?: boolean;
+}
+export interface ProcessLastRun {
+  label: string;
+  /** Keys are projected box IDs, supplied by the host. */
+  steps: Readonly<Record<string, ProcessStepMetrics>>;
+}
 export interface ProcessModel<D = unknown, N = unknown> {
   project(document: D): ProcessProjection<N>;
   /** Optional host arrangement, used by Tidy up and for missing positions. */
   arrange?(projection: ProcessProjection<N>): ProcessLayout;
-  /** Host-specific semantics supplement the generic free-graph checks. */
+  /**
+   * The host's workflow read-back/validation. When supplied it is authoritative:
+   * generic vocabulary-based graph checks are not added on top. A host may call
+   * graphChecks itself with its own kind names if it wants those checks too.
+   */
   validate?(document: D, projection: ProcessProjection<N>): readonly ProcessCheck[];
 }
 export interface BoxPosition {
@@ -71,6 +127,7 @@ export interface ProcessLayout {
   sections?: {
     id: string;
     title: string;
+    description?: string;
     x: number;
     y: number;
     width: number;
@@ -84,8 +141,9 @@ export interface ProcessCheck {
   path?: NodePath;
 }
 export interface ProcessEdit {
-  type: "add" | "delete" | "connect" | "disconnect" | "insert" | "reparent";
+  type: "add" | "delete" | "duplicate" | "connect" | "disconnect" | "reattach" | "insert" | "reparent";
   boxId?: string;
+  sourceId?: string;
   from?: string;
   to?: string;
   lineId?: string;
@@ -94,6 +152,9 @@ export interface ProcessEdit {
   parentId?: string;
   fromSide?: ProcessSide;
   toSide?: ProcessSide;
+  /** Optional branch presentation requested by a directional add. */
+  routeLabel?: string;
+  dashed?: boolean;
 }
 export interface ReversibleProcessEdit {
   undo(): void;
@@ -154,7 +215,7 @@ export function completeLayout<N>(
       .map(measure);
     const size = {
       width: Math.max(
-        box.frame ? 320 : 220,
+        box.frame || box.shape === "frame" ? 320 : box.shape === "gateway" || box.shape === "event" ? 56 : 224,
         ...children.map((child) => child.width + 40),
       ),
       height: box.frame
@@ -162,7 +223,7 @@ export function completeLayout<N>(
             180,
             64 + children.reduce((sum, child) => sum + child.height + 24, 0),
           )
-        : 96,
+        : box.shape === "gateway" || box.shape === "event" ? 56 : 64,
     };
     sizes.set(box.id, size);
     return size;

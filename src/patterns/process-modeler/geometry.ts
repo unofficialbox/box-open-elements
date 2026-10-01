@@ -54,8 +54,9 @@ export function arrangeProcess(projection: ProcessProjection): ProcessLayout {
     const sizes = new Map<string, Rectangle>();
     for (const box of siblings) {
       const group = measureGroup(box.id);
-      const width = box.frame ? Math.max(320, group.width + PADDING * 2) : 220;
-      const height = box.frame ? Math.max(180, group.height + HEADER + PADDING) : 96;
+      const compact = box.shape === "gateway" || box.shape === "event";
+      const width = box.frame ? Math.max(320, group.width + PADDING * 2) : compact ? 56 : 224;
+      const height = box.frame ? Math.max(180, group.height + HEADER + PADDING) : compact ? 56 : 64;
       sizes.set(box.id, { x: 0, y: 0, width, height });
       // Store local child coordinates until the parent's absolute position is known.
       for (const [id, position] of group.positions) result.boxes[id] = position;
@@ -89,8 +90,9 @@ export function arrangeProcess(projection: ProcessProjection): ProcessLayout {
   return result;
 }
 
-function rectangle(position: BoxPosition, frame = false): Rectangle {
-  return { ...position, width: position.width ?? (frame ? 320 : 220), height: position.height ?? (frame ? 180 : 96) };
+function rectangle(position: BoxPosition, box?: ProcessBox): Rectangle {
+  const compact = box?.shape === "gateway" || box?.shape === "event";
+  return { ...position, width: position.width ?? (box?.frame ? 320 : compact ? 56 : 224), height: position.height ?? (box?.frame ? 180 : compact ? 56 : 64) };
 }
 const center = (box: Rectangle): ProcessPoint => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
 const distance = (a: ProcessPoint, b: ProcessPoint) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -225,8 +227,8 @@ export function routeProcessLine(line: ProcessLine, layout: ProcessLayout, proje
   const boxes = new Map(projection.boxes.map(box => [box.id, box]));
   const fromPosition = layout.boxes[line.from], toPosition = layout.boxes[line.to];
   if (!fromPosition || !toPosition) return [];
-  const from = rectangle(fromPosition, boxes.get(line.from)?.frame);
-  const to = rectangle(toPosition, boxes.get(line.to)?.frame);
+  const from = rectangle(fromPosition, boxes.get(line.from));
+  const to = rectangle(toPosition, boxes.get(line.to));
   const excluded = new Set<string>();
   for (const id of [line.from, line.to]) {
     let parent = boxes.get(id)?.parentId;
@@ -236,7 +238,7 @@ export function routeProcessLine(line: ProcessLine, layout: ProcessLayout, proje
     }
   }
   const obstacleBoxes = projection.boxes.filter(box => !excluded.has(box.id) && layout.boxes[box.id]);
-  const obstacles = obstacleBoxes.map(box => rectangle(layout.boxes[box.id], box.frame));
+  const obstacles = obstacleBoxes.map(box => rectangle(layout.boxes[box.id], box));
   const waypoints = (layout.lines?.[line.id] ?? line.points ?? []).map(point => ({ ...point }));
   if (waypoints.some(point => !Number.isFinite(point.x) || !Number.isFinite(point.y))) return [];
   if (line.from === line.to && !waypoints.length) {
@@ -279,6 +281,26 @@ export function lineMidpoint(points: readonly ProcessPoint[]): ProcessPoint {
     remaining -= length;
   }
   return { ...points[0] };
+}
+
+/** SVG route with small rounded orthogonal turns, retaining exact endpoints. */
+export function roundedProcessPath(points: readonly ProcessPoint[], radius = 6): string {
+  if (!points.length) return "";
+  const commands = [`M ${points[0].x} ${points[0].y}`];
+  for (let index = 1; index < points.length - 1; index++) {
+    const previous = points[index - 1], corner = points[index], next = points[index + 1];
+    const beforeLength = Math.hypot(corner.x - previous.x, corner.y - previous.y);
+    const afterLength = Math.hypot(next.x - corner.x, next.y - corner.y);
+    if (!beforeLength || !afterLength || (corner.x - previous.x) * (next.y - corner.y) === (corner.y - previous.y) * (next.x - corner.x)) {
+      commands.push(`L ${corner.x} ${corner.y}`); continue;
+    }
+    const turn = Math.min(radius, beforeLength / 2, afterLength / 2);
+    const enter = { x: corner.x - (corner.x - previous.x) / beforeLength * turn, y: corner.y - (corner.y - previous.y) / beforeLength * turn };
+    const leave = { x: corner.x + (next.x - corner.x) / afterLength * turn, y: corner.y + (next.y - corner.y) / afterLength * turn };
+    commands.push(`L ${enter.x} ${enter.y}`, `Q ${corner.x} ${corner.y} ${leave.x} ${leave.y}`);
+  }
+  commands.push(`L ${points.at(-1)!.x} ${points.at(-1)!.y}`);
+  return commands.join(" ");
 }
 
 /** Segment-distance hit testing, including zero-length and diagonal segments. */
