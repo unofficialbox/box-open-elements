@@ -33,6 +33,14 @@ describe("Button", () => {
     expect(btn.dataset.size).toBe("small");
   });
 
+  it("derives the danger fill from theme colors and permits a contrast-safe override", () => {
+    const styles = create().shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("--boe-button-danger-background");
+    expect(styles).toContain("var(--boe-token-surface-status-surface-error, #ed3757) 80%");
+    expect(styles).toContain("var(--boe-token-text-text, #222222) 20%");
+    expect(styles).toContain("92%, white 8%");
+  });
+
   it("shows a spinner and blocks activation while loading", () => {
     const el = create();
     el.isLoading = true;

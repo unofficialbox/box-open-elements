@@ -3,6 +3,10 @@ import { boeControl, boeRadius, boeSpace } from "../../foundations/geometry/inde
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 
 const DEFAULT_TAG_NAME = "box-button";
+// The status red is appropriate for accents, but white button text on it
+// misses 4.5:1 in the light theme. Mix toward the theme's primary text color
+// (dark in light mode, light in dark mode) without changing shared error tokens.
+const dangerFill = "var(--boe-button-danger-background, color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 80%, var(--boe-token-text-text, #222222) 20%))";
 
 /**
  * Visual language tracks box-ui-elements `.btn` / `.btn-primary`
@@ -103,19 +107,19 @@ const buttonStyles = `
   }
 
   button[data-tone="danger"] {
-    background: var(--boe-token-surface-status-surface-error, #ed3757);
-    border-color: var(--boe-token-surface-status-surface-error, #ed3757);
+    background: ${dangerFill};
+    border-color: ${dangerFill};
     color: var(--boe-token-text-text-on-brand, #ffffff);
   }
 
   button[data-tone="danger"]:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 92%, white 8%);
-    border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 92%, white 8%);
+    background: color-mix(in srgb, ${dangerFill} 92%, white 8%);
+    border-color: color-mix(in srgb, ${dangerFill} 92%, white 8%);
   }
 
   button[data-tone="danger"]:active:not(:disabled) {
-    background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 88%, black 12%);
-    border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 88%, black 12%);
+    background: color-mix(in srgb, ${dangerFill} 88%, black 12%);
+    border-color: color-mix(in srgb, ${dangerFill} 88%, black 12%);
   }
 
   button[data-tone="danger"]:focus-visible {

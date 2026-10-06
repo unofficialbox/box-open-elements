@@ -81,6 +81,12 @@ Keep `textOnBrand` paired with all three brand fill states: the dark bundle uses
 dark ink on bright blue, while the light bundle uses white on darker blue.
 Custom themes must check normal, hover and pressed text at 4.5:1 or better.
 
+The Button danger tone derives a stronger fill from `surfaceStatusError` and
+`textPrimary`, leaving the shared status color unchanged. Hosts with a custom
+palette may override `--boe-button-danger-background` on `box-button`; check
+its default, hover, and pressed contrast against `textOnBrand` at 4.5:1 or
+better, including the small size.
+
 `box-dark` is a built-in bundle with the same token keys, icons, and illustrations as `box-default` — only the surface / text / stroke / status values change. Because every component reads `--boe-token-*`, switching the active bundle re-themes the whole catalog with no markup change:
 
 ```ts
