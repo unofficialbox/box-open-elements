@@ -14,6 +14,7 @@ export {
   type ExplorerSelectionState,
 } from "./explorer-selection.js";
 export { Select, type SelectOption, type SelectProps } from "./select.js";
+export { Combobox, type ComboboxOption, type ComboboxProps } from "./combobox.js";
 export { TextField, type TextFieldProps } from "./text-field.js";
 export { NumberInput, type NumberInputProps, type NumberInputRef } from "./number-input.js";
 export { Checkbox, type CheckboxProps, type CheckboxRef } from "./checkbox.js";

@@ -5,9 +5,11 @@ import { act, createElement, createRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { Select as SelectElement } from "../../../src/components/forms/select.js";
+import { Combobox as ComboboxElement } from "../../../src/components/forms/combobox.js";
 import { TextField as TextFieldElement } from "../../../src/components/forms/text-field.js";
 import { Select, type SelectOption } from "../src/select.js";
 import { TextField } from "../src/text-field.js";
+import { Combobox } from "../src/combobox.js";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
   .IS_REACT_ACT_ENVIRONMENT = true;
@@ -111,6 +113,39 @@ describe("React form adapters", () => {
     expect(latestHandler).toHaveBeenCalledTimes(1);
     expect(latestHandler.mock.calls[0]?.[0].detail).toEqual({ value: "Updated by user" });
     expect(latestCurrentTarget).toBe(element);
+  });
+
+  it("forwards text-field type, reveal, and autocomplete", () => {
+    const host = createHost();
+    act(() => host.render(createElement(TextField, {
+      label: "Password", type: "password", reveal: true, autocomplete: "current-password",
+    })));
+    const element = container!.querySelector("box-text-field") as TextFieldElement;
+    expect(element.type).toBe("password");
+    expect(element.reveal).toBe(true);
+    expect(element.autocomplete).toBe("current-password");
+    expect(element.shadowRoot?.querySelector("input")?.type).toBe("password");
+  });
+
+  it("syncs combobox field props, options and value events", () => {
+    const host = createHost();
+    const ref = createRef<ComboboxElement>();
+    const onValueChanged = vi.fn();
+    const options = [{ label: "Marketing", value: "marketing" }];
+    act(() => host.render(createElement(Combobox, {
+      ref, label: "Team", description: "Select a team", required: true,
+      hideLabel: true, options, onValueChanged,
+    })));
+    const element = container!.querySelector("box-combobox") as ComboboxElement;
+    expect(ref.current).toBe(element);
+    expect(element.options).toEqual(options);
+    expect(element.description).toBe("Select a team");
+    expect(element.required).toBe(true);
+    expect(element.hideLabel).toBe(true);
+    const input = element.shadowRoot!.querySelector<HTMLInputElement>('[part="input"]')!;
+    expect(input.getAttribute("aria-describedby")).toBe(element.shadowRoot!.querySelector('[part="description"]')!.id);
+    act(() => { input.value = "Marketing"; input.dispatchEvent(new Event("input", { bubbles: true })); });
+    expect(onValueChanged).toHaveBeenCalledWith(expect.objectContaining({ detail: { value: "marketing" } }));
   });
 
   it("assigns structured select options once and updates them as properties", () => {

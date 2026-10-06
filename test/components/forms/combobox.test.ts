@@ -215,4 +215,27 @@ describe("Combobox", () => {
     expect(styles).toContain('[part="input"]:hover:not(:disabled)');
     expect(styles).toContain('[part="input"]:disabled');
   });
+
+  it("connects the field label, description and required state to the input", () => {
+    const element = document.createElement("box-combobox") as Combobox;
+    element.label = "Assignee";
+    element.description = "Choose a person or team";
+    element.required = true;
+    element.hideLabel = true;
+    document.body.append(element);
+
+    const input = element.shadowRoot!.querySelector<HTMLInputElement>('[part="input"]')!;
+    const label = element.shadowRoot!.querySelector<HTMLElement>('[part="label"]')!;
+    const description = element.shadowRoot!.querySelector<HTMLElement>('[part="description"]')!;
+    expect(input.getAttribute("aria-labelledby")).toBe(label.id);
+    expect(input.getAttribute("aria-describedby")).toBe(description.id);
+    expect(description.textContent).toBe("Choose a person or team");
+    expect(input.required).toBe(true);
+    expect(label.hidden).toBe(false);
+
+    element.description = "";
+    element.required = false;
+    expect(input.hasAttribute("aria-describedby")).toBe(false);
+    expect(input.required).toBe(false);
+  });
 });

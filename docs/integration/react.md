@@ -31,7 +31,8 @@ flowchart LR
 | Export | Wraps |
 | --- | --- |
 | `Button` | `<box-button>` |
-| `TextField` | `<box-text-field>` value control + typed `onValueChanged` |
+| `TextField` | `<box-text-field>` value control, `type`/`reveal`/`autocomplete` + typed `onValueChanged` |
+| `Combobox` | `<box-combobox>` + structured `options`, field description, required state + typed `onValueChanged` |
 | `Select` | `<box-select>` + structured `options` property + typed `onValueChanged` |
 | `Dialog` | `<box-dialog>` + controlled `open`, typed close events, focus/ref behavior |
 | `NumberInput`, `Checkbox`, `Tabs`, `Card`, `Alert`, `Toast`, `Drawer`, `CodeBlock` | Studio controls, feedback, composition and editing surfaces |
@@ -52,7 +53,7 @@ An omitted `open`, `value`, or other property leaves the underlying element's im
 The adapter package marks its modules tree shakable. Core custom elements keep their registration side effects. `bun run bundles:check` verifies a root Button import includes only Button, and that its registration survives optimization.
 
 ```ts
-import { Button, Dialog, Select, TextField } from "@unofficialbox/box-open-elements-react";
+import { Button, Combobox, Dialog, Select, TextField } from "@unofficialbox/box-open-elements-react";
 import {
   applyDesignTokens,
   registerBoxDefaultDesignSystem,
@@ -74,6 +75,13 @@ applyDesignTokens(document.documentElement, "box-default");
   value={status}
   options={[{ label: "Draft", value: "draft" }]}
   onValueChanged={event => setStatus(event.detail.value)}
+/>
+
+<Combobox
+  label="Assignee"
+  description="Search people and teams"
+  options={[{ label: "Marketing", value: "marketing" }]}
+  onValueChanged={event => setAssignee(event.detail.value)}
 />
 
 <Dialog

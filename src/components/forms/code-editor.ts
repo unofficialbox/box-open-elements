@@ -41,6 +41,7 @@ export interface CodeSelection {
   anchor: number;
   head: number;
 }
+export interface CodeLine { number: number; from: number; to: number; }
 
 /** Optional CodeMirror entrypoint. Import `code-editor`, not the root catalog. */
 export class CodeEditor extends BaseElement {
@@ -167,6 +168,19 @@ export class CodeEditor extends BaseElement {
       scrollIntoView: true,
     });
   }
+  /** One-based line containing a UTF-16 document offset, including before mount. */
+  lineAt(position: number): CodeLine {
+    const doc = this.view?.state.doc ?? EditorState.create({ doc: this.value }).doc;
+    const offset = Math.max(0, Math.min(doc.length, Number.isFinite(position) ? Math.floor(position) : 0));
+    const { number, from, to } = doc.lineAt(offset);
+    return { number, from, to };
+  }
+  /** Start offset of a one-based line; out-of-range lines clamp to the document. */
+  lineStart(number: number): number {
+    const doc = this.view?.state.doc ?? EditorState.create({ doc: this.value }).doc;
+    const line = Math.max(1, Math.min(doc.lines, Number.isFinite(number) ? Math.floor(number) : 1));
+    return doc.line(line).from;
+  }
   revealLine(line: number, options: { center?: boolean } = {}): void {
     if (!this.view) return;
     const target = this.view.state.doc.line(
@@ -201,13 +215,16 @@ export class CodeEditor extends BaseElement {
       :host{display:block;min-width:0;color:var(--boe-token-text-text,#222);font:inherit}
       :host([hidden]){display:none!important}
       [part=editor]{border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:8px;overflow:hidden}
-      .cm-editor{background:var(--boe-token-surface-surface,#fff);color:var(--boe-token-text-text,#222)}
+      .cm-editor{background:var(--boe-code-background,var(--boe-token-surface-surface,#fff));color:var(--boe-code-foreground,var(--boe-token-text-text,#222))}
       [part=editor]:focus-within{box-shadow:0 0 0 3px var(--boe-token-surface-surface-brand,#0061d5)}
       .cm-editor.cm-focused{outline:none}
-      .cm-scroller{max-height:var(--boe-code-editor-height,420px);min-height:160px;overflow:auto;font-family:monospace;font-size:14px;line-height:1.6}
-      .cm-gutters,.cm-panels,.cm-tooltip{background:var(--boe-token-surface-surface-secondary,#fbfbfb)!important;color:var(--boe-token-text-text,#222)!important;border-color:var(--boe-token-stroke-stroke,#ddd)!important}
-      .cm-cursor{border-left-color:var(--boe-token-text-text,#222)}
-      .cm-activeLine,.cm-activeLineGutter,.cm-selectionBackground{background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 12%,transparent)!important}
+      .cm-scroller{max-height:var(--boe-code-editor-height,420px);min-height:160px;overflow:auto;font-family:var(--boe-code-font-family,monospace);font-size:var(--boe-code-font-size,14px);line-height:var(--boe-code-line-height,1.6)}
+      .cm-gutters,.cm-panels,.cm-tooltip{background:var(--boe-token-surface-surface-secondary,#fbfbfb)!important;color:var(--boe-code-foreground,var(--boe-token-text-text,#222))!important;border-color:var(--boe-token-stroke-stroke,#ddd)!important}
+      .cm-gutters{color:var(--boe-code-gutter,var(--boe-token-text-text,#222))!important;border-right:var(--boe-code-gutter-border,1px solid var(--boe-token-stroke-stroke,#ddd))!important}
+      .cm-cursor{border-left-color:var(--boe-code-caret,var(--boe-token-text-text,#222))}
+      .cm-activeLine,.cm-activeLineGutter{background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 12%,transparent)!important}
+      .cm-activeLineGutter{color:var(--boe-code-gutter-active,var(--boe-code-gutter,var(--boe-token-text-text,#222)))!important}
+      .cm-selectionBackground,.cm-content ::selection{background:var(--boe-code-selection,color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 12%,transparent))!important}
       .boe-code-highlight{background:var(--boe-code-highlight-background,color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 10%,transparent))!important;box-shadow:inset 3px 0 var(--boe-token-surface-surface-brand,#0061d5)}
       .cm-matchingBracket,.cm-selectionMatch{background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 15%,transparent)!important;color:inherit!important}
       .cm-nonmatchingBracket{color:var(--boe-token-text-status-text-error,#b92340)!important}
@@ -331,42 +348,45 @@ export class CodeEditor extends BaseElement {
             syntaxHighlighting(
               HighlightStyle.define([
                 {
-                  tag: [
-                    tags.variableName,
-                    tags.definition(tags.variableName),
-                    tags.propertyName,
-                    tags.operator,
-                    tags.punctuation,
-                  ],
-                  color: "var(--boe-token-text-text,#222)",
+                  tag: tags.controlKeyword,
+                  color: "var(--boe-code-control,var(--boe-code-keyword,var(--boe-token-surface-surface-brand,#0061d5)))",
                 },
                 {
-                  tag: tags.keyword,
-                  color: "var(--boe-token-surface-surface-brand,#0061d5)",
+                  tag: [tags.keyword, tags.moduleKeyword, tags.definitionKeyword, tags.operatorKeyword],
+                  color: "var(--boe-code-keyword,var(--boe-token-surface-surface-brand,#0061d5))",
                 },
                 {
-                  tag: [
-                    tags.typeName,
-                    tags.className,
-                    tags.function(tags.variableName),
-                  ],
-                  color: "var(--boe-token-surface-surface-brand,#0061d5)",
+                  tag: [tags.function(tags.variableName), tags.function(tags.propertyName)],
+                  color: "var(--boe-code-function,var(--boe-token-surface-surface-brand,#0061d5))",
                 },
                 {
-                  tag: tags.string,
-                  color: "var(--boe-token-text-status-text-success,#138a58)",
+                  tag: [tags.typeName, tags.className, tags.namespace],
+                  color: "var(--boe-code-type,var(--boe-token-surface-surface-brand,#0061d5))",
+                },
+                {
+                  tag: tags.propertyName,
+                  color: "var(--boe-code-property,var(--boe-token-text-text,#222))",
+                },
+                {
+                  tag: [tags.variableName, tags.definition(tags.variableName)],
+                  color: "var(--boe-code-variable,var(--boe-token-text-text,#222))",
+                },
+                {
+                  tag: [tags.string, tags.special(tags.string)],
+                  color: "var(--boe-code-string,var(--boe-token-text-status-text-success,#138a58))",
+                },
+                {
+                  tag: [tags.number, tags.bool, tags.null, tags.atom],
+                  color: "var(--boe-code-number,var(--boe-token-text-status-text-warning,#9a6500))",
                 },
                 {
                   tag: tags.comment,
-                  color: "var(--boe-token-text-text-secondary,#666)",
+                  color: "var(--boe-code-comment,var(--boe-token-text-text-secondary,#666))",
+                  fontStyle: "var(--boe-code-comment-style,normal)",
                 },
                 {
-                  tag: tags.number,
-                  color: "var(--boe-token-text-status-text-warning,#9a6500)",
-                },
-                {
-                  tag: [tags.bool, tags.null, tags.atom],
-                  color: "var(--boe-token-text-status-text-warning,#9a6500)",
+                  tag: [tags.punctuation, tags.bracket, tags.operator, tags.separator],
+                  color: "var(--boe-code-punctuation,var(--boe-token-text-text,#222))",
                 },
               ]),
             ),

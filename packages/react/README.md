@@ -57,7 +57,8 @@ export function SaveAction() {
 }
 ```
 
-The supported surface also includes a controlled `Dialog` wrapper and
+The supported surface also includes `Combobox` (with structured options and
+field description), typed `TextField` `type`/`reveal`/`autocomplete`, a controlled `Dialog` wrapper and
 `useExplorerSelectionController`, which subscribes React to the existing
 headless selection controller without duplicating its state.
 

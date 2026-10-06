@@ -106,7 +106,7 @@ the exact value in a `<time datetime>` beside the human-readable text.
 - `checkbox` — **built**
 - `checkbox-group` — **built**
 - `color-picker` — **built**
-- `combobox` — **built**
+- `combobox` — **built** (field-level `description` is linked with `aria-describedby`; option descriptions remain separate)
 - `date-field` — **built**
 - `dropdown` — **built**
 - `dual-listbox` — **built**

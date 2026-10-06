@@ -1,6 +1,9 @@
 import {
   FormAssociatedElement,
+  FORM_LABEL_ID,
   boeFormFieldErrorStyles,
+  boeFormFieldSupportStyles,
+  formDescriptionMarkup,
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
@@ -160,13 +163,14 @@ const comboboxStyles = `
   }
 
   ${boeFormFieldErrorStyles}
+  ${boeFormFieldSupportStyles}
 `;
 
 export class Combobox extends FormAssociatedElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
-      ...FormAssociatedElement.formObservedAttributes,
+      ...FormAssociatedElement.fieldObservedAttributes,
       "disabled",
       "label",
       "options",
@@ -185,6 +189,7 @@ export class Combobox extends FormAssociatedElement {
 
   private inputEl!: HTMLInputElement;
   private labelEl!: HTMLElement;
+  private descriptionEl!: HTMLElement;
   private controlEl!: HTMLElement;
   private listboxEl!: HTMLUListElement;
   private errorEl!: HTMLElement;
@@ -432,7 +437,7 @@ export class Combobox extends FormAssociatedElement {
     this.shadowRoot.innerHTML = `
       <style>${comboboxStyles}</style>
       <div part="field">
-        <span part="label" id="${this.listboxId}-label"></span>
+        <span part="label" id="${FORM_LABEL_ID}"></span>
         <div part="control">
           <input
             type="text"
@@ -444,11 +449,13 @@ export class Combobox extends FormAssociatedElement {
             aria-controls="${this.listboxId}"
           />
         </div>
-        <ul part="listbox" id="${this.listboxId}" role="listbox" aria-labelledby="${this.listboxId}-label" hidden></ul>
+        ${formDescriptionMarkup()}
+        <ul part="listbox" id="${this.listboxId}" role="listbox" aria-labelledby="${FORM_LABEL_ID}" hidden></ul>
         ${formErrorMessageMarkup()}
       </div>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
+    this.descriptionEl = this.shadowRoot.querySelector('[part="description"]')!;
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
     this.controlEl = this.shadowRoot.querySelector('[part="control"]')!;
     this.listboxEl = this.shadowRoot.querySelector('[part="listbox"]')!;
@@ -575,7 +582,7 @@ export class Combobox extends FormAssociatedElement {
 
     this.labelEl.textContent = this.label;
     this.inputEl.placeholder = this.placeholder;
-    this.inputEl.setAttribute("aria-label", this.label);
+    this.applyFieldSupport(this.labelEl, this.inputEl, this.descriptionEl);
 
     if (this.shadowRoot?.activeElement !== this.inputEl && this.filterText == null) {
       this.inputEl.value = this.getDisplayValue();

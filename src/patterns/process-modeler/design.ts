@@ -14,7 +14,7 @@ export const processModelerDesign = `
     background: var(--boe-token-surface-surface, #fff);
     font: 14px/1.5 var(--boe-token-font-family-base, Inter, sans-serif);
   }
-  [part=sr-only] { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  [part=sr-only], [part=status] { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   [part=toolbar] {
     min-height: 56px;
     margin: 0;

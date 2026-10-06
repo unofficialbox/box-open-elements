@@ -122,7 +122,7 @@ export class CodeBlock extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
 
   static get observedAttributes(): string[] {
-    return ["code", "copy-label", "language"];
+    return ["code", "copy-label", "language", "label"];
   }
 
   private preEl!: HTMLElement;
@@ -159,6 +159,16 @@ export class CodeBlock extends BaseElement {
 
   set copyLabel(value: string) {
     this.setAttribute("copy-label", value);
+  }
+
+  /** Accessible name for the scrollable code region. */
+  get label(): string {
+    return this.getAttribute("label") ?? "";
+  }
+
+  set label(value: string) {
+    if (value) this.setAttribute("label", value);
+    else this.removeAttribute("label");
   }
 
   private async copy(): Promise<void> {
@@ -245,7 +255,7 @@ export class CodeBlock extends BaseElement {
     }
 
     const language = this.language;
-    this.preEl.setAttribute("aria-label", language ? `${language} code` : "Source code");
+    this.preEl.setAttribute("aria-label", this.label || (language ? `${language} code` : "Source code"));
     if (language) {
       this.codeEl.setAttribute("data-language", language);
       this.codeEl.setAttribute("class", `language-${language}`);

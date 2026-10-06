@@ -36,6 +36,8 @@ describe("call console",()=>{
     expect(el.shadowRoot!.querySelector("#connection")!.textContent).toBe("Live");
     event({type:"call",entry:{...entry,rpcError:"isError"}});expect(c.entries).toHaveLength(1);
     event({type:"call",entry:{...entry,id:"2",service:"CRM"}});
+    expect(el.shadowRoot!.querySelector<HTMLElement>('#request')?.shadowRoot?.querySelector('pre')?.getAttribute('aria-label')).toBe('Request');
+    expect(el.shadowRoot!.querySelector<HTMLElement>('#response')?.shadowRoot?.querySelector('pre')?.getAttribute('aria-label')).toBe('Response');
     const errors=el.shadowRoot!.querySelector<HTMLInputElement>("#errors")!;errors.checked=true;errors.dispatchEvent(new Event("change"));
     expect(el.shadowRoot!.querySelectorAll('[part="call"]')).toHaveLength(1);expect(el.shadowRoot!.querySelector("#response")!.getAttribute("code")).toContain("isError");
     await c.clear();expect(c.entries).toEqual([]);c.destroy();expect(close).toHaveBeenCalled();
