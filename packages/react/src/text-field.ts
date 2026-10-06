@@ -8,6 +8,9 @@ export type TextFieldProps = WebComponentProps & {
   label?: string;
   value?: string;
   placeholder?: string;
+  type?: "text" | "password" | "email" | "tel" | "url" | "search" | "number";
+  reveal?: boolean;
+  autocomplete?: string;
   disabled?: boolean;
   name?: string;
   invalid?: boolean;
@@ -26,6 +29,7 @@ export const TextField = createWebComponent<TextFieldElement, TextFieldProps>({
     "label",
     "value",
     "placeholder",
+    "type", "reveal", "autocomplete",
     "disabled",
     "name",
     "invalid",
@@ -46,6 +50,9 @@ export const TextField = createWebComponent<TextFieldElement, TextFieldProps>({
     if (props.placeholder !== undefined) {
       element.placeholder = props.placeholder;
     }
+    if (props.type !== undefined) element.type = props.type;
+    if (props.reveal !== undefined) element.reveal = props.reveal;
+    if (props.autocomplete !== undefined) element.autocomplete = props.autocomplete;
     if (props.name !== undefined) {
       element.name = props.name;
     }

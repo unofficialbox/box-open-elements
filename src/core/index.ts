@@ -5,6 +5,7 @@ export { BaseElement } from "./element.js";
 export {
   FORM_DESCRIPTION_ID,
   FORM_ERROR_MESSAGE_ID,
+  FORM_LABEL_ID,
   FormAssociatedElement,
   boeFormFieldErrorStyles,
   boeFormFieldSupportStyles,

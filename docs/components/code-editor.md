@@ -17,6 +17,8 @@ editor.addEventListener("value-changed", event => {
 });
 editor.revealLine(1);
 editor.selection = { anchor: 0, head: 4 }; // zero-based document offsets
+editor.lineAt(7); // { number, from, to }; one-based line, UTF-16 offsets
+editor.lineStart(2); // start offset for line 2
 ```
 
 Edits emit `value-changed` after 200ms without input, flushed on blur and detach.
@@ -67,6 +69,18 @@ Escape followed by Tab leaves the editor, following
 [CodeMirror's keyboard escape contract](https://codemirror.net/examples/tab/).
 The same instruction appears below the editor. Tokens control light/dark
 surfaces and highlighting; `--boe-code-editor-height` controls the scroll height.
+
+Hosts can restyle the editor without reaching into its shadow root. Set
+`--boe-code-background`, `--boe-code-foreground`, `--boe-code-gutter`,
+`--boe-code-gutter-active`, `--boe-code-gutter-border`, `--boe-code-caret`,
+`--boe-code-selection`, `--boe-code-font-family`, `--boe-code-font-size`, and
+`--boe-code-line-height` on the element. Syntax roles have separate variables:
+`--boe-code-control`, `--boe-code-keyword`, `--boe-code-function`,
+`--boe-code-type`, `--boe-code-property`, `--boe-code-variable`,
+`--boe-code-string`, `--boe-code-number`, `--boe-code-comment`, and
+`--boe-code-punctuation`. `--boe-code-comment-style` controls comment italics.
+All fall back to the Box tokens when omitted. `lineAt(position)` and
+`lineStart(number)` clamp invalid/out-of-range inputs and work before mount.
 
 Hosts own parsing, compilation and persistence. The component does not execute
 code or infer application-specific diagnostics.

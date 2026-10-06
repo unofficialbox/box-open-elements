@@ -163,6 +163,9 @@ describe("Process Modeler prototype interactions", () => {
     pointer(root.querySelector('[data-owner=a][data-side=south]')!, 'pointerdown', 150, 130);
     canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     pointer(canvas, 'pointerup', to.x + 20, to.y + 20); expect(requests).toHaveBeenCalledTimes(1);
+    expect(root.querySelector('[part=status]')?.textContent).toBe('Connecting cancelled');
+    expect(root.querySelector('[part=status]')?.getAttribute('role')).toBe('status');
+    expect(root.querySelector('style')?.textContent).toContain('[part=sr-only], [part=status]');
   });
   it("selects a marquee and aligns/spaces the selected group with undo", () => {
     const { builder, root, canvas } = fixture(); const before = builder.layout;

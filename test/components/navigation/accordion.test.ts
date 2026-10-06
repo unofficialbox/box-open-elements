@@ -159,4 +159,22 @@ describe("Accordion", () => {
     element.append(rich);
     expect(slot.assignedElements()[0]).toBe(rich);
   });
+
+  it("can omit repeated region landmarks without losing trigger relationships or focus", () => {
+    const element = document.createElement("box-accordion") as Accordion;
+    element.label = "Settings";
+    element.items = [{ label: "Details", value: "details", content: "Configuration" }];
+    document.body.append(element);
+    const trigger = element.shadowRoot!.querySelector<HTMLButtonElement>('[part="trigger"]')!;
+    const panel = element.shadowRoot!.querySelector<HTMLElement>('[part="panel"]')!;
+    trigger.focus();
+    element.plainPanels = true;
+    expect(element.shadowRoot!.activeElement).toBe(trigger);
+    expect(element.shadowRoot!.querySelector('[part="accordion"]')!.hasAttribute("role")).toBe(false);
+    expect(panel.hasAttribute("role")).toBe(false);
+    expect(trigger.getAttribute("aria-controls")).toBe(panel.id);
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    element.plainPanels = false;
+    expect(panel.getAttribute("role")).toBe("region");
+  });
 });

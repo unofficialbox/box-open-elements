@@ -180,6 +180,10 @@ const elementStyles = `
           white-space: nowrap;
         }
 
+        [part="option"][aria-selected="true"] [part="shortcut"] {
+          color: var(--boe-token-text-text, #1f1e1b);
+        }
+
         [part="empty"] {
           padding: 1.4rem 0.9rem;
           text-align: center;

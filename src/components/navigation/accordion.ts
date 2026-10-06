@@ -119,7 +119,7 @@ const accordionStyles = `
 export class Accordion extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["items", "label", "value", "values", "multiple", "borderless"];
+    return ["items", "label", "value", "values", "multiple", "borderless", "plain-panels"];
   }
 
   /** Flat variant with no outer card border/background. */
@@ -130,6 +130,10 @@ export class Accordion extends BaseElement {
   set borderless(value: boolean) {
     this.toggleAttribute("borderless", Boolean(value));
   }
+
+  /** Omit region landmarks when many accordions or panels share a label. */
+  get plainPanels(): boolean { return this.hasAttribute("plain-panels"); }
+  set plainPanels(value: boolean) { this.toggleAttribute("plain-panels", Boolean(value)); }
 
   private valueInternal = "";
   private valuesInternal: string[] = [];
@@ -217,8 +221,7 @@ export class Accordion extends BaseElement {
             <div
               part="panel"
               id="${panelId}"
-              role="region"
-              aria-labelledby="${triggerId}"
+              ${this.plainPanels ? "" : `role="region" aria-labelledby="${triggerId}"`}
               ${isOpen ? "" : "hidden"}
             ><slot name="panel-${escapeHtml(item.value)}">${escapeHtml(item.content ?? "")}</slot></div>
           </section>
@@ -299,8 +302,13 @@ export class Accordion extends BaseElement {
     }
 
 
-    this.accordionEl.setAttribute("role", "region");
-    this.accordionEl.setAttribute("aria-label", this.label);
+    if (this.plainPanels) {
+      this.accordionEl.removeAttribute("role");
+      this.accordionEl.removeAttribute("aria-label");
+    } else {
+      this.accordionEl.setAttribute("role", "region");
+      this.accordionEl.setAttribute("aria-label", this.label);
+    }
 
     if (itemsJson !== this.lastItemsJson) {
       this.accordionEl.innerHTML = this.renderItemsMarkup(items);
@@ -326,6 +334,13 @@ export class Accordion extends BaseElement {
       }
       if (panel) {
         panel.hidden = !isOpen;
+        if (this.plainPanels) {
+          panel.removeAttribute("role");
+          panel.removeAttribute("aria-labelledby");
+        } else {
+          panel.setAttribute("role", "region");
+          panel.setAttribute("aria-labelledby", trigger?.id ?? "");
+        }
       }
     });
   }

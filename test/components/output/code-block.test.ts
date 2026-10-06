@@ -94,6 +94,14 @@ describe("box-code-block", () => {
     expect(button?.getAttribute("aria-label")).toBe("Copy install command");
   });
 
+  it("uses a host-provided region label and retains the default when absent", () => {
+    const named = mount({ code: "GET /files", label: "Request" });
+    expect(named.shadowRoot?.querySelector("pre")?.getAttribute("aria-label")).toBe("Request");
+    named.label = "Response";
+    expect(named.shadowRoot?.querySelector("pre")?.getAttribute("aria-label")).toBe("Response");
+    expect(mount({ code: "hello" }).shadowRoot?.querySelector("pre")?.getAttribute("aria-label")).toBe("Source code");
+  });
+
   it("hides the copy affordance when inline", () => {
     const styles = mount({ inline: "" }).shadowRoot?.querySelector("style")?.textContent ?? "";
 

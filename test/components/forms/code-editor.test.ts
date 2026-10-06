@@ -26,6 +26,21 @@ afterEach(() => {
   vi.useRealTimers();
 });
 describe("code editor", () => {
+  it("maps UTF-16 offsets and one-based line starts before and after mount", () => {
+    const editor = new CodeEditor();
+    editor.value = "first\nsecond\n";
+    expect(editor.lineAt(7)).toEqual({ number: 2, from: 6, to: 12 });
+    expect(editor.lineAt(999)).toEqual({ number: 3, from: 13, to: 13 });
+    expect(editor.lineStart(2)).toBe(6);
+    expect(editor.lineStart(999)).toBe(13);
+    document.body.append(editor);
+    expect(editor.lineAt(7)).toEqual({ number: 2, from: 6, to: 12 });
+    expect(editor.lineStart(0)).toBe(0);
+    const styles = [...editor.shadowRoot!.querySelectorAll("style")].map(style => style.textContent).join("\n");
+    expect(styles).toContain("--boe-code-keyword");
+    expect(styles).toContain("--boe-code-background");
+    expect(styles).toContain("--boe-code-gutter");
+  });
   it("exposes cursor changes, wrapping, highlighted lines and offset problems", () => {
     const editor = new CodeEditor(); editor.value = "first\nsecond"; editor.wrap = true;
     editor.highlights = [{ from: 6, to: 12 }]; document.body.append(editor);
