@@ -9,6 +9,8 @@ const contrast = (a: number[], b: number[]): number => {
   const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
   return (light! + .05) / (dark! + .05);
 };
+const mix = (a: number[], b: number[], amount: number): number[] =>
+  a.map((value, i) => value * amount + b[i]! * (1 - amount));
 
 describe("semantic color pairs", () => {
   for (const theme of [boxDefaultDesignSystem, boxDarkDesignSystem]) {
@@ -16,6 +18,17 @@ describe("semantic color pairs", () => {
     it(`${theme.name}: on-brand text passes in every enabled state`, () => {
       for (const fill of ["SurfaceSurfaceBrand", "SurfaceSurfaceBrandHover", "SurfaceSurfaceBrandPressed"]) {
         expect(contrast(rgb(t.TextTextOnBrand!), rgb(t[fill]!)), fill).toBeGreaterThanOrEqual(4.5);
+      }
+    });
+    it(`${theme.name}: danger button text passes in default, hover and pressed states`, () => {
+      const fill = mix(rgb(t.SurfaceStatusSurfaceError!), rgb(t.TextText!), .8);
+      const ink = rgb(t.TextTextOnBrand!);
+      for (const [state, background] of [
+        ["default", fill],
+        ["hover", mix(fill, [255, 255, 255], .92)],
+        ["pressed", mix(fill, [0, 0, 0], .88)],
+      ] as const) {
+        expect(contrast(ink, background), state).toBeGreaterThanOrEqual(4.5);
       }
     });
     it(`${theme.name}: feedback text and glyphs pass on alert and toast tints`, () => {
