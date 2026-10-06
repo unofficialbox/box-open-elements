@@ -15,6 +15,20 @@ are kept as written.
 
 ## Unreleased
 
+## 0.27.0 — 2026-10-06
+
+### Component and adapter improvements
+
+- Add the Combobox field-description contract and React wrapper; expose Text
+  Field type, reveal, and autocomplete options through the React adapter.
+- Add Code Editor syntax and surface theme variables plus line APIs, optional
+  plain Accordion panels, clearer Call Console code-region names, a
+  screen-reader-only Process Modeler status, and stronger Command Palette
+  shortcut contrast.
+- Raise danger Button text contrast in light and dark themes while retaining
+  the shared status-red token and a component-level theme override.
+- Keep React, Angular, Vue, and Svelte adapter versions in lockstep at 0.27.0.
+
 ## 0.26.0 — 2026-10-01
 
 ### Process Modeler design rebuild
