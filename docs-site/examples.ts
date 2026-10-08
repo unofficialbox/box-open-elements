@@ -982,7 +982,7 @@ export const examples: Record<string, ComponentExample> = {
     setup: root => {
       set(root, "box-form-wizard", { steps: clmIntakeSteps });
     },
-    note: "A step's id doubles as the slot name feeding its panel. `FormWizardController` gates Next behind per-step validators; Save draft skips validation; `submitted` fires with the value store.",
+    note: "A step's id doubles as the slot name feeding its panel. `FormWizardController` gates Next behind per-step validators; Save draft skips validation; `submitted` fires with the value store. Try advancing to Review, then going Back twice: previously passed steps stay Complete, while the furthest reached step says Visited rather than Not started.",
   },
   "wizard-summary": {
     html: `<box-wizard-summary heading="Review your answers"></box-wizard-summary>`,

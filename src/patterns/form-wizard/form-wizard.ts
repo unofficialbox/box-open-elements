@@ -536,11 +536,22 @@ export class FormWizard extends BaseElement {
     this.suppressRailEvent = true;
     try {
       this.railEl.label = this.heading ? `${this.heading} steps` : "Wizard steps";
-      this.railEl.items = steps.map(step => ({
-        label: step.label,
-        value: step.id,
-        ...(step.description ? { description: step.description } : {}),
-      }));
+      const furthestVisitedIndex = Math.max(
+        -1,
+        ...steps.map((step, index) => state?.visitedStepIds.includes(step.id) ? index : -1),
+      );
+      this.railEl.items = steps.map((step, index) => {
+        const visited = state?.visitedStepIds.includes(step.id) ?? false;
+        const status = visited && step.id !== state?.currentStepId
+          ? (index < furthestVisitedIndex || step.optional || state?.submitted ? "complete" : "visited")
+          : undefined;
+        return {
+          label: step.label,
+          value: step.id,
+          ...(step.description ? { description: step.description } : {}),
+          ...(status ? { status } : {}),
+        };
+      });
       if (state && this.railEl.value !== state.currentStepId) {
         this.railEl.value = state.currentStepId;
       }

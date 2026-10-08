@@ -15,6 +15,13 @@ are kept as written.
 
 ## Unreleased
 
+## 0.28.1 — 2026-10-08
+
+- Preserve Form Wizard rail history when navigating backward: passed steps
+  remain `Complete`, the furthest reached but unvalidated step says `Visited`,
+  and only never-reached steps say `Not started` (#365).
+- Keep the React, Angular, Vue, and Svelte adapters in lockstep at 0.28.1.
+
 ## 0.28.0 — 2026-10-08
 
 ### Component and pattern enhancements

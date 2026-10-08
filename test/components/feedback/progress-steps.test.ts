@@ -153,6 +153,7 @@ describe("ProgressSteps", () => {
   it("validates item records and rejects malformed payloads whole", () => {
     expect(isProgressStepRecord({ label: "A", value: "a" })).toBe(true);
     expect(isProgressStepRecord({ label: "A", value: "a", status: "blocked" })).toBe(true);
+    expect(isProgressStepRecord({ label: "A", value: "a", status: "visited" })).toBe(true);
     expect(isProgressStepRecord({ label: "A", value: "a", status: "bogus" })).toBe(false);
     expect(isProgressStepRecord({ label: "A" })).toBe(false);
     // Non-string text fields would reach escapeHtml and throw mid-render.
@@ -200,6 +201,23 @@ describe("ProgressSteps", () => {
     );
     expect(steps[3]?.querySelector('[part="step-status"]')?.textContent).toBe("Blocked");
     expect(steps[4]?.querySelector('[part="step-status"]')?.textContent).toBe("Unavailable");
+  });
+
+  it("keeps a visited step interactive and distinguishes it from complete", () => {
+    const element = new ProgressSteps();
+    element.items = [
+      { label: "Details", value: "details" },
+      { label: "Review", value: "review", status: "visited" },
+    ];
+    element.value = "details";
+    document.body.append(element);
+
+    const visited = element.shadowRoot?.querySelector<HTMLButtonElement>('[data-value="review"]');
+    expect(visited?.dataset.state).toBe("visited");
+    expect(visited?.disabled).toBe(false);
+    expect(visited?.querySelector('[part="step-status"]')?.textContent).toBe("Visited");
+    visited?.click();
+    expect(element.value).toBe("review");
   });
 
   it("gives positional states a screen-reader word that tracks value changes", () => {

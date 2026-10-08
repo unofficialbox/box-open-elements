@@ -158,7 +158,7 @@ wizard owns the choreography:
 
 - `types` (`WizardStepConfig` — a step id doubles as its slot name, `WizardStepValidator` gate contract with message + field errors) — **built**
 - `controller` (`FormWizardController`: value store, forward-gating validation — backward navigation and visited-step jumps never re-validate, optional steps skip gates, `saveDraft` never validates, `submit` validates all required steps and navigates to the first failure) — **built**
-- composed surface: `box-form-wizard` (composes `box-progress-steps` as the rail with gated step jumps, slot-per-step panels, `role="alert"` step errors, Back/Next/Submit footer with an opt-in Save-draft button) — **built**
+- composed surface: `box-form-wizard` (composes `box-progress-steps` as the rail with gated step jumps, slot-per-step panels, `role="alert"` step errors, Back/Next/Submit footer with an opt-in Save-draft button) — **built**. The rail retains `Complete` for steps passed on the way forward and `Visited` for the furthest unvalidated step when the user goes back; only never-reached steps say `Not started`.
 
 ### Timeline (composition)
 
