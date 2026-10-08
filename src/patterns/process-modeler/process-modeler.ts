@@ -603,11 +603,15 @@ export class ProcessModeler<
     for (const [part, label] of [["palette", "Building blocks"], ["inspector", "Process details"]]) {
       const pane = root.querySelector(`[part=${part}]`)!;
       const dialog = document.createElement("dialog"); dialog.setAttribute("part", "pane-drawer"); dialog.setAttribute("aria-label", label); dialog.dataset.pane = part;
-      const close = document.createElement("button"); close.setAttribute("part", "pane-close"); close.textContent = 'Close'; close.setAttribute('aria-label', `Close ${label.toLowerCase()}`);
+      if (part === "palette") {
+        const title = document.createElement("h2"); title.id = "process-palette-title"; title.setAttribute("part", "pane-title"); title.textContent = "Add to the process";
+        dialog.removeAttribute("aria-label"); dialog.setAttribute("aria-labelledby", title.id); dialog.append(title);
+      }
+      const close = document.createElement("button"); close.setAttribute("part", "pane-close"); close.textContent = '×'; close.setAttribute('aria-label', `Close ${label.toLowerCase()}`);
       close.onclick = () => dismissModal(dialog); dialog.append(close, pane);
       if (part === "palette") layout.prepend(dialog); else layout.append(dialog);
       const trigger = document.createElement("button"); trigger.dataset.command = part === "palette" ? "palette" : "details"; trigger.textContent = part === "palette" ? "Add" : "Details"; trigger.setAttribute("aria-label", `Open ${label.toLowerCase()}`);
-      trigger.onclick = () => promoteModal(dialog); toolbar.append(trigger);
+      trigger.onclick = () => { if (promoteModal(dialog) && part === "palette") searchLabel.querySelector('input')?.focus(); }; toolbar.append(trigger);
     }
     const inspector = root.querySelector('[part=inspector]')!;
     const heading = document.createElement("div"); heading.setAttribute("part", "process-heading");

@@ -63,7 +63,7 @@ export const processModelerDesign = `
   }
   [part=pane-drawer] { display: contents; color: inherit; }
   [part=pane-drawer]::backdrop, [part=insert-chooser]::backdrop { background: rgb(0 0 0 / .45); }
-  [part=pane-close], [data-command=palette], [data-command=details] { display: none; }
+  [part=pane-title], [part=pane-close], [data-command=palette], [data-command=details] { display: none; }
   [part=palette], [part=inspector] {
     min-width: 0;
     overflow: auto;
@@ -271,11 +271,12 @@ export const processModelerDesign = `
   :host([data-narrow]) [part=layout] { grid-template-columns: minmax(0,1fr); }
   :host([data-narrow]) [part=pane-drawer] { display: none; position: fixed; z-index: 40; margin: 0; max-width: none; max-height: none; padding: 0; overflow: auto; border: 0; border-radius: 0; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .24)); }
   :host([data-narrow]) [part=pane-drawer][open] { display: block; }
+  :host([data-narrow]) [part=pane-title] { display: block; position: absolute; top: 18px; left: 16px; margin: 0; font-size: 14px; font-weight: 650; line-height: 20px; }
   :host([data-narrow]) [part=pane-close], :host([data-narrow]) [data-command=palette], :host([data-narrow]) [data-command=details] { display: inline-block; }
-  :host([data-narrow]) [part=pane-close] { position: absolute; top: 12px; right: 12px; z-index: 1; min-height: 28px; padding: 4px 9px; border-radius: 14px; font-size: 12px; }
+  :host([data-narrow]) [part=pane-close] { position: absolute; top: 12px; right: 12px; z-index: 1; width: 28px; height: 28px; padding: 0; border-radius: 50%; font-size: 16px; font-weight: 600; line-height: 1; }
   :host([data-narrow]) [part=pane-drawer][data-pane=palette] { left: 0; top: 0; bottom: 0; width: min(320px, 86vw); }
   :host([data-narrow]) [part=pane-drawer][data-pane=inspector] { left: 0; right: 0; top: auto; bottom: 0; width: 100%; height: min(62vh, 560px); border-radius: 24px 24px 0 0; }
-  :host([data-narrow]) [part=pane-drawer][data-pane=inspector]::before { content: ''; display: block; width: 36px; height: 4px; margin: 6px auto; border-radius: 2px; background: var(--boe-token-surface-surface-secondary, #e8e8e8); }
+  :host([data-narrow]) [part=pane-drawer][data-pane=inspector]::before { content: ''; display: block; width: 36px; height: 4px; margin: 6px auto; border-radius: 2px; background: var(--boe-token-text-text-secondary, #767676); opacity: .55; }
   :host([data-narrow]) [part=palette], :host([data-narrow]) [part=inspector] { height: 100%; }
   :host([data-narrow]) [part=palette] { padding-top: 54px; }
   :host([data-narrow]) [part=minimap] { display: none; }

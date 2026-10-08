@@ -115,7 +115,8 @@ canvas.addEventListener("readable-projection-changed", event => {
   The palette is 248px on the left; the inspector is 320px on the right, with
   Outline, Checks, Variables, Connections and Shortcuts tabs. Below 900px
   component width, both panes use named modal drawers. `narrow` exposes that
-  state. Outline links have at least 24px targets.
+  state. Outline links have at least 24px targets. The mobile building-block
+  drawer is named "Add to the process" and focuses search when opened.
   `disable-connections` removes disconnect controls and refuses connect and
   disconnect requests. Unlabelled lines have no placeholder label; line actions
   appear on hover or keyboard focus.

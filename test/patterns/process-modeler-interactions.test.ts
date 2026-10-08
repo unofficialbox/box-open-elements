@@ -94,6 +94,18 @@ describe("Process Modeler prototype interactions", () => {
     root.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
     expect(requests.mock.calls[0][0].detail).toMatchObject({ type: "add", from: "a", fromSide: "east", kind: { kind: "call" } });
   });
+  it("names the narrow building-block drawer and focuses search when it opens", () => {
+    const { root } = fixture();
+    const drawer = root.querySelector<HTMLDialogElement>('[part=pane-drawer][data-pane=palette]')!;
+    drawer.showModal = vi.fn(() => { drawer.open = true; });
+    const title = drawer.querySelector<HTMLElement>('[part=pane-title]')!;
+    expect(title.textContent).toBe("Add to the process");
+    expect(drawer.getAttribute("aria-labelledby")).toBe(title.id);
+    root.querySelector<HTMLButtonElement>('[data-command=palette]')!.click();
+    expect(drawer.open).toBe(true);
+    expect(root.activeElement).toBe(drawer.querySelector('[part=search]'));
+    expect(drawer.querySelector('[part=pane-close]')?.getAttribute('aria-label')).toBe('Close building blocks');
+  });
   it("supports the design keyboard model and keeps chooser search focused", () => {
     const { builder, root, canvas } = fixture();
     builder.layout = { boxes: { a: { x: 0, y: 0 }, b: { x: 320, y: 0 }, c: { x: 320, y: 200 } } };
