@@ -15,6 +15,28 @@ are kept as written.
 
 ## Unreleased
 
+## 0.28.0 — 2026-10-08
+
+### Component and pattern enhancements
+
+- Add host-configurable Code Editor current-line, wrapping, embedded chrome and
+  fixed-height behavior; Text Area focus forwarding; context-specific Button
+  and password-reveal names; and a compact Progress Steps rail.
+- Improve Number Input clamping feedback, Text Field reveal target size, Form
+  Wizard focus and errors, Wizard Summary wrapping, and Tile Group metadata,
+  status and unavailable-choice descriptions.
+- Add selectable Resource Row, Verdict Banner and dry/live Mode Indicator;
+  show per-node live figures in Flow Builder. Resource Row now describes a
+  slotted status badge without a duplicate status attribute.
+- Add Dialog disabled/busy confirmation and Drawer footer-only dismissal,
+  with native and React examples. Preserve the Nav Sidebar toggle when
+  collapsed and avoid nested navigation landmarks in App Shell.
+- Ship React, Angular, Vue and Svelte adapters in lockstep at 0.28.0.
+
+Process Modeler reference-parity issues #321–331 remain open for Riptide-owned
+side-by-side acceptance and adoption; this release does not claim those are
+complete.
+
 ## 0.27.0 — 2026-10-06
 
 ### Component and adapter improvements

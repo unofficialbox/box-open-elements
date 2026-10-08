@@ -28,4 +28,5 @@ visual emphasis, not a second keyboard-focus model. At container widths below
 
 The `status` text attribute is a non-interactive descriptor. A slotted status
 badge is optional; if used, the component suppresses the duplicate plain-text
-status while retaining the descriptor on the selection button.
+status. The selection button describes either the `status` attribute or the
+slotted badge's `aria-label`, `label`, or text, so hosts need not duplicate it.

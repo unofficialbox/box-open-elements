@@ -40,6 +40,18 @@ describe("box-resource-row", () => {
     expect(row.shadowRoot!.querySelector('[part="meta"]')!.textContent).toContain("Enterprise 12345");
     expect(row.shadowRoot!.querySelector('[part="status"]')!.textContent).toBe("Ready");
   });
+  it("describes a slotted status without requiring a duplicate status attribute", () => {
+    const row = mount();
+    row.removeAttribute("status");
+    const badge = document.createElement("span");
+    badge.slot = "status";
+    badge.setAttribute("aria-label", "Ready for deployment");
+    row.append(badge);
+    row.shadowRoot!.querySelector<HTMLSlotElement>('slot[name="status"]')!
+      .dispatchEvent(new Event("slotchange"));
+    expect(row.shadowRoot!.querySelector("button")!.getAttribute("aria-description"))
+      .toContain("Ready for deployment");
+  });
   it("defines a narrow-width stacking rule", () => {
     expect(rowStyle(mount())).toContain("@container (max-width: 320px)");
   });
