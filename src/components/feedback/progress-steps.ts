@@ -16,11 +16,12 @@ const escapeHtml = (value: string): string =>
  * Explicit per-step status. Absent means the step derives complete / current /
  * upcoming from its position relative to `value` — the behaviour existing
  * hosts rely on. An explicit status wins over the positional derivation:
- * `complete` marks out-of-order completion, `blocked` and `disabled` make the
+ * `complete` marks out-of-order completion, `visited` marks a reached step
+ * without claiming it passed validation, `blocked` and `disabled` make the
  * step non-interactive, `failed` stays interactive because a failed step is
  * usually exactly where the user needs to go.
  */
-export type ProgressStepStatus = "complete" | "blocked" | "failed" | "disabled";
+export type ProgressStepStatus = "complete" | "visited" | "blocked" | "failed" | "disabled";
 
 export interface ProgressStepItem {
   description?: string;
@@ -46,7 +47,7 @@ export interface ResolvedProgressStep {
   interactive: boolean;
 }
 
-const STEP_STATUSES = new Set<ProgressStepStatus>(["complete", "blocked", "failed", "disabled"]);
+const STEP_STATUSES = new Set<ProgressStepStatus>(["complete", "visited", "blocked", "failed", "disabled"]);
 
 /** Attribute payloads are author input — validate every record. */
 export const isProgressStepRecord = (value: unknown): value is ProgressStepItem => {
@@ -96,6 +97,7 @@ export const resolveStepStates = (
 /** Every state in words — colour never carries the meaning alone. */
 export const STEP_STATE_LABEL: Record<ProgressStepState, string> = {
   complete: "Complete",
+  visited: "Visited",
   current: "Current step",
   upcoming: "Not started",
   blocked: "Blocked",
@@ -190,6 +192,12 @@ const progressStepsStyles = `
     border-color: transparent;
     background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 16%, var(--boe-token-surface-surface, #ffffff) 84%);
     color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26c281) 62%, var(--boe-token-text-text, #222222));
+  }
+
+  [part="step"][data-state="visited"] [part="marker"] {
+    border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 30%, transparent);
+    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 9%, var(--boe-token-surface-surface, #ffffff));
+    color: var(--boe-token-text-text, #222222);
   }
 
   [part="step"][data-state="current"] [part="marker"] {

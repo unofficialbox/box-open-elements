@@ -131,6 +131,51 @@ describe("box-form-wizard", () => {
     expect((element.shadowRoot?.querySelector('[part="error"]') as HTMLElement).textContent).toBe("Blocked.");
   });
 
+  it("preserves completed and visited rail states when navigating backward", async () => {
+    const element = await mountWizard();
+    element.goTo("review");
+    element.goTo("details");
+    await flush();
+
+    const rail = element.shadowRoot?.querySelector('[part="rail"]') as HTMLElement;
+    const stateOf = (stepId: string): string | undefined =>
+      rail.shadowRoot?.querySelector<HTMLElement>(`[data-value="${stepId}"]`)?.dataset.state;
+    const statusOf = (stepId: string): string | undefined =>
+      rail.shadowRoot?.querySelector<HTMLElement>(`[data-value="${stepId}"] [part="step-status"]`)?.textContent ?? undefined;
+
+    expect(stateOf("details")).toBe("current");
+    expect(stateOf("terms")).toBe("complete");
+    expect(statusOf("terms")).toBe("Complete");
+    expect(stateOf("review")).toBe("visited");
+    expect(statusOf("review")).toBe("Visited");
+
+    element.reset();
+    await flush();
+    expect(stateOf("terms")).toBe("upcoming");
+    expect(stateOf("review")).toBe("upcoming");
+  });
+
+  it("treats a visited optional step and a submitted final step as complete", async () => {
+    const optional = await mountWizard(el => {
+      el.steps = [
+        { id: "details", label: "Details" },
+        { id: "terms", label: "Terms", optional: true },
+        { id: "review", label: "Review" },
+      ];
+    });
+    optional.goTo("terms");
+    optional.goTo("details");
+    const optionalRail = optional.shadowRoot?.querySelector('[part="rail"]') as HTMLElement;
+    expect(optionalRail.shadowRoot?.querySelector('[data-value="terms"]')?.getAttribute("data-state")).toBe("complete");
+
+    const submitted = await mountWizard();
+    submitted.goTo("review");
+    submitted.submit();
+    submitted.goTo("details");
+    const submittedRail = submitted.shadowRoot?.querySelector('[part="rail"]') as HTMLElement;
+    expect(submittedRail.shadowRoot?.querySelector('[data-value="review"]')?.getAttribute("data-state")).toBe("complete");
+  });
+
   it("renders the Save draft button only when draft-label is set and emits draft-saved", async () => {
     const element = await mountWizard(el => {
       el.draftLabel = "Save draft";
