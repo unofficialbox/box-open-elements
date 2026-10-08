@@ -16,6 +16,11 @@ export interface ValidationOptions {
   showMessage?: boolean;
 }
 
+export interface FlowNodeFigure {
+  text: string;
+  tone?: "neutral" | "warning" | "error";
+}
+
 /**
  * Host-owned document editing with accessible navigation and responsive inspection.
  * `N` is the host's node type; it defaults to {@link FlowNode}, which the default
@@ -24,6 +29,7 @@ export interface ValidationOptions {
 export class FlowBuilder<N extends FlowNodeBase = FlowNode> extends BaseElement {
   static readonly tagName = "box-flow-builder";
   private nodesValue: N[] = [];
+  private figuresValue = new Map<N, FlowNodeFigure>();
   private modelValue = defaultFlowModel as unknown as FlowModel<N>;
   private catalogValue: readonly FlowKind<N>[] = [];
   private selectedValue: N | null = null;
@@ -39,6 +45,32 @@ export class FlowBuilder<N extends FlowNodeBase = FlowNode> extends BaseElement 
   get narrow(): boolean { return this.narrowValue; }
   /** Focus a rendered card without changing selection or opening the editor. */
   focusNode(node: N): void { this.spine?.focusNode(node); }
+  /** Update one live card figure without rebuilding the flow or moving focus. */
+  setNodeFigure(target: N | string | NodePath, figure: FlowNodeFigure | null): void {
+    const node = typeof target === "string" ? this.findNodeById(target)
+      : Array.isArray(target) ? nodeAtPath({ body: this.nodes }, target) as N | null
+      : target as N;
+    if (!node) return;
+    if (figure) this.figuresValue.set(node, figure);
+    else this.figuresValue.delete(node);
+    this.spine?.setNodeFigure(node, figure);
+  }
+  private findNodeById(id: string): N | null {
+    const seen = new Set<N>();
+    const visit = (nodes: readonly N[]): N | null => {
+      for (const node of nodes) {
+        if (seen.has(node)) continue;
+        seen.add(node);
+        if ((node as N & { id?: string }).id === id) return node;
+        for (const child of this.model.children(node)) {
+          const found = visit(child.list as N[]);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+    return visit(this.nodes);
+  }
   private insertion?: FlowInsertDetail;
   private invoker?: InsertPoint;
   private spine!: FlowSpine;
@@ -117,6 +149,7 @@ export class FlowBuilder<N extends FlowNodeBase = FlowNode> extends BaseElement 
       [hidden]{display:none!important} [part=inspector-heading]{font:inherit;font-weight:650;margin:0 0 12px}
       </style><div part="error" hidden></div><div part="layout"><box-flow-spine exportparts="${FLOW_SPINE_PARTS.join(", ")}"></box-flow-spine><div part="inspector" role="region" aria-label="Add a step"><box-kind-picker exportparts="${KIND_PICKER_PARTS.join(", ")}"></box-kind-picker><div part="editor"></div></div></div><div part="picker-popup" hidden><box-kind-picker exportparts="${KIND_PICKER_PARTS.join(", ")}"></box-kind-picker></div><box-drawer position="bottom" size="large"></box-drawer>`;
     this.spine = this.shadowRoot!.querySelector("box-flow-spine")!;
+    this.spine.figures = this.figuresValue as Map<FlowNodeBase, FlowNodeFigure>;
     this.aside = this.shadowRoot!.querySelector("[part=inspector]")!;
     this.palette = this.aside.querySelector("box-kind-picker")!;
     this.inspector = this.aside.querySelector("[part=editor]")!;

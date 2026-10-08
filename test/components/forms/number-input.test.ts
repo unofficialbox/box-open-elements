@@ -109,6 +109,8 @@ describe("NumberInput", () => {
     input?.dispatchEvent(new Event("input", { bubbles: true }));
 
     expect(element.value).toBe(5);
+    expect(input?.value).toBe("5");
+    expect(element.shadowRoot?.querySelector('[part="clamp-status"]')?.textContent).toBe("Changed to 5, the most allowed");
     expect(getMirroredFormValue(element.internals)).toBe("5");
   });
 });

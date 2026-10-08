@@ -33,6 +33,17 @@ describe("Button", () => {
     expect(btn.dataset.size).toBe("small");
   });
 
+  it("uses a distinct spoken name without changing visible text", () => {
+    const el = create();
+    el.accessibleLabel = "View the October run";
+    expect(innerButton(el).getAttribute("aria-label")).toBe("View the October run");
+    expect(el.shadowRoot?.querySelector('[part="label"]')?.textContent).toBe("Save");
+    el.accessibleLabel = "";
+    expect(innerButton(el).hasAttribute("aria-label")).toBe(false);
+    el.setAttribute("aria-label", "Save this report");
+    expect(innerButton(el).getAttribute("aria-label")).toBe("Save this report");
+  });
+
   it("derives the danger fill from theme colors and permits a contrast-safe override", () => {
     const styles = create().shadowRoot?.querySelector("style")?.textContent ?? "";
     expect(styles).toContain("--boe-button-danger-background");

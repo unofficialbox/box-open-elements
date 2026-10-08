@@ -118,6 +118,7 @@ export * from "./components/actions/toolbar.js";
 export * from "./components/collections/card.js";
 export * from "./components/collections/carousel.js";
 export * from "./components/collections/datalist-item.js";
+export * from "./components/collections/resource-row.js";
 export * from "./components/collections/draggable-list.js";
 export * from "./components/collections/grid-view.js";
 export * from "./components/collections/pagination.js";
@@ -137,6 +138,7 @@ export * from "./components/feedback/empty-state.js";
 export * from "./components/feedback/error-mask.js";
 export * from "./components/feedback/help-text.js";
 export * from "./components/feedback/indicator.js";
+export * from "./components/feedback/mode-indicator.js";
 export * from "./components/feedback/nudge.js";
 export * from "./components/feedback/progress-bar.js";
 export * from "./components/feedback/progress-ring.js";
@@ -145,6 +147,7 @@ export * from "./components/feedback/skeleton.js";
 export * from "./components/feedback/spinner.js";
 export * from "./components/feedback/path.js";
 export * from "./components/feedback/toast.js";
+export * from "./components/feedback/verdict-banner.js";
 
 // Components: files
 export * from "./components/files/drop-zone.js";

@@ -58,6 +58,9 @@ See [agent UI contracts](../patterns/agent-ui.md) for data and events.
 - `card` — **built**
 - `carousel` — **built**
 - `datalist-item` — **built**
+- `resource-row` — **built** (independent selection and trailing actions; use a list, not a listbox)
+
+See [resource row](./resource-row.md) for the selection/action contract.
 - `draggable-list` — **built**
 - `grid-view` — **built**
 - `items` — *explorer-bound implementation lives at `patterns/content-explorer/adapters/items` (`box-explorer-items`); a generic version remains future work*
@@ -75,6 +78,10 @@ See [agent UI contracts](../patterns/agent-ui.md) for data and events.
 - `error-mask` — **built**
 - `help-text` — **built**
 - `indicator` — **built** (distinct in shape as well as colour, for dense status columns)
+- `mode-indicator` — **built** (dry/live run destination with optional activation)
+- `verdict-banner` — **built** (finished outcome, reasons and one next action)
+
+See [run outcome surfaces](./run-outcome.md) for verdict and mode usage.
 - `nudge` — **built**
 - `path` — **built** (renamed from `stage-path` in 0.11.0)
 - `progress-bar` — **built**
@@ -153,6 +160,8 @@ the exact value in a `<time datetime>` beside the human-readable text.
 ### Overlays
 
 - `dialog` — **built**
+
+See [dialog confirmation states](./dialog.md) for disabled and busy actions.
 - `drawer` — **built**
 - `popover` — **built**
 - `tooltip` — **built**

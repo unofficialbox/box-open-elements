@@ -12,6 +12,7 @@ export type DrawerProps = WebComponentProps & {
   position?: string;
   size?: string;
   busy?: boolean;
+  hideCloseButton?: boolean;
   onOpenChanged?: CustomEventHandler<DrawerRef, { open: boolean }>;
   onDismiss?: CustomEventHandler<DrawerRef, { source: "close-button" | "backdrop" | "escape" }>;
 };
@@ -20,7 +21,7 @@ export type DrawerProps = WebComponentProps & {
 export const Drawer = createWebComponent<DrawerRef, DrawerProps>({
   tagName: DrawerRef.tagName,
   displayName: "Drawer",
-  propertyNames: ["heading","description","open","position","size","busy"],
+  propertyNames: ["heading","description","open","position","size","busy","hideCloseButton"],
   events: [{ propName: "onOpenChanged", eventName: "open-changed" }, { propName: "onDismiss", eventName: "dismiss" }],
   sync: (element, props) => {
     if (props.heading !== undefined) element.heading = props.heading;
@@ -29,5 +30,6 @@ export const Drawer = createWebComponent<DrawerRef, DrawerProps>({
     if (props.position !== undefined) element.position = props.position;
     if (props.size !== undefined) element.size = props.size;
     if (props.busy !== undefined) element.busy = props.busy;
+    if (props.hideCloseButton !== undefined) element.hideCloseButton = props.hideCloseButton;
   },
 });

@@ -267,6 +267,18 @@ describe("TextField autocomplete + reveal (dispatch intake round 3)", () => {
     expect(input.type).toBe("password");
   });
 
+  it("names the reveal action for the field and meets the 24px target", () => {
+    const element = create({ type: "password", reveal: "", label: "Client secret" });
+    const reveal = revealOf(element);
+    expect(reveal.getAttribute("aria-label")).toBe("Show Client secret");
+    reveal.click();
+    expect(reveal.getAttribute("aria-label")).toBe("Hide Client secret");
+    element.revealLabel = "Box app secret";
+    expect(reveal.getAttribute("aria-label")).toBe("Hide Box app secret");
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain("min-block-size: 24px");
+  });
+
   it("re-hides a revealed password when the type changes", () => {
     const element = create({ type: "password", reveal: "" });
     revealOf(element).click();

@@ -97,6 +97,7 @@ export class NumberInput extends FormAssociatedElement {
   private labelEl!: HTMLElement;
   private errorEl!: HTMLElement;
   private descriptionEl!: HTMLElement;
+  private clampStatusEl!: HTMLElement;
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -211,6 +212,13 @@ export class NumberInput extends FormAssociatedElement {
 
   private syncValue(nextValue: number): void {
     const normalizedValue = this.clamp(nextValue);
+    if (normalizedValue !== nextValue) {
+      this.inputEl.value = String(normalizedValue);
+      const boundary = nextValue > normalizedValue ? "most" : "least";
+      this.clampStatusEl.textContent = `Changed to ${normalizedValue}, the ${boundary} allowed`;
+    } else {
+      this.clampStatusEl.textContent = "";
+    }
     this.valueInternal = normalizedValue;
     this.setAttribute("value", String(normalizedValue));
     this.syncFormAssociation();
@@ -234,6 +242,7 @@ export class NumberInput extends FormAssociatedElement {
         <span part="label"></span>
         ${formDescriptionMarkup()}
         <input type="number" part="input" />
+        <span part="clamp-status" role="status" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)"></span>
         ${formErrorMessageMarkup()}
       </label>
     `;
@@ -241,6 +250,7 @@ export class NumberInput extends FormAssociatedElement {
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
     this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
     this.descriptionEl = this.shadowRoot.querySelector('[part="description"]')!;
+    this.clampStatusEl = this.shadowRoot.querySelector('[part="clamp-status"]')!;
   }
 
   protected setupListeners(): void {

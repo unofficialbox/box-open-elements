@@ -47,7 +47,7 @@ export interface CodeLine { number: number; from: number; to: number; }
 export class CodeEditor extends BaseElement {
   static readonly tagName = "box-code-editor";
   static get observedAttributes(): string[] {
-    return ["language", "readonly", "label", "value", "wrap"];
+    return ["current-line-style", "fill-height", "hide-help", "hide-problems", "language", "readonly", "label", "value", "wrap"];
   }
   private valueInternal = "";
   private problemsInternal: readonly CodeProblem[] = [];
@@ -57,6 +57,7 @@ export class CodeEditor extends BaseElement {
   private readonlyConfig = new Compartment();
   private completionsConfig = new Compartment();
   private wrapConfig = new Compartment();
+  private wrapIndentConfig = new Compartment();
   private highlightsConfig = new Compartment();
   private highlightsInternal: readonly CodeHighlight[] = [];
   private source?: CodeCompletionSource;
@@ -88,10 +89,43 @@ export class CodeEditor extends BaseElement {
   }
   get wrap(): boolean { return this.hasAttribute("wrap"); }
   set wrap(value: boolean) { this.toggleAttribute("wrap", value); }
+  get currentLineStyle(): "fill" | "border" | "none" {
+    const value = this.getAttribute("current-line-style");
+    return value === "border" || value === "none" ? value : "fill";
+  }
+  set currentLineStyle(value: "fill" | "border" | "none") { this.setAttribute("current-line-style", value); }
+  get hideHelp(): boolean { return this.hasAttribute("hide-help"); }
+  set hideHelp(value: boolean) { this.toggleAttribute("hide-help", value); }
+  get hideProblems(): boolean { return this.hasAttribute("hide-problems"); }
+  set hideProblems(value: boolean) { this.toggleAttribute("hide-problems", value); }
+  get fillHeight(): boolean { return this.hasAttribute("fill-height"); }
+  set fillHeight(value: boolean) { this.toggleAttribute("fill-height", value); }
   get completionSource(): CodeCompletionSource | undefined { return this.source; }
   set completionSource(value: CodeCompletionSource | undefined) { this.source = value; if (this.isRendered) this.update(); }
   get highlights(): readonly CodeHighlight[] { return this.highlightsInternal.map(range => ({ ...range })); }
   set highlights(value: readonly CodeHighlight[]) { this.highlightsInternal = value.map(range => ({ ...range })); if (this.isRendered) this.update(); }
+  private wrapIndentExtension() {
+    return EditorView.decorations.of(view => {
+      if (!this.wrap) return Decoration.none;
+      const ranges = [];
+      const seen = new Set<number>();
+      for (const visible of view.visibleRanges) {
+        const first = view.state.doc.lineAt(visible.from).number;
+        const last = view.state.doc.lineAt(visible.to).number;
+        for (let number = first; number <= last; number++) {
+          const line = view.state.doc.line(number);
+          if (seen.has(line.from)) continue;
+          seen.add(line.from);
+          const whitespace = line.text.match(/^[\t ]*/)?.[0] ?? "";
+          const columns = Math.min(24, whitespace.replaceAll("\t", "    ").length);
+          if (columns) ranges.push(Decoration.line({ attributes: {
+            style: `padding-left:${columns}ch;text-indent:-${columns}ch`,
+          } }).range(line.from));
+        }
+      }
+      return Decoration.set(ranges, true);
+    });
+  }
   private highlightExtension() {
     return EditorView.decorations.of(view => {
       const doc = view.state.doc;
@@ -212,17 +246,22 @@ export class CodeEditor extends BaseElement {
   }
   protected renderTemplate(): void {
     this.shadowRoot!.innerHTML = `<style>
-      :host{display:block;min-width:0;color:var(--boe-token-text-text,#222);font:inherit}
+      :host{display:flex;flex-direction:column;min-width:0;min-height:0;color:var(--boe-token-text-text,#222);font:inherit}
       :host([hidden]){display:none!important}
-      [part=editor]{border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:8px;overflow:hidden}
+      [part=editor]{border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:8px;overflow:hidden;min-height:0;flex:1 1 auto}
       .cm-editor{background:var(--boe-code-background,var(--boe-token-surface-surface,#fff));color:var(--boe-code-foreground,var(--boe-token-text-text,#222))}
       [part=editor]:focus-within{box-shadow:0 0 0 3px var(--boe-token-surface-surface-brand,#0061d5)}
       .cm-editor.cm-focused{outline:none}
       .cm-scroller{max-height:var(--boe-code-editor-height,420px);min-height:160px;overflow:auto;font-family:var(--boe-code-font-family,monospace);font-size:var(--boe-code-font-size,14px);line-height:var(--boe-code-line-height,1.6)}
+      :host([fill-height]){height:100%}
+      :host([fill-height]) [part=editor],:host([fill-height]) .cm-editor,:host([fill-height]) .cm-scroller{height:100%;max-height:none;min-height:0}
       .cm-gutters,.cm-panels,.cm-tooltip{background:var(--boe-token-surface-surface-secondary,#fbfbfb)!important;color:var(--boe-code-foreground,var(--boe-token-text-text,#222))!important;border-color:var(--boe-token-stroke-stroke,#ddd)!important}
       .cm-gutters{color:var(--boe-code-gutter,var(--boe-token-text-text,#222))!important;border-right:var(--boe-code-gutter-border,1px solid var(--boe-token-stroke-stroke,#ddd))!important}
       .cm-cursor{border-left-color:var(--boe-code-caret,var(--boe-token-text-text,#222))}
       .cm-activeLine,.cm-activeLineGutter{background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 12%,transparent)!important}
+      :host([current-line-style=border]) .cm-activeLine{background:transparent!important;box-shadow:inset 0 1px var(--boe-code-current-line-border,var(--boe-token-stroke-stroke,#ddd)),inset 0 -1px var(--boe-code-current-line-border,var(--boe-token-stroke-stroke,#ddd))}
+      :host([current-line-style=none]) .cm-activeLine{background:transparent!important}
+      :host([current-line-style=border]) .cm-activeLineGutter,:host([current-line-style=none]) .cm-activeLineGutter{background:transparent!important}
       .cm-activeLineGutter{color:var(--boe-code-gutter-active,var(--boe-code-gutter,var(--boe-token-text-text,#222)))!important}
       .cm-selectionBackground,.cm-content ::selection{background:var(--boe-code-selection,color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 12%,transparent))!important}
       .boe-code-highlight{background:var(--boe-code-highlight-background,color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 10%,transparent))!important;box-shadow:inset 3px 0 var(--boe-token-surface-surface-brand,#0061d5)}
@@ -239,6 +278,7 @@ export class CodeEditor extends BaseElement {
       .cm-lint-marker-warning{background-image:radial-gradient(circle,var(--boe-token-text-status-text-warning,#9a6500) 45%,transparent 50%)!important}
       .cm-lint-marker-info{background-image:radial-gradient(circle,var(--boe-token-surface-surface-brand,#0061d5) 45%,transparent 50%)!important}
       [part=help],[part=problems]{font-size:13px;color:var(--boe-token-text-text-secondary,#666);margin:8px 0}
+      [part=help][hidden],[part=toolbar][hidden]{display:none}
       [part=toolbar]{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
       button{font:inherit;color:inherit;background:var(--boe-token-surface-surface,#fff);border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:8px;padding:8px;min-height:36px}
       button:focus-visible{outline:3px solid var(--boe-token-surface-surface-brand,#0061d5);outline-offset:2px}
@@ -344,6 +384,7 @@ export class CodeEditor extends BaseElement {
             ]),
             this.completionsConfig.of(this.completionExtension()),
             this.wrapConfig.of(this.wrap ? EditorView.lineWrapping : []),
+            this.wrapIndentConfig.of(this.wrapIndentExtension()),
             this.highlightsConfig.of(this.highlightExtension()),
             syntaxHighlighting(
               HighlightStyle.define([
@@ -436,6 +477,7 @@ export class CodeEditor extends BaseElement {
             ]),
             this.completionsConfig.reconfigure(this.completionExtension()),
             this.wrapConfig.reconfigure(this.wrap ? EditorView.lineWrapping : []),
+            this.wrapIndentConfig.reconfigure(this.wrapIndentExtension()),
             this.highlightsConfig.reconfigure(this.highlightExtension()),
           ],
         });
@@ -445,7 +487,10 @@ export class CodeEditor extends BaseElement {
     }
     this.view.contentDOM.setAttribute("aria-label", this.label);
     this.view.contentDOM.setAttribute("tabindex", "0");
-    this.view.contentDOM.setAttribute("aria-describedby", "editor-help");
+    if (this.hideHelp) this.view.contentDOM.removeAttribute("aria-describedby");
+    else this.view.contentDOM.setAttribute("aria-describedby", "editor-help");
+    (this.shadowRoot!.querySelector('[part=help]') as HTMLElement).hidden = this.hideHelp;
+    (this.shadowRoot!.querySelector('[part=toolbar]') as HTMLElement).hidden = this.hideProblems;
     this.syncProblems();
   }
   private flushChange(): void {

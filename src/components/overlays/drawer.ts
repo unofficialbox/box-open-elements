@@ -157,6 +157,8 @@ const drawerStyles = `
     box-shadow: none;
   }
 
+  [part="close"][hidden] { display: none; }
+
   ${boeNeutralInteractiveStyles('[part="close"]')}
 
   [part="body"] {
@@ -216,7 +218,7 @@ export interface DrawerDismissDetail {
 export class Drawer extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["busy", "description", "heading", "open", "position", "size"];
+    return ["busy", "description", "heading", "hide-close-button", "open", "position", "size"];
   }
 
   private openValue = false;
@@ -282,6 +284,10 @@ export class Drawer extends BaseElement {
   set busy(value: boolean) {
     this.toggleAttribute("busy", Boolean(value));
   }
+
+  /** Hide only the built-in header control; Escape and backdrop still request dismissal. */
+  get hideCloseButton(): boolean { return this.hasAttribute("hide-close-button"); }
+  set hideCloseButton(value: boolean) { this.toggleAttribute("hide-close-button", Boolean(value)); }
 
   get heading(): string {
     return this.getAttribute("heading") ?? "Drawer";
@@ -433,7 +439,7 @@ export class Drawer extends BaseElement {
       this.hostEl.innerHTML = `
         <style>${drawerStyles}</style>
         <dialog part="backdrop" aria-labelledby="drawer-title">
-          <div part="drawer">
+          <div part="drawer" tabindex="-1">
             <header part="header">
               <div part="meta">
                 <h2 id="drawer-title"></h2>
@@ -475,6 +481,8 @@ export class Drawer extends BaseElement {
     this.drawerEl = this.hostEl.querySelector('[part="drawer"]');
     this.titleEl = this.hostEl.querySelector("#drawer-title");
     this.descriptionEl = this.hostEl.querySelector('[part="description"]');
+    const closeButton = this.hostEl.querySelector('[part="close"]') as HTMLButtonElement | null;
+    if (closeButton) closeButton.hidden = this.hideCloseButton;
 
     const isLeft = this.position === "left";
     const isBottom = this.position === "bottom";
@@ -511,7 +519,7 @@ export class Drawer extends BaseElement {
 
     if (justOpened) {
       queueMicrotask(() => {
-        (this.hostEl.querySelector('[part="close"]') as HTMLButtonElement | null)?.focus();
+        (this.hideCloseButton ? this.drawerEl : closeButton)?.focus();
       });
     }
   }

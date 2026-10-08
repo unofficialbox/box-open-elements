@@ -194,7 +194,7 @@ export class Button extends BaseElement {
   static formAssociated = true;
 
   static get observedAttributes(): string[] {
-    return ["disabled", "label", "size", "tone", "is-loading", "type"];
+    return ["accessible-label", "aria-label", "disabled", "label", "size", "tone", "is-loading", "type"];
   }
 
   private buttonEl!: HTMLButtonElement;
@@ -247,6 +247,16 @@ export class Button extends BaseElement {
 
   set label(value: string) {
     this.setAttribute("label", value);
+  }
+
+  /** Optional spoken name for repeated actions whose visible label is brief. */
+  get accessibleLabel(): string {
+    return this.getAttribute("accessible-label") ?? "";
+  }
+
+  set accessibleLabel(value: string) {
+    if (value) this.setAttribute("accessible-label", value);
+    else this.removeAttribute("accessible-label");
   }
 
   get size(): string {
@@ -318,6 +328,9 @@ export class Button extends BaseElement {
     this.buttonEl.dataset.tone = this.tone;
     this.buttonEl.dataset.size = this.size;
     this.labelEl.textContent = this.label;
+    const spokenLabel = this.accessibleLabel || this.getAttribute("aria-label");
+    if (spokenLabel) this.buttonEl.setAttribute("aria-label", spokenLabel);
+    else this.buttonEl.removeAttribute("aria-label");
 
     const busy = this.isLoading;
     this.spinnerEl.hidden = !busy;

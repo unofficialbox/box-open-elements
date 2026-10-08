@@ -105,6 +105,22 @@ describe("box-tile-group", () => {
     expect(element.shadowRoot?.querySelector('[part="tile-label"]')?.textContent).toContain("<img");
   });
 
+  it("describes metadata, status and unavailability without changing the option name", () => {
+    const element = mount(el => {
+      el.options = [{ id: "clm", label: "Contract workflows", description: "Box and Salesforce",
+        meta: "Legal operations", status: { label: "Coming soon", tone: "warning" },
+        disabled: true, disabledReason: "Ask an administrator" }];
+    });
+    const control = controls(element)[0]!;
+    expect(control.getAttribute("aria-label")).toBe("Contract workflows");
+    expect(control.disabled).toBe(true);
+    const description = element.shadowRoot?.getElementById(control.getAttribute("aria-describedby")!);
+    expect(description?.textContent).toContain("Legal operations");
+    expect(description?.textContent).toContain("Coming soon");
+    expect(description?.textContent).toContain("Ask an administrator");
+    expect(element.shadowRoot?.querySelector('[part="tile-status"]')?.getAttribute("data-tone")).toBe("warning");
+  });
+
   it("ignores a malformed options payload rather than rendering junk", () => {
     const element = mount(el => el.setAttribute("options", "not json"));
     expect(tiles(element)).toHaveLength(0);

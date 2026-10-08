@@ -19,6 +19,7 @@ const escapeHtml = (value: string): string =>
 const elementStyles = `
         :host {
           display: block;
+          container-type: inline-size;
         }
 
         /* The host's own display would otherwise beat the UA rule for [hidden],
@@ -95,7 +96,7 @@ const elementStyles = `
           margin: 0;
           padding: 0 1rem 0.8rem;
           display: grid;
-          grid-template-columns: minmax(8rem, 14rem) 1fr;
+          grid-template-columns: minmax(8rem, 14rem) minmax(0, 1fr);
           gap: 0.3rem 1rem;
         }
 
@@ -107,9 +108,17 @@ const elementStyles = `
 
         [part="row-value"] {
           margin: 0;
+          min-inline-size: 0;
+          max-inline-size: 100%;
+          overflow-x: auto;
           font-size: 0.85rem;
           color: var(--boe-token-text-text, #1f1e1b);
-          overflow-wrap: anywhere;
+          overflow-wrap: normal;
+          word-break: normal;
+        }
+
+        @container (max-width: 32rem) {
+          [part="rows"] { grid-template-columns: minmax(0, 1fr); }
         }
 
         [part="row-value"][data-empty="true"] {

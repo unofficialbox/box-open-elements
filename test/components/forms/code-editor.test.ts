@@ -26,6 +26,24 @@ afterEach(() => {
   vi.useRealTimers();
 });
 describe("code editor", () => {
+  it("supports border-only active lines, hanging wraps and embedded chrome", () => {
+    const editor = new CodeEditor();
+    editor.value = "    long line that should wrap after the first visual segment";
+    editor.wrap = true;
+    editor.currentLineStyle = "border";
+    editor.hideHelp = true;
+    editor.hideProblems = true;
+    editor.fillHeight = true;
+    document.body.append(editor);
+    const shadow = editor.shadowRoot!;
+    expect(shadow.querySelector('[part="help"]')!.hasAttribute("hidden")).toBe(true);
+    expect(shadow.querySelector('[part="toolbar"]')!.hasAttribute("hidden")).toBe(true);
+    expect(shadow.querySelector(".cm-content")!.hasAttribute("aria-describedby")).toBe(false);
+    const styles = [...shadow.querySelectorAll("style")].map(style => style.textContent).join("\n");
+    expect(styles).toContain(":host([current-line-style=border]) .cm-activeLine");
+    expect(styles).toContain(":host([fill-height])");
+    expect(editor.currentLineStyle).toBe("border");
+  });
   it("maps UTF-16 offsets and one-based line starts before and after mount", () => {
     const editor = new CodeEditor();
     editor.value = "first\nsecond\n";

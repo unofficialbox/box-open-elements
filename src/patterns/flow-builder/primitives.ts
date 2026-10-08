@@ -11,7 +11,7 @@ const styles = `
 function emit(host: HTMLElement, name: string, detail: unknown) { host.dispatchEvent(new CustomEvent(name, { detail, bubbles: true, composed: true })); }
 
 /** Parts a card exposes; the spine and builder forward them unchanged. */
-export const FLOW_CARD_PARTS = ["card", "icon", "title", "kind", "description", "status", "error"] as const;
+export const FLOW_CARD_PARTS = ["card", "icon", "title", "kind", "description", "status", "figure", "error"] as const;
 /** Parts the spine exposes (its own plus forwarded card and insert-point parts). */
 export const FLOW_SPINE_PARTS = ["spine", "endpoint", "body", "branches", "branch", "branch-header", "branch-label", "branch-remove", "branch-add", "insert", ...FLOW_CARD_PARTS] as const;
 /** Parts a kind picker exposes. */
@@ -24,15 +24,19 @@ export class FlowCard extends BaseElement {
   model: FlowModel<FlowNodeBase> = defaultFlowModel;
   selected = false;
   invalid = false;
+  figure: { text: string; tone?: "neutral" | "warning" | "error" } | null = null;
   protected renderTemplate(): void {
     this.shadowRoot!.innerHTML = `<style>${styles}
       button { width:100%; text-align:start; display:grid; gap:6px; padding:16px; border:1px solid var(--boe-token-stroke-stroke,#ddd); border-radius:var(--boe-profile-radius-med,8px); background:var(--boe-token-surface-surface,#fff); overflow-wrap:anywhere; }
       button[aria-pressed=true] { border-color:var(--boe-token-surface-surface-brand,#0061d5); background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 5%,var(--boe-token-surface-surface,#fff)); }
       button[data-invalid=true] { border-color:var(--boe-token-text-status-text-error,#b92340); }
-      button.has-icon{grid-template-columns:20px minmax(0,1fr);column-gap:12px} button.has-icon [part=icon]{grid-column:1;grid-row:1/span 4} button.has-icon [part=title],button.has-icon [part=kind],button.has-icon [part=description],button.has-icon [part=status],button.has-icon [part=error]{grid-column:2}
+      button.has-icon{grid-template-columns:20px minmax(0,1fr);column-gap:12px} button.has-icon [part=icon]{grid-column:1;grid-row:1/span 5} button.has-icon [part=title],button.has-icon [part=kind],button.has-icon [part=description],button.has-icon [part=status],button.has-icon [part=figure],button.has-icon [part=error]{grid-column:2}
       [part=icon]{color:var(--boe-token-surface-surface-brand,#0061d5);width:20px;height:20px} [part=icon][data-tone=neutral]{color:var(--boe-token-text-text-secondary,#666)} [part=icon] svg{display:block;width:20px;height:20px} [part=title] { font-weight:650; } [part=kind],[part=description] { color:var(--boe-token-text-text-secondary,#666); } [part=error] { color:var(--boe-token-text-status-text-error,#b92340); }
+      [part=figure]{font-size:.78rem;font-variant-numeric:tabular-nums;color:var(--boe-token-text-text-secondary,#666);min-width:0;overflow-wrap:anywhere}
+      [part=figure][data-tone=warning]{color:var(--boe-token-text-status-text-warning,#805600)}
+      [part=figure][data-tone=error]{color:var(--boe-token-text-status-text-error,#b92340)}
       [hidden] { display:none!important; }
-      </style><button type="button" part="card"><span part="icon" aria-hidden="true"></span><span part="title"></span><span part="kind"></span><span part="description"></span><span part="status"></span><span part="error">Needs attention</span></button>`;
+      </style><button type="button" part="card"><span part="icon" aria-hidden="true"></span><span part="title"></span><span part="kind"></span><span part="description"></span><span part="status"></span><span part="figure" hidden></span><span part="error">Needs attention</span></button>`;
   }
   protected setupListeners(): void { this.shadowRoot!.querySelector("button")!.addEventListener("click", () => emit(this, "node-select", { node: this.node })); }
   refresh(): void { if (this.isRendered) this.update(); }
@@ -43,7 +47,7 @@ export class FlowCard extends BaseElement {
     const button = this.shadowRoot!.querySelector("button")!;
     button.setAttribute("aria-pressed", String(this.selected));
     button.classList.toggle("has-icon", Boolean(kind?.icon));
-    button.setAttribute("aria-label", cardLabel(this.node, this.catalog, this.invalid, this.model));
+    button.setAttribute("aria-label", [cardLabel(this.node, this.catalog, this.invalid, this.model), this.figure?.text].filter(Boolean).join(". "));
     button.dataset.invalid = String(this.invalid);
     const iconEl = this.shadowRoot!.querySelector<HTMLElement>("[part=icon]")!;
     iconEl.replaceChildren(kind?.icon?.() ?? ""); iconEl.hidden = !kind?.icon;
@@ -53,6 +57,10 @@ export class FlowCard extends BaseElement {
       element.textContent = text; element.hidden = !text;
     }
     this.shadowRoot!.querySelector<HTMLElement>("[part=error]")!.hidden = !this.invalid;
+    const figureEl = this.shadowRoot!.querySelector<HTMLElement>("[part=figure]")!;
+    figureEl.textContent = this.figure?.text ?? "";
+    figureEl.hidden = !this.figure?.text;
+    figureEl.dataset.tone = this.figure?.tone ?? "neutral";
   }
 }
 
@@ -125,10 +133,17 @@ export class FlowSpine extends BaseElement {
   endLabel = "Flow ends";
   headingLevel = 3;
   private cards = new Map<FlowNodeBase, FlowCard>();
+  figures = new Map<FlowNodeBase, { text: string; tone?: "neutral" | "warning" | "error" }>();
   protected renderTemplate(): void { this.shadowRoot!.innerHTML = `<style>${styles} [part=spine]{display:grid;gap:0;min-width:0} [part=branches]{display:flex;gap:16px;overflow-x:auto;max-width:100%;padding:8px} [part=branch]{flex:1 0 240px;min-width:0} [part=body]{margin:0 0 0 16px;border-inline-start:2px solid var(--boe-token-stroke-stroke,#ddd);padding:8px 12px} [part=endpoint]{text-align:center;font-weight:600;padding:12px} [part=branch-header]{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:1em 0} [part=branch-label]{font:inherit;font-weight:600;margin:0} [part=branch-remove],[part=branch-add]{border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:16px;background:var(--boe-token-surface-surface,#fff);padding:4px 10px} [part=branch-add]{justify-self:center;margin:4px 0}</style><div part="spine"></div>`; }
   refresh(): void { if (this.isRendered) this.update(); }
   /** Re-render one card after its fields change, without rebuilding the spine. */
   refreshNode(node: FlowNodeBase): void { this.cards.get(node)?.refresh(); }
+  setNodeFigure(node: FlowNodeBase, figure: { text: string; tone?: "neutral" | "warning" | "error" } | null): void {
+    if (figure) this.figures.set(node, figure);
+    else this.figures.delete(node);
+    const card = this.cards.get(node);
+    if (card) { card.figure = figure; card.refresh(); }
+  }
   focusNode(node: FlowNodeBase): void { this.cards.get(node)?.focus(); }
   select(node: FlowNodeBase | null, invalid = this.invalid): void { this.selected = node; this.invalid = invalid; for (const [item, card] of this.cards) { card.selected = item === node; card.invalid = item === invalid; card.refresh(); } }
   protected update(): void {
@@ -147,7 +162,7 @@ export class FlowSpine extends BaseElement {
         seen.add(node);
         const card = this.cards.get(node) ?? document.createElement(FlowCard.tagName) as FlowCard;
         card.setAttribute("exportparts", FLOW_CARD_PARTS.join(", "));
-        this.cards.set(node, card); card.node = node; card.catalog = this.catalog; card.model = this.model; card.selected = node === this.selected; card.invalid = node === this.invalid; card.refresh(); fragment.append(card);
+        this.cards.set(node, card); card.node = node; card.catalog = this.catalog; card.model = this.model; card.selected = node === this.selected; card.invalid = node === this.invalid; card.figure = this.figures.get(node) ?? null; card.refresh(); fragment.append(card);
         const nextAncestors = new Set([...ancestors, node]);
         const children = this.model.children(node);
         for (const child of children.filter(child => child.label === undefined)) {
@@ -185,7 +200,7 @@ export class FlowSpine extends BaseElement {
     const start = document.createElement("div"); start.setAttribute("part", "endpoint"); start.textContent = this.startLabel;
     const end = document.createElement("div"); end.setAttribute("part", "endpoint"); end.textContent = this.endLabel;
     root.replaceChildren(start, listView(this.nodes, "in the flow", new Set()), end);
-    for (const node of this.cards.keys()) if (!seen.has(node)) this.cards.delete(node);
+    for (const node of this.cards.keys()) if (!seen.has(node)) { this.cards.delete(node); this.figures.delete(node); }
   }
 }
 FlowCard.register(); InsertPoint.register(); KindPicker.register(); FlowSpine.register();

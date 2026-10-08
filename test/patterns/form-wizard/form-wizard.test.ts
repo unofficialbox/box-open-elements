@@ -54,6 +54,19 @@ describe("box-form-wizard", () => {
     expect(rail.value).toBe("terms");
   });
 
+  it("names the wizard by its heading and focuses the new panel after Next", async () => {
+    const element = await mountWizard(el => { el.heading = "Your first load test"; });
+    const wizard = element.shadowRoot?.querySelector('[part="wizard"]');
+    expect(wizard?.getAttribute("aria-labelledby")).toBe("wizard-title");
+    expect(wizard?.hasAttribute("aria-label")).toBe(false);
+    (element.shadowRoot?.querySelector('[part="next"]') as HTMLButtonElement).click();
+    await flush();
+    expect(element.shadowRoot?.activeElement).toBe(
+      element.shadowRoot?.querySelector('[part="panel"][data-step-id="terms"]'),
+    );
+    expect(element.shadowRoot?.querySelector("style")?.textContent).toContain("--boe-token-text-status-text-error");
+  });
+
   it("keeps Back disabled on the first step and swaps Next for Submit on the last", async () => {
     const element = await mountWizard(el => {
       el.submitLabel = "Submit request";

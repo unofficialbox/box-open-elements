@@ -93,6 +93,9 @@ const routes: Array<[name: string, hash: string, readyMarker: string, scrollTo?:
   ["components-due-badge", "#components/due-badge", "components/due-badge"],
   ["components-formatted-date", "#components/formatted-date", "components/formatted-date"],
   ["components-indicator", "#components/indicator", "components/indicator"],
+  ["components-resource-row", "#components/resource-row", "components/resource-row"],
+  ["components-verdict-banner", "#components/verdict-banner", "components/verdict-banner"],
+  ["components-mode-indicator", "#components/mode-indicator", "components/mode-indicator"],
   ["components-tile-group", "#components/tile-group", "components/tile-group"],
   ["components-code-block", "#components/code-block", "components/code-block"],
   ["components-formatted-file-size", "#components/formatted-file-size", "components/formatted-file-size"],
@@ -184,6 +187,7 @@ try {
   const darkRoutes: Array<[string, string, string]> = [
     ["patterns-call-console-dark", "#patterns/call-console", "patterns/call-console"],
     ["components-button-dark", "#components/button", "components/button"],
+    ["components-verdict-banner-dark", "#components/verdict-banner", "components/verdict-banner"],
     ["foundations-tokens-dark", "#foundations/tokens", "foundations/tokens"],
   ];
   for (const [name, hash, readyMarker] of darkRoutes) {
@@ -216,6 +220,13 @@ try {
   await waitForVisualSettle(page,"patterns-call-console-mobile");
   await page.locator("box-call-console").first().screenshot({path:join(OUT_DIR,"patterns-call-console-mobile.png"),animations:"disabled"});
   console.log("captured patterns-call-console-mobile.png");
+
+  await page.goto(`http://localhost:${PORT}/#components/resource-row`,{waitUntil:"networkidle"});
+  await page.waitForSelector('body[data-route-ready="components/resource-row"]');
+  await applyDeterministicFonts(page);
+  await waitForVisualSettle(page,"components-resource-row-mobile");
+  await page.locator("box-resource-row").first().screenshot({path:join(OUT_DIR,"components-resource-row-mobile.png"),animations:"disabled"});
+  console.log("captured components-resource-row-mobile.png");
 
   await page.setViewportSize({width:1440,height:940});
   await page.goto(`http://localhost:${PORT}/#patterns/agent-workspace`,{waitUntil:"networkidle"});

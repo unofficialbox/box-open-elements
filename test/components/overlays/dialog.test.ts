@@ -70,6 +70,46 @@ describe("Dialog", () => {
     expect(element.open).toBe(false);
   });
 
+  it("keeps cancel available while confirmation is disabled or busy", () => {
+    const element = new Dialog();
+    const confirmed = vi.fn();
+    element.addEventListener("confirm", confirmed);
+    document.body.append(element);
+    element.confirmDisabled = true;
+    element.show();
+    const confirm = element.shadowRoot?.querySelector('[part="confirm"]') as HTMLButtonElement;
+    expect(confirm.disabled).toBe(true);
+    confirm.click();
+    expect(confirmed).not.toHaveBeenCalled();
+    expect(element.open).toBe(true);
+    element.confirmDisabled = false;
+    element.confirmBusy = true;
+    element.confirmBusyLabel = "Waiting for setup";
+    expect(confirm.disabled).toBe(true);
+    expect(confirm.getAttribute("aria-busy")).toBe("true");
+    expect(confirm.textContent).toBe("Waiting for setup");
+    element.confirmBusy = false;
+    expect(confirm.disabled).toBe(false);
+    confirm.click();
+    expect(confirmed).toHaveBeenCalledTimes(1);
+  });
+
+  it("still permits Escape and restores focus while confirmation is busy", async () => {
+    const opener = document.createElement("button");
+    document.body.append(opener);
+    opener.focus();
+    const element = new Dialog();
+    element.confirmBusy = true;
+    document.body.append(element);
+    element.show();
+    await Promise.resolve();
+    const dialog = element.shadowRoot?.querySelector('[part="dialog"]') as HTMLElement;
+    dialog.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    await Promise.resolve();
+    expect(element.open).toBe(false);
+    expect(document.activeElement).toBe(opener);
+  });
+
   it("closes on Escape and emits cancel", () => {
     const element = document.createElement("box-dialog") as Dialog;
     const cancelled = vi.fn();

@@ -49,6 +49,23 @@ describe("flow-builder", () => {
     expect(card.shadowRoot!.querySelector("[part=icon] svg")).not.toBeNull();
     expect(node.kind).toBe("step");
   });
+  it("updates one node's live figure by id without replacing its card or focus", () => {
+    const node: FlowNode = { id: "upload", kind: "call", title: "Upload" };
+    const builder = new FlowBuilder();
+    builder.nodes = [node];
+    document.body.append(builder);
+    const card = builder.shadowRoot!.querySelector<FlowSpine>("box-flow-spine")!
+      .shadowRoot!.querySelector<FlowCard>("box-flow-card")!;
+    card.focus();
+    builder.setNodeFigure("upload", { text: "4/s · 95% in 210 ms", tone: "warning" });
+    expect(builder.shadowRoot!.querySelector<FlowSpine>("box-flow-spine")!
+      .shadowRoot!.querySelector("box-flow-card")).toBe(card);
+    expect(card.shadowRoot!.activeElement?.tagName).toBe("BUTTON");
+    expect(card.shadowRoot!.querySelector('[part="figure"]')?.textContent).toContain("4/s");
+    expect(card.shadowRoot!.querySelector("button")?.getAttribute("aria-label")).toContain("95% in 210 ms");
+    builder.setNodeFigure(["body", 0], null);
+    expect((card.shadowRoot!.querySelector('[part="figure"]') as HTMLElement).hidden).toBe(true);
+  });
   it("names cards and insertion points without duplicate kind text", () => {
     const nodes: FlowNode[] = [{ kind: "call", title: "Upload" }, { kind: "wait" }];
     expect(cardLabel(nodes[1], catalog)).toBe("Wait. Pauses the flow");

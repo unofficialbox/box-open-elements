@@ -201,9 +201,9 @@ export class AppShell extends BaseElement {
           </div>
         </header>
         <div part="frame">
-          <nav part="nav" aria-label="Primary">
+          <div part="nav" role="navigation" aria-label="Primary">
             <slot name="nav"></slot>
-          </nav>
+          </div>
           <main part="main">
             <slot></slot>
           </main>
@@ -256,6 +256,18 @@ export class AppShell extends BaseElement {
       return;
     }
     this.navEl.hidden = !this.hasNamedSlotContent("nav", this.navSlot);
+    // A slotted NavSidebar supplies its own labelled nav landmark. Keep this
+    // wrapper for layout, but never nest a second navigation landmark around it.
+    const childOwnsNavigation = Array.from(this.children).some(el =>
+      el.getAttribute("slot") === "nav" && el.localName === "box-nav-sidebar",
+    );
+    if (childOwnsNavigation) {
+      this.navEl.removeAttribute("role");
+      this.navEl.removeAttribute("aria-label");
+    } else {
+      this.navEl.setAttribute("role", "navigation");
+      this.navEl.setAttribute("aria-label", this.navLabel);
+    }
     this.asideEl.hidden = !this.hasNamedSlotContent("aside", this.asideSlot);
     this.footerEl.hidden = !this.hasNamedSlotContent("footer", this.footerSlot);
   }
@@ -268,7 +280,6 @@ export class AppShell extends BaseElement {
     const heading = this.heading;
     this.shellEl.setAttribute("aria-label", heading);
     this.titleEl.textContent = heading;
-    this.navEl.setAttribute("aria-label", this.navLabel);
     this.asideEl.setAttribute("aria-label", this.asideLabel);
     this.syncLandmarkVisibility();
   }

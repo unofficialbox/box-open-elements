@@ -150,7 +150,7 @@ const dialogStyles = `
 export class Dialog extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["confirm-label", "description", "heading", "open", "size"];
+    return ["confirm-busy", "confirm-busy-label", "confirm-disabled", "confirm-label", "description", "heading", "open", "size"];
   }
 
   private openValue = false;
@@ -207,6 +207,18 @@ export class Dialog extends BaseElement {
 
   set confirmLabel(value: string) {
     this.setAttribute("confirm-label", value);
+  }
+
+  get confirmDisabled(): boolean { return this.hasAttribute("confirm-disabled"); }
+  set confirmDisabled(value: boolean) { this.toggleAttribute("confirm-disabled", Boolean(value)); }
+
+  get confirmBusy(): boolean { return this.hasAttribute("confirm-busy"); }
+  set confirmBusy(value: boolean) { this.toggleAttribute("confirm-busy", Boolean(value)); }
+
+  get confirmBusyLabel(): string { return this.getAttribute("confirm-busy-label") ?? ""; }
+  set confirmBusyLabel(value: string) {
+    if (value) this.setAttribute("confirm-busy-label", value);
+    else this.removeAttribute("confirm-busy-label");
   }
 
   /** Modal size — box-ui-elements Modal sizes. Default `medium`. */
@@ -281,6 +293,7 @@ export class Dialog extends BaseElement {
       }
 
       if (target.closest('[part="confirm"]')) {
+        if (this.confirmDisabled || this.confirmBusy) return;
         this.dispatchEvent(new CustomEvent("confirm", { bubbles: true, composed: true }));
         this.close();
       }
@@ -389,7 +402,10 @@ export class Dialog extends BaseElement {
       this.descriptionEl.hidden = !description;
     }
     if (this.confirmEl) {
-      this.confirmEl.textContent = this.confirmLabel;
+      this.confirmEl.textContent = this.confirmBusy && this.confirmBusyLabel
+        ? this.confirmBusyLabel : this.confirmLabel;
+      this.confirmEl.disabled = this.confirmDisabled || this.confirmBusy;
+      this.confirmEl.setAttribute("aria-busy", String(this.confirmBusy));
     }
 
     if (justOpened) {

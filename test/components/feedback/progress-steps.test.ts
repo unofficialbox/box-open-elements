@@ -41,6 +41,22 @@ describe("ProgressSteps", () => {
     expect(element.shadowRoot?.querySelector('[part="step"][data-state="current"]')).not.toBeNull();
   });
 
+  it("offers an on-demand compact step list without changing selection", () => {
+    const element = new ProgressSteps();
+    element.compact = true;
+    element.items = [{ label: "Connect", value: "connect" }, { label: "Review", value: "review" }];
+    element.value = "review";
+    document.body.append(element);
+    const toggle = element.shadowRoot?.querySelector('[part="compact-toggle"]') as HTMLButtonElement;
+    const steps = element.shadowRoot?.querySelector('[part="steps"]') as HTMLElement;
+    expect(toggle.textContent).toContain("Step 2 of 2: Review");
+    expect(steps.dataset.expanded).toBe("false");
+    toggle.click();
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(steps.dataset.expanded).toBe("true");
+    expect(element.value).toBe("review");
+  });
+
   it("emits value-changed when a new step is selected", () => {
     const element = document.createElement("box-progress-steps") as ProgressSteps;
     const changed = vi.fn();

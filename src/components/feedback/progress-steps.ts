@@ -110,6 +110,23 @@ const progressStepsStyles = `
     font: inherit;
   }
 
+  [part="compact-toggle"] { display: none; }
+  @media (max-width: 600px) {
+    [part="compact-toggle"][data-enabled="true"] {
+      display: block;
+      width: 100%;
+      min-height: 36px;
+      text-align: left;
+      border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
+      border-radius: ${boeRadius.med};
+      background: var(--boe-token-surface-surface, #ffffff);
+      color: var(--boe-token-text-text, #222222);
+      font: inherit;
+      padding: 0.45rem 0.65rem;
+    }
+    [part="steps"][data-compact="true"][data-expanded="false"] { display: none; }
+  }
+
   /* The host's own display would otherwise beat the UA rule for [hidden],
      leaving the element on screen when a host hides it. */
   :host([hidden]) {
@@ -266,13 +283,18 @@ const progressStepsStyles = `
 export class ProgressSteps extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["items", "label", "value"];
+    return ["compact", "items", "label", "value"];
   }
 
   private valueInternal = "";
   private stepsEl!: HTMLElement;
   private liveEl!: HTMLElement;
+  private compactToggleEl!: HTMLButtonElement;
+  private compactExpanded = false;
   private itemsSignature = "";
+
+  get compact(): boolean { return this.hasAttribute("compact"); }
+  set compact(value: boolean) { this.toggleAttribute("compact", Boolean(value)); }
 
   get label(): string {
     return this.getAttribute("label") ?? "Progress Steps";
@@ -333,14 +355,20 @@ export class ProgressSteps extends BaseElement {
 
     this.shadowRoot.innerHTML = `
       <style>${progressStepsStyles}</style>
-      <div part="steps" role="group"></div>
+      <button type="button" part="compact-toggle" aria-controls="progress-steps-list" aria-expanded="false"></button>
+      <div id="progress-steps-list" part="steps" role="group"></div>
       <div part="live" class="boe-sr-only" aria-live="polite"></div>
     `;
     this.stepsEl = this.shadowRoot.querySelector('[part="steps"]')!;
+    this.compactToggleEl = this.shadowRoot.querySelector('[part="compact-toggle"]')!;
     this.liveEl = this.shadowRoot.querySelector('[part="live"]')!;
   }
 
   protected setupListeners(): void {
+    this.compactToggleEl.addEventListener("click", () => {
+      this.compactExpanded = !this.compactExpanded;
+      this.update();
+    });
     this.stepsEl.addEventListener("click", event => {
       const step = (event.target as HTMLElement).closest('[part="step"]') as HTMLButtonElement | null;
       if (!step || !this.stepsEl.contains(step)) {
@@ -481,6 +509,11 @@ export class ProgressSteps extends BaseElement {
     this.stepsEl.setAttribute("aria-label", this.label);
 
     const resolved = resolveStepStates(items, this.valueInternal);
+    this.compactToggleEl.dataset.enabled = String(this.compact);
+    this.compactToggleEl.setAttribute("aria-expanded", String(this.compactExpanded));
+    this.compactToggleEl.textContent = `Step ${activeIndex + 1} of ${items.length}: ${items[activeIndex]?.label ?? ""} · ${this.compactExpanded ? "Hide steps" : "Show steps"}`;
+    this.stepsEl.dataset.compact = String(this.compact);
+    this.stepsEl.dataset.expanded = String(this.compactExpanded);
     const tabbable = this.tabbableIndex(resolved);
 
     const signature = JSON.stringify(items);

@@ -61,6 +61,15 @@ describe("NavSidebar", () => {
     expect(element.shadowRoot?.querySelector('[part="sidebar"]')?.getAttribute("data-collapsed")).toBe("true");
   });
 
+  it("keeps a header toggle reachable in the collapsed icon rail", () => {
+    const element = document.createElement("box-nav-sidebar") as NavSidebar;
+    element.innerHTML = '<box-sidebar-toggle-button slot="header"></box-sidebar-toggle-button>';
+    document.body.append(element);
+    element.collapsed = true;
+    expect(element.shadowRoot?.querySelector('[part="sidebar"]')?.getAttribute("data-header-toggle")).toBe("true");
+    expect(element.shadowRoot?.querySelector("style")?.textContent).toContain('[data-header-toggle="true"] [part="header"]');
+  });
+
   it("exposes a collapsed icon-strip CSS contract for slotted nav rows", () => {
     const element = document.createElement("box-nav-sidebar") as NavSidebar;
     document.body.append(element);
