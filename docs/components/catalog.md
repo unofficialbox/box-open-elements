@@ -134,6 +134,8 @@ the exact value in a `<time datetime>` beside the human-readable text.
 - `text-area` — **built**
 - `text-field` — **built**
 - `tile-group` — **built** (selectable cards over real radios/checkboxes)
+
+See [tile group choices](./tile-group.md) for metadata, availability and disabled reasons.
 - `time-field` — **built**
 
 ### Identity
@@ -163,6 +165,8 @@ the exact value in a `<time datetime>` beside the human-readable text.
 
 See [dialog confirmation states](./dialog.md) for disabled and busy actions.
 - `drawer` — **built**
+
+See [drawer dismissal](./drawer.md) for footer-only actions and dismissal policy.
 - `popover` — **built**
 - `tooltip` — **built**
 

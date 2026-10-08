@@ -27,3 +27,22 @@ that an issue should be closed before visual/consumer acceptance.
 - The modeler’s host schema, read-back conversion and persistence remain host
   responsibilities. Closing #321–331 should follow reference comparison and
   Riptide adoption, not the presence of matching API names alone.
+
+## Release acceptance follow-up
+
+- #354 now derives the selection button's spoken status from a slotted badge
+  when the host omits the plain `status` attribute. #355 now has a working
+  footer-only Drawer example for native and React hosts, including a focus
+  restoration test. #358 now documents category metadata and unavailable
+  choices in both the catalog and live preview.
+- #347–363 are candidates for closure after the 0.28.0 packages are confirmed
+  on npm. #346 remains open until Riptide replaces its local Code view editor
+  and accepts the result; the public API alone does not meet that issue's stated
+  adoption outcome.
+- #320's requested `model.validate` precedence exists in source and tests; it
+  is independent of the remaining Diagram parity work. #321–331 still require
+  Riptide-owned acceptance. A local light-theme comparison at 1440 and 390
+  confirmed matching canvas, palette and bottom-sheet anatomy and exercised
+  mobile Add/Details drawers. It did not cover all reference interactions,
+  dark-theme parity, axe, or host replacement of the existing iframe. Do not
+  close those issues on this evidence.

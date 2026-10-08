@@ -64,7 +64,13 @@ export class ResourceRow extends BaseElement {
     this.selectEl.disabled = this.disabled;
     this.selectEl.setAttribute("aria-pressed", String(this.selected));
     this.selectEl.setAttribute("aria-label", this.label);
-    if (this.meta || this.status) this.selectEl.setAttribute("aria-description", [this.meta.replaceAll("\n", ", "), this.status].filter(Boolean).join("; "));
+    const slottedStatus = this.statusSlot.assignedNodes({ flatten: true }).map(node =>
+      node instanceof Element
+        ? node.getAttribute("aria-label") ?? node.getAttribute("label") ?? node.textContent ?? ""
+        : node.textContent ?? "",
+    ).map(value => value.trim()).filter(Boolean).join(" ");
+    const spokenStatus = this.status || slottedStatus;
+    if (this.meta || spokenStatus) this.selectEl.setAttribute("aria-description", [this.meta.replaceAll("\n", ", "), spokenStatus].filter(Boolean).join("; "));
     else this.selectEl.removeAttribute("aria-description");
   }
 }

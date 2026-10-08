@@ -62,6 +62,8 @@ import { editorHtml, modelerHtml, setupCodeEditor, setupProcessModeler } from ".
 const icon = (name: keyof typeof boxIconography): string =>
   (boxIconography as Record<string, string>)[name] ?? "";
 
+const tileGroupMetadataHtml = `<box-tile-group name="retention" legend="Retention policy" value="standard" options='[{"id":"standard","label":"Standard","description":"Delete 7 years after the contract ends.","meta":"General operations"},{"id":"extended","label":"Extended","description":"Retain indefinitely; legal hold applies.","meta":"Legal operations","status":{"label":"Recommended","tone":"success"}},{"id":"regulated","label":"Regulated","description":"Additional compliance review required.","meta":"Enterprise","status":{"label":"Coming soon","tone":"warning"},"disabled":true,"disabledReason":"Ask an administrator"}]'></box-tile-group>`;
+
 /** Optional return value unsubscribes host listeners when the preview remounts. */
 type SetupFn = (root: HTMLElement) => void | (() => void);
 
@@ -819,7 +821,28 @@ export const examples: Record<string, ComponentExample> = {
     ],
     setupCode: `dialog.confirmBusy = true;\ndialog.confirmBusyLabel = "Waiting for setup";\nawait finishSetup();\ndialog.confirmBusy = false; // Confirm becomes enabled while the dialog stays open.`,
   },
-  drawer: { html: `<box-drawer heading="Details" open></box-drawer>` },
+  drawer: {
+    html: `<box-drawer heading="Connection details" description="Production Box" open><p>Review this connection before continuing.</p></box-drawer>`,
+    variants: [
+      {
+        name: "Header close",
+        html: `<box-drawer heading="Connection details" description="Production Box" open><p>Review this connection before continuing.</p></box-drawer>`,
+      },
+      {
+        name: "Footer Done",
+        html: `<box-drawer heading="Connection details" description="Production Box" hide-close-button open><p>Review this connection before continuing.</p><box-button slot="footer" label="Done" tone="primary" data-drawer-done></box-button></box-drawer>`,
+        setup: root => {
+          const drawer = root.querySelector("box-drawer");
+          const done = root.querySelector<HTMLElement>("[data-drawer-done]");
+          if (!drawer || !done) return;
+          const close = () => drawer.close();
+          done.addEventListener("click", close);
+          return () => done.removeEventListener("click", close);
+        },
+        note: "The footer provides the visible dismissal action. Escape and backdrop requests remain cancelable; the default drawer still shows its header Close button.",
+      },
+    ],
+  },
   "popover": purposeExamples["popover"]!,
   tooltip: { html: `<box-tooltip label="Copy link" open><box-button label="Share" tone="neutral"></box-button></box-tooltip>` },
   illustration: {
@@ -1632,7 +1655,11 @@ export const examples: Record<string, ComponentExample> = {
     html: `<box-code-block language="bash" code="bun add @unofficialbox/box-open-elements"></box-code-block>`,
   },
   "tile-group": {
-    html: `<box-tile-group name="retention" legend="Retention policy" value="standard" options='[{"id":"standard","label":"Standard","description":"Delete 7 years after the contract ends."},{"id":"extended","label":"Extended","description":"Retain indefinitely; legal hold applies."}]'></box-tile-group>`,
+    html: tileGroupMetadataHtml,
+    variants: [
+      { name: "Metadata and availability", html: tileGroupMetadataHtml },
+      { name: "Multiple choices", html: `<box-tile-group name="channels" legend="Notification channels" multiple options='[{"id":"email","label":"Email","description":"Receive an email summary."},{"id":"in-app","label":"In-app","description":"See updates in the workspace."}]'></box-tile-group>` },
+    ],
   },
   "formatted-date": {
     html: `<box-formatted-date value="2026-08-25T14:30:00Z" date-style="medium" time-style="short" time-zone="UTC" locale="en-GB"></box-formatted-date>`,

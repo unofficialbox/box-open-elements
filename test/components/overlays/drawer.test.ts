@@ -40,6 +40,9 @@ describe("Drawer", () => {
   });
 
   it("hides the header control without disabling Escape or cancelable dismissal", async () => {
+    const opener = document.createElement("button");
+    document.body.append(opener);
+    opener.focus();
     const element = new Drawer();
     element.hideCloseButton = true;
     document.body.append(element);
@@ -54,6 +57,11 @@ describe("Drawer", () => {
     drawer.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
     expect(guard).toHaveBeenCalledOnce();
     expect(element.open).toBe(true);
+    element.removeEventListener("dismiss", guard);
+    drawer.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    await Promise.resolve();
+    expect(element.open).toBe(false);
+    expect(document.activeElement).toBe(opener);
   });
 
   it("emits dismiss and open-changed when closed from the button", () => {
