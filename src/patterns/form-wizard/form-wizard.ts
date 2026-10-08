@@ -89,7 +89,7 @@ const elementStyles = `
           font-size: 0.9rem;
           background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 10%, var(--boe-token-surface-surface, #ffffff));
           border: 1px solid color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 34%, transparent);
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 72%, black 28%);
+          color: var(--boe-token-text-status-text-error, #b92340);
         }
 
         [part="error"][hidden] {
@@ -405,6 +405,11 @@ export class FormWizard extends BaseElement {
         );
         if (this.isRendered) {
           this.update();
+          if (eventName === "stepChanged") {
+            queueMicrotask(() => {
+              this.panelsEl.querySelector<HTMLElement>('[part="panel"]:not([hidden])')?.focus();
+            });
+          }
         }
       }),
     );
@@ -429,7 +434,7 @@ export class FormWizard extends BaseElement {
     this.shadowRoot.innerHTML = `
       <style>${elementStyles}</style>
       <section part="wizard" aria-label="Form wizard">
-        <h2 part="title" hidden></h2>
+        <h2 id="wizard-title" part="title" hidden></h2>
         <div part="layout">
           <box-progress-steps part="rail"></box-progress-steps>
           <div part="body">
@@ -448,6 +453,7 @@ export class FormWizard extends BaseElement {
     `;
     this.titleEl = this.shadowRoot.querySelector('[part="title"]')!;
     this.railEl = this.shadowRoot.querySelector('[part="rail"]') as ProgressSteps;
+    this.railEl.compact = true;
     this.panelsEl = this.shadowRoot.querySelector('[part="panels"]')!;
     this.errorEl = this.shadowRoot.querySelector('[part="error"]')!;
     this.backEl = this.shadowRoot.querySelector('[part="back"]')!;
@@ -494,7 +500,7 @@ export class FormWizard extends BaseElement {
     this.panelsEl.innerHTML = steps
       .map(
         step => `
-          <div part="panel" data-step-id="${escapeHtml(step.id)}" role="group" aria-label="${escapeHtml(step.label)}" hidden>
+          <div part="panel" data-step-id="${escapeHtml(step.id)}" role="group" aria-label="${escapeHtml(step.label)}" tabindex="-1" hidden>
             <slot name="${escapeHtml(step.id)}"></slot>
           </div>
         `,
@@ -512,6 +518,14 @@ export class FormWizard extends BaseElement {
 
     this.titleEl.hidden = !this.heading;
     this.titleEl.textContent = this.heading;
+    const wizard = this.shadowRoot?.querySelector('[part="wizard"]');
+    if (this.heading) {
+      wizard?.setAttribute("aria-labelledby", "wizard-title");
+      wizard?.removeAttribute("aria-label");
+    } else {
+      wizard?.removeAttribute("aria-labelledby");
+      wizard?.setAttribute("aria-label", "Form wizard");
+    }
 
     const signature = JSON.stringify(steps.map(step => step.id));
     if (signature !== this.panelsSignature) {

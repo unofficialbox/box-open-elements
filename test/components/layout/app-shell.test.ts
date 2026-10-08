@@ -55,6 +55,21 @@ describe("AppShell", () => {
     expect(aside.hidden).toBe(true);
   });
 
+  it("defers the nav landmark to a slotted NavSidebar", () => {
+    const element = document.createElement("box-app-shell") as AppShell;
+    document.body.append(element);
+    const sidebar = document.createElement("box-nav-sidebar");
+    sidebar.slot = "nav";
+    element.append(sidebar);
+    element.heading = "Workspace updated";
+    const nav = element.shadowRoot?.querySelector('[part="nav"]');
+    expect(nav?.hasAttribute("role")).toBe(false);
+    expect(nav?.hasAttribute("aria-label")).toBe(false);
+    sidebar.remove();
+    element.heading = "Workspace again";
+    expect(nav?.getAttribute("role")).toBe("navigation");
+  });
+
   it("disconnects the slot observer when removed from the document", () => {
     const element = document.createElement("box-app-shell") as AppShell;
     document.body.append(element);

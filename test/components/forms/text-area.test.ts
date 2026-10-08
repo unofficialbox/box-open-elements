@@ -41,4 +41,18 @@ describe("TextArea", () => {
 
     expect(textarea?.disabled).toBe(true);
   });
+
+  it("forwards host focus to the textarea unless disabled", () => {
+    const element = document.createElement("box-text-area") as TextArea;
+    document.body.append(element);
+    const textarea = element.shadowRoot?.querySelector('textarea');
+    element.focus();
+    expect(element.shadowRoot?.activeElement).toBe(textarea);
+    element.disabled = true;
+    const elsewhere = document.createElement("button");
+    document.body.append(elsewhere);
+    elsewhere.focus();
+    element.focus();
+    expect(document.activeElement).toBe(elsewhere);
+  });
 });

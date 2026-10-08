@@ -39,8 +39,8 @@ const navSidebarStyles = `
     transition: inline-size ${boeMotionDuration.medium} ${boeMotionEasing.standard};
   }
 
-  /* Collapsed: shrink to an icon strip. The header and footer usually hold
-     branding and labels, so they hide; the body (icon nav) stays. */
+  /* Collapsed: shrink to an icon strip. Keep the header when it owns the
+     companion toggle; otherwise branding-only headers can disappear. */
   [part="sidebar"][data-collapsed="true"] {
     inline-size: 3.75rem;
     padding-inline: 0.55rem;
@@ -54,6 +54,14 @@ const navSidebarStyles = `
 
   [part="sidebar"][data-collapsed="true"] [part="header"],
   [part="sidebar"][data-collapsed="true"] [part="footer"] {
+    display: none;
+  }
+
+  [part="sidebar"][data-collapsed="true"][data-header-toggle="true"] [part="header"] {
+    display: block;
+  }
+
+  [part="sidebar"][data-collapsed="true"] [part="header"] ::slotted(:not(box-sidebar-toggle-button)) {
     display: none;
   }
 
@@ -203,6 +211,9 @@ export class NavSidebar extends BaseElement {
       ?.addEventListener("slotchange", () => {
         this.update();
       });
+    this.shadowRoot
+      ?.querySelector('slot[name="header"]')
+      ?.addEventListener("slotchange", () => this.update());
   }
 
   /**
@@ -245,6 +256,9 @@ export class NavSidebar extends BaseElement {
     }
 
     this.sidebarEl.dataset.collapsed = this.collapsed ? "true" : "false";
+    this.sidebarEl.dataset.headerToggle = Array.from(this.children).some(el =>
+      el.getAttribute("slot") === "header" && el.localName === "box-sidebar-toggle-button",
+    ) ? "true" : "false";
     this.sidebarEl.setAttribute("aria-label", this.label);
     this.syncCollapsedRowNames();
   }

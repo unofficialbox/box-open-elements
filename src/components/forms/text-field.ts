@@ -146,6 +146,8 @@ const textFieldStyles = `
     appearance: none;
     border: 0;
     padding: 0.15rem 0.4rem;
+    min-inline-size: 24px;
+    min-block-size: 24px;
     border-radius: 4px;
     background: transparent;
     font: inherit;
@@ -191,6 +193,7 @@ export class TextField extends FormAssociatedElement {
       "label",
       "placeholder",
       "reveal",
+      "reveal-label",
       "type",
       "loading",
       "valid",
@@ -249,6 +252,16 @@ export class TextField extends FormAssociatedElement {
 
   set reveal(value: boolean) {
     this.toggleAttribute("reveal", Boolean(value));
+  }
+
+  /** Noun used in the Show/Hide control's accessible name. Defaults to the field label. */
+  get revealLabel(): string {
+    return this.getAttribute("reveal-label") ?? "";
+  }
+
+  set revealLabel(value: string) {
+    if (value) this.setAttribute("reveal-label", value);
+    else this.removeAttribute("reveal-label");
   }
 
   /** Shows a trailing spinner (e.g. while validating/looking up asynchronously). */
@@ -409,7 +422,8 @@ export class TextField extends FormAssociatedElement {
       // The visible word and the accessible name agree; aria-pressed makes
       // the toggle state machine explicit to AT.
       this.revealEl.textContent = this.revealed ? "Hide" : "Show";
-      this.revealEl.setAttribute("aria-label", this.revealed ? "Hide password" : "Show password");
+      const noun = this.revealLabel || (this.hasAttribute("label") ? this.label : "password");
+      this.revealEl.setAttribute("aria-label", `${this.revealed ? "Hide" : "Show"} ${noun}`);
       this.revealEl.setAttribute("aria-pressed", String(this.revealed));
     } else {
       this.revealed = false;

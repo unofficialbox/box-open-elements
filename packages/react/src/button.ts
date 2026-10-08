@@ -12,6 +12,7 @@ ButtonElement.register();
 export type ButtonProps = Omit<WebComponentProps, "onClick"> & {
   /** Button label text (maps to the `label` property / attribute). */
   label?: string;
+  accessibleLabel?: string;
   /** Visual tone: `primary` (default), `neutral`, `danger`. */
   tone?: string;
   /** Control size: `small`, `medium` (default), `large`. */
@@ -40,12 +41,13 @@ export type ButtonProps = Omit<WebComponentProps, "onClick"> & {
 export const Button = createWebComponent<ButtonElement, ButtonProps>({
   tagName: "box-button",
   displayName: "Button",
-  propertyNames: ["label", "tone", "size", "disabled"],
+  propertyNames: ["label", "accessibleLabel", "tone", "size", "disabled"],
   events: [{ propName: "onClick", eventName: "click" }],
   sync: (element, props) => {
     if (props.label !== undefined) {
       element.label = props.label;
     }
+    if (props.accessibleLabel !== undefined) element.accessibleLabel = props.accessibleLabel;
     if (props.tone !== undefined) {
       element.tone = props.tone;
     }

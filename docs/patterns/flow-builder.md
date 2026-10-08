@@ -87,6 +87,11 @@ builder.addEventListener("branch-remove-request", event => {
 ```
 
 The builder splices inserted steps into the lists `children` returns. Branch changes are requests: the host edits the document and calls `refresh()`, as it does for removal. After editing a step's fields, `refreshNode(node)` re-renders that card and the inspector heading without re-mounting the inspector; structural edits need `refresh()`.
+For changing only a step's live performance figure, call
+`setNodeFigure(nodeOrIdOrPath, { text: "143 ms", tone: "neutral" })`. This updates
+the matching card in place without rebuilding the spine, changing selection,
+or moving focus. Pass `null` to clear it. The figure is supplementary text;
+the host remains responsible for the underlying measurement and units.
 
 - **Labels.** `start-label` / `end-label` (or `startLabel` / `endLabel`) replace "Flow starts" / "Flow ends".
 - **Icon tone.** `FlowKind.tone` is `"accent"` (default) or `"neutral"`, so a host can keep the accent for its primary step kind. Kind icons also appear in the chooser.

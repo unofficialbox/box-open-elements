@@ -86,6 +86,7 @@ export class TextArea extends FormAssociatedElement {
 
   private valueInternal = "";
   private textareaEl!: HTMLTextAreaElement;
+  focus(options?: FocusOptions): void { if (!this.disabled) this.textareaEl?.focus(options); }
   private labelEl!: HTMLElement;
   private errorEl!: HTMLElement;
 

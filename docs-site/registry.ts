@@ -19,10 +19,10 @@ export const catalog: CatalogEntry[] = [
   ...p("Developer Tools", ["call-console"]),
   // Components
   ...c("Actions", ["button", "button-group", "icon-button", "link-button", "menu", "menu-item", "segmented-control", "toolbar"]),
-  ...c("Collections", ["card", "carousel", "datalist-item", "draggable-list", "grid-view", "pagination", "table", "thumbnail-card", "tree", "tree-grid"]),
+  ...c("Collections", ["card", "carousel", "datalist-item", "resource-row", "draggable-list", "grid-view", "pagination", "table", "thumbnail-card", "tree", "tree-grid"]),
   ...c("Feedback", [
-    "alert", "badge", "badgeable", "chip", "due-badge", "empty-state", "error-mask", "help-text", "indicator", "nudge", "path", "progress-bar", "progress-ring",
-    "progress-steps", "skeleton", "spinner", "toast",
+    "alert", "badge", "badgeable", "chip", "due-badge", "empty-state", "error-mask", "help-text", "indicator", "mode-indicator", "nudge", "path", "progress-bar", "progress-ring",
+    "progress-steps", "skeleton", "spinner", "toast", "verdict-banner",
   ]),
   ...c("Files", ["drop-zone"]),
   ...c("Output", ["formatted-date", "formatted-duration", "relative-time", "formatted-number", "formatted-file-size", "code-block"]),

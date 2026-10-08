@@ -39,6 +39,23 @@ describe("Drawer", () => {
     expect(element.shadowRoot?.activeElement).toBe(closeButton);
   });
 
+  it("hides the header control without disabling Escape or cancelable dismissal", async () => {
+    const element = new Drawer();
+    element.hideCloseButton = true;
+    document.body.append(element);
+    element.show();
+    await Promise.resolve();
+    const close = element.shadowRoot?.querySelector('[part="close"]') as HTMLButtonElement;
+    const drawer = element.shadowRoot?.querySelector('[part="drawer"]') as HTMLElement;
+    expect(close.hidden).toBe(true);
+    expect(element.shadowRoot?.activeElement).toBe(drawer);
+    const guard = vi.fn((event: Event) => event.preventDefault());
+    element.addEventListener("dismiss", guard);
+    drawer.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(guard).toHaveBeenCalledOnce();
+    expect(element.open).toBe(true);
+  });
+
   it("emits dismiss and open-changed when closed from the button", () => {
     const element = document.createElement("box-drawer") as Drawer;
     const dismissed = vi.fn();

@@ -305,6 +305,30 @@ export const examples: Record<string, ComponentExample> = {
   "datalist-item": {
     html: `<box-datalist-item label="Quarterly Plan.pdf" meta="PDF · 2.1 MB" icon="P" value="123"></box-datalist-item>\n<box-datalist-item label="Marketing" meta="Folder · 18 items" icon="M" value="42" selected></box-datalist-item>`,
   },
+  "resource-row": {
+    html: `<box-resource-row label="Production Box" meta="Enterprise 12345&#10;Last checked 2 minutes ago" status="Ready" value="production" selected><span slot="icon" aria-hidden="true">B/</span><box-badge slot="status" label="Ready" tone="success"></box-badge><button slot="actions" type="button" aria-label="Remove Production Box">Remove</button></box-resource-row>`,
+    note: "The row selection is a toggle button; Remove is a separate focus target. Use a list, not a listbox, around rows with actions.",
+  },
+  "verdict-banner": {
+    html: `<box-verdict-banner tone="passed" heading="Passed: both targets met" heading-level="2"><box-button slot="action" label="View run" tone="primary"></box-button></box-verdict-banner>`,
+    setup: root => set(root, "box-verdict-banner", { reasons: ["Error rate stayed below 1%.", "Median latency stayed below 300 ms."] }),
+  },
+  "mode-indicator": {
+    html: `<box-mode-indicator mode="dry" detail="simulated Box" name-prefix="Next run" interactive></box-mode-indicator>`,
+    setup: root => {
+      const indicator = root.querySelector("box-mode-indicator");
+      if (!indicator) return;
+      const onActivate = () => {
+        const live = indicator.getAttribute("mode") !== "live";
+        indicator.setAttribute("mode", live ? "live" : "dry");
+        indicator.setAttribute("detail", live ? "enterprise 12345" : "simulated Box");
+      };
+      indicator.addEventListener("activate", onActivate);
+      return () => indicator.removeEventListener("activate", onActivate);
+    },
+    setupCode: `indicator.addEventListener("activate", () => openModeSettings());\n// The host updates mode and detail after a confirmed selection.`,
+    note: "Activate emits an event; this demo toggles modes, while a host should open its mode-setting UI and confirm before live use.",
+  },
   "draggable-list": {
     html: `<box-draggable-list label="Saved views"></box-draggable-list>`,
     setup: root => set(root, "box-draggable-list", {
@@ -768,7 +792,33 @@ export const examples: Record<string, ComponentExample> = {
     ],
   },
   "context-menu": purposeExamples["context-menu"]!,
-  dialog: { html: `<box-dialog heading="Delete file?" message="Quarterly Plan.pdf will be moved to trash." open></box-dialog>` },
+  dialog: {
+    html: `<box-dialog heading="Delete file?" description="Quarterly Plan.pdf will be moved to trash." confirm-label="Move to trash" open></box-dialog>`,
+    variants: [
+      {
+        name: "Ready",
+        html: `<box-dialog heading="Delete file?" description="Quarterly Plan.pdf will be moved to trash." confirm-label="Move to trash" open></box-dialog>`,
+      },
+      {
+        name: "Waiting for setup",
+        html: `<box-dialog heading="Start deployment?" description="Review the validated targets while managed-package setup finishes." confirm-label="Start deployment" confirm-busy confirm-busy-label="Waiting for setup" open><button type="button" data-complete-setup>Complete prerequisite setup</button></box-dialog>`,
+        setup: root => {
+          const dialog = root.querySelector("box-dialog");
+          const trigger = root.querySelector<HTMLButtonElement>("[data-complete-setup]");
+          if (!dialog || !trigger) return;
+          let timer: ReturnType<typeof setTimeout> | undefined;
+          const complete = () => {
+            trigger.disabled = true;
+            timer = setTimeout(() => { dialog.removeAttribute("confirm-busy"); trigger.hidden = true; }, 300);
+          };
+          trigger.addEventListener("click", complete);
+          return () => { trigger.removeEventListener("click", complete); clearTimeout(timer); };
+        },
+        note: "Cancel and Escape remain available while confirmation waits. Completing setup enables the confirm action without closing the dialog.",
+      },
+    ],
+    setupCode: `dialog.confirmBusy = true;\ndialog.confirmBusyLabel = "Waiting for setup";\nawait finishSetup();\ndialog.confirmBusy = false; // Confirm becomes enabled while the dialog stays open.`,
+  },
   drawer: { html: `<box-drawer heading="Details" open></box-drawer>` },
   "popover": purposeExamples["popover"]!,
   tooltip: { html: `<box-tooltip label="Copy link" open><box-button label="Share" tone="neutral"></box-button></box-tooltip>` },

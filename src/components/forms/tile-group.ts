@@ -16,8 +16,11 @@ const escapeHtml = (value: string): string =>
 export interface TileOption {
   description?: string;
   disabled?: boolean;
+  disabledReason?: string;
   id: string;
   label: string;
+  meta?: string;
+  status?: { label: string; tone?: "neutral" | "success" | "warning" | "error" };
 }
 
 /** Attribute payloads are author input — validate every record. */
@@ -26,7 +29,14 @@ export const isTileOptionRecord = (value: unknown): value is TileOption => {
     return false;
   }
   const item = value as Record<string, unknown>;
-  return typeof item.id === "string" && typeof item.label === "string";
+  return typeof item.id === "string" && typeof item.label === "string"
+    && (item.description === undefined || typeof item.description === "string")
+    && (item.meta === undefined || typeof item.meta === "string")
+    && (item.disabledReason === undefined || typeof item.disabledReason === "string")
+    && (item.status === undefined || (typeof item.status === "object" && item.status !== null
+      && typeof (item.status as Record<string, unknown>).label === "string"
+      && ([undefined, "neutral", "success", "warning", "error"] as unknown[])
+        .includes((item.status as Record<string, unknown>).tone)));
 };
 
 const tileStyles = `
@@ -122,6 +132,17 @@ const tileStyles = `
   [part="tile-description"]:empty {
     display: none;
   }
+
+  [part="tile-meta"], [part="tile-status"], [part="tile-disabled-reason"] {
+    font-size: 0.76rem;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    overflow-wrap: normal;
+  }
+  [part="tile-status"] { font-weight: 700; }
+  [part="tile-status"][data-tone="success"] { color: var(--boe-token-text-status-text-success, #176b45); }
+  [part="tile-status"][data-tone="warning"] { color: var(--boe-token-text-status-text-warning, #805500); }
+  [part="tile-status"][data-tone="error"] { color: var(--boe-token-text-status-text-error, #ad1b36); }
+  .boe-sr-only { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
 `;
 
 /**
@@ -227,8 +248,11 @@ export class TileGroup extends BaseElement {
   private rebuild(): void {
     const type = this.multiple ? "checkbox" : "radio";
     this.groupEl.innerHTML = this.options
-      .map(option => {
+      .map((option, index) => {
         const id = escapeHtml(option.id);
+        const detailsId = `tile-details-${index}`;
+        const details = [option.description, option.meta, option.status?.label, option.disabledReason]
+          .filter(Boolean).join(". ");
         return `
           <label part="tile" data-option-id="${id}" data-selected="false" data-disabled="${option.disabled ? "true" : "false"}">
             <input
@@ -236,10 +260,16 @@ export class TileGroup extends BaseElement {
               type="${type}"
               name="${escapeHtml(this.name)}"
               value="${id}"
+              aria-label="${escapeHtml(option.label)}"
+              ${details ? `aria-describedby="${detailsId}"` : ""}
               ${option.disabled ? "disabled" : ""}
             />
             <span part="tile-label">${escapeHtml(option.label)}</span>
             <span part="tile-description">${escapeHtml(option.description ?? "")}</span>
+            ${option.meta ? `<span part="tile-meta">${escapeHtml(option.meta)}</span>` : ""}
+            ${option.status ? `<span part="tile-status" data-tone="${escapeHtml(option.status.tone ?? "neutral")}">${escapeHtml(option.status.label)}</span>` : ""}
+            ${option.disabledReason ? `<span part="tile-disabled-reason">${escapeHtml(option.disabledReason)}</span>` : ""}
+            ${details ? `<span id="${detailsId}" class="boe-sr-only">${escapeHtml(details)}</span>` : ""}
           </label>
         `;
       })

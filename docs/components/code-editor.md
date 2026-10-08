@@ -70,6 +70,16 @@ Escape followed by Tab leaves the editor, following
 The same instruction appears below the editor. Tokens control light/dark
 surfaces and highlighting; `--boe-code-editor-height` controls the scroll height.
 
+For a fixed-height host, set `fill-height` on the editor and give its parent a
+definite height; the CodeMirror scroller then takes the remaining space after
+the component's own chrome. `--boe-code-editor-height: 100%` alone does not
+account for the problem bar. `current-line-style="border"` draws thin top and
+bottom rules instead of the default fill; `"none"` removes both. When `wrap`
+is enabled, continuation lines inherit the source line's leading indentation.
+Use `hide-help` and `hide-problems` when the host presents those instructions
+and diagnostics elsewhere. These flags hide only the component chrome; the
+keyboard escape behavior and diagnostic API remain available.
+
 Hosts can restyle the editor without reaching into its shadow root. Set
 `--boe-code-background`, `--boe-code-foreground`, `--boe-code-gutter`,
 `--boe-code-gutter-active`, `--boe-code-gutter-border`, `--boe-code-caret`,
