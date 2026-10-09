@@ -117,6 +117,8 @@ canvas.addEventListener("readable-projection-changed", event => {
   component width, both panes use named modal drawers. `narrow` exposes that
   state. Outline links have at least 24px targets. The mobile building-block
   drawer is named "Add to the process" and focuses search when opened.
+  At phone width, Add comes first in the bar; Tidy and undo/redo buttons are
+  hidden to preserve space, while keyboard history remains available.
   `disable-connections` removes disconnect controls and refuses connect and
   disconnect requests. Unlabelled lines have no placeholder label; line actions
   appear on hover or keyboard focus.
@@ -130,7 +132,8 @@ port, Enter focuses the selected step's editor, Delete removes, and Shift+1
 fits the whole process. Ctrl/Command+A selects all; C/V/D copy, paste and
 duplicate host-owned boxes. Ctrl/Command+Z and Shift+Ctrl/Command+Z undo and
 redo only when local history can handle them; empty or locked history leaves
-the key for the host. Escape cancels a connection or reattachment.
+the key for the host. Escape closes an open View menu or cancels a connection
+or reattachment. An idle Escape does not announce a cancelled connection.
 
 Background drag, Space-drag over a step, and trackpad scroll pan; Control-wheel and two-pointer pinch
 zoom. The floating controls offer zoom, 100% reset, fit, snap and lock. The
@@ -148,6 +151,8 @@ its read-back checks replace generic vocabulary checks. This is essential when
 a host uses its own names for decisions, parallel branches or failure paths.
 The exported `graphChecks` is opt-in. Checks link back to a box or host path;
 the host retains its last valid workflow while the drawing is being repaired.
+The empty Checks pane says “Ready to run”; selecting a problem announces its
+message assertively while routine navigation stays polite.
 Select a frame to reveal its resize handle; drag it or use its arrow keys to
 change size in 16px increments. Set `loopMark` on repeating frames; the library
 does not guess loop semantics from a host kind. Resizing is part of local undo

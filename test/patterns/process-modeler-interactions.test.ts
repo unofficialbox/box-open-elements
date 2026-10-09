@@ -83,6 +83,13 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector('[part=checks]')!.textContent).not.toContain("loop"); expect(root.querySelector('[part=checks]')!.textContent).toContain("Supply a connection");
     const button = [...root.querySelectorAll<HTMLButtonElement>('[part=checks] button')].find(button => button.textContent === "Supply a connection")!;
     button.click(); expect(builder.selected?.id).toBe("b");
+    expect(root.querySelector('[part=urgent-status]')?.getAttribute('aria-live')).toBe('assertive');
+    expect(root.querySelector('[part=urgent-status]')?.textContent).toBe('Supply a connection');
+  });
+  it("shows the ready state when the Checks tab has no problems", () => {
+    const { root } = fixture();
+    root.querySelector<HTMLButtonElement>('#process-tab-checks')!.click();
+    expect(root.querySelector('[part=pane-content]')!.textContent).toContain('Ready to run');
   });
   it("opens a directional kind chooser from a keyboard port", () => {
     const { builder, root } = fixture(); const requests = vi.fn(); builder.addEventListener("process-edit-request", requests);
@@ -105,6 +112,9 @@ describe("Process Modeler prototype interactions", () => {
     expect(drawer.open).toBe(true);
     expect(root.activeElement).toBe(drawer.querySelector('[part=search]'));
     expect(drawer.querySelector('[part=pane-close]')?.getAttribute('aria-label')).toBe('Close building blocks');
+    const css = root.querySelector('style')!.textContent!;
+    expect(css).toContain(':host([data-narrow]) [data-command=palette] { order: -2; }');
+    expect(css).toContain(':host([data-phone]) [data-command=undo]');
   });
   it("supports the design keyboard model and keeps chooser search focused", () => {
     const { builder, root, canvas } = fixture();
@@ -121,6 +131,21 @@ describe("Process Modeler prototype interactions", () => {
     expect(chooser.open).toBe(true);
     const picker = chooser.querySelector('box-kind-picker')!;
     expect(picker.shadowRoot!.activeElement).toBe(picker.shadowRoot!.querySelector('[part=search]'));
+  });
+  it("closes the View menu with Escape and announces cancellation only for an active connection", () => {
+    const { builder, root, canvas } = fixture();
+    const menu = root.querySelector<HTMLDetailsElement>('[part=view-menu]')!;
+    menu.open = true;
+    menu.querySelector<HTMLElement>('summary')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(menu.open).toBe(false);
+    expect(root.activeElement).toBe(menu.querySelector('summary'));
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(root.querySelector('[part=status]')!.textContent).not.toBe('Connecting cancelled');
+    // A connecting action is announced when cancelled; idle Escape is silent.
+    builder.select('a');
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'c', bubbles: true, cancelable: true }));
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(root.querySelector('[part=status]')!.textContent).toBe('Connecting cancelled');
   });
   it("supports host-authored nested outlines and a validated 25–200% view", () => {
     const { builder, root } = fixture();

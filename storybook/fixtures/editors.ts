@@ -244,5 +244,5 @@ export function setupProcessModeler(root: HTMLElement): void {
     apply(after);
     request.accept({ undo: () => apply(before), redo: () => apply(after) });
   });
-  modeler.setView(window.innerWidth < 900 ? { x: -24, y: 96, zoom: 0.55 } : { x: 0, y: 94, zoom: 0.7 });
+  modeler.setView(window.innerWidth < 900 ? { x: -24, y: 124, zoom: 0.55 } : { x: 0, y: 94, zoom: 0.7 });
 }
