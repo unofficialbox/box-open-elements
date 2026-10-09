@@ -18,7 +18,7 @@ flowchart LR
   Canvas --> Positions[positions-changed: path and fingerprint snapshots]
   Canvas --> Validation[Host model.validate: read-back and problems]
   Validation --> Hold[Invalid drawing: hold and Checks]
-  Validation -->|valid only| Readable[readable-projection-changed]
+  Validation -->|valid version only| Readable[Detached readable-projection-changed snapshot]
   Readable --> Conversion[Host graph-to-workflow conversion and save]
   Conversion --> Canvas
 ```
@@ -103,19 +103,36 @@ canvas.addEventListener("readable-projection-changed", event => {
   without false positives. The exported `graphChecks` remains available if a
   host wants to compose generic checks into its own validator.
 - `readback` gives `{ current, lastReadable, checks, version }`. `current` is
-  null while Checks are present; `lastReadable` stays available to the host.
+  null before a document loads or while Checks are present; `lastReadable`
+  stays available to the host during a hold. No projection or readable event
+  fires for the unloaded empty component.
   A hold banner on the canvas links to Checks. `readable-projection-changed`
-  only emits a version when it passes validation.
+  only emits a version when it passes validation. A new document assignment
+  emits a new readable version even when its visible labels are unchanged;
+  refreshes of the same document do not. The event and `readback` detach box,
+  path, line and route presentation data so listeners cannot corrupt the
+  retained readable graph. Generic `box.node` payloads remain host-owned
+  references; use immutable host documents or call `load` for a new version.
 - `locked` blocks edits but retains navigation. `snap-to-grid` uses 16px units.
   Zoom is bounded to 25–200%; `setView({ x, y, zoom })` restores an authored
-  viewport. `--boe-process-height` sets canvas height (default 660px).
+  viewport. The 16px dot grid follows zoom and pan; below 50% zoom it shows
+  every fourth grid point to stay legible. `--boe-process-height` sets canvas
+  height (default 660px).
 - `heading-level` sets the inspector heading (1-6, default 2).
-  `embed-mode` hides the process heading and duplicate view/last-run controls
-  when the host already supplies them; the canvas, checks and editing remain.
+  `embed-mode` hides duplicate view/last-run controls at desktop and phone
+  widths when the host supplies them. The inspector keeps its process/selection
+  heading, as in Riptide's embedded Diagram; the canvas, checks and editing remain.
+  See the [Process Modeler handoff](process-modeler-handoff.md) for issue status
+  and the host-adoption acceptance matrix.
   The palette is 248px on the left; the inspector is 320px on the right, with
   Outline, Checks, Variables, Connections and Shortcuts tabs. Below 900px
-  component width, both panes use named modal drawers. `narrow` exposes that
-  state. Outline links have at least 24px targets. The mobile building-block
+  component width, both panes use named drawers with a local scrim, bounded by
+  the component rather than the viewport. `narrow` exposes that state.
+  Closed drawers are inert; Escape, the close button, or the scrim closes an
+  open drawer and returns focus to its trigger. The desktop palette has a
+  visible "Add to the process" heading; the
+  mobile drawer supplies that heading in its title instead. Outline links
+  have at least 24px targets. The mobile building-block
   drawer is named "Add to the process" and focuses search when opened.
   At phone width, Add comes first in the bar; Tidy and undo/redo buttons are
   hidden to preserve space, while keyboard history remains available.
@@ -126,8 +143,10 @@ canvas.addEventListener("readable-projection-changed", event => {
 ## Interaction
 
 Tab reaches boxes. Alt+arrows chooses the nearest box in that direction;
-arrows nudge a selected box by 16px, Shift+arrows by 64px. N opens the
-searchable building-block chooser, Ctrl+Alt+arrows adds from a directional
+arrows nudge a selected box by 16px, Shift+arrows by 64px. N opens a
+non-modal, searchable chooser beside the selected box. It names the insertion
+point and, for a simple box with one outgoing line, requests an insert on
+that line; Escape returns focus to the box. Ctrl+Alt+arrows adds from a directional
 port, Enter focuses the selected step's editor, Delete removes, and Shift+1
 fits the whole process. Ctrl/Command+A selects all; C/V/D copy, paste and
 duplicate host-owned boxes. Ctrl/Command+Z and Shift+Ctrl/Command+Z undo and
@@ -153,6 +172,11 @@ The exported `graphChecks` is opt-in. Checks link back to a box or host path;
 the host retains its last valid workflow while the drawing is being repaired.
 The empty Checks pane says “Ready to run”; selecting a problem announces its
 message assertively while routine navigation stays polite.
+The desktop bar mirrors the reference order: Business/Technical view, a
+visual Last run switch when metrics exist, Checks status, Undo, Redo, then
+Tidy up. The status opens the Checks tab and reads “Ready to run” or the
+problem count. On narrow screens, view and Checks actions live in the View
+menu; the host may hide duplicate view/last-run controls with `embed-mode`.
 Select a frame to reveal its resize handle; drag it or use its arrow keys to
 change size in 16px increments. Set `loopMark` on repeating frames; the library
 does not guess loop semantics from a host kind. Resizing is part of local undo
@@ -186,8 +210,10 @@ history. Tidy animates box positions over 320ms unless reduced motion is set.
   those to its workflow semantics. After that route exists, the action becomes
   **Add next**.
 - Shift-click steps or Shift-drag empty canvas for multiple selection. Use the
-  floating toolbar to line up, tidy or delete selected
-  steps. Dragging selected steps moves the group, including frame descendants.
+  floating toolbar to line up, tidy or delete selected steps. "Tidy these"
+  arranges the selected connected steps left to right without moving unrelated
+  boxes; a selected frame carries and arranges its descendants. Dragging
+  selected steps moves the group, including frame descendants.
   Alignment guides and spacing labels appear during movement; snap uses 16px.
 - Boxes are focusable groups with `aria-current`, not `aria-selected`. Enter or
   Space selects them. Ports keep 24px targets when the canvas is zoomed out.
@@ -221,7 +247,9 @@ canvas.addEventListener("selection-changed", event => selectHostPath(event.detai
 `ProcessBox.path` and `fingerprint` are supplied by the host. Position snapshots
 are detached and sorted by ID, and include path/fingerprint when provided.
 Selection events include `box`, `boxes`, and a detached `path`; `selectedPath`
-normalizes field paths to their deepest projected box. `projection-changed`
+normalizes field paths to their deepest projected box. Setting `selectedPath`
+from the host updates the selection without echoing `selection-changed`;
+user-initiated selection still emits it. `projection-changed`
 fires once for each changed projection, with its version and current checks;
 refreshing an unchanged projection does not create another version. The separate
 `readable-projection-changed` event fires only for a version with no checks, so
