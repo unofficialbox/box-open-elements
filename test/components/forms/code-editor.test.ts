@@ -59,7 +59,7 @@ describe("code editor", () => {
     expect(host).toHaveBeenCalled();
     expect(shortcut.defaultPrevented).toBe(true);
     const styles = [...editor.shadowRoot!.querySelectorAll("style")].map(style => style.textContent).join("\n");
-    for (const variable of ["--boe-code-search-match", "--boe-code-selection-match", "--boe-code-matching-bracket", "--boe-code-popup-background", "--boe-code-popup-selected-background", "--boe-code-highlight-bar-width", "font-variant-numeric:tabular-nums"])
+    for (const variable of ["--boe-code-search-match", "--boe-code-selection-match", "--boe-code-matching-bracket", "--boe-code-popup-background", "--boe-code-popup-selected-background", "--boe-code-highlight-bar-width", "--boe-code-gutter-background", "font-variant-numeric:tabular-nums"])
       expect(styles).toContain(variable);
   });
   it("supports border-only active lines, hanging wraps and embedded chrome", () => {
@@ -79,6 +79,27 @@ describe("code editor", () => {
     expect(styles).toContain(":host([current-line-style=border]) .cm-activeLine");
     expect(styles).toContain(":host([fill-height])");
     expect(editor.currentLineStyle).toBe("border");
+  });
+  it("reveals a line without moving selection or focus when the host requests scrolling only", () => {
+    const button = document.createElement("button"); button.textContent = "Diagram"; document.body.append(button);
+    const editor = new CodeEditor(); editor.value = "first\nsecond\nthird";
+    editor.currentLineStyle = "border"; editor.highlights = [{ from: 6, to: 12 }];
+    document.body.append(editor);
+    editor.selection = { anchor: 2, head: 4 };
+    const selectionChanged = vi.fn(); editor.addEventListener("selection-changed", selectionChanged);
+    button.focus();
+    editor.revealLine(2, { center: true, select: false, focus: false });
+    expect(editor.selection).toEqual({ anchor: 2, head: 4 });
+    expect(document.activeElement).toBe(button);
+    expect(selectionChanged).not.toHaveBeenCalled();
+    const highlighted = editor.shadowRoot!.querySelector<HTMLElement>(".boe-code-highlight")!;
+    expect(highlighted.classList.contains("cm-activeLine")).toBe(false);
+    const styles = [...editor.shadowRoot!.querySelectorAll("style")].map(style => style.textContent).join("\n");
+    expect(styles).toContain(".cm-activeLine.boe-code-highlight{box-shadow:");
+    editor.revealLine(2);
+    expect(editor.selection).toEqual({ anchor: 6, head: 6 });
+    expect(editor.shadowRoot!.activeElement).toBe(editor.shadowRoot!.querySelector(".cm-content"));
+    expect(editor.shadowRoot!.querySelector(".cm-activeLine.boe-code-highlight")).not.toBeNull();
   });
   it("maps UTF-16 offsets and one-based line starts before and after mount", () => {
     const editor = new CodeEditor();
