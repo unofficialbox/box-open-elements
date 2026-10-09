@@ -276,14 +276,16 @@ export class CodeEditor extends BaseElement {
     const line = Math.max(1, Math.min(doc.lines, Number.isFinite(number) ? Math.floor(number) : 1));
     return doc.line(line).from;
   }
-  revealLine(line: number, options: { center?: boolean } = {}): void {
+  revealLine(line: number, options: { center?: boolean; select?: boolean; focus?: boolean } = {}): void {
     if (!this.view) return;
     const target = this.view.state.doc.line(
       Math.max(1, Math.min(this.view.state.doc.lines, Math.floor(line) || 1)),
     );
-    this.selection = { anchor: target.from, head: target.from };
-    if (options.center) this.view.dispatch({ effects: EditorView.scrollIntoView(target.from, { y: "center" }) });
-    this.view.focus();
+    if (options.select !== false) this.selection = { anchor: target.from, head: target.from };
+    if (options.center || options.select === false) this.view.dispatch({
+      effects: EditorView.scrollIntoView(target.from, options.center ? { y: "center" } : {}),
+    });
+    if (options.focus !== false) this.view.focus();
   }
   focus(): void {
     this.view?.focus();
@@ -316,8 +318,9 @@ export class CodeEditor extends BaseElement {
       .cm-scroller{max-height:var(--boe-code-editor-height,420px);min-height:160px;overflow:auto;font-family:var(--boe-code-font-family,monospace);font-size:var(--boe-code-font-size,14px);line-height:var(--boe-code-line-height,1.6)}
       :host([fill-height]){height:100%}
       :host([fill-height]) [part=editor],:host([fill-height]) .cm-editor,:host([fill-height]) .cm-scroller{height:100%;max-height:none;min-height:0}
-      .cm-gutters,.cm-panels{background:var(--boe-token-surface-surface-secondary,#fbfbfb)!important;color:var(--boe-code-foreground,var(--boe-token-text-text,#222))!important;border-color:var(--boe-token-stroke-stroke,#ddd)!important}
-      .cm-gutters{color:var(--boe-code-gutter,var(--boe-token-text-text,#222))!important;border-right:var(--boe-code-gutter-border,1px solid var(--boe-token-stroke-stroke,#ddd))!important;font-variant-numeric:tabular-nums}
+      .cm-gutters,.cm-panels{color:var(--boe-code-foreground,var(--boe-token-text-text,#222))!important;border-color:var(--boe-token-stroke-stroke,#ddd)!important}
+      .cm-panels{background:var(--boe-token-surface-surface-secondary,#fbfbfb)!important}
+      .cm-gutters{background:var(--boe-code-gutter-background,var(--boe-code-background,var(--boe-token-surface-surface,#fff)))!important;color:var(--boe-code-gutter,var(--boe-token-text-text,#222))!important;border-right:var(--boe-code-gutter-border,1px solid var(--boe-token-stroke-stroke,#ddd))!important;font-variant-numeric:tabular-nums}
       .cm-tooltip{background:var(--boe-code-popup-background,var(--boe-token-surface-surface-secondary,#fbfbfb))!important;color:var(--boe-code-popup-foreground,var(--boe-code-foreground,var(--boe-token-text-text,#222)))!important;border-color:var(--boe-code-popup-border,var(--boe-token-stroke-stroke,#ddd))!important}
       .cm-tooltip .cm-diagnostic,.cm-tooltip-autocomplete ul li{color:var(--boe-code-popup-foreground,var(--boe-code-foreground,var(--boe-token-text-text,#222)))}
       .cm-cursor{border-left-color:var(--boe-code-caret,var(--boe-token-text-text,#222))}
@@ -328,6 +331,7 @@ export class CodeEditor extends BaseElement {
       .cm-activeLineGutter{color:var(--boe-code-gutter-active,var(--boe-code-gutter,var(--boe-token-text-text,#222)))!important}
       .cm-selectionBackground,.cm-content ::selection{background:var(--boe-code-selection,color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 12%,transparent))!important}
       .boe-code-highlight{background:var(--boe-code-highlight-background,color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 10%,transparent))!important;box-shadow:inset var(--boe-code-highlight-bar-width,3px) 0 var(--boe-code-highlight-bar-color,var(--boe-token-surface-surface-brand,#0061d5))}
+      :host([current-line-style=border]) .cm-activeLine.boe-code-highlight{box-shadow:inset var(--boe-code-highlight-bar-width,3px) 0 var(--boe-code-highlight-bar-color,var(--boe-token-surface-surface-brand,#0061d5)),inset 0 1px var(--boe-code-current-line-border,var(--boe-token-stroke-stroke,#ddd)),inset 0 -1px var(--boe-code-current-line-border,var(--boe-token-stroke-stroke,#ddd))}
       .cm-matchingBracket{background:var(--boe-code-matching-bracket,color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 15%,transparent))!important;color:inherit!important}
       .cm-selectionMatch{background:var(--boe-code-selection-match,var(--boe-code-search-match,color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 15%,transparent)))!important;color:inherit!important}
       .cm-content .boe-code-bracket-1,.cm-content .boe-code-bracket-1 *{color:var(--boe-code-bracket-1,var(--boe-code-keyword,var(--boe-token-surface-surface-brand,#0061d5)))!important}

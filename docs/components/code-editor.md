@@ -41,7 +41,7 @@ clamped to the document and take precedence over line/column positions.
 ```ts
 editor.wrap = true; // or the wrap attribute
 editor.highlights = [{ from: 20, to: 80 }];
-editor.revealLine(3, { center: true });
+editor.revealLine(3, { center: true, select: false, focus: false });
 editor.completionSource = context => ({
   from: context.pos,
   options: [{ label: "load.files", type: "function" }],
@@ -50,17 +50,26 @@ editor.completionSource = context => ({
 
 `completionSource` accepts CodeMirror's synchronous or asynchronous
 `CompletionSource` contract and overrides the static list until cleared.
+`revealLine` selects and focuses the target line by default. Set both
+`select: false` and `focus: false` to scroll it into view without changing the
+host's selection or keyboard focus. `center: true` centers it; otherwise the
+nearest visible position is used. This avoids a selection feedback event when
+the host highlights a step from another view.
+
 `highlights` tint all intersected lines and add a left bar. They expose
 `::part(highlight)` and `--boe-code-highlight-background`. Hosts update ranges
 after document changes; out-of-range offsets are safely clamped.
 The left bar also accepts `--boe-code-highlight-bar-color` and
 `--boe-code-highlight-bar-width`; set the background to `transparent` for a
-bar-only step highlight.
+bar-only step highlight. The bar remains visible when the highlighted line is
+also the active line with `current-line-style="border"`.
 
 ```mermaid
 flowchart LR
-  Builder[Host visual selection] --> Ranges[UTF-16 highlights and revealLine]
+  Builder[Host visual selection] --> Ranges[UTF-16 highlights]
+  Builder --> Scroll[revealLine scroll-only]
   Ranges --> Editor[CodeEditor]
+  Scroll --> Editor
   Editor --> Cursor[selection-changed]
   Cursor --> Builder
   Editor --> Text[value-changed]
@@ -100,10 +109,13 @@ toolbar hidden, Escape then Tab uses the browser's normal focus order instead
 of targeting a hidden toolbar button.
 
 Hosts can restyle the editor without reaching into its shadow root. Set
-`--boe-code-background`, `--boe-code-foreground`, `--boe-code-gutter`,
+`--boe-code-background`, `--boe-code-foreground`,
+`--boe-code-gutter-background`, `--boe-code-gutter`,
 `--boe-code-gutter-active`, `--boe-code-gutter-border`, `--boe-code-caret`,
 `--boe-code-selection`, `--boe-code-font-family`, `--boe-code-font-size`, and
-`--boe-code-line-height` on the element. Syntax roles have separate variables:
+`--boe-code-line-height` on the element. The gutter background defaults to
+`--boe-code-background` unless `--boe-code-gutter-background` is set explicitly.
+Syntax roles have separate variables:
 `--boe-code-control`, `--boe-code-keyword`, `--boe-code-function`,
 `--boe-code-type`, `--boe-code-property`, `--boe-code-variable`,
 `--boe-code-string`, `--boe-code-number`, `--boe-code-comment`, and
