@@ -15,6 +15,14 @@ are kept as written.
 
 ## Unreleased
 
+## 0.28.6 — 2026-10-09
+
+- Add an interactive, wizard-native chevron path above a full-width Form Wizard
+  panel. Step clicks and keyboard navigation honor validation; completed,
+  visited, optional, and failed states remain distinct. The desktop path has
+  compact 28px stages, while phones use the compact step control (#383; #390).
+- Keep the React, Angular, Vue, and Svelte adapters in lockstep at 0.28.6.
+
 ## 0.28.5 — 2026-10-09
 
 - Refine Process Modeler reference parity with a contextual N-key chooser,
