@@ -7,6 +7,9 @@ export interface WizardStepConfig {
   optional?: boolean;
 }
 
+/** Host-supplied visual status for a step, independent of its position. */
+export type WizardStepStatus = "complete" | "visited" | "failed";
+
 /** Result of validating one step against the current values. */
 export interface WizardStepValidation {
   valid: boolean;

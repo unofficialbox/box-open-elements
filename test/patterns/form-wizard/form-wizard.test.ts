@@ -131,6 +131,101 @@ describe("box-form-wizard", () => {
     expect((element.shadowRoot?.querySelector('[part="error"]') as HTMLElement).textContent).toBe("Blocked.");
   });
 
+  it("renders a full-width path with independent states and accessible step details", async () => {
+    const element = await mountWizard(el => {
+      el.stepsLayout = "path";
+      el.steps = [
+        { id: "details", label: "Details", description: "For a live run" },
+        { id: "terms", label: "Terms", optional: true },
+        { id: "review", label: "Review" },
+      ];
+      el.stepStatuses = { terms: "complete", review: "visited" };
+    });
+
+    const layout = element.shadowRoot?.querySelector<HTMLElement>('[part="layout"]');
+    const path = element.shadowRoot?.querySelector<HTMLElement>('[part="path"]');
+    const buttons = path?.querySelectorAll<HTMLButtonElement>('[part="path-step"]');
+    expect(layout?.dataset.stepsLayout).toBe("path");
+    expect(buttons).toHaveLength(3);
+    expect(buttons?.[0]?.getAttribute("aria-current")).toBe("step");
+    expect(buttons?.[0]?.getAttribute("aria-describedby")).toBe("wizard-path-description-0");
+    expect(path?.querySelector("#wizard-path-description-0")?.textContent).toBe("For a live run");
+    expect(buttons?.[1]?.dataset.state).toBe("complete");
+    expect(buttons?.[1]?.textContent).toContain("Optional");
+    expect(buttons?.[2]?.dataset.state).toBe("visited");
+    expect(buttons?.[2]?.querySelector('[part="path-state"]')?.textContent).toBe("Visited");
+    const styles = element.shadowRoot?.querySelector("style")?.textContent;
+    expect(styles).toContain("min-height: 1.75rem;");
+    expect(styles).toContain("padding: 0.45em 1.35rem;");
+    expect(element.shadowRoot?.querySelector("style")?.textContent).toContain(
+      '[part="layout"][data-steps-layout="path"] [part="path-nav"] { display: none; }',
+    );
+  });
+
+  it("gates path clicks, reports errors, and keeps completed stages after going back", async () => {
+    const element = await mountWizard(el => {
+      el.stepsLayout = "path";
+      el.validators = { details: values => values.name
+        ? { valid: true }
+        : { valid: false, message: "Name is required." } };
+    });
+    const pathButton = (stepId: string): HTMLButtonElement =>
+      element.shadowRoot?.querySelector<HTMLButtonElement>(`[part="path-step"][data-step-id="${stepId}"]`)!;
+
+    pathButton("review").click();
+    await flush();
+    expect(visiblePanelId(element)).toBe("details");
+    expect(pathButton("details").dataset.state).toBe("failed");
+    expect(pathButton("details").getAttribute("aria-invalid")).toBe("true");
+    expect(pathButton("details").getAttribute("aria-current")).toBe("step");
+    expect((element.shadowRoot?.querySelector('[part="error"]') as HTMLElement).textContent).toBe("Name is required.");
+
+    element.setValue("name", "Acme");
+    pathButton("review").click();
+    await flush();
+    expect(visiblePanelId(element)).toBe("review");
+    pathButton("details").click();
+    await flush();
+    expect(pathButton("terms").dataset.state).toBe("complete");
+    expect(pathButton("review").dataset.state).toBe("visited");
+    expect(pathButton("details").tabIndex).toBe(0);
+  });
+
+  it("uses rail-style arrow and Home/End navigation in the path", async () => {
+    const element = await mountWizard(el => { el.stepsLayout = "path"; });
+    const pathButton = (stepId: string): HTMLButtonElement =>
+      element.shadowRoot?.querySelector<HTMLButtonElement>(`[part="path-step"][data-step-id="${stepId}"]`)!;
+    pathButton("details").dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true }));
+    await flush();
+    expect(visiblePanelId(element)).toBe("review");
+    expect(pathButton("review").getAttribute("aria-current")).toBe("step");
+
+    pathButton("review").dispatchEvent(new KeyboardEvent("keydown", { key: "Home", bubbles: true }));
+    await flush();
+    expect(visiblePanelId(element)).toBe("details");
+    pathButton("details").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    await flush();
+    expect(visiblePanelId(element)).toBe("terms");
+  });
+
+  it("updates display overrides without replacing the wizard session or its validation gates", async () => {
+    const element = await mountWizard(el => {
+      el.stepsLayout = "path";
+      el.validators = { details: () => ({ valid: false, message: "Still required." }) };
+    });
+    const controller = element.wizardController;
+    element.stepStatuses = { terms: "complete", review: "failed" };
+    expect(element.wizardController).toBe(controller);
+    expect(element.shadowRoot?.querySelector('[data-step-id="terms"]')?.getAttribute("data-state")).toBe("complete");
+    expect(element.shadowRoot?.querySelector('[data-step-id="review"]')?.getAttribute("aria-invalid")).toBe("true");
+
+    element.shadowRoot?.querySelector<HTMLButtonElement>('[part="path-step"][data-step-id="review"]')?.click();
+    await flush();
+    expect(visiblePanelId(element)).toBe("details");
+    expect(element.wizardController).toBe(controller);
+    expect(element.stepStatuses).toEqual({ terms: "complete", review: "failed" });
+  });
+
   it("preserves completed and visited rail states when navigating backward", async () => {
     const element = await mountWizard();
     element.goTo("review");
@@ -221,6 +316,11 @@ describe("box-form-wizard", () => {
     document.body.append(element);
     await flush();
 
+    expect(element.steps).toEqual([]);
+    expect(element.wizardController).toBeNull();
+
+    element.setAttribute("steps", '[{"id":"valid","label":"Valid","description":42}]');
+    await flush();
     expect(element.steps).toEqual([]);
     expect(element.wizardController).toBeNull();
   });
