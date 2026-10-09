@@ -28,7 +28,7 @@
 | #323 Lines and ports | Orthogonal routes, labels, connect/insert/reattach, hand routing | Host accepts every request; pointer and keyboard route comparison |
 | #324 Building-block list | Grouped searchable catalog, drag ghost, line/frame insert, mobile drawer. This branch restores the visible desktop "Add to the process" heading without duplicating its mobile drawer title. | Host catalog, icons, aliases, and all three add paths |
 | #325 Details panel | Tabs, controlled fields, actions, expressions, connections, run metrics. This branch restores the process/selection heading in `embed-mode` to match the reference inspector. | Every Riptide kind and field mapped, validated, and read back |
-| #326 Read-back, Checks, hold | Host validation gate, Checks and hold banner. This branch also detaches the last-readable graph and emits a readable event for every new document version, even when visible labels are unchanged. | Host conversion and last-valid-envelope behavior on invalid graphs |
+| #326 Read-back, Checks, hold | Host validation gate, Checks and hold banner. PR #385 detaches the last-readable graph and emits a readable event for every new document version, even when visible labels are unchanged. The follow-up branch places the hold in its own row above the canvas so it cannot cover repair targets. | Host conversion and last-valid-envelope behavior on invalid graphs |
 | #327 Views and last run | Business/technical display and optional metrics. This branch matches the pinned toolbar's visual Last run switch, Checks status, and Undo/Redo/Tidy order. | Real run label, step numbers, line shares, and responsive View behavior |
 | #328 Selection and arranging | Toolbar, multi-select, copy/duplicate, align/distribute. This branch makes "Tidy these" arrange the selected graph, including selected frames, rather than merely distributing boxes horizontally. | Accepted host edits, undo/redo, and branching-process interaction |
 | #329 Keyboard and accessibility | Focusable boxes, named lines, shortcuts, announcements, reduced motion. This branch makes N open a contextual non-modal chooser beside the selected box, with search focus, insertion-on-line semantics, and focus return on Escape. | Four-view axe, keyboard, screen-reader, contrast, and focus acceptance in Riptide; compare other chooser entry points |
@@ -71,7 +71,7 @@ parity claim. This is **not** the complete interaction-by-interaction audit.
 | #327 Last run and toolbar | Before this branch, Box rendered the Last run checkbox without switch styling, omitted the toolbar Checks state, and placed Tidy before Undo/Redo. The pinned design renders a visual switch, Checks status, then Undo/Redo/Tidy. | Repaired in this branch. Retest switch appearance and status in all four rendered views, including a finished-run fixture; metrics and line shares remain unproved. |
 | #322 Event captions | Box CSS renders an event's secondary description below Start/Finish (`[data-shape=event] > small`). The old 0.26 comparison reported a collision, but the pinned source conditionally renders Start's purpose below its caption too. This is **not yet a confirmed parity defect**. | Compare the same Start data and viewport side by side before changing visibility, spacing, or accessible detail. |
 | #323 Canvas drags and lines | Box still cancels a port drag released on empty canvas; the pinned design opens a chooser there. The previous same-process comparison also reported line-drop overlap and elbowed straight-row routes. | Reproduce all three on the current build, document exact traces, and seek Kyle's agreement before changing drag/line response. |
-| #326 Hold placement | Box appends an absolutely positioned hold banner inside the canvas. The pinned design presents the warning above the drawing; an earlier comparison found blocked step clicks. | Reproduce an invalid graph at both widths and confirm hit targets before moving the banner. |
+| #326 Hold placement | Reproduced the absolute banner inside the canvas: at 390px its warning card was 205.5px tall and could intercept canvas hit targets. The follow-up branch moves it to a row above the canvas, preserving total component height; at 390px the row is 96px and the canvas begins at its bottom edge. | Retest in light/dark and verify host read-back behavior; do not close before Riptide acceptance. |
 
 Already-repaired items must be retested, not reimplemented from old comments:
 the grid follows pan/zoom, Checks has a “Ready to run” empty state, the
@@ -155,6 +155,15 @@ read-back, positions, line insertion, run numbers, keyboard, axe, and mobile.
   gallery and 68/68 docs baselines. BUE conformance reported 0 drift, and
   `git diff --check` found no whitespace errors. These baselines still do not
   include a Process Modeler fixture.
+- After #385 merged, the #326 follow-up moved the hold banner out of the
+  canvas. In a 390px Chromium preview its bottom and the canvas top were both
+  y=151.5; at 1440px they were both y=104.7. A step remained clickable while
+  validation held, and no page errors occurred. The focused interaction suite
+  passed 52 tests. Full `bun run verify` passed 261 files and 2444 tests with
+  88.62% statement coverage; pinned pixel baselines passed 14/14 gallery and
+  68/68 docs, and BUE conformance reported 0 drift. The pixel baselines do not
+  include the Process Modeler. This is library preview evidence, not host
+  read-back proof.
 
 ## Safety and provenance
 
