@@ -79,7 +79,7 @@ See [resource row](./resource-row.md) for the selection/action contract.
 - `help-text` — **built**
 - `indicator` — **built** (distinct in shape as well as colour, for dense status columns)
 - `mode-indicator` — **built** (dry/live run destination with optional activation)
-- `verdict-banner` — **built** (finished outcome, reasons and one next action)
+- `verdict-banner` — **built** (finished outcome, reasons, optional second action and host-controlled announcement)
 
 See [run outcome surfaces](./run-outcome.md) for verdict and mode usage.
 - `nudge` — **built**
