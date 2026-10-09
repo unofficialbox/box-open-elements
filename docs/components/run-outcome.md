@@ -3,9 +3,22 @@
 `box-verdict-banner` communicates a finished run's outcome. Use `tone="passed"`,
 `"missed"` or `"none"`; colour is paired with a glyph and an explicit heading.
 Set `heading-level` (1–6) to fit the host page outline. `reasons` is a string
-array property; plain text is used, never HTML. One `action` slot holds the
-primary next action. A passed/missed heading is announced politely once when
-the banner first appears; subsequent rerenders do not repeat it.
+array property; plain text is used, never HTML. The `action` slot holds the
+primary next action; `secondary-action` holds an optional quieter action. The
+actions wrap below the outcome when they would leave its text too narrow. Use
+`size="large"` for a more prominent heading without changing its semantic
+`heading-level`. A passed/missed heading is announced politely once when the
+banner first appears; subsequent rerenders do not repeat it. If the host
+already announces the outcome, set `announce="off"` before connecting the
+banner to avoid duplicate speech.
+
+```html
+<box-verdict-banner tone="passed" heading="Passed: both targets met"
+  heading-level="3" size="large" announce="off">
+  <box-button slot="action" label="Go live" tone="primary"></box-button>
+  <box-button slot="secondary-action" label="Change the load" tone="text"></box-button>
+</box-verdict-banner>
+```
 
 ```ts
 import { VerdictBanner } from "@unofficialbox/box-open-elements/verdict-banner";
