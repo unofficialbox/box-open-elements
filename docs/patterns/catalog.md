@@ -158,7 +158,22 @@ wizard owns the choreography:
 
 - `types` (`WizardStepConfig` — a step id doubles as its slot name, `WizardStepValidator` gate contract with message + field errors) — **built**
 - `controller` (`FormWizardController`: value store, forward-gating validation — backward navigation and visited-step jumps never re-validate, optional steps skip gates, `saveDraft` never validates, `submit` validates all required steps and navigates to the first failure) — **built**
-- composed surface: `box-form-wizard` (composes `box-progress-steps` as the rail with gated step jumps, slot-per-step panels, `role="alert"` step errors, Back/Next/Submit footer with an opt-in Save-draft button) — **built**. The rail retains `Complete` for steps passed on the way forward and `Visited` for the furthest unvalidated step when the user goes back; only never-reached steps say `Not started`.
+- composed surface: `box-form-wizard` (vertical `box-progress-steps` rail by default, or `steps-layout="path"` for a full-width chevron path above the panel; both use the same gated step jumps, slot-per-step panels, `role="alert"` errors, and Back/Next/Submit footer with optional Save draft) — **built**. On phones, the path layout uses the rail's compact “Step n of m · Show steps” control instead of wrapping chevrons. Reached steps retain `Complete` or `Visited` when navigating backward; `stepStatuses` can override individual display states without bypassing validation. Descriptions are accessible on path buttons, and optional steps are labelled.
+
+```ts
+wizard.stepsLayout = "path";
+wizard.stepStatuses = { "box-app": "complete", settings: "visited" };
+// Step selection still calls wizard.goTo(id), including its validators.
+```
+
+```mermaid
+flowchart LR
+  Path[Chevron step button] --> GoTo[FormWizardController.goTo]
+  Rail[Compact phone step] --> GoTo
+  GoTo --> Gate[Validate forward steps]
+  Gate -->|Pass| Panel[Show selected panel]
+  Gate -->|Fail| Error[Keep failing panel and announce error]
+```
 
 ### Timeline (composition)
 

@@ -3,8 +3,9 @@ import type {
   WizardEvents,
   WizardStepConfig,
   WizardStepValidator,
+  WizardStepStatus,
 } from "./types.js";
-import { ProgressSteps } from "../../components/feedback/progress-steps.js";
+import { ProgressSteps, STEP_STATE_LABEL, type ProgressStepItem } from "../../components/feedback/progress-steps.js";
 import { BaseElement } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
@@ -26,7 +27,12 @@ const isWizardStepRecord = (value: unknown): value is WizardStepConfig => {
   }
 
   const step = value as Record<string, unknown>;
-  return typeof step.id === "string" && step.id.length > 0 && typeof step.label === "string";
+  return (
+    typeof step.id === "string" && step.id.length > 0 &&
+    typeof step.label === "string" && step.label.length > 0 &&
+    (step.description === undefined || typeof step.description === "string") &&
+    (step.optional === undefined || typeof step.optional === "boolean")
+  );
 };
 
 
@@ -67,10 +73,111 @@ const elementStyles = `
           align-items: start;
         }
 
+        [part="body"] { min-width: 0; }
+
+        [part="path-nav"] { display: none; min-width: 0; }
+        [part="layout"][data-steps-layout="path"] { grid-template-columns: minmax(0, 1fr); }
+        [part="layout"][data-steps-layout="path"] [part="path-nav"] { display: block; }
+        [part="layout"][data-steps-layout="path"] [part="rail"] { display: none; }
+
+        [part="path"] {
+          display: flex;
+          align-items: stretch;
+          min-width: 0;
+          overflow-x: auto;
+          margin: 0;
+          padding: 3px;
+          list-style: none;
+        }
+
+        [part="path-item"] { flex: 1 0 6rem; min-width: 0; }
+        [part="path-item"]:not(:last-child) { margin-inline-end: -0.55rem; }
+        [part="path-step"] {
+          appearance: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.35rem;
+          width: 100%;
+          min-height: 2.75rem;
+          padding: 0.5rem 1.35rem;
+          border: 0;
+          background: var(--boe-token-surface-surface-hover, #f4f4f4);
+          color: var(--boe-token-text-text, #222222);
+          font: inherit;
+          font-size: 0.82rem;
+          font-weight: 600;
+          line-height: 1.2;
+          cursor: pointer;
+          clip-path: polygon(0 0, calc(100% - 0.7rem) 0, 100% 50%, calc(100% - 0.7rem) 100%, 0 100%, 0.7rem 50%);
+          transition: background ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
+        }
+
+        [part="path-item"]:first-child [part="path-step"] {
+          clip-path: polygon(0 0, calc(100% - 0.7rem) 0, 100% 50%, calc(100% - 0.7rem) 100%, 0 100%);
+          border-start-start-radius: 999px;
+          border-end-start-radius: 999px;
+        }
+
+        [part="path-item"]:last-child [part="path-step"] {
+          clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0.7rem 50%);
+          border-start-end-radius: 999px;
+          border-end-end-radius: 999px;
+        }
+
+        [part="path-item"]:only-child [part="path-step"] { clip-path: none; border-radius: 999px; }
+        [part="path-step"]:hover { background: var(--boe-token-surface-item-surface-selected, #f2f7fd); }
+        [part="path-step"]:focus-visible {
+          outline: 3px solid var(--boe-token-surface-surface-brand, #0061d5);
+          outline-offset: -3px;
+        }
+        [part="path-step"][data-state="complete"] {
+          background: var(--boe-token-surface-item-surface-selected, #f2f7fd);
+          color: var(--boe-token-text-text, #222222);
+        }
+        [part="path-step"][data-state="visited"] {
+          background: var(--boe-token-surface-surface-secondary, #fbfbfb);
+          color: var(--boe-token-text-text, #222222);
+        }
+        [part="path-step"][data-current="true"] {
+          background: var(--boe-token-surface-surface-brand, #0061d5);
+          color: var(--boe-token-text-text-on-brand, #ffffff);
+          font-weight: 700;
+        }
+        [part="path-step"][data-state="failed"] {
+          box-shadow: inset 0 0 0 2px var(--boe-token-surface-status-surface-error, #ed3757);
+        }
+        [part="path-step"][data-state="failed"][data-current="true"] {
+          background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 18%, var(--boe-token-surface-surface, #ffffff));
+          color: var(--boe-token-text-text, #222222);
+        }
+        [part="path-marker"] { font-weight: 700; }
+        [part="path-optional"] { font-size: 0.7rem; font-weight: 400; }
+        .boe-sr-only {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          margin: -1px;
+          padding: 0;
+          border: 0;
+          clip: rect(0, 0, 0, 0);
+          overflow: hidden;
+          white-space: nowrap;
+        }
+
         @media (max-width: 720px) {
           [part="layout"] {
             grid-template-columns: 1fr;
           }
+        }
+
+        @media (max-width: 600px) {
+          [part="layout"][data-steps-layout="path"] [part="path-nav"] { display: none; }
+          [part="layout"][data-steps-layout="path"] [part="rail"] { display: block; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          [part="path-step"] { transition: none; }
         }
 
         [part="panels"] {
@@ -171,7 +278,7 @@ const elementStyles = `
 export class FormWizard extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["draft-label", "heading", "steps", "submit-label"];
+    return ["draft-label", "heading", "steps", "steps-layout", "submit-label"];
   }
 
   private controller: FormWizardController | null = null;
@@ -187,6 +294,14 @@ export class FormWizard extends BaseElement {
   private titleEl!: HTMLElement;
 
   private railEl!: ProgressSteps;
+
+  private layoutEl!: HTMLElement;
+
+  private pathEl!: HTMLOListElement;
+
+  private pathSignature = "";
+
+  private stepStatusesValue: Record<string, WizardStepStatus> = {};
 
   private panelsEl!: HTMLElement;
 
@@ -246,6 +361,28 @@ export class FormWizard extends BaseElement {
 
   get submitLabel(): string {
     return this.getAttribute("submit-label") ?? "Submit";
+  }
+
+  /** `rail` (default) or a full-width chevron path above the panel. */
+  get stepsLayout(): "rail" | "path" {
+    return this.getAttribute("steps-layout") === "path" ? "path" : "rail";
+  }
+
+  set stepsLayout(value: "rail" | "path") {
+    this.setAttribute("steps-layout", value);
+  }
+
+  /** Optional host status overrides, keyed by step id; they do not bypass validation. */
+  get stepStatuses(): Record<string, WizardStepStatus> {
+    return { ...this.stepStatusesValue };
+  }
+
+  set stepStatuses(value: Record<string, WizardStepStatus>) {
+    this.stepStatusesValue = Object.fromEntries(
+      Object.entries(value).filter(([, status]) =>
+        status === "complete" || status === "visited" || status === "failed"),
+    );
+    if (this.isRendered) this.update();
   }
 
   set submitLabel(value: string) {
@@ -424,6 +561,7 @@ export class FormWizard extends BaseElement {
     this.controller?.destroy();
     this.controller = null;
     this.panelsSignature = "";
+    this.pathSignature = "";
   }
 
   protected renderTemplate(): void {
@@ -436,6 +574,7 @@ export class FormWizard extends BaseElement {
       <section part="wizard" aria-label="Form wizard">
         <h2 id="wizard-title" part="title" hidden></h2>
         <div part="layout">
+          <nav part="path-nav" aria-label="Wizard steps"><ol part="path"></ol></nav>
           <box-progress-steps part="rail"></box-progress-steps>
           <div part="body">
             <p part="error" role="alert" hidden></p>
@@ -452,6 +591,8 @@ export class FormWizard extends BaseElement {
       </section>
     `;
     this.titleEl = this.shadowRoot.querySelector('[part="title"]')!;
+    this.layoutEl = this.shadowRoot.querySelector('[part="layout"]')!;
+    this.pathEl = this.shadowRoot.querySelector('[part="path"]')!;
     this.railEl = this.shadowRoot.querySelector('[part="rail"]') as ProgressSteps;
     this.railEl.compact = true;
     this.panelsEl = this.shadowRoot.querySelector('[part="panels"]')!;
@@ -493,6 +634,70 @@ export class FormWizard extends BaseElement {
         }
       }
     });
+
+    this.pathEl.addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[part="path-step"]');
+      if (button && this.pathEl.contains(button)) this.selectPathStep(button.dataset.stepId ?? "");
+    });
+    this.pathEl.addEventListener("keydown", event => this.handlePathKeydown(event));
+  }
+
+  private selectPathStep(stepId: string): void {
+    if (stepId && stepId !== this.activeStep) this.goTo(stepId);
+  }
+
+  private handlePathKeydown(event: KeyboardEvent): void {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[part="path-step"]');
+    if (!button || !this.pathEl.contains(button)) return;
+    const buttons = Array.from(this.pathEl.querySelectorAll<HTMLButtonElement>('[part="path-step"]'));
+    const index = buttons.indexOf(button);
+    let next = index;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (index + 1) % buttons.length;
+    else if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = (index - 1 + buttons.length) % buttons.length;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = buttons.length - 1;
+    else return;
+    event.preventDefault();
+    const target = buttons[next];
+    if (!target) return;
+    this.selectPathStep(target.dataset.stepId ?? "");
+    queueMicrotask(() => this.pathEl.querySelectorAll<HTMLButtonElement>('[part="path-step"]')[next]?.focus());
+  }
+
+  private updatePath(steps: WizardStepConfig[], items: ProgressStepItem[], currentStepId: string): void {
+    const signature = JSON.stringify(steps);
+    if (signature !== this.pathSignature) {
+      this.pathSignature = signature;
+      this.pathEl.innerHTML = steps.map((step, index) => `
+        <li part="path-item">
+          <button type="button" part="path-step" data-step-id="${escapeHtml(step.id)}">
+            <span part="path-marker" aria-hidden="true"></span>
+            <span part="path-label">${escapeHtml(step.label)}</span>
+            ${step.optional ? '<span part="path-optional">Optional</span>' : ""}
+            <span part="path-state" class="boe-sr-only"></span>
+          </button>
+          ${step.description ? `<span id="wizard-path-description-${index}" class="boe-sr-only">${escapeHtml(step.description)}</span>` : ""}
+        </li>`).join("");
+    }
+
+    const buttons = this.pathEl.querySelectorAll<HTMLButtonElement>('[part="path-step"]');
+    buttons.forEach((button, index) => {
+      const step = steps[index];
+      const item = items[index];
+      if (!step || !item) return;
+      const isCurrent = step.id === currentStepId;
+      const state = item.status ?? (isCurrent ? "current" : index < steps.findIndex(entry => entry.id === currentStepId) ? "complete" : "upcoming");
+      button.dataset.state = state;
+      button.dataset.current = String(isCurrent);
+      button.tabIndex = isCurrent ? 0 : -1;
+      button.setAttribute("aria-current", isCurrent ? "step" : "false");
+      if (state === "failed") button.setAttribute("aria-invalid", "true");
+      else button.removeAttribute("aria-invalid");
+      const description = button.parentElement?.querySelector<HTMLElement>(`#wizard-path-description-${index}`);
+      if (description) button.setAttribute("aria-describedby", description.id);
+      button.querySelector<HTMLElement>('[part="path-state"]')!.textContent = STEP_STATE_LABEL[state];
+      button.querySelector<HTMLElement>('[part="path-marker"]')!.textContent = state === "complete" ? "✓" : state === "failed" ? "!" : "";
+    });
   }
 
   /** One panel per step, fed by a slot named after the step id. */
@@ -515,6 +720,7 @@ export class FormWizard extends BaseElement {
 
     const state = this.controller?.getState() ?? null;
     const steps = state?.steps ?? [];
+    this.layoutEl.dataset.stepsLayout = this.stepsLayout;
 
     this.titleEl.hidden = !this.heading;
     this.titleEl.textContent = this.heading;
@@ -540,11 +746,14 @@ export class FormWizard extends BaseElement {
         -1,
         ...steps.map((step, index) => state?.visitedStepIds.includes(step.id) ? index : -1),
       );
-      this.railEl.items = steps.map((step, index) => {
+      const items: ProgressStepItem[] = steps.map((step, index) => {
         const visited = state?.visitedStepIds.includes(step.id) ?? false;
-        const status = visited && step.id !== state?.currentStepId
+        const derivedStatus = visited && step.id !== state?.currentStepId
           ? (index < furthestVisitedIndex || step.optional || state?.submitted ? "complete" : "visited")
           : undefined;
+        const status = (step.id === state?.currentStepId && state.stepError ? "failed" : undefined)
+          ?? this.stepStatusesValue[step.id]
+          ?? derivedStatus;
         return {
           label: step.label,
           value: step.id,
@@ -552,9 +761,11 @@ export class FormWizard extends BaseElement {
           ...(status ? { status } : {}),
         };
       });
+      this.railEl.items = items;
       if (state && this.railEl.value !== state.currentStepId) {
         this.railEl.value = state.currentStepId;
       }
+      this.updatePath(steps, items, state?.currentStepId ?? "");
     } finally {
       this.suppressRailEvent = false;
     }

@@ -983,6 +983,42 @@ export const examples: Record<string, ComponentExample> = {
       set(root, "box-form-wizard", { steps: clmIntakeSteps });
     },
     note: "A step's id doubles as the slot name feeding its panel. `FormWizardController` gates Next behind per-step validators; Save draft skips validation; `submitted` fires with the value store. Try advancing to Review, then going Back twice: previously passed steps stay Complete, while the furthest reached step says Visited rather than Not started.",
+    variants: [
+      {
+        name: "Vertical rail",
+        html: `<box-form-wizard heading="Contract intake" submit-label="Submit request">
+  <div slot="parties"><box-text-field label="Counterparty" value="Acme Corp"></box-text-field></div>
+  <div slot="terms"><box-text-field label="Contract value" value="$250,000"></box-text-field></div>
+  <div slot="review"><p>Review the request, then submit for legal triage.</p></div>
+</box-form-wizard>`,
+        setup: root => { set(root, "box-form-wizard", { steps: clmIntakeSteps }); },
+        note: "Default vertical rail. Back and visited-step jumps do not re-validate; forward jumps use the same gates as Next.",
+      },
+      {
+        name: "Chevron path",
+        html: `<box-form-wizard heading="Setup" steps-layout="path" submit-label="Start">
+  <p slot="steps">Choose the steps for this run.</p>
+  <p slot="load">Choose how to load content.</p>
+  <p slot="box-app">Connect a Box app.</p>
+  <p slot="targets">Choose target folders.</p>
+  <p slot="settings">Review run settings.</p>
+  <p slot="start">Ready to start.</p>
+</box-form-wizard>`,
+        setup: root => {
+          set(root, "box-form-wizard", {
+            steps: [
+              { id: "steps", label: "Steps" },
+              { id: "load", label: "Load", description: "For a live run" },
+              { id: "box-app", label: "Box app" },
+              { id: "targets", label: "Targets" },
+              { id: "settings", label: "Settings", optional: true },
+              { id: "start", label: "Start" },
+            ],
+          });
+        },
+        note: "A wizard-native chevron path leaves the form panel full width. Stages are buttons that use the wizard's validation gates; descriptions remain available to assistive technology. On phones the path becomes the compact ‘Step n of 6 · Show steps’ control.",
+      },
+    ],
   },
   "wizard-summary": {
     html: `<box-wizard-summary heading="Review your answers"></box-wizard-summary>`,
