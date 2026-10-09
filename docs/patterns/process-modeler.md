@@ -106,7 +106,8 @@ canvas.addEventListener("readable-projection-changed", event => {
   null before a document loads or while Checks are present; `lastReadable`
   stays available to the host during a hold. No projection or readable event
   fires for the unloaded empty component.
-  A hold banner on the canvas links to Checks. `readable-projection-changed`
+  A hold banner in its own row above the canvas links to Checks without
+  covering steps that need repair. `readable-projection-changed`
   only emits a version when it passes validation. A new document assignment
   emits a new readable version even when its visible labels are unchanged;
   refreshes of the same document do not. The event and `readback` detach box,

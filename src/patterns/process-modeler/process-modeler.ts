@@ -569,6 +569,9 @@ export class ProcessModeler<
   }
   protected renderTemplate(): void {
     this.shadowRoot!.innerHTML = `<style>${processModelerDesign}</style><div part="toolbar" role="toolbar" aria-label="Diagram controls"><button data-command="zoom-out">Zoom out</button><button data-command="reset">100%</button><button data-command="zoom-in">Zoom in</button><button data-command="fit">Fit the whole process</button><button data-command="checks-status" type="button">Checks</button><button data-command="undo">Undo</button><button data-command="redo">Redo</button><button data-command="tidy">Tidy up</button><button data-command="snap" aria-pressed="false">Snap to grid</button><button data-command="lock" aria-pressed="false">Lock diagram</button></div><div part="layout"><div part="canvas" tabindex="0" role="region" aria-label="Process diagram" aria-describedby="process-help"><div part="world"></div><svg part="minimap" role="img" aria-label="Diagram overview. Click to jump"></svg></div><div part="inspector" role="region" aria-label="Process details"><div part="palette"><label>Find a building block<input type="search" part="search"></label><div part="choices"></div></div><div part="editor"></div><div part="checks" role="region" aria-label="Checks"></div></div></div><p part="help" id="process-help">Tab moves between steps. Alt plus an arrow selects the next step that way. Arrows move the selected step; Shift moves it four grid squares. N opens the building-block chooser. Enter edits. Delete removes. Shift plus 1 fits the process. Drag the background to pan; pinch or use the controls to zoom. Escape cancels connecting.</p><div part="status" role="status" aria-live="polite"></div><div part="urgent-status" role="alert" aria-live="assertive"></div>`;
+    const canvas = this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!;
+    const canvasStack = document.createElement('div'); canvasStack.setAttribute('part', 'canvas-stack');
+    canvas.before(canvasStack); canvasStack.append(canvas);
     const chooser = document.createElement("dialog"); chooser.setAttribute("part", "insert-chooser"); chooser.setAttribute("aria-label", "Insert a building block");
     const picker = new KindPicker();
     picker.variant = "menu"; picker.searchable = true; chooser.append(picker); this.shadowRoot!.append(chooser);
@@ -679,7 +682,7 @@ export class ProcessModeler<
     const holdText = document.createElement('span'); holdText.setAttribute('part', 'hold-text');
     const showChecks = document.createElement('button'); showChecks.type = 'button'; showChecks.textContent = 'Show checks';
     showChecks.onclick = () => { this.select(null); this.activePane = 'Checks'; this.renderPane(); if (this.narrowValue) this.openDrawer('inspector'); root.querySelector<HTMLButtonElement>('#process-tab-checks')?.focus(); };
-    hold.append(holdText, showChecks); canvas.append(hold);
+    hold.append(holdText, showChecks); canvas.before(hold);
     const controls = document.createElement("div"); controls.setAttribute("part", "controls"); controls.setAttribute("role", "toolbar"); controls.setAttribute("aria-label", "Canvas view controls");
     for (const command of ["zoom-out", "reset", "zoom-in", "fit", "snap", "lock"]) {
       const button = root.querySelector<HTMLButtonElement>(`[data-command=${command}]`);

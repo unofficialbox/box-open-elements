@@ -67,7 +67,12 @@ describe("Process Modeler prototype interactions", () => {
     builder.setValidation([{ boxId: 'a', message: 'Fix this path' }]);
     expect(builder.readback.current).toBeNull();
     expect(builder.readback.lastReadable).not.toBeNull();
-    expect(root.querySelector('[part=hold]')!.hasAttribute('hidden')).toBe(false);
+    const hold = root.querySelector<HTMLElement>('[part=hold]')!;
+    const canvas = root.querySelector<HTMLElement>('[part=canvas]')!;
+    expect(hold.hasAttribute('hidden')).toBe(false);
+    expect(hold.parentElement?.getAttribute('part')).toBe('canvas-stack');
+    expect(hold.nextElementSibling).toBe(canvas);
+    expect(canvas.contains(hold)).toBe(false);
     root.querySelector<HTMLButtonElement>('[part=hold] button')!.click();
     expect(root.querySelector<HTMLButtonElement>('#process-tab-checks')!.getAttribute('aria-selected')).toBe('true');
   });
