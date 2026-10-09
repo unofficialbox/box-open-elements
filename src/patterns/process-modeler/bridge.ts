@@ -8,6 +8,17 @@ import type {
   ProcessProjection,
 } from "./model.js";
 
+/** Detach graph presentation data without cloning the host-owned node payload. */
+export function snapshotProcessProjection<N>(projection: ProcessProjection<N>): ProcessProjection<N> {
+  return {
+    boxes: projection.boxes.map(box => ({ ...box, ...(box.path ? { path: [...box.path] } : {}) })),
+    lines: projection.lines.map(line => ({
+      ...line,
+      ...(line.points ? { points: line.points.map(point => ({ ...point })) } : {}),
+    })),
+  };
+}
+
 const validPosition = (position: BoxPosition): boolean =>
   Number.isFinite(position.x) && Number.isFinite(position.y) &&
   (position.width === undefined || (Number.isFinite(position.width) && position.width > 0)) &&

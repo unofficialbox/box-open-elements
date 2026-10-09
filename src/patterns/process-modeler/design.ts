@@ -8,6 +8,8 @@ export const processModelerDesign = `
   :is(button,input,textarea,select,[part=canvas],[part=minimap],[part=box],[part=frame]):focus-visible { outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5); outline-offset: 2px; }
   :host {
     display: block;
+    position: relative;
+    isolation: isolate;
     min-width: 0;
     --boe-process-box-edge: color-mix(in srgb, var(--boe-token-text-text, #141413) 55%, var(--boe-token-surface-surface, #fff));
     color: var(--boe-token-text-text, #141413);
@@ -46,8 +48,14 @@ export const processModelerDesign = `
   [part=view-switch] { display: flex; gap: 2px; padding: 3px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 20px; }
   [part=view-switch] button { border-radius: 16px; }
   [part=view-switch] button[aria-pressed=true] { border-color: var(--boe-token-stroke-stroke, #e8e8e8); background: var(--boe-token-surface-surface, #fff); }
-  [part=run-toggle] { display: flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 13px; font-weight: 600; }
-  [part=run-toggle] input { accent-color: var(--boe-token-surface-surface-brand, #0061d5); }
+  [part=run-toggle] { display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 13px; font-weight: 600; cursor: pointer; }
+  [part=run-toggle] input { appearance: none; position: relative; width: 32px; height: 18px; margin: 0; border: 0; border-radius: 9px; background: var(--boe-token-surface-surface-hover, #f4f4f4); cursor: pointer; transition: background var(--boe-profile-motion-interactive, 200ms) ease-out; }
+  [part=run-toggle] input::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--boe-token-surface-surface, #fff); box-shadow: 0 1px 2px rgb(0 0 0 / .25); transition: transform var(--boe-profile-motion-interactive, 200ms) ease-out; }
+  [part=run-toggle] input:checked { background: var(--boe-token-surface-surface-brand, #0061d5); }
+  [part=run-toggle] input:checked::after { transform: translateX(14px); }
+  [part=run-toggle] input:focus-visible { outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5); outline-offset: 2px; }
+  [part=toolbar] [data-command=checks-status] { white-space: nowrap; color: var(--boe-token-text-text-secondary, #6f6f6f); }
+  [part=toolbar] [data-command=checks-status][data-state=bad] { color: var(--boe-token-text-status-text-error, #b92340); }
   [part=view-menu] { display: none; position: relative; }
   [part=view-menu] summary { list-style: none; padding: 4px 14px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
   [part=view-menu][open] { z-index: 20; }
@@ -62,7 +70,8 @@ export const processModelerDesign = `
     overflow: hidden;
   }
   [part=pane-drawer] { display: contents; color: inherit; }
-  [part=pane-drawer]::backdrop, [part=insert-chooser]::backdrop { background: rgb(0 0 0 / .45); }
+  [part=insert-chooser]::backdrop { background: rgb(0 0 0 / .45); }
+  [part=pane-scrim] { position: absolute; inset: 0; z-index: 30; background: rgb(0 0 0 / .45); }
   [part=pane-title], [part=pane-close], [data-command=palette], [data-command=details] { display: none; }
   [part=palette], [part=inspector] {
     min-width: 0;
@@ -73,6 +82,7 @@ export const processModelerDesign = `
     background: var(--boe-token-surface-surface, #fff);
   }
   [part=palette] { display: flex; flex-direction: column; gap: 12px; border-right: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); }
+  [part=palette-heading] { margin: 0 4px; font-size: 14px; font-weight: 650; line-height: 20px; }
   [part=skip-link] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   [part=skip-link]:focus-visible { position: static; width: auto; height: auto; clip-path: none; }
   [part=inspector] { border-left: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); padding: 16px 0; }
@@ -198,6 +208,8 @@ export const processModelerDesign = `
   [part=guide] { position: absolute; background: var(--boe-token-surface-surface-brand, #0061d5); pointer-events: none; }
   [part=measure] { position: absolute; padding: 4px; background: var(--boe-token-surface-surface, #fff); font-size: 12px; pointer-events: none; }
   [part=insert-chooser] { max-width: calc(100vw - 32px); max-height: 65vh; overflow: auto; padding: 12px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface, #fff); }
+  [part=keyboard-chooser] { position: fixed; inset: auto; width: min(320px, calc(100vw - 24px)); max-height: min(420px, calc(100dvh - 24px)); margin: 0; overflow: auto; padding: 12px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface, #fff); color: var(--boe-token-text-text, #141413); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }
+  [part=chooser-title] { margin: 0 0 10px; font-size: 12px; font-weight: 650; line-height: 1.4; color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=controls] { position: absolute; left: 16px; bottom: 16px; z-index: 10; display: flex; align-items: center; gap: 2px; padding: 4px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }
   [part=controls] [data-command=reset] { min-width: 56px; font-variant-numeric: tabular-nums; }
   [part=minimap] { position: absolute; right: 16px; bottom: 16px; width: 208px; height: 136px; touch-action: none; background: var(--boe-token-surface-surface, #fff); border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }
@@ -207,7 +219,7 @@ export const processModelerDesign = `
   [part=checks] { display: grid; gap: 6px; margin-top: 12px; }
   [part=checks] button { color: var(--boe-token-text-status-text-error, #b92340); }
   [part=process-heading] { display: grid; gap: 2px; padding: 0 16px 12px; }
-  :host([embed-mode]) [part=process-heading], :host([embed-mode]) [part=view-switch], :host([embed-mode]) [part=run-toggle], :host([embed-mode]) [part=view-menu] { display: none; }
+  :host([embed-mode]) [part=view-switch], :host([embed-mode]) [part=run-toggle], :host([embed-mode]) [part=view-menu] { display: none; }
   [part=process-title] { font-size: 15px; line-height: 1.4; }
   [part=process-summary] { color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12.5px; }
   [part=pane-tabs] { display: flex; flex-wrap: nowrap; gap: 4px; margin: 0; padding: 0 16px; border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); overflow-x: auto; }
@@ -269,22 +281,25 @@ export const processModelerDesign = `
   [part=variable-row] input { min-height: 36px; padding: 7px 10px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 8px; background: var(--boe-token-surface-surface, #fff); }
   [part=help] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   :host([data-narrow]) [part=layout] { grid-template-columns: minmax(0,1fr); }
-  :host([data-narrow]) [part=pane-drawer] { display: none; position: fixed; z-index: 40; margin: 0; max-width: none; max-height: none; padding: 0; overflow: auto; border: 0; border-radius: 0; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .24)); }
+  :host([data-narrow]) [part=layout] { overflow: visible; }
+  :host([data-narrow]) [part=pane-drawer] { display: none; position: absolute; z-index: 40; margin: 0; max-width: none; max-height: none; padding: 0; overflow: auto; border: 0; border-radius: 0; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .24)); }
   :host([data-narrow]) [part=pane-drawer][open] { display: block; }
   :host([data-narrow]) [part=pane-title] { display: block; position: absolute; top: 18px; left: 16px; margin: 0; font-size: 14px; font-weight: 650; line-height: 20px; }
   :host([data-narrow]) [part=pane-close], :host([data-narrow]) [data-command=palette], :host([data-narrow]) [data-command=details] { display: inline-block; }
   :host([data-narrow]) [part=pane-close] { position: absolute; top: 12px; right: 12px; z-index: 1; width: 28px; height: 28px; padding: 0; border-radius: 50%; font-size: 16px; font-weight: 600; line-height: 1; }
-  :host([data-narrow]) [part=pane-drawer][data-pane=palette] { left: 0; top: 0; bottom: 0; width: min(320px, 86vw); }
-  :host([data-narrow]) [part=pane-drawer][data-pane=inspector] { left: 0; right: 0; top: auto; bottom: 0; width: 100%; height: min(62vh, 560px); border-radius: 24px 24px 0 0; }
+  :host([data-narrow]) [part=pane-drawer][data-pane=palette] { left: 0; top: 0; bottom: auto; width: min(320px, 86%); height: 100%; max-height: 100%; }
+  :host([data-narrow]) [part=pane-drawer][data-pane=inspector] { left: 0; right: 0; top: auto; bottom: 0; width: 100%; height: min(62%, 560px); border-radius: 24px 24px 0 0; }
   :host([data-narrow]) [part=pane-drawer][data-pane=inspector]::before { content: ''; display: block; width: 36px; height: 4px; margin: 6px auto; border-radius: 2px; background: var(--boe-token-text-text-secondary, #767676); opacity: .55; }
   :host([data-narrow]) [part=palette], :host([data-narrow]) [part=inspector] { height: 100%; }
   :host([data-narrow]) [part=palette] { padding-top: 54px; }
+  :host([data-narrow]) [part=palette-heading] { display: none; }
   :host([data-narrow]) [part=minimap] { display: none; }
   :host([data-narrow]) [part=toolbar] { justify-content: flex-start; }
   :host([data-narrow]) [data-command=palette] { order: -2; }
   :host([data-narrow]) [part=view-menu] { order: -1; }
   :host([data-narrow]) [part=view-switch], :host([data-narrow]) [part=run-toggle] { display: none; }
-  :host([data-narrow]) [part=view-menu] { display: block; }
+  :host([data-narrow]) [data-command=checks-status] { display: none; }
+  :host([data-narrow]:not([embed-mode])) [part=view-menu] { display: block; }
   :host([data-narrow]) [part=controls] { left: 12px; bottom: 12px; }
   :host([data-phone]) [data-command=tidy] { display: none; }
   :host([data-phone]) [data-command=undo], :host([data-phone]) [data-command=redo] { display: none; }

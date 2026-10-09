@@ -22,6 +22,24 @@ function pointer(target: Element, type: string, x: number, y: number, extra = {}
 }
 afterEach(() => document.body.replaceChildren());
 describe("Process Modeler prototype interactions", () => {
+  it("does not publish an empty readable workflow before a host document loads", () => {
+    const builder = new ProcessModeler(); const readable = vi.fn(); const raw = vi.fn();
+    builder.addEventListener("readable-projection-changed", readable);
+    builder.addEventListener("projection-changed", raw);
+    document.body.append(builder);
+    expect(builder.readback.current).toBeNull();
+    expect(readable).not.toHaveBeenCalled(); expect(raw).not.toHaveBeenCalled();
+    builder.document = structuredClone(projection);
+    expect(readable).toHaveBeenCalledTimes(1); expect(raw).toHaveBeenCalledTimes(1);
+    expect(builder.version).toBe(0);
+    builder.document = undefined;
+    expect(builder.readback.current).toBeNull(); expect(builder.readback.lastReadable).toBeNull();
+  });
+  it("names the desktop building-block pane without duplicating the mobile drawer heading", () => {
+    const { root } = fixture();
+    expect(root.querySelector('[part=palette-heading]')?.textContent).toBe("Add to the process");
+    expect(root.querySelector('[part=pane-drawer][data-pane=palette] [part=pane-title]')?.textContent).toBe("Add to the process");
+  });
   it("loads fingerprint positions, selects by nested field path, and versions graph changes", () => {
     const { builder } = fixture(); const changes = vi.fn(); builder.addEventListener("projection-changed", changes);
     builder.load(structuredClone(projection), { version: 7, positions: { '["steps",0]': { fingerprint: "read", position: { x: 100, y: 90 } } }, selectedPath: ["steps", 0, "title"] });
@@ -91,6 +109,26 @@ describe("Process Modeler prototype interactions", () => {
     root.querySelector<HTMLButtonElement>('#process-tab-checks')!.click();
     expect(root.querySelector('[part=pane-content]')!.textContent).toContain('Ready to run');
   });
+  it("matches the reference toolbar's switch, Checks state, and action order", () => {
+    const { builder, root } = fixture();
+    const toolbar = root.querySelector<HTMLElement>('[part=toolbar]')!;
+    const commands = [...toolbar.querySelectorAll<HTMLElement>('[data-command]')].map(control => control.dataset.command);
+    expect(commands.indexOf('checks-status')).toBeLessThan(commands.indexOf('undo'));
+    expect(commands.indexOf('undo')).toBeLessThan(commands.indexOf('redo'));
+    expect(commands.indexOf('redo')).toBeLessThan(commands.indexOf('tidy'));
+    const status = toolbar.querySelector<HTMLButtonElement>('[data-command=checks-status]')!;
+    expect(status.textContent).toContain('Ready to run');
+    status.click();
+    expect(root.querySelector<HTMLButtonElement>('#process-tab-checks')!.getAttribute('aria-selected')).toBe('true');
+    builder.lastRun = { label: 'Morning run', steps: { a: { callsPerSecond: 2 } } };
+    const toggle = root.querySelector<HTMLInputElement>('[part=run-toggle] input')!;
+    expect(toggle.type).toBe('checkbox');
+    expect(root.querySelector('style')!.textContent).toContain('[part=run-toggle] input::after');
+    toggle.click(); expect(builder.showLastRun).toBe(true);
+    builder.setValidation([{ boxId: 'a', message: 'Fix auth' }]);
+    expect(status.textContent).toBe('1 problem');
+    expect(status.dataset.state).toBe('bad');
+  });
   it("opens a directional kind chooser from a keyboard port", () => {
     const { builder, root } = fixture(); const requests = vi.fn(); builder.addEventListener("process-edit-request", requests);
     const chooser = root.querySelector<HTMLDialogElement>('[part=insert-chooser]')!;
@@ -102,22 +140,49 @@ describe("Process Modeler prototype interactions", () => {
     expect(requests.mock.calls[0][0].detail).toMatchObject({ type: "add", from: "a", fromSide: "east", kind: { kind: "call" } });
   });
   it("names the narrow building-block drawer and focuses search when it opens", () => {
-    const { root } = fixture();
+    const { builder, root } = fixture();
+    Object.assign(builder, { narrowValue: true });
     const drawer = root.querySelector<HTMLDialogElement>('[part=pane-drawer][data-pane=palette]')!;
-    drawer.showModal = vi.fn(() => { drawer.open = true; });
+    drawer.show = vi.fn(() => { drawer.open = true; });
+    drawer.close = vi.fn(() => { drawer.open = false; });
     const title = drawer.querySelector<HTMLElement>('[part=pane-title]')!;
     expect(title.textContent).toBe("Add to the process");
     expect(drawer.getAttribute("aria-labelledby")).toBe(title.id);
-    root.querySelector<HTMLButtonElement>('[data-command=palette]')!.click();
+    const trigger = root.querySelector<HTMLButtonElement>('[data-command=palette]')!;
+    trigger.focus(); trigger.click();
     expect(drawer.open).toBe(true);
+    expect(drawer.show).toHaveBeenCalledOnce();
+    expect(root.querySelector<HTMLElement>('[part=pane-scrim]')!.hidden).toBe(false);
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
     expect(root.activeElement).toBe(drawer.querySelector('[part=search]'));
     expect(drawer.querySelector('[part=pane-close]')?.getAttribute('aria-label')).toBe('Close building blocks');
+    drawer.querySelector<HTMLElement>('[part=search]')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(drawer.open).toBe(false);
+    expect(drawer.inert).toBe(true);
+    expect(root.querySelector<HTMLElement>('[part=pane-scrim]')!.hidden).toBe(true);
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    expect(root.activeElement).toBe(trigger);
     const css = root.querySelector('style')!.textContent!;
+    expect(css).toContain(':host([data-narrow]) [part=pane-drawer] { display: none; position: absolute;');
     expect(css).toContain(':host([data-narrow]) [data-command=palette] { order: -2; }');
     expect(css).toContain(':host([data-phone]) [data-command=undo]');
   });
-  it("supports the design keyboard model and keeps chooser search focused", () => {
+  it("closes the contained details drawer when its local scrim is clicked", () => {
+    const { builder, root } = fixture(); Object.assign(builder, { narrowValue: true });
+    const drawer = root.querySelector<HTMLDialogElement>('[part=pane-drawer][data-pane=inspector]')!;
+    drawer.show = vi.fn(() => { drawer.open = true; });
+    drawer.close = vi.fn(() => { drawer.open = false; });
+    const trigger = root.querySelector<HTMLButtonElement>('[data-command=details]')!;
+    trigger.focus(); trigger.click();
+    expect(drawer.open).toBe(true);
+    expect(root.activeElement).toBe(drawer.querySelector('[role=tab][aria-selected=true]'));
+    root.querySelector<HTMLElement>('[part=pane-scrim]')!.click();
+    expect(drawer.open).toBe(false);
+    expect(root.activeElement).toBe(trigger);
+  });
+  it("opens a contextual keyboard chooser and inserts on the selected step's line", () => {
     const { builder, root, canvas } = fixture();
+    const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
     builder.layout = { boxes: { a: { x: 0, y: 0 }, b: { x: 320, y: 0 }, c: { x: 320, y: 200 } } };
     builder.select('a');
     canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', altKey: true, bubbles: true, cancelable: true }));
@@ -125,12 +190,45 @@ describe("Process Modeler prototype interactions", () => {
     const before = builder.layout.boxes.b.x;
     canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', shiftKey: true, bubbles: true, cancelable: true }));
     expect(builder.layout.boxes.b.x).toBe(before + 64);
-    const chooser = root.querySelector<HTMLDialogElement>('[part=insert-chooser]')!;
-    chooser.showModal = vi.fn(() => { chooser.open = true; });
+    builder.select('a');
+    const chooser = root.querySelector<HTMLElement>('[part=keyboard-chooser]')!;
+    chooser.showPopover = vi.fn(); chooser.hidePopover = vi.fn();
     canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'n', bubbles: true, cancelable: true }));
-    expect(chooser.open).toBe(true);
+    expect(chooser.showPopover).toHaveBeenCalledOnce();
+    expect(root.querySelector<HTMLDialogElement>('[part=insert-chooser]')!.open).toBe(false);
+    expect(chooser.querySelector('[part=chooser-title]')?.textContent).toBe('Insert between Read and Save');
     const picker = chooser.querySelector('box-kind-picker')!;
     expect(picker.shadowRoot!.activeElement).toBe(picker.shadowRoot!.querySelector('[part=search]'));
+    picker.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
+    expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'insert', lineId: 'ab', from: 'a', to: 'b', kind: { kind: 'call' } });
+    expect(chooser.hidePopover).toHaveBeenCalledOnce();
+  });
+  it("names an end-of-path keyboard add and returns focus on Escape", () => {
+    const { builder, root, canvas } = fixture(); builder.select('c');
+    const chooser = root.querySelector<HTMLElement>('[part=keyboard-chooser]')!;
+    chooser.showPopover = vi.fn(); chooser.hidePopover = vi.fn();
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'n', bubbles: true, cancelable: true }));
+    expect(chooser.querySelector('[part=chooser-title]')?.textContent).toBe('Add after Log');
+    const picker = chooser.querySelector('box-kind-picker')!;
+    picker.shadowRoot!.querySelector<HTMLInputElement>('[part=search]')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(chooser.hidePopover).toHaveBeenCalledOnce();
+    expect(root.activeElement).toBe(root.querySelector('[data-box-id=c]'));
+  });
+  it("adds a path from a catalog-defined gateway instead of inserting on its line", () => {
+    const { builder, root, canvas } = fixture();
+    const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    builder.catalog = [
+      { kind: 'decision', label: 'Decision', shape: 'gateway', create: () => ({}) },
+      { kind: 'call', label: 'Call', create: () => ({}) },
+    ];
+    builder.document = { ...projection, boxes: projection.boxes.map(box => box.id === 'a' ? { ...box, kind: 'decision', title: 'Choose path' } : box) };
+    builder.select('a');
+    const chooser = root.querySelector<HTMLElement>('[part=keyboard-chooser]')!;
+    chooser.showPopover = vi.fn(); chooser.hidePopover = vi.fn();
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'n', bubbles: true, cancelable: true }));
+    expect(chooser.querySelector('[part=chooser-title]')?.textContent).toBe('Add a path from Choose path');
+    chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
+    expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'add', from: 'a' });
   });
   it("closes the View menu with Escape and announces cancellation only for an active connection", () => {
     const { builder, root, canvas } = fixture();
@@ -156,6 +254,25 @@ describe("Process Modeler prototype interactions", () => {
     root.querySelector<HTMLButtonElement>('[part=outline-list] button')!.click(); expect(builder.selected?.id).toBe('a');
     builder.setView({ x: 12, y: 24, zoom: 0.7 }); expect(builder.view).toEqual({ x: 12, y: 24, zoom: 0.7 });
     builder.setView({ x: 0, y: 0, zoom: 2.1 }); expect(builder.view.zoom).toBe(0.7);
+  });
+  it("keeps the dot grid aligned with the authored zoom and pan", () => {
+    const { builder, canvas } = fixture();
+    builder.setView({ x: 12, y: 24, zoom: 0.7 });
+    expect(canvas.style.backgroundSize).toBe('11.2px 11.2px');
+    expect(canvas.style.backgroundPosition).toBe('12px 24px');
+    builder.setView({ x: -9, y: 5, zoom: 0.4 });
+    expect(canvas.style.backgroundSize).toBe('25.6px 25.6px');
+    expect(canvas.style.backgroundPosition).toBe('-9px 5px');
+  });
+  it("retains the inspector process heading in embedded host mode", () => {
+    const { builder, root } = fixture();
+    builder.processTitle = 'Upload round trip';
+    builder.processSummary = '13 steps in 4 sections';
+    builder.embedMode = true;
+    expect(root.querySelector('[part=process-heading]')?.textContent).toContain('Upload round trip');
+    expect(root.querySelector('[part=process-heading]')?.textContent).toContain('13 steps in 4 sections');
+    expect(root.querySelector('style')?.textContent).not.toMatch(/:host\(\[embed-mode\]\) \[part=process-heading\]/);
+    expect(root.querySelector('style')?.textContent).toContain(':host([data-narrow]:not([embed-mode])) [part=view-menu]');
   });
   it("draws host field descriptors and sends controlled changes back to the host", () => {
     const { builder, root } = fixture(); const changes = vi.fn(); const edits = vi.fn();
@@ -204,8 +321,14 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector('[part=status]')?.getAttribute('role')).toBe('status');
     expect(root.querySelector('style')?.textContent).toContain('[part=sr-only], [part=status]');
   });
-  it("selects a marquee and aligns/spaces the selected group with undo", () => {
-    const { builder, root, canvas } = fixture(); const before = builder.layout;
+  it("selects a marquee and aligns/tidies the selected group with undo", () => {
+    const { builder, root, canvas } = fixture();
+    builder.layout = { boxes: {
+      a: { x: 400, y: 200, width: 224, height: 64 },
+      b: { x: 100, y: 100, width: 224, height: 64 },
+      c: { x: 700, y: 250, width: 224, height: 64 },
+    } };
+    const before = builder.layout;
     pointer(canvas, 'pointerdown', 0, 0, { shiftKey: true }); pointer(canvas, 'pointermove', 900, 400); pointer(canvas, 'pointerup', 900, 400);
     expect(builder.selectedBoxes).toHaveLength(3);
     root.querySelectorAll<HTMLButtonElement>('[part=selection-toolbar] button')[0].click();
@@ -288,6 +411,80 @@ describe("Process Modeler prototype interactions", () => {
     builder.selectedPath = ['steps', 1]; expect(selection).toHaveBeenCalledTimes(1);
     builder.document = { boxes: projection.boxes.filter(box => box.id !== 'b'), lines: [] };
     expect(selection).toHaveBeenCalledTimes(2); expect(builder.selectedPath).toBeNull();
+  });
+  it("does not echo a new host-controlled selection", () => {
+    const { builder } = fixture(); const selection = vi.fn(); builder.addEventListener("selection-changed", selection);
+    builder.selectedPath = ["steps", 1, "name"];
+    expect(builder.selected?.id).toBe("b"); expect(selection).not.toHaveBeenCalled();
+    builder.select("a"); expect(selection).toHaveBeenCalledTimes(1);
+    builder.selectedPath = ["steps", 2];
+    expect(builder.selected?.id).toBe("c"); expect(selection).toHaveBeenCalledTimes(1);
+    builder.selectedPath = null;
+    expect(builder.selected).toBeNull(); expect(selection).toHaveBeenCalledTimes(1);
+  });
+  it("tidies selected boxes in flow order without moving unselected boxes, and undoes", () => {
+    const { builder, root } = fixture();
+    builder.layout = { boxes: {
+      a: { x: 500, y: 300, width: 224, height: 64 },
+      b: { x: 100, y: 100, width: 224, height: 64 },
+      c: { x: 700, y: 700, width: 224, height: 64 },
+    } };
+    const before = builder.layout;
+    builder.selectMany(["a", "b"]);
+    root.querySelector<HTMLButtonElement>('[data-selection-command=space]')!.click();
+    expect(builder.layout.boxes.a.x).toBeLessThan(builder.layout.boxes.b.x);
+    expect(builder.layout.boxes.a.y).toBe(builder.layout.boxes.b.y);
+    expect(builder.layout.boxes.c).toEqual(before.boxes.c);
+    builder.undo(); expect(builder.layout.boxes).toEqual(before.boxes);
+  });
+  it("tidies a selected frame with its descendants as one graph group", () => {
+    const builder = new ProcessModeler();
+    builder.document = {
+      boxes: [
+        { id: "frame", kind: "try", title: "Try", frame: true, node: {} },
+        { id: "inner", kind: "step", title: "Inside", parentId: "frame", node: {} },
+        { id: "next", kind: "step", title: "Next", node: {} },
+        { id: "outside", kind: "step", title: "Outside", node: {} },
+      ],
+      lines: [{ id: "frame-next", from: "frame", to: "next" }],
+    };
+    document.body.append(builder);
+    builder.layout = { boxes: {
+      frame: { x: 600, y: 300, width: 400, height: 240 },
+      inner: { x: 630, y: 375, width: 224, height: 64 },
+      next: { x: 100, y: 100, width: 224, height: 64 },
+      outside: { x: 1200, y: 500, width: 224, height: 64 },
+    } };
+    const before = builder.layout;
+    builder.selectMany(["frame", "next"]);
+    builder.shadowRoot!.querySelector<HTMLButtonElement>('[data-selection-command=space]')!.click();
+    const { frame, inner, next, outside } = builder.layout.boxes;
+    expect(frame.x).toBeLessThan(next.x);
+    expect(inner.x).toBeGreaterThan(frame.x);
+    expect(inner.y).toBeGreaterThan(frame.y);
+    expect(outside).toEqual(before.boxes.outside);
+    builder.undo(); expect(builder.layout.boxes).toEqual(before.boxes);
+  });
+  it("emits every readable document version even when the visible labels do not change", () => {
+    const { builder } = fixture(); const readable = vi.fn(); builder.addEventListener("readable-projection-changed", readable);
+    builder.document = { ...structuredClone(projection), boxes: projection.boxes.map(box => ({ ...box, node: { changed: true } })) };
+    expect(builder.version).toBe(1);
+    expect(readable).toHaveBeenCalledTimes(1);
+    expect(readable.mock.calls[0][0].detail.version).toBe(1);
+    builder.refresh(); expect(readable).toHaveBeenCalledTimes(1);
+  });
+  it("keeps the last readable graph detached while an edit is held", () => {
+    const { builder } = fixture(); const readable = vi.fn(); builder.addEventListener("readable-projection-changed", readable);
+    const source = structuredClone(projection);
+    builder.document = source;
+    expect(readable).toHaveBeenCalledTimes(1);
+    (readable.mock.calls[0][0].detail.projection.boxes[0] as { title: string }).title = "Changed by listener";
+    (source.boxes[0] as { title: string }).title = "Invalid edit";
+    builder.setValidation([{ boxId: "a", message: "Fix this step" }]);
+    expect(builder.readback.current).toBeNull();
+    expect(builder.readback.lastReadable?.boxes[0].title).toBe("Read");
+    (builder.readback.lastReadable!.boxes[0] as { title: string }).title = "Changed by reader";
+    expect(builder.readback.lastReadable?.boxes[0].title).toBe("Read");
   });
   it("keeps the box mounted through a plain pointer click and supports Shift-click selection", () => {
     const { builder, root, canvas } = fixture(); builder.select('b');
