@@ -374,15 +374,21 @@ export class CodeEditor extends BaseElement {
           if (this.view && !this.readonly) startCompletion(this.view);
         } else if (key.key === "Escape") this.escapeUntil = Date.now() + 2000;
         else if (key.key === "Tab" && Date.now() <= this.escapeUntil) {
-          key.preventDefault();
-          key.stopPropagation();
           this.escapeUntil = 0;
-          const target =
-            this.shadowRoot!.querySelector<HTMLElement>(
-              "button:not(:disabled)",
-            ) ?? this.shadowRoot!.querySelector<HTMLElement>("[part=help]")!;
-          target.setAttribute("tabindex", "0");
-          target.focus();
+          const toolbar = this.shadowRoot!.querySelector<HTMLElement>("[part=toolbar]");
+          const button = toolbar?.hidden
+            ? null
+            : toolbar?.querySelector<HTMLButtonElement>("button:not(:disabled)");
+          const help = this.shadowRoot!.querySelector<HTMLElement>("[part=help]");
+          const target = button ?? (help?.hidden ? null : help);
+          // With embedded chrome hidden, let CodeMirror's Tab focus mode
+          // hand focus to the browser. A hidden toolbar button cannot receive it.
+          if (target) {
+            key.preventDefault();
+            key.stopPropagation();
+            target.setAttribute("tabindex", "0");
+            target.focus();
+          }
         } else if (
           !key.ctrlKey &&
           !key.metaKey &&

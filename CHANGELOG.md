@@ -15,6 +15,13 @@ are kept as written.
 
 ## Unreleased
 
+## 0.28.4 — 2026-10-09
+
+- Fix Code Editor keyboard exit when a host hides its problem toolbar and help:
+  Tab still indents, while Escape then Tab follows normal browser focus order
+  instead of trying to focus hidden chrome.
+- Keep the React, Angular, Vue, and Svelte adapters in lockstep at 0.28.4.
+
 ## 0.28.3 — 2026-10-09
 
 - Add opt-in syntax-aware bracket pair colours and unmatched-bracket styling to
