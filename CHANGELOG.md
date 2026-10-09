@@ -15,6 +15,21 @@ are kept as written.
 
 ## Unreleased
 
+## 0.28.5 — 2026-10-09
+
+- Refine Process Modeler reference parity with a contextual N-key chooser,
+  selected-graph Tidy, scaled canvas grid, toolbar Checks state, detached
+  readable projection snapshots, and component-contained mobile drawers
+  (#322, #324–331; #385). Keep Riptide host adoption and same-process
+  acceptance open under #321 and #331.
+- Place the invalid-drawing hold banner above the Process Modeler canvas so it
+  cannot block steps that need repair (#326; #386).
+- Let Code Editor `revealLine` scroll without changing selection or focus;
+  preserve the highlighted-step bar alongside the current-line border, and
+  expose `--boe-code-gutter-background` with a code-background default
+  (#384; #387). Riptide removes its workarounds after it adopts this release.
+- Keep the React, Angular, Vue, and Svelte adapters in lockstep at 0.28.5.
+
 ## 0.28.4 — 2026-10-09
 
 - Fix Code Editor keyboard exit when a host hides its problem toolbar and help:
