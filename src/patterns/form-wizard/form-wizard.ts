@@ -86,7 +86,7 @@ const elementStyles = `
           min-width: 0;
           overflow-x: auto;
           margin: 0;
-          padding: 3px;
+          padding: 0;
           list-style: none;
         }
 
@@ -99,8 +99,8 @@ const elementStyles = `
           justify-content: center;
           gap: 0.35rem;
           width: 100%;
-          min-height: 2.75rem;
-          padding: 0.5rem 1.35rem;
+          min-height: 1.75rem;
+          padding: 0.45em 1.35rem;
           border: 0;
           background: var(--boe-token-surface-surface-hover, #f4f4f4);
           color: var(--boe-token-text-text, #222222);

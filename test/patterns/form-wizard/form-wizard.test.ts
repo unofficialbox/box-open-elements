@@ -154,6 +154,9 @@ describe("box-form-wizard", () => {
     expect(buttons?.[1]?.textContent).toContain("Optional");
     expect(buttons?.[2]?.dataset.state).toBe("visited");
     expect(buttons?.[2]?.querySelector('[part="path-state"]')?.textContent).toBe("Visited");
+    const styles = element.shadowRoot?.querySelector("style")?.textContent;
+    expect(styles).toContain("min-height: 1.75rem;");
+    expect(styles).toContain("padding: 0.45em 1.35rem;");
     expect(element.shadowRoot?.querySelector("style")?.textContent).toContain(
       '[part="layout"][data-steps-layout="path"] [part="path-nav"] { display: none; }',
     );
