@@ -57,41 +57,41 @@
     },
     "packages/angular": {
       "name": "@unofficialbox/box-open-elements-angular",
-      "version": "0.28.4",
+      "version": "0.28.5",
       "peerDependencies": {
         "@angular/core": ">=20.0.0 <21.0.0",
-        "@unofficialbox/box-open-elements": "^0.28.4",
+        "@unofficialbox/box-open-elements": "^0.28.5",
       },
     },
     "packages/box-server": {
       "name": "@box-open-elements/box-server",
       "version": "0.1.0",
       "peerDependencies": {
-        "@unofficialbox/box-open-elements": "^0.28.4",
+        "@unofficialbox/box-open-elements": "^0.28.5",
       },
     },
     "packages/react": {
       "name": "@unofficialbox/box-open-elements-react",
-      "version": "0.28.4",
+      "version": "0.28.5",
       "peerDependencies": {
-        "@unofficialbox/box-open-elements": "^0.28.4",
+        "@unofficialbox/box-open-elements": "^0.28.5",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
       },
     },
     "packages/svelte": {
       "name": "@unofficialbox/box-open-elements-svelte",
-      "version": "0.28.4",
+      "version": "0.28.5",
       "peerDependencies": {
-        "@unofficialbox/box-open-elements": "^0.28.4",
+        "@unofficialbox/box-open-elements": "^0.28.5",
         "svelte": ">=5.0.0 <6.0.0",
       },
     },
     "packages/vue": {
       "name": "@unofficialbox/box-open-elements-vue",
-      "version": "0.28.4",
+      "version": "0.28.5",
       "peerDependencies": {
-        "@unofficialbox/box-open-elements": "^0.28.4",
+        "@unofficialbox/box-open-elements": "^0.28.5",
         "vue": ">=3.5.0 <4.0.0",
       },
     },
