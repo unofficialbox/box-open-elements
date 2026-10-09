@@ -19,6 +19,8 @@ editor.revealLine(1);
 editor.selection = { anchor: 0, head: 4 }; // zero-based document offsets
 editor.lineAt(7); // { number, from, to }; one-based line, UTF-16 offsets
 editor.lineStart(2); // start offset for line 2
+editor.bracketColors = true; // or bracket-colors attribute
+editor.passKeys = "Mod-Enter Mod-s"; // reserve host shortcuts
 ```
 
 Edits emit `value-changed` after 200ms without input, flushed on blur and detach.
@@ -51,6 +53,9 @@ editor.completionSource = context => ({
 `highlights` tint all intersected lines and add a left bar. They expose
 `::part(highlight)` and `--boe-code-highlight-background`. Hosts update ranges
 after document changes; out-of-range offsets are safely clamped.
+The left bar also accepts `--boe-code-highlight-bar-color` and
+`--boe-code-highlight-bar-width`; set the background to `transparent` for a
+bar-only step highlight.
 
 ```mermaid
 flowchart LR
@@ -69,6 +74,18 @@ Escape followed by Tab leaves the editor, following
 [CodeMirror's keyboard escape contract](https://codemirror.net/examples/tab/).
 The same instruction appears below the editor. Tokens control light/dark
 surfaces and highlighting; `--boe-code-editor-height` controls the scroll height.
+
+`bracket-colors` colors parsed `()`, `[]`, and `{}` pairs by nesting depth,
+cycling through `--boe-code-bracket-1`, `--boe-code-bracket-2`, and
+`--boe-code-bracket-3`; unmatched brackets use
+`--boe-code-bracket-unmatched`. Strings and comments are excluded. It is off by
+default, and does not draw bracket guides. Choose colors with at least 4.5:1
+contrast against the editor surface in both themes. The extension caches its
+decorations and recomputes them on document or viewport changes, rather than
+on every cursor movement. `pass-keys` accepts space-separated CodeMirror key
+names such as `Mod-Enter Mod-s`. Those combinations do not run lower-priority
+editor commands; the keydown event still bubbles to the host. The host should
+handle and prevent its own browser-default shortcuts.
 
 For a fixed-height host, set `fill-height` on the editor and give its parent a
 definite height; the CodeMirror scroller then takes the remaining space after
@@ -91,6 +108,15 @@ Hosts can restyle the editor without reaching into its shadow root. Set
 `--boe-code-punctuation`. `--boe-code-comment-style` controls comment italics.
 All fall back to the Box tokens when omitted. `lineAt(position)` and
 `lineStart(number)` clamp invalid/out-of-range inputs and work before mount.
+
+Search and selection-match backgrounds use `--boe-code-search-match`,
+`--boe-code-search-match-selected`,
+`--boe-code-search-match-selected-foreground`,
+`--boe-code-selection-match`, and `--boe-code-matching-bracket`. Tooltips,
+problems, and suggestions share `--boe-code-popup-background`,
+`--boe-code-popup-foreground`, `--boe-code-popup-border`,
+`--boe-code-popup-selected-background`, and
+`--boe-code-popup-selected-foreground`. Line numbers use tabular numerals.
 
 Hosts own parsing, compilation and persistence. The component does not execute
 code or infer application-specific diagnostics.

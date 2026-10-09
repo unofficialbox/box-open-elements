@@ -101,6 +101,7 @@ body {
 .stage h2 { font-size: 15px; margin: 22px 0 10px; }
 
 .variant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.variant-grid:has(box-code-editor) { grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); }
 .variant-grid:has(box-process-modeler) { grid-template-columns: minmax(0, 1fr); }
 .variant-canvas:has(box-process-modeler) { display: block; padding: 0; }
 .variant-canvas box-process-modeler { width: 100%; }
@@ -145,3 +146,18 @@ table.ref code { font-family: ui-monospace, Menlo, monospace; font-size: 12px; c
 :root[data-theme="dark"] table.ref th,
 :root[data-theme="dark"] table.ref td { border-bottom-color: #3a3a3a; }
 :root[data-theme="dark"] .tag { background: #14335a; color: #7db4ff; }
+
+@media (max-width: 700px) {
+  .shell { display: block; }
+  .rail { position: static; height: auto; padding: 8px; overflow: visible; }
+  .rail-head, .rail-foot, .nav-label { display: none; }
+  .nav { display: flex; gap: 4px; overflow-x: auto; }
+  .nav-group { display: flex; flex: none; gap: 4px; }
+  .nav-item { white-space: nowrap; }
+  .stage { padding: 16px; }
+  .stage-head { flex-wrap: wrap; }
+  .variant-canvas:has(box-code-editor) { padding: 12px; }
+  .variant-canvas box-code-editor { width: 100%; }
+  table.ref { display: block; overflow-x: auto; }
+  table.ref th, table.ref td { white-space: nowrap; }
+}

@@ -26,6 +26,42 @@ afterEach(() => {
   vi.useRealTimers();
 });
 describe("code editor", () => {
+  it("colors parsed bracket pairs by depth and flags unmatched tokens without coloring strings or comments", () => {
+    const editor = new CodeEditor();
+    editor.bracketColors = true;
+    editor.value = 'const x = { a: [1, (2)] }; // []\nconst y = "{}";\nconst z = ]';
+    document.body.append(editor);
+    const shadow = editor.shadowRoot!;
+    expect([...shadow.querySelectorAll(".boe-code-bracket-1")].map(node => node.textContent)).toEqual(["{", "}"]);
+    expect([...shadow.querySelectorAll(".boe-code-bracket-2")].map(node => node.textContent)).toEqual(["[", "]"]);
+    expect([...shadow.querySelectorAll(".boe-code-bracket-3")].map(node => node.textContent)).toEqual(["(", ")"]);
+    expect([...shadow.querySelectorAll(".boe-code-bracket-unmatched")].map(node => node.textContent)).toEqual(["]"]);
+    expect(shadow.querySelector(".cm-comment .boe-code-bracket-1, .cm-string .boe-code-bracket-1")).toBeNull();
+    editor.value = "const x = { value: 1";
+    expect([...shadow.querySelectorAll(".boe-code-bracket-unmatched")].map(node => node.textContent)).toEqual(["{"]);
+    editor.value = "const x = { value: [1] };";
+    expect(shadow.querySelectorAll(".boe-code-bracket-unmatched")).toHaveLength(0);
+    editor.bracketColors = false;
+    expect(shadow.querySelector(".boe-code-bracket-1")).toBeNull();
+  });
+  it("reserves host key combinations without inserting a line, and exposes theme hooks", () => {
+    const editor = new CodeEditor();
+    editor.value = "const x = 1";
+    editor.passKeys = "Mod-Enter Mod-s";
+    document.body.append(editor);
+    const content = editor.shadowRoot!.querySelector<HTMLElement>(".cm-content")!;
+    const host = vi.fn();
+    editor.addEventListener("keydown", host);
+    content.focus();
+    const shortcut = new KeyboardEvent("keydown", { key: "Enter", ctrlKey: true, bubbles: true, composed: true, cancelable: true });
+    content.dispatchEvent(shortcut);
+    expect(editor.value).toBe("const x = 1");
+    expect(host).toHaveBeenCalled();
+    expect(shortcut.defaultPrevented).toBe(true);
+    const styles = [...editor.shadowRoot!.querySelectorAll("style")].map(style => style.textContent).join("\n");
+    for (const variable of ["--boe-code-search-match", "--boe-code-selection-match", "--boe-code-matching-bracket", "--boe-code-popup-background", "--boe-code-popup-selected-background", "--boe-code-highlight-bar-width", "font-variant-numeric:tabular-nums"])
+      expect(styles).toContain(variable);
+  });
   it("supports border-only active lines, hanging wraps and embedded chrome", () => {
     const editor = new CodeEditor();
     editor.value = "    long line that should wrap after the first visual segment";

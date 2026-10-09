@@ -14,7 +14,7 @@ export const processModelerDesign = `
     background: var(--boe-token-surface-surface, #fff);
     font: 14px/1.5 var(--boe-token-font-family-base, Inter, sans-serif);
   }
-  [part=sr-only], [part=status] { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  [part=sr-only], [part=status], [part=urgent-status] { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   [part=toolbar] {
     min-height: 56px;
     margin: 0;
@@ -106,7 +106,7 @@ export const processModelerDesign = `
     position: relative; min-width: 0; height: 100%; overflow: hidden;
     border: 0; border-radius: 0;
     background-color: var(--boe-token-surface-surface-secondary, #fbfbfb);
-    background-image: radial-gradient(circle, var(--boe-token-stroke-stroke-hover, #d3d3d3) 1px, transparent 1.2px);
+    background-image: radial-gradient(circle, color-mix(in srgb, var(--boe-token-text-text-secondary, #6f6f6f) 26%, transparent) 1px, transparent 1.2px);
     background-size: 12px 12px;
     touch-action: none; user-select: none; cursor: grab;
   }
@@ -281,9 +281,12 @@ export const processModelerDesign = `
   :host([data-narrow]) [part=palette] { padding-top: 54px; }
   :host([data-narrow]) [part=minimap] { display: none; }
   :host([data-narrow]) [part=toolbar] { justify-content: flex-start; }
+  :host([data-narrow]) [data-command=palette] { order: -2; }
+  :host([data-narrow]) [part=view-menu] { order: -1; }
   :host([data-narrow]) [part=view-switch], :host([data-narrow]) [part=run-toggle] { display: none; }
   :host([data-narrow]) [part=view-menu] { display: block; }
   :host([data-narrow]) [part=controls] { left: 12px; bottom: 12px; }
   :host([data-phone]) [data-command=tidy] { display: none; }
+  :host([data-phone]) [data-command=undo], :host([data-phone]) [data-command=redo] { display: none; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; scroll-behavior: auto !important; } }
 `;

@@ -7,7 +7,7 @@ import {
   Prec,
   Transaction,
 } from "@codemirror/state";
-import { Decoration, EditorView, keymap } from "@codemirror/view";
+import { Decoration, EditorView, ViewPlugin, keymap, type DecorationSet, type ViewUpdate } from "@codemirror/view";
 import { indentWithTab } from "@codemirror/commands";
 import { javascript } from "@codemirror/lang-javascript";
 import { go } from "@codemirror/lang-go";
@@ -20,7 +20,7 @@ import {
 } from "@codemirror/autocomplete";
 import { closeSearchPanel } from "@codemirror/search";
 import { lintGutter, setDiagnostics, type Diagnostic } from "@codemirror/lint";
-import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
+import { HighlightStyle, syntaxHighlighting, syntaxTree } from "@codemirror/language";
 import { tags } from "@lezer/highlight";
 
 export interface CodeProblem {
@@ -43,11 +43,59 @@ export interface CodeSelection {
 }
 export interface CodeLine { number: number; from: number; to: number; }
 
+const openingBrackets = "([{", closingBrackets = ")]}";
+
+/** Walk parsed bracket tokens, not raw text: strings and comments stay untouched. */
+function bracketDecorations(view: EditorView): DecorationSet {
+  const stack: { from: number; char: string; depth: number }[] = [];
+  const tokens: { from: number; className: string }[] = [];
+  const visible = (from: number) => view.visibleRanges.some(range => from >= range.from && from < range.to);
+  const add = (from: number, className: string) => { if (visible(from)) tokens.push({ from, className }); };
+  const tree = syntaxTree(view.state);
+  tree.iterate({
+    enter(node) {
+      if (node.to !== node.from + 1 || !"()[]{}".includes(node.name)) return;
+      const char = view.state.doc.sliceString(node.from, node.to);
+      if (char !== node.name) return;
+      const open = openingBrackets.indexOf(char);
+      if (open !== -1) {
+        stack.push({ from: node.from, char, depth: stack.length });
+        return;
+      }
+      const close = closingBrackets.indexOf(char);
+      if (close === -1) return;
+      let match = stack.length - 1;
+      while (match >= 0 && openingBrackets.indexOf(stack[match].char) !== close) match--;
+      if (match === -1) { add(node.from, "boe-code-bracket-unmatched"); return; }
+      for (const orphan of stack.splice(match + 1)) add(orphan.from, "boe-code-bracket-unmatched");
+      const pair = stack.pop()!;
+      const color = `boe-code-bracket-${(pair.depth % 3) + 1}`;
+      add(pair.from, color);
+      add(node.from, color);
+    },
+  });
+  // An incomplete parse can end before the document does; avoid falsely
+  // labeling an opening bracket unmatched until the rest has been parsed.
+  if (tree.length >= view.state.doc.length)
+    for (const orphan of stack) add(orphan.from, "boe-code-bracket-unmatched");
+  return Decoration.set(tokens.sort((a, b) => a.from - b.from).map(({ from, className }) =>
+    Decoration.mark({ class: className }).range(from, from + 1)));
+}
+
+const bracketColorsExtension = ViewPlugin.fromClass(class {
+  decorations: DecorationSet;
+  constructor(view: EditorView) { this.decorations = bracketDecorations(view); }
+  update(update: ViewUpdate) {
+    if (update.docChanged || update.viewportChanged || syntaxTree(update.startState) !== syntaxTree(update.state))
+      this.decorations = bracketDecorations(update.view);
+  }
+}, { decorations: plugin => plugin.decorations });
+
 /** Optional CodeMirror entrypoint. Import `code-editor`, not the root catalog. */
 export class CodeEditor extends BaseElement {
   static readonly tagName = "box-code-editor";
   static get observedAttributes(): string[] {
-    return ["current-line-style", "fill-height", "hide-help", "hide-problems", "language", "readonly", "label", "value", "wrap"];
+    return ["bracket-colors", "current-line-style", "fill-height", "hide-help", "hide-problems", "language", "pass-keys", "readonly", "label", "value", "wrap"];
   }
   private valueInternal = "";
   private problemsInternal: readonly CodeProblem[] = [];
@@ -59,6 +107,8 @@ export class CodeEditor extends BaseElement {
   private wrapConfig = new Compartment();
   private wrapIndentConfig = new Compartment();
   private highlightsConfig = new Compartment();
+  private bracketColorsConfig = new Compartment();
+  private passKeysConfig = new Compartment();
   private highlightsInternal: readonly CodeHighlight[] = [];
   private source?: CodeCompletionSource;
   private timer?: ReturnType<typeof setTimeout>;
@@ -89,6 +139,17 @@ export class CodeEditor extends BaseElement {
   }
   get wrap(): boolean { return this.hasAttribute("wrap"); }
   set wrap(value: boolean) { this.toggleAttribute("wrap", value); }
+  get bracketColors(): boolean { return this.hasAttribute("bracket-colors"); }
+  set bracketColors(value: boolean) { this.toggleAttribute("bracket-colors", value); }
+  /** Space-separated CodeMirror key names reserved for the host, e.g. Mod-Enter Mod-s. */
+  get passKeys(): string { return this.getAttribute("pass-keys") ?? ""; }
+  set passKeys(value: string) { this.setAttribute("pass-keys", value); }
+  private passKeysExtension() {
+    const keys = [...new Set(this.passKeys.split(/\s+/).filter(key => /^(?:(?:Mod|Ctrl|Alt|Shift|Meta)-)+(?:[A-Za-z0-9]+|Enter|Space|Escape)$/.test(key)))];
+    // Returning true prevents lower-priority editor commands, but CodeMirror
+    // leaves propagation intact so window-level host shortcuts still receive it.
+    return Prec.highest(keymap.of(keys.map(key => ({ key, run: () => true }))));
+  }
   get currentLineStyle(): "fill" | "border" | "none" {
     const value = this.getAttribute("current-line-style");
     return value === "border" || value === "none" ? value : "fill";
@@ -255,8 +316,10 @@ export class CodeEditor extends BaseElement {
       .cm-scroller{max-height:var(--boe-code-editor-height,420px);min-height:160px;overflow:auto;font-family:var(--boe-code-font-family,monospace);font-size:var(--boe-code-font-size,14px);line-height:var(--boe-code-line-height,1.6)}
       :host([fill-height]){height:100%}
       :host([fill-height]) [part=editor],:host([fill-height]) .cm-editor,:host([fill-height]) .cm-scroller{height:100%;max-height:none;min-height:0}
-      .cm-gutters,.cm-panels,.cm-tooltip{background:var(--boe-token-surface-surface-secondary,#fbfbfb)!important;color:var(--boe-code-foreground,var(--boe-token-text-text,#222))!important;border-color:var(--boe-token-stroke-stroke,#ddd)!important}
-      .cm-gutters{color:var(--boe-code-gutter,var(--boe-token-text-text,#222))!important;border-right:var(--boe-code-gutter-border,1px solid var(--boe-token-stroke-stroke,#ddd))!important}
+      .cm-gutters,.cm-panels{background:var(--boe-token-surface-surface-secondary,#fbfbfb)!important;color:var(--boe-code-foreground,var(--boe-token-text-text,#222))!important;border-color:var(--boe-token-stroke-stroke,#ddd)!important}
+      .cm-gutters{color:var(--boe-code-gutter,var(--boe-token-text-text,#222))!important;border-right:var(--boe-code-gutter-border,1px solid var(--boe-token-stroke-stroke,#ddd))!important;font-variant-numeric:tabular-nums}
+      .cm-tooltip{background:var(--boe-code-popup-background,var(--boe-token-surface-surface-secondary,#fbfbfb))!important;color:var(--boe-code-popup-foreground,var(--boe-code-foreground,var(--boe-token-text-text,#222)))!important;border-color:var(--boe-code-popup-border,var(--boe-token-stroke-stroke,#ddd))!important}
+      .cm-tooltip .cm-diagnostic,.cm-tooltip-autocomplete ul li{color:var(--boe-code-popup-foreground,var(--boe-code-foreground,var(--boe-token-text-text,#222)))}
       .cm-cursor{border-left-color:var(--boe-code-caret,var(--boe-token-text-text,#222))}
       .cm-activeLine,.cm-activeLineGutter{background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 12%,transparent)!important}
       :host([current-line-style=border]) .cm-activeLine{background:transparent!important;box-shadow:inset 0 1px var(--boe-code-current-line-border,var(--boe-token-stroke-stroke,#ddd)),inset 0 -1px var(--boe-code-current-line-border,var(--boe-token-stroke-stroke,#ddd))}
@@ -264,11 +327,17 @@ export class CodeEditor extends BaseElement {
       :host([current-line-style=border]) .cm-activeLineGutter,:host([current-line-style=none]) .cm-activeLineGutter{background:transparent!important}
       .cm-activeLineGutter{color:var(--boe-code-gutter-active,var(--boe-code-gutter,var(--boe-token-text-text,#222)))!important}
       .cm-selectionBackground,.cm-content ::selection{background:var(--boe-code-selection,color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 12%,transparent))!important}
-      .boe-code-highlight{background:var(--boe-code-highlight-background,color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 10%,transparent))!important;box-shadow:inset 3px 0 var(--boe-token-surface-surface-brand,#0061d5)}
-      .cm-matchingBracket,.cm-selectionMatch{background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 15%,transparent)!important;color:inherit!important}
+      .boe-code-highlight{background:var(--boe-code-highlight-background,color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 10%,transparent))!important;box-shadow:inset var(--boe-code-highlight-bar-width,3px) 0 var(--boe-code-highlight-bar-color,var(--boe-token-surface-surface-brand,#0061d5))}
+      .cm-matchingBracket{background:var(--boe-code-matching-bracket,color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 15%,transparent))!important;color:inherit!important}
+      .cm-selectionMatch{background:var(--boe-code-selection-match,var(--boe-code-search-match,color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 15%,transparent)))!important;color:inherit!important}
+      .cm-content .boe-code-bracket-1,.cm-content .boe-code-bracket-1 *{color:var(--boe-code-bracket-1,var(--boe-code-keyword,var(--boe-token-surface-surface-brand,#0061d5)))!important}
+      .cm-content .boe-code-bracket-2,.cm-content .boe-code-bracket-2 *{color:var(--boe-code-bracket-2,var(--boe-token-text-status-text-warning,#9a6500))!important}
+      .cm-content .boe-code-bracket-3,.cm-content .boe-code-bracket-3 *{color:var(--boe-code-bracket-3,var(--boe-token-text-status-text-success,#138a58))!important}
+      .cm-content .boe-code-bracket-unmatched,.cm-content .boe-code-bracket-unmatched *{color:var(--boe-code-bracket-unmatched,var(--boe-token-text-status-text-error,#b92340))!important}
       .cm-nonmatchingBracket{color:var(--boe-token-text-status-text-error,#b92340)!important}
-      .cm-searchMatch{background:color-mix(in srgb,var(--boe-token-text-status-text-warning,#9a6500) 20%,transparent);outline:none}
-      .cm-searchMatch-selected,.cm-tooltip-autocomplete ul li[aria-selected=true]{background:var(--boe-token-surface-surface-brand,#0061d5)!important;color:var(--boe-token-text-text-on-brand,#fff)!important}
+      .cm-searchMatch{background:var(--boe-code-search-match,color-mix(in srgb,var(--boe-token-text-status-text-warning,#9a6500) 20%,transparent));outline:none}
+      .cm-searchMatch-selected{background:var(--boe-code-search-match-selected,var(--boe-token-surface-surface-brand,#0061d5))!important;color:var(--boe-code-search-match-selected-foreground,var(--boe-token-text-text-on-brand,#fff))!important}
+      .cm-tooltip-autocomplete ul li[aria-selected=true]{background:var(--boe-code-popup-selected-background,var(--boe-token-surface-surface-brand,#0061d5))!important;color:var(--boe-code-popup-selected-foreground,var(--boe-token-text-text-on-brand,#fff))!important}
       .cm-panels input,.cm-panels button,.cm-foldPlaceholder{background:var(--boe-token-surface-surface,#fff);color:var(--boe-token-text-text,#222);border:1px solid var(--boe-token-stroke-stroke,#ddd)}
       .cm-lintRange-error,.cm-lintRange-warning,.cm-lintRange-info{background-image:none;text-decoration-line:underline;text-decoration-style:wavy;text-decoration-thickness:1px;text-underline-offset:3px}
       .cm-lintRange-error,.cm-diagnostic-error{color:inherit;text-decoration-color:var(--boe-token-text-status-text-error,#b92340);border-left-color:var(--boe-token-text-status-text-error,#b92340)}
@@ -386,6 +455,8 @@ export class CodeEditor extends BaseElement {
             this.wrapConfig.of(this.wrap ? EditorView.lineWrapping : []),
             this.wrapIndentConfig.of(this.wrapIndentExtension()),
             this.highlightsConfig.of(this.highlightExtension()),
+            this.bracketColorsConfig.of(this.bracketColors ? bracketColorsExtension : []),
+            this.passKeysConfig.of(this.passKeysExtension()),
             syntaxHighlighting(
               HighlightStyle.define([
                 {
@@ -479,6 +550,8 @@ export class CodeEditor extends BaseElement {
             this.wrapConfig.reconfigure(this.wrap ? EditorView.lineWrapping : []),
             this.wrapIndentConfig.reconfigure(this.wrapIndentExtension()),
             this.highlightsConfig.reconfigure(this.highlightExtension()),
+            this.bracketColorsConfig.reconfigure(this.bracketColors ? bracketColorsExtension : []),
+            this.passKeysConfig.reconfigure(this.passKeysExtension()),
           ],
         });
       } finally {

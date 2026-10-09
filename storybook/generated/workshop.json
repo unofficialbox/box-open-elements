@@ -359,6 +359,18 @@
           "description": "Wrap long lines."
         },
         {
+          "kind": "attribute",
+          "name": "bracket-colors",
+          "type": "boolean",
+          "description": "Color parsed bracket pairs by depth and flag unmatched brackets."
+        },
+        {
+          "kind": "attribute",
+          "name": "pass-keys",
+          "type": "string",
+          "description": "Space-separated host shortcuts such as Mod-Enter Mod-s."
+        },
+        {
           "kind": "property",
           "name": "highlights",
           "type": "CodeHighlight[]",
@@ -405,6 +417,10 @@
         {
           "name": "TypeScript workflow",
           "html": "<box-code-editor label=\"Workflow code\" language=\"typescript\"></box-code-editor>"
+        },
+        {
+          "name": "Bracket colors and host shortcuts",
+          "html": "<box-code-editor label=\"Workflow code\" language=\"typescript\" bracket-colors pass-keys=\"Mod-Enter Mod-s\"></box-code-editor>"
         }
       ]
     },

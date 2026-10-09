@@ -554,7 +554,7 @@ export class ProcessModeler<
     };
   }
   protected renderTemplate(): void {
-    this.shadowRoot!.innerHTML = `<style>${processModelerDesign}</style><div part="toolbar" role="toolbar" aria-label="Diagram controls"><button data-command="zoom-out">Zoom out</button><button data-command="reset">100%</button><button data-command="zoom-in">Zoom in</button><button data-command="fit">Fit the whole process</button><button data-command="tidy">Tidy up</button><button data-command="undo">Undo</button><button data-command="redo">Redo</button><button data-command="snap" aria-pressed="false">Snap to grid</button><button data-command="lock" aria-pressed="false">Lock diagram</button></div><div part="layout"><div part="canvas" tabindex="0" role="region" aria-label="Process diagram" aria-describedby="process-help"><div part="world"></div><svg part="minimap" role="img" aria-label="Diagram overview. Click to jump"></svg></div><div part="inspector" role="region" aria-label="Process details"><div part="palette"><label>Find a building block<input type="search" part="search"></label><div part="choices"></div></div><div part="editor"></div><div part="checks" role="region" aria-label="Checks"></div></div></div><p part="help" id="process-help">Tab moves between steps. Alt plus an arrow selects the next step that way. Arrows move the selected step; Shift moves it four grid squares. N opens the building-block chooser. Enter edits. Delete removes. Shift plus 1 fits the process. Drag the background to pan; pinch or use the controls to zoom. Escape cancels connecting.</p><div part="status" role="status" aria-live="polite"></div>`;
+    this.shadowRoot!.innerHTML = `<style>${processModelerDesign}</style><div part="toolbar" role="toolbar" aria-label="Diagram controls"><button data-command="zoom-out">Zoom out</button><button data-command="reset">100%</button><button data-command="zoom-in">Zoom in</button><button data-command="fit">Fit the whole process</button><button data-command="tidy">Tidy up</button><button data-command="undo">Undo</button><button data-command="redo">Redo</button><button data-command="snap" aria-pressed="false">Snap to grid</button><button data-command="lock" aria-pressed="false">Lock diagram</button></div><div part="layout"><div part="canvas" tabindex="0" role="region" aria-label="Process diagram" aria-describedby="process-help"><div part="world"></div><svg part="minimap" role="img" aria-label="Diagram overview. Click to jump"></svg></div><div part="inspector" role="region" aria-label="Process details"><div part="palette"><label>Find a building block<input type="search" part="search"></label><div part="choices"></div></div><div part="editor"></div><div part="checks" role="region" aria-label="Checks"></div></div></div><p part="help" id="process-help">Tab moves between steps. Alt plus an arrow selects the next step that way. Arrows move the selected step; Shift moves it four grid squares. N opens the building-block chooser. Enter edits. Delete removes. Shift plus 1 fits the process. Drag the background to pan; pinch or use the controls to zoom. Escape cancels connecting.</p><div part="status" role="status" aria-live="polite"></div><div part="urgent-status" role="alert" aria-live="assertive"></div>`;
     const chooser = document.createElement("dialog"); chooser.setAttribute("part", "insert-chooser"); chooser.setAttribute("aria-label", "Insert a building block");
     const picker = new KindPicker();
     picker.variant = "menu"; picker.searchable = true; chooser.append(picker); this.shadowRoot!.append(chooser);
@@ -727,7 +727,7 @@ export class ProcessModeler<
       appendOutline(outline, content);
     } else if (this.activePane === "Checks") {
       content.append(checks);
-      if (!this.allChecks.length) { const message = document.createElement("p"); message.textContent = "No checks to resolve."; content.prepend(message); }
+      if (!this.allChecks.length) { const message = document.createElement("p"); message.textContent = "Ready to run"; content.prepend(message); }
     } else if (this.activePane === "Variables") {
       if (!this.variables.length) content.textContent = 'No variables supplied by the host.';
       for (const variable of this.variables) {
@@ -827,6 +827,15 @@ export class ProcessModeler<
     );
     const canvas =
       this.shadowRoot!.querySelector<HTMLElement>("[part=canvas]")!;
+    this.shadowRoot!.addEventListener("keydown", event => {
+      if ((event as KeyboardEvent).key !== "Escape") return;
+      const menu = this.shadowRoot!.querySelector<HTMLDetailsElement>('[part=view-menu]');
+      if (!menu?.open) return;
+      menu.open = false;
+      menu.querySelector<HTMLElement>("summary")?.focus();
+      event.preventDefault();
+      event.stopPropagation();
+    }, true);
     canvas.addEventListener("keydown", (event) => this.onKey(event));
     canvas.addEventListener('keyup', event => { if (event.key === ' ') this.spacePressed = false; });
     canvas.addEventListener('blur', () => { this.spacePressed = false; }, true);
@@ -937,11 +946,12 @@ export class ProcessModeler<
       event.preventDefault(); [...this.selectedIds].forEach(id => { const position = this.layoutValue.boxes[id]; this.requestEdit({ type: 'duplicate', sourceId: id, position: { x: position.x + 32, y: position.y + 32 } }); }); return;
     }
     if (event.key === "Escape") {
+      const wasConnecting = Boolean(this.connecting || this.pendingReattach || this.portDrag || this.endDrag);
       this.connecting = null;
       this.pendingReattach = undefined;
       if (this.selectedLineId) this.selectLine(null);
       this.portDrag = undefined; this.marquee = undefined; this.segmentDrag = undefined; this.drag = undefined; this.pointers.clear(); this.refresh();
-      this.setStatus("Connecting cancelled");
+      if (wasConnecting) this.setStatus("Connecting cancelled");
       return;
     }
     if (event.shiftKey && (event.key === "1" || event.key === "!" || event.code === "Digit1")) {
@@ -1680,7 +1690,7 @@ export class ProcessModeler<
           this.select(box.id);
           this.focusBox(box.id);
         }
-        this.setStatus(check.message);
+        this.setStatus(check.message, true);
       });
       checks.append(button);
     });
@@ -2001,8 +2011,9 @@ export class ProcessModeler<
       .find((box) => box.dataset.boxId === id)
       ?.focus();
   }
-  private setStatus(message: string): void {
-    this.shadowRoot!.querySelector("[part=status]")!.textContent = message;
+  private setStatus(message: string, urgent = false): void {
+    this.shadowRoot!.querySelector(urgent ? "[part=status]" : "[part=urgent-status]")!.textContent = "";
+    this.shadowRoot!.querySelector(urgent ? "[part=urgent-status]" : "[part=status]")!.textContent = message;
   }
 }
 ProcessModeler.register();
