@@ -15,6 +15,16 @@ are kept as written.
 
 ## Unreleased
 
+## 0.28.2 — 2026-10-09
+
+- Make the Verdict Banner usable for a host-owned finished-run message: add a
+  secondary action, responsive action wrapping, an optional large heading, and
+  `announce="off"` when the host already announces the result (#371).
+- Refine the narrow Process Modeler drawers with an accessible palette title,
+  search focus, a compact close control, and a visible details-sheet handle
+  (#324, #330). Full Riptide modeler adoption remains open under #321.
+- Keep the React, Angular, Vue, and Svelte adapters in lockstep at 0.28.2.
+
 ## 0.28.1 — 2026-10-08
 
 - Preserve Form Wizard rail history when navigating backward: passed steps
