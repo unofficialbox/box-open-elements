@@ -15,6 +15,17 @@ are kept as written.
 
 ## Unreleased
 
+## 0.28.3 — 2026-10-09
+
+- Add opt-in syntax-aware bracket pair colours and unmatched-bracket styling to
+  Code Editor, with theme hooks for search, selection, matching brackets,
+  pop-ups, the current-line bar, and host-owned keyboard shortcuts (#374).
+- Refine Process Modeler parity: match reference canvas dots, improve mobile
+  toolbar and Checks empty state, and correct View/Escape announcements
+  (#322, #326, #329, #330). Riptide host migration and four-view acceptance
+  remain open under #321; this release does not claim those issues complete.
+- Keep the React, Angular, Vue, and Svelte adapters in lockstep at 0.28.3.
+
 ## 0.28.2 — 2026-10-09
 
 - Make the Verdict Banner usable for a host-owned finished-run message: add a
