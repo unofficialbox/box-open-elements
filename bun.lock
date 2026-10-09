@@ -57,41 +57,41 @@
     },
     "packages/angular": {
       "name": "@unofficialbox/box-open-elements-angular",
-      "version": "0.28.2",
+      "version": "0.28.3",
       "peerDependencies": {
         "@angular/core": ">=20.0.0 <21.0.0",
-        "@unofficialbox/box-open-elements": "^0.28.2",
+        "@unofficialbox/box-open-elements": "^0.28.3",
       },
     },
     "packages/box-server": {
       "name": "@box-open-elements/box-server",
       "version": "0.1.0",
       "peerDependencies": {
-        "@unofficialbox/box-open-elements": "^0.28.2",
+        "@unofficialbox/box-open-elements": "^0.28.3",
       },
     },
     "packages/react": {
       "name": "@unofficialbox/box-open-elements-react",
-      "version": "0.28.2",
+      "version": "0.28.3",
       "peerDependencies": {
-        "@unofficialbox/box-open-elements": "^0.28.2",
+        "@unofficialbox/box-open-elements": "^0.28.3",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
       },
     },
     "packages/svelte": {
       "name": "@unofficialbox/box-open-elements-svelte",
-      "version": "0.28.2",
+      "version": "0.28.3",
       "peerDependencies": {
-        "@unofficialbox/box-open-elements": "^0.28.2",
+        "@unofficialbox/box-open-elements": "^0.28.3",
         "svelte": ">=5.0.0 <6.0.0",
       },
     },
     "packages/vue": {
       "name": "@unofficialbox/box-open-elements-vue",
-      "version": "0.28.2",
+      "version": "0.28.3",
       "peerDependencies": {
-        "@unofficialbox/box-open-elements": "^0.28.2",
+        "@unofficialbox/box-open-elements": "^0.28.3",
         "vue": ">=3.5.0 <4.0.0",
       },
     },
@@ -397,7 +397,7 @@
 
     "@types/trusted-types": ["@types/trusted-types@2.0.7", "", {}, "sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw=="],
 
-    "@unofficialbox/box-open-elements": ["@unofficialbox/box-open-elements@0.28.2", "", { "optionalDependencies": { "@codemirror/autocomplete": "^6.20.3", "@codemirror/commands": "^6.11.1", "@codemirror/lang-go": "^6.0.1", "@codemirror/lang-javascript": "^6.2.5", "@codemirror/language": "^6.12.4", "@codemirror/lint": "^6.9.7", "@codemirror/search": "^6.7.2", "@codemirror/state": "^6.7.6", "@codemirror/view": "^6.43.13", "@lezer/highlight": "^1.2.5", "codemirror": "^6.0.2" } }, "sha512-NhPql+gpdEfDppyUOLNJ+QRiSpktpLK715rSEdVYjg8koRSrsjE0OgN/ixOoO+Td8HixKJXRnYQ6xmISjHAz9Q=="],
+    "@unofficialbox/box-open-elements": ["@unofficialbox/box-open-elements@0.28.3", "", { "optionalDependencies": { "@codemirror/autocomplete": "^6.20.3", "@codemirror/commands": "^6.11.1", "@codemirror/lang-go": "^6.0.1", "@codemirror/lang-javascript": "^6.2.5", "@codemirror/language": "^6.12.4", "@codemirror/lint": "^6.9.7", "@codemirror/search": "^6.7.2", "@codemirror/state": "^6.7.6", "@codemirror/view": "^6.43.13", "@lezer/highlight": "^1.2.5", "codemirror": "^6.0.2" } }, "sha512-CH04d5MUAgRtaWPn/Px9mywiG6CgJYCpHBFnJjf3QBql7u+dLDUTxwj/VWbZwcfKkWQY7Vbtme7VoYMB5oqehw=="],
 
     "@unofficialbox/box-open-elements-angular": ["@unofficialbox/box-open-elements-angular@workspace:packages/angular"],
 
