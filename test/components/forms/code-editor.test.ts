@@ -159,6 +159,8 @@ describe("code editor", () => {
     document.body.append(editor);
     const content =
       editor.shadowRoot!.querySelector<HTMLElement>(".cm-content")!;
+    const help = editor.shadowRoot!.querySelector<HTMLElement>("[part=help]")!;
+    const helpFocus = vi.spyOn(help, "focus");
     content.focus();
     content.dispatchEvent(
       new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
@@ -170,7 +172,23 @@ describe("code editor", () => {
     });
     content.dispatchEvent(tab);
     expect(tab.defaultPrevented).toBe(true);
-    expect(editor.shadowRoot!.activeElement).not.toBe(content);
+    expect(helpFocus).toHaveBeenCalledOnce();
+  });
+  it("lets Escape then Tab leave when embedded chrome is hidden", () => {
+    const editor = new CodeEditor();
+    editor.hideHelp = true;
+    editor.hideProblems = true;
+    document.body.append(editor);
+    const content = editor.shadowRoot!.querySelector<HTMLElement>(".cm-content")!;
+    const hiddenButton = editor.shadowRoot!.querySelector<HTMLButtonElement>("[part=toolbar] button")!;
+    const hiddenFocus = vi.spyOn(hiddenButton, "focus");
+    const hiddenHelp = vi.spyOn(editor.shadowRoot!.querySelector<HTMLElement>("[part=help]")!, "focus");
+    content.focus();
+    content.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    const tab = new KeyboardEvent("keydown", { key: "Tab", bubbles: true, cancelable: true });
+    content.dispatchEvent(tab);
+    expect(hiddenFocus).not.toHaveBeenCalled();
+    expect(hiddenHelp).not.toHaveBeenCalled();
   });
   it("debounces edits and flushes changes on blur without emitting controlled updates", () => {
     vi.useFakeTimers();

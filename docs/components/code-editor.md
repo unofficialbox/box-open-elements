@@ -95,7 +95,9 @@ bottom rules instead of the default fill; `"none"` removes both. When `wrap`
 is enabled, continuation lines inherit the source line's leading indentation.
 Use `hide-help` and `hide-problems` when the host presents those instructions
 and diagnostics elsewhere. These flags hide only the component chrome; the
-keyboard escape behavior and diagnostic API remain available.
+keyboard escape behavior and diagnostic API remain available. With the problem
+toolbar hidden, Escape then Tab uses the browser's normal focus order instead
+of targeting a hidden toolbar button.
 
 Hosts can restyle the editor without reaching into its shadow root. Set
 `--boe-code-background`, `--boe-code-foreground`, `--boe-code-gutter`,
