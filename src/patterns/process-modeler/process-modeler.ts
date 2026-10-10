@@ -26,6 +26,16 @@ import {
   type ProcessProjection,
 } from "./model.js";
 
+/** Source-owned contracts for notifications forwarded through the acceptance queue. */
+export interface ProcessModelerEventDetails {
+  'layout-changed': { layout: ProcessLayout };
+  'positions-changed': { positions: readonly import('./model.js').ProcessPositionSnapshot[]; version: string | number };
+  'projection-changed': { projection: ProcessProjection; version: string | number; checks: readonly ProcessCheck[] };
+  'readable-projection-changed': { projection: ProcessProjection; version: string | number };
+  'selection-changed': { box: ProcessBox | null; boxes: readonly ProcessBox[]; path: NodePath | null }
+    | { box: null; boxes: never[]; line: import('./model.js').ProcessLine | null; path: null };
+}
+
 const svgElement = <K extends keyof SVGElementTagNameMap>(
   tag: K,
 ): SVGElementTagNameMap[K] =>
