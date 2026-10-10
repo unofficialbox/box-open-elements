@@ -22,6 +22,7 @@
         "@vitejs/plugin-vue": "6.0.8",
         "@vitest/coverage-v8": "^4.1.2",
         "@vue/server-renderer": "3.5.40",
+        "axe-core": "^4.14.0",
         "bun-types": "^1.3.14",
         "jsdom": "^29.0.1",
         "next": "16.2.12",
@@ -57,41 +58,41 @@
     },
     "packages/angular": {
       "name": "@unofficialbox/box-open-elements-angular",
-      "version": "0.28.6",
+      "version": "0.28.7",
       "peerDependencies": {
         "@angular/core": ">=20.0.0 <21.0.0",
-        "@unofficialbox/box-open-elements": "^0.28.6",
+        "@unofficialbox/box-open-elements": "^0.28.7",
       },
     },
     "packages/box-server": {
       "name": "@box-open-elements/box-server",
       "version": "0.1.0",
       "peerDependencies": {
-        "@unofficialbox/box-open-elements": "^0.28.6",
+        "@unofficialbox/box-open-elements": "^0.28.7",
       },
     },
     "packages/react": {
       "name": "@unofficialbox/box-open-elements-react",
-      "version": "0.28.6",
+      "version": "0.28.7",
       "peerDependencies": {
-        "@unofficialbox/box-open-elements": "^0.28.6",
+        "@unofficialbox/box-open-elements": "^0.28.7",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
       },
     },
     "packages/svelte": {
       "name": "@unofficialbox/box-open-elements-svelte",
-      "version": "0.28.6",
+      "version": "0.28.7",
       "peerDependencies": {
-        "@unofficialbox/box-open-elements": "^0.28.6",
+        "@unofficialbox/box-open-elements": "^0.28.7",
         "svelte": ">=5.0.0 <6.0.0",
       },
     },
     "packages/vue": {
       "name": "@unofficialbox/box-open-elements-vue",
-      "version": "0.28.6",
+      "version": "0.28.7",
       "peerDependencies": {
-        "@unofficialbox/box-open-elements": "^0.28.6",
+        "@unofficialbox/box-open-elements": "^0.28.7",
         "vue": ">=3.5.0 <4.0.0",
       },
     },
@@ -397,7 +398,7 @@
 
     "@types/trusted-types": ["@types/trusted-types@2.0.7", "", {}, "sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw=="],
 
-    "@unofficialbox/box-open-elements": ["@unofficialbox/box-open-elements@0.28.6", "", { "optionalDependencies": { "@codemirror/autocomplete": "^6.20.3", "@codemirror/commands": "^6.11.1", "@codemirror/lang-go": "^6.0.1", "@codemirror/lang-javascript": "^6.2.5", "@codemirror/language": "^6.12.4", "@codemirror/lint": "^6.9.7", "@codemirror/search": "^6.7.2", "@codemirror/state": "^6.7.6", "@codemirror/view": "^6.43.13", "@lezer/highlight": "^1.2.5", "codemirror": "^6.0.2" } }, "sha512-amO1v2W8yjniZgK0jhBDW9PwaYP9KUMACxrd+k0M6F1qTV92AySUhstEZDQr0CTKBGnYi9tI//PmjnKcqcV6wA=="],
+    "@unofficialbox/box-open-elements": ["@unofficialbox/box-open-elements@0.28.7", "", { "optionalDependencies": { "@codemirror/autocomplete": "^6.20.3", "@codemirror/commands": "^6.11.1", "@codemirror/lang-go": "^6.0.1", "@codemirror/lang-javascript": "^6.2.5", "@codemirror/language": "^6.12.4", "@codemirror/lint": "^6.9.7", "@codemirror/search": "^6.7.2", "@codemirror/state": "^6.7.6", "@codemirror/view": "^6.43.13", "@lezer/highlight": "^1.2.5", "codemirror": "^6.0.2" } }, "sha512-ogBgUqyuzqDNnNiQZBFzdkdw2BEUBl3evVzEalJl7FuhlRqgpjFnXUTGsxYvskd3EpCM8oGBzWl9J7KVXDRrWA=="],
 
     "@unofficialbox/box-open-elements-angular": ["@unofficialbox/box-open-elements-angular@workspace:packages/angular"],
 
@@ -464,6 +465,8 @@
     "assertion-error": ["assertion-error@2.0.1", "", {}, "sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA=="],
 
     "ast-v8-to-istanbul": ["ast-v8-to-istanbul@1.0.4", "", { "dependencies": { "@jridgewell/trace-mapping": "^0.3.31", "estree-walker": "^3.0.3", "js-tokens": "^10.0.0" } }, "sha512-0bC0/4bTSrnwdhU3IsZDwEdojvuPrSg59OYZfKsLRtJZ0u8VBx9DebfqqG8bRdCC0I7vjgxmPi41P0lpkhJHtA=="],
+
+    "axe-core": ["axe-core@4.14.0", "", {}, "sha512-9WTZxEjsZ7b13TH8JPmbV2z8CHbl80/2hm3XPEG4JgNdQLK81IBRXmSxHfMAOkSqQeRxT/0dwNDz2GOm3zzpcQ=="],
 
     "axobject-query": ["axobject-query@4.1.0", "", {}, "sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ=="],
 

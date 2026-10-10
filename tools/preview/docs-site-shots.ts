@@ -16,6 +16,7 @@ const chromiumExecutablePath = (): string | undefined => {
 
 const ROOT = new URL("../..", import.meta.url).pathname;
 const OUT_DIR = process.env.DOCS_SHOTS_OUT_DIR ?? join(ROOT, "docs/screenshots/docs-site");
+const BOX_PLOT_ONLY = process.argv.includes("--box-plot-only");
 const PORT = 4601;
 const BANNER_TIMEOUT_MS = 20_000;
 const SETTLE_INTERVAL_MS = 250;
@@ -77,6 +78,7 @@ const routes: Array<[name: string, hash: string, readyMarker: string, scrollTo?:
   ["patterns-provenance-strip", "#patterns/provenance-strip", "patterns/provenance-strip"],
   ["patterns-signature-ceremony", "#patterns/signature-ceremony", "patterns/signature-ceremony"],
   ["patterns-run-trace", "#patterns/run-trace", "patterns/run-trace"],
+  ["patterns-box-plot", "#patterns/box-plot", "patterns/box-plot"],
   ["patterns-agent-chat", "#patterns/agent-chat", "patterns/agent-chat"],
   ["patterns-audit-log", "#patterns/audit-log", "patterns/audit-log"],
   ["patterns-activity-density", "#patterns/activity-density", "patterns/activity-density"],
@@ -164,6 +166,7 @@ try {
   });
 
   for (const [name, hash, readyMarker, scrollTo] of routes) {
+    if (BOX_PLOT_ONLY && name !== "patterns-box-plot") continue;
     await page.goto(`http://localhost:${PORT}/${hash}`, { waitUntil: "networkidle" });
     await page.waitForSelector(`body[data-route-ready="${readyMarker}"]`, { timeout: 15_000 });
     await applyDeterministicFonts(page);
@@ -183,6 +186,7 @@ try {
     console.log(`captured ${name}.png`);
   }
 
+  if (!BOX_PLOT_ONLY) {
   // The trace spine must follow the visible glyph for both density presets,
   // including a host-customized marker column inside a narrow embed.
   await page.goto(`http://localhost:${PORT}/#patterns/run-trace`, { waitUntil: "networkidle" });
@@ -281,6 +285,41 @@ try {
   await page.evaluate(() => (document.getElementById("theme-toggle") as HTMLButtonElement | null)?.click());
   await page.waitForSelector('html[data-theme="light"]');
   await page.setViewportSize({ width: 1440, height: 940 });
+  // The modeler's world is absolutely positioned. When the hold is hidden,
+  // grid auto-placement must not leave the canvas in the zero-height auto row.
+  await page.goto(`http://localhost:${PORT}/#patterns/process-modeler`, { waitUntil: "networkidle" });
+  await page.waitForSelector('body[data-route-ready="patterns/process-modeler"]', { timeout: 15_000 });
+  for (const theme of ["light", "dark"]) {
+    await page.evaluate(targetTheme => {
+      if (document.documentElement.dataset.theme !== targetTheme) {
+        (document.getElementById("theme-toggle") as HTMLButtonElement | null)?.click();
+      }
+    }, theme);
+    await page.waitForSelector(`html[data-theme="${theme}"]`);
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 940 });
+      const sizes = await page.locator("box-process-modeler").evaluate((element, viewportWidth) => {
+        const modeler = element as HTMLElement & { setValidation(checks: Array<{ boxId: string; message: string }>): void };
+        modeler.style.width = viewportWidth === 390 ? "340px" : "";
+        const shadow = modeler.shadowRoot!;
+        const canvas = shadow.querySelector<HTMLElement>('[part="canvas"]')!;
+        const hold = shadow.querySelector<HTMLElement>('[part="hold"]')!;
+        const boxId = shadow.querySelector('[data-box-id]')?.getAttribute("data-box-id") ?? "missing";
+        const validHeight = canvas.getBoundingClientRect().height;
+        modeler.setValidation([{ boxId, message: "Layout check" }]);
+        const heldHeight = canvas.getBoundingClientRect().height;
+        const holdHeight = hold.getBoundingClientRect().height;
+        const holdGap = Math.abs(hold.getBoundingClientRect().bottom - canvas.getBoundingClientRect().top);
+        modeler.setValidation([]);
+        return { viewportWidth: innerWidth, hostWidth: modeler.getBoundingClientRect().width, validHeight, heldHeight, holdHeight, holdGap, restoredHeight: canvas.getBoundingClientRect().height, holdHidden: hold.hidden };
+      }, width);
+      if (sizes.viewportWidth !== width || (width === 390 && sizes.hostWidth > 350) || sizes.validHeight <= 80 || sizes.heldHeight <= 80 || Math.abs(sizes.restoredHeight - sizes.validHeight) > 2 || sizes.holdHeight <= 0 || sizes.holdGap > 2 || !sizes.holdHidden) {
+        throw new Error(`Process modeler canvas layout failed in ${theme} at ${width}px: ${JSON.stringify(sizes)}`);
+      }
+    }
+  }
+  await page.setViewportSize({ width: 1440, height: 940 });
+  console.log("verified process-modeler canvas at 1440px and 390px in light/dark (valid → held → valid)");
 
   // Dark-theme pass: toggle dark, then capture a component page and a foundations page.
   const darkRoutes: Array<[string, string, string]> = [
@@ -327,7 +366,94 @@ try {
   await waitForVisualSettle(page,"components-resource-row-mobile");
   await page.locator("box-resource-row").first().screenshot({path:join(OUT_DIR,"components-resource-row-mobile.png"),animations:"disabled"});
   console.log("captured components-resource-row-mobile.png");
+  }
 
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`http://localhost:${PORT}/#patterns/box-plot`, { waitUntil: "networkidle" });
+  await page.waitForSelector('body[data-route-ready="patterns/box-plot"]');
+  await page.evaluate(() => {
+    if (document.documentElement.dataset.theme !== "light") document.getElementById("theme-toggle")?.click();
+  });
+  await applyDeterministicFonts(page);
+  await page.addScriptTag({ path: join(ROOT, "node_modules/axe-core/axe.min.js") });
+  const verifyBoxPlotAxe = async (label: string): Promise<void> => {
+    const violations = await page.evaluate(async () => {
+      const axe = (window as typeof window & { axe?: { run: (context: Element) => Promise<{ violations: Array<{ id: string; nodes: Array<{ target: string[] }> }> }> } }).axe;
+      const chart = document.querySelector("box-box-plot");
+      if (!axe || !chart) throw new Error("Box plot or axe missing");
+      return (await axe.run(chart)).violations.map(violation => ({ id: violation.id, targets: violation.nodes.map(node => node.target) }));
+    });
+    if (violations.length) throw new Error(`${label} axe violations: ${JSON.stringify(violations)}`);
+  };
+  await verifyBoxPlotAxe("horizontal mobile light");
+  await waitForVisualSettle(page, "patterns-box-plot-mobile");
+  await page.locator("box-box-plot").screenshot({ path: join(OUT_DIR, "patterns-box-plot-mobile.png"), animations: "disabled" });
+  await page.locator('box-box-plot [part="table-toggle"]').click();
+  await verifyBoxPlotAxe("table mobile light");
+  await page.locator('box-box-plot [part="table-toggle"]').click();
+  const verifyBoxPlotTooltips = async (label: string): Promise<void> => {
+    const marks = page.locator('box-box-plot [part="mark"]');
+    for (let index = 0; index < await marks.count(); index += 1) {
+      const mark = marks.nth(index);
+      for (const mode of ["hover", "focus"] as const) {
+        if (mode === "hover") await mark.hover();
+        else await mark.press("ArrowRight");
+        const geometry = await mark.locator('[part="detail"]').evaluate(detail => {
+          const host = (detail.getRootNode() as ShadowRoot).host;
+          const tooltip = detail.getBoundingClientRect();
+          const bounds = host.getBoundingClientRect();
+          return { visible: getComputedStyle(detail).display !== "none", left: tooltip.left, right: tooltip.right, hostLeft: bounds.left, hostRight: bounds.right };
+        });
+        if (!geometry.visible || geometry.left < geometry.hostLeft - 1 || geometry.right > geometry.hostRight + 1) {
+          throw new Error(`${label} tooltip ${index} ${mode} overflows: ${JSON.stringify(geometry)}`);
+        }
+      }
+    }
+  };
+  await verifyBoxPlotTooltips("horizontal mobile");
+  await page.locator("#variant-select").selectOption("1");
+  await verifyBoxPlotAxe("vertical mobile light");
+  const boxPlotMetrics = await page.locator("box-box-plot").evaluate(element => {
+    const mark = element.shadowRoot?.querySelector<HTMLElement>('[part="mark"]');
+    const box = element.shadowRoot?.querySelector<HTMLElement>('[part="box"]');
+    return {
+      viewportWidth: innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      candleRatio: box && mark ? box.getBoundingClientRect().width / mark.getBoundingClientRect().width : 0,
+    };
+  });
+  if (boxPlotMetrics.documentWidth > boxPlotMetrics.viewportWidth || boxPlotMetrics.candleRatio < 0.28 || boxPlotMetrics.candleRatio > 0.4) {
+    throw new Error(`Box plot mobile geometry failed: ${JSON.stringify(boxPlotMetrics)}`);
+  }
+  await verifyBoxPlotTooltips("vertical mobile");
+  await page.locator("#variant-select").focus();
+  await page.mouse.move(0, 0);
+  await waitForVisualSettle(page, "patterns-box-plot-vertical-mobile");
+  await page.locator("box-box-plot").screenshot({ path: join(OUT_DIR, "patterns-box-plot-vertical-mobile.png"), animations: "disabled" });
+  await page.evaluate(() => document.getElementById("theme-toggle")?.click());
+  await page.waitForSelector('html[data-theme="dark"]');
+  await verifyBoxPlotAxe("vertical mobile dark");
+  await waitForVisualSettle(page, "patterns-box-plot-vertical-mobile-dark");
+  await page.locator("box-box-plot").screenshot({ path: join(OUT_DIR, "patterns-box-plot-vertical-mobile-dark.png"), animations: "disabled" });
+  await page.locator("#variant-select").selectOption("0");
+  await verifyBoxPlotAxe("horizontal mobile dark");
+  await page.locator('box-box-plot [part="table-toggle"]').click();
+  await verifyBoxPlotAxe("table mobile dark");
+  await page.locator('box-box-plot [part="table-toggle"]').click();
+  await page.setViewportSize({ width: 1440, height: 940 });
+  for (const theme of ["light", "dark"] as const) {
+    await page.evaluate(target => {
+      if (document.documentElement.dataset.theme !== target) document.getElementById("theme-toggle")?.click();
+    }, theme);
+    await page.waitForSelector(`html[data-theme="${theme}"]`);
+    for (const variant of ["0", "1"] as const) {
+      await page.locator("#variant-select").selectOption(variant);
+      await verifyBoxPlotAxe(`${variant === "0" ? "horizontal" : "vertical"} desktop ${theme}`);
+    }
+  }
+  console.log("captured box-plot horizontal and vertical mobile fixtures");
+
+  if (!BOX_PLOT_ONLY) {
   await page.setViewportSize({width:1440,height:940});
   await page.goto(`http://localhost:${PORT}/#patterns/agent-workspace`,{waitUntil:"networkidle"});
   await page.waitForSelector('body[data-route-ready="patterns/agent-workspace"]');
@@ -346,6 +472,7 @@ try {
   await waitForVisualSettle(page,"patterns-agent-workspace-mobile");
   await page.locator("box-agent-workspace").screenshot({path:join(OUT_DIR,"patterns-agent-workspace-mobile.png"),animations:"disabled"});
   console.log("captured workspace wide and mobile fixtures");
+  }
 } finally {
   await browser?.close();
   server.kill();

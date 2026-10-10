@@ -27,6 +27,8 @@ export interface ProgressStepItem {
   description?: string;
   label: string;
   value: string;
+  /** Announced with the step name; optionality is not a completion status. */
+  optional?: boolean;
   status?: ProgressStepStatus;
   /** Short visible note under the label explaining the status ("Waiting on legal review"). */
   statusNote?: string;
@@ -63,6 +65,7 @@ export const isProgressStepRecord = (value: unknown): value is ProgressStepItem 
     (step.status === undefined || STEP_STATUSES.has(step.status as ProgressStepStatus)) &&
     // Non-string text fields would reach escapeHtml and throw mid-render.
     (step.description === undefined || typeof step.description === "string") &&
+    (step.optional === undefined || typeof step.optional === "boolean") &&
     (step.statusNote === undefined || typeof step.statusNote === "string")
   );
 };
@@ -112,20 +115,28 @@ const progressStepsStyles = `
     font: inherit;
   }
 
-  [part="compact-toggle"] { display: none; }
+  [part="compact-toggle"] {
+    display: none;
+    width: 100%;
+    min-height: 36px;
+    text-align: left;
+    border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
+    border-radius: ${boeRadius.med};
+    background: var(--boe-token-surface-surface, #ffffff);
+    color: var(--boe-token-text-text, #222222);
+    font: inherit;
+    padding: 0.45rem 0.65rem;
+  }
   @media (max-width: 600px) {
-    [part="compact-toggle"][data-enabled="true"] {
-      display: block;
-      width: 100%;
-      min-height: 36px;
-      text-align: left;
-      border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
-      border-radius: ${boeRadius.med};
-      background: var(--boe-token-surface-surface, #ffffff);
-      color: var(--boe-token-text-text, #222222);
-      font: inherit;
-      padding: 0.45rem 0.65rem;
-    }
+    [part="compact-toggle"][data-enabled="true"] { display: block; }
+    [part="steps"][data-compact="true"][data-expanded="false"] { display: none; }
+  }
+
+  /* Opt-in for a compact rail inside a narrow host column on a wide screen.
+     Form Wizard uses this when its chevron path yields to the step row. */
+  :host([data-container-compact]) { container-type: inline-size; container-name: boe-progress-compact; }
+  @container boe-progress-compact (max-width: 720px) {
+    [part="compact-toggle"][data-enabled="true"] { display: block; }
     [part="steps"][data-compact="true"][data-expanded="false"] { display: none; }
   }
 
@@ -519,7 +530,7 @@ export class ProgressSteps extends BaseElement {
     const resolved = resolveStepStates(items, this.valueInternal);
     this.compactToggleEl.dataset.enabled = String(this.compact);
     this.compactToggleEl.setAttribute("aria-expanded", String(this.compactExpanded));
-    this.compactToggleEl.textContent = `Step ${activeIndex + 1} of ${items.length}: ${items[activeIndex]?.label ?? ""} · ${this.compactExpanded ? "Hide steps" : "Show steps"}`;
+    this.compactToggleEl.textContent = `Step ${activeIndex + 1} of ${items.length}: ${items[activeIndex]?.label ?? ""}${items[activeIndex]?.optional ? " · Optional" : ""} · ${this.compactExpanded ? "Hide steps" : "Show steps"}`;
     this.stepsEl.dataset.compact = String(this.compact);
     this.stepsEl.dataset.expanded = String(this.compactExpanded);
     const tabbable = this.tabbableIndex(resolved);
@@ -551,6 +562,7 @@ export class ProgressSteps extends BaseElement {
               <span part="marker">${index + 1}</span>
               <span part="content">
                 <strong part="step-label">${escapeHtml(item.label)}</strong>
+                ${item.optional ? '<span part="step-optional" class="boe-sr-only">Optional</span>' : ""}
                 ${explicitStatus}
                 ${item.description ? `<span part="step-description">${escapeHtml(item.description)}</span>` : ""}
               </span>

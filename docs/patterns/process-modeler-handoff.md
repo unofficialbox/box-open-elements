@@ -1,5 +1,18 @@
 # Process Modeler handoff — 2026-10-09
 
+## 2026-10-10 canvas layout follow-up
+
+- The docs preview exposed a regression in the separate hold row: with the
+  hold hidden, CSS grid auto-placed the canvas in its zero-height first row.
+  The modeler had a full-height layout and populated graph, but no visible
+  canvas. Explicit row placement now reserves row 1 for the hold and row 2 for
+  the flexible canvas.
+- The docs browser-capture gate checks canvas height restoration at desktop
+  and a 340px host width, in light and dark, through valid → held → valid
+  transitions, plus hold/canvas adjacency. This is a Box Open Elements repair,
+  not Riptide adoption proof;
+  #326 and the host acceptance work remain open.
+
 ## Current state
 
 - Box Open Elements `0.28.4` is published; its Code Editor is adopted in Riptide

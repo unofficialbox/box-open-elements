@@ -49,6 +49,8 @@ const elementStyles = `
           display: none !important;
         }
 
+        :host([steps-layout="path"]) { container-type: inline-size; container-name: boe-wizard-path; }
+
         [part="wizard"] {
           display: grid;
           gap: ${boePanel.gap};
@@ -171,7 +173,23 @@ const elementStyles = `
           }
         }
 
-        @media (max-width: 600px) {
+        /* The available column, not the window, decides when a six-step path
+           stops being legible. Keep Optional in the accessible button name. */
+        @container boe-wizard-path (max-width: 820px) {
+          [part="path-label"] { white-space: nowrap; }
+          [part="path-optional"] {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            clip: rect(0, 0, 0, 0);
+            overflow: hidden;
+            white-space: nowrap;
+          }
+        }
+
+        @container boe-wizard-path (max-width: 720px) {
           [part="layout"][data-steps-layout="path"] [part="path-nav"] { display: none; }
           [part="layout"][data-steps-layout="path"] [part="rail"] { display: block; }
         }
@@ -721,6 +739,7 @@ export class FormWizard extends BaseElement {
     const state = this.controller?.getState() ?? null;
     const steps = state?.steps ?? [];
     this.layoutEl.dataset.stepsLayout = this.stepsLayout;
+    this.railEl.toggleAttribute("data-container-compact", this.stepsLayout === "path");
 
     this.titleEl.hidden = !this.heading;
     this.titleEl.textContent = this.heading;
@@ -757,6 +776,7 @@ export class FormWizard extends BaseElement {
         return {
           label: step.label,
           value: step.id,
+          ...(step.optional ? { optional: true } : {}),
           ...(step.description ? { description: step.description } : {}),
           ...(status ? { status } : {}),
         };

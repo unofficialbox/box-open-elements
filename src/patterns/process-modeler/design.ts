@@ -71,6 +71,10 @@ export const processModelerDesign = `
   }
   [part=pane-drawer] { display: contents; color: inherit; }
   [part=canvas-stack] { display: grid; grid-template-rows: auto minmax(0, 1fr); min-width: 0; min-height: 0; }
+  /* The hidden hold leaves row 1 empty. Keep the canvas in the flexible row
+     explicitly; auto-placement otherwise puts its absolute world in a 0px row. */
+  [part=canvas-stack] > [part=hold] { grid-row: 1; }
+  [part=canvas-stack] > [part=canvas] { grid-row: 2; }
   [part=insert-chooser]::backdrop { background: rgb(0 0 0 / .45); }
   [part=pane-scrim] { position: absolute; inset: 0; z-index: 30; background: rgb(0 0 0 / .45); }
   [part=pane-title], [part=pane-close], [data-command=palette], [data-command=details] { display: none; }
