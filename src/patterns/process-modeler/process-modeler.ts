@@ -2290,7 +2290,7 @@ export class ProcessModeler<
           const list = document.createElement('table'); list.setAttribute('aria-label', 'Last run metrics');
           const body = document.createElement('tbody'); list.append(body);
           for (const [label, value] of [['Per second', metrics.callsPerSecond === undefined ? '–' : metrics.callsPerSecond.toFixed(1)], ['95% finished within', metrics.p95Ms === undefined ? '–' : formatRunDuration(metrics.p95Ms)], ['Failed', metrics.failedShare === undefined ? '–' : formatFailedShare(metrics.failedShare)]] as const) {
-            const row = document.createElement('tr'); const term = document.createElement('th'); term.scope = 'row'; term.textContent = label; const detail = document.createElement('td'); detail.textContent = value; if (label === 'Failed' && metrics.failedShare) detail.setAttribute('part', 'metric-warning'); row.append(term, detail); body.append(row);
+            const row = document.createElement('tr'); const term = document.createElement('th'); term.scope = 'row'; term.textContent = label; const detail = document.createElement('td'); detail.textContent = value; row.append(term, detail); body.append(row);
           }
           report.append(list);
         }
