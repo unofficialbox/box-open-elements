@@ -1374,8 +1374,24 @@ export class ProcessModeler<
       ).find((box) => box.dataset.boxId === this.drag!.id);
       if (element) {
         const position = this.alignedPoint(this.drag.id, this.drag.position.x + dx / this.viewport.zoom, this.drag.position.y + dy / this.viewport.zoom);
-        element.style.left = `${position.x}px`;
-        element.style.top = `${position.y}px`;
+        const moved = this.selectedIds.size > 1 && this.selectedIds.has(this.drag.id)
+          ? new Set(this.selectedIds) : new Set([this.drag.id]);
+        for (let changed = true; changed;) {
+          changed = false;
+          for (const box of this.projection.boxes) {
+            if (box.parentId && moved.has(box.parentId) && !moved.has(box.id)) {
+              moved.add(box.id); changed = true;
+            }
+          }
+        }
+        const shiftX = position.x - this.drag.position.x, shiftY = position.y - this.drag.position.y;
+        this.shadowRoot!.querySelectorAll<HTMLElement>('[data-box-id]').forEach(box => {
+          const id = box.dataset.boxId!;
+          if (!moved.has(id)) return;
+          const original = this.layoutValue.boxes[id];
+          box.style.left = `${original.x + shiftX}px`;
+          box.style.top = `${original.y + shiftY}px`;
+        });
         this.markDropLine(point, this.drag.id);
       }
     } else {

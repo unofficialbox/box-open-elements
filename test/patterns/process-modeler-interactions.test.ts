@@ -851,6 +851,31 @@ describe("Process Modeler prototype interactions", () => {
     (builder.readback.lastReadable!.boxes[0] as { title: string }).title = "Changed by reader";
     expect(builder.readback.lastReadable?.boxes[0].title).toBe("Read");
   });
+  it("previews nested frame children with their frame and restores every position when interrupted", () => {
+    const { builder, root, canvas } = fixture();
+    builder.snapToGrid = false;
+    builder.document = { boxes: [
+      { id: 'frame', node: {}, title: 'Frame', kind: 'try', frame: true },
+      { id: 'inner', node: {}, title: 'Inner frame', kind: 'try', frame: true, parentId: 'frame' },
+      { id: 'child', node: {}, title: 'Child', kind: 'call', parentId: 'inner' },
+      { id: 'other', node: {}, title: 'Other', kind: 'call' },
+    ], lines: [] };
+    builder.layout = { boxes: { frame: {x:40,y:40,width:400,height:240}, inner: {x:80,y:90,width:280,height:140}, child: {x:100,y:120}, other: {x:600,y:40} } };
+    const before = builder.layout;
+    const frame = root.querySelector('[data-box-id=frame]')!;
+    const position = (id: string) => { const box = root.querySelector<HTMLElement>(`[data-box-id=${id}]`)!; return [parseFloat(box.style.left), parseFloat(box.style.top)]; };
+    pointer(frame, 'pointerdown', 50, 50); pointer(canvas, 'pointermove', 82, 66);
+    expect(position('frame')).toEqual([72,56]); expect(position('inner')).toEqual([112,106]); expect(position('child')).toEqual([132,136]);
+    expect(position('other')).toEqual([600,40]); expect(builder.layout).toEqual(before);
+    pointer(canvas, 'pointercancel', 82, 66);
+    expect(position('frame')).toEqual([40,40]); expect(position('inner')).toEqual([80,90]); expect(position('child')).toEqual([100,120]);
+    expect(builder.layout).toEqual(before);
+    pointer(root.querySelector('[data-box-id=frame]')!, 'pointerdown', 50, 50); pointer(canvas, 'pointermove', 82, 66); pointer(canvas, 'pointerup', 82, 66);
+    expect(builder.layout.boxes.child).toMatchObject({x:132,y:136});
+    builder.undo(); expect(builder.layout).toEqual(before);
+    builder.redo(); expect(builder.layout.boxes.child).toMatchObject({x:132,y:136});
+  });
+
   it("keeps the box mounted through a plain pointer click and supports Shift-click selection", () => {
     const { builder, root, canvas } = fixture(); builder.select('b');
     const box = root.querySelector<HTMLElement>('[data-box-id=a]')!;
