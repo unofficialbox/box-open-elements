@@ -87,7 +87,7 @@ export class ProcessModeler<
   private inspectedId?: string;
   private inspectedControls = "";
   private localEchoRevision = 0;
-  private pendingLocalRename?: { boxId: string; name: string; value: string };
+  private pendingLocalRename?: { boxId: string; name: string; value: string; echoRevision: number; ambiguous: boolean };
   private historyValue = new ProcessHistory();
   private viewport = { x: 0, y: 0, zoom: 1 };
   private pointers = new Map<number, { x: number; y: number }>();
@@ -266,8 +266,11 @@ export class ProcessModeler<
   }
   set document(value: D | undefined) {
     this.localEchoRevision++;
+    const rename = this.pendingLocalRename;
     this.documentValue = value;
     this.refresh();
+    // One explicit echo settles this intent, including a rejected unchanged echo.
+    if (rename === this.pendingLocalRename && rename && this.localEchoRevision > rename.echoRevision) this.pendingLocalRename = undefined;
   }
   get model(): ProcessModel<D, N> {
     return this.modelValue;
@@ -2587,8 +2590,9 @@ export class ProcessModeler<
       const control = controls.find(item => item.dataset[focusedType] === focusedKey && (focusedType !== 'variable' || item.dataset.variableKey === variableKey) && focusedType !== 'localVariable')
         ?? (focusedType === 'variable' ? controls.find(item => this.pendingVariableRename?.name === focusedKey && item.dataset.variable === this.pendingVariableRename.value && item.dataset.variableKey === variableKey) ?? controls.find(item => item.dataset.variableKey === 'add') : undefined);
       if (focusedType === 'localVariable') {
+        if (focusedControl?.dataset.localAmbiguous === 'true') { focusedControl.blur(); return; }
         const names = [localName];
-        if (this.pendingLocalRename?.boxId === focusedKey && this.pendingLocalRename.name === localName) names.push(this.pendingLocalRename.value);
+        if (this.pendingLocalRename?.boxId === focusedKey && this.pendingLocalRename.name === localName && !this.pendingLocalRename.ambiguous) names.push(this.pendingLocalRename.value);
         let localControl: typeof control = undefined;
         for (const name of names) {
           const matches = controls.filter(item => item.dataset.localVariable === focusedKey && item.dataset.localKey === localKey && item.dataset.localName === name);
@@ -2628,7 +2632,7 @@ export class ProcessModeler<
     const editor =
       this.shadowRoot!.querySelector<HTMLElement>("[part=editor]")!;
     const selected = this.selected;
-    const controlsKey = `${[...this.selectedIds].join(',')}|${this.locked}|${this.disableConnections}|${this.showLastRunValue}|${selected?.runMetrics}|${JSON.stringify([selected?.localVariables, selected?.localVariablesEditable, selected?.frame, selected?.path, this.localEchoRevision])}|${JSON.stringify(selected ? this.fieldsValue[selected.id] ?? [] : [])}`;
+    const controlsKey = `${[...this.selectedIds].join(',')}|${this.locked}|${this.disableConnections}|${this.showLastRunValue}|${selected?.runMetrics}|${JSON.stringify([selected?.localVariables, selected?.localVariablesEditable, selected?.frame])}|${JSON.stringify(selected ? this.fieldsValue[selected.id] ?? [] : [])}`;
     this.shadowRoot!.querySelector<HTMLElement>("[part=palette]")!.hidden = false;
     this.shadowRoot!.querySelector<HTMLElement>('[part=selection-toolbar]')!.hidden = this.selectedIds.size === 0 && !this.selectedLineId;
     this.renderSelectionToolbar();
@@ -2641,6 +2645,12 @@ export class ProcessModeler<
       editor.querySelector(`[part=inspector-heading]`)?.tagName === `H${this.headingLevel}`
     ) {
       editor.querySelector("[part=inspector-heading]")!.textContent = selected?.title ?? "";
+      const locals = editor.querySelector<HTMLElement>('[part=local-variables]');
+      if (selected && locals && locals.dataset.localEchoRevision !== String(this.localEchoRevision)) {
+        // Reconcile controlled local drafts without disposing the host's custom
+        // inspector or unrelated focused controls on unchanged document echoes.
+        locals.replaceWith(this.renderLocalVariables(selected));
+      }
       restoreControlFocus();
       return;
     }
@@ -2706,13 +2716,13 @@ export class ProcessModeler<
     restoreControlFocus();
   }
   private renderLocalVariables(box: ProcessBox<N>): HTMLElement {
-    const section = document.createElement('section'); section.setAttribute('part', 'local-variables');
+    const section = document.createElement('section'); section.setAttribute('part', 'local-variables'); section.dataset.localEchoRevision = String(this.localEchoRevision);
     const heading = document.createElement('h3'); heading.textContent = box.frame ? 'Variables for the steps inside' : 'Variables for this step';
     const help = document.createElement('p'); help.textContent = box.frame ? 'The steps inside this frame can read these values until the frame finishes.' : 'Only this step’s inputs can read these values until the step finishes.';
     section.append(heading, help);
     for (const [index, variable] of (box.localVariables ?? []).entries()) {
       const row = document.createElement('div'); row.setAttribute('part', 'local-variable-row');
-      const identify = (control: HTMLElement, key: string) => { control.dataset.localVariable = box.id; control.dataset.localIndex = String(index); control.dataset.localKey = key; control.dataset.localName = variable.name; };
+      const identify = (control: HTMLElement, key: string) => { control.dataset.localVariable = box.id; control.dataset.localIndex = String(index); control.dataset.localKey = key; control.dataset.localName = variable.name; control.dataset.localAmbiguous = String(box.localVariables?.filter(item => item.name === variable.name).length !== 1); };
       for (const [key, label, value] of [['rename', 'Name', variable.name], ['starting-value', 'Starts as', variable.startingValue ?? '']] as const) {
         const field = document.createElement('label'); field.textContent = label;
         const input = document.createElement('input'); input.type = 'text'; input.value = value; input.disabled = this.locked || !box.localVariablesEditable; identify(input, key);
@@ -2721,7 +2731,7 @@ export class ProcessModeler<
           input.setAttribute('aria-describedby', `process-local-problem-${encodeURIComponent(box.id)}-${index}`);
         }
         input.oninput = () => {
-          if (key === 'rename') this.pendingLocalRename = { boxId: box.id, name: variable.name, value: input.value };
+          if (key === 'rename') this.pendingLocalRename = { boxId: box.id, name: variable.name, value: input.value, echoRevision: this.localEchoRevision, ambiguous: input.dataset.localAmbiguous === 'true' };
           this.requestLocalVariableEdit(box, { type: key, index, name: variable.name, value: input.value });
         }; field.append(input); row.append(field);
       }

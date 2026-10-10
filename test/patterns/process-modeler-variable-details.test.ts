@@ -101,6 +101,29 @@ describe('host-owned variable details', () => {
     const b=fixture(), owner=(b.document as any).boxes[0];owner.path=['body',0];owner.fingerprint='fp';owner.localVariables=[{name:'private',startingValue:'secret'}];b.document=b.document;
     b.layout={boxes:{a:{x:16,y:32}}};expect(b.positions.find(p=>p.id==='a')).toEqual({id:'a',path:['body',0],fingerprint:'fp',position:{x:16,y:32}});
   });
+  it('does not redirect an initially ambiguous rename to the other row', () => {
+    const b=fixture(), owner=(b.document as any).boxes[0];owner.localVariables=[{name:'a'},{name:'a'}];b.document=b.document;b.select('a');const r=b.shadowRoot!;
+    b.addEventListener('process-local-variable-edit-request',()=>{owner.localVariables=[{name:'z'},{name:'a'}];b.document=b.document;});
+    const input=r.querySelector<HTMLInputElement>('[data-local-key=rename]')!;input.focus();input.value='z';input.dispatchEvent(new Event('input'));
+    expect((r.activeElement as HTMLElement|null)?.dataset.localKey).not.toBe('rename');
+  });
+  it('expires rejected rename intent before a later unrelated removal', () => {
+    const b=fixture(), owner=(b.document as any).boxes[0];owner.localVariables=[{name:'a'},{name:'b'}];b.document=b.document;b.select('a');const r=b.shadowRoot!;
+    b.addEventListener('process-local-variable-edit-request',()=>{b.document=b.document;});
+    const input=r.querySelector<HTMLInputElement>('[data-local-key=rename][data-local-name=a]')!;input.focus();input.value='b';input.dispatchEvent(new Event('input'));
+    expect((r.activeElement as HTMLElement).dataset.localName).toBe('a');
+    owner.localVariables=[{name:'b'}];b.document=b.document;
+    expect((r.activeElement as HTMLElement|null)?.dataset.localKey).not.toBe('rename');
+  });
+  it.each([false, true])('preserves custom inspector drafts and focus on unchanged host echoes (locals=%s)', locals => {
+    const b=fixture(), owner=(b.document as any).boxes[0]; owner.localVariables=locals?[{name:'a',startingValue:'1'}]:undefined; b.document=b.document;
+    const cleanup=vi.fn(), render=vi.fn((_node:any, editor:HTMLElement)=>{
+      const input=document.createElement('input'); input.dataset.customDraft='true';input.value='initial';editor.append(input);return cleanup;
+    });b.renderer=render;b.select('a');
+    const r=b.shadowRoot!, input=r.querySelector<HTMLInputElement>('[data-custom-draft]')!;input.focus();input.value='unfinished draft';
+    const before=render.mock.calls.length; (b.document as any).boxes[1].title='Unrelated update';b.document=b.document;
+    expect(render).toHaveBeenCalledTimes(before);expect(cleanup).not.toHaveBeenCalled();expect(r.querySelector('[data-custom-draft]')).toBe(input);expect(input.value).toBe('unfinished draft');expect(r.activeElement).toBe(input);
+  });
   it('uses explicit local eligibility/read-only state and distinguishes frame help', () => {
     const b=fixture();b.select('frame');const r=b.shadowRoot!;expect(r.querySelector('[part=local-variables]')!.textContent).toContain('Variables for the steps inside');expect(r.querySelector('[data-local-key=add]')).toBeNull();
     b.select('b');expect(r.querySelector('[part=local-variables]')!.textContent).toContain('Variables for this step');
