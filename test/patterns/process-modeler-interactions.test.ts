@@ -1062,6 +1062,27 @@ describe("Process Modeler prototype interactions", () => {
     expect(changes.mock.calls[0][0].detail).toMatchObject({ boxId: 'a', key: 'action', value: 'files.download' });
     expect(input.getAttribute('aria-expanded')).toBe('false');
   });
+  it('keeps colliding action field keys independently labelled across renders and instances', () => {
+    const instances = [fixture(), fixture()]; const ids = new Set<string>();
+    for (const { builder, root } of instances) {
+      builder.fields = {a: ['read.file', 'read_file'].map((key, index) => ({key, label: `Read action ${index + 1}`, kind: 'action' as const, value: 'files.read', options: [{value: 'files.read', label: 'Read file'}]}))};
+      builder.select('a');
+      for (let render = 0; render < 2; render++) {
+        for (const input of root.querySelectorAll<HTMLInputElement>('[role=combobox]')) {
+          const label = root.querySelector<HTMLLabelElement>(`label[for="${input.id}"]`)!;
+          expect(label).not.toBeNull(); expect(label.htmlFor).toBe(input.id);
+          expect(root.querySelectorAll(`[id="${input.id}"]`)).toHaveLength(1);
+          expect(ids.has(input.id)).toBe(false); ids.add(input.id);
+          input.focus(); expect(root.activeElement).toBe(input);
+          expect(input.getAttribute('aria-expanded')).toBe('true');
+          const listbox = root.querySelector(`[id="${input.getAttribute('aria-controls')}"]`)!;
+          expect(listbox.getAttribute('role')).toBe('listbox');
+          expect(listbox.contains(root.querySelector(`[id="${input.getAttribute('aria-activedescendant')}"]`))).toBe(true);
+        }
+        builder.fields = {a: [...builder.fields.a!]};
+      }
+    }
+  });
   it('uses host category order, counts and safe HTTP details without editing while browsing', () => {
     const { builder, root } = fixture(); const changes = vi.fn(); builder.addEventListener('process-field-change-request', changes);
     builder.fields = {a: [{key: 'action', label: 'Box action', kind: 'action', value: 'files.upload', actionGroups: [{name: 'Users', heading: 'Most used'}, {name: 'Files', heading: '<Everything else>'}], options: [

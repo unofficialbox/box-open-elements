@@ -41,6 +41,8 @@ export interface ProcessModelerEventDetails {
     | { selection?: readonly ProcessSelectionItem[]; box: null; boxes: never[]; line: import('./model.js').ProcessLine | null; path: null };
 }
 
+let actionControlSequence = 0;
+
 const svgElement = <K extends keyof SVGElementTagNameMap>(
   tag: K,
 ): SVGElementTagNameMap[K] =>
@@ -2813,7 +2815,7 @@ export class ProcessModeler<
     if (field.kind === 'action' && control instanceof HTMLInputElement) {
       const input = control; const options = field.options ?? [];
       const list = document.createElement('div'); list.setAttribute('part', 'action-options');
-      list.id = `process-action-${box.id}-${field.key}`.replace(/[^a-zA-Z0-9-]/g, '-'); list.hidden = true;
+      list.id = `process-action-${++actionControlSequence}`; list.hidden = true;
       const optionList = document.createElement('div'); optionList.setAttribute('role', 'listbox'); optionList.id = `${list.id}-choices`; optionList.setAttribute('aria-label', `${field.label} choices`);
       input.setAttribute('role', 'combobox'); input.setAttribute('aria-autocomplete', 'list'); input.setAttribute('aria-controls', optionList.id); input.setAttribute('aria-expanded', 'false'); input.autocomplete = 'off';
       const availableGroups = [...new Set(options.map(option => option.group).filter((name): name is string => Boolean(name)))];
