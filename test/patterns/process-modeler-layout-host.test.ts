@@ -83,6 +83,18 @@ describe('host-owned atomic Tidy and sections', () => {
     b.redo(); expect(b.layout).toEqual(after); expect((b.document as ProcessProjection).lines[0].fromSide).toBeUndefined();
     b.redo(); expect(b.layout.boxes.a.x).toBe(160); expect(b.history.canRedo).toBe(false);
   });
+  it('drains accepted layout notifications before observer mutations so persisted state stays current', () => {
+    const layouts: number[] = [], positions: number[] = [];
+    const { b } = reentrantFixture(b => {
+      b.addEventListener('layout-changed', (event: Event) => layouts.push((event as CustomEvent).detail.layout.boxes.a.x));
+      b.addEventListener('positions-changed', (event: Event) => positions.push((event as CustomEvent).detail.positions.find((p: any) => p.id === 'a').position.x));
+      b.move('a', 160, 144);
+    });
+    expect(layouts).toEqual([96, 160]);
+    expect(positions).toEqual([96, 160]);
+    expect(layouts.at(-1)).toBe(b.layout.boxes.a.x);
+    expect(positions.at(-1)).toBe(b.layout.boxes.a.x);
+  });
   it('also defers a host document assignment before acceptance until history is complete', () => {
     const { b, before, after } = reentrantFixture(b => b.move('a', 160, 144), true);
     expect(b.layout.boxes.a.x).toBe(160);
