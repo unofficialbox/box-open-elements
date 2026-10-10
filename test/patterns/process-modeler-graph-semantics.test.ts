@@ -107,7 +107,7 @@ describe('Native graph note and association roles', () => {
     const pending = new ProcessModeler(); pending.document = structuredClone(graph);
     const requests = vi.fn(); pending.addEventListener('process-edit-request', requests);
     pending.requestEdit({ type: 'insert', lineId: 'nb' }); expect(requests).not.toHaveBeenCalled();
-    const { element, root } = fixture(); element.selectItems([{ type: 'line', id: 'nb' }]);
+    const { element, root } = fixture(); element.selectLine('nb');
     root.querySelector('[data-box-id=n]')!.dispatchEvent(new MouseEvent('click', { bubbles: true, shiftKey: true }));
     expect(element.selection).toEqual([{ type: 'box', id: 'n' }, { type: 'line', id: 'nb' }]);
     root.querySelector('[data-box-id=n]')!.dispatchEvent(new MouseEvent('click', { bubbles: true, shiftKey: true }));
