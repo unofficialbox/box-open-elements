@@ -84,3 +84,9 @@ const helperEvents = <>
     onstep-changed={event => { const index: number = event.detail.stepIndex; void index; }} />
 </>;
 void helperEvents;
+
+// A single react-jsx import must expose host Connections copy as a string prop.
+const connectionHelpView = <box-process-modeler connectionsHelp="Connections are set up by the host." />;
+// @ts-expect-error connection help is plain text, not a structured object
+const invalidConnectionHelpView = <box-process-modeler connectionsHelp={{ text: "Setup" }} />;
+void [connectionHelpView, invalidConnectionHelpView];
