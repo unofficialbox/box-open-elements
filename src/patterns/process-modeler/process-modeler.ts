@@ -1661,7 +1661,7 @@ export class ProcessModeler<
       this.connecting = null;
       this.pendingReattach = undefined;
       if (this.selectedLineId) this.selectLine(null);
-      this.portDrag = undefined; this.endDrag = undefined; this.marquee = undefined; this.segmentDrag = undefined; this.drag = undefined; this.pointers.clear(); delete this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.dataset.gesture; this.refresh();
+      this.portDrag = undefined; this.endDrag = undefined; this.marquee = undefined; this.segmentDrag = undefined; this.frameResize = undefined; this.drag = undefined; this.pointers.clear(); delete this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.dataset.gesture; this.refresh();
       if (wasConnecting) this.setStatus("Connecting cancelled");
       return;
     }
