@@ -142,6 +142,8 @@ export interface ProcessLayout {
   lines?: Record<string, { x: number; y: number }[]>;
 }
 export interface ProcessCheck {
+  /** Short problem title; message supplies its explanatory detail. */
+  title?: string;
   message: string;
   boxId?: string;
   path?: NodePath;

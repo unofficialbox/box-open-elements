@@ -299,3 +299,5 @@ refuses the request and echoes its `variables` array; the component never mutate
 that array. Starting expressions retain the existing
 `process-variable-change-request` contract. Supply `problem` for host validation.
 Locked diagrams disable all variable editing controls.
+
+Host checks can supply an optional `title` for a short problem summary. `message` remains the explanatory detail and live announcement. Titled Checks cards show the affected step, title and detail; the canvas shows the concise title. Existing message-only checks remain supported.
