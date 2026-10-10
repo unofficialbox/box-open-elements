@@ -76,6 +76,24 @@ describe('Process Modeler host connection rules and atomic route reset', () => {
     builder.undo(); expect(builder.document).toEqual(before);
     builder.redo(); expect(builder.layout.lines?.ab).toBeUndefined(); expect(builder.document!.lines[0].fromSide).toBeUndefined();
   });
+  it.each([{ fromSide: 'east' as const }, { toSide: 'west' as const }, { points: [{ x: 250, y: 32 }] }])('updates Reset eligibility after host-only route state changes without reselection %j', authored => {
+    const { builder, root } = fixture(); const automatic = { ...graph, lines: [{ id: 'ab', from: 'a', to: 'b' }] };
+    builder.document = automatic; builder.layout = { boxes: builder.layout.boxes }; builder.selectLine('ab');
+    expect(root.querySelector('[data-selection-command=reset-line]')).toBeNull();
+    builder.document = { ...automatic, lines: [{ ...automatic.lines[0], ...authored }] };
+    expect(root.querySelector('[data-selection-command=reset-line]')).not.toBeNull();
+    builder.document = automatic;
+    expect(root.querySelector('[data-selection-command=reset-line]')).toBeNull(); expect(builder.selectedLine!.id).toBe('ab');
+  });
+  it.each(['connect', 'reattach'] as const)('validates premount public %s proposals without touching absent DOM', type => {
+    const builder = new ProcessModeler(); const check = vi.fn(() => 'Refused before mount');
+    builder.model = { project: doc => doc as ProcessProjection, connectionProblem: check }; builder.document = structuredClone(graph);
+    const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    expect(() => builder.requestEdit(type === 'reattach' ? { type, lineId: 'ab', to: 'c' } : { type, from: 'a', to: 'c' })).not.toThrow();
+    expect(check.mock.calls.at(-1)![1]).toEqual({ from: 'a', to: 'c', ...(type === 'reattach' ? { ignoreLineId: 'ab' } : {}) });
+    expect(requests).not.toHaveBeenCalled();
+    expect(check.mock.calls.at(-1)![2]).toEqual(graph);
+  });
   it('offers pins-only Reset and preserves refused or locked state without local optimistic edits', () => {
     const { builder, root } = fixture(); builder.layout = { boxes: builder.layout.boxes }; builder.selectLine('ab');
     const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
