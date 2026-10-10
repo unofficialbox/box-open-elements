@@ -83,7 +83,7 @@ export class ProcessModeler<
     panX: number;
     panY: number;
   };
-  private pinchDistance = 0;
+  private pinch?: { distance: number; zoom: number; anchor: { x: number; y: number } };
   private gestureZoom = 1;
   private insertion?: ProcessEdit;
   private keyboardInsertion?: ProcessEdit;
@@ -577,8 +577,10 @@ export class ProcessModeler<
     if (!Number.isFinite(factor) || factor <= 0) return;
     const viewport =
       this.shadowRoot!.querySelector<HTMLElement>("[part=canvas]")!;
-    const centerX = viewport.clientWidth / 2;
-    const centerY = viewport.clientHeight / 2;
+    this.zoomAround(factor, viewport.clientWidth / 2, viewport.clientHeight / 2);
+  }
+  private zoomAround(factor: number, centerX: number, centerY: number): void {
+    if (!Number.isFinite(factor) || factor <= 0) return;
     const previous = this.viewport.zoom;
     const next = Math.max(0.25, Math.min(2, previous * factor));
     this.viewport.x = centerX - ((centerX - this.viewport.x) / previous) * next;
@@ -1054,11 +1056,17 @@ export class ProcessModeler<
       "wheel",
       (event) => {
         event.preventDefault();
-        if (event.ctrlKey || event.metaKey)
-          this.zoomBy(Math.exp(-event.deltaY * 0.01));
-        else {
-          this.viewport.x -= event.deltaX;
-          this.viewport.y -= event.deltaY;
+        if (event.ctrlKey || event.metaKey) {
+          const delta = -event.deltaY * (event.deltaMode === 1 ? .05 : event.deltaMode ? 1 : .002)
+            * (event.ctrlKey && !event.metaKey && Math.abs(event.deltaY) < 50 ? 10 : 1);
+          const rect = canvas.getBoundingClientRect();
+          this.zoomAround(2 ** Math.max(-1, Math.min(1, delta)), event.clientX - rect.left, event.clientY - rect.top);
+        } else {
+          const multiplier = event.deltaMode === 1 ? 20 : 1;
+          let dx = event.deltaX * multiplier, dy = event.deltaY * multiplier;
+          if (event.shiftKey && !dx) { dx = dy; dy = 0; }
+          this.viewport.x -= dx;
+          this.viewport.y -= dy;
           this.paintViewport();
         }
       },
@@ -1083,8 +1091,13 @@ export class ProcessModeler<
     canvas.addEventListener("gesturechange", (event) => {
       event.preventDefault();
       const scale = (event as Event & { scale: number }).scale;
-      if (scale > 0)
-        this.zoomBy((this.gestureZoom * scale) / this.viewport.zoom);
+      if (scale > 0 && this.pointers.size < 2) {
+        const gesture = event as Event & { clientX: number; clientY: number };
+        const rect = canvas.getBoundingClientRect();
+        this.zoomAround((this.gestureZoom * scale) / this.viewport.zoom,
+          Number.isFinite(gesture.clientX) ? gesture.clientX - rect.left : canvas.clientWidth / 2,
+          Number.isFinite(gesture.clientY) ? gesture.clientY - rect.top : canvas.clientHeight / 2);
+      }
     });
     const minimap =
       this.shadowRoot!.querySelector<SVGSVGElement>("[part=minimap]")!;
@@ -1282,7 +1295,9 @@ export class ProcessModeler<
     this.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (this.pointers.size === 2) {
       this.drag = undefined;
-      this.pinchDistance = this.distance();
+      const [a, b] = [...this.pointers.values()];
+      this.pinch = { distance: this.distance(), zoom: this.viewport.zoom,
+        anchor: this.canvasPoint({ clientX: (a.x + b.x) / 2, clientY: (a.y + b.y) / 2 }) };
       this.refresh();
       return;
     }
@@ -1360,8 +1375,14 @@ export class ProcessModeler<
     this.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (this.pointers.size === 2) {
       const distance = this.distance();
-      if (this.pinchDistance) this.zoomBy(distance / this.pinchDistance);
-      this.pinchDistance = distance;
+      if (this.pinch?.distance) {
+        const [a, b] = [...this.pointers.values()];
+        const rect = this.shadowRoot!.querySelector('[part=canvas]')!.getBoundingClientRect();
+        const zoom = Math.max(.25, Math.min(2, this.pinch.zoom * distance / this.pinch.distance));
+        this.viewport = { zoom, x: (a.x + b.x) / 2 - rect.left - this.pinch.anchor.x * zoom,
+          y: (a.y + b.y) / 2 - rect.top - this.pinch.anchor.y * zoom };
+        this.paintViewport();
+      }
       return;
     }
     if (!this.drag) return;
@@ -1463,7 +1484,7 @@ export class ProcessModeler<
     this.pointers.delete(event.pointerId);
     const drag = this.drag;
     this.drag = undefined;
-    this.pinchDistance = 0;
+    this.pinch = undefined;
     if (drag?.id && drag.position) {
       const dx = event.clientX - drag.x;
       const dy = event.clientY - drag.y;
