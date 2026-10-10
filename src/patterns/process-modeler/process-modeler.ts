@@ -1924,7 +1924,7 @@ export class ProcessModeler<
       const outgoing = this.projection.lines.filter(line => line.from === box.id).length;
       element.setAttribute(
         "aria-label",
-        [`${kind?.label ?? box.kind}: ${box.title}. ${incoming} in, ${outgoing} out`, problem ? `Needs attention: ${problem.message}` : ""]
+        [`${kind?.label ?? box.kind}: ${box.title}. ${incoming} in, ${outgoing} out`, problem ? `Needs attention: ${problem.title || problem.message}` : ""]
           .filter(Boolean)
           .join(". "),
       );
@@ -2005,7 +2005,7 @@ export class ProcessModeler<
         }
         element.append(line);
       }
-      if (problem) { const message = document.createElement("span"); message.setAttribute("part", "problem"); message.append(checkGlyph(), document.createTextNode(problem.title ?? problem.message)); element.append(message); }
+      if (problem) { const message = document.createElement("span"); message.setAttribute("part", "problem"); message.append(checkGlyph(), document.createTextNode(problem.title || problem.message)); element.append(message); }
       element.addEventListener("keydown", event => {
         if (event.target !== element) return;
         // Space reaches the canvas handler so holding it pans from a focused step.
