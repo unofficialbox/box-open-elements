@@ -23,6 +23,10 @@ flowchart LR
   Conversion --> Canvas
 ```
 
+Unplaced graph notes receive a nonoverlapping fallback outside the flow ranks.
+Notes without a saved height measure their natural text body so ports and
+association endpoints follow the visible border, including after text changes.
+
 Graph notes use `ProcessBox.role: "note"`; their `description` supplies plain
 note text, with `title` as the fallback. They retain typed box IDs, host fields,
 selection, movement, duplication and history. They do not participate in flow

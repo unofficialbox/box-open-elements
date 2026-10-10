@@ -128,6 +128,59 @@ describe('Native graph note and association roles', () => {
     expect(toolbar.style.left).toBe('404px'); expect(toolbar.style.top).toBe('14px');
   });
 
+  it('keeps Try failure insertion available with dashed or failure-labelled associations', () => {
+    const { element, root } = fixture();
+    const boxes = [{ ...graph.boxes[0], kind: 'try' }, ...graph.boxes.slice(1)];
+    for (const attachment of [{ dashed: true }, { label: 'If it fails' }]) {
+      element.document = { boxes, lines: [{ id: 'an', from: 'a', to: 'n', role: 'association', ...attachment }] };
+      element.select('a');
+      expect(root.querySelector('[data-selection-command=add-failure]')).not.toBeNull();
+    }
+    element.document = { boxes, lines: [{ id: 'ab', from: 'a', to: 'b', dashed: true }] };
+    expect(root.querySelector('[data-selection-command=add-failure]')).toBeNull();
+  });
+
+  it('places unsaved graph notes clear of flows in either root order and of each other', () => {
+    for (const noteFirst of [true, false]) {
+      const element = new ProcessModeler();
+      const flow = graph.boxes[0], note = graph.boxes[2];
+      element.document = { boxes: [...(noteFirst ? [note, flow] : [flow, note]), { ...note, id: 'n2' }], lines: [] };
+      document.body.append(element);
+      const positions = Object.values(element.layout.boxes);
+      for (let i = 0; i < positions.length; i++) for (let j = i + 1; j < positions.length; j++) {
+        const a = positions[i], b = positions[j];
+        expect(a.x >= b.x + (b.width ?? 224) || b.x >= a.x + (a.width ?? 224) || a.y >= b.y + (b.height ?? 64) || b.y >= a.y + (a.height ?? 64)).toBe(true);
+      }
+      element.remove();
+    }
+  });
+
+  it('does not start canvas gestures for association pointer targets before Shift-click', () => {
+    const { element, root } = fixture(); element.select('n');
+    const hit = root.querySelector('[part=line-hit][data-line-id=nb]')!;
+    hit.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerId: 1, shiftKey: true }));
+    expect((element as any).marquee).toBeUndefined(); expect((element as any).drag).toBeUndefined();
+    hit.dispatchEvent(new MouseEvent('click', { bubbles: true, shiftKey: true }));
+    expect(element.selection).toEqual([{ type: 'box', id: 'n' }, { type: 'line', id: 'nb' }]);
+  });
+
+  it('measures automatic note bodies and reroutes endpoints after short or multiline text changes', () => {
+    let height = 38.125;
+    const measure = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+      return { x: 0, y: 0, top: 0, left: 0, right: 208, bottom: height, width: 208, height: this.getAttribute('part') === 'note-body' ? height : 0, toJSON() {} };
+    });
+    try {
+      const { element, root } = fixture();
+      element.layout = { boxes: { a: { x: 40, y: 400 }, b: { x: 40, y: 600 }, n: { x: 40, y: 40 } } };
+      for (const nextHeight of [38.125, 74.375]) {
+        height = nextHeight; element.refresh();
+        expect(element.layout.boxes.n.height).toBe(height);
+        expect(root.querySelector<HTMLElement>('[data-box-id=n]')!.style.height).toBe(`${height}px`);
+        expect(routeProcessLine(graph.lines[1], element.layout, graph)[0]).toEqual({ x: 144, y: 40 + height });
+      }
+    } finally { measure.mockRestore(); }
+  });
+
   it('keeps a flow next insertion on its ordinary edge when associations are present', () => {
     const { element, key } = fixture();
     element.document = { ...graph, lines: [...graph.lines, { id: 'an', from: 'a', to: 'n', role: 'association' }] };
