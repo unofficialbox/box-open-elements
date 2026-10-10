@@ -275,6 +275,12 @@ export const processModelerDesign = `
   [part=field] label { display: grid; gap: 5px; font-size: 12.5px; font-weight: 650; }
   [part=field] :is(input:not([type=checkbox]),textarea,select) { width: 100%; min-height: 36px; padding: 7px 10px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 8px; background: var(--boe-token-surface-surface, #fff); color: var(--boe-token-text-text, #141413); font-family: inherit; font-size: 13px; line-height: 1.4; }
   [part=field] textarea { min-height: 76px; resize: vertical; }
+  [part=expression-control] { font-family: ui-monospace, SFMono-Regular, monospace !important; }
+  [part=expression-help] { font-size: 12px; color: var(--boe-token-text-text-secondary, #6f6f6f); }
+  [part=expression-help] summary { cursor: pointer; }
+  [part=expression-help] ul { padding-left: 20px; margin: 8px 0; }
+  [part=expression-help] li { margin: 4px 0; }
+  [part=field-feedback][data-tone=success] { color: var(--boe-token-text-status-text-success, #247b3e); }
   [part=field]:has([part=action-options]) { position: relative; }
   [part=field]:has([part=action-options]) input { padding-right: 34px; }
   [part=action-caret] { position: absolute; z-index: 1; top: 25px; right: 2px; width: 32px; min-height: 32px; padding: 0; border: 0; background: transparent; font-size: 18px; }

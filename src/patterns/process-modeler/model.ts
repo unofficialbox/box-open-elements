@@ -94,6 +94,23 @@ export interface ProcessOutlineItem {
   boxId?: string;
   children?: readonly ProcessOutlineItem[];
 }
+/** Host-authored expression presentation; BOE does not infer scope or evaluate CEL. */
+export interface ProcessExpressionField {
+  /** Complete ordered scope; [] suppresses legacy global-variable chips. */
+  variables?: readonly { name: string; description?: string }[];
+  /** Values greater than one render a textarea. */
+  rows?: number;
+  /** Error feedback uses ProcessField.problem and takes precedence. */
+  feedback?: { message: string; tone?: 'neutral' | 'success' };
+  help?: {
+    summary: string;
+    examples: readonly {
+      expression: string;
+      description: string;
+      segments?: readonly { text: string; format?: 'code' | 'text' }[];
+    }[];
+  };
+}
 /** Host-supplied field values; the modeler draws controls and requests edits. */
 export interface ProcessField {
   key: string;
@@ -106,6 +123,7 @@ export interface ProcessField {
   required?: boolean;
   disabled?: boolean;
   problem?: string;
+  expression?: ProcessExpressionField;
 }
 export interface ProcessPositionSnapshot {
   path?: NodePath;
