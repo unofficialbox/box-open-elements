@@ -123,7 +123,7 @@ export interface BoxElementPropertyKeys {
   "box-presence": "label" | "max" | "transport" | "users";
   "box-preview-element": "actions" | "adapterState" | "heading" | "itemLabel" | "message" | "provider" | "providerAdapter" | "providerLabel" | "status";
   "box-preview-header": "actions" | "breadcrumbs" | "heading" | "message" | "status";
-  "box-process-modeler": "catalog" | "connections" | "detail" | "disableConnections" | "document" | "embedMode" | "fields" | "headingLevel" | "history" | "lastRun" | "layout" | "locked" | "model" | "outline" | "processSummary" | "processTitle" | "renderInspector" | "selectedPath" | "showLastRun" | "snapToGrid" | "variables";
+  "box-process-modeler": "catalog" | "connections" | "detail" | "disableConnections" | "document" | "embedMode" | "fields" | "headingLevel" | "history" | "lastRun" | "layout" | "locked" | "model" | "outline" | "processSummary" | "processTitle" | "renderInspector" | "selectedPath" | "showLastRun" | "snapToGrid" | "variables" | "variablesEditable";
   "box-progress-bar": "hideLabel" | "label" | "max" | "value";
   "box-progress-ring": "label" | "max" | "size" | "value";
   "box-progress-steps": "compact" | "items" | "label" | "value";
@@ -522,6 +522,7 @@ export interface BoxElementEventMap {
     "process-edit-request": CustomEvent<import("./patterns/process-modeler/model.js").ProcessEditRequest>;
     "process-field-change-request": CustomEvent<{ boxId: string; path: import("./patterns/flow-builder/model.js").NodePath | undefined; key: string; value: string | number | boolean; }>;
     "process-variable-change-request": CustomEvent<{ name: string; value: string; }>;
+    "process-variable-edit-request": CustomEvent<{ type: "add"; } | { type: "remove"; name: string; } | { type: "rename"; name: string; value: string; } | { type: "scope"; name: string; value: "iteration" | "process"; }>;
     "projection-changed": CustomEvent<{ projection: import("./patterns/process-modeler/model.js").ProcessProjection<unknown>; version: string | number; checks: readonly import("./patterns/process-modeler/model.js").ProcessCheck[]; }>;
     "readable-projection-changed": CustomEvent<{ projection: import("./patterns/process-modeler/model.js").ProcessProjection<unknown>; version: string | number; }>;
     "selection-changed": CustomEvent<{ box: import("./patterns/process-modeler/model.js").ProcessBox<unknown> | null; boxes: readonly import("./patterns/process-modeler/model.js").ProcessBox<unknown>[]; path: import("./patterns/flow-builder/model.js").NodePath | null; } | { box: null; boxes: never[]; line: import("./patterns/process-modeler/model.js").ProcessLine | null; path: null; }>;

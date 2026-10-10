@@ -6,7 +6,7 @@ import { KindPicker } from "../flow-builder/primitives.js";
 import { arrangeProcess, routeProcessLine, lineMidpoint, nearProcessLine, roundedProcessPath } from "./geometry.js";
 import { restoreProcessPositions, snapshotProcessPositions, snapshotProcessProjection, graphChecks, normalizeProcessSelectionPath } from "./bridge.js";
 import { processModelerDesign } from "./design.js";
-import type { ProcessConnection, ProcessVariable, ProcessLoadOptions, ProcessKind, ProcessLastRun, ProcessOutlineItem, ProcessField, ProcessSide } from "./model.js";
+import type { ProcessConnection, ProcessVariable, ProcessLoadOptions, ProcessKind, ProcessLastRun, ProcessOutlineItem, ProcessField, ProcessVariableEdit, ProcessSide } from "./model.js";
 import {
   completeLayout,
   ProcessHistory,
@@ -96,6 +96,7 @@ export class ProcessModeler<
   private lastDocument?: D;
   private connectionsValue: readonly ProcessConnection[] = [];
   private variablesValue: readonly ProcessVariable[] = [];
+  private variablesEditableValue = false;
   private outlineValue: readonly ProcessOutlineItem[] = [];
   private fieldsValue: Readonly<Record<string, readonly ProcessField[]>> = {};
   private processTitleValue = "Process";
@@ -127,6 +128,9 @@ export class ProcessModeler<
   set connections(value: readonly ProcessConnection[]) { this.connectionsValue = value; this.refresh(); }
   get variables(): readonly ProcessVariable[] { return this.variablesValue; }
   set variables(value: readonly ProcessVariable[]) { this.variablesValue = value; this.refresh(); }
+  /** Opt in to name, scope, add and remove controls; edits remain host-owned. */
+  get variablesEditable(): boolean { return this.variablesEditableValue; }
+  set variablesEditable(value: boolean) { this.variablesEditableValue = value; this.toggleAttribute('data-variables-editable', value); this.refresh(); }
   get outline(): readonly ProcessOutlineItem[] { return this.outlineValue; }
   set outline(value: readonly ProcessOutlineItem[]) { this.outlineValue = value; this.refresh(); }
   get fields(): Readonly<Record<string, readonly ProcessField[]>> { return this.fieldsValue; }
@@ -849,15 +853,29 @@ export class ProcessModeler<
       if (!this.allChecks.length) { const message = document.createElement("p"); message.textContent = "Ready to run"; content.prepend(message); }
     } else if (this.activePane === "Variables") {
       if (!this.variables.length) content.textContent = 'No variables supplied by the host.';
-      for (const variable of this.variables) {
+      for (const [index, variable] of this.variables.entries()) {
         const row = document.createElement('div'); row.setAttribute('part', 'variable-row');
-        const heading = document.createElement('strong'); heading.textContent = variable.name; row.append(heading);
-        if (variable.scope) { const scope = document.createElement('span'); scope.textContent = variable.scope; scope.setAttribute('part', 'variable-scope'); row.append(scope); }
+        const identify = (control: HTMLElement, key: string) => { control.dataset.variable = variable.name; control.dataset.variableKey = key; control.dataset.variableIndex = String(index); };
+        if (this.variablesEditable) {
+          const label = document.createElement('label'); label.textContent = 'Name';
+          const name = document.createElement('input'); name.type = 'text'; name.value = variable.name; name.disabled = this.locked; identify(name, 'name');
+          name.onchange = () => this.requestVariableEdit({ type: 'rename', name: variable.name, value: name.value }); label.append(name); row.append(label);
+          const scopeLabel = document.createElement('label'); scopeLabel.textContent = 'Scope';
+          const scope = document.createElement('select'); identify(scope, 'scope'); scope.disabled = this.locked;
+          for (const [value, text] of [['iteration', 'Each iteration'], ['process', 'The whole process']] as const) { const option = document.createElement('option'); option.value = value; option.textContent = text; scope.append(option); }
+          scope.value = variable.scope ?? 'iteration'; scope.onchange = () => this.requestVariableEdit({ type: 'scope', name: variable.name, value: scope.value as 'iteration' | 'process' }); scopeLabel.append(scope); row.append(scopeLabel);
+        } else {
+          const heading = document.createElement('strong'); heading.textContent = variable.name; row.append(heading);
+          if (variable.scope) { const scope = document.createElement('span'); scope.textContent = variable.scope; scope.setAttribute('part', 'variable-scope'); row.append(scope); }
+        }
         if (variable.description) { const description = document.createElement('p'); description.textContent = variable.description; row.append(description); }
-        if (variable.startingValue !== undefined) { const label = document.createElement('label'); label.textContent = 'Starting value'; const input = document.createElement('input'); input.type = 'text'; input.dataset.variable = variable.name; input.value = variable.startingValue; input.disabled = this.locked; input.setAttribute('aria-invalid', String(Boolean(variable.problem))); input.addEventListener('input', () => emit(this, 'process-variable-change-request', { name: variable.name, value: input.value })); label.append(input); row.append(label); }
+        if (variable.startingValue !== undefined) { const label = document.createElement('label'); label.textContent = 'Starting value'; const input = document.createElement('input'); input.type = 'text'; identify(input, 'value'); input.value = variable.startingValue; input.disabled = this.locked; input.setAttribute('aria-invalid', String(Boolean(variable.problem))); input.addEventListener('input', () => emit(this, 'process-variable-change-request', { name: variable.name, value: input.value })); label.append(input); row.append(label); }
+        const scopeControl = row.querySelector('[data-variable-key=scope]')?.closest('label'); if (scopeControl) row.append(scopeControl);
         if (variable.problem) { const problem = document.createElement('p'); problem.setAttribute('part', 'field-problem'); problem.textContent = variable.problem; row.append(problem); }
+        if (this.variablesEditable) { const remove = document.createElement('button'); remove.type = 'button'; remove.setAttribute('part', 'variable-remove'); remove.setAttribute('aria-label', `Remove ${variable.name || 'this variable'}`); remove.textContent = '×'; remove.disabled = this.locked; identify(remove, 'remove'); remove.onclick = () => this.requestVariableEdit({ type: 'remove', name: variable.name }); row.append(remove); }
         content.append(row);
       }
+      if (this.variablesEditable) { const add = document.createElement('button'); add.type = 'button'; add.setAttribute('part', 'variable-add'); add.dataset.variable = '@add'; add.dataset.variableKey = 'add'; add.textContent = 'Add a variable'; add.disabled = this.locked; add.onclick = () => this.requestVariableEdit({ type: 'add' }); content.append(add); }
     } else if (this.activePane === "Connections") {
       if (!this.connections.length) content.textContent = 'No connections supplied by the host.';
       for (const connection of this.connections) {
@@ -870,6 +888,9 @@ export class ProcessModeler<
     } else if (this.activePane === "Shortcuts") {
       content.textContent = "Tab: move between steps. Alt+arrows: select the nearest step that way. Arrows: move one grid square. Shift+arrows: move four. N: add the next step. Ctrl+Alt+arrows: add in a direction. Enter: edit. Delete: remove. Ctrl/Command+A: select all. Ctrl/Command+C/V/D: copy, paste, duplicate. Ctrl/Command+Z and Shift+Ctrl/Command+Z: undo and redo. Shift+1: fit the whole process. Shift+drag: select a region. Drag a port: connect. Escape: cancel.";
     }
+  }
+  private requestVariableEdit(edit: ProcessVariableEdit): void {
+    if (!this.locked) emit(this, 'process-variable-edit-request', edit);
   }
   private selectionCommand(command: string): void {
     if (this.locked) return;
@@ -2074,14 +2095,17 @@ export class ProcessModeler<
     if (!this.isRendered) return;
     const focusedControl = this.shadowRoot!.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
     const focusedKey = focusedControl?.dataset.field ?? focusedControl?.dataset.variable;
+    const variableKey = focusedControl?.dataset.variableKey, variableIndex = focusedControl?.dataset.variableIndex;
     const focusedType = focusedControl?.dataset.field ? 'field' : focusedControl?.dataset.variable ? 'variable' : null;
     const caret = focusedControl && 'selectionStart' in focusedControl ? focusedControl.selectionStart : null;
     const restoreControlFocus = () => {
       if (!focusedKey || !focusedType) return;
-      const control = Array.from(this.shadowRoot!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input,textarea')).find(item => item.dataset[focusedType] === focusedKey);
+      const controls = Array.from(this.shadowRoot!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | HTMLButtonElement>('input,textarea,select,button'));
+      const control = controls.find(item => item.dataset[focusedType] === focusedKey && (focusedType !== 'variable' || item.dataset.variableKey === variableKey))
+        ?? (focusedType === 'variable' ? controls.find(item => item.dataset.variableIndex === variableIndex && item.dataset.variableKey === variableKey) ?? controls.find(item => item.dataset.variableKey === 'add') : undefined);
       if (!control) return;
       control.focus();
-      if (caret !== null && control.type !== 'number' && control.type !== 'checkbox') control.setSelectionRange(caret, caret);
+      if (caret !== null && (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) && control.type !== 'number' && control.type !== 'checkbox') control.setSelectionRange(caret, caret);
     };
     this.shadowRoot!.querySelectorAll<SVGPathElement>('[part=line]').forEach(line => { const selected = line.dataset.lineId === this.selectedLineId; line.dataset.selected = String(selected); line.setAttribute('marker-end', `url(#${selected ? 'boe-process-arrow-brand' : 'boe-process-arrow'})`); });
     this.shadowRoot!.querySelectorAll<HTMLElement>("[data-box-id]").forEach(

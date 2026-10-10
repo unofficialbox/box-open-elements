@@ -47,6 +47,12 @@ export interface ProcessVariable {
   startingValue?: string;
   problem?: string;
 }
+/** Host-owned variable edits; the host echoes the updated variables property. */
+export type ProcessVariableEdit =
+  | { type: 'add' }
+  | { type: 'remove'; name: string }
+  | { type: 'rename'; name: string; value: string }
+  | { type: 'scope'; name: string; value: 'iteration' | 'process' };
 /** Host-authored, readable outline; boxId links a row to a projected step. */
 export interface ProcessOutlineItem {
   title: string;
