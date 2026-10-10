@@ -23,6 +23,23 @@ flowchart LR
   Conversion --> Canvas
 ```
 
+Unplaced graph notes receive a nonoverlapping fallback outside the flow ranks.
+Notes without a saved height measure their natural text body so ports and
+association endpoints follow the visible border, including after text changes.
+
+Graph notes use `ProcessBox.role: "note"`; their `description` supplies plain
+note text, with `title` as the fallback. They retain typed box IDs, host fields,
+selection, movement, duplication and history. They do not participate in flow
+counts, default arrangement or step insertion. Existing `layout.notes` remain
+separate local annotations and are not converted into graph notes.
+
+Use `ProcessLine.role: "association"` for a note attachment. Associations retain
+typed line IDs for selection, atomic deletion and clipboard closure. They draw
+straight and dashed, without arrows, route/pin controls or Insert. They do not
+participate in workflow topology or last-run traffic. The host still validates
+and accepts connections and owns graph edits. Both omitted roles default to
+`"flow"`, preserving existing projections and edit event shapes.
+
 ```ts
 import { ProcessModeler } from "@unofficialbox/box-open-elements/patterns/process-modeler";
 const canvas = document.querySelector("box-process-modeler") as ProcessModeler;

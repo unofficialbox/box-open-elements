@@ -13,6 +13,9 @@ export interface ProcessBox<N = unknown> {
   node: N;
   kind: string;
   title: string;
+  /** Graph notes keep box identity but are not workflow steps. */
+  role?: "flow" | "note";
+  /** For graph notes, the visible note text (title is the fallback). */
   description?: string;
   /** Description used in Technical view; absent values fall back to description. */
   technicalDescription?: string;
@@ -39,6 +42,8 @@ export interface ProcessBox<N = unknown> {
 }
 export interface ProcessLine {
   id: string;
+  /** Associations attach graph notes without participating in workflow flow. */
+  role?: "flow" | "association";
   from: string;
   to: string;
   label?: string;
@@ -50,6 +55,10 @@ export interface ProcessLine {
   /** Optional last-run traffic share, between 0 and 1. */
   share?: number;
 }
+/** Semantic eligibility is independent of host kind names. */
+export const isFlowBox = (box: ProcessBox): boolean => box.role !== "note";
+export const isFlowLine = (line: ProcessLine): boolean => line.role !== "association";
+
 export type ProcessSide = "north" | "east" | "south" | "west";
 export interface ProcessConnection {
   name: string;
@@ -375,7 +384,7 @@ export function completeLayout<N>(
       .map(measure);
     const size = {
       width: Math.max(
-        box.frame || box.shape === "frame" ? 320 : box.shape === "gateway" || box.shape === "event" ? 56 : 224,
+        box.frame || box.shape === "frame" ? 320 : box.shape === "gateway" || box.shape === "event" ? 56 : box.role === "note" ? 208 : 224,
         ...children.map((child) => child.width + 40),
       ),
       height: box.frame
@@ -398,7 +407,20 @@ export function completeLayout<N>(
     let y = top;
     for (const box of siblings) {
       const size = sizes.get(box.id)!;
-      boxes[box.id] ??= { x, y, ...size };
+      if (!boxes[box.id]) {
+        if (box.role === "note") {
+          // Flow ranks are already placed; unplaced graph notes need free space
+          // regardless of their order in the projection.
+          const ancestors = new Set<string>();
+          for (let parent = box.parentId; parent; parent = projection.boxes.find(b => b.id === parent)?.parentId) ancestors.add(parent);
+          let overlaps: BoxPosition[];
+          do {
+            overlaps = Object.entries(boxes).filter(([id]) => !ancestors.has(id)).map(([, p]) => p).filter(p => x < p.x + (p.width ?? 224) && x + size.width > p.x && y < p.y + (p.height ?? 64) && y + size.height > p.y);
+            if (overlaps.length) y = Math.max(...overlaps.map(p => p.y + (p.height ?? 64))) + 60;
+          } while (overlaps.length);
+          boxes[box.id] = { x, y, width: size.width };
+        } else boxes[box.id] = { x, y, ...size };
+      }
       const position = boxes[box.id];
       place(
         projection.boxes.filter((child) => child.parentId === box.id),
@@ -408,7 +430,7 @@ export function completeLayout<N>(
       y += (position.height ?? size.height) + 60;
     }
   };
-  place(roots, 40, 40);
+  place([...roots.filter(box => box.role !== "note"), ...roots.filter(box => box.role === "note")], 40, 40);
   return { ...layout, boxes };
 }
 

@@ -1,3 +1,4 @@
+import { isFlowBox, isFlowLine } from "./model.js";
 import type { NodePath } from "../flow-builder/model.js";
 import type {
   BoxPosition,
@@ -94,6 +95,7 @@ const parallelKinds = new Set(["parallel", "fork"]);
 
 /** Generic topology only. Hosts own workflow vocabulary and semantic validation. */
 export function graphChecks<N>(projection: ProcessProjection<N>): readonly ProcessCheck[] {
+  projection = { boxes: projection.boxes.filter(isFlowBox), lines: projection.lines.filter(isFlowLine) };
   const boxes = new Map(projection.boxes.map(box => [box.id, box]));
   const outgoing = new Map(projection.boxes.map(box => [box.id, [] as string[]]));
   const incoming = new Map(projection.boxes.map(box => [box.id, [] as string[]]));

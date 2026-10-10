@@ -10,6 +10,8 @@ import { processModelerDesign } from "./design.js";
 import type { ProcessConnection, ProcessVariable, ProcessLoadOptions, ProcessKind, ProcessLastRun, ProcessOutlineItem, ProcessField, ProcessVariableEdit, ProcessLocalVariableEdit, ProcessLocalVariableEditRequest, ProcessSide } from "./model.js";
 import {
   completeLayout,
+  isFlowBox,
+  isFlowLine,
   ProcessHistory,
   validateProjection,
   type BoxPosition,
@@ -176,7 +178,7 @@ export class ProcessModeler<
   private portDrag?: { pointerId: number; id: string; side: "north" | "east" | "south" | "west"; start: { x: number; y: number }; point: { x: number; y: number } };
   private endDrag?: { pointerId: number; lineId: string; end: 'from' | 'to'; start: { x: number; y: number }; point: { x: number; y: number } };
   private pendingReattach?: { lineId: string; end: 'from' | 'to' };
-  private marquee?: { pointerId: number; start: { x: number; y: number }; point: { x: number; y: number } };
+  private marquee?: { pointerId: number; start: { x: number; y: number }; point: { x: number; y: number }; add: readonly ProcessSelectionItem[] };
   private segmentDrag?: { pointerId: number; id: string; index: number; points: { x: number; y: number }[] };
   private frameResize?: { pointerId: number; id: string; start: { x: number; y: number }; width: number; height: number };
   private spacePressed = false;
@@ -191,6 +193,8 @@ export class ProcessModeler<
   private narrowValue = false;
   private suppressClick = false;
   private resizeObserver?: ResizeObserver;
+  private autoNoteHeights = new Set<string>();
+  private unplacedNotes = new Set<string>();
   private routedLines = new Map<string, { x: number; y: number }[]>();
   private computedChecks: readonly ProcessCheck[] = [];
   get selectedBoxes(): readonly ProcessBox<N>[] { return this.projection.boxes.filter(box => this.selectedIds.has(box.id)); }
@@ -257,6 +261,8 @@ export class ProcessModeler<
     this.lastProjection = "";
     this.lastReadableProjection = "";
     this.readableValue = null;
+    this.marquee = undefined; this.pointers.clear();
+    this.autoNoteHeights.clear();
     this.layoutValue = restoreProcessPositions(projection, options.positions ?? []);
     this.clearMixedSelection(); this.history.clear(); this.selectedId = null; this.selectedLineId = null; this.selectedIds.clear();
     this.clearClipboard();
@@ -308,7 +314,10 @@ export class ProcessModeler<
   set embedMode(value: boolean) { this.toggleAttribute('embed-mode', value); }
   private arrangedLayout(layout: ProcessLayout): ProcessLayout {
     const arranged = this.model.arrange?.(this.projection) ?? arrangeProcess(this.projection);
-    return completeLayout(this.projection, { ...layout, boxes: { ...arranged?.boxes, ...layout.boxes } });
+    const notes = Object.fromEntries(this.projection.boxes.filter(box => !isFlowBox(box) && this.layoutValue.boxes[box.id]).map(box => [box.id, this.layoutValue.boxes[box.id]]));
+    const boxes = { ...arranged?.boxes, ...notes, ...layout.boxes };
+    this.unplacedNotes = new Set(this.projection.boxes.filter(box => !isFlowBox(box) && !boxes[box.id]).map(box => box.id));
+    return completeLayout(this.projection, { ...layout, boxes });
   }
 
   get document(): D | undefined {
@@ -342,6 +351,7 @@ export class ProcessModeler<
   set layout(value: ProcessLayout) {
     if (JSON.stringify(this.layoutValue) === JSON.stringify(value)) return;
     this.layoutValue = structuredClone(value);
+    this.autoNoteHeights.clear();
     if (!this.history.replaying) this.history.clear();
     this.refresh();
   }
@@ -463,8 +473,15 @@ export class ProcessModeler<
     return this.model.connectionProblem(this.documentValue, { from, to, ...(line ? { ignoreLineId: line.id } : {}) }, this.projection) || null;
   }
   requestEdit(edit: ProcessEdit): void {
+    if (!this.isRendered && this.documentValue !== undefined) { this.projection = this.model.project(this.documentValue); validateProjection(this.projection); }
+    const line = edit.lineId ? this.projection.lines.find(line => line.id === edit.lineId) : undefined;
+    const source = edit.from ? this.projection.boxes.find(box => box.id === edit.from) : undefined;
+    const inserted = edit.boxId ? this.projection.boxes.find(box => box.id === edit.boxId) : undefined;
+    if (line && !isFlowLine(line) && ["insert", "reattach", "reset-line", "edit-line"].includes(edit.type)) return;
+    if ((edit.type === "add" && source && !isFlowBox(source)) || (edit.type === "insert" && inserted && !isFlowBox(inserted))) return;
     if (this.locked || (this.disableConnections && (edit.type === "connect" || edit.type === "disconnect" || edit.type === 'reattach' || edit.type === 'edit-line'))) return;
     if (edit.type === 'edit-line' && (!this.projection.lines.some(line => line.id === edit.lineId) || (edit.label === undefined && edit.weight === undefined) || (edit.label !== undefined && typeof edit.label !== 'string') || (edit.weight !== undefined && (!Number.isFinite(edit.weight) || edit.weight < 0)))) return;
+
     if (edit.type === 'delete-selection' && (!edit.selection?.length || edit.selection.some(item => !['box', 'line', 'note'].includes(item.type) || typeof item.id !== 'string' || !item.id))) {
       this.setStatus('The selected graph items are invalid', true); return;
     }
@@ -499,6 +516,7 @@ export class ProcessModeler<
   }
   private editAcceptance(edit: ProcessEdit): (command: ReversibleProcessEdit) => void {
     const before = this.layout;
+    const beforeAutoHeights = new Set(this.autoNoteHeights);
     const beforeSelection = [...this.selectedIds];
     const beforeItems = this.selection;
     const previousIds = new Set(this.projection.boxes.map((box) => box.id));
@@ -511,7 +529,7 @@ export class ProcessModeler<
       // replace the document. Publish only after the whole history entry exists.
       this.acceptanceNotifications++;
       try {
-        if (command.layout) this.layoutValue = structuredClone(command.layout);
+        if (command.layout) { this.autoNoteHeights.clear(); this.layoutValue = structuredClone(command.layout); }
         if (edit.type === 'reset-line' && edit.lineId) delete this.layoutValue.lines?.[edit.lineId];
         this.refresh();
         if (session !== this.layoutEditSession) return;
@@ -537,9 +555,11 @@ export class ProcessModeler<
         }
         if (session !== this.layoutEditSession) return;
         const after = this.layout;
+        const afterAutoHeights = new Set(this.autoNoteHeights);
         const acceptedItems = command.selection ? command.selection.map(item => ({ type: item.type, id: item.id })) : undefined;
         const acceptedSelection = command.selectionIds ? [...command.selectionIds] : undefined;
-        const restore = (layout: ProcessLayout) => {
+        const restore = (layout: ProcessLayout, autoHeights: Set<string>) => {
+          this.autoNoteHeights = new Set(autoHeights);
           this.layoutValue = structuredClone(layout);
           this.refresh();
           this.emitPositions();
@@ -547,13 +567,13 @@ export class ProcessModeler<
         this.history.record({
           undo: () => {
             command.undo();
-            restore(before);
+            restore(before, beforeAutoHeights);
             if (acceptedItems) this.selectItems(beforeItems);
             else if (acceptedSelection) this.selectMany(beforeSelection);
           },
           redo: () => {
             command.redo();
-            restore(after);
+            restore(after, afterAutoHeights);
             if (acceptedItems) this.selectItems(acceptedItems);
             else if (acceptedSelection) this.selectMany(acceptedSelection);
           },
@@ -615,16 +635,19 @@ export class ProcessModeler<
   private commitLayout(next: ProcessLayout): void {
     const before = this.layout;
     const after = structuredClone(next);
+    const beforeAutoHeights = new Set(this.autoNoteHeights);
+    const afterAutoHeights = new Set([...beforeAutoHeights].filter(id => before.boxes[id]?.height === after.boxes[id]?.height));
     if (JSON.stringify(before) === JSON.stringify(after) || this.locked) return;
-    const apply = (layout: ProcessLayout) => {
+    const apply = (layout: ProcessLayout, autoHeights: Set<string>) => {
+      this.autoNoteHeights = new Set(autoHeights);
       this.layoutValue = structuredClone(layout);
       this.refresh();
       this.emitPositions();
     };
-    apply(after);
+    apply(after, afterAutoHeights);
     this.history.record({
-      undo: () => apply(before),
-      redo: () => apply(after),
+      undo: () => apply(before, beforeAutoHeights),
+      redo: () => apply(after, afterAutoHeights),
     });
     this.updateToolbar();
   }
@@ -735,7 +758,7 @@ export class ProcessModeler<
   }
   routeLine(id: string, points: readonly { x: number; y: number }[]): void {
     if (
-      !this.projection.lines.some((line) => line.id === id) ||
+      !this.projection.lines.some((line) => line.id === id && isFlowLine(line)) ||
       points.some(
         (point) => !Number.isFinite(point.x) || !Number.isFinite(point.y),
       )
@@ -751,7 +774,7 @@ export class ProcessModeler<
   }
   resetLine(id: string): void {
     const line = this.projection.lines.find(line => line.id === id);
-    if (this.locked || !line) return;
+    if (this.locked || !line || !isFlowLine(line)) return;
     if (line.fromSide || line.toSide || line.points?.length) { this.requestEdit({ type: 'reset-line', lineId: id }); return; }
     if (!this.layoutValue.lines?.[id]) return;
     const next = this.layout; delete next.lines?.[id]; this.commitLayout(next);
@@ -1250,6 +1273,7 @@ export class ProcessModeler<
     }
   }
   private selectionDimensions(box: ProcessBox<N>): { width: number; height: number } {
+    if (!isFlowBox(box)) { const p = this.layoutValue.boxes[box.id]; return { width: p.width ?? 208, height: p.height ?? 64 }; }
     const shape = box.shape ?? this.catalog.find(kind => kind.kind === box.kind)?.shape;
     const compact = shape === 'gateway' || shape === 'event';
     const position = this.layoutValue.boxes[box.id];
@@ -1270,10 +1294,11 @@ export class ProcessModeler<
     this.arrangeSelection(width >= height ? 'middle' : 'center');
   }
   private tidySelection(): void {
-    if (this.locked || this.selectedBoxes.length < 2) return;
-    if (this.requestLayoutEdit('tidy', [...this.selectedIds])) return;
+    const flow = this.selectedBoxes.filter(isFlowBox);
+    if (this.locked || flow.length < 2) return;
+    if (this.requestLayoutEdit('tidy', flow.map(box => box.id))) return;
     const next = this.layout;
-    const roots = this.selectedBoxes.filter(box => {
+    const roots = this.selectedBoxes.filter(isFlowBox).filter(box => {
       let parent = box.parentId;
       while (parent) {
         if (this.selectedIds.has(parent)) return false;
@@ -1318,7 +1343,8 @@ export class ProcessModeler<
   }
   arrangeSelection(action: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom' | 'distribute-horizontal' | 'distribute-vertical'): void {
     if (this.locked || this.selectedBoxes.length < 2) return;
-    const boxes = this.selectedBoxes;
+    const boxes = this.selectedBoxes.filter(isFlowBox);
+    if (boxes.length < 2) return;
     const next = this.layout;
     const sorted = [...boxes].filter(box => {
       let parent = box.parentId; while (parent) { if (this.selectedIds.has(parent)) return false; parent = this.projection.boxes.find(box => box.id === parent)?.parentId; } return true;
@@ -1375,10 +1401,11 @@ export class ProcessModeler<
     if (emit(this, "move-request", { boxId: sorted[0].id, position: next.boxes[sorted[0].id], boxIds: sorted.map(box => box.id), positions: next.boxes })) this.commitLayout(next);
   }
   makeSection(title = 'New section'): void {
-    if (this.locked || !this.selectedBoxes.length) return;
-    if (this.requestLayoutEdit('make-section', [...this.selectedIds], title)) return;
-    if (this.selectedBoxes.length < 2) return;
-    const positions = this.selectedBoxes.map(box => this.layoutValue.boxes[box.id]);
+    const flow = this.selectedBoxes.filter(isFlowBox);
+    if (this.locked || !flow.length) return;
+    if (this.requestLayoutEdit('make-section', flow.map(box => box.id), title)) return;
+    if (flow.length < 2) return;
+    const positions = flow.map(box => this.layoutValue.boxes[box.id]);
     const x = Math.min(...positions.map(position => position.x)) - 24;
     const y = Math.min(...positions.map(position => position.y)) - 48;
     const right = Math.max(...positions.map(position => position.x + (position.width ?? 224))) + 24;
@@ -1638,7 +1665,7 @@ export class ProcessModeler<
     if (this.selectedLine && (event.key === 'Delete' || event.key === 'Backspace') && !this.locked && !this.disableConnections) {
       event.preventDefault(); this.requestEdit({ type: 'disconnect', lineId: this.selectedLine.id }); return;
     }
-    if ((event.key === "n" || event.key === "N") && box && !this.locked && this.catalog.length && !['finish', 'end'].includes(box.kind)) {
+    if ((event.key === "n" || event.key === "N") && box && isFlowBox(box) && !this.locked && this.catalog.length && !['finish', 'end'].includes(box.kind)) {
       event.preventDefault(); this.openKeyboardChooser(box); return;
     }
     const direction = {
@@ -1661,7 +1688,8 @@ export class ProcessModeler<
       if (allowed) this.commitLayout(next);
       return;
     }
-    const canInsertDirection = event.ctrlKey && event.altKey && box && !this.locked && this.catalog.length && !this.disableConnections;
+    if (direction && event.ctrlKey && event.altKey && box && !isFlowBox(box)) { event.preventDefault(); return; }
+    const canInsertDirection = event.ctrlKey && event.altKey && box && isFlowBox(box) && !this.locked && this.catalog.length && !this.disableConnections;
     if (direction && !canInsertDirection && (event.altKey || !box || this.locked)) {
       event.preventDefault(); this.navigateSelection(direction); return;
     }
@@ -1687,6 +1715,7 @@ export class ProcessModeler<
     }
     if (direction) {
       event.preventDefault();
+      if (event.ctrlKey && event.altKey && !isFlowBox(box)) return;
       if (event.ctrlKey && event.altKey && this.catalog.length && !this.disableConnections) {
         const side = direction[0] < 0 ? "west" : direction[0] > 0 ? "east" : direction[1] < 0 ? "north" : "south";
         const pos = this.layoutValue.boxes[box.id];
@@ -1776,7 +1805,7 @@ export class ProcessModeler<
     }
     if (
       event.button !== 0 ||
-      (event.target as HTMLElement).closest("[part=connection],button,input,select,textarea,[contenteditable]")
+      (event.target as HTMLElement).closest("[part=connection],[part=line-hit],button,input,select,textarea,[contenteditable]")
     )
       return;
     this.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -1795,7 +1824,7 @@ export class ProcessModeler<
     const canvas =
       this.shadowRoot!.querySelector<HTMLElement>("[part=canvas]")!;
     if (id && !this.spacePressed && !this.selectedIds.has(id) && !event.shiftKey) this.select(id);
-    if (!id && event.shiftKey && !this.locked) { const point = this.canvasPoint(event); this.marquee = { pointerId: event.pointerId, start: point, point }; canvas.setPointerCapture?.(event.pointerId); event.preventDefault(); return; }
+    if (!id && event.shiftKey && !this.locked) { const point = this.canvasPoint(event); this.marquee = { pointerId: event.pointerId, start: point, point, add: this.selection }; canvas.setPointerCapture?.(event.pointerId); event.preventDefault(); return; }
     this.drag = {
       id: this.locked || this.spacePressed ? undefined : id,
       x: event.clientX,
@@ -1804,6 +1833,19 @@ export class ProcessModeler<
       panX: this.viewport.x,
       panY: this.viewport.y,
     };
+  }
+  private selectMarquee(start: { x: number; y: number }, point: { x: number; y: number }, add: readonly ProcessSelectionItem[]): void {
+    const items = [...add];
+    const ids = new Set(add.filter(item => item.type === 'box').map(item => item.id));
+    for (const box of this.projection.boxes) {
+      if (box.kind === 'section') continue;
+      const p = this.layoutValue.boxes[box.id], size = this.selectionDimensions(box);
+      if (p.x < Math.max(start.x, point.x) && p.x + size.width > Math.min(start.x, point.x) && p.y < Math.max(start.y, point.y) && p.y + size.height > Math.min(start.y, point.y)) {
+        ids.add(box.id); items.push({ type: 'box', id: box.id });
+      }
+    }
+    for (const line of this.projection.lines) if (ids.has(line.from) && ids.has(line.to)) items.push({ type: 'line', id: line.id });
+    this.selectItems(items);
   }
   private distance(): number {
     const [a, b] = [...this.pointers.values()];
@@ -1858,7 +1900,10 @@ export class ProcessModeler<
       path?.setAttribute("d", roundedProcessPath(points)); return;
     }
     if (this.marquee) {
-      this.marquee.point = point; let region = this.shadowRoot!.querySelector<HTMLElement>('[part=marquee]');
+      const marquee = this.marquee; marquee.point = point;
+      this.selectMarquee(marquee.start, point, marquee.add);
+      if (this.marquee !== marquee) return;
+      let region = this.shadowRoot!.querySelector<HTMLElement>('[part=marquee]');
       if (!region) { region = document.createElement("div"); region.setAttribute("part", "marquee"); this.shadowRoot!.querySelector('[part=world]')!.append(region); }
       this.place(region, { x: Math.min(point.x, this.marquee.start.x), y: Math.min(point.y, this.marquee.start.y), width: Math.abs(point.x - this.marquee.start.x), height: Math.abs(point.y - this.marquee.start.y) }); return;
     }
@@ -1935,6 +1980,7 @@ export class ProcessModeler<
           const pos = this.layoutValue.boxes[port.id];
           const offsets = { east: [320, 0], west: [-320, 0], north: [0, -170], south: [0, 170] }[port.side];
           const source = this.projection.boxes.find(box => box.id === port.id)!;
+          if (!isFlowBox(source)) { this.connecting = source.id; this.setStatus(`Select a step to attach ${source.title}`); return; }
           const anchor = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[part=port]'))
             .find(element => element.dataset.owner === port.id && element.dataset.side === port.side);
           this.openAnchoredChooser(this.nextEdit(source, port.side, { x: pos.x + offsets[0], y: pos.y + offsets[1] }),
@@ -1944,6 +1990,7 @@ export class ProcessModeler<
           if (target) this.requestEdit({ type: "connect", from: port.id, to: target.id, fromSide: port.side, toSide: this.sideAt(target, point) });
           else {
             const source = this.projection.boxes.find(box => box.id === port.id)!;
+            if (!isFlowBox(source)) { this.setStatus("Drop on a step to attach the note"); return; }
             const frame = this.boxAt(point, undefined, true);
             if ((frame?.id ?? null) !== (source.parentId ?? null)) this.setStatus('Drop inside the same frame to add a connected step');
             else this.openChooserAtPoint({ type: 'add', from: port.id, fromSide: port.side, parentId: source.parentId, position: point, placement: { source: 'point', center: { ...point } } },
@@ -1967,8 +2014,8 @@ export class ProcessModeler<
     }
     if (this.segmentDrag) { const segment = this.segmentDrag; this.segmentDrag = undefined; if (commit) this.routeLine(segment.id, segment.points.slice(1, -1)); else this.refresh(); return; }
     if (this.marquee) {
-      const { start } = this.marquee; this.marquee = undefined;
-      if (commit) this.selectMany(this.projection.boxes.filter(box => { const p = this.layoutValue.boxes[box.id]; return p.x < Math.max(start.x, point.x) && p.x + (p.width ?? 224) > Math.min(start.x, point.x) && p.y < Math.max(start.y, point.y) && p.y + (p.height ?? 64) > Math.min(start.y, point.y); }).map(box => box.id));
+      const { start, add } = this.marquee; this.marquee = undefined;
+      if (commit) this.selectMarquee(start, point, add);
       this.shadowRoot!.querySelector('[part=marquee]')?.remove(); this.pointers.delete(event.pointerId); return;
     }
     if (!this.pointers.has(event.pointerId)) return;
@@ -1983,7 +2030,8 @@ export class ProcessModeler<
         this.suppressClick = true;
         const position = this.alignedPoint(drag.id, drag.position.x + dx / this.viewport.zoom, drag.position.y + dy / this.viewport.zoom);
         const line = this.lineAt(point, drag.id);
-        const frame = this.boxAt(point, drag.id, true);
+        const draggedBox = this.projection.boxes.find(box => box.id === drag.id)!;
+        const frame = isFlowBox(draggedBox) ? this.boxAt(point, drag.id, true) : this.projection.boxes.find(box => box.id === draggedBox.parentId);
         if (line) {
           const box = this.projection.boxes.find(box => box.id === drag.id)!;
           const { width, height } = this.selectionDimensions(box);
@@ -2026,14 +2074,14 @@ export class ProcessModeler<
     return sides.find(([, x, y]) => Math.hypot(point.x - x, point.y - y) <= 12 / this.viewport.zoom)?.[0];
   }
   private lineAt(point: { x: number; y: number }, except?: string) {
-    return this.projection.lines.find(line => line.from !== except && line.to !== except && nearProcessLine(point, this.routedLines.get(line.id) ?? [], 16 / this.viewport.zoom));
+    return this.projection.lines.find(line => isFlowLine(line) && (!except || isFlowBox(this.projection.boxes.find(box => box.id === except)!)) && line.from !== except && line.to !== except && nearProcessLine(point, this.routedLines.get(line.id) ?? [], 16 / this.viewport.zoom));
   }
   private markDropLine(point?: { x: number; y: number }, except?: string): void {
     this.dropLine = point ? this.lineAt(point, except)?.id : undefined;
     this.paintDropLine();
   }
   private paintDropLine(): void {
-    this.shadowRoot!.querySelectorAll<SVGElement>('[part=line]').forEach(path => { const active = path.dataset.lineId === this.dropLine; path.dataset.drop = String(active); path.setAttribute('marker-end', `url(#${active || path.dataset.selected === 'true' ? 'boe-process-arrow-brand' : 'boe-process-arrow'})`); });
+    this.shadowRoot!.querySelectorAll<SVGElement>('[part=line]').forEach(path => { const active = path.dataset.lineId === this.dropLine; path.dataset.drop = String(active); if (path.dataset.role !== 'association') path.setAttribute('marker-end', `url(#${active || path.dataset.selected === 'true' ? 'boe-process-arrow-brand' : 'boe-process-arrow'})`); });
   }
   private alignedPoint(id: string, x: number, y: number) {
     const world = this.shadowRoot!.querySelector('[part=world]')!;
@@ -2069,7 +2117,7 @@ export class ProcessModeler<
   }
   private nextEdit(box: ProcessBox<N>, side?: ProcessSide, position?: BoxPosition): ProcessEdit {
     const shape = box.shape ?? this.catalog.find(kind => kind.kind === box.kind)?.shape;
-    const outgoing = this.projection.lines.filter(line => line.from === box.id);
+    const outgoing = this.projection.lines.filter(line => isFlowLine(line) && line.from === box.id);
     const placement = side ? { source: 'direction' as const, side } : { source: 'next' as const };
     if ((!side || side === 'east') && shape !== 'gateway' && outgoing.length === 1)
       return { type: 'insert', lineId: outgoing[0].id, from: box.id, to: outgoing[0].to, placement };
@@ -2094,6 +2142,7 @@ export class ProcessModeler<
     this.openAnchoredChooser(edit, title, anchor, returnFocus ?? source ?? this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!);
   }
   private openLineChooser(line: ProcessProjection<N>['lines'][number], returnFocus?: HTMLElement): void {
+    if (!isFlowLine(line)) return;
     const source = this.projection.boxes.find(box => box.id === line.from);
     const target = this.projection.boxes.find(box => box.id === line.to);
     const points = this.routedLines.get(line.id) ?? routeProcessLine(line, this.layoutValue, this.projection);
@@ -2119,7 +2168,7 @@ export class ProcessModeler<
   };
   private openKeyboardChooser(box: ProcessBox<N>): void {
     const shape = box.shape ?? this.catalog.find(kind => kind.kind === box.kind)?.shape ?? (box.frame ? 'frame' : 'task');
-    const outgoing = this.projection.lines.filter(line => line.from === box.id);
+    const outgoing = this.projection.lines.filter(line => isFlowLine(line) && line.from === box.id);
     const target = outgoing.length === 1 ? this.projection.boxes.find(candidate => candidate.id === outgoing[0].to) : undefined;
     const insert = shape !== 'gateway' && outgoing.length === 1 && target;
     const anchor = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[data-box-id]'))
@@ -2173,6 +2222,7 @@ export class ProcessModeler<
       validateProjection(this.projection);
     } else this.projection = { boxes: [], lines: [] };
     this.layoutValue = this.arrangedLayout(this.layoutValue);
+    this.measureGraphNotes();
     this.routedLines = new Map(this.projection.lines.map(line => [line.id, routeProcessLine(line, this.layoutValue, this.projection)]));
     this.computedChecks = this.collectChecks();
     if (this.selectedId && !this.selected) this.selectedId = null;
@@ -2182,7 +2232,7 @@ export class ProcessModeler<
     this.selectedNoteIds = new Set([...this.selectedNoteIds].filter(id => this.layoutValue.notes?.some(note => note.id === id)));
     if (!this.selectedId) this.selectedId = this.selectedIds.values().next().value ?? null;
     const serialized = JSON.stringify({
-      boxes: this.projection.boxes.map(box => ({ id: box.id, kind: box.kind, title: box.title, description: box.description, path: box.path, fingerprint: box.fingerprint, frame: box.frame, loopMark: box.loopMark, parentId: box.parentId, localVariables: box.localVariables, localVariablesEditable: box.localVariablesEditable, savedResult: box.savedResult })),
+      boxes: this.projection.boxes.map(box => ({ id: box.id, role: box.role, kind: box.kind, title: box.title, description: box.description, path: box.path, fingerprint: box.fingerprint, frame: box.frame, loopMark: box.loopMark, parentId: box.parentId, localVariables: box.localVariables, localVariablesEditable: box.localVariablesEditable, savedResult: box.savedResult })),
       lines: this.projection.lines,
     });
     if (this.documentValue !== undefined && (serialized !== this.lastProjection || this.documentValue !== this.lastDocument)) {
@@ -2223,9 +2273,35 @@ export class ProcessModeler<
       (note ?? this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]'))?.focus({ preventScroll: true });
     }
   }
+  private measureGraphNotes(): void {
+    const world = this.shadowRoot!.querySelector<HTMLElement>('[part=world]')!;
+    for (const box of this.projection.boxes.filter(box => !isFlowBox(box))) {
+      const position = this.layoutValue.boxes[box.id];
+      if (position.height !== undefined && !this.autoNoteHeights.has(box.id)) continue;
+      this.autoNoteHeights.add(box.id);
+      const element = document.createElement('div'); element.setAttribute('part', 'box'); element.dataset.shape = 'note';
+      element.style.cssText = `visibility:hidden;pointer-events:none;height:auto;width:${position.width ?? 208}px`;
+      const body = document.createElement('div'); body.setAttribute('part', 'note-body'); body.textContent = box.description ?? box.title;
+      element.append(body); world.append(element);
+      const bounds = body.getBoundingClientRect();
+      if (bounds.width > 0 && bounds.height > 0) position.height = bounds.height * (position.width ?? 208) / bounds.width;
+      element.remove();
+    }
+    // Only library fallback positions need collision placement; a host's
+    // arrangement is authoritative, and a containing frame is not an obstacle.
+    for (const box of this.projection.boxes.filter(box => this.unplacedNotes.has(box.id))) {
+      const position = this.layoutValue.boxes[box.id], ancestors = new Set<string>();
+      for (let parent = box.parentId; parent; parent = this.projection.boxes.find(b => b.id === parent)?.parentId) ancestors.add(parent);
+      let overlaps: BoxPosition[];
+      do {
+        overlaps = Object.entries(this.layoutValue.boxes).filter(([id, p]) => id !== box.id && !ancestors.has(id) && position.x < p.x + (p.width ?? 224) && position.x + (position.width ?? 208) > p.x && position.y < p.y + (p.height ?? 64) && position.y + (position.height ?? 64) > p.y).map(([, p]) => p);
+        if (overlaps.length) position.y = Math.max(...overlaps.map(p => p.y + (p.height ?? 64))) + 60;
+      } while (overlaps.length);
+    }
+  }
   private get allChecks(): readonly ProcessCheck[] { return this.computedChecks; }
   private collectChecks(): readonly ProcessCheck[] {
-    const routes = this.projection.lines.filter(line => !this.routedLines.get(line.id)?.length)
+    const routes = this.projection.lines.filter(line => isFlowLine(line) && !this.routedLines.get(line.id)?.length)
       .map(line => ({ message: "A connection is blocked by overlapping steps. Move a step or adjust its route.", boxId: line.from }));
     const hostChecks = this.documentValue === undefined ? undefined : this.model.validate?.(this.documentValue, this.projection);
     return [...this.checks, ...(hostChecks ?? graphChecks(this.projection)), ...routes];
@@ -2253,29 +2329,31 @@ export class ProcessModeler<
       element.setAttribute("part", box.frame ? "frame" : "box");
       element.dataset.boxId = box.id;
       const kind = this.catalog.find((entry) => entry.kind === box.kind);
-      const shape = box.shape ?? kind?.shape ?? (box.frame ? "frame" : "task");
+      const shape = !isFlowBox(box) ? "note" : box.shape ?? kind?.shape ?? (box.frame ? "frame" : "task");
       element.dataset.shape = shape;
+      if (!isFlowBox(box)) element.setAttribute("aria-roledescription", "note");
       element.dataset.kind = box.kind;
       element.dataset.tone = kind?.tone === "accent" ? "accent" : "neutral";
       const problem = this.allChecks.find(check => check.boxId === box.id || (check.path && JSON.stringify(check.path) === JSON.stringify(box.path)));
-      const incoming = this.projection.lines.filter(line => line.to === box.id).length;
-      const outgoing = this.projection.lines.filter(line => line.from === box.id).length;
+      const incoming = this.projection.lines.filter(line => isFlowLine(line) && line.to === box.id).length;
+      const outgoing = this.projection.lines.filter(line => isFlowLine(line) && line.from === box.id).length;
       element.setAttribute(
         "aria-label",
-        [`${kind?.label ?? box.kind}: ${box.title}. ${incoming} in, ${outgoing} out`, problem ? `Needs attention: ${problem.title || problem.message}` : ""]
+        [`${kind?.label ?? box.kind}: ${box.title}${isFlowBox(box) ? `. ${incoming} in, ${outgoing} out` : ""}`, problem ? `Needs attention: ${problem.title || problem.message}` : ""]
           .filter(Boolean)
           .join(". "),
       );
       element.setAttribute("aria-current", String(this.selectedIds.has(box.id)));
-      this.place(element, this.layoutValue.boxes[box.id]);
+      this.place(element, { ...this.layoutValue.boxes[box.id], ...(!isFlowBox(box) ? { width: this.layoutValue.boxes[box.id].width ?? 208 } : {}) });
+      if (!isFlowBox(box)) { const text = document.createElement("div"); text.setAttribute("part", "note-body"); text.textContent = box.description ?? box.title; element.append(text); }
       const icon = document.createElement("span"); icon.setAttribute("part", "icon"); icon.setAttribute("aria-hidden", "true");
       if (kind?.icon) {
         icon.append(kind.icon());
       }
-      element.append(icon);
+      if (isFlowBox(box)) element.append(icon);
       const title = document.createElement("strong");
       title.textContent = box.title;
-      element.append(title);
+      if (isFlowBox(box)) element.append(title);
       let descriptionParent: HTMLElement = element;
       if (shape === 'event' && this.detailValue === 'technical' && box.technicalDetails?.length) {
         const details = document.createElement('div'); details.setAttribute('part', 'event-details');
@@ -2296,7 +2374,7 @@ export class ProcessModeler<
         caption.append(title); element.append(caption); descriptionParent = caption;
       }
       if (shape === 'task' && box.technicalDetails) icon.style.gridRow = 'span 4';
-      if (this.detailValue === "technical" && box.technicalDetails) {
+      if (isFlowBox(box) && this.detailValue === "technical" && box.technicalDetails) {
         for (const line of box.technicalDetails) {
           if (!line.text && !line.segments?.length) continue;
           const description = document.createElement("small");
@@ -2313,7 +2391,7 @@ export class ProcessModeler<
           description.setAttribute("part", line.format === "code" ? "technical-description" : "technical-summary");
           descriptionParent.append(description);
         }
-      } else {
+      } else if (isFlowBox(box)) {
         const descriptionText = this.detailValue === "technical" ? box.technicalDescription ?? box.description : box.description;
         if (descriptionText) {
           const description = document.createElement("small");
@@ -2370,7 +2448,8 @@ export class ProcessModeler<
           });
           this.connecting = null;
         }
-        if (event.shiftKey) this.selectMany(this.selectedIds.has(box.id) ? [...this.selectedIds].filter(id => id !== box.id) : [...this.selectedIds, box.id]);
+        if (event.shiftKey && (this.graphSelection || this.selectedLineIds.size || this.selectedNoteIds.size)) this.selectItems(this.selectedIds.has(box.id) ? this.selection.filter(item => item.type !== "box" || item.id !== box.id) : [...this.selection, { type: "box", id: box.id }]);
+        else if (event.shiftKey) this.selectMany(this.selectedIds.has(box.id) ? [...this.selectedIds].filter(id => id !== box.id) : [...this.selectedIds, box.id]);
         else this.select(box.id);
       });
       if (!this.disableConnections && !this.locked && !['end', 'finish'].includes(box.kind)) {
@@ -2380,6 +2459,7 @@ export class ProcessModeler<
           port.addEventListener("click", event => {
             event.stopPropagation();
             if (!event.detail) {
+              if (!isFlowBox(box)) { this.connecting = box.id; this.setStatus(`Select a step to attach ${box.title}`); return; }
               const pos = this.layoutValue.boxes[box.id]; const offsets = { east: [320, 0], west: [-320, 0], north: [0, -170], south: [0, 170] }[side];
               this.openAnchoredChooser(this.nextEdit(box, side, { x: pos.x + offsets[0], y: pos.y + offsets[1] }),
                 this.nextChooserTitle(box, side), port);
@@ -2400,6 +2480,10 @@ export class ProcessModeler<
         element.append(handle);
       }
       world.append(element);
+      if (!isFlowBox(box)) {
+        const height = this.layoutValue.boxes[box.id].height;
+        if (height !== undefined) element.querySelector<HTMLElement>('[part=note-body]')!.style.minHeight = `${height}px`;
+      }
     }
     const lines = svgElement("svg");
     lines.setAttribute("part", "lines");
@@ -2419,40 +2503,43 @@ export class ProcessModeler<
       path.setAttribute("part", "line");
       path.dataset.lineId = line.id;
       path.dataset.selected = String(this.selectedLineIds.has(line.id));
-      path.setAttribute('marker-end', `url(#${this.selectedLineIds.has(line.id) ? 'boe-process-arrow-brand' : 'boe-process-arrow'})`);
+      if (isFlowLine(line)) path.setAttribute('marker-end', `url(#${this.selectedLineIds.has(line.id) ? 'boe-process-arrow-brand' : 'boe-process-arrow'})`);
       path.setAttribute("vector-effect", "non-scaling-stroke");
       path.setAttribute("d", roundedProcessPath(points));
-      if (line.dashed) path.setAttribute("stroke-dasharray", "6 4");
-      if (this.showLastRunValue && line.share !== undefined) { path.style.strokeWidth = `${Math.round((1.5 + Math.max(0, Math.min(1, line.share)) * 2.5) * 100) / 100}px`; path.setAttribute('aria-label', `${Math.round(line.share * 100)}% of last-run traffic`); }
+      path.dataset.role = line.role ?? "flow";
+      if (!isFlowLine(line)) path.setAttribute("stroke-dasharray", "2 4");
+      else if (line.dashed) path.setAttribute("stroke-dasharray", "6 4");
+      if (!isFlowLine(line)) { const hit = svgElement("polyline"); hit.setAttribute("part", "line-hit"); hit.dataset.lineId = line.id; hit.setAttribute("vector-effect", "non-scaling-stroke"); hit.setAttribute("points", points.map(p => `${p.x},${p.y}`).join(" ")); hit.addEventListener("click", event => { if (event.shiftKey) this.selectItems(this.selectedLineIds.has(line.id) ? this.selection.filter(item => item.type !== "line" || item.id !== line.id) : [...this.selection, { type: "line", id: line.id }]); else this.selectLine(line.id); }); lines.append(hit); }
+      if (isFlowLine(line) && this.showLastRunValue && line.share !== undefined) { path.style.strokeWidth = `${Math.round((1.5 + Math.max(0, Math.min(1, line.share)) * 2.5) * 100) / 100}px`; path.setAttribute('aria-label', `${Math.round(line.share * 100)}% of last-run traffic`); }
       lines.append(path);
-      for (const point of [line.fromSide ? points[0] : null, line.toSide ? points.at(-1) : null]) {
+      for (const point of [isFlowLine(line) && line.fromSide ? points[0] : null, isFlowLine(line) && line.toSide ? points.at(-1) : null]) {
         if (!point) continue;
         const pin = svgElement('circle'); pin.setAttribute('part', 'pinned-end'); pin.setAttribute('cx', String(point.x)); pin.setAttribute('cy', String(point.y)); pin.setAttribute('r', '3'); lines.append(pin);
       }
-      for (let i = 1; i < points.length - 2; i++) {
+      for (let i = 1; isFlowLine(line) && i < points.length - 2; i++) {
         const hit = svgElement("polyline"); hit.setAttribute("part", "line-hit"); hit.dataset.lineId = line.id; hit.dataset.segment = String(i);
         hit.setAttribute("vector-effect", "non-scaling-stroke");
         hit.setAttribute("points", `${points[i].x},${points[i].y} ${points[i + 1].x},${points[i + 1].y}`); lines.append(hit);
       }
       const label = document.createElement("div");
-      label.setAttribute("part", "connection");
+      label.setAttribute("part", "connection"); label.dataset.lineId = line.id; label.dataset.role = line.role ?? "flow";
       label.setAttribute('role', 'group'); label.tabIndex = 0;
       label.style.left = `${midpoint.x}px`;
       label.style.top = `${midpoint.y}px`;
       const names = `${this.projection.boxes.find((box) => box.id === line.from)!.title} to ${this.projection.boxes.find((box) => box.id === line.to)!.title}${line.label ? `, ${line.label}` : ""}`;
       label.setAttribute('aria-label', `Connection: ${names}${this.showLastRunValue && line.share !== undefined ? `. ${Math.round(line.share * 100)}% of last-run traffic` : ''}`);
-      label.addEventListener('click', event => { if ((event.target as HTMLElement).closest('button')) return; this.selectLine(line.id); });
+      label.addEventListener('click', event => { if ((event.target as HTMLElement).closest('button')) return; if (event.shiftKey) this.selectItems(this.selectedLineIds.has(line.id) ? this.selection.filter(item => item.type !== 'line' || item.id !== line.id) : [...this.selection, { type: 'line', id: line.id }]); else this.selectLine(line.id); });
       label.addEventListener('keydown', event => { if (event.target === label && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); this.selectLine(line.id); } });
       const text = document.createElement("span");
       const source = this.projection.boxes.find(box => box.id === line.from)!;
-      const branchIndex = this.projection.lines.filter(candidate => candidate.from === line.from).indexOf(line);
-      text.textContent = line.label ?? (line.weight !== undefined ? String(line.weight) : /decision/i.test(source.kind) ? ["Yes", "No"][branchIndex] ?? `Route ${branchIndex + 1}` : /try/i.test(source.kind) && line.dashed ? "If it fails" : "");
+      const branchIndex = this.projection.lines.filter(candidate => isFlowLine(candidate) && candidate.from === line.from).indexOf(line);
+      text.textContent = !isFlowLine(line) ? "" : line.label ?? (line.weight !== undefined ? String(line.weight) : /decision/i.test(source.kind) ? ["Yes", "No"][branchIndex] ?? `Route ${branchIndex + 1}` : /try/i.test(source.kind) && line.dashed ? "If it fails" : "");
       label.append(text);
-      if (this.showLastRunValue && line.share !== undefined) {
+      if (isFlowLine(line) && this.showLastRunValue && line.share !== undefined) {
         const share = document.createElement('small'); share.textContent = `${Math.round(line.share * 100)}%`; label.append(share);
       }
       const actions = document.createElement("div"); actions.setAttribute("part", "connection-actions"); label.append(actions);
-      if (points.length >= 4 && !this.locked) {
+      if (isFlowLine(line) && points.length >= 4 && !this.locked) {
         const adjust = document.createElement("button"); adjust.type = "button"; adjust.textContent = "Route";
         adjust.dataset.segment = "1"; adjust.dataset.lineId = line.id;
         adjust.setAttribute("aria-label", `Adjust route: ${names}. Use arrow keys`);
@@ -2471,7 +2558,7 @@ export class ProcessModeler<
         ["insert", "Insert a step here"],
         ["disconnect", "Remove connection"],
       ] as const) {
-        if (type === "disconnect" && this.disableConnections) continue;
+        if ((type === "disconnect" && this.disableConnections) || (type === "insert" && !isFlowLine(line))) continue;
         const button = document.createElement("button");
         button.type = "button";
         button.textContent = type === "insert" ? "+" : "Remove";
@@ -2492,7 +2579,7 @@ export class ProcessModeler<
         actions.append(button);
       }
       world.append(label);
-      if (this.selectedLineId === line.id && !this.locked && !this.disableConnections) {
+      if (isFlowLine(line) && this.selectedLineId === line.id && !this.locked && !this.disableConnections) {
         for (const [end, point] of [['from', points[0]], ['to', points.at(-1)!]] as const) {
           const grip = document.createElement('button'); grip.type = 'button'; grip.setAttribute('part', 'end-grip'); grip.dataset.lineId = line.id; grip.dataset.end = end; grip.style.left = `${point.x - 12}px`; grip.style.top = `${point.y - 12}px`;
           grip.setAttribute('aria-label', `Reattach ${end === 'from' ? 'start' : 'end'} of connection: ${names}`);
@@ -2526,7 +2613,7 @@ export class ProcessModeler<
     if (this.narrowValue) { this.closeDrawer(); this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.focus({ preventScroll: true }); }
     if (kind.placement) { this.addLayoutKind(kind); return; }
     const selected = this.selectedIds.size === 1 ? this.selected : null;
-    const from = selected && !selected.frame && selected.kind !== 'section' && !['end', 'finish'].includes(selected.kind) ? selected.id : undefined;
+    const from = selected && isFlowBox(selected) && !selected.frame && selected.kind !== 'section' && !['end', 'finish'].includes(selected.kind) ? selected.id : undefined;
     if (from && selected) this.requestEdit({ ...this.nextEdit(selected), kind });
     else {
       const canvas = this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!;
@@ -2536,7 +2623,7 @@ export class ProcessModeler<
   }
   private paletteLineAt(point: { x: number; y: number }) {
     let nearest: ProcessProjection<N>['lines'][number] | undefined; let best = 20 / this.viewport.zoom;
-    for (const line of this.projection.lines) {
+    for (const line of this.projection.lines.filter(isFlowLine)) {
       const points = this.routedLines.get(line.id) ?? [];
       for (let i = 1; i < points.length; i++) {
         const a = points[i - 1], b = points[i], dx = b.x - a.x, dy = b.y - a.y, length = dx * dx + dy * dy;
@@ -2996,9 +3083,9 @@ export class ProcessModeler<
   }
   private renderLeadsTo(editor: HTMLElement, selected: ProcessBox<N>): void {
     const previous = editor.querySelector<HTMLElement>('[part=leads-to]');
-    if (['end', 'finish'].includes(selected.kind)) { previous?.remove(); return; }
-    const outgoing = this.projection.lines.filter(line => line.from === selected.id);
-    const state = JSON.stringify([selected.id, selected.kind, this.locked, this.disableConnections, outgoing, this.projection.boxes.filter(box => box.parentId === selected.parentId).map(({id, title, kind}) => ({id, title, kind}))]);
+    if (!isFlowBox(selected) || ['end', 'finish'].includes(selected.kind)) { previous?.remove(); return; }
+    const outgoing = this.projection.lines.filter(line => isFlowLine(line) && line.from === selected.id);
+    const state = JSON.stringify([selected.id, selected.kind, this.locked, this.disableConnections, outgoing, this.projection.boxes.filter(box => box.parentId === selected.parentId).map(({id, title, kind, role}) => ({id, title, kind, role}))]);
     if (previous?.dataset.state === state) return;
     const leads = document.createElement('section'); leads.setAttribute('part', 'leads-to'); leads.dataset.state = state;
     const heading = document.createElement('h3'); heading.textContent = 'Leads to'; leads.append(heading);
@@ -3031,7 +3118,7 @@ export class ProcessModeler<
     }
     if (outgoing.length) leads.append(list);
     else { const empty = document.createElement('p'); empty.setAttribute('part', 'lead-help'); empty.textContent = 'Nothing yet. Drag from a dot on the step, or pick one below.'; leads.append(empty); }
-    const eligible = this.projection.boxes.filter(box => box.id !== selected.id && !['start', 'timer'].includes(box.kind) && box.parentId === selected.parentId && !outgoing.some(line => line.to === box.id));
+    const eligible = this.projection.boxes.filter(box => isFlowBox(box) && box.id !== selected.id && !['start', 'timer'].includes(box.kind) && box.parentId === selected.parentId && !outgoing.some(line => line.to === box.id));
     if (eligible.length) {
       const label = variableLabel('Connect to'); label.setAttribute('part', 'lead-target');
       const select = document.createElement('select'); select.setAttribute('aria-label', 'Connect to'); select.disabled = this.locked || this.disableConnections;
@@ -3110,7 +3197,7 @@ export class ProcessModeler<
       if (scrollLeft !== undefined) control.scrollLeft = scrollLeft;
     };
     this.shadowRoot!.querySelectorAll<SVGRectElement>('[part=minimap] [data-map-box]').forEach(rect => rect.dataset.selected = String(this.selectedIds.has(rect.dataset.mapBox!)));
-    this.shadowRoot!.querySelectorAll<SVGPathElement>('[part=line]').forEach(line => { const selected = this.selectedLineIds.has(line.dataset.lineId!); line.dataset.selected = String(selected); line.setAttribute('marker-end', `url(#${selected ? 'boe-process-arrow-brand' : 'boe-process-arrow'})`); });
+    this.shadowRoot!.querySelectorAll<SVGPathElement>('[part=line]').forEach(line => { const selected = this.selectedLineIds.has(line.dataset.lineId!); line.dataset.selected = String(selected); if (line.dataset.role !== 'association') line.setAttribute('marker-end', `url(#${selected ? 'boe-process-arrow-brand' : 'boe-process-arrow'})`); });
     this.shadowRoot!.querySelectorAll<HTMLElement>("[data-box-id]").forEach(
       (element) => {
         element.setAttribute(
@@ -3134,7 +3221,7 @@ export class ProcessModeler<
       this.shadowRoot!.querySelector<HTMLElement>("[part=editor]")!;
     const selected = this.selected;
     const fallbackScope = selected && (this.fieldsValue[selected.id] ?? []).some(field => field.kind === 'expression' && field.expression?.variables === undefined) ? this.variables.map(({name, description}) => ({name, description})) : undefined;
-    const controlsKey = `${JSON.stringify(fallbackScope)}|${[...this.selectedIds].join(',')}|${this.locked}|${this.disableConnections}|${this.showLastRunValue}|${selected?.runMetrics}|${JSON.stringify([selected?.localVariables, selected?.localVariablesEditable, selected?.frame])}|${JSON.stringify(selected ? this.fieldsValue[selected.id] ?? [] : [])}`;
+    const controlsKey = `${JSON.stringify(fallbackScope)}|${[...this.selectedIds].join(',')}|${this.locked}|${this.disableConnections}|${this.showLastRunValue}|${selected?.runMetrics}|${selected?.role}|${JSON.stringify([selected?.localVariables, selected?.localVariablesEditable, selected?.frame])}|${JSON.stringify(selected ? this.fieldsValue[selected.id] ?? [] : [])}`;
     this.shadowRoot!.querySelector<HTMLElement>("[part=palette]")!.hidden = false;
     this.shadowRoot!.querySelector<HTMLElement>('[part=selection-toolbar]')!.hidden = this.selection.length === 0;
     this.renderSelectionToolbar();
@@ -3197,7 +3284,7 @@ export class ProcessModeler<
       this.cleanupInspector =
         this.renderer?.(selected.node, editor) || undefined;
       this.renderLeadsTo(editor, selected);
-      const metrics = this.showLastRunValue && selected.runMetrics !== false ? this.lastRunValue?.steps[selected.id] : undefined;
+      const metrics = isFlowBox(selected) && this.showLastRunValue && selected.runMetrics !== false ? this.lastRunValue?.steps[selected.id] : undefined;
       if (metrics) {
         const report = document.createElement('section'); report.setAttribute('part', 'inspector-metrics');
         const title = document.createElement('h3'); title.textContent = 'Last run'; report.append(title);
@@ -3284,7 +3371,7 @@ export class ProcessModeler<
   }
   private renderSelectionToolbar(): void {
     const toolbar = this.shadowRoot!.querySelector<HTMLElement>('[part=selection-toolbar]')!;
-    const key = `${JSON.stringify(this.selection)}|${this.graphSelection}|${this.selected?.kind}|${this.selected?.shape}|${this.selectedLineId}|${Boolean(this.selectedLine && (this.layoutValue.lines?.[this.selectedLine.id] || this.selectedLine.fromSide || this.selectedLine.toSide || this.selectedLine.points?.length))}|${this.locked}|${this.narrowValue}|${this.projection.lines.filter(line => line.from === this.selectedId).map(line => `${line.id}:${line.label}:${line.dashed}`).join(',')}`;
+    const key = `${JSON.stringify(this.selection)}|${this.graphSelection}|${this.selected?.kind}|${this.selected?.shape}|${this.selected?.role}|${this.selectedLine?.role}|${this.selectedLineId}|${Boolean(this.selectedLine && (this.layoutValue.lines?.[this.selectedLine.id] || this.selectedLine.fromSide || this.selectedLine.toSide || this.selectedLine.points?.length))}|${this.locked}|${this.narrowValue}|${this.projection.lines.filter(line => line.from === this.selectedId).map(line => `${line.id}:${line.label}:${line.dashed}`).join(',')}`;
     if (key === this.selectionToolbarKey) return;
     this.selectionToolbarKey = key;
     toolbar.replaceChildren();
@@ -3292,24 +3379,24 @@ export class ProcessModeler<
     const add = (label: string, command: string, action: () => void, withPlus = false) => {
       const button = document.createElement('button'); button.type = 'button'; button.dataset.selectionCommand = command; button.setAttribute('aria-label', label); button.disabled = this.locked; button.onclick = action;
       if (withPlus) {
-        const icon = document.createElement('span'); icon.setAttribute('part', 'selection-plus'); icon.setAttribute('aria-hidden', 'true'); icon.textContent = '+'; button.append(icon);
+        const icon = variableGlyph(true); icon.setAttribute('part', 'selection-plus'); icon.setAttribute('aria-hidden', 'true'); icon.setAttribute('focusable', 'false'); button.append(icon);
       }
       const text = document.createElement('span'); text.textContent = label; button.append(text);
       toolbar.append(button);
     };
     if (this.graphSelection && (this.selectedNoteIds.size || this.selectedLineIds.size > 1 || this.selectedLineIds.size && this.selectedIds.size)) {
-      if (this.selectedIds.size > 1) add('Line up', 'align', () => this.selectionCommand('align'));
+      if (this.selectedIds.size) { add('Line up', 'align', () => this.selectionCommand('align')); add('Tidy these', 'space', () => this.selectionCommand('space')); }
       add('Delete', 'delete-many', () => this.selectionCommand('delete-many'));
     } else if (this.selectedLine) {
       const line = this.selectedLine;
-      add('Insert a step', 'insert', () => this.openLineChooser(line, toolbar.querySelector<HTMLElement>('[data-selection-command=insert]') ?? undefined), true);
-      if (this.layoutValue.lines?.[line.id] || line.fromSide || line.toSide || line.points?.length) add('Reset line', 'reset-line', () => this.resetLine(line.id));
+      if (isFlowLine(line)) add('Insert a step', 'insert', () => this.openLineChooser(line, toolbar.querySelector<HTMLElement>('[data-selection-command=insert]') ?? undefined), true);
+      if (isFlowLine(line) && (this.layoutValue.lines?.[line.id] || line.fromSide || line.toSide || line.points?.length)) add('Reset line', 'reset-line', () => this.resetLine(line.id));
       if (!this.disableConnections) add('Delete', 'delete-line', () => this.requestEdit({ type: 'disconnect', lineId: line.id }));
     } else if (this.selectedIds.size === 1) {
       const box = this.selected!;
-      const failurePath = box.kind === 'try' && !this.projection.lines.some(line => line.from === box.id && (line.dashed || line.label === 'If it fails'));
+      const failurePath = isFlowBox(box) && box.kind === 'try' && !this.projection.lines.some(line => isFlowLine(line) && line.from === box.id && (line.dashed || line.label === 'If it fails'));
       if (this.narrowValue) add('Details', 'details', () => this.openDrawer('inspector'));
-      if (!['end', 'finish', 'section', 'note'].includes(box.kind)) add(box.shape === 'gateway' ? 'Add a path' : 'Add next', 'add-next', () =>
+      if (isFlowBox(box) && !['end', 'finish', 'section', 'note'].includes(box.kind)) add(box.shape === 'gateway' ? 'Add a path' : 'Add next', 'add-next', () =>
         this.openAnchoredChooser(this.nextEdit(box), this.nextChooserTitle(box), toolbar.querySelector<HTMLElement>('[data-selection-command=add-next]') ?? undefined), true);
       if (failurePath) add('If it fails', 'add-failure', () => this.openAnchoredChooser(
         { type: 'add', from: box.id, routeLabel: 'If it fails', dashed: true, placement: { source: 'next' } },
@@ -3421,9 +3508,7 @@ export class ProcessModeler<
     positions.push(...(this.layoutValue.notes ?? []).filter(note => this.selectedNoteIds.has(note.id)).map(note => ({ ...note, width: 208, height: 80 })));
     if (!positions.length && this.selectedLine) {
       const point = lineMidpoint(this.routedLines.get(this.selectedLine.id) ?? []);
-      toolbar.style.left = `${Math.max(8, Math.min(point.x * this.viewport.zoom + this.viewport.x, Math.max(8, canvas.clientWidth - toolbar.offsetWidth - 8)))}px`;
-      toolbar.style.top = `${Math.max(8, point.y * this.viewport.zoom + this.viewport.y - 52)}px`;
-      return;
+      positions.push({ x: point.x, y: point.y - 14 / this.viewport.zoom, width: 0, height: 0 });
     }
     if (!positions.length) {
       for (const id of this.selectedLineIds) {
@@ -3435,10 +3520,11 @@ export class ProcessModeler<
     }
     if (!positions.length) return;
     const left = Math.min(...positions.map(position => position.x * this.viewport.zoom + this.viewport.x));
+    const right = Math.max(...positions.map(position => (position.x + (position.width ?? 224)) * this.viewport.zoom + this.viewport.x));
     const top = Math.min(...positions.map(position => position.y * this.viewport.zoom + this.viewport.y));
     const bottom = Math.max(...positions.map(position => (position.y + (position.height ?? 64)) * this.viewport.zoom + this.viewport.y));
-    toolbar.style.left = `${Math.max(8, Math.min(left, Math.max(8, canvas.clientWidth - toolbar.offsetWidth - 8)))}px`;
-    toolbar.style.top = `${top > 56 ? top - 48 : Math.min(bottom + 8, Math.max(8, canvas.clientHeight - toolbar.offsetHeight - 8))}px`;
+    toolbar.style.left = `${Math.min(Math.max((left + right) / 2, 120), canvas.clientWidth - 120)}px`;
+    toolbar.style.top = `${top - 12 < 56 ? bottom + 52 : top - 12}px`;
   }
   private focusBox(id: string): void {
     Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>("[data-box-id]"))
