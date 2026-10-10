@@ -44,7 +44,7 @@ describe("process modeler", () => {
     expect(builder.shadowRoot!.querySelector("h5[part=inspector-heading]")!.textContent).toBe("Read");
     expect(builder.shadowRoot!.querySelector<HTMLElement>("[part=palette]")!.hidden).toBe(false);
     builder.disableConnections = true;
-    expect(builder.shadowRoot!.querySelector<HTMLButtonElement>('[part=leads-to] > button')!.disabled).toBe(true);
+    expect(builder.shadowRoot!.querySelector<HTMLSelectElement>('[part=lead-target] select')!.disabled).toBe(true);
     const connectKey = new KeyboardEvent("keydown", { key: "c", bubbles: true, cancelable: true });
     builder.shadowRoot!.querySelector('[part=canvas]')!.dispatchEvent(connectKey);
     expect(connectKey.defaultPrevented).toBe(false);

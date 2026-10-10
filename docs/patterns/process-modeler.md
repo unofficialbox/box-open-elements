@@ -500,3 +500,14 @@ Synchronous host echoes retain the full selection range and direction only for
 the same enabled field on the same selected box. BOE does not refocus an obsolete
 field after host navigation or delayed echoes. The host still owns evaluation,
 validation, persistence and undo/redo of expression edits.
+
+### Host-owned branch edits
+
+The selected Decision exposes inline Path name controls; Weighted choice exposes
+non-negative numeric Weight controls. They request `edit-line` with `lineId` and
+`label` or `weight`, preserving endpoints and routing. Hosts apply the request
+and call `accept` with undo/redo, as for connection edits; unsupported hosts
+leave it unapplied. Controlled echoes retain the focused line control and caret.
+Leads to lists the connected target names, offers native icon removal and a
+same-level unconnected target select, and omits terminal-step connections.
+Readonly/disabled connection policies and stale selection sessions prevent edits.

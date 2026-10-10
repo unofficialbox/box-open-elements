@@ -245,7 +245,7 @@ export type ProcessSelectionItem =
   | { readonly type: 'line'; readonly id: string }
   | { readonly type: 'note'; readonly id: string };
 export interface ProcessEdit {
-  type: "add" | "delete" | "duplicate" | "connect" | "disconnect" | "reattach" | "insert" | "reparent" | "reset-line" | "tidy" | "make-section" | "delete-selection";
+  type: "add" | "delete" | "duplicate" | "connect" | "disconnect" | "reattach" | "insert" | "reparent" | "reset-line" | "tidy" | "make-section" | "delete-selection" | "edit-line";
   /** One atomic mixed deletion; the host owns protected roots, descendants,
    * incident edges and notes. Unsupported hosts must leave it unapplied. */
   selection?: readonly ProcessSelectionItem[];
@@ -259,6 +259,9 @@ export interface ProcessEdit {
   from?: string;
   to?: string;
   lineId?: string;
+  /** Host-owned branch presentation; edit-line preserves endpoints and routing. */
+  label?: string;
+  weight?: number;
   kind?: FlowKind;
   position?: BoxPosition;
   /** Optional for existing hosts; all built-in insertion producers supply intent. */

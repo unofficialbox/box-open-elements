@@ -178,7 +178,7 @@ describe("Process Modeler prototype interactions", () => {
     const tabs = root.querySelectorAll<HTMLButtonElement>('[role=tab]'); tabs[2].click(); expect(root.querySelector('[part=pane-content]')!.textContent).toContain("fileIdInput");
     tabs[2].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })); expect(tabs[3].getAttribute("aria-selected")).toBe("true");
     expect(root.querySelector('[part=pane-content]')!.textContent).toContain("Box OAuth");
-    tabs[4].click(); expect(root.querySelector('[part=pane-content]')!.textContent).toContain("Shift+drag");
+    tabs[4].click(); expect(root.querySelector('[part=pane-content]')!.textContent).toContain("Shift + drag");
   });
   it('renders read-only connection summaries and safe host help with a setup request', () => {
     const { builder, root } = fixture();
@@ -880,6 +880,50 @@ describe("Process Modeler prototype interactions", () => {
     const summary = root.querySelector<HTMLElement>('[part=expression-help] summary')!;
     summary.focus(); builder.refresh();
     expect(root.activeElement).toBe(summary);
+  });
+
+  it("accepts branch edits as reversible host transactions and restores keyed line focus", () => {
+    const { builder, root } = fixture();
+    builder.document = {...projection, boxes: projection.boxes.map(box => box.id === 'a' ? {...box, kind: 'decision'} : box)};
+    builder.select('a');
+    let documentValue = builder.document!;
+    const edits = vi.fn();
+    builder.addEventListener('process-edit-request', event => {
+      const edit = (event as CustomEvent).detail; edits(edit);
+      if (edit.type !== 'edit-line') return;
+      const previous = documentValue;
+      const next = {...previous, lines: previous.lines.map(line => line.id === edit.lineId ? {...line, label: edit.label} : line)};
+      documentValue = next; builder.document = next;
+      edit.accept({undo: () => {documentValue = previous; builder.document = previous;}, redo: () => {documentValue = next; builder.document = next;}});
+    });
+    for (const value of ['Yes', 'Go']) {
+      const input = root.querySelector<HTMLInputElement>('[part=lead-control]')!;
+      input.focus(); input.value = value; input.setSelectionRange(value.length, value.length); input.dispatchEvent(new Event('change'));
+      expect(builder.document!.lines[0].label).toBe(value);
+      expect(root.activeElement).toBe(root.querySelector('[part=lead-control]'));
+      expect((root.activeElement as HTMLInputElement).selectionStart).toBe(value.length);
+    }
+    builder.undo(); expect(builder.document!.lines[0].label).toBe('Yes');
+    builder.redo(); expect(builder.document!.lines[0].label).toBe('Go');
+    const stale = root.querySelector<HTMLInputElement>('[part=lead-control]')!;
+    const before = edits.mock.calls.length; builder.select('b'); stale.value = 'Stale'; stale.dispatchEvent(new Event('change'));
+    expect(edits).toHaveBeenCalledTimes(before);
+  });
+
+  it("guards weight requests and offers only unconnected same-level targets", () => {
+    const { builder, root } = fixture();
+    builder.document = {...projection, boxes: [...projection.boxes.map(box => box.id === 'a' ? {...box, kind: 'choice'} : box.id === 'b' ? {...box, frame: true} : box), {id: 'start', node: {}, title: 'Start', kind: 'start'}, {id: 'nested', node: {}, title: 'Nested', kind: 'call', parentId: 'b'}]};
+    builder.select('a'); const edits = vi.fn(); builder.addEventListener('process-edit-request', edits);
+    const input = root.querySelector<HTMLInputElement>('[part=lead-control]')!;
+    expect(input.type).toBe('number'); expect(input.min).toBe('0'); expect(input.value).toBe('1');
+    input.value = '-1'; input.dispatchEvent(new Event('change')); input.value = ''; input.dispatchEvent(new Event('change'));
+    builder.requestEdit({type: 'edit-line', lineId: 'ab', weight: Infinity}); builder.requestEdit({type: 'edit-line', lineId: 'missing', weight: 2});
+    expect(edits).not.toHaveBeenCalled();
+    input.value = '2'; input.dispatchEvent(new Event('change')); expect(edits.mock.calls[0][0].detail).toMatchObject({type: 'edit-line', lineId: 'ab', weight: 2});
+    const select = root.querySelector<HTMLSelectElement>('[part=lead-target] select')!;
+    expect([...select.options].map(option => option.value)).toEqual(['', 'c']);
+    select.value = 'c'; select.dispatchEvent(new Event('change')); expect(edits.mock.calls[1][0].detail).toMatchObject({type: 'connect', from: 'a', to: 'c'}); expect(select.value).toBe('');
+    builder.disableConnections = true; builder.requestEdit({type: 'edit-line', lineId: 'ab', weight: 3}); expect(edits).toHaveBeenCalledTimes(2);
   });
 
   it("keeps metadata-only kinds out of Add and protects start inspector actions", () => {

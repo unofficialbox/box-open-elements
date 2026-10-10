@@ -357,10 +357,25 @@ export const processModelerDesign = `
   [part=variable-icon] { flex: 0 0 16px; width: 16px; height: 16px; color: var(--boe-token-text-text-secondary,#6f6f6f); }
   [part=variable-chips] { display: flex; flex-wrap: wrap; gap: 6px; }
   [part=variable-chips] button { min-height: 24px; padding: 3px 8px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface-secondary, #fbfbfb); font: 12px ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
-  [part=leads-to] { display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); }
-  [part=leads-to] h3 { margin: 0; font-size: 12.5px; }
-  [part=lead-row] { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; }
-  [part=lead-row] button, [part=leads-to] > button, [part=inspector-actions] button { min-height: 28px; padding: 4px 8px; font-size: 12px; }
+  [part=shortcut-list] { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 12.5px; margin: 0; }
+  [part=shortcut-list] dt { white-space: nowrap; }
+  [part=shortcut-list] dd { margin: 0; color: var(--boe-token-text-text-secondary, #6f6f6f); }
+  [part=shortcut-list] [part=shortcut-heading] { font-weight: 650; margin-top: 10px; }
+  [part=shortcut-list] kbd { font: 11.5px/1 var(--boe-token-font-family-base, Inter, sans-serif); font-weight: 600; padding: 3px 5px; border-radius: 5px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-bottom-width: 2px; background: var(--boe-token-surface-surface, #fff); }
+  [part=leads-to] { min-width: 0; }
+  [part=leads-to] h3 { margin: 0 0 6px; font-size: 12.5px; font-weight: 650; }
+  [part=lead-list] { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+  [part=lead-row] { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 4px 4px 4px 10px; border-radius: 10px; background: var(--boe-token-surface-surface-secondary, #f9f9f9); border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); }
+  [part=lead-row] > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  [part=lead-control] { width: 64px; min-height: 26px; border-radius: 8px; border: 1px solid var(--boe-token-surface-surface-quaternary, #d3d3d3); padding: 2px 6px; font-size: 12.5px; font-weight: 400; color: inherit; background: var(--boe-token-surface-surface, #fff); }
+  [part=lead-control][type=number] { width: 56px; }
+  [part=lead-remove] { font-weight: 600; letter-spacing: .01em; height: 26px; min-height: 26px; width: 26px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: 20px; background: transparent; color: var(--boe-token-text-text-secondary, #6f6f6f); }
+  [part=lead-remove]:hover { background: var(--boe-token-surface-hover, #ededed); }
+  [part=lead-remove] svg { width: 16px; height: 16px; }
+  [part=lead-help] { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--boe-token-text-text-secondary, #6f6f6f); }
+  [part=lead-target] { display: grid; margin-top: 8px; }
+  [part=lead-target] select { width: 100%; min-height: 36px; padding: 7px 12px; border: 1px solid var(--boe-token-surface-surface-quaternary, #d3d3d3); border-radius: 12px; box-shadow: inset 0 2px 4px rgb(0 0 0 / .06); background: var(--boe-token-surface-surface, #fff); color: inherit; font-size: 13px; font-weight: 400; line-height: 1.45; }
+  [part=inspector-actions] button { min-height: 28px; padding: 4px 8px; font-size: 12px; }
   [part=inspector-metrics] { margin: 0; font-size: 12.5px; line-height: 1.5; font-variant-numeric: tabular-nums; }
   [part=inspector-metrics] h3 { margin: 0 0 6px; font-size: 12.5px; }
   [part=inspector-metrics] p { margin: 0; color: var(--boe-token-text-text-secondary, #6f6f6f); }
