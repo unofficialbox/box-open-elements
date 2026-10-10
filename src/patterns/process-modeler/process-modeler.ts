@@ -2206,7 +2206,7 @@ export class ProcessModeler<
     world.querySelector('[part=drag-guides]')?.remove();
     const primary = this.projection.boxes.find(box => box.id === id)!;
     if (alt) return { x, y };
-    if (!isFlowBox(primary) || primary.kind === 'section') return { x: this.snapToGrid ? Math.round(x / 16) * 16 : x, y: this.snapToGrid ? Math.round(y / 16) * 16 : y };
+    if (primary.kind === 'section') return { x: this.snapToGrid ? Math.round(x / 16) * 16 : x, y: this.snapToGrid ? Math.round(y / 16) * 16 : y };
     const size = this.selectionDimensions(primary), zoom = this.viewport.zoom, threshold = 8 / zoom;
     const moved = this.selectedIds.size > 1 && this.selectedIds.has(id) ? new Set(this.selectedIds) : new Set([id]);
     for (let changed = true; changed;) {
