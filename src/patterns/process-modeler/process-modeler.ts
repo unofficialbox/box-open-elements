@@ -25,6 +25,11 @@ const svgElement = <K extends keyof SVGElementTagNameMap>(
   tag: K,
 ): SVGElementTagNameMap[K] =>
   document.createElementNS("http://www.w3.org/2000/svg", tag);
+const checkGlyph = (success = false): SVGSVGElement => {
+  const icon = svgElement('svg'); icon.setAttribute('part', 'check-icon'); icon.setAttribute('viewBox', '0 0 16 16'); icon.setAttribute('aria-hidden', 'true'); icon.dataset.tone = success ? 'success' : 'error';
+  const circle = svgElement('circle'); circle.setAttribute('cx', '8'); circle.setAttribute('cy', '8'); circle.setAttribute('r', '7'); circle.setAttribute('fill', 'currentColor');
+  const mark = svgElement('path'); mark.setAttribute('d', success ? 'm4.5 8 2.5 2.5 4.5-5' : 'm5 5 6 6m0-6-6 6'); mark.setAttribute('fill', 'none'); mark.setAttribute('stroke', 'var(--boe-token-surface-surface,#fff)'); mark.setAttribute('stroke-width', '1.5'); mark.setAttribute('stroke-linecap', 'round'); icon.append(circle, mark); return icon;
+};
 const emit = (element: HTMLElement, name: string, detail: unknown): boolean =>
   element.dispatchEvent(
     new CustomEvent(name, {
@@ -738,7 +743,7 @@ export class ProcessModeler<
     }
     const content = document.createElement("div"); content.setAttribute("part", "pane-content"); content.setAttribute("role", "tabpanel"); content.id = "process-pane-content";
     heading.after(tabs); inspector.append(content);
-    root.querySelector('[part=checks]')!.removeAttribute("role");
+    root.querySelector('[part=checks]')!.setAttribute("role", "group");
     const canvas = root.querySelector('[part=canvas]')!;
     const hold = document.createElement('div'); hold.setAttribute('part', 'hold'); hold.setAttribute('role', 'status'); hold.hidden = true;
     const holdText = document.createElement('span'); holdText.setAttribute('part', 'hold-text');
@@ -867,7 +872,6 @@ export class ProcessModeler<
       content.append(copy);
     } else if (this.activePane === "Checks") {
       content.append(checks);
-      if (!this.allChecks.length) { const message = document.createElement("p"); message.textContent = "Ready to run"; content.prepend(message); }
     } else if (this.activePane === "Variables") {
       if (!this.variables.length) content.textContent = 'No variables supplied by the host.';
       for (const [index, variable] of this.variables.entries()) {
@@ -1742,7 +1746,7 @@ export class ProcessModeler<
         if (metrics?.failedShare !== undefined && metrics.failedShare > 0 && !metrics.notInRun) { const failed = document.createElement('span'); failed.setAttribute('part', 'metric-warning'); failed.textContent = `${(metrics.failedShare * 100).toFixed(1)}% failed`; line.append(document.createTextNode(' · '), failed); }
         element.append(line);
       }
-      if (problem) { const message = document.createElement("span"); message.setAttribute("part", "problem"); message.textContent = problem.message; element.append(message); }
+      if (problem) { const message = document.createElement("span"); message.setAttribute("part", "problem"); message.append(checkGlyph(), document.createTextNode(problem.title ?? problem.message)); element.append(message); }
       element.addEventListener("keydown", event => {
         if (event.target !== element) return;
         if (event.key === " ") { event.preventDefault(); element.click(); }
@@ -1996,19 +2000,24 @@ export class ProcessModeler<
   private renderChecks(): void {
     const checks = this.shadowRoot!.querySelector("[part=checks]")!;
     checks.replaceChildren();
+    if (!this.allChecks.length) { const message = document.createElement('p'); message.setAttribute('part', 'checks-ready'); message.append(checkGlyph(true), document.createTextNode('Ready to run. Every step connects from start to finish.')); checks.append(message); }
     const hold = this.shadowRoot!.querySelector<HTMLElement>('[part=hold]')!;
     hold.hidden = this.allChecks.length === 0;
     hold.querySelector('[part=hold-text]')!.textContent = `${this.allChecks.length} ${this.allChecks.length === 1 ? 'problem needs' : 'problems need'} fixing before this drawing can be read back.`;
     this.allChecks.forEach((check) => {
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent = check.message;
       const box = this.projection.boxes.find(
         (box) =>
           box.id === check.boxId ||
           (check.path &&
             JSON.stringify(box.path) === JSON.stringify(check.path)),
       );
+      const icon = checkGlyph();
+      const text = document.createElement('span');
+      const title = document.createElement('strong'); title.textContent = check.title ? box ? `${box.title}: ${check.title.toLowerCase()}` : check.title : check.message; text.append(title);
+      if (check.title) { const detail = document.createElement('small'); detail.textContent = check.message; text.append(detail); }
+      button.append(icon, text);
       button.addEventListener("click", () => {
         if (box) {
           this.select(box.id);

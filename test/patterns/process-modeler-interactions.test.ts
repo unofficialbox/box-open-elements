@@ -210,10 +210,19 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.activeElement).toBe(echoed); expect(echoed.selectionStart).toBe(5);
     expect(echoed.getAttribute('aria-invalid')).toBe('true');
   });
+  it('renders titled check cards while keeping on-node problems concise and ready checks named', () => {
+    const { builder, root } = fixture(); builder.model = { project: doc => doc, validate: () => [{ boxId: 'b', title: 'Leads nowhere', message: 'Connect this step to the next one.' }] };
+    root.querySelector<HTMLButtonElement>('#process-tab-checks')!.click();
+    expect(root.querySelector('[part=checks]')?.getAttribute('role')).toBe('group');
+    expect(root.querySelector('[part=checks] strong')?.textContent).toBe('Save: leads nowhere');
+    expect(root.querySelector('[part=checks] small')?.textContent).toBe('Connect this step to the next one.');
+    expect(root.querySelector('[data-box-id=b] [part=problem]')?.textContent).toBe('Leads nowhere');
+    root.querySelector<HTMLButtonElement>('[part=checks] button')!.click(); expect(builder.selected?.id).toBe('b');
+  });
   it("shows the ready state when the Checks tab has no problems", () => {
     const { root } = fixture();
     root.querySelector<HTMLButtonElement>('#process-tab-checks')!.click();
-    expect(root.querySelector('[part=pane-content]')!.textContent).toContain('Ready to run');
+    expect(root.querySelector('[part=checks] [part=checks-ready]')!.textContent).toContain('Ready to run');
   });
   it("matches the reference toolbar's switch, Checks state, and action order", () => {
     const { builder, root } = fixture();
