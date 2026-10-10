@@ -281,3 +281,73 @@ describe("line geometry", () => {
     expect(nearProcessLine({ x: 0, y: 0 }, [{ x: 0, y: 0 }], -1)).toBe(false);
   });
 });
+
+
+describe('Native automatic event insertion ports', () => {
+  const event = {...box('start'), kind: 'timer', shape: 'event' as const};
+  const incoming = {id: 'start-task', from: 'start', to: 'task'};
+  const outgoing = {id: 'task-next', from: 'task', to: 'next'};
+  const layout: ProcessLayout = {boxes: {start: {x:404,y:52,width:56,height:56},task:{x:140,y:144,width:224,height:64},next:{x:460,y:144,width:224,height:64}}};
+  const graph: ProcessProjection = {boxes:[event,box('task'),box('next')],lines:[incoming,outgoing]};
+  it('uses native event inset and shared task-side allocation for actual Insert midpoint', () => {
+    const points=routeProcessLine(incoming,layout,graph);
+    expect(points).toEqual([{x:432,y:100},{x:432,y:160},{x:364,y:160}]);
+    expect(lineMidpoint(points)).toEqual({x:428,y:160});
+    expect(routeProcessLine({...outgoing},layout,graph)).toEqual([{x:364,y:176},{x:460,y:176}]);
+  });
+  it('excludes associations from side allocation and supports a detached queried line', () => {
+    const projected={...graph,lines:[...graph.lines,{id:'attachment',from:'start',to:'task',role:'association' as const}]};
+    expect(routeProcessLine(incoming,layout,projected)).toEqual(routeProcessLine(incoming,layout,graph));
+    expect(routeProcessLine(incoming,layout,{...graph,lines:[outgoing]})).toEqual(routeProcessLine(incoming,layout,graph));
+  });
+  it('retains authored event waypoints and centered side pins', () => {
+    const authored={...incoming,fromSide:'south' as const,toSide:'east' as const,points:[{x:700,y:120},{x:700,y:240}]};
+    const points=routeProcessLine(authored,layout,{...graph,lines:[authored,outgoing]});
+    expect(points[0]).toEqual({x:432,y:108});expect(points.at(-1)).toEqual({x:364,y:176});
+    expect(points).toContainEqual({x:700,y:120});expect(points).toContainEqual({x:700,y:240});
+  });
+});
+
+
+it('refuses automatic event routes enclosed by an unrelated frame', () => {
+  const source={...box('event'),shape:'event' as const};
+  const edge={id:'event-target',from:'event',to:'target'};
+  const graph={boxes:[source,box('target'),box('unrelated',undefined,true)],lines:[edge]};
+  const layout={boxes:{event:{x:0,y:0,width:56,height:56},target:{x:500,y:0,width:224,height:64},unrelated:{x:-50,y:-50,width:200,height:200}}};
+  expect(routeProcessLine(edge,layout,graph)).toEqual([]);
+  const contained={...graph,boxes:[{...source,parentId:'unrelated'},box('target'),box('unrelated',undefined,true)]};
+  expect(routeProcessLine(edge,layout,contained).length).toBeGreaterThan(1);
+});
+
+
+it('consumes allocated task ports for legacy outputs shared with two automatic event inputs', () => {
+  const boxes=[{...box('event1'),shape:'event' as const},{...box('event2'),shape:'event' as const},box('task'),box('next')];
+  const lines=[{id:'e1',from:'event1',to:'task'},{id:'e2',from:'event2',to:'task'},{id:'out',from:'task',to:'next'}];
+  const graph={boxes,lines};const layout={boxes:{task:{x:140,y:144,width:224,height:64},next:{x:760,y:144,width:224,height:64},event1:{x:404,y:52,width:56,height:56},event2:{x:484,y:52,width:56,height:56}}};
+  const points=lines.map(edge=>routeProcessLine(edge,layout,graph));
+  expect(points[0].at(-1)).toEqual({x:364,y:160});
+  expect(points[1].at(-1)).toEqual({x:364,y:176});
+  expect(points[2][0]).toEqual({x:364,y:192});
+  expect(new Set([points[0].at(-1)!.y,points[1].at(-1)!.y,points[2][0].y]).size).toBe(3);
+});
+
+
+it('keeps two automatic event siblings apart from a pinned task output', () => {
+  const boxes=[{...box('event1'),shape:'event' as const},{...box('event2'),shape:'event' as const},box('task'),box('next')];
+  const lines=[{id:'e1',from:'event1',to:'task'},{id:'e2',from:'event2',to:'task'},{id:'out',from:'task',to:'next',fromSide:'east' as const,toSide:'west' as const}];
+  const layout={boxes:{task:{x:140,y:144,width:224,height:64},next:{x:760,y:144,width:224,height:64},event1:{x:404,y:52,width:56,height:56},event2:{x:484,y:52,width:56,height:56}}};
+  const points=lines.map(edge=>routeProcessLine(edge,layout,{boxes,lines}));
+  expect(points[0].at(-1)).toEqual({x:364,y:160});expect(points[1].at(-1)).toEqual({x:364,y:192});expect(points[2][0]).toEqual({x:364,y:176});
+});
+
+it.each([0, 1, 2, 3])('reserves pinned ports through quarter-turn %s', turns => {
+  const rotate=(p:ProcessPoint):ProcessPoint=>turns===0?p:turns===1?{x:-p.y,y:p.x}:turns===2?{x:-p.x,y:-p.y}:{x:p.y,y:-p.x};
+  const base={task:{x:140,y:144,width:224,height:64},next:{x:760,y:144,width:224,height:64},event1:{x:404,y:52,width:56,height:56},event2:{x:484,y:52,width:56,height:56}};
+  const positions=Object.fromEntries(Object.entries(base).map(([id,r])=>{const corners=[rotate({x:r.x,y:r.y}),rotate({x:r.x+r.width,y:r.y+r.height})];return[id,{x:Math.min(...corners.map(p=>p.x)),y:Math.min(...corners.map(p=>p.y)),width:Math.abs(corners[0].x-corners[1].x),height:Math.abs(corners[0].y-corners[1].y)}]}));
+  const sides:ProcessSide[]=['east','south','west','north'];
+  const boxes=[{...box('event1'),shape:'event' as const},{...box('event2'),shape:'event' as const},box('task'),box('next')];
+  const lines:ProcessLine[]=[{id:'e1',from:'event1',to:'task'},{id:'e2',from:'event2',to:'task'},{id:'out',from:'task',to:'next',fromSide:sides[turns],toSide:sides[(turns+2)%4]}];
+  const routes=lines.map(edge=>routeProcessLine(edge,{boxes:positions},{boxes,lines}));
+  routes.forEach(orthogonal);const fixed=rotate({x:364,y:176});expect(routes[2][0]).toEqual(fixed);
+  expect(routes[0].at(-1)).not.toEqual(fixed);expect(routes[1].at(-1)).not.toEqual(fixed);expect(routes[0].at(-1)).not.toEqual(routes[1].at(-1));
+});
