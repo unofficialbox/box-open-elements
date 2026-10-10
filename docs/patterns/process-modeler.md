@@ -444,6 +444,19 @@ box-move listeners remain compatible. Preventing the event cancels the entire
 layout edit without history. Mixed Delete host application/acceptance is synchronous;
 projection observers run after the accepted transaction has recorded history.
 
+### Host-authored field presentation
+
+The selected inspector heading shows the catalog kind's label and optional
+`description` as plain text. Omitted descriptions preserve the label-only heading.
+Ordinary `multiline` fields accept `rows`; expression fields continue to use
+`expression.rows`. `format: 'code'` presents structured text in monospace without
+parsing it or changing edit events. `time` and `datetime-local` kinds use native
+inputs and emit their string values through `process-field-change-request`.
+Number fields accept optional `min`, `max`, and positive `step` (or `'any'`)
+constraints. Empty numeric edits remain empty strings. The host owns validation,
+conditional field visibility and authoritative values; constraints do not reject
+or rewrite host data. Boolean fields use an inline, fully labeled checkbox.
+
 ### Host-authored expression fields
 
 An expression field can provide `expression: { variables, rows, feedback, help }`.

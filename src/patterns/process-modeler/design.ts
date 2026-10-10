@@ -281,6 +281,8 @@ export const processModelerDesign = `
   [part=process-heading] { display: grid; gap: 2px; padding: 0 16px 12px; }
   [part=process-title] { font-size: 15px; line-height: 1.4; }
   [part=process-summary] { color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12.5px; }
+  [part=process-heading][data-selected] [part=process-title] { font-weight: 650; line-height: 1.45; text-wrap: balance; }
+  [part=process-heading][data-selected] [part=process-summary] { font-size: 13px; line-height: 1.45; }
   [part=pane-tabs] { display: flex; flex-wrap: nowrap; gap: 4px; margin: 0; padding: 0 16px; border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); overflow-x: auto; }
   [part=pane-tabs] button { flex: none; min-height: 40px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 13px; font-weight: 600; }
   [part=pane-tabs] button[aria-selected=true] { color: var(--boe-token-text-text, #141413); border-bottom-color: currentColor; }
@@ -288,10 +290,13 @@ export const processModelerDesign = `
   [part=editor] { display: grid; align-content: start; gap: 12px; }
   [part=inspector-kind] { display: none; }
   [part=inspector-purpose] { margin: 0; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12.5px; }
-  [part=field] { display: grid; gap: 4px; }
-  [part=field] label { display: grid; gap: 5px; font-size: 12.5px; font-weight: 650; }
-  [part=field] :is(input:not([type=checkbox]),textarea,select) { width: 100%; min-height: 36px; padding: 7px 10px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 8px; background: var(--boe-token-surface-surface, #fff); color: var(--boe-token-text-text, #141413); font-family: inherit; font-size: 13px; line-height: 1.4; }
-  [part=field] textarea { min-height: 76px; resize: vertical; }
+  [part=field] { display: grid; gap: 6px; }
+  [part=field] label { display: grid; gap: 6px; font-size: 12.5px; font-weight: 600; line-height: 1.45; }
+  [part=field] :is(input:not([type=checkbox]),textarea,select) { width: 100%; min-height: 36px; padding: 7px 12px; border: 1px solid var(--boe-token-surface-surface-quaternary, #d3d3d3); border-radius: 12px; box-shadow: inset 0 2px 4px rgb(0 0 0 / .06); background: var(--boe-token-surface-surface, #fff); color: var(--boe-token-text-text, #141413); font-family: inherit; font-size: 13px; font-weight: 400; line-height: 1.45; }
+  [part=field] textarea[data-field] { min-height: 72px; resize: vertical; }
+  [part=field] :is(input,textarea)[data-format=code] { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; }
+  [part=field] textarea[data-field][data-format=code] { line-height: 1.5; }
+  [part=field][data-boolean] label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 400; }
   [part=field] :is(input,textarea)[part=expression-control] { border-color: var(--boe-token-surface-surface-quaternary, #d3d3d3); padding: 7px 12px; border-radius: 12px; box-shadow: inset 0 2px 4px rgb(0 0 0 / .06); font: 12.5px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
   [part=field] textarea[part=expression-control] { min-height: 72px; }
   [part=field]:has([part=expression-control]), [part=field] label:has([part=expression-control]) { gap: 6px; }
@@ -303,7 +308,7 @@ export const processModelerDesign = `
   [part=expression-help] li { margin: 0; }
   [part=field-feedback][data-tone=success] { color: var(--boe-token-text-status-text-success, #247b3e); }
   [part=field]:has([part=action-options]) { position: relative; }
-  [part=field]:has([part=action-options]) input { padding-right: 34px; }
+  [part=field]:has([part=action-options]) input { padding-right: 32px; }
   [part=action-caret] { position: absolute; z-index: 1; top: 25px; right: 2px; width: 32px; min-height: 32px; padding: 0; border: 0; background: transparent; font-size: 18px; }
   [part=action-options] { position: fixed; z-index: 50; max-height: 420px; overflow: auto; padding: 6px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 10px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }
   [part=action-options][hidden] { display: none; }
@@ -312,8 +317,8 @@ export const processModelerDesign = `
   [part=action-options] button strong { display: block; font-size: 13px; font-weight: 650; }
   [part=action-options] button small { display: block; color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=action-options] [part=action-back] { color: var(--boe-token-text-text-secondary, #6f6f6f); }
-  [part=field] input[type=checkbox] { justify-self: start; width: 18px; height: 18px; accent-color: var(--boe-token-surface-surface-brand, #0061d5); }
-  [part=field] small { color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12px; line-height: 1.4; }
+  [part=field] input[type=checkbox] { flex: none; width: 13px; height: 13px; font-family: inherit; font-size: 13px; font-weight: 400; line-height: 1.45; accent-color: var(--boe-token-surface-surface-brand, #0061d5); }
+  [part=field] small { color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12px; line-height: 1.45; }
   [part=field] [part=field-problem] { color: var(--boe-token-text-status-text-error, #b92340); }
   [part=editor], [part=pane-content], [part=editor] > *, [part=pane-content] > * { min-width: 0; }
   [part=process-title], [part=process-summary] { min-width: 0; overflow-wrap: anywhere; }

@@ -782,6 +782,61 @@ describe("Process Modeler prototype interactions", () => {
     expect(canvas.style.backgroundSize).toBe('25.6px 25.6px');
     expect(canvas.style.backgroundPosition).toBe('-9px 5px');
   });
+  it("uses safe supplied kind descriptions and restores overview identity after selection", () => {
+    const { builder, root } = fixture();
+    builder.processSummary = 'Overview';
+    builder.catalog = [{kind: 'call', label: 'Call', description: '<img src=x> Calls the service', create: () => ({})}];
+    builder.select('a');
+    const heading = root.querySelector('[part=process-heading]')!;
+    expect(heading.hasAttribute('data-selected')).toBe(true);
+    expect(root.querySelector('[part=process-summary]')!.textContent).toBe('Call. <img src=x> Calls the service');
+    expect(heading.querySelector('img')).toBeNull();
+    builder.catalog = [{kind: 'call', label: 'Call', create: () => ({})}];
+    expect(root.querySelector('[part=process-summary]')!.textContent).toBe('Call');
+    builder.select(null);
+    expect(heading.hasAttribute('data-selected')).toBe(false);
+    expect(root.querySelector('[part=process-summary]')!.textContent).toBe('Overview');
+  });
+
+  it("retains native field metadata and requests typed edits without overwriting host values", () => {
+    const { builder, root } = fixture();
+    builder.fields = {a: [
+      {key: 'json', label: 'Request', kind: 'multiline', value: '{}', rows: 4, format: 'code'},
+      {key: 'time', label: 'Time', kind: 'time', value: '09:30'},
+      {key: 'at', label: 'At', kind: 'datetime-local', value: '2026-10-10T09:30'},
+      {key: 'n', label: 'Count', kind: 'number', value: 2, min: 1, max: 10, step: 0.5},
+      {key: 'on', label: 'Without TLS', kind: 'boolean', value: false},
+      {key: 'expr', label: 'Condition', kind: 'expression', value: 'true', rows: 9, expression: {rows: 2, variables: []}},
+    ]};
+    builder.select('a');
+    const textarea = root.querySelector<HTMLTextAreaElement>('[data-field=json]')!;
+    expect(textarea.rows).toBe(4); expect(textarea.dataset.format).toBe('code'); expect(textarea.spellcheck).toBe(false);
+    expect(root.querySelector<HTMLTextAreaElement>('[data-field=expr]')!.rows).toBe(2);
+    const number = root.querySelector<HTMLInputElement>('[data-field=n]')!;
+    expect([number.min, number.max, number.step]).toEqual(['1', '10', '0.5']);
+    const edits: unknown[] = [];
+    builder.addEventListener('process-field-change-request', event => edits.push((event as CustomEvent).detail));
+    for (const [key, type, value] of [['time','time','10:45'], ['at','datetime-local','2026-10-11T10:45'], ['n','number','']]) {
+      const input = root.querySelector<HTMLInputElement>(`[data-field=${key}]`)!;
+      expect(input.type).toBe(type); input.value = value; input.dispatchEvent(new Event('change', {bubbles: true}));
+    }
+    const checkbox = root.querySelector<HTMLInputElement>('[data-field=on]')!;
+    expect(checkbox.parentElement!.firstChild).toBe(checkbox);
+    expect(checkbox.labels![0].textContent).toBe('Without TLS');
+    checkbox.checked = true; checkbox.dispatchEvent(new Event('change', {bubbles: true}));
+    expect(edits).toEqual([
+      {boxId: 'a', path: ['steps',0], key: 'time', value: '10:45'},
+      {boxId: 'a', path: ['steps',0], key: 'at', value: '2026-10-11T10:45'},
+      {boxId: 'a', path: ['steps',0], key: 'n', value: ''},
+      {boxId: 'a', path: ['steps',0], key: 'on', value: true},
+    ]);
+    expect(builder.fields.a[1].value).toBe('09:30'); expect(builder.fields.a[3].value).toBe(2);
+    builder.fields = {a: [{key: 'n', label: 'Count', kind: 'number', value: '', min: NaN, max: Infinity, step: -2}]};
+    const invalid = root.querySelector<HTMLInputElement>('[data-field=n]')!;
+    expect([invalid.min, invalid.max, invalid.step]).toEqual(['', '', '']);
+    builder.locked = true; expect(root.querySelector<HTMLInputElement>('[data-field=n]')!.disabled).toBe(true);
+  });
+
   it("keeps embedded inspector identity and supplied run controls available", () => {
     const { builder, root } = fixture();
     builder.processTitle = 'Upload round trip';
