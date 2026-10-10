@@ -263,6 +263,13 @@ canvas.addEventListener("connection-setup-request", () => openHostConnections())
 canvas.addEventListener("selection-changed", event => selectHostPath(event.detail.path));
 ```
 
+`lastRun.steps` is keyed by projected box ID. When Last run is shown, a task
+missing from that map says “Not in the last run”; events and gateways do not
+show step metrics. Measured tasks show rate, p95 duration, and failed share on
+the canvas, with the run label and full table in the inspector. A line with a
+host-supplied `share` shows its traffic percentage beside the connection label
+and scales the line width while Last run is on.
+
 `ProcessBox.path` and `fingerprint` are supplied by the host. Position snapshots
 are detached and sorted by ID, and include path/fingerprint when provided.
 Selection events include `box`, `boxes`, and a detached `path`; `selectedPath`

@@ -199,7 +199,8 @@ export const processModelerDesign = `
   [part=box]:hover [part=port], [part=box]:focus-within [part=port], [part=box][aria-current=true] [part=port], [part=frame]:hover [part=port] { opacity: 1; }
   [part=connection] { position: absolute; z-index: 5; display: flex; align-items: center; gap: 4px; transform: translate(-50%,-50%); min-width: 0; min-height: 0; padding: 2px 6px; border-radius: 6px; background: var(--boe-token-surface-surface-secondary, #fbfbfb); font-size: 12px; font-weight: 600; white-space: nowrap; }
   /* Unlabelled lines still need a reachable midpoint for pointer insert/selection. */
-  [part=connection]:has(> span:empty) { padding: 0; background: transparent; min-width: calc(24px * var(--boe-process-inverse-zoom, 1)); min-height: calc(24px * var(--boe-process-inverse-zoom, 1)); }
+  [part=connection]:has(> span:empty):not(:has(> small)) { padding: 0; background: transparent; min-width: calc(24px * var(--boe-process-inverse-zoom, 1)); min-height: calc(24px * var(--boe-process-inverse-zoom, 1)); }
+  [part=connection] > small { margin-left: 4px; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 11px; font-weight: 400; font-variant-numeric: tabular-nums; }
   [part=connection-actions] { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; width: max-content; padding: 4px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 8px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); opacity: 0; pointer-events: none; }
   [part=connection]:hover [part=connection-actions], [part=connection]:focus-within [part=connection-actions] { opacity: 1; pointer-events: auto; }
   [part=connection-actions] button { min-height: 32px; padding: 4px; font-size: 12px; }
@@ -263,6 +264,7 @@ export const processModelerDesign = `
   [part=lead-row] button, [part=leads-to] > button, [part=inspector-actions] button { min-height: 28px; padding: 4px 8px; font-size: 12px; }
   [part=inspector-metrics] { margin: 0; padding-top: 10px; border-top: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); font-size: 12px; font-variant-numeric: tabular-nums; }
   [part=inspector-metrics] h3 { margin: 0 0 6px; font-size: 12.5px; }
+  [part=inspector-metrics] p { margin: 0 0 8px; color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=inspector-metrics] dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; margin: 0; }
   [part=inspector-metrics] dt { color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=inspector-metrics] dd { margin: 0; font-weight: 650; }
@@ -310,6 +312,7 @@ export const processModelerDesign = `
   :host([data-narrow]) [data-command=checks-status] { display: none; }
   :host([data-narrow]:not([embed-mode])) [part=view-menu] { display: block; }
   :host([data-narrow]) [part=controls] { left: 12px; bottom: 12px; }
+  :host([data-narrow]) [part=selection-toolbar] [part=selection-plus] + span { display: none; }
   :host([data-phone]) [data-command=tidy] { display: none; }
   :host([data-phone]) [data-command=undo], :host([data-phone]) [data-command=redo] { display: none; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; scroll-behavior: auto !important; } }
