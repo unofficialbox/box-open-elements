@@ -2621,11 +2621,14 @@ export class ProcessModeler<
       checks.append(button);
     });
   }
-  private renderField(box: ProcessBox<N>, field: ProcessField): HTMLElement {
+  private renderField(box: ProcessBox<N>, field: ProcessField, helpOpen = false): HTMLElement {
     const row = document.createElement('div'); row.setAttribute('part', 'field');
     const label = document.createElement('label'); label.textContent = field.label;
     let control: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
-    if (field.kind === 'multiline') control = document.createElement('textarea');
+    if (field.kind === 'multiline' || (field.kind === 'expression' && (field.expression?.rows ?? 1) > 1)) {
+      control = document.createElement('textarea');
+      if (field.expression?.rows) control.rows = Math.max(2, Math.floor(field.expression.rows));
+    }
     else if (field.kind === 'choice') {
       const select = document.createElement('select');
       const groups = new Map<string, HTMLOptGroupElement>();
@@ -2639,12 +2642,13 @@ export class ProcessModeler<
       }
       control = select;
     } else { const input = document.createElement('input'); input.type = field.kind === 'boolean' ? 'checkbox' : field.kind === 'number' ? 'number' : field.kind === 'search' ? 'search' : 'text'; control = input; }
-    control.dataset.field = field.key;
+    control.dataset.field = field.key; control.dataset.fieldBox = box.id;
     if (control instanceof HTMLInputElement && control.type === 'checkbox') control.checked = Boolean(field.value);
     else control.value = field.kind === 'action' ? field.options?.find(option => option.value === field.value)?.label ?? String(field.value) : String(field.value);
     control.disabled = Boolean(field.disabled || this.locked);
     control.required = Boolean(field.required);
-    if (field.placeholder && control instanceof HTMLInputElement) control.placeholder = field.placeholder;
+    if (field.placeholder && (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement)) control.placeholder = field.placeholder;
+    if (field.kind === 'expression') { control.spellcheck = false; control.setAttribute('autocomplete', 'off'); control.setAttribute('part', 'expression-control'); }
     if (field.problem) control.setAttribute('aria-invalid', 'true');
     const submit = () => emit(this, 'process-field-change-request', { boxId: box.id, path: box.path, key: field.key, value: control instanceof HTMLInputElement && control.type === 'checkbox' ? control.checked : control instanceof HTMLInputElement && control.type === 'number' && control.value !== '' ? Number(control.value) : control.value });
     if (field.kind !== 'action') control.addEventListener(field.kind === 'expression' ? 'input' : 'change', submit);
@@ -2704,13 +2708,53 @@ export class ProcessModeler<
       for (const option of field.options) { const item = document.createElement('option'); item.value = option.value; item.label = option.label; options.append(item); }
       control.setAttribute('list', options.id); row.append(options);
     }
-    if (field.kind === 'expression' && this.variables.length) {
-      const chips = document.createElement('div'); chips.setAttribute('part', 'variable-chips'); chips.setAttribute('aria-label', 'Variables in scope');
-      for (const variable of this.variables) { const chip = document.createElement('button'); chip.type = 'button'; chip.textContent = variable.name; chip.disabled = control.disabled; chip.onclick = () => { control.value += variable.name; submit(); control.focus(); }; chips.append(chip); }
+    const scope = field.expression?.variables ?? this.variables;
+    if (field.kind === 'expression' && scope.length) {
+      const chips = document.createElement('div'); chips.setAttribute('part', 'variable-chips'); chips.setAttribute('role', 'group'); chips.setAttribute('aria-label', 'Insert a variable');
+      for (const variable of scope) {
+        const chip = document.createElement('button'); chip.type = 'button'; chip.textContent = variable.name; chip.disabled = control.disabled;
+        if (variable.description) chip.title = variable.description;
+        chip.addEventListener('pointerdown', event => event.preventDefault());
+        chip.onclick = () => {
+          if (control.disabled || !control.isConnected || this.selected?.id !== box.id) return;
+          const input = control as HTMLInputElement | HTMLTextAreaElement;
+          const session = this.layoutEditSession;
+          const start = input.selectionStart ?? input.value.length, end = input.selectionEnd ?? start;
+          input.focus();
+          if (session !== this.layoutEditSession || !input.isConnected || input.disabled || this.locked || this.selected?.id !== box.id || this.shadowRoot?.activeElement !== input || input.closest('[inert]')) return;
+          input.value = input.value.slice(0, start) + variable.name + input.value.slice(end);
+          input.setSelectionRange(start + variable.name.length, start + variable.name.length);
+          submit();
+        };
+        chips.append(chip);
+      }
       row.append(chips);
     }
-    if (field.description) { const help = document.createElement('small'); help.textContent = field.description; row.append(help); }
-    if (field.problem) { const problem = document.createElement('small'); problem.setAttribute('part', 'field-problem'); problem.textContent = field.problem; row.append(problem); }
+    const messageId = `process-field-${encodeURIComponent(box.id)}-${encodeURIComponent(field.key)}`;
+    const describedBy: string[] = [];
+    if (field.description) { const help = document.createElement('small'); help.id = `${messageId}-description`; help.textContent = field.description; row.append(help); describedBy.push(help.id); }
+    const feedback = field.problem || (field.kind === 'expression' ? field.expression?.feedback?.message : undefined);
+    if (feedback) {
+      const message = document.createElement('small'); message.id = `${messageId}-feedback`; message.textContent = feedback;
+      message.setAttribute('part', field.problem ? 'field-problem' : 'field-feedback');
+      if (field.kind === 'expression') message.setAttribute('aria-live', 'polite');
+      if (!field.problem && field.expression?.feedback?.tone) message.dataset.tone = field.expression.feedback.tone;
+      const chips = row.querySelector('[part=variable-chips]'); row.insertBefore(message, chips); describedBy.push(message.id);
+    }
+    if (describedBy.length) control.setAttribute('aria-describedby', describedBy.join(' '));
+    if (field.kind === 'expression' && field.expression?.help) {
+      const details = document.createElement('details'); details.setAttribute('part', 'expression-help'); details.dataset.helpField = field.key; details.dataset.session = String(this.layoutEditSession); details.open = helpOpen;
+      const summary = document.createElement('summary'); summary.textContent = field.expression.help.summary; details.append(summary);
+      const list = document.createElement('ul'); details.append(list);
+      for (const example of field.expression.help.examples) {
+        const paragraph = document.createElement('li'), code = document.createElement('code'); code.textContent = example.expression; paragraph.append(code, document.createTextNode(' '));
+        if (example.segments) for (const segment of example.segments) {
+          const run = document.createElement(segment.format === 'code' ? 'code' : 'span'); run.textContent = segment.text; paragraph.append(run);
+        } else paragraph.append(document.createTextNode(example.description));
+        list.append(paragraph);
+      }
+      row.append(details);
+    }
     return row;
   }
   private renderSelection(): void {
@@ -2719,13 +2763,18 @@ export class ProcessModeler<
     const focusedControl = this.shadowRoot!.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
     const focusedKey = focusedControl?.dataset.field ?? focusedControl?.dataset.variable ?? focusedControl?.dataset.localVariable;
     const variableKey = focusedControl?.dataset.variableKey;
+    const fieldBox = focusedControl?.dataset.fieldBox;
     const localKey = focusedControl?.dataset.localKey, localName = focusedControl?.dataset.localName;
     const focusedType = focusedControl?.dataset.field !== undefined ? 'field' : focusedControl?.dataset.variable !== undefined ? 'variable' : focusedControl?.dataset.localVariable !== undefined ? 'localVariable' : null;
     const caret = focusedControl && 'selectionStart' in focusedControl ? focusedControl.selectionStart : null;
+    const selectionEnd = focusedControl && 'selectionEnd' in focusedControl ? focusedControl.selectionEnd : null;
+    const direction = focusedControl && 'selectionDirection' in focusedControl ? focusedControl.selectionDirection : null;
+    const scrollTop = focusedControl?.scrollTop, scrollLeft = focusedControl?.scrollLeft;
     const restoreControlFocus = () => {
       if (focusedKey === undefined || !focusedType) return;
+      if (focusedType === 'field' && (this.selected?.id !== fieldBox || this.locked)) return;
       const controls = Array.from(this.shadowRoot!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | HTMLButtonElement>('input,textarea,select,button'));
-      const control = controls.find(item => item.dataset[focusedType] === focusedKey && (focusedType !== 'variable' || item.dataset.variableKey === variableKey) && focusedType !== 'localVariable')
+      const control = controls.find(item => item.dataset[focusedType] === focusedKey && (focusedType !== 'field' || item.dataset.fieldBox === fieldBox) && (focusedType !== 'variable' || item.dataset.variableKey === variableKey) && focusedType !== 'localVariable')
         ?? (focusedType === 'variable' ? controls.find(item => this.pendingVariableRename?.name === focusedKey && item.dataset.variable === this.pendingVariableRename.value && item.dataset.variableKey === variableKey) ?? controls.find(item => item.dataset.variableKey === 'add') : undefined);
       if (focusedType === 'localVariable') {
         if (focusedControl?.dataset.localAmbiguous === 'true') { focusedControl.blur(); return; }
@@ -2742,9 +2791,11 @@ export class ProcessModeler<
         if (caret !== null && localControl instanceof HTMLInputElement) localControl.setSelectionRange(caret, caret);
         return;
       }
-      if (!control) return;
-      control.focus();
-      if (caret !== null && (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) && control.type !== 'number' && control.type !== 'checkbox') control.setSelectionRange(caret, caret);
+      if (!control || control.disabled || control.closest('[inert]')) return;
+      control.focus({ preventScroll: true });
+      if (caret !== null && (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) && control.type !== 'number' && control.type !== 'checkbox') control.setSelectionRange(caret, selectionEnd ?? caret, direction ?? undefined);
+      if (scrollTop !== undefined) control.scrollTop = scrollTop;
+      if (scrollLeft !== undefined) control.scrollLeft = scrollLeft;
     };
     this.shadowRoot!.querySelectorAll<SVGRectElement>('[part=minimap] [data-map-box]').forEach(rect => rect.dataset.selected = String(this.selectedIds.has(rect.dataset.mapBox!)));
     this.shadowRoot!.querySelectorAll<SVGPathElement>('[part=line]').forEach(line => { const selected = this.selectedLineIds.has(line.dataset.lineId!); line.dataset.selected = String(selected); line.setAttribute('marker-end', `url(#${selected ? 'boe-process-arrow-brand' : 'boe-process-arrow'})`); });
@@ -2770,7 +2821,8 @@ export class ProcessModeler<
     const editor =
       this.shadowRoot!.querySelector<HTMLElement>("[part=editor]")!;
     const selected = this.selected;
-    const controlsKey = `${[...this.selectedIds].join(',')}|${this.locked}|${this.disableConnections}|${this.showLastRunValue}|${selected?.runMetrics}|${JSON.stringify([selected?.localVariables, selected?.localVariablesEditable, selected?.frame])}|${JSON.stringify(selected ? this.fieldsValue[selected.id] ?? [] : [])}`;
+    const fallbackScope = selected && (this.fieldsValue[selected.id] ?? []).some(field => field.kind === 'expression' && field.expression?.variables === undefined) ? this.variables.map(({name, description}) => ({name, description})) : undefined;
+    const controlsKey = `${JSON.stringify(fallbackScope)}|${[...this.selectedIds].join(',')}|${this.locked}|${this.disableConnections}|${this.showLastRunValue}|${selected?.runMetrics}|${JSON.stringify([selected?.localVariables, selected?.localVariablesEditable, selected?.frame])}|${JSON.stringify(selected ? this.fieldsValue[selected.id] ?? [] : [])}`;
     this.shadowRoot!.querySelector<HTMLElement>("[part=palette]")!.hidden = false;
     this.shadowRoot!.querySelector<HTMLElement>('[part=selection-toolbar]')!.hidden = this.selection.length === 0;
     this.renderSelectionToolbar();
@@ -2791,6 +2843,12 @@ export class ProcessModeler<
       }
       restoreControlFocus();
       return;
+    }
+    const expressionHelp = new Map<string, boolean>();
+    if (this.inspectedId === selected?.id && this.selectedIds.size === 1) {
+      for (const help of Array.from(editor.querySelectorAll<HTMLDetailsElement>('[part=expression-help]'))) {
+        if (help.dataset.session === String(this.layoutEditSession)) expressionHelp.set(help.dataset.helpField!, help.open);
+      }
     }
     this.cleanupInspector?.();
     this.cleanupInspector = undefined;
@@ -2816,7 +2874,7 @@ export class ProcessModeler<
       const kind = this.catalog.find(entry => entry.kind === selected.kind);
       const kindLabel = document.createElement('p'); kindLabel.setAttribute('part', 'inspector-kind'); kindLabel.textContent = kind?.label ?? selected.kind; editor.append(kindLabel);
       if (selected.description) { const purpose = document.createElement('p'); purpose.setAttribute('part', 'inspector-purpose'); purpose.textContent = selected.description; editor.append(purpose); }
-      for (const field of this.fieldsValue[selected.id] ?? []) editor.append(this.renderField(selected, field));
+      for (const field of this.fieldsValue[selected.id] ?? []) editor.append(this.renderField(selected, field, expressionHelp.get(field.key)));
       if (selected.localVariables !== undefined) editor.append(this.renderLocalVariables(selected));
       this.cleanupInspector =
         this.renderer?.(selected.node, editor) || undefined;

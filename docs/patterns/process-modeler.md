@@ -441,3 +441,28 @@ cancelable `note-move-request` with `noteIds` and proposed `notes`, so existing
 box-move listeners remain compatible. Preventing the event cancels the entire
 layout edit without history. Mixed Delete host application/acceptance is synchronous;
 projection observers run after the accepted transaction has recorded history.
+
+### Host-authored expression fields
+
+An expression field can provide `expression: { variables, rows, feedback, help }`.
+`variables` is the complete ordered scope of `{ name, description? }` chips;
+BOE does not infer visibility from graph edges, sections or local declarations.
+An explicit empty array hides chips; omission preserves the global `variables`
+fallback. Chip tooltips use the supplied description. `rows: 2` selects a textarea.
+`feedback: { message, tone?: 'neutral' | 'success' }` supplies host evaluation
+feedback; the existing `problem` takes precedence. Descriptions and feedback are
+associated with the field for assistive technology. Expression feedback updates
+are announced politely.
+
+`help: { summary, examples: [{ expression, description, segments? }] }` draws a
+collapsed Examples disclosure. Optional description `segments` contain safe
+`{ text, format?: 'code' | 'text' }` runs; all content renders as text.
+Its open or closed state survives value and feedback echoes for the same field
+and selected box, and resets after selection navigation or a new document load.
+
+Variable insertion replaces the current selection, collapses the caret after the
+name and focuses the expression before its single controlled field request.
+Synchronous host echoes retain the full selection range and direction only for
+the same enabled field on the same selected box. BOE does not refocus an obsolete
+field after host navigation or delayed echoes. The host still owns evaluation,
+validation, persistence and undo/redo of expression edits.
