@@ -159,6 +159,7 @@ export class ProcessModeler<
   private readableValue: ProcessProjection<N> | null = null;
   private lastDocument?: D;
   private connectionsValue: readonly ProcessConnection[] = [];
+  private connectionsHelpValue = "Steps sign in with the host’s connections. Connections are set up by the host.";
   private variablesValue: readonly ProcessVariable[] = [];
   private variablesEditableValue = false;
   private outlineValue: readonly ProcessOutlineItem[] = [];
@@ -196,6 +197,9 @@ export class ProcessModeler<
   }
   get connections(): readonly ProcessConnection[] { return this.connectionsValue; }
   set connections(value: readonly ProcessConnection[]) { this.connectionsValue = value; this.refresh(); }
+  /** Plain-text help describing where this host owns connection setup. */
+  get connectionsHelp(): string { return this.connectionsHelpValue; }
+  set connectionsHelp(value: string) { this.connectionsHelpValue = value; this.refresh(); }
   get variables(): readonly ProcessVariable[] { return this.variablesValue; }
   set variables(value: readonly ProcessVariable[]) {
     this.variablesValue = value; this.refresh();
@@ -1187,14 +1191,22 @@ export class ProcessModeler<
       summary('local-variable-summary', 'Only in one step', localRows);
       summary('saved-result-summary', 'Saved by steps', savedRows, 'No step saves its result yet. Set “Save the result as” on a step.');
     } else if (this.activePane === "Connections") {
-      if (!this.connections.length) content.textContent = 'No connections supplied by the host.';
-      for (const connection of this.connections) {
-        const row = document.createElement('div'); row.setAttribute('part', 'connection-row');
-        const name = document.createElement('strong'); name.textContent = connection.name;
-        const kind = document.createElement('span'); kind.textContent = `(${connection.kind})${connection.signIn ? ` · ${connection.signIn}` : ''}`;
-        row.append(name, document.createTextNode(' '), kind); content.append(row);
+      const help = document.createElement('p'); help.setAttribute('part', 'connections-help'); help.textContent = this.connectionsHelp; content.append(help);
+      if (this.connections.length) {
+        const list = document.createElement('ul'); list.setAttribute('part', 'connections-list');
+        for (const connection of this.connections) {
+          const row = document.createElement('li'); row.setAttribute('part', 'connection-row');
+          const text = document.createElement('span');
+          const name = document.createElement('b'); name.textContent = connection.name;
+          const kind = document.createElement('em'); kind.textContent = `${connection.kind}${connection.signIn ? ` · ${connection.signIn}` : ''}`;
+          text.append(name, document.createTextNode(' '), kind); row.append(text); list.append(row);
+        }
+        content.append(list);
+      } else {
+        const empty = document.createElement('p'); empty.setAttribute('part', 'connections-help'); empty.textContent = 'None yet.'; content.append(empty);
       }
-      const setup = document.createElement('button'); setup.type = 'button'; setup.textContent = 'Manage connections'; setup.onclick = () => emit(this, 'connection-setup-request', {}); content.append(setup);
+      const actions = document.createElement('div'); actions.setAttribute('part', 'connections-actions');
+      const setup = document.createElement('button'); setup.type = 'button'; setup.textContent = 'Set up connections'; setup.onclick = () => emit(this, 'connection-setup-request', {}); actions.append(setup); content.append(actions);
     } else if (this.activePane === "Shortcuts") {
       content.textContent = "Tab: move between steps. Alt+arrows: select the nearest step that way. Arrows: move one grid square. Shift+arrows: move four. N: add the next step. Ctrl+Alt+arrows: add in a direction. Enter: edit. Delete: remove. Ctrl/Command+A: select all. Ctrl/Command+C/V/D: copy, paste, duplicate. Ctrl/Command+Z and Shift+Ctrl/Command+Z: undo and redo. Shift+1: fit the whole process. Shift+drag: select a region. Drag a port: connect. Escape: cancel.";
     }

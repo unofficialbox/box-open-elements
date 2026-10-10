@@ -177,8 +177,23 @@ describe("Process Modeler prototype interactions", () => {
     const { builder, root } = fixture(); builder.connections = [{ name: "Box", kind: "OAuth" }]; builder.variables = [{ name: "fileId", description: "Input" }];
     const tabs = root.querySelectorAll<HTMLButtonElement>('[role=tab]'); tabs[2].click(); expect(root.querySelector('[part=pane-content]')!.textContent).toContain("fileIdInput");
     tabs[2].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })); expect(tabs[3].getAttribute("aria-selected")).toBe("true");
-    expect(root.querySelector('[part=pane-content]')!.textContent).toContain("Box (OAuth)");
+    expect(root.querySelector('[part=pane-content]')!.textContent).toContain("Box OAuth");
     tabs[4].click(); expect(root.querySelector('[part=pane-content]')!.textContent).toContain("Shift+drag");
+  });
+  it('renders read-only connection summaries and safe host help with a setup request', () => {
+    const { builder, root } = fixture();
+    builder.connectionsHelp = 'Connections are set up in Setup, under Other services steps sign in to. <img src=x>';
+    builder.connections = [{ name: '<Box>', kind: 'OAuth', signIn: 'Client credentials' }];
+    root.querySelectorAll<HTMLButtonElement>('[role=tab]')[3].click();
+    expect(root.querySelector('[part=connections-help]')!.textContent).toBe(builder.connectionsHelp);
+    expect(root.querySelector('[part=connections-list] li b')!.textContent).toBe('<Box>');
+    expect(root.querySelector('[part=connections-list] li em')!.textContent).toBe('OAuth · Client credentials');
+    expect(root.querySelector('[part=pane-content] img')).toBeNull();
+    expect(root.querySelector('[part=connections-list] input')).toBeNull();
+    const requested = vi.fn(); builder.addEventListener('connection-setup-request', requested);
+    builder.locked = true; root.querySelector<HTMLButtonElement>('[part=connections-actions] button')!.click(); expect(requested).toHaveBeenCalledTimes(1);
+    builder.connections = []; expect(root.querySelector('[part=pane-content]')!.textContent).toContain('None yet.');
+    expect(root.querySelector('[part=connections-list]')).toBeNull();
   });
   it("uses host checks instead of generic vocabulary checks, with links back to the box", () => {
     const { builder, root } = fixture(); builder.model = { project: doc => doc, validate: () => [{ boxId: "b", message: "Supply a connection" }] };

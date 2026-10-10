@@ -270,6 +270,8 @@ canvas.load(workflow, {
   selectedPath: ["steps", 0],
 });
 canvas.connections = [{ name: "Production Box", kind: "OAuth", id: "box-prod" }];
+// Optional plain-text copy describing the host’s own setup screen.
+canvas.connectionsHelp = "Steps sign in with the test plan’s connections. A Box action without one uses the test plan’s Box app. Connections are set up in Setup, under Other services steps sign in to.";
 canvas.variables = [{ name: "fileId", scope: "process", startingValue: "input.fileId" }];
 canvas.processTitle = "Upload round trip";
 canvas.processSummary = "8 steps in 3 sections";

@@ -367,7 +367,15 @@ export const processModelerDesign = `
   [part=outline-list] p { margin: 0; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12.5px; line-height: 1.5; }
   [part=inspector-heading] { margin: 0 0 2px; font-size: 15px; font-weight: 650; }
   [part=inspector-heading][data-single=true]:not(:focus-visible) { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  [part=variable-row], [part=connection-row] { display: grid; gap: 4px; padding: 10px 0; border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); font-size: 12.5px; }
+  [part=variable-row] { display: grid; gap: 4px; padding: 10px 0; border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); font-size: 12.5px; }
+  [part=connections-help] { font-size: 12.5px; color: var(--boe-token-text-text-secondary, #6f6f6f); margin: 0; line-height: 1.5; }
+  [part=connections-list] { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+  [part=connection-row] { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 4px 4px 4px 10px; border-radius: 10px; background: var(--boe-token-surface-surface-secondary, #fbfbfb); border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); }
+  [part=connection-row] > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  [part=connection-row] b { font-weight: 600; }
+  [part=connection-row] em { font-style: normal; color: var(--boe-token-text-text-secondary, #6f6f6f); }
+  [part=connections-actions] { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 4px; }
+  [part=connections-actions] button { min-height: 32px; padding: 0 14px; border-radius: 20px; font-size: 13px; font-weight: 600; letter-spacing: .01em; }
   :host([data-variables-editable]) [part=variable-row] { grid-template-columns: minmax(0,1fr) minmax(0,1fr) 32px; gap: 6px; align-items: center; }
   :host([data-variables-editable]) [part=variable-row] label:has([data-variable-key=name]) { grid-column: 1; grid-row: 1; }
   :host([data-variables-editable]) [part=variable-row] label:has([data-variable-key=value]) { grid-column: 2; grid-row: 1; }
