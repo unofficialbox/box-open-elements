@@ -777,6 +777,7 @@ export class ProcessModeler<
     hold.append(holdText, showChecks); canvas.before(hold);
     const controls = document.createElement("div"); controls.setAttribute("part", "controls"); controls.setAttribute("role", "toolbar"); controls.setAttribute("aria-label", "Canvas view controls");
     for (const command of ["zoom-out", "reset", "zoom-in", "fit", "snap", "lock"]) {
+      if (command === 'snap') { const divider = document.createElement('span'); divider.setAttribute('part', 'controls-divider'); divider.setAttribute('aria-hidden', 'true'); controls.append(divider); }
       const button = root.querySelector<HTMLButtonElement>(`[data-command=${command}]`);
       if (button) controls.append(button);
     }
@@ -804,6 +805,7 @@ export class ProcessModeler<
         const narrow = entries[0].contentRect.width < 900;
         this.narrowValue = narrow; this.toggleAttribute("data-narrow", narrow);
         this.toggleAttribute('data-phone', entries[0].contentRect.width < 560);
+        this.toggleAttribute('data-hide-tidy', entries[0].contentRect.width <= 560);
         this.renderSelectionToolbar(); this.positionSelectionToolbar();
         if (!narrow) this.closeDrawer();
         root.querySelectorAll<HTMLDialogElement>('[part=pane-drawer]').forEach(dialog => { dialog.inert = narrow && !dialog.open; });
