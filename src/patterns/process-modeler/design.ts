@@ -208,7 +208,7 @@ export const processModelerDesign = `
   }
   [data-invalid=true] { border-color: var(--boe-token-text-status-text-error, #b92340) !important; }
   [part=problem] { grid-column: 1 / -1; color: var(--boe-token-text-status-text-error, #b92340); font-size: 12px; }
-  [part=frame] { z-index: 1; align-content: start; border-radius: 12px; padding: 10px 12px; row-gap: 1px; background: color-mix(in srgb, var(--boe-token-surface-surface, #fff) 70%, transparent); }
+  [part=frame] { --boe-process-frame-edge: light-dark(color-mix(in srgb, var(--boe-token-text-text, #222222) 53%, var(--boe-token-surface-surface, #fff)), color-mix(in srgb, var(--boe-token-text-text, #f4f4f4) 36.5%, var(--boe-token-surface-surface, #1c1c1c))); border-color: var(--boe-process-frame-edge); z-index: 1; align-content: start; border-radius: 12px; padding: 10px 12px; row-gap: 1px; background: color-mix(in srgb, var(--boe-token-surface-surface, #fff) 70%, transparent); }
   [part=frame] small { grid-column: 2; }
   [part=loop-mark] { position: absolute; right: 10px; bottom: 8px; font-size: 20px; line-height: 1; color: var(--boe-token-text-text-tertiary, #767676); }
   [part=frame][data-palette-drop=true] { border-color: var(--boe-token-surface-surface-brand, #0061d5); box-shadow: 0 0 0 2px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent); }
@@ -233,6 +233,7 @@ export const processModelerDesign = `
   [part=event-details] { display: contents; }
   [part=event-details] small { display: block; font-size: 12px; line-height: inherit; }
   [data-shape=gateway][aria-current=true]::before, [data-shape=event][aria-current=true]::before { border-color: var(--boe-token-surface-surface-brand, #0061d5); background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 9%, var(--boe-token-surface-surface, #fff)); }
+  [data-shape=event]:is([data-kind=finish], [data-kind=end])[aria-current=true]::before { border-color: var(--boe-token-text-text, #1b1b1b); }
   [data-shape=gateway][data-invalid=true]::before { border-color: var(--boe-token-text-status-text-error, #b92340); }
   [part=port] { position: absolute; z-index: 5; width: 24px; height: 24px; min-height: 24px; padding: 0; border: 0; border-radius: 50%; background: transparent; opacity: 0; display: grid; place-items: center; }
   [part=port][data-side=north] { left: calc(50% - 12px); top: -12px; }
