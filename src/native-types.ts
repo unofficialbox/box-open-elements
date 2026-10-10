@@ -137,7 +137,7 @@ export interface BoxElementPropertyKeys {
   "box-review-queue-item": "actions" | "assignee" | "dueDate" | "heading" | "itemLabel" | "message" | "metrics" | "priority" | "status";
   "box-rich-text-input": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "placeholder" | "required" | "value";
   "box-run-summary": "open" | "turn";
-  "box-run-trace": "heading" | "steps";
+  "box-run-trace": "density" | "heading" | "steps";
   "box-saved-view-picker": "label" | "value" | "views";
   "box-search-field": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "loading" | "name" | "placeholder" | "required" | "value";
   "box-search-results-header": "actions" | "filters" | "label" | "query" | "resultCount" | "scope" | "sortLabel" | "viewLabel";
