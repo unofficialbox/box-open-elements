@@ -333,3 +333,24 @@ Embedded hosts retain the modeler's Business/Technical and Last run controls. Th
 `ProcessBox.technicalDetails` accepts plain-text lines with `format: "code"` for a monospace call or expression and `format: "text"` for supporting prose. For example, `[{ text: "POST /files/content", format: "code" }, { text: "Uploads › Upload file", format: "text" }]` keeps the HTTP operation separate from its readable action name. For prose with embedded identifiers, optional `segments: [{ text: "Runs " }, { text: "child-process", format: "code" }]` replaces the line text while retaining its surrounding prose font. Each segment remains plain text. These lines replace `technicalDescription` only in Technical view; Business view keeps `description`. Legacy string descriptions continue to work. Text is escaped by rendering with `textContent`; hosts do not supply HTML.
 
 Set `ProcessBox.runMetrics = false` for task kinds that the host does not time. Other tasks retain measured/unmeasured Last run metrics, including wrapped rate, p95 and failure values.
+
+### Connection rules and Reset line
+
+Supply `model.connectionProblem(document, { from, to, ignoreLineId? }, projection)`
+when the host has semantic connection rules. This synchronous, pure callback returns
+its refusal message or `null`. The component uses the exact message for rejected
+port/endpoint hover and checks it again before any `connect` or `reattach` edit,
+including public and keyboard requests. Reattachment resolves the unchanged endpoint
+and supplies the current line as `ignoreLineId`. Returning `null` allows the edit
+request; the host still applies it and calls `accept`. Omitting the callback retains
+host-side validation without predictive refusal UI. The library does not infer rules
+from host kind names.
+
+Reset line is available for projected pinned sides/manual `points` or local bends.
+Projected state emits one `reset-line` edit with `lineId`; the host clears both sides
+and its manual route, reprojects, and accepts one reversible transaction. Acceptance
+also removes the matching local bend override, including when the host supplies a
+full layout. Refusal leaves projection and layout intact. A local-only route with no
+projected pins/points retains its local history reset. Endpoints and other metadata
+are preserved by the host. Hosts must implement `reset-line` to accept pinned-route
+resets; there is no mutation of generic host data by the component.
