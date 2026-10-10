@@ -34,6 +34,7 @@ const emit = (element: HTMLElement, name: string, detail: unknown): boolean =>
       cancelable: true,
     }),
   );
+const formatFailedShare = (share: number): string => `${Number((share * 100).toFixed(1))}%`;
 const formatRunDuration = (ms: number): string =>
   ms >= 1000 ? `${(ms / 1000).toFixed(ms >= 10000 ? 0 : 1)} s` : `${Math.round(ms)} ms`;
 
@@ -241,7 +242,7 @@ export class ProcessModeler<
     emit(this, "detail-changed", { detail: value });
   }
   get lastRun(): ProcessLastRun | undefined { return this.lastRunValue; }
-  set lastRun(value: ProcessLastRun | undefined) { this.lastRunValue = value; this.inspected = undefined; this.refresh(); }
+  set lastRun(value: ProcessLastRun | undefined) { this.lastRunValue = value; if (!value) this.showLastRunValue = false; this.inspected = undefined; this.refresh(); }
   get showLastRun(): boolean { return this.showLastRunValue; }
   set showLastRun(value: boolean) { this.showLastRunValue = Boolean(value); this.inspected = undefined; this.refresh(); }
   get locked(): boolean {
@@ -1739,7 +1740,7 @@ export class ProcessModeler<
           metrics.callsPerSecond === undefined ? "" : `${metrics.callsPerSecond.toFixed(1)}/s`,
           metrics.p95Ms === undefined ? "" : `p95 ${formatRunDuration(metrics.p95Ms)}`,
         ].filter(Boolean).join(" · ");
-        if (metrics?.failedShare !== undefined && metrics.failedShare > 0 && !metrics.notInRun) { const failed = document.createElement('span'); failed.setAttribute('part', 'metric-warning'); failed.textContent = `${(metrics.failedShare * 100).toFixed(1)}% failed`; line.append(document.createTextNode(' · '), failed); }
+        if (metrics?.failedShare !== undefined && metrics.failedShare > 0 && !metrics.notInRun) { const failed = document.createElement('span'); failed.setAttribute('part', 'metric-warning'); failed.textContent = `${formatFailedShare(metrics.failedShare)} failed`; if (line.textContent) line.append(document.createTextNode(' · ')); line.append(failed); }
         element.append(line);
       }
       if (problem) { const message = document.createElement("span"); message.setAttribute("part", "problem"); message.textContent = problem.message; element.append(message); }
@@ -2213,7 +2214,7 @@ export class ProcessModeler<
         if (metrics.notInRun) { const note = document.createElement('p'); note.textContent = 'Not in this run'; report.append(note); }
         else {
           const list = document.createElement('dl');
-          for (const [label, value] of [['Per second', metrics.callsPerSecond === undefined ? '–' : metrics.callsPerSecond.toFixed(1)], ['95% finished within', metrics.p95Ms === undefined ? '–' : formatRunDuration(metrics.p95Ms)], ['Failed', metrics.failedShare === undefined ? '–' : `${(metrics.failedShare * 100).toFixed(1)}%`]] as const) {
+          for (const [label, value] of [['Per second', metrics.callsPerSecond === undefined ? '–' : metrics.callsPerSecond.toFixed(1)], ['95% finished within', metrics.p95Ms === undefined ? '–' : formatRunDuration(metrics.p95Ms)], ['Failed', metrics.failedShare === undefined ? '–' : formatFailedShare(metrics.failedShare)]] as const) {
             const term = document.createElement('dt'); term.textContent = label; const detail = document.createElement('dd'); detail.textContent = value; if (label === 'Failed' && metrics.failedShare) detail.setAttribute('part', 'metric-warning'); list.append(term, detail);
           }
           report.append(list);

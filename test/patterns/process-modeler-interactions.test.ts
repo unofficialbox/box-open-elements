@@ -256,6 +256,19 @@ describe("Process Modeler prototype interactions", () => {
     expect(partial.textContent).toContain('Per second–');
     expect(partial.textContent).toContain('Failed–');
   });
+  it('clears Last run visibility when data is removed and keeps restored data off until requested', () => {
+    const { builder, root } = fixture();
+    const run = { steps: { a: { failedShare: 0.1 }, b: { failedShare: 1 } } };
+    builder.lastRun = run; builder.showLastRun = true;
+    expect(root.querySelector('[data-box-id=a] [part=metrics]')?.textContent).toBe('10% failed');
+    expect(root.querySelector('[data-box-id=b] [part=metrics]')?.textContent).toBe('100% failed');
+    builder.select('a'); expect(root.querySelector('[part=inspector-metrics]')?.textContent).toContain('Failed10%');
+    builder.lastRun = undefined; expect(builder.showLastRun).toBe(false);
+    expect(root.querySelector('[part=metrics]')).toBeNull();
+    builder.lastRun = run; expect(builder.showLastRun).toBe(false);
+    expect(root.querySelector('[part=metrics]')).toBeNull();
+    builder.showLastRun = true; expect(root.querySelector('[data-box-id=a] [part=metrics]')?.textContent).toBe('10% failed');
+  });
   it('shows a host-supplied line traffic share only in Last run view', () => {
     const { builder, root } = fixture();
     builder.document = { ...projection, lines: [{ ...projection.lines[0], share: 0.92 }] };
