@@ -57,6 +57,26 @@ describe("ProgressSteps", () => {
     expect(element.value).toBe("review");
   });
 
+  it("opts into container-width compact rendering without changing step state", () => {
+    const element = new ProgressSteps();
+    element.compact = true;
+    element.setAttribute("data-container-compact", "");
+    element.items = [{ label: "Connect", value: "connect" }, { label: "Review", value: "review" }];
+    document.body.append(element);
+    expect(element.shadowRoot?.querySelector("style")?.textContent).toContain('@container boe-progress-compact (max-width: 720px)');
+    expect(element.shadowRoot?.querySelector('[part="steps"]')?.getAttribute("data-expanded")).toBe("false");
+    expect(element.value).toBe("connect");
+  });
+
+  it("announces optional steps in both the list and compact toggle", () => {
+    const element = new ProgressSteps();
+    element.compact = true;
+    element.items = [{ label: "Settings", value: "settings", optional: true }];
+    document.body.append(element);
+    expect(element.shadowRoot?.querySelector('[part="step"]')?.textContent).toContain("Optional");
+    expect(element.shadowRoot?.querySelector('[part="compact-toggle"]')?.textContent).toContain("Settings · Optional");
+  });
+
   it("emits value-changed when a new step is selected", () => {
     const element = document.createElement("box-progress-steps") as ProgressSteps;
     const changed = vi.fn();
@@ -154,6 +174,8 @@ describe("ProgressSteps", () => {
     expect(isProgressStepRecord({ label: "A", value: "a" })).toBe(true);
     expect(isProgressStepRecord({ label: "A", value: "a", status: "blocked" })).toBe(true);
     expect(isProgressStepRecord({ label: "A", value: "a", status: "visited" })).toBe(true);
+    expect(isProgressStepRecord({ label: "A", value: "a", optional: true })).toBe(true);
+    expect(isProgressStepRecord({ label: "A", value: "a", optional: "true" })).toBe(false);
     expect(isProgressStepRecord({ label: "A", value: "a", status: "bogus" })).toBe(false);
     expect(isProgressStepRecord({ label: "A" })).toBe(false);
     // Non-string text fields would reach escapeHtml and throw mid-render.

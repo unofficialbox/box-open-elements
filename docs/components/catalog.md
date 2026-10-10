@@ -86,7 +86,7 @@ See [run outcome surfaces](./run-outcome.md) for verdict and mode usage.
 - `path` — **built** (renamed from `stage-path` in 0.11.0)
 - `progress-bar` — **built**
 - `progress-ring` — **built**
-- `progress-steps` — **built** (explicit `visited` status preserves reached-but-unvalidated steps without marking them complete)
+- `progress-steps` — **built** (explicit `visited` status preserves reached-but-unvalidated steps without marking them complete; an `optional` item is announced in the step name and compact control without changing completion state)
 - `skeleton` — **built**
 - `spinner` — **built**
 - `toast` — **built**
