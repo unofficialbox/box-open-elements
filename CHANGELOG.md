@@ -15,6 +15,15 @@ are kept as written.
 
 ## Unreleased
 
+## 0.31.2 — 2026-10-10
+
+- Pan the canvas when Space is held on a focused step, preserving selection and
+  keyboard editing and connection completion (#434).
+- Match reference mixed-size selection alignment and equal-edge-gap spacing,
+  including catalog-only event and gateway dimensions and atomic history (#436).
+- Match expanded task grid row distribution, child placement and icon alignment
+  in Business and Technical views (#437).
+
 ## 0.31.1 — 2026-10-10
 
 - Preview nested frame descendants coherently during drag, restoring no-op and
