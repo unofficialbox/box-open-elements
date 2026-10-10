@@ -23,6 +23,7 @@ export interface BoxElementPropertyKeys {
   "box-badge": "hideWhenZero" | "label" | "max" | "tone";
   "box-badgeable": never;
   "box-bar-chart": "actions" | "heading" | "legend" | "message" | "points" | "summary" | "timeframe";
+  "box-box-plot": "description" | "format" | "heading" | "orientation" | "rows" | "scale" | "unit" | "whiskers";
   "box-breadcrumb": "items" | "label" | "maxItems";
   "box-bulk-action-bar": "actions" | "clearLabel" | "count" | "items" | "label" | "message";
   "box-button": "accessibleLabel" | "disabled" | "isLoading" | "label" | "size" | "tone" | "type";
@@ -233,6 +234,7 @@ export interface BoxElementEventMap {
     "action": CustomEvent<{ action: string; }>;
     "point-selected": CustomEvent<{ id: string; label: string; tone?: string | undefined; value: number; }>;
   };
+  "box-box-plot": {};
   "box-breadcrumb": {
     "navigate": CustomEvent<{ value: string; href: string | undefined; }>;
   };
