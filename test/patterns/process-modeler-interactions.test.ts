@@ -39,6 +39,56 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector('[part=technical-summary]')).toBeNull();
   });
 
+  it("preserves safe inline code within technical prose and the host-owned projection", () => {
+    const { builder, root } = fixture();
+    builder.document = { ...projection, boxes: [{ ...projection.boxes[0], technicalDetails: [{ text: "Fallback", segments: [{ text: "Runs " }, { text: "<child-process>", format: "code" }] }] }], lines: [] };
+    builder.detail = "technical";
+    const summary = root.querySelector('[part=technical-summary]')!;
+    expect(summary.textContent).toBe("Runs <child-process>");
+    expect(summary.querySelector('[part=technical-inline-code]')?.textContent).toBe("<child-process>");
+    expect(summary.querySelector('child-process')).toBeNull();
+    expect(builder.document!.boxes[0].technicalDetails![0].text).toBe("Fallback");
+    builder.detail = "business";
+    expect(root.querySelector('[part=technical-inline-code]')).toBeNull();
+  });
+
+  it("detaches technical lines and segments in readback and event snapshots", () => {
+    const { builder } = fixture();
+    const source: ProcessProjection = { ...projection, boxes: [{ ...projection.boxes[0], technicalDetails: [{ text: "Original", segments: [{ text: "Identifier", format: "code" }] }] }], lines: [] };
+    const readable = vi.fn(); const changed = vi.fn();
+    builder.addEventListener("readable-projection-changed", readable);
+    builder.addEventListener("projection-changed", changed);
+    builder.document = source;
+    for (const snapshot of [builder.readback.current!, builder.readback.lastReadable!, readable.mock.calls[0][0].detail.projection, changed.mock.calls[0][0].detail.projection]) {
+      snapshot.boxes[0].technicalDetails[0].text = "Mutated";
+      snapshot.boxes[0].technicalDetails[0].segments[0].text = "Mutated identifier";
+      snapshot.boxes[0].technicalDetails.push({ text: "Extra" });
+    }
+    expect(builder.document!.boxes[0].technicalDetails).toEqual(source.boxes[0].technicalDetails);
+    expect(builder.readback.current!.boxes[0].technicalDetails).toEqual(source.boxes[0].technicalDetails);
+    expect(builder.readback.lastReadable!.boxes[0].technicalDetails).toEqual(source.boxes[0].technicalDetails);
+    expect(builder.readback.current!.boxes[0].node).toBe(source.boxes[0].node);
+  });
+
+  it("stacks multiple technical lines beneath an event caption", () => {
+    const { builder, root } = fixture();
+    builder.document = { ...projection, boxes: [{ ...projection.boxes[0], shape: "event", technicalDetails: [{ text: "0 * * * *", format: "code" }, { text: "Every hour" }] }], lines: [] };
+    builder.detail = "technical";
+    expect([...root.querySelectorAll('[part=event-details] small')].map(line => line.textContent)).toEqual(["0 * * * *", "Every hour"]);
+    expect(root.querySelector('[data-shape=event] > small')).toBeNull();
+  });
+
+  it("refreshes inspector metrics when a stable selected host node opts out and back in", () => {
+    const { builder, root } = fixture();
+    builder.lastRun = { label: "Morning run", steps: { a: { callsPerSecond: 2 } } }; builder.showLastRun = true; builder.select("a");
+    expect(root.querySelector('[part=editor] table[aria-label="Last run metrics"]')).not.toBeNull();
+    const setEnabled = (enabled: boolean) => { builder.document = { ...projection, boxes: projection.boxes.map(box => box.id === "a" ? { ...box, runMetrics: enabled } : box) }; };
+    setEnabled(false);
+    expect(root.querySelector('[part=editor] table[aria-label="Last run metrics"]')).toBeNull();
+    setEnabled(true);
+    expect(root.querySelector('[part=editor] table[aria-label="Last run metrics"]')).not.toBeNull();
+  });
+
   it("does not publish an empty readable workflow before a host document loads", () => {
     const builder = new ProcessModeler(); const readable = vi.fn(); const raw = vi.fn();
     builder.addEventListener("readable-projection-changed", readable);

@@ -156,6 +156,7 @@ export const processModelerDesign = `
   [part=metrics][data-state=unmeasured] { color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=metric-separator] { color: var(--boe-token-text-text-tertiary, #767676); }
   [part=technical-summary] { overflow-wrap: anywhere; }
+  [part=technical-inline-code] { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
   [part=metric-warning] { color: var(--boe-token-text-status-text-warning, #8a5800); }
   [part=icon] { grid-row: span 3; width: 20px; height: 20px; color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=icon] svg { display: block; width: 20px; height: 20px; }
@@ -187,6 +188,8 @@ export const processModelerDesign = `
   [part=caption] small { display: block; font-weight: 400; }
   [part=caption] [part=technical-description] { font: 10.5px ui-monospace, 'SF Mono', Menlo, Consolas, monospace !important; white-space: nowrap; }
   [data-shape=event] > small { position: absolute; top: 75px; left: 50%; width: 172px; translate: -50% 0; text-align: center; font-size: 11px; line-height: 1.25; }
+  [part=event-details] { position: absolute; top: 75px; left: 50%; width: 172px; translate: -50% 0; text-align: center; }
+  [part=event-details] small { display: block; font-size: 11px; line-height: 1.25; }
   [data-shape=gateway][aria-current=true]::before, [data-shape=event][aria-current=true]::before { border-color: var(--boe-token-surface-surface-brand, #0061d5); background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 7%, var(--boe-token-surface-surface, #fff)); }
   [part=port] { position: absolute; z-index: 5; width: 24px; height: 24px; min-height: 24px; padding: 0; border: 0; border-radius: 50%; background: transparent; opacity: 0; }
   [part=port][data-side=north] { left: calc(50% - 12px); top: -12px; }

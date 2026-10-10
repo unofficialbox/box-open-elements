@@ -4,6 +4,8 @@ import type { FlowKind, NodePath } from "../flow-builder/model.js";
 export interface ProcessTechnicalDetail {
   text: string;
   format?: "code" | "text";
+  /** Optional plain-text runs replacing text, for code embedded within prose. */
+  segments?: readonly { text: string; format?: "code" | "text" }[];
 }
 
 export interface ProcessBox<N = unknown> {

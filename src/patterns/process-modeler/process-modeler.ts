@@ -1728,6 +1728,10 @@ export class ProcessModeler<
       title.textContent = box.title;
       element.append(title);
       let descriptionParent: HTMLElement = element;
+      if (shape === 'event' && this.detailValue === 'technical' && box.technicalDetails?.length) {
+        const details = document.createElement('div'); details.setAttribute('part', 'event-details');
+        element.append(details); descriptionParent = details;
+      }
       if (shape === 'gateway' && this.detailValue === 'technical' && box.technicalDetails?.length) {
         const caption = document.createElement('div'); caption.setAttribute('part', 'caption');
         const position = this.layoutValue.boxes[box.id];
@@ -1745,9 +1749,18 @@ export class ProcessModeler<
       if (shape === 'task' && box.technicalDetails) icon.style.gridRow = 'span 4';
       if (this.detailValue === "technical" && box.technicalDetails) {
         for (const line of box.technicalDetails) {
-          if (!line.text) continue;
+          if (!line.text && !line.segments?.length) continue;
           const description = document.createElement("small");
-          description.textContent = line.text;
+          if (line.segments) {
+            for (const segment of line.segments) {
+              if (segment.format === "code") {
+                const code = document.createElement("span");
+                code.setAttribute("part", "technical-inline-code");
+                code.textContent = segment.text;
+                description.append(code);
+              } else description.append(document.createTextNode(segment.text));
+            }
+          } else description.textContent = line.text;
           description.setAttribute("part", line.format === "code" ? "technical-description" : "technical-summary");
           descriptionParent.append(description);
         }
@@ -2195,7 +2208,7 @@ export class ProcessModeler<
     const editor =
       this.shadowRoot!.querySelector<HTMLElement>("[part=editor]")!;
     const selected = this.selected;
-    const controlsKey = `${[...this.selectedIds].join(',')}|${this.locked}|${this.disableConnections}|${this.showLastRunValue}|${JSON.stringify(selected ? this.fieldsValue[selected.id] ?? [] : [])}`;
+    const controlsKey = `${[...this.selectedIds].join(',')}|${this.locked}|${this.disableConnections}|${this.showLastRunValue}|${selected?.runMetrics}|${JSON.stringify(selected ? this.fieldsValue[selected.id] ?? [] : [])}`;
     this.shadowRoot!.querySelector<HTMLElement>("[part=palette]")!.hidden = false;
     this.shadowRoot!.querySelector<HTMLElement>('[part=selection-toolbar]')!.hidden = this.selectedIds.size === 0 && !this.selectedLineId;
     this.renderSelectionToolbar();
