@@ -15,6 +15,25 @@ are kept as written.
 
 ## Unreleased
 
+## 0.29.0 — 2026-10-10
+
+- Add Trace Waterfall for host-owned spans, timing markers, filtering, collapsed
+  branches, comparison traces, keyboard navigation, table fallback, details,
+  and modal expanded viewing (#391; #406).
+- Add Box Plot with quartiles, whiskers, outliers, responsive layout, and
+  accessible summaries (#396; #402).
+- Add opt-in native custom-element and JSX type declarations, including typed
+  events dispatched through local helpers and Form Wizard controllers
+  (#379; #401; #405).
+- Align Run Trace labels and bar geometry across density and padding settings
+  (#380; #398).
+- Improve Process Modeler ports, canvas gestures, chooser focus and hit areas,
+  partial-run metrics, and narrow selected-node actions (#403; #404; #407).
+  Riptide adoption and same-workflow host acceptance remain separate work.
+- Select targeted verification for patch PRs while retaining full verification,
+  conformance, and pinned browser pixels for minor and major releases (#403).
+- Keep the React, Angular, Vue, and Svelte adapters in lockstep at 0.29.0.
+
 ## 0.28.7 — 2026-10-09
 
 - Size the Form Wizard chevron path to its own container, keeping optional-step
