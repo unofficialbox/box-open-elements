@@ -68,6 +68,10 @@ export const processModelerDesign = `
   [part=toolbar-document] span { font-size: 12px; white-space: nowrap; }
   [part=toolbar-actions] { display: flex; align-items: center; gap: 8px; }
   [part=toolbar] button:not([role=menuitem]) { height: 32px; min-height: 32px; padding: 0 14px; border-radius: 20px; font-size: 13px; font-weight: 600; letter-spacing: .01em; white-space: nowrap; }
+  [part=toolbar] [part=view-switch] { padding: 2px; gap: 0; background: var(--boe-token-surface-surface-secondary, #fbfbfb); }
+  [part=toolbar] [part=view-switch] button { height: 26px; min-height: 26px; padding: 0 12px; border: 0; border-radius: 16px; font-size: 12.5px; letter-spacing: normal; }
+  [part=toolbar] [part=view-switch] button[aria-pressed=true] { box-shadow: 0 0 0 1px var(--boe-token-stroke-stroke, #e8e8e8); }
+  [part=toolbar] [data-command=checks-status] { height: auto; min-height: 0; padding: 4px 6px; border: 0; border-radius: 8px; font-weight: 400; letter-spacing: normal; }
   [part=toolbar] [data-command=palette], [part=toolbar] [data-command=undo], [part=toolbar] [data-command=redo] { width: 32px; padding: 0; place-items: center; }
   [part=toolbar] [data-command=palette], [part=toolbar] [data-command=details] { border-color: var(--boe-token-stroke-stroke, #e8e8e8); background: var(--boe-token-surface-surface, #fff); }
   :host([data-compact-toolbar]) [part=view-switch], :host([data-compact-toolbar]) [part=run-toggle] { display: none; }
@@ -395,6 +399,8 @@ export const processModelerDesign = `
   :host([data-narrow]) [part=view-switch], :host([data-narrow]) [part=run-toggle] { display: none; }
   :host([data-narrow]) [data-command=checks-status] { display: none; }
   :host([data-narrow]) [part=view-menu] { display: block; }
+  :host([data-hide-tidy]) [part=toolbar-title] { font-size: 14px; }
+  :host([data-hide-tidy]) [part=toolbar-document] span { display: none; }
   :host([data-hide-tidy]) [part=controls] { left: 12px; bottom: 12px; }
   :host([data-narrow]) [part=selection-toolbar] [part=selection-plus] + span { display: none; }
   :host([data-hide-tidy]) [part=toolbar-actions] [data-command=tidy] { display: none; }

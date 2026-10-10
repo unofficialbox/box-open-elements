@@ -380,7 +380,9 @@ export class ProcessModeler<
     this.refresh();
   }
   disconnectedCallback(): void {
-    document.removeEventListener('pointerdown', this.dismissViewMenuOutside, true);
+    const menu = this.shadowRoot?.querySelector<HTMLDetailsElement>('[part=view-menu]');
+    if (menu) menu.open = false;
+    this.viewMenuDocument?.removeEventListener('pointerdown', this.dismissViewMenuOutside, true); this.viewMenuDocument = undefined;
     this.layoutEditSession++;
     this.resizeObserver?.disconnect();
     this.clearClipboard();
@@ -396,7 +398,7 @@ export class ProcessModeler<
     this.drag = undefined;
     this.portDrag = undefined; this.endDrag = undefined; this.pendingReattach = undefined; this.marquee = undefined; this.segmentDrag = undefined;
   }
-  connectedCallback(): void { super.connectedCallback(); this.resizeObserver?.observe(this); }
+  connectedCallback(): void { super.connectedCallback(); this.resizeObserver?.observe(this); this.syncViewMenuDismissal(); }
   refresh(): void {
     if (this.isRendered) this.update();
   }
@@ -867,6 +869,15 @@ export class ProcessModeler<
     keyboardPicker.addEventListener('picker-cancel', () => this.closeKeyboardChooser(true));
     this.setupPanes();
   }
+  private viewMenuDocument?: Document;
+  private syncViewMenuDismissal(): void {
+    const menu = this.shadowRoot?.querySelector<HTMLDetailsElement>('[part=view-menu]');
+    const target = this.isConnected && menu?.open ? this.ownerDocument : undefined;
+    if (this.viewMenuDocument === target) return;
+    this.viewMenuDocument?.removeEventListener('pointerdown', this.dismissViewMenuOutside, true);
+    this.viewMenuDocument = target;
+    target?.addEventListener('pointerdown', this.dismissViewMenuOutside, true);
+  }
   private dismissViewMenuOutside = (event: PointerEvent): void => {
     const menu = this.shadowRoot?.querySelector<HTMLDetailsElement>('[part=view-menu]');
     if (menu?.open && !event.composedPath().includes(menu)) menu.open = false;
@@ -890,7 +901,7 @@ export class ProcessModeler<
     const summary = document.createElement("summary"); summary.textContent = "View"; viewMenu.append(summary);
     const viewOptions = document.createElement('div'); viewOptions.setAttribute('part', 'view-menu-options'); viewOptions.setAttribute('role', 'menu'); viewOptions.setAttribute('aria-label', 'Diagram view'); viewMenu.append(viewOptions);
     summary.setAttribute('aria-haspopup', 'menu');
-    viewMenu.addEventListener('toggle', () => { summary.setAttribute('aria-expanded', String(viewMenu.open)); if (viewMenu.open) document.addEventListener('pointerdown', this.dismissViewMenuOutside, true); else document.removeEventListener('pointerdown', this.dismissViewMenuOutside, true); });
+    viewMenu.addEventListener('toggle', () => { summary.setAttribute('aria-expanded', String(viewMenu.open)); this.syncViewMenuDismissal(); });
     const closeViewMenu = () => { const session = this.layoutEditSession; viewMenu.open = false; summary.focus({ preventScroll: true }); return session === this.layoutEditSession && this.isConnected; };
     viewMenu.addEventListener('keydown', event => {
       const items = Array.from(viewOptions.querySelectorAll<HTMLButtonElement>('button')).filter(item => !item.hidden && !item.disabled);

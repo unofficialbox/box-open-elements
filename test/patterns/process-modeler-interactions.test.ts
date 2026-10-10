@@ -652,6 +652,13 @@ describe("Process Modeler prototype interactions", () => {
     chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
     expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'add', from: 'a' });
   });
+  it('does not retain outside-menu listeners after queued toggle and reconnect',()=>{
+    const {builder,root}=fixture();const menu=root.querySelector<HTMLDetailsElement>('[part=view-menu]')!;menu.open=true;builder.remove();menu.dispatchEvent(new Event('toggle'));expect((builder as any).viewMenuDocument).toBeUndefined();expect(menu.open).toBe(false);
+    document.body.append(builder);menu.open=true;menu.dispatchEvent(new Event('toggle'));expect((builder as any).viewMenuDocument).toBe(document);document.dispatchEvent(new Event('pointerdown',{bubbles:true}));expect(menu.open).toBe(false);
+  });
+  it('binds menu dismissal to the adopted owner document',()=>{
+    const {builder,root}=fixture();const frame=document.createElement('iframe');document.body.append(frame);frame.contentDocument!.body.append(builder);const menu=root.querySelector<HTMLDetailsElement>('[part=view-menu]')!;menu.open=true;menu.dispatchEvent(new Event('toggle'));expect((builder as any).viewMenuDocument).toBe(frame.contentDocument);frame.contentDocument!.dispatchEvent(new Event('pointerdown',{bubbles:true}));expect(menu.open).toBe(false);builder.remove();expect((builder as any).viewMenuDocument).toBeUndefined();
+  });
   it('exposes phone layout/history menu actions with state and keyboard navigation', () => {
     const {builder,root}=fixture();builder.toggleAttribute('data-narrow',true);builder.lastRun={steps:{}};
     const menu=root.querySelector<HTMLDetailsElement>('[part=view-menu]')!,summary=menu.querySelector('summary')!;
