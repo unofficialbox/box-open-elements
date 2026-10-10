@@ -15,6 +15,13 @@ are kept as written.
 
 ## Unreleased
 
+## 0.36.3 — 2026-10-10
+
+- Match Process Modeler flow routes, authored ports, line controls and temporary
+  connection previews to the native Diagram reference. Preserve safe obstacle
+  routing, cancel stale controlled gestures, refresh selection decorations and
+  retain straight dotted previews for note associations.
+
 ## 0.36.2 — 2026-10-10
 
 - Match Process Modeler Checks panel offset, card padding and Ready/problem
