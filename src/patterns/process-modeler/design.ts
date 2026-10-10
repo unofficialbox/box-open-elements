@@ -357,7 +357,7 @@ export const processModelerDesign = `
   [part=variable-icon] { flex: 0 0 16px; width: 16px; height: 16px; color: var(--boe-token-text-text-secondary,#6f6f6f); }
   [part=variable-chips] { display: flex; flex-wrap: wrap; gap: 6px; }
   [part=variable-chips] button { min-height: 24px; padding: 3px 8px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface-secondary, #fbfbfb); font: 12px ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
-  [part=shortcut-list] { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 12.5px; margin: 0; }
+  [part=shortcut-list] { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 12.5px; line-height: 1.45; margin: 0; }
   [part=shortcut-list] dt { white-space: nowrap; }
   [part=shortcut-list] dd { margin: 0; color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=shortcut-list] [part=shortcut-heading] { font-weight: 650; margin-top: 10px; }
