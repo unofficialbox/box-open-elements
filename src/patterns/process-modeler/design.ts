@@ -61,7 +61,7 @@ export const processModelerDesign = `
   [part=view-menu] { display: none; position: relative; }
   [part=view-menu] summary { list-style: none; height: 32px; display: flex; align-items: center; padding: 0 14px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 20px; font-size: 13px; font-weight: 600; letter-spacing: .01em; cursor: pointer; white-space: nowrap; }
   [part=view-menu][open] { z-index: 20; }
-  [part=view-menu-options] { position: absolute; z-index: 20; top: calc(100% + 4px); right: 0; width: 200px; max-width: calc(100vw - 24px); padding: 6px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 10px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }
+  [part=view-menu-options] { position: absolute; z-index: 20; top: calc(100% + 4px); right: 0; width: 200px; max-width: calc(100vw - 24px); padding: 6px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-process-menu-shadow, 0 8px 32px light-dark(rgb(0 0 0 / .14), rgb(0 0 0 / .5))); }
   [part=view-menu] button { display: flex; justify-content: space-between; gap: 16px; width: 100%; min-height: 32px; padding: 0 10px; text-align: start; background: transparent; }
   [part=view-menu] small { color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=view-menu] [role=separator] { border-top: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); margin: 4px 2px; }
@@ -320,14 +320,25 @@ export const processModelerDesign = `
   [part=field-feedback][data-tone=success] { color: var(--boe-token-text-status-text-success, #247b3e); }
   [part=field]:has([part=action-options]) { position: relative; }
   [part=field]:has([part=action-options]) input { padding-right: 32px; }
-  [part=action-caret] { position: absolute; z-index: 1; top: 25px; right: 2px; width: 32px; min-height: 32px; padding: 0; border: 0; background: transparent; font-size: 18px; }
-  [part=action-options] { position: fixed; z-index: 50; max-height: 420px; overflow: auto; padding: 6px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 10px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }
+  [part=action-input] { display: block; position: relative; line-height: 1.45; }
+  [part=action-caret] { position: absolute; z-index: 1; top: 0; right: 0; width: 32px; height: 100%; min-height: 36px; padding: 0; border: 0; background: transparent; }
+  [part=action-caret-icon] { position: absolute; right: 12px; top: 50%; width: 8px; height: 8px; border-right: 1.5px solid var(--boe-token-text-text-secondary, #6f6f6f); border-bottom: 1.5px solid var(--boe-token-text-text-secondary, #6f6f6f); translate: 0 -70%; rotate: 45deg; pointer-events: none; }
+  [part=action-options] { position: fixed; z-index: 50; max-height: 420px; overflow: auto; padding: 6px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-process-menu-shadow, 0 8px 32px light-dark(rgb(0 0 0 / .14), rgb(0 0 0 / .5))); }
   [part=action-options][hidden] { display: none; }
-  [part=action-options] button { display: block; width: 100%; min-height: 36px; padding: 7px 9px; border: 0; border-radius: 7px; text-align: start; background: transparent; font-size: 12.5px; }
-  [part=action-options] button:hover, [part=action-options] [aria-selected=true] { background: var(--boe-token-surface-surface-hover, #f4f4f4); }
-  [part=action-options] button strong { display: block; font-size: 13px; font-weight: 650; }
-  [part=action-options] button small { display: block; color: var(--boe-token-text-text-secondary, #6f6f6f); }
-  [part=action-options] [part=action-back] { color: var(--boe-token-text-text-secondary, #6f6f6f); }
+  [part=action-options] { overscroll-behavior: contain; animation: none; line-height: 1.45; }
+  [part=action-options] button { display: flex; align-items: baseline; gap: 8px; width: 100%; min-height: 32px; padding: 7px 10px; border: 0; border-radius: 8px; text-align: start; background: transparent; font-size: 13px; line-height: 1.45; font-weight: 400; letter-spacing: normal; }
+  [part=action-options] button:hover { background: var(--boe-token-surface-surface-hover, #f4f4f4); }
+  [part=action-options] [aria-selected=true] { background: var(--boe-token-surface-item-surface-selected, #f2f7fd); }
+  [part=action-options] button strong { flex: 1; min-width: 0; font-size: inherit; font-weight: 600; }
+  [part=action-options] button small { color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 11.5px; font-variant-numeric: tabular-nums; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 55%; }
+  [part=action-options] [part=action-option]:not([data-custom]) { flex-wrap: wrap; }
+  [part=action-options] [part=action-option]:not([data-custom]) small { flex-basis: 100%; max-width: 100%; }
+  [part=action-options] small[data-format=code] { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
+  [part=action-chevron], [part=action-options] [part=action-back] { color: var(--boe-token-text-text-secondary, #6f6f6f); }
+  [part=action-chevron] { font-weight: 600; }
+  [part=action-options] [data-current] strong::after { content: ' ✓'; color: var(--boe-token-surface-surface-brand, #0061d5); }
+  [part=action-heading] { font-size: 12px; line-height: 1.45; color: var(--boe-token-text-text-secondary, #6f6f6f); font-weight: 650; margin: 8px 8px 2px; }
+  [part=action-empty] { font-size: 13px; color: var(--boe-token-text-text-secondary, #6f6f6f); margin: 8px; }
   [part=field] input[type=checkbox] { flex: none; width: auto; height: auto; font-family: inherit; font-size: 13px; font-weight: 400; line-height: 1.45; accent-color: var(--boe-token-surface-surface-brand, #0061d5); }
   [part=field] small { color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12px; line-height: 1.45; }
   [part=field] [part=field-problem] { color: var(--boe-token-text-status-text-error, #b92340); }

@@ -90,8 +90,13 @@ canvas.addEventListener("readable-projection-changed", event => {
 - `outline` supplies nested, plain-language steps. `fields` supplies controlled
   field descriptors keyed by box ID: text, multiline, number, choice, boolean,
   search, grouped action typeahead and expression. Action options carry the
-  host's value, display label and optional group; the component supports both
-  browse-by-group and global search. The component draws controls and emits
+  host's value, display label, optional group and plain-text `description` (for
+  example an HTTP method and path). `actionGroups` supplies category order and
+  optional headings; category counts are derived from options. The component
+  supports browse-by-group and global search, including descriptions.
+  `allowCustomValue` opts into choosing an unknown dotted action key; the host
+  still validates that edit. Catalog text is rendered as text, never HTML.
+  `--boe-process-menu-shadow` can override the native light/dark action-menu shadow. The component draws controls and emits
   `process-field-change-request`; the host validates and updates its document.
   `renderInspector(node, container)` remains available for specialized fields
   such as a host-specific Box action browser and may return cleanup.
