@@ -200,6 +200,8 @@ describe("Process Modeler prototype interactions", () => {
     expect(title.textContent).toBe("Add to the process");
     expect(drawer.getAttribute("aria-labelledby")).toBe(title.id);
     const trigger = root.querySelector<HTMLButtonElement>('[data-command=palette]')!;
+    // Speech input uses the visible caption; the accessible name must include it.
+    expect(trigger.getAttribute('aria-label')?.toLowerCase()).toContain(trigger.textContent!.toLowerCase());
     trigger.focus(); trigger.click();
     expect(drawer.open).toBe(true);
     expect(drawer.show).toHaveBeenCalledOnce();

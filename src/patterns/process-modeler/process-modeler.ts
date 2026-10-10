@@ -691,7 +691,7 @@ export class ProcessModeler<
       const close = document.createElement("button"); close.setAttribute("part", "pane-close"); close.textContent = '×'; close.setAttribute('aria-label', `Close ${label.toLowerCase()}`);
       close.onclick = () => this.closeDrawer(true); dialog.append(close, pane);
       if (part === "palette") layout.prepend(dialog); else layout.append(dialog);
-      const trigger = document.createElement("button"); trigger.dataset.command = part === "palette" ? "palette" : "details"; trigger.textContent = part === "palette" ? "Add" : "Details"; trigger.setAttribute("aria-label", `Open ${label.toLowerCase()}`);
+      const trigger = document.createElement("button"); trigger.dataset.command = part === "palette" ? "palette" : "details"; trigger.textContent = part === "palette" ? "Add" : "Details"; trigger.setAttribute("aria-label", part === "palette" ? "Add building blocks" : `Open ${label.toLowerCase()}`);
       trigger.setAttribute('aria-expanded', 'false');
       trigger.onclick = () => this.openDrawer(part as 'palette' | 'inspector'); toolbar.append(trigger);
     }
