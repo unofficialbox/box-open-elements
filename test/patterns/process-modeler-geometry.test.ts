@@ -138,7 +138,12 @@ describe("process routing", () => {
         ? {id:'b-a',from:'b',to:'a',fromSide:sides[(turns+3)%4],toSide:sides[turns]}
         : {...edge,fromSide:sides[turns],toSide:sides[(turns+3)%4]};
       const points=routeProcessLine(pinned,positions,projection(['a','b'],[pinned]));
-      orthogonal(points);avoids(points,positions.boxes.a);avoids(points,positions.boxes.b);
+      orthogonal(points);
+      for (const body of Object.values(positions.boxes)) {
+        // Four pixels of retained clearance keep the eight-pixel rounded turn
+        // outside the endpoint body, including the reversed edge.
+        avoids(processSegmentChain(points).slice(1,-1),{x:body.x-4,y:body.y-4,width:body.width+8,height:body.height+8});
+      }
       expect(routeProcessLine(pinned,positions,projection(['b','a'],[pinned]))).toEqual(points);
     }
   });

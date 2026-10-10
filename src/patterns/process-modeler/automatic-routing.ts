@@ -66,9 +66,13 @@ function routeOrthC(p1: ProcessPoint, sa: ProcessSide, p2: ProcessPoint, sb: Pro
       continue;
     if (contains({ x: r.x + 0.5, y: r.y + 0.5, w: r.w - 1, h: r.h - 1 }, s)
       || contains({ x: r.x + 0.5, y: r.y + 0.5, w: r.w - 1, h: r.h - 1 }, t)) {
-      // Padding may cover the opposite stub without the lead crossing the body.
-      // Relax only that clearance; retain the raw endpoint as a routing obstacle.
-      if (o.endpoint) { obs.push(o); continue; }
+      // Relax only the clearance that covers a stub, retaining the body and
+      // the available gap so rounded turns do not shave its corners.
+      if (o.endpoint) {
+        const gap = (p: ProcessPoint) => Math.max(o.x - p.x, p.x - o.x - o.w, o.y - p.y, p.y - o.y - o.h, 0);
+        obs.push(inflate(o, Math.max(0, Math.min(M, gap(s) - .5, gap(t) - .5))));
+        continue;
+      }
       return { pts: [], cost: Infinity };
     }
     obs.push(r);
