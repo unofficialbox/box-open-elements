@@ -432,3 +432,12 @@ mixed items. Hosts own copy-time capture, internal edges and descendants. Edge-o
 Copy does nothing. Layout nudging moves selected roots/descendants once and notes
 in one reversible layout operation; alignment remains box-only. This contract
 requires host integration and does not serialize graph data or infer note relations.
+
+
+Keyboard movement with a selected box retains the cancelable `move-request`
+contract with a guaranteed `boxId` and `position`; its additional `noteIds` and
+`notes` describe any notes in the same transaction. Note-only nudging instead emits
+cancelable `note-move-request` with `noteIds` and proposed `notes`, so existing
+box-move listeners remain compatible. Preventing the event cancels the entire
+layout edit without history. Mixed Delete host application/acceptance is synchronous;
+projection observers run after the accepted transaction has recorded history.

@@ -34,7 +34,7 @@ are kept as written.
   (#455). Record accepted selection through undo/redo; preserve real note focus,
   host move vetoes, toolbar anchors and synchronous observer chronology.
 - Repair problem-title contrast and canvas zoom/selection targets (#448), snap
-  selected Tidy translation (#449), and cancel canvas pan when lock changes (#450).
+  selected Tidy translation (#449).
 
 These are additive library contracts. Host implementations own graph mutation,
 clipboard capture, persistence and adoption. Production consumer acceptance and

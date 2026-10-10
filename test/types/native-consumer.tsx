@@ -87,3 +87,10 @@ mixedModeler.addEventListener('process-selection-copy-request', event => {
   const invalid: readonly string[] | undefined = event.detail.selection;
   void invalid;
 });
+
+
+mixedModeler.addEventListener('move-request', event => {
+  const id: string = event.detail.boxId;
+  const x: number = event.detail.position.x;
+  void id; void x;
+});
