@@ -514,8 +514,13 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector('[part=process-title]')?.textContent).toBe('Upload round trip');
     builder.lastRun = { steps: {} };
     expect(root.querySelector<HTMLElement>('[part=run-toggle]')!.hidden).toBe(false);
-    expect(root.querySelector('style')?.textContent).toContain(':host([data-narrow][embed-mode]) [part=run-toggle] { display: inline-flex; }');
-    expect(root.querySelector('style')?.textContent).toContain(':host([data-narrow]:not([embed-mode])) [part=view-menu]');
+    expect(root.querySelector('[part=view-switch] [data-detail=technical]')?.textContent).toBe('Technical view');
+    root.querySelector<HTMLButtonElement>('[part=view-switch] [data-detail=technical]')!.click();
+    expect(builder.detail).toBe('technical');
+    builder.toggleAttribute("data-narrow", true);
+    root.querySelector<HTMLButtonElement>('[data-view-option=last-run]')!.click();
+    expect(builder.showLastRun).toBe(true);
+    expect(root.querySelector('style')?.textContent).toContain(':host([data-narrow]) [part=view-menu] { display: block; }');
   });
   it("draws host field descriptors and sends controlled changes back to the host", () => {
     const { builder, root } = fixture(); const changes = vi.fn(); const edits = vi.fn();
