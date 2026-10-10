@@ -15,6 +15,23 @@ are kept as written.
 
 ## Unreleased
 
+## 0.34.0 — 2026-10-10
+
+- Reject stale building-block chooser and palette intent after document loads,
+  including reentrant focus callbacks and modal dismissal (#457).
+- Add optional host-authored expression scope, tooltips, textarea rows, feedback
+  and safe Examples. Replace selected text during variable insertion and preserve
+  focus, range and disclosure state through controlled host echoes; reset on
+  navigation or document load (#459).
+- Restore narrow View menu Tidy, Undo and Redo actions, native Enter/Space-to-Tab
+  entry, selected-view radio semantics and lifecycle-safe outside dismissal.
+  Match toolbar action grouping, icon Add, rounded controls and Checks glyphs,
+  wording, colors and line height; repair the 900/1100px View offset (#460).
+
+Host implementations still own expression evaluation, graph changes, persistence
+and adoption. Remaining Process Modeler acceptance criteria retain their existing
+scope; this release does not claim full inspector or consumer adoption acceptance.
+
 ## 0.33.0 — 2026-10-10
 
 - Add host-owned atomic full-layout Tidy and Make a section transactions, including
