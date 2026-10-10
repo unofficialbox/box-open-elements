@@ -231,6 +231,32 @@ describe('Native graph note and association roles', () => {
     expect(published).toHaveBeenCalledTimes(1);
   });
 
+  it('marquee retains prior typed selection, excludes sections and brings internal edges during drag', () => {
+    const { element, root } = fixture();
+    element.document = { boxes: [...graph.boxes, { id: 'c', kind: 'step', title: 'Outside', node: {} }, { id: 's', kind: 'section', title: 'Section', frame: true, node: {} }], lines: graph.lines };
+    element.layout = { boxes: { a: { x: 80, y: 160 }, b: { x: 400, y: 160 }, n: { x: 400, y: 320, width: 208, height: 38 }, c: { x: 850, y: 400 }, s: { x: 900, y: 80, width: 320, height: 180 } } };
+    element.setView({ x: 0, y: 0, zoom: 1 }); element.selectItems([{ type: 'box', id: 'c' }, { type: 'line', id: 'nb' }]);
+    const canvas = root.querySelector('[part=canvas]')!;
+    const pointer = (type: string, x: number, y: number) => canvas.dispatchEvent(new PointerEvent(type, { bubbles: true, pointerId: 1, button: 0, shiftKey: true, clientX: x, clientY: y }));
+    pointer('pointerdown', 60, 140); pointer('pointermove', 650, 260);
+    expect(element.selection).toEqual([{ type: 'box', id: 'c' }, { type: 'box', id: 'a' }, { type: 'box', id: 'b' }, { type: 'line', id: 'nb' }, { type: 'line', id: 'ab' }]);
+    pointer('pointermove', 60, 140); // Shrinking restores exactly the original scope.
+    expect(element.selection).toEqual([{ type: 'box', id: 'c' }, { type: 'line', id: 'nb' }]);
+    pointer('pointermove', 1250, 500); pointer('pointerup', 1250, 500);
+    expect(element.selection).toEqual([{ type: 'box', id: 'c' }, { type: 'box', id: 'a' }, { type: 'box', id: 'b' }, { type: 'box', id: 'n' }, { type: 'line', id: 'nb' }, { type: 'line', id: 'ab' }]);
+    expect(element.selection.some(item => item.id === 's')).toBe(false);
+  });
+
+  it('stops a marquee when its live selection notification synchronously loads a document', () => {
+    const { element, root } = fixture(); element.setView({ x: 0, y: 0, zoom: 1 });
+    const canvas = root.querySelector('[part=canvas]')!;
+    canvas.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerId: 1, button: 0, shiftKey: true, clientX: 10, clientY: 10 }));
+    element.addEventListener('selection-changed', () => element.load(structuredClone(graph)), { once: true });
+    canvas.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerId: 1, clientX: 650, clientY: 400 }));
+    expect((element as any).marquee).toBeUndefined();
+    expect(root.querySelector('[part=marquee]')).toBeNull(); expect(element.selection).toEqual([]);
+  });
+
   it('keeps a flow next insertion on its ordinary edge when associations are present', () => {
     const { element, key } = fixture();
     element.document = { ...graph, lines: [...graph.lines, { id: 'an', from: 'a', to: 'n', role: 'association' }] };

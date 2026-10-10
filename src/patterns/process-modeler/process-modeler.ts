@@ -178,7 +178,7 @@ export class ProcessModeler<
   private portDrag?: { pointerId: number; id: string; side: "north" | "east" | "south" | "west"; start: { x: number; y: number }; point: { x: number; y: number } };
   private endDrag?: { pointerId: number; lineId: string; end: 'from' | 'to'; start: { x: number; y: number }; point: { x: number; y: number } };
   private pendingReattach?: { lineId: string; end: 'from' | 'to' };
-  private marquee?: { pointerId: number; start: { x: number; y: number }; point: { x: number; y: number } };
+  private marquee?: { pointerId: number; start: { x: number; y: number }; point: { x: number; y: number }; add: readonly ProcessSelectionItem[] };
   private segmentDrag?: { pointerId: number; id: string; index: number; points: { x: number; y: number }[] };
   private frameResize?: { pointerId: number; id: string; start: { x: number; y: number }; width: number; height: number };
   private spacePressed = false;
@@ -1823,7 +1823,7 @@ export class ProcessModeler<
     const canvas =
       this.shadowRoot!.querySelector<HTMLElement>("[part=canvas]")!;
     if (id && !this.spacePressed && !this.selectedIds.has(id) && !event.shiftKey) this.select(id);
-    if (!id && event.shiftKey && !this.locked) { const point = this.canvasPoint(event); this.marquee = { pointerId: event.pointerId, start: point, point }; canvas.setPointerCapture?.(event.pointerId); event.preventDefault(); return; }
+    if (!id && event.shiftKey && !this.locked) { const point = this.canvasPoint(event); this.marquee = { pointerId: event.pointerId, start: point, point, add: this.selection }; canvas.setPointerCapture?.(event.pointerId); event.preventDefault(); return; }
     this.drag = {
       id: this.locked || this.spacePressed ? undefined : id,
       x: event.clientX,
@@ -1832,6 +1832,19 @@ export class ProcessModeler<
       panX: this.viewport.x,
       panY: this.viewport.y,
     };
+  }
+  private selectMarquee(start: { x: number; y: number }, point: { x: number; y: number }, add: readonly ProcessSelectionItem[]): void {
+    const items = [...add];
+    const ids = new Set(add.filter(item => item.type === 'box').map(item => item.id));
+    for (const box of this.projection.boxes) {
+      if (box.kind === 'section') continue;
+      const p = this.layoutValue.boxes[box.id], size = this.selectionDimensions(box);
+      if (p.x < Math.max(start.x, point.x) && p.x + size.width > Math.min(start.x, point.x) && p.y < Math.max(start.y, point.y) && p.y + size.height > Math.min(start.y, point.y)) {
+        ids.add(box.id); items.push({ type: 'box', id: box.id });
+      }
+    }
+    for (const line of this.projection.lines) if (ids.has(line.from) && ids.has(line.to)) items.push({ type: 'line', id: line.id });
+    this.selectItems(items);
   }
   private distance(): number {
     const [a, b] = [...this.pointers.values()];
@@ -1886,7 +1899,10 @@ export class ProcessModeler<
       path?.setAttribute("d", roundedProcessPath(points)); return;
     }
     if (this.marquee) {
-      this.marquee.point = point; let region = this.shadowRoot!.querySelector<HTMLElement>('[part=marquee]');
+      const marquee = this.marquee; marquee.point = point;
+      this.selectMarquee(marquee.start, point, marquee.add);
+      if (this.marquee !== marquee) return;
+      let region = this.shadowRoot!.querySelector<HTMLElement>('[part=marquee]');
       if (!region) { region = document.createElement("div"); region.setAttribute("part", "marquee"); this.shadowRoot!.querySelector('[part=world]')!.append(region); }
       this.place(region, { x: Math.min(point.x, this.marquee.start.x), y: Math.min(point.y, this.marquee.start.y), width: Math.abs(point.x - this.marquee.start.x), height: Math.abs(point.y - this.marquee.start.y) }); return;
     }
@@ -1997,8 +2013,8 @@ export class ProcessModeler<
     }
     if (this.segmentDrag) { const segment = this.segmentDrag; this.segmentDrag = undefined; if (commit) this.routeLine(segment.id, segment.points.slice(1, -1)); else this.refresh(); return; }
     if (this.marquee) {
-      const { start } = this.marquee; this.marquee = undefined;
-      if (commit) this.selectMany(this.projection.boxes.filter(box => { const p = this.layoutValue.boxes[box.id]; return p.x < Math.max(start.x, point.x) && p.x + (p.width ?? 224) > Math.min(start.x, point.x) && p.y < Math.max(start.y, point.y) && p.y + (p.height ?? 64) > Math.min(start.y, point.y); }).map(box => box.id));
+      const { start, add } = this.marquee; this.marquee = undefined;
+      if (commit) this.selectMarquee(start, point, add);
       this.shadowRoot!.querySelector('[part=marquee]')?.remove(); this.pointers.delete(event.pointerId); return;
     }
     if (!this.pointers.has(event.pointerId)) return;
