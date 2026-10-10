@@ -857,9 +857,13 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelectorAll('[part=action-option]')).toHaveLength(0);
     expect(root.querySelectorAll('[part=action-group][role=option]')).toHaveLength(2);
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
     expect(root.querySelectorAll('[part=action-option]')).toHaveLength(2);
     expect(root.querySelector('[part=action-option]')?.textContent).toContain('Delete folder');
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true, cancelable: true }));
+    expect(root.querySelector('[part=action-option][aria-selected=true]')?.textContent).toContain('Get folder');
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true, cancelable: true }));
+    expect(root.querySelector('[part=action-back]')?.getAttribute('aria-selected')).toBe('true');
     expect(changes).not.toHaveBeenCalled();
     expect(root.activeElement).toBe(input);
     input.value = 'folder delete'; input.dispatchEvent(new Event('input', { bubbles: true }));

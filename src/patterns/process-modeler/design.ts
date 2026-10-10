@@ -305,7 +305,7 @@ export const processModelerDesign = `
   [part=field]:has([part=action-options]) { position: relative; }
   [part=field]:has([part=action-options]) input { padding-right: 34px; }
   [part=action-caret] { position: absolute; z-index: 1; top: 25px; right: 2px; width: 32px; min-height: 32px; padding: 0; border: 0; background: transparent; font-size: 18px; }
-  [part=action-options] { position: absolute; z-index: 30; top: calc(100% - 1px); left: 0; right: 0; max-height: 280px; overflow: auto; padding: 6px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 10px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }
+  [part=action-options] { position: fixed; z-index: 50; max-height: 420px; overflow: auto; padding: 6px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 10px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }
   [part=action-options][hidden] { display: none; }
   [part=action-options] button { display: block; width: 100%; min-height: 36px; padding: 7px 9px; border: 0; border-radius: 7px; text-align: start; background: transparent; font-size: 12.5px; }
   [part=action-options] button:hover, [part=action-options] [aria-selected=true] { background: var(--boe-token-surface-surface-hover, #f4f4f4); }

@@ -99,6 +99,8 @@ export class ProcessModeler<
   private checks: readonly ProcessCheck[] = [];
   private renderer?: (node: N, container: HTMLElement) => void | (() => void);
   private cleanupInspector?: () => void;
+  private inspectorFieldCleanups: (() => void)[] = [];
+  private cleanupInspectorFields(): void { for (const cleanup of this.inspectorFieldCleanups.splice(0)) cleanup(); }
   private inspected?: N;
   private inspectedId?: string;
   private inspectedControls = "";
@@ -382,6 +384,7 @@ export class ProcessModeler<
       | ((node: N, container: HTMLElement) => void | (() => void))
       | undefined,
   ) {
+    this.cleanupInspectorFields();
     this.cleanupInspector?.();
     this.cleanupInspector = undefined;
     this.inspected = undefined;
@@ -400,6 +403,7 @@ export class ProcessModeler<
     const chooser = this.shadowRoot?.querySelector<HTMLDialogElement>("[part=insert-chooser]");
     if (chooser) dismissModal(chooser);
     this.closeKeyboardChooser();
+    this.cleanupInspectorFields();
     this.cleanupInspector?.();
     this.cleanupInspector = undefined;
     this.inspected = undefined;
@@ -2724,6 +2728,24 @@ export class ProcessModeler<
       const shown = input.value;
       let group: string | null = null; let active = 0; let browse = true;
       const close = (restore = true) => { list.hidden = true; if (restore) input.value = shown; input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); };
+      const place = () => {
+        if (list.hidden) return;
+        const viewport = this.ownerDocument.defaultView!;
+        const rect = input.getBoundingClientRect();
+        if (!input.isConnected) { close(); return; }
+        if (!rect.width && !rect.height) return;
+        if (rect.bottom <= 0 || rect.top >= viewport.innerHeight) { close(); return; }
+        const below = Math.max(0, viewport.innerHeight - rect.bottom - 12), above = Math.max(0, rect.top - 12);
+        const up = below < 260 && above > below;
+        Object.assign(list.style, { left: `${Math.max(8, rect.left)}px`, right: 'auto', width: `${Math.min(rect.width, viewport.innerWidth - 16)}px`, maxHeight: `${Math.min(420, up ? above : below)}px`, top: up ? 'auto' : `${rect.bottom + 4}px`, bottom: up ? `${viewport.innerHeight - rect.top + 4}px` : 'auto' });
+      };
+      const dismissOutside = (event: Event) => { const path = event.composedPath(); if (!list.hidden && !path.includes(input) && !path.includes(list) && !path.some(target => target instanceof HTMLElement && target.getAttribute('part') === 'action-caret')) close(); };
+      const viewport = this.ownerDocument.defaultView!;
+      viewport.addEventListener('resize', place);
+      this.ownerDocument.addEventListener('scroll', place, true);
+      this.shadowRoot!.addEventListener('scroll', place, true);
+      this.ownerDocument.addEventListener('pointerdown', dismissOutside, true);
+      this.inspectorFieldCleanups.push(() => { close(); viewport.removeEventListener('resize', place); this.ownerDocument.removeEventListener('scroll', place, true); this.shadowRoot?.removeEventListener('scroll', place, true); this.ownerDocument.removeEventListener('pointerdown', dismissOutside, true); });
       const choose = (option: (typeof options)[number]) => {
         const session = this.layoutEditSession;
         if (!input.isConnected || input.disabled || this.locked || this.selected?.id !== box.id) return;
@@ -2764,6 +2786,7 @@ export class ProcessModeler<
         items.forEach((item, index) => { item.id = `${list.id}-${index}`; item.setAttribute('aria-selected', String(index === active)); });
         list.hidden = false; input.setAttribute('aria-expanded', 'true');
         if (items[active]) input.setAttribute('aria-activedescendant', items[active].id); else input.removeAttribute('aria-activedescendant');
+        place(); items[active]?.scrollIntoView?.({ block: 'nearest' });
       };
       const openSelected = () => {
         const current = options.find(option => option.value === field.value);
@@ -2774,16 +2797,22 @@ export class ProcessModeler<
       list.addEventListener('pointerdown', event => event.preventDefault());
       input.addEventListener('focus', openSelected);
       input.addEventListener('input', () => { group = null; browse = false; active = 0; render(); });
+      input.addEventListener('pointerdown', () => { if (list.hidden && this.shadowRoot?.activeElement === input) openSelected(); });
       input.addEventListener('keydown', event => {
-        if (event.key === 'Escape') { event.preventDefault(); close(); return; }
-        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-          event.preventDefault(); if (list.hidden) openSelected();
-          const items = Array.from(list.querySelectorAll<HTMLButtonElement>('[role=option]')); if (!items.length) return;
-          active = (active + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+        if (list.hidden) { if (event.key === 'ArrowDown' || event.key === 'Enter') { event.preventDefault(); openSelected(); } return; }
+        if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(); return; }
+        if (event.key === 'Tab') { close(); return; }
+        const items = Array.from(list.querySelectorAll<HTMLButtonElement>('[role=option]'));
+        if (!items.length) return;
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || group && (event.key === 'Home' || event.key === 'End')) {
+          event.preventDefault();
+          active = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : (active + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
           items.forEach((item, index) => item.setAttribute('aria-selected', String(index === active)));
           input.setAttribute('aria-activedescendant', items[active].id); items[active].scrollIntoView?.({ block: 'nearest' });
-        } else if (event.key === 'Enter' && !list.hidden) {
-          const items = Array.from(list.querySelectorAll<HTMLButtonElement>('[role=option]')); if (items[active]) { event.preventDefault(); items[active].click(); }
+        } else if (event.key === 'Enter' || event.key === 'ArrowRight' && items[active]?.getAttribute('part') === 'action-group') {
+          if (items[active]) { event.preventDefault(); items[active].click(); }
+        } else if (event.key === 'ArrowLeft' && group && input.value === shown) {
+          event.preventDefault(); list.querySelector<HTMLButtonElement>('[part=action-back]')?.click();
         }
       });
       const caret = document.createElement('button'); caret.type = 'button'; caret.setAttribute('part', 'action-caret'); caret.setAttribute('aria-label', `Browse ${field.label.toLowerCase()} choices`); caret.textContent = '⌄'; caret.disabled = input.disabled;
@@ -2938,6 +2967,7 @@ export class ProcessModeler<
         if (help.dataset.session === String(this.layoutEditSession)) expressionHelp.set(help.dataset.helpField!, help.open);
       }
     }
+    this.cleanupInspectorFields();
     this.cleanupInspector?.();
     this.cleanupInspector = undefined;
     editor.replaceChildren();
