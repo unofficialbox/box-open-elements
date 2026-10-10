@@ -261,6 +261,7 @@ export class ProcessModeler<
     this.lastProjection = "";
     this.lastReadableProjection = "";
     this.readableValue = null;
+    this.marquee = undefined; this.pointers.clear();
     this.autoNoteHeights.clear();
     this.layoutValue = restoreProcessPositions(projection, options.positions ?? []);
     this.clearMixedSelection(); this.history.clear(); this.selectedId = null; this.selectedLineId = null; this.selectedIds.clear();
