@@ -387,3 +387,11 @@ sequenceDiagram
 ```
 
 Accepted edit notifications are delivered after the complete history entry is recorded. A synchronous projection/readability/selection observer can therefore make a subsequent edit with chronological undo/redo. Loading or disconnecting during an observer invalidates remaining notifications from the previous document; an accepted layout operation does not continue fitting a replacement document.
+
+### Variable details and host ownership
+
+The Variables pane explains iteration, process and step scope. Editable global variables expose About via `process-variable-edit-request` with `{ type: 'description', name, value }`; the host keeps its own metadata/IR serialization policy.
+
+A projected box can supply `localVariables` (including an empty array) to show its local-variable section. `localVariablesEditable: true` opts into Add/Remove/name/starting-value requests; absent opt-in keeps controls readonly. No kind names or generic node fields are inspected. Frames receive contained-step help. `savedResult` supplies the output name for the Saved by steps summary. Local and output summary rows follow projection order, preserve duplicate names, and use plain text.
+
+`process-local-variable-edit-request` carries `{ boxId, path?, edit }`. Add is `{ type: 'add' }`; Remove carries `index` and the old `name`; Rename and Starting value also carry `value`. The host must validate the current owner and row, choose new names, evaluate expressions, commit/persist/undo its collection edit, and echo the updated projection. BOE does not mutate supplied arrays or invent local graph history. Synchronous accepted Add/Remove echoes focus the new Name/Add button; asynchronous hosts can restore the corresponding focus after their own accepted echo. Existing global variable events and host-owned field events remain unchanged apart from the additive description variant, which exhaustive host switches should handle.

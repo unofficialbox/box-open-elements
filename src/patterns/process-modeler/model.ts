@@ -30,6 +30,12 @@ export interface ProcessBox<N = unknown> {
   /** Show the loop mark in a repeating frame without inferring host semantics from its kind name. */
   loopMark?: boolean;
   parentId?: string;
+  /** Present (including []) when this host supports variables local to this step/frame. */
+  localVariables?: readonly ProcessLocalVariable[];
+  /** Explicit opt-in to host-owned local edit requests; absent collections are readonly. */
+  localVariablesEditable?: boolean;
+  /** Host-owned saved output name, displayed in the variable usage summary. */
+  savedResult?: string;
 }
 export interface ProcessLine {
   id: string;
@@ -59,11 +65,27 @@ export interface ProcessVariable {
   startingValue?: string;
   problem?: string;
 }
+export interface ProcessLocalVariable {
+  name: string;
+  startingValue?: string;
+  /** Plain-text host validation; BOE does not evaluate expressions. */
+  problem?: string;
+}
+export type ProcessLocalVariableEdit =
+  | { type: 'add' }
+  | { type: 'remove'; index: number; name: string }
+  | { type: 'rename' | 'starting-value'; index: number; name: string; value: string };
+export interface ProcessLocalVariableEditRequest {
+  boxId: string;
+  path?: NodePath;
+  edit: ProcessLocalVariableEdit;
+}
 /** Host-owned variable edits; the host echoes the updated variables property. */
 export type ProcessVariableEdit =
   | { type: 'add' }
   | { type: 'remove'; name: string }
   | { type: 'rename'; name: string; value: string }
+  | { type: 'description'; name: string; value: string }
   | { type: 'scope'; name: string; value: 'iteration' | 'process' };
 /** Host-authored, readable outline; boxId links a row to a projected step. */
 export interface ProcessOutlineItem {
