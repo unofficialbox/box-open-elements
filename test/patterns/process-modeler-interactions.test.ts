@@ -866,7 +866,7 @@ describe("Process Modeler prototype interactions", () => {
     builder.setView({ x: 0, y: 0, zoom: 0.55 });
     expect(root.querySelector<HTMLElement>('[part=world]')!.style.getPropertyValue('--boe-process-inverse-zoom'))
       .toBe(String(1 / 0.55));
-    expect(root.querySelector('style')!.textContent).toContain('min-width: calc(24px * var(--boe-process-inverse-zoom, 1))');
+    expect(root.querySelector('style')!.textContent).toContain('min-width: var(--boe-process-hit-target, calc(24px * var(--boe-process-inverse-zoom, 1)))');
     expect(root.querySelector('[part=connection] > span')?.textContent).toBe('');
   });
   it('uses the same anchored chooser from the selected-line toolbar', () => {
