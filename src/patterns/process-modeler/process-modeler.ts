@@ -674,8 +674,8 @@ export class ProcessModeler<
     this.notify("layout-changed", { layout: this.layout });
     this.notify("positions-changed", { positions: this.positions, version: this.versionValue });
   }
-  private translatedLayout(id: string, x: number, y: number): ProcessLayout {
-    const snap = (n: number) => (this.snapToGrid ? Math.round(n / 16) * 16 : n);
+  private translatedLayout(id: string, x: number, y: number, snapToGrid = this.snapToGrid): ProcessLayout {
+    const snap = (n: number) => (snapToGrid ? Math.round(n / 16) * 16 : n);
     const next = this.layout;
     next.boxes[id] = { ...next.boxes[id], x: snap(x), y: snap(y) };
     const dx = next.boxes[id].x - this.layoutValue.boxes[id].x;
@@ -2022,7 +2022,7 @@ export class ProcessModeler<
       ).find((box) => box.dataset.boxId === this.drag!.id);
       if (element) {
         this.drag.previewed = true;
-        const position = this.alignedPoint(this.drag.id, this.drag.position.x + dx / this.viewport.zoom, this.drag.position.y + dy / this.viewport.zoom);
+        const position = this.alignedPoint(this.drag.id, this.drag.position.x + dx / this.viewport.zoom, this.drag.position.y + dy / this.viewport.zoom, event.altKey);
         const moved = this.selectedIds.size > 1 && this.selectedIds.has(this.drag.id)
           ? new Set(this.selectedIds) : new Set([this.drag.id]);
         for (let changed = true; changed;) {
@@ -2123,7 +2123,7 @@ export class ProcessModeler<
       const dy = event.clientY - drag.y;
       if (commit && Math.hypot(dx, dy) > 4) {
         this.suppressClick = true;
-        const position = this.alignedPoint(drag.id, drag.position.x + dx / this.viewport.zoom, drag.position.y + dy / this.viewport.zoom);
+        const position = this.alignedPoint(drag.id, drag.position.x + dx / this.viewport.zoom, drag.position.y + dy / this.viewport.zoom, event.altKey);
         const line = this.lineAt(point, drag.id);
         const draggedBox = this.projection.boxes.find(box => box.id === drag.id)!;
         const frame = isFlowBox(draggedBox) ? this.boxAt(point, drag.id, true) : this.projection.boxes.find(box => box.id === draggedBox.parentId);
@@ -2137,16 +2137,18 @@ export class ProcessModeler<
           const next = this.layout; const dx = position.x - drag.position.x; const dy = position.y - drag.position.y;
           const moved = new Set(this.selectedIds);
           for (let changed = true; changed;) { changed = false; for (const box of this.projection.boxes) if (box.parentId && moved.has(box.parentId) && !moved.has(box.id)) { moved.add(box.id); changed = true; } }
-          const primary = next.boxes[drag.id];
-          const shiftX = this.snapToGrid ? Math.round((primary.x + dx) / 16) * 16 - primary.x : dx;
-          const shiftY = this.snapToGrid ? Math.round((primary.y + dy) / 16) * 16 - primary.y : dy;
+          const shiftX = dx, shiftY = dy;
           for (const id of moved) next.boxes[id] = { ...next.boxes[id], x: next.boxes[id].x + shiftX, y: next.boxes[id].y + shiftY };
           if (emit(this, "move-request", { boxId: drag.id, position: next.boxes[drag.id], boxIds: [...moved], positions: next.boxes })) this.commitLayout(next);
-        } else this.move(drag.id, position.x, position.y);
+        } else {
+          // Guides already resolve alignment, equal gaps and the remaining grid axes.
+          const next = this.translatedLayout(drag.id, position.x, position.y, false);
+          if (emit(this, "move-request", { boxId: drag.id, position: next.boxes[drag.id] })) this.commitLayout(next);
+        }
       }
       else if (!commit) this.refresh();
     }
-    this.shadowRoot!.querySelectorAll('[part=guide],[part=measure]').forEach(element => element.remove());
+    this.shadowRoot!.querySelector('[part=drag-guides]')?.remove();
     this.markDropLine(undefined);
     if (drag?.id && (drag.previewed || !commit || Math.hypot(event.clientX - drag.x, event.clientY - drag.y) > 4)) this.refresh();
   }
@@ -2199,25 +2201,92 @@ export class ProcessModeler<
   private paintDropLine(): void {
     this.shadowRoot!.querySelectorAll<SVGElement>('[part=line]').forEach(path => { const active = path.dataset.lineId === this.dropLine; path.dataset.drop = String(active); if (path.dataset.role !== 'association') path.setAttribute('marker-end', `url(#${active || path.dataset.selected === 'true' ? 'boe-process-arrow-brand' : 'boe-process-arrow'})`); });
   }
-  private alignedPoint(id: string, x: number, y: number) {
+  private alignedPoint(id: string, x: number, y: number, alt = false) {
     const world = this.shadowRoot!.querySelector('[part=world]')!;
-    world.querySelectorAll('[part=guide],[part=measure]').forEach(element => element.remove());
-    for (const box of this.projection.boxes) {
-      if (box.id === id) continue;
-      const p = this.layoutValue.boxes[box.id];
-      for (const axis of ["x", "y"] as const) {
-        const value = axis === "x" ? x : y;
-        if (Math.abs(value - p[axis]) < 8 / this.viewport.zoom) {
-          if (axis === "x") x = p.x; else y = p.y;
-          const guide = document.createElement("div"); guide.setAttribute("part", "guide");
-          guide.style.cssText = axis === "x" ? `left:${x}px;top:${Math.min(y, p.y)}px;width:1px;height:${Math.abs(y - p.y) + 64}px` : `left:${Math.min(x, p.x)}px;top:${y}px;height:1px;width:${Math.abs(x - p.x) + 224}px`; world.append(guide);
-        }
+    world.querySelector('[part=drag-guides]')?.remove();
+    const primary = this.projection.boxes.find(box => box.id === id)!;
+    if (alt) return { x, y };
+    if (primary.kind === 'section') return { x: this.snapToGrid ? Math.round(x / 16) * 16 : x, y: this.snapToGrid ? Math.round(y / 16) * 16 : y };
+    const size = this.selectionDimensions(primary), zoom = this.viewport.zoom, threshold = 8 / zoom;
+    const moved = this.selectedIds.size > 1 && this.selectedIds.has(id) ? new Set(this.selectedIds) : new Set([id]);
+    for (let changed = true; changed;) {
+      changed = false;
+      for (const box of this.projection.boxes) if (box.parentId && moved.has(box.parentId) && !moved.has(box.id)) { moved.add(box.id); changed = true; }
+    }
+    const ancestors = new Set<string>();
+    for (let parent = primary.parentId; parent && !ancestors.has(parent); parent = this.projection.boxes.find(box => box.id === parent)?.parentId) ancestors.add(parent);
+    const candidates = this.projection.boxes.filter(box => !moved.has(box.id) && !ancestors.has(box.id) && isFlowBox(box) && box.kind !== 'section')
+      .map(box => ({ box, rect: { ...this.layoutValue.boxes[box.id], ...this.selectionDimensions(box) } }));
+    type Rect = { x: number; y: number; width: number; height: number };
+    type Match = { distance: number; shift: number; value: number; rect: Rect };
+    let bestX: Match | undefined, bestY: Match | undefined;
+    for (const { rect } of candidates) {
+      for (const [mine, theirs] of [[x + size.width / 2, rect.x + rect.width / 2], [x, rect.x], [x + size.width, rect.x + rect.width]]) {
+        const distance = Math.abs(mine - theirs);
+        if (distance < threshold && (!bestX || distance < bestX.distance)) bestX = { distance, shift: theirs - mine, value: theirs, rect };
       }
-      if (Math.abs(y - p.y) < 8) {
-        const distance = x - p.x - (p.width ?? 224);
-        if (distance > 0) { const measure = document.createElement("span"); measure.setAttribute("part", "measure"); measure.textContent = `${Math.round(distance)}px`; measure.style.cssText = `left:${p.x + (p.width ?? 224)}px;top:${y + 40}px`; world.append(measure); }
+      for (const [mine, theirs] of [[y + size.height / 2, rect.y + rect.height / 2], [y, rect.y], [y + size.height, rect.y + rect.height]]) {
+        const distance = Math.abs(mine - theirs);
+        if (distance < threshold && (!bestY || distance < bestY.distance)) bestY = { distance, shift: theirs - mine, value: theirs, rect };
       }
     }
+    if (bestX) x += bestX.shift;
+    if (bestY) y += bestY.shift;
+    type Gap = { distance: number; rect: Rect };
+    const gapsAround = () => {
+      const gaps: Partial<Record<'left' | 'right' | 'up' | 'down', Gap>> = {};
+      const add = (side: keyof typeof gaps, distance: number, rect: Rect) => {
+        if (!gaps[side] || distance < gaps[side]!.distance) gaps[side] = { distance, rect };
+      };
+      for (const { box, rect } of candidates) {
+        if ((box.parentId ?? null) !== (primary.parentId ?? null)) continue;
+        if (rect.y < y + size.height && y < rect.y + rect.height) {
+          if (rect.x + rect.width <= x) add('left', x - rect.x - rect.width, rect);
+          if (rect.x >= x + size.width) add('right', rect.x - x - size.width, rect);
+        }
+        if (rect.x < x + size.width && x < rect.x + rect.width) {
+          if (rect.y + rect.height <= y) add('up', y - rect.y - rect.height, rect);
+          if (rect.y >= y + size.height) add('down', rect.y - y - size.height, rect);
+        }
+      }
+      return gaps;
+    };
+    let gaps = gapsAround();
+    const evenX = !bestX && gaps.left && gaps.right && Math.abs(gaps.left.distance - gaps.right.distance) <= 2 * threshold;
+    const evenY = !bestY && gaps.up && gaps.down && Math.abs(gaps.up.distance - gaps.down.distance) <= 2 * threshold;
+    if (evenX) x += (gaps.right!.distance - gaps.left!.distance) / 2;
+    if (evenY) y += (gaps.down!.distance - gaps.up!.distance) / 2;
+    if (this.snapToGrid) {
+      if (!bestX && !evenX) x = Math.round((x + size.width / 2) / 16) * 16 - size.width / 2;
+      if (!bestY && !evenY) y = Math.round((y + size.height / 2) / 16) * 16 - size.height / 2;
+    }
+    gaps = gapsAround();
+    const overlay = svgElement('svg'); overlay.setAttribute('part', 'drag-guides'); overlay.setAttribute('aria-hidden', 'true');
+    const line = (part: string, x1: number, y1: number, x2: number, y2: number) => {
+      const element = svgElement('line'); element.setAttribute('part', part);
+      for (const [name, value] of Object.entries({ x1, y1, x2, y2 })) element.setAttribute(name, String(value));
+      element.setAttribute('vector-effect', 'non-scaling-stroke'); overlay.append(element);
+    };
+    if (bestX) line('guide', bestX.value, Math.min(y, bestX.rect.y) - 16, bestX.value, Math.max(y + size.height, bestX.rect.y + bestX.rect.height) + 16);
+    if (bestY) line('guide', Math.min(x, bestY.rect.x) - 16, bestY.value, Math.max(x + size.width, bestY.rect.x + bestY.rect.width) + 16, bestY.value);
+    for (const side of ['left', 'right', 'up', 'down'] as const) {
+      const gap = gaps[side]; if (!gap || gap.distance <= .5 || gap.distance >= 480) continue;
+      const r = gap.rect, horizontal = side === 'left' || side === 'right', tick = 4 / zoom;
+      const midX = (Math.max(x, r.x) + Math.min(x + size.width, r.x + r.width)) / 2;
+      const midY = (Math.max(y, r.y) + Math.min(y + size.height, r.y + r.height)) / 2;
+      const x1 = horizontal ? side === 'left' ? r.x + r.width : x + size.width : midX;
+      const x2 = horizontal ? side === 'left' ? x : r.x : midX;
+      const y1 = horizontal ? midY : side === 'up' ? r.y + r.height : y + size.height;
+      const y2 = horizontal ? midY : side === 'up' ? y : r.y;
+      line('measure', x1, y1, x2, y2);
+      line('measure', x1 - (horizontal ? 0 : tick), y1 - (horizontal ? tick : 0), x1 + (horizontal ? 0 : tick), y1 + (horizontal ? tick : 0));
+      line('measure', x2 - (horizontal ? 0 : tick), y2 - (horizontal ? tick : 0), x2 + (horizontal ? 0 : tick), y2 + (horizontal ? tick : 0));
+      const label = svgElement('text'); label.setAttribute('part', 'measure-label');
+      label.setAttribute('x', String(horizontal ? (x1 + x2) / 2 : midX + 6 / zoom)); label.setAttribute('y', String(horizontal ? midY - 6 / zoom : (y1 + y2) / 2));
+      label.setAttribute('font-size', String(11 / zoom)); label.setAttribute('text-anchor', horizontal ? 'middle' : 'start'); label.setAttribute('dominant-baseline', horizontal ? 'auto' : 'middle');
+      label.textContent = `${(horizontal ? evenX : evenY) ? '= ' : ''}${Math.round(gap.distance)}`; overlay.append(label);
+    }
+    if (overlay.childElementCount) world.append(overlay);
     return { x, y };
   }
   private openChooser(edit: ProcessEdit): void {
