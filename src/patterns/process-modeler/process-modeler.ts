@@ -1703,7 +1703,11 @@ export class ProcessModeler<
         if (event.key === " ") { event.preventDefault(); element.click(); }
         // Let Enter reach the canvas handler after selecting the focused step.
         // Cancelling it here prevents the editor from opening and taking focus.
-        else if (event.key === "Enter") element.click();
+        else if (event.key === "Enter") {
+          // Connection completion consumes Enter; it must not also edit the target.
+          if (this.connecting || this.pendingReattach) event.preventDefault();
+          element.click();
+        }
       });
       element.addEventListener("click", event => {
         if (this.suppressClick && event.detail !== 0) { this.suppressClick = false; return; }
