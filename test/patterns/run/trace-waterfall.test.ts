@@ -42,6 +42,13 @@ describe("trace waterfall layout", () => {
     expect(traceWaterfallLayout(spans, { comparisonSpans: [{ ...spans[0]!, startMs: 500, durationMs: 2000 }] }).endMs).toBe(2500);
     expect(traceWaterfallLayout([{ ...spans[0]!, markers: [{ atMs: 3000, label: "95% completed" }] }]).endMs).toBe(3000);
   });
+  it("ignores malformed marker records from serialized host traces", () => {
+    const input = JSON.parse(JSON.stringify([{ ...spans[0]!, markers: {} }, { ...spans[1]!, markers: [null, { atMs: 5000 }, { atMs: -1, label: "invalid" }] }])) as TraceSpan[];
+    expect(traceWaterfallLayout(input).endMs).toBe(1000);
+    const element = new TraceWaterfall(); element.setAttribute("spans", JSON.stringify(input)); document.body.append(element);
+    expect(rows(element)).toHaveLength(2);
+    expect(element.shadowRoot!.querySelector('[part="marker"]')).toBeNull();
+  });
   it("tolerates missing/cyclic parents and rejects invalid/duplicate timing", () => {
     const input = [{ ...spans[0]!, parentId: "auth" }, { ...spans[1]!, parentId: "run" }, { ...spans[2]!, parentId: "missing" }];
     expect(traceWaterfallLayout(input).rows.map(row => row.depth)).toEqual([0, 0, 0]);

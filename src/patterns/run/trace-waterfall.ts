@@ -30,6 +30,9 @@ const escape = (value: string): string => value.replaceAll("&", "&amp;").replace
 const statuses: TraceSpanStatus[] = ["ok", "failed", "skipped", "running"];
 const statusLabels: Record<TraceSpanStatus, string> = { ok: "Succeeded", failed: "Failed", skipped: "Skipped", running: "Running" };
 const statusShapes: Record<TraceSpanStatus, string> = { ok: "✓", failed: "×", skipped: "−", running: "◷" };
+const validMarkers = (span: TraceSpan): TraceMarker[] => Array.isArray(span.markers)
+  ? span.markers.filter(marker => marker && finite(marker.atMs) && marker.atMs >= 0 && typeof marker.label === "string")
+  : [];
 const duration = (value: number): string => value >= 1000 ? `${(value / 1000).toLocaleString(undefined, { maximumFractionDigits: 2 })} s` : `${value.toLocaleString(undefined, { maximumFractionDigits: 2 })} ms`;
 
 /** Invalid/duplicate spans are omitted; invalid parent relationships become roots. */
@@ -100,7 +103,7 @@ export function traceWaterfallLayout(spans: TraceSpan[], options: { showSystem?:
   let endMs = 1;
   for (const span of all) {
     endMs = Math.max(endMs, span.startMs + traceSpanDuration(span, options.nowMs ?? 0));
-    for (const marker of span.markers ?? []) if (marker && finite(marker.atMs) && marker.atMs >= 0) endMs = Math.max(endMs, marker.atMs);
+    for (const marker of validMarkers(span)) endMs = Math.max(endMs, marker.atMs);
   }
   return { rows, hiddenCount: valid.filter(span => span.system).length, endMs };
 }
@@ -110,7 +113,7 @@ const styles = `
   :host([hidden]) { display:none!important }
   [part=panel] { border:1px solid var(--boe-token-stroke-stroke,#dedfe4); border-radius:.75rem; padding:1rem; background:var(--boe-token-surface-surface,#fff); min-width:0 }
   [part=header], [part=controls], [part=detail-controls] { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center }
-  [part=header] { justify-content:space-between; margin-bottom:.75rem } h2,h3 { font:inherit; font-weight:700; margin:0 }
+  [part=header] { justify-content:space-between; margin-bottom:.75rem } h2,h3 { font:inherit; font-weight:700; margin:0; min-width:0; max-width:100%; overflow-wrap:anywhere }
   [part=controls] { margin-bottom:.75rem } input { font:inherit; width:12rem; max-width:100%; box-sizing:border-box; color:inherit; background:inherit; border:1px solid var(--boe-token-stroke-stroke,#dedfe4); border-radius:.3rem; padding:.4rem }
   button { font:inherit; color:inherit; background:inherit; border:1px solid var(--boe-token-stroke-stroke,#dedfe4); border-radius:.3rem; padding:.35rem .5rem; cursor:pointer; min-height:24px }
   button:disabled { opacity:.6; cursor:default } :is(button,input,[role=row]):focus-visible { outline:2px solid var(--boe-token-surface-surface-brand,#0061d5); outline-offset:2px }
@@ -120,7 +123,7 @@ const styles = `
   [part=row] { padding:.45rem .5rem; border-radius:.25rem; cursor:pointer; border:1px solid transparent }
   [part=row]:hover { background:var(--boe-token-surface-surface-secondary,#f5f7fb) } [part=row][aria-selected=true] { background:var(--boe-trace-selected,var(--boe-token-surface-surface-secondary,#f5f7fb)); border-color:var(--boe-token-surface-surface-brand,#0061d5) }
   [part=label-cell] { display:flex; gap:.3rem; align-items:center; min-width:0; padding-left:var(--indent) } [part=label] { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0 }
-  [part=kind], [part=status], [part=duration] { font-size:.75rem } [part=kind] { color:var(--boe-token-text-text-secondary,#626b7d) } [part=expand] { width:24px; height:24px; min-width:24px; border:0; padding:0 } [part=expand-space] { width:24px; min-width:24px }
+  [part=kind], [part=status], [part=duration] { font-size:.75rem } [part=kind] { min-width:0; max-width:35%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--boe-token-text-text-secondary,#626b7d) } [part=expand] { width:24px; height:24px; min-width:24px; border:0; padding:0 } [part=expand-space] { width:24px; min-width:24px }
   [part=timing] { min-width:0 } [part=timing-label] { display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:.2rem }
   [part=track] { position:relative; height:1.1rem; background:var(--boe-trace-track,var(--boe-token-surface-surface-secondary,#f5f7fb)); border-radius:.15rem }
   [part=bar] { position:absolute; top:.2rem; height:.7rem; min-width:2px; background:var(--boe-trace-bar,var(--boe-token-surface-surface-brand,#0061d5)); border-radius:.1rem }
@@ -224,7 +227,7 @@ export class TraceWaterfall extends BaseElement {
     const comparison = new Map(validTraceSpans(this.comparisonSpans).map(span => [span.id, span]));
     const position = (ms: number): number => Math.max(0, Math.min(100, ms / endMs * 100));
     const geometry = (span: TraceSpan): string => `left:${position(span.startMs)}%;width:${position(span.startMs + traceSpanDuration(span, this.nowMs)) - position(span.startMs)}%`;
-    const markerList = (span: TraceSpan): TraceMarker[] => (span.markers ?? []).filter(marker => marker && finite(marker.atMs) && marker.atMs >= 0 && typeof marker.label === "string");
+    const markerList = validMarkers;
     const summary = (span: TraceSpan): string => `${span.label}, ${statusLabels[span.status]}, starts at ${duration(span.startMs)}, takes ${duration(traceSpanDuration(span, this.nowMs))}${markerList(span).map(marker => `, ${marker.label} at ${duration(marker.atMs)}`).join("")}${comparison.has(span.id) ? `; comparison starts at ${duration(comparison.get(span.id)!.startMs)}, takes ${duration(traceSpanDuration(comparison.get(span.id)!, this.nowMs))}` : ""}`;
     const rowHtml = rows.map(row => {
       const span = row.span; const previous = comparison.get(span.id);
