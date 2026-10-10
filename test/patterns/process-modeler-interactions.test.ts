@@ -204,6 +204,42 @@ describe("Process Modeler prototype interactions", () => {
     pointer(canvas,'pointerup',217,30,{altKey:true}); expect(builder.layout.boxes.b.x).toBe(201);
     builder.undo(); expect(builder.layout.boxes.b.x).toBe(184);
   });
+  it("numbers layout and graph sections from left to right with literal readable headers", () => {
+    const { builder, root } = fixture();
+    builder.document = {boxes:[{...projection.boxes[0],id:'graph-section',kind:'section',frame:true,title:'<Later>',description:'Read & review'}],lines:[]};
+    builder.layout = {boxes:{'graph-section':{x:400,y:0,width:320,height:160}},sections:[{id:'right',title:'Last',x:800,y:0,width:300,height:160},{id:'left',title:'First',description:'Before the graph section',x:0,y:0,width:300,height:160}]};
+    const graph = root.querySelector('[data-box-id=graph-section]')!;
+    expect(graph.querySelector('[part=section-number]')?.textContent).toBe('2');
+    expect(graph.getAttribute('aria-label')).toBe('Section 2: <Later>. Read & review');
+    expect(graph.querySelector('strong')?.textContent).toBe('<Later>'); expect(graph.querySelector('later')).toBeNull();
+    expect(graph.querySelector('[part=icon],[part=port],[part=frame-resize]')).toBeNull();
+    expect(root.querySelector('[data-section-id=left] [part=section-number]')?.textContent).toBe('1');
+    expect(root.querySelector('[data-section-id=right] [part=section-number]')?.textContent).toBe('3');
+    expect(builder.layout.sections?.map(section=>section.id)).toEqual(['right','left']);
+    builder.select('graph-section'); builder.move('graph-section',900,0);
+    expect(root.querySelector('[data-box-id=graph-section] [part=section-number]')?.textContent).toBe('3');
+    builder.undo(); expect(root.querySelector('[data-box-id=graph-section] [part=section-number]')?.textContent).toBe('2');
+  });
+  it("numbers same-id graph and layout sections independently in their left-to-right order", () => {
+    const { builder, root } = fixture();
+    builder.document = {boxes:[{...projection.boxes[0],id:'section-1',kind:'section',frame:true,title:'Graph'}],lines:[]};
+    builder.layout = {boxes:{'section-1':{x:400,y:0,width:320,height:160}},sections:[{id:'section-1',title:'Layout',x:0,y:0,width:300,height:160}]};
+    const number = (owner:string) => root.querySelector(`[data-${owner}-id=section-1] [part=section-number]`)?.textContent;
+    expect(number('section')).toBe('1'); expect(number('box')).toBe('2');
+    builder.move('section-1',-400,0); expect(number('box')).toBe('1'); expect(number('section')).toBe('2');
+    builder.undo(); expect(number('section')).toBe('1'); expect(number('box')).toBe('2');
+  });
+  it("retains graph section problem text and its accessible announcement beside the numbered header", () => {
+    const { builder, root } = fixture();
+    builder.document = {boxes:[{...projection.boxes[0],id:'section-1',kind:'section',frame:true,title:'Review',description:'Before publishing'}],lines:[]};
+    builder.setValidation([{boxId:'section-1',title:'<Fix the section>',message:'Supply the missing metadata'}]); builder.select('section-1');
+    const section = root.querySelector('[data-box-id=section-1]')!;
+    expect(section.querySelector('[part=section-number]')?.textContent).toBe('1');
+    expect(section.getAttribute('aria-label')).toContain('Section 1: Review. Before publishing'); expect(section.getAttribute('aria-label')).toContain('Needs attention: <Fix the section>');
+    expect(section.querySelector('[part=problem]')?.textContent).toBe('<Fix the section>'); expect(section.querySelector('fix')).toBeNull(); expect(section.getAttribute('data-invalid')).toBe('true'); expect(builder.readback.current).toBeNull();
+    builder.setValidation([]); const fixed = root.querySelector('[data-box-id=section-1]')!; expect(fixed.querySelector('[part=problem]')).toBeNull(); expect(fixed.getAttribute('aria-label')).not.toContain('Needs attention');
+  });
+
   it("names the desktop building-block pane without duplicating the mobile drawer heading", () => {
     const { root } = fixture();
     expect(root.querySelector('[part=palette-heading]')?.textContent).toBe("Add to the process");

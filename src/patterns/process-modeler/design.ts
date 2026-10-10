@@ -222,6 +222,8 @@ export const processModelerDesign = `
   [data-shape=event]:is([data-kind=scheduled-start], [data-kind=timer])::before { box-shadow: inset 0 0 0 2.5px var(--boe-token-surface-surface, #fff), inset 0 0 0 4px var(--boe-token-text-text-secondary, #6f6f6f); }
   [data-shape=gateway] > [part=icon], [data-shape=event] > [part=icon] { position: absolute; left: 20px; top: 20px; width: 16px; height: 16px; color: var(--boe-token-text-text, #1b1b1b); z-index: 1; }
   [data-shape=gateway] > [part=icon] svg, [data-shape=event] > [part=icon] svg { width: 16px; height: 16px; }
+  [data-shape=event]:is([data-kind=timer], [data-kind=scheduled-start]) > [part=icon] { left: 17px; top: 17px; width: 22px; height: 22px; color: var(--boe-token-text-text-secondary, #6f6f6f); }
+  [data-shape=event]:is([data-kind=timer], [data-kind=scheduled-start]) > [part=icon] svg { width: 22px; height: 22px; }
   [data-shape=gateway] > small { display: none; }
   [part=caption] { position: absolute; left: 50%; translate: -50% 0; width: max-content; max-width: 168px; padding: 1px 4px; border-radius: 4px; text-align: center; font-size: 12.5px; font-weight: 600; line-height: 1.3; pointer-events: none; background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 88%, transparent); }
   [part=caption][data-side=below] { top: 60px; }
@@ -265,13 +267,18 @@ export const processModelerDesign = `
   [data-shape=note][aria-current=true] [part=note-body] { border-color: var(--boe-token-surface-surface-brand, #0061d5); border-style: solid; }
   [part=connection][data-role=association] { padding: 0; background: transparent; border-color: transparent; }
   [part=note] { width: 208px; border: 1px dashed var(--boe-process-box-edge, var(--boe-control-edge, #858585)); border-radius: 8px; }
-  [part=section] { z-index: 0; border: 1px solid var(--boe-process-box-edge, var(--boe-control-edge, #858585)); border-radius: 16px; background: color-mix(in srgb, var(--boe-token-surface-surface, #fff) 45%, transparent); }
-  [part=section] strong { display: block; font-size: 12.5px; font-weight: 650; line-height: 1.3; }
-  [part=section] small { display: block; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 11.5px; line-height: 1.35; }
+  [part=section], [part=frame][data-kind=section] { --boe-process-section-edge: light-dark(color-mix(in srgb, var(--boe-token-text-text, #222222) 53%, var(--boe-token-surface-surface, #fff)), color-mix(in srgb, var(--boe-token-text-text, #f4f4f4) 36.5%, var(--boe-token-surface-surface, #1c1c1c))); z-index: 0; display: block; padding: 0; border: 1px solid var(--boe-process-section-edge); border-radius: 16px; background: color-mix(in srgb, var(--boe-token-text-text-secondary, #6f6f6f) 4%, transparent); font-size: 14px; line-height: 1.45; }
+  [part=frame][data-kind=section][aria-current=true] { border-color: var(--boe-token-surface-surface-brand, #0061d5); }
+  [part=section-head] { position: absolute; left: 0; top: 0; right: 0; padding: 12px 16px 0; display: flex; gap: 10px; align-items: baseline; }
+  [part=section-number] { display: block; min-width: 1ch; font-size: 12px; color: var(--boe-token-text-text-secondary, #6f6f6f); font-variant-numeric: tabular-nums; }
+  [part=section-head] strong { font-size: 14px; font-weight: 650; line-height: inherit; }
+  [part=section-head] small { display: block; font-size: 12.5px; color: var(--boe-token-text-text-secondary, #6f6f6f); line-height: inherit; }
+  [part=section-head] [part=problem] { display: block; }
   [part=note] { pointer-events: auto !important; }
   [part=note][data-selected=true] { outline: 2px solid var(--boe-process-line-selected, var(--boe-brand-fill, #1976d2)); }
   [part=note]:focus-visible { outline: 2px solid var(--boe-focus-ring, #1976d2); outline-offset: 3px; }
-  [part=note], [part=section] { position: absolute; padding: 8px; pointer-events: none; }
+  [part=note] { position: absolute; padding: 8px; }
+  [part=section] { position: absolute; pointer-events: none; }
   [part=marquee] { position: absolute; border: 2px solid var(--boe-token-surface-surface-brand, #0061d5); background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, transparent); pointer-events: none; }
   [part=connect-tooltip] { position: absolute; z-index: 20; max-width: 240px; padding: 5px 8px; border-radius: 7px; background: var(--boe-token-text-text, #141413); color: var(--boe-token-surface-surface, #fff); font-size: 12px; pointer-events: none; box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }
   [part=connect-tooltip][data-invalid=true] { background: var(--boe-token-text-status-text-error, #b92340); color: #fff; }
