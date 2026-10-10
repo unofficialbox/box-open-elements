@@ -285,6 +285,9 @@ export const processModelerDesign = `
   [part=field] input[type=checkbox] { justify-self: start; width: 18px; height: 18px; accent-color: var(--boe-token-surface-surface-brand, #0061d5); }
   [part=field] small { color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12px; line-height: 1.4; }
   [part=field] [part=field-problem] { color: var(--boe-token-text-status-text-error, #b92340); }
+  [part=editor], [part=pane-content], [part=editor] > *, [part=pane-content] > * { min-width: 0; }
+  [part=process-title], [part=process-summary] { min-width: 0; overflow-wrap: anywhere; }
+  :is([part=local-variable-summary],[part=saved-result-summary]) :is(ul,li) { min-width: 0; max-width: 100%; }
   [part=pane-content][data-pane=Variables] { display: grid; align-content: start; gap: 14px; }
   [part=variables-intro], [part=variable-list] > p { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--boe-token-text-text-secondary,#6f6f6f); }
   [part=variable-scopes] { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; margin: 0; font-size: 12.5px; line-height: 1.45; }
