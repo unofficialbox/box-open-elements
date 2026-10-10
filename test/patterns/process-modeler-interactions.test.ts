@@ -1075,6 +1075,7 @@ describe("Process Modeler prototype interactions", () => {
     const input = root.querySelector<HTMLInputElement>('[data-field=action]')!; input.value = 'POST content'; input.dispatchEvent(new Event('input', {bubbles: true}));
     expect(root.querySelectorAll('[part=action-option]')).toHaveLength(1);
     expect(root.querySelector('[part=action-option] small')?.textContent).toBe('POST /files/content');
+    expect(root.querySelector('[part=action-option]')?.getAttribute('aria-label')).toBe('Files, Upload file');
     expect(root.querySelector('[part=action-option]')?.hasAttribute('data-current')).toBe(true);
     expect(changes).not.toHaveBeenCalled();
     input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true, cancelable: true}));
@@ -1089,6 +1090,7 @@ describe("Process Modeler prototype interactions", () => {
     builder.fields = {a: [{...descriptor, allowCustomValue: true}]}; input = root.querySelector<HTMLInputElement>('[data-field=action]')!;
     input.value = 'custom.step'; input.dispatchEvent(new Event('input', {bubbles: true}));
     expect(root.querySelector('[part=action-option]')?.textContent).toContain('Use “custom.step”');
+    expect(root.querySelector('[part=action-option]')?.getAttribute('aria-label')).toBe('Use custom.step, a step named in your code');
     input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true, cancelable: true}));
     expect(changes.mock.calls[0][0].detail.value).toBe('custom.step');
   });

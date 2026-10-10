@@ -2883,7 +2883,9 @@ export class ProcessModeler<
         const addAction = (option: (typeof options)[number], custom = false) => {
           const item = document.createElement('button'); item.type = 'button'; item.tabIndex = -1; item.setAttribute('role', 'option'); item.setAttribute('part', 'action-option');
           const title = document.createElement('strong'); title.textContent = group && option.label.startsWith(`${group} › `) ? option.label.slice(group.length + 3) : query && option.group && !option.label.startsWith(`${option.group} › `) ? `${option.group} › ${option.label}` : option.label; item.append(title);
-          item.setAttribute('aria-label', title.textContent);
+          const actionLabel = option.group && option.label.startsWith(`${option.group} › `) ? option.label.slice(option.group.length + 3) : option.label;
+          item.setAttribute('aria-label', custom ? `Use ${option.value}, a step named in your code` : query && option.group ? `${option.group}, ${actionLabel}` : title.textContent);
+          if (custom) item.dataset.custom = '';
           if (option.value === field.value) item.dataset.current = '';
           const detail = option.description ?? (option.value !== option.label ? option.value : undefined);
           if (detail) { const code = document.createElement('small'); code.textContent = detail; if (!custom) code.dataset.format = 'code'; item.append(code); }

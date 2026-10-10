@@ -323,14 +323,14 @@ export const processModelerDesign = `
   [part=action-caret] { position: absolute; z-index: 1; top: 25px; right: 2px; width: 32px; min-height: 32px; padding: 0; border: 0; background: transparent; font-size: 18px; }
   [part=action-options] { position: fixed; z-index: 50; max-height: 420px; overflow: auto; padding: 6px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-process-menu-shadow, 0 8px 32px light-dark(rgb(0 0 0 / .14), rgb(0 0 0 / .5))); }
   [part=action-options][hidden] { display: none; }
-  [part=action-options] { overscroll-behavior: contain; animation: none; }
+  [part=action-options] { overscroll-behavior: contain; animation: none; line-height: 1.45; }
   [part=action-options] button { display: flex; align-items: baseline; gap: 8px; width: 100%; min-height: 32px; padding: 7px 10px; border: 0; border-radius: 8px; text-align: start; background: transparent; font-size: 13px; line-height: 1.45; font-weight: 400; letter-spacing: normal; }
   [part=action-options] button:hover { background: var(--boe-token-surface-surface-hover, #f4f4f4); }
   [part=action-options] [aria-selected=true] { background: var(--boe-token-surface-item-surface-selected, #f2f7fd); }
   [part=action-options] button strong { flex: 1; min-width: 0; font-size: inherit; font-weight: 600; }
   [part=action-options] button small { color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 11.5px; font-variant-numeric: tabular-nums; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 55%; }
-  [part=action-options] [part=action-option] { flex-wrap: wrap; }
-  [part=action-options] [part=action-option] small { flex-basis: 100%; max-width: 100%; }
+  [part=action-options] [part=action-option]:not([data-custom]) { flex-wrap: wrap; }
+  [part=action-options] [part=action-option]:not([data-custom]) small { flex-basis: 100%; max-width: 100%; }
   [part=action-options] small[data-format=code] { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
   [part=action-chevron], [part=action-options] [part=action-back] { color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=action-chevron] { font-weight: 600; }
