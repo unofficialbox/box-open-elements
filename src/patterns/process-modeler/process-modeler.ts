@@ -3319,7 +3319,7 @@ export class ProcessModeler<
     const add = (label: string, command: string, action: () => void, withPlus = false) => {
       const button = document.createElement('button'); button.type = 'button'; button.dataset.selectionCommand = command; button.setAttribute('aria-label', label); button.disabled = this.locked; button.onclick = action;
       if (withPlus) {
-        const icon = document.createElement('span'); icon.setAttribute('part', 'selection-plus'); icon.setAttribute('aria-hidden', 'true'); icon.textContent = '+'; button.append(icon);
+        const icon = variableGlyph(true); icon.setAttribute('part', 'selection-plus'); icon.setAttribute('aria-hidden', 'true'); icon.setAttribute('focusable', 'false'); button.append(icon);
       }
       const text = document.createElement('span'); text.textContent = label; button.append(text);
       toolbar.append(button);
