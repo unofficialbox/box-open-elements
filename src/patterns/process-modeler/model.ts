@@ -195,6 +195,12 @@ export interface ProcessCheck {
   boxId?: string;
   path?: NodePath;
 }
+/** Insertion intent; explicit centers use canvas world coordinates, not top-left positions. */
+export type ProcessInsertionPlacement =
+  | { readonly source: 'direction'; readonly side: ProcessSide }
+  | { readonly source: 'next' }
+  | { readonly source: 'line'; readonly center: Readonly<{ x: number; y: number }> }
+  | { readonly source: 'point'; readonly center: Readonly<{ x: number; y: number }> };
 export interface ProcessEdit {
   type: "add" | "delete" | "duplicate" | "connect" | "disconnect" | "reattach" | "insert" | "reparent" | "reset-line" | "tidy" | "make-section";
   boxId?: string;
@@ -209,6 +215,8 @@ export interface ProcessEdit {
   lineId?: string;
   kind?: FlowKind;
   position?: BoxPosition;
+  /** Optional for existing hosts; all built-in insertion producers supply intent. */
+  placement?: ProcessInsertionPlacement;
   parentId?: string;
   fromSide?: ProcessSide;
   toSide?: ProcessSide;

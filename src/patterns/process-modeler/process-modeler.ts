@@ -408,6 +408,23 @@ export class ProcessModeler<
   }
   requestEdit(edit: ProcessEdit): void {
     if (this.locked || (this.disableConnections && (edit.type === "connect" || edit.type === "disconnect" || edit.type === 'reattach'))) return;
+    const placement = edit.placement;
+    if (placement) {
+      const source = placement.source;
+      let normalized: ProcessEdit['placement'];
+      if (edit.type === 'add' || edit.type === 'insert') {
+        if (source === 'next') normalized = { source };
+        else if (source === 'direction') {
+          const side = placement.side;
+          if (['north', 'east', 'south', 'west'].includes(side)) normalized = { source, side };
+        } else if (source === 'point' || source === 'line') {
+          const { x, y } = placement.center ?? {};
+          if (Number.isFinite(x) && Number.isFinite(y)) normalized = { source, center: { x, y } };
+        }
+      }
+      if (!normalized) { this.setStatus('The insertion placement is invalid', true); return; }
+      edit = { ...edit, placement: normalized };
+    }
     const problem = this.connectionProblem(edit);
     if (problem) { this.setStatus(problem, true); return; }
     const request: ProcessEditRequest = { ...edit, accept: this.editAcceptance(edit) };
@@ -1748,7 +1765,7 @@ export class ProcessModeler<
             const source = this.projection.boxes.find(box => box.id === port.id)!;
             const frame = this.boxAt(point, undefined, true);
             if ((frame?.id ?? null) !== (source.parentId ?? null)) this.setStatus('Drop inside the same frame to add a connected step');
-            else this.openChooserAtPoint({ type: 'add', from: port.id, fromSide: port.side, parentId: source.parentId, position: point },
+            else this.openChooserAtPoint({ type: 'add', from: port.id, fromSide: port.side, parentId: source.parentId, position: point, placement: { source: 'point', center: { ...point } } },
               `Add after ${source.title}`, point);
           }
         }
@@ -1786,7 +1803,11 @@ export class ProcessModeler<
         const position = this.alignedPoint(drag.id, drag.position.x + dx / this.viewport.zoom, drag.position.y + dy / this.viewport.zoom);
         const line = this.lineAt(point, drag.id);
         const frame = this.boxAt(point, drag.id, true);
-        if (line) this.requestEdit({ type: "insert", boxId: drag.id, lineId: line.id, from: line.from, to: line.to, position });
+        if (line) {
+          const box = this.projection.boxes.find(box => box.id === drag.id)!;
+          const { width, height } = this.selectionDimensions(box);
+          this.requestEdit({ type: "insert", boxId: drag.id, lineId: line.id, from: line.from, to: line.to, position, placement: { source: 'point', center: { x: position.x + width / 2, y: position.y + height / 2 } } });
+        }
         else if (this.projection.boxes.find(box => box.id === drag.id)?.parentId !== frame?.id) this.requestEdit({ type: "reparent", boxId: drag.id, parentId: frame?.id, position });
         else if (this.selectedIds.size > 1 && this.selectedIds.has(drag.id)) {
           const next = this.layout; const dx = position.x - drag.position.x; const dy = position.y - drag.position.y;
@@ -1868,9 +1889,10 @@ export class ProcessModeler<
   private nextEdit(box: ProcessBox<N>, side?: ProcessSide, position?: BoxPosition): ProcessEdit {
     const shape = box.shape ?? this.catalog.find(kind => kind.kind === box.kind)?.shape;
     const outgoing = this.projection.lines.filter(line => line.from === box.id);
+    const placement = side ? { source: 'direction' as const, side } : { source: 'next' as const };
     if ((!side || side === 'east') && shape !== 'gateway' && outgoing.length === 1)
-      return { type: 'insert', lineId: outgoing[0].id, from: box.id, to: outgoing[0].to };
-    return { type: 'add', from: box.id, ...(side ? { fromSide: side } : {}), parentId: box.parentId, ...(position ? { position } : {}) };
+      return { type: 'insert', lineId: outgoing[0].id, from: box.id, to: outgoing[0].to, placement };
+    return { type: 'add', from: box.id, placement, ...(side ? { fromSide: side } : {}), parentId: box.parentId, ...(position ? { position } : {}) };
   }
   private nextChooserTitle(box: ProcessBox<N>, side?: ProcessSide): string {
     const edit = this.nextEdit(box, side);
@@ -1895,7 +1917,7 @@ export class ProcessModeler<
     const target = this.projection.boxes.find(box => box.id === line.to);
     const points = this.routedLines.get(line.id) ?? routeProcessLine(line, this.layoutValue, this.projection);
     this.openChooserAtPoint(
-      { type: 'insert', lineId: line.id, from: line.from, to: line.to },
+      { type: 'insert', lineId: line.id, from: line.from, to: line.to, placement: { source: 'line', center: lineMidpoint(points) } },
       `Insert between ${source?.title ?? line.from} and ${target?.title ?? line.to}`,
       lineMidpoint(points), returnFocus,
     );
@@ -1922,8 +1944,8 @@ export class ProcessModeler<
     const anchor = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[data-box-id]'))
       .find(element => element.dataset.boxId === box.id);
     this.openAnchoredChooser(insert
-      ? { type: 'insert', lineId: outgoing[0].id, from: box.id, to: target.id }
-      : { type: 'add', from: box.id },
+      ? { type: 'insert', lineId: outgoing[0].id, from: box.id, to: target.id, placement: { source: 'next' } }
+      : { type: 'add', from: box.id, placement: { source: 'next' } },
     insert ? `Insert between ${box.title} and ${target.title}`
       : shape === 'gateway' ? `Add a path from ${box.title}` : `Add after ${box.title}`,
     anchor);
@@ -2275,6 +2297,7 @@ export class ProcessModeler<
             lineId: line.id,
             from: line.from,
             to: line.to,
+            ...(type === 'insert' ? { placement: { source: 'line' as const, center: lineMidpoint(points) } } : {}),
           };
           if (type === "insert" && this.catalog.length) {
             this.openLineChooser(line, button);
@@ -2314,9 +2337,12 @@ export class ProcessModeler<
     if (kind.placement) { this.addLayoutKind(kind); return; }
     const selected = this.selectedIds.size === 1 ? this.selected : null;
     const from = selected && !selected.frame && selected.kind !== 'section' && !['end', 'finish'].includes(selected.kind) ? selected.id : undefined;
-    const outgoing = from ? this.projection.lines.filter(line => line.from === from) : [];
-    const line = outgoing.length === 1 ? outgoing[0] : undefined;
-    this.requestEdit(line ? { type: 'insert', kind, lineId: line.id, from: line.from, to: line.to } : { type: 'add', kind, ...(from ? { from } : {}) });
+    if (from && selected) this.requestEdit({ ...this.nextEdit(selected), kind });
+    else {
+      const canvas = this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!;
+      const center = { x: (canvas.clientWidth / 2 - this.viewport.x) / this.viewport.zoom, y: (canvas.clientHeight / 2 - this.viewport.y) / this.viewport.zoom };
+      this.requestEdit({ type: 'add', kind, placement: { source: 'point', center } });
+    }
   }
   private paletteLineAt(point: { x: number; y: number }) {
     let nearest: ProcessProjection<N>['lines'][number] | undefined; let best = 20 / this.viewport.zoom;
@@ -2387,7 +2413,7 @@ export class ProcessModeler<
     if (drag.kind.placement) { this.addLayoutKind(drag.kind, point); return; }
     const line = drag.kind.kind === 'end' ? undefined : this.paletteLineAt(point);
     const frame = line ? undefined : this.paletteFrameAt(point);
-    this.requestEdit({ type: line ? 'insert' : 'add', kind: drag.kind, lineId: line?.id, from: line?.from, to: line?.to, parentId: frame?.id, position: point });
+    this.requestEdit({ type: line ? 'insert' : 'add', kind: drag.kind, lineId: line?.id, from: line?.from, to: line?.to, parentId: frame?.id, position: point, placement: { source: 'point', center: { ...point } } });
   }
   private renderPalette(): void {
     const choices =
@@ -2467,7 +2493,7 @@ export class ProcessModeler<
         type: line ? "insert" : "add",
         kind,
         lineId: line?.id, from: line?.from, to: line?.to, parentId: frame?.id,
-        position,
+        position, placement: { source: 'point', center: { ...position } },
       });
       this.markDropLine(undefined);
     };
@@ -2821,7 +2847,7 @@ export class ProcessModeler<
       if (!['end', 'finish', 'section', 'note'].includes(box.kind)) add(box.shape === 'gateway' ? 'Add a path' : 'Add next', 'add-next', () =>
         this.openAnchoredChooser(this.nextEdit(box), this.nextChooserTitle(box), toolbar.querySelector<HTMLElement>('[data-selection-command=add-next]') ?? undefined), true);
       if (failurePath) add('If it fails', 'add-failure', () => this.openAnchoredChooser(
-        { type: 'add', from: box.id, routeLabel: 'If it fails', dashed: true },
+        { type: 'add', from: box.id, routeLabel: 'If it fails', dashed: true, placement: { source: 'next' } },
         `If a step in ${box.title} fails`,
         toolbar.querySelector<HTMLElement>('[data-selection-command=add-failure]') ?? undefined,
         Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[data-box-id]')).find(element => element.dataset.boxId === box.id),
