@@ -294,6 +294,30 @@ describe("Process Modeler prototype interactions", () => {
     expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'insert', lineId: 'ab', from: 'a', to: 'b', kind: { kind: 'call' } });
     expect(chooser.hidePopover).toHaveBeenCalledOnce();
   });
+  it.each([false, true])('restores step focus after a chooser pick and host acceptance (deferred=%s)', deferred => {
+    const { builder, root, canvas } = fixture(); builder.select('a');
+    const chooser = root.querySelector<HTMLElement>('[part=keyboard-chooser]')!;
+    chooser.showPopover = vi.fn(); chooser.hidePopover = vi.fn();
+    let accept!: () => void;
+    builder.addEventListener('process-edit-request', event => {
+      const request = (event as CustomEvent).detail;
+      const before = builder.document!;
+      const after: ProcessProjection = { boxes: [...projection.boxes, { id: 'added', kind: 'call', title: 'Added', node: {} }], lines: [{ id: 'a-added', from: 'a', to: 'added' }, { id: 'added-b', from: 'added', to: 'b' }] };
+      accept = () => { builder.document = after; request.accept({ undo: () => { builder.document = before; }, redo: () => { builder.document = after; } }); };
+      if (!deferred) accept();
+    });
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'n', bubbles: true, cancelable: true }));
+    chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
+    expect(root.activeElement).toBe(root.querySelector('[data-box-id=a]'));
+    if (deferred) accept();
+    const focused = root.querySelector<HTMLElement>('[data-box-id=a]')!;
+    expect(root.activeElement).toBe(focused);
+    expect(builder.document!.boxes).toHaveLength(4);
+    focused.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true, cancelable: true }));
+    expect(builder.document!.boxes).toHaveLength(3);
+    expect(root.activeElement).toBe(root.querySelector('[data-box-id=a]'));
+  });
+
   it("names an end-of-path keyboard add and returns focus on Escape", () => {
     const { builder, root, canvas } = fixture(); builder.select('c');
     const chooser = root.querySelector<HTMLElement>('[part=keyboard-chooser]')!;
