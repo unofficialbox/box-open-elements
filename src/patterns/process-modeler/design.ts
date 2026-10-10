@@ -320,8 +320,8 @@ export const processModelerDesign = `
   [part=field-feedback][data-tone=success] { color: var(--boe-token-text-status-text-success, #247b3e); }
   [part=field]:has([part=action-options]) { position: relative; }
   [part=field]:has([part=action-options]) input { padding-right: 32px; }
-  [part=action-input] { display: block; position: relative; }
-  [part=action-caret] { position: absolute; z-index: 1; top: 0; right: 0; width: 32px; height: 36px; min-height: 36px; padding: 0; border: 0; background: transparent; }
+  [part=action-input] { display: block; position: relative; line-height: 1.45; }
+  [part=action-caret] { position: absolute; z-index: 1; top: 0; right: 0; width: 32px; height: 100%; min-height: 36px; padding: 0; border: 0; background: transparent; }
   [part=action-caret-icon] { position: absolute; right: 12px; top: 50%; width: 8px; height: 8px; border-right: 1.5px solid var(--boe-token-text-text-secondary, #6f6f6f); border-bottom: 1.5px solid var(--boe-token-text-text-secondary, #6f6f6f); translate: 0 -70%; rotate: 45deg; pointer-events: none; }
   [part=action-options] { position: fixed; z-index: 50; max-height: 420px; overflow: auto; padding: 6px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-process-menu-shadow, 0 8px 32px light-dark(rgb(0 0 0 / .14), rgb(0 0 0 / .5))); }
   [part=action-options][hidden] { display: none; }
