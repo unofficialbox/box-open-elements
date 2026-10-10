@@ -273,6 +273,7 @@ export const processModelerDesign = `
   [part=section-number] { display: block; min-width: 1ch; font-size: 12px; color: var(--boe-token-text-text-secondary, #6f6f6f); font-variant-numeric: tabular-nums; }
   [part=section-head] strong { font-size: 14px; font-weight: 650; line-height: inherit; }
   [part=section-head] small { display: block; font-size: 12.5px; color: var(--boe-token-text-text-secondary, #6f6f6f); line-height: inherit; }
+  [part=section-head] [part=problem] { display: block; }
   [part=note] { pointer-events: auto !important; }
   [part=note][data-selected=true] { outline: 2px solid var(--boe-process-line-selected, var(--boe-brand-fill, #1976d2)); }
   [part=note]:focus-visible { outline: 2px solid var(--boe-focus-ring, #1976d2); outline-offset: 3px; }
