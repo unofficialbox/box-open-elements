@@ -1922,7 +1922,7 @@ export class ProcessModeler<
       const outgoing = this.projection.lines.filter(line => line.from === box.id).length;
       element.setAttribute(
         "aria-label",
-        [`${kind?.label ?? box.kind}: ${box.title}. ${incoming} in, ${outgoing} out`, problem ? `Needs attention: ${problem.message}` : ""]
+        [`${kind?.label ?? box.kind}: ${box.title}. ${incoming} in, ${outgoing} out`, problem ? `Needs attention: ${problem.title ?? problem.message}` : ""]
           .filter(Boolean)
           .join(". "),
       );

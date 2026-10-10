@@ -296,6 +296,22 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector('[data-box-id=b] [part=problem]')?.textContent).toBe('Leads nowhere');
     root.querySelector<HTMLButtonElement>('[part=checks] button')!.click(); expect(builder.selected?.id).toBe('b');
   });
+  it('uses short check titles in step accessible names and preserves the detailed explanation', () => {
+    const { builder, root } = fixture();
+    builder.model = { project: doc => doc, validate: () => [
+      { boxId: 'b', title: 'Needs an address', message: 'Set the endpoint URL to https://example.test/a/very/long/path.' },
+      { boxId: 'b', title: 'Another check', message: 'Second detail' },
+    ] };
+    expect(root.querySelector('[data-box-id=b]')?.getAttribute('aria-label')).toBe('Call: Save. 1 in, 0 out. Needs attention: Needs an address');
+    root.querySelector<HTMLButtonElement>('#process-tab-checks')!.click();
+    expect(root.querySelector('[part=checks]')?.textContent).toContain('https://example.test/a/very/long/path.');
+    expect(root.querySelector('[part=checks]')?.textContent).toContain('Second detail');
+  });
+  it('falls back to the detailed check message when no short title is supplied', () => {
+    const { builder, root } = fixture();
+    builder.model = { project: doc => doc, validate: () => [{ path: ['steps', 1], message: 'Connect this step' }] };
+    expect(root.querySelector('[data-box-id=b]')?.getAttribute('aria-label')).toBe('Call: Save. 1 in, 0 out. Needs attention: Connect this step');
+  });
   it("shows the ready state when the Checks tab has no problems", () => {
     const { root } = fixture();
     root.querySelector<HTMLButtonElement>('#process-tab-checks')!.click();
