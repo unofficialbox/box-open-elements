@@ -55,7 +55,7 @@ describe('Native graph note and association roles', () => {
 
   it('routes associations straight without arrows, pins, route controls or Insert across selection refresh', () => {
     const { element, root } = fixture();
-    expect(routeProcessLine(graph.lines[1], element.layout, graph)).toHaveLength(2);
+    expect(routeProcessLine(graph.lines[1], element.layout, graph)).toEqual([{ x: 408, y: 240 }, { x: 400, y: 72 }]);
     for (let repeat = 0; repeat < 3; repeat++) {
       element.selectLine('nb'); element.refresh();
       const path = root.querySelector('[part=line][data-line-id=nb]')!;
