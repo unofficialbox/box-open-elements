@@ -16,6 +16,7 @@ import {
   type ProcessCheck,
   type ProcessEdit,
   type ProcessEditRequest,
+  type ProcessLayoutEditRequest,
   type ProcessClipboard,
   type ProcessCopyRequest,
   type ProcessPasteRequest,
@@ -99,6 +100,7 @@ export class ProcessModeler<
   private selectedIds = new Set<string>();
   private clipboard: ProcessClipboard | null = null;
   private clipboardSession = 0;
+  private layoutEditSession = 0;
   private restoringBoxFocus = false;
   private selectionToolbarKey = "";
   private sectionSequence = 0;
@@ -181,6 +183,7 @@ export class ProcessModeler<
     };
   }
   load(document: D, options: ProcessLoadOptions = {}): void {
+    this.layoutEditSession++;
     this.cancelPalettePointer();
     const projection = this.model.project(document); validateProjection(projection);
     this.documentValue = document;
@@ -297,6 +300,7 @@ export class ProcessModeler<
     this.refresh();
   }
   disconnectedCallback(): void {
+    this.layoutEditSession++;
     this.resizeObserver?.disconnect();
     this.clearClipboard();
     this.cancelPalettePointer();
@@ -429,6 +433,30 @@ export class ProcessModeler<
     this.history.redo();
     this.refresh();
   }
+  private requestLayoutEdit(type: 'tidy' | 'make-section', sourceIds: readonly string[] | null, title?: string, onAccepted?: () => void): boolean {
+    const capability = this.model.layoutEdit;
+    if (!capability || this.documentValue === undefined) return false;
+    if (this.locked) return true;
+    if (!this.isRendered) { this.projection = this.model.project(this.documentValue); validateProjection(this.projection); }
+    const session = this.layoutEditSession;
+    const accept = this.editAcceptance({ type });
+    let active = true, settled = false;
+    const valid = () => active && !settled && session === this.layoutEditSession && !this.locked;
+    const request: ProcessLayoutEditRequest = {
+      type, sourceIds: sourceIds ? Object.freeze([...sourceIds]) : null, ...(title !== undefined ? { title } : {}), layout: this.layout,
+      accept: command => {
+        if (!valid()) return;
+        settled = true;
+        if (!command.layout) { this.setStatus('The host must supply the complete accepted layout', true); return; }
+        accept(command); onAccepted?.();
+      },
+      refuse: message => { if (!valid()) return; settled = true; this.setStatus(message ?? 'The host refused this layout edit', true); },
+    };
+    try { capability.call(this.model, this.documentValue, request, this.projection); }
+    finally { active = false; }
+    if (!settled && session === this.layoutEditSession) this.setStatus('This layout edit was not accepted by the host', true);
+    return true;
+  }
   private commitLayout(next: ProcessLayout): void {
     const before = this.layout;
     const after = structuredClone(next);
@@ -520,6 +548,7 @@ export class ProcessModeler<
   }
   tidy(): void {
     if (this.locked) return;
+    if (this.requestLayoutEdit('tidy', null, undefined, () => { if (this.isRendered) this.fitTo(this.narrowValue ? 0.55 : 0.7); })) return;
     const before = this.layout.boxes;
     this.commitLayout(
       this.arrangedLayout({ ...this.layout, boxes: {} }),
@@ -973,6 +1002,7 @@ export class ProcessModeler<
   }
   private tidySelection(): void {
     if (this.locked || this.selectedBoxes.length < 2) return;
+    if (this.requestLayoutEdit('tidy', [...this.selectedIds])) return;
     const next = this.layout;
     const roots = this.selectedBoxes.filter(box => {
       let parent = box.parentId;
@@ -1076,7 +1106,9 @@ export class ProcessModeler<
     if (emit(this, "move-request", { boxId: sorted[0].id, position: next.boxes[sorted[0].id], boxIds: sorted.map(box => box.id), positions: next.boxes })) this.commitLayout(next);
   }
   makeSection(title = 'New section'): void {
-    if (this.locked || this.selectedBoxes.length < 2) return;
+    if (this.locked || !this.selectedBoxes.length) return;
+    if (this.requestLayoutEdit('make-section', [...this.selectedIds], title)) return;
+    if (this.selectedBoxes.length < 2) return;
     const positions = this.selectedBoxes.map(box => this.layoutValue.boxes[box.id]);
     const x = Math.min(...positions.map(position => position.x)) - 24;
     const y = Math.min(...positions.map(position => position.y)) - 48;
