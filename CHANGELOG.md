@@ -21,6 +21,10 @@ are kept as written.
   accessible name includes the visible caption for speech input and passes axe
   label-content-name-mismatch (#410). Drawer behavior and focus restoration stay
   the same.
+- Let Enter open and focus the selected step editor while preserving connection
+  and reattachment completion; keep focus on the source step after a chooser
+  pick so immediate keyboard undo works, including deferred host acceptance
+  (#412, #413).
 
 ## 0.29.0 — 2026-10-10
 
