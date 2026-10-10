@@ -425,6 +425,18 @@ describe("Process Modeler prototype interactions", () => {
     expect(css).toContain(':host([data-narrow]) [data-command=palette] { order: -2; }');
     expect(css).toContain(':host([data-phone]) [data-command=undo]');
   });
+  it('hides Tidy through the inclusive 560px boundary without changing phone-only history controls', () => {
+    let resize!: ResizeObserverCallback;
+    vi.stubGlobal('ResizeObserver', class { constructor(callback: ResizeObserverCallback) { resize = callback; } observe() {} disconnect() {} });
+    try {
+      const { builder } = fixture();
+      for (const width of [559, 560, 561, 560, 559]) {
+        resize([{ contentRect: { width } } as ResizeObserverEntry], {} as ResizeObserver);
+        expect(builder.hasAttribute('data-hide-tidy')).toBe(width <= 560);
+        expect(builder.hasAttribute('data-phone')).toBe(width < 560);
+      }
+    } finally { vi.unstubAllGlobals(); }
+  });
   it("closes the contained details drawer when its local scrim is clicked", () => {
     const { builder, root } = fixture(); Object.assign(builder, { narrowValue: true });
     const drawer = root.querySelector<HTMLDialogElement>('[part=pane-drawer][data-pane=inspector]')!;

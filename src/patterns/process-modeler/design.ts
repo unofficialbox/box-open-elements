@@ -233,6 +233,8 @@ export const processModelerDesign = `
   [part=keyboard-chooser] { position: fixed; inset: auto; width: min(320px, calc(100vw - 24px)); max-height: min(420px, calc(100dvh - 24px)); margin: 0; overflow: auto; padding: 12px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface, #fff); color: var(--boe-token-text-text, #141413); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }
   [part=chooser-title] { margin: 0 0 10px; font-size: 12px; font-weight: 650; line-height: 1.4; color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=controls] { position: absolute; left: 16px; bottom: 16px; z-index: 10; display: flex; align-items: center; gap: 2px; padding: 4px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }
+  [part=controls] button:not([data-command=reset]) { width: 32px; padding: 0; }
+  [part=controls-divider] { width: 1px; height: 20px; margin: 0 4px; background: var(--boe-token-stroke-stroke, #e8e8e8); }
   [part=controls] [data-command=reset] { min-width: 56px; font-variant-numeric: tabular-nums; }
   [part=minimap] { position: absolute; right: 16px; bottom: 16px; width: 208px; height: 136px; touch-action: none; background: var(--boe-token-surface-surface, #fff); border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }
   [part=minimap] rect:not([data-viewport]) { fill: color-mix(in srgb, var(--boe-token-text-text-secondary, #6f6f6f) 35%, transparent); }
@@ -342,9 +344,9 @@ export const processModelerDesign = `
   :host([data-narrow]) [part=view-switch], :host([data-narrow]) [part=run-toggle] { display: none; }
   :host([data-narrow]) [data-command=checks-status] { display: none; }
   :host([data-narrow]) [part=view-menu] { display: block; }
-  :host([data-narrow]) [part=controls] { left: 12px; bottom: 12px; }
+  :host([data-hide-tidy]) [part=controls] { left: 12px; bottom: 12px; }
   :host([data-narrow]) [part=selection-toolbar] [part=selection-plus] + span { display: none; }
-  :host([data-phone]) [data-command=tidy] { display: none; }
+  :host([data-hide-tidy]) [data-command=tidy] { display: none; }
   :host([data-phone]) [data-command=undo], :host([data-phone]) [data-command=redo] { display: none; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; scroll-behavior: auto !important; } }
 `;
