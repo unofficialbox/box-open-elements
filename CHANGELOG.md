@@ -15,6 +15,21 @@ are kept as written.
 
 ## Unreleased
 
+## 0.32.0 — 2026-10-10
+
+- Capture immutable host-owned clipboard operations, with atomic accepted Paste,
+  lifecycle disposal and stale-callback guards (#442).
+- Duplicate selected roots, descendants and internal edges in one host transaction,
+  recording accepted selection before observers for chronological undo/redo (#440).
+- Match keyboard focus/selection and directional navigation, including unavailable
+  insertion fallback without layout edits (#439).
+- Support captured mouse/touch palette gestures, narrow keyboard activation and
+  cancellation across outside focus, interruptions and process reloads (#443).
+- Match reference canvas controls, zoom label geometry and inclusive 560px Tidy
+  and control-offset boundaries (#444).
+- Let hosts validate proposed connections before hover/commit and reset projected
+  pins/manual routes with local bends in one accepted undoable transaction (#445).
+
 ## 0.31.2 — 2026-10-10
 
 - Pan the canvas when Space is held on a focused step, preserving selection and
