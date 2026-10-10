@@ -15,6 +15,14 @@ are kept as written.
 
 ## Unreleased
 
+## 0.28.7 — 2026-10-09
+
+- Size the Form Wizard chevron path to its own container, keeping optional-step
+  meaning available to assistive technology as labels and layout compact (#394).
+- Keep the Process Modeler canvas in its flexible grid row when the invalid-
+  drawing hold is hidden, so a valid process remains visible (#326).
+- Keep the React, Angular, Vue, and Svelte adapters in lockstep at 0.28.7.
+
 ## 0.28.6 — 2026-10-09
 
 - Add an interactive, wizard-native chevron path above a full-width Form Wizard
