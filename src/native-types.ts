@@ -399,7 +399,13 @@ export interface BoxElementEventMap {
   };
   "box-flow-card": {};
   "box-flow-spine": {};
-  "box-form-wizard": {};
+  "box-form-wizard": {
+    "draft-saved": CustomEvent<{ values: Record<string, unknown>; }>;
+    "step-changed": CustomEvent<{ stepId: string; stepIndex: number; }>;
+    "step-invalid": CustomEvent<{ stepId: string; validation: import("./patterns/form-wizard/types.js").WizardStepValidation; }>;
+    "submitted": CustomEvent<{ values: Record<string, unknown>; }>;
+    "values-changed": CustomEvent<{ values: Record<string, unknown>; }>;
+  };
   "box-formatted-date": {};
   "box-formatted-duration": {};
   "box-formatted-file-size": {};
@@ -505,7 +511,20 @@ export interface BoxElementEventMap {
     "action": CustomEvent<{ action: string; }>;
     "breadcrumb-selected": CustomEvent<{ id: string; }>;
   };
-  "box-process-modeler": {};
+  "box-process-modeler": {
+    "connection-setup-request": CustomEvent<{}>;
+    "detail-changed": CustomEvent<{ detail: "business" | "technical"; }>;
+    "layout-changed": CustomEvent<{ layout: import("./patterns/process-modeler/model.js").ProcessLayout; }>;
+    "move-request": CustomEvent<{ boxId: string; position: import("./patterns/process-modeler/model.js").BoxPosition; } | { boxId: string; position: import("./patterns/process-modeler/model.js").BoxPosition; boxIds: string[]; positions: Record<string, import("./patterns/process-modeler/model.js").BoxPosition>; }>;
+    "outline-copy-request": CustomEvent<{ text: string; }>;
+    "positions-changed": CustomEvent<{ positions: readonly import("./patterns/process-modeler/model.js").ProcessPositionSnapshot[]; version: string | number; }>;
+    "process-edit-request": CustomEvent<import("./patterns/process-modeler/model.js").ProcessEditRequest>;
+    "process-field-change-request": CustomEvent<{ boxId: string; path: import("./patterns/flow-builder/model.js").NodePath | undefined; key: string; value: string | number | boolean; }>;
+    "process-variable-change-request": CustomEvent<{ name: string; value: string; }>;
+    "projection-changed": CustomEvent<{ projection: import("./patterns/process-modeler/model.js").ProcessProjection<unknown>; version: string | number; checks: readonly import("./patterns/process-modeler/model.js").ProcessCheck[]; }>;
+    "readable-projection-changed": CustomEvent<{ projection: import("./patterns/process-modeler/model.js").ProcessProjection<unknown>; version: string | number; }>;
+    "selection-changed": CustomEvent<{ box: import("./patterns/process-modeler/model.js").ProcessBox<unknown> | null; boxes: readonly import("./patterns/process-modeler/model.js").ProcessBox<unknown>[]; path: import("./patterns/flow-builder/model.js").NodePath | null; } | { box: null; boxes: never[]; line: import("./patterns/process-modeler/model.js").ProcessLine | null; path: null; }>;
+  };
   "box-progress-bar": {};
   "box-progress-ring": {};
   "box-progress-steps": {
@@ -2530,6 +2549,41 @@ declare module "./patterns/flow-builder/flow-builder.js" {
   }
 }
 
+declare module "./patterns/form-wizard/form-wizard.js" {
+  interface FormWizard {
+    addEventListener<K extends keyof BoxElementEventMap["box-form-wizard"] & string>(
+      type: K,
+      listener: (this: FormWizard, event: BoxElementEventMap["box-form-wizard"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: FormWizard, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-form-wizard"] & string>(
+      type: K,
+      listener: (this: FormWizard, event: BoxElementEventMap["box-form-wizard"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: FormWizard, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
 declare module "./patterns/governance/governance-panel.js" {
   interface GovernancePanel {
     addEventListener<K extends keyof BoxElementEventMap["box-governance-panel"] & string>(
@@ -3395,6 +3449,41 @@ declare module "./patterns/item/preview-header.js" {
     removeEventListener<K extends keyof HTMLElementEventMap>(
       type: K,
       listener: (this: PreviewHeader, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
+declare module "./patterns/process-modeler/process-modeler.js" {
+  interface ProcessModeler {
+    addEventListener<K extends keyof BoxElementEventMap["box-process-modeler"] & string>(
+      type: K,
+      listener: (this: ProcessModeler, event: BoxElementEventMap["box-process-modeler"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: ProcessModeler, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-process-modeler"] & string>(
+      type: K,
+      listener: (this: ProcessModeler, event: BoxElementEventMap["box-process-modeler"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: ProcessModeler, event: HTMLElementEventMap[K]) => void,
       options?: boolean | EventListenerOptions,
     ): void;
     removeEventListener(
