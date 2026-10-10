@@ -24,6 +24,19 @@ function fixture() {
 }
 afterEach(() => { document.body.replaceChildren(); vi.restoreAllMocks(); });
 describe('Native graph note and association roles', () => {
+  it('preserves native Leads-to controls with flow-only graph eligibility after integration', () => {
+    const { element, root } = fixture();
+    element.document = {...graph, lines: [...graph.lines, {id: 'an', from: 'a', to: 'n', role: 'association'}]};
+    element.select('a');
+    expect(root.querySelectorAll('[part=lead-row]')).toHaveLength(1);
+    expect([...root.querySelectorAll<HTMLSelectElement>('[part=lead-target] option')].map(option => option.value)).not.toContain('n');
+    const requests = vi.fn(); element.addEventListener('process-edit-request', requests);
+    element.requestEdit({type: 'edit-line', lineId: 'an', label: 'wrong'});
+    element.requestEdit({type: 'edit-line', lineId: 'ab', label: 'valid'});
+    expect(requests).toHaveBeenCalledTimes(1);
+    element.select('n'); expect(root.querySelector('[part=leads-to]')).toBeNull();
+  });
+
   it('renders safe note text independent of kind, detail, metrics and flow counts', () => {
     const { element, root } = fixture();
     element.lastRun = { label: 'Run', steps: { n: { callsPerSecond: 9 } } }; element.showLastRun = true;
