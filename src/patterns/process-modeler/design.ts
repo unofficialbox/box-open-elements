@@ -236,7 +236,7 @@ export const processModelerDesign = `
   [part=check-icon][data-tone=success] { color: var(--boe-token-text-status-text-success, #138a58); }
   [part=problem] { display: flex; align-items: center; gap: 4px; }
   [part=problem] [part=check-icon] { flex-basis: 12px; width: 12px; height: 12px; margin: 0; }
-  [part=checks-ready] { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 13px; line-height: 1.45; }
+  [part=checks-ready] { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--boe-token-text-text, #222); font-size: 13px; line-height: 1.45; }
   [part=process-heading] { display: grid; gap: 2px; padding: 0 16px 12px; }
   :host([embed-mode]) [part=view-switch], :host([embed-mode]) [part=run-toggle], :host([embed-mode]) [part=view-menu] { display: none; }
   [part=process-title] { font-size: 15px; line-height: 1.4; }
