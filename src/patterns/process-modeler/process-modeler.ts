@@ -366,7 +366,6 @@ export class ProcessModeler<
         }
         const after = this.layout;
         const acceptedSelection = command.selectionIds ? [...command.selectionIds] : undefined;
-        if (acceptedSelection) this.selectMany(acceptedSelection);
         const restore = (layout: ProcessLayout) => {
           this.layoutValue = structuredClone(layout);
           this.refresh();
@@ -384,6 +383,7 @@ export class ProcessModeler<
             if (acceptedSelection) this.selectMany(acceptedSelection);
           },
         });
+        if (acceptedSelection) this.selectMany(acceptedSelection);
         this.refresh();
         if (JSON.stringify(before) !== JSON.stringify(after))
           this.emitPositions();

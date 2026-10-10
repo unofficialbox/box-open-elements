@@ -920,6 +920,27 @@ describe("Process Modeler prototype interactions", () => {
     builder.redo(); expect(builder.document!.boxes).toHaveLength(5); expect(builder.document!.lines).toHaveLength(3);
     expect(builder.selectedBoxes.map(box => box.id)).toEqual(['a-copy', 'b-copy']);
   });
+  it('records an accepted duplicate before synchronous selection observers can move its clones', () => {
+    const { builder } = fixture(); builder.selectMany(['a', 'b']);
+    const original = builder.document!; const before = builder.layout;
+    const after = { ...original, boxes: [...original.boxes, { ...original.boxes[0], id: 'a-copy' }] };
+    const layout = structuredClone(before); layout.boxes['a-copy'] = { ...before.boxes.a, x: before.boxes.a.x + 48, y: before.boxes.a.y + 48 };
+    let moved = false;
+    builder.addEventListener('selection-changed', () => {
+      if (moved || builder.selected?.id !== 'a-copy') return;
+      moved = true; builder.move('a-copy', layout.boxes['a-copy'].x + 64, layout.boxes['a-copy'].y);
+    });
+    builder.addEventListener('process-edit-request', event => {
+      builder.document = after;
+      (event as CustomEvent).detail.accept({ layout, selectionIds: ['a-copy'], undo: () => { builder.document = original; }, redo: () => { builder.document = after; } });
+    });
+    builder.requestEdit({ type: 'duplicate', sourceIds: ['a', 'b'], offset: { x: 48, y: 48 } });
+    expect(builder.layout.boxes['a-copy'].x).toBe(layout.boxes['a-copy'].x + 64);
+    builder.undo(); expect(builder.document!.boxes).toHaveLength(4); expect(builder.layout.boxes['a-copy']).toEqual(layout.boxes['a-copy']);
+    builder.undo(); expect(builder.document).toEqual(original); expect(builder.layout).toEqual(before);
+    builder.redo(); expect(builder.document!.boxes).toHaveLength(4); expect(builder.layout.boxes['a-copy']).toEqual(layout.boxes['a-copy']);
+    builder.redo(); expect(builder.layout.boxes['a-copy'].x).toBe(layout.boxes['a-copy'].x + 64);
+  });
   it('sends selected frame roots once and leaves descendant cloning to the host', () => {
     const { builder, canvas } = fixture();
     builder.document = { ...projection, boxes: [...projection.boxes.map(box => box.id === 'a' ? { ...box, parentId: 'frame' } : box), { id: 'frame', kind: 'try', title: 'Frame', frame: true, node: {} }] };
