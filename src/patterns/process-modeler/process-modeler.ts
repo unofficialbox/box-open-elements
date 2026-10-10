@@ -2480,16 +2480,12 @@ export class ProcessModeler<
       if (kind?.icon) {
         icon.append(kind.icon());
       }
-      if (isFlowBox(box)) element.append(icon);
+      if (isFlowBox(box) && (shape !== "event" || ["timer", "scheduled-start"].includes(box.kind))) element.append(icon);
       const title = document.createElement("strong");
       title.textContent = box.title;
       if (isFlowBox(box)) element.append(title);
       let descriptionParent: HTMLElement = element;
-      if (shape === 'event' && this.detailValue === 'technical' && box.technicalDetails?.length) {
-        const details = document.createElement('div'); details.setAttribute('part', 'event-details');
-        element.append(details); descriptionParent = details;
-      }
-      if (shape === 'gateway' && this.detailValue === 'technical' && box.technicalDetails?.length) {
+      if (shape === 'gateway' || shape === 'event') {
         const caption = document.createElement('div'); caption.setAttribute('part', 'caption');
         const position = this.layoutValue.boxes[box.id];
         let topUsed = false, bottomUsed = false;
@@ -2497,11 +2493,15 @@ export class ProcessModeler<
           const points = this.routedLines.get(line.id);
           const end = line.from === box.id ? points?.[0] : line.to === box.id ? points?.at(-1) : undefined;
           if (!end) continue;
-          if (Math.abs(end.y - position.y) < .01) topUsed = true;
-          if (Math.abs(end.y - (position.y + 56)) < .01) bottomUsed = true;
+          if (Math.abs(end.y - processPortPoint(box, position, "north").y) < .01) topUsed = true;
+          if (Math.abs(end.y - processPortPoint(box, position, "south").y) < .01) bottomUsed = true;
         }
         caption.dataset.side = bottomUsed && !topUsed ? 'above' : 'below';
         caption.append(title); element.append(caption); descriptionParent = caption;
+        if (shape === 'event' && this.detailValue === 'technical' && box.technicalDetails?.length) {
+          const details = document.createElement('div'); details.setAttribute('part', 'event-details');
+          caption.append(details); descriptionParent = details;
+        }
       }
       if (shape === 'task' && box.technicalDetails) icon.style.gridRow = 'span 4';
       if (isFlowBox(box) && this.detailValue === "technical" && box.technicalDetails) {

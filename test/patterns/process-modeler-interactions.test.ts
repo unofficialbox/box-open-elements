@@ -110,7 +110,30 @@ describe("Process Modeler prototype interactions", () => {
     builder.detail = 'technical';
     expect(root.querySelector('[part=caption] strong')?.textContent).toBe('Read');
     expect(root.querySelector('[part=caption] [part=technical-description]')?.textContent).toBe('file.size > 0');
-    builder.detail = 'business'; expect(root.querySelector('[part=caption]')).toBeNull();
+    builder.detail = 'business'; expect(root.querySelector('[part=caption] strong')?.textContent).toBe('Read');
+    expect(root.querySelector('[part=caption] [part=technical-description]')).toBeNull();
+  });
+  it("places gateway and event captions on the unused vertical side in both detail modes", () => {
+    const { builder, root } = fixture();
+    for (const shape of ['gateway', 'event'] as const) for (const detail of ['business', 'technical'] as const) {
+      builder.detail = detail;
+      builder.document = { ...projection, boxes: projection.boxes.map(box => box.id === 'a' ? { ...box, shape } : box), lines: [{ id: 'ab', from: 'a', to: 'b', fromSide: 'south', toSide: 'north' }] };
+      builder.layout = { boxes: { a: { x: 0, y: 0, width: 56, height: 56 }, b: { x: 0, y: 200, width: 224, height: 64 }, c: { x: 400, y: 0 } } };
+      let caption = root.querySelector<HTMLElement>('[data-box-id=a] [part=caption]')!;
+      expect(caption.dataset.side).toBe('above'); expect(caption.querySelector('strong')?.textContent).toBe('Read');
+      builder.document = { ...builder.document!, lines: [{ id: 'ab', from: 'a', to: 'b', fromSide: 'north', toSide: 'south' }] };
+      caption = root.querySelector<HTMLElement>('[data-box-id=a] [part=caption]')!;
+      expect(caption.dataset.side).toBe('below');
+    }
+  });
+  it("omits Start and Finish glyphs while retaining the scheduled event icon", () => {
+    const { builder, root } = fixture();
+    for (const kind of ['start', 'end', 'finish', 'timer', 'scheduled-start']) {
+      builder.catalog = [{ kind, label: kind, icon: () => document.createElementNS('http://www.w3.org/2000/svg', 'svg'), create: () => ({}) }];
+      builder.document = { boxes: [{ ...projection.boxes[0], kind, shape: 'event' }], lines: [] };
+      expect(Boolean(root.querySelector('[data-shape=event] > [part=icon]'))).toBe(['timer', 'scheduled-start'].includes(kind));
+      expect(root.querySelector('[part=caption] strong')?.textContent).toBe('Read');
+    }
   });
   it("names the desktop building-block pane without duplicating the mobile drawer heading", () => {
     const { root } = fixture();
