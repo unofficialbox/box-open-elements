@@ -398,7 +398,7 @@
 
     "@types/trusted-types": ["@types/trusted-types@2.0.7", "", {}, "sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw=="],
 
-    "@unofficialbox/box-open-elements": ["@unofficialbox/box-open-elements@0.35.0", "", { "optionalDependencies": { "@codemirror/autocomplete": "^6.20.3", "@codemirror/commands": "^6.11.1", "@codemirror/lang-go": "^6.0.1", "@codemirror/lang-javascript": "^6.2.5", "@codemirror/language": "^6.12.4", "@codemirror/lint": "^6.9.7", "@codemirror/search": "^6.7.2", "@codemirror/state": "^6.7.6", "@codemirror/view": "^6.43.13", "@lezer/highlight": "^1.2.5", "codemirror": "^6.0.2" } }, "sha512-Z1HBAwGfiVE/iKUtyyzZ0+DmOTLdJqzUAH7QRE02hin8xGewow8orA9/jNC/l7nwf0OhQkzex5tVcQkEB+CvjA=="],
+    "@unofficialbox/box-open-elements": ["@unofficialbox/box-open-elements@0.36.0", "", {"optionalDependencies": {"@codemirror/autocomplete": "^6.20.3", "@codemirror/commands": "^6.11.1", "@codemirror/lang-go": "^6.0.1", "@codemirror/lang-javascript": "^6.2.5", "@codemirror/language": "^6.12.4", "@codemirror/lint": "^6.9.7", "@codemirror/search": "^6.7.2", "@codemirror/state": "^6.7.6", "@codemirror/view": "^6.43.13", "@lezer/highlight": "^1.2.5", "codemirror": "^6.0.2"}}, "sha512-gB85T8rlxbjRVJIs0f80Y5WtRJBuQ35QEpJCr0XjdvalWRJyhM4sn6bbKXPK9l4WoVvnJFUVghQ6NATVr5VlQw=="],
 
     "@unofficialbox/box-open-elements-angular": ["@unofficialbox/box-open-elements-angular@workspace:packages/angular"],
 
