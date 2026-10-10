@@ -920,15 +920,18 @@ export class ProcessModeler<
       emit(this, 'process-variable-edit-request', edit);
     }
   }
+  private selectionDimensions(box: ProcessBox<N>): { width: number; height: number } {
+    const shape = box.shape ?? this.catalog.find(kind => kind.kind === box.kind)?.shape;
+    const compact = shape === 'gateway' || shape === 'event';
+    const position = this.layoutValue.boxes[box.id];
+    return { width: position.width ?? (compact ? 56 : 224), height: position.height ?? (compact ? 56 : 64) };
+  }
   private selectionCommand(command: string): void {
     if (this.locked) return;
     const boxes = this.selectedBoxes;
     if (command === "delete-many") { for (const box of boxes) this.requestEdit({ type: "delete", boxId: box.id }); return; }
     if (command === 'space') { this.tidySelection(); return; }
-    const rectangles = boxes.map(box => ({ ...this.layoutValue.boxes[box.id],
-      width: this.layoutValue.boxes[box.id].width ?? (box.shape === 'gateway' || box.shape === 'event' ? 56 : 224),
-      height: this.layoutValue.boxes[box.id].height ?? (box.shape === 'gateway' || box.shape === 'event' ? 56 : 64),
-    }));
+    const rectangles = boxes.map(box => ({ ...this.layoutValue.boxes[box.id], ...this.selectionDimensions(box) }));
     const width = Math.max(...rectangles.map(r => r.x + r.width)) - Math.min(...rectangles.map(r => r.x));
     const height = Math.max(...rectangles.map(r => r.y + r.height)) - Math.min(...rectangles.map(r => r.y));
     this.arrangeSelection(width >= height ? 'middle' : 'center');
@@ -985,8 +988,8 @@ export class ProcessModeler<
       let parent = box.parentId; while (parent) { if (this.selectedIds.has(parent)) return false; parent = this.projection.boxes.find(box => box.id === parent)?.parentId; } return true;
     });
     if (sorted.length < 2) return;
-    const width = (box: ProcessBox<N>) => next.boxes[box.id].width ?? (box.shape === 'gateway' || box.shape === 'event' ? 56 : 224);
-    const height = (box: ProcessBox<N>) => next.boxes[box.id].height ?? (box.shape === 'gateway' || box.shape === 'event' ? 56 : 64);
+    const width = (box: ProcessBox<N>) => this.selectionDimensions(box).width;
+    const height = (box: ProcessBox<N>) => this.selectionDimensions(box).height;
     const minX = Math.min(...sorted.map(box => next.boxes[box.id].x));
     const maxX = Math.max(...sorted.map(box => next.boxes[box.id].x + width(box)));
     const minY = Math.min(...sorted.map(box => next.boxes[box.id].y));
