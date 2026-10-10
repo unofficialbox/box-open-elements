@@ -18,6 +18,7 @@ import {
   type ProcessEdit,
   type ProcessEditRequest,
   type ProcessLayoutEditRequest,
+  type ProcessSelectionItem,
   type ProcessClipboard,
   type ProcessCopyRequest,
   type ProcessPasteRequest,
@@ -29,12 +30,15 @@ import {
 
 /** Source-owned contracts for notifications forwarded through the acceptance queue. */
 export interface ProcessModelerEventDetails {
+  'note-move-request': { noteIds: readonly string[]; notes: readonly NonNullable<ProcessLayout['notes']>[number][] };
+  'process-copy-request': ProcessCopyRequest;
+  'process-selection-copy-request': ProcessCopyRequest;
   'layout-changed': { layout: ProcessLayout };
   'positions-changed': { positions: readonly import('./model.js').ProcessPositionSnapshot[]; version: string | number };
   'projection-changed': { projection: ProcessProjection; version: string | number; checks: readonly ProcessCheck[] };
   'readable-projection-changed': { projection: ProcessProjection; version: string | number };
-  'selection-changed': { box: ProcessBox | null; boxes: readonly ProcessBox[]; path: NodePath | null }
-    | { box: null; boxes: never[]; line: import('./model.js').ProcessLine | null; path: null };
+  'selection-changed': { selection?: readonly ProcessSelectionItem[]; box: ProcessBox | null; boxes: readonly ProcessBox[]; path: NodePath | null }
+    | { selection?: readonly ProcessSelectionItem[]; box: null; boxes: never[]; line: import('./model.js').ProcessLine | null; path: null };
 }
 
 const svgElement = <K extends keyof SVGElementTagNameMap>(
@@ -88,6 +92,9 @@ export class ProcessModeler<
   private showLastRunValue = false;
   private selectedId: string | null = null;
   private selectedLineId: string | null = null;
+  private selectedLineIds = new Set<string>();
+  private selectedNoteIds = new Set<string>();
+  private graphSelection = false;
   private connecting: string | null = null;
   private checks: readonly ProcessCheck[] = [];
   private renderer?: (node: N, container: HTMLElement) => void | (() => void);
@@ -236,7 +243,7 @@ export class ProcessModeler<
     this.lastReadableProjection = "";
     this.readableValue = null;
     this.layoutValue = restoreProcessPositions(projection, options.positions ?? []);
-    this.history.clear(); this.selectedId = null; this.selectedLineId = null; this.selectedIds.clear();
+    this.clearMixedSelection(); this.history.clear(); this.selectedId = null; this.selectedLineId = null; this.selectedIds.clear();
     this.clearClipboard();
     this.refresh();
     if (options.selectedPath) this.selectedPath = options.selectedPath;
@@ -244,12 +251,38 @@ export class ProcessModeler<
   selectMany(ids: readonly string[]): void {
     if (!this.isRendered && this.documentValue !== undefined) { this.projection = this.model.project(this.documentValue); validateProjection(this.projection); }
     const next = new Set(ids.filter(id => this.projection.boxes.some(box => box.id === id)));
-    if (next.size === this.selectedIds.size && [...next].every(id => this.selectedIds.has(id))) return;
+    if (!this.graphSelection && !this.selectedLineIds.size && !this.selectedNoteIds.size && next.size === this.selectedIds.size && [...next].every(id => this.selectedIds.has(id))) return;
+    this.clearMixedSelection();
     this.selectedIds = next;
     this.selectedId = this.selectedIds.values().next().value ?? null;
     this.selectedLineId = null;
     this.renderSelection(); if (this.isRendered) this.updateToolbar();
-    this.notify("selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath });
+    this.notify("selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath, ...(this.graphSelection ? { selection: this.selection } : {}) });
+  }
+  /** Detached mixed selection. Invalid and duplicate IDs are ignored by selectItems. */
+  get selection(): readonly ProcessSelectionItem[] {
+    return [...[...this.selectedIds].map(id => ({ type: 'box' as const, id })),
+      ...[...this.selectedLineIds].map(id => ({ type: 'line' as const, id })),
+      ...[...this.selectedNoteIds].map(id => ({ type: 'note' as const, id }))];
+  }
+  selectItems(items: readonly ProcessSelectionItem[]): void {
+    if (!this.isRendered && this.documentValue !== undefined) { this.projection = this.model.project(this.documentValue); validateProjection(this.projection); }
+    const boxes = new Set<string>(), lines = new Set<string>(), notes = new Set<string>();
+    for (const item of items) {
+      if (item.type === 'box' && this.projection.boxes.some(box => box.id === item.id)) boxes.add(item.id);
+      if (item.type === 'line' && this.projection.lines.some(line => line.id === item.id)) lines.add(item.id);
+      if (item.type === 'note' && this.layoutValue.notes?.some(note => note.id === item.id)) notes.add(item.id);
+    }
+    const before = JSON.stringify(this.selection);
+    this.selectedIds = boxes; this.selectedLineIds = lines; this.selectedNoteIds = notes;
+    this.selectedId = boxes.values().next().value ?? null;
+    this.selectedLineId = !boxes.size && !notes.size && lines.size === 1 ? lines.values().next().value! : null;
+    this.graphSelection = true;
+    this.renderSelection(); if (this.isRendered) this.updateToolbar();
+    if (before !== JSON.stringify(this.selection)) this.notify('selection-changed', { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath, selection: this.selection });
+  }
+  private clearMixedSelection(): void {
+    this.selectedLineIds.clear(); this.selectedNoteIds.clear(); this.graphSelection = false;
   }
   get headingLevel(): number { const level = Number(this.getAttribute("heading-level") ?? 2); return Number.isInteger(level) && level >= 1 && level <= 6 ? level : 2; }
   set headingLevel(value: number) { this.setAttribute("heading-level", String(value)); }
@@ -376,17 +409,19 @@ export class ProcessModeler<
     }
     if (id !== null && !this.projection.boxes.some((box) => box.id === id))
       return;
-    if (id === this.selectedId && this.selectedIds.size === (id ? 1 : 0) && !this.selectedLineId) return;
+    if (id === this.selectedId && this.selectedIds.size === (id ? 1 : 0) && !this.selectedLineId && !this.graphSelection) return;
+    this.clearMixedSelection();
     this.selectedId = id;
     this.selectedIds = new Set(id ? [id] : []);
     this.selectedLineId = null;
     this.renderSelection();
     if (this.isRendered) this.updateToolbar();
-    if (notify) this.notify("selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath });
+    if (notify) this.notify("selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath, ...(this.graphSelection ? { selection: this.selection } : {}) });
   }
   selectLine(id: string | null): void {
     if (id !== null && !this.projection.lines.some(line => line.id === id)) return;
-    if (this.selectedLineId === id && !this.selectedIds.size) return;
+    if (!this.graphSelection && this.selectedLineId === id && !this.selectedIds.size) return;
+    this.clearMixedSelection(); this.selectedLineIds = new Set(id ? [id] : []);
     this.selectedLineId = id; this.selectedId = null; this.selectedIds.clear();
     this.refresh();
     this.notify('selection-changed', { box: null, boxes: [], line: this.selectedLine, path: null });
@@ -408,6 +443,11 @@ export class ProcessModeler<
   }
   requestEdit(edit: ProcessEdit): void {
     if (this.locked || (this.disableConnections && (edit.type === "connect" || edit.type === "disconnect" || edit.type === 'reattach'))) return;
+    if (edit.type === 'delete-selection' && (!edit.selection?.length || edit.selection.some(item => !['box', 'line', 'note'].includes(item.type) || typeof item.id !== 'string' || !item.id))) {
+      this.setStatus('The selected graph items are invalid', true); return;
+    }
+    if (edit.selection) edit = { ...edit, selection: Object.freeze(edit.selection.map(item => Object.freeze({ type: item.type, id: item.id }))) };
+    if (this.disableConnections && edit.type === 'delete-selection' && edit.selection?.some(item => item.type === 'line')) { this.setStatus('Deleting selected lines is disabled'); return; }
     const placement = edit.placement;
     if (placement) {
       const source = placement.source;
@@ -428,11 +468,17 @@ export class ProcessModeler<
     const problem = this.connectionProblem(edit);
     if (problem) { this.setStatus(problem, true); return; }
     const request: ProcessEditRequest = { ...edit, accept: this.editAcceptance(edit) };
-    emit(this, "process-edit-request", request);
+    if (edit.type !== 'delete-selection') { emit(this, 'process-edit-request', request); return; }
+    // A synchronous host echo can prune selected lines before accept records
+    // history. Keep those observers behind the complete atomic transaction.
+    this.acceptanceNotifications++;
+    try { emit(this, 'process-edit-request', request); }
+    finally { this.acceptanceNotifications--; this.flushAcceptanceNotifications(); }
   }
   private editAcceptance(edit: ProcessEdit): (command: ReversibleProcessEdit) => void {
     const before = this.layout;
     const beforeSelection = [...this.selectedIds];
+    const beforeItems = this.selection;
     const previousIds = new Set(this.projection.boxes.map((box) => box.id));
     const session = this.layoutEditSession;
     let accepted = false;
@@ -469,6 +515,7 @@ export class ProcessModeler<
         }
         if (session !== this.layoutEditSession) return;
         const after = this.layout;
+        const acceptedItems = command.selection ? command.selection.map(item => ({ type: item.type, id: item.id })) : undefined;
         const acceptedSelection = command.selectionIds ? [...command.selectionIds] : undefined;
         const restore = (layout: ProcessLayout) => {
           this.layoutValue = structuredClone(layout);
@@ -479,15 +526,18 @@ export class ProcessModeler<
           undo: () => {
             command.undo();
             restore(before);
-            if (acceptedSelection) this.selectMany(beforeSelection);
+            if (acceptedItems) this.selectItems(beforeItems);
+            else if (acceptedSelection) this.selectMany(beforeSelection);
           },
           redo: () => {
             command.redo();
             restore(after);
-            if (acceptedSelection) this.selectMany(acceptedSelection);
+            if (acceptedItems) this.selectItems(acceptedItems);
+            else if (acceptedSelection) this.selectMany(acceptedSelection);
           },
         });
-        if (acceptedSelection) this.selectMany(acceptedSelection);
+        if (acceptedItems) this.selectItems(acceptedItems);
+        else if (acceptedSelection) this.selectMany(acceptedSelection);
         this.refresh();
         if (JSON.stringify(before) !== JSON.stringify(after))
           this.emitPositions();
@@ -1108,6 +1158,10 @@ export class ProcessModeler<
   private selectionCommand(command: string): void {
     if (this.locked) return;
     const boxes = this.selectedBoxes;
+    if (command === "delete-many" && this.graphSelection) {
+      if (this.disableConnections && this.selectedLineIds.size) { this.setStatus('Deleting selected lines is disabled'); return; }
+      this.requestEdit({ type: 'delete-selection', selection: this.selection }); return;
+    }
     if (command === "delete-many") { for (const box of boxes) this.requestEdit({ type: "delete", boxId: box.id }); return; }
     if (command === 'space') { this.tidySelection(); return; }
     const rectangles = boxes.map(box => ({ ...this.layoutValue.boxes[box.id], ...this.selectionDimensions(box) }));
@@ -1383,6 +1437,7 @@ export class ProcessModeler<
     let active = true; let claimed = false;
     const request: ProcessCopyRequest = {
       sourceIds: Object.freeze([...this.selectedIds]),
+      selection: Object.freeze(this.selection.map(item => Object.freeze(item))),
       capture: clipboard => {
         if (!active || claimed || session !== this.clipboardSession || !this.isConnected) return;
         claimed = true;
@@ -1394,7 +1449,7 @@ export class ProcessModeler<
       },
       refuse: message => { if (!active || claimed || session !== this.clipboardSession || !this.isConnected) return; claimed = true; this.setStatus(message ?? 'Copy is not supported by this host'); },
     };
-    try { emit(this, 'process-copy-request', request); } finally { active = false; }
+    try { emit(this, this.graphSelection && (this.selectedLineIds.size || this.selectedNoteIds.size) ? 'process-selection-copy-request' : 'process-copy-request', request); } finally { active = false; }
     if (!claimed && session === this.clipboardSession && this.isConnected) this.setStatus('Copy is not supported by this host');
     return claimed;
   }
@@ -1444,9 +1499,13 @@ export class ProcessModeler<
       return;
     }
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'a') {
-      event.preventDefault(); this.selectMany(this.projection.boxes.map(box => box.id)); this.setStatus(`${this.projection.boxes.length} steps selected`); return;
+      event.preventDefault(); this.selectItems([
+        ...this.projection.boxes.filter(box => box.kind !== 'section').map(box => ({ type: 'box' as const, id: box.id })),
+        ...this.projection.lines.map(line => ({ type: 'line' as const, id: line.id })),
+        ...(this.layoutValue.notes ?? []).map(note => ({ type: 'note' as const, id: note.id })),
+      ]); this.setStatus(`${this.selection.length} items selected`); return;
     }
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'c' && this.selectedIds.size) {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'c' && (this.selectedIds.size || this.selectedNoteIds.size)) {
       if (this.copySelection()) event.preventDefault(); return;
     }
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'v' && this.clipboard && !this.locked) {
@@ -1467,6 +1526,9 @@ export class ProcessModeler<
     if (event.shiftKey && (event.key === "1" || event.key === "!" || event.code === "Digit1")) {
       event.preventDefault(); this.fit(); this.setStatus("Whole process fitted to the canvas"); return;
     }
+    if ((event.key === 'Delete' || event.key === 'Backspace') && this.graphSelection && this.selection.length && !this.locked) {
+      event.preventDefault(); this.selectionCommand('delete-many'); return;
+    }
     const box = this.selected;
     if (this.selectedLine && (event.key === 'Delete' || event.key === 'Backspace') && !this.locked && !this.disableConnections) {
       event.preventDefault(); this.requestEdit({ type: 'disconnect', lineId: this.selectedLine.id }); return;
@@ -1480,6 +1542,20 @@ export class ProcessModeler<
       ArrowUp: [0, -1],
       ArrowDown: [0, 1],
     }[event.key];
+    if (direction && this.graphSelection && !this.locked && !event.altKey && !event.ctrlKey && !event.metaKey && (this.selectedIds.size || this.selectedNoteIds.size)) {
+      event.preventDefault();
+      const distance = event.shiftKey ? 64 : 16, dx = direction[0] * distance, dy = direction[1] * distance;
+      const next = this.layout, moved = new Set(this.selectedIds);
+      for (let changed = true; changed;) { changed = false; for (const box of this.projection.boxes) if (box.parentId && moved.has(box.parentId) && !moved.has(box.id)) { moved.add(box.id); changed = true; } }
+      for (const id of moved) { const p = next.boxes[id]; if (p) next.boxes[id] = { ...p, x: p.x + dx, y: p.y + dy }; }
+      next.notes = next.notes?.map(note => this.selectedNoteIds.has(note.id) ? { ...note, x: note.x + dx, y: note.y + dy } : note);
+      const primary = this.selectedId;
+      const allowed = primary
+        ? emit(this, 'move-request', { boxId: primary, position: next.boxes[primary], boxIds: [...moved], positions: next.boxes, noteIds: [...this.selectedNoteIds], notes: next.notes ?? [] })
+        : emit(this, 'note-move-request', { noteIds: [...this.selectedNoteIds], notes: next.notes ?? [] });
+      if (allowed) this.commitLayout(next);
+      return;
+    }
     const canInsertDirection = event.ctrlKey && event.altKey && box && !this.locked && this.catalog.length && !this.disableConnections;
     if (direction && !canInsertDirection && (event.altKey || !box || this.locked)) {
       event.preventDefault(); this.navigateSelection(direction); return;
@@ -1986,7 +2062,7 @@ export class ProcessModeler<
     tooltip.style.left = `${point.x + 16}px`; tooltip.style.top = `${point.y + 16}px`;
   }
   protected update(): void {
-    const selectionBefore = JSON.stringify({ ids: [...this.selectedIds], path: this.selectedPath });
+    const selectionBefore = JSON.stringify({ items: this.selection, path: this.selectedPath });
     if (this.documentValue !== undefined) {
       this.projection = this.model.project(this.documentValue);
       validateProjection(this.projection);
@@ -1997,6 +2073,8 @@ export class ProcessModeler<
     if (this.selectedId && !this.selected) this.selectedId = null;
     if (this.selectedLineId && !this.selectedLine) this.selectedLineId = null;
     this.selectedIds = new Set([...this.selectedIds].filter(id => this.projection.boxes.some(box => box.id === id)));
+    this.selectedLineIds = new Set([...this.selectedLineIds].filter(id => this.projection.lines.some(line => line.id === id)));
+    this.selectedNoteIds = new Set([...this.selectedNoteIds].filter(id => this.layoutValue.notes?.some(note => note.id === id)));
     if (!this.selectedId) this.selectedId = this.selectedIds.values().next().value ?? null;
     const serialized = JSON.stringify({
       boxes: this.projection.boxes.map(box => ({ id: box.id, kind: box.kind, title: box.title, description: box.description, path: box.path, fingerprint: box.fingerprint, frame: box.frame, loopMark: box.loopMark, parentId: box.parentId, localVariables: box.localVariables, localVariablesEditable: box.localVariablesEditable, savedResult: box.savedResult })),
@@ -2023,18 +2101,21 @@ export class ProcessModeler<
       this.readableValue = null;
       this.lastDocument = undefined;
     }
-    const focused = (this.shadowRoot!.activeElement as HTMLElement | null)
-      ?.dataset.boxId;
+    const active = this.shadowRoot!.activeElement as HTMLElement | null;
+    const focused = active?.dataset.boxId, focusedNote = active?.dataset.noteId;
     this.renderWorld();
     this.renderPalette();
     this.renderChecks();
     this.renderSelection();
     this.paintViewport();
     this.updateToolbar();
-    if (selectionBefore !== JSON.stringify({ ids: [...this.selectedIds], path: this.selectedPath })) this.notify("selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath });
+    if (selectionBefore !== JSON.stringify({ items: this.selection, path: this.selectedPath })) this.notify("selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath, ...(this.graphSelection ? { selection: this.selection } : {}) });
     if (focused) {
       this.restoringBoxFocus = true;
       try { this.focusBox(focused); } finally { this.restoringBoxFocus = false; }
+    } else if (focusedNote) {
+      const note = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[data-note-id]')).find(note => note.dataset.noteId === focusedNote);
+      (note ?? this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]'))?.focus({ preventScroll: true });
     }
   }
   private get allChecks(): readonly ProcessCheck[] { return this.computedChecks; }
@@ -2232,8 +2313,8 @@ export class ProcessModeler<
       const path = svgElement("path");
       path.setAttribute("part", "line");
       path.dataset.lineId = line.id;
-      path.dataset.selected = String(this.selectedLineId === line.id);
-      path.setAttribute('marker-end', `url(#${this.selectedLineId === line.id ? 'boe-process-arrow-brand' : 'boe-process-arrow'})`);
+      path.dataset.selected = String(this.selectedLineIds.has(line.id));
+      path.setAttribute('marker-end', `url(#${this.selectedLineIds.has(line.id) ? 'boe-process-arrow-brand' : 'boe-process-arrow'})`);
       path.setAttribute("vector-effect", "non-scaling-stroke");
       path.setAttribute("d", roundedProcessPath(points));
       if (line.dashed) path.setAttribute("stroke-dasharray", "6 4");
@@ -2318,7 +2399,11 @@ export class ProcessModeler<
     for (const note of this.layoutValue.notes ?? []) {
       const element = document.createElement("div");
       element.setAttribute("part", "note");
-      element.textContent = note.text;
+      element.textContent = note.text; element.dataset.noteId = note.id;
+      element.addEventListener('pointerdown', event => event.stopPropagation());
+      element.tabIndex = 0; element.setAttribute('role', 'button'); element.setAttribute('aria-label', note.text || 'Diagram note');
+      element.addEventListener('click', event => { const items = event.shiftKey ? this.selection.filter(item => !(item.type === 'note' && item.id === note.id)) : []; if (!event.shiftKey || !this.selectedNoteIds.has(note.id)) items.push({ type: 'note', id: note.id }); this.selectItems(items); });
+      element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); this.selectItems([{ type: 'note', id: note.id }]); } });
     this.place(element, { ...note, width: 208, height: 80 });
       world.append(element);
     }
@@ -2622,6 +2707,7 @@ export class ProcessModeler<
     return row;
   }
   private renderSelection(): void {
+    this.shadowRoot?.querySelectorAll<HTMLElement>('[part=note]').forEach(note => { note.dataset.selected = String(this.selectedNoteIds.has(note.dataset.noteId!)); note.setAttribute('aria-pressed', note.dataset.selected); });
     if (!this.isRendered) return;
     const focusedControl = this.shadowRoot!.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
     const focusedKey = focusedControl?.dataset.field ?? focusedControl?.dataset.variable ?? focusedControl?.dataset.localVariable;
@@ -2654,7 +2740,7 @@ export class ProcessModeler<
       if (caret !== null && (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) && control.type !== 'number' && control.type !== 'checkbox') control.setSelectionRange(caret, caret);
     };
     this.shadowRoot!.querySelectorAll<SVGRectElement>('[part=minimap] [data-map-box]').forEach(rect => rect.dataset.selected = String(this.selectedIds.has(rect.dataset.mapBox!)));
-    this.shadowRoot!.querySelectorAll<SVGPathElement>('[part=line]').forEach(line => { const selected = line.dataset.lineId === this.selectedLineId; line.dataset.selected = String(selected); line.setAttribute('marker-end', `url(#${selected ? 'boe-process-arrow-brand' : 'boe-process-arrow'})`); });
+    this.shadowRoot!.querySelectorAll<SVGPathElement>('[part=line]').forEach(line => { const selected = this.selectedLineIds.has(line.dataset.lineId!); line.dataset.selected = String(selected); line.setAttribute('marker-end', `url(#${selected ? 'boe-process-arrow-brand' : 'boe-process-arrow'})`); });
     this.shadowRoot!.querySelectorAll<HTMLElement>("[data-box-id]").forEach(
       (element) => {
         element.setAttribute(
@@ -2679,7 +2765,7 @@ export class ProcessModeler<
     const selected = this.selected;
     const controlsKey = `${[...this.selectedIds].join(',')}|${this.locked}|${this.disableConnections}|${this.showLastRunValue}|${selected?.runMetrics}|${JSON.stringify([selected?.localVariables, selected?.localVariablesEditable, selected?.frame])}|${JSON.stringify(selected ? this.fieldsValue[selected.id] ?? [] : [])}`;
     this.shadowRoot!.querySelector<HTMLElement>("[part=palette]")!.hidden = false;
-    this.shadowRoot!.querySelector<HTMLElement>('[part=selection-toolbar]')!.hidden = this.selectedIds.size === 0 && !this.selectedLineId;
+    this.shadowRoot!.querySelector<HTMLElement>('[part=selection-toolbar]')!.hidden = this.selection.length === 0;
     this.renderSelectionToolbar();
     this.renderPane();
     this.positionSelectionToolbar();
@@ -2822,11 +2908,11 @@ export class ProcessModeler<
   }
   private renderSelectionToolbar(): void {
     const toolbar = this.shadowRoot!.querySelector<HTMLElement>('[part=selection-toolbar]')!;
-    const key = `${[...this.selectedIds].join(',')}|${this.selected?.kind}|${this.selected?.shape}|${this.selectedLineId}|${Boolean(this.selectedLine && (this.layoutValue.lines?.[this.selectedLine.id] || this.selectedLine.fromSide || this.selectedLine.toSide || this.selectedLine.points?.length))}|${this.locked}|${this.narrowValue}|${this.projection.lines.filter(line => line.from === this.selectedId).map(line => `${line.id}:${line.label}:${line.dashed}`).join(',')}`;
+    const key = `${JSON.stringify(this.selection)}|${this.graphSelection}|${this.selected?.kind}|${this.selected?.shape}|${this.selectedLineId}|${Boolean(this.selectedLine && (this.layoutValue.lines?.[this.selectedLine.id] || this.selectedLine.fromSide || this.selectedLine.toSide || this.selectedLine.points?.length))}|${this.locked}|${this.narrowValue}|${this.projection.lines.filter(line => line.from === this.selectedId).map(line => `${line.id}:${line.label}:${line.dashed}`).join(',')}`;
     if (key === this.selectionToolbarKey) return;
     this.selectionToolbarKey = key;
     toolbar.replaceChildren();
-    if (!this.selectedIds.size && !this.selectedLineId) return;
+    if (!this.selection.length) return;
     const add = (label: string, command: string, action: () => void, withPlus = false) => {
       const button = document.createElement('button'); button.type = 'button'; button.dataset.selectionCommand = command; button.setAttribute('aria-label', label); button.disabled = this.locked; button.onclick = action;
       if (withPlus) {
@@ -2835,7 +2921,10 @@ export class ProcessModeler<
       const text = document.createElement('span'); text.textContent = label; button.append(text);
       toolbar.append(button);
     };
-    if (this.selectedLine) {
+    if (this.graphSelection && (this.selectedNoteIds.size || this.selectedLineIds.size > 1 || this.selectedLineIds.size && this.selectedIds.size)) {
+      if (this.selectedIds.size > 1) add('Line up', 'align', () => this.selectionCommand('align'));
+      add('Delete', 'delete-many', () => this.selectionCommand('delete-many'));
+    } else if (this.selectedLine) {
       const line = this.selectedLine;
       add('Insert a step', 'insert', () => this.openLineChooser(line, toolbar.querySelector<HTMLElement>('[data-selection-command=insert]') ?? undefined), true);
       if (this.layoutValue.lines?.[line.id] || line.fromSide || line.toSide || line.points?.length) add('Reset line', 'reset-line', () => this.resetLine(line.id));
@@ -2887,6 +2976,9 @@ export class ProcessModeler<
   private paintViewport(): void {
     const world = this.shadowRoot!.querySelector<HTMLElement>("[part=world]")!;
     world.style.setProperty('--boe-process-inverse-zoom', String(1 / this.viewport.zoom));
+    // A small screen-space margin keeps targets above 24px after fractional
+    // layout rounding without assuming a browser's CSS-pixel quantum.
+    world.style.setProperty('--boe-process-hit-target', `${24.1 / this.viewport.zoom}px`);
     world.style.transform =
       `translate(${this.viewport.x}px,${this.viewport.y}px) scale(${this.viewport.zoom})`;
     const canvas = this.shadowRoot!.querySelector<HTMLElement>("[part=canvas]")!;
@@ -2936,15 +3028,24 @@ export class ProcessModeler<
     minimap.append(viewport);
   }
   private positionSelectionToolbar(): void {
-    if (!this.isRendered || (!this.selectedIds.size && !this.selectedLineId)) return;
+    if (!this.isRendered || !this.selection.length) return;
     const canvas = this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!;
     const toolbar = this.shadowRoot!.querySelector<HTMLElement>('[part=selection-toolbar]')!;
     const positions = [...this.selectedIds].map(id => this.layoutValue.boxes[id]).filter(Boolean);
+    positions.push(...(this.layoutValue.notes ?? []).filter(note => this.selectedNoteIds.has(note.id)).map(note => ({ ...note, width: 208, height: 80 })));
     if (!positions.length && this.selectedLine) {
       const point = lineMidpoint(this.routedLines.get(this.selectedLine.id) ?? []);
       toolbar.style.left = `${Math.max(8, Math.min(point.x * this.viewport.zoom + this.viewport.x, Math.max(8, canvas.clientWidth - toolbar.offsetWidth - 8)))}px`;
       toolbar.style.top = `${Math.max(8, point.y * this.viewport.zoom + this.viewport.y - 52)}px`;
       return;
+    }
+    if (!positions.length) {
+      for (const id of this.selectedLineIds) {
+        const points = this.routedLines.get(id) ?? [];
+        if (!points.length) continue;
+        const x = Math.min(...points.map(point => point.x)), y = Math.min(...points.map(point => point.y));
+        positions.push({ x, y, width: Math.max(...points.map(point => point.x)) - x, height: Math.max(...points.map(point => point.y)) - y });
+      }
     }
     if (!positions.length) return;
     const left = Math.min(...positions.map(position => position.x * this.viewport.zoom + this.viewport.x));
