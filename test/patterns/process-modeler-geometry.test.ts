@@ -281,3 +281,29 @@ describe("line geometry", () => {
     expect(nearProcessLine({ x: 0, y: 0 }, [{ x: 0, y: 0 }], -1)).toBe(false);
   });
 });
+
+
+describe('Native automatic event insertion ports', () => {
+  const event = {...box('start'), kind: 'timer', shape: 'event' as const};
+  const incoming = {id: 'start-task', from: 'start', to: 'task'};
+  const outgoing = {id: 'task-next', from: 'task', to: 'next'};
+  const layout: ProcessLayout = {boxes: {start: {x:404,y:52,width:56,height:56},task:{x:140,y:144,width:224,height:64},next:{x:460,y:144,width:224,height:64}}};
+  const graph: ProcessProjection = {boxes:[event,box('task'),box('next')],lines:[incoming,outgoing]};
+  it('uses native event inset and shared task-side allocation for actual Insert midpoint', () => {
+    const points=routeProcessLine(incoming,layout,graph);
+    expect(points).toEqual([{x:432,y:100},{x:432,y:160},{x:364,y:160}]);
+    expect(lineMidpoint(points)).toEqual({x:428,y:160});
+    expect(routeProcessLine({...outgoing},layout,graph)).toEqual([{x:364,y:176},{x:460,y:176}]);
+  });
+  it('excludes associations from side allocation and supports a detached queried line', () => {
+    const projected={...graph,lines:[...graph.lines,{id:'attachment',from:'start',to:'task',role:'association' as const}]};
+    expect(routeProcessLine(incoming,layout,projected)).toEqual(routeProcessLine(incoming,layout,graph));
+    expect(routeProcessLine(incoming,layout,{...graph,lines:[outgoing]})).toEqual(routeProcessLine(incoming,layout,graph));
+  });
+  it('retains authored event waypoints and centered side pins', () => {
+    const authored={...incoming,fromSide:'south' as const,toSide:'east' as const,points:[{x:700,y:120},{x:700,y:240}]};
+    const points=routeProcessLine(authored,layout,{...graph,lines:[authored,outgoing]});
+    expect(points[0]).toEqual({x:432,y:108});expect(points.at(-1)).toEqual({x:364,y:176});
+    expect(points).toContainEqual({x:700,y:120});expect(points).toContainEqual({x:700,y:240});
+  });
+});

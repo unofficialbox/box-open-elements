@@ -1,3 +1,4 @@
+import { automaticEventRoute } from './automatic-routing.js';
 import type { BoxPosition, ProcessBox, ProcessLayout, ProcessLine, ProcessProjection, ProcessSide } from "./model.js";
 import { validateProjection, isFlowBox, isFlowLine } from "./model.js";
 
@@ -247,6 +248,12 @@ export function routeProcessLine(line: ProcessLine, layout: ProcessLayout, proje
       return point;
     };
     return [endpoint(from, boxes.get(line.from), side), endpoint(to, boxes.get(line.to), opposite[side])];
+  }
+  // Event wrappers include an inset ring; automatic endpoints also share native task ports.
+  if ((boxes.get(line.from)?.shape === 'event' || boxes.get(line.to)?.shape === 'event')
+    && line.from !== line.to && !line.fromSide && !line.toSide
+    && !(layout.lines?.[line.id] ?? line.points)?.length) {
+    return automaticEventRoute(line, layout, projection);
   }
   const excluded = new Set<string>();
   for (const id of [line.from, line.to]) {
