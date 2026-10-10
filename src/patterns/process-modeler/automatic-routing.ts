@@ -1,7 +1,7 @@
-/** Automatic event endpoint policy from the pinned Process Modeler design.
+/** Automatic flow endpoint policy from the pinned Process Modeler design.
 * Candidate ports use heading-aware orthogonal route cost; a shared task side
 * spreads incoming and outgoing lines together before the final route is built.
-* Other ordinary routes and authored pins/waypoints keep their existing policy.
+* Authored pins/waypoints keep their existing policy.
 */
 import type { ProcessPoint } from './geometry.js';
 import { isFlowLine, type ProcessBox, type ProcessLayout, type ProcessLine, type ProcessProjection, type ProcessSide } from './model.js';
@@ -43,11 +43,18 @@ function port(box: ProcessBox, r: Rect, side: ProcessSide, offset = 0): ProcessP
     return { x: r.x + inset, y: c.y + offset };
   return { x: r.x + r.w - inset, y: c.y + offset };
 }
-function routeOrthC(p1: ProcessPoint, sa: ProcessSide, p2: ProcessPoint, sb: ProcessSide, obstacles: (Rect & { endpoint?: boolean })[]) {
+function routeOrthC(p1: ProcessPoint, sa: ProcessSide, p2: ProcessPoint, sb: ProcessSide, obstacles: (Rect & { endpoint?: 'from' | 'to' })[]) {
   const STUB = 20, M = 12;
   const d1 = DIRS[sa], d2 = DIRS[sb];
   const s = { x: p1.x + d1.x * STUB, y: p1.y + d1.y * STUB };
   const t = { x: p2.x + d2.x * STUB, y: p2.y + d2.y * STUB };
+  // A fixed lead may leave its own inset event port, but must never enter
+  // the opposite endpoint or another obstacle, even if its stub exits that body.
+  const crosses = (a: ProcessPoint, b: ProcessPoint, r: Rect) => a.x === b.x
+    ? a.x > r.x && a.x < r.x + r.w && Math.max(a.y, b.y) > r.y && Math.min(a.y, b.y) < r.y + r.h
+    : a.y > r.y && a.y < r.y + r.h && Math.max(a.x, b.x) > r.x && Math.min(a.x, b.x) < r.x + r.w;
+  if (obstacles.some(o => o.endpoint !== 'from' && crosses(p1, s, o)
+    || o.endpoint !== 'to' && crosses(p2, t, o))) return { pts: [], cost: Infinity };
   // Region of interest.
   const pad = 200;
   let rx1 = Math.min(s.x, t.x) - pad, rx2 = Math.max(s.x, t.x) + pad;
@@ -59,8 +66,22 @@ function routeOrthC(p1: ProcessPoint, sa: ProcessSide, p2: ProcessPoint, sb: Pro
       continue;
     if (contains({ x: r.x + 0.5, y: r.y + 0.5, w: r.w - 1, h: r.h - 1 }, s)
       || contains({ x: r.x + 0.5, y: r.y + 0.5, w: r.w - 1, h: r.h - 1 }, t)) {
-      // Endpoint bodies may surround an inset port; unrelated obstacles cannot be crossed.
-      if (o.endpoint) continue;
+      // Relax only the padded side covering a stub. Retain the raw body and
+      // the other sides' clearance so rounded turns cannot shave its corners.
+      if (o.endpoint) {
+        let left = r.x, right = r.x + r.w, top = r.y, bottom = r.y + r.h;
+        for (const p of [s, t]) {
+          if (!contains({x:left+.5,y:top+.5,w:right-left-1,h:bottom-top-1},p)) continue;
+          const gaps = [o.x-p.x,p.x-o.x-o.w,o.y-p.y,p.y-o.y-o.h];
+          const side = gaps.indexOf(Math.max(...gaps));
+          if (side === 0) left = Math.max(left,Math.min(o.x,p.x+.5));
+          else if (side === 1) right = Math.min(right,Math.max(o.x+o.w,p.x-.5));
+          else if (side === 2) top = Math.max(top,Math.min(o.y,p.y+.5));
+          else bottom = Math.min(bottom,Math.max(o.y+o.h,p.y-.5));
+        }
+        obs.push({x:left,y:top,w:right-left,h:bottom-top});
+        continue;
+      }
       return { pts: [], cost: Infinity };
     }
     obs.push(r);
@@ -206,7 +227,7 @@ function routeOrthC(p1: ProcessPoint, sa: ProcessSide, p2: ProcessPoint, sb: Pro
   }
   return { pts: simplify(pts), cost };
 }
-/** Native automatic event ports. Authored pins/waypoints retain the existing routing contract. */
+/** Native flow ports. Authored waypoints retain their existing endpoint contract. */
 export function automaticEventPorts(line: ProcessLine, layout: ProcessLayout, projection: ProcessProjection) {
   const boxes = new Map(projection.boxes.map(box => [box.id, box]));
   const rects = new Map(projection.boxes.filter(box => layout.boxes[box.id]).map(box => { const p = layout.boxes[box.id], compact = box.shape === 'event' || box.shape === 'gateway'; return [box.id, { x: p.x, y: p.y, w: p.width ?? (box.frame ? 320 : compact ? 56 : box.role === 'note' ? 208 : 224), h: p.height ?? (box.frame ? 180 : compact ? 56 : 64) }] as const; }));
@@ -217,7 +238,7 @@ export function automaticEventPorts(line: ProcessLine, layout: ProcessLayout, pr
     ids.add(parent);
     parent = boxes.get(parent)?.parentId;
   } return ids; };
-  const edgeObstacles = (edge: ProcessLine) => { const skip = new Set([...ancestors(edge.from), ...ancestors(edge.to)]); return obstacles.filter(o => !skip.has(o.id)).map(o => ({...o.r, endpoint: o.id === edge.from || o.id === edge.to})); };
+  const edgeObstacles = (edge: ProcessLine) => { const skip = new Set([...ancestors(edge.from), ...ancestors(edge.to)]); return obstacles.filter(o => !skip.has(o.id)).map(o => ({...o.r, endpoint: o.id === edge.from ? 'from' as const : o.id === edge.to ? 'to' as const : undefined})); };
   const sides = new Map<string, [
     ProcessSide,
     ProcessSide
@@ -237,10 +258,10 @@ export function automaticEventPorts(line: ProcessLine, layout: ProcessLayout, pr
         if (cost < best.cost)
           best = { cost, sa, sb };
       }
-    // Authored edges use the legacy nearest-edge contract. Reserve those actual
-    // sides, rather than a side the automatic candidate search would choose.
+    // Authored waypoints retain their actual endpoint sides. An unpinned end
+    // without waypoints remains free to choose the cheapest native route.
     const points = layout.lines?.[edge.id] ?? edge.points;
-    if (edge.fromSide || edge.toSide || points?.length) {
+    if (points?.length) {
       const nearest = (r: Rect, toward: ProcessPoint): ProcessSide => {
         const x = Math.max(r.x, Math.min(toward.x, r.x + r.w)), y = Math.max(r.y, Math.min(toward.y, r.y + r.h));
         const candidates: [ProcessSide, ProcessPoint][] = [['east', {x:r.x+r.w,y}], ['west',{x:r.x,y}], ['south',{x,y:r.y+r.h}], ['north',{x,y:r.y}]];
@@ -276,6 +297,7 @@ export function automaticEventPorts(line: ProcessLine, layout: ProcessLayout, pr
     ] as [string, ProcessSide, string, ProcessPoint][]) {
       const r = rects.get(id)!, c = center(r);
       const authoredSide = key.endsWith(':a') ? edge.fromSide : edge.toSide;
+      if (!authoredSide && !points?.length) continue;
       const offset = authoredSide ? 0 : side === 'north' || side === 'south'
         ? Math.max(r.x, Math.min(toward.x, r.x + r.w)) - c.x
         : Math.max(r.y, Math.min(toward.y, r.y + r.h)) - c.y;

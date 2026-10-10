@@ -65,7 +65,7 @@ describe('explicit host insertion placement',()=>{
 
   it('retains routed midpoint intent when the host owns the picker and catalog is empty',()=>{
     const {b,r,listener}=fixture();b.catalog=[];
-    r.querySelector<HTMLButtonElement>('[part=connection] button')!.click();
+    r.querySelector<HTMLButtonElement>('[part=connection] button[aria-label^="Insert"]')!.click();
     expect(listener.mock.calls[0][0].detail.placement).toEqual({source:'line',center:{x:512,y:132}});
   });
   it.each(['line','point'])('normalizes prototype-backed %s centers without losing coordinates',source=>{

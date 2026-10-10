@@ -4,10 +4,10 @@ import { announce } from "../../foundations/a11y/index.js";
 import { dismissModal, dismissPopover, promoteModal, promotePopover, trackAnchor } from "../../foundations/overlay/index.js";
 import type { NodePath } from "../flow-builder/model.js";
 import { KindPicker } from "../flow-builder/primitives.js";
-import { arrangeProcess, routeProcessLine, lineMidpoint, nearProcessLine, roundedProcessPath } from "./geometry.js";
+import { arrangeProcess, routeProcessLine, lineMidpoint, nearProcessLine, roundedProcessPath, processPointAlong, processSegmentChain, processArrowPath, processLooseConnection, processPortPoint } from "./geometry.js";
 import { restoreProcessPositions, snapshotProcessPositions, snapshotProcessProjection, graphChecks, normalizeProcessSelectionPath } from "./bridge.js";
 import { processModelerDesign } from "./design.js";
-import type { ProcessConnection, ProcessVariable, ProcessLoadOptions, ProcessKind, ProcessLastRun, ProcessOutlineItem, ProcessField, ProcessVariableEdit, ProcessLocalVariableEdit, ProcessLocalVariableEditRequest, ProcessSide } from "./model.js";
+import type { ProcessConnection, ProcessLine, ProcessVariable, ProcessLoadOptions, ProcessKind, ProcessLastRun, ProcessOutlineItem, ProcessField, ProcessVariableEdit, ProcessLocalVariableEdit, ProcessLocalVariableEditRequest, ProcessSide } from "./model.js";
 import {
   completeLayout,
   isFlowBox,
@@ -179,7 +179,7 @@ export class ProcessModeler<
   private endDrag?: { pointerId: number; lineId: string; end: 'from' | 'to'; start: { x: number; y: number }; point: { x: number; y: number } };
   private pendingReattach?: { lineId: string; end: 'from' | 'to' };
   private marquee?: { pointerId: number; start: { x: number; y: number }; point: { x: number; y: number }; add: readonly ProcessSelectionItem[] };
-  private segmentDrag?: { pointerId: number; id: string; index: number; points: { x: number; y: number }[] };
+  private segmentDrag?: { pointerId: number; id: string; index: number; points: { x: number; y: number }[]; original: { x: number; y: number }[]; start: { x: number; y: number } };
   private frameResize?: { pointerId: number; id: string; start: { x: number; y: number }; width: number; height: number };
   private spacePressed = false;
   private dropLine?: string;
@@ -262,6 +262,8 @@ export class ProcessModeler<
     this.lastReadableProjection = "";
     this.readableValue = null;
     this.marquee = undefined; this.pointers.clear();
+    this.drag = undefined; this.portDrag = undefined; this.endDrag = undefined; this.segmentDrag = undefined; this.frameResize = undefined; this.pendingReattach = undefined;
+    const canvas = this.shadowRoot?.querySelector<HTMLElement>('[part=canvas]'); if (canvas) delete canvas.dataset.gesture;
     this.autoNoteHeights.clear();
     this.layoutValue = restoreProcessPositions(projection, options.positions ?? []);
     this.clearMixedSelection(); this.history.clear(); this.selectedId = null; this.selectedLineId = null; this.selectedIds.clear();
@@ -423,6 +425,7 @@ export class ProcessModeler<
     this.cleanupInspector = undefined;
     this.inspected = undefined;
     this.pointers.clear();
+    const canvas = this.shadowRoot?.querySelector<HTMLElement>('[part=canvas]'); if (canvas) delete canvas.dataset.gesture;
     this.drag = undefined;
     this.portDrag = undefined; this.endDrag = undefined; this.pendingReattach = undefined; this.marquee = undefined; this.segmentDrag = undefined;
   }
@@ -477,6 +480,10 @@ export class ProcessModeler<
     const line = edit.lineId ? this.projection.lines.find(line => line.id === edit.lineId) : undefined;
     const source = edit.from ? this.projection.boxes.find(box => box.id === edit.from) : undefined;
     const inserted = edit.boxId ? this.projection.boxes.find(box => box.id === edit.boxId) : undefined;
+    if (edit.type === 'connect' || edit.type === 'reattach') {
+      const endpoints = [edit.from ?? line?.from, edit.to ?? line?.to].map(id => this.projection.boxes.find(box => box.id === id));
+      if (endpoints.some(box => box && !isFlowBox(box))) { edit = { ...edit }; delete edit.fromSide; delete edit.toSide; }
+    }
     if (line && !isFlowLine(line) && ["insert", "reattach", "reset-line", "edit-line"].includes(edit.type)) return;
     if ((edit.type === "add" && source && !isFlowBox(source)) || (edit.type === "insert" && inserted && !isFlowBox(inserted))) return;
     if (this.locked || (this.disableConnections && (edit.type === "connect" || edit.type === "disconnect" || edit.type === 'reattach' || edit.type === 'edit-line'))) return;
@@ -1654,7 +1661,7 @@ export class ProcessModeler<
       this.connecting = null;
       this.pendingReattach = undefined;
       if (this.selectedLineId) this.selectLine(null);
-      this.portDrag = undefined; this.endDrag = undefined; this.marquee = undefined; this.segmentDrag = undefined; this.drag = undefined; this.pointers.clear(); this.refresh();
+      this.portDrag = undefined; this.endDrag = undefined; this.marquee = undefined; this.segmentDrag = undefined; this.drag = undefined; this.pointers.clear(); delete this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.dataset.gesture; this.refresh();
       if (wasConnecting) this.setStatus("Connecting cancelled");
       return;
     }
@@ -1779,6 +1786,7 @@ export class ProcessModeler<
     if (resize && !this.locked) {
       event.preventDefault(); event.stopPropagation();
       const id = resize.dataset.owner!; const position = this.layoutValue.boxes[id];
+      this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.dataset.gesture = 'resize';
       this.frameResize = { pointerId: event.pointerId, id, start: this.canvasPoint(event), width: position.width ?? 224, height: position.height ?? 64 };
       this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.setPointerCapture?.(event.pointerId);
       return;
@@ -1787,6 +1795,7 @@ export class ProcessModeler<
     if (grip && !this.locked && !this.disableConnections) {
       event.preventDefault();
       const point = this.canvasPoint(event);
+      this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.dataset.gesture = 'connect';
       this.endDrag = { pointerId: event.pointerId, lineId: grip.dataset.lineId!, end: grip.dataset.end as 'from' | 'to', start: point, point };
       this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.setPointerCapture?.(event.pointerId);
       return;
@@ -1795,6 +1804,7 @@ export class ProcessModeler<
     if (control && !this.locked && !this.disableConnections) {
       event.preventDefault();
       const point = this.canvasPoint(event);
+      this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.dataset.gesture = 'connect';
       this.portDrag = { pointerId: event.pointerId, id: control.dataset.owner!, side: control.dataset.side as NonNullable<typeof this.portDrag>["side"], start: point, point };
       this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.setPointerCapture?.(event.pointerId);
       return;
@@ -1803,7 +1813,9 @@ export class ProcessModeler<
     if (segment && !this.locked) {
       const line = this.projection.lines.find(line => line.id === segment.dataset.lineId)!;
       this.selectLine(line.id);
-      this.segmentDrag = { pointerId: event.pointerId, id: line.id, index: Number(segment.dataset.segment), points: routeProcessLine(line, this.layoutValue, this.projection) };
+      this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.dataset.gesture = 'segment';
+      const points = processSegmentChain(routeProcessLine(line, this.layoutValue, this.projection));
+      this.segmentDrag = { pointerId: event.pointerId, id: line.id, index: Number(segment.dataset.segment), points, original: points.map(point => ({ ...point })), start: this.canvasPoint(event) };
       this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.setPointerCapture?.(event.pointerId); event.preventDefault(); return;
     }
     if (
@@ -1827,7 +1839,8 @@ export class ProcessModeler<
     const canvas =
       this.shadowRoot!.querySelector<HTMLElement>("[part=canvas]")!;
     if (id && !this.spacePressed && !this.selectedIds.has(id) && !event.shiftKey) this.select(id);
-    if (!id && event.shiftKey && !this.locked) { const point = this.canvasPoint(event); this.marquee = { pointerId: event.pointerId, start: point, point, add: this.selection }; canvas.setPointerCapture?.(event.pointerId); event.preventDefault(); return; }
+    if (!id && event.shiftKey && !this.locked) { const point = this.canvasPoint(event); this.marquee = { pointerId: event.pointerId, start: point, point, add: this.selection }; canvas.dataset.gesture = 'select'; canvas.setPointerCapture?.(event.pointerId); event.preventDefault(); return; }
+    canvas.dataset.gesture = id && !this.locked && !this.spacePressed ? 'move' : 'pan';
     this.drag = {
       id: this.locked || this.spacePressed ? undefined : id,
       x: event.clientX,
@@ -1854,6 +1867,69 @@ export class ProcessModeler<
     const [a, b] = [...this.pointers.values()];
     return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
   }
+  private paintConnectionPreview(points: readonly { x: number; y: number }[], point: { x: number; y: number }): SVGPathElement {
+    const layer = this.shadowRoot!.querySelector('[part=lines]')!;
+    let path = layer.querySelector<SVGPathElement>('[part=connection-preview]');
+    if (!path) { path = svgElement('path'); path.setAttribute('part', 'connection-preview'); layer.append(path); }
+    path.setAttribute('d', roundedProcessPath(points));
+    let end = layer.querySelector<SVGCircleElement>('[part=connection-preview-end]');
+    if (!end) { end = svgElement('circle'); end.setAttribute('part', 'connection-preview-end'); end.setAttribute('r', '4'); layer.append(end); }
+    end.setAttribute('cx', String(point.x)); end.setAttribute('cy', String(point.y));
+    return path;
+  }
+  /** Draw a temporary routed edge and its siblings without changing host data or history. */
+  private paintConnectionRoutes(candidate?: ProcessLine): { x: number; y: number }[] {
+    const projection = candidate ? { ...this.projection, lines: [...this.projection.lines.filter(line => line.id !== candidate.id), candidate] } : this.projection;
+    const layout = candidate ? { ...this.layoutValue, lines: { ...this.layoutValue.lines } } : this.layoutValue;
+    if (candidate) delete layout.lines![candidate.id];
+    const routes = candidate ? new Map(projection.lines.map(line => [line.id, routeProcessLine(line, layout, projection)])) : this.routedLines;
+    const layer = this.shadowRoot!.querySelector('[part=lines]')!;
+    const verticals: { x: number; y1: number; y2: number }[] = [];
+    const ordered = [...projection.lines].sort((a, b) => Number(this.selectedLineIds.has(a.id)) - Number(this.selectedLineIds.has(b.id)));
+    let result: { x: number; y: number }[] = [];
+    for (const line of ordered) {
+      const points = routes.get(line.id) ?? [];
+      const drawing = roundedProcessPath(points, 8, isFlowLine(line) ? verticals : []);
+      const path = Array.from(layer.querySelectorAll<SVGPathElement>('[part=line]')).find(path => path.dataset.lineId === line.id);
+      const arrow = Array.from(layer.querySelectorAll<SVGPathElement>('[part=line-arrow]')).find(path => path.dataset.lineId === line.id);
+      if (path) { path.setAttribute('d', drawing); path.dataset.role = line.role ?? 'flow'; if (candidate?.id === line.id && !isFlowLine(line)) path.style.strokeDasharray = '2 4'; else path.style.removeProperty('stroke-dasharray'); }
+      if (arrow) arrow.setAttribute('d', isFlowLine(line) ? processArrowPath(points) : '');
+      const sibling = candidate && line.id !== candidate.id && [candidate.from, candidate.to].some(id => line.from === id || line.to === id);
+      for (const shape of [path, arrow]) if (shape) {
+        if (candidate?.id === line.id) shape.style.setProperty(shape === path ? 'stroke' : 'fill', 'var(--boe-token-surface-surface-brand, #0061d5)');
+        else if (sibling) shape.style.setProperty(shape === path ? 'stroke' : 'fill', 'color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 55%, var(--boe-process-line-edge))');
+        else shape.style.removeProperty(shape === path ? 'stroke' : 'fill');
+      }
+      if (path) { if (candidate?.id === line.id) path.style.strokeWidth = '2px'; else if (this.showLastRunValue && line.share !== undefined) path.style.strokeWidth = `${Math.round((1.5 + Math.max(0, Math.min(1, line.share)) * 2.5) * 100) / 100}px`; else path.style.removeProperty('stroke-width'); }
+      this.shadowRoot!.querySelectorAll<HTMLElement>('[part=pinned-end],[part=hand-mark],[part=segment-handle],[part=connection],[part=end-grip]').forEach(decoration => {
+        if (decoration.dataset.lineId !== line.id) return;
+        if (candidate?.id === line.id && !isFlowLine(line)) decoration.style.display = 'none'; else decoration.style.removeProperty('display');
+      });
+      if (candidate?.id === line.id) result = points;
+      if (isFlowLine(line)) for (let i = 1; i < points.length; i++) {
+        const a = points[i - 1], b = points[i]; if (Math.abs(a.x - b.x) < .01) verticals.push({ x: a.x, y1: Math.min(a.y, b.y), y2: Math.max(a.y, b.y) });
+      }
+    }
+    return result;
+  }
+  private connectionPreviewLine(candidate: ProcessLine): ProcessLine {
+    const association = [candidate.from, candidate.to].some(id => !isFlowBox(this.projection.boxes.find(box => box.id === id)!));
+    return association ? { ...candidate, role: 'association', fromSide: undefined, toSide: undefined } : candidate;
+  }
+  private showLiveConnection(candidate?: ProcessLine): void {
+    if (candidate) candidate = this.connectionPreviewLine(candidate);
+    const points = this.paintConnectionRoutes(candidate);
+    const layer = this.shadowRoot!.querySelector('[part=lines]')!;
+    const preview = layer.querySelector<SVGPathElement>('[part=connection-preview]');
+    layer.querySelector('[part=connection-preview-arrow]')?.remove();
+    if (!preview) return;
+    preview.dataset.target = String(Boolean(candidate)); preview.dataset.role = candidate?.role ?? 'flow';
+    if (!candidate) return;
+    layer.querySelector('[part=connection-preview-end]')?.remove();
+    if (this.projection.lines.some(line => line.id === candidate.id)) { preview.setAttribute('d', ''); return; }
+    preview.setAttribute('d', roundedProcessPath(points));
+    if (isFlowLine(candidate)) { const arrow = svgElement('path'); arrow.setAttribute('part', 'connection-preview-arrow'); arrow.setAttribute('d', processArrowPath(points)); layer.append(arrow); }
+  }
   private pointerMove(event: PointerEvent): void {
     const gesture = this.portDrag ?? this.endDrag ?? this.segmentDrag ?? this.marquee ?? this.frameResize;
     if (gesture && gesture.pointerId !== event.pointerId) return;
@@ -1866,41 +1942,52 @@ export class ProcessModeler<
     }
     if (this.portDrag) {
       this.portDrag.point = point;
-      let ghost = this.shadowRoot!.querySelector<SVGPolylineElement>('[part=connection-preview]');
-      if (!ghost) { ghost = svgElement("polyline"); ghost.setAttribute("part", "connection-preview"); this.shadowRoot!.querySelector('[part=lines]')!.append(ghost); }
-      const start = this.portDrag.start; ghost.setAttribute("points", `${start.x},${start.y} ${point.x},${start.y} ${point.x},${point.y}`);
-      const target = this.boxAt(point, this.portDrag.id);
+      const fixed = this.projection.boxes.find(box => box.id === this.portDrag!.id)!;
+      const ghost = this.paintConnectionPreview(processLooseConnection(fixed, this.layoutValue.boxes[fixed.id], point), point);
+      const hit = this.connectionTarget(point, this.portDrag.id), target = hit?.box;
       const problem = target ? this.connectionProblem({ type: 'connect', from: this.portDrag.id, to: target.id }) : null;
-      const pinned = target && !problem ? this.sideAt(target, point) : undefined;
+      const pinned = target && !problem && isFlowBox(fixed) && isFlowBox(target) ? hit?.side : undefined;
       ghost.dataset.invalid = String(Boolean(problem));
+      this.showLiveConnection(target && !problem ? { id: '__boe-connection-preview', from: fixed.id, to: target.id, toSide: pinned } : undefined);
       this.shadowRoot!.querySelectorAll<HTMLElement>('[data-box-id]').forEach(box => { box.dataset.connectTarget = String(box.dataset.boxId === target?.id); box.dataset.connectInvalid = String(box.dataset.boxId === target?.id && Boolean(problem)); });
       this.shadowRoot!.querySelectorAll<HTMLElement>('[part=port]').forEach(port => { port.dataset.hot = String(port.dataset.owner === target?.id && port.dataset.side === pinned); });
-      this.showConnectTooltip(point, problem ?? (target ? pinned ? `Pin to the ${pinned} of ${target.title}` : `Connect to ${target.title}` : 'Drop here to add a connected step'), Boolean(problem));
+      if (target) this.showConnectTooltip(point, problem ?? (pinned ? `Pin to the ${pinned} of ${target.title}` : `Connect to ${target.title}`), Boolean(problem));
+      else this.shadowRoot!.querySelector('[part=connect-tooltip]')?.remove();
       return;
     }
     if (this.endDrag) {
       this.endDrag.point = point;
-      let ghost = this.shadowRoot!.querySelector<SVGPolylineElement>('[part=connection-preview]');
-      if (!ghost) { ghost = svgElement('polyline'); ghost.setAttribute('part', 'connection-preview'); this.shadowRoot!.querySelector('[part=lines]')!.append(ghost); }
-      const points = this.routedLines.get(this.endDrag.lineId);
-      const fixed = this.endDrag.end === 'from' ? points?.at(-1) : points?.[0];
-      if (fixed) ghost.setAttribute('points', `${fixed.x},${fixed.y} ${point.x},${fixed.y} ${point.x},${point.y}`);
-      const target = this.boxAt(point);
+      const line = this.projection.lines.find(line => line.id === this.endDrag!.lineId)!;
+      const fixedId = this.endDrag.end === 'from' ? line.to : line.from;
+      const fixed = this.projection.boxes.find(box => box.id === fixedId)!;
+      const ghost = this.paintConnectionPreview(processLooseConnection(fixed, this.layoutValue.boxes[fixed.id], point, this.endDrag.end === 'from'), point);
+      const hit = this.connectionTarget(point, fixedId), target = hit?.box;
       const problem = target ? this.connectionProblem({ type: 'reattach', lineId: this.endDrag.lineId, [this.endDrag.end]: target.id }) : null;
-      const pinned = target && !problem ? this.sideAt(target, point) : undefined;
-      ghost.dataset.invalid = String(Boolean(problem) || !target);
+      const pinned = target && !problem && isFlowBox(fixed) && isFlowBox(target) ? hit?.side : undefined;
+      ghost.dataset.invalid = String(Boolean(problem));
+      this.showLiveConnection(target && !problem ? { ...line, points: undefined, [this.endDrag.end]: target.id, [this.endDrag.end === 'from' ? 'fromSide' : 'toSide']: pinned } : undefined);
       this.shadowRoot!.querySelectorAll<HTMLElement>('[data-box-id]').forEach(box => { box.dataset.connectTarget = String(box.dataset.boxId === target?.id); box.dataset.connectInvalid = String(box.dataset.boxId === target?.id && Boolean(problem)); });
       this.shadowRoot!.querySelectorAll<HTMLElement>('[part=port]').forEach(port => { port.dataset.hot = String(port.dataset.owner === target?.id && port.dataset.side === pinned); });
-      this.showConnectTooltip(point, problem ?? (target ? pinned ? `Pin to the ${pinned} of ${target.title}` : `Attach to ${target.title}` : 'Drop on a step to reattach'), Boolean(problem) || !target);
+      if (target) this.showConnectTooltip(point, problem ?? (target ? pinned ? `Pin to the ${pinned} of ${target.title}` : `Attach to ${target.title}` : 'Drop on a step to reattach'), Boolean(problem) || !target);
+      else this.shadowRoot!.querySelector('[part=connect-tooltip]')?.remove();
       this.setStatus(problem ?? (target ? `Release to attach the connection to ${target.title}` : 'Move over a step to attach this connection'));
       return;
     }
     if (this.segmentDrag) {
-      const { index, points } = this.segmentDrag;
-      if (points[index].x === points[index + 1].x) points[index].x = points[index + 1].x = point.x;
-      else points[index].y = points[index + 1].y = point.y;
+      const { index, points, original, start } = this.segmentDrag;
+      const vertical = original[index].x === original[index + 1].x;
+      let delta = vertical ? point.x - start.x : point.y - start.y;
+      if (!event.altKey) delta = Math.round(delta / 8) * 8;
+      if (vertical) points[index].x = points[index + 1].x = original[index].x + delta;
+      else points[index].y = points[index + 1].y = original[index].y + delta;
       const path = Array.from(this.shadowRoot!.querySelectorAll<SVGPathElement>('[part=line]')).find(path => path.dataset.lineId === this.segmentDrag!.id);
-      path?.setAttribute("d", roundedProcessPath(points)); return;
+      path?.setAttribute("d", roundedProcessPath(points));
+      for (const handle of Array.from(this.shadowRoot!.querySelectorAll<SVGRectElement>('[part=segment-handle]'))) {
+        if (handle.dataset.lineId !== this.segmentDrag.id) continue;
+        const i = Number(handle.dataset.segment), a = points[i], b = points[i + 1];
+        if (a && b) { handle.setAttribute('x', String((a.x + b.x - Number(handle.getAttribute('width'))) / 2)); handle.setAttribute('y', String((a.y + b.y - Number(handle.getAttribute('height'))) / 2)); }
+      }
+      return;
     }
     if (this.marquee) {
       const marquee = this.marquee; marquee.point = point;
@@ -1965,6 +2052,9 @@ export class ProcessModeler<
   private pointerEnd(event: PointerEvent, commit: boolean): void {
     const gesture = this.portDrag ?? this.endDrag ?? this.segmentDrag ?? this.marquee ?? this.frameResize;
     if (gesture && gesture.pointerId !== event.pointerId) return;
+    delete this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.dataset.gesture;
+    if (this.portDrag || this.endDrag) this.paintConnectionRoutes();
+    this.shadowRoot!.querySelector('[part=connection-preview-arrow]')?.remove();
     const point = this.canvasPoint(event);
     if (this.frameResize) {
       const resize = this.frameResize; this.frameResize = undefined;
@@ -1975,6 +2065,7 @@ export class ProcessModeler<
     if (this.portDrag) {
       const port = this.portDrag; this.portDrag = undefined;
       this.shadowRoot!.querySelector('[part=connection-preview]')?.remove();
+      this.shadowRoot!.querySelector('[part=connection-preview-end]')?.remove();
       this.shadowRoot!.querySelector('[part=connect-tooltip]')?.remove();
       this.shadowRoot!.querySelectorAll<HTMLElement>('[data-connect-target]').forEach(box => { delete box.dataset.connectTarget; delete box.dataset.connectInvalid; });
       this.shadowRoot!.querySelectorAll<HTMLElement>('[part=port]').forEach(port => { delete port.dataset.hot; });
@@ -1989,8 +2080,8 @@ export class ProcessModeler<
           this.openAnchoredChooser(this.nextEdit(source, port.side, { x: pos.x + offsets[0], y: pos.y + offsets[1] }),
             this.nextChooserTitle(source, port.side), anchor);
         } else {
-          const target = this.boxAt(point, port.id);
-          if (target) this.requestEdit({ type: "connect", from: port.id, to: target.id, fromSide: port.side, toSide: this.sideAt(target, point) });
+          const hit = this.connectionTarget(point, port.id), target = hit?.box;
+          if (target) this.requestEdit({ type: "connect", from: port.id, to: target.id, toSide: hit?.side });
           else {
             const source = this.projection.boxes.find(box => box.id === port.id)!;
             if (!isFlowBox(source)) { this.setStatus("Drop on a step to attach the note"); return; }
@@ -2006,12 +2097,13 @@ export class ProcessModeler<
     if (this.endDrag) {
       const drag = this.endDrag; this.endDrag = undefined;
       this.shadowRoot!.querySelector('[part=connection-preview]')?.remove();
+      this.shadowRoot!.querySelector('[part=connection-preview-end]')?.remove();
       this.shadowRoot!.querySelector('[part=connect-tooltip]')?.remove();
       this.shadowRoot!.querySelectorAll<HTMLElement>('[data-connect-target]').forEach(box => { delete box.dataset.connectTarget; delete box.dataset.connectInvalid; });
       this.shadowRoot!.querySelectorAll<HTMLElement>('[part=port]').forEach(port => { delete port.dataset.hot; });
       if (commit) {
         if (Math.hypot(point.x - drag.start.x, point.y - drag.start.y) < 8) { this.pendingReattach = { lineId: drag.lineId, end: drag.end }; this.setStatus('Select a step to reattach the connection'); }
-        else { const target = this.boxAt(point); if (target) this.requestEdit({ type: 'reattach', lineId: drag.lineId, [drag.end]: target.id, [drag.end === 'from' ? 'fromSide' : 'toSide']: this.sideAt(target, point) }); else this.setStatus('Connection unchanged. Drop on a step to reattach.'); }
+        else { const original = this.projection.lines.find(line => line.id === drag.lineId)!; const hit = this.connectionTarget(point, drag.end === 'from' ? original.to : original.from), target = hit?.box; if (target) this.requestEdit({ type: 'reattach', lineId: drag.lineId, [drag.end]: target.id, [drag.end === 'from' ? 'fromSide' : 'toSide']: hit?.side }); else this.setStatus('Connection unchanged. Drop on a step to reattach.'); }
       }
       return;
     }
@@ -2072,9 +2164,30 @@ export class ProcessModeler<
     });
   }
   private sideAt(box: ProcessBox<N>, point: { x: number; y: number }): ProcessSide | undefined {
-    const p = this.layoutValue.boxes[box.id]; const width = p.width ?? 224; const height = p.height ?? 64;
-    const sides: [ProcessSide, number, number][] = [['north', p.x + width / 2, p.y], ['east', p.x + width, p.y + height / 2], ['south', p.x + width / 2, p.y + height], ['west', p.x, p.y + height / 2]];
-    return sides.find(([, x, y]) => Math.hypot(point.x - x, point.y - y) <= 12 / this.viewport.zoom)?.[0];
+    const p = this.layoutValue.boxes[box.id];
+    return (['north', 'east', 'south', 'west'] as const).find(side => {
+      const q = processPortPoint(box, p, side); return Math.hypot(point.x - q.x, point.y - q.y) <= 12 / this.viewport.zoom;
+    });
+  }
+  private connectionTarget(point: { x: number; y: number }, except?: string): { box: ProcessBox<N>; side?: ProcessSide } | undefined {
+    const boxes = this.projection.boxes.filter(box => box.id !== except && box.kind !== 'section');
+    let pin: { box: ProcessBox<N>; side: ProcessSide; distance: number } | undefined;
+    for (const box of boxes) for (const side of ['north', 'east', 'south', 'west'] as const) {
+      const q = processPortPoint(box, this.layoutValue.boxes[box.id], side), distance = Math.hypot(point.x - q.x, point.y - q.y);
+      if (distance <= 12 / this.viewport.zoom && (!pin || distance < pin.distance)) pin = { box, side, distance };
+    }
+    if (pin) return pin;
+    const distanceTo = (box: ProcessBox<N>) => {
+      const p = this.layoutValue.boxes[box.id], size = this.selectionDimensions(box);
+      return Math.hypot(Math.max(p.x - point.x, 0, point.x - p.x - size.width), Math.max(p.y - point.y, 0, point.y - p.y - size.height));
+    };
+    const leaves = boxes.filter(box => !box.frame), inside = leaves.filter(box => distanceTo(box) === 0).at(-1);
+    if (inside) return { box: inside };
+    const near = leaves.map(box => ({ box, distance: distanceTo(box) })).filter(hit => hit.distance < 16 / this.viewport.zoom).sort((a, b) => a.distance - b.distance)[0];
+    if (near) return near;
+    const frames = boxes.filter(box => box.frame && distanceTo(box) === 0);
+    const depth = (box: ProcessBox<N>): number => box.parentId ? 1 + depth(this.projection.boxes.find(parent => parent.id === box.parentId)!) : 0;
+    frames.sort((a, b) => depth(b) - depth(a)); return frames[0] ? { box: frames[0] } : undefined;
   }
   private lineAt(point: { x: number; y: number }, except?: string) {
     return this.projection.lines.find(line => isFlowLine(line) && (!except || isFlowBox(this.projection.boxes.find(box => box.id === except)!)) && line.from !== except && line.to !== except && nearProcessLine(point, this.routedLines.get(line.id) ?? [], 16 / this.viewport.zoom));
@@ -2219,12 +2332,26 @@ export class ProcessModeler<
     tooltip.style.left = `${point.x + 16}px`; tooltip.style.top = `${point.y + 16}px`;
   }
   protected update(): void {
+    if (this.locked) {
+      this.portDrag = undefined; this.endDrag = undefined; this.pendingReattach = undefined; this.segmentDrag = undefined; this.frameResize = undefined; this.marquee = undefined; this.drag = undefined; this.pointers.clear();
+      const canvas = this.shadowRoot?.querySelector<HTMLElement>('[part=canvas]'); if (canvas) delete canvas.dataset.gesture;
+    }
     const selectionBefore = JSON.stringify({ items: this.selection, path: this.selectedPath });
     if (this.documentValue !== undefined) {
       this.projection = this.model.project(this.documentValue);
       validateProjection(this.projection);
     } else this.projection = { boxes: [], lines: [] };
     this.layoutValue = this.arrangedLayout(this.layoutValue);
+    const hasBox = (id: string) => this.projection.boxes.some(box => box.id === id) && Boolean(this.layoutValue.boxes[id]);
+    const activeLine = this.endDrag && this.projection.lines.find(line => line.id === this.endDrag!.lineId);
+    if (this.portDrag && !hasBox(this.portDrag.id)
+      || this.endDrag && (!activeLine || !hasBox(activeLine.from) || !hasBox(activeLine.to))
+      || this.segmentDrag && !this.projection.lines.some(line => line.id === this.segmentDrag!.id)) {
+      const pointerId = (this.portDrag ?? this.endDrag ?? this.segmentDrag)?.pointerId;
+      this.portDrag = undefined; this.endDrag = undefined; this.segmentDrag = undefined; this.pendingReattach = undefined; this.pointers.clear();
+      const canvas = this.shadowRoot?.querySelector<HTMLElement>('[part=canvas]');
+      if (canvas) { delete canvas.dataset.gesture; if (pointerId !== undefined && canvas.hasPointerCapture?.(pointerId)) canvas.releasePointerCapture?.(pointerId); }
+    }
     this.measureGraphNotes();
     this.routedLines = new Map(this.projection.lines.map(line => [line.id, routeProcessLine(line, this.layoutValue, this.projection)]));
     this.computedChecks = this.collectChecks();
@@ -2458,6 +2585,8 @@ export class ProcessModeler<
       if (!this.disableConnections && !this.locked && !['end', 'finish'].includes(box.kind)) {
         for (const side of ["north", "east", "south", "west"] as const) {
           const port = document.createElement("button"); port.type = "button"; port.tabIndex = -1; port.setAttribute("part", "port"); port.dataset.side = side; port.dataset.owner = box.id;
+            const arrow = svgElement('svg'); arrow.setAttribute('viewBox', '0 0 16 16'); arrow.setAttribute('aria-hidden', 'true');
+            const arrowPath = svgElement('path'); arrowPath.setAttribute('d', 'M4 8h8M9 5l3 3-3 3'); arrow.append(arrowPath); port.append(arrow);
           port.setAttribute("aria-label", `Add or connect a step ${side} of ${box.title}`);
           port.addEventListener("click", event => {
             event.stopPropagation();
@@ -2488,17 +2617,31 @@ export class ProcessModeler<
         if (height !== undefined) element.querySelector<HTMLElement>('[part=note-body]')!.style.minHeight = `${height}px`;
       }
     }
+    this.renderLines(world);
+    for (const note of this.layoutValue.notes ?? []) {
+      const element = document.createElement("div");
+      element.setAttribute("part", "note");
+      element.textContent = note.text; element.dataset.noteId = note.id;
+      element.addEventListener('pointerdown', event => event.stopPropagation());
+      element.tabIndex = 0; element.setAttribute('role', 'button'); element.setAttribute('aria-label', note.text || 'Diagram note');
+      element.addEventListener('click', event => { const items = event.shiftKey ? this.selection.filter(item => !(item.type === 'note' && item.id === note.id)) : []; if (!event.shiftKey || !this.selectedNoteIds.has(note.id)) items.push({ type: 'note', id: note.id }); this.selectItems(items); });
+      element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); this.selectItems([{ type: 'note', id: note.id }]); } });
+    this.place(element, { ...note, width: 208, height: 80 });
+      world.append(element);
+    }
+  }
+  private renderedLineSelection = '';
+  private lineSelectionKey(): string { return JSON.stringify([this.selectedLineId, [...this.selectedLineIds].sort(), this.locked, this.disableConnections]); }
+  private renderLines(world: HTMLElement): void {
+    world.querySelectorAll('[part=lines],[part=line-controls],[part=connection],[part=line-add],[part=end-grip]').forEach(element => element.remove());
     const lines = svgElement("svg");
     lines.setAttribute("part", "lines");
     lines.setAttribute("aria-hidden", "true");
-    const defs = svgElement('defs');
-    for (const [id, fill] of [['boe-process-arrow', 'var(--boe-token-text-text-secondary, #6f6f6f)'], ['boe-process-arrow-brand', 'var(--boe-token-surface-surface-brand, #0061d5)']] as const) {
-      const marker = svgElement('marker'); marker.id = id; marker.setAttribute('viewBox', '0 0 8 8'); marker.setAttribute('refX', '7'); marker.setAttribute('refY', '4'); marker.setAttribute('markerWidth', '8'); marker.setAttribute('markerHeight', '8'); marker.setAttribute('orient', 'auto');
-      const arrow = svgElement('path'); arrow.setAttribute('d', 'M 0 0 L 8 4 L 0 8 Z'); arrow.setAttribute('fill', fill); marker.append(arrow); defs.append(marker);
-    }
-    lines.append(defs);
     world.append(lines);
-    for (const line of this.projection.lines) {
+    const lineControls = svgElement("svg"); lineControls.setAttribute("part", "line-controls"); lineControls.setAttribute("aria-hidden", "true"); world.append(lineControls);
+    const verticals: { x: number; y1: number; y2: number }[] = [];
+    const drawingOrder = [...this.projection.lines].sort((a, b) => Number(this.selectedLineIds.has(a.id)) - Number(this.selectedLineIds.has(b.id)));
+    for (const line of drawingOrder) {
       const points = this.routedLines.get(line.id)!;
       if (!points.length) continue;
       const midpoint = lineMidpoint(points);
@@ -2506,29 +2649,53 @@ export class ProcessModeler<
       path.setAttribute("part", "line");
       path.dataset.lineId = line.id;
       path.dataset.selected = String(this.selectedLineIds.has(line.id));
-      if (isFlowLine(line)) path.setAttribute('marker-end', `url(#${this.selectedLineIds.has(line.id) ? 'boe-process-arrow-brand' : 'boe-process-arrow'})`);
       path.setAttribute("vector-effect", "non-scaling-stroke");
-      path.setAttribute("d", roundedProcessPath(points));
+      const drawing = roundedProcessPath(points, 8, isFlowLine(line) ? verticals : []);
+      path.setAttribute("d", drawing);
       path.dataset.role = line.role ?? "flow";
       if (!isFlowLine(line)) path.setAttribute("stroke-dasharray", "2 4");
       else if (line.dashed) path.setAttribute("stroke-dasharray", "6 4");
       if (!isFlowLine(line)) { const hit = svgElement("polyline"); hit.setAttribute("part", "line-hit"); hit.dataset.lineId = line.id; hit.setAttribute("vector-effect", "non-scaling-stroke"); hit.setAttribute("points", points.map(p => `${p.x},${p.y}`).join(" ")); hit.addEventListener("click", event => { if (event.shiftKey) this.selectItems(this.selectedLineIds.has(line.id) ? this.selection.filter(item => item.type !== "line" || item.id !== line.id) : [...this.selection, { type: "line", id: line.id }]); else this.selectLine(line.id); }); lines.append(hit); }
       if (isFlowLine(line) && this.showLastRunValue && line.share !== undefined) { path.style.strokeWidth = `${Math.round((1.5 + Math.max(0, Math.min(1, line.share)) * 2.5) * 100) / 100}px`; path.setAttribute('aria-label', `${Math.round(line.share * 100)}% of last-run traffic`); }
       lines.append(path);
-      for (const point of [isFlowLine(line) && line.fromSide ? points[0] : null, isFlowLine(line) && line.toSide ? points.at(-1) : null]) {
-        if (!point) continue;
-        const pin = svgElement('circle'); pin.setAttribute('part', 'pinned-end'); pin.setAttribute('cx', String(point.x)); pin.setAttribute('cy', String(point.y)); pin.setAttribute('r', '3'); lines.append(pin);
+      const arrow = isFlowLine(line) ? svgElement('path') : null;
+      if (arrow) { arrow.setAttribute('part', 'line-arrow'); arrow.dataset.lineId = line.id; arrow.dataset.selected = path.dataset.selected; arrow.setAttribute('d', processArrowPath(points)); lines.append(arrow); }
+      if (isFlowLine(line)) for (let i = 1; i < points.length; i++) {
+        const a = points[i - 1], b = points[i]; if (Math.abs(a.x - b.x) < .01) verticals.push({ x: a.x, y1: Math.min(a.y, b.y), y2: Math.max(a.y, b.y) });
       }
-      for (let i = 1; isFlowLine(line) && i < points.length - 2; i++) {
-        const hit = svgElement("polyline"); hit.setAttribute("part", "line-hit"); hit.dataset.lineId = line.id; hit.dataset.segment = String(i);
-        hit.setAttribute("vector-effect", "non-scaling-stroke");
-        hit.setAttribute("points", `${points[i].x},${points[i].y} ${points[i + 1].x},${points[i + 1].y}`); lines.append(hit);
+      const setHover = (hover: boolean) => { path.dataset.hover = String(hover); if (arrow) arrow.dataset.hover = String(hover); const add = Array.from(world.querySelectorAll<HTMLElement>('[part=line-add]')).find(button => button.dataset.lineId === line.id); if (add) add.dataset.hover = String(hover); };
+      if (isFlowLine(line)) {
+        const hit = svgElement('path'); hit.setAttribute('part', 'line-hit'); hit.dataset.lineId = line.id; hit.setAttribute('d', drawing); hit.setAttribute('vector-effect', 'non-scaling-stroke');
+        hit.addEventListener('click', event => { if (event.shiftKey) this.selectItems(this.selectedLineIds.has(line.id) ? this.selection.filter(item => item.type !== 'line' || item.id !== line.id) : [...this.selection, { type: 'line', id: line.id }]); else this.selectLine(line.id); });
+        hit.addEventListener('pointerenter', () => setHover(true)); hit.addEventListener('pointerleave', event => { if (!(event.relatedTarget as Element | null)?.closest?.('[part=line-add],[part=connection]')) setHover(false); }); lines.append(hit);
+      }
+      for (const point of [isFlowLine(line) && line.fromSide ? points[0] : null, isFlowLine(line) && line.toSide ? processPointAlong([...points].reverse(), 14) : null]) {
+        if (!point) continue;
+        const pin = svgElement('circle'); pin.setAttribute('part', 'pinned-end'); pin.setAttribute('cx', String(point.x)); pin.setAttribute('cy', String(point.y)); pin.setAttribute('r', '3.25'); pin.dataset.selected = path.dataset.selected; pin.dataset.lineId = line.id; lines.append(pin);
+      }
+      if (isFlowLine(line) && (this.layoutValue.lines?.[line.id]?.length || line.points?.length)) {
+        const mark = svgElement('rect'); mark.setAttribute('part', 'hand-mark'); mark.dataset.selected = path.dataset.selected; mark.dataset.lineId = line.id;
+        mark.setAttribute('x', String(midpoint.x - 3.5)); mark.setAttribute('y', String(midpoint.y - 3.5)); mark.setAttribute('width', '7'); mark.setAttribute('height', '7'); mark.setAttribute('transform', `rotate(45 ${midpoint.x} ${midpoint.y})`); lines.append(mark);
+      }
+      if (isFlowLine(line) && this.selectedLineIds.has(line.id) && !this.locked) {
+        const chain = processSegmentChain(points);
+        for (let i = 1; i < chain.length - 2; i++) {
+          const a = chain[i], b = chain[i + 1], horizontal = Math.abs(a.y - b.y) < .01;
+          if (Math.hypot(b.x - a.x, b.y - a.y) < 14) continue;
+          const handle = svgElement('rect'), width = horizontal ? 18 : 7, height = horizontal ? 7 : 18;
+          handle.setAttribute('part', 'segment-handle'); handle.dataset.lineId = line.id; handle.dataset.segment = String(i); handle.dataset.horizontal = String(horizontal);
+          handle.setAttribute('x', String((a.x + b.x - width) / 2)); handle.setAttribute('y', String((a.y + b.y - height) / 2)); handle.setAttribute('width', String(width)); handle.setAttribute('height', String(height)); handle.setAttribute('rx', '3.5'); lineControls.append(handle);
+        }
       }
       const label = document.createElement("div");
       label.setAttribute("part", "connection"); label.dataset.lineId = line.id; label.dataset.role = line.role ?? "flow";
       label.setAttribute('role', 'group'); label.tabIndex = 0;
-      label.style.left = `${midpoint.x}px`;
-      label.style.top = `${midpoint.y}px`;
+      const sourceBox = this.projection.boxes.find(box => box.id === line.from)!;
+      const labelPoint = sourceBox.shape === 'gateway' ? processPointAlong(points, 34) : midpoint;
+      label.style.left = `${labelPoint.x}px`; label.style.top = `${labelPoint.y}px`;
+      if (sourceBox.shape === 'gateway') label.style.transform = 'horizontal' in labelPoint && labelPoint.horizontal ? 'translate(-50%, -115%)' : 'translate(6px, -50%)';
+      label.dataset.error = String(isFlowLine(line) && Boolean(line.dashed)); label.dataset.selected = path.dataset.selected;
+      label.addEventListener('pointerenter', () => setHover(true)); label.addEventListener('pointerleave', event => { if (!(event.relatedTarget as Element | null)?.closest?.('[part=line-add],[part=line-hit]')) setHover(false); });
       const names = `${this.projection.boxes.find((box) => box.id === line.from)!.title} to ${this.projection.boxes.find((box) => box.id === line.to)!.title}${line.label ? `, ${line.label}` : ""}`;
       label.setAttribute('aria-label', `Connection: ${names}${this.showLastRunValue && line.share !== undefined ? `. ${Math.round(line.share * 100)}% of last-run traffic` : ''}`);
       label.addEventListener('click', event => { if ((event.target as HTMLElement).closest('button')) return; if (event.shiftKey) this.selectItems(this.selectedLineIds.has(line.id) ? this.selection.filter(item => item.type !== 'line' || item.id !== line.id) : [...this.selection, { type: 'line', id: line.id }]); else this.selectLine(line.id); });
@@ -2536,22 +2703,23 @@ export class ProcessModeler<
       const text = document.createElement("span");
       const source = this.projection.boxes.find(box => box.id === line.from)!;
       const branchIndex = this.projection.lines.filter(candidate => isFlowLine(candidate) && candidate.from === line.from).indexOf(line);
-      text.textContent = !isFlowLine(line) ? "" : line.label ?? (line.weight !== undefined ? String(line.weight) : /decision/i.test(source.kind) ? ["Yes", "No"][branchIndex] ?? `Route ${branchIndex + 1}` : /try/i.test(source.kind) && line.dashed ? "If it fails" : "");
+      text.textContent = !isFlowLine(line) ? "" : line.label ?? (line.weight !== undefined || /choice|weighted/i.test(source.kind) ? `Weight ${line.weight ?? 1}` : /decision/i.test(source.kind) ? ["Yes", "No"][branchIndex] ?? `Route ${branchIndex + 1}` : /try/i.test(source.kind) && line.dashed ? "If it fails" : "");
       label.append(text);
       if (isFlowLine(line) && this.showLastRunValue && line.share !== undefined) {
         const share = document.createElement('small'); share.textContent = `${Math.round(line.share * 100)}%`; label.append(share);
       }
       const actions = document.createElement("div"); actions.setAttribute("part", "connection-actions"); label.append(actions);
-      if (isFlowLine(line) && points.length >= 4 && !this.locked) {
+      if (isFlowLine(line) && processSegmentChain(points).length >= 4 && !this.locked) {
         const adjust = document.createElement("button"); adjust.type = "button"; adjust.textContent = "Route";
         adjust.dataset.segment = "1"; adjust.dataset.lineId = line.id;
         adjust.setAttribute("aria-label", `Adjust route: ${names}. Use arrow keys`);
         adjust.onkeydown = event => {
-          const direction = { ArrowLeft: [-10, 0], ArrowRight: [10, 0], ArrowUp: [0, -10], ArrowDown: [0, 10] }[event.key];
+          const direction = { ArrowLeft: [-8, 0], ArrowRight: [8, 0], ArrowUp: [0, -8], ArrowDown: [0, 8] }[event.key];
           if (!direction) return; event.preventDefault(); event.stopPropagation();
-          const current = routeProcessLine(line, this.layoutValue, this.projection);
-          const vertical = current[1].x === current[2].x;
-          for (const point of [current[1], current[2]]) { if (vertical) point.x += direction[0]; else point.y += direction[1]; }
+          const current = processSegmentChain(routeProcessLine(line, this.layoutValue, this.projection));
+          const index = current.findIndex((point, i) => i > 0 && i < current.length - 2 && (direction[0] ? point.x === current[i + 1].x : point.y === current[i + 1].y));
+          if (index < 0) { this.setStatus(direction[0] ? 'Use Up or Down to move this horizontal route' : 'Use Left or Right to move this vertical route'); return; }
+          for (const point of [current[index], current[index + 1]]) { point.x += direction[0]; point.y += direction[1]; }
           this.routeLine(line.id, current.slice(1, -1));
           Array.from(this.shadowRoot!.querySelectorAll<HTMLButtonElement>('[data-segment]')).find(button => button.dataset.lineId === line.id)?.focus();
         };
@@ -2582,6 +2750,14 @@ export class ProcessModeler<
         actions.append(button);
       }
       world.append(label);
+      if (isFlowLine(line) && !this.locked) {
+        const add = document.createElement('button'); add.type = 'button'; add.setAttribute('part', 'line-add'); add.dataset.lineId = line.id;
+        const hasLabel = Boolean(line.label) || /choice|weighted/i.test(source.kind), length = points.slice(1).reduce((sum, point, i) => sum + Math.hypot(point.x - points[i].x, point.y - points[i].y), 0);
+        const at = hasLabel && source.shape !== 'gateway' ? processPointAlong(points, length / 2 + 28) : midpoint;
+        add.style.left = `${at.x}px`; add.style.top = `${at.y}px`; add.setAttribute('aria-label', `Insert a step here: ${names}`); add.append(variableGlyph(true));
+        add.addEventListener('pointerenter', () => setHover(true)); add.addEventListener('pointerleave', event => { if (!(event.relatedTarget as Element | null)?.closest?.('[part=line-hit],[part=connection]')) setHover(false); });
+        add.addEventListener('click', () => { if (this.catalog.length) this.openLineChooser(line, add); else this.requestEdit({ type: 'insert', lineId: line.id, from: line.from, to: line.to, placement: { source: 'line', center: midpoint } }); }); world.append(add);
+      }
       if (isFlowLine(line) && this.selectedLineId === line.id && !this.locked && !this.disableConnections) {
         for (const [end, point] of [['from', points[0]], ['to', points.at(-1)!]] as const) {
           const grip = document.createElement('button'); grip.type = 'button'; grip.setAttribute('part', 'end-grip'); grip.dataset.lineId = line.id; grip.dataset.end = end; grip.style.left = `${point.x - 12}px`; grip.style.top = `${point.y - 12}px`;
@@ -2591,17 +2767,7 @@ export class ProcessModeler<
         }
       }
     }
-    for (const note of this.layoutValue.notes ?? []) {
-      const element = document.createElement("div");
-      element.setAttribute("part", "note");
-      element.textContent = note.text; element.dataset.noteId = note.id;
-      element.addEventListener('pointerdown', event => event.stopPropagation());
-      element.tabIndex = 0; element.setAttribute('role', 'button'); element.setAttribute('aria-label', note.text || 'Diagram note');
-      element.addEventListener('click', event => { const items = event.shiftKey ? this.selection.filter(item => !(item.type === 'note' && item.id === note.id)) : []; if (!event.shiftKey || !this.selectedNoteIds.has(note.id)) items.push({ type: 'note', id: note.id }); this.selectItems(items); });
-      element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); this.selectItems([{ type: 'note', id: note.id }]); } });
-    this.place(element, { ...note, width: 208, height: 80 });
-      world.append(element);
-    }
+    this.renderedLineSelection = this.lineSelectionKey();
   }
   private place(element: HTMLElement, position: BoxPosition): void {
     Object.assign(element.style, {
@@ -3200,7 +3366,7 @@ export class ProcessModeler<
       if (scrollLeft !== undefined) control.scrollLeft = scrollLeft;
     };
     this.shadowRoot!.querySelectorAll<SVGRectElement>('[part=minimap] [data-map-box]').forEach(rect => rect.dataset.selected = String(this.selectedIds.has(rect.dataset.mapBox!)));
-    this.shadowRoot!.querySelectorAll<SVGPathElement>('[part=line]').forEach(line => { const selected = this.selectedLineIds.has(line.dataset.lineId!); line.dataset.selected = String(selected); if (line.dataset.role !== 'association') line.setAttribute('marker-end', `url(#${selected ? 'boe-process-arrow-brand' : 'boe-process-arrow'})`); });
+    if (this.renderedLineSelection !== this.lineSelectionKey()) this.renderLines(this.shadowRoot!.querySelector<HTMLElement>('[part=world]')!);
     this.shadowRoot!.querySelectorAll<HTMLElement>("[data-box-id]").forEach(
       (element) => {
         element.setAttribute(
@@ -3452,6 +3618,7 @@ export class ProcessModeler<
   private paintViewport(): void {
     const world = this.shadowRoot!.querySelector<HTMLElement>("[part=world]")!;
     world.style.setProperty('--boe-process-inverse-zoom', String(1 / this.viewport.zoom));
+    world.style.setProperty('--boe-process-zoom', String(this.viewport.zoom));
     // A small screen-space margin keeps targets above 24px after fractional
     // layout rounding without assuming a browser's CSS-pixel quantum.
     world.style.setProperty('--boe-process-hit-target', `${24.1 / this.viewport.zoom}px`);

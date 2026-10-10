@@ -249,9 +249,8 @@ export function routeProcessLine(line: ProcessLine, layout: ProcessLayout, proje
     };
     return [endpoint(from, boxes.get(line.from), side), endpoint(to, boxes.get(line.to), opposite[side])];
   }
-  // Event wrappers include an inset ring; automatic endpoints also share native task ports.
-  if ((boxes.get(line.from)?.shape === 'event' || boxes.get(line.to)?.shape === 'event')
-    && line.from !== line.to && !line.fromSide && !line.toSide
+  // Native heading-aware side choice and shared ports apply to every automatic flow.
+  if (from.width > 0 && from.height > 0 && to.width > 0 && to.height > 0 && line.from !== line.to
     && !(layout.lines?.[line.id] ?? line.points)?.length) {
     return automaticEventRoute(line, layout, projection);
   }
@@ -304,36 +303,79 @@ export function routeProcessLine(line: ProcessLine, layout: ProcessLayout, proje
 }
 
 /** Halfway along the polyline's length, not halfway between its endpoints. */
-export function lineMidpoint(points: readonly ProcessPoint[]): ProcessPoint {
-  if (!points.length) return { x: 0, y: 0 };
-  let remaining = points.slice(1).reduce((sum, point, i) => sum + distance(points[i], point), 0) / 2;
+/** Position along the rendered route, including its direction for label placement. */
+export function processPointAlong(points: readonly ProcessPoint[], distance: number): ProcessPoint & { horizontal: boolean } {
   for (let i = 1; i < points.length; i++) {
-    const a = points[i - 1], b = points[i], length = distance(a, b);
-    if (length && remaining <= length) {
-      const ratio = remaining / length;
-      return { x: a.x + (b.x - a.x) * ratio, y: a.y + (b.y - a.y) * ratio };
-    }
-    remaining -= length;
+    const a = points[i - 1], b = points[i], length = Math.hypot(b.x - a.x, b.y - a.y);
+    if (length && distance <= length) return { x: a.x + (b.x - a.x) * distance / length, y: a.y + (b.y - a.y) * distance / length, horizontal: Math.abs(a.y - b.y) < .01 };
+    distance -= length;
   }
-  return { ...points[0] };
+  return { ...(points.at(-1) ?? { x: 0, y: 0 }), horizontal: true };
+}
+export function lineMidpoint(points: readonly ProcessPoint[]): ProcessPoint {
+  const distance = points.slice(1).reduce((sum, point, i) => sum + Math.hypot(point.x - points[i].x, point.y - points[i].y), 0) / 2;
+  const { x, y } = processPointAlong(points, distance); return { x, y };
+}
+/** Keep the two 20px end stubs so a straight route also has a middle drag handle. */
+export function processSegmentChain(points: readonly ProcessPoint[]): ProcessPoint[] {
+  if (points.length < 2) return points.map(point => ({ ...point }));
+  const first = points[0], second = points[1], last = points.at(-1)!, previous = points.at(-2)!;
+  const chain = [{ ...first }, { x: first.x + Math.sign(second.x - first.x) * 20, y: first.y + Math.sign(second.y - first.y) * 20 }];
+  for (const point of [...points.slice(1, -1), { x: last.x + Math.sign(previous.x - last.x) * 20, y: last.y + Math.sign(previous.y - last.y) * 20 }, last]) {
+    const before = chain.at(-1)!; if (Math.abs(before.x - point.x) >= .01 || Math.abs(before.y - point.y) >= .01) chain.push({ ...point });
+  }
+  return chain;
+}
+export function processArrowPath(points: readonly ProcessPoint[]): string {
+  if (points.length < 2) return '';
+  const end = points.at(-1)!, previous = points.at(-2)!, length = Math.hypot(end.x - previous.x, end.y - previous.y) || 1;
+  const x = (end.x - previous.x) / length, y = (end.y - previous.y) / length, base = { x: end.x - x * 9, y: end.y - y * 9 };
+  return `M${end.x},${end.y}L${base.x - y * 4.5},${base.y + x * 4.5}L${base.x + y * 4.5},${base.y - x * 4.5}Z`;
 }
 
-/** SVG route with small rounded orthogonal turns, retaining exact endpoints. */
-export function roundedProcessPath(points: readonly ProcessPoint[], radius = 6): string {
+/** Shape-aware side midpoint shared by connection targeting and loose previews. */
+export function processPortPoint(box: ProcessBox, position: BoxPosition, side: ProcessSide): ProcessPoint {
+  const r = rectangle(position, box), result = pin(r, center(r), side), inset = box.shape === 'event' ? 8 : 0;
+  if (side === 'north') result.y += inset; else if (side === 'south') result.y -= inset;
+  else if (side === 'west') result.x += inset; else result.x -= inset;
+  return result;
+}
+
+/** Dashed connection preview follows the side facing the pointer, with a 20px lead. */
+export function processLooseConnection(box: ProcessBox, position: BoxPosition, point: ProcessPoint, reverse = false): ProcessPoint[] {
+  const r = rectangle(position, box), c = center(r), dx = point.x - c.x, dy = point.y - c.y;
+  const side: ProcessSide = Math.abs(dx) / (r.width || 1) > Math.abs(dy) / (r.height || 1) ? dx > 0 ? 'east' : 'west' : dy > 0 ? 'south' : 'north';
+  const start = processPortPoint(box, position, side);
+  const direction = { north: { x: 0, y: -1 }, east: { x: 1, y: 0 }, south: { x: 0, y: 1 }, west: { x: -1, y: 0 } }[side];
+  const lead = { x: start.x + direction.x * 20, y: start.y + direction.y * 20 };
+  const points = simplify(direction.x ? [start, lead, { x: (lead.x + point.x) / 2, y: lead.y }, { x: (lead.x + point.x) / 2, y: point.y }, point] : [start, lead, { x: lead.x, y: (lead.y + point.y) / 2 }, { x: point.x, y: (lead.y + point.y) / 2 }, point]);
+  return reverse ? points.reverse() : points;
+}
+
+export function roundedProcessPath(points: readonly ProcessPoint[], radius = 8, verticals: readonly { x: number; y1: number; y2: number }[] = []): string {
   if (!points.length) return "";
   const commands = [`M ${points[0].x} ${points[0].y}`];
+  const hops = (previous: ProcessPoint, end: ProcessPoint, index: number, corner = end) => {
+    if (Math.abs(previous.y - end.y) >= .01) return;
+    const direction = Math.sign(end.x - previous.x);
+    const startX = index === 1 ? previous.x : previous.x + direction * Math.min(radius, Math.abs(corner.x - previous.x) / 2);
+    const hits = verticals.filter(v => v.x > Math.min(startX, end.x) + 10 && v.x < Math.max(startX, end.x) - 10 && previous.y > v.y1 + 6 && previous.y < v.y2 - 6).map(v => v.x).sort((a, b) => (a - b) * direction);
+    for (const x of hits) commands.push(`L ${x - direction * 5} ${previous.y}`, `A 5 5 0 0 ${direction > 0 ? 1 : 0} ${x + direction * 5} ${previous.y}`);
+  };
   for (let index = 1; index < points.length - 1; index++) {
     const previous = points[index - 1], corner = points[index], next = points[index + 1];
     const beforeLength = Math.hypot(corner.x - previous.x, corner.y - previous.y);
     const afterLength = Math.hypot(next.x - corner.x, next.y - corner.y);
     if (!beforeLength || !afterLength || (corner.x - previous.x) * (next.y - corner.y) === (corner.y - previous.y) * (next.x - corner.x)) {
-      commands.push(`L ${corner.x} ${corner.y}`); continue;
+      hops(previous, corner, index); commands.push(`L ${corner.x} ${corner.y}`); continue;
     }
     const turn = Math.min(radius, beforeLength / 2, afterLength / 2);
     const enter = { x: corner.x - (corner.x - previous.x) / beforeLength * turn, y: corner.y - (corner.y - previous.y) / beforeLength * turn };
     const leave = { x: corner.x + (next.x - corner.x) / afterLength * turn, y: corner.y + (next.y - corner.y) / afterLength * turn };
+    hops(previous, enter, index, corner);
     commands.push(`L ${enter.x} ${enter.y}`, `Q ${corner.x} ${corner.y} ${leave.x} ${leave.y}`);
   }
+  if (points.length > 1) hops(points.at(-2)!, points.at(-1)!, points.length - 1);
   commands.push(`L ${points.at(-1)!.x} ${points.at(-1)!.y}`);
   return commands.join(" ");
 }

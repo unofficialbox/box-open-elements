@@ -93,7 +93,7 @@ describe('Native graph note and association roles', () => {
       expect(root.querySelector('[data-selection-command=delete-line]')).not.toBeNull();
     }
     element.selectLine('ab'); expect(root.querySelector('[data-selection-command=insert]')).not.toBeNull();
-    expect(root.querySelector('[part=line][data-line-id=ab]')!.hasAttribute('marker-end')).toBe(true);
+    expect(root.querySelector('[part=line-arrow][data-line-id=ab]')).not.toBeNull();
   });
 
   it('rejects direct role-invalid mutations and leaves association routes unchanged', () => {
