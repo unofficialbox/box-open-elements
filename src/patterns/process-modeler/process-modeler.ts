@@ -461,7 +461,8 @@ export class ProcessModeler<
     return this.model.connectionProblem(this.documentValue, { from, to, ...(line ? { ignoreLineId: line.id } : {}) }, this.projection) || null;
   }
   requestEdit(edit: ProcessEdit): void {
-    if (this.locked || (this.disableConnections && (edit.type === "connect" || edit.type === "disconnect" || edit.type === 'reattach'))) return;
+    if (this.locked || (this.disableConnections && (edit.type === "connect" || edit.type === "disconnect" || edit.type === 'reattach' || edit.type === 'edit-line'))) return;
+    if (edit.type === 'edit-line' && (!this.projection.lines.some(line => line.id === edit.lineId) || (edit.label === undefined && edit.weight === undefined) || (edit.label !== undefined && typeof edit.label !== 'string') || (edit.weight !== undefined && (!Number.isFinite(edit.weight) || edit.weight < 0)))) return;
     if (edit.type === 'delete-selection' && (!edit.selection?.length || edit.selection.some(item => !['box', 'line', 'note'].includes(item.type) || typeof item.id !== 'string' || !item.id))) {
       this.setStatus('The selected graph items are invalid', true); return;
     }
@@ -1218,7 +1219,26 @@ export class ProcessModeler<
       const actions = document.createElement('div'); actions.setAttribute('part', 'connections-actions');
       const setup = document.createElement('button'); setup.type = 'button'; setup.textContent = 'Set up connections'; setup.onclick = () => emit(this, 'connection-setup-request', {}); actions.append(setup); content.append(actions);
     } else if (this.activePane === "Shortcuts") {
-      content.textContent = "Tab: move between steps. Alt+arrows: select the nearest step that way. Arrows: move one grid square. Shift+arrows: move four. N: add the next step. Ctrl+Alt+arrows: add in a direction. Enter: edit. Delete: remove. Ctrl/Command+A: select all. Ctrl/Command+C/V/D: copy, paste, duplicate. Ctrl/Command+Z and Shift+Ctrl/Command+Z: undo and redo. Shift+1: fit the whole process. Shift+drag: select a region. Drag a port: connect. Escape: cancel.";
+      const shortcuts = document.createElement('dl'); shortcuts.setAttribute('part', 'shortcut-list');
+      for (const [term, description] of [
+        ['Drag the canvas', 'Move around'], ['Scroll', 'Move around'], ['`Ctrl` + scroll, or pinch', 'Zoom'], ['`Shift` + drag', 'Select an area'],
+        ['Drag a dot beside a step', 'Draw a line. Drop on a box to attach it (the side follows the layout), or on one of its points to pin it there'],
+        ['Click a dot', 'Add a connected step that way'], ['`Alt` `Ctrl` + arrow', 'Add a connected step that way'],
+        ["Drag a line's handle", 'Move that part of the line by hand (Reset line undoes it)'], ["Drag a line's end", 'Attach it somewhere else'],
+        ['`N`', 'Add the next step'], ['Arrow keys', 'Nudge by one grid square (`Shift` for four)'], ['`Alt` + arrow', 'Go to the nearest step that way'],
+        ['`Enter`', 'Edit the selected step'], ['`Delete`', 'Delete the selection'], ['`Ctrl` `Z` / `Shift` `Z`', 'Undo / redo'],
+        ['`Ctrl` `C` `V` `D`', 'Copy, paste, duplicate'], ['`Shift` `1`', 'Fit the whole process'], ['`+` `-` `0`', 'Zoom in, out, 100%'],
+        ['Steps view', ''], ['`↑` `↓`', 'Go to the step above or below'], ['`Alt` + `↑` `↓`', 'Move the step up or down its path'], ['`Delete`', 'Delete the step'],
+        ['Pinch, or `Ctrl` + scroll', 'Zoom'], ['Code view', ''], ['`Ctrl` `Space`', 'Suggest what can go here'], ['`F8`', 'Go to the problem'], ['`Esc`', 'Leave the editor'],
+      ]) {
+        const dt = document.createElement('dt'), dd = document.createElement('dd');
+        if (!description) dt.setAttribute('part', 'shortcut-heading');
+        for (const [element, text] of [[dt, term], [dd, description]] as const) {
+          text.split('`').forEach((run, index) => { if (index % 2) { const key = document.createElement('kbd'); key.textContent = run; element.append(key); } else element.append(document.createTextNode(run)); });
+        }
+        shortcuts.append(dt, dd);
+      }
+      content.append(shortcuts);
     }
   }
   private requestVariableEdit(edit: ProcessVariableEdit): void {
@@ -1568,6 +1588,11 @@ export class ProcessModeler<
     if (event.defaultPrevented) return;
     const target = event.target as HTMLElement;
     if (target.closest("input,textarea,select,[contenteditable],button,summary")) return;
+    if (target.closest('[part=canvas]') && !event.ctrlKey && !event.metaKey && !event.altKey && ['+', '=', '-', '0'].includes(event.key)) {
+      event.preventDefault();
+      this.zoomBy(event.key === '0' ? 1 / this.viewport.zoom : event.key === '-' ? 1 / 1.2 : 1.2);
+      return;
+    }
     if (event.key === ' ') { event.preventDefault(); this.spacePressed = true; return; }
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
       if (this.locked || !(event.shiftKey ? this.history.canRedo : this.history.canUndo)) return;
@@ -2946,10 +2971,60 @@ export class ProcessModeler<
     }
     return row;
   }
+  private renderLeadsTo(editor: HTMLElement, selected: ProcessBox<N>): void {
+    const previous = editor.querySelector<HTMLElement>('[part=leads-to]');
+    if (['end', 'finish'].includes(selected.kind)) { previous?.remove(); return; }
+    const outgoing = this.projection.lines.filter(line => line.from === selected.id);
+    const state = JSON.stringify([selected.id, selected.kind, this.locked, this.disableConnections, outgoing, this.projection.boxes.filter(box => box.parentId === selected.parentId).map(({id, title, kind}) => ({id, title, kind}))]);
+    if (previous?.dataset.state === state) return;
+    const leads = document.createElement('section'); leads.setAttribute('part', 'leads-to'); leads.dataset.state = state;
+    const heading = document.createElement('h3'); heading.textContent = 'Leads to'; leads.append(heading);
+    const session = this.layoutEditSession;
+    const current = (control: HTMLElement) => control.isConnected && this.selected?.id === selected.id && this.layoutEditSession === session && !this.locked && !this.disableConnections;
+    const list = document.createElement('ul'); list.setAttribute('part', 'lead-list');
+    for (const line of outgoing) {
+      const row = document.createElement('li'); row.setAttribute('part', 'lead-row');
+      if (selected.kind === 'decision' || selected.kind === 'choice') {
+        const input = document.createElement('input'); const weighted = selected.kind === 'choice';
+        input.setAttribute('part', 'lead-control'); input.dataset.lead = line.id; input.dataset.leadOwner = selected.id;
+        input.type = weighted ? 'number' : 'text'; input.setAttribute('aria-label', weighted ? 'Weight' : 'Path name');
+        if (weighted) input.min = '0'; input.value = weighted ? String(line.weight ?? 1) : line.label ?? '';
+        input.disabled = this.locked || this.disableConnections;
+        input.onchange = () => {
+          if (!current(input) || !this.projection.lines.some(candidate => candidate.id === line.id && candidate.from === selected.id)) return;
+          if (weighted) { const weight = input.valueAsNumber; if (Number.isFinite(weight) && weight >= 0 && weight !== (line.weight ?? 1)) this.requestEdit({type: 'edit-line', lineId: line.id, weight}); }
+          else if (input.value !== (line.label ?? '')) this.requestEdit({type: 'edit-line', lineId: line.id, label: input.value});
+        };
+        row.append(input);
+      }
+      const target = this.projection.boxes.find(box => box.id === line.to);
+      const name = document.createElement('span'); name.textContent = target?.title ?? line.to; row.append(name);
+      if (!this.disableConnections) {
+        const remove = document.createElement('button'); remove.type = 'button'; remove.setAttribute('part', 'lead-remove');
+        remove.setAttribute('aria-label', `Remove the connection to ${target?.title ?? line.to}`); remove.append(variableGlyph()); remove.disabled = this.locked;
+        remove.onclick = () => { if (current(remove)) this.requestEdit({type: 'disconnect', lineId: line.id}); }; row.append(remove);
+      }
+      list.append(row);
+    }
+    if (outgoing.length) leads.append(list);
+    else { const empty = document.createElement('p'); empty.setAttribute('part', 'lead-help'); empty.textContent = 'Nothing yet. Drag from a dot on the step, or pick one below.'; leads.append(empty); }
+    const eligible = this.projection.boxes.filter(box => box.id !== selected.id && !['start', 'timer'].includes(box.kind) && box.parentId === selected.parentId && !outgoing.some(line => line.to === box.id));
+    if (eligible.length) {
+      const label = variableLabel('Connect to'); label.setAttribute('part', 'lead-target');
+      const select = document.createElement('select'); select.setAttribute('aria-label', 'Connect to'); select.disabled = this.locked || this.disableConnections;
+      const placeholder = document.createElement('option'); placeholder.value = ''; placeholder.textContent = 'Connect to…'; select.append(placeholder);
+      for (const box of eligible) { const option = document.createElement('option'); option.value = box.id; option.textContent = box.title; select.append(option); }
+      select.onchange = () => { const to = select.value; if (to && current(select) && eligible.some(box => box.id === to)) this.requestEdit({type: 'connect', from: selected.id, to}); select.value = ''; };
+      label.append(select); leads.append(label);
+    }
+    if (previous) previous.replaceWith(leads); else editor.append(leads);
+  }
   private renderSelection(): void {
     this.shadowRoot?.querySelectorAll<HTMLElement>('[part=note]').forEach(note => { note.dataset.selected = String(this.selectedNoteIds.has(note.dataset.noteId!)); note.setAttribute('aria-pressed', note.dataset.selected); });
     if (!this.isRendered) return;
     const focusedControl = this.shadowRoot!.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
+    const focusedLead = focusedControl?.dataset.lead, focusedLeadOwner = focusedControl?.dataset.leadOwner;
+    const focusedLeadSession = this.layoutEditSession;
     const summaryOwner = focusedControl?.tagName === 'SUMMARY' ? focusedControl.parentElement : null;
     const focusedDisclosure = summaryOwner?.matches('[part=field-disclosure]') ? summaryOwner as HTMLDetailsElement : null;
     const disclosureOwner = this.inspectedId;
@@ -2965,6 +3040,13 @@ export class ProcessModeler<
     const direction = focusedControl && 'selectionDirection' in focusedControl ? focusedControl.selectionDirection : null;
     const scrollTop = focusedControl?.scrollTop, scrollLeft = focusedControl?.scrollLeft;
     const restoreControlFocus = () => {
+      if (focusedLead !== undefined) {
+        if (this.selected?.id !== focusedLeadOwner || focusedLeadSession !== this.layoutEditSession || this.locked || this.disableConnections) return;
+        const replacement = Array.from(this.shadowRoot!.querySelectorAll<HTMLInputElement>('[part=lead-control]')).find(input => input.dataset.lead === focusedLead && input.dataset.leadOwner === focusedLeadOwner);
+        replacement?.focus({preventScroll: true});
+        if (replacement && caret !== null && replacement.selectionStart !== null) replacement.setSelectionRange(caret, selectionEnd ?? caret);
+        return;
+      }
       if (focusedDisclosureKey !== undefined) {
         if (this.selected?.id !== disclosureOwner || disclosureSession !== String(this.layoutEditSession)) return;
         const replacement = Array.from(this.shadowRoot!.querySelectorAll<HTMLDetailsElement>('[part=field-disclosure]')).find(item => item.dataset.disclosure === focusedDisclosureKey && item.dataset.session === disclosureSession);
@@ -3041,13 +3123,14 @@ export class ProcessModeler<
       this.inspectedControls === controlsKey &&
       editor.querySelector(`[part=inspector-heading]`)?.tagName === `H${this.headingLevel}`
     ) {
-      editor.querySelector("[part=inspector-heading]")!.textContent = selected?.title ?? "";
+      editor.querySelector("[part=inspector-heading]")!.textContent = this.selectedIds.size > 1 ? `${this.selectedIds.size} steps selected` : selected?.title ?? "";
       const locals = editor.querySelector<HTMLElement>('[part=local-variables]');
-      if (selected && locals && locals.dataset.localEchoRevision !== String(this.localEchoRevision)) {
+      if (selected && this.selectedIds.size === 1 && locals && locals.dataset.localEchoRevision !== String(this.localEchoRevision)) {
         // Reconcile controlled local drafts without disposing the host's custom
         // inspector or unrelated focused controls on unchanged document echoes.
         locals.replaceWith(this.renderLocalVariables(selected));
       }
+      if (selected && this.selectedIds.size === 1) this.renderLeadsTo(editor, selected);
       restoreControlFocus();
       return;
     }
@@ -3090,17 +3173,7 @@ export class ProcessModeler<
       if (selected.localVariables !== undefined) editor.append(this.renderLocalVariables(selected));
       this.cleanupInspector =
         this.renderer?.(selected.node, editor) || undefined;
-      const outgoing = this.projection.lines.filter(line => line.from === selected.id);
-      const leads = document.createElement('section'); leads.setAttribute('part', 'leads-to');
-      const leadsHeading = document.createElement('h3'); leadsHeading.textContent = 'Leads to'; leads.append(leadsHeading);
-      for (const line of outgoing) {
-        const row = document.createElement('div'); row.setAttribute('part', 'lead-row');
-        const target = this.projection.boxes.find(box => box.id === line.to);
-        const name = document.createElement('span'); name.textContent = `${line.label ? `${line.label}: ` : ''}${target?.title ?? line.to}`; row.append(name);
-        if (!this.disableConnections) { const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = 'Remove'; remove.setAttribute('aria-label', `Remove connection to ${target?.title ?? line.to}`); remove.disabled = this.locked; remove.onclick = () => this.requestEdit({ type: 'disconnect', lineId: line.id }); row.append(remove); }
-        leads.append(row);
-      }
-      const connect = document.createElement('button'); connect.type = 'button'; connect.textContent = 'Connect to…'; connect.disabled = this.locked || this.disableConnections; connect.onclick = () => { this.connecting = selected.id; this.setStatus(`Select the next box to connect from ${selected.title}`); }; leads.append(connect); editor.append(leads);
+      this.renderLeadsTo(editor, selected);
       const metrics = this.showLastRunValue && selected.runMetrics !== false ? this.lastRunValue?.steps[selected.id] : undefined;
       if (metrics) {
         const report = document.createElement('section'); report.setAttribute('part', 'inspector-metrics');
@@ -3115,7 +3188,7 @@ export class ProcessModeler<
           }
           report.append(list);
         }
-        editor.insertBefore(report, leads);
+        editor.insertBefore(report, editor.querySelector('[part=leads-to]'));
       }
       const actions = document.createElement('div'); actions.setAttribute('part', 'inspector-actions');
       if (!['start', 'timer'].includes(selected.kind)) {

@@ -101,6 +101,7 @@ export class CodeEditor extends BaseElement {
   private problemsInternal: readonly CodeProblem[] = [];
   private completionsInternal: readonly CodeCompletion[] = [];
   private view?: EditorView;
+  private foldPartObserver?: MutationObserver;
   private languageConfig = new Compartment();
   private readonlyConfig = new Compartment();
   private completionsConfig = new Compartment();
@@ -302,6 +303,8 @@ export class CodeEditor extends BaseElement {
     super.connectedCallback();
   }
   disconnectedCallback(): void {
+    this.foldPartObserver?.disconnect();
+    this.foldPartObserver = undefined;
     this.flushChange();
     this.savedSelection = this.selection;
     this.view?.destroy();
@@ -315,7 +318,11 @@ export class CodeEditor extends BaseElement {
       .cm-editor{background:var(--boe-code-background,var(--boe-token-surface-surface,#fff));color:var(--boe-code-foreground,var(--boe-token-text-text,#222))}
       [part=editor]:focus-within{box-shadow:0 0 0 3px var(--boe-token-surface-surface-brand,#0061d5)}
       .cm-editor.cm-focused{outline:none}
-      .cm-scroller{max-height:var(--boe-code-editor-height,420px);min-height:160px;overflow:auto;font-family:var(--boe-code-font-family,monospace);font-size:var(--boe-code-font-size,14px);line-height:var(--boe-code-line-height,1.6)}
+      .cm-content{padding:var(--boe-code-content-padding,4px 0)!important}
+      .cm-lineNumbers .cm-gutterElement{padding:var(--boe-code-line-number-padding,0 3px 0 5px)!important}
+      .cm-foldGutter .cm-gutterElement{padding:var(--boe-code-fold-gutter-padding,0)!important}
+
+      .cm-scroller{max-height:var(--boe-code-editor-height,420px);min-height:160px;overflow:auto;font-family:var(--boe-code-font-family,monospace)!important;font-size:var(--boe-code-font-size,14px);line-height:var(--boe-code-line-height,1.6)}
       .cm-editor .cm-scroller{line-height:var(--boe-code-line-height,1.4)!important}
       :host([fill-height]){height:100%}
       :host([fill-height]) [part=editor],:host([fill-height]) .cm-editor,:host([fill-height]) .cm-scroller{height:100%;max-height:none;min-height:0}
@@ -534,6 +541,16 @@ export class CodeEditor extends BaseElement {
           ],
         }),
       });
+      const markFoldParts = () => {
+        this.shadowRoot!.querySelectorAll<HTMLElement>('.cm-foldGutter .cm-gutterElement > span').forEach(marker => {
+          // basicSetup supplies these stable default marker characters. Keep
+          // their text/title and interaction; export presentation-only parts.
+          marker.setAttribute('part', `fold-marker ${marker.textContent === '⌄' ? 'fold-marker-open' : 'fold-marker-closed'}`);
+        });
+      };
+      markFoldParts();
+      this.foldPartObserver = new MutationObserver(markFoldParts);
+      this.foldPartObserver.observe(this.view.dom, {subtree: true, childList: true, characterData: true});
       this.selection = this.savedSelection;
     } else {
       this.syncing = true;

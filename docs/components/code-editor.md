@@ -134,3 +134,15 @@ problems, and suggestions share `--boe-code-popup-background`,
 
 Hosts own parsing, compilation and persistence. The component does not execute
 code or infer application-specific diagnostics.
+
+For composed inspector editors, `--boe-code-content-padding`,
+`--boe-code-line-number-padding` and `--boe-code-fold-gutter-padding` control
+CodeMirror content and the two named gutters independently. Defaults preserve
+the ordinary editor spacing; the lint gutter is unaffected. Combine them with
+the existing font family, font size, line height and gutter color properties,
+and `::part(editor)` for the outer border/radius.
+
+The fold gutter exports `fold-marker`, `fold-marker-open` and
+`fold-marker-closed` parts. Their native text, title and click behavior remain
+intact; hosts can style the two states separately, including a visual marker
+through `::before`.
