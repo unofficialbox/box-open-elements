@@ -2213,7 +2213,7 @@ export class ProcessModeler<
     world.querySelector('[part=drag-guides]')?.remove();
     const primary = this.projection.boxes.find(box => box.id === id)!;
     if (alt) return { x, y };
-    if (!isFlowBox(primary) || primary.kind === 'section') return { x: this.snapToGrid ? Math.round(x / 16) * 16 : x, y: this.snapToGrid ? Math.round(y / 16) * 16 : y };
+    if (primary.kind === 'section') return { x: this.snapToGrid ? Math.round(x / 16) * 16 : x, y: this.snapToGrid ? Math.round(y / 16) * 16 : y };
     const size = this.selectionDimensions(primary), zoom = this.viewport.zoom, threshold = 8 / zoom;
     const moved = this.selectedIds.size > 1 && this.selectedIds.has(id) ? new Set(this.selectedIds) : new Set([id]);
     for (let changed = true; changed;) {
@@ -2516,18 +2516,19 @@ export class ProcessModeler<
     const world = this.shadowRoot!.querySelector<HTMLElement>("[part=world]")!;
     world.replaceChildren();
     const sections = [
-      ...(this.layoutValue.sections ?? []).map(section => ({ id: section.id, x: section.x })),
-      ...this.projection.boxes.filter(box => box.kind === 'section').map(box => ({ id: box.id, x: this.layoutValue.boxes[box.id].x })),
+      ...(this.layoutValue.sections ?? []).map(section => ({ id: section.id, x: section.x, owner: 'layout' })),
+      ...this.projection.boxes.filter(box => box.kind === 'section').map(box => ({ id: box.id, x: this.layoutValue.boxes[box.id].x, owner: 'graph' })),
     ].sort((a, b) => a.x - b.x);
-    const sectionHeader = (element: HTMLElement, id: string, title: string, description?: string) => {
-      const number = sections.findIndex(section => section.id === id) + 1;
+    const sectionHeader = (element: HTMLElement, id: string, title: string, description?: string, owner: 'layout' | 'graph' = 'layout', problem?: ProcessCheck) => {
+      const number = sections.findIndex(section => section.id === id && section.owner === owner) + 1;
       element.setAttribute('aria-roledescription', 'section');
-      element.setAttribute('aria-label', `Section ${number}: ${title || 'Untitled'}. ${description || ''}`);
+      element.setAttribute('aria-label', `Section ${number}: ${title || 'Untitled'}. ${description || ''}${problem ? `. Needs attention: ${problem.title || problem.message}` : ''}`);
       const head = document.createElement('div'); head.setAttribute('part', 'section-head');
       const index = document.createElement('span'); index.setAttribute('part', 'section-number'); index.textContent = String(number);
       const content = document.createElement('div');
       const name = document.createElement('strong'); name.textContent = title || 'Untitled section'; content.append(name);
       if (description) { const purpose = document.createElement('small'); purpose.textContent = description; content.append(purpose); }
+      if (problem) { const message = document.createElement('span'); message.setAttribute('part', 'problem'); message.append(checkGlyph(), document.createTextNode(problem.title || problem.message)); content.append(message); }
       head.append(index, content); element.append(head);
     };
     for (const section of this.layoutValue.sections ?? []) {
@@ -2565,7 +2566,7 @@ export class ProcessModeler<
       element.setAttribute("aria-current", String(this.selectedIds.has(box.id)));
       this.place(element, { ...this.layoutValue.boxes[box.id], ...(!isFlowBox(box) ? { width: this.layoutValue.boxes[box.id].width ?? 208 } : {}) });
       if (!isFlowBox(box)) { const text = document.createElement("div"); text.setAttribute("part", "note-body"); text.textContent = box.description ?? box.title; element.append(text); }
-      if (box.kind === 'section') sectionHeader(element, box.id, box.title, box.description);
+      if (box.kind === 'section') sectionHeader(element, box.id, box.title, box.description, 'graph', problem);
       else {
         const icon = document.createElement("span"); icon.setAttribute("part", "icon"); icon.setAttribute("aria-hidden", "true");
         if (kind?.icon) {
