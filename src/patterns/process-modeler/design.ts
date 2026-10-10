@@ -300,7 +300,7 @@ export const processModelerDesign = `
   [part=field-disclosure] summary { cursor: pointer; font-weight: 600; color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=field-row] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; min-width: 0; }
   [part=field] [part=field-optional] { font-style: normal; font-weight: 500; color: var(--boe-token-text-text-secondary, #6f6f6f); }
-  [part=field] [part=field-annotation] { color: var(--boe-token-text-text-tertiary, #999); }
+  [part=field] [part=field-annotation] { color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=field] { display: grid; gap: 6px; }
   [part=field] label { display: grid; gap: 6px; font-size: 12.5px; font-weight: 600; line-height: 1.45; }
   [part=field] :is(input:not([type=checkbox]),textarea,select) { width: 100%; min-height: 36px; padding: 7px 12px; border: 1px solid var(--boe-token-surface-surface-quaternary, #d3d3d3); border-radius: 12px; box-shadow: inset 0 2px 4px rgb(0 0 0 / .06); background: var(--boe-token-surface-surface, #fff); color: var(--boe-token-text-text, #141413); font-family: inherit; font-size: 13px; font-weight: 400; line-height: 1.45; }

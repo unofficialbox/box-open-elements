@@ -2950,6 +2950,10 @@ export class ProcessModeler<
     this.shadowRoot?.querySelectorAll<HTMLElement>('[part=note]').forEach(note => { note.dataset.selected = String(this.selectedNoteIds.has(note.dataset.noteId!)); note.setAttribute('aria-pressed', note.dataset.selected); });
     if (!this.isRendered) return;
     const focusedControl = this.shadowRoot!.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
+    const focusedDisclosure = focusedControl?.tagName === 'SUMMARY' ? focusedControl.closest<HTMLDetailsElement>('[part=field-disclosure]') : null;
+    const disclosureOwner = this.inspectedId;
+    const focusedDisclosureKey = focusedDisclosure?.dataset.disclosure;
+    const disclosureSession = focusedDisclosure?.dataset.session;
     const focusedKey = focusedControl?.dataset.field ?? focusedControl?.dataset.variable ?? focusedControl?.dataset.localVariable;
     const variableKey = focusedControl?.dataset.variableKey;
     const fieldBox = focusedControl?.dataset.fieldBox;
@@ -2960,6 +2964,12 @@ export class ProcessModeler<
     const direction = focusedControl && 'selectionDirection' in focusedControl ? focusedControl.selectionDirection : null;
     const scrollTop = focusedControl?.scrollTop, scrollLeft = focusedControl?.scrollLeft;
     const restoreControlFocus = () => {
+      if (focusedDisclosureKey !== undefined) {
+        if (this.selected?.id !== disclosureOwner || disclosureSession !== String(this.layoutEditSession)) return;
+        const replacement = Array.from(this.shadowRoot!.querySelectorAll<HTMLDetailsElement>('[part=field-disclosure]')).find(item => item.dataset.disclosure === focusedDisclosureKey && item.dataset.session === disclosureSession);
+        replacement?.querySelector<HTMLElement>('summary')?.focus({preventScroll: true});
+        return;
+      }
       if (focusedKey === undefined || !focusedType) return;
       if (focusedType === 'field' && (this.selected?.id !== fieldBox || this.locked)) return;
       const controls = Array.from(this.shadowRoot!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | HTMLButtonElement>('input,textarea,select,button'));
@@ -2981,6 +2991,8 @@ export class ProcessModeler<
         return;
       }
       if (!control || control.disabled || control.closest('[inert]')) return;
+      const closedDisclosure = control.closest<HTMLDetailsElement>('[part=field-disclosure]:not([open])');
+      if (closedDisclosure) { closedDisclosure.querySelector<HTMLElement>('summary')?.focus({preventScroll: true}); return; }
       const choice = this.pendingActionChoice;
       // Hosts may echo the committed value repeatedly. Keep focus restoration
       // quiet until the user explicitly reopens or searches this picker.

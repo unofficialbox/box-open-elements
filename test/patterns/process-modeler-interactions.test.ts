@@ -852,6 +852,27 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector<HTMLDetailsElement>('[part=field-disclosure]')!.open).toBe(false);
   });
 
+  it("restores a keyed disclosure summary on host echoes without crossing selection sessions", () => {
+    const { builder, root } = fixture();
+    builder.fields = {a: [{key: 'optional', label: 'Optional', kind: 'text', value: '', disclosure: {key: 'more', summary: 'More inputs'}}]};
+    builder.select('a');
+    for (let repeat = 0; repeat < 3; repeat++) {
+      const summary = root.querySelector<HTMLElement>('[part=field-disclosure] summary')!;
+      summary.focus();
+      builder.fields = {...builder.fields};
+      expect(root.activeElement).toBe(root.querySelector('[part=field-disclosure] summary'));
+      expect(root.activeElement).not.toBe(summary);
+    }
+    builder.fields = {...builder.fields, a: builder.fields.a.map(field => ({...field, disclosure: {...field.disclosure!, open: true}}))};
+    root.querySelector<HTMLInputElement>('[data-field=optional]')!.focus();
+    builder.fields = {...builder.fields, a: builder.fields.a.map(field => ({...field, disclosure: {...field.disclosure!, open: false}}))};
+    expect(root.activeElement).toBe(root.querySelector('[part=field-disclosure] summary'));
+    builder.select('b');
+    expect(root.activeElement?.tagName).not.toBe('SUMMARY');
+    builder.select('a');
+    expect(root.activeElement?.tagName).not.toBe('SUMMARY');
+  });
+
   it("keeps metadata-only kinds out of Add and protects start inspector actions", () => {
     const { builder, root } = fixture();
     builder.catalog = [
