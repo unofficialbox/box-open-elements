@@ -164,6 +164,11 @@ export interface ProcessEdit {
   type: "add" | "delete" | "duplicate" | "connect" | "disconnect" | "reattach" | "insert" | "reparent";
   boxId?: string;
   sourceId?: string;
+  /** Duplicate these roots and descendants/internal edges in one host transaction.
+   * Plural requests omit sourceId; unsupported hosts must refuse the whole group. */
+  sourceIds?: readonly string[];
+  /** One world-coordinate translation for every node in a duplicate group. */
+  offset?: Readonly<{ x: number; y: number }>;
   from?: string;
   to?: string;
   lineId?: string;
@@ -181,6 +186,8 @@ export interface ReversibleProcessEdit {
   redo(): void;
   /** The already-applied edit's layout, recorded atomically with the document. */
   layout?: ProcessLayout;
+  /** Selection after acceptance; recorded with layout for undo and redo. */
+  selectionIds?: readonly string[];
 }
 /** Host applies the edit, then calls accept with its inverse and replay. */
 export interface ProcessEditRequest extends ProcessEdit {

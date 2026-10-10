@@ -952,6 +952,85 @@ describe("Process Modeler prototype interactions", () => {
     builder.arrangeSelection('bottom');
     expect(builder.layout.boxes.a.y).toBe(100); expect(builder.layout.boxes.b.y).toBe(100);
   });
+  it.each([['d', 48], ['v', 32]] as const)('duplicates a connected selection atomically with %s and one undo', (key, offset) => {
+    const { builder, canvas } = fixture();
+    const original: ProcessProjection = { ...projection, lines: [{ ...projection.lines[0], label: 'Yes', weight: 0.4, fromSide: 'east', toSide: 'west' }, { id: 'bc', from: 'b', to: 'c' }] };
+    builder.document = original; builder.selectMany(['a', 'b']); const before = builder.layout;
+    const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    builder.addEventListener('process-edit-request', event => {
+      const request = (event as CustomEvent).detail;
+      if (!request.sourceIds) return;
+      const ids = new Set(request.sourceIds);
+      const after = { boxes: [...original.boxes, ...original.boxes.filter(box => ids.has(box.id)).map(box => ({ ...box, id: box.id + '-copy' }))],
+        lines: [...original.lines, ...original.lines.filter(line => ids.has(line.from) && ids.has(line.to)).map(line => ({ ...line, id: line.id + '-copy', from: line.from + '-copy', to: line.to + '-copy' }))] };
+      const layout = structuredClone(before);
+      for (const id of request.sourceIds) layout.boxes[id + '-copy'] = { ...before.boxes[id], x: before.boxes[id].x + request.offset.x, y: before.boxes[id].y + request.offset.y };
+      builder.document = after;
+      request.accept({ layout, selectionIds: ['a-copy', 'b-copy'], undo: () => { builder.document = original; }, redo: () => { builder.document = after; } });
+      request.accept({ undo: () => { throw new Error('second acceptance'); }, redo: () => {} });
+      layout.boxes['a-copy'].x = 9999;
+    });
+    if (key === 'v') canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'c', ctrlKey: true, bubbles: true, cancelable: true }));
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key, ctrlKey: true, bubbles: true, cancelable: true }));
+    expect(requests).toHaveBeenCalledOnce();
+    expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'duplicate', sourceIds: ['a', 'b'], offset: { x: offset, y: offset } });
+    expect(requests.mock.calls[0][0].detail.sourceId).toBeUndefined();
+    expect(builder.document!.boxes).toHaveLength(5); expect(builder.document!.lines).toHaveLength(3);
+    expect(builder.document!.lines.at(-1)).toMatchObject({ id: 'ab-copy', from: 'a-copy', to: 'b-copy', label: 'Yes', weight: 0.4, fromSide: 'east', toSide: 'west' });
+    expect(builder.layout.boxes['a-copy'].x).toBe(before.boxes.a.x + offset);
+    expect(builder.layout.boxes['b-copy'].x).toBe(before.boxes.b.x + offset);
+    expect(builder.selectedBoxes.map(box => box.id)).toEqual(['a-copy', 'b-copy']);
+    builder.undo(); expect(builder.document).toEqual(original); expect(builder.layout).toEqual(before);
+    const emptyUndo = new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true, cancelable: true });
+    canvas.dispatchEvent(emptyUndo); expect(emptyUndo.defaultPrevented).toBe(false);
+    builder.redo(); expect(builder.document!.boxes).toHaveLength(5); expect(builder.document!.lines).toHaveLength(3);
+    expect(builder.selectedBoxes.map(box => box.id)).toEqual(['a-copy', 'b-copy']);
+  });
+  it('records an accepted duplicate before synchronous selection observers can move its clones', () => {
+    const { builder } = fixture(); builder.selectMany(['a', 'b']);
+    const original = builder.document!; const before = builder.layout;
+    const after = { ...original, boxes: [...original.boxes, { ...original.boxes[0], id: 'a-copy' }] };
+    const layout = structuredClone(before); layout.boxes['a-copy'] = { ...before.boxes.a, x: before.boxes.a.x + 48, y: before.boxes.a.y + 48 };
+    let moved = false;
+    builder.addEventListener('selection-changed', () => {
+      if (moved || builder.selected?.id !== 'a-copy') return;
+      moved = true; builder.move('a-copy', layout.boxes['a-copy'].x + 64, layout.boxes['a-copy'].y);
+    });
+    builder.addEventListener('process-edit-request', event => {
+      builder.document = after;
+      (event as CustomEvent).detail.accept({ layout, selectionIds: ['a-copy'], undo: () => { builder.document = original; }, redo: () => { builder.document = after; } });
+    });
+    builder.requestEdit({ type: 'duplicate', sourceIds: ['a', 'b'], offset: { x: 48, y: 48 } });
+    expect(builder.layout.boxes['a-copy'].x).toBe(layout.boxes['a-copy'].x + 64);
+    builder.undo(); expect(builder.document!.boxes).toHaveLength(4); expect(builder.layout.boxes['a-copy']).toEqual(layout.boxes['a-copy']);
+    builder.undo(); expect(builder.document).toEqual(original); expect(builder.layout).toEqual(before);
+    builder.redo(); expect(builder.document!.boxes).toHaveLength(4); expect(builder.layout.boxes['a-copy']).toEqual(layout.boxes['a-copy']);
+    builder.redo(); expect(builder.layout.boxes['a-copy'].x).toBe(layout.boxes['a-copy'].x + 64);
+  });
+  it('sends selected frame roots once and leaves descendant cloning to the host', () => {
+    const { builder, canvas } = fixture();
+    builder.document = { ...projection, boxes: [...projection.boxes.map(box => box.id === 'a' ? { ...box, parentId: 'frame' } : box), { id: 'frame', kind: 'try', title: 'Frame', frame: true, node: {} }] };
+    builder.selectMany(['frame', 'a', 'b']); const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'd', ctrlKey: true, bubbles: true, cancelable: true }));
+    expect(requests).toHaveBeenCalledOnce(); expect(requests.mock.calls[0][0].detail.sourceIds).toEqual(['frame', 'b']);
+  });
+  it('refuses a stale copied group without partially duplicating surviving nodes', () => {
+    const { builder, canvas } = fixture(); builder.selectMany(['a', 'b']);
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'c', ctrlKey: true, bubbles: true, cancelable: true }));
+    builder.document = { boxes: projection.boxes.filter(box => box.id !== 'b'), lines: [] };
+    const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'v', ctrlKey: true, bubbles: true, cancelable: true }));
+    expect(requests).not.toHaveBeenCalled(); expect(builder.document.boxes).toHaveLength(2);
+  });
+  it('does not partially duplicate a group refused by a legacy host', () => {
+    const { builder, canvas } = fixture(); builder.selectMany(['a', 'b']); const before = builder.layout;
+    const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'd', ctrlKey: true, bubbles: true, cancelable: true }));
+    expect(requests).toHaveBeenCalledOnce(); expect(requests.mock.calls[0][0].detail.sourceId).toBeUndefined();
+    expect(builder.layout).toEqual(before); expect(builder.document!.boxes).toHaveLength(3);
+    const undo = new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true, cancelable: true });
+    canvas.dispatchEvent(undo); expect(undo.defaultPrevented).toBe(false);
+  });
   it("inserts a palette drop on a routed line and highlights its hit target", () => {
     const { builder, root, canvas } = fixture(); const requests = vi.fn(); builder.addEventListener("process-edit-request", requests);
     const point = lineMidpoint(routeProcessLine(projection.lines[0], builder.layout, projection));
