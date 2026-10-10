@@ -316,7 +316,7 @@ export class CodeEditor extends BaseElement {
       [part=editor]:focus-within{box-shadow:0 0 0 3px var(--boe-token-surface-surface-brand,#0061d5)}
       .cm-editor.cm-focused{outline:none}
       .cm-scroller{max-height:var(--boe-code-editor-height,420px);min-height:160px;overflow:auto;font-family:var(--boe-code-font-family,monospace);font-size:var(--boe-code-font-size,14px);line-height:var(--boe-code-line-height,1.6)}
-      .cm-editor .cm-scroller{line-height:var(--boe-code-line-height,inherit)}
+      .cm-editor .cm-scroller{line-height:var(--boe-code-line-height,inherit)!important}
       :host([fill-height]){height:100%}
       :host([fill-height]) [part=editor],:host([fill-height]) .cm-editor,:host([fill-height]) .cm-scroller{height:100%;max-height:none;min-height:0}
       .cm-gutters,.cm-panels{color:var(--boe-code-foreground,var(--boe-token-text-text,#222))!important;border-color:var(--boe-token-stroke-stroke,#ddd)!important}
