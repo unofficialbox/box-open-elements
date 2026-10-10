@@ -2950,7 +2950,8 @@ export class ProcessModeler<
     this.shadowRoot?.querySelectorAll<HTMLElement>('[part=note]').forEach(note => { note.dataset.selected = String(this.selectedNoteIds.has(note.dataset.noteId!)); note.setAttribute('aria-pressed', note.dataset.selected); });
     if (!this.isRendered) return;
     const focusedControl = this.shadowRoot!.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
-    const focusedDisclosure = focusedControl?.tagName === 'SUMMARY' ? focusedControl.closest<HTMLDetailsElement>('[part=field-disclosure]') : null;
+    const summaryOwner = focusedControl?.tagName === 'SUMMARY' ? focusedControl.parentElement : null;
+    const focusedDisclosure = summaryOwner?.matches('[part=field-disclosure]') ? summaryOwner as HTMLDetailsElement : null;
     const disclosureOwner = this.inspectedId;
     const focusedDisclosureKey = focusedDisclosure?.dataset.disclosure;
     const disclosureSession = focusedDisclosure?.dataset.session;

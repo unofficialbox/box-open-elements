@@ -873,6 +873,15 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.activeElement?.tagName).not.toBe('SUMMARY');
   });
 
+  it("leaves nested expression help summary focused on an unchanged refresh", () => {
+    const { builder, root } = fixture();
+    builder.fields = {a: [{key: 'optional', kind: 'expression', label: 'Optional', value: '', disclosure: {key: 'more', summary: 'More inputs', open: true}, expression: {variables: [], help: {summary: 'Examples', examples: [{expression: 'true', description: 'Always'}]}}}]};
+    builder.select('a');
+    const summary = root.querySelector<HTMLElement>('[part=expression-help] summary')!;
+    summary.focus(); builder.refresh();
+    expect(root.activeElement).toBe(summary);
+  });
+
   it("keeps metadata-only kinds out of Add and protects start inspector actions", () => {
     const { builder, root } = fixture();
     builder.catalog = [
