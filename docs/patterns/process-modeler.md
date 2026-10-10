@@ -354,3 +354,36 @@ full layout. Refusal leaves projection and layout intact. A local-only route wit
 projected pins/points retains its local history reset. Endpoints and other metadata
 are preserved by the host. Hosts must implement `reset-line` to accept pinned-route
 resets; there is no mutation of generic host data by the component.
+
+### Atomic host Tidy and sections
+
+For host-owned graph semantics, opt in with `model.layoutEdit(document, request, projection)`.
+Requests have `type: "tidy" | "make-section"`, detached current `layout`, and
+`sourceIds` (null for whole-process Tidy, otherwise selected IDs). Section requests
+also include `title`. The host decides eligible roots, section membership and
+bounds, associated note positions, and which pins/bends to clear. BOE does not
+mutate the workflow or fall back to local edits when this capability is present.
+
+Apply one document transaction, then synchronously call `request.accept` with
+`undo`, `redo`, the **complete accepted layout**, and optional `selectionIds`
+(e.g. the created projected section). BOE records document replay, layout and
+selection in one history entry. Refuse with `request.refuse(reason)`, or leave
+unsupported operations unhandled; neither creates local layout/history changes.
+Requests settle once and expire after the callback returns, load, or disconnect.
+A locked modeler does not invoke the capability. Hosts without it retain the
+existing layout-only Tidy/section behavior.
+
+```mermaid
+sequenceDiagram
+  participant BOE as Process Modeler
+  participant Host
+  participant History
+  BOE->>Host: layoutEdit(document, detached request, projection)
+  Host->>Host: Apply graph routes / notes / section membership
+  Host->>BOE: accept(undo, redo, full layout, selectionIds)
+  BOE->>History: One document + layout + selection entry
+  History->>Host: undo / redo document
+  History->>BOE: Restore matching layout + selection
+```
+
+Accepted edit notifications are delivered after the complete history entry is recorded. A synchronous projection/readability/selection observer can therefore make a subsequent edit with chronological undo/redo. Loading or disconnecting during an observer invalidates remaining notifications from the previous document; an accepted layout operation does not continue fitting a replacement document.

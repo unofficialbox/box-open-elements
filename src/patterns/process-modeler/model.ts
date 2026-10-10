@@ -134,6 +134,9 @@ export interface ProcessModel<D = unknown, N = unknown> {
   /** Pure synchronous host rule: a nonempty reason rejects preview and commit.
    * Returning null permits an edit request; the host must still accept it. */
   connectionProblem?(document: D, proposal: ProcessConnectionProposal, projection: ProcessProjection<N>): string | null;
+  /** Optional synchronous host transaction for Tidy/section semantics.
+   * A capable host accepts or refuses; BOE does not fall back to local edits. */
+  layoutEdit?(document: D, request: ProcessLayoutEditRequest, projection: ProcessProjection<N>): void;
   /** Optional host arrangement, used by Tidy up and for missing positions. */
   arrange?(projection: ProcessProjection<N>): ProcessLayout;
   /**
@@ -171,7 +174,7 @@ export interface ProcessCheck {
   path?: NodePath;
 }
 export interface ProcessEdit {
-  type: "add" | "delete" | "duplicate" | "connect" | "disconnect" | "reattach" | "insert" | "reparent" | "reset-line";
+  type: "add" | "delete" | "duplicate" | "connect" | "disconnect" | "reattach" | "insert" | "reparent" | "reset-line" | "tidy" | "make-section";
   boxId?: string;
   sourceId?: string;
   /** Duplicate these roots and descendants/internal edges in one host transaction.
@@ -202,6 +205,19 @@ export interface ReversibleProcessEdit {
 /** Host applies the edit, then calls accept with its inverse and replay. */
 export interface ProcessEditRequest extends ProcessEdit {
   accept(command: ReversibleProcessEdit): void;
+}
+
+/** Host-owned document/layout operation. Null sourceIds means whole-process Tidy.
+ * The host owns eligibility, section membership, route cleanup and related notes. */
+export interface ProcessLayoutEditRequest {
+  readonly type: 'tidy' | 'make-section';
+  readonly sourceIds: readonly string[] | null;
+  readonly title?: string;
+  /** Detached current layout; a host may use it to preserve unrelated data. */
+  readonly layout: ProcessLayout;
+  /** Host has already applied the document edit; full layout is required. */
+  accept(command: ReversibleProcessEdit & { layout: ProcessLayout }): void;
+  refuse(message?: string): void;
 }
 
 /** Host-owned immutable capture; BOE never serializes the captured graph. */
