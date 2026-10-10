@@ -392,9 +392,11 @@ export function completeLayout<N>(
         if (box.role === "note") {
           // Flow ranks are already placed; unplaced graph notes need free space
           // regardless of their order in the projection.
+          const ancestors = new Set<string>();
+          for (let parent = box.parentId; parent; parent = projection.boxes.find(b => b.id === parent)?.parentId) ancestors.add(parent);
           let overlaps: BoxPosition[];
           do {
-            overlaps = Object.values(boxes).filter(p => x < p.x + (p.width ?? 224) && x + size.width > p.x && y < p.y + (p.height ?? 64) && y + size.height > p.y);
+            overlaps = Object.entries(boxes).filter(([id]) => !ancestors.has(id)).map(([, p]) => p).filter(p => x < p.x + (p.width ?? 224) && x + size.width > p.x && y < p.y + (p.height ?? 64) && y + size.height > p.y);
             if (overlaps.length) y = Math.max(...overlaps.map(p => p.y + (p.height ?? 64))) + 60;
           } while (overlaps.length);
           boxes[box.id] = { x, y, width: size.width };
