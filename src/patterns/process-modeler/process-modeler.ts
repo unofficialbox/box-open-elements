@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { iconPlus, iconXBatsu } from "../../foundations/icons/glyphs/index.js";
 import { announce } from "../../foundations/a11y/index.js";
 import { dismissModal, dismissPopover, promoteModal, promotePopover, trackAnchor } from "../../foundations/overlay/index.js";
 import type { NodePath } from "../flow-builder/model.js";
@@ -40,6 +41,14 @@ const svgElement = <K extends keyof SVGElementTagNameMap>(
   tag: K,
 ): SVGElementTagNameMap[K] =>
   document.createElementNS("http://www.w3.org/2000/svg", tag);
+const variableLabel = (text: string): HTMLLabelElement => {
+  const label = document.createElement('label'), name = document.createElement('span');
+  name.setAttribute('part', 'sr-only'); name.textContent = text; label.append(name); return label;
+};
+const variableGlyph = (add = false): SVGSVGElement => {
+  const template = document.createElement('template'); template.innerHTML = add ? iconPlus : iconXBatsu;
+  const glyph = template.content.firstElementChild as SVGSVGElement; glyph.setAttribute('part', 'variable-icon'); return glyph;
+};
 const checkGlyph = (success = false): SVGSVGElement => {
   const icon = svgElement('svg'); icon.setAttribute('part', 'check-icon'); icon.setAttribute('viewBox', '0 0 16 16'); icon.setAttribute('aria-hidden', 'true'); icon.dataset.tone = success ? 'success' : 'error';
   const circle = svgElement('circle'); circle.setAttribute('cx', '8'); circle.setAttribute('cy', '8'); circle.setAttribute('r', '7'); circle.setAttribute('fill', 'currentColor');
@@ -957,6 +966,7 @@ export class ProcessModeler<
     });
     const content = root.querySelector<HTMLElement>('[part=pane-content]')!;
     content.hidden = Boolean(selected);
+    content.dataset.pane = this.activePane;
     content.setAttribute("aria-labelledby", `process-tab-${this.activePane.toLowerCase()}`);
     const checks = root.querySelector<HTMLElement>('[part=checks]')!;
     checks.hidden = this.activePane !== "Checks";
@@ -998,52 +1008,61 @@ export class ProcessModeler<
     } else if (this.activePane === "Checks") {
       content.append(checks);
     } else if (this.activePane === "Variables") {
-      const intro = document.createElement('p'); intro.textContent = 'Variables hold values used by the steps in this process.'; content.append(intro);
+      const intro = document.createElement('p'); intro.setAttribute('part', 'variables-intro'); intro.textContent = 'Values the process keeps while it runs. Decisions and step inputs read them by name, written in CEL.'; content.append(intro);
       const scopes = document.createElement('dl'); scopes.setAttribute('part', 'variable-scopes');
-      for (const [name, meaning] of [['Iteration', 'Starts fresh for each test-user run.'], ['Process', 'Set once per test user and kept across iterations.'], ['Step', 'Only inside a step or frame; add it in that step’s details.']]) {
+      for (const [name, meaning] of [['Iteration', 'Starts fresh each time a test user runs the process.'], ['Process', 'Set once per test user and kept across their iterations.'], ['Step', 'Only inside one step or frame. Add those in the step’s details.']]) {
         const term = document.createElement('dt'); term.textContent = name; const definition = document.createElement('dd'); definition.textContent = meaning; scopes.append(term, definition);
       }
       content.append(scopes);
-      if (!this.variables.length) { const empty = document.createElement('p'); empty.textContent = 'No variables supplied by the host.'; content.append(empty); }
+      const collection = document.createElement('div'); collection.setAttribute('part', 'variable-list'); content.append(collection);
+      if (!this.variables.length) { const empty = document.createElement('p'); empty.textContent = 'None yet.'; collection.append(empty); }
       for (const [index, variable] of this.variables.entries()) {
         const row = document.createElement('div'); row.setAttribute('part', 'variable-row');
         const identify = (control: HTMLElement, key: string) => { control.dataset.variable = variable.name; control.dataset.variableKey = key; control.dataset.variableIndex = String(index); };
         if (this.variablesEditable) {
-          const label = document.createElement('label'); label.textContent = 'Name';
-          const name = document.createElement('input'); name.type = 'text'; name.value = variable.name; name.disabled = this.locked; identify(name, 'name');
+          const label = variableLabel('Name');
+          const name = document.createElement('input'); name.type = 'text'; name.placeholder = 'name'; name.spellcheck = false; name.autocomplete = 'off'; name.value = variable.name; name.disabled = this.locked; identify(name, 'name');
           name.onchange = () => this.requestVariableEdit({ type: 'rename', name: variable.name, value: name.value }); label.append(name); row.append(label);
-          const scopeLabel = document.createElement('label'); scopeLabel.textContent = 'Scope';
+          const scopeLabel = variableLabel('Kept for');
           const scope = document.createElement('select'); identify(scope, 'scope'); scope.disabled = this.locked;
-          for (const [value, text] of [['iteration', 'Each iteration'], ['process', 'The whole process']] as const) { const option = document.createElement('option'); option.value = value; option.textContent = text; scope.append(option); }
+          for (const [value, text] of [['iteration', 'Iteration'], ['process', 'Process']] as const) { const option = document.createElement('option'); option.value = value; option.textContent = text; scope.append(option); }
           scope.value = variable.scope ?? 'iteration'; scope.onchange = () => this.requestVariableEdit({ type: 'scope', name: variable.name, value: scope.value as 'iteration' | 'process' }); scopeLabel.append(scope); row.append(scopeLabel);
         } else {
           const heading = document.createElement('strong'); heading.textContent = variable.name; row.append(heading);
           if (variable.scope) { const scope = document.createElement('span'); scope.textContent = variable.scope; scope.setAttribute('part', 'variable-scope'); row.append(scope); }
         }
         if (this.variablesEditable) {
-          const label = document.createElement('label'); label.textContent = 'About';
-          const about = document.createElement('input'); about.type = 'text'; about.value = variable.description ?? ''; about.disabled = this.locked; identify(about, 'description');
+          const label = variableLabel('What it’s for');
+          const about = document.createElement('input'); about.type = 'text'; about.placeholder = 'What it’s for'; about.value = variable.description ?? ''; about.disabled = this.locked; identify(about, 'description');
           about.oninput = () => this.requestVariableEdit({ type: 'description', name: variable.name, value: about.value }); label.append(about); row.append(label);
         } else if (variable.description) { const description = document.createElement('p'); description.textContent = variable.description; row.append(description); }
-        if (variable.startingValue !== undefined) { const label = document.createElement('label'); label.textContent = 'Starting value'; const input = document.createElement('input'); input.type = 'text'; identify(input, 'value'); input.value = variable.startingValue; input.disabled = this.locked; input.setAttribute('aria-invalid', String(Boolean(variable.problem))); input.addEventListener('input', () => emit(this, 'process-variable-change-request', { name: variable.name, value: input.value })); label.append(input); row.append(label); }
+        if (variable.startingValue !== undefined) { const label = this.variablesEditable ? variableLabel('Starts as') : document.createElement('label'); if (!this.variablesEditable) label.textContent = 'Starting value'; const input = document.createElement('input'); input.type = 'text'; input.placeholder = 'starts as, like 0'; input.spellcheck = false; input.autocomplete = 'off'; identify(input, 'value'); input.value = variable.startingValue; input.disabled = this.locked; input.setAttribute('aria-invalid', String(Boolean(variable.problem))); input.addEventListener('input', () => emit(this, 'process-variable-change-request', { name: variable.name, value: input.value })); label.append(input); row.append(label); }
         const scopeControl = row.querySelector('[data-variable-key=scope]')?.closest('label'); if (scopeControl) row.append(scopeControl);
         if (variable.problem) { const problem = document.createElement('p'); problem.setAttribute('part', 'field-problem'); problem.textContent = variable.problem; row.append(problem); }
-        if (this.variablesEditable) { const remove = document.createElement('button'); remove.type = 'button'; remove.setAttribute('part', 'variable-remove'); remove.setAttribute('aria-label', `Remove ${variable.name || 'this variable'}`); remove.textContent = '×'; remove.disabled = this.locked; identify(remove, 'remove'); remove.onclick = () => this.requestVariableEdit({ type: 'remove', name: variable.name }); row.append(remove); }
-        content.append(row);
+        if (this.variablesEditable) { const remove = document.createElement('button'); remove.type = 'button'; remove.setAttribute('part', 'variable-remove'); remove.setAttribute('aria-label', `Remove ${variable.name || 'this variable'}`); remove.append(variableGlyph()); remove.disabled = this.locked; identify(remove, 'remove'); remove.onclick = () => this.requestVariableEdit({ type: 'remove', name: variable.name }); row.append(remove); }
+        if (this.variablesEditable) {
+          // The grid's visual ordering must also be the keyboard/read order.
+          for (const key of ['name', 'value', 'remove', 'description', 'scope']) {
+            const control = row.querySelector<HTMLElement>(`[data-variable-key=${key}]`);
+            if (control) row.append(control.closest('label') ?? control);
+          }
+          const problem = row.querySelector('[part=field-problem]'); if (problem) row.append(problem);
+        }
+        row.setAttribute('role', 'group'); row.setAttribute('aria-label', `Variable ${index + 1}`); collection.append(row);
       }
-      if (this.variablesEditable) { const add = document.createElement('button'); add.type = 'button'; add.setAttribute('part', 'variable-add'); add.dataset.variable = '@add'; add.dataset.variableKey = 'add'; add.textContent = 'Add a variable'; add.disabled = this.locked; add.onclick = () => this.requestVariableEdit({ type: 'add' }); content.append(add); }
-      const localRows = this.projection.boxes.flatMap(box => (box.localVariables ?? []).filter(variable => variable.name).map(variable => `${variable.name} only in ${box.title}`));
-      const savedRows = this.projection.boxes.filter(box => box.savedResult).map(box => `${box.savedResult} from ${box.title}`);
-      const summary = (part: string, heading: string, rows: string[], empty?: string) => {
+      if (this.variablesEditable) { const add = document.createElement('button'); add.type = 'button'; add.setAttribute('part', 'variable-add'); add.dataset.variable = '@add'; add.dataset.variableKey = 'add'; add.append(variableGlyph(true), document.createTextNode('Add a variable')); add.disabled = this.locked; add.onclick = () => this.requestVariableEdit({ type: 'add' }); const actions = document.createElement('div'); actions.setAttribute('part', 'variable-actions'); actions.append(add); content.append(actions); }
+      const localRows = this.projection.boxes.flatMap(box => (box.localVariables ?? []).filter(variable => variable.name).map(variable => ({ name: variable.name, connective: 'only in', title: box.title })));
+      const savedRows = this.projection.boxes.filter(box => box.savedResult).map(box => ({ name: box.savedResult!, connective: 'from', title: box.title }));
+      const summary = (part: string, heading: string, rows: { name: string; connective: string; title: string }[], empty?: string) => {
         if (!rows.length && !empty) return;
         const section = document.createElement('section'); section.setAttribute('part', part);
         const title = document.createElement('h3'); title.textContent = heading; section.append(title);
-        if (rows.length) { const list = document.createElement('ul'); for (const text of rows) { const row = document.createElement('li'); row.textContent = text; list.append(row); } section.append(list); }
+        if (rows.length) { const list = document.createElement('ul'); for (const item of rows) { const row = document.createElement('li'), text = document.createElement('span'), name = document.createElement('code'), connective = document.createElement('em'); name.textContent = item.name; connective.textContent = item.connective; text.append(name, document.createTextNode(' '), connective, document.createTextNode(` ${item.title}`)); row.append(text); list.append(row); } section.append(list); }
         else { const help = document.createElement('p'); help.textContent = empty!; section.append(help); }
         content.append(section);
       };
       summary('local-variable-summary', 'Only in one step', localRows);
-      summary('saved-result-summary', 'Saved by steps', savedRows, 'Set “Save the result as” on a step to keep its output.');
+      summary('saved-result-summary', 'Saved by steps', savedRows, 'No step saves its result yet. Set “Save the result as” on a step.');
     } else if (this.activePane === "Connections") {
       if (!this.connections.length) content.textContent = 'No connections supplied by the host.';
       for (const connection of this.connections) {
@@ -2718,14 +2737,15 @@ export class ProcessModeler<
   private renderLocalVariables(box: ProcessBox<N>): HTMLElement {
     const section = document.createElement('section'); section.setAttribute('part', 'local-variables'); section.dataset.localEchoRevision = String(this.localEchoRevision);
     const heading = document.createElement('h3'); heading.textContent = box.frame ? 'Variables for the steps inside' : 'Variables for this step';
-    const help = document.createElement('p'); help.textContent = box.frame ? 'The steps inside this frame can read these values until the frame finishes.' : 'Only this step’s inputs can read these values until the step finishes.';
-    section.append(heading, help);
+    const help = document.createElement('p'); help.textContent = box.frame ? 'Every step inside can read these; they’re gone once the frame is done.' : 'Only this step’s inputs can read these; they’re gone once it’s done.';
+    const collection = document.createElement('div'); collection.setAttribute('part', 'local-variable-list');
+    section.append(heading, help, collection);
     for (const [index, variable] of (box.localVariables ?? []).entries()) {
-      const row = document.createElement('div'); row.setAttribute('part', 'local-variable-row');
+      const row = document.createElement('div'); row.setAttribute('part', 'local-variable-row'); row.setAttribute('role', 'group'); row.setAttribute('aria-label', `Step variable ${index + 1}`);
       const identify = (control: HTMLElement, key: string) => { control.dataset.localVariable = box.id; control.dataset.localIndex = String(index); control.dataset.localKey = key; control.dataset.localName = variable.name; control.dataset.localAmbiguous = String(box.localVariables?.filter(item => item.name === variable.name).length !== 1); };
       for (const [key, label, value] of [['rename', 'Name', variable.name], ['starting-value', 'Starts as', variable.startingValue ?? '']] as const) {
-        const field = document.createElement('label'); field.textContent = label;
-        const input = document.createElement('input'); input.type = 'text'; input.value = value; input.disabled = this.locked || !box.localVariablesEditable; identify(input, key);
+        const field = variableLabel(label);
+        const input = document.createElement('input'); input.type = 'text'; input.placeholder = key === 'rename' ? 'name' : 'starts as'; input.spellcheck = false; input.autocomplete = 'off'; input.value = value; input.disabled = this.locked || !box.localVariablesEditable; identify(input, key);
         if (variable.problem) {
           input.setAttribute('aria-invalid', 'true');
           input.setAttribute('aria-describedby', `process-local-problem-${encodeURIComponent(box.id)}-${index}`);
@@ -2736,18 +2756,18 @@ export class ProcessModeler<
         }; field.append(input); row.append(field);
       }
       if (box.localVariablesEditable) {
-        const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×'; remove.setAttribute('aria-label', `Remove ${variable.name || 'this variable'}`); remove.disabled = this.locked; identify(remove, 'remove');
+        const remove = document.createElement('button'); remove.type = 'button'; remove.append(variableGlyph()); remove.setAttribute('aria-label', `Remove ${variable.name || 'this variable'}`); remove.disabled = this.locked; identify(remove, 'remove');
         remove.onclick = () => this.requestLocalVariableEdit(box, { type: 'remove', index, name: variable.name }); row.append(remove);
       }
       if (variable.problem) {
         const problem = document.createElement('small'); problem.setAttribute('part', 'field-problem');
         problem.id = `process-local-problem-${encodeURIComponent(box.id)}-${index}`; problem.textContent = variable.problem; row.append(problem);
       }
-      section.append(row);
+      collection.append(row);
     }
     if (box.localVariablesEditable) {
-      const add = document.createElement('button'); add.type = 'button'; add.textContent = 'Add a variable'; add.disabled = this.locked; add.dataset.localVariable = box.id; add.dataset.localKey = 'add';
-      add.onclick = () => this.requestLocalVariableEdit(box, { type: 'add' }); section.append(add);
+      const add = document.createElement('button'); add.type = 'button'; add.append(variableGlyph(true), document.createTextNode('Add a variable')); add.disabled = this.locked; add.dataset.localVariable = box.id; add.dataset.localKey = 'add';
+      add.onclick = () => this.requestLocalVariableEdit(box, { type: 'add' }); const actions = document.createElement('div'); actions.setAttribute('part', 'local-variable-actions'); actions.append(add); section.append(actions);
     }
     return section;
   }
