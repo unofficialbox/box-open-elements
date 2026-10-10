@@ -322,7 +322,7 @@ export class CodeEditor extends BaseElement {
       .cm-lineNumbers .cm-gutterElement{padding:var(--boe-code-line-number-padding,0 3px 0 5px)!important}
       .cm-foldGutter .cm-gutterElement{padding:var(--boe-code-fold-gutter-padding,0)!important}
 
-      .cm-scroller{max-height:var(--boe-code-editor-height,420px);min-height:160px;overflow:auto;font-family:var(--boe-code-font-family,monospace);font-size:var(--boe-code-font-size,14px);line-height:var(--boe-code-line-height,1.6)}
+      .cm-scroller{max-height:var(--boe-code-editor-height,420px);min-height:160px;overflow:auto;font-family:var(--boe-code-font-family,monospace)!important;font-size:var(--boe-code-font-size,14px);line-height:var(--boe-code-line-height,1.6)}
       .cm-editor .cm-scroller{line-height:var(--boe-code-line-height,1.4)!important}
       :host([fill-height]){height:100%}
       :host([fill-height]) [part=editor],:host([fill-height]) .cm-editor,:host([fill-height]) .cm-scroller{height:100%;max-height:none;min-height:0}
