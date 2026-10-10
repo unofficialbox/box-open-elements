@@ -158,6 +158,20 @@ describe("Process Modeler prototype interactions", () => {
     expect(partial.textContent).toContain('Per second–');
     expect(partial.textContent).toContain('Failed–');
   });
+  it('shows a host-supplied line traffic share only in Last run view', () => {
+    const { builder, root } = fixture();
+    builder.document = { ...projection, lines: [{ ...projection.lines[0], share: 0.92 }] };
+    builder.lastRun = { label: 'Morning run', steps: {} };
+    builder.showLastRun = true;
+    const path = root.querySelector<SVGPathElement>('[part=line][data-line-id=ab]')!;
+    expect(path.style.strokeWidth).toBe('3.8px');
+    const label = root.querySelector<HTMLElement>('[part=connection]')!;
+    expect(label.querySelector('small')?.textContent).toBe('92%');
+    expect(label.getAttribute('aria-label')).toContain('92% of last-run traffic');
+    builder.showLastRun = false;
+    expect(root.querySelector('[part=connection] small')).toBeNull();
+    expect(root.querySelector<SVGPathElement>('[part=line][data-line-id=ab]')!.style.strokeWidth).toBe('');
+  });
   it('keeps narrow selection actions named while hiding the add label', () => {
     const { builder, root } = fixture();
     builder.select('a');

@@ -1769,7 +1769,7 @@ export class ProcessModeler<
       path.setAttribute("vector-effect", "non-scaling-stroke");
       path.setAttribute("d", roundedProcessPath(points));
       if (line.dashed) path.setAttribute("stroke-dasharray", "6 4");
-      if (this.showLastRunValue && line.share !== undefined) { path.style.strokeWidth = `${1.5 + Math.max(0, Math.min(1, line.share)) * 2}px`; path.setAttribute('aria-label', `${Math.round(line.share * 100)}% of last-run traffic`); }
+      if (this.showLastRunValue && line.share !== undefined) { path.style.strokeWidth = `${Math.round((1.5 + Math.max(0, Math.min(1, line.share)) * 2.5) * 100) / 100}px`; path.setAttribute('aria-label', `${Math.round(line.share * 100)}% of last-run traffic`); }
       lines.append(path);
       for (const point of [line.fromSide ? points[0] : null, line.toSide ? points.at(-1) : null]) {
         if (!point) continue;
@@ -1794,6 +1794,9 @@ export class ProcessModeler<
       const branchIndex = this.projection.lines.filter(candidate => candidate.from === line.from).indexOf(line);
       text.textContent = line.label ?? (line.weight !== undefined ? String(line.weight) : /decision/i.test(source.kind) ? ["Yes", "No"][branchIndex] ?? `Route ${branchIndex + 1}` : /try/i.test(source.kind) && line.dashed ? "If it fails" : "");
       label.append(text);
+      if (this.showLastRunValue && line.share !== undefined) {
+        const share = document.createElement('small'); share.textContent = `${Math.round(line.share * 100)}%`; label.append(share);
+      }
       const actions = document.createElement("div"); actions.setAttribute("part", "connection-actions"); label.append(actions);
       if (points.length >= 4 && !this.locked) {
         const adjust = document.createElement("button"); adjust.type = "button"; adjust.textContent = "Route";

@@ -199,7 +199,8 @@ export const processModelerDesign = `
   [part=box]:hover [part=port], [part=box]:focus-within [part=port], [part=box][aria-current=true] [part=port], [part=frame]:hover [part=port] { opacity: 1; }
   [part=connection] { position: absolute; z-index: 5; display: flex; align-items: center; gap: 4px; transform: translate(-50%,-50%); min-width: 0; min-height: 0; padding: 2px 6px; border-radius: 6px; background: var(--boe-token-surface-surface-secondary, #fbfbfb); font-size: 12px; font-weight: 600; white-space: nowrap; }
   /* Unlabelled lines still need a reachable midpoint for pointer insert/selection. */
-  [part=connection]:has(> span:empty) { padding: 0; background: transparent; min-width: calc(24px * var(--boe-process-inverse-zoom, 1)); min-height: calc(24px * var(--boe-process-inverse-zoom, 1)); }
+  [part=connection]:has(> span:empty):not(:has(> small)) { padding: 0; background: transparent; min-width: calc(24px * var(--boe-process-inverse-zoom, 1)); min-height: calc(24px * var(--boe-process-inverse-zoom, 1)); }
+  [part=connection] > small { margin-left: 4px; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 11px; font-weight: 400; font-variant-numeric: tabular-nums; }
   [part=connection-actions] { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; width: max-content; padding: 4px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 8px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); opacity: 0; pointer-events: none; }
   [part=connection]:hover [part=connection-actions], [part=connection]:focus-within [part=connection-actions] { opacity: 1; pointer-events: auto; }
   [part=connection-actions] button { min-height: 32px; padding: 4px; font-size: 12px; }
