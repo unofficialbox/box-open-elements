@@ -447,7 +447,8 @@ projection observers run after the accepted transaction has recorded history.
 ### Host-authored field presentation
 
 The selected inspector heading shows the catalog kind's label and optional
-`description` as plain text. Omitted descriptions preserve the label-only heading.
+`description` as plain text. Omitted descriptions preserve the label-only heading; an explicitly supplied
+empty description retains the native sentence punctuation.
 Ordinary `multiline` fields accept `rows`; expression fields continue to use
 `expression.rows`. `format: 'code'` presents structured text in monospace without
 parsing it or changing edit events. `time` and `datetime-local` kinds use native
@@ -482,7 +483,8 @@ BOE does not infer visibility from graph edges, sections or local declarations.
 An explicit empty array hides chips; omission preserves the global `variables`
 fallback. Chip tooltips use the supplied description. `rows: 2` selects a textarea.
 `feedback: { message, tone?: 'neutral' | 'success' }` supplies host evaluation
-feedback; the existing `problem` takes precedence. Descriptions and feedback are
+feedback; an explicitly empty message reserves the native validation slot,
+while omission draws no slot. The existing `problem` takes precedence. Descriptions and feedback are
 associated with the field for assistive technology. Expression feedback updates
 are announced politely.
 

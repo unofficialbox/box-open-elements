@@ -291,7 +291,7 @@ export const processModelerDesign = `
   [part=inspector-kind] { display: none; }
   [part=inspector-purpose] { margin: 0; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12.5px; }
   [part=field-section] { min-width: 0; }
-  [part=field-section] h3 { font-size: 12.5px; font-weight: 650; margin: 0 0 6px; }
+  [part=field-section] h3 { font-size: 12.5px; font-weight: 650; line-height: 1.45; margin: 0 0 6px; }
   [part=field-section-description] { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=field-section-description] code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
   [part=field-section] [part=field] { margin-top: 8px; }

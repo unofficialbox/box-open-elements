@@ -1093,7 +1093,7 @@ export class ProcessModeler<
     const selected = this.selected;
     root.querySelector('[part=process-title]')!.textContent = this.selectedIds.size > 1 ? `${this.selectedIds.size} steps selected` : selected?.title ?? this.processTitleValue;
     const kind = selected && this.catalog.find(kind => kind.kind === selected.kind);
-    const kindSummary = kind ? `${kind.label}${kind.description ? `. ${kind.description}` : ''}` : selected?.kind;
+    const kindSummary = kind ? `${kind.label}${kind.description !== undefined ? `. ${kind.description}` : ''}` : selected?.kind;
     root.querySelector<HTMLElement>('[part=process-heading]')!.toggleAttribute('data-selected', Boolean(selected));
     root.querySelector('[part=process-summary]')!.textContent = this.selectedIds.size > 1 ? 'Arrange or group these steps' : selected ? kindSummary! : this.processSummaryValue;
     root.querySelector<HTMLElement>('[part=pane-tabs]')!.hidden = Boolean(selected);
@@ -2919,8 +2919,8 @@ export class ProcessModeler<
     const describedBy: string[] = [];
     if (field.description) { const help = document.createElement('small'); help.id = `${messageId}-description`; help.textContent = field.description; row.append(help); describedBy.push(help.id); }
     const feedback = field.problem || (field.kind === 'expression' ? field.expression?.feedback?.message : undefined);
-    if (feedback) {
-      const message = document.createElement('small'); message.id = `${messageId}-feedback`; message.textContent = feedback;
+    if (feedback || (field.kind === 'expression' && field.expression?.feedback !== undefined)) {
+      const message = document.createElement('small'); message.id = `${messageId}-feedback`; message.textContent = feedback ?? '';
       message.setAttribute('part', field.problem ? 'field-problem' : 'field-feedback');
       if (field.kind === 'expression') message.setAttribute('aria-live', 'polite');
       if (!field.problem && field.expression?.feedback?.tone) message.dataset.tone = field.expression.feedback.tone;

@@ -793,9 +793,24 @@ describe("Process Modeler prototype interactions", () => {
     expect(heading.querySelector('img')).toBeNull();
     builder.catalog = [{kind: 'call', label: 'Call', create: () => ({})}];
     expect(root.querySelector('[part=process-summary]')!.textContent).toBe('Call');
+    builder.catalog = [{kind:'call',label:'Call',description:'',create:()=>({})}];
+    expect(root.querySelector('[part=process-summary]')!.textContent).toBe('Call. ');
     builder.select(null);
     expect(heading.hasAttribute('data-selected')).toBe(false);
     expect(root.querySelector('[part=process-summary]')!.textContent).toBe('Overview');
+  });
+
+  it("keeps an explicitly empty host validation slot without inferring feedback", () => {
+    const { builder, root } = fixture();
+    builder.fields = {a: [
+      {key:'reserved',label:'Input',kind:'expression',value:'',expression:{variables:[],feedback:{message:''}}},
+      {key:'absent',label:'Other',kind:'expression',value:'',expression:{variables:[]}},
+    ]}; builder.select('a');
+    expect(root.querySelectorAll('[part=field-feedback]')).toHaveLength(1);
+    const reserved = root.querySelector('[part=field-feedback]')!;
+    expect(reserved.textContent).toBe('');
+    expect(root.querySelector('[data-field=reserved]')!.getAttribute('aria-describedby')).toBe(reserved.id);
+    expect(root.querySelector('[data-field=absent]')!.hasAttribute('aria-describedby')).toBe(false);
   });
 
   it("groups host fields safely and retains disclosure state and focus only for current selection", () => {
