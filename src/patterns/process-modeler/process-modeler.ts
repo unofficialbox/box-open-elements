@@ -1588,6 +1588,11 @@ export class ProcessModeler<
     if (event.defaultPrevented) return;
     const target = event.target as HTMLElement;
     if (target.closest("input,textarea,select,[contenteditable],button,summary")) return;
+    if (target.closest('[part=canvas]') && !event.ctrlKey && !event.metaKey && !event.altKey && ['+', '=', '-', '0'].includes(event.key)) {
+      event.preventDefault();
+      this.zoomBy(event.key === '0' ? 1 / this.viewport.zoom : event.key === '-' ? 1 / 1.2 : 1.2);
+      return;
+    }
     if (event.key === ' ') { event.preventDefault(); this.spacePressed = true; return; }
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
       if (this.locked || !(event.shiftKey ? this.history.canRedo : this.history.canUndo)) return;
@@ -2967,10 +2972,10 @@ export class ProcessModeler<
     return row;
   }
   private renderLeadsTo(editor: HTMLElement, selected: ProcessBox<N>): void {
-    if (['end', 'finish'].includes(selected.kind)) return;
+    const previous = editor.querySelector<HTMLElement>('[part=leads-to]');
+    if (['end', 'finish'].includes(selected.kind)) { previous?.remove(); return; }
     const outgoing = this.projection.lines.filter(line => line.from === selected.id);
     const state = JSON.stringify([selected.id, selected.kind, this.locked, this.disableConnections, outgoing, this.projection.boxes.filter(box => box.parentId === selected.parentId).map(({id, title, kind}) => ({id, title, kind}))]);
-    const previous = editor.querySelector<HTMLElement>('[part=leads-to]');
     if (previous?.dataset.state === state) return;
     const leads = document.createElement('section'); leads.setAttribute('part', 'leads-to'); leads.dataset.state = state;
     const heading = document.createElement('h3'); heading.textContent = 'Leads to'; leads.append(heading);
@@ -3118,14 +3123,14 @@ export class ProcessModeler<
       this.inspectedControls === controlsKey &&
       editor.querySelector(`[part=inspector-heading]`)?.tagName === `H${this.headingLevel}`
     ) {
-      editor.querySelector("[part=inspector-heading]")!.textContent = selected?.title ?? "";
+      editor.querySelector("[part=inspector-heading]")!.textContent = this.selectedIds.size > 1 ? `${this.selectedIds.size} steps selected` : selected?.title ?? "";
       const locals = editor.querySelector<HTMLElement>('[part=local-variables]');
-      if (selected && locals && locals.dataset.localEchoRevision !== String(this.localEchoRevision)) {
+      if (selected && this.selectedIds.size === 1 && locals && locals.dataset.localEchoRevision !== String(this.localEchoRevision)) {
         // Reconcile controlled local drafts without disposing the host's custom
         // inspector or unrelated focused controls on unchanged document echoes.
         locals.replaceWith(this.renderLocalVariables(selected));
       }
-      if (selected) this.renderLeadsTo(editor, selected);
+      if (selected && this.selectedIds.size === 1) this.renderLeadsTo(editor, selected);
       restoreControlFocus();
       return;
     }

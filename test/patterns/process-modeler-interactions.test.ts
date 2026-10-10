@@ -1284,6 +1284,37 @@ describe("Process Modeler prototype interactions", () => {
     builder.undo(); expect(builder.layout).toEqual(before);
     root.querySelectorAll<HTMLButtonElement>('[part=selection-toolbar] button')[1].click(); expect(builder.history.canUndo).toBe(true);
   });
+  it('zooms from canvas keys while preserving editing and browser shortcut ownership', () => {
+    const { builder, root, canvas } = fixture(); builder.select('a'); builder.setView({x: 20, y: 30, zoom: 1}); builder.locked = true;
+    const key = (target: Element, value: string, modifiers = {}) => { const event = new KeyboardEvent('keydown', {key: value, bubbles: true, cancelable: true, ...modifiers}); target.dispatchEvent(event); return event; };
+    expect(key(canvas, '+').defaultPrevented).toBe(true); expect(builder.view.zoom).toBeCloseTo(1.2);
+    key(canvas, '='); expect(builder.view.zoom).toBeCloseTo(1.44);
+    key(canvas, '-'); expect(builder.view.zoom).toBeCloseTo(1.2);
+    key(canvas, '0'); expect(builder.view.zoom).toBe(1); expect(builder.selected?.id).toBe('a');
+    expect(key(canvas, '+', {ctrlKey: true}).defaultPrevented).toBe(false); expect(builder.view.zoom).toBe(1);
+    const input = document.createElement('input'); canvas.append(input); expect(key(input, '+').defaultPrevented).toBe(false); expect(builder.view.zoom).toBe(1);
+    expect(key(root.querySelector('[data-command=zoom-in]')!, '-').defaultPrevented).toBe(false); expect(builder.view.zoom).toBe(1);
+  });
+  it('keeps multi-selection controls free of single-owner Leads-to after repeated echoes', () => {
+    const { builder, root } = fixture(); builder.selectMany(['a', 'b']);
+    for (let echo = 0; echo < 3; echo++) {
+      builder.refresh(); builder.document = builder.document;
+      expect(root.querySelector('[part=inspector-heading]')?.textContent).toBe('2 steps selected');
+      expect(root.querySelectorAll('[part=arrange-actions] button')).toHaveLength(9);
+      expect(root.querySelector('[part=leads-to]')).toBeNull();
+      expect(root.querySelector('[part=local-variables]')).toBeNull();
+    }
+    builder.select('a'); expect(root.querySelector('[part=leads-to]')).not.toBeNull();
+  });
+  it.each(['end', 'finish'])('removes stale Leads-to when the same owner changes to %s', kind => {
+    const { builder, root } = fixture(); builder.select('a');
+    const remove = root.querySelector<HTMLButtonElement>('[part=lead-remove]')!;
+    expect(remove).not.toBeNull(); const edits = vi.fn(); builder.addEventListener('process-edit-request', edits);
+    const next = builder.document; next.boxes.find(box => box.id === 'a')!.kind = kind;
+    builder.document = next;
+    for (let echo = 0; echo < 3; echo++) { builder.refresh(); expect(root.querySelector('[part=leads-to]')).toBeNull(); }
+    remove.click(); expect(edits).not.toHaveBeenCalled();
+  });
   it("offers six alignments, distribution and a section for multiple steps", () => {
     const { builder, root } = fixture();
     builder.selectMany(['a', 'b']);
