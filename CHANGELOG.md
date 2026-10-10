@@ -15,6 +15,13 @@ are kept as written.
 
 ## Unreleased
 
+## 0.36.1 — 2026-10-10
+
+- Keep visual Process Modeler section frames transparent to ordinary routes,
+  matching automatic event routing. Making a section no longer hides unrelated
+  lines enclosed by its background; authored ports and waypoints remain intact,
+  and real unrelated execution frames continue to block invalid routes.
+
 ## 0.36.0 — 2026-10-10
 
 - Match selected Process Modeler headers, typed field presentation, sections,
