@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ProcessModeler, routeProcessLine, processSegmentChain, lineMidpoint, type ProcessProjection } from "../../src/patterns/process-modeler/index.js";
+import { ProcessModeler, routeProcessLine, roundedProcessPath, processSegmentChain, lineMidpoint, type ProcessProjection } from "../../src/patterns/process-modeler/index.js";
 
 const projection: ProcessProjection = {
   boxes: [
@@ -2059,4 +2059,59 @@ it('offers keyboard bending for a straight route, using the same middle chain as
  const {builder,root}=fixture();builder.move('a',0,0);builder.move('b',500,0);builder.selectLine('ab');const before=builder.layout;
  const control=root.querySelector<HTMLButtonElement>('[part=connection-actions] [data-segment]')!;expect(control).not.toBeNull();
  control.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true,cancelable:true}));expect(builder.layout.lines!.ab.map(point=>point.y)).toEqual([40,40]);builder.undo();expect(builder.layout).toEqual(before);
+});
+
+
+describe('reviewed live gesture and selection regressions', () => {
+ it.each(['source', 'line'] as const)('cancels a connection when controlled document echo removes its %s', removed => {
+  const {builder,root,canvas}=fixture();builder.move('a',0,0);builder.move('b',500,0);builder.select('a');
+  if(removed==='source')pointer(root.querySelector('[part=port][data-owner=a][data-side=east]')!,'pointerdown',224,32);
+  else {builder.selectLine('ab');pointer(root.querySelector('[part=end-grip][data-end=to]')!,'pointerdown',500,32);}
+  pointer(canvas,'pointermove',600,230);expect(canvas.dataset.gesture).toBe('connect');
+  builder.document=removed==='source'?{...projection,boxes:projection.boxes.filter(b=>b.id!=='a'),lines:[]}:{...projection,lines:[]};
+  const edits=vi.fn();builder.addEventListener('process-edit-request',edits);
+  expect(canvas.dataset.gesture).toBeUndefined();expect(root.querySelector('[part=connection-preview]')).toBeNull();
+  expect(()=>{pointer(canvas,'pointermove',600,240);pointer(canvas,'pointerup',600,240)}).not.toThrow();expect(edits).not.toHaveBeenCalled();
+  builder.document=structuredClone(projection);builder.select('a');pointer(root.querySelector('[part=port][data-owner=a][data-side=east]')!,'pointerdown',224,32);
+  pointer(canvas,'pointermove',350,200);expect(root.querySelector('[part=connection-preview]')).not.toBeNull();pointer(canvas,'pointercancel',350,200);
+ });
+ it.each(['single', 'many', 'mixed', 'pointer'] as const)('synchronizes all line decorations on %s selection transitions', transition => {
+  const {builder,root}=fixture();builder.document={...projection,lines:[{...projection.lines[0],fromSide:'east',toSide:'west',points:[{x:280,y:32},{x:280,y:230}]}]};
+  builder.move('a',0,0);builder.move('b',500,200);builder.selectLine('ab');
+  expect(root.querySelector('[part=segment-handle]')).not.toBeNull();expect(root.querySelector('[part=end-grip]')).not.toBeNull();
+  if(transition==='single')builder.select('a');
+  else if(transition==='many')builder.selectMany(['a','b']);
+  else if(transition==='mixed')builder.selectItems([{type:'box',id:'a'}]);
+  else root.querySelector<HTMLElement>('[data-box-id=a]')!.click();
+  expect(builder.selection.some(i=>i.type==='line')).toBe(false);
+  for(const part of ['line','line-arrow','pinned-end','hand-mark','connection'])
+    root.querySelectorAll<HTMLElement>('[part='+part+']').forEach(n=>expect(n.dataset.selected).toBe('false'));
+  expect(root.querySelector('[part=segment-handle],[part=end-grip]')).toBeNull();
+  builder.selectItems([{type:'box',id:'a'},{type:'line',id:'ab'}]);
+  expect(root.querySelector<HTMLElement>('[part=line-arrow]')!.dataset.selected).toBe('true');
+  expect(root.querySelector('[part=segment-handle]')).not.toBeNull();expect(root.querySelector('[part=end-grip]')).toBeNull();
+ });
+ it.each(['note-to-task', 'task-to-note', 'reconnect'] as const)('keeps %s live previews straight, dotted and unpinned', mode => {
+  const {builder,root,canvas}=fixture();
+  builder.document={...projection,lines:[{...projection.lines[0],fromSide:'east',toSide:'west'}],boxes:[...projection.boxes,{id:'n',kind:'note',role:'note',title:'Note',node:{}}]};
+  builder.move('a',0,0);builder.move('b',500,0);builder.move('n',mode==='note-to-task'?0:500,200);
+  const before=JSON.stringify(builder.layout), drawing=root.querySelector('[part=line][data-line-id=ab]')!.getAttribute('d');
+  if(mode==='reconnect') {builder.selectLine('ab');pointer(root.querySelector('[part=end-grip][data-end=to]')!,'pointerdown',500,32);}
+  else {builder.select(mode==='note-to-task'?'n':'a');pointer(root.querySelector('[part=port][data-owner='+(mode==='note-to-task'?'n':'a')+'][data-side=east]')!,'pointerdown',mode==='note-to-task'?208:224,mode==='note-to-task'?240:32);}
+  pointer(canvas,'pointermove',600,mode==='note-to-task'?32:230);
+  const candidate={id:mode==='reconnect'?'ab':'__boe-connection-preview',from:mode==='note-to-task'?'n':'a',to:mode==='note-to-task'?'b':'n',role:'association' as const};
+  const preview=root.querySelector<SVGPathElement>('[part=connection-preview]')!;
+  expect(preview.dataset.target).toBe('true');expect(preview.dataset.role).toBe('association');expect(root.querySelector('[part=connection-preview-arrow]')).toBeNull();
+  const live=mode==='reconnect'?root.querySelector<SVGPathElement>('[part=line][data-line-id=ab]')!:preview;
+  expect(live.getAttribute('d')).toBe(roundedProcessPath(routeProcessLine(candidate,builder.layout,builder.document!)));
+  if(mode==='reconnect') {
+    expect(root.querySelector('[part=line-arrow]')!.getAttribute('d')).toBe('');
+    root.querySelectorAll<HTMLElement>('[part=pinned-end],[part=segment-handle],[part=end-grip]').forEach(n=>expect(n.style.display).toBe('none'));
+  }
+  else expect(root.querySelector('[part=line][data-line-id=ab]')!.getAttribute('d')).toBe(drawing);
+  expect(root.querySelector('[part=port][data-hot=true]')).toBeNull();expect(JSON.stringify(builder.layout)).toBe(before);
+  pointer(canvas,'pointercancel',600,230);expect(root.querySelector('[part=line][data-line-id=ab]')!.getAttribute('d')).toBe(drawing);
+  const requested=vi.fn();builder.addEventListener('process-edit-request',requested);builder.requestEdit({type:mode==='reconnect'?'reattach':'connect',lineId:mode==='reconnect'?'ab':undefined,from:candidate.from,to:candidate.to,fromSide:'east',toSide:'west'});
+  expect(requested).toHaveBeenCalledOnce();expect(requested.mock.calls[0][0].detail.fromSide).toBeUndefined();expect(requested.mock.calls[0][0].detail.toSide).toBeUndefined();
+ });
 });

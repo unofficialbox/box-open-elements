@@ -98,6 +98,29 @@ describe("process routing", () => {
     expect(routeProcessLine(edge, positions, clear)).toEqual([{ x: 224, y: 32 }, { x: 320, y: 32 }]);
   });
 
+  it.each([0, 1, 2, 3])('rejects close opposite pinned leads through quarter-turn %s', turns => {
+    const sides: ProcessSide[] = ['east', 'south', 'west', 'north'];
+    const rotate = (p: ProcessPoint) => {
+      for (let i = 0; i < turns; i++) p = { x: -p.y, y: p.x };
+      return p;
+    };
+    const rotateBox = (x: number) => {
+      const points = [rotate({x,y:0}), rotate({x:x+100,y:0}), rotate({x,y:80}), rotate({x:x+100,y:80})];
+      const xs=points.map(p=>p.x), ys=points.map(p=>p.y);
+      return {x:Math.min(...xs),y:Math.min(...ys),width:Math.max(...xs)-Math.min(...xs),height:Math.max(...ys)-Math.min(...ys)};
+    };
+    const positions = { boxes: { a: rotateBox(0), b: rotateBox(110) } };
+    for (const pins of [
+      {fromSide:sides[turns]}, {toSide:sides[(turns+2)%4]},
+      {fromSide:sides[turns],toSide:sides[(turns+2)%4]}
+    ]) {
+      const pinned = {...edge,...pins};
+      expect(routeProcessLine(pinned,positions,projection(['a','b'],[pinned]))).toEqual([]);
+    }
+    const automatic = routeProcessLine(edge,positions,projection(['a','b'],[edge]));
+    orthogonal(automatic);avoids(automatic,positions.boxes.a);avoids(automatic,positions.boxes.b);
+  });
+
   it("chooses native heading-aware endpoints and deterministically detours around obstacles", () => {
     const before = structuredClone(layout);
     const points = routeProcessLine(edge, layout, input);
@@ -393,4 +416,20 @@ it('faces loose connection previews toward the pointer and reverses reconnect-fr
  expect(processLooseConnection(event,position,target)).toEqual(expected);
  expect(processLooseConnection(event,position,target,true)).toEqual([...expected].reverse());
  expect(processLooseConnection(box('task'),{x:0,y:0,width:100,height:80},{x:50,y:-100})).toEqual([{x:50,y:0},{x:50,y:-100}]);
+});
+
+
+it.each(['from', 'to'] as const)('allocates the free end of a half-pinned %s edge with its automatic sibling', end => {
+  const pinned: ProcessLine = {id:'ab',from:'a',to:'b',...(end==='from'?{fromSide:'east' as const}:{toSide:'west' as const})};
+  const sibling: ProcessLine = end==='from' ? {id:'db',from:'d',to:'b'} : {id:'ad',from:'a',to:'d'};
+  const layout: ProcessLayout = {boxes:{a:{x:0,y:0,width:100,height:80},b:{x:200,y:50,width:100,height:80},d:{x:end==='from'?0:200,y:100,width:100,height:80}}};
+  const input=projection(['a','b','d'],[pinned,sibling]);
+  const alone=routeProcessLine(pinned,layout,{...input,lines:[pinned]});
+  const points=routeProcessLine(pinned,layout,input), other=routeProcessLine(sibling,layout,input);
+  orthogonal(points);orthogonal(other);
+  const free=end==='from'?points.at(-1)!:points[0], otherFree=end==='from'?other.at(-1)!:other[0];
+  const position=end==='from'?layout.boxes.b:layout.boxes.a;
+  expect(free.y).toBeGreaterThanOrEqual(position.y+16);expect(free.y).toBeLessThanOrEqual(position.y+64);
+  expect(free).not.toEqual(otherFree);
+  expect(end==='from'?points[0]:points.at(-1)).toEqual(end==='from'?alone[0]:alone.at(-1));
 });

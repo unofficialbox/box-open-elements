@@ -184,6 +184,7 @@ export const processModelerDesign = `
   [part=box]:hover, [part=frame]:hover { border-color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [data-connect-target=true][data-connect-invalid=true] { border-color: var(--boe-token-text-status-text-error, #b92340) !important; }
   [part=connection-preview][data-target=true] { stroke-width: 2; stroke-dasharray: none; }
+  [part=connection-preview][data-role=association][data-target=true] { stroke-dasharray: 2 4; }
   [part=connection-preview-arrow] { fill: var(--boe-token-surface-surface-brand, #0061d5); pointer-events: none; }
   [part=connection-preview-end] { fill: var(--boe-token-surface-surface-brand, #0061d5); pointer-events: none; }
   [part=connection-preview][data-invalid=true] { stroke: var(--boe-token-text-status-text-error, #b92340); }

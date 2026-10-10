@@ -43,11 +43,18 @@ function port(box: ProcessBox, r: Rect, side: ProcessSide, offset = 0): ProcessP
     return { x: r.x + inset, y: c.y + offset };
   return { x: r.x + r.w - inset, y: c.y + offset };
 }
-function routeOrthC(p1: ProcessPoint, sa: ProcessSide, p2: ProcessPoint, sb: ProcessSide, obstacles: (Rect & { endpoint?: boolean })[]) {
+function routeOrthC(p1: ProcessPoint, sa: ProcessSide, p2: ProcessPoint, sb: ProcessSide, obstacles: (Rect & { endpoint?: 'from' | 'to' })[]) {
   const STUB = 20, M = 12;
   const d1 = DIRS[sa], d2 = DIRS[sb];
   const s = { x: p1.x + d1.x * STUB, y: p1.y + d1.y * STUB };
   const t = { x: p2.x + d2.x * STUB, y: p2.y + d2.y * STUB };
+  // A fixed lead may leave its own inset event port, but must never enter
+  // the opposite endpoint or another obstacle, even if its stub exits that body.
+  const crosses = (a: ProcessPoint, b: ProcessPoint, r: Rect) => a.x === b.x
+    ? a.x > r.x && a.x < r.x + r.w && Math.max(a.y, b.y) > r.y && Math.min(a.y, b.y) < r.y + r.h
+    : a.y > r.y && a.y < r.y + r.h && Math.max(a.x, b.x) > r.x && Math.min(a.x, b.x) < r.x + r.w;
+  if (obstacles.some(o => o.endpoint !== 'from' && crosses(p1, s, o)
+    || o.endpoint !== 'to' && crosses(p2, t, o))) return { pts: [], cost: Infinity };
   // Region of interest.
   const pad = 200;
   let rx1 = Math.min(s.x, t.x) - pad, rx2 = Math.max(s.x, t.x) + pad;
@@ -217,7 +224,7 @@ export function automaticEventPorts(line: ProcessLine, layout: ProcessLayout, pr
     ids.add(parent);
     parent = boxes.get(parent)?.parentId;
   } return ids; };
-  const edgeObstacles = (edge: ProcessLine) => { const skip = new Set([...ancestors(edge.from), ...ancestors(edge.to)]); return obstacles.filter(o => !skip.has(o.id)).map(o => ({...o.r, endpoint: o.id === edge.from || o.id === edge.to})); };
+  const edgeObstacles = (edge: ProcessLine) => { const skip = new Set([...ancestors(edge.from), ...ancestors(edge.to)]); return obstacles.filter(o => !skip.has(o.id)).map(o => ({...o.r, endpoint: o.id === edge.from ? 'from' as const : o.id === edge.to ? 'to' as const : undefined})); };
   const sides = new Map<string, [
     ProcessSide,
     ProcessSide
@@ -276,6 +283,7 @@ export function automaticEventPorts(line: ProcessLine, layout: ProcessLayout, pr
     ] as [string, ProcessSide, string, ProcessPoint][]) {
       const r = rects.get(id)!, c = center(r);
       const authoredSide = key.endsWith(':a') ? edge.fromSide : edge.toSide;
+      if (!authoredSide && !points?.length) continue;
       const offset = authoredSide ? 0 : side === 'north' || side === 'south'
         ? Math.max(r.x, Math.min(toward.x, r.x + r.w)) - c.x
         : Math.max(r.y, Math.min(toward.y, r.y + r.h)) - c.y;
