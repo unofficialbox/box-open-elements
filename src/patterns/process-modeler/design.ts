@@ -149,6 +149,8 @@ export const processModelerDesign = `
   [part=box][data-shape=task] { align-content: normal; font-size: 14px; line-height: 1.45; }
   [part=box][data-shape=task] > [part=icon] { grid-row: span 4; margin-top: 1px; }
   [part=box]:hover, [part=frame]:hover { border-color: var(--boe-token-text-text-secondary, #6f6f6f); }
+  [data-connect-target=true][data-connect-invalid=true] { border-color: var(--boe-token-text-status-text-error, #b92340) !important; }
+  [part=connection-preview][data-invalid=true] { stroke: var(--boe-token-text-status-text-error, #b92340); }
   [data-connect-target=true] { border-color: var(--boe-token-surface-surface-brand, #0061d5) !important; }
   [part=box] strong, [part=frame] strong { overflow-wrap: anywhere; }
   [part=box] strong, [part=frame] strong { font-size: 13.5px; font-weight: 650; line-height: 1.3; }

@@ -122,8 +122,18 @@ export interface ProcessLastRun {
   /** Keys are projected box IDs, supplied by the host. */
   steps: Readonly<Record<string, ProcessStepMetrics>>;
 }
+/** A proposed host-owned connection, also used when reattaching a line. */
+export interface ProcessConnectionProposal {
+  readonly from: string;
+  readonly to: string;
+  /** Exclude this existing line from duplicate/outgoing-limit checks. */
+  readonly ignoreLineId?: string;
+}
 export interface ProcessModel<D = unknown, N = unknown> {
   project(document: D): ProcessProjection<N>;
+  /** Pure synchronous host rule: a nonempty reason rejects preview and commit.
+   * Returning null permits an edit request; the host must still accept it. */
+  connectionProblem?(document: D, proposal: ProcessConnectionProposal, projection: ProcessProjection<N>): string | null;
   /** Optional host arrangement, used by Tidy up and for missing positions. */
   arrange?(projection: ProcessProjection<N>): ProcessLayout;
   /**
@@ -161,7 +171,7 @@ export interface ProcessCheck {
   path?: NodePath;
 }
 export interface ProcessEdit {
-  type: "add" | "delete" | "duplicate" | "connect" | "disconnect" | "reattach" | "insert" | "reparent";
+  type: "add" | "delete" | "duplicate" | "connect" | "disconnect" | "reattach" | "insert" | "reparent" | "reset-line";
   boxId?: string;
   sourceId?: string;
   /** Duplicate these roots and descendants/internal edges in one host transaction.
