@@ -15,6 +15,19 @@ are kept as written.
 
 ## Unreleased
 
+## 0.35.0 — 2026-10-10
+
+- Match the read-only Process Modeler Connections tab to the reference's compact
+  list rows, empty state and Set up connections action. Hosts can supply safe
+  plain-text `connectionsHelp` describing their own setup screen (#467).
+- Keep long connection names within the inspector and match the reference row
+  and button line height. Connection values and setup remain host-owned.
+- Include `connectionsHelp` in generated native property bindings and opt-in
+  React JSX types, with isolated positive and negative compilation fixtures.
+
+This is a bounded inspector refinement; broader Process Modeler field, graph and
+consumer adoption criteria retain their existing scope.
+
 ## 0.34.0 — 2026-10-10
 
 - Reject stale building-block chooser and palette intent after document loads,
