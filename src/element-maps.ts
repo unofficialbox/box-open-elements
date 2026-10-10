@@ -164,6 +164,7 @@ import type { Timeline } from "./patterns/timeline/timeline.js";
 import type { Toast } from "./components/feedback/toast.js";
 import type { Toolbar } from "./components/actions/toolbar.js";
 import type { Tooltip } from "./components/overlays/tooltip.js";
+import type { TraceWaterfall } from "./patterns/run/trace-waterfall.js";
 import type { Tree } from "./components/collections/tree.js";
 import type { TreeGrid } from "./components/collections/tree-grid.js";
 import type { UnifiedShareModal } from "./patterns/share/unified-share-modal.js";
@@ -334,6 +335,7 @@ declare global {
     "box-toast": Toast;
     "box-toolbar": Toolbar;
     "box-tooltip": Tooltip;
+    "box-trace-waterfall": TraceWaterfall;
     "box-tree": Tree;
     "box-tree-grid": TreeGrid;
     "box-unified-share-modal": UnifiedShareModal;
@@ -506,6 +508,7 @@ export type BoxElementTagName =
   | "box-toast"
   | "box-toolbar"
   | "box-tooltip"
+  | "box-trace-waterfall"
   | "box-tree"
   | "box-tree-grid"
   | "box-unified-share-modal"

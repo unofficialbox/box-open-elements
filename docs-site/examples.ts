@@ -1304,6 +1304,20 @@ export const examples: Record<string, ComponentExample> = {
       },
     ],
   },
+  "trace-waterfall": {
+    html: `<box-trace-waterfall heading="Completed run — median sample"></box-trace-waterfall>`,
+    setup: root => set(root, "box-trace-waterfall", {
+      spans: [
+        { id: "run", label: "Upload documents", kind: "Run", startMs: 0, durationMs: 1400, status: "ok", detail: { input: { files: 3 }, response: "Completed", attributes: { sample: "Median" } } },
+        { id: "sign-in", parentId: "run", label: "Sign in to Box", kind: "Action", startMs: 0, durationMs: 210, status: "ok" },
+        { id: "upload", parentId: "run", label: "files.upload", kind: "Action", startMs: 180, durationMs: 587, status: "ok", markers: [{ atMs: 1050, label: "95% of calls completed" }] },
+        { id: "metadata", parentId: "run", label: "Parallel metadata lookup", kind: "Action", startMs: 250, durationMs: 400, status: "failed", detail: { response: "Rate limited" } },
+        { id: "tick", parentId: "metadata", label: "Retry skipped", kind: "Evaluation", startMs: 650, durationMs: 0, status: "skipped" },
+        { id: "system", parentId: "run", label: "Scheduler event", kind: "System", startMs: 0, durationMs: 0, status: "ok", system: true },
+      ],
+      comparisonSpans: [{ id: "upload", label: "files.upload", kind: "Action", startMs: 180, durationMs: 800, status: "ok" }],
+    }),
+  },
   "run-trace": {
     html: `<box-run-trace heading="Generate documents — MSA_Acme v4"></box-run-trace>`,
     setup: root => {

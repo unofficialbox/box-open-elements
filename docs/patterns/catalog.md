@@ -374,3 +374,5 @@ the task / governance / file-request areas.
 - Add reusable compositions before pattern-private shell logic whenever a UI slice could later serve explorer, picker, uploader, preview, or sidebar experiences.
 - When introducing a new headless module, add its public subpath entrypoint if it should be directly consumable.
 - Keep this document synchronized with the actual `src/patterns` tree and package exports.
+
+- `box-trace-waterfall`: nested execution spans, comparison bars and percentile markers on a shared time axis; keyboard tree grid, details and table fallback. See [Trace waterfall](./trace-waterfall.md).

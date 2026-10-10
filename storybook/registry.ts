@@ -50,6 +50,7 @@ import wizardSummary from "./stories/wizard-summary.stories.js";
 import compareView from "./stories/compare-view.stories.js";
 import signatureCeremony from "./stories/signature-ceremony.stories.js";
 import runTrace from "./stories/run-trace.stories.js";
+import traceWaterfall from "./stories/trace-waterfall.stories.js";
 import path from "./stories/path.stories.js";
 import dueBadge from "./stories/due-badge.stories.js";
 import notificationBell from "./stories/notification-bell.stories.js";
@@ -217,6 +218,7 @@ export const storyModules: StoryModule[] = [
   compareView,
   signatureCeremony,
   runTrace,
+  traceWaterfall,
   path,
   dueBadge,
   notificationBell,
