@@ -798,6 +798,19 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector('[part=process-summary]')!.textContent).toBe('Overview');
   });
 
+  it("ignores detached, locked and superseded generic field edits", () => {
+    const { builder, root } = fixture();
+    builder.fields = {a: [{key: 'name', label: 'Name', kind: 'text', value: 'Read'}]}; builder.select('a');
+    const edit = vi.fn(); builder.addEventListener('process-field-change-request', edit);
+    const old = root.querySelector<HTMLInputElement>('[data-field=name]')!;
+    old.value = 'Draft'; builder.select('b'); old.dispatchEvent(new Event('change'));
+    expect(edit).not.toHaveBeenCalled();
+    builder.select('a'); const locked = root.querySelector<HTMLInputElement>('[data-field=name]')!;
+    builder.locked = true; locked.dispatchEvent(new Event('change')); expect(edit).not.toHaveBeenCalled();
+    builder.locked = false; const stale = root.querySelector<HTMLInputElement>('[data-field=name]')!;
+    builder.document = structuredClone(projection); stale.dispatchEvent(new Event('change')); expect(edit).not.toHaveBeenCalled();
+  });
+
   it("retains native field metadata and requests typed edits without overwriting host values", () => {
     const { builder, root } = fixture();
     builder.fields = {a: [

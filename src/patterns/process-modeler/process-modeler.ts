@@ -2728,7 +2728,11 @@ export class ProcessModeler<
     if (field.format === 'code') { control.dataset.format = 'code'; control.spellcheck = false; }
     if (field.kind === 'expression') { control.spellcheck = false; control.setAttribute('autocomplete', 'off'); control.setAttribute('part', 'expression-control'); }
     if (field.problem) control.setAttribute('aria-invalid', 'true');
-    const submit = () => emit(this, 'process-field-change-request', { boxId: box.id, path: box.path, key: field.key, value: control instanceof HTMLInputElement && control.type === 'checkbox' ? control.checked : control instanceof HTMLInputElement && control.type === 'number' && control.value !== '' ? Number(control.value) : control.value });
+    const fieldSession = this.layoutEditSession;
+    const submit = () => {
+      if (!control.isConnected || control.disabled || this.locked || fieldSession !== this.layoutEditSession || this.selected?.id !== box.id) return;
+      emit(this, 'process-field-change-request', { boxId: box.id, path: box.path, key: field.key, value: control instanceof HTMLInputElement && control.type === 'checkbox' ? control.checked : control instanceof HTMLInputElement && control.type === 'number' && control.value !== '' ? Number(control.value) : control.value });
+    };
     if (field.kind !== 'action') control.addEventListener(field.kind === 'expression' ? 'input' : 'change', submit);
     if (field.kind === 'boolean') { row.dataset.boolean = ''; label.prepend(control); }
     else label.append(control);

@@ -317,7 +317,7 @@ export const processModelerDesign = `
   [part=action-options] button strong { display: block; font-size: 13px; font-weight: 650; }
   [part=action-options] button small { display: block; color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=action-options] [part=action-back] { color: var(--boe-token-text-text-secondary, #6f6f6f); }
-  [part=field] input[type=checkbox] { flex: none; width: 13px; height: 13px; font-family: inherit; font-size: 13px; font-weight: 400; line-height: 1.45; accent-color: var(--boe-token-surface-surface-brand, #0061d5); }
+  [part=field] input[type=checkbox] { flex: none; width: auto; height: auto; font-family: inherit; font-size: 13px; font-weight: 400; line-height: 1.45; accent-color: var(--boe-token-surface-surface-brand, #0061d5); }
   [part=field] small { color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12px; line-height: 1.45; }
   [part=field] [part=field-problem] { color: var(--boe-token-text-status-text-error, #b92340); }
   [part=editor], [part=pane-content], [part=editor] > *, [part=pane-content] > * { min-width: 0; }
