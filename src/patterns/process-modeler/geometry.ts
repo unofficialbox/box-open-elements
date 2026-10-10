@@ -1,5 +1,5 @@
 import type { BoxPosition, ProcessBox, ProcessLayout, ProcessLine, ProcessProjection, ProcessSide } from "./model.js";
-import { validateProjection } from "./model.js";
+import { validateProjection, isFlowBox, isFlowLine } from "./model.js";
 
 export interface ProcessPoint { x: number; y: number }
 interface Rectangle { x: number; y: number; width: number; height: number }
@@ -13,6 +13,9 @@ const compare = (a: string, b: string) => a < b ? -1 : a > b ? 1 : 0;
 /** Stable left-to-right layers; cycles break at the smallest remaining ID. */
 export function arrangeProcess(projection: ProcessProjection): ProcessLayout {
   validateProjection(projection);
+  const flowBoxes = projection.boxes.filter(isFlowBox);
+  const flowIds = new Set(flowBoxes.map(box => box.id));
+  projection = { boxes: flowBoxes, lines: projection.lines.filter(line => isFlowLine(line) && flowIds.has(line.from) && flowIds.has(line.to)) };
   const boxes = new Map(projection.boxes.map(box => [box.id, box]));
   const children = new Map<string | undefined, ProcessBox[]>();
   for (const box of projection.boxes) {
@@ -92,7 +95,7 @@ export function arrangeProcess(projection: ProcessProjection): ProcessLayout {
 
 function rectangle(position: BoxPosition, box?: ProcessBox): Rectangle {
   const compact = box?.shape === "gateway" || box?.shape === "event";
-  return { ...position, width: position.width ?? (box?.frame ? 320 : compact ? 56 : 224), height: position.height ?? (box?.frame ? 180 : compact ? 56 : 64) };
+  return { ...position, width: position.width ?? (box?.frame ? 320 : compact ? 56 : box?.role === "note" ? 208 : 224), height: position.height ?? (box?.frame ? 180 : compact ? 56 : 64) };
 }
 const center = (box: Rectangle): ProcessPoint => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
 const distance = (a: ProcessPoint, b: ProcessPoint) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -229,6 +232,7 @@ export function routeProcessLine(line: ProcessLine, layout: ProcessLayout, proje
   if (!fromPosition || !toPosition) return [];
   const from = rectangle(fromPosition, boxes.get(line.from));
   const to = rectangle(toPosition, boxes.get(line.to));
+  if (!isFlowLine(line)) return [pin(from, center(to)), pin(to, center(from))];
   const excluded = new Set<string>();
   for (const id of [line.from, line.to]) {
     let parent = boxes.get(id)?.parentId;

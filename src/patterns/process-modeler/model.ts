@@ -13,6 +13,9 @@ export interface ProcessBox<N = unknown> {
   node: N;
   kind: string;
   title: string;
+  /** Graph notes keep box identity but are not workflow steps. */
+  role?: "flow" | "note";
+  /** For graph notes, the visible note text (title is the fallback). */
   description?: string;
   /** Description used in Technical view; absent values fall back to description. */
   technicalDescription?: string;
@@ -39,6 +42,8 @@ export interface ProcessBox<N = unknown> {
 }
 export interface ProcessLine {
   id: string;
+  /** Associations attach graph notes without participating in workflow flow. */
+  role?: "flow" | "association";
   from: string;
   to: string;
   label?: string;
@@ -50,6 +55,10 @@ export interface ProcessLine {
   /** Optional last-run traffic share, between 0 and 1. */
   share?: number;
 }
+/** Semantic eligibility is independent of host kind names. */
+export const isFlowBox = (box: ProcessBox): boolean => box.role !== "note";
+export const isFlowLine = (line: ProcessLine): boolean => line.role !== "association";
+
 export type ProcessSide = "north" | "east" | "south" | "west";
 export interface ProcessConnection {
   name: string;
@@ -356,7 +365,7 @@ export function completeLayout<N>(
       .map(measure);
     const size = {
       width: Math.max(
-        box.frame || box.shape === "frame" ? 320 : box.shape === "gateway" || box.shape === "event" ? 56 : 224,
+        box.frame || box.shape === "frame" ? 320 : box.shape === "gateway" || box.shape === "event" ? 56 : box.role === "note" ? 208 : 224,
         ...children.map((child) => child.width + 40),
       ),
       height: box.frame
