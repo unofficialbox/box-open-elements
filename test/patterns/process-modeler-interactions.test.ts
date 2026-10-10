@@ -165,6 +165,18 @@ describe("Process Modeler prototype interactions", () => {
     (builder as unknown as {alignedPoint(id:string,x:number,y:number):unknown}).alignedPoint('a',0,0);
     expect([...root.querySelectorAll('[part=measure-label]')].map(n=>n.textContent)).toEqual(['100','100','100','100']);
   });
+  it("aligns a dragged note to flow centers and equal gaps while excluding other note targets", () => {
+    const { builder, root, canvas } = fixture(); builder.snapToGrid = false;
+    builder.document = { boxes: [{...projection.boxes[0],id:'l'}, {...projection.boxes[1],id:'r'}, {...projection.boxes[2],id:'n',kind:'note',role:'note'}, {...projection.boxes[2],id:'ignored',kind:'note',role:'note'}], lines: [] };
+    builder.layout = {boxes:{l:{x:0,y:0,width:100,height:80},r:{x:508,y:0,width:100,height:80},n:{x:184,y:0,width:208,height:80},ignored:{x:305,y:0,width:100,height:80}}};
+    const align = (builder as unknown as {alignedPoint(id:string,x:number,y:number,alt?:boolean):{x:number;y:number}}).alignedPoint.bind(builder);
+    expect(align('n',201,0)).toEqual({x:200,y:0}); expect([...root.querySelectorAll('[part=measure-label]')].map(n=>n.textContent)).toEqual(['= 100','= 100']);
+    expect(align('n',453,100)).toEqual({x:454,y:100}); expect(root.querySelector('[part=guide]')).not.toBeNull();
+    expect(align('n',201,3,true)).toEqual({x:201,y:3}); expect(root.querySelector('[part=drag-guides]')).toBeNull();
+    pointer(root.querySelector('[data-box-id=n]')!, 'pointerdown',200,20); pointer(canvas,'pointermove',217,20); pointer(canvas,'pointerup',217,20);
+    expect(builder.layout.boxes.n.x).toBe(200); builder.undo(); expect(builder.layout.boxes.n.x).toBe(184);
+  });
+
   it("keeps carried frame descendants out of drag alignment candidates", () => {
     const { builder, root } = fixture(); builder.snapToGrid = false;
     builder.document = { boxes: [{...projection.boxes[0],id:'frame',frame:true},{...projection.boxes[1],id:'child',parentId:'frame'}], lines: [] };
@@ -208,6 +220,26 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector('[data-box-id=graph-section] [part=section-number]')?.textContent).toBe('3');
     builder.undo(); expect(root.querySelector('[data-box-id=graph-section] [part=section-number]')?.textContent).toBe('2');
   });
+  it("numbers same-id graph and layout sections independently in their left-to-right order", () => {
+    const { builder, root } = fixture();
+    builder.document = {boxes:[{...projection.boxes[0],id:'section-1',kind:'section',frame:true,title:'Graph'}],lines:[]};
+    builder.layout = {boxes:{'section-1':{x:400,y:0,width:320,height:160}},sections:[{id:'section-1',title:'Layout',x:0,y:0,width:300,height:160}]};
+    const number = (owner:string) => root.querySelector(`[data-${owner}-id=section-1] [part=section-number]`)?.textContent;
+    expect(number('section')).toBe('1'); expect(number('box')).toBe('2');
+    builder.move('section-1',-400,0); expect(number('box')).toBe('1'); expect(number('section')).toBe('2');
+    builder.undo(); expect(number('section')).toBe('1'); expect(number('box')).toBe('2');
+  });
+  it("retains graph section problem text and its accessible announcement beside the numbered header", () => {
+    const { builder, root } = fixture();
+    builder.document = {boxes:[{...projection.boxes[0],id:'section-1',kind:'section',frame:true,title:'Review',description:'Before publishing'}],lines:[]};
+    builder.setValidation([{boxId:'section-1',title:'<Fix the section>',message:'Supply the missing metadata'}]); builder.select('section-1');
+    const section = root.querySelector('[data-box-id=section-1]')!;
+    expect(section.querySelector('[part=section-number]')?.textContent).toBe('1');
+    expect(section.getAttribute('aria-label')).toContain('Section 1: Review. Before publishing'); expect(section.getAttribute('aria-label')).toContain('Needs attention: <Fix the section>');
+    expect(section.querySelector('[part=problem]')?.textContent).toBe('<Fix the section>'); expect(section.querySelector('fix')).toBeNull(); expect(section.getAttribute('data-invalid')).toBe('true'); expect(builder.readback.current).toBeNull();
+    builder.setValidation([]); const fixed = root.querySelector('[data-box-id=section-1]')!; expect(fixed.querySelector('[part=problem]')).toBeNull(); expect(fixed.getAttribute('aria-label')).not.toContain('Needs attention');
+  });
+
   it("names the desktop building-block pane without duplicating the mobile drawer heading", () => {
     const { root } = fixture();
     expect(root.querySelector('[part=palette-heading]')?.textContent).toBe("Add to the process");
@@ -2045,6 +2077,7 @@ describe("Process Modeler prototype interactions", () => {
     const preview = () => { pointer(canvas, 'pointermove', 472, 296); const temporary = structuredClone(before); temporary.boxes.frame.width = 432; temporary.boxes.frame.height = 256; expect(drawing()).toBe(roundedProcessPath(routeProcessLine(builder.document!.lines[0], temporary, builder.document!))); expect(drawing()).not.toBe(original); expect(builder.layout).toEqual(before); expect(builder.version).toBe(version); };
     start(); preview(); pointer(canvas, 'pointercancel', 472, 296); expect(drawing()).toBe(original); expect(builder.layout).toEqual(before);
     start(); preview(); canvas.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true})); pointer(canvas, 'pointerup', 472, 296); expect(drawing()).toBe(original); expect(builder.layout).toEqual(before);
+    const focusedHandle = root.querySelector<HTMLElement>('[part=frame-resize]')!; focusedHandle.focus(); start(); preview(); focusedHandle.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true})); pointer(canvas, 'pointerup', 472, 296); expect(drawing()).toBe(original); expect(builder.layout).toEqual(before);
     start(); preview(); pointer(canvas, 'pointerup', 472, 296); expect(builder.layout.boxes.frame).toMatchObject({width:432,height:256}); builder.undo(); expect(drawing()).toBe(original); expect(builder.layout).toEqual(before);
   });
 
