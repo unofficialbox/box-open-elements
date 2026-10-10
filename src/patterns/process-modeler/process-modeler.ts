@@ -1626,7 +1626,7 @@ export class ProcessModeler<
   private onKey(event: KeyboardEvent): void {
     if (event.defaultPrevented) return;
     const target = event.target as HTMLElement;
-    if (target.closest("input,textarea,select,[contenteditable],button,summary")) return;
+    if (target.closest("input,textarea,select,[contenteditable],button,summary") && !(event.key === "Escape" && this.frameResize)) return;
     if (target.closest('[part=canvas]') && !event.ctrlKey && !event.metaKey && !event.altKey && ['+', '=', '-', '0'].includes(event.key)) {
       event.preventDefault();
       this.zoomBy(event.key === '0' ? 1 / this.viewport.zoom : event.key === '-' ? 1 / 1.2 : 1.2);

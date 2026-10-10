@@ -2045,6 +2045,7 @@ describe("Process Modeler prototype interactions", () => {
     const preview = () => { pointer(canvas, 'pointermove', 472, 296); const temporary = structuredClone(before); temporary.boxes.frame.width = 432; temporary.boxes.frame.height = 256; expect(drawing()).toBe(roundedProcessPath(routeProcessLine(builder.document!.lines[0], temporary, builder.document!))); expect(drawing()).not.toBe(original); expect(builder.layout).toEqual(before); expect(builder.version).toBe(version); };
     start(); preview(); pointer(canvas, 'pointercancel', 472, 296); expect(drawing()).toBe(original); expect(builder.layout).toEqual(before);
     start(); preview(); canvas.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true})); pointer(canvas, 'pointerup', 472, 296); expect(drawing()).toBe(original); expect(builder.layout).toEqual(before);
+    const focusedHandle = root.querySelector<HTMLElement>('[part=frame-resize]')!; focusedHandle.focus(); start(); preview(); focusedHandle.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true})); pointer(canvas, 'pointerup', 472, 296); expect(drawing()).toBe(original); expect(builder.layout).toEqual(before);
     start(); preview(); pointer(canvas, 'pointerup', 472, 296); expect(builder.layout.boxes.frame).toMatchObject({width:432,height:256}); builder.undo(); expect(drawing()).toBe(original); expect(builder.layout).toEqual(before);
   });
 
