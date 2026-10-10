@@ -51,57 +51,60 @@ a `<box-select>`'s `options`) must be set as a DOM **property**, and
 **custom events** (e.g. `value-changed`) carry their payload on `event.detail`.
 Each section below shows the framework-idiomatic way to do both.
 
+### Native TypeScript types
+
+Import the opt-in type entry once to get the generated tag-name map, writable
+properties, and element-specific `CustomEvent` details without local casts:
+
+```ts
+import "@unofficialbox/box-open-elements/table";
+import type {} from "@unofficialbox/box-open-elements/native-types";
+
+const table = document.createElement("box-table");
+table.rows = [{ id: "one", cells: { name: "Contract" } }];
+table.addEventListener("selection-changed", event => {
+  console.log(event.detail.selectedIds); // string[]
+});
+```
+
+The type entry has no registration side effect. Its map and the React JSX entry
+are generated from the element classes and their dispatched events; `bun run
+maps:check` and `bun run types:check` catch drift in `bun run verify`.
+Events without an inferable detail and generic node payloads use `unknown`, so
+consumers narrow those explicitly instead of receiving an unsafe `any`.
+
 ---
 
 ## React
 
-React 19 sets custom-element props as **properties** and supports native events
-(`onClick`) out of the box. React does **not** auto-subscribe to custom events,
-so use a ref for those.
+React 19 sets recognized custom-element properties directly and listens to
+custom events with an `on` prefix. Keep the exact event spelling and dashes,
+as [React's custom-element guidance](https://react.dev/reference/react-dom/components#custom-html-elements)
+requires. Import the generated JSX types once in your app's TypeScript scope:
 
 ```tsx
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import "@unofficialbox/box-open-elements/button";
 import "@unofficialbox/box-open-elements/text-field";
-import type { TextField } from "@unofficialbox/box-open-elements/text-field";
+import type {} from "@unofficialbox/box-open-elements/react-jsx";
 
 function Example() {
   const [name, setName] = useState("");
-  const field = useRef<TextField>(null);
-
-  useEffect(() => {
-    const el = field.current;
-    if (!el) return;
-    const onChange = (e: Event) =>
-      setName((e as CustomEvent<{ value: string }>).detail.value);
-    el.addEventListener("value-changed", onChange);
-    return () => el.removeEventListener("value-changed", onChange);
-  }, []);
 
   return (
     <>
-      <box-text-field ref={field} label="Project name" value={name} />
+      <box-text-field label="Project name" value={name}
+        onvalue-changed={event => setName(event.detail.value)} />
       <box-button label="Save" tone="primary" onClick={() => console.log(name)} />
     </>
   );
 }
 ```
 
-Add the JSX typings once so the tags are recognized:
-
-```ts
-// box-elements.d.ts
-import type { DetailedHTMLProps, HTMLAttributes } from "react";
-declare module "react" {
-  namespace JSX {
-    interface IntrinsicElements {
-      "box-button": DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLElement> & { label?: string; tone?: string };
-      "box-text-field": DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLElement> & { label?: string; value?: string };
-    }
-  }
-}
-```
-
-The typed adapter hides the ref/event plumbing and adds `Dialog` plus
+The generated JSX types cover all registered tags, structured properties such
+as `rows` and `stages`, reflected booleans, and dashed native event names.
+React's server render omits object-valued props; hydrate on the client when a
+custom element needs them. The optional adapter adds `Dialog` plus
 `useExplorerSelectionController`; see [react.md](./react.md).
 
 ---

@@ -28,6 +28,14 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
+    "./native-types": {
+      "types": "./dist/native-types.d.ts",
+      "import": "./dist/native-types.js"
+    },
+    "./react-jsx": {
+      "types": "./dist/react-jsx.d.ts",
+      "import": "./dist/react-jsx.js"
+    },
     "./patterns/process-modeler": {
       "types": "./dist/patterns/process-modeler/index.d.ts",
       "import": "./dist/patterns/process-modeler/index.js"
@@ -201,7 +209,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "verify": "bun run typecheck && bun run test:coverage && bun run build && bun run frameworks:validate",
+    "verify": "bun run maps:check && bun run types:check && bun run typecheck && bun run test:coverage && bun run build && bun run types:validate && bun run frameworks:validate",
+    "types:validate": "tsc -p test/types/tsconfig.json --noEmit",
     "frameworks:react": "tsc --noEmit -p examples/frameworks/react/tsconfig.json && vite build --config examples/frameworks/react/vite.config.ts",
     "frameworks:react:ssr": "next build examples/frameworks/react-ssr",
     "frameworks:angular": "ngc -p examples/frameworks/angular/tsconfig.json && vite build --config examples/frameworks/angular/vite.config.ts",
@@ -221,6 +230,9 @@
     "test:regression:pixel": "bash tools/preview/container-run.sh 'bun run test:regression -- --pixel'",
     "baselines:regen": "bash tools/preview/container-run.sh 'bun run build && bun tools/preview/capture.ts && bun tools/preview/docs-site-shots.ts'",
     "maps:generate": "bun tools/generate-element-maps.ts",
+    "maps:check": "bun tools/generate-element-maps.ts --check",
+    "types:generate": "bun tools/generate-native-types.ts",
+    "types:check": "bun tools/generate-native-types.ts --check",
     "icons:generate": "bun tools/iconography/generate-box-iconography.ts",
     "bue-conformance": "bun tools/bue-conformance/audit.ts",
     "bue-conformance:color": "bun tools/bue-conformance/color-audit.ts",
