@@ -14,6 +14,7 @@ export function snapshotProcessProjection<N>(projection: ProcessProjection<N>): 
     boxes: projection.boxes.map(box => ({
       ...box,
       ...(box.path ? { path: [...box.path] } : {}),
+      ...(box.localVariables ? { localVariables: box.localVariables.map(variable => ({ ...variable })) } : {}),
       ...(box.technicalDetails ? { technicalDetails: box.technicalDetails.map(detail => ({
         ...detail,
         ...(detail.segments ? { segments: detail.segments.map(segment => ({ ...segment })) } : {}),
