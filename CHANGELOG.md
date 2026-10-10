@@ -15,6 +15,12 @@ are kept as written.
 
 ## Unreleased
 
+## 0.29.2 — 2026-10-10
+
+- Restore focus to the source step when Escape cancels a chooser opened by
+  dropping a port on empty canvas. Preserve explicit return controls for line
+  insertion and fall back to the canvas when no source is available (#414).
+
 ## 0.29.1 — 2026-10-10
 
 - Name the narrow Process Modeler Add button “Add building blocks” so its
