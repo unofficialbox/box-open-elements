@@ -1,4 +1,4 @@
-import { automaticEventRoute } from './automatic-routing.js';
+import { automaticEventRoute, automaticEventPorts } from './automatic-routing.js';
 import type { BoxPosition, ProcessBox, ProcessLayout, ProcessLine, ProcessProjection, ProcessSide } from "./model.js";
 import { validateProjection, isFlowBox, isFlowLine } from "./model.js";
 
@@ -271,18 +271,27 @@ export function routeProcessLine(line: ProcessLine, layout: ProcessLayout, proje
     waypoints.push({ x: from.x + from.width + CLEARANCE * 2, y: from.y + from.height / 2 },
       { x: from.x + from.width / 2, y: from.y - CLEARANCE * 2 });
   }
-  const start = pin(from, waypoints[0] ?? center(to), line.fromSide);
-  const end = pin(to, waypoints.at(-1) ?? center(from), line.toSide);
-  const startLead = portLead(start, line.fromSide), endLead = portLead(end, line.toSide);
+  // Ordinary automatic lines sharing an event-connected task must consume the
+  // same allocated endpoints; their existing obstacle/waypoint router remains.
+  const sharedEvent = !line.fromSide && !line.toSide && !waypoints.length && projection.lines.some(edge =>
+    isFlowLine(edge) && !edge.fromSide && !edge.toSide
+    && !(layout.lines?.[edge.id] ?? edge.points)?.length
+    && (boxes.get(edge.from)?.shape === 'event' || boxes.get(edge.to)?.shape === 'event')
+    && [edge.from, edge.to].some(id => id === line.from || id === line.to));
+  const ports = sharedEvent ? automaticEventPorts(line, layout, projection) : undefined;
+  const fromSide = ports?.fromSide ?? line.fromSide, toSide = ports?.toSide ?? line.toSide;
+  const start = ports?.start ?? pin(from, waypoints[0] ?? center(to), fromSide);
+  const end = ports?.end ?? pin(to, waypoints.at(-1) ?? center(from), toSide);
+  const startLead = portLead(start, fromSide), endLead = portLead(end, toSide);
   // Fixed leads preserve port direction rather than detouring along a box edge.
-  if (line.fromSide && blocked(start, startLead, obstacles)
-    || line.toSide && blocked(endLead, end, obstacles)) return [];
+  if (fromSide && blocked(start, startLead, obstacles)
+    || toSide && blocked(endLead, end, obstacles)) return [];
   const anchors = [startLead, ...waypoints, endLead];
   const padded = obstacles.map((rect, index) => {
     if (obstacleBoxes[index].id === line.from || obstacleBoxes[index].id === line.to) return rect;
     return { x: rect.x - CLEARANCE, y: rect.y - CLEARANCE, width: rect.width + CLEARANCE * 2, height: rect.height + CLEARANCE * 2 };
   });
-  const result: ProcessPoint[] = line.fromSide ? [start, startLead] : [];
+  const result: ProcessPoint[] = fromSide ? [start, startLead] : [];
   for (let i = 1; i < anchors.length; i++) {
     // Prefer clearance, but never reject a valid narrow corridor or waypoint.
     let segment = orthogonal(anchors[i - 1], anchors[i], padded);
@@ -290,8 +299,8 @@ export function routeProcessLine(line: ProcessLine, layout: ProcessLayout, proje
     if (!segment.length) return [];
     result.push(...(result.length ? segment.slice(1) : segment));
   }
-  if (line.toSide) result.push(end);
-  return result;
+  if (toSide) result.push(end);
+  return ports ? simplify(result) : result;
 }
 
 /** Halfway along the polyline's length, not halfway between its endpoints. */

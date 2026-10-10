@@ -318,3 +318,15 @@ it('refuses automatic event routes enclosed by an unrelated frame', () => {
   const contained={...graph,boxes:[{...source,parentId:'unrelated'},box('target'),box('unrelated',undefined,true)]};
   expect(routeProcessLine(edge,layout,contained).length).toBeGreaterThan(1);
 });
+
+
+it('consumes allocated task ports for legacy outputs shared with two automatic event inputs', () => {
+  const boxes=[{...box('event1'),shape:'event' as const},{...box('event2'),shape:'event' as const},box('task'),box('next')];
+  const lines=[{id:'e1',from:'event1',to:'task'},{id:'e2',from:'event2',to:'task'},{id:'out',from:'task',to:'next'}];
+  const graph={boxes,lines};const layout={boxes:{task:{x:140,y:144,width:224,height:64},next:{x:760,y:144,width:224,height:64},event1:{x:404,y:52,width:56,height:56},event2:{x:484,y:52,width:56,height:56}}};
+  const points=lines.map(edge=>routeProcessLine(edge,layout,graph));
+  expect(points[0].at(-1)).toEqual({x:364,y:160});
+  expect(points[1].at(-1)).toEqual({x:364,y:176});
+  expect(points[2][0]).toEqual({x:364,y:192});
+  expect(new Set([points[0].at(-1)!.y,points[1].at(-1)!.y,points[2][0].y]).size).toBe(3);
+});

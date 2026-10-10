@@ -207,7 +207,7 @@ function routeOrthC(p1: ProcessPoint, sa: ProcessSide, p2: ProcessPoint, sb: Pro
   return { pts: simplify(pts), cost };
 }
 /** Native automatic event ports. Authored pins/waypoints retain the existing routing contract. */
-export function automaticEventRoute(line: ProcessLine, layout: ProcessLayout, projection: ProcessProjection): ProcessPoint[] {
+export function automaticEventPorts(line: ProcessLine, layout: ProcessLayout, projection: ProcessProjection) {
   const boxes = new Map(projection.boxes.map(box => [box.id, box]));
   const rects = new Map(projection.boxes.filter(box => layout.boxes[box.id]).map(box => { const p = layout.boxes[box.id], compact = box.shape === 'event' || box.shape === 'gateway'; return [box.id, { x: p.x, y: p.y, w: p.width ?? (box.frame ? 320 : compact ? 56 : box.role === 'note' ? 208 : 224), h: p.height ?? (box.frame ? 180 : compact ? 56 : 64) }] as const; }));
   const candidates = projection.lines.some(edge => edge.id === line.id) ? projection.lines.map(edge => edge.id === line.id ? line : edge) : [...projection.lines, line];
@@ -269,5 +269,10 @@ export function automaticEventRoute(line: ProcessLine, layout: ProcessLayout, pr
     list.forEach((end, i) => offsets.set(end.key, Math.round((positions[i] + shift) * 2) / 2));
   }
   const [sa, sb] = sides.get(line.id)!, a = boxes.get(line.from)!, b = boxes.get(line.to)!;
-  return routeOrthC(port(a, rects.get(a.id)!, sa, offsets.get(line.id + ':a')), sa, port(b, rects.get(b.id)!, sb, offsets.get(line.id + ':b')), sb, edgeObstacles(line)).pts;
+  return { start: port(a, rects.get(a.id)!, sa, offsets.get(line.id + ':a')), end: port(b, rects.get(b.id)!, sb, offsets.get(line.id + ':b')), fromSide: sa, toSide: sb, obstacles: edgeObstacles(line) };
+}
+
+export function automaticEventRoute(line: ProcessLine, layout: ProcessLayout, projection: ProcessProjection): ProcessPoint[] {
+  const ports = automaticEventPorts(line, layout, projection);
+  return routeOrthC(ports.start, ports.fromSide, ports.end, ports.toSide, ports.obstacles).pts;
 }
