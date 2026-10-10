@@ -121,6 +121,28 @@ describe("process routing", () => {
     orthogonal(automatic);avoids(automatic,positions.boxes.a);avoids(automatic,positions.boxes.b);
   });
 
+  it.each([0, 1, 2, 3])('keeps endpoint bodies when the opposite stub enters their padding through quarter-turn %s', turns => {
+    const sides: ProcessSide[] = ['north', 'east', 'south', 'west'];
+    const rotate = (point: ProcessPoint) => {
+      for (let i = 0; i < turns; i++) point = { x: -point.y, y: point.x };
+      return point;
+    };
+    const rect = (x: number, y: number) => {
+      const points = [rotate({x,y}), rotate({x:x+100,y}), rotate({x,y:y+80}), rotate({x:x+100,y:y+80})];
+      const xs=points.map(p=>p.x), ys=points.map(p=>p.y);
+      return {x:Math.min(...xs),y:Math.min(...ys),width:Math.max(...xs)-Math.min(...xs),height:Math.max(...ys)-Math.min(...ys)};
+    };
+    const positions = {boxes:{a:rect(0,0),b:rect(105,45)}};
+    for (const reverse of [false,true]) {
+      const pinned: ProcessLine = reverse
+        ? {id:'b-a',from:'b',to:'a',fromSide:sides[(turns+3)%4],toSide:sides[turns]}
+        : {...edge,fromSide:sides[turns],toSide:sides[(turns+3)%4]};
+      const points=routeProcessLine(pinned,positions,projection(['a','b'],[pinned]));
+      orthogonal(points);avoids(points,positions.boxes.a);avoids(points,positions.boxes.b);
+      expect(routeProcessLine(pinned,positions,projection(['b','a'],[pinned]))).toEqual(points);
+    }
+  });
+
   it("chooses native heading-aware endpoints and deterministically detours around obstacles", () => {
     const before = structuredClone(layout);
     const points = routeProcessLine(edge, layout, input);

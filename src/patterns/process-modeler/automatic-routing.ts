@@ -66,8 +66,9 @@ function routeOrthC(p1: ProcessPoint, sa: ProcessSide, p2: ProcessPoint, sb: Pro
       continue;
     if (contains({ x: r.x + 0.5, y: r.y + 0.5, w: r.w - 1, h: r.h - 1 }, s)
       || contains({ x: r.x + 0.5, y: r.y + 0.5, w: r.w - 1, h: r.h - 1 }, t)) {
-      // Endpoint bodies may surround an inset port; unrelated obstacles cannot be crossed.
-      if (o.endpoint) continue;
+      // Padding may cover the opposite stub without the lead crossing the body.
+      // Relax only that clearance; retain the raw endpoint as a routing obstacle.
+      if (o.endpoint) { obs.push(o); continue; }
       return { pts: [], cost: Infinity };
     }
     obs.push(r);
