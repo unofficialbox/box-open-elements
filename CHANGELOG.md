@@ -15,6 +15,17 @@ are kept as written.
 
 ## Unreleased
 
+## 0.36.4 — 2026-10-10
+
+- Match Process Modeler gateway/event captions, icons, selected Finish rings,
+  frame headers and resize affordances to the native Diagram reference.
+- Show center/edge alignment guides and equal-spacing measures while dragging;
+  preserve resolved positions, Alt bypass, cancellation and move history.
+- Render scheduled clocks and both graph/layout section bands with native
+  sizes, text styling and numbered section headers, retaining graph membership.
+- Keep connection paths, hit areas and controls aligned with live drag/resize
+  geometry; cancelling a frame resize prevents the later release from committing.
+
 ## 0.36.3 — 2026-10-10
 
 - Match Process Modeler flow routes, authored ports, line controls and temporary
