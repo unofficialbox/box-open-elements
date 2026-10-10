@@ -307,6 +307,12 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector('[part=checks]')?.textContent).toContain('https://example.test/a/very/long/path.');
     expect(root.querySelector('[part=checks]')?.textContent).toContain('Second detail');
   });
+  it('falls back to the explanation when an optional check title is empty', () => {
+    const { builder, root } = fixture();
+    builder.model = { project: doc => doc, validate: () => [{ boxId: 'b', title: '', message: 'Needs an address' }] };
+    expect(root.querySelector('[data-box-id=b]')?.getAttribute('aria-label')).toContain('Needs attention: Needs an address');
+    expect(root.querySelector('[data-box-id=b] [part=problem]')?.textContent).toBe('Needs an address');
+  });
   it('falls back to the detailed check message when no short title is supplied', () => {
     const { builder, root } = fixture();
     builder.model = { project: doc => doc, validate: () => [{ path: ['steps', 1], message: 'Connect this step' }] };
