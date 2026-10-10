@@ -338,8 +338,17 @@ export class ProcessModeler<
   setValidationAtPath(message: string, path: NodePath): void {
     this.setValidation(message ? [{ message, path }] : []);
   }
+  private connectionProblem(edit: ProcessEdit): string | null {
+    if (!this.model.connectionProblem || this.documentValue === undefined || !['connect', 'reattach'].includes(edit.type)) return null;
+    const line = edit.type === 'reattach' ? this.projection.lines.find(line => line.id === edit.lineId) : undefined;
+    const from = edit.from ?? line?.from; const to = edit.to ?? line?.to;
+    if (!from || !to) return null;
+    return this.model.connectionProblem(this.documentValue, { from, to, ...(line ? { ignoreLineId: line.id } : {}) }, this.projection) || null;
+  }
   requestEdit(edit: ProcessEdit): void {
     if (this.locked || (this.disableConnections && (edit.type === "connect" || edit.type === "disconnect" || edit.type === 'reattach'))) return;
+    const problem = this.connectionProblem(edit);
+    if (problem) { this.setStatus(problem, true); return; }
     const request: ProcessEditRequest = { ...edit, accept: this.editAcceptance(edit) };
     emit(this, "process-edit-request", request);
   }
@@ -352,6 +361,7 @@ export class ProcessModeler<
       if (accepted) return;
       accepted = true;
       if (command.layout) this.layoutValue = structuredClone(command.layout);
+      if (edit.type === 'reset-line' && edit.lineId) delete this.layoutValue.lines?.[edit.lineId];
       this.refresh();
       const inserted = edit.type === 'insert' && !edit.boxId && !command.layout
         ? this.projection.boxes.find(box => !previousIds.has(box.id)) : undefined;
@@ -546,10 +556,11 @@ export class ProcessModeler<
     });
   }
   resetLine(id: string): void {
+    const line = this.projection.lines.find(line => line.id === id);
+    if (this.locked || !line) return;
+    if (line.fromSide || line.toSide || line.points?.length) { this.requestEdit({ type: 'reset-line', lineId: id }); return; }
     if (!this.layoutValue.lines?.[id]) return;
-    const next = this.layout;
-    delete next.lines?.[id];
-    this.commitLayout(next);
+    const next = this.layout; delete next.lines?.[id]; this.commitLayout(next);
   }
   setNote(
     note: NonNullable<ProcessLayout["notes"]>[number] | null,
@@ -1283,7 +1294,7 @@ export class ProcessModeler<
       this.connecting = null;
       this.pendingReattach = undefined;
       if (this.selectedLineId) this.selectLine(null);
-      this.portDrag = undefined; this.marquee = undefined; this.segmentDrag = undefined; this.drag = undefined; this.pointers.clear(); this.refresh();
+      this.portDrag = undefined; this.endDrag = undefined; this.marquee = undefined; this.segmentDrag = undefined; this.drag = undefined; this.pointers.clear(); this.refresh();
       if (wasConnecting) this.setStatus("Connecting cancelled");
       return;
     }
@@ -1467,10 +1478,12 @@ export class ProcessModeler<
       if (!ghost) { ghost = svgElement("polyline"); ghost.setAttribute("part", "connection-preview"); this.shadowRoot!.querySelector('[part=lines]')!.append(ghost); }
       const start = this.portDrag.start; ghost.setAttribute("points", `${start.x},${start.y} ${point.x},${start.y} ${point.x},${point.y}`);
       const target = this.boxAt(point, this.portDrag.id);
-      const pinned = target ? this.sideAt(target, point) : undefined;
-      this.shadowRoot!.querySelectorAll<HTMLElement>('[data-box-id]').forEach(box => { box.dataset.connectTarget = String(box.dataset.boxId === target?.id); });
+      const problem = target ? this.connectionProblem({ type: 'connect', from: this.portDrag.id, to: target.id }) : null;
+      const pinned = target && !problem ? this.sideAt(target, point) : undefined;
+      ghost.dataset.invalid = String(Boolean(problem));
+      this.shadowRoot!.querySelectorAll<HTMLElement>('[data-box-id]').forEach(box => { box.dataset.connectTarget = String(box.dataset.boxId === target?.id); box.dataset.connectInvalid = String(box.dataset.boxId === target?.id && Boolean(problem)); });
       this.shadowRoot!.querySelectorAll<HTMLElement>('[part=port]').forEach(port => { port.dataset.hot = String(port.dataset.owner === target?.id && port.dataset.side === pinned); });
-      this.showConnectTooltip(point, target ? pinned ? `Pin to the ${pinned} of ${target.title}` : `Connect to ${target.title}` : 'Drop here to add a connected step');
+      this.showConnectTooltip(point, problem ?? (target ? pinned ? `Pin to the ${pinned} of ${target.title}` : `Connect to ${target.title}` : 'Drop here to add a connected step'), Boolean(problem));
       return;
     }
     if (this.endDrag) {
@@ -1481,11 +1494,13 @@ export class ProcessModeler<
       const fixed = this.endDrag.end === 'from' ? points?.at(-1) : points?.[0];
       if (fixed) ghost.setAttribute('points', `${fixed.x},${fixed.y} ${point.x},${fixed.y} ${point.x},${point.y}`);
       const target = this.boxAt(point);
-      const pinned = target ? this.sideAt(target, point) : undefined;
-      this.shadowRoot!.querySelectorAll<HTMLElement>('[data-box-id]').forEach(box => { box.dataset.connectTarget = String(box.dataset.boxId === target?.id); });
+      const problem = target ? this.connectionProblem({ type: 'reattach', lineId: this.endDrag.lineId, [this.endDrag.end]: target.id }) : null;
+      const pinned = target && !problem ? this.sideAt(target, point) : undefined;
+      ghost.dataset.invalid = String(Boolean(problem) || !target);
+      this.shadowRoot!.querySelectorAll<HTMLElement>('[data-box-id]').forEach(box => { box.dataset.connectTarget = String(box.dataset.boxId === target?.id); box.dataset.connectInvalid = String(box.dataset.boxId === target?.id && Boolean(problem)); });
       this.shadowRoot!.querySelectorAll<HTMLElement>('[part=port]').forEach(port => { port.dataset.hot = String(port.dataset.owner === target?.id && port.dataset.side === pinned); });
-      this.showConnectTooltip(point, target ? pinned ? `Pin to the ${pinned} of ${target.title}` : `Attach to ${target.title}` : 'Drop on a step to reattach', !target);
-      this.setStatus(target ? `Release to attach the connection to ${target.title}` : 'Move over a step to attach this connection');
+      this.showConnectTooltip(point, problem ?? (target ? pinned ? `Pin to the ${pinned} of ${target.title}` : `Attach to ${target.title}` : 'Drop on a step to reattach'), Boolean(problem) || !target);
+      this.setStatus(problem ?? (target ? `Release to attach the connection to ${target.title}` : 'Move over a step to attach this connection'));
       return;
     }
     if (this.segmentDrag) {
@@ -1566,7 +1581,7 @@ export class ProcessModeler<
       const port = this.portDrag; this.portDrag = undefined;
       this.shadowRoot!.querySelector('[part=connection-preview]')?.remove();
       this.shadowRoot!.querySelector('[part=connect-tooltip]')?.remove();
-      this.shadowRoot!.querySelectorAll<HTMLElement>('[data-connect-target]').forEach(box => { delete box.dataset.connectTarget; });
+      this.shadowRoot!.querySelectorAll<HTMLElement>('[data-connect-target]').forEach(box => { delete box.dataset.connectTarget; delete box.dataset.connectInvalid; });
       this.shadowRoot!.querySelectorAll<HTMLElement>('[part=port]').forEach(port => { delete port.dataset.hot; });
       if (commit) {
         if (Math.hypot(point.x - port.start.x, point.y - port.start.y) < 8) {
@@ -1595,7 +1610,7 @@ export class ProcessModeler<
       const drag = this.endDrag; this.endDrag = undefined;
       this.shadowRoot!.querySelector('[part=connection-preview]')?.remove();
       this.shadowRoot!.querySelector('[part=connect-tooltip]')?.remove();
-      this.shadowRoot!.querySelectorAll<HTMLElement>('[data-connect-target]').forEach(box => { delete box.dataset.connectTarget; });
+      this.shadowRoot!.querySelectorAll<HTMLElement>('[data-connect-target]').forEach(box => { delete box.dataset.connectTarget; delete box.dataset.connectInvalid; });
       this.shadowRoot!.querySelectorAll<HTMLElement>('[part=port]').forEach(port => { delete port.dataset.hot; });
       if (commit) {
         if (Math.hypot(point.x - drag.start.x, point.y - drag.start.y) < 8) { this.pendingReattach = { lineId: drag.lineId, end: drag.end }; this.setStatus('Select a step to reattach the connection'); }
@@ -2476,7 +2491,7 @@ export class ProcessModeler<
     if (this.selectedLine) {
       const line = this.selectedLine;
       add('Insert a step', 'insert', () => this.openLineChooser(line, toolbar.querySelector<HTMLElement>('[data-selection-command=insert]') ?? undefined), true);
-      if (this.layoutValue.lines?.[line.id]) add('Reset line', 'reset-line', () => this.resetLine(line.id));
+      if (this.layoutValue.lines?.[line.id] || line.fromSide || line.toSide || line.points?.length) add('Reset line', 'reset-line', () => this.resetLine(line.id));
       if (!this.disableConnections) add('Delete', 'delete-line', () => this.requestEdit({ type: 'disconnect', lineId: line.id }));
     } else if (this.selectedIds.size === 1) {
       const box = this.selected!;
