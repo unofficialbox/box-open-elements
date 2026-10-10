@@ -173,6 +173,28 @@ describe("Process Modeler prototype interactions", () => {
     const remove = root.querySelector<HTMLButtonElement>('[part=variable-remove]')!;
     remove.focus(); remove.click(); expect(root.activeElement).toBe(root.querySelector('[part=variable-add]'));
   });
+  it('tracks a renamed variable through reordered and deferred host echoes, including empty names', async () => {
+    const { builder, root } = fixture(); builder.variablesEditable = true;
+    builder.variables = [{ name: 'a', startingValue: '0' }, { name: 'b', startingValue: '1' }];
+    root.querySelector<HTMLButtonElement>('#process-tab-variables')!.click();
+    let request: { name: string; value: string };
+    builder.addEventListener('process-variable-edit-request', event => { request = (event as CustomEvent).detail; });
+    const name = root.querySelector<HTMLInputElement>('[data-variable=a][data-variable-key=name]')!;
+    name.focus(); name.value = 'z'; name.setSelectionRange(1, 1); name.dispatchEvent(new Event('change', { bubbles: true }));
+    builder.variables = [...builder.variables]; // An unrelated echo before deferred acceptance.
+    expect((root.activeElement as HTMLInputElement).dataset.variable).toBe('a');
+    await Promise.resolve();
+    builder.variables = builder.variables.map(v => v.name === request.name ? { ...v, name: request.value } : v).sort((a, b) => a.name.localeCompare(b.name));
+    const renamed = root.querySelector<HTMLInputElement>('[data-variable=z][data-variable-key=name]')!;
+    expect(root.activeElement).toBe(renamed); expect(renamed.selectionStart).toBe(1);
+    renamed.value = ''; renamed.dispatchEvent(new Event('change', { bubbles: true }));
+    builder.variables = builder.variables.map(v => v.name === request.name ? { ...v, name: request.value } : v).sort((a, b) => a.name.localeCompare(b.name));
+    const empty = root.querySelector<HTMLInputElement>('[data-variable=""][data-variable-key=name]')!;
+    expect(root.activeElement).toBe(empty);
+    empty.value = 'c'; empty.dispatchEvent(new Event('change', { bubbles: true }));
+    builder.variables = builder.variables.map(v => v.name === request.name ? { ...v, name: request.value } : v).sort((a, b) => a.name.localeCompare(b.name));
+    expect(root.activeElement).toBe(root.querySelector('[data-variable=c][data-variable-key=name]'));
+  });
   it('preserves variable expression focus and caret during synchronous host echoes', () => {
     const { builder, root } = fixture();
     builder.variables = [{ name: 'attempts', startingValue: '0' }];
