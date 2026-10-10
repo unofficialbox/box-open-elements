@@ -44,6 +44,28 @@ const isPublicInstanceMember = (member: ts.ClassElement): boolean =>
     modifier.kind === ts.SyntaxKind.ProtectedKeyword,
   );
 
+// Traverse library component bases, stopping before the framework/DOM surface.
+// Pick<HTMLElementTagNameMap[Tag], ...> resolves the final subclass property
+// types, including overrides; only the writable key inventory is generated.
+const componentClasses = (classNode: ts.ClassDeclaration): ts.ClassDeclaration[] => {
+  const classes: ts.ClassDeclaration[] = [];
+  const seen = new Set<ts.ClassDeclaration>();
+  const visit = (node: ts.ClassDeclaration): void => {
+    const file = node.getSourceFile().fileName;
+    if (seen.has(node) || !file.startsWith(`${SRC}/`) || file === join(SRC, "core/element.ts")) return;
+    seen.add(node);
+    classes.push(node);
+    const type = checker.getTypeAtLocation(node) as ts.InterfaceType;
+    for (const base of checker.getBaseTypes(type) ?? []) {
+      for (const declaration of base.symbol?.declarations ?? []) {
+        if (ts.isClassDeclaration(declaration)) visit(declaration);
+      }
+    }
+  };
+  visit(classNode);
+  return classes;
+};
+
 const portableType = (type: ts.Type, source: ts.SourceFile, classNode: ts.ClassDeclaration): string => {
   let rendered = checker.typeToString(
     type,
@@ -102,28 +124,40 @@ const generated: GeneratedElement[] = elements.map(entry => {
       ts.isClassDeclaration(statement) && statement.name?.text === entry.className,
   );
   if (!classNode) throw new Error(`Cannot find class ${entry.className} for ${entry.tag}`);
-  const properties = [...new Set(classNode.members.flatMap(member =>
-    isPublicInstanceMember(member) &&
-    (ts.isSetAccessorDeclaration(member) ||
-      (ts.isPropertyDeclaration(member) && !member.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.ReadonlyKeyword))) &&
-    member.name && ts.isIdentifier(member.name)
-      ? [member.name.text]
-      : [],
-  ))].sort();
+  const classes = componentClasses(classNode);
+  const propertyKeys = new Set<string>();
+  const shadowedKeys = new Set<string>();
+  for (const node of classes) {
+    const members = new Map<string, ts.ClassElement[]>();
+    for (const member of node.members) {
+      if (!isPublicInstanceMember(member) || !member.name || !ts.isIdentifier(member.name)) continue;
+      const name = member.name.text;
+      members.set(name, [...(members.get(name) ?? []), member]);
+    }
+    for (const [name, declarations] of members) {
+      if (shadowedKeys.has(name)) continue;
+      shadowedKeys.add(name);
+      if (declarations.some(member => ts.isSetAccessorDeclaration(member) ||
+        (ts.isPropertyDeclaration(member) && !member.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.ReadonlyKeyword)))) {
+        propertyKeys.add(name);
+      }
+    }
+  }
+  const properties = [...propertyKeys].sort();
   const events = new Map<string, Set<string>>();
-  const visit = (node: ts.Node): void => {
+  const visit = (node: ts.Node, source: ts.SourceFile, declaringClass: ts.ClassDeclaration): void => {
     if (ts.isNewExpression(node) && node.expression.getText(source) === "CustomEvent" &&
       node.arguments?.[0] && ts.isStringLiteral(node.arguments[0])) {
       const eventType = checker.getTypeAtLocation(node);
       const detail = checker.getTypeArguments(eventType as ts.TypeReference)[0];
       const name = node.arguments[0].text;
       const details = events.get(name) ?? new Set<string>();
-      details.add(detail ? portableType(detail, source, classNode) : "unknown");
+      details.add(detail ? portableType(detail, source, declaringClass) : "unknown");
       events.set(name, details);
     }
-    ts.forEachChild(node, visit);
+    ts.forEachChild(node, child => visit(child, source, declaringClass));
   };
-  visit(classNode);
+  for (const node of classes) visit(node, node.getSourceFile(), node);
   return { tag: entry.tag, className: entry.className, path, properties, events };
 });
 
@@ -180,7 +214,7 @@ const backtick = String.fromCharCode(96);
 const nativeOutput = `${header}
 import type { BoxElementTagName } from "./element-maps.js";
 
-/** Writable class properties declared by each element, excluding DOM members. */
+/** Writable component properties, including library bases and excluding framework/DOM members. */
 export interface BoxElementPropertyKeys {
 ${propertyLines}
 }

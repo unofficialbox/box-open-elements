@@ -210,7 +210,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "verify": "bun run maps:check && bun run types:check && bun run typecheck && bun run test:coverage && bun run build && bun run types:validate && bun run frameworks:validate",
-    "types:validate": "tsc -p test/types/tsconfig.json --noEmit",
+    "types:validate": "tsc -p test/types/tsconfig.json --noEmit && tsc -p test/types/react-jsx-only.tsconfig.json --noEmit",
     "frameworks:react": "tsc --noEmit -p examples/frameworks/react/tsconfig.json && vite build --config examples/frameworks/react/vite.config.ts",
     "frameworks:react:ssr": "next build examples/frameworks/react-ssr",
     "frameworks:angular": "ngc -p examples/frameworks/angular/tsconfig.json && vite build --config examples/frameworks/angular/vite.config.ts",

@@ -6,7 +6,7 @@
  */
 import type { BoxElementTagName } from "./element-maps.js";
 
-/** Writable class properties declared by each element, excluding DOM members. */
+/** Writable component properties, including library bases and excluding framework/DOM members. */
 export interface BoxElementPropertyKeys {
   "box-access-stats": "label" | "stats";
   "box-accordion": "borderless" | "items" | "label" | "multiple" | "plainPanels" | "value" | "values";
@@ -15,7 +15,7 @@ export interface BoxElementPropertyKeys {
   "box-agent-workspace": "panes" | "workspaceController";
   "box-alert": "description" | "heading" | "message" | "open" | "tone";
   "box-annotation-inspector": "actions" | "annotation" | "composable" | "heading" | "message";
-  "box-annotation-thread": "anchor" | "entries";
+  "box-annotation-thread": "actions" | "anchor" | "composable" | "composerLabel" | "entries" | "heading" | "message" | "placeholder" | "selectedEntryId";
   "box-annotation-toolbar": "actions" | "activeToolId" | "colorOptions" | "currentColor" | "label" | "tools";
   "box-app-shell": "asideLabel" | "heading" | "navLabel";
   "box-audit-log": "events" | "exportable" | "facets" | "groupBy" | "heading" | "headingHeight" | "referenceTime" | "rowHeight" | "virtualize";
@@ -33,15 +33,15 @@ export interface BoxElementPropertyKeys {
   "box-carousel": "items" | "label" | "value";
   "box-category-selector": "label" | "maxLinks" | "options" | "value";
   "box-chart-panel": "actions" | "heading" | "legend" | "message" | "points" | "summary" | "timeframe";
-  "box-check-list": "rows";
-  "box-checkbox": "checked" | "description" | "disabled" | "indeterminate" | "label" | "value";
-  "box-checkbox-group": "disabled" | "label" | "options" | "value";
+  "box-check-list": "blocks" | "labels" | "rows" | "selectableDocuments";
+  "box-checkbox": "checked" | "description" | "disabled" | "errorMessage" | "hideLabel" | "indeterminate" | "invalid" | "label" | "name" | "required" | "value";
+  "box-checkbox-group": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "options" | "required" | "value";
   "box-chip": "disabled" | "label" | "removable" | "selectable" | "selected" | "size" | "tone" | "value";
   "box-code-block": "code" | "copyLabel" | "label" | "language";
   "box-code-editor": "bracketColors" | "completionSource" | "completions" | "currentLineStyle" | "fillHeight" | "hideHelp" | "hideProblems" | "highlights" | "label" | "language" | "passKeys" | "problems" | "readonly" | "selection" | "value" | "wrap";
   "box-collaborator-avatars": "collaborators" | "label" | "max";
-  "box-color-picker": "disabled" | "label" | "swatches" | "value";
-  "box-combobox": "disabled" | "label" | "options" | "placeholder" | "placement" | "value";
+  "box-color-picker": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "required" | "swatches" | "value";
+  "box-combobox": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "options" | "placeholder" | "placement" | "required" | "value";
   "box-command-palette": "commands" | "hideDisabled" | "hotkey" | "open" | "placeholder" | "recentIds";
   "box-comment-thread": "actions" | "composable" | "composerLabel" | "entries" | "heading" | "message" | "placeholder" | "selectedEntryId";
   "box-compare-view": "heading" | "leftLabel" | "rightLabel" | "sync" | "syncMode";
@@ -52,27 +52,27 @@ export interface BoxElementPropertyKeys {
   "box-content-uploader": "autoStart" | "closable" | "concurrency" | "directories" | "dropLabel" | "dropMessage" | "extensions" | "fileLimit" | "folderId" | "language" | "maxFileSize" | "token" | "transport";
   "box-context-menu": "disabled" | "items";
   "box-datalist-item": "active" | "disabled" | "icon" | "label" | "meta" | "selected" | "value";
-  "box-date-field": "clearable" | "disabled" | "label" | "max" | "min" | "value";
+  "box-date-field": "clearable" | "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "required" | "value";
   "box-dialog": "confirmBusy" | "confirmBusyLabel" | "confirmDisabled" | "confirmLabel" | "description" | "heading" | "open" | "size";
   "box-diff-viewer": "afterLabel" | "afterText" | "beforeLabel" | "beforeText" | "heading" | "mode";
   "box-divider": "label" | "orientation";
-  "box-document-list": "items";
+  "box-document-list": "blocks" | "items" | "labels" | "selectableDocuments";
   "box-donut-chart": "actions" | "heading" | "message" | "segments" | "summary" | "timeframe";
   "box-draggable-list": "items" | "label";
   "box-drawer": "busy" | "description" | "heading" | "hideCloseButton" | "open" | "position" | "size";
   "box-drop-zone": "accept" | "browseLabel" | "description" | "directories" | "folderLabel" | "label" | "message" | "variant";
-  "box-dropdown": "disabled" | "items" | "label" | "placement" | "value";
-  "box-dual-listbox": "disabled" | "label" | "options" | "value";
+  "box-dropdown": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "items" | "label" | "name" | "placement" | "required" | "value";
+  "box-dual-listbox": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "options" | "required" | "value";
   "box-due-badge": "compact" | "dueAt" | "label" | "referenceTime";
   "box-empty-state": "actionLabel" | "description" | "heading" | "message";
   "box-error-mask": "actionLabel" | "description" | "heading" | "message";
   "box-explorer-action-menu": "controller" | "itemId";
   "box-explorer-breadcrumbs": "controller";
-  "box-explorer-items": never;
+  "box-explorer-items": "controller" | "itemGesture";
   "box-explorer-list": "controller" | "itemGesture";
   "box-explorer-table": "controller" | "itemGesture";
   "box-explorer-toolbar": "controller";
-  "box-fact-list": "rows";
+  "box-fact-list": "blocks" | "labels" | "rows" | "selectableDocuments";
   "box-fieldset": "description" | "disabled" | "label";
   "box-file-request-builder": "fields" | "heading" | "message" | "settings" | "value";
   "box-filter-bar": "filterOptions" | "filters" | "label" | "query" | "sortOptions" | "sortValue" | "viewOptions" | "viewValue";
@@ -80,10 +80,10 @@ export interface BoxElementPropertyKeys {
   "box-flow-card": "catalog" | "figure" | "invalid" | "model" | "node" | "selected";
   "box-flow-spine": "catalog" | "endLabel" | "figures" | "headingLevel" | "invalid" | "model" | "nodes" | "selected" | "startLabel";
   "box-form-wizard": "draftLabel" | "heading" | "initialValues" | "stepStatuses" | "steps" | "stepsLayout" | "submitLabel" | "validators";
-  "box-formatted-date": "dateStyle" | "timeStyle" | "timeZone" | "value";
-  "box-formatted-duration": "formatStyle" | "maxUnits" | "value";
-  "box-formatted-file-size": "units" | "value";
-  "box-formatted-number": "currency" | "formatStyle" | "unit" | "unitDisplay" | "value";
+  "box-formatted-date": "dateStyle" | "locale" | "timeStyle" | "timeZone" | "value";
+  "box-formatted-duration": "formatStyle" | "locale" | "maxUnits" | "value";
+  "box-formatted-file-size": "locale" | "units" | "value";
+  "box-formatted-number": "currency" | "formatStyle" | "locale" | "unit" | "unitDisplay" | "value";
   "box-governance-panel": "actions" | "heading" | "message" | "policies" | "signals" | "status";
   "box-grid": "columns" | "rowHeight";
   "box-grid-view": "items" | "label" | "value";
@@ -106,18 +106,18 @@ export interface BoxElementPropertyKeys {
   "box-metadata-inspector": "eyebrow" | "heading" | "message" | "sections";
   "box-metric-card": "action" | "eyebrow" | "heading" | "message" | "status" | "trend" | "value";
   "box-mode-indicator": "detail" | "interactive" | "mode" | "namePrefix";
-  "box-multi-select": "label" | "options" | "value";
+  "box-multi-select": "description" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "options" | "required" | "value";
   "box-nav-sidebar": "collapsed" | "label";
   "box-notification-bell": "expanded" | "label" | "max" | "notifications" | "unreadCount";
   "box-notification-inbox": "filter" | "heading" | "notifications" | "typeLabels";
   "box-nudge": "actionLabel" | "heading" | "message" | "open";
-  "box-number-input": "disabled" | "label" | "max" | "min" | "placeholder" | "step" | "value";
+  "box-number-input": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "placeholder" | "required" | "step" | "value";
   "box-pagination": "page" | "pageSize" | "totalItems";
   "box-path": "current" | "hasError" | "label" | "stages" | "variant";
   "box-permission-matrix": "label" | "options" | "subjects" | "value";
   "box-persona": "description" | "initials" | "name" | "size" | "src" | "status" | "subtitle" | "tone";
-  "box-pill-cloud": "label" | "options" | "value";
-  "box-pill-selector-dropdown": "allowCustom" | "label" | "options" | "pattern" | "placeholder" | "value";
+  "box-pill-cloud": "description" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "options" | "required" | "value";
+  "box-pill-selector-dropdown": "allowCustom" | "description" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "options" | "pattern" | "placeholder" | "required" | "value";
   "box-popover": "disabled" | "label" | "open" | "placement";
   "box-presence": "label" | "max" | "transport" | "users";
   "box-preview-element": "actions" | "adapterState" | "heading" | "itemLabel" | "message" | "provider" | "providerAdapter" | "providerLabel" | "status";
@@ -127,42 +127,42 @@ export interface BoxElementPropertyKeys {
   "box-progress-ring": "label" | "max" | "size" | "value";
   "box-progress-steps": "compact" | "items" | "label" | "value";
   "box-provenance-strip": "nodes";
-  "box-radio-group": "disabled" | "label" | "options" | "value";
-  "box-range-slider": "disabled" | "end" | "label" | "max" | "min" | "start" | "step";
-  "box-rating": "disabled" | "label" | "max" | "value";
-  "box-relative-time": "numeric" | "referenceTime" | "value";
+  "box-radio-group": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "options" | "required" | "value";
+  "box-range-slider": "description" | "disabled" | "end" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "required" | "start" | "step";
+  "box-rating": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "name" | "required" | "value";
+  "box-relative-time": "locale" | "numeric" | "referenceTime" | "value";
   "box-resource-row": "active" | "disabled" | "label" | "meta" | "selected" | "status" | "value";
   "box-result-blocks": "blocks" | "labels" | "selectableDocuments";
   "box-review-queue-item": "actions" | "assignee" | "dueDate" | "heading" | "itemLabel" | "message" | "metrics" | "priority" | "status";
-  "box-rich-text-input": "disabled" | "label" | "placeholder" | "value";
+  "box-rich-text-input": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "placeholder" | "required" | "value";
   "box-run-summary": "open" | "turn";
   "box-run-trace": "heading" | "steps";
   "box-saved-view-picker": "label" | "value" | "views";
-  "box-search-field": "disabled" | "label" | "loading" | "placeholder" | "value";
+  "box-search-field": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "loading" | "name" | "placeholder" | "required" | "value";
   "box-search-results-header": "actions" | "filters" | "label" | "query" | "resultCount" | "scope" | "sortLabel" | "viewLabel";
   "box-section": "description" | "eyebrow" | "heading";
   "box-segmented-control": "disabled" | "label" | "layout" | "options" | "value";
-  "box-select": "disabled" | "emptyText" | "label" | "loading" | "multiple" | "options" | "value" | "values";
+  "box-select": "description" | "disabled" | "emptyText" | "errorMessage" | "hideLabel" | "invalid" | "label" | "loading" | "multiple" | "name" | "options" | "required" | "value" | "values";
   "box-share-panel": "actions" | "collaborators" | "heading" | "message" | "settings" | "sharedLink";
   "box-shortcuts-overlay": "commands" | "heading" | "hotkey" | "open";
   "box-sidebar-toggle-button": "controls" | "direction" | "disabled" | "expanded" | "label";
   "box-signature-ceremony": "heading" | "mode" | "signatories";
   "box-skeleton": "columns" | "height" | "items" | "lines" | "rowHeight" | "rows" | "variant" | "width";
-  "box-slider": "disabled" | "label" | "max" | "min" | "step" | "value";
-  "box-spin-button": "disabled" | "label" | "max" | "min" | "step" | "value";
+  "box-slider": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "required" | "step" | "value";
+  "box-spin-button": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "required" | "step" | "value";
   "box-spinner": "label" | "size";
   "box-split-view": "collapse" | "detailOpen" | "label" | "ratio" | "resizable";
   "box-status-icon": "kind" | "label";
-  "box-switch": "checked" | "description" | "disabled" | "label" | "value";
+  "box-switch": "checked" | "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "required" | "value";
   "box-table": "columns" | "emptyText" | "errorText" | "label" | "loading" | "rowHeight" | "rows" | "selectedIds" | "selectionMode" | "virtualize";
   "box-tabs": "label" | "layout" | "options" | "value";
-  "box-tag-input": "disabled" | "label" | "max" | "placeholder" | "tags" | "value";
+  "box-tag-input": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "name" | "placeholder" | "required" | "tags" | "value";
   "box-task-assignment-panel": "actions" | "assignees" | "checklist" | "currentAssigneeId" | "dueDate" | "heading" | "message" | "priority" | "status";
-  "box-text-area": "disabled" | "label" | "placeholder" | "rows" | "value";
-  "box-text-field": "autocomplete" | "disabled" | "label" | "loading" | "placeholder" | "reveal" | "revealLabel" | "type" | "valid" | "value";
+  "box-text-area": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "placeholder" | "required" | "rows" | "value";
+  "box-text-field": "autocomplete" | "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "loading" | "name" | "placeholder" | "required" | "reveal" | "revealLabel" | "type" | "valid" | "value";
   "box-thumbnail-card": "cardTitle" | "interactive" | "subtitle";
   "box-tile-group": "legend" | "multiple" | "name" | "options" | "value";
-  "box-time-field": "disabled" | "label" | "max" | "min" | "step" | "value";
+  "box-time-field": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "required" | "step" | "value";
   "box-timeline": "composable" | "events" | "hasMore" | "heading";
   "box-toast": "borderless" | "duration" | "heading" | "message" | "mode" | "open" | "tone";
   "box-toolbar": "label" | "orientation";
@@ -206,7 +206,11 @@ export interface BoxElementEventMap {
     "reply-selected": CustomEvent<{ index: number; annotationId: string | null; author: string; body: string; createdAt?: string | undefined; id?: string | undefined; initials?: string | undefined; }>;
     "reply-submitted": CustomEvent<{ annotationId: string | null; body: string; }>;
   };
-  "box-annotation-thread": {};
+  "box-annotation-thread": {
+    "action": CustomEvent<{ action: string; selectedEntryId: string | null; }>;
+    "entry-selected": CustomEvent<{ author: string; badge?: string | undefined; body: string; createdAt?: string | undefined; id: string; initials?: string | undefined; status?: string | undefined; }>;
+    "entry-submitted": CustomEvent<{ body: string; inReplyToId: string | null; }>;
+  };
   "box-annotation-toolbar": {
     "action": CustomEvent<{ action: string; }>;
     "color-selected": CustomEvent<{ id: string; label: string; value: string; }>;
@@ -261,7 +265,9 @@ export interface BoxElementEventMap {
     "action": CustomEvent<{ action: string; }>;
     "point-selected": CustomEvent<{ id: string; label: string; tone?: string | undefined; value: number; }>;
   };
-  "box-check-list": {};
+  "box-check-list": {
+    "document-selected": CustomEvent<{ id: string | undefined; }>;
+  };
   "box-checkbox": {
     "checked-changed": CustomEvent<{ checked: boolean; }>;
   };
@@ -334,7 +340,9 @@ export interface BoxElementEventMap {
     "change-focused": CustomEvent<{ index: number; total: number; }>;
   };
   "box-divider": {};
-  "box-document-list": {};
+  "box-document-list": {
+    "document-selected": CustomEvent<{ id: string | undefined; }>;
+  };
   "box-donut-chart": {
     "action": CustomEvent<{ action: string; }>;
     "segment-selected": CustomEvent<{ id: string; label: string; tone?: string | undefined; value: number; }>;
@@ -370,7 +378,9 @@ export interface BoxElementEventMap {
   "box-explorer-list": {};
   "box-explorer-table": {};
   "box-explorer-toolbar": {};
-  "box-fact-list": {};
+  "box-fact-list": {
+    "document-selected": CustomEvent<{ id: string | undefined; }>;
+  };
   "box-fieldset": {};
   "box-file-request-builder": {
     "action": CustomEvent<{ action: string; value: { [x: string]: string | boolean; }; }>;
@@ -873,6 +883,41 @@ declare module "./patterns/preview/annotation-inspector.js" {
   }
 }
 
+declare module "./patterns/preview/annotation-thread.js" {
+  interface AnnotationThread {
+    addEventListener<K extends keyof BoxElementEventMap["box-annotation-thread"] & string>(
+      type: K,
+      listener: (this: AnnotationThread, event: BoxElementEventMap["box-annotation-thread"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: AnnotationThread, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-annotation-thread"] & string>(
+      type: K,
+      listener: (this: AnnotationThread, event: BoxElementEventMap["box-annotation-thread"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: AnnotationThread, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
 declare module "./patterns/preview/annotation-toolbar.js" {
   interface AnnotationToolbar {
     addEventListener<K extends keyof BoxElementEventMap["box-annotation-toolbar"] & string>(
@@ -1248,6 +1293,41 @@ declare module "./patterns/insights/chart-panel.js" {
     removeEventListener<K extends keyof HTMLElementEventMap>(
       type: K,
       listener: (this: ChartPanel, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
+declare module "./components/collections/check-list.js" {
+  interface CheckList {
+    addEventListener<K extends keyof BoxElementEventMap["box-check-list"] & string>(
+      type: K,
+      listener: (this: CheckList, event: BoxElementEventMap["box-check-list"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: CheckList, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-check-list"] & string>(
+      type: K,
+      listener: (this: CheckList, event: BoxElementEventMap["box-check-list"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: CheckList, event: HTMLElementEventMap[K]) => void,
       options?: boolean | EventListenerOptions,
     ): void;
     removeEventListener(
@@ -1958,6 +2038,41 @@ declare module "./patterns/diff/diff-viewer.js" {
   }
 }
 
+declare module "./components/collections/document-list.js" {
+  interface DocumentList {
+    addEventListener<K extends keyof BoxElementEventMap["box-document-list"] & string>(
+      type: K,
+      listener: (this: DocumentList, event: BoxElementEventMap["box-document-list"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: DocumentList, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-document-list"] & string>(
+      type: K,
+      listener: (this: DocumentList, event: BoxElementEventMap["box-document-list"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: DocumentList, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
 declare module "./patterns/insights/donut-chart.js" {
   interface DonutChart {
     addEventListener<K extends keyof BoxElementEventMap["box-donut-chart"] & string>(
@@ -2263,6 +2378,41 @@ declare module "./patterns/content-explorer/adapters/action-menu.js" {
     removeEventListener<K extends keyof HTMLElementEventMap>(
       type: K,
       listener: (this: ExplorerActionMenu, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
+declare module "./components/collections/fact-list.js" {
+  interface FactList {
+    addEventListener<K extends keyof BoxElementEventMap["box-fact-list"] & string>(
+      type: K,
+      listener: (this: FactList, event: BoxElementEventMap["box-fact-list"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: FactList, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-fact-list"] & string>(
+      type: K,
+      listener: (this: FactList, event: BoxElementEventMap["box-fact-list"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: FactList, event: HTMLElementEventMap[K]) => void,
       options?: boolean | EventListenerOptions,
     ): void;
     removeEventListener(

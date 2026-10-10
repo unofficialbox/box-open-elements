@@ -68,7 +68,9 @@ table.addEventListener("selection-changed", event => {
 ```
 
 The type entry has no registration side effect. Its map and the React JSX entry
-are generated from the element classes and their dispatched events; `bun run
+include writable properties and dispatched events inherited from library bases,
+while retaining subclass property overrides and element-specific event details.
+They are generated from the element classes and their dispatched events; `bun run
 maps:check` and `bun run types:check` catch drift in `bun run verify`.
 Events without an inferable detail and generic node payloads use `unknown`, so
 consumers narrow those explicitly instead of receiving an unsafe `any`.
@@ -102,7 +104,10 @@ function Example() {
 ```
 
 The generated JSX types cover all registered tags, structured properties such
-as `rows` and `stages`, reflected booleans, and dashed native event names.
+as `rows`, `stages`, and `items`, reflected booleans, and dashed native event names.
+The JSX entry also supplies the native event and tag types; no separate root or
+`native-types` import is needed for type checking. `types:validate` compiles that
+single-import contract in isolation from the other consumer fixture.
 React's server render omits object-valued props; hydrate on the client when a
 custom element needs them. The optional adapter adds `Dialog` plus
 `useExplorerSelectionController`; see [react.md](./react.md).
