@@ -1,7 +1,7 @@
-/** Automatic event endpoint policy from the pinned Process Modeler design.
+/** Automatic flow endpoint policy from the pinned Process Modeler design.
 * Candidate ports use heading-aware orthogonal route cost; a shared task side
 * spreads incoming and outgoing lines together before the final route is built.
-* Other ordinary routes and authored pins/waypoints keep their existing policy.
+* Authored pins/waypoints keep their existing policy.
 */
 import type { ProcessPoint } from './geometry.js';
 import { isFlowLine, type ProcessBox, type ProcessLayout, type ProcessLine, type ProcessProjection, type ProcessSide } from './model.js';
@@ -206,7 +206,7 @@ function routeOrthC(p1: ProcessPoint, sa: ProcessSide, p2: ProcessPoint, sb: Pro
   }
   return { pts: simplify(pts), cost };
 }
-/** Native automatic event ports. Authored pins/waypoints retain the existing routing contract. */
+/** Native flow ports. Authored waypoints retain their existing endpoint contract. */
 export function automaticEventPorts(line: ProcessLine, layout: ProcessLayout, projection: ProcessProjection) {
   const boxes = new Map(projection.boxes.map(box => [box.id, box]));
   const rects = new Map(projection.boxes.filter(box => layout.boxes[box.id]).map(box => { const p = layout.boxes[box.id], compact = box.shape === 'event' || box.shape === 'gateway'; return [box.id, { x: p.x, y: p.y, w: p.width ?? (box.frame ? 320 : compact ? 56 : box.role === 'note' ? 208 : 224), h: p.height ?? (box.frame ? 180 : compact ? 56 : 64) }] as const; }));
@@ -237,10 +237,10 @@ export function automaticEventPorts(line: ProcessLine, layout: ProcessLayout, pr
         if (cost < best.cost)
           best = { cost, sa, sb };
       }
-    // Authored edges use the legacy nearest-edge contract. Reserve those actual
-    // sides, rather than a side the automatic candidate search would choose.
+    // Authored waypoints retain their actual endpoint sides. An unpinned end
+    // without waypoints remains free to choose the cheapest native route.
     const points = layout.lines?.[edge.id] ?? edge.points;
-    if (edge.fromSide || edge.toSide || points?.length) {
+    if (points?.length) {
       const nearest = (r: Rect, toward: ProcessPoint): ProcessSide => {
         const x = Math.max(r.x, Math.min(toward.x, r.x + r.w)), y = Math.max(r.y, Math.min(toward.y, r.y + r.h));
         const candidates: [ProcessSide, ProcessPoint][] = [['east', {x:r.x+r.w,y}], ['west',{x:r.x,y}], ['south',{x,y:r.y+r.h}], ['north',{x,y:r.y}]];

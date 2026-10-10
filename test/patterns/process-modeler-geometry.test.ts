@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { arrangeProcess, lineMidpoint, nearProcessLine, routeProcessLine, roundedProcessPath } from "../../src/patterns/process-modeler/geometry.js";
+import { arrangeProcess, lineMidpoint, nearProcessLine, routeProcessLine, roundedProcessPath, processPointAlong, processSegmentChain, processArrowPath, processLooseConnection } from "../../src/patterns/process-modeler/geometry.js";
 import type { ProcessPoint } from "../../src/patterns/process-modeler/geometry.js";
 import type { ProcessBox, ProcessLayout, ProcessLine, ProcessProjection, ProcessSide } from "../../src/patterns/process-modeler/model.js";
 
@@ -25,7 +25,7 @@ function avoids(points: ProcessPoint[], rect: { x: number; y: number; width: num
 }
 
 it("rounds orthogonal route turns without moving their endpoints", () => {
-  expect(roundedProcessPath([{ x: 0, y: 0 }, { x: 20, y: 0 }, { x: 20, y: 20 }])).toBe('M 0 0 L 14 0 Q 20 0 20 6 L 20 20');
+  expect(roundedProcessPath([{ x: 0, y: 0 }, { x: 20, y: 0 }, { x: 20, y: 20 }])).toBe('M 0 0 L 12 0 Q 20 0 20 8 L 20 20');
   expect(roundedProcessPath([{ x: 0, y: 0 }, { x: 20, y: 0 }])).toBe('M 0 0 L 20 0');
 });
 
@@ -98,12 +98,12 @@ describe("process routing", () => {
     expect(routeProcessLine(edge, positions, clear)).toEqual([{ x: 224, y: 32 }, { x: 320, y: 32 }]);
   });
 
-  it("pins horizontal endpoints and deterministically detours around obstacles", () => {
+  it("chooses native heading-aware endpoints and deterministically detours around obstacles", () => {
     const before = structuredClone(layout);
     const points = routeProcessLine(edge, layout, input);
     orthogonal(points);
-    expect(points[0]).toEqual({ x: 100, y: 40 });
-    expect(points.at(-1)).toEqual({ x: 500, y: 40 });
+    expect(points[0]).toEqual({ x: 50, y: 80 });
+    expect(points.at(-1)).toEqual({ x: 550, y: 80 });
     avoids(points, { x: 228, y: -32, width: 144, height: 144 });
     avoids(points, { x: 0, y: 0, width: 100, height: 80 });
     avoids(points, { x: 500, y: 0, width: 100, height: 80 });
@@ -124,7 +124,7 @@ describe("process routing", () => {
     const crowded = { boxes: { ...layout.boxes, obstacle: close } };
     const points = routeProcessLine(edge, crowded, input);
     orthogonal(points);
-    expect(points[0]).toEqual({ x: 100, y: 40 });
+    expect(points[0]).toEqual({ x: 50, y: 80 });
     avoids(points, close);
     const waypoint = { x: 230, y: -10 };
     const authored = routeProcessLine({ ...edge, points: [waypoint] }, crowded, input);
@@ -149,37 +149,30 @@ describe("process routing", () => {
     expect(routeProcessLine(custom, { ...layout, lines: { [edge.id]: [] } }, input)).not.toContainEqual(custom.points[0]);
   });
 
-  it("pins vertical endpoints at the closest edge and supplies default sizes", () => {
+  it("uses native vertical defaults and spreads the additional backward connection", () => {
     const positions = { boxes: { a: { x: 0, y: 0 }, b: { x: 0, y: 300 } } };
     expect(routeProcessLine(edge, positions, projection(["a", "b"], [edge]))).toEqual([{ x: 112, y: 64 }, { x: 112, y: 300 }]);
     const backward = routeProcessLine(line("b", "a"), layout, input);
-    expect(backward[0]).toEqual({ x: 500, y: 40 });
-    expect(backward.at(-1)).toEqual({ x: 100, y: 40 });
+    expect(backward[0]).toEqual({ x: 534, y: 80 });
+    expect(backward.at(-1)).toEqual({ x: 82, y: 80 });
   });
 
   const sides: ProcessSide[] = ["north", "east", "south", "west"];
   const sourcePorts = { north: { x: 50, y: 0 }, east: { x: 100, y: 40 }, south: { x: 50, y: 80 }, west: { x: 0, y: 40 } };
   const targetPorts = { north: { x: 550, y: 0 }, east: { x: 600, y: 40 }, south: { x: 550, y: 80 }, west: { x: 500, y: 40 } };
-  const outward = { north: { x: 0, y: -12 }, east: { x: 12, y: 0 }, south: { x: 0, y: 12 }, west: { x: -12, y: 0 } };
-
-  it.each(sides)("honors an explicit %s source side while the target stays nearest-pinned", side => {
+  // Exact pinned-engine routes, measured with these same rectangles and obstacle.
+  const nativePinned = {"from pinned north":[{"x":50,"y":0},{"x":50,"y":-32},{"x":480,"y":-32},{"x":480,"y":40},{"x":500,"y":40}],"to pinned north":[{"x":100,"y":40},{"x":228,"y":40},{"x":228,"y":-32},{"x":550,"y":-32},{"x":550,"y":0}],"from pinned east":[{"x":100,"y":40},{"x":228,"y":40},{"x":228,"y":112},{"x":550,"y":112},{"x":550,"y":80}],"to pinned east":[{"x":50,"y":80},{"x":50,"y":112},{"x":620,"y":112},{"x":620,"y":40},{"x":600,"y":40}],"from pinned south":[{"x":50,"y":80},{"x":50,"y":112},{"x":550,"y":112},{"x":550,"y":80}],"to pinned south":[{"x":50,"y":80},{"x":50,"y":112},{"x":550,"y":112},{"x":550,"y":80}],"from pinned west":[{"x":0,"y":40},{"x":-20,"y":40},{"x":-20,"y":112},{"x":550,"y":112},{"x":550,"y":80}],"to pinned west":[{"x":50,"y":80},{"x":50,"y":112},{"x":480,"y":112},{"x":480,"y":40},{"x":500,"y":40}]} as Record<string, ProcessPoint[]>;
+  it.each(sides)('preserves an explicit %s source port and uses native route choice for the target', side => {
     const points = routeProcessLine({ ...edge, fromSide: side }, layout, input);
-    orthogonal(points);
-    expect(points[0]).toEqual(sourcePorts[side]);
-    expect(points[1]).toEqual({ x: sourcePorts[side].x + outward[side].x, y: sourcePorts[side].y + outward[side].y });
-    expect(points.at(-1)).toEqual({ x: 500, y: 40 });
-    avoids(points, layout.boxes.obstacle as Required<typeof layout.boxes.obstacle>);
-    avoids(points, layout.boxes.a as Required<typeof layout.boxes.a>);
+    expect(points).toEqual(nativePinned['from pinned ' + side]);
+    expect(points[0]).toEqual(sourcePorts[side]); orthogonal(points);
+    avoids(points, layout.boxes.obstacle as Required<typeof layout.boxes.obstacle>); avoids(points, layout.boxes.a as Required<typeof layout.boxes.a>);
   });
-
-  it.each(sides)("honors an explicit %s target side while the source stays nearest-pinned", side => {
+  it.each(sides)('preserves an explicit %s target port and uses native route choice for the source', side => {
     const points = routeProcessLine({ ...edge, toSide: side }, layout, input);
-    orthogonal(points);
-    expect(points[0]).toEqual({ x: 100, y: 40 });
-    expect(points.at(-1)).toEqual(targetPorts[side]);
-    expect(points.at(-2)).toEqual({ x: targetPorts[side].x + outward[side].x, y: targetPorts[side].y + outward[side].y });
-    avoids(points, layout.boxes.obstacle as Required<typeof layout.boxes.obstacle>);
-    avoids(points, layout.boxes.b as Required<typeof layout.boxes.b>);
+    expect(points).toEqual(nativePinned['to pinned ' + side]);
+    expect(points.at(-1)).toEqual(targetPorts[side]); orthogonal(points);
+    avoids(points, layout.boxes.obstacle as Required<typeof layout.boxes.obstacle>); avoids(points, layout.boxes.b as Required<typeof layout.boxes.b>);
   });
 
   it("honors every source/target side combination alongside authored waypoints", () => {
@@ -210,12 +203,12 @@ describe("process routing", () => {
     const points = routeProcessLine(edge, framed, nested);
     orthogonal(points);
     avoids(points, layout.boxes.obstacle as Required<typeof layout.boxes.obstacle>);
-    expect(points.at(-1)).toEqual({ x: 500, y: 40 });
+    expect(points.at(-1)).toEqual({ x: 550, y: 80 });
   });
 
   it("uses frame defaults for endpoint geometry", () => {
     const framed: ProcessProjection = { boxes: [box("a", undefined, true), box("b")], lines: [edge] };
-    expect(routeProcessLine(edge, { boxes: { a: { x: 0, y: 0 }, b: { x: 500, y: 42 } } }, framed)).toEqual([{ x: 320, y: 74 }, { x: 320, y: 90 }, { x: 500, y: 90 }]);
+    expect(routeProcessLine(edge, { boxes: { a: { x: 0, y: 0 }, b: { x: 500, y: 42 } } }, framed)).toEqual([{ x: 320, y: 90 }, { x: 480, y: 90 }, { x: 480, y: 74 }, { x: 500, y: 74 }]);
   });
 
   it("handles self loops, duplicate waypoints, and degenerate endpoints", () => {
@@ -364,4 +357,40 @@ it.each([false, true])("keeps visual sections transparent to ordinary routing, a
   // An unrelated execution frame still blocks a line enclosed by its body.
   expect(routeProcessLine(edge, layout, { ...base, boxes: [...base.boxes, { ...overlay, kind: "frame" }] })).toEqual([]);
   if (authored) expect(baseline).toContainEqual({ x: 350, y: 32 });
+});
+
+
+describe('native line controls', () => {
+  it('keeps end stubs and a draggable middle on a straight route', () => {
+    expect(processSegmentChain([{x:0,y:32},{x:224,y:32}])).toEqual([{x:0,y:32},{x:20,y:32},{x:204,y:32},{x:224,y:32}]);
+  });
+  it('keeps authored corners while avoiding duplicate stubs', () => {
+    const points=[{x:0,y:0},{x:20,y:0},{x:20,y:80},{x:100,y:80}];
+    expect(processSegmentChain(points)).toEqual([{x:0,y:0},{x:20,y:0},{x:20,y:80},{x:80,y:80},{x:100,y:80}]);
+    expect(points).toEqual([{x:0,y:0},{x:20,y:0},{x:20,y:80},{x:100,y:80}]);
+  });
+  it('places gateway labels and target pins by arc distance', () => {
+    const points=[{x:56,y:28},{x:76,y:28},{x:76,y:108},{x:224,y:108}];
+    expect(processPointAlong(points,34)).toEqual({x:76,y:42,horizontal:false});
+    expect(processPointAlong([...points].reverse(),14)).toEqual({x:210,y:108,horizontal:true});
+  });
+  it.each([
+    [[{x:0,y:0},{x:100,y:0}], 'M100,0L91,4.5L91,-4.5Z'],
+    [[{x:0,y:0},{x:0,y:100}], 'M0,100L-4.5,91L4.5,91Z'],
+    [[{x:100,y:0},{x:0,y:0}], 'M0,0L9,-4.5L9,4.5Z'],
+    [[{x:0,y:100},{x:0,y:0}], 'M0,0L4.5,9L-4.5,9Z'],
+  ] as const)('draws the native nine-pixel arrow for %j', (points, expected) => expect(processArrowPath(points)).toBe(expected));
+});
+
+it('draws five-pixel crossing hops in traversal order and keeps endpoint crossings flat', () => {
+ const verticals = [{ x: 50, y1: -20, y2: 20 }, { x: 25, y1: -20, y2: 20 }, { x: 8, y1: -20, y2: 20 }, { x: 75, y1: 0, y2: 20 }];
+ expect(roundedProcessPath([{x:0,y:0},{x:100,y:0}],8,verticals)).toBe('M 0 0 L 20 0 A 5 5 0 0 1 30 0 L 45 0 A 5 5 0 0 1 55 0 L 100 0');
+ expect(roundedProcessPath([{x:100,y:0},{x:0,y:0}],8,verticals)).toBe('M 100 0 L 55 0 A 5 5 0 0 0 45 0 L 30 0 A 5 5 0 0 0 20 0 L 0 0');
+});
+it('faces loose connection previews toward the pointer and reverses reconnect-from previews', () => {
+ const event = {...box('event'),shape:'event' as const}, position={x:0,y:0,width:56,height:56}, target={x:150,y:80};
+ const expected=[{x:48,y:28},{x:109,y:28},{x:109,y:80},{x:150,y:80}];
+ expect(processLooseConnection(event,position,target)).toEqual(expected);
+ expect(processLooseConnection(event,position,target,true)).toEqual([...expected].reverse());
+ expect(processLooseConnection(box('task'),{x:0,y:0,width:100,height:80},{x:50,y:-100})).toEqual([{x:50,y:0},{x:50,y:-100}]);
 });
