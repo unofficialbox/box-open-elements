@@ -1957,6 +1957,36 @@ describe("Process Modeler prototype interactions", () => {
     builder.redo(); expect(builder.layout.boxes.child).toMatchObject({x:132,y:136});
   });
 
+  it("previews connected frame and child routes without committing layout, then restores or records one move", () => {
+    const { builder, root, canvas } = fixture(); builder.snapToGrid = false;
+    builder.document = { boxes: [
+      { id: 'frame', node: {}, title: 'Frame', kind: 'try', frame: true },
+      { id: 'child', node: {}, title: 'Child', kind: 'call', parentId: 'frame' },
+      { id: 'other', node: {}, title: 'Other', kind: 'call' },
+    ], lines: [{ id: 'fo', from: 'frame', to: 'other', label: 'Done', fromSide: 'east' }, { id: 'co', from: 'child', to: 'other', role: 'association' }] };
+    builder.layout = { boxes: { frame: {x:40,y:40,width:400,height:240}, child: {x:100,y:120}, other: {x:650,y:400} } };
+    const before = builder.layout, version = builder.version, edits = vi.fn(); builder.addEventListener('layout-change', edits);
+    const drawing = (id: string) => root.querySelector(`[part=line][data-line-id=${id}]`)!.getAttribute('d');
+    const initial = drawing('fo');
+    const start = () => pointer(root.querySelector('[data-box-id=frame]')!, 'pointerdown', 50, 50);
+    start(); pointer(canvas, 'pointermove', 82, 66, {altKey: true});
+    const temporary = structuredClone(before); for (const id of ['frame','child']) { temporary.boxes[id].x += 32; temporary.boxes[id].y += 16; }
+    for (const line of builder.document!.lines) {
+      const points = routeProcessLine(line, temporary, builder.document!);
+      expect(drawing(line.id)).toBe(roundedProcessPath(points));
+      const hit = root.querySelector(`[part=line-hit][data-line-id=${line.id}]`)!;
+      expect(hit.getAttribute(line.role === 'association' ? 'points' : 'd')).toBe(line.role === 'association' ? points.map(p => `${p.x},${p.y}`).join(' ') : roundedProcessPath(points));
+      const label = root.querySelector<HTMLElement>(`[part=connection][data-line-id=${line.id}]`)!;
+      expect([parseFloat(label.style.left),parseFloat(label.style.top)]).toEqual(Object.values(lineMidpoint(points)));
+    }
+    expect(drawing('fo')).not.toBe(initial); expect(builder.layout).toEqual(before); expect(builder.version).toBe(version); expect(edits).not.toHaveBeenCalled();
+    pointer(canvas, 'pointercancel', 82, 66); expect(drawing('fo')).toBe(initial); expect(builder.layout).toEqual(before);
+    const veto = (event: Event) => event.preventDefault(); builder.addEventListener('move-request', veto);
+    start(); pointer(canvas, 'pointermove', 82, 66, {altKey: true}); pointer(canvas, 'pointerup', 82, 66, {altKey: true}); expect(drawing('fo')).toBe(initial); expect(builder.layout).toEqual(before); builder.removeEventListener('move-request', veto);
+    start(); pointer(canvas, 'pointermove', 82, 66, {altKey: true}); pointer(canvas, 'pointerup', 82, 66, {altKey: true});
+    expect(builder.layout.boxes).toEqual(temporary.boxes); builder.undo(); expect(builder.layout).toEqual(before); builder.redo(); expect(builder.layout.boxes).toEqual(temporary.boxes);
+  });
+
   it("keeps the box mounted through a plain pointer click and supports Shift-click selection", () => {
     const { builder, root, canvas } = fixture(); builder.select('b');
     const box = root.querySelector<HTMLElement>('[data-box-id=a]')!;
@@ -2037,6 +2067,20 @@ describe("Process Modeler prototype interactions", () => {
     root.querySelector<HTMLElement>('[part=frame-resize]')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
     expect(builder.layout.boxes.frame.width).toBe((before.width ?? 224) + 48);
   });
+  it('previews connected frame resize routes and restores them on cancellation before a repeated resize', () => {
+    const { builder, root, canvas } = fixture();
+    builder.document = { boxes: [ { id: 'frame', node: {}, title: 'Frame', kind: 'try', frame: true }, { id: 'other', node: {}, title: 'Other', kind: 'call' } ], lines: [{ id: 'fo', from: 'frame', to: 'other', fromSide: 'east' }] };
+    builder.layout = { boxes: { frame: {x:40,y:40,width:400,height:240}, other: {x:650,y:400} } }; builder.select('frame');
+    const before = builder.layout, version = builder.version;
+    const drawing = () => root.querySelector('[part=line]')!.getAttribute('d'), original = drawing();
+    const start = () => pointer(root.querySelector('[part=frame-resize]')!, 'pointerdown', 440, 280);
+    const preview = () => { pointer(canvas, 'pointermove', 472, 296); const temporary = structuredClone(before); temporary.boxes.frame.width = 432; temporary.boxes.frame.height = 256; expect(drawing()).toBe(roundedProcessPath(routeProcessLine(builder.document!.lines[0], temporary, builder.document!))); expect(drawing()).not.toBe(original); expect(builder.layout).toEqual(before); expect(builder.version).toBe(version); };
+    start(); preview(); pointer(canvas, 'pointercancel', 472, 296); expect(drawing()).toBe(original); expect(builder.layout).toEqual(before);
+    start(); preview(); canvas.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true})); pointer(canvas, 'pointerup', 472, 296); expect(drawing()).toBe(original); expect(builder.layout).toEqual(before);
+    const focusedHandle = root.querySelector<HTMLElement>('[part=frame-resize]')!; focusedHandle.focus(); start(); preview(); focusedHandle.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true})); pointer(canvas, 'pointerup', 472, 296); expect(drawing()).toBe(original); expect(builder.layout).toEqual(before);
+    start(); preview(); pointer(canvas, 'pointerup', 472, 296); expect(builder.layout.boxes.frame).toMatchObject({width:432,height:256}); builder.undo(); expect(drawing()).toBe(original); expect(builder.layout).toEqual(before);
+  });
+
   it('shows an explicit repeating-frame mark and animates tidy only when motion is allowed', () => {
     const { builder, root } = fixture();
     builder.document = { ...projection, boxes: [...projection.boxes, { id: 'repeat', node: {}, title: 'Repeat', kind: 'host-repeat', frame: true, loopMark: true }] };

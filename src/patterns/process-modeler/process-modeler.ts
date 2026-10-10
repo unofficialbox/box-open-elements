@@ -1626,7 +1626,7 @@ export class ProcessModeler<
   private onKey(event: KeyboardEvent): void {
     if (event.defaultPrevented) return;
     const target = event.target as HTMLElement;
-    if (target.closest("input,textarea,select,[contenteditable],button,summary")) return;
+    if (target.closest("input,textarea,select,[contenteditable],button,summary") && !(event.key === "Escape" && this.frameResize)) return;
     if (target.closest('[part=canvas]') && !event.ctrlKey && !event.metaKey && !event.altKey && ['+', '=', '-', '0'].includes(event.key)) {
       event.preventDefault();
       this.zoomBy(event.key === '0' ? 1 / this.viewport.zoom : event.key === '-' ? 1 / 1.2 : 1.2);
@@ -1661,7 +1661,7 @@ export class ProcessModeler<
       this.connecting = null;
       this.pendingReattach = undefined;
       if (this.selectedLineId) this.selectLine(null);
-      this.portDrag = undefined; this.endDrag = undefined; this.marquee = undefined; this.segmentDrag = undefined; this.drag = undefined; this.pointers.clear(); delete this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.dataset.gesture; this.refresh();
+      this.portDrag = undefined; this.endDrag = undefined; this.marquee = undefined; this.segmentDrag = undefined; this.frameResize = undefined; this.drag = undefined; this.pointers.clear(); delete this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.dataset.gesture; this.refresh();
       if (wasConnecting) this.setStatus("Connecting cancelled");
       return;
     }
@@ -1937,7 +1937,11 @@ export class ProcessModeler<
     if (this.frameResize) {
       const resize = this.frameResize;
       const element = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[part=frame]')).find(frame => frame.dataset.boxId === resize.id);
-      if (element) { element.style.width = `${Math.max(120, resize.width + point.x - resize.start.x)}px`; element.style.height = `${Math.max(64, resize.height + point.y - resize.start.y)}px`; }
+      if (element) {
+        const width = Math.max(120, resize.width + point.x - resize.start.x), height = Math.max(64, resize.height + point.y - resize.start.y);
+        element.style.width = `${width}px`; element.style.height = `${height}px`;
+        this.paintLayoutRoutes({ ...this.layoutValue, boxes: { ...this.layoutValue.boxes, [resize.id]: { ...this.layoutValue.boxes[resize.id], width, height } } });
+      }
       return;
     }
     if (this.portDrag) {
@@ -2041,6 +2045,9 @@ export class ProcessModeler<
           box.style.left = `${original.x + shiftX}px`;
           box.style.top = `${original.y + shiftY}px`;
         });
+        const boxes = { ...this.layoutValue.boxes };
+        for (const id of moved) boxes[id] = { ...boxes[id], x: boxes[id].x + shiftX, y: boxes[id].y + shiftY };
+        this.paintLayoutRoutes({ ...this.layoutValue, boxes });
         this.markDropLine(point, this.drag.id);
       }
     } else {
@@ -2718,7 +2725,13 @@ export class ProcessModeler<
   }
   private renderedLineSelection = '';
   private lineSelectionKey(): string { return JSON.stringify([this.selectedLineId, [...this.selectedLineIds].sort(), this.locked, this.disableConnections]); }
-  private renderLines(world: HTMLElement): void {
+  /** Repaint every connection affordance against transient geometry without publishing a layout edit. */
+  private paintLayoutRoutes(layout: ProcessLayout): void {
+    if (!this.projection.lines.length) return;
+    const routes = new Map(this.projection.lines.map(line => [line.id, routeProcessLine(line, layout, this.projection)]));
+    this.renderLines(this.shadowRoot!.querySelector<HTMLElement>('[part=world]')!, routes);
+  }
+  private renderLines(world: HTMLElement, routes = this.routedLines): void {
     world.querySelectorAll('[part=lines],[part=line-controls],[part=connection],[part=line-add],[part=end-grip]').forEach(element => element.remove());
     const lines = svgElement("svg");
     lines.setAttribute("part", "lines");
@@ -2728,7 +2741,7 @@ export class ProcessModeler<
     const verticals: { x: number; y1: number; y2: number }[] = [];
     const drawingOrder = [...this.projection.lines].sort((a, b) => Number(this.selectedLineIds.has(a.id)) - Number(this.selectedLineIds.has(b.id)));
     for (const line of drawingOrder) {
-      const points = this.routedLines.get(line.id)!;
+      const points = routes.get(line.id)!;
       if (!points.length) continue;
       const midpoint = lineMidpoint(points);
       const path = svgElement("path");
