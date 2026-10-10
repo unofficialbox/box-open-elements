@@ -952,7 +952,8 @@ describe("Process Modeler prototype interactions", () => {
     builder.arrangeSelection('bottom');
     expect(builder.layout.boxes.a.y).toBe(100); expect(builder.layout.boxes.b.y).toBe(100);
   });
-  it.each([['d', 48], ['v', 32]] as const)('duplicates a connected selection atomically with %s and one undo', (key, offset) => {
+  it('duplicates a connected selection atomically with one undo', () => {
+    const key = 'd'; const offset = 48;
     const { builder, canvas } = fixture();
     const original: ProcessProjection = { ...projection, lines: [{ ...projection.lines[0], label: 'Yes', weight: 0.4, fromSide: 'east', toSide: 'west' }, { id: 'bc', from: 'b', to: 'c' }] };
     builder.document = original; builder.selectMany(['a', 'b']); const before = builder.layout;
@@ -970,7 +971,6 @@ describe("Process Modeler prototype interactions", () => {
       request.accept({ undo: () => { throw new Error('second acceptance'); }, redo: () => {} });
       layout.boxes['a-copy'].x = 9999;
     });
-    if (key === 'v') canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'c', ctrlKey: true, bubbles: true, cancelable: true }));
     canvas.dispatchEvent(new KeyboardEvent('keydown', { key, ctrlKey: true, bubbles: true, cancelable: true }));
     expect(requests).toHaveBeenCalledOnce();
     expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'duplicate', sourceIds: ['a', 'b'], offset: { x: offset, y: offset } });
@@ -1014,7 +1014,7 @@ describe("Process Modeler prototype interactions", () => {
     canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'd', ctrlKey: true, bubbles: true, cancelable: true }));
     expect(requests).toHaveBeenCalledOnce(); expect(requests.mock.calls[0][0].detail.sourceIds).toEqual(['frame', 'b']);
   });
-  it('refuses a stale copied group without partially duplicating surviving nodes', () => {
+  it('does not paste current IDs when immutable copy is unsupported', () => {
     const { builder, canvas } = fixture(); builder.selectMany(['a', 'b']);
     canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'c', ctrlKey: true, bubbles: true, cancelable: true }));
     builder.document = { boxes: projection.boxes.filter(box => box.id !== 'b'), lines: [] };

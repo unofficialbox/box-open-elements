@@ -157,13 +157,29 @@ contextual chooser at a directional port; east inserts on a sole outgoing line,
 while other directions add a connected step. Enter focuses the selected step's editor, Delete removes, and Shift+1
 fits the whole process. Ctrl/Command+A selects all; C/V/D copy, paste and
 duplicate host-owned boxes. A multiple-box duplicate emits one `duplicate` request
-with `sourceIds` and a uniform `offset` (48 for Duplicate, 32 for Paste). The host
-must clone the entire selected graph, including descendants and internal edges,
-in one transaction and call `accept()` once with its full layout and optional
-`selectionIds`. Plural requests omit legacy `sourceId`; hosts that do not support
-them must refuse the whole group rather than duplicate only one node. Single-box
-requests retain `sourceId` and `position`. Clipboard IDs refer to current host
-nodes; immutable copy-after-edit/delete semantics require a host clipboard bridge.
+with `sourceIds` and a uniform 48/48 `offset`. The host clones selected roots,
+descendants and internal edges in one transaction, then calls `accept()` once
+with the complete layout and optional `selectionIds`. Plural requests omit legacy
+`sourceId`; unsupported hosts must refuse the whole group. Single-box requests
+retain `sourceId` and `position`.
+
+Copy emits a typed `process-copy-request` with detached source IDs. The host
+captures an immutable graph snapshot in its own closure and synchronously calls
+`capture({ itemCount, paste, dispose? })`. BOE stores the paste capability rather
+than host documents or nodes. Paste invokes it with uniform 32/32 `offset`; the
+host applies one graph transaction to the current document and synchronously
+calls `accept({ undo, redo, layout, selectionIds? })`. Undo returns to paste-time
+state, even after copied source nodes were edited or deleted. Duplicate does not
+replace the clipboard. Capture and paste are once-only; deferred callbacks are
+ignored. Hosts can call `refuse(message?)` without adding history.
+
+Unsupported Copy stays unhandled for the enclosing host and reports that it is
+unsupported; there is no live-ID paste fallback. New Copy replaces/disposes the
+old capture; `load()` and disconnection release it. Ordinary source edits and
+selection changes retain the captured snapshot. The host owns descendant/edge
+cloning, new IDs, parent remapping and immutable capture; no OS clipboard or
+persistence data is created by BOE.
+
 Ctrl/Command+Z and Shift+Ctrl/Command+Z undo and
 redo only when local history can handle them; empty or locked history leaves
 the key for the host. Escape closes an open View menu or cancels a connection
