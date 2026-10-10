@@ -234,7 +234,7 @@ export const processModelerDesign = `
   [part=event-details] small { display: block; font-size: 12px; line-height: inherit; }
   [data-shape=gateway][aria-current=true]::before, [data-shape=event][aria-current=true]::before { border-color: var(--boe-token-surface-surface-brand, #0061d5); background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 9%, var(--boe-token-surface-surface, #fff)); }
   [data-shape=event]:is([data-kind=finish], [data-kind=end])[aria-current=true]::before { border-color: var(--boe-token-text-text, #1b1b1b); }
-  [data-shape=gateway][data-invalid=true]::before { border-color: var(--boe-token-text-status-text-error, #b92340); }
+  [data-shape=gateway][data-invalid=true]::before { border-color: var(--boe-token-surface-status-surface-error, #ed3757); }
   [part=port] { position: absolute; z-index: 5; width: 24px; height: 24px; min-height: 24px; padding: 0; border: 0; border-radius: 50%; background: transparent; opacity: 0; display: grid; place-items: center; }
   [part=port][data-side=north] { left: calc(50% - 12px); top: -12px; }
   [part=port][data-side=south] { left: calc(50% - 12px); bottom: -12px; }
