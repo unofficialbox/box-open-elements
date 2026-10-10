@@ -57,6 +57,22 @@ describe("RunTrace", () => {
     expect(steps[0]?.textContent).toContain("Fetch sources");
   });
 
+  it("offers a compact density and shared marker/connector geometry tokens", () => {
+    const element = create();
+    element.density = "compact";
+    expect(element.getAttribute("density")).toBe("compact");
+    const styles = element.shadowRoot?.querySelector("style")?.textContent ?? "";
+    expect(styles).toContain(':host([density="compact"])');
+    expect(styles).toContain("--boe-run-trace-marker-column-width");
+    expect(styles).toContain("--boe-run-trace-marker-size");
+    expect(styles).toContain("--boe-run-trace-step-row-gap");
+    expect(styles).toContain("--boe-run-trace-child-row-gap");
+    expect(styles).toContain("left: calc(var(--_run-marker-inline) + var(--_run-marker-column) / 2 - 1px)");
+    expect(styles).toContain("top: calc(var(--_run-step-padding) + var(--_run-marker-block) + var(--_run-marker-column) / 2 + var(--_run-marker-size) / 2 + var(--_run-connector-start-gap))");
+    element.density = "default";
+    expect(element.hasAttribute("density")).toBe(false);
+  });
+
   it("renders the finished step's duration", () => {
     const element = create();
     expect(stepEls(element)[0]?.querySelector('[part="duration"]')?.textContent).toBe("42 s");

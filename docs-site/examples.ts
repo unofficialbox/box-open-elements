@@ -1321,6 +1321,14 @@ export const examples: Record<string, ComponentExample> = {
         },
         note: "The rule the engine enforces: after *Policy checks* fails, routing is **Skipped**, not queued — a dead run must not show work as still coming. The summary names the failed step.",
       },
+      {
+        name: "Compact density",
+        html: `<box-run-trace heading="Generate documents — MSA_Acme v4" density="compact"></box-run-trace>`,
+        setup: root => {
+          set(root, "box-run-trace", { steps: clmRunSteps });
+        },
+        note: "Compact density reduces step and child-row spacing while the marker column and connector stay aligned. Geometry can be adjusted with the documented run-trace custom properties instead of overriding the connector pseudo-element.",
+      },
     ],
   },
   "agent-chat": {

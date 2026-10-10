@@ -183,6 +183,83 @@ try {
     console.log(`captured ${name}.png`);
   }
 
+  // The trace spine must follow the visible glyph for both density presets,
+  // including a host-customized marker column inside a narrow embed.
+  await page.goto(`http://localhost:${PORT}/#patterns/run-trace`, { waitUntil: "networkidle" });
+  await page.waitForSelector('body[data-route-ready="patterns/run-trace"]', { timeout: 15_000 });
+  await applyDeterministicFonts(page);
+  const traceGeometry = () => page.locator("box-run-trace").evaluate(element => {
+    const steps = Array.from(element.shadowRoot!.querySelectorAll<HTMLElement>('[part="step"]'));
+    const segments = steps.slice(0, -1).map((step, index) => {
+      const marker = step.querySelector<SVGElement>('[part="marker"] svg')!;
+      const nextMarker = steps[index + 1]!.querySelector<SVGElement>('[part="marker"] svg')!;
+      const stepRect = step.getBoundingClientRect();
+      const markerRect = marker.getBoundingClientRect();
+      const connector = getComputedStyle(step, "::after");
+      const connectorCenter = stepRect.left + parseFloat(connector.left) + parseFloat(connector.width) / 2;
+      const markerCenter = markerRect.left + markerRect.width / 2;
+      return {
+        centerError: Math.abs(markerCenter - connectorCenter),
+        startGap: stepRect.top + parseFloat(connector.top) - markerRect.bottom,
+        endGap: nextMarker.getBoundingClientRect().top - (stepRect.bottom - parseFloat(connector.bottom)),
+      };
+    });
+    return {
+      rowHeight: steps[0]!.getBoundingClientRect().height,
+      segments,
+      lastConnector: getComputedStyle(steps.at(-1)!, "::after").content,
+      hostOverflow: element.scrollWidth > element.clientWidth,
+    };
+  });
+  const assertTraceGeometry = (geometry: Awaited<ReturnType<typeof traceGeometry>>, label: string): void => {
+    if (geometry.hostOverflow || geometry.lastConnector !== "none" || geometry.segments.length === 0 ||
+      geometry.segments.some(segment => segment.centerError > 1 || segment.startGap < -1 || segment.startGap > 5 || segment.endGap < -1 || segment.endGap > 9)) {
+      throw new Error(`Run trace geometry failed for ${label}: ${JSON.stringify(geometry)}`);
+    }
+  };
+  const defaultTrace = await traceGeometry();
+  assertTraceGeometry(defaultTrace, "default desktop");
+  await page.locator("#variant-select").selectOption("2");
+  await waitForVisualSettle(page, "patterns-run-trace-compact");
+  const compactTrace = await traceGeometry();
+  assertTraceGeometry(compactTrace, "compact desktop");
+  if (compactTrace.rowHeight >= defaultTrace.rowHeight) {
+    throw new Error(`Compact run trace geometry failed at desktop: ${JSON.stringify({ defaultTrace, compactTrace })}`);
+  }
+  await page.screenshot({ path: join(OUT_DIR, "patterns-run-trace-compact.png"), animations: "disabled" });
+  console.log("captured patterns-run-trace-compact.png");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator("box-run-trace").evaluate(element => { (element as HTMLElement).style.width = "340px"; });
+  await waitForVisualSettle(page, "patterns-run-trace-compact-mobile");
+  const narrowTrace = await traceGeometry();
+  assertTraceGeometry(narrowTrace, "compact mobile");
+  await page.locator("box-run-trace").screenshot({ path: join(OUT_DIR, "patterns-run-trace-compact-mobile.png"), animations: "disabled" });
+  console.log("captured patterns-run-trace-compact-mobile.png");
+
+  await page.locator("box-run-trace").evaluate(element => {
+    const trace = element as HTMLElement;
+    trace.style.setProperty("--boe-run-trace-marker-column-width", "1.4rem");
+    trace.style.setProperty("--boe-run-trace-marker-size", "1.15rem");
+    trace.style.setProperty("--boe-run-trace-step-row-gap", "0.2rem");
+  });
+  await page.waitForTimeout(250);
+  const customizedTrace = await traceGeometry();
+  assertTraceGeometry(customizedTrace, "custom compact mobile");
+  await page.locator("box-run-trace").locator('[part="toggle"]').first().click();
+  assertTraceGeometry(await traceGeometry(), "expanded custom compact mobile");
+  await page.locator("box-run-trace").evaluate(element => { element.setAttribute("density", "default"); });
+  assertTraceGeometry(await traceGeometry(), "default after density toggle");
+  await page.locator("box-run-trace").evaluate(element => { element.setAttribute("density", "compact"); });
+  assertTraceGeometry(await traceGeometry(), "compact after density toggle");
+  await page.evaluate(() => (document.getElementById("theme-toggle") as HTMLButtonElement | null)?.click());
+  await page.waitForSelector('html[data-theme="dark"]');
+  assertTraceGeometry(await traceGeometry(), "dark custom compact mobile");
+  console.log("verified run-trace marker and connector alignment at desktop and narrow width");
+  await page.evaluate(() => (document.getElementById("theme-toggle") as HTMLButtonElement | null)?.click());
+  await page.waitForSelector('html[data-theme="light"]');
+  await page.setViewportSize({ width: 1440, height: 940 });
+
   // Dark-theme pass: toggle dark, then capture a component page and a foundations page.
   const darkRoutes: Array<[string, string, string]> = [
     ["patterns-call-console-dark", "#patterns/call-console", "patterns/call-console"],
@@ -193,6 +270,7 @@ try {
   for (const [name, hash, readyMarker] of darkRoutes) {
     await page.goto(`http://localhost:${PORT}/${hash}`, { waitUntil: "networkidle" });
     await page.waitForSelector(`body[data-route-ready="${readyMarker}"]`, { timeout: 15_000 });
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.evaluate(() => {
       if (document.documentElement.dataset.theme !== "dark") {
         (document.getElementById("theme-toggle") as HTMLButtonElement | null)?.click();
