@@ -10,6 +10,15 @@ import { BaseElement } from "../../core/index.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 
+/** DOM event payloads forwarded from the wizard controller. */
+export interface FormWizardEventDetails {
+  "step-changed": WizardEvents["stepChanged"];
+  "values-changed": WizardEvents["valuesChanged"];
+  "step-invalid": WizardEvents["stepInvalid"];
+  "draft-saved": WizardEvents["draftSaved"];
+  submitted: WizardEvents["submitted"];
+}
+
 const DEFAULT_TAG_NAME = "box-form-wizard";
 
 const escapeHtml = (value: string): string =>
@@ -541,7 +550,7 @@ export class FormWizard extends BaseElement {
   }
 
   private subscribeToController(controller: FormWizardController): void {
-    const events: Array<[keyof WizardEvents, string]> = [
+    const events: Array<[keyof WizardEvents, keyof FormWizardEventDetails]> = [
       ["stepChanged", "step-changed"],
       ["valuesChanged", "values-changed"],
       ["stepInvalid", "step-invalid"],

@@ -59,3 +59,28 @@ const view = <>
   <box-formatted-file-size locale={42} />
 </>;
 void view;
+
+// Helper-dispatched and controller-forwarded events retain native payload types.
+document.createElement("box-process-modeler").addEventListener("selection-changed", event => {
+  const path: readonly (string | number)[] | null = event.detail.path;
+  void path;
+  // @ts-expect-error path is not a number
+  const invalid: number = event.detail.path;
+  void invalid;
+});
+document.createElement("box-form-wizard").addEventListener("submitted", event => {
+  const values: Record<string, unknown> = event.detail.values;
+  void values;
+  // @ts-expect-error submitted does not carry a step index
+  void event.detail.stepIndex;
+});
+document.createElement("box-form-wizard").addEventListener("step-changed", event => {
+  const index: number = event.detail.stepIndex;
+  void index;
+});
+const helperEvents = <>
+  <box-process-modeler onselection-changed={event => { const path: readonly (string | number)[] | null = event.detail.path; void path; }} />
+  <box-form-wizard onsubmitted={event => { const values: Record<string, unknown> = event.detail.values; void values; }}
+    onstep-changed={event => { const index: number = event.detail.stepIndex; void index; }} />
+</>;
+void helperEvents;
