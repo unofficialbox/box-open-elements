@@ -222,7 +222,7 @@ describe("Process Modeler prototype interactions", () => {
   it("shows the ready state when the Checks tab has no problems", () => {
     const { root } = fixture();
     root.querySelector<HTMLButtonElement>('#process-tab-checks')!.click();
-    expect(root.querySelector('[part=pane-content]')!.textContent).toContain('Ready to run');
+    expect(root.querySelector('[part=checks] [part=checks-ready]')!.textContent).toContain('Ready to run');
   });
   it("matches the reference toolbar's switch, Checks state, and action order", () => {
     const { builder, root } = fixture();

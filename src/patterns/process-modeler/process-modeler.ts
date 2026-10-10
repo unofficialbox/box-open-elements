@@ -872,7 +872,6 @@ export class ProcessModeler<
       content.append(copy);
     } else if (this.activePane === "Checks") {
       content.append(checks);
-      if (!this.allChecks.length) { const message = document.createElement("p"); message.setAttribute('part', 'checks-ready'); message.append(checkGlyph(true), document.createTextNode('Ready to run. Every step connects from start to finish.')); content.prepend(message); }
     } else if (this.activePane === "Variables") {
       if (!this.variables.length) content.textContent = 'No variables supplied by the host.';
       for (const [index, variable] of this.variables.entries()) {
@@ -2001,6 +2000,7 @@ export class ProcessModeler<
   private renderChecks(): void {
     const checks = this.shadowRoot!.querySelector("[part=checks]")!;
     checks.replaceChildren();
+    if (!this.allChecks.length) { const message = document.createElement('p'); message.setAttribute('part', 'checks-ready'); message.append(checkGlyph(true), document.createTextNode('Ready to run. Every step connects from start to finish.')); checks.append(message); }
     const hold = this.shadowRoot!.querySelector<HTMLElement>('[part=hold]')!;
     hold.hidden = this.allChecks.length === 0;
     hold.querySelector('[part=hold-text]')!.textContent = `${this.allChecks.length} ${this.allChecks.length === 1 ? 'problem needs' : 'problems need'} fixing before this drawing can be read back.`;
