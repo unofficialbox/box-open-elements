@@ -1040,6 +1040,14 @@ export class ProcessModeler<
         const scopeControl = row.querySelector('[data-variable-key=scope]')?.closest('label'); if (scopeControl) row.append(scopeControl);
         if (variable.problem) { const problem = document.createElement('p'); problem.setAttribute('part', 'field-problem'); problem.textContent = variable.problem; row.append(problem); }
         if (this.variablesEditable) { const remove = document.createElement('button'); remove.type = 'button'; remove.setAttribute('part', 'variable-remove'); remove.setAttribute('aria-label', `Remove ${variable.name || 'this variable'}`); remove.append(variableGlyph()); remove.disabled = this.locked; identify(remove, 'remove'); remove.onclick = () => this.requestVariableEdit({ type: 'remove', name: variable.name }); row.append(remove); }
+        if (this.variablesEditable) {
+          // The grid's visual ordering must also be the keyboard/read order.
+          for (const key of ['name', 'value', 'remove', 'description', 'scope']) {
+            const control = row.querySelector<HTMLElement>(`[data-variable-key=${key}]`);
+            if (control) row.append(control.closest('label') ?? control);
+          }
+          const problem = row.querySelector('[part=field-problem]'); if (problem) row.append(problem);
+        }
         row.setAttribute('role', 'group'); row.setAttribute('aria-label', `Variable ${index + 1}`); collection.append(row);
       }
       if (this.variablesEditable) { const add = document.createElement('button'); add.type = 'button'; add.setAttribute('part', 'variable-add'); add.dataset.variable = '@add'; add.dataset.variableKey = 'add'; add.append(variableGlyph(true), document.createTextNode('Add a variable')); add.disabled = this.locked; add.onclick = () => this.requestVariableEdit({ type: 'add' }); const actions = document.createElement('div'); actions.setAttribute('part', 'variable-actions'); actions.append(add); content.append(actions); }
