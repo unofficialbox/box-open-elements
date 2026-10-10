@@ -110,8 +110,22 @@ describe('Native graph note and association roles', () => {
     const { element, root } = fixture(); element.selectLine('nb');
     root.querySelector('[data-box-id=n]')!.dispatchEvent(new MouseEvent('click', { bubbles: true, shiftKey: true }));
     expect(element.selection).toEqual([{ type: 'box', id: 'n' }, { type: 'line', id: 'nb' }]);
+    expect([...root.querySelectorAll('[part=selection-toolbar] button')].map(button => button.getAttribute('aria-label'))).toEqual(['Line up', 'Tidy these', 'Delete']);
     root.querySelector('[data-box-id=n]')!.dispatchEvent(new MouseEvent('click', { bubbles: true, shiftKey: true }));
     expect(element.selection).toEqual([{ type: 'line', id: 'nb' }]);
+  });
+
+  it('centers the floating toolbar above bounds and flips below a high selection', () => {
+    const { element, root } = fixture();
+    const canvas = root.querySelector<HTMLElement>('[part=canvas]')!;
+    Object.defineProperties(canvas, { clientWidth: { value: 1000 }, clientHeight: { value: 800 } });
+    const toolbar = root.querySelector<HTMLElement>('[part=selection-toolbar]')!;
+    element.setView({ x: 0, y: 0, zoom: 1 }); element.select('n');
+    expect(toolbar.style.left).toBe('304px'); expect(toolbar.style.top).toBe('188px');
+    element.setView({ x: 0, y: -180, zoom: 1 });
+    expect(toolbar.style.top).toBe('152px');
+    element.selectLine('nb');
+    expect(toolbar.style.left).toBe('404px'); expect(toolbar.style.top).toBe('14px');
   });
 
   it('keeps a flow next insertion on its ordinary edge when associations are present', () => {

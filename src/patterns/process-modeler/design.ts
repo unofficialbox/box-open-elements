@@ -271,8 +271,8 @@ export const processModelerDesign = `
   [part=minimap] rect[data-selected=true] { fill: var(--boe-token-surface-surface-brand, #0061d5); }
   [part=minimap] rect[data-section] { fill: color-mix(in srgb, var(--boe-token-text-text-secondary, #6f6f6f) 8%, transparent); }
   [part=minimap] [data-viewport] { fill: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, transparent); stroke: var(--boe-token-surface-surface-brand, #0061d5); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
-  [part=selection-toolbar] { position: absolute; bottom: auto; z-index: 11; display: flex; flex-wrap: nowrap; gap: 2px; padding: 4px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); white-space: nowrap; }
-  [part=selection-toolbar] button { display: inline-flex; align-items: center; gap: 4px; }
+  [part=selection-toolbar] { position: absolute; bottom: auto; z-index: 11; display: flex; flex-wrap: nowrap; gap: 2px; padding: 4px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px 0 light-dark(rgb(0 0 0 / 10%), rgb(0 0 0 / 40%))); white-space: nowrap; translate: -50% -100%; }
+  [part=selection-toolbar] button { display: inline-flex; align-items: center; gap: 6px; height: 30px; min-height: 30px; padding: 0 10px; border-radius: 20px; font-size: 13px; font-weight: 600; letter-spacing: .01em; line-height: 1.45; }
   [part=selection-plus] { font-size: 18px; line-height: 12px; font-weight: 500; }
   [part=checks] { display: grid; gap: 6px; margin: 0; padding: 0; }
   [part=checks] button { width: 100%; display: grid; grid-template-columns: 16px 1fr; align-items: start; gap: 8px; padding: 8px 10px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 10px; text-align: start; background: var(--boe-token-surface-surface, #fff); color: var(--boe-token-text-text, #222); line-height: 1.45; }
