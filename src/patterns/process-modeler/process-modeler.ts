@@ -2732,7 +2732,7 @@ export class ProcessModeler<
       message.setAttribute('part', field.problem ? 'field-problem' : 'field-feedback');
       if (field.kind === 'expression') message.setAttribute('aria-live', 'polite');
       if (!field.problem && field.expression?.feedback?.tone) message.dataset.tone = field.expression.feedback.tone;
-      row.append(message); describedBy.push(message.id);
+      const chips = row.querySelector('[part=variable-chips]'); row.insertBefore(message, chips); describedBy.push(message.id);
     }
     if (describedBy.length) control.setAttribute('aria-describedby', describedBy.join(' '));
     if (field.kind === 'expression' && field.expression?.help) {
@@ -2814,7 +2814,8 @@ export class ProcessModeler<
     const editor =
       this.shadowRoot!.querySelector<HTMLElement>("[part=editor]")!;
     const selected = this.selected;
-    const controlsKey = `${[...this.selectedIds].join(',')}|${this.locked}|${this.disableConnections}|${this.showLastRunValue}|${selected?.runMetrics}|${JSON.stringify([selected?.localVariables, selected?.localVariablesEditable, selected?.frame])}|${JSON.stringify(selected ? this.fieldsValue[selected.id] ?? [] : [])}`;
+    const fallbackScope = selected && (this.fieldsValue[selected.id] ?? []).some(field => field.kind === 'expression' && field.expression?.variables === undefined) ? this.variables.map(({name, description}) => ({name, description})) : undefined;
+    const controlsKey = `${JSON.stringify(fallbackScope)}|${[...this.selectedIds].join(',')}|${this.locked}|${this.disableConnections}|${this.showLastRunValue}|${selected?.runMetrics}|${JSON.stringify([selected?.localVariables, selected?.localVariablesEditable, selected?.frame])}|${JSON.stringify(selected ? this.fieldsValue[selected.id] ?? [] : [])}`;
     this.shadowRoot!.querySelector<HTMLElement>("[part=palette]")!.hidden = false;
     this.shadowRoot!.querySelector<HTMLElement>('[part=selection-toolbar]')!.hidden = this.selection.length === 0;
     this.renderSelectionToolbar();
