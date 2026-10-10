@@ -2228,9 +2228,9 @@ export class ProcessModeler<
     checksStatus.dataset.state = count ? 'bad' : 'ready';
   }
   private paintViewport(): void {
-    this.shadowRoot!.querySelector<HTMLElement>(
-      "[part=world]",
-    )!.style.transform =
+    const world = this.shadowRoot!.querySelector<HTMLElement>("[part=world]")!;
+    world.style.setProperty('--boe-process-inverse-zoom', String(1 / this.viewport.zoom));
+    world.style.transform =
       `translate(${this.viewport.x}px,${this.viewport.y}px) scale(${this.viewport.zoom})`;
     const canvas = this.shadowRoot!.querySelector<HTMLElement>("[part=canvas]")!;
     const grid = 16 * this.viewport.zoom * (this.viewport.zoom < 0.5 ? 4 : 1);

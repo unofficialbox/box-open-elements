@@ -198,7 +198,8 @@ export const processModelerDesign = `
   [part=end-grip]::before { content: ''; display: block; width: 10px; height: 10px; margin: 7px; border: 1.5px solid var(--boe-token-surface-surface-brand, #0061d5); border-radius: 50%; background: var(--boe-token-surface-surface, #fff); }
   [part=box]:hover [part=port], [part=box]:focus-within [part=port], [part=box][aria-current=true] [part=port], [part=frame]:hover [part=port] { opacity: 1; }
   [part=connection] { position: absolute; z-index: 5; display: flex; align-items: center; gap: 4px; transform: translate(-50%,-50%); min-width: 0; min-height: 0; padding: 2px 6px; border-radius: 6px; background: var(--boe-token-surface-surface-secondary, #fbfbfb); font-size: 12px; font-weight: 600; white-space: nowrap; }
-  [part=connection]:has(> span:empty) { padding: 0; background: transparent; min-width: 0; min-height: 0; }
+  /* Unlabelled lines still need a reachable midpoint for pointer insert/selection. */
+  [part=connection]:has(> span:empty) { padding: 0; background: transparent; min-width: calc(24px * var(--boe-process-inverse-zoom, 1)); min-height: calc(24px * var(--boe-process-inverse-zoom, 1)); }
   [part=connection-actions] { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; width: max-content; padding: 4px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 8px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); opacity: 0; pointer-events: none; }
   [part=connection]:hover [part=connection-actions], [part=connection]:focus-within [part=connection-actions] { opacity: 1; pointer-events: auto; }
   [part=connection-actions] button { min-height: 32px; padding: 4px; font-size: 12px; }

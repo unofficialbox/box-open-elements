@@ -390,6 +390,14 @@ describe("Process Modeler prototype interactions", () => {
     chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
     expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'insert', lineId: 'ab', from: 'a', to: 'b' });
   });
+  it('keeps an unlabelled line midpoint target reachable as the canvas zooms', () => {
+    const { builder, root } = fixture();
+    builder.setView({ x: 0, y: 0, zoom: 0.55 });
+    expect(root.querySelector<HTMLElement>('[part=world]')!.style.getPropertyValue('--boe-process-inverse-zoom'))
+      .toBe(String(1 / 0.55));
+    expect(root.querySelector('style')!.textContent).toContain('min-width: calc(24px * var(--boe-process-inverse-zoom, 1))');
+    expect(root.querySelector('[part=connection] > span')?.textContent).toBe('');
+  });
   it('uses the same anchored chooser from the selected-line toolbar', () => {
     const { builder, root } = fixture(); builder.selectLine('ab');
     const chooser = root.querySelector<HTMLElement>('[part=keyboard-chooser]')!;

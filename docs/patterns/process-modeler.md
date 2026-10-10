@@ -205,7 +205,9 @@ history. Tidy animates box positions over 320ms unless reduced motion is set.
 - Drop a building block or existing step onto a highlighted line to insert it.
   Activating a line's insert button or the selected-line toolbar opens the
   contextual kind chooser at the line midpoint; Escape cancels without an edit
-  and returns focus to the invoking button.
+  and returns focus to the invoking button. Unlabelled connections retain an
+  invisible 24px screen-space midpoint target so pointer users can reveal
+  these actions even when the canvas is zoomed out.
   On an accepted new-step insert along a straight, root-level row, the library
   makes room by moving that row's later columns and records the layout with the
   host edit for undo/redo. Branched and nested inserts retain host-owned layout
