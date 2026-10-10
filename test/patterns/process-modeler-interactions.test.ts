@@ -340,7 +340,7 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector('style')!.textContent).toContain('[part=run-toggle] input::after');
     toggle.click(); expect(builder.showLastRun).toBe(true);
     builder.setValidation([{ boxId: 'a', message: 'Fix auth' }]);
-    expect(status.textContent).toBe('1 problem');
+    expect(status.textContent).toBe('1 thing needs attention');
     expect(status.dataset.state).toBe('bad');
   });
   it('shows measured and unmeasured task states from the last run', () => {

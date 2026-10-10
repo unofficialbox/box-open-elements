@@ -55,7 +55,9 @@ export const processModelerDesign = `
   [part=run-toggle] input:checked::after { transform: translateX(14px); }
   [part=run-toggle] input:focus-visible { outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5); outline-offset: 2px; }
   [part=toolbar] [data-command=checks-status] { white-space: nowrap; color: var(--boe-token-text-text-secondary, #6f6f6f); }
-  [part=toolbar] [data-command=checks-status][data-state=bad] { color: var(--boe-token-text-status-text-error, #b92340); }
+  [part=toolbar] [data-command=checks-status][data-state=bad] { color: color-mix(in srgb, var(--boe-token-text-status-text-error, #b92340) 85%, var(--boe-token-text-text, #141413)); }
+  [part=toolbar] [data-command=checks-status] svg { flex: none; }
+  [part=toolbar] [data-command=checks-status][data-state=ready] svg { color: var(--boe-token-text-status-text-success, #187657); }
   [part=view-menu] { display: none; position: relative; }
   [part=view-menu] summary { list-style: none; height: 32px; display: flex; align-items: center; padding: 0 14px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 20px; font-size: 13px; font-weight: 600; letter-spacing: .01em; cursor: pointer; white-space: nowrap; }
   [part=view-menu][open] { z-index: 20; }
@@ -71,7 +73,7 @@ export const processModelerDesign = `
   [part=toolbar] [part=view-switch] { padding: 2px; gap: 0; background: var(--boe-token-surface-surface-secondary, #fbfbfb); }
   [part=toolbar] [part=view-switch] button { height: 26px; min-height: 26px; padding: 0 12px; border: 0; border-radius: 16px; font-size: 12.5px; letter-spacing: normal; }
   [part=toolbar] [part=view-switch] button[aria-pressed=true] { box-shadow: 0 0 0 1px var(--boe-token-stroke-stroke, #e8e8e8); }
-  [part=toolbar] button[data-command=checks-status] { display: inline-flex; align-items: center; gap: 6px; height: auto; min-height: 0; padding: 4px 6px; border: 0; border-radius: 8px; font-weight: 400; letter-spacing: normal; }
+  [part=toolbar] button[data-command=checks-status] { display: inline-flex; align-items: center; gap: 6px; height: auto; min-height: 0; line-height: 1.45; padding: 4px 6px; border: 0; border-radius: 8px; font-weight: 400; letter-spacing: normal; }
   [part=toolbar] [data-command=palette], [part=toolbar] [data-command=undo], [part=toolbar] [data-command=redo] { width: 32px; padding: 0; place-items: center; }
   [part=toolbar] [data-command=palette], [part=toolbar] [data-command=details] { border-color: var(--boe-token-stroke-stroke, #e8e8e8); background: var(--boe-token-surface-surface, #fff); }
   :host([data-compact-toolbar]) [part=view-switch], :host([data-compact-toolbar]) [part=run-toggle] { display: none; }

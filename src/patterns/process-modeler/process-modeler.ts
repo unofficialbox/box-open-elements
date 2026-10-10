@@ -3091,8 +3091,8 @@ export class ProcessModeler<
     const count = this.allChecks.length;
     const glyph = svgElement('svg'); glyph.setAttribute('viewBox', '0 0 16 16'); glyph.setAttribute('aria-hidden', 'true');
     const circle = svgElement('circle'); circle.setAttribute('cx', '8'); circle.setAttribute('cy', '8'); circle.setAttribute('r', '7'); circle.setAttribute('fill', 'currentColor');
-    const mark = svgElement('path'); mark.setAttribute('d', count ? 'M8 4v5m0 2v1' : 'm4.5 8 2.5 2.5 4.5-5'); mark.setAttribute('stroke', 'var(--boe-token-surface-surface, #fff)'); mark.setAttribute('stroke-width', '1.5'); mark.setAttribute('fill', 'none'); mark.setAttribute('stroke-linecap', 'round'); mark.setAttribute('stroke-linejoin', 'round'); glyph.append(circle, mark);
-    const label = document.createElement('span'); label.textContent = count ? `${count} ${count === 1 ? 'problem' : 'problems'}` : 'Ready to run';
+    const mark = svgElement('path'); mark.setAttribute('d', count ? 'm5 5 6 6m0-6-6 6' : 'm4.5 8 2.5 2.5 4.5-5'); mark.setAttribute('stroke', 'var(--boe-token-surface-surface, #fff)'); mark.setAttribute('stroke-width', '1.5'); mark.setAttribute('fill', 'none'); mark.setAttribute('stroke-linecap', 'round'); mark.setAttribute('stroke-linejoin', 'round'); glyph.append(circle, mark);
+    const label = document.createElement('span'); label.textContent = count ? `${count} ${count === 1 ? 'thing needs' : 'things need'} attention` : 'Ready to run';
     checksStatus.replaceChildren(glyph, label);
     checksStatus.dataset.state = count ? 'bad' : 'ready';
     this.shadowRoot!.querySelector<HTMLElement>('[data-view-option=checks]')!.textContent = count ? `Checks (${count})` : 'Checks: ready to run';
