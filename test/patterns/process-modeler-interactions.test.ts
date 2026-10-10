@@ -22,6 +22,75 @@ function pointer(target: Element, type: string, x: number, y: number, extra = {}
 }
 afterEach(() => document.body.replaceChildren());
 describe("Process Modeler prototype interactions", () => {
+  it("preserves structured technical code and prose as safe text without changing business or legacy descriptions", () => {
+    const { builder, root } = fixture();
+    builder.document = { ...projection, boxes: projection.boxes.map(box => ({ ...box,
+      description: "Business purpose", technicalDescription: "Legacy fallback",
+      ...(box.id === "a" ? { technicalDetails: [{ text: "POST /files/content", format: "code" as const }, { text: "Uploads › <img src=x>", format: "text" as const }] } : {}),
+    })) };
+    expect(root.querySelector('[data-box-id=a] small')?.textContent).toBe("Business purpose");
+    builder.detail = "technical";
+    expect(root.querySelector('[data-box-id=a] [part=technical-description]')?.textContent).toBe("POST /files/content");
+    expect(root.querySelector('[data-box-id=a] [part=technical-summary]')?.textContent).toBe("Uploads › <img src=x>");
+    expect(root.querySelector('[data-box-id=a] img')).toBeNull();
+    expect(root.querySelector('[data-box-id=b] [part=technical-description]')?.textContent).toBe("Legacy fallback");
+    builder.detail = "business";
+    expect(root.querySelector('[data-box-id=a] small')?.textContent).toBe("Business purpose");
+    expect(root.querySelector('[part=technical-summary]')).toBeNull();
+  });
+
+  it("preserves safe inline code within technical prose and the host-owned projection", () => {
+    const { builder, root } = fixture();
+    builder.document = { ...projection, boxes: [{ ...projection.boxes[0], technicalDetails: [{ text: "Fallback", segments: [{ text: "Runs " }, { text: "<child-process>", format: "code" }] }] }], lines: [] };
+    builder.detail = "technical";
+    const summary = root.querySelector('[part=technical-summary]')!;
+    expect(summary.textContent).toBe("Runs <child-process>");
+    expect(summary.querySelector('[part=technical-inline-code]')?.textContent).toBe("<child-process>");
+    expect(summary.querySelector('child-process')).toBeNull();
+    expect(builder.document!.boxes[0].technicalDetails![0].text).toBe("Fallback");
+    builder.detail = "business";
+    expect(root.querySelector('[part=technical-inline-code]')).toBeNull();
+  });
+
+  it("detaches technical lines and segments in readback and event snapshots", () => {
+    const { builder } = fixture();
+    const source: ProcessProjection = { ...projection, boxes: [{ ...projection.boxes[0], technicalDetails: [{ text: "Original", segments: [{ text: "Identifier", format: "code" }] }] }], lines: [] };
+    const readable = vi.fn(); const changed = vi.fn();
+    builder.addEventListener("readable-projection-changed", readable);
+    builder.addEventListener("projection-changed", changed);
+    builder.document = source;
+    for (const snapshot of [builder.readback.current!, builder.readback.lastReadable!, readable.mock.calls[0][0].detail.projection, changed.mock.calls[0][0].detail.projection]) {
+      snapshot.boxes[0].technicalDetails[0].text = "Mutated";
+      snapshot.boxes[0].technicalDetails[0].segments[0].text = "Mutated identifier";
+      snapshot.boxes[0].technicalDetails.push({ text: "Extra" });
+    }
+    const expected = [{ text: "Original", segments: [{ text: "Identifier", format: "code" }] }];
+    expect(source.boxes[0].technicalDetails).toEqual(expected);
+    expect(builder.document!.boxes[0].technicalDetails).toEqual(expected);
+    expect(builder.readback.current!.boxes[0].technicalDetails).toEqual(expected);
+    expect(builder.readback.lastReadable!.boxes[0].technicalDetails).toEqual(expected);
+    expect(builder.readback.current!.boxes[0].node).toBe(source.boxes[0].node);
+  });
+
+  it("stacks multiple technical lines beneath an event caption", () => {
+    const { builder, root } = fixture();
+    builder.document = { ...projection, boxes: [{ ...projection.boxes[0], shape: "event", technicalDetails: [{ text: "0 * * * *", format: "code" }, { text: "Every hour" }] }], lines: [] };
+    builder.detail = "technical";
+    expect([...root.querySelectorAll('[part=event-details] small')].map(line => line.textContent)).toEqual(["0 * * * *", "Every hour"]);
+    expect(root.querySelector('[data-shape=event] > small')).toBeNull();
+  });
+
+  it("refreshes inspector metrics when a stable selected host node opts out and back in", () => {
+    const { builder, root } = fixture();
+    builder.lastRun = { label: "Morning run", steps: { a: { callsPerSecond: 2 } } }; builder.showLastRun = true; builder.select("a");
+    expect(root.querySelector('[part=editor] table[aria-label="Last run metrics"]')).not.toBeNull();
+    const setEnabled = (enabled: boolean) => { builder.document = { ...projection, boxes: projection.boxes.map(box => box.id === "a" ? { ...box, runMetrics: enabled } : box) }; };
+    setEnabled(false);
+    expect(root.querySelector('[part=editor] table[aria-label="Last run metrics"]')).toBeNull();
+    setEnabled(true);
+    expect(root.querySelector('[part=editor] table[aria-label="Last run metrics"]')).not.toBeNull();
+  });
+
   it("does not publish an empty readable workflow before a host document loads", () => {
     const builder = new ProcessModeler(); const readable = vi.fn(); const raw = vi.fn();
     builder.addEventListener("readable-projection-changed", readable);
@@ -34,6 +103,14 @@ describe("Process Modeler prototype interactions", () => {
     expect(builder.version).toBe(0);
     builder.document = undefined;
     expect(builder.readback.current).toBeNull(); expect(builder.readback.lastReadable).toBeNull();
+  });
+  it("renders a technical gateway expression in a caption without removing its identity", () => {
+    const { builder, root } = fixture();
+    builder.document = { ...projection, boxes: [{ ...projection.boxes[0], shape: 'gateway', technicalDetails: [{text: 'file.size > 0', format: 'code'}] }], lines: [] };
+    builder.detail = 'technical';
+    expect(root.querySelector('[part=caption] strong')?.textContent).toBe('Read');
+    expect(root.querySelector('[part=caption] [part=technical-description]')?.textContent).toBe('file.size > 0');
+    builder.detail = 'business'; expect(root.querySelector('[part=caption]')).toBeNull();
   });
   it("names the desktop building-block pane without duplicating the mobile drawer heading", () => {
     const { root } = fixture();
@@ -277,6 +354,14 @@ describe("Process Modeler prototype interactions", () => {
     builder.lastRun = run; expect(builder.showLastRun).toBe(false);
     expect(root.querySelector('[part=metrics]')).toBeNull();
     builder.showLastRun = true; expect(root.querySelector('[data-box-id=a] [part=metrics]')?.textContent).toBe('10% failed');
+  });
+  it('lets the host opt out of task metrics without changing other task defaults', () => {
+    const { builder, root } = fixture();
+    builder.document = { ...projection, boxes: projection.boxes.map(box => box.id === 'a' ? { ...box, runMetrics: false } : box) };
+    builder.lastRun = { label: 'Morning run', steps: {} }; builder.showLastRun = true;
+    expect(root.querySelector('[data-box-id=a] [part=metrics]')).toBeNull();
+    builder.select('a'); expect(root.querySelector('[part=inspector-metrics]')).toBeNull();
+    expect(root.querySelector('[data-box-id=b] [part=metrics]')?.textContent).toBe('Not in the last run');
   });
   it('shows a host-supplied line traffic share only in Last run view', () => {
     const { builder, root } = fixture();

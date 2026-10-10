@@ -303,3 +303,9 @@ Locked diagrams disable all variable editing controls.
 Host checks can supply an optional `title` for a short problem summary. `message` remains the explanatory detail and live announcement. Titled Checks cards show the affected step, title and detail; the canvas shows the concise title. Existing message-only checks remain supported.
 
 Embedded hosts retain the modeler's Business/Technical and Last run controls. These describe the diagram rather than host page navigation. At narrow widths they remain in the View menu, including Last run when data is supplied. The inspector retains selected-step identity; hosts own their outer document title and Steps/Diagram/Code navigation.
+
+### Structured technical descriptions
+
+`ProcessBox.technicalDetails` accepts plain-text lines with `format: "code"` for a monospace call or expression and `format: "text"` for supporting prose. For example, `[{ text: "POST /files/content", format: "code" }, { text: "Uploads › Upload file", format: "text" }]` keeps the HTTP operation separate from its readable action name. For prose with embedded identifiers, optional `segments: [{ text: "Runs " }, { text: "child-process", format: "code" }]` replaces the line text while retaining its surrounding prose font. Each segment remains plain text. These lines replace `technicalDescription` only in Technical view; Business view keeps `description`. Legacy string descriptions continue to work. Text is escaped by rendering with `textContent`; hosts do not supply HTML.
+
+Set `ProcessBox.runMetrics = false` for task kinds that the host does not time. Other tasks retain measured/unmeasured Last run metrics, including wrapped rate, p95 and failure values.

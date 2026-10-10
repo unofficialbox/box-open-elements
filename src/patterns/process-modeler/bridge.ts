@@ -11,7 +11,14 @@ import type {
 /** Detach graph presentation data without cloning the host-owned node payload. */
 export function snapshotProcessProjection<N>(projection: ProcessProjection<N>): ProcessProjection<N> {
   return {
-    boxes: projection.boxes.map(box => ({ ...box, ...(box.path ? { path: [...box.path] } : {}) })),
+    boxes: projection.boxes.map(box => ({
+      ...box,
+      ...(box.path ? { path: [...box.path] } : {}),
+      ...(box.technicalDetails ? { technicalDetails: box.technicalDetails.map(detail => ({
+        ...detail,
+        ...(detail.segments ? { segments: detail.segments.map(segment => ({ ...segment })) } : {}),
+      })) } : {}),
+    })),
     lines: projection.lines.map(line => ({
       ...line,
       ...(line.points ? { points: line.points.map(point => ({ ...point })) } : {}),

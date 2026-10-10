@@ -1,5 +1,13 @@
 import type { FlowKind, NodePath } from "../flow-builder/model.js";
 
+/** Plain-text technical lines supplied by the host; code lines use the mono face. */
+export interface ProcessTechnicalDetail {
+  text: string;
+  format?: "code" | "text";
+  /** Optional plain-text runs replacing text, for code embedded within prose. */
+  segments?: readonly { text: string; format?: "code" | "text" }[];
+}
+
 export interface ProcessBox<N = unknown> {
   id: string;
   node: N;
@@ -8,6 +16,10 @@ export interface ProcessBox<N = unknown> {
   description?: string;
   /** Description used in Technical view; absent values fall back to description. */
   technicalDescription?: string;
+  /** Structured Technical view lines; when supplied, replace technicalDescription. */
+  technicalDetails?: readonly ProcessTechnicalDetail[];
+  /** False when this host does not time this task kind; default task metrics remain enabled. */
+  runMetrics?: boolean;
   /** Visual anatomy, independent of the host's kind identifier. */
   shape?: "task" | "gateway" | "event" | "frame";
   path?: NodePath;

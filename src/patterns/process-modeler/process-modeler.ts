@@ -1727,24 +1727,71 @@ export class ProcessModeler<
       const title = document.createElement("strong");
       title.textContent = box.title;
       element.append(title);
-      const descriptionText = this.detailValue === "technical" ? box.technicalDescription ?? box.description : box.description;
-      if (descriptionText) {
-        const description = document.createElement("small");
-        description.textContent = descriptionText;
-        if (this.detailValue === "technical") description.setAttribute("part", "technical-description");
-        element.append(description);
+      let descriptionParent: HTMLElement = element;
+      if (shape === 'event' && this.detailValue === 'technical' && box.technicalDetails?.length) {
+        const details = document.createElement('div'); details.setAttribute('part', 'event-details');
+        element.append(details); descriptionParent = details;
+      }
+      if (shape === 'gateway' && this.detailValue === 'technical' && box.technicalDetails?.length) {
+        const caption = document.createElement('div'); caption.setAttribute('part', 'caption');
+        const position = this.layoutValue.boxes[box.id];
+        let topUsed = false, bottomUsed = false;
+        for (const line of this.projection.lines) {
+          const points = this.routedLines.get(line.id);
+          const end = line.from === box.id ? points?.[0] : line.to === box.id ? points?.at(-1) : undefined;
+          if (!end) continue;
+          if (Math.abs(end.y - position.y) < .01) topUsed = true;
+          if (Math.abs(end.y - (position.y + 56)) < .01) bottomUsed = true;
+        }
+        caption.dataset.side = bottomUsed && !topUsed ? 'above' : 'below';
+        caption.append(title); element.append(caption); descriptionParent = caption;
+      }
+      if (shape === 'task' && box.technicalDetails) icon.style.gridRow = 'span 4';
+      if (this.detailValue === "technical" && box.technicalDetails) {
+        for (const line of box.technicalDetails) {
+          if (!line.text && !line.segments?.length) continue;
+          const description = document.createElement("small");
+          if (line.segments) {
+            for (const segment of line.segments) {
+              if (segment.format === "code") {
+                const code = document.createElement("span");
+                code.setAttribute("part", "technical-inline-code");
+                code.textContent = segment.text;
+                description.append(code);
+              } else description.append(document.createTextNode(segment.text));
+            }
+          } else description.textContent = line.text;
+          description.setAttribute("part", line.format === "code" ? "technical-description" : "technical-summary");
+          descriptionParent.append(description);
+        }
+      } else {
+        const descriptionText = this.detailValue === "technical" ? box.technicalDescription ?? box.description : box.description;
+        if (descriptionText) {
+          const description = document.createElement("small");
+          description.textContent = descriptionText;
+          if (this.detailValue === "technical") description.setAttribute("part", "technical-description");
+          descriptionParent.append(description);
+        }
       }
       if (box.frame && box.loopMark) {
         const loop = document.createElement('span'); loop.setAttribute('part', 'loop-mark'); loop.setAttribute('aria-hidden', 'true'); loop.textContent = '↻'; element.append(loop);
       }
       const metrics = this.showLastRunValue ? this.lastRunValue?.steps[box.id] : undefined;
-      if (this.showLastRunValue && this.lastRunValue && shape === 'task') {
+      if (this.showLastRunValue && this.lastRunValue && shape === 'task' && box.runMetrics !== false) {
         const line = document.createElement("span"); line.setAttribute("part", "metrics");
-        line.textContent = !metrics || metrics.notInRun ? "Not in the last run" : [
-          metrics.callsPerSecond === undefined ? "" : `${metrics.callsPerSecond.toFixed(1)}/s`,
-          metrics.p95Ms === undefined ? "" : `p95 ${formatRunDuration(metrics.p95Ms)}`,
-        ].filter(Boolean).join(" · ");
-        if (metrics?.failedShare !== undefined && metrics.failedShare > 0 && !metrics.notInRun) { const failed = document.createElement('span'); failed.setAttribute('part', 'metric-warning'); failed.textContent = `${formatFailedShare(metrics.failedShare)} failed`; if (line.textContent) line.append(document.createTextNode(' · ')); line.append(failed); }
+        if (!metrics || metrics.notInRun) {
+          line.dataset.state = 'unmeasured'; line.textContent = "Not in the last run";
+        } else {
+          const parts: HTMLElement[] = [];
+          const add = (text: string, warning = false) => { const part = document.createElement('span'); part.textContent = text; if (warning) part.setAttribute('part', 'metric-warning'); parts.push(part); };
+          if (metrics.callsPerSecond !== undefined) add(`${metrics.callsPerSecond.toFixed(1)}/s`);
+          if (metrics.p95Ms !== undefined) add(`p95 ${formatRunDuration(metrics.p95Ms)}`);
+          if (metrics.failedShare !== undefined && metrics.failedShare > 0) add(`${formatFailedShare(metrics.failedShare)} failed`, true);
+          for (const [index, part] of parts.entries()) {
+            if (index) { const separator = document.createElement('span'); separator.setAttribute('part', 'metric-separator'); separator.textContent = '·'; line.append(document.createTextNode(' '), separator, document.createTextNode(' ')); }
+            line.append(part);
+          }
+        }
         element.append(line);
       }
       if (problem) { const message = document.createElement("span"); message.setAttribute("part", "problem"); message.append(checkGlyph(), document.createTextNode(problem.title ?? problem.message)); element.append(message); }
@@ -2161,7 +2208,7 @@ export class ProcessModeler<
     const editor =
       this.shadowRoot!.querySelector<HTMLElement>("[part=editor]")!;
     const selected = this.selected;
-    const controlsKey = `${[...this.selectedIds].join(',')}|${this.locked}|${this.disableConnections}|${this.showLastRunValue}|${JSON.stringify(selected ? this.fieldsValue[selected.id] ?? [] : [])}`;
+    const controlsKey = `${[...this.selectedIds].join(',')}|${this.locked}|${this.disableConnections}|${this.showLastRunValue}|${selected?.runMetrics}|${JSON.stringify(selected ? this.fieldsValue[selected.id] ?? [] : [])}`;
     this.shadowRoot!.querySelector<HTMLElement>("[part=palette]")!.hidden = false;
     this.shadowRoot!.querySelector<HTMLElement>('[part=selection-toolbar]')!.hidden = this.selectedIds.size === 0 && !this.selectedLineId;
     this.renderSelectionToolbar();
@@ -2215,20 +2262,21 @@ export class ProcessModeler<
         leads.append(row);
       }
       const connect = document.createElement('button'); connect.type = 'button'; connect.textContent = 'Connect to…'; connect.disabled = this.locked || this.disableConnections; connect.onclick = () => { this.connecting = selected.id; this.setStatus(`Select the next box to connect from ${selected.title}`); }; leads.append(connect); editor.append(leads);
-      const metrics = this.showLastRunValue ? this.lastRunValue?.steps[selected.id] : undefined;
+      const metrics = this.showLastRunValue && selected.runMetrics !== false ? this.lastRunValue?.steps[selected.id] : undefined;
       if (metrics) {
         const report = document.createElement('section'); report.setAttribute('part', 'inspector-metrics');
         const title = document.createElement('h3'); title.textContent = 'Last run'; report.append(title);
         if (this.lastRunValue?.label) { const source = document.createElement('p'); source.textContent = `From ${this.lastRunValue.label}.`; report.append(source); }
         if (metrics.notInRun) { const note = document.createElement('p'); note.textContent = 'Not in this run'; report.append(note); }
         else {
-          const list = document.createElement('dl');
+          const list = document.createElement('table'); list.setAttribute('aria-label', 'Last run metrics');
+          const body = document.createElement('tbody'); list.append(body);
           for (const [label, value] of [['Per second', metrics.callsPerSecond === undefined ? '–' : metrics.callsPerSecond.toFixed(1)], ['95% finished within', metrics.p95Ms === undefined ? '–' : formatRunDuration(metrics.p95Ms)], ['Failed', metrics.failedShare === undefined ? '–' : formatFailedShare(metrics.failedShare)]] as const) {
-            const term = document.createElement('dt'); term.textContent = label; const detail = document.createElement('dd'); detail.textContent = value; if (label === 'Failed' && metrics.failedShare) detail.setAttribute('part', 'metric-warning'); list.append(term, detail);
+            const row = document.createElement('tr'); const term = document.createElement('th'); term.scope = 'row'; term.textContent = label; const detail = document.createElement('td'); detail.textContent = value; if (label === 'Failed' && metrics.failedShare) detail.setAttribute('part', 'metric-warning'); row.append(term, detail); body.append(row);
           }
           report.append(list);
         }
-        editor.append(report);
+        editor.insertBefore(report, leads);
       }
       const actions = document.createElement('div'); actions.setAttribute('part', 'inspector-actions');
       const duplicate = document.createElement('button'); duplicate.type = 'button'; duplicate.textContent = 'Duplicate'; duplicate.disabled = this.locked; duplicate.onclick = () => this.requestEdit({ type: 'duplicate', sourceId: selected.id, position: { x: this.layoutValue.boxes[selected.id].x + 32, y: this.layoutValue.boxes[selected.id].y + 32 } });
