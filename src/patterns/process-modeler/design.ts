@@ -275,11 +275,12 @@ export const processModelerDesign = `
   [part=field] label { display: grid; gap: 5px; font-size: 12.5px; font-weight: 650; }
   [part=field] :is(input:not([type=checkbox]),textarea,select) { width: 100%; min-height: 36px; padding: 7px 10px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 8px; background: var(--boe-token-surface-surface, #fff); color: var(--boe-token-text-text, #141413); font-family: inherit; font-size: 13px; line-height: 1.4; }
   [part=field] textarea { min-height: 76px; resize: vertical; }
-  [part=field] [part=expression-control] { padding: 7px 12px; border-radius: 12px; box-shadow: inset 0 2px 4px rgb(0 0 0 / .06); font: 12.5px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  [part=field] :is(input,textarea)[part=expression-control] { padding: 7px 12px; border-radius: 12px; box-shadow: inset 0 2px 4px rgb(0 0 0 / .06); font: 12.5px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
   [part=field] textarea[part=expression-control] { min-height: 72px; }
   [part=field]:has([part=expression-control]), [part=field] label:has([part=expression-control]) { gap: 6px; }
-  [part=field] label:has([part=expression-control]) { font-weight: 600; }
-  [part=expression-help] { margin-top: 8px; font-size: 12.5px; color: var(--boe-token-text-text-secondary, #6f6f6f); }
+  [part=field] label:has([part=expression-control]) { font-weight: 600; line-height: 1.45; }
+  [part=field]:has([part=expression-control]) small { line-height: 1.45; }
+  [part=expression-help] { margin-top: 8px; font-size: 12.5px; line-height: 1.45; color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=expression-help] summary { cursor: pointer; font-weight: 600; }
   [part=expression-help] ul { padding-left: 18px; margin: 6px 0 0; display: grid; gap: 4px; }
   [part=expression-help] li { margin: 0; }
