@@ -1202,11 +1202,12 @@ export class ProcessModeler<
   }
   private copySelection(): boolean {
     this.clearClipboard();
+    const session = this.clipboardSession;
     let active = true; let claimed = false;
     const request: ProcessCopyRequest = {
       sourceIds: Object.freeze([...this.selectedIds]),
       capture: clipboard => {
-        if (!active || claimed) return;
+        if (!active || claimed || session !== this.clipboardSession || !this.isConnected) return;
         claimed = true;
         if (!Number.isInteger(clipboard?.itemCount) || clipboard.itemCount < 1 || typeof clipboard.paste !== 'function' || (clipboard.dispose !== undefined && typeof clipboard.dispose !== 'function')) {
           this.setStatus('The host did not supply a valid clipboard'); return;
@@ -1214,10 +1215,10 @@ export class ProcessModeler<
         this.clipboard = Object.freeze({ itemCount: clipboard.itemCount, paste: clipboard.paste.bind(clipboard), ...(clipboard.dispose ? { dispose: clipboard.dispose.bind(clipboard) } : {}) });
         this.setStatus(`${clipboard.itemCount} steps copied`);
       },
-      refuse: message => { if (!active || claimed) return; claimed = true; this.setStatus(message ?? 'Copy is not supported by this host'); },
+      refuse: message => { if (!active || claimed || session !== this.clipboardSession || !this.isConnected) return; claimed = true; this.setStatus(message ?? 'Copy is not supported by this host'); },
     };
     try { emit(this, 'process-copy-request', request); } finally { active = false; }
-    if (!claimed) this.setStatus('Copy is not supported by this host');
+    if (!claimed && session === this.clipboardSession && this.isConnected) this.setStatus('Copy is not supported by this host');
     return claimed;
   }
   private pasteClipboard(): void {

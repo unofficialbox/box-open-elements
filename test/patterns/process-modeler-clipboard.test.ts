@@ -85,6 +85,20 @@ describe('Process Modeler host-owned immutable clipboard', () => {
     builder.locked = false; key('v'); expect(paste).toHaveBeenCalledOnce(); expect(Object.keys(builder.layout.boxes)).toEqual(['a', 'b', 'c']);
     expect(key('z').defaultPrevented).toBe(false);
   });
+  it.each(['load', 'disconnect'])('rejects capture and refusal after synchronous %s during Copy', reset => {
+    const { builder, key } = fixture(); const paste = vi.fn();
+    builder.addEventListener('process-copy-request', event => {
+      const request = (event as CustomEvent).detail;
+      if (reset === 'load') builder.load(structuredClone(original)); else builder.remove();
+      request.capture({ itemCount: 2, paste });
+      request.refuse('Stale refusal');
+    });
+    expect(key('c').defaultPrevented).toBe(false);
+    if (reset === 'disconnect') document.body.append(builder);
+    key('v'); expect(paste).not.toHaveBeenCalled();
+    expect(builder.shadowRoot!.querySelector('[part=status]')!.textContent).not.toBe('Stale refusal');
+    expect(key('z').defaultPrevented).toBe(false);
+  });
   it('disposes a capture on disconnect and leaves typing shortcuts with the editor', () => {
     const { builder, key } = fixture(); const capture = vi.fn(); const dispose = vi.fn();
     builder.addEventListener('process-copy-request', event => { capture(); (event as CustomEvent).detail.capture({ itemCount: 2, paste: vi.fn(), dispose }); });
