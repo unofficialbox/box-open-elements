@@ -37,6 +37,21 @@ describe('Native graph note and association roles', () => {
     element.select('n'); expect(root.querySelector('[part=leads-to]')).toBeNull();
   });
 
+  it('refreshes Leads-to eligibility for peer role transitions without disposing custom drafts', () => {
+    const { element, root } = fixture();
+    const a = graph.boxes[0]; const b = graph.boxes[1];
+    element.document = {boxes: [a, b], lines: []};
+    const draft = document.createElement('input'); draft.value = 'Unsaved custom draft';
+    element.renderer = (_node, editor) => { editor.append(draft); };
+    element.select('a');
+    const options = () => [...root.querySelectorAll<HTMLOptionElement>('[part=lead-target] option')].map(option => option.value);
+    expect(options()).toContain('b');
+    element.document = {boxes: [a, {...b, role: 'note'}], lines: []};
+    expect(options()).not.toContain('b'); expect(draft.isConnected).toBe(true); expect(draft.value).toBe('Unsaved custom draft');
+    element.document = {boxes: [a, b], lines: []};
+    expect(options()).toContain('b'); expect(draft.isConnected).toBe(true); expect(draft.value).toBe('Unsaved custom draft');
+  });
+
   it('renders safe note text independent of kind, detail, metrics and flow counts', () => {
     const { element, root } = fixture();
     element.lastRun = { label: 'Run', steps: { n: { callsPerSecond: 9 } } }; element.showLastRun = true;

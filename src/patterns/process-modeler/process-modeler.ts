@@ -3085,7 +3085,7 @@ export class ProcessModeler<
     const previous = editor.querySelector<HTMLElement>('[part=leads-to]');
     if (!isFlowBox(selected) || ['end', 'finish'].includes(selected.kind)) { previous?.remove(); return; }
     const outgoing = this.projection.lines.filter(line => isFlowLine(line) && line.from === selected.id);
-    const state = JSON.stringify([selected.id, selected.kind, this.locked, this.disableConnections, outgoing, this.projection.boxes.filter(box => box.parentId === selected.parentId).map(({id, title, kind}) => ({id, title, kind}))]);
+    const state = JSON.stringify([selected.id, selected.kind, this.locked, this.disableConnections, outgoing, this.projection.boxes.filter(box => box.parentId === selected.parentId).map(({id, title, kind, role}) => ({id, title, kind, role}))]);
     if (previous?.dataset.state === state) return;
     const leads = document.createElement('section'); leads.setAttribute('part', 'leads-to'); leads.dataset.state = state;
     const heading = document.createElement('h3'); heading.textContent = 'Leads to'; leads.append(heading);
