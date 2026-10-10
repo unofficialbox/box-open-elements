@@ -1264,6 +1264,20 @@ describe("Process Modeler prototype interactions", () => {
     expect(builder.layout.boxes.c).toEqual(before.boxes.c);
     builder.undo(); expect(builder.layout.boxes).toEqual(before.boxes);
   });
+  it('snaps the selected Tidy translation from a host arrangement origin and preserves unrelated layout', () => {
+    const { builder, root } = fixture();
+    builder.model = { project: doc => doc, arrange: () => ({ boxes: { a: { x: 32, y: 48 }, b: { x: 352, y: 48 } } }) };
+    builder.layout = { boxes: { a: { x: 100, y: 101 }, b: { x: 520, y: 205 }, c: { x: 900, y: 901 } }, notes: [{ id: 'note', text: 'Keep', x: 700, y: 20 }] };
+    builder.history.clear(); const before = builder.layout;
+    builder.selectMany(['a', 'b']);
+    root.querySelector<HTMLButtonElement>('[data-selection-command=space]')!.click();
+    const after = builder.layout;
+    expect(after.boxes.a).toMatchObject({ x: 96, y: 96 });
+    expect(after.boxes.b).toMatchObject({ x: 416, y: 96 });
+    expect(after.boxes.c).toEqual(before.boxes.c); expect(after.notes).toEqual(before.notes);
+    builder.undo(); expect(builder.layout).toEqual(before);
+    builder.redo(); expect(builder.layout).toEqual(after);
+  });
   it("tidies a selected frame with its descendants as one graph group", () => {
     const builder = new ProcessModeler();
     builder.document = {

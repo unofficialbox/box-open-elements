@@ -1007,10 +1007,12 @@ export class ProcessModeler<
       const arrangedX = Math.min(...group.map(box => arranged.boxes[box.id]?.x ?? Infinity));
       const arrangedY = Math.min(...group.map(box => arranged.boxes[box.id]?.y ?? Infinity));
       if (![arrangedX, arrangedY].every(Number.isFinite)) continue;
+      const dx = Math.round((startX - arrangedX) / 16) * 16;
+      const dy = Math.round((startY - arrangedY) / 16) * 16;
       for (const box of subset.boxes) {
         const position = arranged.boxes[box.id];
         if (!position || !next.boxes[box.id]) continue;
-        next.boxes[box.id] = { ...next.boxes[box.id], x: startX + position.x - arrangedX, y: startY + position.y - arrangedY };
+        next.boxes[box.id] = { ...next.boxes[box.id], x: position.x + dx, y: position.y + dy };
       }
     }
     this.commitLayout(next);
