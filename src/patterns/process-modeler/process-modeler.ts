@@ -385,6 +385,9 @@ export class ProcessModeler<
     this.refresh();
   }
   disconnectedCallback(): void {
+    const menu = this.shadowRoot?.querySelector<HTMLDetailsElement>('[part=view-menu]');
+    if (menu) menu.open = false;
+    this.viewMenuDocument?.removeEventListener('pointerdown', this.dismissViewMenuOutside, true); this.viewMenuDocument = undefined;
     this.layoutEditSession++;
     this.resizeObserver?.disconnect();
     this.clearClipboard();
@@ -400,7 +403,7 @@ export class ProcessModeler<
     this.drag = undefined;
     this.portDrag = undefined; this.endDrag = undefined; this.pendingReattach = undefined; this.marquee = undefined; this.segmentDrag = undefined;
   }
-  connectedCallback(): void { super.connectedCallback(); this.resizeObserver?.observe(this); }
+  connectedCallback(): void { super.connectedCallback(); this.resizeObserver?.observe(this); this.syncViewMenuDismissal(); }
   refresh(): void {
     if (this.isRendered) this.update();
   }
@@ -873,6 +876,19 @@ export class ProcessModeler<
     keyboardPicker.addEventListener('picker-cancel', () => this.closeKeyboardChooser(true));
     this.setupPanes();
   }
+  private viewMenuDocument?: Document;
+  private syncViewMenuDismissal(): void {
+    const menu = this.shadowRoot?.querySelector<HTMLDetailsElement>('[part=view-menu]');
+    const target = this.isConnected && menu?.open ? this.ownerDocument : undefined;
+    if (this.viewMenuDocument === target) return;
+    this.viewMenuDocument?.removeEventListener('pointerdown', this.dismissViewMenuOutside, true);
+    this.viewMenuDocument = target;
+    target?.addEventListener('pointerdown', this.dismissViewMenuOutside, true);
+  }
+  private dismissViewMenuOutside = (event: PointerEvent): void => {
+    const menu = this.shadowRoot?.querySelector<HTMLDetailsElement>('[part=view-menu]');
+    if (menu?.open && !event.composedPath().includes(menu)) menu.open = false;
+  };
   private setupPanes(): void {
     const root = this.shadowRoot!;
     const toolbar = root.querySelector<HTMLElement>('[part=toolbar]')!;
@@ -890,15 +906,45 @@ export class ProcessModeler<
     checksStatus.onclick = () => { this.select(null); this.activePane = 'Checks'; this.renderPane(); if (this.narrowValue) this.openDrawer('inspector'); root.querySelector<HTMLButtonElement>('#process-tab-checks')?.focus(); };
     const viewMenu = document.createElement("details"); viewMenu.setAttribute("part", "view-menu");
     const summary = document.createElement("summary"); summary.textContent = "View"; viewMenu.append(summary);
-    const viewOptions = document.createElement('div'); viewOptions.setAttribute('part', 'view-menu-options'); viewMenu.append(viewOptions);
+    const viewOptions = document.createElement('div'); viewOptions.setAttribute('part', 'view-menu-options'); viewOptions.setAttribute('role', 'menu'); viewOptions.setAttribute('aria-label', 'Diagram view'); viewMenu.append(viewOptions);
+    summary.setAttribute('aria-haspopup', 'menu');
+    viewMenu.addEventListener('toggle', () => { summary.setAttribute('aria-expanded', String(viewMenu.open)); this.syncViewMenuDismissal(); });
+    const closeViewMenu = () => { const session = this.layoutEditSession; viewMenu.open = false; summary.focus({ preventScroll: true }); return session === this.layoutEditSession && this.isConnected; };
+    viewMenu.addEventListener('keydown', event => {
+      const items = Array.from(viewOptions.querySelectorAll<HTMLButtonElement>('button')).filter(item => !item.hidden && !item.disabled);
+      if (event.key === 'Tab') {
+        if (viewMenu.open && root.activeElement === summary && !event.shiftKey && items.length) { event.preventDefault(); items[0].focus(); }
+        else viewMenu.open = false;
+        return;
+      }
+      if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key) || !items.length) return;
+      event.preventDefault(); viewMenu.open = true;
+      const index = items.indexOf(root.activeElement as HTMLButtonElement);
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : event.key === 'ArrowDown' ? (index + 1) % items.length : (index < 0 ? items.length - 1 : (index + items.length - 1) % items.length);
+      items[next].focus();
+    });
+    root.addEventListener('pointerdown', event => { if (!event.composedPath().includes(viewMenu)) viewMenu.open = false; });
     for (const [value, label] of [["business", "Business view"], ["technical", "Technical view"]] as const) {
       const button = document.createElement("button"); button.type = "button"; button.dataset.detail = value; button.textContent = label;
-      button.onclick = () => { this.detail = value; viewMenu.open = false; };
+      button.setAttribute('role', 'menuitemradio'); button.onclick = () => { if (closeViewMenu()) this.detail = value; };
       viewOptions.append(button);
     }
-    const mobileRun = document.createElement('button'); mobileRun.type = 'button'; mobileRun.dataset.viewOption = 'last-run'; mobileRun.textContent = 'Last run'; mobileRun.onclick = () => { this.showLastRun = !this.showLastRun; viewMenu.open = false; }; viewOptions.append(mobileRun);
-    const mobileChecks = document.createElement('button'); mobileChecks.type = 'button'; mobileChecks.textContent = 'Checks'; mobileChecks.onclick = () => { this.select(null); this.activePane = 'Checks'; this.renderPane(); viewMenu.open = false; this.openDrawer('inspector'); }; viewOptions.append(mobileChecks);
-    toolbar.prepend(viewSwitch, runToggle, viewMenu);
+    const mobileRun = document.createElement('button'); mobileRun.type = 'button'; mobileRun.dataset.viewOption = 'last-run'; mobileRun.textContent = 'Show last run'; mobileRun.setAttribute('role', 'menuitem'); mobileRun.onclick = () => { if (closeViewMenu()) this.showLastRun = !this.showLastRun; }; viewOptions.append(mobileRun);
+    const mobileChecks = document.createElement('button'); mobileChecks.type = 'button'; mobileChecks.dataset.viewOption = 'checks'; mobileChecks.textContent = 'Checks: ready to run'; mobileChecks.setAttribute('role', 'menuitem'); mobileChecks.onclick = () => { if (closeViewMenu()) checksStatus.click(); }; viewOptions.append(mobileChecks);
+    const separator = document.createElement('div'); separator.setAttribute('role', 'separator'); viewOptions.append(separator);
+    for (const [command, label, hint] of [['tidy', 'Tidy up', ''], ['undo', 'Undo', 'Ctrl Z'], ['redo', 'Redo', 'Shift Ctrl Z']] as const) {
+      const item = document.createElement('button'); item.type = 'button'; item.dataset.viewOption = command; item.setAttribute('role', 'menuitem');
+      const text = document.createElement('span'); text.textContent = label; item.append(text);
+      if (hint) { const key = document.createElement('small'); key.textContent = hint; item.append(key); }
+      item.onclick = () => { if (!closeViewMenu()) return; if (command === 'tidy') this.tidy(); else if (command === 'undo') this.undo(); else this.redo(); }; viewOptions.append(item);
+    }
+    const spacer = document.createElement('div'); spacer.setAttribute('part', 'toolbar-document'); spacer.setAttribute('aria-hidden', 'true');
+    const spacerTitle = document.createElement('strong'); spacerTitle.setAttribute('part', 'toolbar-title'); spacerTitle.textContent = this.processTitleValue;
+    const saved = document.createElement('span'); saved.textContent = 'Saved'; spacer.append(spacerTitle, saved);
+    toolbar.prepend(spacer, viewSwitch, runToggle, viewMenu);
+    const actions = document.createElement('div'); actions.setAttribute('part', 'toolbar-actions');
+    for (const command of ['undo', 'redo', 'tidy']) actions.append(toolbar.querySelector(`[data-command=${command}]`)!);
+    toolbar.append(actions);
     const layout = root.querySelector('[part=layout]')!;
     const scrim = document.createElement('div'); scrim.setAttribute('part', 'pane-scrim'); scrim.setAttribute('aria-hidden', 'true'); scrim.hidden = true;
     scrim.onclick = () => this.closeDrawer(true); root.append(scrim);
@@ -928,7 +974,9 @@ export class ProcessModeler<
       if (part === "palette") layout.prepend(dialog); else layout.append(dialog);
       const trigger = document.createElement("button"); trigger.dataset.command = part === "palette" ? "palette" : "details"; trigger.textContent = part === "palette" ? "Add" : "Details"; trigger.setAttribute("aria-label", part === "palette" ? "Add building blocks" : `Open ${label.toLowerCase()}`);
       trigger.setAttribute('aria-expanded', 'false');
-      trigger.onclick = () => this.openDrawer(part as 'palette' | 'inspector'); toolbar.append(trigger);
+      trigger.onclick = () => this.openDrawer(part as 'palette' | 'inspector');
+      if (part === 'palette') { trigger.textContent = ''; trigger.append(variableGlyph(true)); toolbar.prepend(trigger); }
+      else actions.append(trigger);
     }
     const inspector = root.querySelector('[part=inspector]')!;
     const heading = document.createElement("div"); heading.setAttribute("part", "process-heading");
@@ -986,6 +1034,7 @@ export class ProcessModeler<
         const narrow = entries[0].contentRect.width < 900;
         this.narrowValue = narrow; this.toggleAttribute("data-narrow", narrow);
         this.toggleAttribute('data-phone', entries[0].contentRect.width < 560);
+        this.toggleAttribute('data-compact-toolbar', entries[0].contentRect.width <= 1100);
         this.toggleAttribute('data-hide-tidy', entries[0].contentRect.width <= 560);
         this.renderSelectionToolbar(); this.positionSelectionToolbar();
         if (!narrow) this.closeDrawer();
@@ -3022,21 +3071,31 @@ export class ProcessModeler<
     button("undo").disabled = !this.history.canUndo || this.locked;
     button("redo").disabled = !this.history.canRedo || this.locked;
     button("tidy").disabled = this.locked;
+    this.shadowRoot!.querySelector<HTMLElement>('[part=toolbar-title]')!.textContent = this.processTitleValue;
+    for (const command of ['undo', 'redo', 'tidy']) this.shadowRoot!.querySelector<HTMLButtonElement>(`[data-view-option=${command}]`)!.disabled = button(command).disabled;
     button("lock").setAttribute("aria-pressed", String(this.locked));
     button("snap").setAttribute("aria-pressed", String(this.snapToGrid));
     this.shadowRoot!.querySelectorAll<HTMLButtonElement>('[data-detail]').forEach(control => {
-      control.setAttribute("aria-pressed", String(control.dataset.detail === this.detailValue));
+      if (!control.closest('[part=view-menu]')) control.setAttribute("aria-pressed", String(control.dataset.detail === this.detailValue));
+      if (control.closest('[part=view-menu]')) control.setAttribute('aria-checked', String(control.dataset.detail === this.detailValue));
+      if (control.closest('[part=view-menu]')) control.textContent = `${control.dataset.detail === this.detailValue ? '✓ ' : ''}${control.dataset.detail === 'business' ? 'Business view' : 'Technical view'}`;
     });
     const runToggle = this.shadowRoot!.querySelector<HTMLElement>('[part=run-toggle]')!;
     runToggle.hidden = !this.lastRunValue;
     runToggle.querySelector<HTMLInputElement>('input')!.checked = this.showLastRunValue;
     const mobileRun = this.shadowRoot!.querySelector<HTMLButtonElement>('[data-view-option=last-run]')!;
     mobileRun.hidden = !this.lastRunValue;
-    mobileRun.setAttribute('aria-pressed', String(this.showLastRunValue));
+    mobileRun.removeAttribute('aria-pressed');
+    mobileRun.textContent = this.showLastRunValue ? 'Hide last run' : 'Show last run';
     const checksStatus = button('checks-status');
     const count = this.allChecks.length;
-    checksStatus.textContent = count ? `${count} ${count === 1 ? 'problem' : 'problems'}` : '✓ Ready to run';
+    const glyph = svgElement('svg'); glyph.setAttribute('viewBox', '0 0 16 16'); glyph.setAttribute('aria-hidden', 'true');
+    const circle = svgElement('circle'); circle.setAttribute('cx', '8'); circle.setAttribute('cy', '8'); circle.setAttribute('r', '7'); circle.setAttribute('fill', 'currentColor');
+    const mark = svgElement('path'); mark.setAttribute('d', count ? 'M8 4v5m0 2v1' : 'm4.5 8 2.5 2.5 4.5-5'); mark.setAttribute('stroke', 'var(--boe-token-surface-surface, #fff)'); mark.setAttribute('stroke-width', '1.5'); mark.setAttribute('fill', 'none'); mark.setAttribute('stroke-linecap', 'round'); mark.setAttribute('stroke-linejoin', 'round'); glyph.append(circle, mark);
+    const label = document.createElement('span'); label.textContent = count ? `${count} ${count === 1 ? 'problem' : 'problems'}` : 'Ready to run';
+    checksStatus.replaceChildren(glyph, label);
     checksStatus.dataset.state = count ? 'bad' : 'ready';
+    this.shadowRoot!.querySelector<HTMLElement>('[data-view-option=checks]')!.textContent = count ? `Checks (${count})` : 'Checks: ready to run';
   }
   private paintViewport(): void {
     const world = this.shadowRoot!.querySelector<HTMLElement>("[part=world]")!;
