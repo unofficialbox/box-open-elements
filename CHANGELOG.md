@@ -15,6 +15,11 @@ are kept as written.
 
 ## Unreleased
 
+## 0.36.2 — 2026-10-10
+
+- Match Process Modeler Checks panel offset, card padding and Ready/problem
+  presentation to the native inspector in desktop and phone layouts.
+
 ## 0.36.1 — 2026-10-10
 
 - Keep visual Process Modeler section frames transparent to ordinary routes,
