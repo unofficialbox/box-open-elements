@@ -99,6 +99,10 @@ export class ProcessModeler<
   private checks: readonly ProcessCheck[] = [];
   private renderer?: (node: N, container: HTMLElement) => void | (() => void);
   private cleanupInspector?: () => void;
+  private inspectorFieldCleanups: (() => void)[] = [];
+  private pendingActionChoice?: { boxId: string; key: string; value: string; session: number };
+  private quietActionFocus = false;
+  private cleanupInspectorFields(): void { for (const cleanup of this.inspectorFieldCleanups.splice(0)) cleanup(); }
   private inspected?: N;
   private inspectedId?: string;
   private inspectedControls = "";
@@ -382,6 +386,7 @@ export class ProcessModeler<
       | ((node: N, container: HTMLElement) => void | (() => void))
       | undefined,
   ) {
+    this.cleanupInspectorFields();
     this.cleanupInspector?.();
     this.cleanupInspector = undefined;
     this.inspected = undefined;
@@ -393,6 +398,7 @@ export class ProcessModeler<
     if (menu) menu.open = false;
     this.viewMenuDocument?.removeEventListener('pointerdown', this.dismissViewMenuOutside, true); this.viewMenuDocument = undefined;
     this.layoutEditSession++;
+    this.pendingActionChoice = undefined;
     this.resizeObserver?.disconnect();
     this.clearClipboard();
     this.cancelPalettePointer();
@@ -400,6 +406,7 @@ export class ProcessModeler<
     const chooser = this.shadowRoot?.querySelector<HTMLDialogElement>("[part=insert-chooser]");
     if (chooser) dismissModal(chooser);
     this.closeKeyboardChooser();
+    this.cleanupInspectorFields();
     this.cleanupInspector?.();
     this.cleanupInspector = undefined;
     this.inspected = undefined;
@@ -2720,47 +2727,103 @@ export class ProcessModeler<
       list.id = `process-action-${box.id}-${field.key}`.replace(/[^a-zA-Z0-9-]/g, '-'); list.hidden = true;
       const optionList = document.createElement('div'); optionList.setAttribute('role', 'listbox'); optionList.id = `${list.id}-choices`; optionList.setAttribute('aria-label', `${field.label} choices`);
       input.setAttribute('role', 'combobox'); input.setAttribute('aria-autocomplete', 'list'); input.setAttribute('aria-controls', optionList.id); input.setAttribute('aria-expanded', 'false'); input.autocomplete = 'off';
-      let group: string | null = null; let active = 0; let browse = false;
-      const close = () => { list.hidden = true; browse = false; input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); };
-      const choose = (option: (typeof options)[number]) => { input.focus(); input.value = option.value; close(); submit(); };
+      const groups = [...new Set(options.map(option => option.group).filter((name): name is string => Boolean(name)))];
+      const shown = input.value;
+      let group: string | null = null; let active = 0; let browse = true;
+      const close = (restore = true) => { list.hidden = true; if (restore) input.value = shown; input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); };
+      const place = () => {
+        if (list.hidden) return;
+        const viewport = this.ownerDocument.defaultView!;
+        const rect = input.getBoundingClientRect();
+        if (!input.isConnected) { close(); return; }
+        if (!rect.width && !rect.height) return;
+        if (rect.bottom <= 0 || rect.top >= viewport.innerHeight) { close(); return; }
+        const below = Math.max(0, viewport.innerHeight - rect.bottom - 12), above = Math.max(0, rect.top - 12);
+        const up = below < 260 && above > below;
+        Object.assign(list.style, { left: `${Math.max(8, rect.left)}px`, right: 'auto', width: `${Math.min(rect.width, viewport.innerWidth - 16)}px`, maxHeight: `${Math.min(420, up ? above : below)}px`, top: up ? 'auto' : `${rect.bottom + 4}px`, bottom: up ? `${viewport.innerHeight - rect.top + 4}px` : 'auto' });
+      };
+      const dismissOutside = (event: Event) => { const path = event.composedPath(); if (!list.hidden && !path.includes(input) && !path.includes(list) && !path.some(target => target instanceof HTMLElement && target.getAttribute('part') === 'action-caret')) close(); };
+      const viewport = this.ownerDocument.defaultView!;
+      viewport.addEventListener('resize', place);
+      this.ownerDocument.addEventListener('scroll', place, true);
+      this.shadowRoot!.addEventListener('scroll', place, true);
+      this.ownerDocument.addEventListener('pointerdown', dismissOutside, true);
+      this.inspectorFieldCleanups.push(() => { close(); viewport.removeEventListener('resize', place); this.ownerDocument.removeEventListener('scroll', place, true); this.shadowRoot?.removeEventListener('scroll', place, true); this.ownerDocument.removeEventListener('pointerdown', dismissOutside, true); });
+      const choose = (option: (typeof options)[number]) => {
+        const session = this.layoutEditSession;
+        if (!input.isConnected || input.disabled || this.locked || this.selected?.id !== box.id) return;
+        input.focus();
+        if (session !== this.layoutEditSession || !input.isConnected || input.disabled || this.locked || this.selected?.id !== box.id || this.shadowRoot?.activeElement !== input || input.closest('[inert]')) return;
+        input.value = option.value; close(false);
+        this.pendingActionChoice = { boxId: box.id, key: field.key, value: option.value, session };
+        submit();
+      };
       const render = () => {
         list.replaceChildren(); optionList.replaceChildren();
         const query = browse ? '' : input.value.trim().toLocaleLowerCase();
-        const matches = options.filter(option => (!group || option.group === group) && (!query || `${option.label} ${option.value} ${option.group ?? ''}`.toLocaleLowerCase().includes(query)));
-        if (!group && !query) {
-          const groups = [...new Set(options.map(option => option.group).filter((name): name is string => Boolean(name)))];
-          for (const name of groups) { const button = document.createElement('button'); button.type = 'button'; button.setAttribute('part', 'action-group'); button.textContent = name; button.onclick = () => { input.focus(); group = name; browse = true; render(); }; list.append(button); }
+        const terms = query.split(/\s+/).filter(Boolean);
+        let matches = options.filter(option => (!group || option.group === group) && terms.every(term => `${option.label} ${option.value} ${option.group ?? ''}`.toLocaleLowerCase().includes(term)));
+        if (!group && !query && groups.length) matches = matches.filter(option => !option.group);
+        if (query) {
+          const starts = (text: string, term: string) => text.toLocaleLowerCase().split(/[\s›_.]+/).some(word => word.startsWith(term));
+          const score = (option: (typeof options)[number]) => terms.filter(term => starts(option.group ?? '', term) || starts(option.label, term)).length;
+          matches.sort((a, b) => score(b) - score(a) || (a.group?.length ?? 0) - (b.group?.length ?? 0) || a.label.length - b.label.length);
+          matches = matches.slice(0, 60);
         }
-        if (group) { const back = document.createElement('button'); back.type = 'button'; back.setAttribute('part', 'action-back'); back.textContent = `All actions / ${group}`; back.onclick = () => { input.focus(); group = null; browse = true; render(); }; list.prepend(back); }
-        for (const [index, option] of matches.entries()) {
-          const item = document.createElement('button'); item.type = 'button'; item.setAttribute('role', 'option'); item.setAttribute('part', 'action-option'); item.id = `${list.id}-${index}`; item.setAttribute('aria-selected', String(index === active));
-          const title = document.createElement('strong'); title.textContent = option.label; item.append(title);
+        const addNavigation = (name: string, part: string, activate: () => void) => {
+          const button = document.createElement('button'); button.type = 'button'; button.tabIndex = -1; button.setAttribute('part', part); button.setAttribute('role', 'option'); button.textContent = name; button.onclick = activate; optionList.append(button);
+        };
+        if (!group && (!query || groups.some(name => name.toLocaleLowerCase().includes(query)))) {
+          const visibleGroups = query ? groups.filter(name => name.toLocaleLowerCase().includes(query)).slice(0, 4) : groups;
+          for (const name of visibleGroups) addNavigation(name, 'action-group', () => { group = name; browse = true; active = 1; render(); });
+        }
+        if (group) addNavigation('All kinds of items', 'action-back', () => { const previous = group; group = null; browse = true; active = Math.max(0, groups.indexOf(previous!)); render(); });
+        for (const option of matches) {
+          const item = document.createElement('button'); item.type = 'button'; item.tabIndex = -1; item.setAttribute('role', 'option'); item.setAttribute('part', 'action-option');
+          const title = document.createElement('strong'); title.textContent = group && option.label.startsWith(`${group} › `) ? option.label.slice(group.length + 3) : option.label; item.append(title);
           if (option.value !== option.label) { const code = document.createElement('small'); code.textContent = option.value; item.append(code); }
           item.onclick = () => choose(option); optionList.append(item);
         }
-        if (!matches.length) { const empty = document.createElement('p'); empty.textContent = 'No matching actions'; list.append(empty); }
+        if (!optionList.childElementCount) { const empty = document.createElement('p'); empty.textContent = 'No matching actions'; list.append(empty); }
         list.append(optionList);
-        active = Math.min(active, Math.max(0, matches.length - 1));
+        const items = Array.from(optionList.querySelectorAll<HTMLElement>('[role=option]'));
+        active = Math.min(active, Math.max(0, items.length - 1));
+        items.forEach((item, index) => { item.id = `${list.id}-${index}`; item.setAttribute('aria-selected', String(index === active)); });
         list.hidden = false; input.setAttribute('aria-expanded', 'true');
-        const selected = list.querySelectorAll<HTMLElement>('[role=option]')[active];
-        if (selected) input.setAttribute('aria-activedescendant', selected.id); else input.removeAttribute('aria-activedescendant');
+        if (items[active]) input.setAttribute('aria-activedescendant', items[active].id); else input.removeAttribute('aria-activedescendant');
+        place(); items[active]?.scrollIntoView?.({ block: 'nearest' });
       };
-      input.addEventListener('focus', () => { group = null; browse = false; render(); });
-      input.addEventListener('input', () => { group = null; browse = false; active = 0; render(); });
+      const openSelected = () => {
+        if (this.quietActionFocus) return;
+        this.pendingActionChoice = undefined;
+        const current = options.find(option => option.value === field.value);
+        group = current?.group ?? null; browse = true;
+        active = group ? 1 + options.filter(option => option.group === group).findIndex(option => option === current) : current ? groups.length + options.filter(option => !option.group).indexOf(current) : 0;
+        render();
+      };
+      list.addEventListener('pointerdown', event => event.preventDefault());
+      input.addEventListener('focus', () => { if (!this.quietActionFocus) { input.select(); openSelected(); } });
+      input.addEventListener('input', () => { this.pendingActionChoice = undefined; group = null; browse = false; active = 0; render(); });
+      input.addEventListener('pointerdown', () => { if (list.hidden && this.shadowRoot?.activeElement === input) openSelected(); });
       input.addEventListener('keydown', event => {
-        if (event.key === 'Escape') { event.preventDefault(); close(); return; }
-        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-          event.preventDefault(); if (list.hidden) render();
-          const items = Array.from(list.querySelectorAll<HTMLButtonElement>('[role=option]')); if (!items.length) return;
-          active = (active + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+        if (list.hidden) { if (event.key === 'ArrowDown' || event.key === 'Enter') { event.preventDefault(); openSelected(); } return; }
+        if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(); return; }
+        if (event.key === 'Tab') { close(); return; }
+        const items = Array.from(list.querySelectorAll<HTMLButtonElement>('[role=option]'));
+        if (!items.length) return;
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || group && (event.key === 'Home' || event.key === 'End')) {
+          event.preventDefault();
+          active = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : (active + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
           items.forEach((item, index) => item.setAttribute('aria-selected', String(index === active)));
           input.setAttribute('aria-activedescendant', items[active].id); items[active].scrollIntoView?.({ block: 'nearest' });
-        } else if (event.key === 'Enter' && !list.hidden) {
-          const items = Array.from(list.querySelectorAll<HTMLButtonElement>('[role=option]')); if (items[active]) { event.preventDefault(); items[active].click(); }
+        } else if (event.key === 'Enter' || event.key === 'ArrowRight' && items[active]?.getAttribute('part') === 'action-group') {
+          if (items[active]) { event.preventDefault(); items[active].click(); }
+        } else if (event.key === 'ArrowLeft' && group && input.value === shown) {
+          event.preventDefault(); list.querySelector<HTMLButtonElement>('[part=action-back]')?.click();
         }
       });
       const caret = document.createElement('button'); caret.type = 'button'; caret.setAttribute('part', 'action-caret'); caret.setAttribute('aria-label', `Browse ${field.label.toLowerCase()} choices`); caret.textContent = '⌄'; caret.disabled = input.disabled;
-      caret.onclick = () => { input.focus(); group = null; browse = true; active = 0; render(); };
+      caret.onclick = () => { this.pendingActionChoice = undefined; input.focus(); group = null; browse = true; active = 0; render(); };
       row.addEventListener('focusout', event => { if (!row.contains(event.relatedTarget as Node)) close(); });
       row.append(caret, list);
     }
@@ -2853,7 +2916,12 @@ export class ProcessModeler<
         return;
       }
       if (!control || control.disabled || control.closest('[inert]')) return;
-      control.focus({ preventScroll: true });
+      const choice = this.pendingActionChoice;
+      // Hosts may echo the committed value repeatedly. Keep focus restoration
+      // quiet until the user explicitly reopens or searches this picker.
+      const quiet = Boolean(focusedType === 'field' && choice && choice.boxId === fieldBox && choice.key === focusedKey && choice.session === this.layoutEditSession && this.fieldsValue[fieldBox!]?.some(field => field.key === focusedKey && field.value === choice.value));
+      this.quietActionFocus = quiet;
+      try { control.focus({ preventScroll: true }); } finally { this.quietActionFocus = false; }
       if (caret !== null && (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) && control.type !== 'number' && control.type !== 'checkbox') control.setSelectionRange(caret, selectionEnd ?? caret, direction ?? undefined);
       if (scrollTop !== undefined) control.scrollTop = scrollTop;
       if (scrollLeft !== undefined) control.scrollLeft = scrollLeft;
@@ -2911,6 +2979,7 @@ export class ProcessModeler<
         if (help.dataset.session === String(this.layoutEditSession)) expressionHelp.set(help.dataset.helpField!, help.open);
       }
     }
+    this.cleanupInspectorFields();
     this.cleanupInspector?.();
     this.cleanupInspector = undefined;
     editor.replaceChildren();

@@ -837,6 +837,93 @@ describe("Process Modeler prototype interactions", () => {
     expect(changes.mock.calls[0][0].detail).toMatchObject({ boxId: 'a', key: 'action', value: 'files.download' });
     expect(input.getAttribute('aria-expanded')).toBe('false');
   });
+  it('opens the current action category and browses categories from the keyboard', () => {
+    const { builder, root } = fixture(); const changes = vi.fn(); builder.addEventListener('process-field-change-request', changes);
+    builder.fields = { a: [{ key: 'action', label: 'Box action', kind: 'action', value: 'files.upload', options: [
+      { value: 'files.upload', label: 'Files › Upload file', group: 'Files' },
+      { value: 'files.download', label: 'Files › Download file', group: 'Files' },
+      { value: 'folders.delete', label: 'Folders › Delete folder', group: 'Folders' },
+      { value: 'folders.get', label: 'Folders › Get folder', group: 'Folders' },
+    ] }] };
+    builder.select('a');
+    const input = root.querySelector<HTMLInputElement>('[data-field=action]')!;
+    input.focus();
+    expect([input.selectionStart, input.selectionEnd]).toEqual([0, input.value.length]);
+    expect(root.querySelectorAll('[part=action-option]')).toHaveLength(2);
+    expect(root.querySelector('[part=action-option][aria-selected=true]')?.textContent).toContain('Upload file');
+    expect(root.querySelector('[part=action-back]')?.getAttribute('role')).toBe('option');
+    expect(root.querySelector<HTMLButtonElement>('[part=action-option]')?.tabIndex).toBe(-1);
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true, cancelable: true }));
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    expect(root.querySelectorAll('[part=action-option]')).toHaveLength(0);
+    expect(root.querySelectorAll('[part=action-group][role=option]')).toHaveLength(2);
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
+    expect(root.querySelectorAll('[part=action-option]')).toHaveLength(2);
+    expect(root.querySelector('[part=action-option]')?.textContent).toContain('Delete folder');
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true, cancelable: true }));
+    expect(root.querySelector('[part=action-option][aria-selected=true]')?.textContent).toContain('Get folder');
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true, cancelable: true }));
+    expect(root.querySelector('[part=action-back]')?.getAttribute('aria-selected')).toBe('true');
+    expect(changes).not.toHaveBeenCalled();
+    expect(root.activeElement).toBe(input);
+    input.value = 'folder delete'; input.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(root.querySelectorAll('[part=action-option]')).toHaveLength(1);
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(input.value).toBe('Files › Upload file');
+    expect(input.getAttribute('aria-expanded')).toBe('false');
+    input.blur(); input.focus();
+    expect([input.selectionStart, input.selectionEnd]).toEqual([0, input.value.length]);
+    expect(root.querySelectorAll('[part=action-option]')).toHaveLength(2);
+    input.value = 'delete folder'; input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    expect(changes.mock.calls[0][0].detail).toMatchObject({ boxId: 'a', key: 'action', value: 'folders.delete' });
+  });
+  it.each(['first', 'second'] as const)('keeps the %s ungrouped selection active beside grouped actions', selected => {
+    const { builder, root } = fixture(); const changes = vi.fn(); builder.addEventListener('process-field-change-request', changes);
+    const options = [{ value: 'custom.a', label: 'Action A' }, { value: 'custom.c', label: 'Action C' }, { value: 'files.upload', label: 'Upload file', group: 'Files' }];
+    const value = selected === 'first' ? 'custom.a' : 'custom.c';
+    builder.fields = { a: [{ key: 'action', label: 'Box action', kind: 'action', value, options }] }; builder.select('a');
+    const input = root.querySelector<HTMLInputElement>('[data-field=action]')!; input.focus();
+    expect(root.querySelectorAll('[part=action-group]')).toHaveLength(1);
+    expect(root.querySelector('[part=action-option][aria-selected=true]')?.textContent).toContain(selected === 'first' ? 'Action A' : 'Action C');
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    expect(changes.mock.calls[0][0].detail.value).toBe(value);
+  });
+  it('keeps a committed picker closed while restoring focus on its controlled echo', () => {
+    const { builder, root } = fixture();
+    const options = [{ value: 'files.upload', label: 'Upload file', group: 'Files' }, { value: 'files.download', label: 'Download file', group: 'Files' }];
+    const fields = (value: string) => ({ a: [{ key: 'action', label: 'Box action', kind: 'action' as const, value, options }] });
+    builder.fields = fields('files.upload'); builder.select('a');
+    builder.addEventListener('process-field-change-request', event => { builder.fields = fields((event as CustomEvent).detail.value); });
+    const input = root.querySelector<HTMLInputElement>('[data-field=action]')!; input.focus();
+    input.value = 'download'; input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    builder.fields = fields('files.download');
+    const echoed = root.querySelector<HTMLInputElement>('[data-field=action]')!;
+    expect(echoed.value).toBe('Download file'); expect(root.activeElement).toBe(echoed);
+    expect(echoed.getAttribute('aria-expanded')).toBe('false');
+    echoed.blur(); echoed.focus(); expect(echoed.getAttribute('aria-expanded')).toBe('true');
+    expect(root.querySelectorAll('[part=action-option]')).toHaveLength(2);
+    builder.fields = fields('files.download');
+    expect(root.querySelector('[data-field=action]')?.getAttribute('aria-expanded')).toBe('true');
+  });
+  it.each(['navigation', 'reload'] as const)('does not commit a stale action option after %s during focus', mode => {
+    const { builder, root } = fixture(); const changes = vi.fn(); builder.addEventListener('process-field-change-request', changes);
+    builder.fields = { a: [{ key: 'action', label: 'Box action', kind: 'action', value: 'files.upload', options: [
+      { value: 'files.upload', label: 'Upload file', group: 'Files' },
+      { value: 'files.download', label: 'Download file', group: 'Files' },
+    ] }] };
+    builder.select('a');
+    const input = root.querySelector<HTMLInputElement>('[data-field=action]')!;
+    root.querySelector<HTMLButtonElement>('[part=action-caret]')!.click();
+    root.querySelector<HTMLButtonElement>('[part=action-group]')!.click();
+    const option = root.querySelectorAll<HTMLButtonElement>('[part=action-option]')[1];
+    input.blur(); input.addEventListener('focus', () => { if (mode === 'navigation') builder.select('b'); else { builder.load(structuredClone(projection)); builder.select('a'); } }, { once: true });
+    option.click();
+    expect(builder.selected?.id).toBe(mode === 'navigation' ? 'b' : 'a');
+    expect(changes).not.toHaveBeenCalled();
+  });
   it("draws a connection by dragging a port, but cancellation never edits", () => {
     const { builder, root, canvas } = fixture(); const requests = vi.fn(); builder.addEventListener("process-edit-request", requests);
     const from = builder.layout.boxes.a, to = builder.layout.boxes.b;
