@@ -145,6 +145,53 @@ const generated: GeneratedElement[] = elements.map(entry => {
   }
   const properties = [...propertyKeys].sort();
   const events = new Map<string, Set<string>>();
+  const addEvent = (name: string, detail: ts.Type): void => {
+    const details = events.get(name) ?? new Set<string>();
+    details.add(portableType(detail, source, classNode));
+    events.set(name, details);
+  };
+  // Controller-forwarded events can declare an explicit, source-owned contract.
+  const contract = source.statements.find(statement =>
+    ts.isInterfaceDeclaration(statement) && statement.name.text === `${entry.className}EventDetails`,
+  );
+  if (contract && ts.isInterfaceDeclaration(contract)) {
+    const type = checker.getTypeAtLocation(contract);
+    for (const property of type.getProperties()) {
+      addEvent(property.name, checker.getTypeOfSymbolAtLocation(property, contract));
+    }
+  }
+  // Recognize local dispatch helpers by their implementation, not their name.
+  const helpers = new Map<ts.Symbol, { target: number; name: number; detail: number }>();
+  for (const statement of source.statements) {
+    if (!ts.isVariableStatement(statement)) continue;
+    for (const declaration of statement.declarationList.declarations) {
+      const fn = declaration.initializer;
+      if (!fn || !ts.isArrowFunction(fn)) continue;
+      const parameterIndex = (node: ts.Node): number => fn.parameters.findIndex(parameter =>
+        ts.isIdentifier(parameter.name) && ts.isIdentifier(node) && parameter.name.text === node.text,
+      );
+      const inspect = (node: ts.Node): void => {
+        if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) &&
+          node.expression.name.text === "dispatchEvent" && node.arguments[0] &&
+          ts.isNewExpression(node.arguments[0]) && node.arguments[0].expression.getText(source) === "CustomEvent") {
+          const event = node.arguments[0];
+          const options = event.arguments?.[1];
+          const detailProperty = options && ts.isObjectLiteralExpression(options) ? options.properties.find(property =>
+            property.name && property.name.getText(source) === "detail",
+          ) : undefined;
+          const detailNode = detailProperty && ts.isShorthandPropertyAssignment(detailProperty) ? detailProperty.name :
+            detailProperty && ts.isPropertyAssignment(detailProperty) ? detailProperty.initializer : undefined;
+          const target = parameterIndex(node.expression.expression);
+          const name = event.arguments?.[0] ? parameterIndex(event.arguments[0]) : -1;
+          const detail = detailNode ? parameterIndex(detailNode) : -1;
+          const symbol = checker.getSymbolAtLocation(declaration.name);
+          if (symbol && target >= 0 && name >= 0 && detail >= 0) helpers.set(symbol, { target, name, detail });
+        }
+        ts.forEachChild(node, inspect);
+      };
+      inspect(fn.body);
+    }
+  }
   const visit = (node: ts.Node, source: ts.SourceFile, declaringClass: ts.ClassDeclaration): void => {
     if (ts.isNewExpression(node) && node.expression.getText(source) === "CustomEvent" &&
       node.arguments?.[0] && ts.isStringLiteral(node.arguments[0])) {
@@ -154,6 +201,15 @@ const generated: GeneratedElement[] = elements.map(entry => {
       const details = events.get(name) ?? new Set<string>();
       details.add(detail ? portableType(detail, source, declaringClass) : "unknown");
       events.set(name, details);
+    }
+    if (ts.isCallExpression(node)) {
+      const symbol = checker.getSymbolAtLocation(node.expression);
+      const helper = symbol && helpers.get(symbol);
+      if (helper && node.arguments[helper.target]?.kind === ts.SyntaxKind.ThisKeyword) {
+        const name = node.arguments[helper.name];
+        const detail = node.arguments[helper.detail];
+        if (name && ts.isStringLiteral(name) && detail) addEvent(name.text, checker.getTypeAtLocation(detail));
+      }
     }
     ts.forEachChild(node, child => visit(child, source, declaringClass));
   };
