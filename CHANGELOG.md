@@ -15,6 +15,20 @@ are kept as written.
 
 ## Unreleased
 
+## 0.31.0 — 2026-10-10
+
+- Add optional titled Process Modeler Checks cards and match Ready, warning
+  contrast, narrow card geometry and announcements to the reference (#424).
+- Add safe structured Technical content with inline code segments and a host
+  metric optout; match CEL captions, run rows and inspector tables. Keep
+  snapshots detached and update stable-node metric controls (#427).
+- Preserve embedded inspector identity and desktop detail controls, with
+  Business/Technical and supplied Last run in the narrow View menu (#426).
+- Reset Last run visibility when data is removed and preserve integral and
+  fractional failure percentages (#425).
+- Support explicit CodeEditor line heights and active-line fill while retaining
+  the default editor line height (#422).
+
 ## 0.30.0 — 2026-10-10
 
 - Add opt-in host-owned Process Modeler variable name, scope, add and remove
