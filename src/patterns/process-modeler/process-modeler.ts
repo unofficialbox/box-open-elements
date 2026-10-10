@@ -1092,7 +1092,10 @@ export class ProcessModeler<
     const root = this.shadowRoot!;
     const selected = this.selected;
     root.querySelector('[part=process-title]')!.textContent = this.selectedIds.size > 1 ? `${this.selectedIds.size} steps selected` : selected?.title ?? this.processTitleValue;
-    root.querySelector('[part=process-summary]')!.textContent = this.selectedIds.size > 1 ? 'Arrange or group these steps' : selected ? this.catalog.find(kind => kind.kind === selected.kind)?.label ?? selected.kind : this.processSummaryValue;
+    const kind = selected && this.catalog.find(kind => kind.kind === selected.kind);
+    const kindSummary = kind ? `${kind.label}${kind.description ? `. ${kind.description}` : ''}` : selected?.kind;
+    root.querySelector<HTMLElement>('[part=process-heading]')!.toggleAttribute('data-selected', Boolean(selected));
+    root.querySelector('[part=process-summary]')!.textContent = this.selectedIds.size > 1 ? 'Arrange or group these steps' : selected ? kindSummary! : this.processSummaryValue;
     root.querySelector<HTMLElement>('[part=pane-tabs]')!.hidden = Boolean(selected);
     root.querySelectorAll<HTMLButtonElement>('[part=pane-tabs] button').forEach(button => {
       button.textContent = button.dataset.pane === "Checks" ? `Checks ${this.allChecks.length}` : button.dataset.pane ?? "";
@@ -2695,7 +2698,8 @@ export class ProcessModeler<
     let control: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
     if (field.kind === 'multiline' || (field.kind === 'expression' && (field.expression?.rows ?? 1) > 1)) {
       control = document.createElement('textarea');
-      if (field.expression?.rows) control.rows = Math.max(2, Math.floor(field.expression.rows));
+      const rows = field.kind === 'expression' ? field.expression?.rows : field.rows;
+      if (rows !== undefined && Number.isFinite(rows)) control.rows = Math.max(field.kind === 'expression' ? 2 : 1, Math.floor(rows));
     }
     else if (field.kind === 'choice') {
       const select = document.createElement('select');
@@ -2709,18 +2713,30 @@ export class ProcessModeler<
         } else select.append(item);
       }
       control = select;
-    } else { const input = document.createElement('input'); input.type = field.kind === 'boolean' ? 'checkbox' : field.kind === 'number' ? 'number' : field.kind === 'search' ? 'search' : 'text'; control = input; }
+    } else { const input = document.createElement('input'); input.type = field.kind === 'boolean' ? 'checkbox' : field.kind === 'number' ? 'number' : field.kind === 'search' ? 'search' : field.kind === 'time' || field.kind === 'datetime-local' ? field.kind : 'text'; control = input; }
     control.dataset.field = field.key; control.dataset.fieldBox = box.id;
     if (control instanceof HTMLInputElement && control.type === 'checkbox') control.checked = Boolean(field.value);
     else control.value = field.kind === 'action' ? field.options?.find(option => option.value === field.value)?.label ?? String(field.value) : String(field.value);
     control.disabled = Boolean(field.disabled || this.locked);
     control.required = Boolean(field.required);
     if (field.placeholder && (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement)) control.placeholder = field.placeholder;
+    if (control instanceof HTMLInputElement && field.kind === 'number') {
+      if (field.min !== undefined && Number.isFinite(field.min)) control.min = String(field.min);
+      if (field.max !== undefined && Number.isFinite(field.max)) control.max = String(field.max);
+      if (field.step === 'any' || (typeof field.step === 'number' && Number.isFinite(field.step) && field.step > 0)) control.step = String(field.step);
+    }
+    if (field.format === 'code') { control.dataset.format = 'code'; control.spellcheck = false; }
     if (field.kind === 'expression') { control.spellcheck = false; control.setAttribute('autocomplete', 'off'); control.setAttribute('part', 'expression-control'); }
     if (field.problem) control.setAttribute('aria-invalid', 'true');
-    const submit = () => emit(this, 'process-field-change-request', { boxId: box.id, path: box.path, key: field.key, value: control instanceof HTMLInputElement && control.type === 'checkbox' ? control.checked : control instanceof HTMLInputElement && control.type === 'number' && control.value !== '' ? Number(control.value) : control.value });
+    const fieldSession = this.layoutEditSession;
+    const submit = () => {
+      if (!control.isConnected || control.disabled || this.locked || fieldSession !== this.layoutEditSession || this.selected?.id !== box.id) return;
+      emit(this, 'process-field-change-request', { boxId: box.id, path: box.path, key: field.key, value: control instanceof HTMLInputElement && control.type === 'checkbox' ? control.checked : control instanceof HTMLInputElement && control.type === 'number' && control.value !== '' ? Number(control.value) : control.value });
+    };
     if (field.kind !== 'action') control.addEventListener(field.kind === 'expression' ? 'input' : 'change', submit);
-    label.append(control); row.append(label);
+    if (field.kind === 'boolean') { row.dataset.boolean = ''; label.prepend(control); }
+    else label.append(control);
+    row.append(label);
     if (field.kind === 'action' && control instanceof HTMLInputElement) {
       const input = control; const options = field.options ?? [];
       const list = document.createElement('div'); list.setAttribute('part', 'action-options');
@@ -2922,7 +2938,7 @@ export class ProcessModeler<
       const quiet = Boolean(focusedType === 'field' && choice && choice.boxId === fieldBox && choice.key === focusedKey && choice.session === this.layoutEditSession && this.fieldsValue[fieldBox!]?.some(field => field.key === focusedKey && field.value === choice.value));
       this.quietActionFocus = quiet;
       try { control.focus({ preventScroll: true }); } finally { this.quietActionFocus = false; }
-      if (caret !== null && (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) && control.type !== 'number' && control.type !== 'checkbox') control.setSelectionRange(caret, selectionEnd ?? caret, direction ?? undefined);
+      if (caret !== null && (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) && control.selectionStart !== null) control.setSelectionRange(caret, selectionEnd ?? caret, direction ?? undefined);
       if (scrollTop !== undefined) control.scrollTop = scrollTop;
       if (scrollLeft !== undefined) control.scrollLeft = scrollLeft;
     };

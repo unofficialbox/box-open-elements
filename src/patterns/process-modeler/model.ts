@@ -115,7 +115,7 @@ export interface ProcessExpressionField {
 export interface ProcessField {
   key: string;
   label: string;
-  kind: "text" | "multiline" | "number" | "choice" | "boolean" | "expression" | "search" | "action";
+  kind: "text" | "multiline" | "number" | "choice" | "boolean" | "expression" | "search" | "action" | "time" | "datetime-local";
   value: string | number | boolean;
   description?: string;
   options?: readonly { value: string; label: string; group?: string }[];
@@ -124,6 +124,14 @@ export interface ProcessField {
   disabled?: boolean;
   problem?: string;
   expression?: ProcessExpressionField;
+  /** Visible rows for multiline fields. Expression fields use expression.rows. */
+  rows?: number;
+  /** Monospace presentation for host-owned code or structured text. */
+  format?: 'code';
+  /** Native constraints for number fields; the host still validates edits. */
+  min?: number;
+  max?: number;
+  step?: number | 'any';
 }
 export interface ProcessPositionSnapshot {
   path?: NodePath;
