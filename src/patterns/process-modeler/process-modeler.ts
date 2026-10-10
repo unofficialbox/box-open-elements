@@ -261,6 +261,7 @@ export class ProcessModeler<
     this.lastProjection = "";
     this.lastReadableProjection = "";
     this.readableValue = null;
+    this.autoNoteHeights.clear();
     this.layoutValue = restoreProcessPositions(projection, options.positions ?? []);
     this.clearMixedSelection(); this.history.clear(); this.selectedId = null; this.selectedLineId = null; this.selectedIds.clear();
     this.clearClipboard();
@@ -313,7 +314,9 @@ export class ProcessModeler<
   private arrangedLayout(layout: ProcessLayout): ProcessLayout {
     const arranged = this.model.arrange?.(this.projection) ?? arrangeProcess(this.projection);
     const notes = Object.fromEntries(this.projection.boxes.filter(box => !isFlowBox(box) && this.layoutValue.boxes[box.id]).map(box => [box.id, this.layoutValue.boxes[box.id]]));
-    return completeLayout(this.projection, { ...layout, boxes: { ...arranged?.boxes, ...notes, ...layout.boxes } });
+    const boxes = { ...arranged?.boxes, ...notes, ...layout.boxes };
+    this.unplacedNotes = new Set(this.projection.boxes.filter(box => !isFlowBox(box) && !boxes[box.id]).map(box => box.id));
+    return completeLayout(this.projection, { ...layout, boxes });
   }
 
   get document(): D | undefined {
@@ -512,6 +515,7 @@ export class ProcessModeler<
   }
   private editAcceptance(edit: ProcessEdit): (command: ReversibleProcessEdit) => void {
     const before = this.layout;
+    const beforeAutoHeights = new Set(this.autoNoteHeights);
     const beforeSelection = [...this.selectedIds];
     const beforeItems = this.selection;
     const previousIds = new Set(this.projection.boxes.map((box) => box.id));
@@ -524,7 +528,7 @@ export class ProcessModeler<
       // replace the document. Publish only after the whole history entry exists.
       this.acceptanceNotifications++;
       try {
-        if (command.layout) this.layoutValue = structuredClone(command.layout);
+        if (command.layout) { this.autoNoteHeights.clear(); this.layoutValue = structuredClone(command.layout); }
         if (edit.type === 'reset-line' && edit.lineId) delete this.layoutValue.lines?.[edit.lineId];
         this.refresh();
         if (session !== this.layoutEditSession) return;
@@ -550,9 +554,11 @@ export class ProcessModeler<
         }
         if (session !== this.layoutEditSession) return;
         const after = this.layout;
+        const afterAutoHeights = new Set(this.autoNoteHeights);
         const acceptedItems = command.selection ? command.selection.map(item => ({ type: item.type, id: item.id })) : undefined;
         const acceptedSelection = command.selectionIds ? [...command.selectionIds] : undefined;
-        const restore = (layout: ProcessLayout) => {
+        const restore = (layout: ProcessLayout, autoHeights: Set<string>) => {
+          this.autoNoteHeights = new Set(autoHeights);
           this.layoutValue = structuredClone(layout);
           this.refresh();
           this.emitPositions();
@@ -560,13 +566,13 @@ export class ProcessModeler<
         this.history.record({
           undo: () => {
             command.undo();
-            restore(before);
+            restore(before, beforeAutoHeights);
             if (acceptedItems) this.selectItems(beforeItems);
             else if (acceptedSelection) this.selectMany(beforeSelection);
           },
           redo: () => {
             command.redo();
-            restore(after);
+            restore(after, afterAutoHeights);
             if (acceptedItems) this.selectItems(acceptedItems);
             else if (acceptedSelection) this.selectMany(acceptedSelection);
           },
@@ -628,16 +634,19 @@ export class ProcessModeler<
   private commitLayout(next: ProcessLayout): void {
     const before = this.layout;
     const after = structuredClone(next);
+    const beforeAutoHeights = new Set(this.autoNoteHeights);
+    const afterAutoHeights = new Set([...beforeAutoHeights].filter(id => before.boxes[id]?.height === after.boxes[id]?.height));
     if (JSON.stringify(before) === JSON.stringify(after) || this.locked) return;
-    const apply = (layout: ProcessLayout) => {
+    const apply = (layout: ProcessLayout, autoHeights: Set<string>) => {
+      this.autoNoteHeights = new Set(autoHeights);
       this.layoutValue = structuredClone(layout);
       this.refresh();
       this.emitPositions();
     };
-    apply(after);
+    apply(after, afterAutoHeights);
     this.history.record({
-      undo: () => apply(before),
-      redo: () => apply(after),
+      undo: () => apply(before, beforeAutoHeights),
+      redo: () => apply(after, afterAutoHeights),
     });
     this.updateToolbar();
   }
@@ -2195,8 +2204,8 @@ export class ProcessModeler<
       this.projection = this.model.project(this.documentValue);
       validateProjection(this.projection);
     } else this.projection = { boxes: [], lines: [] };
-    this.unplacedNotes = new Set(this.projection.boxes.filter(box => !isFlowBox(box) && !this.layoutValue.boxes[box.id]).map(box => box.id));
     this.layoutValue = this.arrangedLayout(this.layoutValue);
+    this.measureGraphNotes();
     this.routedLines = new Map(this.projection.lines.map(line => [line.id, routeProcessLine(line, this.layoutValue, this.projection)]));
     this.computedChecks = this.collectChecks();
     if (this.selectedId && !this.selected) this.selectedId = null;
@@ -2245,6 +2254,32 @@ export class ProcessModeler<
     } else if (focusedNote) {
       const note = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[data-note-id]')).find(note => note.dataset.noteId === focusedNote);
       (note ?? this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]'))?.focus({ preventScroll: true });
+    }
+  }
+  private measureGraphNotes(): void {
+    const world = this.shadowRoot!.querySelector<HTMLElement>('[part=world]')!;
+    for (const box of this.projection.boxes.filter(box => !isFlowBox(box))) {
+      const position = this.layoutValue.boxes[box.id];
+      if (position.height !== undefined && !this.autoNoteHeights.has(box.id)) continue;
+      this.autoNoteHeights.add(box.id);
+      const element = document.createElement('div'); element.setAttribute('part', 'box'); element.dataset.shape = 'note';
+      element.style.cssText = `visibility:hidden;pointer-events:none;height:auto;width:${position.width ?? 208}px`;
+      const body = document.createElement('div'); body.setAttribute('part', 'note-body'); body.textContent = box.description ?? box.title;
+      element.append(body); world.append(element);
+      const bounds = body.getBoundingClientRect();
+      if (bounds.width > 0 && bounds.height > 0) position.height = bounds.height * (position.width ?? 208) / bounds.width;
+      element.remove();
+    }
+    // Only library fallback positions need collision placement; a host's
+    // arrangement is authoritative, and a containing frame is not an obstacle.
+    for (const box of this.projection.boxes.filter(box => this.unplacedNotes.has(box.id))) {
+      const position = this.layoutValue.boxes[box.id], ancestors = new Set<string>();
+      for (let parent = box.parentId; parent; parent = this.projection.boxes.find(b => b.id === parent)?.parentId) ancestors.add(parent);
+      let overlaps: BoxPosition[];
+      do {
+        overlaps = Object.entries(this.layoutValue.boxes).filter(([id, p]) => id !== box.id && !ancestors.has(id) && position.x < p.x + (p.width ?? 224) && position.x + (position.width ?? 208) > p.x && position.y < p.y + (p.height ?? 64) && position.y + (position.height ?? 64) > p.y).map(([, p]) => p);
+        if (overlaps.length) position.y = Math.max(...overlaps.map(p => p.y + (p.height ?? 64))) + 60;
+      } while (overlaps.length);
     }
   }
   private get allChecks(): readonly ProcessCheck[] { return this.computedChecks; }
@@ -2429,30 +2464,10 @@ export class ProcessModeler<
       }
       world.append(element);
       if (!isFlowBox(box)) {
-        const position = this.layoutValue.boxes[box.id];
-        const body = element.querySelector<HTMLElement>('[part=note-body]')!;
-        if (position.height === undefined || this.autoNoteHeights.has(box.id)) {
-          this.autoNoteHeights.add(box.id);
-          element.style.height = 'auto';
-          const bounds = body.getBoundingClientRect();
-          // Undo the world transform without rounding the natural text height.
-          if (bounds.width > 0 && bounds.height > 0) {
-            position.height = bounds.height * (position.width ?? 208) / bounds.width;
-            element.style.height = `${position.height}px`;
-          }
-        } else body.style.minHeight = `${position.height}px`;
-        if (this.unplacedNotes.has(box.id)) {
-          let overlaps: BoxPosition[];
-          do {
-            overlaps = Object.entries(this.layoutValue.boxes).filter(([id, p]) => id !== box.id && position.x < p.x + (p.width ?? 224) && position.x + (position.width ?? 208) > p.x && position.y < p.y + (p.height ?? 64) && position.y + (position.height ?? 64) > p.y).map(([, p]) => p);
-            if (overlaps.length) position.y = Math.max(...overlaps.map(p => p.y + (p.height ?? 64))) + 60;
-          } while (overlaps.length);
-          element.style.top = `${position.y}px`;
-        }
+        const height = this.layoutValue.boxes[box.id].height;
+        if (height !== undefined) element.querySelector<HTMLElement>('[part=note-body]')!.style.minHeight = `${height}px`;
       }
     }
-    // Natural note bodies define their ports and association endpoints.
-    this.routedLines = new Map(this.projection.lines.map(line => [line.id, routeProcessLine(line, this.layoutValue, this.projection)]));
     const lines = svgElement("svg");
     lines.setAttribute("part", "lines");
     lines.setAttribute("aria-hidden", "true");

@@ -22,7 +22,7 @@ function fixture() {
   const key = (key: string, modifiers = {}) => canvas.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key, ...modifiers }));
   return { element, root, key };
 }
-afterEach(() => document.body.replaceChildren());
+afterEach(() => { document.body.replaceChildren(); vi.restoreAllMocks(); });
 describe('Native graph note and association roles', () => {
   it('renders safe note text independent of kind, detail, metrics and flow counts', () => {
     const { element, root } = fixture();
@@ -179,6 +179,56 @@ describe('Native graph note and association roles', () => {
         expect(routeProcessLine(graph.lines[1], element.layout, graph)[0]).toEqual({ x: 144, y: 40 + height });
       }
     } finally { measure.mockRestore(); }
+  });
+
+  it('respects authoritative saved and accepted note heights after automatic measurement and undo/redo', () => {
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({ x: 0, y: 0, top: 0, left: 0, right: 208, bottom: 38.125, width: 208, height: 38.125, toJSON() {} });
+    const { element } = fixture();
+    const document = { ...graph, boxes: graph.boxes.map(b => b.id === 'n' ? { ...b, path: ['note'], fingerprint: 'memo' } : b) };
+    element.document = document; element.layout = { boxes: { n: { x: 300, y: 40 } } };
+    expect(element.layout.boxes.n.height).toBe(38.125);
+    element.load(document, { positions: [{ id: 'n', path: ['note'], fingerprint: 'memo', position: { x: 300, y: 40, width: 208, height: 120 } }] });
+    expect(element.layout.boxes.n.height).toBe(120);
+    element.layout = { boxes: { n: { x: 300, y: 40 } } };
+    element.addEventListener('process-edit-request', event => {
+      const layout = element.layout; layout.boxes.n.height = 120;
+      (event as CustomEvent).detail.accept({ layout, undo() {}, redo() {} });
+    }, { once: true });
+    element.requestEdit({ type: 'duplicate', sourceId: 'n' });
+    expect(element.layout.boxes.n.height).toBe(120);
+    element.undo(); expect(element.layout.boxes.n.height).toBe(38.125);
+    element.redo(); expect(element.layout.boxes.n.height).toBe(120);
+    element.layout = { boxes: { n: { x: 300, y: 40 } } };
+    element.resize('n', 208, 140); expect(element.layout.boxes.n.height).toBe(140);
+    element.undo(); expect(element.layout.boxes.n.height).toBe(38.125);
+    element.redo(); expect(element.layout.boxes.n.height).toBe(140);
+  });
+
+  it('keeps default and host-arranged notes inside their ancestor frames', () => {
+    const boxes = [{ id: 'o', kind: 'try', title: 'Outer', frame: true, node: {} }, { id: 'f', kind: 'try', title: 'Frame', frame: true, parentId: 'o', node: {} }, { ...graph.boxes[2], parentId: 'f' }];
+    for (const arranged of [undefined, { boxes: { o: { x: 20, y: 20, width: 600, height: 400 }, f: { x: 40, y: 40, width: 320, height: 180 }, n: { x: 80, y: 120, width: 208 } } }]) {
+      const element = new ProcessModeler();
+      if (arranged) element.model = { project: doc => doc as ProcessProjection, arrange: () => arranged };
+      element.document = { boxes, lines: [] }; document.body.append(element);
+      const { f, n } = element.layout.boxes;
+      expect(n.x).toBeGreaterThanOrEqual(f.x); expect(n.y).toBeGreaterThanOrEqual(f.y);
+      expect(n.x + (n.width ?? 208)).toBeLessThanOrEqual(f.x + (f.width ?? 320));
+      expect(n.y + (n.height ?? 64)).toBeLessThanOrEqual(f.y + (f.height ?? 180));
+      if (arranged) expect(n.y).toBe(120);
+      element.remove();
+    }
+  });
+
+  it('publishes first-render checks and readable state after natural note geometry is finalized', () => {
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({ x: 0, y: 0, top: 0, left: 0, right: 208, bottom: 38.125, width: 208, height: 38.125, toJSON() {} });
+    const element = new ProcessModeler();
+    element.document = { ...graph, lines: [{ id: 'ab', from: 'a', to: 'b' }] };
+    element.layout = { boxes: { a: { x: 40, y: 40 }, b: { x: 650, y: 40 }, n: { x: 300, y: 40, width: 208 } }, lines: { ab: [{ x: 350, y: 90 }] } };
+    const published = vi.fn(); element.addEventListener('readable-projection-changed', published);
+    document.body.append(element);
+    expect((element as any).routedLines.get('ab').length).toBeGreaterThan(0);
+    expect(element.readback.checks).toEqual([]); expect(element.readback.current).not.toBeNull();
+    expect(published).toHaveBeenCalledTimes(1);
   });
 
   it('keeps a flow next insertion on its ordinary edge when associations are present', () => {
