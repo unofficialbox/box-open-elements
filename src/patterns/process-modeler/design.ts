@@ -318,6 +318,7 @@ export const processModelerDesign = `
   :host([data-narrow]) [part=pane-drawer][data-pane=inspector] { left: 0; right: 0; top: auto; bottom: 0; width: 100%; height: min(62%, 560px); border-radius: 24px 24px 0 0; }
   :host([data-narrow]) [part=pane-drawer][data-pane=inspector]::before { content: ''; display: block; width: 36px; height: 4px; margin: 6px auto; border-radius: 2px; background: var(--boe-token-text-text-secondary, #767676); opacity: .55; }
   :host([data-narrow]) [part=palette], :host([data-narrow]) [part=inspector] { height: 100%; }
+  :host([data-narrow]) [part=inspector] { border-left: 0; }
   :host([data-narrow]) [part=palette] { padding-top: 54px; }
   :host([data-narrow]) [part=palette-heading] { display: none; }
   :host([data-narrow]) [part=minimap] { display: none; }
