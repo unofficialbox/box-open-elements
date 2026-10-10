@@ -2480,7 +2480,7 @@ export class ProcessModeler<
       if (kind?.icon) {
         icon.append(kind.icon());
       }
-      if (isFlowBox(box) && (shape !== "event" || ["timer", "scheduled-start"].includes(box.kind))) element.append(icon);
+      if (isFlowBox(box) && (shape !== "event" || !["start", "end", "finish"].includes(box.kind))) element.append(icon);
       const title = document.createElement("strong");
       title.textContent = box.title;
       if (isFlowBox(box)) element.append(title);

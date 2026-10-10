@@ -126,12 +126,13 @@ describe("Process Modeler prototype interactions", () => {
       expect(caption.dataset.side).toBe('below');
     }
   });
-  it("omits Start and Finish glyphs while retaining the scheduled event icon", () => {
+  it("omits Start and Finish glyphs while retaining scheduled and custom event icons", () => {
     const { builder, root } = fixture();
-    for (const kind of ['start', 'end', 'finish', 'timer', 'scheduled-start']) {
+    for (const kind of ['start', 'end', 'finish', 'timer', 'scheduled-start', 'message-event']) {
       builder.catalog = [{ kind, label: kind, icon: () => document.createElementNS('http://www.w3.org/2000/svg', 'svg'), create: () => ({}) }];
       builder.document = { boxes: [{ ...projection.boxes[0], kind, shape: 'event' }], lines: [] };
-      expect(Boolean(root.querySelector('[data-shape=event] > [part=icon]'))).toBe(['timer', 'scheduled-start'].includes(kind));
+      expect(Boolean(root.querySelector('[data-shape=event] > [part=icon]'))).toBe(!['start', 'end', 'finish'].includes(kind));
+      expect(Boolean(root.querySelector('[data-shape=event] > [part=icon] svg'))).toBe(!['start', 'end', 'finish'].includes(kind));
       expect(root.querySelector('[part=caption] strong')?.textContent).toBe('Read');
     }
   });
