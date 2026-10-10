@@ -499,14 +499,19 @@ describe("Process Modeler prototype interactions", () => {
     expect(canvas.style.backgroundSize).toBe('25.6px 25.6px');
     expect(canvas.style.backgroundPosition).toBe('-9px 5px');
   });
-  it("preserves the embedded heading space and keeps supplied run controls available", () => {
+  it("keeps embedded inspector identity and supplied run controls available", () => {
     const { builder, root } = fixture();
     builder.processTitle = 'Upload round trip';
     builder.processSummary = '13 steps in 4 sections';
     builder.embedMode = true;
     expect(root.querySelector('[part=process-heading]')?.textContent).toContain('Upload round trip');
     expect(root.querySelector('[part=process-heading]')?.textContent).toContain('13 steps in 4 sections');
-    expect(root.querySelector('style')?.textContent).toContain(':host([embed-mode]) [part=process-heading] { visibility: hidden; }');
+    expect(root.querySelector('style')?.textContent).not.toMatch(/:host\(\[embed-mode\]\) \[part=process-heading\]/);
+    builder.select('a');
+    expect(root.querySelector('[part=process-title]')?.textContent).toBe('Read');
+    expect(root.querySelector('[part=process-summary]')?.textContent).toBe('Call');
+    builder.select(null);
+    expect(root.querySelector('[part=process-title]')?.textContent).toBe('Upload round trip');
     builder.lastRun = { steps: {} };
     expect(root.querySelector<HTMLElement>('[part=run-toggle]')!.hidden).toBe(false);
     expect(root.querySelector('style')?.textContent).toContain(':host([data-narrow][embed-mode]) [part=run-toggle] { display: inline-flex; }');
