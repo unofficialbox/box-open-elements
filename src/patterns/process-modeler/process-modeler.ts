@@ -596,6 +596,19 @@ export class ProcessModeler<
     this.viewport.y = 20 - bounds.y * this.viewport.zoom;
     this.paintViewport();
   }
+  private minimapBounds(canvas: HTMLElement) {
+    const positions = this.projection.boxes.map(box => this.layoutValue.boxes[box.id]);
+    const view = { x: -this.viewport.x / this.viewport.zoom, y: -this.viewport.y / this.viewport.zoom, width: canvas.clientWidth / this.viewport.zoom, height: canvas.clientHeight / this.viewport.zoom };
+    const sections = this.layoutValue.sections ?? [];
+    const notes = this.layoutValue.notes ?? [];
+    const x = Math.min(view.x, ...positions.map(p => p.x), ...sections.map(s => s.x), ...notes.map(n => n.x));
+    const y = Math.min(view.y, ...positions.map(p => p.y), ...sections.map(s => s.y), ...notes.map(n => n.y));
+    const right = Math.max(view.x + view.width, ...positions.map(p => p.x + (p.width ?? 224)), ...sections.map(s => s.x + s.width), ...notes.map(n => n.x + 208));
+    const bottom = Math.max(view.y + view.height, ...positions.map(p => p.y + (p.height ?? 64)), ...sections.map(s => s.y + s.height), ...notes.map(n => n.y + 80));
+    const pad = 40, scale = Math.min(208 / (right - x + 2 * pad), 136 / (bottom - y + 2 * pad));
+    const width = 208 / scale, height = 136 / scale;
+    return { x: x - pad - (width - (right - x + 2 * pad)) / 2, y: y - pad - (height - (bottom - y + 2 * pad)) / 2, width, height };
+  }
   private bounds() {
     const positions = this.projection.boxes.map(
       (box) => this.layoutValue.boxes[box.id],
@@ -1100,7 +1113,7 @@ export class ProcessModeler<
       event.stopPropagation();
       const rect = minimap.getBoundingClientRect();
       if (!rect.width || !rect.height) return;
-      const bounds = this.bounds();
+      const bounds = this.minimapBounds(canvas);
       this.viewport.x =
         canvas.clientWidth / 2 -
         (bounds.x + ((event.clientX - rect.left) / rect.width) * bounds.width) *
@@ -2114,6 +2127,7 @@ export class ProcessModeler<
       control.focus();
       if (caret !== null && (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) && control.type !== 'number' && control.type !== 'checkbox') control.setSelectionRange(caret, caret);
     };
+    this.shadowRoot!.querySelectorAll<SVGRectElement>('[part=minimap] [data-map-box]').forEach(rect => rect.dataset.selected = String(this.selectedIds.has(rect.dataset.mapBox!)));
     this.shadowRoot!.querySelectorAll<SVGPathElement>('[part=line]').forEach(line => { const selected = line.dataset.lineId === this.selectedLineId; line.dataset.selected = String(selected); line.setAttribute('marker-end', `url(#${selected ? 'boe-process-arrow-brand' : 'boe-process-arrow'})`); });
     this.shadowRoot!.querySelectorAll<HTMLElement>("[data-box-id]").forEach(
       (element) => {
@@ -2291,13 +2305,14 @@ export class ProcessModeler<
       `${Math.round(this.viewport.zoom * 100)}%`;
     const minimap =
       this.shadowRoot!.querySelector<SVGSVGElement>("[part=minimap]")!;
-    const bounds = this.bounds();
+    const bounds = this.minimapBounds(canvas);
     minimap.replaceChildren();
     minimap.setAttribute(
       "viewBox",
       `${bounds.x} ${bounds.y} ${bounds.width} ${bounds.height}`,
     );
     minimap.setAttribute("preserveAspectRatio", "none");
+    for (const section of this.layoutValue.sections ?? []) { const rect = svgElement('rect'); rect.dataset.section = 'true'; for (const key of ['x','y','width','height'] as const) rect.setAttribute(key, String(section[key])); rect.setAttribute('rx', '16'); minimap.append(rect); }
     this.projection.boxes.forEach((box) => {
       const pos = this.layoutValue.boxes[box.id];
       const rect = svgElement("rect");
@@ -2305,6 +2320,10 @@ export class ProcessModeler<
       rect.setAttribute("y", String(pos.y));
       rect.setAttribute("width", String(pos.width ?? 224));
       rect.setAttribute("height", String(pos.height ?? 64));
+      rect.setAttribute('rx', box.frame ? '12' : '8');
+      rect.dataset.mapBox = box.id;
+      rect.dataset.selected = String(this.selectedIds.has(box.id));
+      if (box.frame) rect.setAttribute('fill-opacity', '.35');
       minimap.append(rect);
     });
     const viewport = svgElement("rect");
@@ -2319,6 +2338,7 @@ export class ProcessModeler<
       "height",
       String(canvas.clientHeight / this.viewport.zoom),
     );
+    viewport.setAttribute('rx', '4');
     minimap.append(viewport);
   }
   private positionSelectionToolbar(): void {
