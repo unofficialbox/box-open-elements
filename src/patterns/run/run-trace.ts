@@ -299,7 +299,7 @@ const elementStyles = `
         :host([variant="plain"]) [part="panel"] { border: 0; border-radius: 0; background: none; padding: 0; }
         :host([variant="plain"]) [part="header"],
         :host([variant="plain"]) [part="summary"] { display: none; }
-        :host([variant="plain"]) [part="step"] { padding-block: 0.35rem; }
+        :host([variant="plain"]) [part="step"] { padding-block: var(--boe-run-trace-step-padding-block, 0.35rem); }
         :host([variant="plain"]) [part="step"]::after { display: none; }
         :host([variant="plain"]) [part="status"] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
         :host([variant="plain"]) [part="toggle"] { display: none; }

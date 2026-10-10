@@ -256,6 +256,28 @@ try {
   await page.waitForSelector('html[data-theme="dark"]');
   assertTraceGeometry(await traceGeometry(), "dark custom compact mobile");
   console.log("verified run-trace marker and connector alignment at desktop and narrow width");
+  // Plain traces retain their historical spacing, while honoring the same host
+  // padding contract as panel traces at either density.
+  for (const density of ["default", "compact"] as const) {
+    for (const padding of [null, "3px"] as const) {
+      await page.locator("box-run-trace").evaluate((element, settings) => {
+        element.setAttribute("variant", "plain");
+        element.setAttribute("density", settings.density);
+        const style = (element as HTMLElement).style;
+        if (settings.padding) style.setProperty("--boe-run-trace-step-padding-block", settings.padding);
+        else style.removeProperty("--boe-run-trace-step-padding-block");
+      }, { density, padding });
+      const spacing = await page.locator('box-run-trace [part="step"]').first().evaluate(element => {
+        const style = getComputedStyle(element);
+        return { top: parseFloat(style.paddingTop), bottom: parseFloat(style.paddingBottom), rem: parseFloat(getComputedStyle(document.documentElement).fontSize) };
+      });
+      const expected = padding ? 3 : 0.35 * spacing.rem;
+      if (Math.abs(spacing.top - expected) > 0.1 || Math.abs(spacing.bottom - expected) > 0.1) {
+        throw new Error(`Plain run trace padding failed (${density}, ${padding ?? "default"}): ${JSON.stringify(spacing)}`);
+      }
+    }
+  }
+  console.log("verified plain run-trace default and host padding at both densities");
   await page.evaluate(() => (document.getElementById("theme-toggle") as HTMLButtonElement | null)?.click());
   await page.waitForSelector('html[data-theme="light"]');
   await page.setViewportSize({ width: 1440, height: 940 });
