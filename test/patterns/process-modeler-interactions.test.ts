@@ -575,6 +575,50 @@ describe("Process Modeler prototype interactions", () => {
     builder.setView({ x: 12, y: 24, zoom: 0.7 }); expect(builder.view).toEqual({ x: 12, y: 24, zoom: 0.7 });
     builder.setView({ x: 0, y: 0, zoom: 2.1 }); expect(builder.view.zoom).toBe(0.7);
   });
+  it("keeps the cursor world point fixed while wheel zoom follows native modifier and delta modes", () => {
+    const { builder, canvas } = fixture();
+    vi.spyOn(canvas, 'getBoundingClientRect').mockReturnValue(new DOMRect(20,30,600,400));
+    for (const [ctrlKey, metaKey, deltaMode, deltaY, exponent] of [[true,false,0,-40,.8], [false,true,0,-40,.08], [true,false,1,-2,1], [true,false,2,-2,1]] as const) {
+      builder.setView({x:24,y:24,zoom:1});
+      canvas.dispatchEvent(new WheelEvent('wheel', {clientX:150,clientY:200,deltaY,deltaMode,ctrlKey,metaKey,bubbles:true,cancelable:true}));
+      expect(builder.view.zoom).toBeCloseTo(2 ** exponent);
+      expect((130-builder.view.x)/builder.view.zoom).toBeCloseTo(106);
+      expect((170-builder.view.y)/builder.view.zoom).toBeCloseTo(146);
+    }
+    builder.setView({x:24,y:24,zoom:1});
+    canvas.dispatchEvent(new WheelEvent('wheel', {deltaY:3,deltaMode:1,shiftKey:true,bubbles:true,cancelable:true}));
+    expect(builder.view).toEqual({x:-36,y:24,zoom:1});
+  });
+
+  it("retains the pinch anchor under a moving two-touch midpoint through zoom clamping", () => {
+    const { builder, canvas } = fixture();
+    vi.spyOn(canvas, 'getBoundingClientRect').mockReturnValue(new DOMRect(20,30,600,400));
+    builder.setView({x:24,y:24,zoom:1});
+    pointer(canvas,'pointerdown',100,100,{pointerId:1}); pointer(canvas,'pointerdown',150,100,{pointerId:2});
+    pointer(canvas,'pointermove',75,110,{pointerId:1}); pointer(canvas,'pointermove',175,110,{pointerId:2});
+    expect(builder.view.zoom).toBe(2);
+    expect((105-builder.view.x)/builder.view.zoom).toBeCloseTo(81);
+    expect((80-builder.view.y)/builder.view.zoom).toBeCloseTo(46);
+    pointer(canvas,'pointermove',225,120,{pointerId:2});
+    expect(builder.view.zoom).toBe(2);
+    expect((130-builder.view.x)/builder.view.zoom).toBeCloseTo(81);
+    expect((85-builder.view.y)/builder.view.zoom).toBeCloseTo(46);
+    pointer(canvas,'pointermove',125,110,{pointerId:2});
+    expect(builder.view.zoom).toBe(1);
+    pointer(canvas,'pointercancel',75,110,{pointerId:1}); pointer(canvas,'pointerup',125,110,{pointerId:2});
+  });
+
+  it("anchors Safari gesture zoom and ignores duplicate gesture events during pointer pinch", () => {
+    const { builder, canvas } = fixture();
+    vi.spyOn(canvas, 'getBoundingClientRect').mockReturnValue(new DOMRect(20,30,600,400));
+    builder.setView({x:24,y:24,zoom:1});
+    canvas.dispatchEvent(new Event('gesturestart',{cancelable:true}));
+    const event = new Event('gesturechange',{cancelable:true}); Object.assign(event,{scale:1.5,clientX:150,clientY:200}); canvas.dispatchEvent(event);
+    expect(builder.view.zoom).toBe(1.5); expect((130-builder.view.x)/builder.view.zoom).toBeCloseTo(106);
+    pointer(canvas,'pointerdown',100,100,{pointerId:1}); pointer(canvas,'pointerdown',150,100,{pointerId:2});
+    const before=builder.view; canvas.dispatchEvent(event); expect(builder.view).toEqual(before);
+  });
+
   it("keeps the dot grid aligned with the authored zoom and pan", () => {
     const { builder, canvas } = fixture();
     builder.setView({ x: 12, y: 24, zoom: 0.7 });
