@@ -3325,7 +3325,7 @@ export class ProcessModeler<
       toolbar.append(button);
     };
     if (this.graphSelection && (this.selectedNoteIds.size || this.selectedLineIds.size > 1 || this.selectedLineIds.size && this.selectedIds.size)) {
-      if (this.selectedIds.size > 1) { add('Line up', 'align', () => this.selectionCommand('align')); add('Tidy these', 'space', () => this.selectionCommand('space')); }
+      if (this.selectedIds.size) { add('Line up', 'align', () => this.selectionCommand('align')); add('Tidy these', 'space', () => this.selectionCommand('space')); }
       add('Delete', 'delete-many', () => this.selectionCommand('delete-many'));
     } else if (this.selectedLine) {
       const line = this.selectedLine;
@@ -3448,9 +3448,7 @@ export class ProcessModeler<
     positions.push(...(this.layoutValue.notes ?? []).filter(note => this.selectedNoteIds.has(note.id)).map(note => ({ ...note, width: 208, height: 80 })));
     if (!positions.length && this.selectedLine) {
       const point = lineMidpoint(this.routedLines.get(this.selectedLine.id) ?? []);
-      toolbar.style.left = `${Math.max(8, Math.min(point.x * this.viewport.zoom + this.viewport.x, Math.max(8, canvas.clientWidth - toolbar.offsetWidth - 8)))}px`;
-      toolbar.style.top = `${Math.max(8, point.y * this.viewport.zoom + this.viewport.y - 52)}px`;
-      return;
+      positions.push({ x: point.x, y: point.y - 14 / this.viewport.zoom, width: 0, height: 0 });
     }
     if (!positions.length) {
       for (const id of this.selectedLineIds) {
@@ -3462,10 +3460,11 @@ export class ProcessModeler<
     }
     if (!positions.length) return;
     const left = Math.min(...positions.map(position => position.x * this.viewport.zoom + this.viewport.x));
+    const right = Math.max(...positions.map(position => (position.x + (position.width ?? 224)) * this.viewport.zoom + this.viewport.x));
     const top = Math.min(...positions.map(position => position.y * this.viewport.zoom + this.viewport.y));
     const bottom = Math.max(...positions.map(position => (position.y + (position.height ?? 64)) * this.viewport.zoom + this.viewport.y));
-    toolbar.style.left = `${Math.max(8, Math.min(left, Math.max(8, canvas.clientWidth - toolbar.offsetWidth - 8)))}px`;
-    toolbar.style.top = `${top > 56 ? top - 48 : Math.min(bottom + 8, Math.max(8, canvas.clientHeight - toolbar.offsetHeight - 8))}px`;
+    toolbar.style.left = `${Math.min(Math.max((left + right) / 2, 120), canvas.clientWidth - 120)}px`;
+    toolbar.style.top = `${top - 12 < 56 ? bottom + 52 : top - 12}px`;
   }
   private focusBox(id: string): void {
     Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>("[data-box-id]"))
