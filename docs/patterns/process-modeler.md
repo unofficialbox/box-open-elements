@@ -107,7 +107,9 @@ canvas.addEventListener("readable-projection-changed", event => {
   stays available to the host during a hold. No projection or readable event
   fires for the unloaded empty component.
   A hold banner in its own row above the canvas links to Checks without
-  covering steps that need repair. `readable-projection-changed`
+  covering steps that need repair. The diagram keeps the remaining canvas
+  height whether that banner is hidden, visible, or dismissed after repair.
+  `readable-projection-changed`
   only emits a version when it passes validation. A new document assignment
   emits a new readable version even when its visible labels are unchanged;
   refreshes of the same document do not. The event and `readback` detach box,

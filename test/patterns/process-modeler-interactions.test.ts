@@ -73,6 +73,9 @@ describe("Process Modeler prototype interactions", () => {
     expect(hold.parentElement?.getAttribute('part')).toBe('canvas-stack');
     expect(hold.nextElementSibling).toBe(canvas);
     expect(canvas.contains(hold)).toBe(false);
+    const styles = root.querySelector('style')?.textContent ?? '';
+    expect(styles).toContain('[part=canvas-stack] > [part=hold] { grid-row: 1; }');
+    expect(styles).toContain('[part=canvas-stack] > [part=canvas] { grid-row: 2; }');
     root.querySelector<HTMLButtonElement>('[part=hold] button')!.click();
     expect(root.querySelector<HTMLButtonElement>('#process-tab-checks')!.getAttribute('aria-selected')).toBe('true');
   });
