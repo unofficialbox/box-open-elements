@@ -235,6 +235,10 @@ export class ProcessModeler<
     this.pendingLocalRename = undefined;
     this.layoutEditSession++;
     this.cancelPalettePointer();
+    this.closeKeyboardChooser();
+    const chooser = this.shadowRoot?.querySelector<HTMLDialogElement>('[part=insert-chooser]');
+    if (chooser) dismissModal(chooser);
+    this.insertion = undefined;
     const projection = this.model.project(document); validateProjection(projection);
     this.documentValue = document;
     this.projection = projection;

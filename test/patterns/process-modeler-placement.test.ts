@@ -85,6 +85,30 @@ describe('explicit host insertion placement',()=>{
     const center={x:40,y:80};b.requestEdit({type:'add',placement:{source:'point',center}} as any);listener.mock.calls[0][0].detail.placement.center.x=-10;expect(center.x).toBe(40);
     b.requestEdit({type:'add'});expect(listener.mock.calls[1][0].detail.placement).toBeUndefined();
   });
+  it.each(['N', 'line'])('cancels stale %s chooser intent when a document is loaded',source=>{
+    const {b,r,canvas,listener}=fixture();b.select('a');
+    if(source==='N')canvas.dispatchEvent(new KeyboardEvent('keydown',{key:'n',bubbles:true,cancelable:true}));
+    else {b.selectLine('ab');r.querySelector<HTMLButtonElement>('[data-selection-command=insert]')!.click();}
+    expect((b as any).keyboardInsertion).toBeDefined();
+    b.load({boxes:[{id:'fresh',kind:'call',title:'Fresh',node:{}}],lines:[]} as ProcessProjection);
+    choose(r);
+    expect(listener).not.toHaveBeenCalled();
+    expect((b as any).keyboardInsertion).toBeUndefined();
+    expect((b as any).transientChooserAnchor).toBeUndefined();
+    expect(b.history.canUndo).toBe(false);
+    expect(b.selection).toEqual([]);
+  });
+  it('cancels the modal fallback before a retained picker can dispatch into a loaded document',()=>{
+    const {b,r,canvas,listener}=fixture();b.select('a');
+    r.querySelector<HTMLElement>('[part=keyboard-chooser]')!.showPopover=undefined as any;
+    r.querySelector<HTMLDialogElement>('[part=insert-chooser]')!.showModal=vi.fn();
+    canvas.dispatchEvent(new KeyboardEvent('keydown',{key:'n',bubbles:true,cancelable:true}));
+    expect((b as any).insertion).toBeDefined();
+    const picker=r.querySelector('[part=insert-chooser] box-kind-picker')!;
+    b.load({boxes:[{id:'fresh',kind:'call',title:'Fresh',node:{}}],lines:[]} as ProcessProjection);
+    picker.dispatchEvent(new CustomEvent('kind-pick',{detail:{kind:{kind:'call',label:'Call',create:()=>({})}}}));
+    expect(listener).not.toHaveBeenCalled();expect((b as any).insertion).toBeUndefined();
+  });
   it('emits no placement on cancelled or locked chooser flows',()=>{
     const {b,r,canvas,listener}=fixture();b.select('a');canvas.dispatchEvent(new KeyboardEvent('keydown',{key:'n',bubbles:true,cancelable:true}));r.querySelector('[part=keyboard-chooser] box-kind-picker')!.dispatchEvent(new Event('picker-cancel'));expect(listener).not.toHaveBeenCalled();b.locked=true;b.requestEdit({type:'add',placement:{source:'next'}} as any);expect(listener).not.toHaveBeenCalled();
   });
