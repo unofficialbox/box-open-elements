@@ -237,6 +237,18 @@ export function automaticEventPorts(line: ProcessLine, layout: ProcessLayout, pr
         if (cost < best.cost)
           best = { cost, sa, sb };
       }
+    // Authored edges use the legacy nearest-edge contract. Reserve those actual
+    // sides, rather than a side the automatic candidate search would choose.
+    const points = layout.lines?.[edge.id] ?? edge.points;
+    if (edge.fromSide || edge.toSide || points?.length) {
+      const nearest = (r: Rect, toward: ProcessPoint): ProcessSide => {
+        const x = Math.max(r.x, Math.min(toward.x, r.x + r.w)), y = Math.max(r.y, Math.min(toward.y, r.y + r.h));
+        const candidates: [ProcessSide, ProcessPoint][] = [['east', {x:r.x+r.w,y}], ['west',{x:r.x,y}], ['south',{x,y:r.y+r.h}], ['north',{x,y:r.y}]];
+        return candidates.reduce((a,b) => Math.hypot(b[1].x-toward.x,b[1].y-toward.y) < Math.hypot(a[1].x-toward.x,a[1].y-toward.y) ? b : a)[0];
+      };
+      best.sa = edge.fromSide ?? nearest(ra, points?.[0] ?? cb);
+      best.sb = edge.toSide ?? nearest(rb, points?.at(-1) ?? ca);
+    }
     sides.set(edge.id, [best.sa, best.sb]);
   }
   const groups = new Map<string, {
@@ -253,6 +265,23 @@ export function automaticEventPorts(line: ProcessLine, layout: ProcessLayout, pr
     add(boxes.get(edge.from)!, sa, edge.id + ':a', edge.to);
     add(boxes.get(edge.to)!, sb, edge.id + ':b', edge.from);
   }
+  const fixed = new Map<string, number>();
+  for (const edge of flows) {
+    const points = layout.lines?.[edge.id] ?? edge.points;
+    if (!edge.fromSide && !edge.toSide && !points?.length) continue;
+    const [sa, sb] = sides.get(edge.id)!;
+    for (const [id, side, key, toward] of [
+      [edge.from, sa, edge.id + ':a', points?.[0] ?? center(rects.get(edge.to)!)],
+      [edge.to, sb, edge.id + ':b', points?.at(-1) ?? center(rects.get(edge.from)!)]
+    ] as [string, ProcessSide, string, ProcessPoint][]) {
+      const r = rects.get(id)!, c = center(r);
+      const authoredSide = key.endsWith(':a') ? edge.fromSide : edge.toSide;
+      const offset = authoredSide ? 0 : side === 'north' || side === 'south'
+        ? Math.max(r.x, Math.min(toward.x, r.x + r.w)) - c.x
+        : Math.max(r.y, Math.min(toward.y, r.y + r.h)) - c.y;
+      fixed.set(key, offset);
+    }
+  }
   const offsets = new Map<string, number>();
   for (const { box, side, ends } of groups.values()) {
     if (ends.length === 1 || box.shape === 'gateway' || box.shape === 'event') {
@@ -261,6 +290,28 @@ export function automaticEventPorts(line: ProcessLine, layout: ProcessLayout, pr
     }
     const r = rects.get(box.id)!, c = center(r), horizontal = side === 'north' || side === 'south', half = (horizontal ? r.w : r.h) / 2, max = Math.max(0, Math.floor((half - 12) / 8) * 8), gap = Math.min(16, 2 * max / (ends.length - 1));
     const list = ends.map(end => { const other = center(rects.get(end.other)!); return { ...end, pref: Math.max(-max, Math.min(max, Math.round((horizontal ? other.x - c.x : other.y - c.y) / 8) * 8)) }; }).sort((a, b) => a.pref - b.pref || (a.key < b.key ? -1 : 1));
+    if (list.some(end => fixed.has(end.key))) {
+      const reserved = list.filter(end => fixed.has(end.key)).map(end => fixed.get(end.key)!);
+      const movable = list.filter(end => !fixed.has(end.key));
+      let allocated: {key: string; value: number}[] = [];
+      // Authored ports remain at their actual positions. Spread automatic siblings
+      // around them, relaxing spacing only when a crowded side cannot fit 16px.
+      for (const spacing of [16, 8, 4, 2, 1, .5, 0]) {
+        const used = [...reserved]; allocated = [];
+        for (const end of movable) {
+          const slots: number[] = [];
+          for (let value = -max; value <= max; value += .5)
+            if (used.every(other => Math.abs(value - other) >= spacing)) slots.push(value);
+          slots.sort((a, b) => Math.abs(a - end.pref) - Math.abs(b - end.pref) || a - b);
+          if (!slots.length) break;
+          used.push(slots[0]); allocated.push({key: end.key, value: slots[0]});
+        }
+        if (allocated.length === movable.length) break;
+      }
+      for (const end of list) if (fixed.has(end.key)) offsets.set(end.key, fixed.get(end.key)!);
+      for (const end of allocated) offsets.set(end.key, end.value);
+      continue;
+    }
     const positions = list.map(end => end.pref);
     for (let i = 1; i < positions.length; i++)
       positions[i] = Math.max(positions[i], positions[i - 1] + gap);
