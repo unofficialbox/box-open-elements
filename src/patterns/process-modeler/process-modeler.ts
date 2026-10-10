@@ -905,7 +905,11 @@ export class ProcessModeler<
     const closeViewMenu = () => { const session = this.layoutEditSession; viewMenu.open = false; summary.focus({ preventScroll: true }); return session === this.layoutEditSession && this.isConnected; };
     viewMenu.addEventListener('keydown', event => {
       const items = Array.from(viewOptions.querySelectorAll<HTMLButtonElement>('button')).filter(item => !item.hidden && !item.disabled);
-      if (event.key === 'Tab') { viewMenu.open = false; return; }
+      if (event.key === 'Tab') {
+        if (viewMenu.open && root.activeElement === summary && !event.shiftKey && items.length) { event.preventDefault(); items[0].focus(); }
+        else viewMenu.open = false;
+        return;
+      }
       if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key) || !items.length) return;
       event.preventDefault(); viewMenu.open = true;
       const index = items.indexOf(root.activeElement as HTMLButtonElement);
@@ -915,7 +919,7 @@ export class ProcessModeler<
     root.addEventListener('pointerdown', event => { if (!event.composedPath().includes(viewMenu)) viewMenu.open = false; });
     for (const [value, label] of [["business", "Business view"], ["technical", "Technical view"]] as const) {
       const button = document.createElement("button"); button.type = "button"; button.dataset.detail = value; button.textContent = label;
-      button.setAttribute('role', 'menuitem'); button.onclick = () => { if (closeViewMenu()) this.detail = value; };
+      button.setAttribute('role', 'menuitemradio'); button.onclick = () => { if (closeViewMenu()) this.detail = value; };
       viewOptions.append(button);
     }
     const mobileRun = document.createElement('button'); mobileRun.type = 'button'; mobileRun.dataset.viewOption = 'last-run'; mobileRun.textContent = 'Show last run'; mobileRun.setAttribute('role', 'menuitem'); mobileRun.onclick = () => { if (closeViewMenu()) this.showLastRun = !this.showLastRun; }; viewOptions.append(mobileRun);
@@ -3008,6 +3012,7 @@ export class ProcessModeler<
     button("snap").setAttribute("aria-pressed", String(this.snapToGrid));
     this.shadowRoot!.querySelectorAll<HTMLButtonElement>('[data-detail]').forEach(control => {
       if (!control.closest('[part=view-menu]')) control.setAttribute("aria-pressed", String(control.dataset.detail === this.detailValue));
+      if (control.closest('[part=view-menu]')) control.setAttribute('aria-checked', String(control.dataset.detail === this.detailValue));
       if (control.closest('[part=view-menu]')) control.textContent = `${control.dataset.detail === this.detailValue ? '✓ ' : ''}${control.dataset.detail === 'business' ? 'Business view' : 'Technical view'}`;
     });
     const runToggle = this.shadowRoot!.querySelector<HTMLElement>('[part=run-toggle]')!;
@@ -3019,7 +3024,11 @@ export class ProcessModeler<
     mobileRun.textContent = this.showLastRunValue ? 'Hide last run' : 'Show last run';
     const checksStatus = button('checks-status');
     const count = this.allChecks.length;
-    checksStatus.textContent = count ? `${count} ${count === 1 ? 'problem' : 'problems'}` : '✓ Ready to run';
+    const glyph = svgElement('svg'); glyph.setAttribute('viewBox', '0 0 16 16'); glyph.setAttribute('aria-hidden', 'true');
+    const circle = svgElement('circle'); circle.setAttribute('cx', '8'); circle.setAttribute('cy', '8'); circle.setAttribute('r', '7'); circle.setAttribute('fill', 'currentColor');
+    const mark = svgElement('path'); mark.setAttribute('d', count ? 'M8 4v5m0 2v1' : 'm4.5 8 2.5 2.5 4.5-5'); mark.setAttribute('stroke', 'var(--boe-token-surface-surface, #fff)'); mark.setAttribute('stroke-width', '1.5'); mark.setAttribute('fill', 'none'); mark.setAttribute('stroke-linecap', 'round'); mark.setAttribute('stroke-linejoin', 'round'); glyph.append(circle, mark);
+    const label = document.createElement('span'); label.textContent = count ? `${count} ${count === 1 ? 'problem' : 'problems'}` : 'Ready to run';
+    checksStatus.replaceChildren(glyph, label);
     checksStatus.dataset.state = count ? 'bad' : 'ready';
     this.shadowRoot!.querySelector<HTMLElement>('[data-view-option=checks]')!.textContent = count ? `Checks (${count})` : 'Checks: ready to run';
   }

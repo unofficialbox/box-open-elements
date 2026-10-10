@@ -664,9 +664,30 @@ describe("Process Modeler prototype interactions", () => {
     const menu=root.querySelector<HTMLDetailsElement>('[part=view-menu]')!,summary=menu.querySelector('summary')!;
     const tidy=vi.spyOn(builder,'tidy');menu.open=true;root.querySelector<HTMLButtonElement>('[data-view-option=tidy]')!.click();expect(tidy).toHaveBeenCalledOnce();expect(menu.open).toBe(false);expect(root.activeElement).toBe(summary);
     expect(root.querySelector<HTMLButtonElement>('[data-view-option=undo]')!.disabled).toBe(true);expect(root.querySelector('[data-view-option=last-run]')!.textContent).toBe('Show last run');expect(root.querySelector('[data-view-option=checks]')!.textContent).toBe('Checks: ready to run');
-    summary.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true,cancelable:true}));expect(menu.open).toBe(true);expect(root.activeElement).toBe(menu.querySelector('[role=menuitem]'));
+    summary.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true,cancelable:true}));expect(menu.open).toBe(true);expect(root.activeElement).toBe(menu.querySelector('[role=menuitemradio]'));
     menu.dispatchEvent(new KeyboardEvent('keydown',{key:'End',bubbles:true,cancelable:true}));expect(root.activeElement).toBe(root.querySelector('[data-view-option=tidy]'));
     builder.locked=true;expect(root.querySelector<HTMLButtonElement>('[data-view-option=tidy]')!.disabled).toBe(true);
+  });
+  it('enters the open View menu from summary Tab and exposes the selected view', () => {
+    const { builder, root } = fixture();
+    const menu = root.querySelector<HTMLDetailsElement>('[part=view-menu]')!;
+    const summary = menu.querySelector('summary')!;
+    const business = menu.querySelector<HTMLButtonElement>('[data-detail=business]')!;
+    const technical = menu.querySelector<HTMLButtonElement>('[data-detail=technical]')!;
+    expect(business.getAttribute('role')).toBe('menuitemradio');
+    expect(business.getAttribute('aria-checked')).toBe('true');
+    expect(technical.getAttribute('aria-checked')).toBe('false');
+    summary.focus(); menu.open = true;
+    const tab = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    summary.dispatchEvent(tab);
+    expect(tab.defaultPrevented).toBe(true);
+    expect(menu.open).toBe(true); expect(root.activeElement).toBe(business);
+    technical.click(); expect(builder.detail).toBe('technical');
+    expect(business.getAttribute('aria-checked')).toBe('false');
+    expect(technical.getAttribute('aria-checked')).toBe('true');
+    summary.focus(); menu.open = true;
+    summary.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }));
+    expect(menu.open).toBe(false);
   });
   it("closes the View menu with Escape and announces cancellation only for an active connection", () => {
     const { builder, root, canvas } = fixture();
