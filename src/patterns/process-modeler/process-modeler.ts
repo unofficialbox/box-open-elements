@@ -100,6 +100,8 @@ export class ProcessModeler<
   private renderer?: (node: N, container: HTMLElement) => void | (() => void);
   private cleanupInspector?: () => void;
   private inspectorFieldCleanups: (() => void)[] = [];
+  private pendingActionChoice?: { boxId: string; key: string; value: string; session: number };
+  private quietActionFocus = false;
   private cleanupInspectorFields(): void { for (const cleanup of this.inspectorFieldCleanups.splice(0)) cleanup(); }
   private inspected?: N;
   private inspectedId?: string;
@@ -396,6 +398,7 @@ export class ProcessModeler<
     if (menu) menu.open = false;
     this.viewMenuDocument?.removeEventListener('pointerdown', this.dismissViewMenuOutside, true); this.viewMenuDocument = undefined;
     this.layoutEditSession++;
+    this.pendingActionChoice = undefined;
     this.resizeObserver?.disconnect();
     this.clearClipboard();
     this.cancelPalettePointer();
@@ -2751,7 +2754,9 @@ export class ProcessModeler<
         if (!input.isConnected || input.disabled || this.locked || this.selected?.id !== box.id) return;
         input.focus();
         if (session !== this.layoutEditSession || !input.isConnected || input.disabled || this.locked || this.selected?.id !== box.id || this.shadowRoot?.activeElement !== input || input.closest('[inert]')) return;
-        input.value = option.value; close(false); submit();
+        input.value = option.value; close(false);
+        this.pendingActionChoice = { boxId: box.id, key: field.key, value: option.value, session };
+        submit();
       };
       const render = () => {
         list.replaceChildren(); optionList.replaceChildren();
@@ -2789,13 +2794,14 @@ export class ProcessModeler<
         place(); items[active]?.scrollIntoView?.({ block: 'nearest' });
       };
       const openSelected = () => {
+        if (this.quietActionFocus) return;
         const current = options.find(option => option.value === field.value);
         group = current?.group ?? null; browse = true;
         active = group ? 1 + options.filter(option => option.group === group).findIndex(option => option === current) : Math.max(0, options.indexOf(current!));
         render();
       };
       list.addEventListener('pointerdown', event => event.preventDefault());
-      input.addEventListener('focus', openSelected);
+      input.addEventListener('focus', () => { if (!this.quietActionFocus) { input.select(); openSelected(); } });
       input.addEventListener('input', () => { group = null; browse = false; active = 0; render(); });
       input.addEventListener('pointerdown', () => { if (list.hidden && this.shadowRoot?.activeElement === input) openSelected(); });
       input.addEventListener('keydown', event => {
@@ -2909,7 +2915,11 @@ export class ProcessModeler<
         return;
       }
       if (!control || control.disabled || control.closest('[inert]')) return;
-      control.focus({ preventScroll: true });
+      const choice = this.pendingActionChoice;
+      const quiet = Boolean(focusedType === 'field' && choice && choice.boxId === fieldBox && choice.key === focusedKey && choice.session === this.layoutEditSession && this.fieldsValue[fieldBox!]?.some(field => field.key === focusedKey && field.value === choice.value));
+      if (quiet) this.pendingActionChoice = undefined;
+      this.quietActionFocus = quiet;
+      try { control.focus({ preventScroll: true }); } finally { this.quietActionFocus = false; }
       if (caret !== null && (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) && control.type !== 'number' && control.type !== 'checkbox') control.setSelectionRange(caret, selectionEnd ?? caret, direction ?? undefined);
       if (scrollTop !== undefined) control.scrollTop = scrollTop;
       if (scrollLeft !== undefined) control.scrollLeft = scrollLeft;

@@ -848,6 +848,7 @@ describe("Process Modeler prototype interactions", () => {
     builder.select('a');
     const input = root.querySelector<HTMLInputElement>('[data-field=action]')!;
     input.focus();
+    expect([input.selectionStart, input.selectionEnd]).toEqual([0, input.value.length]);
     expect(root.querySelectorAll('[part=action-option]')).toHaveLength(2);
     expect(root.querySelector('[part=action-option][aria-selected=true]')?.textContent).toContain('Upload file');
     expect(root.querySelector('[part=action-back]')?.getAttribute('role')).toBe('option');
@@ -872,10 +873,26 @@ describe("Process Modeler prototype interactions", () => {
     expect(input.value).toBe('Files › Upload file');
     expect(input.getAttribute('aria-expanded')).toBe('false');
     input.blur(); input.focus();
+    expect([input.selectionStart, input.selectionEnd]).toEqual([0, input.value.length]);
     expect(root.querySelectorAll('[part=action-option]')).toHaveLength(2);
     input.value = 'delete folder'; input.dispatchEvent(new Event('input', { bubbles: true }));
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
     expect(changes.mock.calls[0][0].detail).toMatchObject({ boxId: 'a', key: 'action', value: 'folders.delete' });
+  });
+  it('keeps a committed picker closed while restoring focus on its controlled echo', () => {
+    const { builder, root } = fixture();
+    const options = [{ value: 'files.upload', label: 'Upload file', group: 'Files' }, { value: 'files.download', label: 'Download file', group: 'Files' }];
+    const fields = (value: string) => ({ a: [{ key: 'action', label: 'Box action', kind: 'action' as const, value, options }] });
+    builder.fields = fields('files.upload'); builder.select('a');
+    builder.addEventListener('process-field-change-request', event => { builder.fields = fields((event as CustomEvent).detail.value); });
+    const input = root.querySelector<HTMLInputElement>('[data-field=action]')!; input.focus();
+    input.value = 'download'; input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    const echoed = root.querySelector<HTMLInputElement>('[data-field=action]')!;
+    expect(echoed.value).toBe('Download file'); expect(root.activeElement).toBe(echoed);
+    expect(echoed.getAttribute('aria-expanded')).toBe('false');
+    echoed.blur(); echoed.focus(); expect(echoed.getAttribute('aria-expanded')).toBe('true');
+    expect(root.querySelectorAll('[part=action-option]')).toHaveLength(2);
   });
   it.each(['navigation', 'reload'] as const)('does not commit a stale action option after %s during focus', mode => {
     const { builder, root } = fixture(); const changes = vi.fn(); builder.addEventListener('process-field-change-request', changes);
