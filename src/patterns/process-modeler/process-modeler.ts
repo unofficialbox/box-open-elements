@@ -1231,7 +1231,7 @@ export class ProcessModeler<
         if (!active || settled || session !== this.clipboardSession || this.locked) return;
         settled = true; accept(command);
       },
-      refuse: message => { if (!active || settled) return; settled = true; this.setStatus(message ?? 'Paste was refused by this host'); },
+      refuse: message => { if (!active || settled || session !== this.clipboardSession || !this.isConnected) return; settled = true; this.setStatus(message ?? 'Paste was refused by this host'); },
     };
     try { clipboard.paste(request); } finally { active = false; }
     if (!settled && session === this.clipboardSession) this.setStatus('Paste was not accepted by this host');
