@@ -2508,13 +2508,26 @@ export class ProcessModeler<
   private renderWorld(): void {
     const world = this.shadowRoot!.querySelector<HTMLElement>("[part=world]")!;
     world.replaceChildren();
+    const sections = [
+      ...(this.layoutValue.sections ?? []).map(section => ({ id: section.id, x: section.x })),
+      ...this.projection.boxes.filter(box => box.kind === 'section').map(box => ({ id: box.id, x: this.layoutValue.boxes[box.id].x })),
+    ].sort((a, b) => a.x - b.x);
+    const sectionHeader = (element: HTMLElement, id: string, title: string, description?: string) => {
+      const number = sections.findIndex(section => section.id === id) + 1;
+      element.setAttribute('aria-roledescription', 'section');
+      element.setAttribute('aria-label', `Section ${number}: ${title || 'Untitled'}. ${description || ''}`);
+      const head = document.createElement('div'); head.setAttribute('part', 'section-head');
+      const index = document.createElement('span'); index.setAttribute('part', 'section-number'); index.textContent = String(number);
+      const content = document.createElement('div');
+      const name = document.createElement('strong'); name.textContent = title || 'Untitled section'; content.append(name);
+      if (description) { const purpose = document.createElement('small'); purpose.textContent = description; content.append(purpose); }
+      head.append(index, content); element.append(head);
+    };
     for (const section of this.layoutValue.sections ?? []) {
-      const element = document.createElement("div");
-      element.setAttribute("part", "section");
-      const title = document.createElement('strong'); title.textContent = section.title; element.append(title);
-      if (section.description) { const description = document.createElement('small'); description.textContent = section.description; element.append(description); }
-      this.place(element, section);
-      world.append(element);
+      const element = document.createElement('div'); element.setAttribute('part', 'section'); element.setAttribute('role', 'group');
+      element.dataset.sectionId = section.id;
+      sectionHeader(element, section.id, section.title, section.description);
+      this.place(element, section); world.append(element);
     }
     for (const box of [...this.projection.boxes].sort(
       (a, b) => Number(Boolean(b.frame)) - Number(Boolean(a.frame)),
@@ -2545,82 +2558,85 @@ export class ProcessModeler<
       element.setAttribute("aria-current", String(this.selectedIds.has(box.id)));
       this.place(element, { ...this.layoutValue.boxes[box.id], ...(!isFlowBox(box) ? { width: this.layoutValue.boxes[box.id].width ?? 208 } : {}) });
       if (!isFlowBox(box)) { const text = document.createElement("div"); text.setAttribute("part", "note-body"); text.textContent = box.description ?? box.title; element.append(text); }
-      const icon = document.createElement("span"); icon.setAttribute("part", "icon"); icon.setAttribute("aria-hidden", "true");
-      if (kind?.icon) {
-        icon.append(kind.icon());
-      }
-      if (isFlowBox(box) && (shape !== "event" || !["start", "end", "finish"].includes(box.kind))) element.append(icon);
-      const title = document.createElement("strong");
-      title.textContent = box.title;
-      if (isFlowBox(box)) element.append(title);
-      let descriptionParent: HTMLElement = element;
-      if (shape === 'gateway' || shape === 'event') {
-        const caption = document.createElement('div'); caption.setAttribute('part', 'caption');
-        const position = this.layoutValue.boxes[box.id];
-        let topUsed = false, bottomUsed = false;
-        for (const line of this.projection.lines) {
-          const points = this.routedLines.get(line.id);
-          const end = line.from === box.id ? points?.[0] : line.to === box.id ? points?.at(-1) : undefined;
-          if (!end) continue;
-          if (Math.abs(end.y - processPortPoint(box, position, "north").y) < .01) topUsed = true;
-          if (Math.abs(end.y - processPortPoint(box, position, "south").y) < .01) bottomUsed = true;
+      if (box.kind === 'section') sectionHeader(element, box.id, box.title, box.description);
+      else {
+        const icon = document.createElement("span"); icon.setAttribute("part", "icon"); icon.setAttribute("aria-hidden", "true");
+        if (kind?.icon) {
+          icon.append(kind.icon());
         }
-        caption.dataset.side = bottomUsed && !topUsed ? 'above' : 'below';
-        caption.append(title); element.append(caption); descriptionParent = caption;
-        if (shape === 'event' && this.detailValue === 'technical' && box.technicalDetails?.length) {
-          const details = document.createElement('div'); details.setAttribute('part', 'event-details');
-          caption.append(details); descriptionParent = details;
-        }
-      }
-      if (shape === 'task' && box.technicalDetails) icon.style.gridRow = 'span 4';
-      if (isFlowBox(box) && this.detailValue === "technical" && box.technicalDetails) {
-        for (const line of box.technicalDetails) {
-          if (!line.text && !line.segments?.length) continue;
-          const description = document.createElement("small");
-          if (line.segments) {
-            for (const segment of line.segments) {
-              if (segment.format === "code") {
-                const code = document.createElement("span");
-                code.setAttribute("part", "technical-inline-code");
-                code.textContent = segment.text;
-                description.append(code);
-              } else description.append(document.createTextNode(segment.text));
-            }
-          } else description.textContent = line.text;
-          description.setAttribute("part", line.format === "code" ? "technical-description" : "technical-summary");
-          descriptionParent.append(description);
-        }
-      } else if (isFlowBox(box)) {
-        const descriptionText = this.detailValue === "technical" ? box.technicalDescription ?? box.description : box.description;
-        if (descriptionText) {
-          const description = document.createElement("small");
-          description.textContent = descriptionText;
-          if (this.detailValue === "technical") description.setAttribute("part", "technical-description");
-          descriptionParent.append(description);
-        }
-      }
-      if (box.frame && box.loopMark) {
-        const loop = document.createElement('span'); loop.setAttribute('part', 'loop-mark'); loop.setAttribute('aria-hidden', 'true'); loop.textContent = '↻'; element.append(loop);
-      }
-      const metrics = this.showLastRunValue ? this.lastRunValue?.steps[box.id] : undefined;
-      if (this.showLastRunValue && this.lastRunValue && shape === 'task' && box.runMetrics !== false) {
-        const line = document.createElement("span"); line.setAttribute("part", "metrics");
-        if (!metrics || metrics.notInRun) {
-          line.dataset.state = 'unmeasured'; line.textContent = "Not in the last run";
-        } else {
-          const parts: HTMLElement[] = [];
-          const add = (text: string, warning = false) => { const part = document.createElement('span'); part.textContent = text; if (warning) part.setAttribute('part', 'metric-warning'); parts.push(part); };
-          if (metrics.callsPerSecond !== undefined) add(`${metrics.callsPerSecond.toFixed(1)}/s`);
-          if (metrics.p95Ms !== undefined) add(`p95 ${formatRunDuration(metrics.p95Ms)}`);
-          if (metrics.failedShare !== undefined && metrics.failedShare > 0) add(`${formatFailedShare(metrics.failedShare)} failed`, true);
-          for (const [index, part] of parts.entries()) {
-            if (index) { const separator = document.createElement('span'); separator.setAttribute('part', 'metric-separator'); separator.textContent = '·'; line.append(document.createTextNode(' '), separator, document.createTextNode(' ')); }
-            line.append(part);
+        if (isFlowBox(box) && (shape !== "event" || !["start", "end", "finish"].includes(box.kind))) element.append(icon);
+        const title = document.createElement("strong");
+        title.textContent = box.title;
+        if (isFlowBox(box)) element.append(title);
+        let descriptionParent: HTMLElement = element;
+        if (shape === 'gateway' || shape === 'event') {
+          const caption = document.createElement('div'); caption.setAttribute('part', 'caption');
+          const position = this.layoutValue.boxes[box.id];
+          let topUsed = false, bottomUsed = false;
+          for (const line of this.projection.lines) {
+            const points = this.routedLines.get(line.id);
+            const end = line.from === box.id ? points?.[0] : line.to === box.id ? points?.at(-1) : undefined;
+            if (!end) continue;
+            if (Math.abs(end.y - processPortPoint(box, position, "north").y) < .01) topUsed = true;
+            if (Math.abs(end.y - processPortPoint(box, position, "south").y) < .01) bottomUsed = true;
+          }
+          caption.dataset.side = bottomUsed && !topUsed ? 'above' : 'below';
+          caption.append(title); element.append(caption); descriptionParent = caption;
+          if (shape === 'event' && this.detailValue === 'technical' && box.technicalDetails?.length) {
+            const details = document.createElement('div'); details.setAttribute('part', 'event-details');
+            caption.append(details); descriptionParent = details;
           }
         }
-        element.append(line);
+        if (shape === 'task' && box.technicalDetails) icon.style.gridRow = 'span 4';
+        if (isFlowBox(box) && this.detailValue === "technical" && box.technicalDetails) {
+          for (const line of box.technicalDetails) {
+            if (!line.text && !line.segments?.length) continue;
+            const description = document.createElement("small");
+            if (line.segments) {
+              for (const segment of line.segments) {
+                if (segment.format === "code") {
+                  const code = document.createElement("span");
+                  code.setAttribute("part", "technical-inline-code");
+                  code.textContent = segment.text;
+                  description.append(code);
+                } else description.append(document.createTextNode(segment.text));
+              }
+            } else description.textContent = line.text;
+            description.setAttribute("part", line.format === "code" ? "technical-description" : "technical-summary");
+            descriptionParent.append(description);
+          }
+        } else if (isFlowBox(box)) {
+          const descriptionText = this.detailValue === "technical" ? box.technicalDescription ?? box.description : box.description;
+          if (descriptionText) {
+            const description = document.createElement("small");
+            description.textContent = descriptionText;
+            if (this.detailValue === "technical") description.setAttribute("part", "technical-description");
+            descriptionParent.append(description);
+          }
+        }
+        if (box.frame && box.loopMark) {
+          const loop = document.createElement('span'); loop.setAttribute('part', 'loop-mark'); loop.setAttribute('aria-hidden', 'true'); loop.textContent = '↻'; element.append(loop);
+        }
+        const metrics = this.showLastRunValue ? this.lastRunValue?.steps[box.id] : undefined;
+        if (this.showLastRunValue && this.lastRunValue && shape === 'task' && box.runMetrics !== false) {
+          const line = document.createElement("span"); line.setAttribute("part", "metrics");
+          if (!metrics || metrics.notInRun) {
+            line.dataset.state = 'unmeasured'; line.textContent = "Not in the last run";
+          } else {
+            const parts: HTMLElement[] = [];
+            const add = (text: string, warning = false) => { const part = document.createElement('span'); part.textContent = text; if (warning) part.setAttribute('part', 'metric-warning'); parts.push(part); };
+            if (metrics.callsPerSecond !== undefined) add(`${metrics.callsPerSecond.toFixed(1)}/s`);
+            if (metrics.p95Ms !== undefined) add(`p95 ${formatRunDuration(metrics.p95Ms)}`);
+            if (metrics.failedShare !== undefined && metrics.failedShare > 0) add(`${formatFailedShare(metrics.failedShare)} failed`, true);
+            for (const [index, part] of parts.entries()) {
+              if (index) { const separator = document.createElement('span'); separator.setAttribute('part', 'metric-separator'); separator.textContent = '·'; line.append(document.createTextNode(' '), separator, document.createTextNode(' ')); }
+              line.append(part);
+            }
+          }
+          element.append(line);
+        }
+        if (problem) { const message = document.createElement("span"); message.setAttribute("part", "problem"); message.append(checkGlyph(), document.createTextNode(problem.title || problem.message)); element.append(message); }
       }
-      if (problem) { const message = document.createElement("span"); message.setAttribute("part", "problem"); message.append(checkGlyph(), document.createTextNode(problem.title || problem.message)); element.append(message); }
       element.addEventListener("keydown", event => {
         if (event.target !== element) return;
         // Space reaches the canvas handler so holding it pans from a focused step.
@@ -2651,7 +2667,7 @@ export class ProcessModeler<
         else if (event.shiftKey) this.selectMany(this.selectedIds.has(box.id) ? [...this.selectedIds].filter(id => id !== box.id) : [...this.selectedIds, box.id]);
         else this.select(box.id);
       });
-      if (!this.disableConnections && !this.locked && !['end', 'finish'].includes(box.kind)) {
+      if (!this.disableConnections && !this.locked && !['end', 'finish', 'section'].includes(box.kind)) {
         for (const side of ["north", "east", "south", "west"] as const) {
           const port = document.createElement("button"); port.type = "button"; port.tabIndex = -1; port.setAttribute("part", "port"); port.dataset.side = side; port.dataset.owner = box.id;
             const arrow = svgElement('svg'); arrow.setAttribute('viewBox', '0 0 16 16'); arrow.setAttribute('aria-hidden', 'true');
@@ -2669,7 +2685,7 @@ export class ProcessModeler<
           element.append(port);
         }
       }
-      if (box.frame && !this.locked) {
+      if (box.frame && box.kind !== 'section' && !this.locked) {
         const handle = document.createElement('button'); handle.type = 'button'; handle.setAttribute('part', 'frame-resize');
         handle.dataset.owner = box.id; handle.setAttribute('aria-label', `Resize ${box.title}`);
         handle.addEventListener('keydown', event => {

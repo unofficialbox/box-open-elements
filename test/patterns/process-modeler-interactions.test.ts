@@ -192,6 +192,22 @@ describe("Process Modeler prototype interactions", () => {
     pointer(canvas,'pointerup',217,30,{altKey:true}); expect(builder.layout.boxes.b.x).toBe(201);
     builder.undo(); expect(builder.layout.boxes.b.x).toBe(184);
   });
+  it("numbers layout and graph sections from left to right with literal readable headers", () => {
+    const { builder, root } = fixture();
+    builder.document = {boxes:[{...projection.boxes[0],id:'graph-section',kind:'section',frame:true,title:'<Later>',description:'Read & review'}],lines:[]};
+    builder.layout = {boxes:{'graph-section':{x:400,y:0,width:320,height:160}},sections:[{id:'right',title:'Last',x:800,y:0,width:300,height:160},{id:'left',title:'First',description:'Before the graph section',x:0,y:0,width:300,height:160}]};
+    const graph = root.querySelector('[data-box-id=graph-section]')!;
+    expect(graph.querySelector('[part=section-number]')?.textContent).toBe('2');
+    expect(graph.getAttribute('aria-label')).toBe('Section 2: <Later>. Read & review');
+    expect(graph.querySelector('strong')?.textContent).toBe('<Later>'); expect(graph.querySelector('later')).toBeNull();
+    expect(graph.querySelector('[part=icon],[part=port],[part=frame-resize]')).toBeNull();
+    expect(root.querySelector('[data-section-id=left] [part=section-number]')?.textContent).toBe('1');
+    expect(root.querySelector('[data-section-id=right] [part=section-number]')?.textContent).toBe('3');
+    expect(builder.layout.sections?.map(section=>section.id)).toEqual(['right','left']);
+    builder.select('graph-section'); builder.move('graph-section',900,0);
+    expect(root.querySelector('[data-box-id=graph-section] [part=section-number]')?.textContent).toBe('3');
+    builder.undo(); expect(root.querySelector('[data-box-id=graph-section] [part=section-number]')?.textContent).toBe('2');
+  });
   it("names the desktop building-block pane without duplicating the mobile drawer heading", () => {
     const { root } = fixture();
     expect(root.querySelector('[part=palette-heading]')?.textContent).toBe("Add to the process");
