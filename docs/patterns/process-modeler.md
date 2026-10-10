@@ -447,7 +447,8 @@ projection observers run after the accepted transaction has recorded history.
 ### Host-authored field presentation
 
 The selected inspector heading shows the catalog kind's label and optional
-`description` as plain text. Omitted descriptions preserve the label-only heading.
+`description` as plain text. Omitted descriptions preserve the label-only heading; an explicitly supplied
+empty description retains the native sentence punctuation.
 Ordinary `multiline` fields accept `rows`; expression fields continue to use
 `expression.rows`. `format: 'code'` presents structured text in monospace without
 parsing it or changing edit events. `time` and `datetime-local` kinds use native
@@ -457,6 +458,23 @@ constraints. Empty numeric edits remain empty strings. The host owns validation,
 conditional field visibility and authoritative values; constraints do not reject
 or rewrite host data. Boolean fields use an inline, fully labeled checkbox.
 
+Adjacent field descriptors can share `section: { key, title, description?,
+descriptionSegments? }`, `disclosure: { key, summary, open? }`, or `row: { key,
+leadingWidth?, gap? }`. These describe presentation, never workflow structure.
+Sections contain disclosures, and disclosures contain rows. Group keys should be
+stable and unique within their parent; a change of key starts a new group. Text
+and optional code segments render safely. Disclosure `open` supplies its initial
+state; user toggles survive same-selection echoes and reset on navigation or load.
+Rows default to two equal columns with a 10px gap; optional positive leading width
+and nonnegative gap support a compact method/address pair. `optional` adds a
+visible marker; `annotation` adds an associated plain-text type/location hint.
+Existing ungrouped fields preserve their ordering and edit contracts.
+
+Catalog entries with `addable: false` provide existing-node identity and description
+without appearing in the palette or Add/insert chooser. Omission keeps kinds
+addable. The inspector hides Duplicate/Delete for the existing protected `start`
+and `timer` kinds, matching the selection toolbar; the host still authorizes edits.
+
 ### Host-authored expression fields
 
 An expression field can provide `expression: { variables, rows, feedback, help }`.
@@ -465,7 +483,8 @@ BOE does not infer visibility from graph edges, sections or local declarations.
 An explicit empty array hides chips; omission preserves the global `variables`
 fallback. Chip tooltips use the supplied description. `rows: 2` selects a textarea.
 `feedback: { message, tone?: 'neutral' | 'success' }` supplies host evaluation
-feedback; the existing `problem` takes precedence. Descriptions and feedback are
+feedback; an explicitly empty message reserves the native validation slot,
+while omission draws no slot. The existing `problem` takes precedence. Descriptions and feedback are
 associated with the field for assistive technology. Expression feedback updates
 are announced politely.
 

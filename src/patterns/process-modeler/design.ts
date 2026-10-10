@@ -290,6 +290,17 @@ export const processModelerDesign = `
   [part=editor] { display: grid; align-content: start; gap: 12px; }
   [part=inspector-kind] { display: none; }
   [part=inspector-purpose] { margin: 0; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12.5px; }
+  [part=field-section] { min-width: 0; }
+  [part=field-section] h3 { font-size: 12.5px; font-weight: 650; line-height: 1.45; margin: 0 0 6px; }
+  [part=field-section-description] { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--boe-token-text-text-secondary, #6f6f6f); }
+  [part=field-section-description] code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  [part=field-section] [part=field] { margin-top: 8px; }
+  [part=field-section] input[data-field][part=expression-control] { line-height: 1.45; }
+  [part=field-disclosure] { margin-top: 8px; font-size: 12.5px; line-height: 1.45; }
+  [part=field-disclosure] summary { cursor: pointer; font-weight: 600; color: var(--boe-token-text-text-secondary, #6f6f6f); }
+  [part=field-row] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; min-width: 0; }
+  [part=field] [part=field-optional] { font-style: normal; font-weight: 500; color: var(--boe-token-text-text-secondary, #6f6f6f); }
+  [part=field] [part=field-annotation] { color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=field] { display: grid; gap: 6px; }
   [part=field] label { display: grid; gap: 6px; font-size: 12.5px; font-weight: 600; line-height: 1.45; }
   [part=field] :is(input:not([type=checkbox]),textarea,select) { width: 100%; min-height: 36px; padding: 7px 12px; border: 1px solid var(--boe-token-surface-surface-quaternary, #d3d3d3); border-radius: 12px; box-shadow: inset 0 2px 4px rgb(0 0 0 / .06); background: var(--boe-token-surface-surface, #fff); color: var(--boe-token-text-text, #141413); font-family: inherit; font-size: 13px; font-weight: 400; line-height: 1.45; }

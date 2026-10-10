@@ -1093,7 +1093,7 @@ export class ProcessModeler<
     const selected = this.selected;
     root.querySelector('[part=process-title]')!.textContent = this.selectedIds.size > 1 ? `${this.selectedIds.size} steps selected` : selected?.title ?? this.processTitleValue;
     const kind = selected && this.catalog.find(kind => kind.kind === selected.kind);
-    const kindSummary = kind ? `${kind.label}${kind.description ? `. ${kind.description}` : ''}` : selected?.kind;
+    const kindSummary = kind ? `${kind.label}${kind.description !== undefined ? `. ${kind.description}` : ''}` : selected?.kind;
     root.querySelector<HTMLElement>('[part=process-heading]')!.toggleAttribute('data-selected', Boolean(selected));
     root.querySelector('[part=process-summary]')!.textContent = this.selectedIds.size > 1 ? 'Arrange or group these steps' : selected ? kindSummary! : this.processSummaryValue;
     root.querySelector<HTMLElement>('[part=pane-tabs]')!.hidden = Boolean(selected);
@@ -2038,7 +2038,7 @@ export class ProcessModeler<
       this.place(ghost, { ...edit.position, width: 224, height: 64 }); this.shadowRoot!.querySelector('[part=world]')?.append(ghost);
     }
     chooser.addEventListener('close', () => this.shadowRoot?.querySelector('[part=ghost-box]')?.remove(), { once: true });
-    const picker = chooser.querySelector<KindPicker>('box-kind-picker')!; picker.catalog = this.catalog.filter(kind => !kind.placement); picker.refresh(); promoteModal(chooser); picker.focus();
+    const picker = chooser.querySelector<KindPicker>('box-kind-picker')!; picker.catalog = this.catalog.filter(kind => kind.addable !== false && !kind.placement); picker.refresh(); promoteModal(chooser); picker.focus();
   }
   private nextEdit(box: ProcessBox<N>, side?: ProcessSide, position?: BoxPosition): ProcessEdit {
     const shape = box.shape ?? this.catalog.find(kind => kind.kind === box.kind)?.shape;
@@ -2110,7 +2110,7 @@ export class ProcessModeler<
     this.keyboardInsertion = edit;
     chooser.querySelector<HTMLElement>('[part=chooser-title]')!.textContent = title;
     const picker = chooser.querySelector<KindPicker>('box-kind-picker')!;
-    picker.catalog = this.catalog.filter(kind => !kind.placement);
+    picker.catalog = this.catalog.filter(kind => kind.addable !== false && !kind.placement);
     picker.refresh();
     this.keyboardReturn = returnFocus ?? anchor;
     if (!anchor || !promotePopover(chooser)) {
@@ -2588,7 +2588,7 @@ export class ProcessModeler<
     choices.replaceChildren();
     let group = "";
     for (const kind of this.catalog.filter((kind) =>
-      `${kind.label} ${kind.description} ${kind.group ?? ""} ${(kind.aliases ?? []).join(" ")}`
+      kind.addable !== false && `${kind.label} ${kind.description} ${kind.group ?? ""} ${(kind.aliases ?? []).join(" ")}`
         .toLowerCase()
         .includes(query),
     )) {
@@ -2692,9 +2692,57 @@ export class ProcessModeler<
       checks.append(button);
     });
   }
+  private renderFields(editor: HTMLElement, box: ProcessBox<N>, help: Map<string, boolean>, disclosures: Map<string, {open: boolean; configuredOpen: boolean}>): void {
+    let sectionKey: string | undefined, disclosureKey: string | undefined, rowKey: string | undefined;
+    let section: HTMLElement = editor, disclosure: HTMLElement = editor, row: HTMLElement = editor;
+    for (const field of this.fieldsValue[box.id] ?? []) {
+      if (field.section?.key !== sectionKey) {
+        sectionKey = field.section?.key; disclosureKey = rowKey = undefined;
+        section = editor;
+        if (field.section) {
+          section = document.createElement('section'); section.setAttribute('part', 'field-section'); section.dataset.section = sectionKey;
+          const title = document.createElement('h3'); title.textContent = field.section.title; section.append(title);
+          if (field.section.description || field.section.descriptionSegments) {
+            const description = document.createElement('p'); description.setAttribute('part', 'field-section-description');
+            if (field.section.descriptionSegments) for (const segment of field.section.descriptionSegments) {
+              if (segment.format === 'code') { const code = document.createElement('code'); code.textContent = segment.text; description.append(code); }
+              else description.append(document.createTextNode(segment.text));
+            } else description.textContent = field.section.description!;
+            section.append(description);
+          }
+          editor.append(section);
+        }
+        disclosure = row = section;
+      }
+      if (field.disclosure?.key !== disclosureKey) {
+        disclosureKey = field.disclosure?.key; rowKey = undefined;
+        disclosure = section;
+        if (field.disclosure) {
+          const details = document.createElement('details'); details.setAttribute('part', 'field-disclosure'); details.dataset.disclosure = JSON.stringify([sectionKey, disclosureKey]); details.dataset.session = String(this.layoutEditSession);
+          const configuredOpen = Boolean(field.disclosure.open);
+          const previous = disclosures.get(details.dataset.disclosure);
+          details.dataset.configuredOpen = String(configuredOpen);
+          details.open = previous?.configuredOpen === configuredOpen ? previous.open : configuredOpen;
+          const summary = document.createElement('summary'); summary.textContent = field.disclosure.summary; details.append(summary); section.append(details); disclosure = details;
+        }
+        row = disclosure;
+      }
+      if (field.row?.key !== rowKey) {
+        rowKey = field.row?.key; row = disclosure;
+        if (field.row) {
+          row = document.createElement('div'); row.setAttribute('part', 'field-row'); row.dataset.row = rowKey;
+          if (field.row.leadingWidth !== undefined && Number.isFinite(field.row.leadingWidth) && field.row.leadingWidth > 0) row.style.gridTemplateColumns = `${field.row.leadingWidth}px minmax(0, 1fr)`;
+          if (field.row.gap !== undefined && Number.isFinite(field.row.gap) && field.row.gap >= 0) row.style.gap = `${field.row.gap}px`;
+          disclosure.append(row);
+        }
+      }
+      row.append(this.renderField(box, field, help.get(field.key)));
+    }
+  }
   private renderField(box: ProcessBox<N>, field: ProcessField, helpOpen = false): HTMLElement {
     const row = document.createElement('div'); row.setAttribute('part', 'field');
     const label = document.createElement('label'); label.textContent = field.label;
+    if (field.optional) { const optional = document.createElement('em'); optional.setAttribute('part', 'field-optional'); optional.textContent = ' optional'; const name = document.createElement('span'); name.append(...Array.from(label.childNodes), optional); label.append(name); }
     let control: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
     if (field.kind === 'multiline' || (field.kind === 'expression' && (field.expression?.rows ?? 1) > 1)) {
       control = document.createElement('textarea');
@@ -2874,13 +2922,14 @@ export class ProcessModeler<
     const describedBy: string[] = [];
     if (field.description) { const help = document.createElement('small'); help.id = `${messageId}-description`; help.textContent = field.description; row.append(help); describedBy.push(help.id); }
     const feedback = field.problem || (field.kind === 'expression' ? field.expression?.feedback?.message : undefined);
-    if (feedback) {
-      const message = document.createElement('small'); message.id = `${messageId}-feedback`; message.textContent = feedback;
+    if (feedback || (field.kind === 'expression' && field.expression?.feedback !== undefined)) {
+      const message = document.createElement('small'); message.id = `${messageId}-feedback`; message.textContent = feedback ?? '';
       message.setAttribute('part', field.problem ? 'field-problem' : 'field-feedback');
       if (field.kind === 'expression') message.setAttribute('aria-live', 'polite');
       if (!field.problem && field.expression?.feedback?.tone) message.dataset.tone = field.expression.feedback.tone;
       const chips = row.querySelector('[part=variable-chips]'); row.insertBefore(message, chips); describedBy.push(message.id);
     }
+    if (field.annotation) { const annotation = document.createElement('small'); annotation.setAttribute('part', 'field-annotation'); annotation.id = `${messageId}-annotation`; annotation.textContent = field.annotation; row.append(annotation); describedBy.push(annotation.id); }
     if (describedBy.length) control.setAttribute('aria-describedby', describedBy.join(' '));
     if (field.kind === 'expression' && field.expression?.help) {
       const details = document.createElement('details'); details.setAttribute('part', 'expression-help'); details.dataset.helpField = field.key; details.dataset.session = String(this.layoutEditSession); details.open = helpOpen;
@@ -2901,6 +2950,11 @@ export class ProcessModeler<
     this.shadowRoot?.querySelectorAll<HTMLElement>('[part=note]').forEach(note => { note.dataset.selected = String(this.selectedNoteIds.has(note.dataset.noteId!)); note.setAttribute('aria-pressed', note.dataset.selected); });
     if (!this.isRendered) return;
     const focusedControl = this.shadowRoot!.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
+    const summaryOwner = focusedControl?.tagName === 'SUMMARY' ? focusedControl.parentElement : null;
+    const focusedDisclosure = summaryOwner?.matches('[part=field-disclosure]') ? summaryOwner as HTMLDetailsElement : null;
+    const disclosureOwner = this.inspectedId;
+    const focusedDisclosureKey = focusedDisclosure?.dataset.disclosure;
+    const disclosureSession = focusedDisclosure?.dataset.session;
     const focusedKey = focusedControl?.dataset.field ?? focusedControl?.dataset.variable ?? focusedControl?.dataset.localVariable;
     const variableKey = focusedControl?.dataset.variableKey;
     const fieldBox = focusedControl?.dataset.fieldBox;
@@ -2911,6 +2965,12 @@ export class ProcessModeler<
     const direction = focusedControl && 'selectionDirection' in focusedControl ? focusedControl.selectionDirection : null;
     const scrollTop = focusedControl?.scrollTop, scrollLeft = focusedControl?.scrollLeft;
     const restoreControlFocus = () => {
+      if (focusedDisclosureKey !== undefined) {
+        if (this.selected?.id !== disclosureOwner || disclosureSession !== String(this.layoutEditSession)) return;
+        const replacement = Array.from(this.shadowRoot!.querySelectorAll<HTMLDetailsElement>('[part=field-disclosure]')).find(item => item.dataset.disclosure === focusedDisclosureKey && item.dataset.session === disclosureSession);
+        replacement?.querySelector<HTMLElement>('summary')?.focus({preventScroll: true});
+        return;
+      }
       if (focusedKey === undefined || !focusedType) return;
       if (focusedType === 'field' && (this.selected?.id !== fieldBox || this.locked)) return;
       const controls = Array.from(this.shadowRoot!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | HTMLButtonElement>('input,textarea,select,button'));
@@ -2932,6 +2992,8 @@ export class ProcessModeler<
         return;
       }
       if (!control || control.disabled || control.closest('[inert]')) return;
+      const closedDisclosure = control.closest<HTMLDetailsElement>('[part=field-disclosure]:not([open])');
+      if (closedDisclosure) { closedDisclosure.querySelector<HTMLElement>('summary')?.focus({preventScroll: true}); return; }
       const choice = this.pendingActionChoice;
       // Hosts may echo the committed value repeatedly. Keep focus restoration
       // quiet until the user explicitly reopens or searches this picker.
@@ -2990,7 +3052,11 @@ export class ProcessModeler<
       return;
     }
     const expressionHelp = new Map<string, boolean>();
+    const disclosures = new Map<string, {open: boolean; configuredOpen: boolean}>();
     if (this.inspectedId === selected?.id && this.selectedIds.size === 1) {
+      for (const disclosure of Array.from(editor.querySelectorAll<HTMLDetailsElement>('[part=field-disclosure]'))) {
+        if (disclosure.dataset.session === String(this.layoutEditSession)) disclosures.set(disclosure.dataset.disclosure!, {open: disclosure.open, configuredOpen: disclosure.dataset.configuredOpen === 'true'});
+      }
       for (const help of Array.from(editor.querySelectorAll<HTMLDetailsElement>('[part=expression-help]'))) {
         if (help.dataset.session === String(this.layoutEditSession)) expressionHelp.set(help.dataset.helpField!, help.open);
       }
@@ -3020,7 +3086,7 @@ export class ProcessModeler<
       const kind = this.catalog.find(entry => entry.kind === selected.kind);
       const kindLabel = document.createElement('p'); kindLabel.setAttribute('part', 'inspector-kind'); kindLabel.textContent = kind?.label ?? selected.kind; editor.append(kindLabel);
       if (selected.description) { const purpose = document.createElement('p'); purpose.setAttribute('part', 'inspector-purpose'); purpose.textContent = selected.description; editor.append(purpose); }
-      for (const field of this.fieldsValue[selected.id] ?? []) editor.append(this.renderField(selected, field, expressionHelp.get(field.key)));
+      this.renderFields(editor, selected, expressionHelp, disclosures);
       if (selected.localVariables !== undefined) editor.append(this.renderLocalVariables(selected));
       this.cleanupInspector =
         this.renderer?.(selected.node, editor) || undefined;
@@ -3052,8 +3118,11 @@ export class ProcessModeler<
         editor.insertBefore(report, leads);
       }
       const actions = document.createElement('div'); actions.setAttribute('part', 'inspector-actions');
-      const duplicate = document.createElement('button'); duplicate.type = 'button'; duplicate.textContent = 'Duplicate'; duplicate.disabled = this.locked; duplicate.onclick = () => this.duplicateBoxes([selected.id], 48);
-      const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = 'Delete'; remove.disabled = this.locked; remove.onclick = () => this.requestEdit({ type: 'delete', boxId: selected.id }); actions.append(duplicate, remove); editor.append(actions);
+      if (!['start', 'timer'].includes(selected.kind)) {
+        const duplicate = document.createElement('button'); duplicate.type = 'button'; duplicate.textContent = 'Duplicate'; duplicate.disabled = this.locked; duplicate.onclick = () => this.duplicateBoxes([selected.id], 48);
+        const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = 'Delete'; remove.disabled = this.locked; remove.onclick = () => this.requestEdit({ type: 'delete', boxId: selected.id }); actions.append(duplicate, remove);
+      }
+      if (actions.childElementCount) editor.append(actions);
     }
     restoreControlFocus();
   }

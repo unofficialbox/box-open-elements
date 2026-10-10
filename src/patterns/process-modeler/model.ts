@@ -132,6 +132,16 @@ export interface ProcessField {
   min?: number;
   max?: number;
   step?: number | 'any';
+  /** Adjacent fields with the same key share a titled section. */
+  section?: { key: string; title: string; description?: string; descriptionSegments?: ProcessTechnicalDetail['segments'] };
+  /** Adjacent fields with the same key share a native disclosure. */
+  disclosure?: { key: string; summary: string; open?: boolean };
+  /** Adjacent fields with the same key share a row; default columns are equal. */
+  row?: { key: string; leadingWidth?: number; gap?: number };
+  /** A visible optional marker, independent of native required validation. */
+  optional?: boolean;
+  /** Plain-text type/location hint after validation feedback. */
+  annotation?: string;
 }
 export interface ProcessPositionSnapshot {
   path?: NodePath;
@@ -151,6 +161,8 @@ export interface ProcessProjection<N = unknown> {
   lines: readonly ProcessLine[];
 }
 export interface ProcessKind extends FlowKind {
+  /** False for metadata-only kinds that must not appear in Add or insert choices. */
+  addable?: boolean;
   /** Alternative terms included in palette search. */
   aliases?: readonly string[];
   /** Host kind names never dictate the reusable visual anatomy. */

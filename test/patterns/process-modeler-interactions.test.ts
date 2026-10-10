@@ -793,9 +793,109 @@ describe("Process Modeler prototype interactions", () => {
     expect(heading.querySelector('img')).toBeNull();
     builder.catalog = [{kind: 'call', label: 'Call', create: () => ({})}];
     expect(root.querySelector('[part=process-summary]')!.textContent).toBe('Call');
+    builder.catalog = [{kind:'call',label:'Call',description:'',create:()=>({})}];
+    expect(root.querySelector('[part=process-summary]')!.textContent).toBe('Call. ');
     builder.select(null);
     expect(heading.hasAttribute('data-selected')).toBe(false);
     expect(root.querySelector('[part=process-summary]')!.textContent).toBe('Overview');
+  });
+
+  it("keeps an explicitly empty host validation slot without inferring feedback", () => {
+    const { builder, root } = fixture();
+    builder.fields = {a: [
+      {key:'reserved',label:'Input',kind:'expression',value:'',expression:{variables:[],feedback:{message:''}}},
+      {key:'absent',label:'Other',kind:'expression',value:'',expression:{variables:[]}},
+    ]}; builder.select('a');
+    expect(root.querySelectorAll('[part=field-feedback]')).toHaveLength(1);
+    const reserved = root.querySelector('[part=field-feedback]')!;
+    expect(reserved.textContent).toBe('');
+    expect(root.querySelector('[data-field=reserved]')!.getAttribute('aria-describedby')).toBe(reserved.id);
+    expect(root.querySelector('[data-field=absent]')!.hasAttribute('aria-describedby')).toBe(false);
+  });
+
+  it("groups host fields safely and retains disclosure state and focus only for current selection", () => {
+    const { builder, root } = fixture();
+    const section = {key: 'inputs', title: 'Inputs <img>', descriptionSegments: [{text: 'Use '}, {text: 'file.id', format: 'code' as const}]};
+    const disclosure = {key: 'more', summary: 'More inputs (2)'};
+    builder.fields = {a: [
+      {key: 'required', label: 'File', kind: 'expression', value: 'file.id', section, annotation: 'In the address · string', expression: {variables: []}},
+      {key: 'optional', label: 'Fields', kind: 'expression', value: '', section, disclosure, optional: true, annotation: 'In the query · string', expression: {variables: []}},
+      {key: 'another', label: 'Limit', kind: 'number', value: 3, section, disclosure},
+      {key: 'min', label: 'At least', kind: 'number', value: 1, row: {key: 'range'}},
+      {key: 'max', label: 'At most', kind: 'number', value: 3, row: {key: 'range'}},
+      {key: 'save', label: 'Save as', kind: 'text', value: 'file'},
+    ]}; builder.select('a');
+    const group = root.querySelector('[part=field-section]')!;
+    expect(group.querySelector('h3')!.textContent).toBe('Inputs <img>'); expect(group.querySelector('img')).toBeNull();
+    expect(group.querySelector('code')!.textContent).toBe('file.id');
+    expect(group.querySelectorAll('[part=field-disclosure]')).toHaveLength(1);
+    const details = group.querySelector<HTMLDetailsElement>('details')!; expect(details.open).toBe(false); details.open = true;
+    const optional = root.querySelector<HTMLInputElement>('[data-field=optional]')!; optional.focus(); optional.setSelectionRange(0, 0);
+    const edits = vi.fn(); builder.addEventListener('process-field-change-request', edits);
+    builder.fields = {...builder.fields, a: builder.fields.a.map(field => field.key === 'optional' ? {...field, value: 'fields'} : field)};
+    expect(root.querySelector<HTMLDetailsElement>('[part=field-disclosure]')!.open).toBe(true);
+    expect((root.activeElement as HTMLInputElement).dataset.field).toBe('optional');
+    expect(root.querySelector('[part=field-optional]')!.textContent).toBe(' optional');
+    const control = root.querySelector<HTMLInputElement>('[data-field=optional]')!;
+    expect(control.getAttribute('aria-describedby')).toContain('annotation');
+    expect(root.getElementById(control.getAttribute('aria-describedby')!.split(' ').at(-1)!)!.textContent).toBe('In the query · string');
+    expect(root.querySelector('[part=field-row]')!.querySelectorAll('[data-field]')).toHaveLength(2);
+    expect(root.querySelector('[data-field=save]')!.closest('[part=field-section]')).toBeNull();
+    expect(edits).not.toHaveBeenCalled();
+    builder.select('b'); builder.select('a'); expect(root.querySelector<HTMLDetailsElement>('[part=field-disclosure]')!.open).toBe(false);
+    builder.fields = {...builder.fields, a: builder.fields.a.map(field => field.disclosure ? {...field, disclosure: {...field.disclosure, open: true}} : field)};
+    expect(root.querySelector<HTMLDetailsElement>('[part=field-disclosure]')!.open).toBe(true);
+    root.querySelector<HTMLDetailsElement>('[part=field-disclosure]')!.open = false;
+    builder.fields = {...builder.fields};
+    expect(root.querySelector<HTMLDetailsElement>('[part=field-disclosure]')!.open).toBe(false);
+    builder.fields = {...builder.fields, a: builder.fields.a.map(field => field.disclosure ? {...field, disclosure: {...field.disclosure, open: false}} : field)};
+    expect(root.querySelector<HTMLDetailsElement>('[part=field-disclosure]')!.open).toBe(false);
+  });
+
+  it("restores a keyed disclosure summary on host echoes without crossing selection sessions", () => {
+    const { builder, root } = fixture();
+    builder.fields = {a: [{key: 'optional', label: 'Optional', kind: 'text', value: '', disclosure: {key: 'more', summary: 'More inputs'}}]};
+    builder.select('a');
+    for (let repeat = 0; repeat < 3; repeat++) {
+      const summary = root.querySelector<HTMLElement>('[part=field-disclosure] summary')!;
+      summary.focus();
+      builder.fields = {...builder.fields};
+      expect(root.activeElement).toBe(root.querySelector('[part=field-disclosure] summary'));
+      expect(root.activeElement).not.toBe(summary);
+    }
+    builder.fields = {...builder.fields, a: builder.fields.a.map(field => ({...field, disclosure: {...field.disclosure!, open: true}}))};
+    root.querySelector<HTMLInputElement>('[data-field=optional]')!.focus();
+    builder.fields = {...builder.fields, a: builder.fields.a.map(field => ({...field, disclosure: {...field.disclosure!, open: false}}))};
+    expect(root.activeElement).toBe(root.querySelector('[part=field-disclosure] summary'));
+    builder.select('b');
+    expect(root.activeElement?.tagName).not.toBe('SUMMARY');
+    builder.select('a');
+    expect(root.activeElement?.tagName).not.toBe('SUMMARY');
+  });
+
+  it("leaves nested expression help summary focused on an unchanged refresh", () => {
+    const { builder, root } = fixture();
+    builder.fields = {a: [{key: 'optional', kind: 'expression', label: 'Optional', value: '', disclosure: {key: 'more', summary: 'More inputs', open: true}, expression: {variables: [], help: {summary: 'Examples', examples: [{expression: 'true', description: 'Always'}]}}}]};
+    builder.select('a');
+    const summary = root.querySelector<HTMLElement>('[part=expression-help] summary')!;
+    summary.focus(); builder.refresh();
+    expect(root.activeElement).toBe(summary);
+  });
+
+  it("keeps metadata-only kinds out of Add and protects start inspector actions", () => {
+    const { builder, root } = fixture();
+    builder.catalog = [
+      {kind: 'call', label: 'Call', create: () => ({})},
+      {kind: 'timer', label: 'Scheduled start', description: 'Runs on a schedule', addable: false, create: () => ({})},
+    ];
+    expect(root.querySelector('[part=choices]')!.textContent).not.toContain('Scheduled start');
+    builder.document = {...projection, boxes: [{...projection.boxes[0], kind: 'timer'}], lines: []}; builder.select('a');
+    expect(root.querySelector('[part=process-summary]')!.textContent).toBe('Scheduled start. Runs on a schedule');
+    expect(root.querySelector('[part=inspector-actions]')).toBeNull();
+    builder.document = {...projection, boxes: [{...projection.boxes[0], kind: 'start'}], lines: []}; builder.select('a');
+    expect(root.querySelector('[part=inspector-actions]')).toBeNull();
+    builder.document = structuredClone(projection); builder.select('a');
+    expect(root.querySelector('[part=inspector-actions]')!.textContent).toBe('DuplicateDelete');
   });
 
   it("restores same-key focus across text to native time controls without unsupported selection calls", () => {
