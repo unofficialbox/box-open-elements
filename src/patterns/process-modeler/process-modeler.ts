@@ -30,6 +30,7 @@ import {
 
 /** Source-owned contracts for notifications forwarded through the acceptance queue. */
 export interface ProcessModelerEventDetails {
+  'note-move-request': { noteIds: readonly string[]; notes: readonly NonNullable<ProcessLayout['notes']>[number][] };
   'process-copy-request': ProcessCopyRequest;
   'process-selection-copy-request': ProcessCopyRequest;
   'layout-changed': { layout: ProcessLayout };
@@ -1549,7 +1550,10 @@ export class ProcessModeler<
       for (const id of moved) { const p = next.boxes[id]; if (p) next.boxes[id] = { ...p, x: p.x + dx, y: p.y + dy }; }
       next.notes = next.notes?.map(note => this.selectedNoteIds.has(note.id) ? { ...note, x: note.x + dx, y: note.y + dy } : note);
       const primary = this.selectedId;
-      if (emit(this, 'move-request', { boxId: primary ?? undefined, position: primary ? next.boxes[primary] : undefined, boxIds: [...moved], positions: next.boxes, noteIds: [...this.selectedNoteIds], notes: next.notes ?? [] })) this.commitLayout(next);
+      const allowed = primary
+        ? emit(this, 'move-request', { boxId: primary, position: next.boxes[primary], boxIds: [...moved], positions: next.boxes, noteIds: [...this.selectedNoteIds], notes: next.notes ?? [] })
+        : emit(this, 'note-move-request', { noteIds: [...this.selectedNoteIds], notes: next.notes ?? [] });
+      if (allowed) this.commitLayout(next);
       return;
     }
     const canInsertDirection = event.ctrlKey && event.altKey && box && !this.locked && this.catalog.length && !this.disableConnections;
