@@ -64,9 +64,11 @@ describe("Process Modeler prototype interactions", () => {
       snapshot.boxes[0].technicalDetails[0].segments[0].text = "Mutated identifier";
       snapshot.boxes[0].technicalDetails.push({ text: "Extra" });
     }
-    expect(builder.document!.boxes[0].technicalDetails).toEqual(source.boxes[0].technicalDetails);
-    expect(builder.readback.current!.boxes[0].technicalDetails).toEqual(source.boxes[0].technicalDetails);
-    expect(builder.readback.lastReadable!.boxes[0].technicalDetails).toEqual(source.boxes[0].technicalDetails);
+    const expected = [{ text: "Original", segments: [{ text: "Identifier", format: "code" }] }];
+    expect(source.boxes[0].technicalDetails).toEqual(expected);
+    expect(builder.document!.boxes[0].technicalDetails).toEqual(expected);
+    expect(builder.readback.current!.boxes[0].technicalDetails).toEqual(expected);
+    expect(builder.readback.lastReadable!.boxes[0].technicalDetails).toEqual(expected);
     expect(builder.readback.current!.boxes[0].node).toBe(source.boxes[0].node);
   });
 
