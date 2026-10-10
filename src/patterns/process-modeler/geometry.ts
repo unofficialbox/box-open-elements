@@ -263,7 +263,7 @@ export function routeProcessLine(line: ProcessLine, layout: ProcessLayout, proje
       parent = boxes.get(parent)?.parentId;
     }
   }
-  const obstacleBoxes = projection.boxes.filter(box => !excluded.has(box.id) && layout.boxes[box.id]);
+  const obstacleBoxes = projection.boxes.filter(box => box.kind !== "section" && !excluded.has(box.id) && layout.boxes[box.id]);
   const obstacles = obstacleBoxes.map(box => rectangle(layout.boxes[box.id], box));
   const waypoints = (layout.lines?.[line.id] ?? line.points ?? []).map(point => ({ ...point }));
   if (waypoints.some(point => !Number.isFinite(point.x) || !Number.isFinite(point.y))) return [];
