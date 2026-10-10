@@ -2931,10 +2931,11 @@ export class ProcessModeler<
           event.preventDefault(); list.querySelector<HTMLButtonElement>('[part=action-back]')?.click();
         }
       });
-      const caret = document.createElement('button'); caret.type = 'button'; caret.setAttribute('part', 'action-caret'); caret.setAttribute('aria-label', `Browse ${field.label.toLowerCase()} choices`); caret.textContent = '⌄'; caret.disabled = input.disabled;
+      const caret = document.createElement('button'); caret.type = 'button'; caret.setAttribute('part', 'action-caret'); caret.setAttribute('aria-label', `Browse ${field.label.toLowerCase()} choices`); const caretIcon = document.createElement('span'); caretIcon.setAttribute('part', 'action-caret-icon'); caretIcon.setAttribute('aria-hidden', 'true'); caret.append(caretIcon); caret.disabled = input.disabled;
       caret.onclick = () => { this.pendingActionChoice = undefined; input.focus(); group = null; browse = true; active = 0; render(); };
       row.addEventListener('focusout', event => { if (!row.contains(event.relatedTarget as Node)) close(); });
-      row.append(caret, list);
+      const combo = document.createElement('span'); combo.setAttribute('part', 'action-input'); input.remove(); input.id = `${list.id}-input`; label.htmlFor = input.id; combo.append(input, caret);
+      row.append(combo, list);
     }
     if (field.kind === 'search' && field.options?.length && control instanceof HTMLInputElement) {
       const options = document.createElement('datalist'); options.id = `process-field-${box.id}-${field.key}`.replace(/[^a-zA-Z0-9-]/g, '-');
