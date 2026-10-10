@@ -220,7 +220,7 @@ export const processModelerDesign = `
   [part=connection] > small { margin-left: 4px; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 11px; font-weight: 400; font-variant-numeric: tabular-nums; }
   [part=connection-actions] { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; width: max-content; padding: 4px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 8px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); opacity: 0; pointer-events: none; }
   [part=connection]:hover [part=connection-actions], [part=connection]:focus-within [part=connection-actions] { opacity: 1; pointer-events: auto; }
-  [part=connection-actions] button { min-height: 32px; padding: 4px; font-size: 12px; }
+  [part=connection-actions] button { min-width: max(24px, calc(24px * var(--boe-process-inverse-zoom, 1))); min-height: max(32px, calc(24px * var(--boe-process-inverse-zoom, 1))); padding: 4px; font-size: 12px; }
   [part=note] { width: 208px; border: 1px dashed var(--boe-process-box-edge, var(--boe-control-edge, #858585)); border-radius: 8px; }
   [part=section] { z-index: 0; border: 1px solid var(--boe-process-box-edge, var(--boe-control-edge, #858585)); border-radius: 16px; background: color-mix(in srgb, var(--boe-token-surface-surface, #fff) 45%, transparent); }
   [part=section] strong { display: block; font-size: 12.5px; font-weight: 650; line-height: 1.3; }
