@@ -1125,6 +1125,18 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector('[data-palette-drop=true]')).toBeNull();
     drag(395, 450); expect(requests.mock.calls.at(-1)![0].detail.parentId).toBeUndefined();
   });
+  it.each([{ x: 100, y: 100 }, { x: 100, y: 100, width: 300 }, { x: 100, y: 100, height: 140 }])('uses visible frame bounds for partial palette drop dimensions %j', position => {
+    const { builder, root, canvas } = fixture(); builder.setView({ x: 0, y: 0, zoom: 1 });
+    canvas.getBoundingClientRect = () => ({ left: 0, top: 0, right: 1000, bottom: 800, width: 1000, height: 800 }) as DOMRect;
+    builder.document = { boxes: [...projection.boxes, { id: 'frame', kind: 'try', title: 'Frame', node: {}, frame: true }], lines: [] };
+    builder.layout = { boxes: { ...builder.layout.boxes, frame: position } };
+    const frame = root.querySelector<HTMLElement>('[data-box-id=frame]')!; const width = parseFloat(frame.style.width), height = parseFloat(frame.style.height);
+    const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    const drag = (x: number, y: number) => { pointer(root.querySelector('[part=choice]')!, 'pointerdown', -100, 100); pointer(builder, 'pointermove', x, y); pointer(builder, 'pointerup', x, y); };
+    drag(100 + width - 1, 100 + height - 1); expect(requests.mock.calls.at(-1)![0].detail.parentId).toBe('frame');
+    drag(100 + width + 1, 120); expect(requests.mock.calls.at(-1)![0].detail.parentId).toBeUndefined();
+    drag(120, 100 + height + 1); expect(requests.mock.calls.at(-1)![0].detail.parentId).toBeUndefined();
+  });
   it("inserts a palette drop on a routed line and highlights its hit target", () => {
     const { builder, root, canvas } = fixture(); const requests = vi.fn(); builder.addEventListener("process-edit-request", requests);
     const point = lineMidpoint(routeProcessLine(projection.lines[0], builder.layout, projection));

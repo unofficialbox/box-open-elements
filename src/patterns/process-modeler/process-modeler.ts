@@ -2186,7 +2186,9 @@ export class ProcessModeler<
     for (const box of this.projection.boxes) {
       if (!box.frame) continue;
       const p = this.layoutValue.boxes[box.id];
-      if (!p || point.x < p.x || point.x > p.x + (p.width ?? 320) || point.y < p.y || point.y > p.y + (p.height ?? 240)) continue;
+      if (!p) continue;
+      const { width, height } = this.selectionDimensions(box);
+      if (point.x < p.x || point.x > p.x + width || point.y < p.y || point.y > p.y + height) continue;
       let level = 0, parent = box.parentId;
       while (parent) { level++; parent = this.projection.boxes.find(box => box.id === parent)?.parentId; }
       if (level > depth) { depth = level; nearest = box; }
