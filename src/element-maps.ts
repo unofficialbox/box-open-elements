@@ -21,6 +21,7 @@ import type { Avatar } from "./components/identity/avatar.js";
 import type { Badge } from "./components/feedback/badge.js";
 import type { Badgeable } from "./components/feedback/badgeable.js";
 import type { BarChart } from "./patterns/insights/bar-chart.js";
+import type { BoxPlot } from "./patterns/insights/box-plot.js";
 import type { Breadcrumb } from "./components/navigation/breadcrumb.js";
 import type { BulkActionBar } from "./patterns/item/bulk-action-bar.js";
 import type { Button } from "./components/actions/button.js";
@@ -74,7 +75,6 @@ import type { FactList } from "./components/collections/fact-list.js";
 import type { Fieldset } from "./components/forms/fieldset.js";
 import type { FileRequestBuilder } from "./patterns/file-request/file-request-builder.js";
 import type { FilterBar } from "./patterns/search/filter-bar.js";
-import type { FlowBuilder } from "./patterns/flow-builder/flow-builder.js";
 import type { FlowCard } from "./patterns/flow-builder/primitives.js";
 import type { FlowSpine } from "./patterns/flow-builder/primitives.js";
 import type { FormWizard } from "./patterns/form-wizard/form-wizard.js";
@@ -192,6 +192,7 @@ declare global {
     "box-badge": Badge;
     "box-badgeable": Badgeable;
     "box-bar-chart": BarChart;
+    "box-box-plot": BoxPlot;
     "box-breadcrumb": Breadcrumb;
     "box-bulk-action-bar": BulkActionBar;
     "box-button": Button;
@@ -245,7 +246,6 @@ declare global {
     "box-fieldset": Fieldset;
     "box-file-request-builder": FileRequestBuilder;
     "box-filter-bar": FilterBar;
-    "box-flow-builder": FlowBuilder;
     "box-flow-card": FlowCard;
     "box-flow-spine": FlowSpine;
     "box-form-wizard": FormWizard;
@@ -365,6 +365,7 @@ export type BoxElementTagName =
   | "box-badge"
   | "box-badgeable"
   | "box-bar-chart"
+  | "box-box-plot"
   | "box-breadcrumb"
   | "box-bulk-action-bar"
   | "box-button"
@@ -418,7 +419,6 @@ export type BoxElementTagName =
   | "box-fieldset"
   | "box-file-request-builder"
   | "box-filter-bar"
-  | "box-flow-builder"
   | "box-flow-card"
   | "box-flow-spine"
   | "box-form-wizard"

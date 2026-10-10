@@ -330,6 +330,7 @@ have to come back to:
 ### Insights (compositions)
 
 - `bar-chart` — **built**
+- `box-plot` — **built**
 - `chart-panel` — **built**
 - `donut-chart` — **built**
 - `line-chart` — **built**
