@@ -499,7 +499,7 @@ describe("Process Modeler prototype interactions", () => {
     expect(canvas.style.backgroundSize).toBe('25.6px 25.6px');
     expect(canvas.style.backgroundPosition).toBe('-9px 5px');
   });
-  it("retains the inspector process heading in embedded host mode", () => {
+  it("keeps embedded inspector identity and supplied run controls available", () => {
     const { builder, root } = fixture();
     builder.processTitle = 'Upload round trip';
     builder.processSummary = '13 steps in 4 sections';
@@ -507,7 +507,20 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector('[part=process-heading]')?.textContent).toContain('Upload round trip');
     expect(root.querySelector('[part=process-heading]')?.textContent).toContain('13 steps in 4 sections');
     expect(root.querySelector('style')?.textContent).not.toMatch(/:host\(\[embed-mode\]\) \[part=process-heading\]/);
-    expect(root.querySelector('style')?.textContent).toContain(':host([data-narrow]:not([embed-mode])) [part=view-menu]');
+    builder.select('a');
+    expect(root.querySelector('[part=process-title]')?.textContent).toBe('Read');
+    expect(root.querySelector('[part=process-summary]')?.textContent).toBe('Call');
+    builder.select(null);
+    expect(root.querySelector('[part=process-title]')?.textContent).toBe('Upload round trip');
+    builder.lastRun = { steps: {} };
+    expect(root.querySelector<HTMLElement>('[part=run-toggle]')!.hidden).toBe(false);
+    expect(root.querySelector('[part=view-switch] [data-detail=technical]')?.textContent).toBe('Technical view');
+    root.querySelector<HTMLButtonElement>('[part=view-switch] [data-detail=technical]')!.click();
+    expect(builder.detail).toBe('technical');
+    builder.toggleAttribute("data-narrow", true);
+    root.querySelector<HTMLButtonElement>('[data-view-option=last-run]')!.click();
+    expect(builder.showLastRun).toBe(true);
+    expect(root.querySelector('style')?.textContent).toContain(':host([data-narrow]) [part=view-menu] { display: block; }');
   });
   it("draws host field descriptors and sends controlled changes back to the host", () => {
     const { builder, root } = fixture(); const changes = vi.fn(); const edits = vi.fn();

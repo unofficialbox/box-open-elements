@@ -301,3 +301,5 @@ that array. Starting expressions retain the existing
 Locked diagrams disable all variable editing controls.
 
 Host checks can supply an optional `title` for a short problem summary. `message` remains the explanatory detail and live announcement. Titled Checks cards show the affected step, title and detail; the canvas shows the concise title. Existing message-only checks remain supported.
+
+Embedded hosts retain the modeler's Business/Technical and Last run controls. These describe the diagram rather than host page navigation. At narrow widths they remain in the View menu, including Last run when data is supplied. The inspector retains selected-step identity; hosts own their outer document title and Steps/Diagram/Code navigation.
