@@ -368,6 +368,7 @@ export const processModelerDesign = `
   [part=inspector-heading] { margin: 0 0 2px; font-size: 15px; font-weight: 650; }
   [part=inspector-heading][data-single=true]:not(:focus-visible) { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   [part=variable-row] { display: grid; gap: 4px; padding: 10px 0; border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); font-size: 12.5px; }
+  [part=pane-content][data-pane=Connections] { display: grid; align-content: start; gap: 14px; padding: 16px; }
   [part=connections-help] { font-size: 12.5px; color: var(--boe-token-text-text-secondary, #6f6f6f); margin: 0; line-height: 1.5; }
   [part=connections-list] { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
   [part=connection-row] { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 4px 4px 4px 10px; border-radius: 10px; background: var(--boe-token-surface-surface-secondary, #fbfbfb); border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); }
