@@ -307,3 +307,14 @@ describe('Native automatic event insertion ports', () => {
     expect(points).toContainEqual({x:700,y:120});expect(points).toContainEqual({x:700,y:240});
   });
 });
+
+
+it('refuses automatic event routes enclosed by an unrelated frame', () => {
+  const source={...box('event'),shape:'event' as const};
+  const edge={id:'event-target',from:'event',to:'target'};
+  const graph={boxes:[source,box('target'),box('unrelated',undefined,true)],lines:[edge]};
+  const layout={boxes:{event:{x:0,y:0,width:56,height:56},target:{x:500,y:0,width:224,height:64},unrelated:{x:-50,y:-50,width:200,height:200}}};
+  expect(routeProcessLine(edge,layout,graph)).toEqual([]);
+  const contained={...graph,boxes:[{...source,parentId:'unrelated'},box('target'),box('unrelated',undefined,true)]};
+  expect(routeProcessLine(edge,layout,contained).length).toBeGreaterThan(1);
+});

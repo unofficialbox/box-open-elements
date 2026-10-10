@@ -43,7 +43,7 @@ function port(box: ProcessBox, r: Rect, side: ProcessSide, offset = 0): ProcessP
     return { x: r.x + inset, y: c.y + offset };
   return { x: r.x + r.w - inset, y: c.y + offset };
 }
-function routeOrthC(p1: ProcessPoint, sa: ProcessSide, p2: ProcessPoint, sb: ProcessSide, obstacles: Rect[]) {
+function routeOrthC(p1: ProcessPoint, sa: ProcessSide, p2: ProcessPoint, sb: ProcessSide, obstacles: (Rect & { endpoint?: boolean })[]) {
   const STUB = 20, M = 12;
   const d1 = DIRS[sa], d2 = DIRS[sb];
   const s = { x: p1.x + d1.x * STUB, y: p1.y + d1.y * STUB };
@@ -57,8 +57,12 @@ function routeOrthC(p1: ProcessPoint, sa: ProcessSide, p2: ProcessPoint, sb: Pro
     const r = inflate(o, M);
     if (r.x + r.w < rx1 || r.x > rx2 || r.y + r.h < ry1 || r.y > ry2)
       continue;
-    if (contains({ x: r.x + 0.5, y: r.y + 0.5, w: r.w - 1, h: r.h - 1 }, s) || contains({ x: r.x + 0.5, y: r.y + 0.5, w: r.w - 1, h: r.h - 1 }, t))
-      continue;
+    if (contains({ x: r.x + 0.5, y: r.y + 0.5, w: r.w - 1, h: r.h - 1 }, s)
+      || contains({ x: r.x + 0.5, y: r.y + 0.5, w: r.w - 1, h: r.h - 1 }, t)) {
+      // Endpoint bodies may surround an inset port; unrelated obstacles cannot be crossed.
+      if (o.endpoint) continue;
+      return { pts: [], cost: Infinity };
+    }
     obs.push(r);
   }
   for (const r of obs) {
@@ -213,7 +217,7 @@ export function automaticEventRoute(line: ProcessLine, layout: ProcessLayout, pr
     ids.add(parent);
     parent = boxes.get(parent)?.parentId;
   } return ids; };
-  const edgeObstacles = (edge: ProcessLine) => { const skip = new Set([...ancestors(edge.from), ...ancestors(edge.to)]); return obstacles.filter(o => !skip.has(o.id)).map(o => o.r); };
+  const edgeObstacles = (edge: ProcessLine) => { const skip = new Set([...ancestors(edge.from), ...ancestors(edge.to)]); return obstacles.filter(o => !skip.has(o.id)).map(o => ({...o.r, endpoint: o.id === edge.from || o.id === edge.to})); };
   const sides = new Map<string, [
     ProcessSide,
     ProcessSide
