@@ -340,7 +340,7 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector('style')!.textContent).toContain('[part=run-toggle] input::after');
     toggle.click(); expect(builder.showLastRun).toBe(true);
     builder.setValidation([{ boxId: 'a', message: 'Fix auth' }]);
-    expect(status.textContent).toBe('1 problem');
+    expect(status.textContent).toBe('1 thing needs attention');
     expect(status.dataset.state).toBe('bad');
   });
   it('shows measured and unmeasured task states from the last run', () => {
@@ -427,8 +427,9 @@ describe("Process Modeler prototype interactions", () => {
     expect(title.textContent).toBe("Add to the process");
     expect(drawer.getAttribute("aria-labelledby")).toBe(title.id);
     const trigger = root.querySelector<HTMLButtonElement>('[data-command=palette]')!;
-    // Speech input uses the visible caption; the accessible name must include it.
-    expect(trigger.getAttribute('aria-label')?.toLowerCase()).toContain(trigger.textContent!.toLowerCase());
+    // The narrow reference uses an icon-only Add control; accessible name identifies its action.
+    expect(trigger.querySelector('svg')).not.toBeNull();
+    expect(trigger.getAttribute('aria-label')).toBe('Add building blocks');
     trigger.focus(); trigger.click();
     expect(drawer.open).toBe(true);
     expect(drawer.show).toHaveBeenCalledOnce();
@@ -444,8 +445,8 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.activeElement).toBe(trigger);
     const css = root.querySelector('style')!.textContent!;
     expect(css).toContain(':host([data-narrow]) [part=pane-drawer] { display: none; position: absolute;');
-    expect(css).toContain(':host([data-narrow]) [data-command=palette] { order: -2; }');
-    expect(css).toContain(':host([data-phone]) [data-command=undo]');
+    expect(root.querySelector('[part=toolbar]')!.firstElementChild).toBe(trigger);
+    expect(root.querySelector('[part=toolbar-actions] [data-command=undo]')).not.toBeNull();
   });
   it('hides Tidy through the inclusive 560px boundary without changing phone-only history controls', () => {
     let resize!: ResizeObserverCallback;
@@ -650,6 +651,43 @@ describe("Process Modeler prototype interactions", () => {
     expect(chooser.querySelector('[part=chooser-title]')?.textContent).toBe('Add a path from Choose path');
     chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
     expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'add', from: 'a' });
+  });
+  it('does not retain outside-menu listeners after queued toggle and reconnect',()=>{
+    const {builder,root}=fixture();const menu=root.querySelector<HTMLDetailsElement>('[part=view-menu]')!;menu.open=true;builder.remove();menu.dispatchEvent(new Event('toggle'));expect((builder as any).viewMenuDocument).toBeUndefined();expect(menu.open).toBe(false);
+    document.body.append(builder);menu.open=true;menu.dispatchEvent(new Event('toggle'));expect((builder as any).viewMenuDocument).toBe(document);document.dispatchEvent(new Event('pointerdown',{bubbles:true}));expect(menu.open).toBe(false);
+  });
+  it('binds menu dismissal to the adopted owner document',()=>{
+    const {builder,root}=fixture();const frame=document.createElement('iframe');document.body.append(frame);frame.contentDocument!.body.append(builder);const menu=root.querySelector<HTMLDetailsElement>('[part=view-menu]')!;menu.open=true;menu.dispatchEvent(new Event('toggle'));expect((builder as any).viewMenuDocument).toBe(frame.contentDocument);frame.contentDocument!.dispatchEvent(new Event('pointerdown',{bubbles:true}));expect(menu.open).toBe(false);builder.remove();expect((builder as any).viewMenuDocument).toBeUndefined();
+  });
+  it('exposes phone layout/history menu actions with state and keyboard navigation', () => {
+    const {builder,root}=fixture();builder.toggleAttribute('data-narrow',true);builder.lastRun={steps:{}};
+    const menu=root.querySelector<HTMLDetailsElement>('[part=view-menu]')!,summary=menu.querySelector('summary')!;
+    const tidy=vi.spyOn(builder,'tidy');menu.open=true;root.querySelector<HTMLButtonElement>('[data-view-option=tidy]')!.click();expect(tidy).toHaveBeenCalledOnce();expect(menu.open).toBe(false);expect(root.activeElement).toBe(summary);
+    expect(root.querySelector<HTMLButtonElement>('[data-view-option=undo]')!.disabled).toBe(true);expect(root.querySelector('[data-view-option=last-run]')!.textContent).toBe('Show last run');expect(root.querySelector('[data-view-option=checks]')!.textContent).toBe('Checks: ready to run');
+    summary.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true,cancelable:true}));expect(menu.open).toBe(true);expect(root.activeElement).toBe(menu.querySelector('[role=menuitemradio]'));
+    menu.dispatchEvent(new KeyboardEvent('keydown',{key:'End',bubbles:true,cancelable:true}));expect(root.activeElement).toBe(root.querySelector('[data-view-option=tidy]'));
+    builder.locked=true;expect(root.querySelector<HTMLButtonElement>('[data-view-option=tidy]')!.disabled).toBe(true);
+  });
+  it('enters the open View menu from summary Tab and exposes the selected view', () => {
+    const { builder, root } = fixture();
+    const menu = root.querySelector<HTMLDetailsElement>('[part=view-menu]')!;
+    const summary = menu.querySelector('summary')!;
+    const business = menu.querySelector<HTMLButtonElement>('[data-detail=business]')!;
+    const technical = menu.querySelector<HTMLButtonElement>('[data-detail=technical]')!;
+    expect(business.getAttribute('role')).toBe('menuitemradio');
+    expect(business.getAttribute('aria-checked')).toBe('true');
+    expect(technical.getAttribute('aria-checked')).toBe('false');
+    summary.focus(); menu.open = true;
+    const tab = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    summary.dispatchEvent(tab);
+    expect(tab.defaultPrevented).toBe(true);
+    expect(menu.open).toBe(true); expect(root.activeElement).toBe(business);
+    technical.click(); expect(builder.detail).toBe('technical');
+    expect(business.getAttribute('aria-checked')).toBe('false');
+    expect(technical.getAttribute('aria-checked')).toBe('true');
+    summary.focus(); menu.open = true;
+    summary.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }));
+    expect(menu.open).toBe(false);
   });
   it("closes the View menu with Escape and announces cancellation only for an active connection", () => {
     const { builder, root, canvas } = fixture();
