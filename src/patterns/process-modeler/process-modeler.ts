@@ -1727,12 +1727,22 @@ export class ProcessModeler<
       const title = document.createElement("strong");
       title.textContent = box.title;
       element.append(title);
-      const descriptionText = this.detailValue === "technical" ? box.technicalDescription ?? box.description : box.description;
-      if (descriptionText) {
-        const description = document.createElement("small");
-        description.textContent = descriptionText;
-        if (this.detailValue === "technical") description.setAttribute("part", "technical-description");
-        element.append(description);
+      if (this.detailValue === "technical" && box.technicalDetails) {
+        for (const line of box.technicalDetails) {
+          if (!line.text) continue;
+          const description = document.createElement("small");
+          description.textContent = line.text;
+          description.setAttribute("part", line.format === "code" ? "technical-description" : "technical-summary");
+          element.append(description);
+        }
+      } else {
+        const descriptionText = this.detailValue === "technical" ? box.technicalDescription ?? box.description : box.description;
+        if (descriptionText) {
+          const description = document.createElement("small");
+          description.textContent = descriptionText;
+          if (this.detailValue === "technical") description.setAttribute("part", "technical-description");
+          element.append(description);
+        }
       }
       if (box.frame && box.loopMark) {
         const loop = document.createElement('span'); loop.setAttribute('part', 'loop-mark'); loop.setAttribute('aria-hidden', 'true'); loop.textContent = '↻'; element.append(loop);

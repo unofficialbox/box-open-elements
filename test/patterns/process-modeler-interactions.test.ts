@@ -22,6 +22,23 @@ function pointer(target: Element, type: string, x: number, y: number, extra = {}
 }
 afterEach(() => document.body.replaceChildren());
 describe("Process Modeler prototype interactions", () => {
+  it("preserves structured technical code and prose as safe text without changing business or legacy descriptions", () => {
+    const { builder, root } = fixture();
+    builder.document = { ...projection, boxes: projection.boxes.map(box => ({ ...box,
+      description: "Business purpose", technicalDescription: "Legacy fallback",
+      ...(box.id === "a" ? { technicalDetails: [{ text: "POST /files/content", format: "code" as const }, { text: "Uploads › <img src=x>", format: "text" as const }] } : {}),
+    })) };
+    expect(root.querySelector('[data-box-id=a] small')?.textContent).toBe("Business purpose");
+    builder.detail = "technical";
+    expect(root.querySelector('[data-box-id=a] [part=technical-description]')?.textContent).toBe("POST /files/content");
+    expect(root.querySelector('[data-box-id=a] [part=technical-summary]')?.textContent).toBe("Uploads › <img src=x>");
+    expect(root.querySelector('[data-box-id=a] img')).toBeNull();
+    expect(root.querySelector('[data-box-id=b] [part=technical-description]')?.textContent).toBe("Legacy fallback");
+    builder.detail = "business";
+    expect(root.querySelector('[data-box-id=a] small')?.textContent).toBe("Business purpose");
+    expect(root.querySelector('[part=technical-summary]')).toBeNull();
+  });
+
   it("does not publish an empty readable workflow before a host document loads", () => {
     const builder = new ProcessModeler(); const readable = vi.fn(); const raw = vi.fn();
     builder.addEventListener("readable-projection-changed", readable);
