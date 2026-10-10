@@ -34,7 +34,7 @@ describe("trace waterfall layout", () => {
     expect(rows(element)[1]!.querySelector('[part="comparison-bar"]')).not.toBeNull();
     expect(rows(element)[0]!.querySelector('[part="comparison-marker"]')).not.toBeNull();
     expect(rows(element)[0]!.getAttribute("aria-label")).toContain("comparison marker Earlier marker");
-    expect(rows(element)[1]!.getAttribute("aria-label")).toContain("Not in current trace");
+    expect(rows(element)[1]!.getAttribute("aria-label")).toContain("Sign in, Not in current trace");
     rows(element)[1]!.click(); expect(element.selectedSpanId).toBe("B");
     click(element, "table-toggle"); expect(element.shadowRoot!.textContent).toContain("Not in current trace");
     expect(element.shadowRoot!.textContent).toContain("Comparison marker Earlier marker");

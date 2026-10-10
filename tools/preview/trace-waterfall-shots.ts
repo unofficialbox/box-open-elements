@@ -117,10 +117,10 @@ try {
     comparison.comparisonSpans = [{ ...current, markers: [{ atMs: 300, label: "Earlier checkpoint" }] }, { id: "B", parentId: "A", label: "Earlier failed branch", kind: "Action", startMs: 100, durationMs: 500, status: "failed" }];
   });
   if (await rows.count() !== 2 || await rows.nth(1).locator('[part="bar"]').count() || !await rows.nth(1).locator('[part="comparison-bar"]').count() || !await rows.first().locator('[part="comparison-marker"]').count()) throw new Error("Comparison-only row/bar or earlier marker missing");
-  if (!(await rows.nth(1).getAttribute("aria-label"))?.includes("Not in current trace")) throw new Error("Comparison-only state not named");
+  if (!(await rows.nth(1).getAttribute("aria-label"))?.includes("Earlier failed branch, Not in current trace")) throw new Error("Comparison-only state not named");
   await checkAxe("Comparison-only branch treegrid");
   await trace.locator('[part="table-toggle"]').click();
-  if (!(await trace.innerText()).includes("Comparison marker Earlier checkpoint")) throw new Error("Earlier marker missing from table");
+  if (!(await trace.locator("table").innerText()).includes("Comparison marker Earlier checkpoint")) throw new Error("Earlier marker missing from table");
   await checkAxe("Comparison-only branch table");
   if (errors.length) throw new Error(`Browser errors: ${errors.join("; ")}`);
   console.log("verified waterfall/table shared axis, markers, overlap, 1440/390 light/dark axe, keyboard, search/system, modal, live focus and reduced motion");

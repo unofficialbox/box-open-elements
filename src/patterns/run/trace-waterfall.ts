@@ -238,7 +238,7 @@ export class TraceWaterfall extends BaseElement {
     const markerList = validMarkers;
     const summary = (span: TraceSpan, comparisonOnly = false): string => {
       const previous = comparison.get(span.id);
-      const current = comparisonOnly ? "Not in current trace" : `${span.label}, ${statusLabels[span.status]}, starts at ${duration(span.startMs)}, takes ${duration(traceSpanDuration(span, this.nowMs))}${markerList(span).map(marker => `, ${marker.label} at ${duration(marker.atMs)}`).join("")}`;
+      const current = comparisonOnly ? `${span.label}, Not in current trace` : `${span.label}, ${statusLabels[span.status]}, starts at ${duration(span.startMs)}, takes ${duration(traceSpanDuration(span, this.nowMs))}${markerList(span).map(marker => `, ${marker.label} at ${duration(marker.atMs)}`).join("")}`;
       return current + (!comparison.size ? "" : previous ? `; comparison ${statusLabels[previous.status]}, starts at ${duration(previous.startMs)}, takes ${duration(traceSpanDuration(previous, this.nowMs))}${markerList(previous).map(marker => `, comparison marker ${marker.label} at ${duration(marker.atMs)}`).join("")}` : "; not in comparison trace");
     };
     const rowHtml = rows.map(row => {
