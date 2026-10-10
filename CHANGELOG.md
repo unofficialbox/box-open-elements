@@ -15,6 +15,27 @@ are kept as written.
 
 ## Unreleased
 
+## 0.36.0 — 2026-10-10
+
+- Match selected Process Modeler headers, typed field presentation, sections,
+  optional disclosures and protected Start/scheduled-start metadata to the native
+  design. Preserve local disclosure state and safe plain-text help.
+- Match action category browsing, keyboard traversal, multiword search, native
+  category counts/headings and HTTP details. Hosts can opt into custom dotted
+  action keys; picker labels and accessibility references stay unique.
+- Add host-owned line label/weight edits and native Leads-to controls, with
+  Decision/Choice rows, eligible targets and isolated inspector refreshes.
+- Match native keyboard help and scoped CodeEditor font/padding/fold composition,
+  preserving existing CodeEditor defaults and custom inspector drafts.
+- Add explicit flow/note box roles and flow/association line roles, preserving
+  native graph-note selection, clipboard and history while excluding associations
+  from flow operations. Respect authoritative note sizes and nested placement.
+- Match native additive marquee selection, section exclusion and internal-edge
+  scope, with safe load interruption and role-aware connection eligibility.
+- Match automatic event-connected line endpoints and shared ports so the native
+  path, selection toolbar and Insert a step placement agree. Authored side pins
+  and waypoints retain their existing routing behavior.
+
 ## 0.35.0 — 2026-10-10
 
 - Match the read-only Process Modeler Connections tab to the reference's compact
