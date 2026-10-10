@@ -13,6 +13,8 @@ import { boeEntranceKeyframes, boeReducedMotionPolicy } from "../../foundations/
 
 const DEFAULT_TAG_NAME = "box-run-trace";
 
+export type RunTraceDensity = "default" | "compact";
+
 /** Escape a value for use inside a double-quoted attribute selector. */
 const cssAttrValue = (value: string): string =>
   value.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
@@ -47,6 +49,29 @@ const STATUS_TONE: Record<RunStepStatus, string> = {
 const elementStyles = `
         :host {
           display: block;
+          --_run-marker-column: var(--boe-run-trace-marker-column-width, 1.1rem);
+          --_run-marker-size: var(--boe-run-trace-marker-size, 1rem);
+          --_run-marker-inline: var(--boe-run-trace-marker-inline-inset, 0.15rem);
+          --_run-marker-block: var(--boe-run-trace-marker-block-offset, 0.2rem);
+          --_run-step-padding: var(--boe-run-trace-step-padding-block, 0.55rem);
+          --_run-step-row-gap: var(--boe-run-trace-step-row-gap, 0rem);
+          --_run-step-column-gap: var(--boe-run-trace-step-column-gap, 0.65rem);
+          --_run-child-row-gap: var(--boe-run-trace-child-row-gap, 0.4rem);
+          --_run-connector-start-gap: var(--boe-run-trace-connector-start-gap, 0.1rem);
+          --_run-connector-overhang: var(--boe-run-trace-connector-end-overhang, 0.35rem);
+        }
+
+        :host([density="compact"]) {
+          --_run-marker-column: var(--boe-run-trace-marker-column-width, 1rem);
+          --_run-marker-size: var(--boe-run-trace-marker-size, 0.875rem);
+          --_run-marker-inline: var(--boe-run-trace-marker-inline-inset, 0.1rem);
+          --_run-marker-block: var(--boe-run-trace-marker-block-offset, 0.15rem);
+          --_run-step-padding: var(--boe-run-trace-step-padding-block, 0.35rem);
+          --_run-step-row-gap: var(--boe-run-trace-step-row-gap, 0rem);
+          --_run-step-column-gap: var(--boe-run-trace-step-column-gap, 0.5rem);
+          --_run-child-row-gap: var(--boe-run-trace-child-row-gap, 0.25rem);
+          --_run-connector-start-gap: var(--boe-run-trace-connector-start-gap, 0.04rem);
+          --_run-connector-overhang: var(--boe-run-trace-connector-end-overhang, 0.25rem);
         }
 
         /* The host's own display would otherwise beat the UA rule for [hidden],
@@ -107,6 +132,8 @@ const elementStyles = `
         }
 
         [part="steps"] {
+          display: grid;
+          row-gap: var(--_run-step-row-gap);
           margin: 0;
           padding: 0;
           list-style: none;
@@ -117,28 +144,33 @@ const elementStyles = `
         [part="step"] {
           position: relative;
           display: grid;
-          grid-template-columns: auto 1fr;
-          gap: 0.65rem;
-          padding: 0.55rem 0 0.55rem 0.15rem;
+          grid-template-columns: var(--_run-marker-column) minmax(0, 1fr);
+          column-gap: var(--_run-step-column-gap);
+          padding: var(--_run-step-padding) 0 var(--_run-step-padding) var(--_run-marker-inline);
         }
 
         [part="step"]:not(:last-child)::after {
           content: "";
           position: absolute;
-          left: calc(0.15rem + 0.55rem - 1px);
-          top: 1.9rem;
-          bottom: -0.35rem;
+          left: calc(var(--_run-marker-inline) + var(--_run-marker-column) / 2 - 1px);
+          top: calc(var(--_run-step-padding) + var(--_run-marker-block) + var(--_run-marker-column) / 2 + var(--_run-marker-size) / 2 + var(--_run-connector-start-gap));
+          bottom: calc(-1 * var(--_run-connector-overhang) - var(--_run-step-row-gap));
           width: 2px;
           background: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 72%, transparent);
         }
 
         [part="marker"] {
-          inline-size: 1.1rem;
-          block-size: 1.1rem;
-          margin-top: 0.2rem;
+          inline-size: var(--_run-marker-column);
+          block-size: var(--_run-marker-column);
+          margin-top: var(--_run-marker-block);
           border-radius: 999px;
-          border: 2px solid var(--run-tone, var(--boe-token-text-text-secondary, #6f6f6f));
-          background: color-mix(in srgb, var(--run-tone, var(--boe-token-text-text-secondary, #6f6f6f)) 14%, var(--boe-token-surface-surface, #ffffff) 86%);
+          align-items: center;
+          justify-content: center;
+        }
+
+        [part="marker"] .boe-status {
+          inline-size: var(--_run-marker-size);
+          block-size: var(--_run-marker-size);
         }
 
         [part="step"][data-status="running"] [part="marker"] {
@@ -231,7 +263,7 @@ const elementStyles = `
           padding: 0;
           list-style: none;
           display: grid;
-          gap: 0.4rem;
+          gap: var(--_run-child-row-gap);
         }
 
         [part="child"] {
@@ -267,7 +299,7 @@ const elementStyles = `
         :host([variant="plain"]) [part="panel"] { border: 0; border-radius: 0; background: none; padding: 0; }
         :host([variant="plain"]) [part="header"],
         :host([variant="plain"]) [part="summary"] { display: none; }
-        :host([variant="plain"]) [part="step"] { padding-block: 0.35rem; }
+        :host([variant="plain"]) [part="step"] { padding-block: var(--boe-run-trace-step-padding-block, 0.35rem); }
         :host([variant="plain"]) [part="step"]::after { display: none; }
         :host([variant="plain"]) [part="status"] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
         :host([variant="plain"]) [part="toggle"] { display: none; }
@@ -324,6 +356,15 @@ export class RunTrace extends BaseElement {
 
   set heading(value: string) {
     this.setAttribute("heading", value);
+  }
+
+  get density(): RunTraceDensity {
+    return this.getAttribute("density") === "compact" ? "compact" : "default";
+  }
+
+  set density(value: RunTraceDensity) {
+    if (value === "compact") this.setAttribute("density", "compact");
+    else this.removeAttribute("density");
   }
 
   get steps(): RunStep[] {

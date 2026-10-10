@@ -1,5 +1,32 @@
 # Process Modeler handoff — 2026-10-09
 
+## Closeout branch update
+
+- Kyle approved matching the pinned Riptide reference for line/port dragging
+  and connection behavior. This supersedes the earlier hold recorded below.
+  All changes remain in Box Open Elements; Riptide source is untouched.
+- Selection actions now distinguish **Add next** from **If it fails**, include
+  the reference's plus affordance, and omit invalid Start/End actions.
+- A port dragged to empty canvas opens an anchored chooser at the drop position; choosing
+  a kind emits one host-owned connected `add` request. Clicking the east port,
+  or **Add next**, requests `insert` when exactly one successor exists. Cancel
+  remains edit-free. Focused interaction tests cover these paths.
+- An accepted new-step insert on a simple horizontal root connection makes
+  room between source and target, shifts later root columns, and records the
+  layout with the edit for undo/redo. Nested/branched insertions still need
+  explicit same-process verification before changing their placement.
+- A geometry regression test confirms a clear, equal-height row routes as one
+  straight segment between centered ports. The older 0.26 report of elbows is
+  not sufficient to claim a current routing defect; compare its exact fixture.
+- The docs preview reproduced #322's Tidy regression: the opening 70% view
+  dropped to 25%. Tidy now applies the pinned design's readable floor (70%
+  desktop, 55% narrow) while the explicit Fit command can still show the
+  entire process at 25%.
+- This is library-side progress, not proof that #321–331 are done. The same-
+  workflow four-view comparison and Riptide adoption are still outstanding.
+  Manual screen-reader tasks are deferred by Kyle's direction; do not silently
+  treat that deferral as a passed screen-reader check.
+
 ## 2026-10-10 canvas layout follow-up
 
 - The docs preview exposed a regression in the separate hold row: with the
@@ -15,7 +42,7 @@
 
 ## Current state
 
-- Box Open Elements `0.28.4` is published; its Code Editor is adopted in Riptide
+- Box Open Elements `0.28.7` is the library baseline for this branch; its Code Editor was adopted in Riptide
   through merged [Riptide PR #274](https://github.com/unofficialbox/box-riptide/pull/274).
   That work does **not** complete the Process Modeler.
 - The library has a substantial `box-process-modeler` implementation and a
@@ -55,15 +82,15 @@
    Use the same workflow and actions at 1440/390 in light/dark; record each
    remaining defect. Passing unit or screenshot tests does not establish parity.
 2. Fix confirmed library defects with interaction tests and rendered checks.
-   Get Kyle's agreement **before changing how canvas drags or lines respond**.
-   Do not use a different Diagram design as a shortcut.
+   Kyle has approved matching the pinned Riptide reference for canvas drags
+   and lines. Do not use a different Diagram design as a shortcut.
 3. Once the Box-side defect list is empty, report parity to the Riptide owner.
    Riptide will check it on a throwaway branch against the #331 bridge
    contract. Kyle decides whether to adopt. Riptide owns the title, Save,
    Steps/Diagram/Code switch, catalog content, workflow conversion, and
    persistence; no Riptide source is changed in this branch.
-4. Riptide and Kyle perform the human screen-reader pass with the host
-   acceptance matrix. Close #331 and then #321 only after that evidence.
+4. Close #331 and then #321 only after host adoption and same-workflow
+   acceptance. Human screen-reader tasks are deferred for now, not passed.
 
 ## Owner update and current defect ledger
 
@@ -79,11 +106,11 @@ parity claim. This is **not** the complete interaction-by-interaction audit.
 
 | Issue | Current Box behavior / exact remaining gap | Next action |
 | --- | --- | --- |
-| #329 Chooser | Before this branch, N used a centered modal with a generic name. N now uses an anchored, non-modal popover with “Insert between …” or “Add after …” context, search focus, line-insert request semantics, and focus return on Escape. Port clicks, toolbar inserts, and drag/line paths still use the original modal. | Compare every remaining chooser entry point with the pinned source. Obtain Kyle's agreement before changing any drag/line response. |
+| #329 Chooser | N, port clicks, empty-canvas drops, and Add next use an anchored non-modal chooser with contextual titles and the reference's insert/add behavior. Line inserts still use the modal. | Compare chooser placement, naming, and focus for every entry point with the pinned source. |
 | #330 Narrow drawers | Before this branch, Box used viewport-fixed modal dialogs; a 390px docs reproduction placed the palette at page y=0 while its component began at y=744. The branch now uses component-relative drawers and a local scrim; a 342×600 simulated embed placed both palette and scrim exactly between host y=120–720, with details y=348–720. Light/dark preview checks exercised internal scrolling, inert closed content, Escape, and focus return. The user manually tested narrow screens and accepted the library behavior. | Validate the same behavior with real Riptide host chrome and assistive technology; the library preview and manual narrow-screen acceptance alone cannot close #330. |
 | #327 Last run and toolbar | Before this branch, Box rendered the Last run checkbox without switch styling, omitted the toolbar Checks state, and placed Tidy before Undo/Redo. The pinned design renders a visual switch, Checks status, then Undo/Redo/Tidy. | Repaired in this branch. Retest switch appearance and status in all four rendered views, including a finished-run fixture; metrics and line shares remain unproved. |
 | #322 Event captions | Box CSS renders an event's secondary description below Start/Finish (`[data-shape=event] > small`). The old 0.26 comparison reported a collision, but the pinned source conditionally renders Start's purpose below its caption too. This is **not yet a confirmed parity defect**. | Compare the same Start data and viewport side by side before changing visibility, spacing, or accessible detail. |
-| #323 Canvas drags and lines | Box still cancels a port drag released on empty canvas; the pinned design opens a chooser there. The previous same-process comparison also reported line-drop overlap and elbowed straight-row routes. | Reproduce all three on the current build, document exact traces, and seek Kyle's agreement before changing drag/line response. |
+| #323 Canvas drags and lines | Empty-canvas port drops now open a connected-step chooser. Accepted simple horizontal root-row inserts now make room atomically. Clear equal-height rows route straight in a regression test; the older elbow report needs exact-fixture reproduction. | Retest insertion and routing in the browser; reproduce more complex insertions on the current build and fix confirmed defects. |
 | #326 Hold placement | Reproduced the absolute banner inside the canvas: at 390px its warning card was 205.5px tall and could intercept canvas hit targets. The follow-up branch moves it to a row above the canvas, preserving total component height; at 390px the row is 96px and the canvas begins at its bottom edge. | Retest in light/dark and verify host read-back behavior; do not close before Riptide acceptance. |
 
 Already-repaired items must be retested, not reimplemented from old comments:

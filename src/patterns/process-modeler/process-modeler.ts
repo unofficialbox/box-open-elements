@@ -79,6 +79,7 @@ export class ProcessModeler<
   private insertion?: ProcessEdit;
   private keyboardInsertion?: ProcessEdit;
   private keyboardReturn?: HTMLElement;
+  private transientChooserAnchor?: HTMLElement;
   private stopKeyboardAnchor?: () => void;
   private activeDrawer?: HTMLDialogElement;
   private drawerReturn?: HTMLElement;
@@ -325,7 +326,11 @@ export class ProcessModeler<
         accepted = true;
         if (command.layout) this.layoutValue = structuredClone(command.layout);
         this.refresh();
+        const inserted = edit.type === 'insert' && !edit.boxId && !command.layout
+          ? this.projection.boxes.find(box => !previousIds.has(box.id)) : undefined;
+        const reflowed = inserted ? this.reflowStraightInsert(edit, inserted.id, before) : false;
         if (
+          !reflowed &&
           !command.layout &&
           edit.position &&
           Number.isFinite(edit.position.x) &&
@@ -434,6 +439,36 @@ export class ProcessModeler<
     }
     return next;
   }
+  /** Make room only on a simple, root-level horizontal connection. */
+  private reflowStraightInsert(edit: ProcessEdit, insertedId: string, before: ProcessLayout): boolean {
+    const source = this.projection.boxes.find(box => box.id === edit.from);
+    const target = this.projection.boxes.find(box => box.id === edit.to);
+    const inserted = this.projection.boxes.find(box => box.id === insertedId);
+    if (!source || !target || !inserted || source.parentId || target.parentId || inserted.parentId) return false;
+    const start = before.boxes[source.id], end = before.boxes[target.id];
+    const fresh = this.layoutValue.boxes[insertedId];
+    if (!start || !end || !fresh) return false;
+    const sourceWidth = start.width ?? 224, sourceHeight = start.height ?? 64;
+    const targetHeight = end.height ?? 64, width = fresh.width ?? 224, height = fresh.height ?? 64;
+    if (start.x + sourceWidth >= end.x || Math.abs(start.y + sourceHeight / 2 - end.y - targetHeight / 2) > 24) return false;
+    const x = start.x + sourceWidth + 80;
+    const delta = Math.max(0, x + width + 80 - end.x);
+    const next = this.layout;
+    const shifted = new Set(this.projection.boxes.filter(box => !box.parentId && before.boxes[box.id]?.x >= end.x).map(box => box.id));
+    for (let changed = true; changed;) {
+      changed = false;
+      for (const box of this.projection.boxes) if (box.parentId && shifted.has(box.parentId) && !shifted.has(box.id)) {
+        shifted.add(box.id); changed = true;
+      }
+    }
+    for (const box of this.projection.boxes) {
+      if (box.id === insertedId || !shifted.has(box.id)) continue;
+      next.boxes[box.id] = { ...next.boxes[box.id], x: next.boxes[box.id].x + delta };
+    }
+    next.boxes[insertedId] = { ...fresh, x, y: start.y + (sourceHeight - height) / 2 };
+    this.layoutValue = next;
+    return true;
+  }
   tidy(): void {
     if (this.locked) return;
     const before = this.layout.boxes;
@@ -448,7 +483,7 @@ export class ProcessModeler<
         if (dx || dy) element.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'translate(0, 0)' }], { duration: 320, easing: 'ease-out' });
       }
     }
-    this.fit();
+    this.fitTo(this.narrowValue ? 0.55 : 0.7);
   }
   resize(id: string, width: number, height: number): void {
     if (
@@ -534,12 +569,13 @@ export class ProcessModeler<
     this.viewport.zoom = next;
     this.paintViewport();
   }
-  fit(): void {
+  fit(): void { this.fitTo(0.25); }
+  private fitTo(minimumZoom: number): void {
     const bounds = this.bounds();
     const canvas =
       this.shadowRoot!.querySelector<HTMLElement>("[part=canvas]")!;
     this.viewport.zoom = Math.max(
-      0.25,
+      minimumZoom,
       Math.min(
         1.5,
         ((canvas.clientWidth || 700) - 40) / bounds.width,
@@ -1227,13 +1263,13 @@ export class ProcessModeler<
     if (this.portDrag) {
       this.portDrag.point = point;
       let ghost = this.shadowRoot!.querySelector<SVGPolylineElement>('[part=connection-preview]');
-      if (!ghost) { ghost = svgElement("polyline"); ghost.setAttribute("part", "connection-preview"); ghost.style.cssText = "fill:none;stroke:var(--boe-token-surface-surface-brand,#0061d5);stroke-width:3"; this.shadowRoot!.querySelector('[part=lines]')!.append(ghost); }
+      if (!ghost) { ghost = svgElement("polyline"); ghost.setAttribute("part", "connection-preview"); this.shadowRoot!.querySelector('[part=lines]')!.append(ghost); }
       const start = this.portDrag.start; ghost.setAttribute("points", `${start.x},${start.y} ${point.x},${start.y} ${point.x},${point.y}`);
       const target = this.boxAt(point, this.portDrag.id);
       const pinned = target ? this.sideAt(target, point) : undefined;
       this.shadowRoot!.querySelectorAll<HTMLElement>('[data-box-id]').forEach(box => { box.dataset.connectTarget = String(box.dataset.boxId === target?.id); });
       this.shadowRoot!.querySelectorAll<HTMLElement>('[part=port]').forEach(port => { port.dataset.hot = String(port.dataset.owner === target?.id && port.dataset.side === pinned); });
-      this.showConnectTooltip(point, target ? pinned ? `Pin to the ${pinned} of ${target.title}` : `Connect to ${target.title}` : 'Drop on a step to connect', !target);
+      this.showConnectTooltip(point, target ? pinned ? `Pin to the ${pinned} of ${target.title}` : `Connect to ${target.title}` : 'Drop here to add a connected step');
       return;
     }
     if (this.endDrag) {
@@ -1312,10 +1348,21 @@ export class ProcessModeler<
         if (Math.hypot(point.x - port.start.x, point.y - port.start.y) < 8) {
           const pos = this.layoutValue.boxes[port.id];
           const offsets = { east: [320, 0], west: [-320, 0], north: [0, -170], south: [0, 170] }[port.side];
-          this.openChooser({ type: "add", from: port.id, fromSide: port.side, position: { x: pos.x + offsets[0], y: pos.y + offsets[1] } });
+          const source = this.projection.boxes.find(box => box.id === port.id)!;
+          const anchor = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[part=port]'))
+            .find(element => element.dataset.owner === port.id && element.dataset.side === port.side);
+          this.openAnchoredChooser(this.nextEdit(source, port.side, { x: pos.x + offsets[0], y: pos.y + offsets[1] }),
+            this.nextChooserTitle(source, port.side), anchor);
         } else {
           const target = this.boxAt(point, port.id);
           if (target) this.requestEdit({ type: "connect", from: port.id, to: target.id, fromSide: port.side, toSide: this.sideAt(target, point) });
+          else {
+            const source = this.projection.boxes.find(box => box.id === port.id)!;
+            const frame = this.boxAt(point, undefined, true);
+            if ((frame?.id ?? null) !== (source.parentId ?? null)) this.setStatus('Drop inside the same frame to add a connected step');
+            else this.openChooserAtPoint({ type: 'add', from: port.id, fromSide: port.side, parentId: source.parentId, position: point },
+              `Add after ${source.title}`, point);
+          }
         }
       }
       return;
@@ -1427,10 +1474,35 @@ export class ProcessModeler<
     chooser.addEventListener('close', () => this.shadowRoot?.querySelector('[part=ghost-box]')?.remove(), { once: true });
     const picker = chooser.querySelector<KindPicker>('box-kind-picker')!; picker.catalog = this.catalog.filter(kind => !kind.placement); picker.refresh(); promoteModal(chooser); picker.focus();
   }
+  private nextEdit(box: ProcessBox<N>, side?: ProcessSide, position?: BoxPosition): ProcessEdit {
+    const shape = box.shape ?? this.catalog.find(kind => kind.kind === box.kind)?.shape;
+    const outgoing = this.projection.lines.filter(line => line.from === box.id);
+    if ((!side || side === 'east') && shape !== 'gateway' && outgoing.length === 1)
+      return { type: 'insert', lineId: outgoing[0].id, from: box.id, to: outgoing[0].to };
+    return { type: 'add', from: box.id, ...(side ? { fromSide: side } : {}), parentId: box.parentId, ...(position ? { position } : {}) };
+  }
+  private nextChooserTitle(box: ProcessBox<N>, side?: ProcessSide): string {
+    const edit = this.nextEdit(box, side);
+    if (edit.type === 'insert') {
+      const target = this.projection.boxes.find(candidate => candidate.id === edit.to);
+      return `Insert between ${box.title} and ${target?.title ?? 'the next step'}`;
+    }
+    if (box.shape === 'gateway') return `Add a path from ${box.title}`;
+    return side && side !== 'east' ? `Add ${ { north: 'above', south: 'below', west: 'before' }[side] } ${box.title}, connected` : `Add after ${box.title}`;
+  }
+  private openChooserAtPoint(edit: ProcessEdit, title: string, point: { x: number; y: number }): void {
+    if (this.keyboardInsertion) this.closeKeyboardChooser();
+    const anchor = document.createElement('span');
+    anchor.style.cssText = `position:absolute;left:${point.x}px;top:${point.y}px;width:1px;height:1px;pointer-events:none`;
+    this.shadowRoot!.querySelector('[part=world]')!.append(anchor);
+    this.transientChooserAnchor = anchor;
+    this.openAnchoredChooser(edit, title, anchor);
+  }
   private closeKeyboardChooser(returnFocus = false): void {
     const chooser = this.shadowRoot?.querySelector<HTMLElement>('[part=keyboard-chooser]');
     dismissPopover(chooser ?? null);
     this.stopKeyboardAnchor?.(); this.stopKeyboardAnchor = undefined;
+    this.transientChooserAnchor?.remove(); this.transientChooserAnchor = undefined;
     document.removeEventListener('pointerdown', this.dismissKeyboardChooserOutside, true);
     this.keyboardInsertion = undefined;
     if (returnFocus) this.keyboardReturn?.focus({ preventScroll: true });
@@ -1441,30 +1513,35 @@ export class ProcessModeler<
     if (chooser && !event.composedPath().includes(chooser)) this.closeKeyboardChooser();
   };
   private openKeyboardChooser(box: ProcessBox<N>): void {
-    const chooser = this.shadowRoot!.querySelector<HTMLElement>('[part=keyboard-chooser]')!;
     const shape = box.shape ?? this.catalog.find(kind => kind.kind === box.kind)?.shape ?? (box.frame ? 'frame' : 'task');
     const outgoing = this.projection.lines.filter(line => line.from === box.id);
     const target = outgoing.length === 1 ? this.projection.boxes.find(candidate => candidate.id === outgoing[0].to) : undefined;
     const insert = shape !== 'gateway' && outgoing.length === 1 && target;
-    if (this.keyboardInsertion) this.closeKeyboardChooser();
-    this.keyboardInsertion = insert
+    const anchor = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[data-box-id]'))
+      .find(element => element.dataset.boxId === box.id);
+    this.openAnchoredChooser(insert
       ? { type: 'insert', lineId: outgoing[0].id, from: box.id, to: target.id }
-      : { type: 'add', from: box.id };
-    chooser.querySelector<HTMLElement>('[part=chooser-title]')!.textContent = insert
-      ? `Insert between ${box.title} and ${target.title}`
-      : shape === 'gateway' ? `Add a path from ${box.title}` : `Add after ${box.title}`;
+      : { type: 'add', from: box.id },
+    insert ? `Insert between ${box.title} and ${target.title}`
+      : shape === 'gateway' ? `Add a path from ${box.title}` : `Add after ${box.title}`,
+    anchor);
+  }
+  private openAnchoredChooser(edit: ProcessEdit, title: string, anchor?: HTMLElement, returnFocus?: HTMLElement): void {
+    const chooser = this.shadowRoot!.querySelector<HTMLElement>('[part=keyboard-chooser]')!;
+    if (this.keyboardInsertion) this.closeKeyboardChooser();
+    this.keyboardInsertion = edit;
+    chooser.querySelector<HTMLElement>('[part=chooser-title]')!.textContent = title;
     const picker = chooser.querySelector<KindPicker>('box-kind-picker')!;
     picker.catalog = this.catalog.filter(kind => !kind.placement);
     picker.refresh();
-    this.keyboardReturn = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[data-box-id]'))
-      .find(element => element.dataset.boxId === box.id);
-    if (!this.keyboardReturn || !promotePopover(chooser)) {
+    this.keyboardReturn = returnFocus ?? anchor;
+    if (!anchor || !promotePopover(chooser)) {
       const edit = this.keyboardInsertion;
       this.closeKeyboardChooser();
       if (edit) this.openChooser(edit);
       return;
     }
-    this.stopKeyboardAnchor = trackAnchor(this.keyboardReturn, chooser, {
+    this.stopKeyboardAnchor = trackAnchor(anchor, chooser, {
       placement: { side: 'right', align: 'start' }, offset: 8, padding: 12,
     });
     document.addEventListener('pointerdown', this.dismissKeyboardChooserOutside, true);
@@ -1625,7 +1702,7 @@ export class ProcessModeler<
         if (event.shiftKey) this.selectMany(this.selectedIds.has(box.id) ? [...this.selectedIds].filter(id => id !== box.id) : [...this.selectedIds, box.id]);
         else this.select(box.id);
       });
-      if (!this.disableConnections && !this.locked) {
+      if (!this.disableConnections && !this.locked && !['end', 'finish'].includes(box.kind)) {
         for (const side of ["north", "east", "south", "west"] as const) {
           const port = document.createElement("button"); port.type = "button"; port.setAttribute("part", "port"); port.dataset.side = side; port.dataset.owner = box.id;
           port.setAttribute("aria-label", `Add or connect a step ${side} of ${box.title}`);
@@ -1633,7 +1710,8 @@ export class ProcessModeler<
             event.stopPropagation();
             if (!event.detail) {
               const pos = this.layoutValue.boxes[box.id]; const offsets = { east: [320, 0], west: [-320, 0], north: [0, -170], south: [0, 170] }[side];
-              this.openChooser({ type: "add", from: box.id, fromSide: side, position: { x: pos.x + offsets[0], y: pos.y + offsets[1] } });
+              this.openAnchoredChooser(this.nextEdit(box, side, { x: pos.x + offsets[0], y: pos.y + offsets[1] }),
+                this.nextChooserTitle(box, side), port);
             }
           });
           element.append(port);
@@ -2072,26 +2150,33 @@ export class ProcessModeler<
   }
   private renderSelectionToolbar(): void {
     const toolbar = this.shadowRoot!.querySelector<HTMLElement>('[part=selection-toolbar]')!;
-    const key = `${[...this.selectedIds].join(',')}|${this.selectedLineId}|${Boolean(this.selectedLineId && this.layoutValue.lines?.[this.selectedLineId])}|${this.locked}|${this.narrowValue}|${this.projection.lines.filter(line => line.from === this.selectedId).map(line => `${line.id}:${line.label}:${line.dashed}`).join(',')}`;
+    const key = `${[...this.selectedIds].join(',')}|${this.selected?.kind}|${this.selected?.shape}|${this.selectedLineId}|${Boolean(this.selectedLineId && this.layoutValue.lines?.[this.selectedLineId])}|${this.locked}|${this.narrowValue}|${this.projection.lines.filter(line => line.from === this.selectedId).map(line => `${line.id}:${line.label}:${line.dashed}`).join(',')}`;
     if (key === this.selectionToolbarKey) return;
     this.selectionToolbarKey = key;
     toolbar.replaceChildren();
     if (!this.selectedIds.size && !this.selectedLineId) return;
-    const add = (label: string, command: string, action: () => void) => {
-      const button = document.createElement('button'); button.type = 'button'; button.dataset.selectionCommand = command; button.textContent = label; button.setAttribute('aria-label', label); button.disabled = this.locked; button.onclick = action; toolbar.append(button);
+    const add = (label: string, command: string, action: () => void, withPlus = false) => {
+      const button = document.createElement('button'); button.type = 'button'; button.dataset.selectionCommand = command; button.setAttribute('aria-label', label); button.disabled = this.locked; button.onclick = action;
+      if (withPlus) {
+        const icon = document.createElement('span'); icon.setAttribute('part', 'selection-plus'); icon.setAttribute('aria-hidden', 'true'); icon.textContent = '+'; button.append(icon);
+      }
+      const text = document.createElement('span'); text.textContent = label; button.append(text);
+      toolbar.append(button);
     };
     if (this.selectedLine) {
       const line = this.selectedLine;
-      add('Insert a step', 'insert', () => this.openChooser({ type: 'insert', lineId: line.id, from: line.from, to: line.to }));
+      add('Insert a step', 'insert', () => this.openChooser({ type: 'insert', lineId: line.id, from: line.from, to: line.to }), true);
       if (this.layoutValue.lines?.[line.id]) add('Reset line', 'reset-line', () => this.resetLine(line.id));
       if (!this.disableConnections) add('Delete', 'delete-line', () => this.requestEdit({ type: 'disconnect', lineId: line.id }));
     } else if (this.selectedIds.size === 1) {
       const box = this.selected!;
       const failurePath = box.kind === 'try' && !this.projection.lines.some(line => line.from === box.id && (line.dashed || line.label === 'If it fails'));
-      add(box.shape === 'gateway' ? 'Add a path' : failurePath ? 'If it fails' : 'Add next', 'add-next', () => this.openChooser({ type: 'add', from: box.id, ...(failurePath ? { routeLabel: 'If it fails', dashed: true } : {}) }));
-      add('Duplicate', 'duplicate', () => { const position = this.layoutValue.boxes[box.id]; this.requestEdit({ type: 'duplicate', sourceId: box.id, position: { x: position.x + 32, y: position.y + 32 } }); });
-      add('Delete', 'delete-many', () => this.selectionCommand('delete-many'));
       if (this.narrowValue) add('Details', 'details', () => this.openDrawer('inspector'));
+      if (!['end', 'finish', 'section', 'note'].includes(box.kind)) add(box.shape === 'gateway' ? 'Add a path' : 'Add next', 'add-next', () =>
+        this.openAnchoredChooser(this.nextEdit(box), this.nextChooserTitle(box), toolbar.querySelector<HTMLElement>('[data-selection-command=add-next]') ?? undefined), true);
+      if (failurePath) add('If it fails', 'add-failure', () => this.openChooser({ type: 'add', from: box.id, routeLabel: 'If it fails', dashed: true }), true);
+      if (!['start', 'timer', 'section'].includes(box.kind)) add('Duplicate', 'duplicate', () => { const position = this.layoutValue.boxes[box.id]; this.requestEdit({ type: 'duplicate', sourceId: box.id, position: { x: position.x + 32, y: position.y + 32 } }); });
+      if (!['start', 'timer'].includes(box.kind)) add('Delete', 'delete-many', () => this.selectionCommand('delete-many'));
     } else {
       add('Line up', 'align', () => this.selectionCommand('align'));
       add('Tidy these', 'space', () => this.selectionCommand('space'));

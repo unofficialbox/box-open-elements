@@ -92,6 +92,12 @@ describe("process routing", () => {
     obstacle: { x: 240, y: -20, width: 120, height: 120 },
   } };
 
+  it('keeps a clear same-height connection straight between centered ports', () => {
+    const clear = projection(['a', 'b'], [edge]);
+    const positions = { boxes: { a: { x: 0, y: 0, width: 224, height: 64 }, b: { x: 320, y: 0, width: 224, height: 64 } } };
+    expect(routeProcessLine(edge, positions, clear)).toEqual([{ x: 224, y: 32 }, { x: 320, y: 32 }]);
+  });
+
   it("pins horizontal endpoints and deterministically detours around obstacles", () => {
     const before = structuredClone(layout);
     const points = routeProcessLine(edge, layout, input);
