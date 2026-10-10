@@ -2720,37 +2720,64 @@ export class ProcessModeler<
       list.id = `process-action-${box.id}-${field.key}`.replace(/[^a-zA-Z0-9-]/g, '-'); list.hidden = true;
       const optionList = document.createElement('div'); optionList.setAttribute('role', 'listbox'); optionList.id = `${list.id}-choices`; optionList.setAttribute('aria-label', `${field.label} choices`);
       input.setAttribute('role', 'combobox'); input.setAttribute('aria-autocomplete', 'list'); input.setAttribute('aria-controls', optionList.id); input.setAttribute('aria-expanded', 'false'); input.autocomplete = 'off';
-      let group: string | null = null; let active = 0; let browse = false;
-      const close = () => { list.hidden = true; browse = false; input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); };
-      const choose = (option: (typeof options)[number]) => { input.focus(); input.value = option.value; close(); submit(); };
+      const groups = [...new Set(options.map(option => option.group).filter((name): name is string => Boolean(name)))];
+      const shown = input.value;
+      let group: string | null = null; let active = 0; let browse = true;
+      const close = (restore = true) => { list.hidden = true; if (restore) input.value = shown; input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); };
+      const choose = (option: (typeof options)[number]) => {
+        const session = this.layoutEditSession;
+        if (!input.isConnected || input.disabled || this.locked || this.selected?.id !== box.id) return;
+        input.focus();
+        if (session !== this.layoutEditSession || !input.isConnected || input.disabled || this.locked || this.selected?.id !== box.id || this.shadowRoot?.activeElement !== input || input.closest('[inert]')) return;
+        input.value = option.value; close(false); submit();
+      };
       const render = () => {
         list.replaceChildren(); optionList.replaceChildren();
         const query = browse ? '' : input.value.trim().toLocaleLowerCase();
-        const matches = options.filter(option => (!group || option.group === group) && (!query || `${option.label} ${option.value} ${option.group ?? ''}`.toLocaleLowerCase().includes(query)));
-        if (!group && !query) {
-          const groups = [...new Set(options.map(option => option.group).filter((name): name is string => Boolean(name)))];
-          for (const name of groups) { const button = document.createElement('button'); button.type = 'button'; button.setAttribute('part', 'action-group'); button.textContent = name; button.onclick = () => { input.focus(); group = name; browse = true; render(); }; list.append(button); }
+        const terms = query.split(/\s+/).filter(Boolean);
+        let matches = options.filter(option => (!group || option.group === group) && terms.every(term => `${option.label} ${option.value} ${option.group ?? ''}`.toLocaleLowerCase().includes(term)));
+        if (!group && !query && groups.length) matches = matches.filter(option => !option.group);
+        if (query) {
+          const starts = (text: string, term: string) => text.toLocaleLowerCase().split(/[\s›_.]+/).some(word => word.startsWith(term));
+          const score = (option: (typeof options)[number]) => terms.filter(term => starts(option.group ?? '', term) || starts(option.label, term)).length;
+          matches.sort((a, b) => score(b) - score(a) || (a.group?.length ?? 0) - (b.group?.length ?? 0) || a.label.length - b.label.length);
+          matches = matches.slice(0, 60);
         }
-        if (group) { const back = document.createElement('button'); back.type = 'button'; back.setAttribute('part', 'action-back'); back.textContent = `All actions / ${group}`; back.onclick = () => { input.focus(); group = null; browse = true; render(); }; list.prepend(back); }
-        for (const [index, option] of matches.entries()) {
-          const item = document.createElement('button'); item.type = 'button'; item.setAttribute('role', 'option'); item.setAttribute('part', 'action-option'); item.id = `${list.id}-${index}`; item.setAttribute('aria-selected', String(index === active));
-          const title = document.createElement('strong'); title.textContent = option.label; item.append(title);
+        const addNavigation = (name: string, part: string, activate: () => void) => {
+          const button = document.createElement('button'); button.type = 'button'; button.tabIndex = -1; button.setAttribute('part', part); button.setAttribute('role', 'option'); button.textContent = name; button.onclick = activate; optionList.append(button);
+        };
+        if (!group && (!query || groups.some(name => name.toLocaleLowerCase().includes(query)))) {
+          const visibleGroups = query ? groups.filter(name => name.toLocaleLowerCase().includes(query)).slice(0, 4) : groups;
+          for (const name of visibleGroups) addNavigation(name, 'action-group', () => { group = name; browse = true; active = 1; render(); });
+        }
+        if (group) addNavigation('All kinds of items', 'action-back', () => { const previous = group; group = null; browse = true; active = Math.max(0, groups.indexOf(previous!)); render(); });
+        for (const option of matches) {
+          const item = document.createElement('button'); item.type = 'button'; item.tabIndex = -1; item.setAttribute('role', 'option'); item.setAttribute('part', 'action-option');
+          const title = document.createElement('strong'); title.textContent = group && option.label.startsWith(`${group} › `) ? option.label.slice(group.length + 3) : option.label; item.append(title);
           if (option.value !== option.label) { const code = document.createElement('small'); code.textContent = option.value; item.append(code); }
           item.onclick = () => choose(option); optionList.append(item);
         }
-        if (!matches.length) { const empty = document.createElement('p'); empty.textContent = 'No matching actions'; list.append(empty); }
+        if (!optionList.childElementCount) { const empty = document.createElement('p'); empty.textContent = 'No matching actions'; list.append(empty); }
         list.append(optionList);
-        active = Math.min(active, Math.max(0, matches.length - 1));
+        const items = Array.from(optionList.querySelectorAll<HTMLElement>('[role=option]'));
+        active = Math.min(active, Math.max(0, items.length - 1));
+        items.forEach((item, index) => { item.id = `${list.id}-${index}`; item.setAttribute('aria-selected', String(index === active)); });
         list.hidden = false; input.setAttribute('aria-expanded', 'true');
-        const selected = list.querySelectorAll<HTMLElement>('[role=option]')[active];
-        if (selected) input.setAttribute('aria-activedescendant', selected.id); else input.removeAttribute('aria-activedescendant');
+        if (items[active]) input.setAttribute('aria-activedescendant', items[active].id); else input.removeAttribute('aria-activedescendant');
       };
-      input.addEventListener('focus', () => { group = null; browse = false; render(); });
+      const openSelected = () => {
+        const current = options.find(option => option.value === field.value);
+        group = current?.group ?? null; browse = true;
+        active = group ? 1 + options.filter(option => option.group === group).findIndex(option => option === current) : Math.max(0, options.indexOf(current!));
+        render();
+      };
+      list.addEventListener('pointerdown', event => event.preventDefault());
+      input.addEventListener('focus', openSelected);
       input.addEventListener('input', () => { group = null; browse = false; active = 0; render(); });
       input.addEventListener('keydown', event => {
         if (event.key === 'Escape') { event.preventDefault(); close(); return; }
         if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-          event.preventDefault(); if (list.hidden) render();
+          event.preventDefault(); if (list.hidden) openSelected();
           const items = Array.from(list.querySelectorAll<HTMLButtonElement>('[role=option]')); if (!items.length) return;
           active = (active + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
           items.forEach((item, index) => item.setAttribute('aria-selected', String(index === active)));
