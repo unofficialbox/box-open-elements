@@ -340,6 +340,7 @@ export class ProcessModeler<
   }
   private connectionProblem(edit: ProcessEdit): string | null {
     if (!this.model.connectionProblem || this.documentValue === undefined || !['connect', 'reattach'].includes(edit.type)) return null;
+    if (!this.isRendered) { this.projection = this.model.project(this.documentValue); validateProjection(this.projection); }
     const line = edit.type === 'reattach' ? this.projection.lines.find(line => line.id === edit.lineId) : undefined;
     const from = edit.from ?? line?.from; const to = edit.to ?? line?.to;
     if (!from || !to) return null;
@@ -2475,7 +2476,7 @@ export class ProcessModeler<
   }
   private renderSelectionToolbar(): void {
     const toolbar = this.shadowRoot!.querySelector<HTMLElement>('[part=selection-toolbar]')!;
-    const key = `${[...this.selectedIds].join(',')}|${this.selected?.kind}|${this.selected?.shape}|${this.selectedLineId}|${Boolean(this.selectedLineId && this.layoutValue.lines?.[this.selectedLineId])}|${this.locked}|${this.narrowValue}|${this.projection.lines.filter(line => line.from === this.selectedId).map(line => `${line.id}:${line.label}:${line.dashed}`).join(',')}`;
+    const key = `${[...this.selectedIds].join(',')}|${this.selected?.kind}|${this.selected?.shape}|${this.selectedLineId}|${Boolean(this.selectedLine && (this.layoutValue.lines?.[this.selectedLine.id] || this.selectedLine.fromSide || this.selectedLine.toSide || this.selectedLine.points?.length))}|${this.locked}|${this.narrowValue}|${this.projection.lines.filter(line => line.from === this.selectedId).map(line => `${line.id}:${line.label}:${line.dashed}`).join(',')}`;
     if (key === this.selectionToolbarKey) return;
     this.selectionToolbarKey = key;
     toolbar.replaceChildren();
@@ -2612,6 +2613,7 @@ export class ProcessModeler<
       ?.focus({ preventScroll: true });
   }
   private setStatus(message: string, urgent = false): void {
+    if (!this.isRendered) return;
     this.shadowRoot!.querySelector(urgent ? "[part=status]" : "[part=urgent-status]")!.textContent = "";
     this.shadowRoot!.querySelector(urgent ? "[part=urgent-status]" : "[part=status]")!.textContent = message;
   }
