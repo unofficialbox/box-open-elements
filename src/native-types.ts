@@ -123,7 +123,7 @@ export interface BoxElementPropertyKeys {
   "box-presence": "label" | "max" | "transport" | "users";
   "box-preview-element": "actions" | "adapterState" | "heading" | "itemLabel" | "message" | "provider" | "providerAdapter" | "providerLabel" | "status";
   "box-preview-header": "actions" | "breadcrumbs" | "heading" | "message" | "status";
-  "box-process-modeler": "catalog" | "connections" | "detail" | "disableConnections" | "document" | "embedMode" | "fields" | "headingLevel" | "history" | "lastRun" | "layout" | "locked" | "model" | "outline" | "processSummary" | "processTitle" | "renderInspector" | "selectedPath" | "showLastRun" | "snapToGrid" | "variables" | "variablesEditable";
+  "box-process-modeler": "catalog" | "connections" | "connectionsHelp" | "detail" | "disableConnections" | "document" | "embedMode" | "fields" | "headingLevel" | "history" | "lastRun" | "layout" | "locked" | "model" | "outline" | "processSummary" | "processTitle" | "renderInspector" | "selectedPath" | "showLastRun" | "snapToGrid" | "variables" | "variablesEditable";
   "box-progress-bar": "hideLabel" | "label" | "max" | "value";
   "box-progress-ring": "label" | "max" | "size" | "value";
   "box-progress-steps": "compact" | "items" | "label" | "value";
