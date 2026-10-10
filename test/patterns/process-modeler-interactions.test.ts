@@ -1106,6 +1106,25 @@ describe("Process Modeler prototype interactions", () => {
     pointer(root.querySelector('[part=choice]')!, 'pointerdown', -100, 100); pointer(builder, 'pointermove', 900, 700); pointer(builder, 'pointerup', 900, 700);
     expect(requests).toHaveBeenCalledOnce();
   });
+  it('targets the nearest palette line within 20 screen pixels and deepest exactly-contained frame', () => {
+    const { builder, root, canvas } = fixture(); builder.setView({ x: 0, y: 0, zoom: 1 });
+    canvas.getBoundingClientRect = () => ({ left: 0, top: 0, right: 1000, bottom: 800, width: 1000, height: 800 }) as DOMRect;
+    builder.document = { ...projection, lines: [...projection.lines, { id: 'ac', from: 'a', to: 'c' }] };
+    const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    const drag = (x: number, y: number) => { pointer(root.querySelector('[part=choice]')!, 'pointerdown', -100, 100); pointer(builder, 'pointermove', x, y); pointer(builder, 'pointerup', x, y); };
+    Object.assign(builder, { routedLines: new Map([['ab', [{ x: 100, y: 100 }, { x: 900, y: 100 }]], ['ac', [{ x: 100, y: 120 }, { x: 900, y: 120 }]]]) });
+    drag(500, 115); expect(requests.mock.calls.at(-1)![0].detail.lineId).toBe('ac');
+    Object.assign(builder, { routedLines: new Map([['ab', [{ x: 100, y: 100 }, { x: 900, y: 100 }]]]) });
+    drag(500, 119); expect(requests.mock.calls.at(-1)![0].detail.lineId).toBe('ab');
+    drag(500, 120); expect(requests.mock.calls.at(-1)![0].detail.type).toBe('add');
+    builder.document = { boxes: [...projection.boxes, { id: 'inner', node: {}, kind: 'try', title: 'Inner', frame: true, parentId: 'outer' }, { id: 'outer', node: {}, kind: 'try', title: 'Outer', frame: true }], lines: [] };
+    builder.layout = { boxes: { ...builder.layout.boxes, inner: { x: 500, y: 400, width: 200, height: 100 }, outer: { x: 400, y: 300, width: 400, height: 300 } } };
+    pointer(root.querySelector('[part=choice]')!, 'pointerdown', -100, 100); pointer(builder, 'pointermove', 550, 450);
+    expect(root.querySelector<HTMLElement>('[data-box-id=inner]')!.dataset.paletteDrop).toBe('true');
+    pointer(builder, 'pointerup', 550, 450); expect(requests.mock.calls.at(-1)![0].detail.parentId).toBe('inner');
+    expect(root.querySelector('[data-palette-drop=true]')).toBeNull();
+    drag(395, 450); expect(requests.mock.calls.at(-1)![0].detail.parentId).toBeUndefined();
+  });
   it("inserts a palette drop on a routed line and highlights its hit target", () => {
     const { builder, root, canvas } = fixture(); const requests = vi.fn(); builder.addEventListener("process-edit-request", requests);
     const point = lineMidpoint(routeProcessLine(projection.lines[0], builder.layout, projection));

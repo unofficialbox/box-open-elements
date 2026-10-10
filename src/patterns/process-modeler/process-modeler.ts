@@ -1678,6 +1678,9 @@ export class ProcessModeler<
   }
   private markDropLine(point?: { x: number; y: number }, except?: string): void {
     this.dropLine = point ? this.lineAt(point, except)?.id : undefined;
+    this.paintDropLine();
+  }
+  private paintDropLine(): void {
     this.shadowRoot!.querySelectorAll<SVGElement>('[part=line]').forEach(path => { const active = path.dataset.lineId === this.dropLine; path.dataset.drop = String(active); path.setAttribute('marker-end', `url(#${active || path.dataset.selected === 'true' ? 'boe-process-arrow-brand' : 'boe-process-arrow'})`); });
   }
   private alignedPoint(id: string, x: number, y: number) {
@@ -2165,6 +2168,37 @@ export class ProcessModeler<
     const line = outgoing.length === 1 ? outgoing[0] : undefined;
     this.requestEdit(line ? { type: 'insert', kind, lineId: line.id, from: line.from, to: line.to } : { type: 'add', kind, ...(from ? { from } : {}) });
   }
+  private paletteLineAt(point: { x: number; y: number }) {
+    let nearest: ProcessProjection<N>['lines'][number] | undefined; let best = 20 / this.viewport.zoom;
+    for (const line of this.projection.lines) {
+      const points = this.routedLines.get(line.id) ?? [];
+      for (let i = 1; i < points.length; i++) {
+        const a = points[i - 1], b = points[i], dx = b.x - a.x, dy = b.y - a.y, length = dx * dx + dy * dy;
+        const t = length ? Math.max(0, Math.min(1, ((point.x - a.x) * dx + (point.y - a.y) * dy) / length)) : 0;
+        const distance = Math.hypot(point.x - a.x - t * dx, point.y - a.y - t * dy);
+        if (distance < best) { best = distance; nearest = line; }
+      }
+    }
+    return nearest;
+  }
+  private paletteFrameAt(point: { x: number; y: number }) {
+    let nearest: ProcessBox<N> | undefined; let depth = -1;
+    for (const box of this.projection.boxes) {
+      if (!box.frame) continue;
+      const p = this.layoutValue.boxes[box.id];
+      if (!p || point.x < p.x || point.x > p.x + (p.width ?? 320) || point.y < p.y || point.y > p.y + (p.height ?? 240)) continue;
+      let level = 0, parent = box.parentId;
+      while (parent) { level++; parent = this.projection.boxes.find(box => box.id === parent)?.parentId; }
+      if (level > depth) { depth = level; nearest = box; }
+    }
+    return nearest;
+  }
+  private markPaletteDrop(point?: { x: number; y: number }): void {
+    this.dropLine = point ? this.paletteLineAt(point)?.id : undefined;
+    const frame = point && !this.dropLine ? this.paletteFrameAt(point) : undefined;
+    this.shadowRoot!.querySelectorAll<HTMLElement>('[part=frame]').forEach(element => { element.dataset.paletteDrop = String(element.dataset.boxId === frame?.id); });
+    this.paintDropLine();
+  }
   private paletteCanvasPoint(event: PointerEvent): { x: number; y: number } | undefined {
     const rect = this.shadowRoot!.querySelector('[part=canvas]')!.getBoundingClientRect();
     if (event.clientX <= rect.left || event.clientX >= rect.right || event.clientY <= rect.top || event.clientY >= rect.bottom) return;
@@ -2181,7 +2215,7 @@ export class ProcessModeler<
       if (drag.kind.icon) ghost.append(drag.kind.icon()); ghost.append(document.createTextNode(drag.kind.label)); this.shadowRoot!.append(ghost);
     }
     ghost.style.left = `${event.clientX}px`; ghost.style.top = `${event.clientY}px`;
-    this.markDropLine(!drag.kind.placement && drag.kind.kind !== 'end' ? this.paletteCanvasPoint(event) : undefined);
+    this.markPaletteDrop(!drag.kind.placement && drag.kind.kind !== 'end' ? this.paletteCanvasPoint(event) : undefined);
     event.preventDefault();
   }
   private cancelPalettePointer(): void {
@@ -2189,7 +2223,7 @@ export class ProcessModeler<
     this.ownerDocument.removeEventListener('keydown', this.escapePalettePointer, true);
     if (!drag) return;
     this.suppressPaletteClick = true;
-    this.shadowRoot?.querySelector('[part=palette-ghost]')?.remove(); this.markDropLine(undefined);
+    this.shadowRoot?.querySelector('[part=palette-ghost]')?.remove(); this.markPaletteDrop(undefined);
     try { this.releasePointerCapture(drag.id); } catch { /* Capture may already have been lost. */ }
   }
   private finishPalettePointer(event: PointerEvent): void {
@@ -2199,8 +2233,8 @@ export class ProcessModeler<
     if (!drag.moved) { this.activatePaletteKind(drag.kind); if (this.narrowValue) this.closeDrawer(); return; }
     if (!point) return;
     if (drag.kind.placement) { this.addLayoutKind(drag.kind, point); return; }
-    const line = drag.kind.kind === 'end' ? undefined : this.lineAt(point);
-    const frame = line ? undefined : this.boxAt(point, undefined, true);
+    const line = drag.kind.kind === 'end' ? undefined : this.paletteLineAt(point);
+    const frame = line ? undefined : this.paletteFrameAt(point);
     this.requestEdit({ type: line ? 'insert' : 'add', kind: drag.kind, lineId: line?.id, from: line?.from, to: line?.to, parentId: frame?.id, position: point });
   }
   private renderPalette(): void {
