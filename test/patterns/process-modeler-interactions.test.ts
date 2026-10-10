@@ -643,6 +643,17 @@ describe("Process Modeler prototype interactions", () => {
     try { builder.tidy(); expect(animate).toHaveBeenCalled(); }
     finally { Object.defineProperty(Element.prototype, 'animate', { configurable: true, value: original }); }
   });
+  it('keeps a readable zoom after tidying a long process', () => {
+    const { builder } = fixture();
+    const boxes = Array.from({ length: 12 }, (_, index) => ({ id: `step-${index}`, node: {}, title: `Step ${index}`, kind: 'call' }));
+    builder.document = { boxes, lines: boxes.slice(1).map((box, index) => ({ id: `line-${index}`, from: boxes[index].id, to: box.id })) };
+    builder.setView({ x: 0, y: 0, zoom: 0.7 });
+    builder.tidy();
+    expect(builder.view.zoom).toBeGreaterThanOrEqual(0.7);
+    Object.assign(builder, { narrowValue: true });
+    builder.tidy();
+    expect(builder.view.zoom).toBeGreaterThanOrEqual(0.55);
+  });
   it('marks authored pinned connection ends', () => {
     const { builder, root } = fixture();
     builder.document = { ...projection, lines: [{ ...projection.lines[0], fromSide: 'east', toSide: 'west' }] };

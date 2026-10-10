@@ -18,6 +18,10 @@
 - A geometry regression test confirms a clear, equal-height row routes as one
   straight segment between centered ports. The older 0.26 report of elbows is
   not sufficient to claim a current routing defect; compare its exact fixture.
+- The docs preview reproduced #322's Tidy regression: the opening 70% view
+  dropped to 25%. Tidy now applies the pinned design's readable floor (70%
+  desktop, 55% narrow) while the explicit Fit command can still show the
+  entire process at 25%.
 - This is library-side progress, not proof that #321–331 are done. The same-
   workflow four-view comparison and Riptide adoption are still outstanding.
   Manual screen-reader tasks are deferred by Kyle's direction; do not silently

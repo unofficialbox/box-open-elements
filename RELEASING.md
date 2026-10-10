@@ -35,6 +35,22 @@ publish.
 - The git tag is `v<version>` (e.g. `v0.1.0`). The release workflow **fails** if
   the tag does not match `package.json`'s `version`.
 
+### PR check tiers
+
+CI infers major/minor/patch from a `package.json` version bump. Feature PRs
+usually do not bump the version yet, so they default to the patch lane: typecheck,
+tests related to changed code, and a core build when core code changes. Mark a
+feature PR `release:major` or `release:minor` when it is intended for that
+release tier; that runs the full coverage/build/framework, conformance, and
+pinned-browser pixel gates. `release:patch` and `release:hotfix` explicitly use
+the targeted lane. Conflicting labels or a label that contradicts a version bump
+fail CI rather than silently selecting a lighter gate. A manual CI dispatch runs
+the full gate regardless of tier. Superseded PR runs are cancelled.
+
+Patch/hotfix PRs still need focused browser review for visible changes. The npm
+publish workflow retains its full verification gate for every release; PR
+selection only avoids repeatedly running that expensive gate during iteration.
+
 ## Route A — Cut release workflow (recommended)
 
 1. Land a PR that bumps `package.json` `version` and updates `CHANGELOG.md`.

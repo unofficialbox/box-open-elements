@@ -483,7 +483,7 @@ export class ProcessModeler<
         if (dx || dy) element.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'translate(0, 0)' }], { duration: 320, easing: 'ease-out' });
       }
     }
-    this.fit();
+    this.fitTo(this.narrowValue ? 0.55 : 0.7);
   }
   resize(id: string, width: number, height: number): void {
     if (
@@ -569,12 +569,13 @@ export class ProcessModeler<
     this.viewport.zoom = next;
     this.paintViewport();
   }
-  fit(): void {
+  fit(): void { this.fitTo(0.25); }
+  private fitTo(minimumZoom: number): void {
     const bounds = this.bounds();
     const canvas =
       this.shadowRoot!.querySelector<HTMLElement>("[part=canvas]")!;
     this.viewport.zoom = Math.max(
-      0.25,
+      minimumZoom,
       Math.min(
         1.5,
         ((canvas.clientWidth || 700) - 40) / bounds.width,

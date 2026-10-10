@@ -118,7 +118,10 @@ canvas.addEventListener("readable-projection-changed", event => {
   references; use immutable host documents or call `load` for a new version.
 - `locked` blocks edits but retains navigation. `snap-to-grid` uses 16px units.
   Zoom is bounded to 25–200%; `setView({ x, y, zoom })` restores an authored
-  viewport. The 16px dot grid follows zoom and pan; below 50% zoom it shows
+  viewport. **Tidy up** reflows the graph and keeps at least 70% zoom on wide
+  layouts or 55% on narrow layouts, starting at the beginning when the entire
+  graph cannot fit legibly. **Fit the whole process** can still zoom to 25%.
+  The 16px dot grid follows zoom and pan; below 50% zoom it shows
   every fourth grid point to stay legible. `--boe-process-height` sets canvas
   height (default 660px).
 - `heading-level` sets the inspector heading (1-6, default 2).
