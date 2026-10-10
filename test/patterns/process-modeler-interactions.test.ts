@@ -499,14 +499,17 @@ describe("Process Modeler prototype interactions", () => {
     expect(canvas.style.backgroundSize).toBe('25.6px 25.6px');
     expect(canvas.style.backgroundPosition).toBe('-9px 5px');
   });
-  it("retains the inspector process heading in embedded host mode", () => {
+  it("preserves the embedded heading space and keeps supplied run controls available", () => {
     const { builder, root } = fixture();
     builder.processTitle = 'Upload round trip';
     builder.processSummary = '13 steps in 4 sections';
     builder.embedMode = true;
     expect(root.querySelector('[part=process-heading]')?.textContent).toContain('Upload round trip');
     expect(root.querySelector('[part=process-heading]')?.textContent).toContain('13 steps in 4 sections');
-    expect(root.querySelector('style')?.textContent).not.toMatch(/:host\(\[embed-mode\]\) \[part=process-heading\]/);
+    expect(root.querySelector('style')?.textContent).toContain(':host([embed-mode]) [part=process-heading] { visibility: hidden; }');
+    builder.lastRun = { steps: {} };
+    expect(root.querySelector<HTMLElement>('[part=run-toggle]')!.hidden).toBe(false);
+    expect(root.querySelector('style')?.textContent).toContain(':host([data-narrow][embed-mode]) [part=run-toggle] { display: inline-flex; }');
     expect(root.querySelector('style')?.textContent).toContain(':host([data-narrow]:not([embed-mode])) [part=view-menu]');
   });
   it("draws host field descriptors and sends controlled changes back to the host", () => {

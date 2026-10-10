@@ -238,7 +238,8 @@ export const processModelerDesign = `
   [part=problem] [part=check-icon] { flex-basis: 12px; width: 12px; height: 12px; margin: 0; }
   [part=checks-ready] { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--boe-token-text-text, #222); font-size: 13px; line-height: 1.45; }
   [part=process-heading] { display: grid; gap: 2px; padding: 0 16px 12px; }
-  :host([embed-mode]) [part=view-switch], :host([embed-mode]) [part=run-toggle], :host([embed-mode]) [part=view-menu] { display: none; }
+  :host([embed-mode]) [part=view-switch], :host([embed-mode]) [part=view-menu] { display: none; }
+  :host([embed-mode]) [part=process-heading] { visibility: hidden; }
   [part=process-title] { font-size: 15px; line-height: 1.4; }
   [part=process-summary] { color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12.5px; }
   [part=pane-tabs] { display: flex; flex-wrap: nowrap; gap: 4px; margin: 0; padding: 0 16px; border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); overflow-x: auto; }
@@ -328,6 +329,7 @@ export const processModelerDesign = `
   :host([data-narrow]) [part=view-switch], :host([data-narrow]) [part=run-toggle] { display: none; }
   :host([data-narrow]) [data-command=checks-status] { display: none; }
   :host([data-narrow]:not([embed-mode])) [part=view-menu] { display: block; }
+  :host([data-narrow][embed-mode]) [part=run-toggle] { display: inline-flex; }
   :host([data-narrow]) [part=controls] { left: 12px; bottom: 12px; }
   :host([data-narrow]) [part=selection-toolbar] [part=selection-plus] + span { display: none; }
   :host([data-phone]) [data-command=tidy] { display: none; }
