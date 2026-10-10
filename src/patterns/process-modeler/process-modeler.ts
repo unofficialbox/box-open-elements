@@ -1234,7 +1234,8 @@ export class ProcessModeler<
       ArrowUp: [0, -1],
       ArrowDown: [0, 1],
     }[event.key];
-    if (direction && !event.ctrlKey && (event.altKey || !box || this.locked)) {
+    const canInsertDirection = event.ctrlKey && event.altKey && box && !this.locked && this.catalog.length && !this.disableConnections;
+    if (direction && !canInsertDirection && (event.altKey || !box || this.locked)) {
       event.preventDefault(); this.navigateSelection(direction); return;
     }
     if (!box || this.locked) return;

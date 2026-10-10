@@ -525,6 +525,16 @@ describe("Process Modeler prototype interactions", () => {
     expect(builder.selected?.id).toBe('a'); expect(builder.layout).toEqual(before); expect(builder.view).toEqual(view);
     expect(root.querySelector('[part=status]')!.textContent).toBe('Nothing further that way');
   });
+  it.each(['disabled-connections', 'empty-catalog'])('navigates without nudging when Ctrl+Alt insertion is unavailable: %s', mode => {
+    const { builder, canvas } = fixture();
+    builder.layout = { boxes: { a: { x: 0, y: 0 }, b: { x: 325, y: 0 }, c: { x: 325, y: 200 } } };
+    builder.select('a');
+    if (mode === 'disabled-connections') builder.disableConnections = true;
+    else builder.catalog = [];
+    const before = builder.layout; const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', ctrlKey: true, altKey: true, bubbles: true, cancelable: true }));
+    expect(builder.selected?.id).toBe('b'); expect(builder.layout).toEqual(before); expect(requests).not.toHaveBeenCalled();
+  });
   it('keeps projection order for tied directional navigation scores', () => {
     const { builder, canvas } = fixture();
     builder.document = { boxes: [{ ...projection.boxes[0], id: 'origin' }, { ...projection.boxes[1], id: 'z-first' }, { ...projection.boxes[2], id: 'a-second' }], lines: [] };
