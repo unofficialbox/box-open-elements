@@ -523,11 +523,12 @@ export interface BoxElementEventMap {
     "process-edit-request": CustomEvent<import("./patterns/process-modeler/model.js").ProcessEditRequest>;
     "process-field-change-request": CustomEvent<{ boxId: string; path: import("./patterns/flow-builder/model.js").NodePath | undefined; key: string; value: string | number | boolean; }>;
     "process-local-variable-edit-request": CustomEvent<import("./patterns/process-modeler/model.js").ProcessLocalVariableEditRequest>;
+    "process-selection-copy-request": CustomEvent<import("./patterns/process-modeler/model.js").ProcessCopyRequest>;
     "process-variable-change-request": CustomEvent<{ name: string; value: string; }>;
     "process-variable-edit-request": CustomEvent<{ type: "add"; } | { type: "remove"; name: string; } | { type: "rename"; name: string; value: string; } | { type: "description"; name: string; value: string; } | { type: "scope"; name: string; value: "iteration" | "process"; }>;
     "projection-changed": CustomEvent<{ projection: import("./patterns/process-modeler/model.js").ProcessProjection<unknown>; version: string | number; checks: readonly import("./patterns/process-modeler/model.js").ProcessCheck[]; }>;
     "readable-projection-changed": CustomEvent<{ projection: import("./patterns/process-modeler/model.js").ProcessProjection<unknown>; version: string | number; }>;
-    "selection-changed": CustomEvent<{ box: import("./patterns/process-modeler/model.js").ProcessBox<unknown> | null; boxes: readonly import("./patterns/process-modeler/model.js").ProcessBox<unknown>[]; path: import("./patterns/flow-builder/model.js").NodePath | null; } | { box: null; boxes: never[]; line: import("./patterns/process-modeler/model.js").ProcessLine | null; path: null; }>;
+    "selection-changed": CustomEvent<{ selection?: readonly import("./patterns/process-modeler/model.js").ProcessSelectionItem[] | undefined; box: import("./patterns/process-modeler/model.js").ProcessBox<unknown> | null; boxes: readonly import("./patterns/process-modeler/model.js").ProcessBox<unknown>[]; path: import("./patterns/flow-builder/model.js").NodePath | null; } | { selection?: readonly import("./patterns/process-modeler/model.js").ProcessSelectionItem[] | undefined; box: null; boxes: never[]; line: import("./patterns/process-modeler/model.js").ProcessLine | null; path: null; }>;
   };
   "box-progress-bar": {};
   "box-progress-ring": {};

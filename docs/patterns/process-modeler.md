@@ -411,3 +411,24 @@ rules and transactional history when applying it. In particular, a line request
 has a `from` ID too: hosts must inspect placement before assuming add-after.
 Gateway Add next creates a branch even when there is only one outgoing edge.
 Older callers may omit placement. Cancellation and locked flows emit no edit.
+
+
+### Mixed graph selection
+
+`selection` and `selectItems(items)` represent typed box, line and layout-note IDs.
+IDs are scoped by type; invalid IDs and duplicates are filtered. Ctrl+A selects
+all projected boxes except sections, every line, and layout notes, preserving
+canvas focus. Existing `select`, `selectMany` and `selectLine` retain exclusive
+selection behavior. Notes expose named keyboard/click selection and visible state.
+
+Mixed Delete emits one `process-edit-request` of type `delete-selection` with a
+frozen `selection`; hosts own protected start nodes, descendants, incident edges,
+bridging rules and notes in one transaction. Unsupported hosts leave it unapplied.
+`ReversibleProcessEdit.selection` records full accepted selection across undo/redo;
+it takes precedence over legacy `selectionIds`. Copy with explicit lines/notes
+uses `process-selection-copy-request` (the existing `ProcessCopyRequest` shape
+plus immutable `selection`) so a legacy box-only listener cannot silently discard
+mixed items. Hosts own copy-time capture, internal edges and descendants. Edge-only
+Copy does nothing. Layout nudging moves selected roots/descendants once and notes
+in one reversible layout operation; alignment remains box-only. This contract
+requires host integration and does not serialize graph data or infer note relations.

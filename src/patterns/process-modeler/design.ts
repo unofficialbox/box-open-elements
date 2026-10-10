@@ -225,6 +225,9 @@ export const processModelerDesign = `
   [part=section] { z-index: 0; border: 1px solid var(--boe-process-box-edge, var(--boe-control-edge, #858585)); border-radius: 16px; background: color-mix(in srgb, var(--boe-token-surface-surface, #fff) 45%, transparent); }
   [part=section] strong { display: block; font-size: 12.5px; font-weight: 650; line-height: 1.3; }
   [part=section] small { display: block; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 11.5px; line-height: 1.35; }
+  [part=note] { pointer-events: auto !important; }
+  [part=note][data-selected=true] { outline: 2px solid var(--boe-process-line-selected, var(--boe-brand-fill, #1976d2)); }
+  [part=note]:focus-visible { outline: 2px solid var(--boe-focus-ring, #1976d2); outline-offset: 3px; }
   [part=note], [part=section] { position: absolute; padding: 8px; pointer-events: none; }
   [part=marquee] { position: absolute; border: 2px solid var(--boe-token-surface-surface-brand, #0061d5); background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, transparent); pointer-events: none; }
   [part=connect-tooltip] { position: absolute; z-index: 20; max-width: 240px; padding: 5px 8px; border-radius: 7px; background: var(--boe-token-text-text, #141413); color: var(--boe-token-surface-surface, #fff); font-size: 12px; pointer-events: none; box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }

@@ -75,3 +75,15 @@ const helperEvents = <>
     onstep-changed={event => { const index: number = event.detail.stepIndex; void index; }} />
 </>;
 void helperEvents;
+
+
+const mixedModeler = document.createElement('box-process-modeler');
+mixedModeler.selectItems([{ type: 'box', id: 'step' }, { type: 'line', id: 'edge' }, { type: 'note', id: 'reader' }]);
+mixedModeler.addEventListener('process-selection-copy-request', event => {
+  const items: readonly import('@unofficialbox/box-open-elements').ProcessSelectionItem[] | undefined = event.detail.selection;
+  event.detail.refuse('Unsupported mixed capture');
+  void items;
+  // @ts-expect-error selection is a typed item array, not string IDs
+  const invalid: readonly string[] | undefined = event.detail.selection;
+  void invalid;
+});

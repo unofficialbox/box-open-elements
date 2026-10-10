@@ -201,8 +201,16 @@ export type ProcessInsertionPlacement =
   | { readonly source: 'next' }
   | { readonly source: 'line'; readonly center: Readonly<{ x: number; y: number }> }
   | { readonly source: 'point'; readonly center: Readonly<{ x: number; y: number }> };
+/** IDs are scoped by kind; layout notes are separate from projected boxes. */
+export type ProcessSelectionItem =
+  | { readonly type: 'box'; readonly id: string }
+  | { readonly type: 'line'; readonly id: string }
+  | { readonly type: 'note'; readonly id: string };
 export interface ProcessEdit {
-  type: "add" | "delete" | "duplicate" | "connect" | "disconnect" | "reattach" | "insert" | "reparent" | "reset-line" | "tidy" | "make-section";
+  type: "add" | "delete" | "duplicate" | "connect" | "disconnect" | "reattach" | "insert" | "reparent" | "reset-line" | "tidy" | "make-section" | "delete-selection";
+  /** One atomic mixed deletion; the host owns protected roots, descendants,
+   * incident edges and notes. Unsupported hosts must leave it unapplied. */
+  selection?: readonly ProcessSelectionItem[];
   boxId?: string;
   sourceId?: string;
   /** Duplicate these roots and descendants/internal edges in one host transaction.
@@ -231,6 +239,8 @@ export interface ReversibleProcessEdit {
   layout?: ProcessLayout;
   /** Selection after acceptance; recorded with layout for undo and redo. */
   selectionIds?: readonly string[];
+  /** Full mixed selection after acceptance; takes precedence over selectionIds. */
+  selection?: readonly ProcessSelectionItem[];
 }
 /** Host applies the edit, then calls accept with its inverse and replay. */
 export interface ProcessEditRequest extends ProcessEdit {
@@ -258,6 +268,9 @@ export interface ProcessClipboard {
 }
 /** Copy capture is synchronous and once-only. Unsupported hosts leave it unhandled. */
 export interface ProcessCopyRequest {
+  /** Full immutable selection, including notes and explicit edges. Hosts own
+   * descendant/internal-edge capture and must refuse unsupported mixed capture. */
+  readonly selection?: readonly ProcessSelectionItem[];
   readonly sourceIds: readonly string[];
   capture(clipboard: ProcessClipboard): void;
   refuse(message?: string): void;
