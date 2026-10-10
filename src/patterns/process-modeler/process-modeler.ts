@@ -1124,7 +1124,10 @@ export class ProcessModeler<
     root.querySelector('[part=process-summary]')!.textContent = this.selectedIds.size > 1 ? 'Arrange or group these steps' : selected ? kindSummary! : this.processSummaryValue;
     root.querySelector<HTMLElement>('[part=pane-tabs]')!.hidden = Boolean(selected);
     root.querySelectorAll<HTMLButtonElement>('[part=pane-tabs] button').forEach(button => {
-      button.textContent = button.dataset.pane === "Checks" ? `Checks ${this.allChecks.length}` : button.dataset.pane ?? "";
+      button.textContent = button.dataset.pane ?? "";
+      if (button.dataset.pane === "Checks") {
+        const count = document.createElement('span'); count.setAttribute('part', 'pane-count'); count.textContent = String(this.allChecks.length); button.append(count);
+      }
       const selected = button.dataset.pane === this.activePane; button.setAttribute("aria-selected", String(selected)); button.tabIndex = selected ? 0 : -1;
     });
     const content = root.querySelector<HTMLElement>('[part=pane-content]')!;

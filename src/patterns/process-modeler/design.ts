@@ -274,22 +274,23 @@ export const processModelerDesign = `
   [part=selection-toolbar] { position: absolute; bottom: auto; z-index: 11; display: flex; flex-wrap: nowrap; gap: 2px; padding: 4px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px 0 light-dark(rgb(0 0 0 / 10%), rgb(0 0 0 / 40%))); white-space: nowrap; translate: -50% -100%; }
   [part=selection-toolbar] button { display: inline-flex; align-items: center; gap: 6px; height: 30px; min-height: 30px; padding: 0 10px; border-radius: 20px; font-size: 13px; font-weight: 600; letter-spacing: .01em; line-height: 1.45; }
   [part=selection-plus] { width: 16px; height: 16px; flex: none; display: block; color: var(--boe-token-text-text-secondary, #6f6f6f); }
-  [part=checks] { display: grid; gap: 6px; margin: 0; padding: 0; }
+  [part=checks] { display: grid; gap: 6px; margin: 0; padding: 8px 0 0; }
   [part=checks] button { width: 100%; display: grid; grid-template-columns: 16px 1fr; align-items: start; gap: 8px; padding: 8px 10px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 10px; text-align: start; background: var(--boe-token-surface-surface, #fff); color: var(--boe-token-text-text, #222); line-height: 1.45; }
-  [part=check-icon] { flex: 0 0 16px; width: 16px; height: 16px; margin-top: 1px; color: var(--boe-token-text-status-text-error, #b92340); }
+  [part=check-icon] { flex: 0 0 16px; width: 16px; height: 16px; margin-top: 0; color: color-mix(in srgb, var(--boe-token-text-status-text-error, #b92340) 85%, var(--boe-token-text-text, #222)); }
   [part=checks] strong { display: block; font-size: 13px; font-weight: 600; line-height: 1.45; }
   [part=checks] small { color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12.5px; }
   [part=check-icon][data-tone=success] { color: var(--boe-token-text-status-text-success, #138a58); }
   [part=problem] { display: flex; align-items: center; gap: 4px; }
   [part=problem] [part=check-icon] { flex-basis: 12px; width: 12px; height: 12px; margin: 0; }
-  [part=checks-ready] { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--boe-token-text-text, #222); font-size: 13px; line-height: 1.45; }
+  [part=checks-ready] { display: flex; align-items: center; gap: 8px; margin: 13px 0; color: var(--boe-token-text-text, #222); font-size: 13px; line-height: 1.45; }
   [part=process-heading] { display: grid; gap: 2px; padding: 0 16px 12px; }
   [part=process-title] { font-size: 15px; line-height: 1.4; }
   [part=process-summary] { color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12.5px; }
   [part=process-heading][data-selected] [part=process-title] { font-weight: 650; line-height: 1.45; text-wrap: balance; }
   [part=process-heading][data-selected] [part=process-summary] { font-size: 13px; line-height: 1.45; }
   [part=pane-tabs] { display: flex; flex-wrap: nowrap; gap: 4px; margin: 0; padding: 0 16px; border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); overflow-x: auto; }
-  [part=pane-tabs] button { flex: none; min-height: 40px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 13px; font-weight: 600; }
+  [part=pane-tabs] button { flex: none; min-height: 0; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: var(--boe-token-text-text-secondary, #6f6f6f); padding: 8px 8px 10px; margin-bottom: -1px; display: inline-flex; gap: 6px; align-items: center; font-size: 13px; font-weight: 600; line-height: 1.45; }
+  [part=pane-count] { font-variant-numeric: tabular-nums; color: var(--boe-token-text-text-secondary, #6f6f6f); font-weight: 500; }
   [part=pane-tabs] button[aria-selected=true] { color: var(--boe-token-text-text, #141413); border-bottom-color: currentColor; }
   [part=editor], [part=pane-content] { padding: 8px 16px; }
   [part=editor] { display: grid; align-content: start; gap: 12px; }
