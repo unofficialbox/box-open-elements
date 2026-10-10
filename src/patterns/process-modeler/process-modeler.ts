@@ -233,8 +233,13 @@ export class ProcessModeler<
   }
   load(document: D, options: ProcessLoadOptions = {}): void {
     this.pendingLocalRename = undefined;
-    this.layoutEditSession++;
+    const session = ++this.layoutEditSession;
+    this.insertion = undefined;
     this.cancelPalettePointer();
+    this.closeKeyboardChooser();
+    const chooser = this.shadowRoot?.querySelector<HTMLDialogElement>('[part=insert-chooser]');
+    if (chooser) dismissModal(chooser);
+    if (session !== this.layoutEditSession) return;
     const projection = this.model.project(document); validateProjection(projection);
     this.documentValue = document;
     this.projection = projection;
@@ -842,10 +847,11 @@ export class ProcessModeler<
     const picker = new KindPicker();
     picker.variant = "menu"; picker.searchable = true; chooser.append(picker); this.shadowRoot!.append(chooser);
     picker.addEventListener("kind-pick", event => {
-      const insertion = this.insertion; dismissModal(chooser); this.insertion = undefined;
-      if (insertion) this.requestEdit({ ...insertion, kind: (event as CustomEvent).detail.kind });
+      const insertion = this.insertion, session = this.layoutEditSession;
+      this.insertion = undefined; dismissModal(chooser);
+      if (insertion && session === this.layoutEditSession && this.isConnected) this.requestEdit({ ...insertion, kind: (event as CustomEvent).detail.kind });
     });
-    picker.addEventListener("picker-cancel", () => { dismissModal(chooser); this.insertion = undefined; });
+    picker.addEventListener("picker-cancel", () => { this.insertion = undefined; dismissModal(chooser); });
     const keyboardChooser = document.createElement('div');
     keyboardChooser.setAttribute('part', 'keyboard-chooser');
     keyboardChooser.setAttribute('popover', 'manual');
@@ -859,12 +865,13 @@ export class ProcessModeler<
     keyboardChooser.append(keyboardTitle, keyboardPicker);
     this.shadowRoot!.append(keyboardChooser);
     keyboardPicker.addEventListener('kind-pick', event => {
-      const edit = this.keyboardInsertion;
+      const edit = this.keyboardInsertion, session = this.layoutEditSession;
       this.closeKeyboardChooser(true);
+      if (session !== this.layoutEditSession || !this.isConnected) return;
       // Keep a stable step focused while the host applies and accepts the edit.
       // World refreshes preserve step focus, including deferred acceptance.
       if (edit?.from) this.focusBox(edit.from);
-      if (edit) this.requestEdit({ ...edit, kind: (event as CustomEvent).detail.kind });
+      if (edit && session === this.layoutEditSession && this.isConnected) this.requestEdit({ ...edit, kind: (event as CustomEvent).detail.kind });
     });
     keyboardPicker.addEventListener('picker-cancel', () => this.closeKeyboardChooser(true));
     this.setupPanes();
@@ -2054,8 +2061,8 @@ export class ProcessModeler<
     this.transientChooserAnchor?.remove(); this.transientChooserAnchor = undefined;
     document.removeEventListener('pointerdown', this.dismissKeyboardChooserOutside, true);
     this.keyboardInsertion = undefined;
-    if (returnFocus) this.keyboardReturn?.focus({ preventScroll: true });
-    this.keyboardReturn = undefined;
+    const target = this.keyboardReturn; this.keyboardReturn = undefined;
+    if (returnFocus) target?.focus({ preventScroll: true });
   }
   private dismissKeyboardChooserOutside = (event: PointerEvent): void => {
     const chooser = this.shadowRoot?.querySelector<HTMLElement>('[part=keyboard-chooser]');
