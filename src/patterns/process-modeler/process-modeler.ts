@@ -410,12 +410,20 @@ export class ProcessModeler<
     if (this.locked || (this.disableConnections && (edit.type === "connect" || edit.type === "disconnect" || edit.type === 'reattach'))) return;
     const placement = edit.placement;
     if (placement) {
-      const valid = (edit.type === 'add' || edit.type === 'insert') && (
-        placement.source === 'next' ||
-        placement.source === 'direction' && ['north', 'east', 'south', 'west'].includes(placement.side) ||
-        (placement.source === 'point' || placement.source === 'line') && Number.isFinite(placement.center?.x) && Number.isFinite(placement.center?.y));
-      if (!valid) { this.setStatus('The insertion placement is invalid', true); return; }
-      edit = { ...edit, placement: 'center' in placement ? { ...placement, center: { ...placement.center } } : { ...placement } };
+      const source = placement.source;
+      let normalized: ProcessEdit['placement'];
+      if (edit.type === 'add' || edit.type === 'insert') {
+        if (source === 'next') normalized = { source };
+        else if (source === 'direction') {
+          const side = placement.side;
+          if (['north', 'east', 'south', 'west'].includes(side)) normalized = { source, side };
+        } else if (source === 'point' || source === 'line') {
+          const { x, y } = placement.center ?? {};
+          if (Number.isFinite(x) && Number.isFinite(y)) normalized = { source, center: { x, y } };
+        }
+      }
+      if (!normalized) { this.setStatus('The insertion placement is invalid', true); return; }
+      edit = { ...edit, placement: normalized };
     }
     const problem = this.connectionProblem(edit);
     if (problem) { this.setStatus(problem, true); return; }
@@ -2289,6 +2297,7 @@ export class ProcessModeler<
             lineId: line.id,
             from: line.from,
             to: line.to,
+            ...(type === 'insert' ? { placement: { source: 'line' as const, center: lineMidpoint(points) } } : {}),
           };
           if (type === "insert" && this.catalog.length) {
             this.openLineChooser(line, button);

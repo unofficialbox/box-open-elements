@@ -62,6 +62,24 @@ describe('explicit host insertion placement',()=>{
   it.each([{source:'line'}, {source:'unknown'}, {source:'direction',side:'diagonal'}, {source:'point',center:{x:Infinity,y:0}}])('refuses malformed runtime placement %j',placement=>{
     const {b,listener}=fixture();b.requestEdit({type:'add',placement} as any);expect(listener).not.toHaveBeenCalled();
   });
+
+  it('retains routed midpoint intent when the host owns the picker and catalog is empty',()=>{
+    const {b,r,listener}=fixture();b.catalog=[];
+    r.querySelector<HTMLButtonElement>('[part=connection] button')!.click();
+    expect(listener.mock.calls[0][0].detail.placement).toEqual({source:'line',center:{x:512,y:132}});
+  });
+  it.each(['line','point'])('normalizes prototype-backed %s centers without losing coordinates',source=>{
+    const {b,listener}=fixture();const center=Object.create({get x(){return 40;},get y(){return 80;}});
+    const placement=Object.create({get source(){return source;},get center(){return center;}});
+    b.requestEdit({type:'insert',placement} as any);
+    expect(listener.mock.calls[0][0].detail.placement).toEqual({source,center:{x:40,y:80}});
+  });
+  it('normalizes getter-backed direction and next discriminants explicitly',()=>{
+    const {b,listener}=fixture();b.requestEdit({type:'add',placement:Object.create({get source(){return 'direction';},get side(){return 'west';}})} as any);
+    b.requestEdit({type:'add',placement:Object.create({get source(){return 'next';}})} as any);
+    expect(listener.mock.calls[0][0].detail.placement).toEqual({source:'direction',side:'west'});
+    expect(listener.mock.calls[1][0].detail.placement).toEqual({source:'next'});
+  });
   it('rejects invalid coordinates, detaches centers, and preserves legacy callers',()=>{
     const {b,listener}=fixture();b.requestEdit({type:'add',placement:{source:'point',center:{x:NaN,y:10}}} as any);expect(listener).not.toHaveBeenCalled();
     const center={x:40,y:80};b.requestEdit({type:'add',placement:{source:'point',center}} as any);listener.mock.calls[0][0].detail.placement.center.x=-10;expect(center.x).toBe(40);
