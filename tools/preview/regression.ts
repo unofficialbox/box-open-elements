@@ -59,6 +59,13 @@ interface Target {
 
 const targets: Target[] = [
   {
+    name: "trace-waterfall",
+    baselineDir: join(ROOT, "docs/screenshots/trace-waterfall"),
+    freshDir: join(TMP, "trace-waterfall"),
+    envVar: "TRACE_WATERFALL_OUT_DIR",
+    script: "tools/preview/trace-waterfall-shots.ts",
+  },
+  {
     name: "gallery",
     baselineDir: join(ROOT, "docs/screenshots/gallery"),
     freshDir: join(TMP, "gallery"),

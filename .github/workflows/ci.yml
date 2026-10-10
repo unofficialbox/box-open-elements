@@ -196,4 +196,5 @@ jobs:
           path: |
             .regression-tmp/docs-site/
             .regression-tmp/gallery/
+            .regression-tmp/trace-waterfall/
           if-no-files-found: ignore

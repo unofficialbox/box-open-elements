@@ -168,6 +168,7 @@ export interface BoxElementPropertyKeys {
   "box-toast": "borderless" | "duration" | "heading" | "message" | "mode" | "open" | "tone";
   "box-toolbar": "label" | "orientation";
   "box-tooltip": "label" | "open" | "placement" | "theme" | "triggerLabel";
+  "box-trace-waterfall": "comparisonSpans" | "heading" | "nowMs" | "selectedSpanId" | "showSystem" | "spans";
   "box-tree": "items" | "label" | "value";
   "box-tree-grid": "columns" | "items" | "label" | "value";
   "box-unified-share-modal": "dataSource" | "heading" | "itemId" | "itemType" | "open";
@@ -648,6 +649,10 @@ export interface BoxElementEventMap {
   "box-toolbar": {};
   "box-tooltip": {
     "open-changed": CustomEvent<{ open: boolean; }>;
+  };
+  "box-trace-waterfall": {
+    "span-selected": CustomEvent<{ spanId: string; span: import("./patterns/run/trace-waterfall.js").TraceSpan | undefined; comparisonOnly: boolean; }>;
+    "span-toggled": CustomEvent<{ spanId: string; expanded: boolean; }>;
   };
   "box-tree": {
     "value-changed": CustomEvent<{ value: string; }>;
@@ -4639,6 +4644,41 @@ declare module "./components/overlays/tooltip.js" {
     removeEventListener<K extends keyof HTMLElementEventMap>(
       type: K,
       listener: (this: Tooltip, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
+declare module "./patterns/run/trace-waterfall.js" {
+  interface TraceWaterfall {
+    addEventListener<K extends keyof BoxElementEventMap["box-trace-waterfall"] & string>(
+      type: K,
+      listener: (this: TraceWaterfall, event: BoxElementEventMap["box-trace-waterfall"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: TraceWaterfall, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-trace-waterfall"] & string>(
+      type: K,
+      listener: (this: TraceWaterfall, event: BoxElementEventMap["box-trace-waterfall"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: TraceWaterfall, event: HTMLElementEventMap[K]) => void,
       options?: boolean | EventListenerOptions,
     ): void;
     removeEventListener(
