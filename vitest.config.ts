@@ -66,7 +66,7 @@ export default defineConfig({
         url: "http://localhost/",
       },
     },
-    include: ["test/**/*.test.ts", "packages/*/test/**/*.test.ts"],
+    include: ["test/**/*.test.ts", "packages/*/test/**/*.test.ts", "packages/*/test/**/*.test.tsx"],
     coverage: {
       provider: "v8",
       // Floors justified by docs/coverage-baseline.md (measured 2026-07-16).

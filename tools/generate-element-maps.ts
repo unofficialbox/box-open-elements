@@ -11,6 +11,7 @@
  */
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
+import ts from "typescript";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 const SRC = join(ROOT, "src");
@@ -34,22 +35,26 @@ const walk = (dir: string): void => {
       continue;
     }
     const source = readFileSync(full, "utf8");
-    // Composed pattern modules may define several independent primitives.
-    const literalClasses = source.matchAll(/export class (\w+) extends [\w.]+ \{\s*\n\s*static (?:override )?readonly tagName(?:\s*:\s*string)? = "([a-z0-9-]+)"/g);
-    for (const match of literalClasses) {
-      entries.push({ tag: match[2], className: match[1], importPath: `./${relative(SRC, full).replace(/\.ts$/, ".js")}` });
+    const file = ts.createSourceFile(full, source, ts.ScriptTarget.Latest, true);
+    const defaultTag = /const DEFAULT_TAG_NAME = "([a-z0-9-]+)"/.exec(source)?.[1];
+    for (const statement of file.statements) {
+      if (!ts.isClassDeclaration(statement) || !statement.name ||
+        statement.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.AbstractKeyword) ||
+        !statement.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword)) continue;
+      const tagMember = statement.members.find(member =>
+        ts.isPropertyDeclaration(member) &&
+        member.name && ts.isIdentifier(member.name) && member.name.text === "tagName" &&
+        member.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.StaticKeyword),
+      );
+      if (!tagMember || !ts.isPropertyDeclaration(tagMember)) continue;
+      const tag = tagMember.initializer && ts.isStringLiteral(tagMember.initializer)
+        ? tagMember.initializer.text
+        : tagMember.initializer && ts.isIdentifier(tagMember.initializer) && tagMember.initializer.text === "DEFAULT_TAG_NAME"
+          ? defaultTag
+          : undefined;
+      if (!tag) throw new Error(`Cannot resolve static tagName for ${statement.name.text} in ${full}`);
+      entries.push({ tag, className: statement.name.text, importPath: `./${relative(SRC, full).replace(/\.ts$/, ".js")}` });
     }
-    const tagMatch = /const DEFAULT_TAG_NAME = "([a-z0-9-]+)"/.exec(source);
-    if (!tagMatch) {
-      continue;
-    }
-    // The class whose static tagName is the DEFAULT_TAG_NAME constant.
-    const classMatch = /export class (\w+) extends [\w.]+ \{\s*\n\s*static (?:override )?readonly tagName/.exec(source);
-    if (!classMatch) {
-      continue;
-    }
-    const importPath = `./${relative(SRC, full).replace(/\.ts$/, ".js")}`;
-    entries.push({ tag: tagMatch[1]!, className: classMatch[1]!, importPath });
   }
 };
 
@@ -107,5 +112,13 @@ export type BoxElementTagName =
 ${unionLines};
 `;
 
-writeFileSync(join(SRC, "element-maps.ts"), output);
-console.log(`wrote src/element-maps.ts with ${String(entries.length)} tags`);
+const target = join(SRC, "element-maps.ts");
+if (process.argv.includes("--check")) {
+  if (readFileSync(target, "utf8") !== output) {
+    throw new Error("element-maps.ts is stale; run bun run maps:generate");
+  }
+  console.log(`checked src/element-maps.ts with ${String(entries.length)} tags`);
+} else {
+  writeFileSync(target, output);
+  console.log(`wrote src/element-maps.ts with ${String(entries.length)} tags`);
+}

@@ -75,6 +75,7 @@ import type { FactList } from "./components/collections/fact-list.js";
 import type { Fieldset } from "./components/forms/fieldset.js";
 import type { FileRequestBuilder } from "./patterns/file-request/file-request-builder.js";
 import type { FilterBar } from "./patterns/search/filter-bar.js";
+import type { FlowBuilder } from "./patterns/flow-builder/flow-builder.js";
 import type { FlowCard } from "./patterns/flow-builder/primitives.js";
 import type { FlowSpine } from "./patterns/flow-builder/primitives.js";
 import type { FormWizard } from "./patterns/form-wizard/form-wizard.js";
@@ -120,6 +121,7 @@ import type { Popover } from "./components/overlays/popover.js";
 import type { Presence } from "./patterns/share/presence.js";
 import type { Preview } from "./patterns/preview/preview-element.js";
 import type { PreviewHeader } from "./patterns/item/preview-header.js";
+import type { ProcessModeler } from "./patterns/process-modeler/process-modeler.js";
 import type { ProgressBar } from "./components/feedback/progress-bar.js";
 import type { ProgressRing } from "./components/feedback/progress-ring.js";
 import type { ProgressSteps } from "./components/feedback/progress-steps.js";
@@ -246,6 +248,7 @@ declare global {
     "box-fieldset": Fieldset;
     "box-file-request-builder": FileRequestBuilder;
     "box-filter-bar": FilterBar;
+    "box-flow-builder": FlowBuilder;
     "box-flow-card": FlowCard;
     "box-flow-spine": FlowSpine;
     "box-form-wizard": FormWizard;
@@ -291,6 +294,7 @@ declare global {
     "box-presence": Presence;
     "box-preview-element": Preview;
     "box-preview-header": PreviewHeader;
+    "box-process-modeler": ProcessModeler;
     "box-progress-bar": ProgressBar;
     "box-progress-ring": ProgressRing;
     "box-progress-steps": ProgressSteps;
@@ -419,6 +423,7 @@ export type BoxElementTagName =
   | "box-fieldset"
   | "box-file-request-builder"
   | "box-filter-bar"
+  | "box-flow-builder"
   | "box-flow-card"
   | "box-flow-spine"
   | "box-form-wizard"
@@ -464,6 +469,7 @@ export type BoxElementTagName =
   | "box-presence"
   | "box-preview-element"
   | "box-preview-header"
+  | "box-process-modeler"
   | "box-progress-bar"
   | "box-progress-ring"
   | "box-progress-steps"
