@@ -136,6 +136,62 @@ describe("Process Modeler prototype interactions", () => {
       expect(root.querySelector('[part=caption] strong')?.textContent).toBe('Read');
     }
   });
+  it("snaps drag guides to the nearest matching center or edge of mixed-size flow boxes", () => {
+    const { builder, root } = fixture(); builder.snapToGrid = false;
+    builder.document = { boxes: [projection.boxes[0], projection.boxes[1]], lines: [] };
+    builder.layout = { boxes: { a: { x: 0, y: 0, width: 100, height: 80 }, b: { x: 300, y: 200, width: 200, height: 120 } } };
+    const align = (builder as unknown as { alignedPoint(id: string, x: number, y: number, alt?: boolean): {x:number;y:number} }).alignedPoint.bind(builder);
+    expect(align('a',349,219)).toEqual({x:350,y:220});
+    expect(root.querySelectorAll('[part=guide]')).toHaveLength(2);
+    expect(align('a',301,120)).toEqual({x:300,y:120});
+    expect(align('a',401,240)).toEqual({x:400,y:240});
+    expect(align('a',349,219,true)).toEqual({x:349,y:219});
+    expect(root.querySelectorAll('[part=guide],[part=measure],[part=measure-label]')).toHaveLength(0);
+  });
+  it.each(['horizontal','vertical'] as const)("snaps %s equal gaps and paints two native measurement labels", direction => {
+    const { builder, root } = fixture(); builder.snapToGrid = false;
+    builder.document = { ...projection, lines: [] };
+    builder.layout = { boxes: Object.fromEntries(projection.boxes.map((box,i)=>[box.id,{ x:direction==='horizontal'?i*200:0,y:direction==='vertical'?i*180:0,width:100,height:80 }])) };
+    const align = (builder as unknown as { alignedPoint(id:string,x:number,y:number):{x:number;y:number} }).alignedPoint.bind(builder);
+    expect(align('b',direction==='horizontal'?201:0,direction==='vertical'?182:0)).toEqual({x:direction==='horizontal'?200:0,y:direction==='vertical'?180:0});
+    expect([...root.querySelectorAll('[part=measure-label]')].map(n=>n.textContent)).toEqual(['= 100','= 100']);
+    expect(root.querySelectorAll('[part=measure]')).toHaveLength(6);
+  });
+  it("measures nearest flow gaps on all four sides without notes or other-parent gap interference", () => {
+    const { builder, root } = fixture(); builder.snapToGrid = false;
+    const box = (id:string,parentId?:string)=>({...projection.boxes[0],id,parentId});
+    builder.document = { boxes: [box('a'),box('l'),box('r'),box('u'),box('d'),{...box('note'),role:'note'},box('other','p'),{...box('p'),frame:true}], lines: [] };
+    builder.layout = { boxes: Object.fromEntries([['a',0,0],['l',-200,0],['r',200,0],['u',0,-180],['d',0,180],['note',110,0],['other',110,0],['p',800,800]].map(([id,x,y])=>[id,{x:Number(x),y:Number(y),width:100,height:80}])) };
+    (builder as unknown as {alignedPoint(id:string,x:number,y:number):unknown}).alignedPoint('a',0,0);
+    expect([...root.querySelectorAll('[part=measure-label]')].map(n=>n.textContent)).toEqual(['100','100','100','100']);
+  });
+  it("keeps carried frame descendants out of drag alignment candidates", () => {
+    const { builder, root } = fixture(); builder.snapToGrid = false;
+    builder.document = { boxes: [{...projection.boxes[0],id:'frame',frame:true},{...projection.boxes[1],id:'child',parentId:'frame'}], lines: [] };
+    builder.layout = {boxes:{frame:{x:0,y:0,width:320,height:160},child:{x:100,y:20,width:100,height:80}}};
+    expect((builder as unknown as {alignedPoint(id:string,x:number,y:number):unknown}).alignedPoint('frame',95,15)).toEqual({x:95,y:15});
+    expect(root.querySelectorAll('[part=guide],[part=measure]')).toHaveLength(0);
+  });
+  it("commits an equal-gap pointer drag without resnapping its measured position and supports undo", () => {
+    const { builder, root, canvas } = fixture();builder.disableConnections = true;builder.snapToGrid = true;
+    builder.document = {...projection,lines:[]};builder.layout = {boxes:{a:{x:0,y:0,width:100,height:80},b:{x:184,y:0,width:100,height:80},c:{x:400,y:0,width:100,height:80}}};
+    const box = root.querySelector('[data-box-id=b]')!;
+    pointer(box,'pointerdown',200,30);pointer(canvas,'pointermove',217,30);pointer(canvas,'pointerup',217,30);
+    expect(builder.layout.boxes.b.x).toBe(200);expect(root.querySelectorAll('[part=drag-guides]')).toHaveLength(0);
+    builder.undo();expect(builder.layout.boxes.b.x).toBe(184);builder.redo();expect(builder.layout.boxes.b.x).toBe(200);
+  });
+  it("clears interrupted guides, preserves move vetoes, and lets Alt bypass equal-gap and grid snapping", () => {
+    const { builder, root, canvas } = fixture(); builder.disableConnections = true; builder.snapToGrid = true;
+    builder.document = {...projection,lines:[]}; builder.layout = {boxes:{a:{x:0,y:0,width:100,height:80},b:{x:184,y:0,width:100,height:80},c:{x:400,y:0,width:100,height:80}}};
+    const begin = (extra = {}) => { pointer(root.querySelector('[data-box-id=b]')!, 'pointerdown',200,30,extra); pointer(canvas,'pointermove',217,30,extra); };
+    begin(); expect(root.querySelector('[part=drag-guides]')).not.toBeNull(); pointer(canvas,'pointercancel',217,30);
+    expect(builder.layout.boxes.b.x).toBe(184); expect(root.querySelector('[part=drag-guides]')).toBeNull();
+    const veto = (event: Event) => event.preventDefault(); builder.addEventListener('move-request',veto);
+    begin(); pointer(canvas,'pointerup',217,30); expect(builder.layout.boxes.b.x).toBe(184);
+    builder.removeEventListener('move-request',veto); begin({altKey:true}); expect(root.querySelector('[part=drag-guides]')).toBeNull();
+    pointer(canvas,'pointerup',217,30,{altKey:true}); expect(builder.layout.boxes.b.x).toBe(201);
+    builder.undo(); expect(builder.layout.boxes.b.x).toBe(184);
+  });
   it("names the desktop building-block pane without duplicating the mobile drawer heading", () => {
     const { root } = fixture();
     expect(root.querySelector('[part=palette-heading]')?.textContent).toBe("Add to the process");

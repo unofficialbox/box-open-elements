@@ -278,8 +278,10 @@ export const processModelerDesign = `
   [part=ghost-box], [part=palette-ghost] { position: absolute; z-index: 5; display: flex; align-items: center; padding: 11px 12px; border: 1.5px dashed var(--boe-token-surface-surface-brand, #0061d5); border-radius: 8px; background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface, #fff)); font-size: 13px; font-weight: 650; pointer-events: none; }
   [part=palette-ghost][data-pointer] { position: fixed; z-index: 100; padding: 8px 12px; border: 1px solid var(--boe-token-surface-surface-brand, #0061d5); border-radius: 10px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-token-elevation-overlay, 0 8px 24px #0002); font-size: 13px; font-weight: 600; line-height: 1.45; gap: 8px; translate: -50% -50%; }
   [part=palette-ghost][data-pointer] svg { width: 20px; height: 20px; }
-  [part=guide] { position: absolute; background: var(--boe-token-surface-surface-brand, #0061d5); pointer-events: none; }
-  [part=measure] { position: absolute; padding: 4px; background: var(--boe-token-surface-surface, #fff); font-size: 12px; pointer-events: none; }
+  [part=drag-guides] { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; }
+  [part=guide], [part=measure] { stroke: var(--boe-token-surface-surface-brand, #0061d5); stroke-width: 1; fill: none; }
+  [part=guide] { stroke-dasharray: 3 3; }
+  [part=measure-label] { fill: var(--boe-token-surface-surface-brand, #0061d5); font-weight: 600; font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--boe-token-surface-surface-secondary, #f7f7f7); stroke-width: 3px; stroke-linejoin: round; }
   [part=insert-chooser] { max-width: calc(100vw - 32px); max-height: 65vh; overflow: auto; padding: 12px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface, #fff); }
   [part=keyboard-chooser] { position: fixed; inset: auto; width: min(320px, calc(100vw - 24px)); max-height: min(420px, calc(100dvh - 24px)); margin: 0; overflow: auto; padding: 12px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface, #fff); color: var(--boe-token-text-text, #141413); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }
   [part=chooser-title] { margin: 0 0 10px; font-size: 12px; font-weight: 650; line-height: 1.4; color: var(--boe-token-text-text-secondary, #6f6f6f); }
