@@ -843,6 +843,13 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector('[data-field=save]')!.closest('[part=field-section]')).toBeNull();
     expect(edits).not.toHaveBeenCalled();
     builder.select('b'); builder.select('a'); expect(root.querySelector<HTMLDetailsElement>('[part=field-disclosure]')!.open).toBe(false);
+    builder.fields = {...builder.fields, a: builder.fields.a.map(field => field.disclosure ? {...field, disclosure: {...field.disclosure, open: true}} : field)};
+    expect(root.querySelector<HTMLDetailsElement>('[part=field-disclosure]')!.open).toBe(true);
+    root.querySelector<HTMLDetailsElement>('[part=field-disclosure]')!.open = false;
+    builder.fields = {...builder.fields};
+    expect(root.querySelector<HTMLDetailsElement>('[part=field-disclosure]')!.open).toBe(false);
+    builder.fields = {...builder.fields, a: builder.fields.a.map(field => field.disclosure ? {...field, disclosure: {...field.disclosure, open: false}} : field)};
+    expect(root.querySelector<HTMLDetailsElement>('[part=field-disclosure]')!.open).toBe(false);
   });
 
   it("keeps metadata-only kinds out of Add and protects start inspector actions", () => {

@@ -2692,7 +2692,7 @@ export class ProcessModeler<
       checks.append(button);
     });
   }
-  private renderFields(editor: HTMLElement, box: ProcessBox<N>, help: Map<string, boolean>, disclosures: Map<string, boolean>): void {
+  private renderFields(editor: HTMLElement, box: ProcessBox<N>, help: Map<string, boolean>, disclosures: Map<string, {open: boolean; configuredOpen: boolean}>): void {
     let sectionKey: string | undefined, disclosureKey: string | undefined, rowKey: string | undefined;
     let section: HTMLElement = editor, disclosure: HTMLElement = editor, row: HTMLElement = editor;
     for (const field of this.fieldsValue[box.id] ?? []) {
@@ -2719,7 +2719,10 @@ export class ProcessModeler<
         disclosure = section;
         if (field.disclosure) {
           const details = document.createElement('details'); details.setAttribute('part', 'field-disclosure'); details.dataset.disclosure = JSON.stringify([sectionKey, disclosureKey]); details.dataset.session = String(this.layoutEditSession);
-          details.open = disclosures.get(details.dataset.disclosure) ?? Boolean(field.disclosure.open);
+          const configuredOpen = Boolean(field.disclosure.open);
+          const previous = disclosures.get(details.dataset.disclosure);
+          details.dataset.configuredOpen = String(configuredOpen);
+          details.open = previous?.configuredOpen === configuredOpen ? previous.open : configuredOpen;
           const summary = document.createElement('summary'); summary.textContent = field.disclosure.summary; details.append(summary); section.append(details); disclosure = details;
         }
         row = disclosure;
@@ -3036,10 +3039,10 @@ export class ProcessModeler<
       return;
     }
     const expressionHelp = new Map<string, boolean>();
-    const disclosures = new Map<string, boolean>();
+    const disclosures = new Map<string, {open: boolean; configuredOpen: boolean}>();
     if (this.inspectedId === selected?.id && this.selectedIds.size === 1) {
       for (const disclosure of Array.from(editor.querySelectorAll<HTMLDetailsElement>('[part=field-disclosure]'))) {
-        if (disclosure.dataset.session === String(this.layoutEditSession)) disclosures.set(disclosure.dataset.disclosure!, disclosure.open);
+        if (disclosure.dataset.session === String(this.layoutEditSession)) disclosures.set(disclosure.dataset.disclosure!, {open: disclosure.open, configuredOpen: disclosure.dataset.configuredOpen === 'true'});
       }
       for (const help of Array.from(editor.querySelectorAll<HTMLDetailsElement>('[part=expression-help]'))) {
         if (help.dataset.session === String(this.layoutEditSession)) expressionHelp.set(help.dataset.helpField!, help.open);
