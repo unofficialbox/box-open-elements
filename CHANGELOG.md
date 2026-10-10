@@ -15,6 +15,32 @@ are kept as written.
 
 ## Unreleased
 
+## 0.33.0 — 2026-10-10
+
+- Add host-owned atomic full-layout Tidy and Make a section transactions, including
+  accepted layout/selection history and chronological queued observer notifications
+  (#451). Later observer edits survive acceptance and keep undo order.
+- Add explicit local-variable projection metadata and typed host-owned Add, Remove,
+  name and starting-value requests; global About editing, scope meanings, and ordered
+  local/saved-output summaries (#452). Preserve controlled-echo caret, duplicate-name
+  focus, current owner paths and custom editor identity.
+- Match measured variable-control anatomy, Box glyphs and native Tab order; contain
+  long owner names and visibly ellipsize long summary cards at narrow widths (#453).
+- Preserve typed directional, Add next, routed-midpoint and world-point insertion
+  intent, including host-owned pickers without a catalog and accessor-backed points
+  (#454). Palette Add next retains gateway branching.
+- Add mixed box/line/layout-note selection and graph Ctrl+A excluding sections,
+  selectable notes, atomic host-owned Delete and a distinct mixed-copy request
+  (#455). Record accepted selection through undo/redo; preserve real note focus,
+  host move vetoes, toolbar anchors and synchronous observer chronology.
+- Use concise attention names with empty/missing-title fallback and preserve
+  connection-action targets across zoom (#448); snap selected Tidy translation
+  (#449).
+
+These are additive library contracts. Host implementations own graph mutation,
+clipboard capture, persistence and adoption. Production consumer acceptance and
+optional reader-metadata backend persistence remain pending.
+
 ## 0.32.0 — 2026-10-10
 
 - Capture immutable host-owned clipboard operations, with atomic accepted Paste,
