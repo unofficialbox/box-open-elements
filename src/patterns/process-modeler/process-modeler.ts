@@ -925,9 +925,12 @@ export class ProcessModeler<
     const boxes = this.selectedBoxes;
     if (command === "delete-many") { for (const box of boxes) this.requestEdit({ type: "delete", boxId: box.id }); return; }
     if (command === 'space') { this.tidySelection(); return; }
-    const rectangles = boxes.map(box => this.layoutValue.boxes[box.id]);
-    const width = Math.max(...rectangles.map(r => r.x + (r.width ?? 224))) - Math.min(...rectangles.map(r => r.x));
-    const height = Math.max(...rectangles.map(r => r.y + (r.height ?? 64))) - Math.min(...rectangles.map(r => r.y));
+    const rectangles = boxes.map(box => ({ ...this.layoutValue.boxes[box.id],
+      width: this.layoutValue.boxes[box.id].width ?? (box.shape === 'gateway' || box.shape === 'event' ? 56 : 224),
+      height: this.layoutValue.boxes[box.id].height ?? (box.shape === 'gateway' || box.shape === 'event' ? 56 : 64),
+    }));
+    const width = Math.max(...rectangles.map(r => r.x + r.width)) - Math.min(...rectangles.map(r => r.x));
+    const height = Math.max(...rectangles.map(r => r.y + r.height)) - Math.min(...rectangles.map(r => r.y));
     this.arrangeSelection(width >= height ? 'middle' : 'center');
   }
   private tidySelection(): void {

@@ -857,6 +857,15 @@ describe("Process Modeler prototype interactions", () => {
     expect(builder.layout.boxes.a.y).toBe(144); expect(builder.layout.boxes.b.y).toBe(144);
     builder.undo(); expect(builder.layout).toEqual(before);
   });
+  it.each(['event', 'gateway'] as const)('uses rendered %s dimensions for a position-only Line up selection', shape => {
+    const { builder, root } = fixture();
+    builder.document = { boxes: projection.boxes.slice(0, 2).map(box => ({ ...box, shape })), lines: [] };
+    builder.layout = { boxes: { a: { x: 0, y: 0 }, b: { x: 0, y: 100 } } };
+    builder.selectMany(['a', 'b']);
+    root.querySelector<HTMLButtonElement>('[data-selection-command=align]')!.click();
+    expect(builder.layout.boxes.a.x).toBe(4); expect(builder.layout.boxes.b.x).toBe(4);
+    expect(builder.layout.boxes.a.y).toBe(0); expect(builder.layout.boxes.b.y).toBe(116);
+  });
   it("inserts a palette drop on a routed line and highlights its hit target", () => {
     const { builder, root, canvas } = fixture(); const requests = vi.fn(); builder.addEventListener("process-edit-request", requests);
     const point = lineMidpoint(routeProcessLine(projection.lines[0], builder.layout, projection));
