@@ -2743,7 +2743,7 @@ export class ProcessModeler<
     }
     if (describedBy.length) control.setAttribute('aria-describedby', describedBy.join(' '));
     if (field.kind === 'expression' && field.expression?.help) {
-      const details = document.createElement('details'); details.setAttribute('part', 'expression-help'); details.dataset.field = field.key; details.dataset.session = String(this.layoutEditSession); details.open = helpOpen;
+      const details = document.createElement('details'); details.setAttribute('part', 'expression-help'); details.dataset.helpField = field.key; details.dataset.session = String(this.layoutEditSession); details.open = helpOpen;
       const summary = document.createElement('summary'); summary.textContent = field.expression.help.summary; details.append(summary);
       const list = document.createElement('ul'); details.append(list);
       for (const example of field.expression.help.examples) {
@@ -2847,7 +2847,7 @@ export class ProcessModeler<
     const expressionHelp = new Map<string, boolean>();
     if (this.inspectedId === selected?.id && this.selectedIds.size === 1) {
       for (const help of Array.from(editor.querySelectorAll<HTMLDetailsElement>('[part=expression-help]'))) {
-        if (help.dataset.session === String(this.layoutEditSession)) expressionHelp.set(help.dataset.field!, help.open);
+        if (help.dataset.session === String(this.layoutEditSession)) expressionHelp.set(help.dataset.helpField!, help.open);
       }
     }
     this.cleanupInspector?.();

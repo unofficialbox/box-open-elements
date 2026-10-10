@@ -22,6 +22,7 @@ describe('controlled expression fields',()=>{
  it('retains opened help across repeated value and feedback echoes and resets after owner navigation or load',()=>{
   const field:ProcessField={key:'when',label:'Condition',kind:'expression',value:'true',expression:{variables:[{name:'scoped'}],help:{summary:'Examples',examples:[{expression:'true',description:'Always'}]}}};
   const {b,r}=fixture(field);const help=()=>r.querySelector<HTMLDetailsElement>('[part=expression-help]')!;
+  expect(r.querySelectorAll('[data-field=when]')).toHaveLength(1);
   help().open=true;
   b.addEventListener('process-field-change-request',event=>{const d=(event as CustomEvent).detail;b.fields={a:[{...field,value:d.value,expression:{...field.expression,feedback:{message:'Reads fine'}}}],b:[field]};});
   for(const value of ['true &&','true && false']){const input=r.querySelector<HTMLInputElement>('[data-field=when]')!;input.focus();input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));expect(help().open).toBe(true);}
