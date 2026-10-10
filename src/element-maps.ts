@@ -21,6 +21,7 @@ import type { Avatar } from "./components/identity/avatar.js";
 import type { Badge } from "./components/feedback/badge.js";
 import type { Badgeable } from "./components/feedback/badgeable.js";
 import type { BarChart } from "./patterns/insights/bar-chart.js";
+import type { BoxPlot } from "./patterns/insights/box-plot.js";
 import type { Breadcrumb } from "./components/navigation/breadcrumb.js";
 import type { BulkActionBar } from "./patterns/item/bulk-action-bar.js";
 import type { Button } from "./components/actions/button.js";
@@ -36,6 +37,7 @@ import type { Checkbox } from "./components/forms/checkbox.js";
 import type { CheckboxGroup } from "./components/forms/checkbox-group.js";
 import type { Chip } from "./components/feedback/chip.js";
 import type { CodeBlock } from "./components/output/code-block.js";
+import type { CodeEditor } from "./components/forms/code-editor.js";
 import type { CollaboratorAvatars } from "./patterns/share/collaborator-avatars.js";
 import type { ColorPicker } from "./components/forms/color-picker.js";
 import type { Combobox } from "./components/forms/combobox.js";
@@ -73,7 +75,6 @@ import type { FactList } from "./components/collections/fact-list.js";
 import type { Fieldset } from "./components/forms/fieldset.js";
 import type { FileRequestBuilder } from "./patterns/file-request/file-request-builder.js";
 import type { FilterBar } from "./patterns/search/filter-bar.js";
-import type { FlowBuilder } from "./patterns/flow-builder/flow-builder.js";
 import type { FlowCard } from "./patterns/flow-builder/primitives.js";
 import type { FlowSpine } from "./patterns/flow-builder/primitives.js";
 import type { FormWizard } from "./patterns/form-wizard/form-wizard.js";
@@ -102,6 +103,7 @@ import type { MenuItem } from "./components/actions/menu-item.js";
 import type { MetadataFilterBuilder } from "./patterns/metadata/metadata-filter-builder.js";
 import type { MetadataInspector } from "./patterns/metadata/metadata-inspector.js";
 import type { MetricCard } from "./patterns/insights/metric-card.js";
+import type { ModeIndicator } from "./components/feedback/mode-indicator.js";
 import type { MultiSelect } from "./components/forms/multi-select.js";
 import type { NavSidebar } from "./components/layout/nav-sidebar.js";
 import type { NotificationBell } from "./patterns/notifications/notification-bell.js";
@@ -126,6 +128,7 @@ import type { RadioGroup } from "./components/forms/radio-group.js";
 import type { RangeSlider } from "./components/forms/range-slider.js";
 import type { Rating } from "./components/forms/rating.js";
 import type { RelativeTime } from "./components/output/relative-time.js";
+import type { ResourceRow } from "./components/collections/resource-row.js";
 import type { ResultBlocks } from "./components/collections/result-blocks.js";
 import type { ReviewQueueItem } from "./patterns/task/review-queue-item.js";
 import type { RichTextInput } from "./components/forms/rich-text-input.js";
@@ -164,6 +167,7 @@ import type { Tooltip } from "./components/overlays/tooltip.js";
 import type { Tree } from "./components/collections/tree.js";
 import type { TreeGrid } from "./components/collections/tree-grid.js";
 import type { UnifiedShareModal } from "./patterns/share/unified-share-modal.js";
+import type { VerdictBanner } from "./components/feedback/verdict-banner.js";
 import type { VersionGraph } from "./patterns/versions/version-graph.js";
 import type { VersionList } from "./patterns/versions/version-list.js";
 import type { WizardSummary } from "./patterns/form-wizard/wizard-summary.js";
@@ -187,6 +191,7 @@ declare global {
     "box-badge": Badge;
     "box-badgeable": Badgeable;
     "box-bar-chart": BarChart;
+    "box-box-plot": BoxPlot;
     "box-breadcrumb": Breadcrumb;
     "box-bulk-action-bar": BulkActionBar;
     "box-button": Button;
@@ -202,6 +207,7 @@ declare global {
     "box-checkbox-group": CheckboxGroup;
     "box-chip": Chip;
     "box-code-block": CodeBlock;
+    "box-code-editor": CodeEditor;
     "box-collaborator-avatars": CollaboratorAvatars;
     "box-color-picker": ColorPicker;
     "box-combobox": Combobox;
@@ -239,7 +245,6 @@ declare global {
     "box-fieldset": Fieldset;
     "box-file-request-builder": FileRequestBuilder;
     "box-filter-bar": FilterBar;
-    "box-flow-builder": FlowBuilder;
     "box-flow-card": FlowCard;
     "box-flow-spine": FlowSpine;
     "box-form-wizard": FormWizard;
@@ -268,6 +273,7 @@ declare global {
     "box-metadata-filter-builder": MetadataFilterBuilder;
     "box-metadata-inspector": MetadataInspector;
     "box-metric-card": MetricCard;
+    "box-mode-indicator": ModeIndicator;
     "box-multi-select": MultiSelect;
     "box-nav-sidebar": NavSidebar;
     "box-notification-bell": NotificationBell;
@@ -292,6 +298,7 @@ declare global {
     "box-range-slider": RangeSlider;
     "box-rating": Rating;
     "box-relative-time": RelativeTime;
+    "box-resource-row": ResourceRow;
     "box-result-blocks": ResultBlocks;
     "box-review-queue-item": ReviewQueueItem;
     "box-rich-text-input": RichTextInput;
@@ -330,6 +337,7 @@ declare global {
     "box-tree": Tree;
     "box-tree-grid": TreeGrid;
     "box-unified-share-modal": UnifiedShareModal;
+    "box-verdict-banner": VerdictBanner;
     "box-version-graph": VersionGraph;
     "box-version-list": VersionList;
     "box-wizard-summary": WizardSummary;
@@ -355,6 +363,7 @@ export type BoxElementTagName =
   | "box-badge"
   | "box-badgeable"
   | "box-bar-chart"
+  | "box-box-plot"
   | "box-breadcrumb"
   | "box-bulk-action-bar"
   | "box-button"
@@ -370,6 +379,7 @@ export type BoxElementTagName =
   | "box-checkbox-group"
   | "box-chip"
   | "box-code-block"
+  | "box-code-editor"
   | "box-collaborator-avatars"
   | "box-color-picker"
   | "box-combobox"
@@ -407,7 +417,6 @@ export type BoxElementTagName =
   | "box-fieldset"
   | "box-file-request-builder"
   | "box-filter-bar"
-  | "box-flow-builder"
   | "box-flow-card"
   | "box-flow-spine"
   | "box-form-wizard"
@@ -436,6 +445,7 @@ export type BoxElementTagName =
   | "box-metadata-filter-builder"
   | "box-metadata-inspector"
   | "box-metric-card"
+  | "box-mode-indicator"
   | "box-multi-select"
   | "box-nav-sidebar"
   | "box-notification-bell"
@@ -460,6 +470,7 @@ export type BoxElementTagName =
   | "box-range-slider"
   | "box-rating"
   | "box-relative-time"
+  | "box-resource-row"
   | "box-result-blocks"
   | "box-review-queue-item"
   | "box-rich-text-input"
@@ -498,6 +509,7 @@ export type BoxElementTagName =
   | "box-tree"
   | "box-tree-grid"
   | "box-unified-share-modal"
+  | "box-verdict-banner"
   | "box-version-graph"
   | "box-version-list"
   | "box-wizard-summary"
