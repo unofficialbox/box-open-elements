@@ -20,12 +20,12 @@ export const processModelerDesign = `
   [part=toolbar] {
     min-height: 56px;
     margin: 0;
-    padding: 8px 16px;
+    padding: 10px 16px;
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 8px;
-    flex-wrap: wrap;
+    gap: 12px;
+    flex-wrap: nowrap;
     border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
     background: var(--boe-token-surface-surface, #fff);
   }
@@ -57,10 +57,21 @@ export const processModelerDesign = `
   [part=toolbar] [data-command=checks-status] { white-space: nowrap; color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=toolbar] [data-command=checks-status][data-state=bad] { color: var(--boe-token-text-status-text-error, #b92340); }
   [part=view-menu] { display: none; position: relative; }
-  [part=view-menu] summary { list-style: none; padding: 4px 14px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  [part=view-menu] summary { list-style: none; height: 32px; display: flex; align-items: center; padding: 0 14px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 20px; font-size: 13px; font-weight: 600; letter-spacing: .01em; cursor: pointer; white-space: nowrap; }
   [part=view-menu][open] { z-index: 20; }
-  [part=view-menu-options] { position: absolute; z-index: 20; top: calc(100% + 4px); left: 0; width: 192px; padding: 6px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 10px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }
-  [part=view-menu] button { display: block; width: 100%; text-align: start; background: transparent; }
+  [part=view-menu-options] { position: absolute; z-index: 20; top: calc(100% + 4px); right: 0; width: 200px; max-width: calc(100vw - 24px); padding: 6px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 10px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }
+  [part=view-menu] button { display: flex; justify-content: space-between; gap: 16px; width: 100%; min-height: 32px; padding: 0 10px; text-align: start; background: transparent; }
+  [part=view-menu] small { color: var(--boe-token-text-text-secondary, #6f6f6f); }
+  [part=view-menu] [role=separator] { border-top: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); margin: 4px 2px; }
+  [part=toolbar-document] { display: flex; align-items: baseline; gap: 10px; min-width: 0; flex: 1 1 auto; visibility: hidden; }
+  [part=toolbar-title] { font-size: 15px; font-weight: 650; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  [part=toolbar-document] span { font-size: 12px; white-space: nowrap; }
+  [part=toolbar-actions] { display: flex; align-items: center; gap: 8px; }
+  [part=toolbar] button:not([role=menuitem]) { height: 32px; min-height: 32px; padding: 0 14px; border-radius: 20px; font-size: 13px; font-weight: 600; letter-spacing: .01em; white-space: nowrap; }
+  [part=toolbar] [data-command=palette], [part=toolbar] [data-command=undo], [part=toolbar] [data-command=redo] { width: 32px; padding: 0; place-items: center; }
+  [part=toolbar] [data-command=palette], [part=toolbar] [data-command=details] { border-color: var(--boe-token-stroke-stroke, #e8e8e8); background: var(--boe-token-surface-surface, #fff); }
+  :host([data-compact-toolbar]) [part=view-switch], :host([data-compact-toolbar]) [part=run-toggle] { display: none; }
+  :host([data-compact-toolbar]) [part=view-menu] { display: block; }
   [part=layout] {
     display: grid;
     grid-template-columns: 248px minmax(0, 1fr) 320px;
@@ -380,15 +391,13 @@ export const processModelerDesign = `
   :host([data-narrow]) [part=palette] { padding-top: 54px; }
   :host([data-narrow]) [part=palette-heading] { display: none; }
   :host([data-narrow]) [part=minimap] { display: none; }
-  :host([data-narrow]) [part=toolbar] { justify-content: flex-start; }
-  :host([data-narrow]) [data-command=palette] { order: -2; }
-  :host([data-narrow]) [part=view-menu] { order: -1; }
+  :host([data-narrow]) [part=toolbar] { justify-content: flex-start; gap: 8px; padding: 8px 12px; flex-wrap: wrap; }
   :host([data-narrow]) [part=view-switch], :host([data-narrow]) [part=run-toggle] { display: none; }
   :host([data-narrow]) [data-command=checks-status] { display: none; }
   :host([data-narrow]) [part=view-menu] { display: block; }
   :host([data-hide-tidy]) [part=controls] { left: 12px; bottom: 12px; }
   :host([data-narrow]) [part=selection-toolbar] [part=selection-plus] + span { display: none; }
-  :host([data-hide-tidy]) [data-command=tidy] { display: none; }
-  :host([data-phone]) [data-command=undo], :host([data-phone]) [data-command=redo] { display: none; }
+  :host([data-hide-tidy]) [part=toolbar-actions] [data-command=tidy] { display: none; }
+  :host([data-narrow]) [part=toolbar-actions] [data-command=undo], :host([data-narrow]) [part=toolbar-actions] [data-command=redo] { display: none; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; scroll-behavior: auto !important; } }
 `;

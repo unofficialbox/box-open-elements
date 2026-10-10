@@ -427,8 +427,9 @@ describe("Process Modeler prototype interactions", () => {
     expect(title.textContent).toBe("Add to the process");
     expect(drawer.getAttribute("aria-labelledby")).toBe(title.id);
     const trigger = root.querySelector<HTMLButtonElement>('[data-command=palette]')!;
-    // Speech input uses the visible caption; the accessible name must include it.
-    expect(trigger.getAttribute('aria-label')?.toLowerCase()).toContain(trigger.textContent!.toLowerCase());
+    // The narrow reference uses an icon-only Add control; accessible name identifies its action.
+    expect(trigger.querySelector('svg')).not.toBeNull();
+    expect(trigger.getAttribute('aria-label')).toBe('Add building blocks');
     trigger.focus(); trigger.click();
     expect(drawer.open).toBe(true);
     expect(drawer.show).toHaveBeenCalledOnce();
@@ -444,8 +445,8 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.activeElement).toBe(trigger);
     const css = root.querySelector('style')!.textContent!;
     expect(css).toContain(':host([data-narrow]) [part=pane-drawer] { display: none; position: absolute;');
-    expect(css).toContain(':host([data-narrow]) [data-command=palette] { order: -2; }');
-    expect(css).toContain(':host([data-phone]) [data-command=undo]');
+    expect(root.querySelector('[part=toolbar]')!.firstElementChild).toBe(trigger);
+    expect(root.querySelector('[part=toolbar-actions] [data-command=undo]')).not.toBeNull();
   });
   it('hides Tidy through the inclusive 560px boundary without changing phone-only history controls', () => {
     let resize!: ResizeObserverCallback;
@@ -650,6 +651,15 @@ describe("Process Modeler prototype interactions", () => {
     expect(chooser.querySelector('[part=chooser-title]')?.textContent).toBe('Add a path from Choose path');
     chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
     expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'add', from: 'a' });
+  });
+  it('exposes phone layout/history menu actions with state and keyboard navigation', () => {
+    const {builder,root}=fixture();builder.toggleAttribute('data-narrow',true);builder.lastRun={steps:{}};
+    const menu=root.querySelector<HTMLDetailsElement>('[part=view-menu]')!,summary=menu.querySelector('summary')!;
+    const tidy=vi.spyOn(builder,'tidy');menu.open=true;root.querySelector<HTMLButtonElement>('[data-view-option=tidy]')!.click();expect(tidy).toHaveBeenCalledOnce();expect(menu.open).toBe(false);expect(root.activeElement).toBe(summary);
+    expect(root.querySelector<HTMLButtonElement>('[data-view-option=undo]')!.disabled).toBe(true);expect(root.querySelector('[data-view-option=last-run]')!.textContent).toBe('Show last run');expect(root.querySelector('[data-view-option=checks]')!.textContent).toBe('Checks: ready to run');
+    summary.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true,cancelable:true}));expect(menu.open).toBe(true);expect(root.activeElement).toBe(menu.querySelector('[role=menuitem]'));
+    menu.dispatchEvent(new KeyboardEvent('keydown',{key:'End',bubbles:true,cancelable:true}));expect(root.activeElement).toBe(root.querySelector('[data-view-option=tidy]'));
+    builder.locked=true;expect(root.querySelector<HTMLButtonElement>('[data-view-option=tidy]')!.disabled).toBe(true);
   });
   it("closes the View menu with Escape and announces cancellation only for an active connection", () => {
     const { builder, root, canvas } = fixture();
