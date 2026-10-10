@@ -798,6 +798,19 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector('[part=process-summary]')!.textContent).toBe('Overview');
   });
 
+  it("restores same-key focus across text to native time controls without unsupported selection calls", () => {
+    const { builder, root } = fixture(); builder.select('a');
+    for (const [before, after] of [['text', 'time'], ['text', 'datetime-local'], ['multiline', 'datetime-local']] as const) {
+      builder.fields = {a: [{key: 'at', label: 'At', kind: before, value: 'draft'}]};
+      const old = root.querySelector<HTMLInputElement | HTMLTextAreaElement>('[data-field=at]')!;
+      old.focus(); old.setSelectionRange(1, 3);
+      expect(() => { builder.fields = {a: [{key: 'at', label: 'At', kind: after, value: after === 'time' ? '09:30' : '2026-10-10T09:30'}]}; }).not.toThrow();
+      const input = root.querySelector<HTMLInputElement>('[data-field=at]')!;
+      expect(input.type).toBe(after); expect(root.activeElement).toBe(input);
+      expect(input.selectionStart).toBeNull();
+    }
+  });
+
   it("ignores detached, locked and superseded generic field edits", () => {
     const { builder, root } = fixture();
     builder.fields = {a: [{key: 'name', label: 'Name', kind: 'text', value: 'Read'}]}; builder.select('a');

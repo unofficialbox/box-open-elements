@@ -2938,7 +2938,7 @@ export class ProcessModeler<
       const quiet = Boolean(focusedType === 'field' && choice && choice.boxId === fieldBox && choice.key === focusedKey && choice.session === this.layoutEditSession && this.fieldsValue[fieldBox!]?.some(field => field.key === focusedKey && field.value === choice.value));
       this.quietActionFocus = quiet;
       try { control.focus({ preventScroll: true }); } finally { this.quietActionFocus = false; }
-      if (caret !== null && (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) && control.type !== 'number' && control.type !== 'checkbox') control.setSelectionRange(caret, selectionEnd ?? caret, direction ?? undefined);
+      if (caret !== null && (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) && control.selectionStart !== null) control.setSelectionRange(caret, selectionEnd ?? caret, direction ?? undefined);
       if (scrollTop !== undefined) control.scrollTop = scrollTop;
       if (scrollLeft !== undefined) control.scrollLeft = scrollLeft;
     };
