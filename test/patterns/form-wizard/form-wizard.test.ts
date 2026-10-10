@@ -144,8 +144,11 @@ describe("box-form-wizard", () => {
 
     const layout = element.shadowRoot?.querySelector<HTMLElement>('[part="layout"]');
     const path = element.shadowRoot?.querySelector<HTMLElement>('[part="path"]');
+    const rail = element.shadowRoot?.querySelector<HTMLElement>('[part="rail"]');
     const buttons = path?.querySelectorAll<HTMLButtonElement>('[part="path-step"]');
     expect(layout?.dataset.stepsLayout).toBe("path");
+    expect(rail?.hasAttribute("data-container-compact")).toBe(true);
+    expect(rail?.shadowRoot?.querySelector('[data-value="terms"]')?.textContent).toContain("Optional");
     expect(buttons).toHaveLength(3);
     expect(buttons?.[0]?.getAttribute("aria-current")).toBe("step");
     expect(buttons?.[0]?.getAttribute("aria-describedby")).toBe("wizard-path-description-0");
@@ -157,9 +160,20 @@ describe("box-form-wizard", () => {
     const styles = element.shadowRoot?.querySelector("style")?.textContent;
     expect(styles).toContain("min-height: 1.75rem;");
     expect(styles).toContain("padding: 0.45em 1.35rem;");
+    expect(styles).toContain('@container boe-wizard-path (max-width: 820px)');
+    expect(styles).toContain('@container boe-wizard-path (max-width: 720px)');
     expect(element.shadowRoot?.querySelector("style")?.textContent).toContain(
       '[part="layout"][data-steps-layout="path"] [part="path-nav"] { display: none; }',
     );
+  });
+
+  it("removes the container-compact hook from the default vertical rail", async () => {
+    const element = await mountWizard(el => { el.stepsLayout = "path"; });
+    const rail = element.shadowRoot?.querySelector<HTMLElement>('[part="rail"]');
+    expect(rail?.hasAttribute("data-container-compact")).toBe(true);
+    element.stepsLayout = "rail";
+    await flush();
+    expect(rail?.hasAttribute("data-container-compact")).toBe(false);
   });
 
   it("gates path clicks, reports errors, and keeps completed stages after going back", async () => {

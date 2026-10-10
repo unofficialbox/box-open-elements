@@ -1016,7 +1016,7 @@ export const examples: Record<string, ComponentExample> = {
             ],
           });
         },
-        note: "A wizard-native chevron path leaves the form panel full width. Stages are buttons that use the wizard's validation gates; descriptions remain available to assistive technology. On phones the path becomes the compact ‘Step n of 6 · Show steps’ control.",
+        note: "A wizard-native chevron path leaves the form panel full width. Stages use the wizard's validation gates; descriptions and hidden Optional tags remain accessible. The path responds to its own width, becoming a compact ‘Step n of 6 · Show steps’ control in narrow columns as well as on phones.",
       },
     ],
   },
