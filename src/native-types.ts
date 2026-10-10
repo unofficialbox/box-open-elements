@@ -516,7 +516,7 @@ export interface BoxElementEventMap {
     "connection-setup-request": CustomEvent<{}>;
     "detail-changed": CustomEvent<{ detail: "business" | "technical"; }>;
     "layout-changed": CustomEvent<{ layout: import("./patterns/process-modeler/model.js").ProcessLayout; }>;
-    "move-request": CustomEvent<{ boxId: string; position: import("./patterns/process-modeler/model.js").BoxPosition; } | { boxId: string; position: import("./patterns/process-modeler/model.js").BoxPosition; boxIds: string[]; positions: Record<string, import("./patterns/process-modeler/model.js").BoxPosition>; }>;
+    "move-request": CustomEvent<{ boxId: string; position: import("./patterns/process-modeler/model.js").BoxPosition; } | { boxId: string; position: import("./patterns/process-modeler/model.js").BoxPosition; boxIds: string[]; positions: Record<string, import("./patterns/process-modeler/model.js").BoxPosition>; } | { boxId: string | undefined; position: import("./patterns/process-modeler/model.js").BoxPosition | undefined; boxIds: string[]; positions: Record<string, import("./patterns/process-modeler/model.js").BoxPosition>; noteIds: string[]; notes: { id: string; text: string; x: number; y: number; }[]; }>;
     "outline-copy-request": CustomEvent<{ text: string; }>;
     "positions-changed": CustomEvent<{ positions: readonly import("./patterns/process-modeler/model.js").ProcessPositionSnapshot[]; version: string | number; }>;
     "process-copy-request": CustomEvent<import("./patterns/process-modeler/model.js").ProcessCopyRequest>;

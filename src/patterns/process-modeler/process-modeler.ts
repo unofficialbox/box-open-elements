@@ -467,7 +467,12 @@ export class ProcessModeler<
     const problem = this.connectionProblem(edit);
     if (problem) { this.setStatus(problem, true); return; }
     const request: ProcessEditRequest = { ...edit, accept: this.editAcceptance(edit) };
-    emit(this, "process-edit-request", request);
+    if (edit.type !== 'delete-selection') { emit(this, 'process-edit-request', request); return; }
+    // A synchronous host echo can prune selected lines before accept records
+    // history. Keep those observers behind the complete atomic transaction.
+    this.acceptanceNotifications++;
+    try { emit(this, 'process-edit-request', request); }
+    finally { this.acceptanceNotifications--; this.flushAcceptanceNotifications(); }
   }
   private editAcceptance(edit: ProcessEdit): (command: ReversibleProcessEdit) => void {
     const before = this.layout;
@@ -1543,7 +1548,9 @@ export class ProcessModeler<
       for (let changed = true; changed;) { changed = false; for (const box of this.projection.boxes) if (box.parentId && moved.has(box.parentId) && !moved.has(box.id)) { moved.add(box.id); changed = true; } }
       for (const id of moved) { const p = next.boxes[id]; if (p) next.boxes[id] = { ...p, x: p.x + dx, y: p.y + dy }; }
       next.notes = next.notes?.map(note => this.selectedNoteIds.has(note.id) ? { ...note, x: note.x + dx, y: note.y + dy } : note);
-      this.commitLayout(next); return;
+      const primary = this.selectedId;
+      if (emit(this, 'move-request', { boxId: primary ?? undefined, position: primary ? next.boxes[primary] : undefined, boxIds: [...moved], positions: next.boxes, noteIds: [...this.selectedNoteIds], notes: next.notes ?? [] })) this.commitLayout(next);
+      return;
     }
     const canInsertDirection = event.ctrlKey && event.altKey && box && !this.locked && this.catalog.length && !this.disableConnections;
     if (direction && !canInsertDirection && (event.altKey || !box || this.locked)) {
@@ -2090,8 +2097,8 @@ export class ProcessModeler<
       this.readableValue = null;
       this.lastDocument = undefined;
     }
-    const focused = (this.shadowRoot!.activeElement as HTMLElement | null)
-      ?.dataset.boxId;
+    const active = this.shadowRoot!.activeElement as HTMLElement | null;
+    const focused = active?.dataset.boxId, focusedNote = active?.dataset.noteId;
     this.renderWorld();
     this.renderPalette();
     this.renderChecks();
@@ -2102,6 +2109,9 @@ export class ProcessModeler<
     if (focused) {
       this.restoringBoxFocus = true;
       try { this.focusBox(focused); } finally { this.restoringBoxFocus = false; }
+    } else if (focusedNote) {
+      const note = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[data-note-id]')).find(note => note.dataset.noteId === focusedNote);
+      (note ?? this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]'))?.focus({ preventScroll: true });
     }
   }
   private get allChecks(): readonly ProcessCheck[] { return this.computedChecks; }
@@ -3011,15 +3021,24 @@ export class ProcessModeler<
     minimap.append(viewport);
   }
   private positionSelectionToolbar(): void {
-    if (!this.isRendered || (!this.selectedIds.size && !this.selectedLineId)) return;
+    if (!this.isRendered || !this.selection.length) return;
     const canvas = this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!;
     const toolbar = this.shadowRoot!.querySelector<HTMLElement>('[part=selection-toolbar]')!;
     const positions = [...this.selectedIds].map(id => this.layoutValue.boxes[id]).filter(Boolean);
+    positions.push(...(this.layoutValue.notes ?? []).filter(note => this.selectedNoteIds.has(note.id)).map(note => ({ ...note, width: 208, height: 80 })));
     if (!positions.length && this.selectedLine) {
       const point = lineMidpoint(this.routedLines.get(this.selectedLine.id) ?? []);
       toolbar.style.left = `${Math.max(8, Math.min(point.x * this.viewport.zoom + this.viewport.x, Math.max(8, canvas.clientWidth - toolbar.offsetWidth - 8)))}px`;
       toolbar.style.top = `${Math.max(8, point.y * this.viewport.zoom + this.viewport.y - 52)}px`;
       return;
+    }
+    if (!positions.length) {
+      for (const id of this.selectedLineIds) {
+        const points = this.routedLines.get(id) ?? [];
+        if (!points.length) continue;
+        const x = Math.min(...points.map(point => point.x)), y = Math.min(...points.map(point => point.y));
+        positions.push({ x, y, width: Math.max(...points.map(point => point.x)) - x, height: Math.max(...points.map(point => point.y)) - y });
+      }
     }
     if (!positions.length) return;
     const left = Math.min(...positions.map(position => position.x * this.viewport.zoom + this.viewport.x));
