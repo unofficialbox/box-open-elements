@@ -1506,7 +1506,8 @@ export class ProcessModeler<
     anchor.style.cssText = `position:absolute;left:${point.x}px;top:${point.y}px;width:1px;height:1px;pointer-events:none`;
     this.shadowRoot!.querySelector('[part=world]')!.append(anchor);
     this.transientChooserAnchor = anchor;
-    this.openAnchoredChooser(edit, title, anchor, returnFocus);
+    const source = edit.from ? Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[data-box-id]')).find(box => box.dataset.boxId === edit.from) : undefined;
+    this.openAnchoredChooser(edit, title, anchor, returnFocus ?? source ?? this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!);
   }
   private openLineChooser(line: ProcessProjection<N>['lines'][number], returnFocus?: HTMLElement): void {
     const source = this.projection.boxes.find(box => box.id === line.from);
