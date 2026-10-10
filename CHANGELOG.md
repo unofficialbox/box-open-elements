@@ -15,6 +15,16 @@ are kept as written.
 
 ## Unreleased
 
+## 0.30.0 — 2026-10-10
+
+- Add opt-in host-owned Process Modeler variable name, scope, add and remove
+  controls with a typed edit-request event. Preserve focus through reordered,
+  deferred and empty-name host echoes and use theme error tokens (#417).
+- Keep the minimap viewport visible during distant pans, preserve graph
+  proportions, and align click-to-jump with its displayed bounds (#418).
+- Match pinned Outline Copy placement, typography and selection target sizes
+  (#420).
+
 ## 0.29.2 — 2026-10-10
 
 - Restore focus to the source step when Escape cancels a chooser opened by
