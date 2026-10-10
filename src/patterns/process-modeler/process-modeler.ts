@@ -825,7 +825,6 @@ export class ProcessModeler<
         const value = lines.join('\n'); emit(this, 'outline-copy-request', { text: value });
         void navigator.clipboard?.writeText(value).then(() => this.setStatus('Outline copied')).catch(() => this.setStatus('Use your host copy action to copy the outline'));
       };
-      content.append(copy);
       const appendOutline = (items: readonly ProcessOutlineItem[], parent: HTMLElement): void => {
         const list = document.createElement("ol"); list.setAttribute("part", "outline-list");
         for (const item of items) {
@@ -844,6 +843,7 @@ export class ProcessModeler<
         parent.append(list);
       };
       appendOutline(outline, content);
+      content.append(copy);
     } else if (this.activePane === "Checks") {
       content.append(checks);
       if (!this.allChecks.length) { const message = document.createElement("p"); message.textContent = "Ready to run"; content.prepend(message); }

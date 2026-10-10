@@ -272,15 +272,15 @@ export const processModelerDesign = `
   [part=arrange-actions] { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px; }
   [part=arrange-actions] button { min-height: 32px; padding: 5px 7px; font-size: 12px; text-align: start; }
   [part=outline-intro] { margin: 4px 0 14px; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12.5px; line-height: 1.5; }
-  [part=copy-outline] { justify-self: start; min-height: 28px; margin-bottom: 8px; padding: 4px 10px; border-radius: 16px; font-size: 12px; font-weight: 650; }
-  [part=outline-list] { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
-  [part=outline-list] [part=outline-list] { margin: 6px 0 0; gap: 6px; }
-  [part=outline-list] li { padding-left: 0; font-size: 12.5px; }
-  [part=outline-list] li::marker { color: var(--boe-token-text-text-secondary, #6f6f6f); }
-  [part=outline-list] button, [part=outline-list] strong { border: 0; border-radius: 4px; background: transparent; padding: 0; min-height: 0; font-size: 12.5px; font-weight: 650; line-height: 1.45; text-align: start; }
-  [part=outline-list] button:hover { color: var(--boe-token-surface-surface-brand, #0061d5); text-decoration: underline; }
+  [part=copy-outline] { justify-self: start; min-height: 32px; margin-top: 4px; padding: 0 14px; border-radius: 20px; font-size: 13px; font-weight: 600; letter-spacing: .01em; }
+  [part=outline-list] { margin: 0; padding-left: 22px; font-size: 13.5px; line-height: 1.5; }
+  [part=outline-list] [part=outline-list] { margin-top: 2px; }
+  [part=outline-list] li { margin: 3px 0; padding-left: 2px; }
+  [part=outline-list] li::marker { color: var(--boe-token-text-text-secondary, #6f6f6f); font-variant-numeric: tabular-nums; font-size: 12.5px; }
+  [part=outline-list] button, [part=outline-list] strong { border: 0; border-radius: 4px; background: transparent; padding: 0; min-height: 24px; display: inline-block; font-size: 13.5px; font-weight: 600; line-height: 24px; text-align: start; }
+  [part=outline-list] button:hover { color: var(--boe-token-surface-surface-brand, #0061d5); text-decoration: underline; text-underline-offset: 2px; }
   [part=outline-list] button[aria-current=true] { color: var(--boe-token-surface-surface-brand, #0061d5); }
-  [part=outline-list] p { margin: 2px 0 0; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12px; line-height: 1.45; }
+  [part=outline-list] p { margin: 0; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12.5px; line-height: 1.5; }
   [part=inspector-heading] { margin: 0 0 2px; font-size: 15px; font-weight: 650; }
   [part=inspector-heading][data-single=true]:not(:focus-visible) { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   [part=checks] { margin: 0; padding: 0; }
