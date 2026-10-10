@@ -109,6 +109,22 @@ describe('explicit host insertion placement',()=>{
     picker.dispatchEvent(new CustomEvent('kind-pick',{detail:{kind:{kind:'call',label:'Call',create:()=>({})}}}));
     expect(listener).not.toHaveBeenCalled();expect((b as any).insertion).toBeUndefined();
   });
+  it('does not dispatch a captured chooser edit after return-focus loads another document',()=>{
+    const {b,r,canvas,listener}=fixture();b.select('a');canvas.dispatchEvent(new KeyboardEvent('keydown',{key:'n',bubbles:true,cancelable:true}));
+    const target=(b as any).keyboardReturn as HTMLElement;
+    target.addEventListener('focus',()=>b.load({boxes:[{id:'fresh',kind:'call',title:'Fresh',node:{}}],lines:[]} as ProcessProjection),{once:true});
+    choose(r);
+    expect(b.document!.boxes[0].id).toBe('fresh');expect(listener).not.toHaveBeenCalled();expect(b.history.canUndo).toBe(false);
+  });
+  it('does not dispatch a modal edit after closing loads another document',()=>{
+    const {b,r,canvas,listener}=fixture();b.select('a');r.querySelector<HTMLElement>('[part=keyboard-chooser]')!.showPopover=undefined as any;
+    const dialog=r.querySelector<HTMLDialogElement>('[part=insert-chooser]')!;
+    dialog.showModal=()=>{dialog.setAttribute('open','')};
+    canvas.dispatchEvent(new KeyboardEvent('keydown',{key:'n',bubbles:true,cancelable:true}));
+    dialog.close=()=>{dialog.removeAttribute('open');b.load({boxes:[{id:'fresh',kind:'call',title:'Fresh',node:{}}],lines:[]} as ProcessProjection)};
+    r.querySelector('[part=insert-chooser] box-kind-picker')!.dispatchEvent(new CustomEvent('kind-pick',{detail:{kind:{kind:'call',label:'Call',create:()=>({})}}}));
+    expect(b.document!.boxes[0].id).toBe('fresh');expect(listener).not.toHaveBeenCalled();expect(b.history.canUndo).toBe(false);
+  });
   it('emits no placement on cancelled or locked chooser flows',()=>{
     const {b,r,canvas,listener}=fixture();b.select('a');canvas.dispatchEvent(new KeyboardEvent('keydown',{key:'n',bubbles:true,cancelable:true}));r.querySelector('[part=keyboard-chooser] box-kind-picker')!.dispatchEvent(new Event('picker-cancel'));expect(listener).not.toHaveBeenCalled();b.locked=true;b.requestEdit({type:'add',placement:{source:'next'}} as any);expect(listener).not.toHaveBeenCalled();
   });
