@@ -66,11 +66,20 @@ function routeOrthC(p1: ProcessPoint, sa: ProcessSide, p2: ProcessPoint, sb: Pro
       continue;
     if (contains({ x: r.x + 0.5, y: r.y + 0.5, w: r.w - 1, h: r.h - 1 }, s)
       || contains({ x: r.x + 0.5, y: r.y + 0.5, w: r.w - 1, h: r.h - 1 }, t)) {
-      // Relax only the clearance that covers a stub, retaining the body and
-      // the available gap so rounded turns do not shave its corners.
+      // Relax only the padded side covering a stub. Retain the raw body and
+      // the other sides' clearance so rounded turns cannot shave its corners.
       if (o.endpoint) {
-        const gap = (p: ProcessPoint) => Math.max(o.x - p.x, p.x - o.x - o.w, o.y - p.y, p.y - o.y - o.h, 0);
-        obs.push(inflate(o, Math.max(0, Math.min(M, gap(s) - .5, gap(t) - .5))));
+        let left = r.x, right = r.x + r.w, top = r.y, bottom = r.y + r.h;
+        for (const p of [s, t]) {
+          if (!contains({x:left+.5,y:top+.5,w:right-left-1,h:bottom-top-1},p)) continue;
+          const gaps = [o.x-p.x,p.x-o.x-o.w,o.y-p.y,p.y-o.y-o.h];
+          const side = gaps.indexOf(Math.max(...gaps));
+          if (side === 0) left = Math.max(left,Math.min(o.x,p.x+.5));
+          else if (side === 1) right = Math.min(right,Math.max(o.x+o.w,p.x-.5));
+          else if (side === 2) top = Math.max(top,Math.min(o.y,p.y+.5));
+          else bottom = Math.min(bottom,Math.max(o.y+o.h,p.y-.5));
+        }
+        obs.push({x:left,y:top,w:right-left,h:bottom-top});
         continue;
       }
       return { pts: [], cost: Infinity };

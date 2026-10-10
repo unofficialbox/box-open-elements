@@ -121,7 +121,7 @@ describe("process routing", () => {
     orthogonal(automatic);avoids(automatic,positions.boxes.a);avoids(automatic,positions.boxes.b);
   });
 
-  it.each([0, 1, 2, 3])('keeps endpoint bodies when the opposite stub enters their padding through quarter-turn %s', turns => {
+  it.each([0,1,2,3].flatMap(turns => [40,42,45].map(y => ({turns,y}))))('keeps endpoint bodies when the opposite stub enters their padding at $y through quarter-turn $turns', ({turns,y}) => {
     const sides: ProcessSide[] = ['north', 'east', 'south', 'west'];
     const rotate = (point: ProcessPoint) => {
       for (let i = 0; i < turns; i++) point = { x: -point.y, y: point.x };
@@ -132,18 +132,13 @@ describe("process routing", () => {
       const xs=points.map(p=>p.x), ys=points.map(p=>p.y);
       return {x:Math.min(...xs),y:Math.min(...ys),width:Math.max(...xs)-Math.min(...xs),height:Math.max(...ys)-Math.min(...ys)};
     };
-    const positions = {boxes:{a:rect(0,0),b:rect(105,45)}};
+    const positions = {boxes:{a:rect(0,0),b:rect(105,y)}};
     for (const reverse of [false,true]) {
       const pinned: ProcessLine = reverse
         ? {id:'b-a',from:'b',to:'a',fromSide:sides[(turns+3)%4],toSide:sides[turns]}
         : {...edge,fromSide:sides[turns],toSide:sides[(turns+3)%4]};
       const points=routeProcessLine(pinned,positions,projection(['a','b'],[pinned]));
-      orthogonal(points);
-      for (const body of Object.values(positions.boxes)) {
-        // Four pixels of retained clearance keep the eight-pixel rounded turn
-        // outside the endpoint body, including the reversed edge.
-        avoids(processSegmentChain(points).slice(1,-1),{x:body.x-4,y:body.y-4,width:body.width+8,height:body.height+8});
-      }
+      orthogonal(points);avoids(points,positions.boxes.a);avoids(points,positions.boxes.b);
       expect(routeProcessLine(pinned,positions,projection(['b','a'],[pinned]))).toEqual(points);
     }
   });
