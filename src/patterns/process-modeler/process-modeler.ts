@@ -119,11 +119,17 @@ export class ProcessModeler<
   }
   private flushAcceptanceNotifications(): void {
     if (this.acceptanceNotifications) return;
-    const notifications = this.deferredNotifications;
-    this.deferredNotifications = [];
-    for (const notification of notifications) {
-      if (notification.session !== this.layoutEditSession) continue;
-      emit(this, notification.name, notification.detail);
+    this.acceptanceNotifications++;
+    try {
+      // Observer edits append behind the complete accepted batch, rather than
+      // publishing newer state before older queued persistence notifications.
+      while (this.deferredNotifications.length) {
+        const notification = this.deferredNotifications.shift()!;
+        if (notification.session !== this.layoutEditSession) continue;
+        emit(this, notification.name, notification.detail);
+      }
+    } finally {
+      this.acceptanceNotifications--;
     }
   }
   private restoringBoxFocus = false;
