@@ -632,7 +632,10 @@ export class ProcessModeler<
     this.shadowRoot!.append(keyboardChooser);
     keyboardPicker.addEventListener('kind-pick', event => {
       const edit = this.keyboardInsertion;
-      this.closeKeyboardChooser();
+      this.closeKeyboardChooser(true);
+      // Keep a stable step focused while the host applies and accepts the edit.
+      // World refreshes preserve step focus, including deferred acceptance.
+      if (edit?.from) this.focusBox(edit.from);
       if (edit) this.requestEdit({ ...edit, kind: (event as CustomEvent).detail.kind });
     });
     keyboardPicker.addEventListener('picker-cancel', () => this.closeKeyboardChooser(true));
