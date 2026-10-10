@@ -407,7 +407,18 @@ export function completeLayout<N>(
     let y = top;
     for (const box of siblings) {
       const size = sizes.get(box.id)!;
-      boxes[box.id] ??= { x, y, ...size };
+      if (!boxes[box.id]) {
+        if (box.role === "note") {
+          // Flow ranks are already placed; unplaced graph notes need free space
+          // regardless of their order in the projection.
+          let overlaps: BoxPosition[];
+          do {
+            overlaps = Object.values(boxes).filter(p => x < p.x + (p.width ?? 224) && x + size.width > p.x && y < p.y + (p.height ?? 64) && y + size.height > p.y);
+            if (overlaps.length) y = Math.max(...overlaps.map(p => p.y + (p.height ?? 64))) + 60;
+          } while (overlaps.length);
+          boxes[box.id] = { x, y, width: size.width };
+        } else boxes[box.id] = { x, y, ...size };
+      }
       const position = boxes[box.id];
       place(
         projection.boxes.filter((child) => child.parentId === box.id),
@@ -417,7 +428,7 @@ export function completeLayout<N>(
       y += (position.height ?? size.height) + 60;
     }
   };
-  place(roots, 40, 40);
+  place([...roots.filter(box => box.role !== "note"), ...roots.filter(box => box.role === "note")], 40, 40);
   return { ...layout, boxes };
 }
 

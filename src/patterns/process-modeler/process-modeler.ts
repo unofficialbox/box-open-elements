@@ -193,6 +193,8 @@ export class ProcessModeler<
   private narrowValue = false;
   private suppressClick = false;
   private resizeObserver?: ResizeObserver;
+  private autoNoteHeights = new Set<string>();
+  private unplacedNotes = new Set<string>();
   private routedLines = new Map<string, { x: number; y: number }[]>();
   private computedChecks: readonly ProcessCheck[] = [];
   get selectedBoxes(): readonly ProcessBox<N>[] { return this.projection.boxes.filter(box => this.selectedIds.has(box.id)); }
@@ -345,6 +347,7 @@ export class ProcessModeler<
   set layout(value: ProcessLayout) {
     if (JSON.stringify(this.layoutValue) === JSON.stringify(value)) return;
     this.layoutValue = structuredClone(value);
+    this.autoNoteHeights.clear();
     if (!this.history.replaying) this.history.clear();
     this.refresh();
   }
@@ -1792,7 +1795,7 @@ export class ProcessModeler<
     }
     if (
       event.button !== 0 ||
-      (event.target as HTMLElement).closest("[part=connection],button,input,select,textarea,[contenteditable]")
+      (event.target as HTMLElement).closest("[part=connection],[part=line-hit],button,input,select,textarea,[contenteditable]")
     )
       return;
     this.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -2192,6 +2195,7 @@ export class ProcessModeler<
       this.projection = this.model.project(this.documentValue);
       validateProjection(this.projection);
     } else this.projection = { boxes: [], lines: [] };
+    this.unplacedNotes = new Set(this.projection.boxes.filter(box => !isFlowBox(box) && !this.layoutValue.boxes[box.id]).map(box => box.id));
     this.layoutValue = this.arrangedLayout(this.layoutValue);
     this.routedLines = new Map(this.projection.lines.map(line => [line.id, routeProcessLine(line, this.layoutValue, this.projection)]));
     this.computedChecks = this.collectChecks();
@@ -2288,7 +2292,7 @@ export class ProcessModeler<
           .join(". "),
       );
       element.setAttribute("aria-current", String(this.selectedIds.has(box.id)));
-      this.place(element, this.layoutValue.boxes[box.id]);
+      this.place(element, { ...this.layoutValue.boxes[box.id], ...(!isFlowBox(box) ? { width: this.layoutValue.boxes[box.id].width ?? 208 } : {}) });
       if (!isFlowBox(box)) { const text = document.createElement("div"); text.setAttribute("part", "note-body"); text.textContent = box.description ?? box.title; element.append(text); }
       const icon = document.createElement("span"); icon.setAttribute("part", "icon"); icon.setAttribute("aria-hidden", "true");
       if (kind?.icon) {
@@ -2424,7 +2428,31 @@ export class ProcessModeler<
         element.append(handle);
       }
       world.append(element);
+      if (!isFlowBox(box)) {
+        const position = this.layoutValue.boxes[box.id];
+        const body = element.querySelector<HTMLElement>('[part=note-body]')!;
+        if (position.height === undefined || this.autoNoteHeights.has(box.id)) {
+          this.autoNoteHeights.add(box.id);
+          element.style.height = 'auto';
+          const bounds = body.getBoundingClientRect();
+          // Undo the world transform without rounding the natural text height.
+          if (bounds.width > 0 && bounds.height > 0) {
+            position.height = bounds.height * (position.width ?? 208) / bounds.width;
+            element.style.height = `${position.height}px`;
+          }
+        } else body.style.minHeight = `${position.height}px`;
+        if (this.unplacedNotes.has(box.id)) {
+          let overlaps: BoxPosition[];
+          do {
+            overlaps = Object.entries(this.layoutValue.boxes).filter(([id, p]) => id !== box.id && position.x < p.x + (p.width ?? 224) && position.x + (position.width ?? 208) > p.x && position.y < p.y + (p.height ?? 64) && position.y + (position.height ?? 64) > p.y).map(([, p]) => p);
+            if (overlaps.length) position.y = Math.max(...overlaps.map(p => p.y + (p.height ?? 64))) + 60;
+          } while (overlaps.length);
+          element.style.top = `${position.y}px`;
+        }
+      }
     }
+    // Natural note bodies define their ports and association endpoints.
+    this.routedLines = new Map(this.projection.lines.map(line => [line.id, routeProcessLine(line, this.layoutValue, this.projection)]));
     const lines = svgElement("svg");
     lines.setAttribute("part", "lines");
     lines.setAttribute("aria-hidden", "true");
@@ -3334,7 +3362,7 @@ export class ProcessModeler<
       if (!this.disableConnections) add('Delete', 'delete-line', () => this.requestEdit({ type: 'disconnect', lineId: line.id }));
     } else if (this.selectedIds.size === 1) {
       const box = this.selected!;
-      const failurePath = isFlowBox(box) && box.kind === 'try' && !this.projection.lines.some(line => line.from === box.id && (line.dashed || line.label === 'If it fails'));
+      const failurePath = isFlowBox(box) && box.kind === 'try' && !this.projection.lines.some(line => isFlowLine(line) && line.from === box.id && (line.dashed || line.label === 'If it fails'));
       if (this.narrowValue) add('Details', 'details', () => this.openDrawer('inspector'));
       if (isFlowBox(box) && !['end', 'finish', 'section', 'note'].includes(box.kind)) add(box.shape === 'gateway' ? 'Add a path' : 'Add next', 'add-next', () =>
         this.openAnchoredChooser(this.nextEdit(box), this.nextChooserTitle(box), toolbar.querySelector<HTMLElement>('[data-selection-command=add-next]') ?? undefined), true);
