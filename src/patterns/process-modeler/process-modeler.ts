@@ -2976,6 +2976,9 @@ export class ProcessModeler<
   private paintViewport(): void {
     const world = this.shadowRoot!.querySelector<HTMLElement>("[part=world]")!;
     world.style.setProperty('--boe-process-inverse-zoom', String(1 / this.viewport.zoom));
+    // Round outward to the browser's 1/64 CSS-pixel layout quantum so scaled
+    // targets remain at least 24 screen pixels at fractional zoom levels.
+    world.style.setProperty('--boe-process-hit-target', `${Math.ceil(24 / this.viewport.zoom * 64) / 64}px`);
     world.style.transform =
       `translate(${this.viewport.x}px,${this.viewport.y}px) scale(${this.viewport.zoom})`;
     const canvas = this.shadowRoot!.querySelector<HTMLElement>("[part=canvas]")!;
