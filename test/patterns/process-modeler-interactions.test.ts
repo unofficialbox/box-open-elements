@@ -112,6 +112,23 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector('[part=urgent-status]')?.getAttribute('aria-live')).toBe('assertive');
     expect(root.querySelector('[part=urgent-status]')?.textContent).toBe('Supply a connection');
   });
+  it('keeps the minimap proportional and includes a viewport panned beyond the drawing', () => {
+    const { builder, root, canvas } = fixture();
+    Object.defineProperties(canvas, { clientWidth: { value: 800 }, clientHeight: { value: 500 } });
+    builder.setView({ x: -2000, y: -800, zoom: 0.5 });
+    const map = root.querySelector<SVGSVGElement>('[part=minimap]')!;
+    const [x, y, width, height] = map.getAttribute('viewBox')!.split(' ').map(Number);
+    expect(width / height).toBeCloseTo(208 / 136);
+    const viewport = map.querySelector<SVGRectElement>('[data-viewport]')!;
+    expect(x).toBeLessThanOrEqual(Number(viewport.getAttribute('x')));
+    expect(y).toBeLessThanOrEqual(Number(viewport.getAttribute('y')));
+    expect(x + width).toBeGreaterThanOrEqual(Number(viewport.getAttribute('x')) + Number(viewport.getAttribute('width')));
+    expect(y + height).toBeGreaterThanOrEqual(Number(viewport.getAttribute('y')) + Number(viewport.getAttribute('height')));
+    vi.spyOn(map, 'getBoundingClientRect').mockReturnValue({ left: 10, top: 20, width: 208, height: 136 } as DOMRect);
+    pointer(map, 'pointerdown', 114, 88);
+    expect(builder.view.x).toBeCloseTo(400 - (x + width / 2) * 0.5);
+    expect(builder.view.y).toBeCloseTo(250 - (y + height / 2) * 0.5);
+  });
   it("shows the ready state when the Checks tab has no problems", () => {
     const { root } = fixture();
     root.querySelector<HTMLButtonElement>('#process-tab-checks')!.click();
