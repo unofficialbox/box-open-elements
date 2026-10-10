@@ -829,6 +829,34 @@ describe("Process Modeler prototype interactions", () => {
     expect(builder.layout.sections).toHaveLength(1);
     builder.undo(); expect(builder.layout.sections ?? []).toHaveLength(0);
   });
+  it.each([
+    ['middle', [{ x: 100, y: 144 }, { x: 380, y: 156 }, { x: 700, y: 144 }]],
+    ['center', [{ x: 400, y: 100 }, { x: 492, y: 224 }, { x: 400, y: 328 }]],
+    ['distribute-horizontal', [{ x: 100, y: 100 }, { x: 492, y: 160 }, { x: 700, y: 200 }]],
+    ['distribute-vertical', [{ x: 100, y: 100 }, { x: 300, y: 162 }, { x: 700, y: 200 }]],
+  ] as const)('matches native mixed-size %s spacing with one undo', (action, expected) => {
+    const { builder } = fixture();
+    builder.layout = { boxes: {
+      a: { x: 100, y: 100, width: 224, height: 64 },
+      b: { x: 300, y: 160, width: 40, height: 40 },
+      c: { x: 700, y: 200, width: 224, height: 64 },
+    } };
+    builder.selectMany(['a', 'b', 'c']); const before = builder.layout;
+    builder.arrangeSelection(action);
+    const positions = () => ['a', 'b', 'c'].map(id => ({ x: builder.layout.boxes[id].x, y: builder.layout.boxes[id].y }));
+    expect(positions()).toEqual(expected);
+    builder.undo(); expect(builder.layout).toEqual(before);
+    builder.redo(); expect(positions()).toEqual(expected);
+  });
+  it('uses selection aspect for Line up and requires three distribution items', () => {
+    const { builder, root } = fixture();
+    builder.layout = { boxes: { a: { x: 100, y: 100, width: 224, height: 64 }, b: { x: 700, y: 200, width: 224, height: 64 }, c: { x: 1000, y: 1000 } } };
+    builder.selectMany(['a', 'b']); const before = builder.layout;
+    builder.arrangeSelection('distribute-horizontal'); expect(builder.layout).toEqual(before);
+    root.querySelector<HTMLButtonElement>('[data-selection-command=align]')!.click();
+    expect(builder.layout.boxes.a.y).toBe(144); expect(builder.layout.boxes.b.y).toBe(144);
+    builder.undo(); expect(builder.layout).toEqual(before);
+  });
   it("inserts a palette drop on a routed line and highlights its hit target", () => {
     const { builder, root, canvas } = fixture(); const requests = vi.fn(); builder.addEventListener("process-edit-request", requests);
     const point = lineMidpoint(routeProcessLine(projection.lines[0], builder.layout, projection));
