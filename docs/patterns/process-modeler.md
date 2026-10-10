@@ -152,8 +152,9 @@ Tab reaches boxes. Alt+arrows chooses the nearest box in that direction;
 arrows nudge a selected box by 16px, Shift+arrows by 64px. N opens a
 non-modal, searchable chooser beside the selected box. It names the insertion
 point and, for a simple box with one outgoing line, requests an insert on
-that line; Escape returns focus to the box. Ctrl+Alt+arrows adds from a directional
-port, Enter focuses the selected step's editor, Delete removes, and Shift+1
+that line; Escape returns focus to the box. Ctrl+Alt+arrows opens the same
+contextual chooser at a directional port; east inserts on a sole outgoing line,
+while other directions add a connected step. Enter focuses the selected step's editor, Delete removes, and Shift+1
 fits the whole process. Ctrl/Command+A selects all; C/V/D copy, paste and
 duplicate host-owned boxes. Ctrl/Command+Z and Shift+Ctrl/Command+Z undo and
 redo only when local history can handle them; empty or locked history leaves
@@ -202,6 +203,11 @@ history. Tidy animates box positions over 320ms unless reduced motion is set.
   on the highlighted edge point requests `toSide` (or `fromSide` during
   reattachment); dropping elsewhere on a box leaves that end automatic.
 - Drop a building block or existing step onto a highlighted line to insert it.
+  Activating a line's insert button or the selected-line toolbar opens the
+  contextual kind chooser at the line midpoint; Escape cancels without an edit
+  and returns focus to the invoking button. Unlabelled connections retain an
+  invisible 24px screen-space midpoint target so pointer users can reveal
+  these actions even when the canvas is zoomed out.
   On an accepted new-step insert along a straight, root-level row, the library
   makes room by moving that row's later columns and records the layout with the
   host edit for undo/redo. Branched and nested inserts retain host-owned layout

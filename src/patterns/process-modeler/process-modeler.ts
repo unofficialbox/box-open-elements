@@ -1154,7 +1154,12 @@ export class ProcessModeler<
       if (event.ctrlKey && event.altKey && this.catalog.length && !this.disableConnections) {
         const side = direction[0] < 0 ? "west" : direction[0] > 0 ? "east" : direction[1] < 0 ? "north" : "south";
         const pos = this.layoutValue.boxes[box.id];
-        this.openChooser({ type: "add", from: box.id, fromSide: side, position: { x: pos.x + direction[0] * 320, y: pos.y + direction[1] * 170 } });
+        const anchor = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[part=port]'))
+          .find(element => element.dataset.owner === box.id && element.dataset.side === side);
+        const returnFocus = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[data-box-id]'))
+          .find(element => element.dataset.boxId === box.id);
+        this.openAnchoredChooser(this.nextEdit(box, side, { x: pos.x + direction[0] * 320, y: pos.y + direction[1] * 170 }),
+          this.nextChooserTitle(box, side), anchor, returnFocus);
         return;
       }
       if (event.altKey) {
@@ -1490,13 +1495,23 @@ export class ProcessModeler<
     if (box.shape === 'gateway') return `Add a path from ${box.title}`;
     return side && side !== 'east' ? `Add ${ { north: 'above', south: 'below', west: 'before' }[side] } ${box.title}, connected` : `Add after ${box.title}`;
   }
-  private openChooserAtPoint(edit: ProcessEdit, title: string, point: { x: number; y: number }): void {
+  private openChooserAtPoint(edit: ProcessEdit, title: string, point: { x: number; y: number }, returnFocus?: HTMLElement): void {
     if (this.keyboardInsertion) this.closeKeyboardChooser();
     const anchor = document.createElement('span');
     anchor.style.cssText = `position:absolute;left:${point.x}px;top:${point.y}px;width:1px;height:1px;pointer-events:none`;
     this.shadowRoot!.querySelector('[part=world]')!.append(anchor);
     this.transientChooserAnchor = anchor;
-    this.openAnchoredChooser(edit, title, anchor);
+    this.openAnchoredChooser(edit, title, anchor, returnFocus);
+  }
+  private openLineChooser(line: ProcessProjection<N>['lines'][number], returnFocus?: HTMLElement): void {
+    const source = this.projection.boxes.find(box => box.id === line.from);
+    const target = this.projection.boxes.find(box => box.id === line.to);
+    const points = this.routedLines.get(line.id) ?? routeProcessLine(line, this.layoutValue, this.projection);
+    this.openChooserAtPoint(
+      { type: 'insert', lineId: line.id, from: line.from, to: line.to },
+      `Insert between ${source?.title ?? line.from} and ${target?.title ?? line.to}`,
+      lineMidpoint(points), returnFocus,
+    );
   }
   private closeKeyboardChooser(returnFocus = false): void {
     const chooser = this.shadowRoot?.querySelector<HTMLElement>('[part=keyboard-chooser]');
@@ -1811,7 +1826,7 @@ export class ProcessModeler<
             to: line.to,
           };
           if (type === "insert" && this.catalog.length) {
-            this.openChooser(edit);
+            this.openLineChooser(line, button);
           } else this.requestEdit(edit);
         });
         actions.append(button);
@@ -2165,7 +2180,7 @@ export class ProcessModeler<
     };
     if (this.selectedLine) {
       const line = this.selectedLine;
-      add('Insert a step', 'insert', () => this.openChooser({ type: 'insert', lineId: line.id, from: line.from, to: line.to }), true);
+      add('Insert a step', 'insert', () => this.openLineChooser(line, toolbar.querySelector<HTMLElement>('[data-selection-command=insert]') ?? undefined), true);
       if (this.layoutValue.lines?.[line.id]) add('Reset line', 'reset-line', () => this.resetLine(line.id));
       if (!this.disableConnections) add('Delete', 'delete-line', () => this.requestEdit({ type: 'disconnect', lineId: line.id }));
     } else if (this.selectedIds.size === 1) {
@@ -2174,7 +2189,12 @@ export class ProcessModeler<
       if (this.narrowValue) add('Details', 'details', () => this.openDrawer('inspector'));
       if (!['end', 'finish', 'section', 'note'].includes(box.kind)) add(box.shape === 'gateway' ? 'Add a path' : 'Add next', 'add-next', () =>
         this.openAnchoredChooser(this.nextEdit(box), this.nextChooserTitle(box), toolbar.querySelector<HTMLElement>('[data-selection-command=add-next]') ?? undefined), true);
-      if (failurePath) add('If it fails', 'add-failure', () => this.openChooser({ type: 'add', from: box.id, routeLabel: 'If it fails', dashed: true }), true);
+      if (failurePath) add('If it fails', 'add-failure', () => this.openAnchoredChooser(
+        { type: 'add', from: box.id, routeLabel: 'If it fails', dashed: true },
+        `If a step in ${box.title} fails`,
+        toolbar.querySelector<HTMLElement>('[data-selection-command=add-failure]') ?? undefined,
+        Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[data-box-id]')).find(element => element.dataset.boxId === box.id),
+      ), true);
       if (!['start', 'timer', 'section'].includes(box.kind)) add('Duplicate', 'duplicate', () => { const position = this.layoutValue.boxes[box.id]; this.requestEdit({ type: 'duplicate', sourceId: box.id, position: { x: position.x + 32, y: position.y + 32 } }); });
       if (!['start', 'timer'].includes(box.kind)) add('Delete', 'delete-many', () => this.selectionCommand('delete-many'));
     } else {
@@ -2208,9 +2228,9 @@ export class ProcessModeler<
     checksStatus.dataset.state = count ? 'bad' : 'ready';
   }
   private paintViewport(): void {
-    this.shadowRoot!.querySelector<HTMLElement>(
-      "[part=world]",
-    )!.style.transform =
+    const world = this.shadowRoot!.querySelector<HTMLElement>("[part=world]")!;
+    world.style.setProperty('--boe-process-inverse-zoom', String(1 / this.viewport.zoom));
+    world.style.transform =
       `translate(${this.viewport.x}px,${this.viewport.y}px) scale(${this.viewport.zoom})`;
     const canvas = this.shadowRoot!.querySelector<HTMLElement>("[part=canvas]")!;
     const grid = 16 * this.viewport.zoom * (this.viewport.zoom < 0.5 ? 4 : 1);
