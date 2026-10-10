@@ -94,6 +94,7 @@ export class ProcessModeler<
   private drawerReturn?: HTMLElement;
   private selectedIds = new Set<string>();
   private clipboardIds: string[] = [];
+  private restoringBoxFocus = false;
   private selectionToolbarKey = "";
   private sectionSequence = 0;
   private versionValue: string | number = 0;
@@ -1227,6 +1228,16 @@ export class ProcessModeler<
     if ((event.key === "n" || event.key === "N") && box && !this.locked && this.catalog.length && !['finish', 'end'].includes(box.kind)) {
       event.preventDefault(); this.openKeyboardChooser(box); return;
     }
+    const direction = {
+      ArrowLeft: [-1, 0],
+      ArrowRight: [1, 0],
+      ArrowUp: [0, -1],
+      ArrowDown: [0, 1],
+    }[event.key];
+    const canInsertDirection = event.ctrlKey && event.altKey && box && !this.locked && this.catalog.length && !this.disableConnections;
+    if (direction && !canInsertDirection && (event.altKey || !box || this.locked)) {
+      event.preventDefault(); this.navigateSelection(direction); return;
+    }
     if (!box || this.locked) return;
     if (event.key === "Enter") {
       event.preventDefault();
@@ -1247,12 +1258,6 @@ export class ProcessModeler<
       event.preventDefault();
       this.selectionCommand("delete-many");
     }
-    const direction = {
-      ArrowLeft: [-1, 0],
-      ArrowRight: [1, 0],
-      ArrowUp: [0, -1],
-      ArrowDown: [0, 1],
-    }[event.key];
     if (direction) {
       event.preventDefault();
       if (event.ctrlKey && event.altKey && this.catalog.length && !this.disableConnections) {
@@ -1266,21 +1271,6 @@ export class ProcessModeler<
           this.nextChooserTitle(box, side), anchor, returnFocus);
         return;
       }
-      if (event.altKey) {
-        const origin = this.layoutValue.boxes[box.id];
-        const center = { x: origin.x + (origin.width ?? 224) / 2, y: origin.y + (origin.height ?? 64) / 2 };
-        const candidates = this.projection.boxes.filter(candidate => candidate.id !== box.id).map(candidate => {
-          const position = this.layoutValue.boxes[candidate.id];
-          const dx = position.x + (position.width ?? 224) / 2 - center.x;
-          const dy = position.y + (position.height ?? 64) / 2 - center.y;
-          const forward = dx * direction[0] + dy * direction[1];
-          const sideways = Math.abs(dx * direction[1] - dy * direction[0]);
-          return { candidate, forward, score: forward + sideways * 2 };
-        }).filter(item => item.forward > 0).sort((a, b) => a.score - b.score || a.candidate.id.localeCompare(b.candidate.id));
-        const next = candidates[0]?.candidate;
-        if (next) { this.select(next.id); this.focusBox(next.id); this.setStatus(`${next.title} selected`); }
-        return;
-      }
       const pos = this.layoutValue.boxes[box.id];
       const distance = event.shiftKey ? 64 : 16;
       this.move(
@@ -1290,6 +1280,37 @@ export class ProcessModeler<
       );
       this.focusBox(box.id);
     }
+  }
+  private navigateSelection(direction: number[]): void {
+    const canvas = this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!;
+    const box = this.selected;
+    const origin = box ? this.layoutValue.boxes[box.id] : undefined;
+    const originSize = box ? this.selectionDimensions(box) : undefined;
+    const center = origin && originSize
+      ? { x: origin.x + originSize.width / 2, y: origin.y + originSize.height / 2 }
+      : { x: (canvas.clientWidth / 2 - this.viewport.x) / this.viewport.zoom, y: (canvas.clientHeight / 2 - this.viewport.y) / this.viewport.zoom };
+    const candidates = this.projection.boxes.filter(candidate => candidate.id !== box?.id && candidate.kind !== 'section').map(candidate => {
+      const position = this.layoutValue.boxes[candidate.id];
+      const size = this.selectionDimensions(candidate);
+      const dx = position.x + size.width / 2 - center.x;
+      const dy = position.y + size.height / 2 - center.y;
+      const forward = dx * direction[0] + dy * direction[1];
+      const sideways = Math.abs(dx * direction[1] - dy * direction[0]);
+      return { candidate, forward, score: forward + sideways * 2.5 };
+    }).filter(item => item.forward > 4).sort((a, b) => a.score - b.score);
+    const next = candidates[0]?.candidate;
+    if (!next) { this.setStatus('Nothing further that way'); return; }
+    this.select(next.id); this.revealBox(next); this.focusBox(next.id); this.setStatus(`${next.title} selected`);
+  }
+  private revealBox(box: ProcessBox<N>): void {
+    const canvas = this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!;
+    if (!canvas.clientWidth || !canvas.clientHeight) return;
+    const position = this.layoutValue.boxes[box.id]; const size = this.selectionDimensions(box);
+    const left = position.x * this.viewport.zoom + this.viewport.x;
+    const top = position.y * this.viewport.zoom + this.viewport.y;
+    if (left > 48 && top > 48 && left + size.width * this.viewport.zoom < canvas.clientWidth - 48 && top + size.height * this.viewport.zoom < canvas.clientHeight - 48) return;
+    this.setView({ x: canvas.clientWidth / 2 - (position.x + size.width / 2) * this.viewport.zoom,
+      y: canvas.clientHeight / 2 - (position.y + size.height / 2) * this.viewport.zoom, zoom: this.viewport.zoom });
   }
   private pointerDown(event: PointerEvent): void {
     if (event.button !== 0) return;
@@ -1753,7 +1774,10 @@ export class ProcessModeler<
     this.paintViewport();
     this.updateToolbar();
     if (selectionBefore !== JSON.stringify({ ids: [...this.selectedIds], path: this.selectedPath })) emit(this, "selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath });
-    if (focused) this.focusBox(focused);
+    if (focused) {
+      this.restoringBoxFocus = true;
+      try { this.focusBox(focused); } finally { this.restoringBoxFocus = false; }
+    }
   }
   private get allChecks(): readonly ProcessCheck[] { return this.computedChecks; }
   private collectChecks(): readonly ProcessCheck[] {
@@ -1778,6 +1802,9 @@ export class ProcessModeler<
     )) {
       const element = document.createElement("div");
       element.tabIndex = 0;
+      element.addEventListener('focus', () => {
+        if (!this.restoringBoxFocus && !this.pointers.size && !this.portDrag && !this.endDrag && !this.segmentDrag && !this.marquee && !this.frameResize) { this.select(box.id); if (box.kind !== 'section') this.revealBox(box); }
+      });
       element.setAttribute("role", "group");
       element.setAttribute("part", box.frame ? "frame" : "box");
       element.dataset.boxId = box.id;
@@ -1904,7 +1931,7 @@ export class ProcessModeler<
       });
       if (!this.disableConnections && !this.locked && !['end', 'finish'].includes(box.kind)) {
         for (const side of ["north", "east", "south", "west"] as const) {
-          const port = document.createElement("button"); port.type = "button"; port.setAttribute("part", "port"); port.dataset.side = side; port.dataset.owner = box.id;
+          const port = document.createElement("button"); port.type = "button"; port.tabIndex = -1; port.setAttribute("part", "port"); port.dataset.side = side; port.dataset.owner = box.id;
           port.setAttribute("aria-label", `Add or connect a step ${side} of ${box.title}`);
           port.addEventListener("click", event => {
             event.stopPropagation();
@@ -2498,7 +2525,7 @@ export class ProcessModeler<
   private focusBox(id: string): void {
     Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>("[data-box-id]"))
       .find((box) => box.dataset.boxId === id)
-      ?.focus();
+      ?.focus({ preventScroll: true });
   }
   private setStatus(message: string, urgent = false): void {
     this.shadowRoot!.querySelector(urgent ? "[part=status]" : "[part=urgent-status]")!.textContent = "";

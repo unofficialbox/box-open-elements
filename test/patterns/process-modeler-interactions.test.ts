@@ -477,6 +477,72 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.activeElement?.getAttribute('part')).not.toBe('field');
   });
 
+  it('keeps pointer ports out of Tab order and selects a keyboard-focused step before nudging', () => {
+    const { builder, root } = fixture();
+    expect([...root.querySelectorAll<HTMLButtonElement>('[part=port]')].every(port => port.tabIndex === -1)).toBe(true);
+    builder.select('a'); const before = builder.layout;
+    const step = root.querySelector<HTMLElement>('[data-box-id=b]')!;
+    step.focus(); expect(builder.selected?.id).toBe('b');
+    step.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
+    expect(builder.layout.boxes.a).toEqual(before.boxes.a);
+    expect(builder.layout.boxes.b.x).toBe(before.boxes.b.x + 16);
+  });
+  it('restores DOM focus without collapsing multiple or controlled host selection', () => {
+    const { builder, root } = fixture();
+    root.querySelector<HTMLElement>('[data-box-id=a]')!.focus();
+    builder.selectMany(['a', 'b']); builder.refresh();
+    expect(builder.selectedBoxes.map(box => box.id)).toEqual(['a', 'b']);
+    expect((root.activeElement as HTMLElement).dataset.boxId).toBe('a');
+    builder.select('c'); builder.refresh();
+    expect(builder.selected?.id).toBe('c');
+    expect((root.activeElement as HTMLElement).dataset.boxId).toBe('a');
+  });
+  it('matches directional navigation lateral weighting and excludes near-zero forward and sections', () => {
+    const { builder, canvas } = fixture();
+    builder.document = { boxes: [...projection.boxes, { id: 'near', kind: 'call', title: 'Near', node: {} }, { id: 'section', kind: 'section', title: 'Section', node: {}, frame: true }], lines: [] };
+    builder.layout = { boxes: { a: { x: 0, y: 0 }, b: { x: 100, y: 100 }, c: { x: 325, y: 0 }, near: { x: 4, y: 0 }, section: { x: 10, y: 0 } } };
+    builder.select('a');
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', altKey: true, bubbles: true, cancelable: true }));
+    expect(builder.selected?.id).toBe('c');
+  });
+  it.each([false, true])('navigates from the panned viewport center without selection (locked=%s)', locked => {
+    const { builder, canvas } = fixture();
+    Object.defineProperties(canvas, { clientWidth: { value: 800 }, clientHeight: { value: 600 } });
+    builder.layout = { boxes: { a: { x: 0, y: 0 }, b: { x: 500, y: 300 }, c: { x: 500, y: 600 } } };
+    builder.setView({ x: -400, y: -300, zoom: 2 }); builder.locked = locked;
+    builder.select(null); const before = builder.layout;
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', altKey: true, bubbles: true, cancelable: true }));
+    expect(builder.selected?.id).toBe('b'); expect(builder.layout).toEqual(before);
+    expect(builder.view.zoom).toBe(2);
+    const undo = new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true, cancelable: true });
+    canvas.dispatchEvent(undo); expect(undo.defaultPrevented).toBe(false);
+  });
+  it('retains selection and announces when no directional destination exists', () => {
+    const { builder, canvas, root } = fixture(); builder.select('a');
+    builder.layout = { boxes: { a: { x: 0, y: 0 }, b: { x: -300, y: 0 }, c: { x: -500, y: 0 } } };
+    const before = builder.layout; const view = builder.view;
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', altKey: true, bubbles: true, cancelable: true }));
+    expect(builder.selected?.id).toBe('a'); expect(builder.layout).toEqual(before); expect(builder.view).toEqual(view);
+    expect(root.querySelector('[part=status]')!.textContent).toBe('Nothing further that way');
+  });
+  it.each(['disabled-connections', 'empty-catalog'])('navigates without nudging when Ctrl+Alt insertion is unavailable: %s', mode => {
+    const { builder, canvas } = fixture();
+    builder.layout = { boxes: { a: { x: 0, y: 0 }, b: { x: 325, y: 0 }, c: { x: 325, y: 200 } } };
+    builder.select('a');
+    if (mode === 'disabled-connections') builder.disableConnections = true;
+    else builder.catalog = [];
+    const before = builder.layout; const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', ctrlKey: true, altKey: true, bubbles: true, cancelable: true }));
+    expect(builder.selected?.id).toBe('b'); expect(builder.layout).toEqual(before); expect(requests).not.toHaveBeenCalled();
+  });
+  it('keeps projection order for tied directional navigation scores', () => {
+    const { builder, canvas } = fixture();
+    builder.document = { boxes: [{ ...projection.boxes[0], id: 'origin' }, { ...projection.boxes[1], id: 'z-first' }, { ...projection.boxes[2], id: 'a-second' }], lines: [] };
+    builder.layout = { boxes: { origin: { x: 0, y: 0 }, 'z-first': { x: 100, y: 100 }, 'a-second': { x: 100, y: -100 } } };
+    builder.select('origin');
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', altKey: true, bubbles: true, cancelable: true }));
+    expect(builder.selected?.id).toBe('z-first');
+  });
   it("opens a contextual keyboard chooser and inserts on the selected step's line", () => {
     const { builder, root, canvas } = fixture();
     const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
@@ -1137,13 +1203,13 @@ describe("Process Modeler prototype interactions", () => {
     const { builder, root, canvas } = fixture(); builder.select('a'); builder.setView({ x: 0, y: 0, zoom: 1 });
     const before = builder.layout.boxes.b;
     const step = root.querySelector<HTMLElement>('[data-box-id=b]')!;
-    step.focus();
+    step.focus(); expect(builder.selected?.id).toBe('b');
     step.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }));
     pointer(step, 'pointerdown', 50, 50);
     pointer(canvas, 'pointermove', 90, 75); pointer(canvas, 'pointerup', 90, 75);
     step.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', bubbles: true }));
     expect(builder.view).toEqual({ x: 40, y: 25, zoom: 1 });
-    expect(builder.layout.boxes.b).toEqual(before); expect(builder.selected?.id).toBe('a');
+    expect(builder.layout.boxes.b).toEqual(before); expect(builder.selected?.id).toBe('b');
     pointer(step, 'pointerdown', 50, 50); pointer(canvas, 'pointermove', 82, 50); pointer(canvas, 'pointerup', 82, 50);
     expect(builder.view).toEqual({ x: 40, y: 25, zoom: 1 });
     expect(builder.layout.boxes.b.x).not.toBe(before.x);
