@@ -19,6 +19,17 @@ describe('controlled expression fields',()=>{
   const {b,r}=fixture();const changes=vi.fn();b.addEventListener('process-field-change-request',changes);const input=r.querySelector<HTMLInputElement>('[data-field=when]')!;
   const chip=r.querySelector<HTMLButtonElement>('[part=variable-chips] button')!;chip.focus();input.addEventListener('focus',()=>b.select('b'),{once:true});chip.click();expect(changes).not.toHaveBeenCalled();expect(b.selected?.id).toBe('b');
  });
+ it('retains opened help across repeated value and feedback echoes and resets after owner navigation or load',()=>{
+  const field:ProcessField={key:'when',label:'Condition',kind:'expression',value:'true',expression:{variables:[{name:'scoped'}],help:{summary:'Examples',examples:[{expression:'true',description:'Always'}]}}};
+  const {b,r}=fixture(field);const help=()=>r.querySelector<HTMLDetailsElement>('[part=expression-help]')!;
+  help().open=true;
+  b.addEventListener('process-field-change-request',event=>{const d=(event as CustomEvent).detail;b.fields={a:[{...field,value:d.value,expression:{...field.expression,feedback:{message:'Reads fine'}}}],b:[field]};});
+  for(const value of ['true &&','true && false']){const input=r.querySelector<HTMLInputElement>('[data-field=when]')!;input.focus();input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));expect(help().open).toBe(true);}
+  r.querySelector<HTMLButtonElement>('[part=variable-chips] button')!.click();expect(help().open).toBe(true);
+  help().open=false;b.fields={...b.fields,a:[{...field,description:'Help refreshed'}]};expect(help().open).toBe(false);
+  help().open=true;b.select('b');expect(help().open).toBe(false);b.select('a');expect(help().open).toBe(false);
+  help().open=true;b.load(b.document!);b.select('a');expect(help().open).toBe(false);
+ });
  it('renders explicit ordered scope, safe feedback/help and textarea anatomy',()=>{
   const {r}=fixture({key:'when',label:'Condition',kind:'expression',value:'',placeholder:'Condition here',description:'Static help',expression:{rows:2,variables:[{name:'local',description:'Only here'},{name:'saved',description:'Saved output'}],feedback:{message:'Reads fine',tone:'success'},help:{summary:'Examples',examples:[{expression:'a < b',description:'Compare <img>',segments:[{text:'Use '},{text:'<',format:'code'}]}]}}});
   const input=r.querySelector<HTMLTextAreaElement>('textarea[data-field=when]')!;expect(input.rows).toBe(2);expect(input.placeholder).toBe('Condition here');expect([...r.querySelectorAll('[part=variable-chips] button')].map(n=>n.textContent)).toEqual(['local','saved']);expect(r.querySelector('[part=variable-chips] button')!.getAttribute('title')).toBe('Only here');expect(input.getAttribute('aria-describedby')!.split(' ').map(id=>r.getElementById(id)!.textContent)).toEqual(['Static help','Reads fine']);expect(r.querySelector('details')!.open).toBe(false);expect(r.querySelector('details code')!.textContent).toBe('a < b');expect(r.querySelector('img')).toBeNull();

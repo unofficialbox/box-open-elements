@@ -2621,7 +2621,7 @@ export class ProcessModeler<
       checks.append(button);
     });
   }
-  private renderField(box: ProcessBox<N>, field: ProcessField): HTMLElement {
+  private renderField(box: ProcessBox<N>, field: ProcessField, helpOpen = false): HTMLElement {
     const row = document.createElement('div'); row.setAttribute('part', 'field');
     const label = document.createElement('label'); label.textContent = field.label;
     let control: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
@@ -2743,7 +2743,7 @@ export class ProcessModeler<
     }
     if (describedBy.length) control.setAttribute('aria-describedby', describedBy.join(' '));
     if (field.kind === 'expression' && field.expression?.help) {
-      const details = document.createElement('details'); details.setAttribute('part', 'expression-help');
+      const details = document.createElement('details'); details.setAttribute('part', 'expression-help'); details.dataset.field = field.key; details.dataset.session = String(this.layoutEditSession); details.open = helpOpen;
       const summary = document.createElement('summary'); summary.textContent = field.expression.help.summary; details.append(summary);
       const list = document.createElement('ul'); details.append(list);
       for (const example of field.expression.help.examples) {
@@ -2844,6 +2844,12 @@ export class ProcessModeler<
       restoreControlFocus();
       return;
     }
+    const expressionHelp = new Map<string, boolean>();
+    if (this.inspectedId === selected?.id && this.selectedIds.size === 1) {
+      for (const help of Array.from(editor.querySelectorAll<HTMLDetailsElement>('[part=expression-help]'))) {
+        if (help.dataset.session === String(this.layoutEditSession)) expressionHelp.set(help.dataset.field!, help.open);
+      }
+    }
     this.cleanupInspector?.();
     this.cleanupInspector = undefined;
     editor.replaceChildren();
@@ -2868,7 +2874,7 @@ export class ProcessModeler<
       const kind = this.catalog.find(entry => entry.kind === selected.kind);
       const kindLabel = document.createElement('p'); kindLabel.setAttribute('part', 'inspector-kind'); kindLabel.textContent = kind?.label ?? selected.kind; editor.append(kindLabel);
       if (selected.description) { const purpose = document.createElement('p'); purpose.setAttribute('part', 'inspector-purpose'); purpose.textContent = selected.description; editor.append(purpose); }
-      for (const field of this.fieldsValue[selected.id] ?? []) editor.append(this.renderField(selected, field));
+      for (const field of this.fieldsValue[selected.id] ?? []) editor.append(this.renderField(selected, field, expressionHelp.get(field.key)));
       if (selected.localVariables !== undefined) editor.append(this.renderLocalVariables(selected));
       this.cleanupInspector =
         this.renderer?.(selected.node, editor) || undefined;

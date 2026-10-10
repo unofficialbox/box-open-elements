@@ -457,6 +457,8 @@ are announced politely.
 `help: { summary, examples: [{ expression, description, segments? }] }` draws a
 collapsed Examples disclosure. Optional description `segments` contain safe
 `{ text, format?: 'code' | 'text' }` runs; all content renders as text.
+Its open or closed state survives value and feedback echoes for the same field
+and selected box, and resets after selection navigation or a new document load.
 
 Variable insertion replaces the current selection, collapses the caret after the
 name and focuses the expression before its single controlled field request.
