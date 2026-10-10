@@ -127,7 +127,11 @@ export class ProcessModeler<
   get connections(): readonly ProcessConnection[] { return this.connectionsValue; }
   set connections(value: readonly ProcessConnection[]) { this.connectionsValue = value; this.refresh(); }
   get variables(): readonly ProcessVariable[] { return this.variablesValue; }
-  set variables(value: readonly ProcessVariable[]) { this.variablesValue = value; this.refresh(); }
+  set variables(value: readonly ProcessVariable[]) {
+    this.variablesValue = value; this.refresh();
+    if (this.pendingVariableRename && !value.some(v => v.name === this.pendingVariableRename!.name) && value.some(v => v.name === this.pendingVariableRename!.value)) this.pendingVariableRename = undefined;
+  }
+  private pendingVariableRename?: { name: string; value: string };
   /** Opt in to name, scope, add and remove controls; edits remain host-owned. */
   get variablesEditable(): boolean { return this.variablesEditableValue; }
   set variablesEditable(value: boolean) { this.variablesEditableValue = value; this.toggleAttribute('data-variables-editable', value); this.refresh(); }
@@ -890,7 +894,10 @@ export class ProcessModeler<
     }
   }
   private requestVariableEdit(edit: ProcessVariableEdit): void {
-    if (!this.locked) emit(this, 'process-variable-edit-request', edit);
+    if (!this.locked) {
+      if (edit.type === 'rename') this.pendingVariableRename = { name: edit.name, value: edit.value };
+      emit(this, 'process-variable-edit-request', edit);
+    }
   }
   private selectionCommand(command: string): void {
     if (this.locked) return;
@@ -2095,14 +2102,14 @@ export class ProcessModeler<
     if (!this.isRendered) return;
     const focusedControl = this.shadowRoot!.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
     const focusedKey = focusedControl?.dataset.field ?? focusedControl?.dataset.variable;
-    const variableKey = focusedControl?.dataset.variableKey, variableIndex = focusedControl?.dataset.variableIndex;
-    const focusedType = focusedControl?.dataset.field ? 'field' : focusedControl?.dataset.variable ? 'variable' : null;
+    const variableKey = focusedControl?.dataset.variableKey;
+    const focusedType = focusedControl?.dataset.field !== undefined ? 'field' : focusedControl?.dataset.variable !== undefined ? 'variable' : null;
     const caret = focusedControl && 'selectionStart' in focusedControl ? focusedControl.selectionStart : null;
     const restoreControlFocus = () => {
-      if (!focusedKey || !focusedType) return;
+      if (focusedKey === undefined || !focusedType) return;
       const controls = Array.from(this.shadowRoot!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | HTMLButtonElement>('input,textarea,select,button'));
       const control = controls.find(item => item.dataset[focusedType] === focusedKey && (focusedType !== 'variable' || item.dataset.variableKey === variableKey))
-        ?? (focusedType === 'variable' ? controls.find(item => item.dataset.variableIndex === variableIndex && item.dataset.variableKey === variableKey) ?? controls.find(item => item.dataset.variableKey === 'add') : undefined);
+        ?? (focusedType === 'variable' ? controls.find(item => this.pendingVariableRename?.name === focusedKey && item.dataset.variable === this.pendingVariableRename.value && item.dataset.variableKey === variableKey) ?? controls.find(item => item.dataset.variableKey === 'add') : undefined);
       if (!control) return;
       control.focus();
       if (caret !== null && (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) && control.type !== 'number' && control.type !== 'checkbox') control.setSelectionRange(caret, caret);

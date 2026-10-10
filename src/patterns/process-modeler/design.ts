@@ -293,7 +293,7 @@ export const processModelerDesign = `
   :host([data-variables-editable]) [part=variable-remove] { grid-column: 3; grid-row: 1; }
   :host([data-variables-editable]) [part=variable-row] :is(input,select) { width: 100%; min-width: 0; min-height: 32px; border-radius: 10px; font-size: 12.5px; }
   :host([data-variables-editable]) [part=variable-row] p { grid-column: 1 / -1; }
-  :host([data-variables-editable]) [part=variable-row] [part=field-problem] { color: var(--boe-token-text-text-error, #b42318); }
+  :host([data-variables-editable]) [part=variable-row] [part=field-problem] { color: var(--boe-token-text-status-text-error, #b92340); }
   [part=variable-remove], [part=variable-add] { min-height: 32px; align-self: end; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 8px; background: var(--boe-token-surface-surface, #fff); color: inherit; cursor: pointer; }
   [part=variable-row] p { margin: 0; color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=variable-scope] { color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 11.5px; }
