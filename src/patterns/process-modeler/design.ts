@@ -288,10 +288,19 @@ export const processModelerDesign = `
   [part=checks] { margin: 0; padding: 0; }
   [part=checks] button { width: 100%; border: 0; border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 0; text-align: start; background: transparent; }
   [part=variable-row], [part=connection-row] { display: grid; gap: 4px; padding: 10px 0; border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); font-size: 12.5px; }
+  :host([data-variables-editable]) [part=variable-row] { grid-template-columns: minmax(0,1fr) minmax(0,1fr) 32px; gap: 6px; align-items: center; }
+  :host([data-variables-editable]) [part=variable-row] label:has([data-variable-key=name]) { grid-column: 1; grid-row: 1; }
+  :host([data-variables-editable]) [part=variable-row] label:has([data-variable-key=value]) { grid-column: 2; grid-row: 1; }
+  :host([data-variables-editable]) [part=variable-row] label:has([data-variable-key=scope]) { grid-column: 2; grid-row: 2; }
+  :host([data-variables-editable]) [part=variable-remove] { grid-column: 3; grid-row: 1; }
+  :host([data-variables-editable]) [part=variable-row] :is(input,select) { width: 100%; min-width: 0; min-height: 32px; border-radius: 10px; font-size: 12.5px; }
+  :host([data-variables-editable]) [part=variable-row] p { grid-column: 1 / -1; }
+  :host([data-variables-editable]) [part=variable-row] [part=field-problem] { color: var(--boe-token-text-text-error, #b42318); }
+  [part=variable-remove], [part=variable-add] { min-height: 32px; align-self: end; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 8px; background: var(--boe-token-surface-surface, #fff); color: inherit; cursor: pointer; }
   [part=variable-row] p { margin: 0; color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=variable-scope] { color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 11.5px; }
   [part=variable-row] label { display: grid; gap: 4px; font-weight: 650; }
-  [part=variable-row] input { min-height: 36px; padding: 7px 10px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 8px; background: var(--boe-token-surface-surface, #fff); }
+  [part=variable-row] :is(input,select) { min-height: 36px; padding: 7px 10px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 8px; background: var(--boe-token-surface-surface, #fff); }
   [part=help] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   :host([data-narrow]) [part=layout] { grid-template-columns: minmax(0,1fr); }
   :host([data-narrow]) [part=layout] { overflow: visible; }

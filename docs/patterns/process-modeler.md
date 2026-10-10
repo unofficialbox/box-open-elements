@@ -286,3 +286,16 @@ host-supplied display data, never credentials; the library requests the host's
 connection setup instead of storing secrets. Variables and kind fields emit
 controlled edit requests. The reference Riptide Diagram remains the visual
 specification at 1440px and 390px in both themes.
+
+
+### Host-owned variable editing
+
+`variablesEditable = true` opts into Name, Scope, Add and Remove controls in the
+Variables pane. It defaults to false, preserving existing display behavior.
+The component emits `process-variable-edit-request` with `ProcessVariableEdit`:
+`{type: "add"}`, `{type: "remove", name}`, `{type: "rename", name, value}`, or
+`{type: "scope", name, value: "iteration" | "process"}`. The host applies or
+refuses the request and echoes its `variables` array; the component never mutates
+that array. Starting expressions retain the existing
+`process-variable-change-request` contract. Supply `problem` for host validation.
+Locked diagrams disable all variable editing controls.
