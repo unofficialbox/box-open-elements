@@ -75,6 +75,7 @@ export class ProcessModeler<
   private viewport = { x: 0, y: 0, zoom: 1 };
   private pointers = new Map<number, { x: number; y: number }>();
   private drag?: {
+    previewed?: boolean;
     id?: string;
     x: number;
     y: number;
@@ -1373,6 +1374,7 @@ export class ProcessModeler<
         this.shadowRoot!.querySelectorAll<HTMLElement>("[data-box-id]"),
       ).find((box) => box.dataset.boxId === this.drag!.id);
       if (element) {
+        this.drag.previewed = true;
         const position = this.alignedPoint(this.drag.id, this.drag.position.x + dx / this.viewport.zoom, this.drag.position.y + dy / this.viewport.zoom);
         const moved = this.selectedIds.size > 1 && this.selectedIds.has(this.drag.id)
           ? new Set(this.selectedIds) : new Set([this.drag.id]);
@@ -1487,7 +1489,7 @@ export class ProcessModeler<
     }
     this.shadowRoot!.querySelectorAll('[part=guide],[part=measure]').forEach(element => element.remove());
     this.markDropLine(undefined);
-    if (drag?.id && (!commit || Math.hypot(event.clientX - drag.x, event.clientY - drag.y) > 4)) this.refresh();
+    if (drag?.id && (drag.previewed || !commit || Math.hypot(event.clientX - drag.x, event.clientY - drag.y) > 4)) this.refresh();
   }
   private canvasPoint(event: { clientX: number; clientY: number }) {
     const rect = this.shadowRoot!.querySelector('[part=canvas]')!.getBoundingClientRect();

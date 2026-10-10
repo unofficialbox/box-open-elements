@@ -870,6 +870,12 @@ describe("Process Modeler prototype interactions", () => {
     pointer(canvas, 'pointercancel', 82, 66);
     expect(position('frame')).toEqual([40,40]); expect(position('inner')).toEqual([80,90]); expect(position('child')).toEqual([100,120]);
     expect(builder.layout).toEqual(before);
+    for (const [x, y] of [[50,50], [52,51]]) {
+      pointer(root.querySelector('[data-box-id=frame]')!, 'pointerdown', 50, 50);
+      pointer(canvas, 'pointermove', 82, 66); pointer(canvas, 'pointermove', x, y); pointer(canvas, 'pointerup', x, y);
+      expect(position('frame')).toEqual([40,40]); expect(position('inner')).toEqual([80,90]); expect(position('child')).toEqual([100,120]);
+      expect(builder.layout).toEqual(before);
+    }
     pointer(root.querySelector('[data-box-id=frame]')!, 'pointerdown', 50, 50); pointer(canvas, 'pointermove', 82, 66); pointer(canvas, 'pointerup', 82, 66);
     expect(builder.layout.boxes.child).toMatchObject({x:132,y:136});
     builder.undo(); expect(builder.layout).toEqual(before);
