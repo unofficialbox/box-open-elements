@@ -2364,7 +2364,7 @@ export class ProcessModeler<
           });
           this.connecting = null;
         }
-        if (event.shiftKey && this.graphSelection) this.selectItems(this.selectedIds.has(box.id) ? this.selection.filter(item => item.type !== "box" || item.id !== box.id) : [...this.selection, { type: "box", id: box.id }]);
+        if (event.shiftKey && (this.graphSelection || this.selectedLineIds.size || this.selectedNoteIds.size)) this.selectItems(this.selectedIds.has(box.id) ? this.selection.filter(item => item.type !== "box" || item.id !== box.id) : [...this.selection, { type: "box", id: box.id }]);
         else if (event.shiftKey) this.selectMany(this.selectedIds.has(box.id) ? [...this.selectedIds].filter(id => id !== box.id) : [...this.selectedIds, box.id]);
         else this.select(box.id);
       });
@@ -2440,7 +2440,7 @@ export class ProcessModeler<
       label.style.top = `${midpoint.y}px`;
       const names = `${this.projection.boxes.find((box) => box.id === line.from)!.title} to ${this.projection.boxes.find((box) => box.id === line.to)!.title}${line.label ? `, ${line.label}` : ""}`;
       label.setAttribute('aria-label', `Connection: ${names}${this.showLastRunValue && line.share !== undefined ? `. ${Math.round(line.share * 100)}% of last-run traffic` : ''}`);
-      label.addEventListener('click', event => { if ((event.target as HTMLElement).closest('button')) return; this.selectLine(line.id); });
+      label.addEventListener('click', event => { if ((event.target as HTMLElement).closest('button')) return; if (event.shiftKey) this.selectItems(this.selectedLineIds.has(line.id) ? this.selection.filter(item => item.type !== 'line' || item.id !== line.id) : [...this.selection, { type: 'line', id: line.id }]); else this.selectLine(line.id); });
       label.addEventListener('keydown', event => { if (event.target === label && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); this.selectLine(line.id); } });
       const text = document.createElement("span");
       const source = this.projection.boxes.find(box => box.id === line.from)!;
