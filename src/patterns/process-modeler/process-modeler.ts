@@ -126,6 +126,10 @@ export class ProcessModeler<
   private paletteDragKind: ProcessKind | null = null;
   private palettePointer?: { kind: ProcessKind; id: number; x: number; y: number; moved: boolean };
   private suppressPaletteClick = false;
+  private readonly escapePalettePointer = (event: KeyboardEvent): void => {
+    if (event.key !== 'Escape' || !this.palettePointer) return;
+    this.cancelPalettePointer(); event.preventDefault();
+  };
   private narrowValue = false;
   private suppressClick = false;
   private resizeObserver?: ResizeObserver;
@@ -177,6 +181,7 @@ export class ProcessModeler<
     };
   }
   load(document: D, options: ProcessLoadOptions = {}): void {
+    this.cancelPalettePointer();
     const projection = this.model.project(document); validateProjection(projection);
     this.documentValue = document;
     this.projection = projection;
@@ -2152,8 +2157,10 @@ export class ProcessModeler<
   }
   private activatePaletteKind(kind: ProcessKind): void {
     if (this.locked) return;
+    if (this.narrowValue) { this.closeDrawer(); this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.focus({ preventScroll: true }); }
     if (kind.placement) { this.addLayoutKind(kind); return; }
-    const from = this.selectedId;
+    const selected = this.selectedIds.size === 1 ? this.selected : null;
+    const from = selected && !selected.frame && selected.kind !== 'section' && !['end', 'finish'].includes(selected.kind) ? selected.id : undefined;
     const outgoing = from ? this.projection.lines.filter(line => line.from === from) : [];
     const line = outgoing.length === 1 ? outgoing[0] : undefined;
     this.requestEdit(line ? { type: 'insert', kind, lineId: line.id, from: line.from, to: line.to } : { type: 'add', kind, ...(from ? { from } : {}) });
@@ -2179,6 +2186,7 @@ export class ProcessModeler<
   }
   private cancelPalettePointer(): void {
     const drag = this.palettePointer; this.palettePointer = undefined;
+    this.ownerDocument.removeEventListener('keydown', this.escapePalettePointer, true);
     if (!drag) return;
     this.suppressPaletteClick = true;
     this.shadowRoot?.querySelector('[part=palette-ghost]')?.remove(); this.markDropLine(undefined);
@@ -2230,6 +2238,7 @@ export class ProcessModeler<
         if (this.locked || event.button !== 0 || event.isPrimary === false) return;
         this.cancelPalettePointer(); this.suppressPaletteClick = false;
         this.palettePointer = { kind, id: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
+        this.ownerDocument.addEventListener('keydown', this.escapePalettePointer, true);
         try { this.setPointerCapture(event.pointerId); } catch { /* Detached synthetic pointers cannot be captured. */ }
         event.preventDefault(); event.stopPropagation();
       });

@@ -1075,6 +1075,37 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector('[part=palette-ghost]')).toBeNull();
     document.body.append(builder); choice.click(); expect(requests).toHaveBeenCalledTimes(2);
   });
+  it('cancels palette drags with Escape while keyboard focus stays outside the component', () => {
+    const { builder, root, canvas } = fixture();
+    canvas.getBoundingClientRect = () => ({ left: 0, top: 0, right: 1000, bottom: 800, width: 1000, height: 800 }) as DOMRect;
+    const input = document.createElement('input'); document.body.append(input); input.focus();
+    const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    pointer(root.querySelector('[part=choice]')!, 'pointerdown', -100, 100); pointer(builder, 'pointermove', 900, 700);
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })); pointer(builder, 'pointerup', 900, 700);
+    expect(requests).not.toHaveBeenCalled(); expect(root.querySelector('[part=palette-ghost]')).toBeNull();
+  });
+  it('adds palette choices independently for multi-selection or selected End and closes narrow keyboard drawers', () => {
+    const { builder, root } = fixture(); const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    builder.selectMany(['a', 'b']); root.querySelector<HTMLButtonElement>('[part=choice]')!.click();
+    expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'add' }); expect(requests.mock.calls[0][0].detail.from).toBeUndefined();
+    builder.document = { ...projection, boxes: projection.boxes.map(box => box.id === 'a' ? { ...box, kind: 'end' } : box) };
+    builder.select('a'); root.querySelector<HTMLButtonElement>('[part=choice]')!.click();
+    expect(requests.mock.calls[1][0].detail.from).toBeUndefined();
+    Object.assign(builder, { narrowValue: true }); root.querySelector<HTMLButtonElement>('[data-command=palette]')?.click();
+    const drawer = root.querySelector<HTMLDialogElement>('[part=pane-drawer][data-pane=palette]')!;
+    expect(drawer.open).toBe(true); root.querySelector<HTMLButtonElement>('[part=choice]')!.click(); expect(drawer.open).toBe(false);
+    expect(root.activeElement).toBe(root.querySelector('[part=canvas]'));
+  });
+  it('cancels captured palette gestures on load and allows a fresh gesture', () => {
+    const { builder, root, canvas } = fixture();
+    canvas.getBoundingClientRect = () => ({ left: 0, top: 0, right: 1000, bottom: 800, width: 1000, height: 800 }) as DOMRect;
+    const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    pointer(root.querySelector('[part=choice]')!, 'pointerdown', -100, 100); pointer(builder, 'pointermove', 900, 700);
+    builder.load(structuredClone(projection)); pointer(builder, 'pointermove', 900, 700); pointer(builder, 'pointerup', 900, 700);
+    expect(requests).not.toHaveBeenCalled(); expect(root.querySelector('[part=palette-ghost]')).toBeNull();
+    pointer(root.querySelector('[part=choice]')!, 'pointerdown', -100, 100); pointer(builder, 'pointermove', 900, 700); pointer(builder, 'pointerup', 900, 700);
+    expect(requests).toHaveBeenCalledOnce();
+  });
   it("inserts a palette drop on a routed line and highlights its hit target", () => {
     const { builder, root, canvas } = fixture(); const requests = vi.fn(); builder.addEventListener("process-edit-request", requests);
     const point = lineMidpoint(routeProcessLine(projection.lines[0], builder.layout, projection));
