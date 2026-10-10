@@ -189,13 +189,20 @@ history. Tidy animates box positions over 320ms unless reduced motion is set.
 
 - Hover or select a step to reveal four ports. Drag a port to another step to
   request a connection; the target outlines and a tooltip explains whether it
-  can attach. Click or keyboard-activate a port to choose a new step in that
-  direction; a ghost marks its destination. Requests carry `fromSide`; lines
+  can attach. Drop on empty canvas to choose a connected step at that position;
+  cancellation makes no edit. Click or keyboard-activate a port to choose a step
+  in that direction. The east port, like **Add next**, inserts between the
+  source and its sole successor. These entry points open a contextual chooser
+  beside the port, toolbar action, or drop point. Requests
+  carry `fromSide` and, for an empty drop, `position` and `parentId`; lines
   can also supply `toSide`, and authored sides show pinned-end marks. Dropping
   on the highlighted edge point requests `toSide` (or `fromSide` during
   reattachment); dropping elsewhere on a box leaves that end automatic.
 - Drop a building block or existing step onto a highlighted line to insert it.
-  A placement ghost follows a palette drag. Drop into a frame to request
+  On an accepted new-step insert along a straight, root-level row, the library
+  makes room by moving that row's later columns and records the layout with the
+  host edit for undo/redo. Branched and nested inserts retain host-owned layout
+  placement. A placement ghost follows a palette drag. Drop into a frame to request
   grouping. These requests remain host-owned and
   may be refused; a refused drag returns to its original position.
 - Catalog entries marked `placement: "note"` or `"section"` create reader-only

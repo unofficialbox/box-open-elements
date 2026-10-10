@@ -143,9 +143,9 @@ describe("Process Modeler prototype interactions", () => {
     chooser.showModal = vi.fn(() => { chooser.open = true; });
     root.querySelector<HTMLButtonElement>('[data-owner=a][data-side=east]')!.click();
     expect(root.querySelector<HTMLDialogElement>('[part=insert-chooser]')!.open).toBe(true);
-    expect(root.querySelector('[part=ghost-box]')?.textContent).toBe('New step');
+    expect(root.querySelector('[part=ghost-box]')).toBeNull();
     root.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
-    expect(requests.mock.calls[0][0].detail).toMatchObject({ type: "add", from: "a", fromSide: "east", kind: { kind: "call" } });
+    expect(requests.mock.calls[0][0].detail).toMatchObject({ type: "insert", from: "a", to: "b", lineId: "ab", kind: { kind: "call" } });
   });
   it("names the narrow building-block drawer and focuses search when it opens", () => {
     const { builder, root } = fixture();
@@ -329,6 +329,55 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector('[part=status]')?.getAttribute('role')).toBe('status');
     expect(root.querySelector('style')?.textContent).toContain('[part=sr-only], [part=status]');
   });
+  it('opens a connected-step chooser at an empty port drop and inserts on an east-port click', () => {
+    const { builder, root, canvas } = fixture();
+    const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    const chooser = root.querySelector<HTMLDialogElement>('[part=insert-chooser]')!;
+    chooser.showModal = vi.fn(() => { chooser.open = true; });
+    const source = builder.layout.boxes.a;
+    const east = root.querySelector('[data-owner=a][data-side=east]')!;
+    pointer(east, 'pointerdown', source.x + 224, source.y + 32);
+    pointer(canvas, 'pointermove', 850, 420);
+    expect(root.querySelector('[part=connect-tooltip]')?.textContent).toBe('Drop here to add a connected step');
+    expect(root.querySelector<HTMLElement>('[part=connect-tooltip]')?.dataset.invalid).toBe('false');
+    pointer(canvas, 'pointerup', 850, 420);
+    expect(chooser.open).toBe(true);
+    expect(requests).not.toHaveBeenCalled();
+    expect(root.querySelector<HTMLElement>('[part=ghost-box]')?.style.left).toBe('850px');
+    chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
+    expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'add', from: 'a', fromSide: 'east', position: { x: 850, y: 420 } });
+    chooser.open = false;
+    pointer(east, 'pointerdown', source.x + 224, source.y + 32);
+    pointer(canvas, 'pointerup', source.x + 224, source.y + 32);
+    chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
+    expect(requests.mock.calls[1][0].detail).toMatchObject({ type: 'insert', lineId: 'ab', from: 'a', to: 'b' });
+  });
+  it('anchors an empty-drop chooser and cancels it without editing', () => {
+    const { builder, root, canvas } = fixture();
+    const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    const chooser = root.querySelector<HTMLElement>('[part=keyboard-chooser]')!;
+    chooser.showPopover = vi.fn(); chooser.hidePopover = vi.fn();
+    const source = builder.layout.boxes.a;
+    pointer(root.querySelector('[data-owner=a][data-side=east]')!, 'pointerdown', source.x + 224, source.y + 32);
+    pointer(canvas, 'pointermove', 850, 420);
+    pointer(canvas, 'pointerup', 850, 420);
+    expect(chooser.showPopover).toHaveBeenCalledOnce();
+    expect(chooser.querySelector('[part=chooser-title]')?.textContent).toBe('Add after Read');
+    expect(root.querySelector<HTMLDialogElement>('[part=insert-chooser]')!.open).toBe(false);
+    chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLInputElement>('[part=search]')!
+      .dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(chooser.hidePopover).toHaveBeenCalledOnce();
+    expect(requests).not.toHaveBeenCalled();
+  });
+  it('inserts between steps from Add next when the selected step has one successor', () => {
+    const { builder, root } = fixture(); builder.select('a');
+    const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    const chooser = root.querySelector<HTMLDialogElement>('[part=insert-chooser]')!;
+    chooser.showModal = vi.fn(() => { chooser.open = true; });
+    root.querySelector<HTMLButtonElement>('[data-selection-command=add-next]')!.click();
+    chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
+    expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'insert', lineId: 'ab', from: 'a', to: 'b' });
+  });
   it("selects a marquee and aligns/tidies the selected group with undo", () => {
     const { builder, root, canvas } = fixture();
     builder.layout = { boxes: {
@@ -361,6 +410,31 @@ describe("Process Modeler prototype interactions", () => {
     const event = (type: string) => { const event = new Event(type, { bubbles: true, cancelable: true }); Object.assign(event, { clientX: point.x, clientY: point.y, dataTransfer: { getData: () => 'call' } }); canvas.dispatchEvent(event); };
     event('dragover'); expect(root.querySelector('[data-line-id=ab][part=line]')!.getAttribute('data-drop')).toBe('true');
     event('drop'); expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'insert', lineId: 'ab', from: 'a', to: 'b' });
+  });
+  it('makes room for an accepted straight-row insert and undoes its layout atomically', () => {
+    const { builder } = fixture();
+    builder.layout = { boxes: {
+      a: { x: 0, y: 0, width: 224, height: 64 },
+      b: { x: 320, y: 0, width: 224, height: 64 },
+      c: { x: 700, y: 200, width: 224, height: 64 },
+    } };
+    const before = builder.layout;
+    const original = builder.document!;
+    builder.addEventListener('process-edit-request', event => {
+      const request = (event as CustomEvent).detail;
+      const inserted = { id: 'new', node: {}, title: 'New', kind: 'call' };
+      const after = { boxes: [...original.boxes, inserted], lines: [
+        { id: 'a-new', from: 'a', to: 'new' }, { id: 'new-b', from: 'new', to: 'b' },
+      ] };
+      builder.document = after;
+      request.accept({ undo: () => { builder.document = original; }, redo: () => { builder.document = after; } });
+    });
+    builder.requestEdit({ type: 'insert', kind: { kind: 'call', label: 'Call', create: () => ({}) }, lineId: 'ab', from: 'a', to: 'b', position: { x: 272, y: 32 } });
+    expect(builder.layout.boxes.new.x).toBe(304);
+    expect(builder.layout.boxes.b.x).toBeGreaterThanOrEqual(builder.layout.boxes.new.x + (builder.layout.boxes.new.width ?? 224) + 80);
+    expect(builder.layout.boxes.c.x).toBeGreaterThan(before.boxes.c.x);
+    builder.undo(); expect(builder.layout).toEqual(before);
+    builder.redo(); expect(builder.layout.boxes.new.x).toBe(304);
   });
   it("never exposes ports or commits selection edits when locked", () => {
     const { builder, root } = fixture(); builder.selectMany(['a', 'b']); builder.locked = true;
@@ -604,13 +678,42 @@ describe("Process Modeler prototype interactions", () => {
     const { builder, root } = fixture();
     builder.document = { ...projection, boxes: [...projection.boxes, { id: 'try', kind: 'try', title: 'Try', frame: true, node: {} }] };
     builder.select('try');
-    expect(root.querySelector<HTMLButtonElement>('[data-selection-command=add-next]')?.textContent).toBe('If it fails');
+    expect(root.querySelector<HTMLButtonElement>('[data-selection-command=add-next]')?.getAttribute('aria-label')).toBe('Add next');
+    expect(root.querySelector<HTMLButtonElement>('[data-selection-command=add-failure]')?.getAttribute('aria-label')).toBe('If it fails');
     const chooser = root.querySelector<HTMLDialogElement>('[part=insert-chooser]')!; chooser.showModal = vi.fn(() => { chooser.open = true; });
     const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
-    root.querySelector<HTMLButtonElement>('[data-selection-command=add-next]')!.click();
+    root.querySelector<HTMLButtonElement>('[data-selection-command=add-failure]')!.click();
     chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
     expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'add', from: 'try', routeLabel: 'If it fails', dashed: true });
     builder.document = { ...builder.document!, lines: [...projection.lines, { id: 'try-a', from: 'try', to: 'a', label: 'If it fails', dashed: true }] };
-    expect(root.querySelector<HTMLButtonElement>('[data-selection-command=add-next]')?.textContent).toBe('Add next');
+    expect(root.querySelector<HTMLButtonElement>('[data-selection-command=add-next]')?.getAttribute('aria-label')).toBe('Add next');
+    expect(root.querySelector('[data-selection-command=add-failure]')).toBeNull();
+  });
+  it('matches reference selection actions for Start, End, Try and ordinary steps', () => {
+    const { builder, root } = fixture();
+    builder.document = { ...projection, boxes: [
+      { id: 'start', kind: 'start', title: 'Start', shape: 'event', node: {} },
+      ...projection.boxes,
+      { id: 'end', kind: 'end', title: 'End', shape: 'event', node: {} },
+    ] };
+    const actions = () => [...root.querySelectorAll<HTMLButtonElement>('[part=selection-toolbar] button')].map(button => button.getAttribute('aria-label'));
+    builder.select('start');
+    expect(actions()).toEqual(['Add next']);
+    expect(root.querySelector('[data-selection-command=add-next] [part=selection-plus]')?.getAttribute('aria-hidden')).toBe('true');
+    builder.select('a');
+    expect(actions()).toEqual(['Add next', 'Duplicate', 'Delete']);
+    builder.select('end');
+    expect(actions()).toEqual(['Duplicate', 'Delete']);
+    builder.select(null);
+    builder.selectLine('ab');
+    expect(actions()).toContain('Insert a step');
+    expect(root.querySelector('[data-selection-command=insert] [part=selection-plus]')).toBeTruthy();
+  });
+  it('does not offer outgoing ports or Add next on a Finish step', () => {
+    const { builder, root } = fixture();
+    builder.document = { ...projection, boxes: [...projection.boxes, { id: 'finish', kind: 'finish', title: 'Finish', shape: 'event', node: {} }] };
+    builder.select('finish');
+    expect(root.querySelector('[data-owner=finish][part=port]')).toBeNull();
+    expect(root.querySelector('[data-selection-command=add-next]')).toBeNull();
   });
 });
