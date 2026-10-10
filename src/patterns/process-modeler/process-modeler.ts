@@ -124,6 +124,12 @@ export class ProcessModeler<
   private spacePressed = false;
   private dropLine?: string;
   private paletteDragKind: ProcessKind | null = null;
+  private palettePointer?: { kind: ProcessKind; id: number; x: number; y: number; moved: boolean };
+  private suppressPaletteClick = false;
+  private readonly escapePalettePointer = (event: KeyboardEvent): void => {
+    if (event.key !== 'Escape' || !this.palettePointer) return;
+    this.cancelPalettePointer(); event.preventDefault();
+  };
   private narrowValue = false;
   private suppressClick = false;
   private resizeObserver?: ResizeObserver;
@@ -175,6 +181,7 @@ export class ProcessModeler<
     };
   }
   load(document: D, options: ProcessLoadOptions = {}): void {
+    this.cancelPalettePointer();
     const projection = this.model.project(document); validateProjection(projection);
     this.documentValue = document;
     this.projection = projection;
@@ -262,6 +269,7 @@ export class ProcessModeler<
   }
   set locked(value: boolean) {
     this.toggleAttribute("locked", value);
+    if (value) this.cancelPalettePointer();
   }
   get snapToGrid(): boolean {
     return this.hasAttribute("snap-to-grid");
@@ -291,6 +299,7 @@ export class ProcessModeler<
   disconnectedCallback(): void {
     this.resizeObserver?.disconnect();
     this.clearClipboard();
+    this.cancelPalettePointer();
     this.closeDrawer();
     const chooser = this.shadowRoot?.querySelector<HTMLDialogElement>("[part=insert-chooser]");
     if (chooser) dismissModal(chooser);
@@ -722,7 +731,7 @@ export class ProcessModeler<
     skip.onclick = () => { const target = this.selectedId ?? this.projection.boxes.find(box => box.kind === "start")?.id; if (target) this.focusBox(target); else root.querySelector<HTMLElement>('[part=canvas]')?.focus(); };
     const paletteHeading = document.createElement("h2"); paletteHeading.setAttribute("part", "palette-heading"); paletteHeading.textContent = "Add to the process";
     palette.prepend(skip, paletteHeading);
-    const hint = document.createElement("p"); hint.setAttribute("part", "palette-hint"); hint.textContent = "Drag onto the canvas, a connection, or a frame. Select a step first to add after it."; palette.append(hint);
+    const hint = document.createElement("p"); hint.setAttribute("part", "palette-hint"); hint.textContent = "Drag onto the canvas, onto a line to insert, or into a frame. Choosing one with a step selected adds it after that step. Or click a dot beside any step to add one that way."; palette.append(hint);
     for (const [part, label] of [["palette", "Building blocks"], ["inspector", "Process details"]]) {
       const pane = root.querySelector(`[part=${part}]`)!;
       const dialog = document.createElement("dialog"); dialog.setAttribute("part", "pane-drawer"); dialog.setAttribute("aria-label", label); dialog.dataset.pane = part;
@@ -1061,6 +1070,11 @@ export class ProcessModeler<
     this.setSection({ id, title, x, y, width: right - x, height: bottom - y });
   }
   protected setupListeners(): void {
+    this.addEventListener('pointermove', event => this.movePalettePointer(event));
+    this.addEventListener('pointerup', event => this.finishPalettePointer(event));
+    this.addEventListener('pointercancel', event => { if (event.pointerId === this.palettePointer?.id) this.cancelPalettePointer(); });
+    this.addEventListener('lostpointercapture', event => { if (event.pointerId === this.palettePointer?.id) this.cancelPalettePointer(); });
+    this.shadowRoot!.addEventListener('keydown', event => { if ((event as KeyboardEvent).key === 'Escape' && this.palettePointer) { this.cancelPalettePointer(); event.preventDefault(); } }, true);
     this.shadowRoot!.addEventListener(
       "click",
       (event) => {
@@ -2141,6 +2155,54 @@ export class ProcessModeler<
       height: `${position.height ?? 64}px`,
     });
   }
+  private activatePaletteKind(kind: ProcessKind): void {
+    if (this.locked) return;
+    if (this.narrowValue) { this.closeDrawer(); this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.focus({ preventScroll: true }); }
+    if (kind.placement) { this.addLayoutKind(kind); return; }
+    const selected = this.selectedIds.size === 1 ? this.selected : null;
+    const from = selected && !selected.frame && selected.kind !== 'section' && !['end', 'finish'].includes(selected.kind) ? selected.id : undefined;
+    const outgoing = from ? this.projection.lines.filter(line => line.from === from) : [];
+    const line = outgoing.length === 1 ? outgoing[0] : undefined;
+    this.requestEdit(line ? { type: 'insert', kind, lineId: line.id, from: line.from, to: line.to } : { type: 'add', kind, ...(from ? { from } : {}) });
+  }
+  private paletteCanvasPoint(event: PointerEvent): { x: number; y: number } | undefined {
+    const rect = this.shadowRoot!.querySelector('[part=canvas]')!.getBoundingClientRect();
+    if (event.clientX <= rect.left || event.clientX >= rect.right || event.clientY <= rect.top || event.clientY >= rect.bottom) return;
+    return this.canvasPoint(event);
+  }
+  private movePalettePointer(event: PointerEvent): void {
+    const drag = this.palettePointer; if (!drag || drag.id !== event.pointerId) return;
+    if (this.locked) { this.cancelPalettePointer(); return; }
+    if (!drag.moved && Math.hypot(event.clientX - drag.x, event.clientY - drag.y) < 5) return;
+    if (!drag.moved) { drag.moved = true; if (this.narrowValue) this.closeDrawer(); }
+    let ghost = this.shadowRoot!.querySelector<HTMLElement>('[part=palette-ghost]');
+    if (!ghost) {
+      ghost = document.createElement('div'); ghost.setAttribute('part', 'palette-ghost'); ghost.dataset.pointer = 'true'; ghost.setAttribute('aria-hidden', 'true');
+      if (drag.kind.icon) ghost.append(drag.kind.icon()); ghost.append(document.createTextNode(drag.kind.label)); this.shadowRoot!.append(ghost);
+    }
+    ghost.style.left = `${event.clientX}px`; ghost.style.top = `${event.clientY}px`;
+    this.markDropLine(!drag.kind.placement && drag.kind.kind !== 'end' ? this.paletteCanvasPoint(event) : undefined);
+    event.preventDefault();
+  }
+  private cancelPalettePointer(): void {
+    const drag = this.palettePointer; this.palettePointer = undefined;
+    this.ownerDocument.removeEventListener('keydown', this.escapePalettePointer, true);
+    if (!drag) return;
+    this.suppressPaletteClick = true;
+    this.shadowRoot?.querySelector('[part=palette-ghost]')?.remove(); this.markDropLine(undefined);
+    try { this.releasePointerCapture(drag.id); } catch { /* Capture may already have been lost. */ }
+  }
+  private finishPalettePointer(event: PointerEvent): void {
+    const drag = this.palettePointer; if (!drag || drag.id !== event.pointerId) return;
+    const point = this.paletteCanvasPoint(event); this.cancelPalettePointer();
+    if (this.locked) return;
+    if (!drag.moved) { this.activatePaletteKind(drag.kind); if (this.narrowValue) this.closeDrawer(); return; }
+    if (!point) return;
+    if (drag.kind.placement) { this.addLayoutKind(drag.kind, point); return; }
+    const line = drag.kind.kind === 'end' ? undefined : this.lineAt(point);
+    const frame = line ? undefined : this.boxAt(point, undefined, true);
+    this.requestEdit({ type: line ? 'insert' : 'add', kind: drag.kind, lineId: line?.id, from: line?.from, to: line?.to, parentId: frame?.id, position: point });
+  }
   private renderPalette(): void {
     const choices =
       this.shadowRoot!.querySelector<HTMLElement>("[part=choices]")!;
@@ -2171,16 +2233,21 @@ export class ProcessModeler<
       const description = document.createElement("span"); description.setAttribute("part", "choice-description"); description.textContent = kind.description;
       button.append(icon, name, description);
       button.disabled = this.locked;
-      button.draggable = !this.locked;
-      button.addEventListener("click", () => {
-        if (kind.placement) { this.addLayoutKind(kind); return; }
-        const from = this.selectedId;
-        const outgoing = from ? this.projection.lines.filter(line => line.from === from) : [];
-        const line = outgoing.length === 1 ? outgoing[0] : undefined;
-        this.requestEdit(line ? { type: "insert", kind, lineId: line.id, from: line.from, to: line.to } : { type: "add", kind, ...(from ? { from } : {}) });
+      button.draggable = false;
+      button.addEventListener('pointerdown', event => {
+        if (this.locked || event.button !== 0 || event.isPrimary === false) return;
+        this.cancelPalettePointer(); this.suppressPaletteClick = false;
+        this.palettePointer = { kind, id: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
+        this.ownerDocument.addEventListener('keydown', this.escapePalettePointer, true);
+        try { this.setPointerCapture(event.pointerId); } catch { /* Detached synthetic pointers cannot be captured. */ }
+        event.preventDefault(); event.stopPropagation();
       });
-      button.addEventListener("dragstart", event => { this.paletteDragKind = kind; event.dataTransfer?.setData("application/boe-process-kind", kind.kind); });
-      button.addEventListener("dragend", () => { this.paletteDragKind = null; this.shadowRoot?.querySelector('[part=palette-ghost]')?.remove(); this.markDropLine(undefined); });
+      button.addEventListener('click', event => {
+        if (event.detail > 0 && this.suppressPaletteClick) { this.suppressPaletteClick = false; return; }
+        this.activatePaletteKind(kind);
+      });
+      button.addEventListener('dragstart', event => { this.paletteDragKind = kind; event.dataTransfer?.setData('application/boe-process-kind', kind.kind); });
+      button.addEventListener('dragend', () => { this.paletteDragKind = null; this.shadowRoot?.querySelector('[part=palette-ghost]')?.remove(); this.markDropLine(undefined); });
       choices.append(button);
     }
     const canvas =

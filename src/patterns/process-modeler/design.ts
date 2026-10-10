@@ -108,13 +108,13 @@ export const processModelerDesign = `
   [part=choice] {
     display: grid; grid-template-columns: 20px minmax(0,1fr); gap: 0 10px;
     min-height: 44px; padding: 8px 10px; border: 1px solid transparent; border-radius: 10px;
-    text-align: start; background: transparent; cursor: grab;
+    text-align: start; background: transparent; cursor: grab; touch-action: none;
   }
   [part=choice]:hover { border-color: var(--boe-token-stroke-stroke, #e8e8e8); background: var(--boe-token-surface-surface-hover, #f4f4f4); }
   [part=choice-icon] { grid-row: span 2; width: 20px; height: 20px; color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=choice][data-tone=accent] [part=choice-icon] { color: var(--boe-token-surface-surface-brand, #0061d5); }
   [part=choice-icon] svg { width: 20px; height: 20px; }
-  [part=choice-name] { font-size: 13px; font-weight: 600; line-height: 1.3; }
+  [part=choice-name] { font-size: 13px; font-weight: 600; line-height: 1.45; }
   [part=choice-description] { grid-column: 2; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12px; line-height: 1.35; }
   [part=palette-hint] { margin: 4px; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12px; line-height: 1.45; }
   [part=canvas] {
@@ -227,6 +227,8 @@ export const processModelerDesign = `
   [part=connect-tooltip] { position: absolute; z-index: 20; max-width: 240px; padding: 5px 8px; border-radius: 7px; background: var(--boe-token-text-text, #141413); color: var(--boe-token-surface-surface, #fff); font-size: 12px; pointer-events: none; box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }
   [part=connect-tooltip][data-invalid=true] { background: var(--boe-token-text-status-text-error, #b92340); color: #fff; }
   [part=ghost-box], [part=palette-ghost] { position: absolute; z-index: 5; display: flex; align-items: center; padding: 11px 12px; border: 1.5px dashed var(--boe-token-surface-surface-brand, #0061d5); border-radius: 8px; background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface, #fff)); font-size: 13px; font-weight: 650; pointer-events: none; }
+  [part=palette-ghost][data-pointer] { position: fixed; z-index: 100; padding: 8px 12px; border: 1px solid var(--boe-token-surface-surface-brand, #0061d5); border-radius: 10px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-token-elevation-overlay, 0 8px 24px #0002); font-size: 13px; font-weight: 600; gap: 8px; translate: -50% -50%; }
+  [part=palette-ghost][data-pointer] svg { width: 20px; height: 20px; }
   [part=guide] { position: absolute; background: var(--boe-token-surface-surface-brand, #0061d5); pointer-events: none; }
   [part=measure] { position: absolute; padding: 4px; background: var(--boe-token-surface-surface, #fff); font-size: 12px; pointer-events: none; }
   [part=insert-chooser] { max-width: calc(100vw - 32px); max-height: 65vh; overflow: auto; padding: 12px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface, #fff); }
