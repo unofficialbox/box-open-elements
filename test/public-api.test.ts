@@ -43,6 +43,6 @@ describe("concise component API", () => {
     const entries = readdirSync(join(import.meta.dirname, "../src/entries"))
       .filter(file => file.endsWith(".ts"));
 
-    expect(entries).toHaveLength(159);
+    expect(entries).toHaveLength(160);
   });
 });

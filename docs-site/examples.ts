@@ -234,6 +234,12 @@ const onSidebarToggle = (target: Element | null, run: (expanded: boolean) => voi
   });
 };
 
+const boxPlotDemoRows = [
+  { id: "upload", label: "files.upload", min: 16, p5: 21, q1: 34, median: 42, q3: 55, p95: 84, max: 126, count: 1204, reference: 50, samples: [21, 31, 42, 47, 65, 84] },
+  { id: "user", label: "users.me", min: 8, p5: 12, q1: 18, median: 24, q3: 31, p95: 45, max: 72, count: 984 },
+  { id: "signin", label: "Signing in", min: 32, p5: 39, q1: 52, median: 66, q3: 80, p95: 103, max: 148, count: 96 },
+];
+
 export const examples: Record<string, ComponentExample> = {
   "code-editor": { html: editorHtml, setup: setupCodeEditor, note: "Optional CodeMirror entrypoint. Escape then Tab leaves the editor. Host supplies diagnostics and completions." },
   "process-modeler": { html: modelerHtml, setup: setupProcessModeler, note: "Host-owned boxes and lines. Add, move, connect, remove and undo; save layout separately from your workflow." },
@@ -1806,5 +1812,25 @@ export const examples: Record<string, ComponentExample> = {
         { id: "other", label: "Other", value: 22 },
       ],
     }),
+  },
+  "box-plot": {
+    html: `<box-box-plot heading="Step times" description="Summary of sampled calls in one run" unit="ms" whiskers="p5-p95"></box-box-plot>`,
+    codeHtml: `<box-box-plot heading="Step times" unit="ms" whiskers="p5-p95" rows='[{"id":"upload","label":"files.upload","min":16,"p5":21,"q1":34,"median":42,"q3":55,"p95":84,"max":126,"count":1204}]'></box-box-plot>`,
+    setup: root => set(root, "box-box-plot", { rows: boxPlotDemoRows }),
+    variants: [{
+      name: "Horizontal · linear scale",
+      html: `<box-box-plot heading="Step times" description="Summary of sampled calls in one run" unit="ms" whiskers="p5-p95"></box-box-plot>`,
+      setup: root => set(root, "box-box-plot", { rows: boxPlotDemoRows }),
+    }, {
+      name: "Vertical · log scale",
+      html: `<box-box-plot heading="Response times by run" unit="ms" orientation="vertical" scale="log" whiskers="p5-p99"></box-box-plot>`,
+      setup: root => set(root, "box-box-plot", {
+        rows: [
+          { id: "run-a", label: "Run A", min: 2, p5: 5, q1: 12, median: 24, q3: 58, p99: 170, max: 310, count: 340 },
+          { id: "run-b", label: "Run B", min: 4, p5: 8, q1: 20, median: 45, q3: 90, p99: 260, max: 490, count: 385, reference: 60 },
+          { id: "run-c", label: "Run C", min: 2, p5: 4, q1: 16, median: 31, q3: 65, p99: 190, max: 380, count: 412 },
+        ],
+      }),
+    }],
   },
 };
