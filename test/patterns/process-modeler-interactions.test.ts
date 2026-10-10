@@ -798,6 +798,54 @@ describe("Process Modeler prototype interactions", () => {
     expect(root.querySelector('[part=process-summary]')!.textContent).toBe('Overview');
   });
 
+  it("groups host fields safely and retains disclosure state and focus only for current selection", () => {
+    const { builder, root } = fixture();
+    const section = {key: 'inputs', title: 'Inputs <img>', descriptionSegments: [{text: 'Use '}, {text: 'file.id', format: 'code' as const}]};
+    const disclosure = {key: 'more', summary: 'More inputs (2)'};
+    builder.fields = {a: [
+      {key: 'required', label: 'File', kind: 'expression', value: 'file.id', section, annotation: 'In the address · string', expression: {variables: []}},
+      {key: 'optional', label: 'Fields', kind: 'expression', value: '', section, disclosure, optional: true, annotation: 'In the query · string', expression: {variables: []}},
+      {key: 'another', label: 'Limit', kind: 'number', value: 3, section, disclosure},
+      {key: 'min', label: 'At least', kind: 'number', value: 1, row: {key: 'range'}},
+      {key: 'max', label: 'At most', kind: 'number', value: 3, row: {key: 'range'}},
+      {key: 'save', label: 'Save as', kind: 'text', value: 'file'},
+    ]}; builder.select('a');
+    const group = root.querySelector('[part=field-section]')!;
+    expect(group.querySelector('h3')!.textContent).toBe('Inputs <img>'); expect(group.querySelector('img')).toBeNull();
+    expect(group.querySelector('code')!.textContent).toBe('file.id');
+    expect(group.querySelectorAll('[part=field-disclosure]')).toHaveLength(1);
+    const details = group.querySelector<HTMLDetailsElement>('details')!; expect(details.open).toBe(false); details.open = true;
+    const optional = root.querySelector<HTMLInputElement>('[data-field=optional]')!; optional.focus(); optional.setSelectionRange(0, 0);
+    const edits = vi.fn(); builder.addEventListener('process-field-change-request', edits);
+    builder.fields = {...builder.fields, a: builder.fields.a.map(field => field.key === 'optional' ? {...field, value: 'fields'} : field)};
+    expect(root.querySelector<HTMLDetailsElement>('[part=field-disclosure]')!.open).toBe(true);
+    expect((root.activeElement as HTMLInputElement).dataset.field).toBe('optional');
+    expect(root.querySelector('[part=field-optional]')!.textContent).toBe(' optional');
+    const control = root.querySelector<HTMLInputElement>('[data-field=optional]')!;
+    expect(control.getAttribute('aria-describedby')).toContain('annotation');
+    expect(root.getElementById(control.getAttribute('aria-describedby')!.split(' ').at(-1)!)!.textContent).toBe('In the query · string');
+    expect(root.querySelector('[part=field-row]')!.querySelectorAll('[data-field]')).toHaveLength(2);
+    expect(root.querySelector('[data-field=save]')!.closest('[part=field-section]')).toBeNull();
+    expect(edits).not.toHaveBeenCalled();
+    builder.select('b'); builder.select('a'); expect(root.querySelector<HTMLDetailsElement>('[part=field-disclosure]')!.open).toBe(false);
+  });
+
+  it("keeps metadata-only kinds out of Add and protects start inspector actions", () => {
+    const { builder, root } = fixture();
+    builder.catalog = [
+      {kind: 'call', label: 'Call', create: () => ({})},
+      {kind: 'timer', label: 'Scheduled start', description: 'Runs on a schedule', addable: false, create: () => ({})},
+    ];
+    expect(root.querySelector('[part=choices]')!.textContent).not.toContain('Scheduled start');
+    builder.document = {...projection, boxes: [{...projection.boxes[0], kind: 'timer'}], lines: []}; builder.select('a');
+    expect(root.querySelector('[part=process-summary]')!.textContent).toBe('Scheduled start. Runs on a schedule');
+    expect(root.querySelector('[part=inspector-actions]')).toBeNull();
+    builder.document = {...projection, boxes: [{...projection.boxes[0], kind: 'start'}], lines: []}; builder.select('a');
+    expect(root.querySelector('[part=inspector-actions]')).toBeNull();
+    builder.document = structuredClone(projection); builder.select('a');
+    expect(root.querySelector('[part=inspector-actions]')!.textContent).toBe('DuplicateDelete');
+  });
+
   it("restores same-key focus across text to native time controls without unsupported selection calls", () => {
     const { builder, root } = fixture(); builder.select('a');
     for (const [before, after] of [['text', 'time'], ['text', 'datetime-local'], ['multiline', 'datetime-local']] as const) {
