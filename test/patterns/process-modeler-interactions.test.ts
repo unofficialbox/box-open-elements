@@ -474,6 +474,7 @@ describe("Process Modeler prototype interactions", () => {
     chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLInputElement>('[part=search]')!
       .dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
     expect(chooser.hidePopover).toHaveBeenCalledOnce();
+    expect(root.activeElement).toBe(root.querySelector('[data-box-id=a]'));
     expect(requests).not.toHaveBeenCalled();
   });
   it('anchors line insertion at its midpoint and returns focus on cancellation', () => {
