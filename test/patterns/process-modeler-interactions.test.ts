@@ -369,6 +369,53 @@ describe("Process Modeler prototype interactions", () => {
     expect(chooser.hidePopover).toHaveBeenCalledOnce();
     expect(requests).not.toHaveBeenCalled();
   });
+  it('anchors line insertion at its midpoint and returns focus on cancellation', () => {
+    const { builder, root } = fixture();
+    const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    const chooser = root.querySelector<HTMLElement>('[part=keyboard-chooser]')!;
+    chooser.showPopover = vi.fn(); chooser.hidePopover = vi.fn();
+    const insert = root.querySelector<HTMLButtonElement>('[aria-label="Insert a step here: Read to Save"]')!;
+    insert.focus(); insert.click();
+    expect(chooser.showPopover).toHaveBeenCalledOnce();
+    expect(chooser.querySelector('[part=chooser-title]')?.textContent).toBe('Insert between Read and Save');
+    expect(root.querySelector<HTMLDialogElement>('[part=insert-chooser]')!.open).toBe(false);
+    const midpoint = lineMidpoint(routeProcessLine(projection.lines[0], builder.layout, projection));
+    expect(root.querySelector<HTMLElement>('[part=world] > span')?.style.left).toBe(`${midpoint.x}px`);
+    chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLInputElement>('[part=search]')!
+      .dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(chooser.hidePopover).toHaveBeenCalledOnce();
+    expect(root.activeElement).toBe(insert);
+    expect(requests).not.toHaveBeenCalled();
+    insert.click();
+    chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
+    expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'insert', lineId: 'ab', from: 'a', to: 'b' });
+  });
+  it('uses the same anchored chooser from the selected-line toolbar', () => {
+    const { builder, root } = fixture(); builder.selectLine('ab');
+    const chooser = root.querySelector<HTMLElement>('[part=keyboard-chooser]')!;
+    chooser.showPopover = vi.fn(); chooser.hidePopover = vi.fn();
+    const insert = root.querySelector<HTMLButtonElement>('[data-selection-command=insert]')!;
+    insert.click();
+    expect(chooser.showPopover).toHaveBeenCalledOnce();
+    expect(chooser.querySelector('[part=chooser-title]')?.textContent).toBe('Insert between Read and Save');
+    expect(root.querySelector<HTMLDialogElement>('[part=insert-chooser]')!.open).toBe(false);
+  });
+  it('uses the directional chooser and inserts on an eastward keyboard action', () => {
+    const { builder, root, canvas } = fixture(); builder.select('a');
+    const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    const chooser = root.querySelector<HTMLElement>('[part=keyboard-chooser]')!;
+    chooser.showPopover = vi.fn(); chooser.hidePopover = vi.fn();
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', ctrlKey: true, altKey: true, bubbles: true, cancelable: true }));
+    expect(chooser.showPopover).toHaveBeenCalledOnce();
+    expect(chooser.querySelector('[part=chooser-title]')?.textContent).toBe('Insert between Read and Save');
+    chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
+    expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'insert', lineId: 'ab', from: 'a', to: 'b' });
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', ctrlKey: true, altKey: true, bubbles: true, cancelable: true }));
+    expect(chooser.querySelector('[part=chooser-title]')?.textContent).toBe('Add above Read, connected');
+    chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLInputElement>('[part=search]')!
+      .dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(root.activeElement).toBe(root.querySelector('[data-box-id=a]'));
+  });
   it('inserts between steps from Add next when the selected step has one successor', () => {
     const { builder, root } = fixture(); builder.select('a');
     const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
@@ -691,9 +738,12 @@ describe("Process Modeler prototype interactions", () => {
     builder.select('try');
     expect(root.querySelector<HTMLButtonElement>('[data-selection-command=add-next]')?.getAttribute('aria-label')).toBe('Add next');
     expect(root.querySelector<HTMLButtonElement>('[data-selection-command=add-failure]')?.getAttribute('aria-label')).toBe('If it fails');
-    const chooser = root.querySelector<HTMLDialogElement>('[part=insert-chooser]')!; chooser.showModal = vi.fn(() => { chooser.open = true; });
+    const chooser = root.querySelector<HTMLElement>('[part=keyboard-chooser]')!;
+    chooser.showPopover = vi.fn(); chooser.hidePopover = vi.fn();
     const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
     root.querySelector<HTMLButtonElement>('[data-selection-command=add-failure]')!.click();
+    expect(chooser.querySelector('[part=chooser-title]')?.textContent).toBe('If a step in Try fails');
+    expect(chooser.showPopover).toHaveBeenCalledOnce();
     chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
     expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'add', from: 'try', routeLabel: 'If it fails', dashed: true });
     builder.document = { ...builder.document!, lines: [...projection.lines, { id: 'try-a', from: 'try', to: 'a', label: 'If it fails', dashed: true }] };
