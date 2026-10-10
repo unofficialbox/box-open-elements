@@ -221,8 +221,10 @@ export const processModelerDesign = `
   [part=controls] { position: absolute; left: 16px; bottom: 16px; z-index: 10; display: flex; align-items: center; gap: 2px; padding: 4px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }
   [part=controls] [data-command=reset] { min-width: 56px; font-variant-numeric: tabular-nums; }
   [part=minimap] { position: absolute; right: 16px; bottom: 16px; width: 208px; height: 136px; touch-action: none; background: var(--boe-token-surface-surface, #fff); border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); }
-  [part=minimap] rect:not([data-viewport]) { fill: var(--boe-token-stroke-stroke-hover, #d3d3d3); }
-  [part=minimap] [data-viewport] { fill: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 9%, transparent); stroke: var(--boe-token-surface-surface-brand, #0061d5); stroke-width: 1; }
+  [part=minimap] rect:not([data-viewport]) { fill: color-mix(in srgb, var(--boe-token-text-text-secondary, #6f6f6f) 35%, transparent); }
+  [part=minimap] rect[data-selected=true] { fill: var(--boe-token-surface-surface-brand, #0061d5); }
+  [part=minimap] rect[data-section] { fill: color-mix(in srgb, var(--boe-token-text-text-secondary, #6f6f6f) 8%, transparent); }
+  [part=minimap] [data-viewport] { fill: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, transparent); stroke: var(--boe-token-surface-surface-brand, #0061d5); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
   [part=selection-toolbar] { position: absolute; bottom: auto; z-index: 11; display: flex; flex-wrap: nowrap; gap: 2px; padding: 4px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 12px; background: var(--boe-token-surface-surface, #fff); box-shadow: var(--boe-shadow-overlay, 0 4px 12px rgb(0 0 0 / .16)); white-space: nowrap; }
   [part=selection-toolbar] button { display: inline-flex; align-items: center; gap: 4px; }
   [part=selection-plus] { font-size: 18px; line-height: 12px; font-weight: 500; }
