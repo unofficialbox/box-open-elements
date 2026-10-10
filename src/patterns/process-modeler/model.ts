@@ -118,7 +118,11 @@ export interface ProcessField {
   kind: "text" | "multiline" | "number" | "choice" | "boolean" | "expression" | "search" | "action" | "time" | "datetime-local";
   value: string | number | boolean;
   description?: string;
-  options?: readonly { value: string; label: string; group?: string }[];
+  options?: readonly { value: string; label: string; group?: string; description?: string }[];
+  /** Action category order and optional headings supplied by the host catalog. */
+  actionGroups?: readonly { name: string; heading?: string }[];
+  /** Permit a dotted action key absent from the host catalog. The host validates it. */
+  allowCustomValue?: boolean;
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;

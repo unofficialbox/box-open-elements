@@ -1062,6 +1062,36 @@ describe("Process Modeler prototype interactions", () => {
     expect(changes.mock.calls[0][0].detail).toMatchObject({ boxId: 'a', key: 'action', value: 'files.download' });
     expect(input.getAttribute('aria-expanded')).toBe('false');
   });
+  it('uses host category order, counts and safe HTTP details without editing while browsing', () => {
+    const { builder, root } = fixture(); const changes = vi.fn(); builder.addEventListener('process-field-change-request', changes);
+    builder.fields = {a: [{key: 'action', label: 'Box action', kind: 'action', value: 'files.upload', actionGroups: [{name: 'Users', heading: 'Most used'}, {name: 'Files', heading: '<Everything else>'}], options: [
+      {value: 'files.upload', label: 'Files › Upload file', group: 'Files', description: 'POST /files/content'},
+      {value: 'files.download', label: 'Files › Download file', group: 'Files', description: 'GET /files/:id/content'},
+      {value: 'users.get', label: 'Get user', group: 'Users', description: 'GET /users/:id'},
+    ]}]}; builder.select('a'); root.querySelector<HTMLButtonElement>('[part=action-caret]')!.click();
+    expect([...root.querySelectorAll('[part=action-group] strong')].map(e => e.textContent)).toEqual(['Users', 'Files']);
+    expect([...root.querySelectorAll('[part=action-heading]')].map(e => e.textContent)).toEqual(['Most used', '<Everything else>']);
+    expect(root.querySelector('[part=action-group]')?.getAttribute('aria-label')).toBe('Users, 1 actions');
+    const input = root.querySelector<HTMLInputElement>('[data-field=action]')!; input.value = 'POST content'; input.dispatchEvent(new Event('input', {bubbles: true}));
+    expect(root.querySelectorAll('[part=action-option]')).toHaveLength(1);
+    expect(root.querySelector('[part=action-option] small')?.textContent).toBe('POST /files/content');
+    expect(root.querySelector('[part=action-option]')?.hasAttribute('data-current')).toBe(true);
+    expect(changes).not.toHaveBeenCalled();
+    input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true, cancelable: true}));
+    expect(changes.mock.calls[0][0].detail.value).toBe('files.upload');
+  });
+  it('requires host opt-in before choosing an unknown dotted action key', () => {
+    const { builder, root } = fixture(); const changes = vi.fn(); builder.addEventListener('process-field-change-request', changes);
+    const descriptor = {key: 'action', label: 'Box action', kind: 'action' as const, value: 'files.upload', options: [{value: 'files.upload', label: 'Upload file'}]};
+    builder.fields = {a: [descriptor]}; builder.select('a');
+    let input = root.querySelector<HTMLInputElement>('[data-field=action]')!; input.value = 'custom.step'; input.dispatchEvent(new Event('input', {bubbles: true}));
+    expect(root.querySelectorAll('[part=action-option]')).toHaveLength(0); expect(changes).not.toHaveBeenCalled();
+    builder.fields = {a: [{...descriptor, allowCustomValue: true}]}; input = root.querySelector<HTMLInputElement>('[data-field=action]')!;
+    input.value = 'custom.step'; input.dispatchEvent(new Event('input', {bubbles: true}));
+    expect(root.querySelector('[part=action-option]')?.textContent).toContain('Use “custom.step”');
+    input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true, cancelable: true}));
+    expect(changes.mock.calls[0][0].detail.value).toBe('custom.step');
+  });
   it('opens the current action category and browses categories from the keyboard', () => {
     const { builder, root } = fixture(); const changes = vi.fn(); builder.addEventListener('process-field-change-request', changes);
     builder.fields = { a: [{ key: 'action', label: 'Box action', kind: 'action', value: 'files.upload', options: [

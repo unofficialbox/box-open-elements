@@ -2816,7 +2816,8 @@ export class ProcessModeler<
       list.id = `process-action-${box.id}-${field.key}`.replace(/[^a-zA-Z0-9-]/g, '-'); list.hidden = true;
       const optionList = document.createElement('div'); optionList.setAttribute('role', 'listbox'); optionList.id = `${list.id}-choices`; optionList.setAttribute('aria-label', `${field.label} choices`);
       input.setAttribute('role', 'combobox'); input.setAttribute('aria-autocomplete', 'list'); input.setAttribute('aria-controls', optionList.id); input.setAttribute('aria-expanded', 'false'); input.autocomplete = 'off';
-      const groups = [...new Set(options.map(option => option.group).filter((name): name is string => Boolean(name)))];
+      const availableGroups = [...new Set(options.map(option => option.group).filter((name): name is string => Boolean(name)))];
+      const groups = [...new Set([...(field.actionGroups ?? []).map(item => item.name).filter(name => availableGroups.includes(name)), ...availableGroups])];
       const shown = input.value;
       let group: string | null = null; let active = 0; let browse = true;
       const close = (restore = true) => { list.hidden = true; if (restore) input.value = shown; input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); };
@@ -2851,7 +2852,7 @@ export class ProcessModeler<
         list.replaceChildren(); optionList.replaceChildren();
         const query = browse ? '' : input.value.trim().toLocaleLowerCase();
         const terms = query.split(/\s+/).filter(Boolean);
-        let matches = options.filter(option => (!group || option.group === group) && terms.every(term => `${option.label} ${option.value} ${option.group ?? ''}`.toLocaleLowerCase().includes(term)));
+        let matches = options.filter(option => (!group || option.group === group) && terms.every(term => `${option.label} ${option.value} ${option.group ?? ''} ${option.description ?? ''}`.toLocaleLowerCase().includes(term)));
         if (!group && !query && groups.length) matches = matches.filter(option => !option.group);
         if (query) {
           const starts = (text: string, term: string) => text.toLocaleLowerCase().split(/[\s›_.]+/).some(word => word.startsWith(term));
@@ -2859,21 +2860,38 @@ export class ProcessModeler<
           matches.sort((a, b) => score(b) - score(a) || (a.group?.length ?? 0) - (b.group?.length ?? 0) || a.label.length - b.label.length);
           matches = matches.slice(0, 60);
         }
+        const addHeading = (text: string) => { const heading = document.createElement('h3'); heading.setAttribute('part', 'action-heading'); heading.setAttribute('aria-hidden', 'true'); heading.textContent = text; optionList.append(heading); };
         const addNavigation = (name: string, part: string, activate: () => void) => {
-          const button = document.createElement('button'); button.type = 'button'; button.tabIndex = -1; button.setAttribute('part', part); button.setAttribute('role', 'option'); button.textContent = name; button.onclick = activate; optionList.append(button);
+          const button = document.createElement('button'); button.type = 'button'; button.tabIndex = -1; button.setAttribute('part', part); button.setAttribute('role', 'option');
+          const title = document.createElement('strong'); title.textContent = name;
+          const chevron = document.createElement('span'); chevron.setAttribute('part', 'action-chevron'); chevron.setAttribute('aria-hidden', 'true'); chevron.textContent = part === 'action-back' ? '‹' : '›';
+          if (part === 'action-back') { button.append(chevron, title); button.setAttribute('aria-label', 'Back to all kinds of items'); }
+          else { const count = document.createElement('small'); const total = options.filter(option => option.group === name).length; count.textContent = String(total); button.append(title, count, chevron); button.setAttribute('aria-label', `${name}, ${total} actions`); }
+          button.onclick = activate; optionList.append(button);
         };
         if (!group && (!query || groups.some(name => name.toLocaleLowerCase().includes(query)))) {
           const visibleGroups = query ? groups.filter(name => name.toLocaleLowerCase().includes(query)).slice(0, 4) : groups;
-          for (const name of visibleGroups) addNavigation(name, 'action-group', () => { group = name; browse = true; active = 1; render(); });
+          let heading: string | undefined;
+          for (const name of visibleGroups) {
+            const nextHeading = !query ? field.actionGroups?.find(item => item.name === name)?.heading : undefined;
+            if (nextHeading && nextHeading !== heading) addHeading(nextHeading);
+            heading = nextHeading;
+            addNavigation(name, 'action-group', () => { group = name; browse = true; active = 1; render(); });
+          }
         }
-        if (group) addNavigation('All kinds of items', 'action-back', () => { const previous = group; group = null; browse = true; active = Math.max(0, groups.indexOf(previous!)); render(); });
-        for (const option of matches) {
+        if (group) { addNavigation('All kinds of items', 'action-back', () => { const previous = group; group = null; browse = true; active = Math.max(0, groups.indexOf(previous!)); render(); }); addHeading(group); }
+        const addAction = (option: (typeof options)[number], custom = false) => {
           const item = document.createElement('button'); item.type = 'button'; item.tabIndex = -1; item.setAttribute('role', 'option'); item.setAttribute('part', 'action-option');
-          const title = document.createElement('strong'); title.textContent = group && option.label.startsWith(`${group} › `) ? option.label.slice(group.length + 3) : option.label; item.append(title);
-          if (option.value !== option.label) { const code = document.createElement('small'); code.textContent = option.value; item.append(code); }
+          const title = document.createElement('strong'); title.textContent = group && option.label.startsWith(`${group} › `) ? option.label.slice(group.length + 3) : query && option.group && !option.label.startsWith(`${option.group} › `) ? `${option.group} › ${option.label}` : option.label; item.append(title);
+          item.setAttribute('aria-label', title.textContent);
+          if (option.value === field.value) item.dataset.current = '';
+          const detail = option.description ?? (option.value !== option.label ? option.value : undefined);
+          if (detail) { const code = document.createElement('small'); code.textContent = detail; if (!custom) code.dataset.format = 'code'; item.append(code); }
           item.onclick = () => choose(option); optionList.append(item);
-        }
-        if (!optionList.childElementCount) { const empty = document.createElement('p'); empty.textContent = 'No matching actions'; list.append(empty); }
+        };
+        for (const option of matches) addAction(option);
+        if (field.allowCustomValue && /^[a-z0-9_]+(\.[a-z0-9_]+)+$/.test(query) && !options.some(option => option.value === query)) addAction({value: query, label: `Use “${query}”`, description: 'A step named in your code'}, true);
+        if (!optionList.querySelector('[role=option]')) { const empty = document.createElement('p'); empty.setAttribute('part', 'action-empty'); empty.textContent = 'No Box action matches. Try a kind of item, like “files”, or an action, like “delete”.'; list.append(empty); }
         list.append(optionList);
         const items = Array.from(optionList.querySelectorAll<HTMLElement>('[role=option]'));
         active = Math.min(active, Math.max(0, items.length - 1));
