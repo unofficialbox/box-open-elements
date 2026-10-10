@@ -453,8 +453,9 @@ describe("Process Modeler prototype interactions", () => {
     if (narrow) field.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
     builder.select(null);
     root.querySelector<HTMLElement>('[data-box-id=a]')!.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }));
-    expect(builder.selected?.id).toBe('a');
+    expect(builder.selected).toBeNull();
     expect(drawer.open).toBe(false);
+    root.querySelector<HTMLElement>('[data-box-id=a]')!.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', bubbles: true }));
   });
 
   it.each(['connect', 'reattach'] as const)('Enter completes %s without opening the target editor', mode => {
@@ -1075,6 +1076,21 @@ describe("Process Modeler prototype interactions", () => {
     canvas.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', bubbles: true }));
     expect(builder.view.x).toBe(40); expect(builder.view.y).toBe(25);
     expect(builder.layout.boxes.b).toEqual(before); expect(builder.selected?.id).toBe('a');
+  });
+  it('holds Space on a focused step to pan without activating or moving it', () => {
+    const { builder, root, canvas } = fixture(); builder.select('a'); builder.setView({ x: 0, y: 0, zoom: 1 });
+    const before = builder.layout.boxes.b;
+    const step = root.querySelector<HTMLElement>('[data-box-id=b]')!;
+    step.focus();
+    step.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }));
+    pointer(step, 'pointerdown', 50, 50);
+    pointer(canvas, 'pointermove', 90, 75); pointer(canvas, 'pointerup', 90, 75);
+    step.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', bubbles: true }));
+    expect(builder.view).toEqual({ x: 40, y: 25, zoom: 1 });
+    expect(builder.layout.boxes.b).toEqual(before); expect(builder.selected?.id).toBe('a');
+    pointer(step, 'pointerdown', 50, 50); pointer(canvas, 'pointermove', 82, 50); pointer(canvas, 'pointerup', 82, 50);
+    expect(builder.view).toEqual({ x: 40, y: 25, zoom: 1 });
+    expect(builder.layout.boxes.b.x).not.toBe(before.x);
   });
   it('resizes a selected frame by pointer and arrow keys', () => {
     const { builder, root, canvas } = fixture();
