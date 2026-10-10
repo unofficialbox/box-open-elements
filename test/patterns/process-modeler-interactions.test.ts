@@ -137,6 +137,35 @@ describe("Process Modeler prototype interactions", () => {
     expect(status.textContent).toBe('1 problem');
     expect(status.dataset.state).toBe('bad');
   });
+  it('shows measured and unmeasured task states from the last run', () => {
+    const { builder, root } = fixture();
+    builder.document = { ...projection, boxes: projection.boxes.map(box => box.id === 'c' ? { ...box, shape: 'event' as const } : box) };
+    builder.lastRun = { label: 'Morning run', steps: { a: { callsPerSecond: 2, p95Ms: 1500, failedShare: 0.125 } } };
+    builder.showLastRun = true;
+    expect(root.querySelector('[data-box-id=a] [part=metrics]')?.textContent).toBe('2.0/s · p95 1.5 s · 12.5% failed');
+    expect(root.querySelector('[data-box-id=b] [part=metrics]')?.textContent).toBe('Not in the last run');
+    expect(root.querySelector('[data-box-id=c] [part=metrics]')).toBeNull();
+    builder.select('a');
+    const report = root.querySelector('[part=inspector-metrics]')!;
+    expect(report.textContent).toContain('From Morning run.');
+    expect(report.textContent).toContain('95% finished within1.5 s');
+    expect(report.textContent).toContain('Failed12.5%');
+    builder.select('b');
+    expect(root.querySelector('[part=inspector-metrics]')).toBeNull();
+    builder.lastRun = { label: 'Partial run', steps: { a: { p95Ms: 100 } } };
+    builder.select('a');
+    const partial = root.querySelector('[part=inspector-metrics]')!;
+    expect(partial.textContent).toContain('Per second–');
+    expect(partial.textContent).toContain('Failed–');
+  });
+  it('keeps narrow selection actions named while hiding the add label', () => {
+    const { builder, root } = fixture();
+    builder.select('a');
+    const add = root.querySelector<HTMLButtonElement>('[data-selection-command=add-next]')!;
+    expect(add.getAttribute('aria-label')).toBe('Add next');
+    expect(add.querySelector('[part=selection-plus] + span')?.textContent).toBe('Add next');
+    expect(root.querySelector('style')?.textContent).toContain(':host([data-narrow]) [part=selection-toolbar] [part=selection-plus] + span { display: none; }');
+  });
   it("opens a directional kind chooser from a keyboard port", () => {
     const { builder, root } = fixture(); const requests = vi.fn(); builder.addEventListener("process-edit-request", requests);
     const chooser = root.querySelector<HTMLDialogElement>('[part=insert-chooser]')!;

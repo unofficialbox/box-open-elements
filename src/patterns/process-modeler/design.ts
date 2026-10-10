@@ -263,6 +263,7 @@ export const processModelerDesign = `
   [part=lead-row] button, [part=leads-to] > button, [part=inspector-actions] button { min-height: 28px; padding: 4px 8px; font-size: 12px; }
   [part=inspector-metrics] { margin: 0; padding-top: 10px; border-top: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); font-size: 12px; font-variant-numeric: tabular-nums; }
   [part=inspector-metrics] h3 { margin: 0 0 6px; font-size: 12.5px; }
+  [part=inspector-metrics] p { margin: 0 0 8px; color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=inspector-metrics] dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; margin: 0; }
   [part=inspector-metrics] dt { color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=inspector-metrics] dd { margin: 0; font-weight: 650; }
@@ -310,6 +311,7 @@ export const processModelerDesign = `
   :host([data-narrow]) [data-command=checks-status] { display: none; }
   :host([data-narrow]:not([embed-mode])) [part=view-menu] { display: block; }
   :host([data-narrow]) [part=controls] { left: 12px; bottom: 12px; }
+  :host([data-narrow]) [part=selection-toolbar] [part=selection-plus] + span { display: none; }
   :host([data-phone]) [data-command=tidy] { display: none; }
   :host([data-phone]) [data-command=undo], :host([data-phone]) [data-command=redo] { display: none; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; scroll-behavior: auto !important; } }

@@ -34,6 +34,8 @@ const emit = (element: HTMLElement, name: string, detail: unknown): boolean =>
       cancelable: true,
     }),
   );
+const formatRunDuration = (ms: number): string =>
+  ms >= 1000 ? `${(ms / 1000).toFixed(ms >= 10000 ? 0 : 1)} s` : `${Math.round(ms)} ms`;
 
 /** Projects host documents without owning workflow schemas or persistence. */
 export class ProcessModeler<
@@ -1686,13 +1688,13 @@ export class ProcessModeler<
         const loop = document.createElement('span'); loop.setAttribute('part', 'loop-mark'); loop.setAttribute('aria-hidden', 'true'); loop.textContent = '↻'; element.append(loop);
       }
       const metrics = this.showLastRunValue ? this.lastRunValue?.steps[box.id] : undefined;
-      if (metrics) {
+      if (this.showLastRunValue && this.lastRunValue && shape === 'task') {
         const line = document.createElement("span"); line.setAttribute("part", "metrics");
-        line.textContent = metrics.notInRun ? "Not in this run" : [
-          metrics.callsPerSecond === undefined ? "" : `${metrics.callsPerSecond.toLocaleString()}/s`,
-          metrics.p95Ms === undefined ? "" : `p95 ${metrics.p95Ms.toLocaleString()} ms`,
+        line.textContent = !metrics || metrics.notInRun ? "Not in the last run" : [
+          metrics.callsPerSecond === undefined ? "" : `${metrics.callsPerSecond.toFixed(1)}/s`,
+          metrics.p95Ms === undefined ? "" : `p95 ${formatRunDuration(metrics.p95Ms)}`,
         ].filter(Boolean).join(" · ");
-        if (metrics.failedShare !== undefined && metrics.failedShare > 0) { const failed = document.createElement('span'); failed.setAttribute('part', 'metric-warning'); failed.textContent = `${(metrics.failedShare * 100).toFixed(1)}% failed`; line.append(document.createTextNode(' · '), failed); }
+        if (metrics?.failedShare !== undefined && metrics.failedShare > 0 && !metrics.notInRun) { const failed = document.createElement('span'); failed.setAttribute('part', 'metric-warning'); failed.textContent = `${(metrics.failedShare * 100).toFixed(1)}% failed`; line.append(document.createTextNode(' · '), failed); }
         element.append(line);
       }
       if (problem) { const message = document.createElement("span"); message.setAttribute("part", "problem"); message.textContent = problem.message; element.append(message); }
@@ -2146,12 +2148,13 @@ export class ProcessModeler<
       const metrics = this.showLastRunValue ? this.lastRunValue?.steps[selected.id] : undefined;
       if (metrics) {
         const report = document.createElement('section'); report.setAttribute('part', 'inspector-metrics');
-        const title = document.createElement('h3'); title.textContent = this.lastRunValue?.label ?? 'Last run'; report.append(title);
+        const title = document.createElement('h3'); title.textContent = 'Last run'; report.append(title);
+        if (this.lastRunValue?.label) { const source = document.createElement('p'); source.textContent = `From ${this.lastRunValue.label}.`; report.append(source); }
         if (metrics.notInRun) { const note = document.createElement('p'); note.textContent = 'Not in this run'; report.append(note); }
         else {
           const list = document.createElement('dl');
-          for (const [label, value] of [['Per second', metrics.callsPerSecond?.toLocaleString()], ['95% within', metrics.p95Ms === undefined ? undefined : `${metrics.p95Ms.toLocaleString()} ms`], ['Failed', metrics.failedShare === undefined ? undefined : `${(metrics.failedShare * 100).toFixed(1)}%`]] as const) {
-            if (value === undefined) continue; const term = document.createElement('dt'); term.textContent = label; const detail = document.createElement('dd'); detail.textContent = value; if (label === 'Failed' && metrics.failedShare) detail.setAttribute('part', 'metric-warning'); list.append(term, detail);
+          for (const [label, value] of [['Per second', metrics.callsPerSecond === undefined ? '–' : metrics.callsPerSecond.toFixed(1)], ['95% finished within', metrics.p95Ms === undefined ? '–' : formatRunDuration(metrics.p95Ms)], ['Failed', metrics.failedShare === undefined ? '–' : `${(metrics.failedShare * 100).toFixed(1)}%`]] as const) {
+            const term = document.createElement('dt'); term.textContent = label; const detail = document.createElement('dd'); detail.textContent = value; if (label === 'Failed' && metrics.failedShare) detail.setAttribute('part', 'metric-warning'); list.append(term, detail);
           }
           report.append(list);
         }
