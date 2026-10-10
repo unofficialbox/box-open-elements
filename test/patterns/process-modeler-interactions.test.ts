@@ -165,6 +165,18 @@ describe("Process Modeler prototype interactions", () => {
     (builder as unknown as {alignedPoint(id:string,x:number,y:number):unknown}).alignedPoint('a',0,0);
     expect([...root.querySelectorAll('[part=measure-label]')].map(n=>n.textContent)).toEqual(['100','100','100','100']);
   });
+  it("aligns a dragged note to flow centers and equal gaps while excluding other note targets", () => {
+    const { builder, root, canvas } = fixture(); builder.snapToGrid = false;
+    builder.document = { boxes: [{...projection.boxes[0],id:'l'}, {...projection.boxes[1],id:'r'}, {...projection.boxes[2],id:'n',kind:'note',role:'note'}, {...projection.boxes[2],id:'ignored',kind:'note',role:'note'}], lines: [] };
+    builder.layout = {boxes:{l:{x:0,y:0,width:100,height:80},r:{x:508,y:0,width:100,height:80},n:{x:184,y:0,width:208,height:80},ignored:{x:305,y:0,width:100,height:80}}};
+    const align = (builder as unknown as {alignedPoint(id:string,x:number,y:number,alt?:boolean):{x:number;y:number}}).alignedPoint.bind(builder);
+    expect(align('n',201,0)).toEqual({x:200,y:0}); expect([...root.querySelectorAll('[part=measure-label]')].map(n=>n.textContent)).toEqual(['= 100','= 100']);
+    expect(align('n',453,100)).toEqual({x:454,y:100}); expect(root.querySelector('[part=guide]')).not.toBeNull();
+    expect(align('n',201,3,true)).toEqual({x:201,y:3}); expect(root.querySelector('[part=drag-guides]')).toBeNull();
+    pointer(root.querySelector('[data-box-id=n]')!, 'pointerdown',200,20); pointer(canvas,'pointermove',217,20); pointer(canvas,'pointerup',217,20);
+    expect(builder.layout.boxes.n.x).toBe(200); builder.undo(); expect(builder.layout.boxes.n.x).toBe(184);
+  });
+
   it("keeps carried frame descendants out of drag alignment candidates", () => {
     const { builder, root } = fixture(); builder.snapToGrid = false;
     builder.document = { boxes: [{...projection.boxes[0],id:'frame',frame:true},{...projection.boxes[1],id:'child',parentId:'frame'}], lines: [] };
