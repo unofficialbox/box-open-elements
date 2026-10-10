@@ -52,6 +52,14 @@ describe("Process Modeler prototype interactions", () => {
     builder.document = undefined;
     expect(builder.readback.current).toBeNull(); expect(builder.readback.lastReadable).toBeNull();
   });
+  it("renders a technical gateway expression in a caption without removing its identity", () => {
+    const { builder, root } = fixture();
+    builder.document = { ...projection, boxes: [{ ...projection.boxes[0], shape: 'gateway', technicalDetails: [{text: 'file.size > 0', format: 'code'}] }], lines: [] };
+    builder.detail = 'technical';
+    expect(root.querySelector('[part=caption] strong')?.textContent).toBe('Read');
+    expect(root.querySelector('[part=caption] [part=technical-description]')?.textContent).toBe('file.size > 0');
+    builder.detail = 'business'; expect(root.querySelector('[part=caption]')).toBeNull();
+  });
   it("names the desktop building-block pane without duplicating the mobile drawer heading", () => {
     const { root } = fixture();
     expect(root.querySelector('[part=palette-heading]')?.textContent).toBe("Add to the process");
@@ -294,6 +302,14 @@ describe("Process Modeler prototype interactions", () => {
     builder.lastRun = run; expect(builder.showLastRun).toBe(false);
     expect(root.querySelector('[part=metrics]')).toBeNull();
     builder.showLastRun = true; expect(root.querySelector('[data-box-id=a] [part=metrics]')?.textContent).toBe('10% failed');
+  });
+  it('lets the host opt out of task metrics without changing other task defaults', () => {
+    const { builder, root } = fixture();
+    builder.document = { ...projection, boxes: projection.boxes.map(box => box.id === 'a' ? { ...box, runMetrics: false } : box) };
+    builder.lastRun = { label: 'Morning run', steps: {} }; builder.showLastRun = true;
+    expect(root.querySelector('[data-box-id=a] [part=metrics]')).toBeNull();
+    builder.select('a'); expect(root.querySelector('[part=inspector-metrics]')).toBeNull();
+    expect(root.querySelector('[data-box-id=b] [part=metrics]')?.textContent).toBe('Not in the last run');
   });
   it('shows a host-supplied line traffic share only in Last run view', () => {
     const { builder, root } = fixture();

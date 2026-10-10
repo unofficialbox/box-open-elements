@@ -16,6 +16,8 @@ export interface ProcessBox<N = unknown> {
   technicalDescription?: string;
   /** Structured Technical view lines; when supplied, replace technicalDescription. */
   technicalDetails?: readonly ProcessTechnicalDetail[];
+  /** False when this host does not time this task kind; default task metrics remain enabled. */
+  runMetrics?: boolean;
   /** Visual anatomy, independent of the host's kind identifier. */
   shape?: "task" | "gateway" | "event" | "frame";
   path?: NodePath;

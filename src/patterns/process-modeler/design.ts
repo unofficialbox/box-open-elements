@@ -152,7 +152,10 @@ export const processModelerDesign = `
   [part=box] strong, [part=frame] strong { font-size: 13.5px; font-weight: 650; line-height: 1.3; }
   [part=box] small, [part=frame] small { grid-column: 2; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12.5px; line-height: 1.35; }
   [part=technical-description] { font: 12px/1.4 ui-monospace, 'SF Mono', Menlo, Consolas, monospace !important; overflow-wrap: anywhere; }
-  [part=metrics] { grid-column: 2; font-size: 12px; font-variant-numeric: tabular-nums; }
+  [part=metrics] { grid-column: 2; display: flex; gap: 6px; flex-wrap: wrap; margin-top: 3px; font-size: 12px; line-height: 1.45; font-variant-numeric: tabular-nums; }
+  [part=metrics][data-state=unmeasured] { color: var(--boe-token-text-text-secondary, #6f6f6f); }
+  [part=metric-separator] { color: var(--boe-token-text-text-tertiary, #767676); }
+  [part=technical-summary] { overflow-wrap: anywhere; }
   [part=metric-warning] { color: var(--boe-token-text-status-text-warning, #8a5800); }
   [part=icon] { grid-row: span 3; width: 20px; height: 20px; color: var(--boe-token-text-text-secondary, #6f6f6f); }
   [part=icon] svg { display: block; width: 20px; height: 20px; }
@@ -177,6 +180,12 @@ export const processModelerDesign = `
   [data-shape=gateway] > [part=icon], [data-shape=event] > [part=icon] { position: absolute; left: 18px; top: 18px; z-index: 1; }
   [data-shape=gateway] > strong, [data-shape=event] > strong { position: absolute; top: 58px; left: 50%; width: 150px; translate: -50% 0; text-align: center; font-size: 12px; }
   [data-shape=gateway] > small { display: none; }
+  [part=caption] { position: absolute; left: 50%; translate: -50% 0; width: max-content; max-width: 168px; padding: 1px 4px; border-radius: 4px; text-align: center; background: color-mix(in srgb, var(--boe-token-surface-surface-hover, #f4f4f4) 88%, transparent); }
+  [part=caption][data-side=below] { top: 60px; }
+  [part=caption][data-side=above] { bottom: 60px; }
+  [part=caption] strong { font-size: 12.5px; font-weight: 600; line-height: 1.3; }
+  [part=caption] small { display: block; font-weight: 400; }
+  [part=caption] [part=technical-description] { font: 10.5px ui-monospace, 'SF Mono', Menlo, Consolas, monospace !important; white-space: nowrap; }
   [data-shape=event] > small { position: absolute; top: 75px; left: 50%; width: 172px; translate: -50% 0; text-align: center; font-size: 11px; line-height: 1.25; }
   [data-shape=gateway][aria-current=true]::before, [data-shape=event][aria-current=true]::before { border-color: var(--boe-token-surface-surface-brand, #0061d5); background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 7%, var(--boe-token-surface-surface, #fff)); }
   [part=port] { position: absolute; z-index: 5; width: 24px; height: 24px; min-height: 24px; padding: 0; border: 0; border-radius: 50%; background: transparent; opacity: 0; }
@@ -270,12 +279,13 @@ export const processModelerDesign = `
   [part=leads-to] h3 { margin: 0; font-size: 12.5px; }
   [part=lead-row] { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; }
   [part=lead-row] button, [part=leads-to] > button, [part=inspector-actions] button { min-height: 28px; padding: 4px 8px; font-size: 12px; }
-  [part=inspector-metrics] { margin: 0; padding-top: 10px; border-top: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); font-size: 12px; font-variant-numeric: tabular-nums; }
+  [part=inspector-metrics] { margin: 0; font-size: 12.5px; line-height: 1.5; font-variant-numeric: tabular-nums; }
   [part=inspector-metrics] h3 { margin: 0 0 6px; font-size: 12.5px; }
-  [part=inspector-metrics] p { margin: 0 0 8px; color: var(--boe-token-text-text-secondary, #6f6f6f); }
-  [part=inspector-metrics] dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; margin: 0; }
-  [part=inspector-metrics] dt { color: var(--boe-token-text-text-secondary, #6f6f6f); }
-  [part=inspector-metrics] dd { margin: 0; font-weight: 650; }
+  [part=inspector-metrics] p { margin: 0; color: var(--boe-token-text-text-secondary, #6f6f6f); }
+  [part=inspector-metrics] table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.45; }
+  [part=inspector-metrics] :is(th,td) { padding: 5px 0; border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); font-weight: 400; }
+  [part=inspector-metrics] th { text-align: start; }
+  [part=inspector-metrics] td { text-align: end; font-variant-numeric: tabular-nums; }
   [part=inspector-actions] { display: flex; gap: 8px; padding-top: 10px; border-top: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); }
   [part=arrange-actions] { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px; }
   [part=arrange-actions] button { min-height: 32px; padding: 5px 7px; font-size: 12px; text-align: start; }

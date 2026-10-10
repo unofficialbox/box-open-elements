@@ -307,3 +307,5 @@ Embedded hosts retain the modeler's Business/Technical and Last run controls. Th
 ### Structured technical descriptions
 
 `ProcessBox.technicalDetails` accepts plain-text lines with `format: "code"` for a monospace call or expression and `format: "text"` for supporting prose. For example, `[{ text: "POST /files/content", format: "code" }, { text: "Uploads › Upload file", format: "text" }]` keeps the HTTP operation separate from its readable action name. These lines replace `technicalDescription` only in Technical view; Business view keeps `description`. Legacy string descriptions continue to work. Text is escaped by rendering with `textContent`; hosts do not supply HTML.
+
+Set `ProcessBox.runMetrics = false` for task kinds that the host does not time. Other tasks retain measured/unmeasured Last run metrics, including wrapped rate, p95 and failure values.
