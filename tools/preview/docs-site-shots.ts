@@ -183,6 +183,42 @@ try {
     console.log(`captured ${name}.png`);
   }
 
+  // The modeler's world is absolutely positioned. When the hold is hidden,
+  // grid auto-placement must not leave the canvas in the zero-height auto row.
+  await page.goto(`http://localhost:${PORT}/#patterns/process-modeler`, { waitUntil: "networkidle" });
+  await page.waitForSelector('body[data-route-ready="patterns/process-modeler"]', { timeout: 15_000 });
+  for (const theme of ["light", "dark"]) {
+    await page.evaluate(targetTheme => {
+      if (document.documentElement.dataset.theme !== targetTheme) {
+        (document.getElementById("theme-toggle") as HTMLButtonElement | null)?.click();
+      }
+    }, theme);
+    await page.waitForSelector(`html[data-theme="${theme}"]`);
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 940 });
+      const sizes = await page.locator("box-process-modeler").evaluate((element, viewportWidth) => {
+        const modeler = element as HTMLElement & { setValidation(checks: Array<{ boxId: string; message: string }>): void };
+        modeler.style.width = viewportWidth === 390 ? "340px" : "";
+        const shadow = modeler.shadowRoot!;
+        const canvas = shadow.querySelector<HTMLElement>('[part="canvas"]')!;
+        const hold = shadow.querySelector<HTMLElement>('[part="hold"]')!;
+        const boxId = shadow.querySelector('[data-box-id]')?.getAttribute("data-box-id") ?? "missing";
+        const validHeight = canvas.getBoundingClientRect().height;
+        modeler.setValidation([{ boxId, message: "Layout check" }]);
+        const heldHeight = canvas.getBoundingClientRect().height;
+        const holdHeight = hold.getBoundingClientRect().height;
+        const holdGap = Math.abs(hold.getBoundingClientRect().bottom - canvas.getBoundingClientRect().top);
+        modeler.setValidation([]);
+        return { viewportWidth: innerWidth, hostWidth: modeler.getBoundingClientRect().width, validHeight, heldHeight, holdHeight, holdGap, restoredHeight: canvas.getBoundingClientRect().height, holdHidden: hold.hidden };
+      }, width);
+      if (sizes.viewportWidth !== width || (width === 390 && sizes.hostWidth > 350) || sizes.validHeight <= 80 || sizes.heldHeight <= 80 || Math.abs(sizes.restoredHeight - sizes.validHeight) > 2 || sizes.holdHeight <= 0 || sizes.holdGap > 2 || !sizes.holdHidden) {
+        throw new Error(`Process modeler canvas layout failed in ${theme} at ${width}px: ${JSON.stringify(sizes)}`);
+      }
+    }
+  }
+  await page.setViewportSize({ width: 1440, height: 940 });
+  console.log("verified process-modeler canvas at 1440px and 390px in light/dark (valid → held → valid)");
+
   // Dark-theme pass: toggle dark, then capture a component page and a foundations page.
   const darkRoutes: Array<[string, string, string]> = [
     ["patterns-call-console-dark", "#patterns/call-console", "patterns/call-console"],
