@@ -55,7 +55,8 @@ export const processModelerDesign = `
   [part=run-toggle] input:checked::after { transform: translateX(14px); }
   [part=run-toggle] input:focus-visible { outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5); outline-offset: 2px; }
   [part=toolbar] [data-command=checks-status] { white-space: nowrap; color: var(--boe-token-text-text-secondary, #6f6f6f); }
-  [part=toolbar] [data-command=checks-status][data-state=bad] { color: var(--boe-token-text-status-text-error, #b92340); }
+  [part=toolbar] [data-command=checks-status][data-state=bad] { color: color-mix(in srgb, var(--boe-token-text-status-text-error, #b92340) 85%, var(--boe-token-text-text, #141413)); }
+  [part=toolbar] [data-command=checks-status][data-state=ready] svg { flex: none; color: var(--boe-token-text-status-text-success, #187657); }
   [part=view-menu] { display: none; position: relative; }
   [part=view-menu] summary { list-style: none; height: 32px; display: flex; align-items: center; padding: 0 14px; border: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); border-radius: 20px; font-size: 13px; font-weight: 600; letter-spacing: .01em; cursor: pointer; white-space: nowrap; }
   [part=view-menu][open] { z-index: 20; }
