@@ -2795,14 +2795,15 @@ export class ProcessModeler<
       };
       const openSelected = () => {
         if (this.quietActionFocus) return;
+        this.pendingActionChoice = undefined;
         const current = options.find(option => option.value === field.value);
         group = current?.group ?? null; browse = true;
-        active = group ? 1 + options.filter(option => option.group === group).findIndex(option => option === current) : Math.max(0, options.indexOf(current!));
+        active = group ? 1 + options.filter(option => option.group === group).findIndex(option => option === current) : current ? groups.length + options.filter(option => !option.group).indexOf(current) : 0;
         render();
       };
       list.addEventListener('pointerdown', event => event.preventDefault());
       input.addEventListener('focus', () => { if (!this.quietActionFocus) { input.select(); openSelected(); } });
-      input.addEventListener('input', () => { group = null; browse = false; active = 0; render(); });
+      input.addEventListener('input', () => { this.pendingActionChoice = undefined; group = null; browse = false; active = 0; render(); });
       input.addEventListener('pointerdown', () => { if (list.hidden && this.shadowRoot?.activeElement === input) openSelected(); });
       input.addEventListener('keydown', event => {
         if (list.hidden) { if (event.key === 'ArrowDown' || event.key === 'Enter') { event.preventDefault(); openSelected(); } return; }
@@ -2822,7 +2823,7 @@ export class ProcessModeler<
         }
       });
       const caret = document.createElement('button'); caret.type = 'button'; caret.setAttribute('part', 'action-caret'); caret.setAttribute('aria-label', `Browse ${field.label.toLowerCase()} choices`); caret.textContent = '⌄'; caret.disabled = input.disabled;
-      caret.onclick = () => { input.focus(); group = null; browse = true; active = 0; render(); };
+      caret.onclick = () => { this.pendingActionChoice = undefined; input.focus(); group = null; browse = true; active = 0; render(); };
       row.addEventListener('focusout', event => { if (!row.contains(event.relatedTarget as Node)) close(); });
       row.append(caret, list);
     }
@@ -2916,8 +2917,9 @@ export class ProcessModeler<
       }
       if (!control || control.disabled || control.closest('[inert]')) return;
       const choice = this.pendingActionChoice;
+      // Hosts may echo the committed value repeatedly. Keep focus restoration
+      // quiet until the user explicitly reopens or searches this picker.
       const quiet = Boolean(focusedType === 'field' && choice && choice.boxId === fieldBox && choice.key === focusedKey && choice.session === this.layoutEditSession && this.fieldsValue[fieldBox!]?.some(field => field.key === focusedKey && field.value === choice.value));
-      if (quiet) this.pendingActionChoice = undefined;
       this.quietActionFocus = quiet;
       try { control.focus({ preventScroll: true }); } finally { this.quietActionFocus = false; }
       if (caret !== null && (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) && control.type !== 'number' && control.type !== 'checkbox') control.setSelectionRange(caret, selectionEnd ?? caret, direction ?? undefined);
