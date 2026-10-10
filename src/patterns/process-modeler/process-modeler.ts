@@ -920,12 +920,21 @@ export class ProcessModeler<
       emit(this, 'process-variable-edit-request', edit);
     }
   }
+  private selectionDimensions(box: ProcessBox<N>): { width: number; height: number } {
+    const shape = box.shape ?? this.catalog.find(kind => kind.kind === box.kind)?.shape;
+    const compact = shape === 'gateway' || shape === 'event';
+    const position = this.layoutValue.boxes[box.id];
+    return { width: position.width ?? (compact ? 56 : 224), height: position.height ?? (compact ? 56 : 64) };
+  }
   private selectionCommand(command: string): void {
     if (this.locked) return;
     const boxes = this.selectedBoxes;
     if (command === "delete-many") { for (const box of boxes) this.requestEdit({ type: "delete", boxId: box.id }); return; }
     if (command === 'space') { this.tidySelection(); return; }
-    this.arrangeSelection('top');
+    const rectangles = boxes.map(box => ({ ...this.layoutValue.boxes[box.id], ...this.selectionDimensions(box) }));
+    const width = Math.max(...rectangles.map(r => r.x + r.width)) - Math.min(...rectangles.map(r => r.x));
+    const height = Math.max(...rectangles.map(r => r.y + r.height)) - Math.min(...rectangles.map(r => r.y));
+    this.arrangeSelection(width >= height ? 'middle' : 'center');
   }
   private tidySelection(): void {
     if (this.locked || this.selectedBoxes.length < 2) return;
@@ -979,20 +988,50 @@ export class ProcessModeler<
       let parent = box.parentId; while (parent) { if (this.selectedIds.has(parent)) return false; parent = this.projection.boxes.find(box => box.id === parent)?.parentId; } return true;
     });
     if (sorted.length < 2) return;
-    const width = (box: ProcessBox<N>) => next.boxes[box.id].width ?? (box.shape === 'gateway' || box.shape === 'event' ? 56 : 224);
-    const height = (box: ProcessBox<N>) => next.boxes[box.id].height ?? (box.shape === 'gateway' || box.shape === 'event' ? 56 : 64);
+    const width = (box: ProcessBox<N>) => this.selectionDimensions(box).width;
+    const height = (box: ProcessBox<N>) => this.selectionDimensions(box).height;
     const minX = Math.min(...sorted.map(box => next.boxes[box.id].x));
     const maxX = Math.max(...sorted.map(box => next.boxes[box.id].x + width(box)));
     const minY = Math.min(...sorted.map(box => next.boxes[box.id].y));
     const maxY = Math.max(...sorted.map(box => next.boxes[box.id].y + height(box)));
-    const ordered = [...sorted].sort((a, b) => action === 'distribute-vertical' ? next.boxes[a.id].y - next.boxes[b.id].y : next.boxes[a.id].x - next.boxes[b.id].x);
-    const starts = ordered.map(box => action === 'distribute-vertical' ? next.boxes[box.id].y : next.boxes[box.id].x);
+    const snap = (value: number) => Math.round(value / 16) * 16;
+    const targets = new Map(sorted.map(box => [box.id, { x: next.boxes[box.id].x, y: next.boxes[box.id].y }]));
+    const vertical = action === 'distribute-vertical';
+    if (action === 'distribute-horizontal' || vertical) {
+      if (sorted.length < 3) return;
+      const axis = vertical ? 'y' : 'x';
+      const size = vertical ? height : width;
+      const ordered = [...sorted].sort((a, b) => targets.get(a.id)![axis] - targets.get(b.id)![axis]);
+      const first = targets.get(ordered[0].id)![axis];
+      const last = targets.get(ordered.at(-1)!.id)![axis] + size(ordered.at(-1)!);
+      const gap = (last - first - ordered.reduce((total, box) => total + size(box), 0)) / (ordered.length - 1);
+      let position = first + size(ordered[0]) + gap;
+      for (const box of ordered.slice(1, -1)) { targets.get(box.id)![axis] = position; position += size(box) + gap; }
+    } else {
+      for (const box of sorted) {
+        const target = targets.get(box.id)!;
+        if (action === 'left') target.x = minX;
+        if (action === 'center') target.x = snap((minX + maxX) / 2) - width(box) / 2;
+        if (action === 'right') target.x = maxX - width(box);
+        if (action === 'top') target.y = minY;
+        if (action === 'middle') target.y = snap((minY + maxY) / 2) - height(box) / 2;
+        if (action === 'bottom') target.y = maxY - height(box);
+      }
+      if (action === 'middle' || action === 'center') {
+        const axis = action === 'middle' ? 'x' : 'y';
+        const size = action === 'middle' ? width : height;
+        const ordered = [...sorted].sort((a, b) => targets.get(a.id)![axis] - targets.get(b.id)![axis]);
+        for (let index = 1; index < ordered.length; index++) {
+          const previous = ordered[index - 1], box = ordered[index];
+          const minimum = targets.get(previous.id)![axis] + size(previous) + 48;
+          const target = targets.get(box.id)!;
+          if (target[axis] < minimum) target[axis] += snap(minimum - target[axis] + 8);
+        }
+      }
+    }
     for (const box of sorted) {
-      const position = next.boxes[box.id];
-      const index = ordered.indexOf(box);
-      const x = action === 'left' ? minX : action === 'center' ? (minX + maxX - width(box)) / 2 : action === 'right' ? maxX - width(box) : action === 'distribute-horizontal' ? starts[0] + index * (starts.at(-1)! - starts[0]) / (ordered.length - 1) : position.x;
-      const y = action === 'top' ? minY : action === 'middle' ? (minY + maxY - height(box)) / 2 : action === 'bottom' ? maxY - height(box) : action === 'distribute-vertical' ? starts[0] + index * (starts.at(-1)! - starts[0]) / (ordered.length - 1) : position.y;
-      const dx = x - position.x, dy = y - position.y;
+      const position = next.boxes[box.id], target = targets.get(box.id)!;
+      const dx = target.x - position.x, dy = target.y - position.y;
       const group = new Set([box.id]);
       for (let changed = true; changed;) { changed = false; for (const candidate of this.projection.boxes) if (candidate.parentId && group.has(candidate.parentId) && !group.has(candidate.id)) { group.add(candidate.id); changed = true; } }
       for (const id of group) next.boxes[id] = { ...next.boxes[id], x: next.boxes[id].x + dx, y: next.boxes[id].y + dy };
