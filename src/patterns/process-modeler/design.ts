@@ -291,7 +291,8 @@ export const processModelerDesign = `
   :is([part=local-variable-summary],[part=saved-result-summary],[part=local-variables]) { display: grid; gap: 8px; font-size: 12.5px; line-height: 1.5; }
   :is([part=local-variable-summary],[part=saved-result-summary],[part=local-variables]) :is(h3,p) { margin: 0; }
   :is([part=local-variable-summary],[part=saved-result-summary]) ul { margin: 0; padding-left: 20px; }
-  [part=local-variable-row] { display: grid; gap: 6px; }
+  [part=local-variable-row] { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) 32px; gap: 6px; align-items: end; }
+  [part=local-variable-row] [part=field-problem] { grid-column: 1 / -1; color: var(--boe-token-text-status-text-error, #b92340); }
   [part=local-variables] label { display: grid; gap: 4px; }
   [part=local-variables] input { box-sizing: border-box; width: 100%; min-height: 32px; padding: 5px 8px; border: 1px solid var(--boe-token-stroke-stroke,#e8e8e8); border-radius: 6px; background: var(--boe-token-surface-surface,#fff); color: var(--boe-token-text-text,#141413); font: inherit; }
   [part=local-variables] button { min-height: 32px; justify-self: start; }

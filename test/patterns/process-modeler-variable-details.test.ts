@@ -62,6 +62,45 @@ describe('host-owned variable details', () => {
     expect(observer).toHaveBeenCalledOnce();const snapshot=observer.mock.calls[0][0].detail.projection;
     snapshot.boxes[0].localVariables[0].name='changed outside';expect((b.document as any).boxes[0].localVariables[0].name).toBe('local1');
   });
+  it('renders host local problems as text with associated invalid controls and clears corrected echoes', () => {
+    const b=fixture(); const owner=(b.document as any).boxes[0];
+    owner.localVariables=[{name:'a',startingValue:'1 +',problem:'Invalid <expression>'}]; b.document=b.document; b.select('a');
+    const r=b.shadowRoot!, inputs=[...r.querySelectorAll<HTMLInputElement>('[part=local-variable-row] input')];
+    expect(inputs).toHaveLength(2);
+    for (const input of inputs) { expect(input.getAttribute('aria-invalid')).toBe('true'); expect(r.getElementById(input.getAttribute('aria-describedby')!)!.textContent).toBe('Invalid <expression>'); }
+    expect(r.querySelector('[part=field-problem] expression')).toBeNull();
+    owner.localVariables=[{name:'a',startingValue:'1 + 1'}];b.document=b.document;
+    expect(r.querySelector('[aria-invalid=true]')).toBeNull();expect(r.querySelector('[part=field-problem]')).toBeNull();
+  });
+  it('tracks renamed logical rows through sorted and deferred host echoes', async () => {
+    const b=fixture(), owner=(b.document as any).boxes[0]; owner.localVariables=[{name:'a'},{name:'b'}];b.document=b.document;b.select('a');
+    const r=b.shadowRoot!;let pending:any;
+    b.addEventListener('process-local-variable-edit-request', (event:Event)=>{pending=(event as CustomEvent).detail;});
+    let input=r.querySelector<HTMLInputElement>('[data-local-key=rename][data-local-name=a]')!;input.focus();input.value='z';input.setSelectionRange(1,1);input.dispatchEvent(new Event('input'));
+    await Promise.resolve(); owner.localVariables=[{name:'b'},{name:'z'}];b.document=b.document;
+    input=r.querySelector<HTMLInputElement>('[data-local-key=rename][data-local-name=z]')!;expect(r.activeElement).toBe(input);expect(input.selectionStart).toBe(1);
+    input.value='zz';input.dispatchEvent(new Event('input'));expect(pending.edit).toEqual({type:'rename',index:1,name:'z',value:'zz'});
+  });
+  it('focuses the unique prepended Add row and avoids ambiguous renamed identity', () => {
+    const b=fixture(), owner=(b.document as any).boxes[0];owner.localVariables=[{name:'b'}];b.document=b.document;b.select('a');const r=b.shadowRoot!;
+    b.addEventListener('process-local-variable-edit-request',(event:Event)=>{const {edit}=(event as CustomEvent).detail;owner.localVariables=edit.type==='add'?[{name:'a'},...owner.localVariables]:[{name:'b'},{name:'b'}];b.document=b.document;});
+    r.querySelector<HTMLButtonElement>('[data-local-key=add]')!.click();expect((r.activeElement as HTMLElement).dataset.localName).toBe('a');
+    const input=r.querySelector<HTMLInputElement>('[data-local-key=rename][data-local-name=a]')!;input.value='b';input.dispatchEvent(new Event('input'));expect((r.activeElement as HTMLElement|null)?.dataset.localKey).not.toBe('rename');
+  });
+  it('resolves current detached owner paths and reverts rejected drafts on unchanged host echo', () => {
+    const b=fixture(), owner=(b.document as any).boxes[0];owner.localVariables=[{name:'a',startingValue:'1'}];owner.path=['body',0];b.document=b.document;b.select('a');const r=b.shadowRoot!, received:any[]=[];
+    b.addEventListener('process-local-variable-edit-request',(event:Event)=>received.push((event as CustomEvent).detail));
+    owner.path=['body',2];b.document=b.document;
+    let input=r.querySelector<HTMLInputElement>('[data-local-key=starting-value]')!;input.focus();input.value='rejected';input.dispatchEvent(new Event('input'));
+    expect(received[0].path).toEqual(['body',2]);received[0].path[1]=99;expect(owner.path).toEqual(['body',2]);
+    b.document=b.document;input=r.querySelector<HTMLInputElement>('[data-local-key=starting-value]')!;expect(input.value).toBe('1');expect(r.activeElement).toBe(input);
+    const name=r.querySelector<HTMLInputElement>('[data-local-key=rename]')!;name.focus();name.value='rejected';name.dispatchEvent(new Event('input'));b.document=b.document;
+    expect(r.querySelector<HTMLInputElement>('[data-local-key=rename]')!.value).toBe('a');
+  });
+  it('keeps position persistence payloads limited to identity and geometry', () => {
+    const b=fixture(), owner=(b.document as any).boxes[0];owner.path=['body',0];owner.fingerprint='fp';owner.localVariables=[{name:'private',startingValue:'secret'}];b.document=b.document;
+    b.layout={boxes:{a:{x:16,y:32}}};expect(b.positions.find(p=>p.id==='a')).toEqual({id:'a',path:['body',0],fingerprint:'fp',position:{x:16,y:32}});
+  });
   it('uses explicit local eligibility/read-only state and distinguishes frame help', () => {
     const b=fixture();b.select('frame');const r=b.shadowRoot!;expect(r.querySelector('[part=local-variables]')!.textContent).toContain('Variables for the steps inside');expect(r.querySelector('[data-local-key=add]')).toBeNull();
     b.select('b');expect(r.querySelector('[part=local-variables]')!.textContent).toContain('Variables for this step');

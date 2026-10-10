@@ -86,6 +86,8 @@ export class ProcessModeler<
   private inspected?: N;
   private inspectedId?: string;
   private inspectedControls = "";
+  private localEchoRevision = 0;
+  private pendingLocalRename?: { boxId: string; name: string; value: string };
   private historyValue = new ProcessHistory();
   private viewport = { x: 0, y: 0, zoom: 1 };
   private pointers = new Map<number, { x: number; y: number }>();
@@ -214,6 +216,7 @@ export class ProcessModeler<
     };
   }
   load(document: D, options: ProcessLoadOptions = {}): void {
+    this.pendingLocalRename = undefined;
     this.layoutEditSession++;
     this.cancelPalettePointer();
     const projection = this.model.project(document); validateProjection(projection);
@@ -262,6 +265,7 @@ export class ProcessModeler<
     this.refresh();
   }
   set document(value: D | undefined) {
+    this.localEchoRevision++;
     this.documentValue = value;
     this.refresh();
   }
@@ -2574,14 +2578,28 @@ export class ProcessModeler<
     const focusedControl = this.shadowRoot!.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
     const focusedKey = focusedControl?.dataset.field ?? focusedControl?.dataset.variable ?? focusedControl?.dataset.localVariable;
     const variableKey = focusedControl?.dataset.variableKey;
-    const localKey = focusedControl?.dataset.localKey, localIndex = focusedControl?.dataset.localIndex;
+    const localKey = focusedControl?.dataset.localKey, localName = focusedControl?.dataset.localName;
     const focusedType = focusedControl?.dataset.field !== undefined ? 'field' : focusedControl?.dataset.variable !== undefined ? 'variable' : focusedControl?.dataset.localVariable !== undefined ? 'localVariable' : null;
     const caret = focusedControl && 'selectionStart' in focusedControl ? focusedControl.selectionStart : null;
     const restoreControlFocus = () => {
       if (focusedKey === undefined || !focusedType) return;
       const controls = Array.from(this.shadowRoot!.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | HTMLButtonElement>('input,textarea,select,button'));
-      const control = controls.find(item => item.dataset[focusedType] === focusedKey && (focusedType !== 'variable' || item.dataset.variableKey === variableKey) && (focusedType !== 'localVariable' || item.dataset.localKey === localKey && item.dataset.localIndex === localIndex))
+      const control = controls.find(item => item.dataset[focusedType] === focusedKey && (focusedType !== 'variable' || item.dataset.variableKey === variableKey) && focusedType !== 'localVariable')
         ?? (focusedType === 'variable' ? controls.find(item => this.pendingVariableRename?.name === focusedKey && item.dataset.variable === this.pendingVariableRename.value && item.dataset.variableKey === variableKey) ?? controls.find(item => item.dataset.variableKey === 'add') : undefined);
+      if (focusedType === 'localVariable') {
+        const names = [localName];
+        if (this.pendingLocalRename?.boxId === focusedKey && this.pendingLocalRename.name === localName) names.push(this.pendingLocalRename.value);
+        let localControl: typeof control = undefined;
+        for (const name of names) {
+          const matches = controls.filter(item => item.dataset.localVariable === focusedKey && item.dataset.localKey === localKey && item.dataset.localName === name);
+          if (matches.length === 1) { localControl = matches[0]; break; }
+          if (matches.length > 1) break;
+        }
+        if (!localControl) { focusedControl?.blur(); return; }
+        localControl.focus();
+        if (caret !== null && localControl instanceof HTMLInputElement) localControl.setSelectionRange(caret, caret);
+        return;
+      }
       if (!control) return;
       control.focus();
       if (caret !== null && (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) && control.type !== 'number' && control.type !== 'checkbox') control.setSelectionRange(caret, caret);
@@ -2610,7 +2628,7 @@ export class ProcessModeler<
     const editor =
       this.shadowRoot!.querySelector<HTMLElement>("[part=editor]")!;
     const selected = this.selected;
-    const controlsKey = `${[...this.selectedIds].join(',')}|${this.locked}|${this.disableConnections}|${this.showLastRunValue}|${selected?.runMetrics}|${JSON.stringify([selected?.localVariables, selected?.localVariablesEditable, selected?.frame])}|${JSON.stringify(selected ? this.fieldsValue[selected.id] ?? [] : [])}`;
+    const controlsKey = `${[...this.selectedIds].join(',')}|${this.locked}|${this.disableConnections}|${this.showLastRunValue}|${selected?.runMetrics}|${JSON.stringify([selected?.localVariables, selected?.localVariablesEditable, selected?.frame, selected?.path, this.localEchoRevision])}|${JSON.stringify(selected ? this.fieldsValue[selected.id] ?? [] : [])}`;
     this.shadowRoot!.querySelector<HTMLElement>("[part=palette]")!.hidden = false;
     this.shadowRoot!.querySelector<HTMLElement>('[part=selection-toolbar]')!.hidden = this.selectedIds.size === 0 && !this.selectedLineId;
     this.renderSelectionToolbar();
@@ -2694,15 +2712,26 @@ export class ProcessModeler<
     section.append(heading, help);
     for (const [index, variable] of (box.localVariables ?? []).entries()) {
       const row = document.createElement('div'); row.setAttribute('part', 'local-variable-row');
-      const identify = (control: HTMLElement, key: string) => { control.dataset.localVariable = box.id; control.dataset.localIndex = String(index); control.dataset.localKey = key; };
+      const identify = (control: HTMLElement, key: string) => { control.dataset.localVariable = box.id; control.dataset.localIndex = String(index); control.dataset.localKey = key; control.dataset.localName = variable.name; };
       for (const [key, label, value] of [['rename', 'Name', variable.name], ['starting-value', 'Starts as', variable.startingValue ?? '']] as const) {
         const field = document.createElement('label'); field.textContent = label;
         const input = document.createElement('input'); input.type = 'text'; input.value = value; input.disabled = this.locked || !box.localVariablesEditable; identify(input, key);
-        input.oninput = () => this.requestLocalVariableEdit(box, { type: key, index, name: variable.name, value: input.value }); field.append(input); row.append(field);
+        if (variable.problem) {
+          input.setAttribute('aria-invalid', 'true');
+          input.setAttribute('aria-describedby', `process-local-problem-${encodeURIComponent(box.id)}-${index}`);
+        }
+        input.oninput = () => {
+          if (key === 'rename') this.pendingLocalRename = { boxId: box.id, name: variable.name, value: input.value };
+          this.requestLocalVariableEdit(box, { type: key, index, name: variable.name, value: input.value });
+        }; field.append(input); row.append(field);
       }
       if (box.localVariablesEditable) {
         const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×'; remove.setAttribute('aria-label', `Remove ${variable.name || 'this variable'}`); remove.disabled = this.locked; identify(remove, 'remove');
         remove.onclick = () => this.requestLocalVariableEdit(box, { type: 'remove', index, name: variable.name }); row.append(remove);
+      }
+      if (variable.problem) {
+        const problem = document.createElement('small'); problem.setAttribute('part', 'field-problem');
+        problem.id = `process-local-problem-${encodeURIComponent(box.id)}-${index}`; problem.textContent = variable.problem; row.append(problem);
       }
       section.append(row);
     }
@@ -2713,15 +2742,24 @@ export class ProcessModeler<
     return section;
   }
   private requestLocalVariableEdit(box: ProcessBox<N>, edit: ProcessLocalVariableEdit): void {
-    if (this.locked || !box.localVariablesEditable || this.selected?.id !== box.id) return;
-    const request: ProcessLocalVariableEditRequest = { boxId: box.id, ...(box.path ? { path: box.path } : {}), edit };
-    const session = this.layoutEditSession, beforeCount = box.localVariables?.length ?? 0;
+    const owner = this.selected;
+    if (this.locked || !owner?.localVariablesEditable || owner.id !== box.id) return;
+    if (edit.type !== 'add' && owner.localVariables?.[edit.index]?.name !== edit.name) return;
+    const request: ProcessLocalVariableEditRequest = { boxId: owner.id, ...(owner.path ? { path: [...owner.path] } : {}), edit };
+    const session = this.layoutEditSession, beforeNames = (owner.localVariables ?? []).map(variable => variable.name), beforeCount = beforeNames.length;
     emit(this, 'process-local-variable-edit-request', request);
     if (session !== this.layoutEditSession || this.selected?.id !== box.id) return;
     const count = this.selected.localVariables?.length ?? 0;
     if (edit.type === 'add' && count > beforeCount) {
-      const name = Array.from(this.shadowRoot!.querySelectorAll<HTMLInputElement>('[data-local-key=rename]')).find(input => input.dataset.localVariable === box.id && input.dataset.localIndex === String(count - 1));
-      name?.focus(); name?.select();
+      const remaining = [...beforeNames];
+      const added = (this.selected.localVariables ?? []).filter(variable => {
+        const index = remaining.indexOf(variable.name); if (index < 0) return true;
+        remaining.splice(index, 1); return false;
+      });
+      if (added.length === 1 && this.selected.localVariables?.filter(variable => variable.name === added[0].name).length === 1) {
+        const name = Array.from(this.shadowRoot!.querySelectorAll<HTMLInputElement>('[data-local-key=rename]')).find(input => input.dataset.localVariable === box.id && input.dataset.localName === added[0].name);
+        name?.focus(); name?.select();
+      }
     } else if (edit.type === 'remove' && count < beforeCount) {
       Array.from(this.shadowRoot!.querySelectorAll<HTMLButtonElement>('[data-local-key=add]')).find(button => button.dataset.localVariable === box.id)?.focus();
     }

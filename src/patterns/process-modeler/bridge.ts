@@ -67,7 +67,6 @@ export function snapshotProcessPositions<N>(
     snapshots.push({
       id: box.id,
       ...(box.path ? { path: [...box.path] } : {}),
-      ...(box.localVariables ? { localVariables: box.localVariables.map(variable => ({ ...variable })) } : {}),
       ...(box.fingerprint !== undefined ? { fingerprint: box.fingerprint } : {}),
       position: { ...position },
     });
