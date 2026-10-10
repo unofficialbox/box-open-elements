@@ -651,7 +651,7 @@ export interface BoxElementEventMap {
     "open-changed": CustomEvent<{ open: boolean; }>;
   };
   "box-trace-waterfall": {
-    "span-selected": CustomEvent<{ spanId: string; span: import("./patterns/run/trace-waterfall.js").TraceSpan | undefined; }>;
+    "span-selected": CustomEvent<{ spanId: string; span: import("./patterns/run/trace-waterfall.js").TraceSpan | undefined; comparisonOnly: boolean; }>;
     "span-toggled": CustomEvent<{ spanId: string; expanded: boolean; }>;
   };
   "box-tree": {

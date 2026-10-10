@@ -61,3 +61,7 @@ Status words and distinct symbols/dashed bar shapes supplement color.
 
 Manual screen-reader QA is deferred by Kyle; keyboard, accessibility-tree and
 axe checks do not constitute a spoken-output test.
+
+Comparison spans align by stable IDs. Spans present only in the earlier trace remain visible as comparison-only rows with outlined bars and an explicit “Not in current trace” state. Earlier markers are dashed, named as comparison markers, and included in the table and accessible summaries. Selection of these rows emits the earlier span with `comparisonOnly: true`; current rows emit `false`.
+
+Live updates retain table-span and Trace options focus as well as row/search focus. Reaching the first or last detail moves focus to the enabled opposite navigation button.

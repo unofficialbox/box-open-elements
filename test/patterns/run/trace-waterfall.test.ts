@@ -23,6 +23,22 @@ describe("trace waterfall layout", () => {
     expect(layout.endMs).toBe(1000); expect(layout.hiddenCount).toBe(1);
     expect(layout.rows[1]!.span.startMs + layout.rows[1]!.span.durationMs).toBeGreaterThan(layout.rows[2]!.span.startMs);
   });
+  it("aligns comparison-only branches and preserves earlier markers", () => {
+    const current: TraceSpan[] = [{ ...spans[0]!, id: "A", durationMs: 100 }];
+    const comparison: TraceSpan[] = [{ ...current[0]!, markers: [{ atMs: 300, label: "Earlier marker" }] }, { ...spans[1]!, id: "B", parentId: "A", startMs: 100, durationMs: 500 }];
+    const layout = traceWaterfallLayout(current, { comparisonSpans: comparison });
+    expect(layout.endMs).toBe(600);
+    expect(layout.rows.map(row => [row.span.id, row.comparisonOnly])).toEqual([["A", false], ["B", true]]);
+    const element = new TraceWaterfall(); element.spans = current; element.comparisonSpans = comparison; document.body.append(element);
+    expect(rows(element)[1]!.querySelector('[part="bar"]')).toBeNull();
+    expect(rows(element)[1]!.querySelector('[part="comparison-bar"]')).not.toBeNull();
+    expect(rows(element)[0]!.querySelector('[part="comparison-marker"]')).not.toBeNull();
+    expect(rows(element)[0]!.getAttribute("aria-label")).toContain("comparison marker Earlier marker");
+    expect(rows(element)[1]!.getAttribute("aria-label")).toContain("Not in current trace");
+    rows(element)[1]!.click(); expect(element.selectedSpanId).toBe("B");
+    click(element, "table-toggle"); expect(element.shadowRoot!.textContent).toContain("Not in current trace");
+    expect(element.shadowRoot!.textContent).toContain("Comparison marker Earlier marker");
+  });
   it("reparents visible children of hidden system spans", () => {
     const input = [...spans, { ...spans[1]!, id: "child", parentId: "system" }];
     expect(traceWaterfallLayout(input).rows.find(row => row.span.id === "child")?.parentId).toBe("run");
@@ -132,6 +148,20 @@ describe("TraceWaterfall", () => {
     expect(element.shadowRoot!.activeElement?.getAttribute("part")).toBe("fullscreen-toggle");
     click(element, "fullscreen-toggle"); element.shadowRoot!.querySelector("dialog")!.dispatchEvent(new Event("cancel", { cancelable: true }));
     expect(element.shadowRoot!.querySelector("dialog")).toBeNull();
+  });
+  it("retains table and options focus across live replacements and uses an enabled detail endpoint", () => {
+    const element = fixture(); click(element, "table-toggle");
+    element.shadowRoot!.querySelector<HTMLButtonElement>('[data-select-id="auth"]')!.focus();
+    element.nowMs = 2000;
+    expect(element.shadowRoot!.activeElement?.getAttribute("data-select-id")).toBe("auth");
+    const summary = element.shadowRoot!.querySelector<HTMLElement>("summary")!; summary.focus();
+    element.spans = [...spans];
+    expect(element.shadowRoot!.activeElement?.tagName).toBe("SUMMARY");
+    click(element, "table-toggle"); rows(element)[1]!.click();
+    click(element, "previous-span");
+    expect(element.shadowRoot!.activeElement?.getAttribute("part")).toBe("next-span");
+    click(element, "next-span"); click(element, "next-span");
+    expect(element.shadowRoot!.activeElement?.getAttribute("part")).toBe("previous-span");
   });
   it("has clean automated treegrid/table semantics", async () => {
     const element = fixture();

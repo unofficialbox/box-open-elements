@@ -16,6 +16,7 @@ export interface TraceSpan {
 }
 export interface TraceRow {
   span: TraceSpan;
+  comparisonOnly: boolean;
   parentId?: string;
   depth: number;
   hasChildren: boolean;
@@ -51,7 +52,10 @@ export function traceSpanDuration(span: TraceSpan, nowMs: number): number {
 
 /** Stable report layout: input sibling order, one zero-based axis, no browser dependency. */
 export function traceWaterfallLayout(spans: TraceSpan[], options: { showSystem?: boolean; search?: string; collapsed?: ReadonlySet<string>; nowMs?: number; comparisonSpans?: TraceSpan[] } = {}): TraceLayout {
-  const valid = validTraceSpans(spans);
+  const current = validTraceSpans(spans);
+  const currentIds = new Set(current.map(span => span.id));
+  const earlier = validTraceSpans(options.comparisonSpans ?? []);
+  const valid = [...current, ...earlier.filter(span => !currentIds.has(span.id))];
   const byId = new Map(valid.map(span => [span.id, span]));
   const parents = new Map<string, string>();
   for (const span of valid) {
@@ -94,12 +98,12 @@ export function traceWaterfallLayout(spans: TraceSpan[], options: { showSystem?:
     siblings.forEach((span, index) => {
       const hasChildren = Boolean(children.get(span.id)?.length);
       const expanded = hasChildren && (Boolean(query) || !options.collapsed?.has(span.id));
-      rows.push({ span, parentId, depth, hasChildren, expanded, position: index + 1, siblings: siblings.length });
+      rows.push({ span, comparisonOnly: !currentIds.has(span.id), parentId, depth, hasChildren, expanded, position: index + 1, siblings: siblings.length });
       if (expanded) visit(span.id, depth + 1);
     });
   };
   visit(undefined, 0);
-  const all = [...valid, ...validTraceSpans(options.comparisonSpans ?? [])];
+  const all = [...current, ...earlier];
   let endMs = 1;
   for (const span of all) {
     endMs = Math.max(endMs, span.startMs + traceSpanDuration(span, options.nowMs ?? 0));
@@ -131,7 +135,8 @@ const styles = `
   [data-status=failed] [part=bar] { background:var(--boe-trace-failed,var(--boe-token-surface-surface-brand,#0061d5)); border:2px dashed var(--boe-token-text-text,#1f1e1b); box-sizing:border-box }
   [data-status=skipped] [part=bar] { background:transparent; border:1px dashed var(--boe-token-text-text-secondary,#626b7d); box-sizing:border-box }
   [part=comparison-bar] { position:absolute; top:.65rem; height:.35rem; min-width:2px; border:1px solid var(--boe-trace-bar,var(--boe-token-surface-surface-brand,#0061d5)); background:var(--boe-trace-track,var(--boe-token-surface-surface-secondary,#f5f7fb)); box-sizing:border-box }
-  [part=marker] { position:absolute; top:0; height:100%; width:0; border-left:2px solid var(--boe-token-text-text,#1f1e1b) }
+  [part=marker], [part=comparison-marker] { position:absolute; top:0; height:100%; width:0; border-left:2px solid var(--boe-token-text-text,#1f1e1b) }
+  [part=comparison-marker] { border-left-style:dashed }
   [part=axis] { display:flex; justify-content:space-between; gap:.5rem; font-size:.75rem }
   [part=details] { border-left:1px solid var(--boe-token-stroke-stroke,#dedfe4); padding-left:1rem; min-width:0; overflow-wrap:anywhere } [part=detail-section] { margin-top:.8rem } pre { font:inherit; font-family:monospace; font-size:.8rem; white-space:pre-wrap; overflow-wrap:anywhere; margin:.35rem 0 } [part=detail-text] { white-space:pre-wrap; font-size:.8rem }
   [part=note], [part=empty] { font-size:.8rem; margin:.6rem 0; color:var(--boe-token-text-text-secondary,#626b7d) }
@@ -169,8 +174,9 @@ export class TraceWaterfall extends BaseElement {
   protected renderTemplate(): void { this.shadowRoot!.innerHTML = `<style>${styles}</style><div part="content-host"></div>`; }
   private select(id: string): void {
     this.selectedSpanId = id;
-    const span = validTraceSpans(this.spans).find(item => item.id === id);
-    this.dispatchEvent(new CustomEvent("span-selected", { detail: { spanId: id, span }, bubbles: true, composed: true }));
+    const row = this.layout.rows.find(row => row.span.id === id);
+    const span = row?.span;
+    this.dispatchEvent(new CustomEvent("span-selected", { detail: { spanId: id, span, comparisonOnly: row?.comparisonOnly ?? false }, bubbles: true, composed: true }));
   }
   private focusRow(id: string): void {
     this.focusedId = id;
@@ -218,27 +224,33 @@ export class TraceWaterfall extends BaseElement {
     const active = this.shadowRoot?.activeElement as HTMLElement | null;
     const activePart = active?.getAttribute("part");
     const wasRow = activePart === "row";
+    const activeSelectId = active?.getAttribute("data-select-id");
+    const activeRowId = active?.closest<HTMLElement>('[part="row"]')?.dataset.spanId;
     const menuOpen = this.shadowRoot?.querySelector<HTMLDetailsElement>('[part="menu"]')?.open ?? false;
     const searchSelection = active instanceof HTMLInputElement ? [active.selectionStart, active.selectionEnd] : null;
     const { rows, hiddenCount, endMs } = this.layout;
     if (!rows.some(row => row.span.id === this.focusedId)) this.focusedId = rows[0]?.span.id ?? null;
-    const allIds = new Set(validTraceSpans(this.spans).map(span => span.id));
+    const allIds = new Set([...validTraceSpans(this.spans), ...validTraceSpans(this.comparisonSpans)].map(span => span.id));
     this.collapsed.forEach(id => { if (!allIds.has(id)) this.collapsed.delete(id); });
     const comparison = new Map(validTraceSpans(this.comparisonSpans).map(span => [span.id, span]));
     const position = (ms: number): number => Math.max(0, Math.min(100, ms / endMs * 100));
     const geometry = (span: TraceSpan): string => `left:${position(span.startMs)}%;width:${position(span.startMs + traceSpanDuration(span, this.nowMs)) - position(span.startMs)}%`;
     const markerList = validMarkers;
-    const summary = (span: TraceSpan): string => `${span.label}, ${statusLabels[span.status]}, starts at ${duration(span.startMs)}, takes ${duration(traceSpanDuration(span, this.nowMs))}${markerList(span).map(marker => `, ${marker.label} at ${duration(marker.atMs)}`).join("")}${comparison.has(span.id) ? `; comparison starts at ${duration(comparison.get(span.id)!.startMs)}, takes ${duration(traceSpanDuration(comparison.get(span.id)!, this.nowMs))}` : ""}`;
+    const summary = (span: TraceSpan, comparisonOnly = false): string => {
+      const previous = comparison.get(span.id);
+      const current = comparisonOnly ? "Not in current trace" : `${span.label}, ${statusLabels[span.status]}, starts at ${duration(span.startMs)}, takes ${duration(traceSpanDuration(span, this.nowMs))}${markerList(span).map(marker => `, ${marker.label} at ${duration(marker.atMs)}`).join("")}`;
+      return current + (!comparison.size ? "" : previous ? `; comparison ${statusLabels[previous.status]}, starts at ${duration(previous.startMs)}, takes ${duration(traceSpanDuration(previous, this.nowMs))}${markerList(previous).map(marker => `, comparison marker ${marker.label} at ${duration(marker.atMs)}`).join("")}` : "; not in comparison trace");
+    };
     const rowHtml = rows.map(row => {
       const span = row.span; const previous = comparison.get(span.id);
-      return `<div part="row" role="row" data-span-id="${escape(span.id)}" data-status="${span.status}"${row.hasChildren ? " data-parent" : ""} tabindex="${span.id === this.focusedId ? 0 : -1}" aria-level="${row.depth + 1}" aria-posinset="${row.position}" aria-setsize="${row.siblings}"${row.hasChildren ? ` aria-expanded="${row.expanded}"` : ""} aria-selected="${span.id === this.selectedSpanId}" aria-label="${escape(summary(span))}"><div role="gridcell" part="label-cell" style="--indent:${row.depth * 1.15}rem">${row.hasChildren ? `<button part="expand" type="button" tabindex="-1" aria-label="${row.expanded ? "Collapse" : "Expand"} ${escape(span.label)}"${this.search.trim() ? " disabled" : ""}>${row.expanded ? "▾" : "▸"}</button>` : '<span part="expand-space"></span>'}<span part="label" title="${escape(span.label)}">${escape(span.label)}</span><span part="kind">${escape(span.kind)}</span></div><div role="gridcell" part="timing"><div part="timing-label"><span part="status">${statusShapes[span.status]} ${statusLabels[span.status]}</span><span part="duration">${duration(traceSpanDuration(span, this.nowMs))}</span></div><div part="track" aria-hidden="true"><span part="bar" style="${geometry(span)}"></span>${previous ? `<span part="comparison-bar" style="${geometry(previous)}"></span>` : ""}${markerList(span).map(marker => `<span part="marker" title="${escape(marker.label)}: ${duration(marker.atMs)}" style="left:${position(marker.atMs)}%"></span>`).join("")}</div></div></div>`;
+      return `<div part="row" role="row" data-span-id="${escape(span.id)}" data-status="${span.status}"${row.hasChildren ? " data-parent" : ""} tabindex="${span.id === this.focusedId ? 0 : -1}" aria-level="${row.depth + 1}" aria-posinset="${row.position}" aria-setsize="${row.siblings}"${row.hasChildren ? ` aria-expanded="${row.expanded}"` : ""} aria-selected="${span.id === this.selectedSpanId}" aria-label="${escape(summary(span, row.comparisonOnly))}"><div role="gridcell" part="label-cell" style="--indent:${row.depth * 1.15}rem">${row.hasChildren ? `<button part="expand" type="button" tabindex="-1" aria-label="${row.expanded ? "Collapse" : "Expand"} ${escape(span.label)}"${this.search.trim() ? " disabled" : ""}>${row.expanded ? "▾" : "▸"}</button>` : '<span part="expand-space"></span>'}<span part="label" title="${escape(span.label)}">${escape(span.label)}</span><span part="kind">${escape(span.kind)}</span></div><div role="gridcell" part="timing"><div part="timing-label"><span part="status">${row.comparisonOnly ? "Comparison only · " : ""}${statusShapes[span.status]} ${statusLabels[span.status]}</span><span part="duration">${duration(traceSpanDuration(span, this.nowMs))}</span></div><div part="track" aria-hidden="true">${row.comparisonOnly ? "" : `<span part="bar" style="${geometry(span)}"></span>`}${previous ? `<span part="comparison-bar" style="${geometry(previous)}"></span>` : ""}${(row.comparisonOnly ? [] : markerList(span)).map(marker => `<span part="marker" title="${escape(marker.label)}: ${duration(marker.atMs)}" style="left:${position(marker.atMs)}%"></span>`).join("")}${previous ? markerList(previous).map(marker => `<span part="comparison-marker" title="Comparison ${escape(marker.label)}: ${duration(marker.atMs)}" style="left:${position(marker.atMs)}%"></span>`).join("") : ""}</div></div></div>`;
     }).join("");
-    const tableRows = rows.map(row => `<tr><th scope="row"><button type="button" data-select-id="${escape(row.span.id)}">${escape(row.span.label)}</button><div>${escape(row.span.kind)}</div></th><td>${statusLabels[row.span.status]}</td><td>${duration(row.span.startMs)}<br>${duration(traceSpanDuration(row.span, this.nowMs))}${markerList(row.span).map(marker => `<br>${escape(marker.label)}: ${duration(marker.atMs)}`).join("")}${comparison.has(row.span.id) ? `<br>Comparison: ${duration(comparison.get(row.span.id)!.startMs)} / ${duration(traceSpanDuration(comparison.get(row.span.id)!, this.nowMs))}` : ""}</td></tr>`).join("");
+    const tableRows = rows.map(row => `<tr><th scope="row"><button type="button" data-select-id="${escape(row.span.id)}">${escape(row.span.label)}</button><div>${escape(row.span.kind)}</div></th><td>${row.comparisonOnly ? "Comparison only · " : ""}${statusLabels[row.span.status]}</td><td>${row.comparisonOnly ? "Not in current trace" : `${duration(row.span.startMs)}<br>${duration(traceSpanDuration(row.span, this.nowMs))}${markerList(row.span).map(marker => `<br>${escape(marker.label)}: ${duration(marker.atMs)}`).join("")}`}${comparison.has(row.span.id) ? `<br>Comparison: ${duration(comparison.get(row.span.id)!.startMs)} / ${duration(traceSpanDuration(comparison.get(row.span.id)!, this.nowMs))}${markerList(comparison.get(row.span.id)!).map(marker => `<br>Comparison marker ${escape(marker.label)}: ${duration(marker.atMs)}`).join("")}` : comparison.size ? "<br>Not in comparison trace" : ""}</td></tr>`).join("");
     const selected = rows.find(row => row.span.id === this.selectedSpanId)?.span;
     const selectedIndex = rows.findIndex(row => row.span.id === this.selectedSpanId);
     const detailValue = (value: unknown): string => { if (typeof value === "string") return value; try { return JSON.stringify(value, null, this.code ? 2 : 0) ?? ""; } catch { return "Details are unavailable."; } };
-    const details = selected ? `<aside part="details" aria-label="Span details"><h3>${escape(selected.label)}</h3><p part="note">${escape(summary(selected))}</p><div part="detail-controls"><button part="previous-span" type="button"${selectedIndex <= 0 ? " disabled" : ""}>Previous span</button><button part="next-span" type="button"${selectedIndex === rows.length - 1 ? " disabled" : ""}>Next span</button><button part="detail-mode" type="button" aria-pressed="${this.code}">${this.code ? "Show text" : "Show code"}</button><button part="close-details" type="button">Close details</button></div><slot name="details">${(["input", "response", "attributes"] as const).map(key => `<section part="detail-section"><h3>${key[0]!.toUpperCase() + key.slice(1)}</h3>${this.code ? `<pre>${escape(detailValue(selected.detail?.[key]))}</pre>` : `<div part="detail-text">${escape(detailValue(selected.detail?.[key])) || "No details supplied."}</div>`}</section>`).join("")}</slot></aside>` : "";
-    host.innerHTML = `<${this.fullScreen ? 'dialog part="fullscreen" aria-label="Expanded trace"' : "div"}><section part="panel" aria-label="${escape(this.heading)}"><header part="header"><h2>${escape(this.heading)}</h2><slot name="session"></slot><button part="fullscreen-toggle" type="button" aria-pressed="${this.fullScreen}">${this.fullScreen ? "Exit full screen" : "Expand to full screen"}</button></header><div part="controls"><label>Search spans <input part="search" type="search" value="${escape(this.search)}"></label><button part="table-toggle" type="button" aria-pressed="${this.table}">${this.table ? "Show waterfall" : "Show as a table"}</button><details part="menu"><summary>Trace options</summary><button part="expand-all" type="button">Expand all</button><button part="collapse-all" type="button">Collapse all</button></details></div>${hiddenCount ? `<p part="note">${this.showSystem ? "System events are shown." : "Some system events are hidden."} <button part="system-toggle" type="button">${this.showSystem ? "Hide system events" : `Show ${hiddenCount} hidden`}</button></p>` : ""}<p part="note">One shared axis: 0–${duration(endMs)}. ${this.comparisonSpans.length ? "Outlined bars show the comparison trace. " : ""}Arrow keys navigate spans and open or close parents; Enter selects details.</p><div part="body"${selected ? " data-details" : ""}>${this.table ? `<table part="table"><caption>${escape(this.heading)} spans</caption><thead><tr><th scope="col">Span / kind</th><th scope="col">Status</th><th scope="col">Start / duration / markers</th></tr></thead><tbody>${tableRows}</tbody></table>` : `<div part="treegrid" role="treegrid" aria-label="${escape(this.heading)} spans" aria-colcount="2"><div role="rowgroup"><div role="row" part="columns"><div role="columnheader">Span</div><div role="columnheader" part="axis"><span>0 ms</span><span>${duration(endMs)}</span></div></div></div><div role="rowgroup">${rowHtml}</div></div>`}${details}</div>${rows.length ? "" : '<p part="empty">No matching spans.</p>'}</section></${this.fullScreen ? "dialog" : "div"}>`;
+    const details = selected ? `<aside part="details" aria-label="Span details"><h3>${escape(selected.label)}</h3><p part="note">${escape(summary(selected, Boolean(rows[selectedIndex]?.comparisonOnly)))}</p><div part="detail-controls"><button part="previous-span" type="button"${selectedIndex <= 0 ? " disabled" : ""}>Previous span</button><button part="next-span" type="button"${selectedIndex === rows.length - 1 ? " disabled" : ""}>Next span</button><button part="detail-mode" type="button" aria-pressed="${this.code}">${this.code ? "Show text" : "Show code"}</button><button part="close-details" type="button">Close details</button></div><slot name="details">${(["input", "response", "attributes"] as const).map(key => `<section part="detail-section"><h3>${key[0]!.toUpperCase() + key.slice(1)}</h3>${this.code ? `<pre>${escape(detailValue(selected.detail?.[key]))}</pre>` : `<div part="detail-text">${escape(detailValue(selected.detail?.[key])) || "No details supplied."}</div>`}</section>`).join("")}</slot></aside>` : "";
+    host.innerHTML = `<${this.fullScreen ? 'dialog part="fullscreen" aria-label="Expanded trace"' : "div"}><section part="panel" aria-label="${escape(this.heading)}"><header part="header"><h2>${escape(this.heading)}</h2><slot name="session"></slot><button part="fullscreen-toggle" type="button" aria-pressed="${this.fullScreen}">${this.fullScreen ? "Exit full screen" : "Expand to full screen"}</button></header><div part="controls"><label>Search spans <input part="search" type="search" value="${escape(this.search)}"></label><button part="table-toggle" type="button" aria-pressed="${this.table}">${this.table ? "Show waterfall" : "Show as a table"}</button><details part="menu"><summary part="menu-summary">Trace options</summary><button part="expand-all" type="button">Expand all</button><button part="collapse-all" type="button">Collapse all</button></details></div>${hiddenCount ? `<p part="note">${this.showSystem ? "System events are shown." : "Some system events are hidden."} <button part="system-toggle" type="button">${this.showSystem ? "Hide system events" : `Show ${hiddenCount} hidden`}</button></p>` : ""}<p part="note">One shared axis: 0–${duration(endMs)}. ${this.comparisonSpans.length ? "Outlined bars show the comparison trace. " : ""}Arrow keys navigate spans and open or close parents; Enter selects details.</p><div part="body"${selected ? " data-details" : ""}>${this.table ? `<table part="table"><caption>${escape(this.heading)} spans</caption><thead><tr><th scope="col">Span / kind</th><th scope="col">Status</th><th scope="col">Start / duration / markers</th></tr></thead><tbody>${tableRows}</tbody></table>` : `<div part="treegrid" role="treegrid" aria-label="${escape(this.heading)} spans" aria-colcount="2"><div role="rowgroup"><div role="row" part="columns"><div role="columnheader">Span</div><div role="columnheader" part="axis"><span>0 ms</span><span>${duration(endMs)}</span></div></div></div><div role="rowgroup">${rowHtml}</div></div>`}${details}</div>${rows.length ? "" : '<p part="empty">No matching spans.</p>'}</section></${this.fullScreen ? "dialog" : "div"}>`;
     const dialog = host.querySelector<HTMLDialogElement>('dialog');
     if (dialog) {
       if (typeof dialog.showModal === "function") dialog.showModal(); else dialog.setAttribute("open", "");
@@ -261,11 +273,21 @@ export class TraceWaterfall extends BaseElement {
     button("collapse-all", () => refreshControl("collapse-all", () => rows.filter(row => row.hasChildren).forEach(row => this.collapsed.add(row.span.id))));
     button("detail-mode", () => refreshControl("detail-mode", () => { this.code = !this.code; }));
     button("close-details", () => { const id = this.selectedSpanId; this.selectedSpanId = ""; this.focusRow(id); });
-    for (const [part, offset] of [["previous-span", -1], ["next-span", 1]] as const) button(part, () => { const next = rows[selectedIndex + offset]; if (next) { this.select(next.span.id); this.shadowRoot!.querySelector<HTMLButtonElement>(`[part="${part}"]`)?.focus(); } });
+    for (const [part, offset] of [["previous-span", -1], ["next-span", 1]] as const) button(part, () => { const next = rows[selectedIndex + offset]; if (next) { this.select(next.span.id); const target = this.shadowRoot!.querySelector<HTMLButtonElement>(`[part="${part}"]`);
+      (target?.disabled ? this.shadowRoot!.querySelector<HTMLButtonElement>(`[part="${offset < 0 ? "next-span" : "previous-span"}"]`) : target)?.focus(); } });
     host.querySelectorAll<HTMLElement>("[data-select-id]").forEach(element => element.addEventListener("click", () => { this.select(element.dataset.selectId!); this.shadowRoot!.querySelector<HTMLButtonElement>('[part="close-details"]')?.focus(); }));
     host.querySelector<HTMLInputElement>('[part="search"]')?.addEventListener("input", event => { this.search = (event.target as HTMLInputElement).value; this.update(); });
     if (wasRow && this.focusedId) this.focusRow(this.focusedId);
-    else if (activePart) { const restored = this.shadowRoot!.querySelector<HTMLElement>(`[part="${activePart}"]`); restored?.focus(); if (restored instanceof HTMLInputElement && searchSelection) restored.setSelectionRange(searchSelection[0], searchSelection[1]); }
+    else if (activeSelectId) {
+      const buttons = Array.from(this.shadowRoot!.querySelectorAll<HTMLButtonElement>("[data-select-id]"));
+      (buttons.find(button => button.dataset.selectId === activeSelectId) ?? buttons[0] ?? this.shadowRoot!.querySelector<HTMLInputElement>('[part="search"]'))?.focus();
+    }
+    else if (activePart === "expand" && activeRowId) {
+      const row = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[part="row"]')).find(row => row.dataset.spanId === activeRowId);
+      const target = row?.querySelector<HTMLButtonElement>('[part="expand"]');
+      (target && !target.disabled ? target : row)?.focus();
+    }
+    else if (activePart) { let restored = this.shadowRoot!.querySelector<HTMLElement>(`[part="${activePart}"]`); if (restored instanceof HTMLButtonElement && restored.disabled) restored = this.shadowRoot!.querySelector<HTMLElement>('[part="detail-mode"]'); restored?.focus(); if (restored instanceof HTMLInputElement && searchSelection) restored.setSelectionRange(searchSelection[0], searchSelection[1]); }
   }
 }
 

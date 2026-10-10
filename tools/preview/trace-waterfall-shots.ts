@@ -96,6 +96,32 @@ try {
     return { focused: element.shadowRoot!.activeElement?.getAttribute("data-span-id"), animation: getComputedStyle(bar).animationName, transition: getComputedStyle(bar).transitionDuration, text: element.shadowRoot!.textContent };
   });
   if (liveState.focused !== "upload" || liveState.animation !== "none" || liveState.transition !== "0s" || !liveState.text?.includes("New live span")) throw new Error(`Live/reduced-motion failed: ${JSON.stringify(liveState)}`);
+  await trace.locator('[part="table-toggle"]').click();
+  await trace.locator('[data-select-id="upload"]').focus();
+  await trace.evaluate(element => { const live = element as HTMLElement & { nowMs: number }; live.nowMs += 100; });
+  if (await trace.evaluate(element => element.shadowRoot!.activeElement?.getAttribute("data-select-id")) !== "upload") throw new Error("Table focus lost during live update");
+  await trace.locator("summary").focus();
+  await trace.evaluate(element => { const live = element as HTMLElement & { nowMs: number }; live.nowMs += 100; });
+  if (await trace.evaluate(element => element.shadowRoot!.activeElement?.tagName) !== "SUMMARY") throw new Error("Options focus lost during live update");
+  await trace.locator('[data-select-id="upload"]').click();
+  while (await trace.locator('[part="next-span"]').isEnabled()) await trace.locator('[part="next-span"]').click();
+  if (await trace.evaluate(element => element.shadowRoot!.activeElement?.getAttribute("part")) !== "previous-span") throw new Error("Detail end focus not restored to enabled previous button");
+  while (await trace.locator('[part="previous-span"]').isEnabled()) await trace.locator('[part="previous-span"]').click();
+  if (await trace.evaluate(element => element.shadowRoot!.activeElement?.getAttribute("part")) !== "next-span") throw new Error("Detail start focus not restored to enabled next button");
+  await trace.locator('[part="close-details"]').click();
+  await trace.locator('[part="table-toggle"]').click();
+  await trace.evaluate(element => {
+    const comparison = element as HTMLElement & { spans: unknown[]; comparisonSpans: unknown[] };
+    const current = { id: "A", label: "Current root", kind: "Run", startMs: 0, durationMs: 100, status: "ok" };
+    comparison.spans = [current];
+    comparison.comparisonSpans = [{ ...current, markers: [{ atMs: 300, label: "Earlier checkpoint" }] }, { id: "B", parentId: "A", label: "Earlier failed branch", kind: "Action", startMs: 100, durationMs: 500, status: "failed" }];
+  });
+  if (await rows.count() !== 2 || await rows.nth(1).locator('[part="bar"]').count() || !await rows.nth(1).locator('[part="comparison-bar"]').count() || !await rows.first().locator('[part="comparison-marker"]').count()) throw new Error("Comparison-only row/bar or earlier marker missing");
+  if (!(await rows.nth(1).getAttribute("aria-label"))?.includes("Not in current trace")) throw new Error("Comparison-only state not named");
+  await checkAxe("Comparison-only branch treegrid");
+  await trace.locator('[part="table-toggle"]').click();
+  if (!(await trace.innerText()).includes("Comparison marker Earlier checkpoint")) throw new Error("Earlier marker missing from table");
+  await checkAxe("Comparison-only branch table");
   if (errors.length) throw new Error(`Browser errors: ${errors.join("; ")}`);
   console.log("verified waterfall/table shared axis, markers, overlap, 1440/390 light/dark axe, keyboard, search/system, modal, live focus and reduced motion");
 } finally {
