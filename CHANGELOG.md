@@ -15,6 +15,15 @@ are kept as written.
 
 ## Unreleased
 
+## 0.31.1 — 2026-10-10
+
+- Preview nested frame descendants coherently during drag, restoring no-op and
+  interrupted gestures without committing host layout (#429).
+- Preserve wheel cursor and moving pinch anchors through zoom limits; match
+  modifier and delta-mode rates and avoid duplicate gesture application (#430).
+- Match Last run table text, header numerals and numeric alignment while
+  retaining warning tones on canvas failure metrics (#431).
+
 ## 0.31.0 — 2026-10-10
 
 - Add optional titled Process Modeler Checks cards and match Ready, warning
