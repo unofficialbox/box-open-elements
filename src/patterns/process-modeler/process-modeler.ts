@@ -1699,7 +1699,15 @@ export class ProcessModeler<
       }
       if (problem) { const message = document.createElement("span"); message.setAttribute("part", "problem"); message.textContent = problem.message; element.append(message); }
       element.addEventListener("keydown", event => {
-        if (event.target === element && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); element.click(); }
+        if (event.target !== element) return;
+        if (event.key === " ") { event.preventDefault(); element.click(); }
+        // Let Enter reach the canvas handler after selecting the focused step.
+        // Cancelling it here prevents the editor from opening and taking focus.
+        else if (event.key === "Enter") {
+          // Connection completion consumes Enter; it must not also edit the target.
+          if (this.connecting || this.pendingReattach) event.preventDefault();
+          element.click();
+        }
       });
       element.addEventListener("click", event => {
         if (this.suppressClick && event.detail !== 0) { this.suppressClick = false; return; }

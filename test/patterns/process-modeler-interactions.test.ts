@@ -233,6 +233,44 @@ describe("Process Modeler prototype interactions", () => {
     expect(drawer.open).toBe(false);
     expect(root.activeElement).toBe(trigger);
   });
+  it.each([false, true])("Enter opens the selected step editor and focuses its first field (narrow=%s)", narrow => {
+    const { builder, root } = fixture();
+    builder.fields = { a: [{ key: 'name', label: 'Name', kind: 'text', value: 'Read' }] };
+    Object.assign(builder, { narrowValue: narrow });
+    const drawer = root.querySelector<HTMLDialogElement>('[part=pane-drawer][data-pane=inspector]')!;
+    drawer.show = vi.fn(() => { drawer.open = true; });
+    drawer.close = vi.fn(() => { drawer.open = false; });
+    builder.select('b');
+    root.querySelector<HTMLElement>('[data-box-id=a]')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    const field = root.querySelector<HTMLInputElement>('[part=editor] [data-field=name]')!;
+    expect(root.activeElement).toBe(field);
+    expect(drawer.open).toBe(narrow);
+    if (narrow) field.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    builder.select(null);
+    root.querySelector<HTMLElement>('[data-box-id=a]')!.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }));
+    expect(builder.selected?.id).toBe('a');
+    expect(drawer.open).toBe(false);
+  });
+
+  it.each(['connect', 'reattach'] as const)('Enter completes %s without opening the target editor', mode => {
+    const { builder, root, canvas } = fixture();
+    builder.fields = { b: [{ key: 'name', label: 'Name', kind: 'text', value: 'Save' }] };
+    Object.assign(builder, { narrowValue: true });
+    const drawer = root.querySelector<HTMLDialogElement>('[part=pane-drawer][data-pane=inspector]')!;
+    drawer.show = vi.fn(() => { drawer.open = true; });
+    drawer.close = vi.fn(() => { drawer.open = false; });
+    builder.select('a');
+    if (mode === 'connect') canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'c', bubbles: true, cancelable: true }));
+    else Object.assign(builder, { pendingReattach: { lineId: 'ab', end: 'to' } });
+    const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    const target = root.querySelector<HTMLElement>('[data-box-id=b]')!; target.focus();
+    target.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    expect(requests).toHaveBeenCalledOnce();
+    expect(requests.mock.calls[0][0].detail).toMatchObject(mode === 'connect' ? { type: 'connect', from: 'a', to: 'b' } : { type: 'reattach', lineId: 'ab', to: 'b' });
+    expect(drawer.open).toBe(false);
+    expect(root.activeElement?.getAttribute('part')).not.toBe('field');
+  });
+
   it("opens a contextual keyboard chooser and inserts on the selected step's line", () => {
     const { builder, root, canvas } = fixture();
     const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
