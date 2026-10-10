@@ -129,6 +129,87 @@ describe("Process Modeler prototype interactions", () => {
     expect(builder.view.x).toBeCloseTo(400 - (x + width / 2) * 0.5);
     expect(builder.view.y).toBeCloseTo(250 - (y + height / 2) * 0.5);
   });
+  it('requests host-owned variable edits without changing the supplied variables', () => {
+    const { builder, root } = fixture();
+    (builder as ProcessModeler & { variablesEditable: boolean }).variablesEditable = true;
+    builder.variables = [{ name: 'attempts', startingValue: '0', scope: 'iteration' }];
+    const edits = vi.fn(); builder.addEventListener('process-variable-edit-request', edits);
+    root.querySelector<HTMLButtonElement>('#process-tab-variables')!.click();
+    const name = root.querySelector<HTMLInputElement>('[data-variable-key=name]')!;
+    expect(name).not.toBeNull(); name.value = 'tries'; name.dispatchEvent(new Event('change', { bubbles: true }));
+    const scope = root.querySelector<HTMLSelectElement>('[data-variable-key=scope]')!;
+    scope.value = 'process'; scope.dispatchEvent(new Event('change', { bubbles: true }));
+    root.querySelector<HTMLButtonElement>('[part=variable-remove]')!.click();
+    root.querySelector<HTMLButtonElement>('[part=variable-add]')!.click();
+    expect(edits.mock.calls.map(call => call[0].detail)).toEqual([
+      { type: 'rename', name: 'attempts', value: 'tries' }, { type: 'scope', name: 'attempts', value: 'process' },
+      { type: 'remove', name: 'attempts' }, { type: 'add' },
+    ]);
+    expect(builder.variables).toEqual([{ name: 'attempts', startingValue: '0', scope: 'iteration' }]);
+    builder.locked = true;
+    expect([...root.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLButtonElement>('[part=variable-row] input,[part=variable-row] select,[part=variable-row] button,[part=variable-add]')].every(control => control.disabled)).toBe(true);
+  });
+  it('keeps existing variable presentation read-only unless the host opts in', () => {
+    const { builder, root } = fixture(); builder.variables = [{ name: 'attempts', startingValue: '0', scope: 'iteration' }];
+    root.querySelector<HTMLButtonElement>('#process-tab-variables')!.click();
+    expect(root.querySelector('[data-variable-key=name]')).toBeNull();
+    expect(root.querySelector('[part=variable-add]')).toBeNull();
+    expect(root.querySelector('[part=variable-scope]')?.textContent).toBe('iteration');
+  });
+  it('keeps renamed and scoped variable controls focused and returns to Add after removal', () => {
+    const { builder, root } = fixture(); builder.variablesEditable = true;
+    builder.variables = [{ name: 'attempts', startingValue: '0', scope: 'iteration' }];
+    root.querySelector<HTMLButtonElement>('#process-tab-variables')!.click();
+    builder.addEventListener('process-variable-edit-request', event => {
+      const d = (event as CustomEvent).detail;
+      builder.variables = d.type === 'remove' ? [] : builder.variables.map(v => ({ ...v, [d.type === 'rename' ? 'name' : 'scope']: d.value }));
+    });
+    const name = root.querySelector<HTMLInputElement>('[data-variable-key=name]')!;
+    name.focus(); name.value = 'tries'; name.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(root.activeElement).toBe(root.querySelector('[data-variable=tries][data-variable-key=name]'));
+    const scope = root.querySelector<HTMLSelectElement>('[data-variable-key=scope]')!;
+    scope.focus(); scope.value = 'process'; scope.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(root.activeElement).toBe(root.querySelector('[data-variable-key=scope]'));
+    const remove = root.querySelector<HTMLButtonElement>('[part=variable-remove]')!;
+    remove.focus(); remove.click(); expect(root.activeElement).toBe(root.querySelector('[part=variable-add]'));
+  });
+  it('tracks a renamed variable through reordered and deferred host echoes, including empty names', async () => {
+    const { builder, root } = fixture(); builder.variablesEditable = true;
+    builder.variables = [{ name: 'a', startingValue: '0' }, { name: 'b', startingValue: '1' }];
+    root.querySelector<HTMLButtonElement>('#process-tab-variables')!.click();
+    let request: { name: string; value: string };
+    builder.addEventListener('process-variable-edit-request', event => { request = (event as CustomEvent).detail; });
+    const name = root.querySelector<HTMLInputElement>('[data-variable=a][data-variable-key=name]')!;
+    name.focus(); name.value = 'z'; name.setSelectionRange(1, 1); name.dispatchEvent(new Event('change', { bubbles: true }));
+    builder.variables = [...builder.variables]; // An unrelated echo before deferred acceptance.
+    expect((root.activeElement as HTMLInputElement).dataset.variable).toBe('a');
+    await Promise.resolve();
+    builder.variables = builder.variables.map(v => v.name === request.name ? { ...v, name: request.value } : v).sort((a, b) => a.name.localeCompare(b.name));
+    const renamed = root.querySelector<HTMLInputElement>('[data-variable=z][data-variable-key=name]')!;
+    expect(root.activeElement).toBe(renamed); expect(renamed.selectionStart).toBe(1);
+    renamed.value = ''; renamed.dispatchEvent(new Event('change', { bubbles: true }));
+    builder.variables = builder.variables.map(v => v.name === request.name ? { ...v, name: request.value } : v).sort((a, b) => a.name.localeCompare(b.name));
+    const empty = root.querySelector<HTMLInputElement>('[data-variable=""][data-variable-key=name]')!;
+    expect(root.activeElement).toBe(empty);
+    empty.value = 'c'; empty.dispatchEvent(new Event('change', { bubbles: true }));
+    builder.variables = builder.variables.map(v => v.name === request.name ? { ...v, name: request.value } : v).sort((a, b) => a.name.localeCompare(b.name));
+    expect(root.activeElement).toBe(root.querySelector('[data-variable=c][data-variable-key=name]'));
+  });
+  it('preserves variable expression focus and caret during synchronous host echoes', () => {
+    const { builder, root } = fixture();
+    builder.variables = [{ name: 'attempts', startingValue: '0' }];
+    root.querySelector<HTMLButtonElement>('#process-tab-variables')!.click();
+    builder.addEventListener('process-variable-change-request', event => {
+      const detail = (event as CustomEvent).detail;
+      builder.variables = [{ name: detail.name, startingValue: detail.value, problem: 'Keep typing to repair this expression' }];
+    });
+    const input = root.querySelector<HTMLInputElement>('input[data-variable=attempts]')!;
+    input.focus(); input.value = 'attempts +'; input.setSelectionRange(5, 5);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    const echoed = root.querySelector<HTMLInputElement>('input[data-variable=attempts]')!;
+    expect(root.activeElement).toBe(echoed); expect(echoed.selectionStart).toBe(5);
+    expect(echoed.getAttribute('aria-invalid')).toBe('true');
+  });
   it("shows the ready state when the Checks tab has no problems", () => {
     const { root } = fixture();
     root.querySelector<HTMLButtonElement>('#process-tab-checks')!.click();
