@@ -232,7 +232,22 @@ export function routeProcessLine(line: ProcessLine, layout: ProcessLayout, proje
   if (!fromPosition || !toPosition) return [];
   const from = rectangle(fromPosition, boxes.get(line.from));
   const to = rectangle(toPosition, boxes.get(line.to));
-  if (!isFlowLine(line)) return [pin(from, center(to)), pin(to, center(from))];
+  if (!isFlowLine(line)) {
+    const a = center(from), b = center(to);
+    const horizontal = Math.abs(b.x - a.x) > Math.abs(b.y - a.y);
+    const side: ProcessSide = horizontal ? b.x > a.x ? "east" : "west" : b.y > a.y ? "south" : "north";
+    const opposite: Record<ProcessSide, ProcessSide> = { north: "south", east: "west", south: "north", west: "east" };
+    const endpoint = (rect: Rectangle, box: ProcessBox | undefined, side: ProcessSide) => {
+      const point = pin(rect, center(rect), side);
+      const inset = box?.shape === "event" ? 8 : 0;
+      if (side === "east") point.x -= inset;
+      else if (side === "west") point.x += inset;
+      else if (side === "north") point.y += inset;
+      else point.y -= inset;
+      return point;
+    };
+    return [endpoint(from, boxes.get(line.from), side), endpoint(to, boxes.get(line.to), opposite[side])];
+  }
   const excluded = new Set<string>();
   for (const id of [line.from, line.to]) {
     let parent = boxes.get(id)?.parentId;
