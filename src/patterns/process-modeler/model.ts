@@ -194,6 +194,25 @@ export interface ProcessEditRequest extends ProcessEdit {
   accept(command: ReversibleProcessEdit): void;
 }
 
+/** Host-owned immutable capture; BOE never serializes the captured graph. */
+export interface ProcessClipboard {
+  readonly itemCount: number;
+  paste(request: ProcessPasteRequest): void;
+  dispose?(): void;
+}
+/** Copy capture is synchronous and once-only. Unsupported hosts leave it unhandled. */
+export interface ProcessCopyRequest {
+  readonly sourceIds: readonly string[];
+  capture(clipboard: ProcessClipboard): void;
+  refuse(message?: string): void;
+}
+/** Host applies one synchronous graph transaction, then accepts it once. */
+export interface ProcessPasteRequest {
+  readonly offset: Readonly<{ x: number; y: number }>;
+  accept(command: ReversibleProcessEdit): void;
+  refuse(message?: string): void;
+}
+
 export function validateProjection<N>(projection: ProcessProjection<N>): void {
   const ids = new Set<string>();
   for (const box of projection.boxes) {

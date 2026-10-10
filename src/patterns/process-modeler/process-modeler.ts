@@ -16,6 +16,10 @@ import {
   type ProcessCheck,
   type ProcessEdit,
   type ProcessEditRequest,
+  type ProcessClipboard,
+  type ProcessCopyRequest,
+  type ProcessPasteRequest,
+  type ReversibleProcessEdit,
   type ProcessLayout,
   type ProcessModel,
   type ProcessProjection,
@@ -93,7 +97,8 @@ export class ProcessModeler<
   private activeDrawer?: HTMLDialogElement;
   private drawerReturn?: HTMLElement;
   private selectedIds = new Set<string>();
-  private clipboardIds: string[] = [];
+  private clipboard: ProcessClipboard | null = null;
+  private clipboardSession = 0;
   private restoringBoxFocus = false;
   private selectionToolbarKey = "";
   private sectionSequence = 0;
@@ -179,7 +184,7 @@ export class ProcessModeler<
     this.readableValue = null;
     this.layoutValue = restoreProcessPositions(projection, options.positions ?? []);
     this.history.clear(); this.selectedId = null; this.selectedLineId = null; this.selectedIds.clear();
-    this.clipboardIds = [];
+    this.clearClipboard();
     this.refresh();
     if (options.selectedPath) this.selectedPath = options.selectedPath;
   }
@@ -285,6 +290,7 @@ export class ProcessModeler<
   }
   disconnectedCallback(): void {
     this.resizeObserver?.disconnect();
+    this.clearClipboard();
     this.closeDrawer();
     const chooser = this.shadowRoot?.querySelector<HTMLDialogElement>("[part=insert-chooser]");
     if (chooser) dismissModal(chooser);
@@ -334,64 +340,64 @@ export class ProcessModeler<
   }
   requestEdit(edit: ProcessEdit): void {
     if (this.locked || (this.disableConnections && (edit.type === "connect" || edit.type === "disconnect" || edit.type === 'reattach'))) return;
+    const request: ProcessEditRequest = { ...edit, accept: this.editAcceptance(edit) };
+    emit(this, "process-edit-request", request);
+  }
+  private editAcceptance(edit: ProcessEdit): (command: ReversibleProcessEdit) => void {
     const before = this.layout;
     const beforeSelection = [...this.selectedIds];
     const previousIds = new Set(this.projection.boxes.map((box) => box.id));
     let accepted = false;
-    const request: ProcessEditRequest = {
-      ...edit,
-      accept: (command) => {
-        if (accepted) return;
-        accepted = true;
-        if (command.layout) this.layoutValue = structuredClone(command.layout);
-        this.refresh();
-        const inserted = edit.type === 'insert' && !edit.boxId && !command.layout
-          ? this.projection.boxes.find(box => !previousIds.has(box.id)) : undefined;
-        const reflowed = inserted ? this.reflowStraightInsert(edit, inserted.id, before) : false;
-        if (
-          !reflowed &&
-          !command.layout &&
-          edit.position &&
-          Number.isFinite(edit.position.x) &&
-          Number.isFinite(edit.position.y)
-        ) {
-          const added = this.projection.boxes.find(box => box.id === edit.boxId) ?? this.projection.boxes.find(
-            (box) => !previousIds.has(box.id),
+    return (command) => {
+      if (accepted) return;
+      accepted = true;
+      if (command.layout) this.layoutValue = structuredClone(command.layout);
+      this.refresh();
+      const inserted = edit.type === 'insert' && !edit.boxId && !command.layout
+        ? this.projection.boxes.find(box => !previousIds.has(box.id)) : undefined;
+      const reflowed = inserted ? this.reflowStraightInsert(edit, inserted.id, before) : false;
+      if (
+        !reflowed &&
+        !command.layout &&
+        edit.position &&
+        Number.isFinite(edit.position.x) &&
+        Number.isFinite(edit.position.y)
+      ) {
+        const added = this.projection.boxes.find(box => box.id === edit.boxId) ?? this.projection.boxes.find(
+          (box) => !previousIds.has(box.id),
+        );
+        if (added)
+          this.layoutValue = this.translatedLayout(
+            added.id,
+            edit.position.x,
+            edit.position.y,
           );
-          if (added)
-            this.layoutValue = this.translatedLayout(
-              added.id,
-              edit.position.x,
-              edit.position.y,
-            );
-        }
-        const after = this.layout;
-        const acceptedSelection = command.selectionIds ? [...command.selectionIds] : undefined;
-        const restore = (layout: ProcessLayout) => {
-          this.layoutValue = structuredClone(layout);
-          this.refresh();
-          this.emitPositions();
-        };
-        this.history.record({
-          undo: () => {
-            command.undo();
-            restore(before);
-            if (acceptedSelection) this.selectMany(beforeSelection);
-          },
-          redo: () => {
-            command.redo();
-            restore(after);
-            if (acceptedSelection) this.selectMany(acceptedSelection);
-          },
-        });
-        if (acceptedSelection) this.selectMany(acceptedSelection);
+      }
+      const after = this.layout;
+      const acceptedSelection = command.selectionIds ? [...command.selectionIds] : undefined;
+      const restore = (layout: ProcessLayout) => {
+        this.layoutValue = structuredClone(layout);
         this.refresh();
-        if (JSON.stringify(before) !== JSON.stringify(after))
-          this.emitPositions();
-        announce("Process updated", "polite", this.ownerDocument);
-      },
+        this.emitPositions();
+      };
+      this.history.record({
+        undo: () => {
+          command.undo();
+          restore(before);
+          if (acceptedSelection) this.selectMany(beforeSelection);
+        },
+        redo: () => {
+          command.redo();
+          restore(after);
+          if (acceptedSelection) this.selectMany(acceptedSelection);
+        },
+      });
+      if (acceptedSelection) this.selectMany(acceptedSelection);
+      this.refresh();
+      if (JSON.stringify(before) !== JSON.stringify(after))
+        this.emitPositions();
+      announce("Process updated", "polite", this.ownerDocument);
     };
-    emit(this, "process-edit-request", request);
   }
   undo(): void {
     if (this.locked) return;
@@ -1190,6 +1196,46 @@ export class ProcessModeler<
       this.paintViewport();
     });
   }
+  private clearClipboard(): void {
+    const previous = this.clipboard; this.clipboard = null; this.clipboardSession++;
+    previous?.dispose?.();
+  }
+  private copySelection(): boolean {
+    this.clearClipboard();
+    const session = this.clipboardSession;
+    let active = true; let claimed = false;
+    const request: ProcessCopyRequest = {
+      sourceIds: Object.freeze([...this.selectedIds]),
+      capture: clipboard => {
+        if (!active || claimed || session !== this.clipboardSession || !this.isConnected) return;
+        claimed = true;
+        if (!Number.isInteger(clipboard?.itemCount) || clipboard.itemCount < 1 || typeof clipboard.paste !== 'function' || (clipboard.dispose !== undefined && typeof clipboard.dispose !== 'function')) {
+          this.setStatus('The host did not supply a valid clipboard'); return;
+        }
+        this.clipboard = Object.freeze({ itemCount: clipboard.itemCount, paste: clipboard.paste.bind(clipboard), ...(clipboard.dispose ? { dispose: clipboard.dispose.bind(clipboard) } : {}) });
+        this.setStatus(`${clipboard.itemCount} steps copied`);
+      },
+      refuse: message => { if (!active || claimed || session !== this.clipboardSession || !this.isConnected) return; claimed = true; this.setStatus(message ?? 'Copy is not supported by this host'); },
+    };
+    try { emit(this, 'process-copy-request', request); } finally { active = false; }
+    if (!claimed && session === this.clipboardSession && this.isConnected) this.setStatus('Copy is not supported by this host');
+    return claimed;
+  }
+  private pasteClipboard(): void {
+    const clipboard = this.clipboard; if (!clipboard || this.locked) return;
+    const session = this.clipboardSession; const accept = this.editAcceptance({ type: 'duplicate' });
+    let active = true; let settled = false;
+    const request: ProcessPasteRequest = {
+      offset: Object.freeze({ x: 32, y: 32 }),
+      accept: command => {
+        if (!active || settled || session !== this.clipboardSession || this.locked) return;
+        settled = true; accept(command);
+      },
+      refuse: message => { if (!active || settled || session !== this.clipboardSession || !this.isConnected) return; settled = true; this.setStatus(message ?? 'Paste was refused by this host'); },
+    };
+    try { clipboard.paste(request); } finally { active = false; }
+    if (!settled && session === this.clipboardSession) this.setStatus('Paste was not accepted by this host');
+  }
   private duplicateBoxes(ids: readonly string[], distance: number): void {
     const selected = new Set(ids);
     if (!selected.size || [...selected].some(id => !this.projection.boxes.some(box => box.id === id) || !this.layoutValue.boxes[id])) return;
@@ -1224,10 +1270,10 @@ export class ProcessModeler<
       event.preventDefault(); this.selectMany(this.projection.boxes.map(box => box.id)); this.setStatus(`${this.projection.boxes.length} steps selected`); return;
     }
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'c' && this.selectedIds.size) {
-      event.preventDefault(); this.clipboardIds = [...this.selectedIds]; this.setStatus(`${this.clipboardIds.length} steps copied`); return;
+      if (this.copySelection()) event.preventDefault(); return;
     }
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'v' && this.clipboardIds.length && !this.locked) {
-      event.preventDefault(); this.duplicateBoxes(this.clipboardIds, 32); return;
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'v' && this.clipboard && !this.locked) {
+      event.preventDefault(); this.pasteClipboard(); return;
     }
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'd' && this.selectedIds.size && !this.locked) {
       event.preventDefault(); this.duplicateBoxes([...this.selectedIds], 48); return;

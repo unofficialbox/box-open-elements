@@ -519,6 +519,7 @@ export interface BoxElementEventMap {
     "move-request": CustomEvent<{ boxId: string; position: import("./patterns/process-modeler/model.js").BoxPosition; } | { boxId: string; position: import("./patterns/process-modeler/model.js").BoxPosition; boxIds: string[]; positions: Record<string, import("./patterns/process-modeler/model.js").BoxPosition>; }>;
     "outline-copy-request": CustomEvent<{ text: string; }>;
     "positions-changed": CustomEvent<{ positions: readonly import("./patterns/process-modeler/model.js").ProcessPositionSnapshot[]; version: string | number; }>;
+    "process-copy-request": CustomEvent<import("./patterns/process-modeler/model.js").ProcessCopyRequest>;
     "process-edit-request": CustomEvent<import("./patterns/process-modeler/model.js").ProcessEditRequest>;
     "process-field-change-request": CustomEvent<{ boxId: string; path: import("./patterns/flow-builder/model.js").NodePath | undefined; key: string; value: string | number | boolean; }>;
     "process-variable-change-request": CustomEvent<{ name: string; value: string; }>;
