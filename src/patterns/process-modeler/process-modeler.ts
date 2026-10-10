@@ -334,6 +334,7 @@ export class ProcessModeler<
   requestEdit(edit: ProcessEdit): void {
     if (this.locked || (this.disableConnections && (edit.type === "connect" || edit.type === "disconnect" || edit.type === 'reattach'))) return;
     const before = this.layout;
+    const beforeSelection = [...this.selectedIds];
     const previousIds = new Set(this.projection.boxes.map((box) => box.id));
     let accepted = false;
     const request: ProcessEditRequest = {
@@ -364,6 +365,8 @@ export class ProcessModeler<
             );
         }
         const after = this.layout;
+        const acceptedSelection = command.selectionIds ? [...command.selectionIds] : undefined;
+        if (acceptedSelection) this.selectMany(acceptedSelection);
         const restore = (layout: ProcessLayout) => {
           this.layoutValue = structuredClone(layout);
           this.refresh();
@@ -373,10 +376,12 @@ export class ProcessModeler<
           undo: () => {
             command.undo();
             restore(before);
+            if (acceptedSelection) this.selectMany(beforeSelection);
           },
           redo: () => {
             command.redo();
             restore(after);
+            if (acceptedSelection) this.selectMany(acceptedSelection);
           },
         });
         this.refresh();
@@ -1184,6 +1189,24 @@ export class ProcessModeler<
       this.paintViewport();
     });
   }
+  private duplicateBoxes(ids: readonly string[], distance: number): void {
+    const selected = new Set(ids);
+    if (!selected.size || [...selected].some(id => !this.projection.boxes.some(box => box.id === id) || !this.layoutValue.boxes[id])) return;
+    const sources = [...selected].filter(id => {
+      let parent = this.projection.boxes.find(box => box.id === id)?.parentId;
+      while (parent) {
+        if (selected.has(parent)) return false;
+        parent = this.projection.boxes.find(box => box.id === parent)?.parentId;
+      }
+      return true;
+    });
+    if (sources.length === 1) {
+      const position = this.layoutValue.boxes[sources[0]];
+      this.requestEdit({ type: 'duplicate', sourceId: sources[0], position: { x: position.x + distance, y: position.y + distance } });
+    } else {
+      this.requestEdit({ type: 'duplicate', sourceIds: sources, offset: { x: distance, y: distance } });
+    }
+  }
   private onKey(event: KeyboardEvent): void {
     if (event.defaultPrevented) return;
     const target = event.target as HTMLElement;
@@ -1203,10 +1226,10 @@ export class ProcessModeler<
       event.preventDefault(); this.clipboardIds = [...this.selectedIds]; this.setStatus(`${this.clipboardIds.length} steps copied`); return;
     }
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'v' && this.clipboardIds.length && !this.locked) {
-      event.preventDefault(); this.clipboardIds.forEach((id, index) => { const position = this.layoutValue.boxes[id]; if (position) this.requestEdit({ type: 'duplicate', sourceId: id, position: { x: position.x + 32 * (index + 1), y: position.y + 32 * (index + 1) } }); }); return;
+      event.preventDefault(); this.duplicateBoxes(this.clipboardIds, 32); return;
     }
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'd' && this.selectedIds.size && !this.locked) {
-      event.preventDefault(); [...this.selectedIds].forEach(id => { const position = this.layoutValue.boxes[id]; this.requestEdit({ type: 'duplicate', sourceId: id, position: { x: position.x + 32, y: position.y + 32 } }); }); return;
+      event.preventDefault(); this.duplicateBoxes([...this.selectedIds], 48); return;
     }
     if (event.key === "Escape") {
       const wasConnecting = Boolean(this.connecting || this.pendingReattach || this.portDrag || this.endDrag);
@@ -2357,7 +2380,7 @@ export class ProcessModeler<
         editor.insertBefore(report, leads);
       }
       const actions = document.createElement('div'); actions.setAttribute('part', 'inspector-actions');
-      const duplicate = document.createElement('button'); duplicate.type = 'button'; duplicate.textContent = 'Duplicate'; duplicate.disabled = this.locked; duplicate.onclick = () => this.requestEdit({ type: 'duplicate', sourceId: selected.id, position: { x: this.layoutValue.boxes[selected.id].x + 32, y: this.layoutValue.boxes[selected.id].y + 32 } });
+      const duplicate = document.createElement('button'); duplicate.type = 'button'; duplicate.textContent = 'Duplicate'; duplicate.disabled = this.locked; duplicate.onclick = () => this.duplicateBoxes([selected.id], 48);
       const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = 'Delete'; remove.disabled = this.locked; remove.onclick = () => this.requestEdit({ type: 'delete', boxId: selected.id }); actions.append(duplicate, remove); editor.append(actions);
     }
     restoreControlFocus();
@@ -2394,7 +2417,7 @@ export class ProcessModeler<
         toolbar.querySelector<HTMLElement>('[data-selection-command=add-failure]') ?? undefined,
         Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[data-box-id]')).find(element => element.dataset.boxId === box.id),
       ), true);
-      if (!['start', 'timer', 'section'].includes(box.kind)) add('Duplicate', 'duplicate', () => { const position = this.layoutValue.boxes[box.id]; this.requestEdit({ type: 'duplicate', sourceId: box.id, position: { x: position.x + 32, y: position.y + 32 } }); });
+      if (!['start', 'timer', 'section'].includes(box.kind)) add('Duplicate', 'duplicate', () => this.duplicateBoxes([box.id], 48));
       if (!['start', 'timer'].includes(box.kind)) add('Delete', 'delete-many', () => this.selectionCommand('delete-many'));
     } else {
       add('Line up', 'align', () => this.selectionCommand('align'));

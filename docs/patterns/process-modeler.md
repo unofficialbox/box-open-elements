@@ -156,7 +156,15 @@ that line; Escape returns focus to the box. Ctrl+Alt+arrows opens the same
 contextual chooser at a directional port; east inserts on a sole outgoing line,
 while other directions add a connected step. Enter focuses the selected step's editor, Delete removes, and Shift+1
 fits the whole process. Ctrl/Command+A selects all; C/V/D copy, paste and
-duplicate host-owned boxes. Ctrl/Command+Z and Shift+Ctrl/Command+Z undo and
+duplicate host-owned boxes. A multiple-box duplicate emits one `duplicate` request
+with `sourceIds` and a uniform `offset` (48 for Duplicate, 32 for Paste). The host
+must clone the entire selected graph, including descendants and internal edges,
+in one transaction and call `accept()` once with its full layout and optional
+`selectionIds`. Plural requests omit legacy `sourceId`; hosts that do not support
+them must refuse the whole group rather than duplicate only one node. Single-box
+requests retain `sourceId` and `position`. Clipboard IDs refer to current host
+nodes; immutable copy-after-edit/delete semantics require a host clipboard bridge.
+Ctrl/Command+Z and Shift+Ctrl/Command+Z undo and
 redo only when local history can handle them; empty or locked history leaves
 the key for the host. Escape closes an open View menu or cancels a connection
 or reattachment. An idle Escape does not announce a cancelled connection.
