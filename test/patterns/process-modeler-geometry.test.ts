@@ -351,3 +351,17 @@ it.each([0, 1, 2, 3])('reserves pinned ports through quarter-turn %s', turns => 
   routes.forEach(orthogonal);const fixed=rotate({x:364,y:176});expect(routes[2][0]).toEqual(fixed);
   expect(routes[0].at(-1)).not.toEqual(fixed);expect(routes[1].at(-1)).not.toEqual(fixed);expect(routes[0].at(-1)).not.toEqual(routes[1].at(-1));
 });
+
+
+it.each([false, true])("keeps visual sections transparent to ordinary routing, authored=%s", authored => {
+  const edge: ProcessLine = { id: "a-b", from: "a", to: "b", ...(authored ? { fromSide: "east" as const, toSide: "west" as const, points: [{ x: 350, y: 32 }] } : {}) };
+  const layout: ProcessLayout = { boxes: { a: { x: 0, y: 0, width: 224, height: 64 }, b: { x: 500, y: 0, width: 224, height: 64 }, overlay: { x: -50, y: -50, width: 300, height: 200 } } };
+  const base: ProcessProjection = { boxes: [box("a"), box("b")], lines: [edge] };
+  const baseline = routeProcessLine(edge, layout, base);
+  orthogonal(baseline);
+  const overlay = { ...box("overlay", undefined, true), kind: "section" };
+  expect(routeProcessLine(edge, layout, { ...base, boxes: [...base.boxes, overlay] })).toEqual(baseline);
+  // An unrelated execution frame still blocks a line enclosed by its body.
+  expect(routeProcessLine(edge, layout, { ...base, boxes: [...base.boxes, { ...overlay, kind: "frame" }] })).toEqual([]);
+  if (authored) expect(baseline).toContainEqual({ x: 350, y: 32 });
+});
