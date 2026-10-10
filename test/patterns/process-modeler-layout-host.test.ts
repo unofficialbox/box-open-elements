@@ -57,6 +57,51 @@ describe('host-owned atomic Tidy and sections', () => {
     document.body.append(b); host(b, request => request.accept({ undo() {}, redo() {} } as any)); b.tidy(); expect(b.history.canUndo).toBe(false);
     saved?.accept({ layout: b.layout, undo() {}, redo() {} }); expect(b.history.canUndo).toBe(false);
   });
+  function reentrantFixture(observer: (b: ProcessModeler) => void, replaceDocument = false) {
+    const b = fixture(), before = b.layout, beforeDoc = structuredClone(b.document as ProcessProjection);
+    const after = { ...before, boxes: { ...before.boxes, a: { x: 96, y: 144 } }, lines: {} };
+    const applyTidy = () => {
+      const doc = b.document as ProcessProjection;
+      delete doc.lines[0].points; delete doc.lines[0].fromSide; delete doc.lines[0].toSide;
+    };
+    host(b, request => {
+      applyTidy();
+      if (replaceDocument) b.document = structuredClone(b.document);
+      request.accept({ layout: after,
+        undo: () => { b.document = structuredClone(beforeDoc); },
+        redo: () => { const doc = structuredClone(beforeDoc); delete doc.lines[0].points; delete doc.lines[0].fromSide; delete doc.lines[0].toSide; b.document = doc; },
+      });
+    });
+    b.addEventListener('projection-changed', () => observer(b), { once: true });
+    b.tidy(); return { b, before, beforeDoc, after };
+  }
+  it('records accepted Tidy before a synchronous projection observer move', () => {
+    const { b, before, beforeDoc, after } = reentrantFixture(b => b.move('a', 160, 144));
+    expect(b.layout.boxes.a.x).toBe(160);
+    b.undo(); expect(b.layout).toEqual(after); expect((b.document as ProcessProjection).lines[0].points).toBeUndefined();
+    b.undo(); expect(b.layout).toEqual(before); expect(b.document).toEqual(beforeDoc); expect(b.history.canUndo).toBe(false);
+    b.redo(); expect(b.layout).toEqual(after); expect((b.document as ProcessProjection).lines[0].fromSide).toBeUndefined();
+    b.redo(); expect(b.layout.boxes.a.x).toBe(160); expect(b.history.canRedo).toBe(false);
+  });
+  it('also defers a host document assignment before acceptance until history is complete', () => {
+    const { b, before, after } = reentrantFixture(b => b.move('a', 160, 144), true);
+    expect(b.layout.boxes.a.x).toBe(160);
+    b.undo(); expect(b.layout).toEqual(after);
+    b.undo(); expect(b.layout).toEqual(before); expect(b.history.canUndo).toBe(false);
+  });
+  it('does not resume stale accepted history or notifications after an observer loads another document', () => {
+    const other: ProcessProjection = { boxes: [{ id: 'fresh', kind: 'custom', title: 'Fresh', node: {} }], lines: [] };
+    const staleReadable: string[][] = []; let loaded = false;
+    const { b } = reentrantFixture(b => {
+      b.addEventListener('readable-projection-changed', (event: Event) => {
+        if (loaded) staleReadable.push((event as CustomEvent).detail.projection.boxes.map((box: any) => box.id));
+      });
+      loaded = true; b.load(other, { version: 'fresh' });
+    });
+    expect(b.document).toBe(other); expect(b.history.canUndo).toBe(false); expect(b.history.canRedo).toBe(false);
+    expect(staleReadable.every(ids => ids.length === 1 && ids[0] === 'fresh')).toBe(true);
+    const next = b.layout; b.undo(); expect(b.document).toBe(other); expect(b.layout).toEqual(next);
+  });
   it('blocks host layout edits while locked and keeps legacy local fallback for hosts without the capability', () => {
     const b = fixture(); b.selectMany(['a', 'b']); const apply = vi.fn(); host(b, apply); b.locked = true; const before = b.layout; b.tidy(); b.makeSection(); expect(apply).not.toHaveBeenCalled(); expect(b.layout).toEqual(before);
     b.locked = false; b.model = { project: doc => doc as ProcessProjection }; b.makeSection(); expect(b.layout.sections).toHaveLength(1); b.undo(); expect(b.layout).toEqual(before);

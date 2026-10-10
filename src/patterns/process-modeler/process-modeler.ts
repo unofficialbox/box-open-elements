@@ -101,6 +101,21 @@ export class ProcessModeler<
   private clipboard: ProcessClipboard | null = null;
   private clipboardSession = 0;
   private layoutEditSession = 0;
+  private acceptanceNotifications = 0;
+  private deferredNotifications: { name: string; detail: unknown; session: number }[] = [];
+  private notify(name: string, detail: unknown): void {
+    if (this.acceptanceNotifications) this.deferredNotifications.push({ name, detail, session: this.layoutEditSession });
+    else emit(this, name, detail);
+  }
+  private flushAcceptanceNotifications(): void {
+    if (this.acceptanceNotifications) return;
+    const notifications = this.deferredNotifications;
+    this.deferredNotifications = [];
+    for (const notification of notifications) {
+      if (notification.session !== this.layoutEditSession) continue;
+      emit(this, notification.name, notification.detail);
+    }
+  }
   private restoringBoxFocus = false;
   private selectionToolbarKey = "";
   private sectionSequence = 0;
@@ -206,7 +221,7 @@ export class ProcessModeler<
     this.selectedId = this.selectedIds.values().next().value ?? null;
     this.selectedLineId = null;
     this.renderSelection(); if (this.isRendered) this.updateToolbar();
-    emit(this, "selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath });
+    this.notify("selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath });
   }
   get headingLevel(): number { const level = Number(this.getAttribute("heading-level") ?? 2); return Number.isInteger(level) && level >= 1 && level <= 6 ? level : 2; }
   set headingLevel(value: number) { this.setAttribute("heading-level", String(value)); }
@@ -335,14 +350,14 @@ export class ProcessModeler<
     this.selectedLineId = null;
     this.renderSelection();
     if (this.isRendered) this.updateToolbar();
-    if (notify) emit(this, "selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath });
+    if (notify) this.notify("selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath });
   }
   selectLine(id: string | null): void {
     if (id !== null && !this.projection.lines.some(line => line.id === id)) return;
     if (this.selectedLineId === id && !this.selectedIds.size) return;
     this.selectedLineId = id; this.selectedId = null; this.selectedIds.clear();
     this.refresh();
-    emit(this, 'selection-changed', { box: null, boxes: [], line: this.selectedLine, path: null });
+    this.notify('selection-changed', { box: null, boxes: [], line: this.selectedLine, path: null });
   }
   setValidation(checks: readonly ProcessCheck[]): void {
     this.checks = checks;
@@ -370,57 +385,68 @@ export class ProcessModeler<
     const before = this.layout;
     const beforeSelection = [...this.selectedIds];
     const previousIds = new Set(this.projection.boxes.map((box) => box.id));
+    const session = this.layoutEditSession;
     let accepted = false;
     return (command) => {
-      if (accepted) return;
+      if (accepted || session !== this.layoutEditSession) return;
       accepted = true;
-      if (command.layout) this.layoutValue = structuredClone(command.layout);
-      if (edit.type === 'reset-line' && edit.lineId) delete this.layoutValue.lines?.[edit.lineId];
-      this.refresh();
-      const inserted = edit.type === 'insert' && !edit.boxId && !command.layout
-        ? this.projection.boxes.find(box => !previousIds.has(box.id)) : undefined;
-      const reflowed = inserted ? this.reflowStraightInsert(edit, inserted.id, before) : false;
-      if (
-        !reflowed &&
-        !command.layout &&
-        edit.position &&
-        Number.isFinite(edit.position.x) &&
-        Number.isFinite(edit.position.y)
-      ) {
-        const added = this.projection.boxes.find(box => box.id === edit.boxId) ?? this.projection.boxes.find(
-          (box) => !previousIds.has(box.id),
-        );
-        if (added)
-          this.layoutValue = this.translatedLayout(
-            added.id,
-            edit.position.x,
-            edit.position.y,
-          );
-      }
-      const after = this.layout;
-      const acceptedSelection = command.selectionIds ? [...command.selectionIds] : undefined;
-      const restore = (layout: ProcessLayout) => {
-        this.layoutValue = structuredClone(layout);
+      // Projection/readability/selection observers may synchronously edit or
+      // replace the document. Publish only after the whole history entry exists.
+      this.acceptanceNotifications++;
+      try {
+        if (command.layout) this.layoutValue = structuredClone(command.layout);
+        if (edit.type === 'reset-line' && edit.lineId) delete this.layoutValue.lines?.[edit.lineId];
         this.refresh();
-        this.emitPositions();
-      };
-      this.history.record({
-        undo: () => {
-          command.undo();
-          restore(before);
-          if (acceptedSelection) this.selectMany(beforeSelection);
-        },
-        redo: () => {
-          command.redo();
-          restore(after);
-          if (acceptedSelection) this.selectMany(acceptedSelection);
-        },
-      });
-      if (acceptedSelection) this.selectMany(acceptedSelection);
-      this.refresh();
-      if (JSON.stringify(before) !== JSON.stringify(after))
-        this.emitPositions();
-      announce("Process updated", "polite", this.ownerDocument);
+        if (session !== this.layoutEditSession) return;
+        const inserted = edit.type === 'insert' && !edit.boxId && !command.layout
+          ? this.projection.boxes.find(box => !previousIds.has(box.id)) : undefined;
+        const reflowed = inserted ? this.reflowStraightInsert(edit, inserted.id, before) : false;
+        if (
+          !reflowed &&
+          !command.layout &&
+          edit.position &&
+          Number.isFinite(edit.position.x) &&
+          Number.isFinite(edit.position.y)
+        ) {
+          const added = this.projection.boxes.find(box => box.id === edit.boxId) ?? this.projection.boxes.find(
+            (box) => !previousIds.has(box.id),
+          );
+          if (added)
+            this.layoutValue = this.translatedLayout(
+              added.id,
+              edit.position.x,
+              edit.position.y,
+            );
+        }
+        if (session !== this.layoutEditSession) return;
+        const after = this.layout;
+        const acceptedSelection = command.selectionIds ? [...command.selectionIds] : undefined;
+        const restore = (layout: ProcessLayout) => {
+          this.layoutValue = structuredClone(layout);
+          this.refresh();
+          this.emitPositions();
+        };
+        this.history.record({
+          undo: () => {
+            command.undo();
+            restore(before);
+            if (acceptedSelection) this.selectMany(beforeSelection);
+          },
+          redo: () => {
+            command.redo();
+            restore(after);
+            if (acceptedSelection) this.selectMany(acceptedSelection);
+          },
+        });
+        if (acceptedSelection) this.selectMany(acceptedSelection);
+        this.refresh();
+        if (JSON.stringify(before) !== JSON.stringify(after))
+          this.emitPositions();
+        announce("Process updated", "polite", this.ownerDocument);
+      } finally {
+        this.acceptanceNotifications--;
+        this.flushAcceptanceNotifications();
+      }
     };
   }
   undo(): void {
@@ -440,7 +466,7 @@ export class ProcessModeler<
     if (!this.isRendered) { this.projection = this.model.project(this.documentValue); validateProjection(this.projection); }
     const session = this.layoutEditSession;
     const accept = this.editAcceptance({ type });
-    let active = true, settled = false;
+    let active = true, settled = false, acceptedLayout = false;
     const valid = () => active && !settled && session === this.layoutEditSession && !this.locked;
     const request: ProcessLayoutEditRequest = {
       type, sourceIds: sourceIds ? Object.freeze([...sourceIds]) : null, ...(title !== undefined ? { title } : {}), layout: this.layout,
@@ -448,12 +474,20 @@ export class ProcessModeler<
         if (!valid()) return;
         settled = true;
         if (!command.layout) { this.setStatus('The host must supply the complete accepted layout', true); return; }
-        accept(command); onAccepted?.();
+        accept(command); acceptedLayout = session === this.layoutEditSession;
       },
       refuse: message => { if (!valid()) return; settled = true; this.setStatus(message ?? 'The host refused this layout edit', true); },
     };
+    // Hosts may assign a fresh document before accepting the request. Its
+    // notifications must follow the same atomic history boundary.
+    this.acceptanceNotifications++;
     try { capability.call(this.model, this.documentValue, request, this.projection); }
-    finally { active = false; }
+    finally {
+      active = false;
+      this.acceptanceNotifications--;
+      this.flushAcceptanceNotifications();
+    }
+    if (acceptedLayout && session === this.layoutEditSession) onAccepted?.();
     if (!settled && session === this.layoutEditSession) this.setStatus('This layout edit was not accepted by the host', true);
     return true;
   }
@@ -486,8 +520,8 @@ export class ProcessModeler<
       this.commitLayout(next);
   }
   private emitPositions(): void {
-    emit(this, "layout-changed", { layout: this.layout });
-    emit(this, "positions-changed", { positions: this.positions, version: this.versionValue });
+    this.notify("layout-changed", { layout: this.layout });
+    this.notify("positions-changed", { positions: this.positions, version: this.versionValue });
   }
   private translatedLayout(id: string, x: number, y: number): ProcessLayout {
     const snap = (n: number) => (this.snapToGrid ? Math.round(n / 16) * 16 : n);
@@ -1886,7 +1920,7 @@ export class ProcessModeler<
       if (this.lastProjection) this.versionValue = typeof this.versionValue === "number" ? this.versionValue + 1 : `${this.versionValue}+1`;
       this.lastProjection = serialized;
       this.lastDocument = this.documentValue;
-      emit(this, "projection-changed", { projection: snapshotProcessProjection(this.projection), version: this.versionValue, checks: this.allChecks });
+      this.notify("projection-changed", { projection: snapshotProcessProjection(this.projection), version: this.versionValue, checks: this.allChecks });
     }
     // Riptide or another host owns conversion. It supplies validate() and
     // receives this event only when that conversion can read the drawing.
@@ -1895,7 +1929,7 @@ export class ProcessModeler<
     if (this.documentValue !== undefined && !this.allChecks.length && readableKey !== this.lastReadableProjection) {
       this.lastReadableProjection = readableKey;
       this.readableValue = snapshotProcessProjection(this.projection);
-      emit(this, "readable-projection-changed", { projection: snapshotProcessProjection(this.readableValue), version: this.versionValue });
+      this.notify("readable-projection-changed", { projection: snapshotProcessProjection(this.readableValue), version: this.versionValue });
     }
     if (this.documentValue === undefined) {
       this.lastProjection = "";
@@ -1911,7 +1945,7 @@ export class ProcessModeler<
     this.renderSelection();
     this.paintViewport();
     this.updateToolbar();
-    if (selectionBefore !== JSON.stringify({ ids: [...this.selectedIds], path: this.selectedPath })) emit(this, "selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath });
+    if (selectionBefore !== JSON.stringify({ ids: [...this.selectedIds], path: this.selectedPath })) this.notify("selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath });
     if (focused) {
       this.restoringBoxFocus = true;
       try { this.focusBox(focused); } finally { this.restoringBoxFocus = false; }

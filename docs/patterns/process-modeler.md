@@ -385,3 +385,5 @@ sequenceDiagram
   History->>Host: undo / redo document
   History->>BOE: Restore matching layout + selection
 ```
+
+Accepted edit notifications are delivered after the complete history entry is recorded. A synchronous projection/readability/selection observer can therefore make a subsequent edit with chronological undo/redo. Loading or disconnecting during an observer invalidates remaining notifications from the previous document; an accepted layout operation does not continue fitting a replacement document.
