@@ -2182,6 +2182,36 @@ describe("Process Modeler prototype interactions", () => {
 });
 
 describe('connection preview interruption', () => {
+ it.each(['port', 'endpoint'] as const)('focuses the canvas when a %s drag starts so Escape cancels from the actual focus target', gesture => {
+  const {builder,root,canvas}=fixture();builder.move('a',0,0);builder.move('b',500,0);builder.move('c',500,200);
+  const before={document:builder.document,layout:builder.layout,undo:(builder as any).history.canUndo,redo:(builder as any).history.canRedo};
+  const edits=vi.fn();builder.addEventListener('process-edit-request',edits);
+  const start=()=>{
+   if(gesture==='port'){builder.select('a');pointer(root.querySelector('[part=port][data-owner=a][data-side=east]')!,'pointerdown',224,32);}
+   else {builder.selectLine('ab');pointer(root.querySelector('[part=end-grip][data-end=to]')!,'pointerdown',500,32);}
+  };
+  for(const previous of [document.body,root.querySelector<HTMLElement>('[part=search]')!]){
+   if(previous===document.body)(root.activeElement as HTMLElement|null)?.blur();else previous.focus();
+   start();expect(root.activeElement).toBe(canvas);pointer(canvas,'pointermove',600,230);
+   expect(root.querySelector('[part=connection-preview]')).not.toBeNull();
+   root.activeElement!.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));
+   expect(canvas.dataset.gesture).toBeUndefined();expect(root.querySelector('[part=connection-preview]')).toBeNull();
+   pointer(canvas,'pointerup',600,230);expect(edits).not.toHaveBeenCalled();
+   expect(builder.document).toEqual(before.document);expect(builder.layout).toEqual(before.layout);
+   expect((builder as any).history.canUndo).toBe(before.undo);expect((builder as any).history.canRedo).toBe(before.redo);
+  }
+ });
+ it.each(['port', 'endpoint'] as const)('allows Escape from a focused %s control during its active connection gesture', gesture => {
+  const {builder,root,canvas}=fixture();builder.move('a',0,0);builder.move('b',500,0);builder.move('c',500,200);
+  if(gesture==='port')builder.select('a');else builder.selectLine('ab');
+  const control=root.querySelector<HTMLElement>(gesture==='port'?'[part=port][data-owner=a][data-side=east]':'[part=end-grip][data-end=to]')!;
+  const before={document:builder.document,layout:builder.layout},edits=vi.fn();builder.addEventListener('process-edit-request',edits);
+  pointer(control,'pointerdown',gesture==='port'?224:500,32);pointer(canvas,'pointermove',600,230);control.focus();
+  expect(root.activeElement).toBe(control);expect(canvas.dataset.gesture).toBe('connect');
+  control.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));
+  expect(canvas.dataset.gesture).toBeUndefined();expect(root.querySelector('[part=connection-preview]')).toBeNull();
+  pointer(canvas,'pointerup',600,230);expect(edits).not.toHaveBeenCalled();expect(builder.document).toEqual(before.document);expect(builder.layout).toEqual(before.layout);
+ });
  it.each(['pointercancel', 'Escape', 'load', 'detach', 'lock'])('clears the preview and gesture after %s and allows a fresh connection', interruption => {
   const {builder,root,canvas}=fixture();builder.select('a');
   const port=()=>root.querySelector<HTMLElement>('[part=port][data-owner=a][data-side=east]')!;

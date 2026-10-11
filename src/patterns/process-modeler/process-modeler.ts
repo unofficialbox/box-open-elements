@@ -1626,7 +1626,7 @@ export class ProcessModeler<
   private onKey(event: KeyboardEvent): void {
     if (event.defaultPrevented) return;
     const target = event.target as HTMLElement;
-    if (target.closest("input,textarea,select,[contenteditable],button,summary") && !(event.key === "Escape" && this.frameResize)) return;
+    if (target.closest("input,textarea,select,[contenteditable],button,summary") && !(event.key === "Escape" && (this.frameResize || this.connecting || this.pendingReattach || this.portDrag || this.endDrag))) return;
     if (target.closest('[part=canvas]') && !event.ctrlKey && !event.metaKey && !event.altKey && ['+', '=', '-', '0'].includes(event.key)) {
       event.preventDefault();
       this.zoomBy(event.key === '0' ? 1 / this.viewport.zoom : event.key === '-' ? 1 / 1.2 : 1.2);
@@ -1798,6 +1798,7 @@ export class ProcessModeler<
       this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.dataset.gesture = 'connect';
       this.endDrag = { pointerId: event.pointerId, lineId: grip.dataset.lineId!, end: grip.dataset.end as 'from' | 'to', start: point, point };
       this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.setPointerCapture?.(event.pointerId);
+      this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.focus({ preventScroll: true });
       return;
     }
     const control = (event.target as HTMLElement).closest<HTMLElement>("[part=port]");
@@ -1807,6 +1808,7 @@ export class ProcessModeler<
       this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.dataset.gesture = 'connect';
       this.portDrag = { pointerId: event.pointerId, id: control.dataset.owner!, side: control.dataset.side as NonNullable<typeof this.portDrag>["side"], start: point, point };
       this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.setPointerCapture?.(event.pointerId);
+      this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.focus({ preventScroll: true });
       return;
     }
     const segment = (event.target as HTMLElement).closest<HTMLElement>("[data-segment]");
