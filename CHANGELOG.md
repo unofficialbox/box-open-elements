@@ -13,12 +13,12 @@ are kept as written.
 
 ---
 
-## 0.37.2
+## Unreleased
+
+## 0.37.2 — 2026-10-11
 
 - Preserve small status-label contrast across light/dark themes without changing tone fills.
 - Align ResourceRow and Diff Viewer control names with visible content and retain status descriptions.
-
-## Unreleased
 
 ## 0.37.1 — 2026-10-11
 
