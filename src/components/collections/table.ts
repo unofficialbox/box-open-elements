@@ -178,6 +178,8 @@ const tableStyles = `
   th[aria-sort="ascending"] .boe-sort-arrow::after { content: " ↑"; opacity: 1; }
   th[aria-sort="descending"] .boe-sort-arrow::after { content: " ↓"; opacity: 1; }
 
+  tbody th { text-align: start; }
+
   tbody :is(td, th) {
     padding: ${boeSpace[2]} ${boeSpace[3]};
     border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
