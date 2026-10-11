@@ -82,8 +82,11 @@ export class ProcessModeler<
 > extends BaseElement {
   static readonly tagName = "box-process-modeler";
   static get observedAttributes(): string[] {
-    return ["locked", "snap-to-grid", "heading-level", "disable-connections", "embed-mode"];
+    return ["locked", "snap-to-grid", "heading-level", "disable-connections", "embed-mode", "initial-view"];
   }
+  private pendingInitialFit = false;
+  private pendingSelectionReveal = false;
+  private pendingViewFrame?: number;
   private documentValue?: D;
   private modelValue: ProcessModel<D, N> = {
     project: (document) => document as unknown as ProcessProjection<N>,
@@ -200,10 +203,14 @@ export class ProcessModeler<
   get selectedBoxes(): readonly ProcessBox<N>[] { return this.projection.boxes.filter(box => this.selectedIds.has(box.id)); }
   get selectedLine() { return this.projection.lines.find(line => line.id === this.selectedLineId) ?? null; }
   get selectedPath(): NodePath | null { return this.selected?.path ? [...this.selected.path] : null; }
-  set selectedPath(path: NodePath | null) {
+  set selectedPath(path: NodePath | null) { this.selectPath(path, true); }
+  private selectPath(path: NodePath | null, reveal: boolean): void {
     if (!this.isRendered && this.documentValue !== undefined) { this.projection = this.model.project(this.documentValue); validateProjection(this.projection); }
     const normalized = normalizeProcessSelectionPath(this.projection, path);
     this.setSelection(normalized === null ? null : this.projection.boxes.find(box => JSON.stringify(box.path) === JSON.stringify(normalized))?.id ?? null, false);
+    this.pendingSelectionReveal = reveal && Boolean(this.selected);
+    this.revealPendingSelection();
+    this.schedulePendingView();
   }
   get connections(): readonly ProcessConnection[] { return this.connectionsValue; }
   set connections(value: readonly ProcessConnection[]) { this.connectionsValue = value; this.refresh(); }
@@ -227,9 +234,14 @@ export class ProcessModeler<
   set processTitle(value: string) { this.processTitleValue = value; this.refresh(); }
   get processSummary(): string { return this.processSummaryValue; }
   set processSummary(value: string) { this.processSummaryValue = value; this.refresh(); }
+  /** Initial load policy; a saved load view or explicit setView takes precedence. */
+  get initialView(): "fit" | "100" { return this.getAttribute('initial-view') === '100' ? '100' : 'fit'; }
+  set initialView(value: "fit" | "100") { this.setAttribute('initial-view', value); }
   get view(): Readonly<{ x: number; y: number; zoom: number }> { return { ...this.viewport }; }
   setView(view: { x: number; y: number; zoom: number }): void {
     if (![view.x, view.y, view.zoom].every(Number.isFinite) || view.zoom < 0.25 || view.zoom > 2) return;
+    this.pendingInitialFit = false;
+    this.pendingSelectionReveal = false;
     this.viewport = { ...view };
     if (this.isRendered) this.paintViewport();
   }
@@ -268,10 +280,18 @@ export class ProcessModeler<
     this.layoutValue = restoreProcessPositions(projection, options.positions ?? []);
     this.clearMixedSelection(); this.history.clear(); this.selectedId = null; this.selectedLineId = null; this.selectedIds.clear();
     this.clearClipboard();
+    this.viewport = { x: 0, y: 0, zoom: 1 };
+    this.pendingInitialFit = this.initialView === 'fit';
+    const view = options.view;
+    const hasSavedView = Boolean(view && [view.x, view.y, view.zoom].every(Number.isFinite) && view.zoom >= .25 && view.zoom <= 2);
+    if (hasSavedView) {
+      this.viewport = { ...view! }; this.pendingInitialFit = false;
+    }
     this.refresh();
-    if (options.selectedPath) this.selectedPath = options.selectedPath;
+    if (options.selectedPath) this.selectPath(options.selectedPath, !hasSavedView);
   }
   selectMany(ids: readonly string[]): void {
+    this.pendingSelectionReveal = false;
     if (!this.isRendered && this.documentValue !== undefined) { this.projection = this.model.project(this.documentValue); validateProjection(this.projection); }
     const next = new Set(ids.filter(id => this.projection.boxes.some(box => box.id === id)));
     if (!this.graphSelection && !this.selectedLineIds.size && !this.selectedNoteIds.size && next.size === this.selectedIds.size && [...next].every(id => this.selectedIds.has(id))) return;
@@ -289,6 +309,7 @@ export class ProcessModeler<
       ...[...this.selectedNoteIds].map(id => ({ type: 'note' as const, id }))];
   }
   selectItems(items: readonly ProcessSelectionItem[]): void {
+    this.pendingSelectionReveal = false;
     if (!this.isRendered && this.documentValue !== undefined) { this.projection = this.model.project(this.documentValue); validateProjection(this.projection); }
     const boxes = new Set<string>(), lines = new Set<string>(), notes = new Set<string>();
     for (const item of items) {
@@ -414,6 +435,8 @@ export class ProcessModeler<
     this.layoutEditSession++;
     this.pendingActionChoice = undefined;
     this.resizeObserver?.disconnect();
+    if (this.pendingViewFrame !== undefined) cancelAnimationFrame(this.pendingViewFrame);
+    this.pendingViewFrame = undefined;
     this.clearClipboard();
     this.cancelPalettePointer();
     this.closeDrawer();
@@ -429,7 +452,7 @@ export class ProcessModeler<
     this.drag = undefined;
     this.portDrag = undefined; this.endDrag = undefined; this.pendingReattach = undefined; this.marquee = undefined; this.segmentDrag = undefined;
   }
-  connectedCallback(): void { super.connectedCallback(); this.resizeObserver?.observe(this); this.syncViewMenuDismissal(); }
+  connectedCallback(): void { super.connectedCallback(); this.resizeObserver?.observe(this); const canvas = this.shadowRoot?.querySelector('[part=canvas]'); if (canvas) this.resizeObserver?.observe(canvas); this.syncViewMenuDismissal(); }
   refresh(): void {
     if (this.isRendered) this.update();
   }
@@ -437,6 +460,7 @@ export class ProcessModeler<
     this.setSelection(id, true);
   }
   private setSelection(id: string | null, notify: boolean): void {
+    this.pendingSelectionReveal = false;
     if (!this.isRendered && this.documentValue !== undefined) {
       this.projection = this.model.project(this.documentValue);
       validateProjection(this.projection);
@@ -453,6 +477,7 @@ export class ProcessModeler<
     if (notify) this.notify("selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath, ...(this.graphSelection ? { selection: this.selection } : {}) });
   }
   selectLine(id: string | null): void {
+    this.pendingSelectionReveal = false;
     if (id !== null && !this.projection.lines.some(line => line.id === id)) return;
     if (!this.graphSelection && this.selectedLineId === id && !this.selectedIds.size) return;
     this.clearMixedSelection(); this.selectedLineIds = new Set(id ? [id] : []);
@@ -835,7 +860,43 @@ export class ProcessModeler<
     this.viewport.zoom = next;
     this.paintViewport();
   }
-  fit(): void { this.fitTo(0.25); }
+  private syncResponsiveWidth(width: number): void {
+    this.narrowValue = width < 900; this.toggleAttribute('data-narrow', this.narrowValue);
+    this.toggleAttribute('data-phone', width < 560);
+    this.toggleAttribute('data-compact-toolbar', width <= 1100);
+    this.toggleAttribute('data-hide-tidy', width <= 560);
+  }
+  private applyInitialFit(): boolean {
+    if (!this.pendingInitialFit || !this.isConnected || !this.isRendered) return false;
+    // Apply responsive panel layout before measuring, including synchronous
+    // append/load before the first ResizeObserver delivery.
+    this.syncResponsiveWidth(this.clientWidth);
+    const canvas = this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!;
+    const width = canvas.clientWidth, height = canvas.clientHeight;
+    // Hidden/pre-connected hosts have no useful measurements. Keep the intent
+    // until the canvas itself is observed, rather than fitting a guessed size.
+    if (!width || !height) return false;
+    const rects = [
+      ...this.projection.boxes.map(box => ({ ...this.layoutValue.boxes[box.id], ...this.selectionDimensions(box) })),
+      ...(this.layoutValue.sections ?? []),
+      ...(this.layoutValue.notes ?? []).map(note => ({ ...note, width: 208, height: 80 })),
+    ];
+    this.pendingInitialFit = false;
+    if (!rects.length) return false;
+    const x = Math.min(...rects.map(r => r.x)), y = Math.min(...rects.map(r => r.y));
+    const contentWidth = Math.max(...rects.map(r => r.x + r.width)) - x;
+    const contentHeight = Math.max(...rects.map(r => r.y + r.height)) - y;
+    const padX = width < 600 ? 24 : 64, padY = 72;
+    const minimum = this.clientWidth < 900 ? .55 : .7;
+    const zoom = Math.max(minimum, Math.min(1, (width - 2 * padX) / contentWidth, (height - 2 * padY - 40) / contentHeight));
+    this.viewport = {
+      zoom,
+      x: contentWidth * zoom > width - 2 * padX ? padX - x * zoom : width / 2 - (x + contentWidth / 2) * zoom,
+      y: contentHeight * zoom > height - 2 * padY ? padY - y * zoom : (height - 40) / 2 - (y + contentHeight / 2) * zoom,
+    };
+    return true;
+  }
+  fit(): void { this.pendingInitialFit = false; this.fitTo(0.25); }
   private fitTo(minimumZoom: number): void {
     const bounds = this.bounds();
     const canvas =
@@ -883,7 +944,7 @@ export class ProcessModeler<
     };
   }
   protected renderTemplate(): void {
-    this.shadowRoot!.innerHTML = `<style>${processModelerDesign}</style><div part="toolbar" role="toolbar" aria-label="Diagram controls"><button data-command="zoom-out">Zoom out</button><button data-command="reset">100%</button><button data-command="zoom-in">Zoom in</button><button data-command="fit">Fit the whole process</button><button data-command="checks-status" type="button">Checks</button><button data-command="undo">Undo</button><button data-command="redo">Redo</button><button data-command="tidy">Tidy up</button><button data-command="snap" aria-pressed="false">Snap to grid</button><button data-command="lock" aria-pressed="false">Lock diagram</button></div><div part="layout"><div part="canvas" tabindex="0" role="region" aria-label="Process diagram" aria-describedby="process-help"><div part="world"></div><svg part="minimap" role="img" aria-label="Diagram overview. Click to jump"></svg></div><div part="inspector" role="region" aria-label="Process details"><div part="palette"><label>Find a building block<input type="search" part="search"></label><div part="choices"></div></div><div part="editor"></div><div part="checks" role="region" aria-label="Checks"></div></div></div><p part="help" id="process-help">Tab moves between steps. Alt plus an arrow selects the next step that way. Arrows move the selected step; Shift moves it four grid squares. N opens the building-block chooser. Enter edits. Delete removes. Shift plus 1 fits the process. Drag the background to pan; pinch or use the controls to zoom. Escape cancels connecting.</p><div part="status" role="status" aria-live="polite"></div><div part="urgent-status" role="alert" aria-live="assertive"></div>`;
+    this.shadowRoot!.innerHTML = `<style>${processModelerDesign}</style><div part="toolbar" role="toolbar" aria-label="Diagram controls"><button data-command="zoom-out">Zoom out</button><button data-command="reset">100%</button><button data-command="zoom-in">Zoom in</button><button data-command="fit">Fit the whole process</button><button data-command="checks-status" type="button">Checks</button><button data-command="undo">Undo</button><button data-command="redo">Redo</button><button data-command="tidy">Tidy up</button><button data-command="snap" aria-pressed="false">Snap to grid</button><button data-command="lock" aria-pressed="false">Lock diagram</button></div><div part="layout"><div part="canvas" tabindex="0" role="region" aria-label="Process diagram" aria-describedby="process-help"><div part="world"></div><svg part="minimap" role="img" aria-label="Diagram overview. Click to jump"></svg></div><div part="inspector" role="region" aria-label="Process details"><div part="palette"><label>Find a building block<input type="search" part="search"></label><div part="choices"></div></div><div part="editor"></div><div part="checks" role="region" aria-label="Checks"></div></div></div><p part="help" id="process-help">Tab moves between steps. Alt plus an arrow selects the next step that way. Arrows move the selected step; Shift moves it four grid squares. N opens the building-block chooser. Enter edits. Delete removes. Shift plus 1 fits the process. Drag the background to pan; pinch or use the controls to zoom. Escape cancels an action or clears the selection.</p><div part="status" role="status" aria-live="polite"></div><div part="urgent-status" role="alert" aria-live="assertive"></div>`;
     const canvas = this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!;
     const canvasStack = document.createElement('div'); canvasStack.setAttribute('part', 'canvas-stack');
     canvas.before(canvasStack); canvasStack.append(canvas);
@@ -1075,16 +1136,18 @@ export class ProcessModeler<
     canvas.append(floating);
     if (typeof ResizeObserver !== "undefined") {
       this.resizeObserver = new ResizeObserver(entries => {
-        const narrow = entries[0].contentRect.width < 900;
-        this.narrowValue = narrow; this.toggleAttribute("data-narrow", narrow);
-        this.toggleAttribute('data-phone', entries[0].contentRect.width < 560);
-        this.toggleAttribute('data-compact-toolbar', entries[0].contentRect.width <= 1100);
-        this.toggleAttribute('data-hide-tidy', entries[0].contentRect.width <= 560);
+        const hostEntry = entries.find(entry => entry.target === this);
+        const width = hostEntry?.contentRect.width ?? this.clientWidth;
+        this.syncResponsiveWidth(width);
+        const narrow = this.narrowValue;
         this.renderSelectionToolbar(); this.positionSelectionToolbar();
         if (!narrow) this.closeDrawer();
         root.querySelectorAll<HTMLDialogElement>('[part=pane-drawer]').forEach(dialog => { dialog.inert = narrow && !dialog.open; });
+        if (this.applyInitialFit()) this.paintViewport();
+        this.revealPendingSelection();
       });
       this.resizeObserver.observe(this);
+      this.resizeObserver.observe(canvas);
     }
   }
   private openDrawer(pane: 'palette' | 'inspector'): void {
@@ -1124,6 +1187,14 @@ export class ProcessModeler<
     if (!this.isRendered) return;
     const root = this.shadowRoot!;
     const selected = this.selected;
+    const oldTitle = root.querySelector<HTMLElement>('[part=process-title]')!;
+    const titleTag = selected && this.selectedIds.size === 1 ? `H${this.headingLevel}` : 'STRONG';
+    if (oldTitle.tagName !== titleTag) {
+      const title = document.createElement(titleTag); title.setAttribute('part', 'process-title');
+      const focused = root.activeElement === oldTitle;
+      oldTitle.replaceWith(title);
+      if (focused) { title.tabIndex = -1; title.focus({ preventScroll: true }); }
+    }
     root.querySelector('[part=process-title]')!.textContent = this.selectedIds.size > 1 ? `${this.selectedIds.size} steps selected` : selected?.title ?? this.processTitleValue;
     const kind = selected && this.catalog.find(kind => kind.kind === selected.kind);
     const kindSummary = kind ? `${kind.label}${kind.description !== undefined ? `. ${kind.description}` : ''}` : selected?.kind;
@@ -1657,10 +1728,12 @@ export class ProcessModeler<
       event.preventDefault(); this.duplicateBoxes([...this.selectedIds], 48); return;
     }
     if (event.key === "Escape") {
+      event.preventDefault();
       const wasConnecting = Boolean(this.connecting || this.pendingReattach || this.portDrag || this.endDrag);
+      const wasGesture = wasConnecting || Boolean(this.marquee || this.segmentDrag || this.frameResize || this.drag || this.pointers.size);
       this.connecting = null;
       this.pendingReattach = undefined;
-      if (this.selectedLineId) this.selectLine(null);
+      if (!wasGesture) this.select(null);
       this.portDrag = undefined; this.endDrag = undefined; this.marquee = undefined; this.segmentDrag = undefined; this.frameResize = undefined; this.drag = undefined; this.pointers.clear(); delete this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.dataset.gesture; this.refresh();
       if (wasConnecting) this.setStatus("Connecting cancelled");
       return;
@@ -1711,7 +1784,7 @@ export class ProcessModeler<
       if (this.narrowValue) this.openDrawer('inspector');
       const field = editor.querySelector<HTMLElement>('input,select,textarea,button,[contenteditable]');
       if (field) field.focus();
-      else { const heading = editor.querySelector<HTMLElement>('[part=inspector-heading]'); heading?.setAttribute('tabindex', '-1'); heading?.focus(); }
+      else { const heading = this.shadowRoot!.querySelector<HTMLElement>('[part=process-title]'); heading?.setAttribute('tabindex', '-1'); heading?.focus(); }
       return;
     }
     if (event.key.toLowerCase() === "c" && !this.disableConnections) {
@@ -1767,6 +1840,23 @@ export class ProcessModeler<
     const next = candidates[0]?.candidate;
     if (!next) { this.setStatus('Nothing further that way'); return; }
     this.select(next.id); this.revealBox(next); this.focusBox(next.id); this.setStatus(`${next.title} selected`);
+  }
+  private schedulePendingView(): void {
+    if ((!this.pendingInitialFit && !this.pendingSelectionReveal) || this.pendingViewFrame !== undefined || !this.isConnected || typeof requestAnimationFrame === 'undefined') return;
+    // A hide/show in one frame can coalesce into no ResizeObserver delivery.
+    // One post-layout retry covers that case; longer hidden periods use RO.
+    this.pendingViewFrame = requestAnimationFrame(() => {
+      this.pendingViewFrame = undefined;
+      if (this.applyInitialFit()) this.paintViewport();
+      this.revealPendingSelection();
+    });
+  }
+  private revealPendingSelection(): void {
+    if (!this.pendingSelectionReveal || this.pendingInitialFit || !this.isRendered || !this.isConnected) return;
+    const canvas = this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!;
+    if (!canvas.clientWidth || !canvas.clientHeight) return;
+    this.pendingSelectionReveal = false;
+    if (this.selected) this.revealBox(this.selected);
   }
   private revealBox(box: ProcessBox<N>): void {
     const canvas = this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!;
@@ -2414,6 +2504,7 @@ export class ProcessModeler<
       this.portDrag = undefined; this.endDrag = undefined; this.pendingReattach = undefined; this.segmentDrag = undefined; this.frameResize = undefined; this.marquee = undefined; this.drag = undefined; this.pointers.clear();
       const canvas = this.shadowRoot?.querySelector<HTMLElement>('[part=canvas]'); if (canvas) delete canvas.dataset.gesture;
     }
+    const previousBoxIds = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[part=world] [data-box-id]')).map(box => box.dataset.boxId!);
     const selectionBefore = JSON.stringify({ items: this.selection, path: this.selectedPath });
     if (this.documentValue !== undefined) {
       this.projection = this.model.project(this.documentValue);
@@ -2470,12 +2561,26 @@ export class ProcessModeler<
     this.renderPalette();
     this.renderChecks();
     this.renderSelection();
+    this.applyInitialFit();
+    this.revealPendingSelection();
+    this.schedulePendingView();
     this.paintViewport();
     this.updateToolbar();
     if (selectionBefore !== JSON.stringify({ items: this.selection, path: this.selectedPath })) this.notify("selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath, ...(this.graphSelection ? { selection: this.selection } : {}) });
     if (focused) {
-      this.restoringBoxFocus = true;
-      try { this.focusBox(focused); } finally { this.restoringBoxFocus = false; }
+      if (this.projection.boxes.some(box => box.id === focused)) {
+        this.restoringBoxFocus = true;
+        try { this.focusBox(focused); } finally { this.restoringBoxFocus = false; }
+      } else {
+        // A host may accept removal synchronously or later. Keep the keyboard
+        // in the diagram only when the removed step still owned focus.
+        const index = previousBoxIds.indexOf(focused);
+        const surviving = new Set(this.projection.boxes.map(box => box.id));
+        const next = previousBoxIds.slice(index + 1).find(id => surviving.has(id))
+          ?? previousBoxIds.slice(0, index).reverse().find(id => surviving.has(id));
+        if (next) this.focusBox(next);
+        else this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.focus({ preventScroll: true });
+      }
     } else if (focusedNote) {
       const note = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[data-note-id]')).find(note => note.dataset.noteId === focusedNote);
       (note ?? this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]'))?.focus({ preventScroll: true });
@@ -3501,9 +3606,10 @@ export class ProcessModeler<
       this.inspected === selected?.node &&
       this.inspectedId === selected?.id &&
       this.inspectedControls === controlsKey &&
-      editor.querySelector(`[part=inspector-heading]`)?.tagName === `H${this.headingLevel}`
+      (this.selectedIds.size === 1 ? this.shadowRoot!.querySelector('[part=process-title]') : editor.querySelector('[part=inspector-heading]'))?.tagName === `H${this.headingLevel}`
     ) {
-      editor.querySelector("[part=inspector-heading]")!.textContent = this.selectedIds.size > 1 ? `${this.selectedIds.size} steps selected` : selected?.title ?? "";
+      const heading = editor.querySelector('[part=inspector-heading]');
+      if (heading) heading.textContent = `${this.selectedIds.size} steps selected`;
       const locals = editor.querySelector<HTMLElement>('[part=local-variables]');
       if (selected && this.selectedIds.size === 1 && locals && locals.dataset.localEchoRevision !== String(this.localEchoRevision)) {
         // Reconcile controlled local drafts without disposing the host's custom
@@ -3541,25 +3647,18 @@ export class ProcessModeler<
       restoreControlFocus(); return;
     }
     if (selected) {
-      const heading = document.createElement(`h${this.headingLevel}`);
-      heading.setAttribute("part", "inspector-heading");
-      heading.dataset.single = 'true';
-      heading.textContent = selected.title;
-      editor.append(heading);
-      const kind = this.catalog.find(entry => entry.kind === selected.kind);
-      const kindLabel = document.createElement('p'); kindLabel.setAttribute('part', 'inspector-kind'); kindLabel.textContent = kind?.label ?? selected.kind; editor.append(kindLabel);
       if (selected.description) { const purpose = document.createElement('p'); purpose.setAttribute('part', 'inspector-purpose'); purpose.textContent = selected.description; editor.append(purpose); }
       this.renderFields(editor, selected, expressionHelp, disclosures);
       if (selected.localVariables !== undefined) editor.append(this.renderLocalVariables(selected));
       this.cleanupInspector =
         this.renderer?.(selected.node, editor) || undefined;
       this.renderLeadsTo(editor, selected);
-      const metrics = isFlowBox(selected) && this.showLastRunValue && selected.runMetrics !== false ? this.lastRunValue?.steps[selected.id] : undefined;
+      const metrics = isFlowBox(selected) && this.showLastRunValue && selected.runMetrics !== false ? this.lastRunValue && (this.lastRunValue.steps[selected.id] ?? { notInRun: true }) : undefined;
       if (metrics) {
         const report = document.createElement('section'); report.setAttribute('part', 'inspector-metrics');
         const title = document.createElement('h3'); title.textContent = 'Last run'; report.append(title);
         if (this.lastRunValue?.label) { const source = document.createElement('p'); source.textContent = `From ${this.lastRunValue.label}.`; report.append(source); }
-        if (metrics.notInRun) { const note = document.createElement('p'); note.textContent = 'Not in this run'; report.append(note); }
+        if (metrics.notInRun) { const note = document.createElement('p'); note.textContent = 'Not in the last run'; report.append(note); }
         else {
           const list = document.createElement('table'); list.setAttribute('aria-label', 'Last run metrics');
           const body = document.createElement('tbody'); list.append(body);

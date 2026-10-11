@@ -15,6 +15,14 @@ are kept as written.
 
 ## Unreleased
 
+## 0.40.0 — 2026-10-11
+
+- Process Modeler keeps keyboard focus on the next or previous surviving step, or the canvas, after host removal; Enter in the shared building-block search chooses the first filtered match (#528).
+- Idle Escape clears selection and returns process tabs after active gestures, connections, menus, and choosers have had cancellation precedence (#530).
+- Each Process Modeler load fits using measured canvas dimensions and readable reference zoom floors. `initial-view="100"` opts out; saved `load(document, { view })` and explicit `setView()` preserve host view ownership, including hidden and reconnected hosts (#527).
+- Host `selectedPath` pans offscreen steps into view without zoom changes, focus theft, or selection echoes; missing last-run steps use the same wording on the box and in details (#529).
+- Selected-step details use one visible semantic title and one kind summary, preserving Enter focus fallback and the host inspector render cache (#531).
+
 ## 0.39.0 — 2026-10-11
 
 - TraceWaterfall supports host search/row wording, hidden axis notes, native heading levels and embedded panels, public initial collapsed ids, and compact phone rows on a shared time axis (#509).

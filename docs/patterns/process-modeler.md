@@ -47,7 +47,7 @@ canvas.model = {
   project: doc => ({ boxes: doc.boxes, lines: doc.lines }),
   validate: (doc, projection) => readBackProblems(doc, projection),
 };
-canvas.load(document, { version: 12, positions: savedPositions });
+canvas.load(document, { version: 12, positions: savedPositions, view: savedView });
 canvas.catalog = hostCatalog; // Reuse the same kind list as Flow Builder.
 canvas.outline = hostOutline;
 canvas.fields = hostFieldsByBoxId;
@@ -64,6 +64,13 @@ canvas.addEventListener("readable-projection-changed", event => {
 });
 ```
 
+Host `selectedPath` assignments reveal an offscreen step by panning at the current
+zoom. They preserve keyboard focus and do not echo `selection-changed`; hidden
+hosts reveal when their canvas becomes measurable. Steps missing from `lastRun`
+say “Not in the last run” both on the box and in its inspector. A single selected
+step has one visible details heading at `headingLevel` and one kind/description
+summary; Enter focuses that heading when the editor contains no controls.
+
 ## Contract
 
 - `ProcessModel.project(document)` returns boxes with stable IDs, host node
@@ -76,7 +83,16 @@ canvas.addEventListener("readable-projection-changed", event => {
   frames around their children. Cycles remain visible and appear in Checks.
 - `layout` is copied on assignment/read. It preserves positions/sizes, notes,
   sections and line control points separately from workflow data. Missing box
-  positions receive a deterministic fallback. `load(document, options)` accepts
+  positions receive a deterministic fallback. Each `load()` initially fits using
+  measured canvas dimensions, with the reference's readable floor (70% desktop,
+  55% below 900px) and a 100% cap. Content is centered when it fits; oversized
+  content starts at its beginning. Hidden or disconnected hosts defer fitting
+  until visible. Set `initial-view="100"` (or `initialView = "100"`) before load
+  for a 100% origin view. A valid `options.view` or explicit `setView()` wins;
+  later resize and host document echoes preserve the chosen view. When one load
+  supplies both `view` and `selectedPath`, it restores the view and selects without
+  panning; a subsequent host `selectedPath` assignment can reveal normally. An
+  explicit `setView()` also cancels any older deferred selection reveal. `load(document, options)` accepts
   saved positions keyed by `JSON.stringify(path)` or position snapshots; only
   matching paths and explicit matching fingerprints are restored.
 - `catalog` uses `ProcessKind` entries shared with Flow Builder, with optional
@@ -176,7 +192,7 @@ non-modal, searchable chooser beside the selected box. It names the insertion
 point and, for a simple box with one outgoing line, requests an insert on
 that line; Escape returns focus to the box. Ctrl+Alt+arrows opens the same
 contextual chooser at a directional port; east inserts on a sole outgoing line,
-while other directions add a connected step. Enter focuses the selected step's editor, Delete removes, and Shift+1
+while other directions add a connected step. Enter in the chooser search picks its first filtered match; no match leaves the chooser open. Enter focuses the selected step's editor. When a focused step is removed by the host, focus moves to the next surviving step, the previous one, or the canvas so keyboard undo remains available. Delete removes, and Shift+1
 fits the whole process. Ctrl/Command+A selects all; C/V/D copy, paste and
 duplicate host-owned boxes. A multiple-box duplicate emits one `duplicate` request
 with `sourceIds` and a uniform 48/48 `offset`. The host clones selected roots,
@@ -205,7 +221,7 @@ persistence data is created by BOE.
 Ctrl/Command+Z and Shift+Ctrl/Command+Z undo and
 redo only when local history can handle them; empty or locked history leaves
 the key for the host. Escape closes an open View menu or cancels a connection
-or reattachment. An idle Escape does not announce a cancelled connection.
+or reattachment before changing selection. When no action is in progress, Escape clears the selection and returns the details to the process tabs. An idle Escape does not announce a cancelled connection.
 
 Background drag, Space-drag over a step, and trackpad scroll pan; Control-wheel and two-pointer pinch
 zoom. The floating controls offer zoom, 100% reset, fit, snap and lock. The

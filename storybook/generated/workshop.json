@@ -473,7 +473,7 @@
           "kind": "property",
           "name": "selectedPath",
           "type": "NodePath | null",
-          "description": "Host selection normalized to the deepest projected box."
+          "description": "Host selection normalized to the deepest projected box and revealed without zoom changes or event echoes."
         },
         {
           "kind": "event",
@@ -504,6 +504,18 @@
           "name": "setView()",
           "type": "({ x, y, zoom }) => void",
           "description": "Restore a 25–200% canvas view."
+        },
+        {
+          "kind": "attribute",
+          "name": "initial-view",
+          "type": "\"fit\" | \"100\"",
+          "description": "Default load view: measured readable fit, or 100% origin. A saved load view wins."
+        },
+        {
+          "kind": "property",
+          "name": "load()",
+          "type": "(document, ProcessLoadOptions) => void",
+          "description": "Load host data with optional positions, version, selectedPath and saved view."
         },
         {
           "kind": "attribute",

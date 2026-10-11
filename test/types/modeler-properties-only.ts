@@ -8,6 +8,7 @@ const properties: BoxElementProperties<"box-process-modeler"> = {
     {key: 'json', label: 'Request', kind: 'multiline', value: '{}', rows: 4, format: 'code', section: {key: 'inputs', title: 'Inputs'}, disclosure: {key: 'more', summary: 'More inputs'}, row: {key: 'pair', leadingWidth: 96, gap: 8}, optional: true, annotation: 'In the query · string'},
     {key: 'count', label: 'Count', kind: 'number', value: '', min: 1, max: 10, step: 'any'},
   ]},
+  initialView: "fit",
   connectionsHelp: "Connections are set up by the host.",
 };
 const help: string | undefined = properties.connectionsHelp;

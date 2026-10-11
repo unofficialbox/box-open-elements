@@ -22,6 +22,34 @@ function pointer(target: Element, type: string, x: number, y: number, extra = {}
 }
 afterEach(() => document.body.replaceChildren());
 describe("Process Modeler prototype interactions", () => {
+  it('uses the same missing-run wording for absent and explicit not-in-run entries', () => {
+    const { builder, root } = fixture(); builder.showLastRun = true; builder.select('a');
+    for (const steps of [{}, { a: { notInRun: true } }]) {
+      builder.lastRun = { label: 'Last', steps };
+      expect(root.querySelector('[part=inspector-metrics]')!.textContent).toContain('Not in the last run');
+      expect(root.querySelector('[data-box-id=a]')!.textContent).toContain('Not in the last run');
+    }
+  });
+  it('names a selected step once with a meaningful heading and retains the inspector cache', () => {
+    const { builder, root } = fixture(); const render = vi.fn(); builder.renderInspector = render;
+    builder.catalog = [{ kind: 'call', label: 'Web request', description: 'Sends one request', create: () => ({}) }];
+    builder.select('a'); const title = root.querySelector('[part=process-title]')!;
+    expect(title.tagName).toBe('H2'); expect(title.textContent).toBe('Read');
+    expect(root.querySelector('[part=inspector-heading]')).toBeNull(); expect(root.querySelector('[part=inspector-kind]')).toBeNull();
+    expect(root.querySelector('[part=process-summary]')!.textContent).toBe('Web request. Sends one request');
+    builder.refresh(); builder.refresh(); expect(render).toHaveBeenCalledOnce();
+    builder.headingLevel = 4; expect(root.querySelector('[part=process-title]')!.tagName).toBe('H4');
+  });
+  it.each([false, true])('Enter uses the single visible heading when an editor has no controls (narrow=%s)', narrow => {
+    const { builder, root } = fixture(); builder.document = { boxes: [{ ...projection.boxes[0], kind: 'start' }], lines: [] }; builder.disableConnections = true;
+    Object.assign(builder, { narrowValue: narrow });
+    const drawer = root.querySelector<HTMLDialogElement>('[part=pane-drawer][data-pane=inspector]')!;
+    drawer.show = vi.fn(() => { drawer.open = true; });
+    const step = root.querySelector<HTMLElement>('[data-box-id=a]')!; step.focus();
+    step.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    expect(root.activeElement).toBe(root.querySelector('[part=process-title]'));
+    expect(drawer.open).toBe(narrow);
+  });
   it("preserves structured technical code and prose as safe text without changing business or legacy descriptions", () => {
     const { builder, root } = fixture();
     builder.document = { ...projection, boxes: projection.boxes.map(box => ({ ...box,
@@ -500,7 +528,7 @@ describe("Process Modeler prototype interactions", () => {
     expect(report.textContent).toContain('95% finished within1.5 s');
     expect(report.textContent).toContain('Failed12.5%');
     builder.select('b');
-    expect(root.querySelector('[part=inspector-metrics]')).toBeNull();
+    expect(root.querySelector('[part=inspector-metrics]')!.textContent).toContain('Not in the last run');
     builder.lastRun = { label: 'Partial run', steps: { a: { p95Ms: 100 } } };
     builder.select('a');
     const partial = root.querySelector('[part=inspector-metrics]')!;
@@ -597,7 +625,7 @@ describe("Process Modeler prototype interactions", () => {
     try {
       const { builder } = fixture();
       for (const width of [559, 560, 561, 560, 559]) {
-        resize([{ contentRect: { width } } as ResizeObserverEntry], {} as ResizeObserver);
+        resize([{ target: builder, contentRect: { width } } as ResizeObserverEntry], {} as ResizeObserver);
         expect(builder.hasAttribute('data-hide-tidy')).toBe(width <= 560);
         expect(builder.hasAttribute('data-phone')).toBe(width < 560);
       }
@@ -664,6 +692,36 @@ describe("Process Modeler prototype interactions", () => {
     step.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
     expect(builder.layout.boxes.a).toEqual(before.boxes.a);
     expect(builder.layout.boxes.b.x).toBe(before.boxes.b.x + 16);
+  });
+  it.each([false, true])('retains keyboard undo after accepted Delete (deferred=%s)', deferred => {
+    const { builder, root } = fixture(); const before = builder.document!; let accept!: () => void;
+    builder.addEventListener('process-edit-request', event => {
+      const request = (event as CustomEvent).detail;
+      const after = { boxes: before.boxes.filter(box => box.id !== request.boxId), lines: [] };
+      accept = () => { builder.document = after; request.accept({ undo: () => { builder.document = before; }, redo: () => { builder.document = after; } }); };
+      if (!deferred) accept();
+    });
+    const step = root.querySelector<HTMLElement>('[data-box-id=b]')!; step.focus();
+    step.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true, cancelable: true }));
+    if (deferred) accept();
+    expect((root.activeElement as HTMLElement).dataset.boxId).toBe('c');
+    expect(builder.selected?.id).toBe('c');
+    root.activeElement!.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true, cancelable: true }));
+    expect(builder.document!.boxes).toHaveLength(3);
+  });
+  it('uses rendered step order when the host mutates the projected document in place', () => {
+    const { builder, root } = fixture(); root.querySelector<HTMLElement>('[data-box-id=b]')!.focus();
+    const same = builder.document!; same.boxes = same.boxes.filter(box => box.id !== 'b'); same.lines = [];
+    builder.document = same; expect((root.activeElement as HTMLElement).dataset.boxId).toBe('c');
+  });
+  it('falls back to the previous step then canvas when focused steps disappear, without stealing external focus', () => {
+    const { builder, root, canvas } = fixture(); root.querySelector<HTMLElement>('[data-box-id=c]')!.focus();
+    builder.document = { boxes: projection.boxes.slice(0, 2), lines: [] };
+    expect((root.activeElement as HTMLElement).dataset.boxId).toBe('b');
+    builder.document = { boxes: [], lines: [] }; expect(root.activeElement).toBe(canvas);
+    builder.document = structuredClone(projection); root.querySelector<HTMLElement>('[data-box-id=a]')!.focus();
+    const outside = document.createElement('input'); document.body.append(outside); outside.focus();
+    builder.document = { boxes: [], lines: [] }; expect(document.activeElement).toBe(outside);
   });
   it('restores DOM focus without collapsing multiple or controlled host selection', () => {
     const { builder, root } = fixture();
@@ -743,6 +801,24 @@ describe("Process Modeler prototype interactions", () => {
     picker.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
     expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'insert', lineId: 'ab', from: 'a', to: 'b', kind: { kind: 'call' } });
     expect(chooser.hidePopover).toHaveBeenCalledOnce();
+  });
+  it.each(['anchored', 'modal'] as const)('preserves composition in the Modeler %s chooser', route => {
+    const { builder, root, canvas } = fixture(); builder.select('a'); const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
+    const anchored = root.querySelector<HTMLElement>('[part=keyboard-chooser]')!;
+    anchored.showPopover = route === 'anchored' ? vi.fn() : vi.fn(() => { throw Error('Popover unavailable'); }); anchored.hidePopover = vi.fn();
+    const modal = root.querySelector<HTMLDialogElement>('[part=insert-chooser]')!; modal.showModal = vi.fn(() => { modal.open = true; }); modal.close = vi.fn(() => { modal.open = false; });
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'n', bubbles: true, cancelable: true }));
+    const chooser = route === 'anchored' ? anchored : modal;
+    const closes = route === 'anchored' ? anchored.hidePopover : modal.close;
+    vi.mocked(closes).mockClear();
+    const search = chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLInputElement>('[part=search]')!;
+    search.value = 'call'; search.dispatchEvent(new Event('input'));
+    search.dispatchEvent(new CompositionEvent('compositionstart'));
+    const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+    search.dispatchEvent(event); expect(event.defaultPrevented).toBe(false); expect(requests).not.toHaveBeenCalled(); expect(closes).not.toHaveBeenCalled();
+    search.dispatchEvent(new CompositionEvent('compositionend'));
+    search.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    expect(requests).toHaveBeenCalledOnce(); expect(closes).toHaveBeenCalledOnce();
   });
   it.each([false, true])('restores step focus after a chooser pick and host acceptance (deferred=%s)', deferred => {
     const { builder, root, canvas } = fixture(); builder.select('a');
@@ -831,6 +907,28 @@ describe("Process Modeler prototype interactions", () => {
     summary.focus(); menu.open = true;
     summary.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }));
     expect(menu.open).toBe(false);
+  });
+  it.each(['canvas', 'box', 'mixed'] as const)('idle Escape clears selection and returns process tabs (%s)', mode => {
+    const { builder, root, canvas } = fixture();
+    const step = root.querySelector<HTMLElement>('[data-box-id=a]')!; step.focus();
+    if (mode === 'mixed') builder.selectItems([{ type: 'box', id: 'a' }, { type: 'line', id: 'ab' }]);
+    const changed = vi.fn(); builder.addEventListener('selection-changed', changed);
+    const target = mode === 'box' ? step : canvas; target.focus();
+    target.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(builder.selectedPath).toBeNull(); expect(builder.selection).toEqual([]);
+    expect(changed).toHaveBeenCalledOnce(); expect(changed.mock.calls[0][0].detail.path).toBeNull();
+    expect(root.querySelector('[role=tablist]')).not.toBeNull();
+    expect(root.activeElement).toBe(mode === 'box' ? root.querySelector('[data-box-id=a]') : canvas);
+    root.activeElement!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(changed).toHaveBeenCalledOnce();
+  });
+  it('Escape cancels connecting before clearing the source selection', () => {
+    const { builder, root, canvas } = fixture(); builder.select('a');
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'c', bubbles: true, cancelable: true }));
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(builder.selected?.id).toBe('a'); expect(root.querySelector('[part=status]')!.textContent).toBe('Connecting cancelled');
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(builder.selected).toBeNull();
   });
   it("closes the View menu with Escape and announces cancellation only for an active connection", () => {
     const { builder, root, canvas } = fixture();

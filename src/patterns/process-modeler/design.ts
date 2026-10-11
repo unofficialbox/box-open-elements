@@ -314,7 +314,7 @@ export const processModelerDesign = `
   [part=problem] [part=check-icon] { flex-basis: 12px; width: 12px; height: 12px; margin: 0; }
   [part=checks-ready] { display: flex; align-items: center; gap: 8px; margin: 13px 0; color: var(--boe-token-text-text, #222); font-size: 13px; line-height: 1.45; }
   [part=process-heading] { display: grid; gap: 2px; padding: 0 16px 12px; }
-  [part=process-title] { font-size: 15px; line-height: 1.4; }
+  [part=process-title] { margin: 0; font-size: 15px; line-height: 1.4; }
   [part=process-summary] { color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12.5px; }
   [part=process-heading][data-selected] [part=process-title] { font-weight: 650; line-height: 1.45; text-wrap: balance; }
   [part=process-heading][data-selected] [part=process-summary] { font-size: 13px; line-height: 1.45; }
@@ -444,7 +444,6 @@ export const processModelerDesign = `
   [part=outline-list] button[aria-current=true] { color: var(--boe-token-surface-surface-brand, #0061d5); }
   [part=outline-list] p { margin: 0; color: var(--boe-token-text-text-secondary, #6f6f6f); font-size: 12.5px; line-height: 1.5; }
   [part=inspector-heading] { margin: 0 0 2px; font-size: 15px; font-weight: 650; }
-  [part=inspector-heading][data-single=true]:not(:focus-visible) { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   [part=variable-row] { display: grid; gap: 4px; padding: 10px 0; border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8); font-size: 12.5px; }
   [part=pane-content][data-pane=Connections] { display: grid; align-content: start; gap: 14px; padding: 16px; }
   [part=connections-help] { font-size: 12.5px; color: var(--boe-token-text-text-secondary, #6f6f6f); margin: 0; line-height: 1.5; }

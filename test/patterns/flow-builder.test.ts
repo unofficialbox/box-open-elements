@@ -105,6 +105,28 @@ describe("flow-builder", () => {
     key("Home"); expect(picker.shadowRoot!.activeElement?.textContent).toContain("Call API");
     key("Escape"); expect(cancel).toHaveBeenCalledOnce();
   });
+  it("picks the first filtered chooser match with Enter and ignores an empty result", () => {
+    const picker = new KindPicker(); picker.catalog = catalog; picker.variant = "menu"; picker.searchable = true; document.body.append(picker);
+    const picked = vi.fn(); picker.addEventListener("kind-pick", picked);
+    const search = picker.shadowRoot!.querySelector<HTMLInputElement>('[part=search]')!; search.focus();
+    const enter = () => search.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
+    search.value = "pauses"; search.dispatchEvent(new Event("input")); enter();
+    expect(picked.mock.calls[0][0].detail.kind.kind).toBe("wait");
+    search.value = "missing"; search.dispatchEvent(new Event("input")); enter(); expect(picked).toHaveBeenCalledOnce();
+    search.value = ""; search.dispatchEvent(new Event("input")); enter(); expect(picked.mock.calls[1][0].detail.kind.kind).toBe("call");
+    expect(picker.shadowRoot!.activeElement).toBe(search);
+  });
+  it.each(['isComposing', 'keyCode', 'lifecycle'] as const)('preserves composition in the shared searchable picker (%s)', mode => {
+    const picker = new KindPicker(); picker.catalog = catalog; picker.variant = 'menu'; picker.searchable = true; document.body.append(picker); picker.focus();
+    const search = picker.shadowRoot!.querySelector<HTMLInputElement>('[part=search]')!; search.value = 'wait'; search.dispatchEvent(new Event('input'));
+    const picked = vi.fn(); picker.addEventListener('kind-pick', picked);
+    if (mode === 'lifecycle') search.dispatchEvent(new CompositionEvent('compositionstart'));
+    const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true, ...(mode === 'isComposing' ? { isComposing: true } : mode === 'keyCode' ? { keyCode: 229 } : {}) });
+    search.dispatchEvent(event); expect(event.defaultPrevented).toBe(false); expect(picked).not.toHaveBeenCalled();
+    if (mode === 'lifecycle') search.dispatchEvent(new CompositionEvent('compositionend'));
+    search.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    expect(picked).toHaveBeenCalledOnce(); expect(picked.mock.calls[0][0].detail.kind.kind).toBe('wait');
+  });
   it("inserts into the host document and focuses the new card", () => {
     const builder = new FlowBuilder(); builder.catalog = catalog; document.body.append(builder);
     const changed = vi.fn(); builder.addEventListener("flow-changed", changed);

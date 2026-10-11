@@ -163,6 +163,8 @@ export interface ProcessPositionSnapshot {
   position: BoxPosition;
 }
 export interface ProcessLoadOptions {
+  /** Saved canvas view wins over initial-view and load selectedPath reveal; zoom must be between 0.25 and 2. */
+  view?: { x: number; y: number; zoom: number };
   /** Keys are JSON.stringify(path); snapshots are also accepted. Fingerprints must match. */
   positions?: Readonly<Record<string, { fingerprint?: string; position: BoxPosition }>> |
     readonly ProcessPositionSnapshot[];
