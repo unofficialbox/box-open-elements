@@ -1,9 +1,10 @@
-import type { BoxPlot, Path, Table, TextField } from "@unofficialbox/box-open-elements";
+import type { BoxPlot, Path, Table, TextField, TraceWaterfall } from "@unofficialbox/box-open-elements";
 import type {} from "@unofficialbox/box-open-elements/native-types";
 import type {} from "@unofficialbox/box-open-elements/react-jsx";
 
 const path: Path = document.createElement("box-path");
 const table: Table = document.createElement("box-table");
+table.stackedLayout = "grid";
 const field: TextField = document.createElement("box-text-field");
 
 path.stages = [{ id: "draft", label: "Draft" }];
@@ -36,7 +37,7 @@ document.createElement("box-toast").addEventListener("dismiss", event => {
 
 const view = <>
   <box-path stages={[{ id: "draft", label: "Draft" }]} hasError={true} />
-  <box-table rows={[{ id: "row-1", cells: { name: "Contract" } }]}
+  <box-table stackedLayout="grid" rows={[{ id: "row-1", cells: { name: "Contract" } }]}
     onselection-changed={event => { const ids: string[] = event.detail.selectedIds; void ids; }} />
   <box-resource-row selected={true} />
   <box-alert open={true} />
@@ -125,3 +126,14 @@ const embeddedDistribution = <box-box-plot headingLevel={3} embedded hideNote />
 void embeddedDistribution;
 // @ts-expect-error native heading levels are restricted to 1–6
 distribution.headingLevel = 7;
+
+const trace: TraceWaterfall = document.createElement("box-trace-waterfall");
+trace.collapsed = new Set(["run"]);
+trace.rowLabel = "Step";
+trace.rowsLabel = "steps";
+trace.searchLabel = "Find steps";
+trace.headingLevel = 3;
+trace.embedded = true;
+trace.hideNote = true;
+const traceNode = <box-trace-waterfall collapsed={new Set(["run"])} rowLabel="Step" rowsLabel="steps" searchLabel="Find steps" headingLevel={3} embedded hideNote />;
+void traceNode;

@@ -155,7 +155,7 @@ export interface BoxElementPropertyKeys {
   "box-split-view": "collapse" | "detailOpen" | "label" | "ratio" | "resizable";
   "box-status-icon": "kind" | "label";
   "box-switch": "checked" | "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "required" | "value";
-  "box-table": "columns" | "emptyText" | "errorText" | "label" | "loading" | "rowHeight" | "rows" | "selectedIds" | "selectionMode" | "virtualize";
+  "box-table": "columns" | "emptyText" | "errorText" | "label" | "loading" | "rowHeight" | "rows" | "selectedIds" | "selectionMode" | "stackedLayout" | "virtualize";
   "box-tabs": "label" | "layout" | "options" | "value";
   "box-tag-input": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "name" | "placeholder" | "required" | "tags" | "value";
   "box-task-assignment-panel": "actions" | "assignees" | "checklist" | "currentAssigneeId" | "dueDate" | "heading" | "message" | "priority" | "status";
@@ -168,7 +168,7 @@ export interface BoxElementPropertyKeys {
   "box-toast": "borderless" | "duration" | "heading" | "message" | "mode" | "open" | "tone";
   "box-toolbar": "label" | "orientation";
   "box-tooltip": "label" | "open" | "placement" | "theme" | "triggerLabel";
-  "box-trace-waterfall": "comparisonSpans" | "heading" | "nowMs" | "selectedSpanId" | "showSystem" | "spans";
+  "box-trace-waterfall": "collapsed" | "comparisonSpans" | "embedded" | "heading" | "headingLevel" | "hideNote" | "nowMs" | "rowLabel" | "rowsLabel" | "searchLabel" | "selectedSpanId" | "showSystem" | "spans";
   "box-tree": "items" | "label" | "value";
   "box-tree-grid": "columns" | "items" | "label" | "value";
   "box-unified-share-modal": "dataSource" | "heading" | "itemId" | "itemType" | "open";

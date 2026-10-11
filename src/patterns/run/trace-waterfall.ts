@@ -1,4 +1,6 @@
 import { BaseElement } from "../../core/index.js";
+import { renderHeadingHtml } from "../../foundations/a11y/heading.js";
+import type { HeadingLevel } from "../../foundations/a11y/heading.js";
 
 export type TraceSpanStatus = "ok" | "failed" | "skipped" | "running";
 export interface TraceMarker { atMs: number; label: string }
@@ -117,7 +119,7 @@ const styles = `
   :host([hidden]) { display:none!important }
   [part=panel] { border:1px solid var(--boe-token-stroke-stroke,#dedfe4); border-radius:.75rem; padding:1rem; background:var(--boe-token-surface-surface,#fff); min-width:0 }
   [part=header], [part=controls], [part=detail-controls] { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center }
-  [part=header] { justify-content:space-between; margin-bottom:.75rem } h2,h3 { font:inherit; font-weight:700; margin:0; min-width:0; max-width:100%; overflow-wrap:anywhere }
+  [part=header] { justify-content:space-between; margin-bottom:.75rem } :is(h1,h2,h3,h4,h5,h6) { font:inherit; font-weight:700; margin:0; min-width:0; max-width:100%; overflow-wrap:anywhere }
   [part=controls] { margin-bottom:.75rem } input { font:inherit; width:12rem; max-width:100%; box-sizing:border-box; color:inherit; background:inherit; border:1px solid var(--boe-token-stroke-stroke,#dedfe4); border-radius:.3rem; padding:.4rem }
   button { font:inherit; color:inherit; background:inherit; border:1px solid var(--boe-token-stroke-stroke,#dedfe4); border-radius:.3rem; padding:.35rem .5rem; cursor:pointer; min-height:24px }
   button:disabled { opacity:.6; cursor:default } :is(button,input,[role=row]):focus-visible { outline:2px solid var(--boe-token-surface-surface-brand,#0061d5); outline-offset:2px }
@@ -142,17 +144,19 @@ const styles = `
   [part=note], [part=empty] { font-size:.8rem; margin:.6rem 0; color:var(--boe-token-text-text-secondary,#626b7d) }
   table { border-collapse:collapse; width:100%; table-layout:fixed; font-size:.8rem } caption { text-align:left; font-weight:600; padding:.5rem 0 } th,td { text-align:left; vertical-align:top; padding:.4rem; border-bottom:1px solid var(--boe-token-stroke-stroke,#dedfe4); overflow-wrap:anywhere } th:first-child { width:35% }
   [part=fullscreen] { position:fixed; inset:0; width:100%; height:100%; max-width:none; max-height:none; margin:0; border:0; color:inherit; z-index:1000; overflow:auto; background:var(--boe-token-surface-surface,#fff); padding:1rem; box-sizing:border-box }
-  @container (max-width:650px) { [part=panel] { padding:.75rem } [part=body][data-details] { grid-template-columns:minmax(0,1fr) } [part=columns], [part=row] { grid-template-columns:minmax(0,1fr) } [part=columns] [part=axis] { display:none } [part=timing] { padding-left:1.5rem } [part=details] { border-left:0; border-top:1px solid var(--boe-token-stroke-stroke,#dedfe4); padding:1rem 0 0 } [part=label-cell] { padding-left:min(var(--indent),4rem) } }
+  @container (max-width:650px) { [part=panel] { padding:.75rem } [part=body][data-details] { grid-template-columns:minmax(0,1fr) } [part=columns] { grid-template-columns:minmax(0,1fr) } [part=row] { grid-template-columns:5rem minmax(0,1fr) max-content; gap:.25rem .5rem } [part=columns] [part=axis] { display:none } [part=label-cell] { grid-column:1 / 3; grid-row:1 } [part=timing], [part=timing-label] { display:contents } [part=duration] { grid-column:3; grid-row:1; white-space:nowrap } [part=status] { grid-column:1; grid-row:2; overflow-wrap:anywhere; font-size:.75rem } [part=track] { grid-column:2 / -1; grid-row:2; align-self:center } [part=details] { border-left:0; border-top:1px solid var(--boe-token-stroke-stroke,#dedfe4); padding:1rem 0 0 } [part=label-cell] { padding-left:min(var(--indent),4rem) } }
+  :host([embedded]) [part=panel] { border:0; border-radius:0; padding:0; background:transparent }
   @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important } }
 `;
 
 /** Host-driven live or completed trace; requests selection, never owns host sessions. */
 export class TraceWaterfall extends BaseElement {
   static readonly tagName = "box-trace-waterfall";
-  static get observedAttributes(): string[] { return ["heading", "spans", "show-system", "selected-span-id", "now-ms"]; }
+  static get observedAttributes(): string[] { return ["heading", "heading-level", "embedded", "hide-note", "search-label", "row-label", "rows-label", "spans", "show-system", "selected-span-id", "now-ms"]; }
   private _spans: TraceSpan[] | null = null;
   private _comparisonSpans: TraceSpan[] = [];
-  private collapsed = new Set<string>();
+  private collapsedState = new Set<string>();
+  private pendingCollapsed = new Set<string>();
   private search = "";
   private table = false;
   private code = false;
@@ -170,7 +174,30 @@ export class TraceWaterfall extends BaseElement {
   set selectedSpanId(value: string) { if (value) this.setAttribute("selected-span-id", value); else this.removeAttribute("selected-span-id"); }
   get nowMs(): number { const value = Number(this.getAttribute("now-ms") ?? 0); return finite(value) && value >= 0 ? value : 0; }
   set nowMs(value: number) { this.setAttribute("now-ms", String(value)); }
-  get layout(): TraceLayout { return traceWaterfallLayout(this.spans, { showSystem: this.showSystem, search: this.search, collapsed: this.collapsed, nowMs: this.nowMs, comparisonSpans: this.comparisonSpans }); }
+  get headingLevel(): HeadingLevel {
+    const value = Number(this.getAttribute("heading-level") ?? 2);
+    return Number.isInteger(value) && value >= 1 && value <= 6 ? value as HeadingLevel : 2;
+  }
+  set headingLevel(value: HeadingLevel) { this.setAttribute("heading-level", String(value)); }
+  get embedded(): boolean { return this.hasAttribute("embedded"); }
+  set embedded(value: boolean) { this.toggleAttribute("embedded", value); }
+  get hideNote(): boolean { return this.hasAttribute("hide-note"); }
+  set hideNote(value: boolean) { this.toggleAttribute("hide-note", value); }
+  get rowLabel(): string { return this.getAttribute("row-label")?.trim() || "Span"; }
+  set rowLabel(value: string) { this.setAttribute("row-label", value); }
+  get rowsLabel(): string { return this.getAttribute("rows-label")?.trim() || `${this.rowLabel.toLocaleLowerCase()}s`; }
+  set rowsLabel(value: string) { this.setAttribute("rows-label", value); }
+  get searchLabel(): string { return this.getAttribute("search-label")?.trim() || `Search ${this.rowsLabel}`; }
+  set searchLabel(value: string) { this.setAttribute("search-label", value); }
+  /** Host-controlled collapsed ids; a copy is returned so changes go through the setter. */
+  get collapsed(): ReadonlySet<string> { return new Set(this.collapsedState); }
+  set collapsed(value: ReadonlySet<string>) {
+    this.collapsedState = new Set([...value].filter(id => typeof id === "string" && id.trim()));
+    const ids = new Set([...validTraceSpans(this.spans), ...validTraceSpans(this.comparisonSpans)].map(span => span.id));
+    this.pendingCollapsed = new Set([...this.collapsedState].filter(id => !ids.has(id)));
+    this.update();
+  }
+  get layout(): TraceLayout { return traceWaterfallLayout(this.spans, { showSystem: this.showSystem, search: this.search, collapsed: this.collapsedState, nowMs: this.nowMs, comparisonSpans: this.comparisonSpans }); }
   protected renderTemplate(): void { this.shadowRoot!.innerHTML = `<style>${styles}</style><div part="content-host"></div>`; }
   private select(id: string): void {
     this.selectedSpanId = id;
@@ -186,9 +213,9 @@ export class TraceWaterfall extends BaseElement {
   }
   private toggle(row: TraceRow): void {
     if (!row.hasChildren || this.search.trim()) return;
-    if (this.collapsed.has(row.span.id)) this.collapsed.delete(row.span.id); else this.collapsed.add(row.span.id);
+    if (this.collapsedState.has(row.span.id)) this.collapsedState.delete(row.span.id); else this.collapsedState.add(row.span.id);
     this.update(); this.focusRow(row.span.id);
-    this.dispatchEvent(new CustomEvent("span-toggled", { detail: { spanId: row.span.id, expanded: !this.collapsed.has(row.span.id) }, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent("span-toggled", { detail: { spanId: row.span.id, expanded: !this.collapsedState.has(row.span.id) }, bubbles: true, composed: true }));
   }
   protected setupListeners(): void {
     this.shadowRoot!.addEventListener("keydown", event => {
@@ -228,10 +255,15 @@ export class TraceWaterfall extends BaseElement {
     const activeRowId = active?.closest<HTMLElement>('[part="row"]')?.dataset.spanId;
     const menuOpen = this.shadowRoot?.querySelector<HTMLDetailsElement>('[part="menu"]')?.open ?? false;
     const searchSelection = active instanceof HTMLInputElement ? [active.selectionStart, active.selectionEnd] : null;
+    const allIds = new Set([...validTraceSpans(this.spans), ...validTraceSpans(this.comparisonSpans)].map(span => span.id));
+    this.pendingCollapsed.forEach(id => { if (allIds.has(id)) this.pendingCollapsed.delete(id); });
+    this.collapsedState.forEach(id => { if (!allIds.has(id) && !this.pendingCollapsed.has(id)) this.collapsedState.delete(id); });
     const { rows, hiddenCount, endMs } = this.layout;
     if (!rows.some(row => row.span.id === this.focusedId)) this.focusedId = rows[0]?.span.id ?? null;
-    const allIds = new Set([...validTraceSpans(this.spans), ...validTraceSpans(this.comparisonSpans)].map(span => span.id));
-    this.collapsed.forEach(id => { if (!allIds.has(id)) this.collapsed.delete(id); });
+    const rowLabel = escape(this.rowLabel), rowsLabel = escape(this.rowsLabel);
+    const navigationLabel = escape(this.rowLabel.toLocaleLowerCase());
+    const detailLevel = Math.min(6, this.headingLevel + 1) as HeadingLevel;
+    const sectionLevel = Math.min(6, this.headingLevel + 2) as HeadingLevel;
     const comparison = new Map(validTraceSpans(this.comparisonSpans).map(span => [span.id, span]));
     const position = (ms: number): number => Math.max(0, Math.min(100, ms / endMs * 100));
     const geometry = (span: TraceSpan): string => `left:${position(span.startMs)}%;width:${position(span.startMs + traceSpanDuration(span, this.nowMs)) - position(span.startMs)}%`;
@@ -249,8 +281,8 @@ export class TraceWaterfall extends BaseElement {
     const selected = rows.find(row => row.span.id === this.selectedSpanId)?.span;
     const selectedIndex = rows.findIndex(row => row.span.id === this.selectedSpanId);
     const detailValue = (value: unknown): string => { if (typeof value === "string") return value; try { return JSON.stringify(value, null, this.code ? 2 : 0) ?? ""; } catch { return "Details are unavailable."; } };
-    const details = selected ? `<aside part="details" aria-label="Span details"><h3>${escape(selected.label)}</h3><p part="note">${escape(summary(selected, Boolean(rows[selectedIndex]?.comparisonOnly)))}</p><div part="detail-controls"><button part="previous-span" type="button"${selectedIndex <= 0 ? " disabled" : ""}>Previous span</button><button part="next-span" type="button"${selectedIndex === rows.length - 1 ? " disabled" : ""}>Next span</button><button part="detail-mode" type="button" aria-pressed="${this.code}">${this.code ? "Show text" : "Show code"}</button><button part="close-details" type="button">Close details</button></div><slot name="details">${(["input", "response", "attributes"] as const).map(key => `<section part="detail-section"><h3>${key[0]!.toUpperCase() + key.slice(1)}</h3>${this.code ? `<pre>${escape(detailValue(selected.detail?.[key]))}</pre>` : `<div part="detail-text">${escape(detailValue(selected.detail?.[key])) || "No details supplied."}</div>`}</section>`).join("")}</slot></aside>` : "";
-    host.innerHTML = `<${this.fullScreen ? 'dialog part="fullscreen" aria-label="Expanded trace"' : "div"}><section part="panel" aria-label="${escape(this.heading)}"><header part="header"><h2>${escape(this.heading)}</h2><slot name="session"></slot><button part="fullscreen-toggle" type="button" aria-pressed="${this.fullScreen}">${this.fullScreen ? "Exit full screen" : "Expand to full screen"}</button></header><div part="controls"><label>Search spans <input part="search" type="search" value="${escape(this.search)}"></label><button part="table-toggle" type="button" aria-pressed="${this.table}">${this.table ? "Show waterfall" : "Show as a table"}</button><details part="menu"><summary part="menu-summary">Trace options</summary><button part="expand-all" type="button">Expand all</button><button part="collapse-all" type="button">Collapse all</button></details></div>${hiddenCount ? `<p part="note">${this.showSystem ? "System events are shown." : "Some system events are hidden."} <button part="system-toggle" type="button">${this.showSystem ? "Hide system events" : `Show ${hiddenCount} hidden`}</button></p>` : ""}<p part="note">One shared axis: 0–${duration(endMs)}. ${this.comparisonSpans.length ? "Outlined bars show the comparison trace. " : ""}Arrow keys navigate spans and open or close parents; Enter selects details.</p><div part="body"${selected ? " data-details" : ""}>${this.table ? `<table part="table"><caption>${escape(this.heading)} spans</caption><thead><tr><th scope="col">Span / kind</th><th scope="col">Status</th><th scope="col">Start / duration / markers</th></tr></thead><tbody>${tableRows}</tbody></table>` : `<div part="treegrid" role="treegrid" aria-label="${escape(this.heading)} spans" aria-colcount="2"><div role="rowgroup"><div role="row" part="columns"><div role="columnheader">Span</div><div role="columnheader" part="axis"><span>0 ms</span><span>${duration(endMs)}</span></div></div></div><div role="rowgroup">${rowHtml}</div></div>`}${details}</div>${rows.length ? "" : '<p part="empty">No matching spans.</p>'}</section></${this.fullScreen ? "dialog" : "div"}>`;
+    const details = selected ? `<aside part="details" aria-label="${rowLabel} details">${renderHeadingHtml(selected.label, {level: detailLevel, part: "detail-title"})}<p part="note">${escape(summary(selected, Boolean(rows[selectedIndex]?.comparisonOnly)))}</p><div part="detail-controls"><button part="previous-span" type="button"${selectedIndex <= 0 ? " disabled" : ""}>Previous ${navigationLabel}</button><button part="next-span" type="button"${selectedIndex === rows.length - 1 ? " disabled" : ""}>Next ${navigationLabel}</button><button part="detail-mode" type="button" aria-pressed="${this.code}">${this.code ? "Show text" : "Show code"}</button><button part="close-details" type="button">Close details</button></div><slot name="details">${(["input", "response", "attributes"] as const).map(key => `<section part="detail-section">${renderHeadingHtml(key[0]!.toUpperCase() + key.slice(1), {level: sectionLevel, part: "detail-heading"})}${this.code ? `<pre>${escape(detailValue(selected.detail?.[key]))}</pre>` : `<div part="detail-text">${escape(detailValue(selected.detail?.[key])) || "No details supplied."}</div>`}</section>`).join("")}</slot></aside>` : "";
+    host.innerHTML = `<${this.fullScreen ? 'dialog part="fullscreen" aria-label="Expanded trace"' : "div"}><section part="panel" aria-label="${escape(this.heading)}"><header part="header">${renderHeadingHtml(this.heading, {level: this.headingLevel, part: "heading"})}<slot name="session"></slot><button part="fullscreen-toggle" type="button" aria-pressed="${this.fullScreen}">${this.fullScreen ? "Exit full screen" : "Expand to full screen"}</button></header><div part="controls"><label>${escape(this.searchLabel)} <input part="search" type="search" value="${escape(this.search)}"></label><button part="table-toggle" type="button" aria-pressed="${this.table}">${this.table ? "Show waterfall" : "Show as a table"}</button><details part="menu"><summary part="menu-summary">Trace options</summary><button part="expand-all" type="button">Expand all</button><button part="collapse-all" type="button">Collapse all</button></details></div>${hiddenCount ? `<p part="note">${this.showSystem ? "System events are shown." : "Some system events are hidden."} <button part="system-toggle" type="button">${this.showSystem ? "Hide system events" : `Show ${hiddenCount} hidden`}</button></p>` : ""}${this.hideNote ? "" : `<p part="note">One shared axis: 0–${duration(endMs)}. ${this.comparisonSpans.length ? "Outlined bars show the comparison trace. " : ""}Arrow keys navigate ${rowsLabel} and open or close parents; Enter selects details.</p>`}<div part="body"${selected ? " data-details" : ""}>${this.table ? `<table part="table"><caption>${escape(this.heading)} ${rowsLabel}</caption><thead><tr><th scope="col">${rowLabel} / kind</th><th scope="col">Status</th><th scope="col">Start / duration / markers</th></tr></thead><tbody>${tableRows}</tbody></table>` : `<div part="treegrid" role="treegrid" aria-label="${escape(this.heading)} ${rowsLabel}" aria-colcount="2"><div role="rowgroup"><div role="row" part="columns"><div role="columnheader">${rowLabel}</div><div role="columnheader" part="axis"><span>0 ms</span><span>${duration(endMs)}</span></div></div></div><div role="rowgroup">${rowHtml}</div></div>`}${details}</div>${rows.length ? "" : `<p part="empty">No matching ${rowsLabel}.</p>`}</section></${this.fullScreen ? "dialog" : "div"}>`;
     const dialog = host.querySelector<HTMLDialogElement>('dialog');
     if (dialog) {
       if (typeof dialog.showModal === "function") dialog.showModal(); else dialog.setAttribute("open", "");
@@ -269,8 +301,8 @@ export class TraceWaterfall extends BaseElement {
     button("table-toggle", () => refreshControl("table-toggle", () => { this.table = !this.table; }));
     button("fullscreen-toggle", () => refreshControl("fullscreen-toggle", () => { this.fullScreen = !this.fullScreen; }));
     button("system-toggle", () => { this.showSystem = !this.showSystem; this.shadowRoot!.querySelector<HTMLButtonElement>('[part="system-toggle"]')?.focus(); });
-    button("expand-all", () => refreshControl("expand-all", () => this.collapsed.clear()));
-    button("collapse-all", () => refreshControl("collapse-all", () => rows.filter(row => row.hasChildren).forEach(row => this.collapsed.add(row.span.id))));
+    button("expand-all", () => refreshControl("expand-all", () => { this.collapsedState.clear(); this.pendingCollapsed.clear(); }));
+    button("collapse-all", () => refreshControl("collapse-all", () => rows.filter(row => row.hasChildren).forEach(row => this.collapsedState.add(row.span.id))));
     button("detail-mode", () => refreshControl("detail-mode", () => { this.code = !this.code; }));
     button("close-details", () => { const id = this.selectedSpanId; this.selectedSpanId = ""; this.focusRow(id); });
     for (const [part, offset] of [["previous-span", -1], ["next-span", 1]] as const) button(part, () => { const next = rows[selectedIndex + offset]; if (next) { this.select(next.span.id); const target = this.shadowRoot!.querySelector<HTMLButtonElement>(`[part="${part}"]`);
