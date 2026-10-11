@@ -6,6 +6,7 @@ import type { CustomEventHandler } from "./events.js";
 
 DialogElement.register();
 
+export type DialogConfirmTone = "primary" | "danger";
 export type DialogSize = "small" | "medium" | "large" | "fullscreen";
 
 export type DialogProps = WebComponentProps & {
@@ -14,6 +15,7 @@ export type DialogProps = WebComponentProps & {
   heading?: string;
   description?: string;
   confirmLabel?: string;
+  confirmTone?: DialogConfirmTone;
   confirmDisabled?: boolean;
   confirmBusy?: boolean;
   confirmBusyLabel?: string;
@@ -27,7 +29,7 @@ export type DialogProps = WebComponentProps & {
 export const Dialog = createWebComponent<DialogElement, DialogProps>({
   tagName: "box-dialog",
   displayName: "Dialog",
-  propertyNames: ["open", "heading", "description", "confirmLabel", "confirmDisabled", "confirmBusy", "confirmBusyLabel", "size"],
+  propertyNames: ["open", "heading", "description", "confirmLabel", "confirmTone", "confirmDisabled", "confirmBusy", "confirmBusyLabel", "size"],
   events: [
     { propName: "onOpenChanged", eventName: "open-changed" },
     { propName: "onConfirm", eventName: "confirm" },
@@ -43,6 +45,7 @@ export const Dialog = createWebComponent<DialogElement, DialogProps>({
     if (props.confirmLabel !== undefined) {
       element.confirmLabel = props.confirmLabel;
     }
+    if (props.confirmTone !== undefined) element.confirmTone = props.confirmTone;
     if (props.confirmDisabled !== undefined) element.confirmDisabled = props.confirmDisabled;
     if (props.confirmBusy !== undefined) element.confirmBusy = props.confirmBusy;
     if (props.confirmBusyLabel !== undefined) element.confirmBusyLabel = props.confirmBusyLabel;

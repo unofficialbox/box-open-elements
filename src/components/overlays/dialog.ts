@@ -9,6 +9,9 @@ import {
 
 const DEFAULT_TAG_NAME = "box-dialog";
 
+export type DialogConfirmTone = "primary" | "danger";
+const dangerFill = "var(--boe-button-danger-background, color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 80%, var(--boe-token-text-text, #222222) 20%))";
+
 const dialogStyles = `
   :host {
     color: inherit;
@@ -145,12 +148,26 @@ const dialogStyles = `
 
   ${boeNeutralInteractiveStyles('[part="cancel"]')}
   ${boeBrandInteractiveStyles('[part="confirm"]')}
+
+  [part="confirm"][data-tone="danger"] {
+    color: var(--boe-token-surface-surface, #ffffff);
+    background: ${dangerFill};
+    border-color: ${dangerFill};
+  }
+  [part="confirm"][data-tone="danger"]:hover:not(:disabled) {
+    background: color-mix(in srgb, ${dangerFill} 92%, white 8%);
+    border-color: color-mix(in srgb, ${dangerFill} 92%, white 8%);
+  }
+  [part="confirm"][data-tone="danger"]:active:not(:disabled) {
+    background: color-mix(in srgb, ${dangerFill} 88%, black 12%);
+    border-color: color-mix(in srgb, ${dangerFill} 88%, black 12%);
+  }
 `;
 
 export class Dialog extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["confirm-busy", "confirm-busy-label", "confirm-disabled", "confirm-label", "description", "heading", "open", "size"];
+    return ["confirm-busy", "confirm-busy-label", "confirm-disabled", "confirm-label", "confirm-tone", "description", "heading", "open", "size"];
   }
 
   private openValue = false;
@@ -207,6 +224,14 @@ export class Dialog extends BaseElement {
 
   set confirmLabel(value: string) {
     this.setAttribute("confirm-label", value);
+  }
+
+  get confirmTone(): DialogConfirmTone {
+    return this.getAttribute("confirm-tone") === "danger" ? "danger" : "primary";
+  }
+
+  set confirmTone(value: DialogConfirmTone) {
+    this.setAttribute("confirm-tone", value);
   }
 
   get confirmDisabled(): boolean { return this.hasAttribute("confirm-disabled"); }
@@ -404,13 +429,19 @@ export class Dialog extends BaseElement {
     if (this.confirmEl) {
       this.confirmEl.textContent = this.confirmBusy && this.confirmBusyLabel
         ? this.confirmBusyLabel : this.confirmLabel;
+      this.confirmEl.dataset.tone = this.confirmTone;
       this.confirmEl.disabled = this.confirmDisabled || this.confirmBusy;
       this.confirmEl.setAttribute("aria-busy", String(this.confirmBusy));
     }
 
     if (justOpened) {
+      const surface = this.hostEl.querySelector<HTMLElement>('[part="dialog"]');
       queueMicrotask(() => {
-        (this.hostEl.querySelector('[part="dialog"]') as HTMLElement | null)?.focus();
+        // A close/reopen or disconnect can supersede the queued opening.
+        if (!this.isConnected || !this.open || surface !== this.hostEl.querySelector('[part="dialog"]')) return;
+        const target = this.confirmTone === "danger"
+          ? this.hostEl.querySelector<HTMLElement>('[part="cancel"]') : surface;
+        target?.focus();
       });
     }
   }

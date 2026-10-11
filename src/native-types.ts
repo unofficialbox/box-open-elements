@@ -54,7 +54,7 @@ export interface BoxElementPropertyKeys {
   "box-context-menu": "disabled" | "items";
   "box-datalist-item": "active" | "disabled" | "icon" | "label" | "meta" | "selected" | "value";
   "box-date-field": "clearable" | "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "required" | "value";
-  "box-dialog": "confirmBusy" | "confirmBusyLabel" | "confirmDisabled" | "confirmLabel" | "description" | "heading" | "open" | "size";
+  "box-dialog": "confirmBusy" | "confirmBusyLabel" | "confirmDisabled" | "confirmLabel" | "confirmTone" | "description" | "heading" | "open" | "size";
   "box-diff-viewer": "afterLabel" | "afterText" | "beforeLabel" | "beforeText" | "heading" | "mode";
   "box-divider": "label" | "orientation";
   "box-document-list": "blocks" | "items" | "labels" | "selectableDocuments";

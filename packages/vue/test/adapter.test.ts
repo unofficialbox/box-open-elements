@@ -56,6 +56,7 @@ describe("Vue adapter", () => {
           heading: "Confirm",
           description: "Continue?",
           confirmLabel: "Continue",
+          confirmTone: "danger",
           size: "large",
           onOpenChanged,
           onConfirm,
@@ -89,6 +90,7 @@ describe("Vue adapter", () => {
     field.dispatchEvent(event);
     expect(onValueChanged).toHaveBeenCalledWith(event);
     const dialog = container.querySelector("box-dialog")!;
+    expect(dialog.getAttribute("confirm-tone")).toBe("danger");
     const openEvent = new CustomEvent("open-changed", {
       detail: { open: false },
       bubbles: true,

@@ -4,6 +4,7 @@ import { useWebComponent } from "./adapter.js";
 
 DialogElement.register();
 
+export type DialogConfirmTone = "primary" | "danger";
 export type DialogSize = "small" | "medium" | "large" | "fullscreen";
 export type OpenChangedEvent = CustomEvent<{ open: boolean }>;
 
@@ -16,6 +17,7 @@ export const Dialog = defineComponent({
     heading: String,
     description: String,
     confirmLabel: String,
+    confirmTone: String as PropType<DialogConfirmTone>,
     size: String as PropType<DialogSize>,
   },
   emits: {
@@ -30,6 +32,7 @@ export const Dialog = defineComponent({
         if (props.heading !== undefined) host.heading = props.heading;
         if (props.description !== undefined) host.description = props.description;
         if (props.confirmLabel !== undefined) host.confirmLabel = props.confirmLabel;
+        if (props.confirmTone !== undefined) host.confirmTone = props.confirmTone;
         if (props.size !== undefined) host.size = props.size;
       },
       [

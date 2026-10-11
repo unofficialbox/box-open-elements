@@ -10,6 +10,7 @@ import { Dialog as DialogElement } from "@unofficialbox/box-open-elements/dialog
 
 DialogElement.register();
 
+export type DialogConfirmTone = "primary" | "danger";
 export type DialogSize = "small" | "medium" | "large" | "fullscreen";
 export type OpenChangedEvent = CustomEvent<{ open: boolean }>;
 
@@ -53,6 +54,10 @@ export class Dialog implements OnDestroy {
 
   @Input() set confirmLabel(value: string | undefined) {
     if (value !== undefined) this.element.confirmLabel = value;
+  }
+
+  @Input() set confirmTone(value: DialogConfirmTone | undefined) {
+    if (value !== undefined) this.element.confirmTone = value;
   }
 
   @Input() set size(value: DialogSize | undefined) {

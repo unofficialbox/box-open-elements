@@ -14,10 +14,12 @@ const dialog: StoryModule = {
       { kind: "attribute", name: "heading", type: "string", description: "Dialog title." },
       { kind: "attribute", name: "description", type: "string", description: "Supporting body copy." },
       { kind: "attribute", name: "confirm-label", type: "string", description: "Primary action label." },
+      { kind: "attribute", name: "confirm-tone", type: '"primary" | "danger"', description: "Danger colors the confirm action and initially focuses Cancel; default primary." },
       { kind: "attribute", name: "size", type: '"small" | "medium" | "large" | "fullscreen"', description: "Modal width; default medium." },
     ],
   },
   variants: [
+    { name: "Destructive", html: `<box-dialog open heading="Delete run?" description="This cannot be undone." confirm-label="Delete" confirm-tone="danger"></box-dialog>` },
     {
       name: "Open",
       html: `<box-dialog open heading="Delete item?" description="This cannot be undone." confirm-label="Delete"></box-dialog>`,

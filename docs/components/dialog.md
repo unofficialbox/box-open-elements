@@ -36,3 +36,17 @@ import { Dialog } from "@unofficialbox/box-open-elements-react";
 
 See the **Waiting for setup** variant in the live Dialog docs for a simulated
 prerequisite completing while the dialog remains open.
+
+## Destructive confirmations
+
+Use `confirm-tone="danger"` (property `confirmTone`, including the React
+wrapper) for destructive actions. The default is `primary`. Danger uses the
+shared danger button colors and initially focuses Cancel, so pressing Enter
+cancels. Moving focus to the confirm button deliberately activates it. Busy
+and disabled confirmation, Escape and opener focus restoration still work.
+
+```tsx
+<Dialog open={open} heading="Delete run?" confirmLabel="Delete"
+  confirmTone="danger" onConfirm={deleteRun}
+  onOpenChanged={event => setOpen(event.detail.open)} />
+```
