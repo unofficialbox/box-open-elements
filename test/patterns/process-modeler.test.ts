@@ -41,7 +41,7 @@ describe("process modeler", () => {
     builder.undo(); expect(builder.layout).toEqual(before);
     builder.redo(); builder.redo(); expect(builder.layout.boxes.b.x).toBe(600);
     builder.headingLevel = 5; builder.select("a");
-    expect(builder.shadowRoot!.querySelector("h5[part=inspector-heading]")!.textContent).toBe("Read");
+    expect(builder.shadowRoot!.querySelector("h5[part=process-title]")!.textContent).toBe("Read");
     expect(builder.shadowRoot!.querySelector<HTMLElement>("[part=palette]")!.hidden).toBe(false);
     builder.disableConnections = true;
     expect(builder.shadowRoot!.querySelector('[part=lead-target] select')).toBeNull();

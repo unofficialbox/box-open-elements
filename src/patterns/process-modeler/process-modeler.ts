@@ -1175,6 +1175,14 @@ export class ProcessModeler<
     if (!this.isRendered) return;
     const root = this.shadowRoot!;
     const selected = this.selected;
+    const oldTitle = root.querySelector<HTMLElement>('[part=process-title]')!;
+    const titleTag = selected && this.selectedIds.size === 1 ? `H${this.headingLevel}` : 'STRONG';
+    if (oldTitle.tagName !== titleTag) {
+      const title = document.createElement(titleTag); title.setAttribute('part', 'process-title');
+      const focused = root.activeElement === oldTitle;
+      oldTitle.replaceWith(title);
+      if (focused) { title.tabIndex = -1; title.focus({ preventScroll: true }); }
+    }
     root.querySelector('[part=process-title]')!.textContent = this.selectedIds.size > 1 ? `${this.selectedIds.size} steps selected` : selected?.title ?? this.processTitleValue;
     const kind = selected && this.catalog.find(kind => kind.kind === selected.kind);
     const kindSummary = kind ? `${kind.label}${kind.description !== undefined ? `. ${kind.description}` : ''}` : selected?.kind;
@@ -1764,7 +1772,7 @@ export class ProcessModeler<
       if (this.narrowValue) this.openDrawer('inspector');
       const field = editor.querySelector<HTMLElement>('input,select,textarea,button,[contenteditable]');
       if (field) field.focus();
-      else { const heading = editor.querySelector<HTMLElement>('[part=inspector-heading]'); heading?.setAttribute('tabindex', '-1'); heading?.focus(); }
+      else { const heading = this.shadowRoot!.querySelector<HTMLElement>('[part=process-title]'); heading?.setAttribute('tabindex', '-1'); heading?.focus(); }
       return;
     }
     if (event.key.toLowerCase() === "c" && !this.disableConnections) {
@@ -3586,9 +3594,10 @@ export class ProcessModeler<
       this.inspected === selected?.node &&
       this.inspectedId === selected?.id &&
       this.inspectedControls === controlsKey &&
-      editor.querySelector(`[part=inspector-heading]`)?.tagName === `H${this.headingLevel}`
+      (this.selectedIds.size === 1 ? this.shadowRoot!.querySelector('[part=process-title]') : editor.querySelector('[part=inspector-heading]'))?.tagName === `H${this.headingLevel}`
     ) {
-      editor.querySelector("[part=inspector-heading]")!.textContent = this.selectedIds.size > 1 ? `${this.selectedIds.size} steps selected` : selected?.title ?? "";
+      const heading = editor.querySelector('[part=inspector-heading]');
+      if (heading) heading.textContent = `${this.selectedIds.size} steps selected`;
       const locals = editor.querySelector<HTMLElement>('[part=local-variables]');
       if (selected && this.selectedIds.size === 1 && locals && locals.dataset.localEchoRevision !== String(this.localEchoRevision)) {
         // Reconcile controlled local drafts without disposing the host's custom
@@ -3626,13 +3635,6 @@ export class ProcessModeler<
       restoreControlFocus(); return;
     }
     if (selected) {
-      const heading = document.createElement(`h${this.headingLevel}`);
-      heading.setAttribute("part", "inspector-heading");
-      heading.dataset.single = 'true';
-      heading.textContent = selected.title;
-      editor.append(heading);
-      const kind = this.catalog.find(entry => entry.kind === selected.kind);
-      const kindLabel = document.createElement('p'); kindLabel.setAttribute('part', 'inspector-kind'); kindLabel.textContent = kind?.label ?? selected.kind; editor.append(kindLabel);
       if (selected.description) { const purpose = document.createElement('p'); purpose.setAttribute('part', 'inspector-purpose'); purpose.textContent = selected.description; editor.append(purpose); }
       this.renderFields(editor, selected, expressionHelp, disclosures);
       if (selected.localVariables !== undefined) editor.append(this.renderLocalVariables(selected));

@@ -67,7 +67,9 @@ canvas.addEventListener("readable-projection-changed", event => {
 Host `selectedPath` assignments reveal an offscreen step by panning at the current
 zoom. They preserve keyboard focus and do not echo `selection-changed`; hidden
 hosts reveal when their canvas becomes measurable. Steps missing from `lastRun`
-say “Not in the last run” both on the box and in its inspector.
+say “Not in the last run” both on the box and in its inspector. A single selected
+step has one visible details heading at `headingLevel` and one kind/description
+summary; Enter focuses that heading when the editor contains no controls.
 
 ## Contract
 

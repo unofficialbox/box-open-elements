@@ -30,6 +30,26 @@ describe("Process Modeler prototype interactions", () => {
       expect(root.querySelector('[data-box-id=a]')!.textContent).toContain('Not in the last run');
     }
   });
+  it('names a selected step once with a meaningful heading and retains the inspector cache', () => {
+    const { builder, root } = fixture(); const render = vi.fn(); builder.renderInspector = render;
+    builder.catalog = [{ kind: 'call', label: 'Web request', description: 'Sends one request', create: () => ({}) }];
+    builder.select('a'); const title = root.querySelector('[part=process-title]')!;
+    expect(title.tagName).toBe('H2'); expect(title.textContent).toBe('Read');
+    expect(root.querySelector('[part=inspector-heading]')).toBeNull(); expect(root.querySelector('[part=inspector-kind]')).toBeNull();
+    expect(root.querySelector('[part=process-summary]')!.textContent).toBe('Web request. Sends one request');
+    builder.refresh(); builder.refresh(); expect(render).toHaveBeenCalledOnce();
+    builder.headingLevel = 4; expect(root.querySelector('[part=process-title]')!.tagName).toBe('H4');
+  });
+  it.each([false, true])('Enter uses the single visible heading when an editor has no controls (narrow=%s)', narrow => {
+    const { builder, root } = fixture(); builder.document = { boxes: [{ ...projection.boxes[0], kind: 'start' }], lines: [] }; builder.disableConnections = true;
+    Object.assign(builder, { narrowValue: narrow });
+    const drawer = root.querySelector<HTMLDialogElement>('[part=pane-drawer][data-pane=inspector]')!;
+    drawer.show = vi.fn(() => { drawer.open = true; });
+    const step = root.querySelector<HTMLElement>('[data-box-id=a]')!; step.focus();
+    step.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    expect(root.activeElement).toBe(root.querySelector('[part=process-title]'));
+    expect(drawer.open).toBe(narrow);
+  });
   it("preserves structured technical code and prose as safe text without changing business or legacy descriptions", () => {
     const { builder, root } = fixture();
     builder.document = { ...projection, boxes: projection.boxes.map(box => ({ ...box,
