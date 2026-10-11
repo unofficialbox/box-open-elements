@@ -91,7 +91,8 @@ summary; Enter focuses that heading when the editor contains no controls.
   for a 100% origin view. A valid `options.view` or explicit `setView()` wins;
   later resize and host document echoes preserve the chosen view. When one load
   supplies both `view` and `selectedPath`, it restores the view and selects without
-  panning; a subsequent host `selectedPath` assignment can reveal normally. `load(document, options)` accepts
+  panning; a subsequent host `selectedPath` assignment can reveal normally. An
+  explicit `setView()` also cancels any older deferred selection reveal. `load(document, options)` accepts
   saved positions keyed by `JSON.stringify(path)` or position snapshots; only
   matching paths and explicit matching fingerprints are restored.
 - `catalog` uses `ProcessKind` entries shared with Flow Builder, with optional

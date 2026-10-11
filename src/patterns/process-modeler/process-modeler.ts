@@ -241,6 +241,7 @@ export class ProcessModeler<
   setView(view: { x: number; y: number; zoom: number }): void {
     if (![view.x, view.y, view.zoom].every(Number.isFinite) || view.zoom < 0.25 || view.zoom > 2) return;
     this.pendingInitialFit = false;
+    this.pendingSelectionReveal = false;
     this.viewport = { ...view };
     if (this.isRendered) this.paintViewport();
   }

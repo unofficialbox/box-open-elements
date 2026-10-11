@@ -58,6 +58,12 @@ describe('Process Modeler initial view', () => {
     element.initialView = 'fit'; const view = { x: -500, y: 87, zoom: 1.25 }; element.load(graph, { view }); view.x = 999; resize(); element.document = structuredClone(graph); expect(element.view).toEqual({ x: -500, y: 87, zoom: 1.25 });
     element.load(graph, { view: { x: NaN, y: 0, zoom: 1 } }); expect(element.view.zoom).toBe(.7);
   });
+  it('lets a newer explicit view supersede hidden selection reveal, then honors a later selection', () => {
+    const { element, measure, resize } = fixture(); element.load(graph); measure(0, 0);
+    element.selectedPath = ['body', 14]; const view = { x: 12, y: 34, zoom: .9 }; element.setView(view);
+    measure(); resize(); expect(element.view).toEqual(view); expect(element.selectedPath).toEqual(['body', 14]);
+    element.selectedPath = ['body', 14]; expect(element.view.zoom).toBe(.9); expect(element.view.x).toBeLessThan(-1000);
+  });
   it('waits for hidden canvas dimensions and lets an explicit view cancel a deferred fit', () => {
     const { element, measure, resize } = fixture(); measure(0, 0); element.load(graph); expect(element.view.zoom).toBe(1);
     measure(); resize(); expect(element.view.zoom).toBe(.7);
