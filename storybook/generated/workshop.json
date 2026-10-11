@@ -1268,7 +1268,7 @@
           "kind": "attribute",
           "name": "columns",
           "type": "TableColumn[] (JSON)",
-          "description": "{ key, label, align?, sortable? }."
+          "description": "{ key, label, align?, sortable?, rowHeader?, group? }. Adjacent group labels span columns; rowHeader marks body cells."
         },
         {
           "kind": "attribute",
@@ -1350,6 +1350,10 @@
         }
       ],
       "variants": [
+        {
+          "name": "Grouped run comparison",
+          "html": "<box-table label=\"Run comparison\" stacked=\"auto\" columns='[{\"key\":\"step\",\"label\":\"Step\",\"rowHeader\":true},{\"key\":\"calls\",\"label\":\"Calls\",\"group\":\"This run\"},{\"key\":\"failed\",\"label\":\"Failed\",\"group\":\"This run\"},{\"key\":\"previous\",\"label\":\"Calls\",\"group\":\"Earlier run\"},{\"key\":\"report\",\"label\":\"Report\"}]' rows='[{\"id\":\"one\",\"cells\":{\"step\":\"users.me\",\"calls\":\"142\",\"failed\":{\"text\":\"3\",\"tone\":\"error\"},\"previous\":\"130\",\"report\":{\"kind\":\"link\",\"text\":\"Report\",\"href\":\"https://box.com\",\"target\":\"_blank\",\"ariaLabel\":\"Open users.me report\"}}}]'></box-table>"
+        },
         {
           "name": "Selectable",
           "html": "<box-table label=\"Files\" selection-mode=\"multiple\" columns='[{\"key\":\"name\",\"label\":\"Name\",\"sortable\":true},{\"key\":\"owner\",\"label\":\"Owner\"},{\"key\":\"modified\",\"label\":\"Modified\",\"align\":\"end\"}]' rows='[{\"id\":\"123\",\"cells\":{\"name\":\"Quarterly Plan.pdf\",\"owner\":\"Morgan Lee\",\"modified\":\"Jul 10, 2026\"}},{\"id\":\"124\",\"cells\":{\"name\":\"Brand Guidelines.pdf\",\"owner\":\"Alex Kim\",\"modified\":\"Jun 2, 2026\"}},{\"id\":\"42\",\"cells\":{\"name\":\"Marketing\",\"owner\":\"Morgan Lee\",\"modified\":\"May 30, 2026\"}}]'></box-table>"
