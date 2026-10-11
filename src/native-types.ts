@@ -105,7 +105,7 @@ export interface BoxElementPropertyKeys {
   "box-menu-item": "disabled" | "label" | "selected" | "value";
   "box-metadata-filter-builder": "fields" | "label" | "rules";
   "box-metadata-inspector": "eyebrow" | "heading" | "message" | "sections";
-  "box-metric-card": "action" | "eyebrow" | "heading" | "message" | "status" | "trend" | "value";
+  "box-metric-card": "action" | "eyebrow" | "heading" | "message" | "size" | "status" | "tone" | "trend" | "value";
   "box-mode-indicator": "detail" | "interactive" | "mode" | "namePrefix";
   "box-multi-select": "description" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "options" | "required" | "value";
   "box-nav-sidebar": "collapsed" | "label";
