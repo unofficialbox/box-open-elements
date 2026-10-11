@@ -85,6 +85,8 @@ export class ProcessModeler<
     return ["locked", "snap-to-grid", "heading-level", "disable-connections", "embed-mode", "initial-view"];
   }
   private pendingInitialFit = false;
+  private pendingSelectionReveal = false;
+  private pendingViewFrame?: number;
   private documentValue?: D;
   private modelValue: ProcessModel<D, N> = {
     project: (document) => document as unknown as ProcessProjection<N>,
@@ -205,6 +207,9 @@ export class ProcessModeler<
     if (!this.isRendered && this.documentValue !== undefined) { this.projection = this.model.project(this.documentValue); validateProjection(this.projection); }
     const normalized = normalizeProcessSelectionPath(this.projection, path);
     this.setSelection(normalized === null ? null : this.projection.boxes.find(box => JSON.stringify(box.path) === JSON.stringify(normalized))?.id ?? null, false);
+    this.pendingSelectionReveal = Boolean(this.selected);
+    this.revealPendingSelection();
+    this.schedulePendingView();
   }
   get connections(): readonly ProcessConnection[] { return this.connectionsValue; }
   set connections(value: readonly ProcessConnection[]) { this.connectionsValue = value; this.refresh(); }
@@ -425,6 +430,8 @@ export class ProcessModeler<
     this.layoutEditSession++;
     this.pendingActionChoice = undefined;
     this.resizeObserver?.disconnect();
+    if (this.pendingViewFrame !== undefined) cancelAnimationFrame(this.pendingViewFrame);
+    this.pendingViewFrame = undefined;
     this.clearClipboard();
     this.cancelPalettePointer();
     this.closeDrawer();
@@ -448,6 +455,7 @@ export class ProcessModeler<
     this.setSelection(id, true);
   }
   private setSelection(id: string | null, notify: boolean): void {
+    this.pendingSelectionReveal = false;
     if (!this.isRendered && this.documentValue !== undefined) {
       this.projection = this.model.project(this.documentValue);
       validateProjection(this.projection);
@@ -1124,6 +1132,7 @@ export class ProcessModeler<
         if (!narrow) this.closeDrawer();
         root.querySelectorAll<HTMLDialogElement>('[part=pane-drawer]').forEach(dialog => { dialog.inert = narrow && !dialog.open; });
         if (this.applyInitialFit()) this.paintViewport();
+        this.revealPendingSelection();
       });
       this.resizeObserver.observe(this);
       this.resizeObserver.observe(canvas);
@@ -1811,6 +1820,23 @@ export class ProcessModeler<
     const next = candidates[0]?.candidate;
     if (!next) { this.setStatus('Nothing further that way'); return; }
     this.select(next.id); this.revealBox(next); this.focusBox(next.id); this.setStatus(`${next.title} selected`);
+  }
+  private schedulePendingView(): void {
+    if ((!this.pendingInitialFit && !this.pendingSelectionReveal) || this.pendingViewFrame !== undefined || !this.isConnected || typeof requestAnimationFrame === 'undefined') return;
+    // A hide/show in one frame can coalesce into no ResizeObserver delivery.
+    // One post-layout retry covers that case; longer hidden periods use RO.
+    this.pendingViewFrame = requestAnimationFrame(() => {
+      this.pendingViewFrame = undefined;
+      if (this.applyInitialFit()) this.paintViewport();
+      this.revealPendingSelection();
+    });
+  }
+  private revealPendingSelection(): void {
+    if (!this.pendingSelectionReveal || this.pendingInitialFit || !this.isRendered || !this.isConnected) return;
+    const canvas = this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!;
+    if (!canvas.clientWidth || !canvas.clientHeight) return;
+    this.pendingSelectionReveal = false;
+    if (this.selected) this.revealBox(this.selected);
   }
   private revealBox(box: ProcessBox<N>): void {
     const canvas = this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!;
@@ -2516,6 +2542,8 @@ export class ProcessModeler<
     this.renderChecks();
     this.renderSelection();
     this.applyInitialFit();
+    this.revealPendingSelection();
+    this.schedulePendingView();
     this.paintViewport();
     this.updateToolbar();
     if (selectionBefore !== JSON.stringify({ items: this.selection, path: this.selectedPath })) this.notify("selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath, ...(this.graphSelection ? { selection: this.selection } : {}) });
@@ -3611,12 +3639,12 @@ export class ProcessModeler<
       this.cleanupInspector =
         this.renderer?.(selected.node, editor) || undefined;
       this.renderLeadsTo(editor, selected);
-      const metrics = isFlowBox(selected) && this.showLastRunValue && selected.runMetrics !== false ? this.lastRunValue?.steps[selected.id] : undefined;
+      const metrics = isFlowBox(selected) && this.showLastRunValue && selected.runMetrics !== false ? this.lastRunValue && (this.lastRunValue.steps[selected.id] ?? { notInRun: true }) : undefined;
       if (metrics) {
         const report = document.createElement('section'); report.setAttribute('part', 'inspector-metrics');
         const title = document.createElement('h3'); title.textContent = 'Last run'; report.append(title);
         if (this.lastRunValue?.label) { const source = document.createElement('p'); source.textContent = `From ${this.lastRunValue.label}.`; report.append(source); }
-        if (metrics.notInRun) { const note = document.createElement('p'); note.textContent = 'Not in this run'; report.append(note); }
+        if (metrics.notInRun) { const note = document.createElement('p'); note.textContent = 'Not in the last run'; report.append(note); }
         else {
           const list = document.createElement('table'); list.setAttribute('aria-label', 'Last run metrics');
           const body = document.createElement('tbody'); list.append(body);

@@ -22,6 +22,14 @@ function pointer(target: Element, type: string, x: number, y: number, extra = {}
 }
 afterEach(() => document.body.replaceChildren());
 describe("Process Modeler prototype interactions", () => {
+  it('uses the same missing-run wording for absent and explicit not-in-run entries', () => {
+    const { builder, root } = fixture(); builder.showLastRun = true; builder.select('a');
+    for (const steps of [{}, { a: { notInRun: true } }]) {
+      builder.lastRun = { label: 'Last', steps };
+      expect(root.querySelector('[part=inspector-metrics]')!.textContent).toContain('Not in the last run');
+      expect(root.querySelector('[data-box-id=a]')!.textContent).toContain('Not in the last run');
+    }
+  });
   it("preserves structured technical code and prose as safe text without changing business or legacy descriptions", () => {
     const { builder, root } = fixture();
     builder.document = { ...projection, boxes: projection.boxes.map(box => ({ ...box,
@@ -500,7 +508,7 @@ describe("Process Modeler prototype interactions", () => {
     expect(report.textContent).toContain('95% finished within1.5 s');
     expect(report.textContent).toContain('Failed12.5%');
     builder.select('b');
-    expect(root.querySelector('[part=inspector-metrics]')).toBeNull();
+    expect(root.querySelector('[part=inspector-metrics]')!.textContent).toContain('Not in the last run');
     builder.lastRun = { label: 'Partial run', steps: { a: { p95Ms: 100 } } };
     builder.select('a');
     const partial = root.querySelector('[part=inspector-metrics]')!;

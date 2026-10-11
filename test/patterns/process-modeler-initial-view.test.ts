@@ -18,6 +18,22 @@ describe('Process Modeler initial view', () => {
     expect(element.view.x + element.layout.boxes['0'].x * zoom).toBe(width < 600 ? 24 : 64);
     element.setView({ x: -900, y: -300, zoom: 1.8 }); element.load(structuredClone(graph)); expect(element.view.zoom).toBe(zoom);
   });
+  it('reveals controlled selection without zoom changes, echoed events, or external focus loss', () => {
+    const { element, measure, resize } = fixture(); element.load(graph);
+    const events = vi.fn(); element.addEventListener('selection-changed', events);
+    const outside = document.createElement('input'); document.body.append(outside); outside.focus();
+    const zoom = element.view.zoom; element.selectedPath = ['body', 14];
+    expect(element.view.zoom).toBe(zoom); expect(element.view.x).toBeLessThan(-1000); expect(events).not.toHaveBeenCalled(); expect(document.activeElement).toBe(outside);
+    const revealed = element.view; element.selectedPath = ['body', 14]; expect(element.view).toEqual(revealed);
+    measure(0, 0); element.selectedPath = ['body', 0]; expect(element.view).toEqual(revealed);
+    measure(); resize(); expect(element.view.x).toBeGreaterThan(-1000); expect(events).not.toHaveBeenCalled();
+  });
+  it('reveals a selected load after hidden initial fit and cancels stale reveal on deselection', () => {
+    const { element, measure, resize } = fixture(); measure(0, 0); element.load(graph, { selectedPath: ['body', 14] });
+    measure(); resize(); expect(element.view.zoom).toBe(.7); expect(element.view.x).toBeLessThan(-1000);
+    measure(0, 0); element.selectedPath = ['body', 0]; element.selectedPath = null; const view = element.view;
+    measure(); resize(); expect(element.view).toEqual(view);
+  });
   it('centers a small document without enlarging beyond 100%', () => {
     const { element } = fixture(); element.load({ boxes: graph.boxes.slice(0, 1), lines: [] });
     expect(element.view.zoom).toBe(1); expect(element.view.x).toBeGreaterThan(64); expect(element.view.y).toBeGreaterThan(72);

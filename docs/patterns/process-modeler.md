@@ -64,6 +64,11 @@ canvas.addEventListener("readable-projection-changed", event => {
 });
 ```
 
+Host `selectedPath` assignments reveal an offscreen step by panning at the current
+zoom. They preserve keyboard focus and do not echo `selection-changed`; hidden
+hosts reveal when their canvas becomes measurable. Steps missing from `lastRun`
+say “Not in the last run” both on the box and in its inspector.
+
 ## Contract
 
 - `ProcessModel.project(document)` returns boxes with stable IDs, host node
