@@ -15,6 +15,21 @@ are kept as written.
 
 ## Unreleased
 
+## 0.37.0 — 2026-10-11
+
+- Resize Split View from the keyboard with live window splitter values,
+  Arrow/Shift steps and Home/End limits.
+- Add a destructive Dialog confirmation tone, safe initial Cancel focus and
+  typed support in all four framework adapters.
+- Align Date and Time labels and native control heights with form foundations;
+  connect Time help text, required/hidden labels and existing validation state.
+- Add Table row headers, contiguous column groups, plain text tones and safe
+  report/download link metadata while retaining sorting, selection and windowing.
+- Stretch Metric Cards across grid/flex rows and add compact summaries and
+  independent semantic value tones.
+- Accept library glyph nodes through the Icon Button slot and add small quiet
+  actions with visible hover and keyboard focus.
+
 ## 0.36.5 — 2026-10-11
 
 - Keep invalid connection tooltip text readable in both themes.
