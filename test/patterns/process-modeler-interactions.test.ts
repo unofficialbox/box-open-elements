@@ -709,6 +709,11 @@ describe("Process Modeler prototype interactions", () => {
     root.activeElement!.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true, cancelable: true }));
     expect(builder.document!.boxes).toHaveLength(3);
   });
+  it('uses rendered step order when the host mutates the projected document in place', () => {
+    const { builder, root } = fixture(); root.querySelector<HTMLElement>('[data-box-id=b]')!.focus();
+    const same = builder.document!; same.boxes = same.boxes.filter(box => box.id !== 'b'); same.lines = [];
+    builder.document = same; expect((root.activeElement as HTMLElement).dataset.boxId).toBe('c');
+  });
   it('falls back to the previous step then canvas when focused steps disappear, without stealing external focus', () => {
     const { builder, root, canvas } = fixture(); root.querySelector<HTMLElement>('[data-box-id=c]')!.focus();
     builder.document = { boxes: projection.boxes.slice(0, 2), lines: [] };

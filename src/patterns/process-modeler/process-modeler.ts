@@ -288,6 +288,7 @@ export class ProcessModeler<
     if (options.selectedPath) this.selectedPath = options.selectedPath;
   }
   selectMany(ids: readonly string[]): void {
+    this.pendingSelectionReveal = false;
     if (!this.isRendered && this.documentValue !== undefined) { this.projection = this.model.project(this.documentValue); validateProjection(this.projection); }
     const next = new Set(ids.filter(id => this.projection.boxes.some(box => box.id === id)));
     if (!this.graphSelection && !this.selectedLineIds.size && !this.selectedNoteIds.size && next.size === this.selectedIds.size && [...next].every(id => this.selectedIds.has(id))) return;
@@ -305,6 +306,7 @@ export class ProcessModeler<
       ...[...this.selectedNoteIds].map(id => ({ type: 'note' as const, id }))];
   }
   selectItems(items: readonly ProcessSelectionItem[]): void {
+    this.pendingSelectionReveal = false;
     if (!this.isRendered && this.documentValue !== undefined) { this.projection = this.model.project(this.documentValue); validateProjection(this.projection); }
     const boxes = new Set<string>(), lines = new Set<string>(), notes = new Set<string>();
     for (const item of items) {
@@ -472,6 +474,7 @@ export class ProcessModeler<
     if (notify) this.notify("selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath, ...(this.graphSelection ? { selection: this.selection } : {}) });
   }
   selectLine(id: string | null): void {
+    this.pendingSelectionReveal = false;
     if (id !== null && !this.projection.lines.some(line => line.id === id)) return;
     if (!this.graphSelection && this.selectedLineId === id && !this.selectedIds.size) return;
     this.clearMixedSelection(); this.selectedLineIds = new Set(id ? [id] : []);
@@ -2492,7 +2495,7 @@ export class ProcessModeler<
       this.portDrag = undefined; this.endDrag = undefined; this.pendingReattach = undefined; this.segmentDrag = undefined; this.frameResize = undefined; this.marquee = undefined; this.drag = undefined; this.pointers.clear();
       const canvas = this.shadowRoot?.querySelector<HTMLElement>('[part=canvas]'); if (canvas) delete canvas.dataset.gesture;
     }
-    const previousBoxIds = this.projection.boxes.map(box => box.id);
+    const previousBoxIds = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[part=world] [data-box-id]')).map(box => box.dataset.boxId!);
     const selectionBefore = JSON.stringify({ items: this.selection, path: this.selectedPath });
     if (this.documentValue !== undefined) {
       this.projection = this.model.project(this.documentValue);

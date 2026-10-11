@@ -33,6 +33,8 @@ describe('Process Modeler initial view', () => {
     measure(); resize(); expect(element.view.zoom).toBe(.7); expect(element.view.x).toBeLessThan(-1000);
     measure(0, 0); element.selectedPath = ['body', 0]; element.selectedPath = null; const view = element.view;
     measure(); resize(); expect(element.view).toEqual(view);
+    measure(0, 0); element.selectedPath = ['body', 14]; element.selectMany(['0', '1']);
+    measure(); resize(); expect(element.view).toEqual(view);
   });
   it('centers a small document without enlarging beyond 100%', () => {
     const { element } = fixture(); element.load({ boxes: graph.boxes.slice(0, 1), lines: [] });
