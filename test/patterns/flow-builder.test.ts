@@ -116,6 +116,21 @@ describe("flow-builder", () => {
     search.value = ""; search.dispatchEvent(new Event("input")); enter(); expect(picked.mock.calls[1][0].detail.kind.kind).toBe("call");
     expect(picker.shadowRoot!.activeElement).toBe(search);
   });
+  it.each(['isComposing', 'keyCode', 'lifecycle'] as const)('does not insert or close FlowBuilder during chooser IME confirmation (%s)', mode => {
+    const builder = new FlowBuilder(); builder.catalog = catalog; document.body.append(builder);
+    const spine = builder.shadowRoot!.querySelector<FlowSpine>('box-flow-spine')!;
+    spine.shadowRoot!.querySelector<InsertPoint>('box-insert-point')!.shadowRoot!.querySelector('button')!.click();
+    const popup = builder.shadowRoot!.querySelector<HTMLElement>('[part=picker-popup]')!;
+    const picker = popup.querySelector<KindPicker>('box-kind-picker')!; picker.searchable = true; picker.refresh(); picker.focus();
+    const search = picker.shadowRoot!.querySelector<HTMLInputElement>('[part=search]')!; search.value = 'wait'; search.dispatchEvent(new Event('input'));
+    const changed = vi.fn(); builder.addEventListener('flow-changed', changed);
+    if (mode === 'lifecycle') search.dispatchEvent(new CompositionEvent('compositionstart'));
+    const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true, ...(mode === 'isComposing' ? { isComposing: true } : mode === 'keyCode' ? { keyCode: 229 } : {}) });
+    search.dispatchEvent(event); expect(event.defaultPrevented).toBe(false); expect(builder.nodes).toHaveLength(0); expect(changed).not.toHaveBeenCalled(); expect(popup.hidden).toBe(false);
+    if (mode === 'lifecycle') search.dispatchEvent(new CompositionEvent('compositionend'));
+    search.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    expect(builder.nodes).toHaveLength(1); expect(builder.nodes[0].kind).toBe('wait'); expect(changed).toHaveBeenCalledOnce(); expect(popup.hidden).toBe(true);
+  });
   it("inserts into the host document and focuses the new card", () => {
     const builder = new FlowBuilder(); builder.catalog = catalog; document.body.append(builder);
     const changed = vi.fn(); builder.addEventListener("flow-changed", changed);

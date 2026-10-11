@@ -39,6 +39,7 @@ export class FlowCard extends BaseElement {
       </style><button type="button" part="card"><span part="icon" aria-hidden="true"></span><span part="title"></span><span part="kind"></span><span part="description"></span><span part="status"></span><span part="figure" hidden></span><span part="error">Needs attention</span></button>`;
   }
   protected setupListeners(): void { this.shadowRoot!.querySelector("button")!.addEventListener("click", () => emit(this, "node-select", { node: this.node })); }
+  disconnectedCallback(): void { this.composing = false; }
   refresh(): void { if (this.isRendered) this.update(); }
   focus(options?: FocusOptions): void { this.shadowRoot?.querySelector("button")?.focus(options); }
   protected update(): void {
@@ -78,11 +79,16 @@ export class KindPicker extends BaseElement {
   catalog: readonly FlowKind[] = [];
   variant: "inline" | "menu" = "inline";
   searchable = false;
+  private composing = false;
   protected renderTemplate(): void { this.shadowRoot!.innerHTML = `<style>${styles} [part=search]{width:100%;min-height:36px;margin-bottom:8px;padding:8px;border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:8px;background:var(--boe-token-surface-surface,#fff);font:inherit;color:inherit} [part=choices]{display:grid;gap:8px} button{text-align:start;padding:10px;border:1px solid var(--boe-token-stroke-stroke,#ddd);border-radius:8px;background:var(--boe-token-surface-surface,#fff)} button.has-icon{display:grid;grid-template-columns:20px minmax(0,1fr);column-gap:10px;align-items:start} [part=choice-icon]{grid-row:1/span 2;width:20px;height:20px;color:var(--boe-token-surface-surface-brand,#0061d5)} [part=choice-icon][data-tone=neutral]{color:var(--boe-token-text-text-secondary,#666)} [part=choice-icon] svg{display:block;width:20px;height:20px} [part=choice-label]{display:block} small{display:block;color:var(--boe-token-text-text-secondary,#666)} h3{font:inherit;font-weight:650;margin:12px 0 4px}</style><input part="search" type="search" aria-label="Find a building block" placeholder="Find a building block"><div part="choices"></div>`; }
   protected setupListeners(): void {
-    this.shadowRoot!.querySelector<HTMLInputElement>('[part=search]')!.addEventListener('input', () => this.update());
+    const search = this.shadowRoot!.querySelector<HTMLInputElement>('[part=search]')!;
+    search.addEventListener('input', () => this.update());
+    search.addEventListener('compositionstart', () => { this.composing = true; });
+    search.addEventListener('compositionend', () => { this.composing = false; });
     this.shadowRoot!.addEventListener("keydown", event => {
       const e = event as KeyboardEvent;
+      if (e.isComposing || this.composing || e.keyCode === 229) return;
       if (this.variant !== "menu") return;
       if (e.key === "Escape") { e.preventDefault(); emit(this, "picker-cancel", {}); return; }
       const fromSearch = e.target === this.shadowRoot!.querySelector('[part=search]');
