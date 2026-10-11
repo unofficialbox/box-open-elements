@@ -17,7 +17,7 @@ are kept as written.
 
 ## 0.40.1 — 2026-10-11
 
-- Process Modeler keeps host-authored canvas descriptions while omitting details purposes that repeat the complete kind label, kind description, or summary. Distinct purposes stay visible; controlled description/catalog echoes reconcile without rebuilding the host editor (#534, follow-up to #531).
+- Process Modeler keeps host-authored canvas descriptions while omitting details purposes that repeat text already contained in the selected kind summary. Distinct purposes stay visible; controlled description/catalog echoes reconcile without rebuilding the host editor (#534, follow-up to #531).
 
 ## 0.40.0 — 2026-10-11
 

@@ -3507,10 +3507,9 @@ export class ProcessModeler<
   private renderInspectorPurpose(editor: HTMLElement, selected: ProcessBox<N>): void {
     const normalize = (text: string | undefined): string => (text ?? '').trim().replace(/\s+/g, ' ');
     const description = normalize(selected.description);
-    const kind = this.catalog.find(kind => kind.kind === selected.kind);
     const summary = this.shadowRoot!.querySelector('[part=process-summary]')?.textContent ?? '';
-    // Match whole summary components, not arbitrary substrings of a distinct purpose.
-    const redundant = [summary, kind?.label, kind?.description].some(text => normalize(text) === description);
+    // Omit only a complete description already present in the visible summary.
+    const redundant = normalize(summary).includes(description);
     const previous = editor.querySelector<HTMLElement>('[part=inspector-purpose]');
     if (!description || redundant) { previous?.remove(); return; }
     const purpose = previous ?? document.createElement('p');

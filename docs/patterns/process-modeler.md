@@ -71,8 +71,8 @@ say “Not in the last run” both on the box and in its inspector. A single sel
 step has one visible details heading at `headingLevel` and one kind/description
 summary; Enter focuses that heading when the editor contains no controls. A box’s
 `description` stays on the canvas, while the details purpose omits a repeat of
-the complete kind label, kind description or summary (ignoring whitespace).
-Distinct purposes remain visible; a partial word/phrase match is not suppressed.
+text already contained in the selected kind summary (ignoring whitespace).
+Descriptions that add distinct text remain visible.
 
 ## Contract
 
