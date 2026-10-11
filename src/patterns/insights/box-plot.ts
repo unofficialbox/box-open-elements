@@ -130,9 +130,9 @@ const styles = `
   [data-orientation=vertical] [part=axis] { display:block; position:absolute; top:0; left:0; width:3rem; height:12rem; margin:0 }
   [data-orientation=vertical] [part=ticks] { height:100% }
   [data-orientation=vertical] [part=tick], [data-orientation=vertical] [part=tick]:first-child, [data-orientation=vertical] [part=tick]:last-child { left:0 !important; top:auto; bottom:var(--pos); transform:translateY(50%) }
-  [data-orientation=vertical] [part=row] { display:flex; flex-direction:column-reverse; padding:0; gap:0.3rem; align-items:stretch; min-width:0 }
-  [data-orientation=vertical] [part=label] { text-align:center }
-  [data-orientation=vertical] [part=mark] { height:12rem; width:min(100%, 5.5rem); margin:auto }
+  [data-orientation=vertical] [part=row] { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:12rem auto; padding:0; gap:0.3rem; align-items:stretch; min-width:0 }
+  [data-orientation=vertical] [part=label] { grid-row:2; text-align:center }
+  [data-orientation=vertical] [part=mark] { grid-row:1; height:12rem; width:min(100%, 5.5rem); margin:0 auto }
   [data-orientation=vertical] [part=gridline] { top:auto; left:0; right:0; bottom:var(--pos); border-left:0; border-bottom:1px solid var(--boe-boxplot-grid, var(--boe-token-stroke-stroke, #dedfe4)) }
   [data-orientation=vertical] [part=whisker] { left:50% !important; width:0 !important; border-top:0; border-left:2px solid var(--boe-boxplot-whisker, var(--boe-token-text-text-secondary, #626b7d)); bottom:var(--start); height:var(--size); top:auto }
   [data-orientation=vertical] [part=box] { left:33% !important; width:34% !important; bottom:var(--start); height:var(--size); top:auto }
@@ -152,6 +152,36 @@ export class BoxPlot extends BaseElement {
   private _rows: BoxPlotRow[] | null = null;
   private _formatter: ((value: number) => string) | null = null;
   private tableVisible = false;
+  private resizeObserver: ResizeObserver | null = null;
+  private detailFrame: number | null = null;
+  connectedCallback(): void {
+    super.connectedCallback();
+    if (typeof ResizeObserver !== "undefined" && !this.resizeObserver) {
+      this.resizeObserver = new ResizeObserver(() => this.positionActiveDetails());
+      this.resizeObserver.observe(this);
+    }
+  }
+  disconnectedCallback(): void {
+    this.resizeObserver?.disconnect(); this.resizeObserver = null;
+    if (this.detailFrame !== null) cancelAnimationFrame(this.detailFrame);
+    this.detailFrame = null;
+    super.disconnectedCallback();
+  }
+  private positionDetail(mark: HTMLElement): void {
+    const detail = mark.querySelector<HTMLElement>('[part="detail"]');
+    if (!mark.isConnected || !detail?.getClientRects().length) return;
+    const anchor = mark.getBoundingClientRect(), bounds = this.getBoundingClientRect(), tooltip = detail.getBoundingClientRect();
+    const left = Math.max(Math.max(8, bounds.left), Math.min(anchor.left + anchor.width / 2 - tooltip.width / 2, Math.min(innerWidth - 8, bounds.right) - tooltip.width));
+    detail.style.setProperty("--_boxplot-detail-x", `${left - bounds.left}px`);
+    detail.style.setProperty("--_boxplot-detail-y", `${Math.max(8, anchor.top - tooltip.height - 8) - bounds.top}px`);
+  }
+  private positionActiveDetails(): void {
+    if (this.orientation === "vertical") this.shadowRoot?.querySelectorAll<HTMLElement>('[part="mark"]:is(:hover,:focus-visible)').forEach(mark => this.positionDetail(mark));
+  }
+  private scheduleDetail(mark: HTMLElement): void {
+    if (this.detailFrame !== null) cancelAnimationFrame(this.detailFrame);
+    this.detailFrame = requestAnimationFrame(() => { this.detailFrame = null; this.positionDetail(mark); });
+  }
   get heading(): string { return this.getAttribute("heading")?.trim() || "Distribution"; }
   set heading(value: string) { this.setAttribute("heading", value); }
   get headingLevel(): HeadingLevel {
@@ -188,7 +218,12 @@ export class BoxPlot extends BaseElement {
   protected update(): void {
     const host = this.shadowRoot?.querySelector('[part="content-host"]');
     if (!host) return;
+    if (this.detailFrame !== null) cancelAnimationFrame(this.detailFrame);
+    this.detailFrame = null;
     const focusedId = this.shadowRoot?.activeElement?.getAttribute("data-row-id");
+    const previousScroll = host.querySelector<HTMLElement>('[part="plot-scroll"]');
+    const scrollLeft = previousScroll?.scrollLeft ?? 0;
+    const scrollFocused = previousScroll === this.shadowRoot?.activeElement;
     const rows = this.rows.filter(row => validBoxPlotRow(row, this.scale));
     const domain = boxPlotDomain(rows, this.scale);
     const span = domain.max - domain.min;
@@ -218,23 +253,22 @@ export class BoxPlot extends BaseElement {
     host.innerHTML = `<section part="panel" data-orientation="${this.orientation}" aria-label="${heading}" style="--row-count:${Math.max(1, rows.length)}"><header part="header"><div>${renderHeadingHtml(this.heading, {level:this.headingLevel, part:"heading"})}${this.description ? `<div part="description">${escapeHtml(this.description)}</div>` : ""}${this.hideNote ? "" : `<p part="note">Box: middle 50%; line: median; whiskers: ${this.whiskers === "min-max" ? "minimum–maximum" : this.whiskers === "p5-p95" ? "5th–95th percentile" : "5th–99th percentile"}${this.whiskers === "min-max" ? "" : " (missing percentiles use minimum–maximum)"}. ${this.scale === "log" ? "Logarithmic scale." : "Linear scale."}</p>`}</div><button part="table-toggle" type="button" aria-expanded="${this.tableVisible}" aria-controls="${this.tableVisible ? "boxplot-table" : "boxplot-chart"}">${this.tableVisible ? "Show chart" : "Show as a table"}</button></header>${this.tableVisible ? `<div part="table-wrap" id="boxplot-table" role="region" aria-label="${heading} data table" tabindex="0"><table><caption>${heading}</caption><thead><tr>${headers.map(label => `<th scope="col">${label}</th>`).join("")}</tr></thead><tbody>${tableRows}</tbody></table></div>` : rows.length ? plot : `<div part="empty" id="boxplot-chart">No valid distribution rows to display.</div>`}</section>`;
     host.querySelector('[part="table-toggle"]')?.addEventListener("click", () => { this.tableVisible = !this.tableVisible; this.update(); this.shadowRoot?.querySelector<HTMLButtonElement>('[part="table-toggle"]')?.focus(); });
     if (this.orientation === "vertical") {
-      const positionDetail = (mark: HTMLElement): void => {
-        const detail = mark.querySelector<HTMLElement>('[part="detail"]');
-        if (!detail || !detail.getClientRects().length) return;
-        const anchor = mark.getBoundingClientRect(), bounds = this.getBoundingClientRect(), tooltip = detail.getBoundingClientRect();
-        const left = Math.max(Math.max(8, bounds.left), Math.min(anchor.left + anchor.width / 2 - tooltip.width / 2, Math.min(innerWidth - 8, bounds.right) - tooltip.width));
-        detail.style.setProperty("--_boxplot-detail-x", `${left - bounds.left}px`);
-        detail.style.setProperty("--_boxplot-detail-y", `${Math.max(8, anchor.top - tooltip.height - 8) - bounds.top}px`);
-      };
       host.querySelectorAll<HTMLElement>('[part="mark"]').forEach(mark => {
-        mark.addEventListener("mouseenter", () => positionDetail(mark));
-        mark.addEventListener("focus", () => requestAnimationFrame(() => positionDetail(mark)));
+        mark.addEventListener("mouseenter", () => this.positionDetail(mark));
+        mark.addEventListener("focus", () => this.scheduleDetail(mark));
       });
       host.querySelector('[part="plot-scroll"]')?.addEventListener("scroll", () => {
-        host.querySelectorAll<HTMLElement>('[part="mark"]:is(:hover,:focus-visible)').forEach(positionDetail);
+        this.positionActiveDetails();
       });
     }
-    if (focusedId) this.shadowRoot?.querySelectorAll<HTMLElement>('[part="mark"]').forEach(mark => { if (mark.dataset.rowId === focusedId) mark.focus(); });
+    const scroll = host.querySelector<HTMLElement>('[part="plot-scroll"]');
+    if (scroll) scroll.scrollLeft = scrollLeft;
+    if (scrollFocused) scroll?.focus({preventScroll:true});
+    if (focusedId) {
+      const mark = Array.from(host.querySelectorAll<HTMLElement>('[part="mark"]')).find(candidate => candidate.dataset.rowId === focusedId);
+      if (mark) mark.focus({preventScroll:true});
+      else scroll?.focus({preventScroll:true});
+    }
   }
 }
 

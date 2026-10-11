@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import axe from "axe-core";
 import { BoxPlot, boxPlotDomain, boxPlotPosition, boxPlotWhiskerValues, validBoxPlotRow, type BoxPlotRow } from "../../../src/patterns/insights/box-plot.js";
 
@@ -142,5 +142,20 @@ describe("BoxPlot theme, embedding and optional table contracts", () => {
     expect(rule('median')).toContain('--boe-token-text-text');
     expect(rule('whisker')).toContain('--boe-token-text-text-secondary');
     expect(rule('gridline')).toContain('--boe-token-stroke-stroke');
+  });
+});
+
+describe("BoxPlot vertical lifecycle", () => {
+  afterEach(() => { document.body.innerHTML=""; vi.unstubAllGlobals(); });
+  const mount=():BoxPlot=>{const chart=new BoxPlot();chart.orientation="vertical";chart.rows=Array.from({length:20},(_,i)=>({...row,id:String(i)}));document.body.append(chart);return chart;};
+  it("preserves scroll-region focus and position during row updates and reordering",()=>{
+    const chart=mount();let scroll=chart.shadowRoot!.querySelector<HTMLElement>('[part="plot-scroll"]')!;scroll.scrollLeft=400;scroll.focus();chart.rows=[...chart.rows].reverse();scroll=chart.shadowRoot!.querySelector<HTMLElement>('[part="plot-scroll"]')!;expect(scroll.scrollLeft).toBe(400);expect(chart.shadowRoot!.activeElement).toBe(scroll);
+    const external=document.createElement('button');document.body.append(external);external.focus();chart.rows=[...chart.rows];expect(document.activeElement).toBe(external);expect(chart.shadowRoot!.querySelector<HTMLElement>('[part="plot-scroll"]')!.scrollLeft).toBe(400);
+  });
+  it("retains mark focus on reorder and returns focus to the region when that row disappears",()=>{
+    const chart=mount();chart.shadowRoot!.querySelector<HTMLElement>('[part="mark"]')!.focus();chart.rows=[...chart.rows].reverse();expect(chart.shadowRoot!.activeElement!.getAttribute('data-row-id')).toBe('0');chart.rows=chart.rows.filter(row=>row.id!=='0');expect(chart.shadowRoot!.activeElement!.getAttribute('part')).toBe('plot-scroll');
+  });
+  it("disconnects and recreates its resize observer across reconnect",()=>{
+    const observe=vi.fn(),disconnect=vi.fn(),construct=vi.fn();vi.stubGlobal('ResizeObserver',class{constructor(){construct();}observe=observe;disconnect=disconnect;});const chart=mount();expect(observe).toHaveBeenCalledWith(chart);chart.remove();expect(disconnect).toHaveBeenCalledOnce();document.body.append(chart);expect(construct).toHaveBeenCalledTimes(2);expect(observe).toHaveBeenCalledTimes(2);
   });
 });
