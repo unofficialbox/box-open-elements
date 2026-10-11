@@ -3504,6 +3504,19 @@ export class ProcessModeler<
     }
     if (previous) previous.replaceWith(leads); else editor.append(leads);
   }
+  private renderInspectorPurpose(editor: HTMLElement, selected: ProcessBox<N>): void {
+    const normalize = (text: string | undefined): string => (text ?? '').trim().replace(/\s+/g, ' ');
+    const description = normalize(selected.description);
+    const kind = this.catalog.find(kind => kind.kind === selected.kind);
+    const summary = this.shadowRoot!.querySelector('[part=process-summary]')?.textContent ?? '';
+    // Match whole summary components, not arbitrary substrings of a distinct purpose.
+    const redundant = [summary, kind?.label, kind?.description].some(text => normalize(text) === description);
+    const previous = editor.querySelector<HTMLElement>('[part=inspector-purpose]');
+    if (!description || redundant) { previous?.remove(); return; }
+    const purpose = previous ?? document.createElement('p');
+    purpose.setAttribute('part', 'inspector-purpose'); purpose.textContent = selected.description!;
+    if (!previous) editor.prepend(purpose);
+  }
   private renderSelection(): void {
     this.shadowRoot?.querySelectorAll<HTMLElement>('[part=note]').forEach(note => { note.dataset.selected = String(this.selectedNoteIds.has(note.dataset.noteId!)); note.setAttribute('aria-pressed', note.dataset.selected); });
     if (!this.isRendered) return;
@@ -3608,6 +3621,7 @@ export class ProcessModeler<
       this.inspectedControls === controlsKey &&
       (this.selectedIds.size === 1 ? this.shadowRoot!.querySelector('[part=process-title]') : editor.querySelector('[part=inspector-heading]'))?.tagName === `H${this.headingLevel}`
     ) {
+      if (selected && this.selectedIds.size === 1) this.renderInspectorPurpose(editor, selected);
       const heading = editor.querySelector('[part=inspector-heading]');
       if (heading) heading.textContent = `${this.selectedIds.size} steps selected`;
       const locals = editor.querySelector<HTMLElement>('[part=local-variables]');
@@ -3647,7 +3661,7 @@ export class ProcessModeler<
       restoreControlFocus(); return;
     }
     if (selected) {
-      if (selected.description) { const purpose = document.createElement('p'); purpose.setAttribute('part', 'inspector-purpose'); purpose.textContent = selected.description; editor.append(purpose); }
+      this.renderInspectorPurpose(editor, selected);
       this.renderFields(editor, selected, expressionHelp, disclosures);
       if (selected.localVariables !== undefined) editor.append(this.renderLocalVariables(selected));
       this.cleanupInspector =

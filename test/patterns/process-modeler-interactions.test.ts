@@ -40,6 +40,51 @@ describe("Process Modeler prototype interactions", () => {
     builder.refresh(); builder.refresh(); expect(render).toHaveBeenCalledOnce();
     builder.headingLevel = 4; expect(root.querySelector('[part=process-title]')!.tagName).toBe('H4');
   });
+  it.each([
+    ['search.files', 'Web request', 'Sends one request', 'Web request', false],
+    ['Web request', 'Web request', 'Sends one request', 'Web request', false],
+    ['', 'Web request', 'Sends one request', 'Web request', false],
+    ['search.files', 'Web request', 'Sends one request', 'Sends one request', false],
+    ['search.files', 'Web request', 'Sends one request', 'Web request. Sends one request', false],
+    ['search.files', 'Web request', 'Sends one request', '  Web   request  ', false],
+    ['search.files', 'Web request', 'Sends one request', 'Find matching files in the selected folder', true],
+    ['search.files', 'Web request', 'Sends one request', 'request', true],
+    ['search.files', 'Web request', 'Sends one request', 'search.files', true],
+    ['search.files', '', 'Sends one request', 'Sends one request', false],
+    ['search.files', '', '', 'Find matching files', true],
+    ['search.files', 'Web request', '', '', false],
+    ['search.files', 'Web request', undefined, undefined, false],
+    ['', '', '', '   ', false],
+  ] as const)('reconciles caller title=%s kind=%s kind-description=%s purpose=%s', (title, label, kindDescription, description, visible) => {
+    const { builder, root } = fixture();
+    builder.catalog = [{kind:'call', label, description:kindDescription, create:()=>({})}];
+    builder.document = {boxes:[{...projection.boxes[0],title,description}],lines:[]}; builder.select('a');
+    expect(root.querySelector('[part=inspector-purpose]')?.textContent ?? null).toBe(visible ? description : null);
+    expect(root.querySelector('[part=process-title]')?.tagName).toBe('H2');
+    expect(root.querySelector('[part=process-title]')?.textContent).toBe(title);
+    expect(root.querySelector('[data-box-id=a] small')?.textContent ?? null).toBe(description || null);
+    expect(root.querySelector('[part=inspector-kind],[part=inspector-heading]')).toBeNull();
+  });
+  it('updates purpose across retained-node document and catalog echoes without rebuilding the host editor', () => {
+    const { builder, root } = fixture(); const render = vi.fn((_node, container: HTMLElement) => {
+      const input = document.createElement('input'); input.value = 'Keep caret'; container.append(input);
+    }); builder.renderInspector = render;
+    builder.catalog = [{kind:'call',label:'Web request',description:'Sends one request',create:()=>({})}];
+    const box = {...projection.boxes[0],description:'Web request'};
+    builder.document = {boxes:[box],lines:[]}; builder.select('a');
+    const input = root.querySelector<HTMLInputElement>('[part=editor] input')!; input.focus(); input.setSelectionRange(3, 5);
+    for (const description of ['Search the selected folder', 'Web request', 'Sends one request', '', 'Different purpose']) {
+      box.description = description; builder.document = {boxes:[box],lines:[]};
+      expect(root.querySelector('[part=inspector-purpose]')?.textContent ?? null).toBe(['Search the selected folder','Different purpose'].includes(description) ? description : null);
+      expect(root.querySelector('[part=editor] input')).toBe(input); expect(root.activeElement).toBe(input);
+      expect(input.selectionStart).toBe(3); expect(input.selectionEnd).toBe(5);
+    }
+    builder.catalog = [{kind:'call',label:'Different purpose',create:()=>({})}];
+    expect(root.querySelector('[part=inspector-purpose]')).toBeNull();
+    builder.catalog = []; expect(root.querySelector('[part=inspector-purpose]')?.textContent).toBe('Different purpose');
+    box.description = 'call'; builder.document = {boxes:[box],lines:[]}; expect(root.querySelector('[part=inspector-purpose]')).toBeNull();
+    expect(render).toHaveBeenCalledTimes(1);
+  });
   it.each([false, true])('Enter uses the single visible heading when an editor has no controls (narrow=%s)', narrow => {
     const { builder, root } = fixture(); builder.document = { boxes: [{ ...projection.boxes[0], kind: 'start' }], lines: [] }; builder.disableConnections = true;
     Object.assign(builder, { narrowValue: narrow });
