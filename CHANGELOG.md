@@ -15,6 +15,13 @@ are kept as written.
 
 ## Unreleased
 
+## 0.37.1 — 2026-10-11
+
+- Give expandable Table details columns screen-reader header text so they pass
+  axe empty-table-header checks.
+- Retain the active Table sort control across host-controlled sort/row updates
+  so repeated keyboard sorting preserves focus.
+
 ## 0.37.0 — 2026-10-11
 
 - Resize Split View from the keyboard with live window splitter values,
