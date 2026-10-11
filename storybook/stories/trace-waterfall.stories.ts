@@ -8,6 +8,13 @@ const traceWaterfall: StoryModule = {
     docsDescription: "Load host-owned completed or live spans with startMs, durationMs and status. The tree grid preserves overlapping timings, keyboard navigation and collapse state; search retains matching ancestors. Hidden system spans can be revealed. Select a span to inspect Input, Response and Attributes or supply a details slot. Markers state their absolute trace time and label, including host-computed percentile markers. A comparison trace matches stable span ids and shares the same zero-based axis. The pure traceWaterfallLayout helper gives HTML reports the same row order and domain. Hosts own median/slowest/failed sample and session selection through the session slot.",
     sourceSnippet: '<box-trace-waterfall heading="Completed run"></box-trace-waterfall>',
     referenceRows: [
+      { kind: "property", name: "collapsed", type: "ReadonlySet<string>", description: "Initial/controlled folded parent ids; copied on assignment/read. Pending ids survive initial empty data; observed removed ids are pruned." },
+      { kind: "attribute", name: "row-label", type: "string", description: "Singular row/column/detail noun, default Span." },
+      { kind: "attribute", name: "rows-label", type: "string", description: "Plural row noun; defaults to lowercase row-label plus s; supply irregular plurals explicitly." },
+      { kind: "attribute", name: "search-label", type: "string", description: "Search label; defaults to Search followed by rows-label." },
+      { kind: "attribute", name: "heading-level", type: "1–6", description: "Native heading level, default 2. Detail headings follow, capped at 6." },
+      { kind: "attribute", name: "embedded", type: "boolean", description: "Drop panel border/radius/background/padding inside a host card." },
+      { kind: "attribute", name: "hide-note", type: "boolean", description: "Hide shared-axis instructions; preserve status, exact times and system notices." },
       { kind: "property", name: "spans", type: "TraceSpan[]", description: "Nested span records with id, parentId, label, kind, startMs, durationMs, status, optional system, markers and detail." },
       { kind: "property", name: "comparisonSpans", type: "TraceSpan[]", description: "Earlier trace matched by stable span id, on the same axis." },
       { kind: "property", name: "nowMs", type: "number", description: "Host elapsed time from trace start; extends running bars when updated." },
@@ -19,6 +26,6 @@ const traceWaterfall: StoryModule = {
       { kind: "slot", name: "session", type: "slot", description: "Host session or median/slowest/failed sample controls." },
     ],
   },
-  variants: [{ name: "Completed run", html: '<box-trace-waterfall heading="Completed run"></box-trace-waterfall>', note: "Parallel spans overlap on a common axis; markers identify host-computed 95% times." }],
+  variants: [{ name: "Embedded plain wording", html: '<box-trace-waterfall heading="One run" heading-level="3" embedded row-label="Step" rows-label="steps" search-label="Find steps" hide-note></box-trace-waterfall>' }, { name: "Completed run", html: '<box-trace-waterfall heading="Completed run"></box-trace-waterfall>', note: "Parallel spans overlap on a common axis; markers identify host-computed 95% times." }],
 };
 export default traceWaterfall;

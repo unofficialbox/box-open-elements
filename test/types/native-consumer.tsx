@@ -1,4 +1,4 @@
-import type { Path, Table, TextField } from "@unofficialbox/box-open-elements";
+import type { Path, Table, TextField, TraceWaterfall } from "@unofficialbox/box-open-elements";
 import type {} from "@unofficialbox/box-open-elements/native-types";
 import type {} from "@unofficialbox/box-open-elements/react-jsx";
 
@@ -116,3 +116,14 @@ const removeButton = document.createElement("box-icon-button");
 removeButton.size = "small";
 removeButton.variant = "quiet";
 removeButton.label = "Remove target";
+
+const trace: TraceWaterfall = document.createElement("box-trace-waterfall");
+trace.collapsed = new Set(["run"]);
+trace.rowLabel = "Step";
+trace.rowsLabel = "steps";
+trace.searchLabel = "Find steps";
+trace.headingLevel = 3;
+trace.embedded = true;
+trace.hideNote = true;
+const traceNode = <box-trace-waterfall collapsed={new Set(["run"])} rowLabel="Step" rowsLabel="steps" searchLabel="Find steps" headingLevel={3} embedded hideNote />;
+void traceNode;

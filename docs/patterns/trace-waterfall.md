@@ -43,7 +43,9 @@ Arrow Right expands or enters children and Arrow Left collapses or moves to the
 parent. Enter/Space selects; Escape closes details and restores row focus.
 Search reveals matching paths without changing the time domain. The table
 fallback includes exact start, duration, marker and comparison values.
-Below 650px container width, timing tracks sit beneath labels; the table wraps.
+Below 650px container width, the label and duration share a line, with status
+and the timing track beneath. Track starts and widths stay aligned across rows;
+the table wraps.
 
 HTML reports can mirror the stable layout without a browser:
 
@@ -65,3 +67,43 @@ axe checks do not constitute a spoken-output test.
 Comparison spans align by stable IDs. Spans present only in the earlier trace remain visible as comparison-only rows with outlined bars and an explicit “Not in current trace” state. Earlier markers are dashed, named as comparison markers, and included in the table and accessible summaries. Selection of these rows emits the earlier span with `comparisonOnly: true`; current rows emit `false`.
 
 Live updates retain table-span and Trace options focus as well as row/search focus. Reaching the first or last detail moves focus to the enabled opposite navigation button.
+
+## Plain-language hosts and embedded cards
+
+```html
+<box-trace-waterfall heading="One run" heading-level="3" embedded
+  row-label="Step" rows-label="steps" search-label="Find steps" hide-note>
+</box-trace-waterfall>
+```
+
+`row-label` / `rowLabel` supplies the singular column/detail/navigation noun
+(default `Span`). `rows-label` / `rowsLabel` supplies its plural (default the
+lowercase singular plus `s`; supply irregular plurals explicitly).
+`search-label` / `searchLabel` defaults to `Search <rowsLabel>`. These labels
+also apply to the table caption, accessible grid name and empty-state wording.
+Labels remain escaped text. Data records and event names continue to use span
+ids.
+
+`heading-level` / `headingLevel` accepts 1–6, default 2; invalid values use 2.
+Built-in detail headings follow that level, capped at 6. `embedded` removes
+the panel border, radius, background and padding for a surrounding host card.
+Controls and the native fullscreen dialog remain available. `hide-note` /
+`hideNote` hides only the shared-axis instruction note; system-event notices,
+status words, exact times and detail summaries remain available.
+
+## Initial collapsed parents
+
+```ts
+trace.collapsed = new Set(["upload-step", "check-step"]);
+trace.spans = loadedTrace;
+```
+
+The public `collapsed: ReadonlySet<string>` property matches the layout helper's
+option. Assign before or after connection; it copies the supplied ids, and its
+getter returns a copy. Ids supplied before their data arrives survive empty
+initial renders and later comparison data. Once an id has appeared, removing it
+from both current and comparison data prunes its collapsed state. Unknown ids
+remain pending until they appear or the host replaces the set; Expand all clears
+both active and pending ids. Search temporarily reveals matching paths without
+changing this set; clearing search restores the folds. Existing keyboard and
+Expand/Collapse all controls update the same state.

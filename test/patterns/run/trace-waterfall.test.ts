@@ -170,3 +170,53 @@ describe("TraceWaterfall", () => {
     expect((await axe.run(element, { rules: { "color-contrast": { enabled: false }, region: { enabled: false } } })).violations).toEqual([]);
   });
 });
+
+describe("TraceWaterfall host wording, initial collapse and embedding", () => {
+  it("uses supplied wording in search, row header, table, details navigation and empty state", () => {
+    const element = new TraceWaterfall();
+    element.setAttribute("row-label", "Step");element.setAttribute("rows-label", "steps");element.setAttribute("search-label", "Find steps");
+    element.spans = structuredClone(spans);document.body.append(element);
+    expect(element.shadowRoot!.querySelector('label')!.textContent).toContain("Find steps");
+    expect(element.shadowRoot!.querySelector('[role="columnheader"]')!.textContent).toBe("Step");
+    expect(element.shadowRoot!.querySelector('[part="treegrid"]')!.getAttribute("aria-label")).toBe("Trace steps");
+    rows(element)[0]!.click();
+    expect(element.shadowRoot!.querySelector('[part="details"]')!.getAttribute("aria-label")).toBe("Step details");
+    expect(element.shadowRoot!.querySelector('[part="previous-span"]')!.textContent).toBe("Previous step");
+    expect(element.shadowRoot!.querySelector('[part="next-span"]')!.textContent).toBe("Next step");
+    click(element,"table-toggle");
+    expect(element.shadowRoot!.querySelector("caption")!.textContent).toBe("Trace steps");
+    expect(element.shadowRoot!.querySelector("thead th")!.textContent).toBe("Step / kind");
+    element.spans=[];
+    expect(element.shadowRoot!.querySelector('[part="empty"]')!.textContent).toBe("No matching steps.");
+  });
+  it("keeps initial collapsed ids through an empty first render and later comparison arrival", () => {
+    const element = new TraceWaterfall();element.collapsed=new Set(["run","earlier"]);document.body.append(element);
+    element.spans=structuredClone(spans);
+    expect(rows(element).map(row=>row.dataset.spanId)).toEqual(["run"]);
+    element.comparisonSpans=[{...spans[0]!,id:"earlier"},{...spans[1]!,id:"earlier-child",parentId:"earlier"}];
+    expect(rows(element).map(row=>row.dataset.spanId)).toEqual(["run","earlier"]);
+    element.spans=[];
+    expect(element.collapsed.has("run")).toBe(false);
+    expect(element.collapsed.has("earlier")).toBe(true);
+  });
+  it("copies public collapsed sets and search temporarily reveals their paths", () => {
+    const element=fixture();const requested=new Set(["run"]);element.collapsed=requested;requested.clear();
+    expect(rows(element)).toHaveLength(1);
+    (element.collapsed as Set<string>).clear();expect(element.collapsed.has("run")).toBe(true);
+    const search=element.shadowRoot!.querySelector<HTMLInputElement>('[part="search"]')!;search.value="files.upload";search.dispatchEvent(new Event("input",{bubbles:true}));
+    expect(rows(element).map(row=>row.dataset.spanId)).toEqual(["run","upload"]);
+    const current=element.shadowRoot!.querySelector<HTMLInputElement>('[part="search"]')!;current.value="";current.dispatchEvent(new Event("input",{bubbles:true}));
+    expect(rows(element).map(row=>row.dataset.spanId)).toEqual(["run"]);
+    click(element,"expand-all");expect(element.collapsed.size).toBe(0);
+  });
+  it.each([1,2,3,4,5,6])("renders native heading level %s in an embedded panel", level => {
+    const element=new TraceWaterfall();element.setAttribute("heading-level",String(level));element.setAttribute("embedded","");element.spans=structuredClone(spans);document.body.append(element);
+    expect(element.shadowRoot!.querySelector('header > :first-child')!.tagName).toBe(`H${level}`);
+  });
+  it("hides only the shared-axis note while preserving row summaries and system explanations", () => {
+    const element=fixture();element.setAttribute("hide-note","");
+    expect(element.shadowRoot!.textContent).not.toContain("One shared axis:");
+    expect(element.shadowRoot!.textContent).toContain("Some system events are hidden.");
+    expect(rows(element)[0]!.getAttribute("aria-label")).toContain("starts at 0 ms, takes 1 s");
+  });
+});
