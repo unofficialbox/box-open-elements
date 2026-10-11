@@ -168,7 +168,7 @@ export interface BoxElementPropertyKeys {
   "box-toast": "borderless" | "duration" | "heading" | "message" | "mode" | "open" | "tone";
   "box-toolbar": "label" | "orientation";
   "box-tooltip": "label" | "open" | "placement" | "theme" | "triggerLabel";
-  "box-trace-waterfall": "comparisonSpans" | "heading" | "nowMs" | "selectedSpanId" | "showSystem" | "spans";
+  "box-trace-waterfall": "collapsed" | "comparisonSpans" | "embedded" | "heading" | "headingLevel" | "hideNote" | "nowMs" | "rowLabel" | "rowsLabel" | "searchLabel" | "selectedSpanId" | "showSystem" | "spans";
   "box-tree": "items" | "label" | "value";
   "box-tree-grid": "columns" | "items" | "label" | "value";
   "box-unified-share-modal": "dataSource" | "heading" | "itemId" | "itemType" | "open";
