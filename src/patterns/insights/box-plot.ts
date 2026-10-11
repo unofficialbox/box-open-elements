@@ -223,7 +223,7 @@ export class BoxPlot extends BaseElement {
     const focusedId = this.shadowRoot?.activeElement?.getAttribute("data-row-id");
     const previousScroll = host.querySelector<HTMLElement>('[part="plot-scroll"]');
     const scrollLeft = previousScroll?.scrollLeft ?? 0;
-    const scrollFocused = previousScroll === this.shadowRoot?.activeElement;
+    const scrollFocused = previousScroll !== null && previousScroll === this.shadowRoot?.activeElement;
     const rows = this.rows.filter(row => validBoxPlotRow(row, this.scale));
     const domain = boxPlotDomain(rows, this.scale);
     const span = domain.max - domain.min;

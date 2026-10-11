@@ -155,6 +155,12 @@ describe("BoxPlot vertical lifecycle", () => {
   it("retains mark focus on reorder and returns focus to the region when that row disappears",()=>{
     const chart=mount();chart.shadowRoot!.querySelector<HTMLElement>('[part="mark"]')!.focus();chart.rows=[...chart.rows].reverse();expect(chart.shadowRoot!.activeElement!.getAttribute('data-row-id')).toBe('0');chart.rows=chart.rows.filter(row=>row.id!=='0');expect(chart.shadowRoot!.activeElement!.getAttribute('part')).toBe('plot-scroll');
   });
+  it("preserves external focus on first connect and transitions without a previous scroller",()=>{
+    const external=document.createElement('input');document.body.append(external);external.focus();
+    const chart=new BoxPlot();chart.orientation="vertical";chart.rows=[row];document.body.append(chart);expect(document.activeElement).toBe(external);
+    chart.rows=[];external.focus();chart.rows=[row];expect(document.activeElement).toBe(external);
+    chart.orientation="horizontal";external.focus();chart.orientation="vertical";expect(document.activeElement).toBe(external);
+  });
   it("disconnects and recreates its resize observer across reconnect",()=>{
     const observe=vi.fn(),disconnect=vi.fn(),construct=vi.fn();vi.stubGlobal('ResizeObserver',class{constructor(){construct();}observe=observe;disconnect=disconnect;});const chart=mount();expect(observe).toHaveBeenCalledWith(chart);chart.remove();expect(disconnect).toHaveBeenCalledOnce();document.body.append(chart);expect(construct).toHaveBeenCalledTimes(2);expect(observe).toHaveBeenCalledTimes(2);
   });
