@@ -975,7 +975,10 @@ export class Table extends BaseElement {
             const rowHeader = column.rowHeader === true;
             const tag = rowHeader ? "th" : "td";
             const semantics = rowHeader ? ' scope="row" role="rowheader"' : cellRole;
-            return `<${tag}${align}${semantics} data-label="${escapeHtml(column.label)}">${this.cellMarkup(value)}</${tag}>`;
+            const label = typeof column.group === "string" && column.group
+              ? `${column.group} — ${column.label}`
+              : column.label;
+            return `<${tag}${align}${semantics} data-label="${escapeHtml(label)}">${this.cellMarkup(value)}</${tag}>`;
           })
           .join("");
         const rowMarkup = `<tr${rowAttrs} data-index="${index}" data-id="${escapeHtml(row.id)}">${expanderCell}${cells}</tr>`;

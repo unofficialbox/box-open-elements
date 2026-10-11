@@ -563,6 +563,24 @@ describe("Table row headers, column groups and plain descriptors", () => {
     if (mode !== "none") { header.click(); expect(el.selectedIds).toEqual(["one"]); }
   });
 
+  it("keeps distinct grouped leaf labels in stacked cells, including escaped group text", () => {
+    const el = document.createElement("box-table") as Table;
+    el.columns = [
+      { key: "step", label: "Step", rowHeader: true },
+      { key: "current", label: "Calls", group: "This run" },
+      { key: "previous", label: "Calls", group: 'Earlier "run" <prior>' },
+    ];
+    el.rows = [{ id: "1", cells: { step: "users.me", current: "142", previous: "130" } }];
+    el.stacked = "always";
+    document.body.append(el);
+    const cells = [...el.shadowRoot!.querySelectorAll("tbody :is(td, th)")];
+    expect(cells.map(cell => cell.getAttribute("data-label"))).toEqual([
+      "Step", "This run — Calls", 'Earlier "run" <prior> — Calls',
+    ]);
+    expect(cells.map(cell => cell.textContent)).toEqual(["users.me", "142", "130"]);
+    expect(cells[2].children.length).toBe(0);
+  });
+
   it("spans contiguous groups, keeps ungrouped sortable columns and details aligned, and restores one-row headers", () => {
     const el = document.createElement("box-table") as Table;
     el.columns = [
