@@ -12,6 +12,10 @@ export interface TableColumn {
   align?: "start" | "end" | "center";
   /** Mark the column sortable — clicking its header emits `sort`. */
   sortable?: boolean;
+  /** The body cell names its row using a semantic row header. */
+  rowHeader?: boolean;
+  /** Adjacent columns sharing a group get a spanning header. */
+  group?: string;
 }
 
 export type TableCellTone = "neutral" | "brand" | "success" | "warning" | "error";
@@ -23,12 +27,15 @@ export type TableCellTone = "neutral" | "brand" | "success" | "warning" | "error
  * injection hole the escaping exists to close.
  */
 export interface TableCellDescriptor {
-  kind: "text" | "badge" | "link";
+  kind?: "text" | "badge" | "link";
   text: string;
-  /** Badge colour; the text still carries the meaning. */
+  /** Badge or plain-text colour; the text still carries the meaning. */
   tone?: TableCellTone;
   /** Link target; non-http(s) schemes render as plain text. */
   href?: string;
+  target?: string;
+  download?: boolean | string;
+  ariaLabel?: string;
 }
 
 export type TableCellValue = string | TableCellDescriptor;
@@ -112,6 +119,13 @@ const tableStyles = `
     font-size: 13px;
   }
 
+  thead {
+    background: var(--boe-token-surface-surface-secondary, #fbfbfb);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
   thead th {
     text-align: start;
     padding: ${boeSpace[2]} ${boeSpace[3]};
@@ -123,8 +137,6 @@ const tableStyles = `
     text-transform: uppercase;
     white-space: nowrap;
     border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
-    position: sticky;
-    top: 0;
   }
 
   th[data-align="end"], td[data-align="end"] { text-align: end; }
@@ -166,13 +178,15 @@ const tableStyles = `
   th[aria-sort="ascending"] .boe-sort-arrow::after { content: " ↑"; opacity: 1; }
   th[aria-sort="descending"] .boe-sort-arrow::after { content: " ↓"; opacity: 1; }
 
-  tbody td {
+  tbody th { text-align: start; }
+
+  tbody :is(td, th) {
     padding: ${boeSpace[2]} ${boeSpace[3]};
     border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
     color: var(--boe-token-text-text, #222222);
   }
 
-  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:last-child :is(td, th) { border-bottom: none; }
 
   tbody tr[part="row"] {
     outline: none;
@@ -182,11 +196,11 @@ const tableStyles = `
     cursor: pointer;
   }
 
-  tbody tr[aria-selected="true"] td {
+  tbody tr[aria-selected="true"] :is(td, th) {
     background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, transparent);
   }
 
-  tbody tr[part="row"]:focus-visible td {
+  tbody tr[part="row"]:focus-visible :is(td, th) {
     box-shadow: inset 0 0 0 2px var(--boe-token-surface-surface-brand, #0061d5);
   }
 
@@ -307,7 +321,7 @@ const tableStyles = `
     display: block;
     padding: ${boeSpace[2]} 0;
   }
-  ${scope} tbody td {
+  ${scope} tbody :is(td, th) {
     display: grid;
     grid-template-columns: minmax(7.5rem, 9rem) 1fr;
     gap: 0.5rem;
@@ -315,7 +329,7 @@ const tableStyles = `
     padding-block: 0.18rem;
     text-align: start;
   }
-  ${scope} tbody td[data-label]::before {
+  ${scope} tbody :is(td, th)[data-label]::before {
     content: attr(data-label);
     font-size: 0.74rem;
     font-weight: 700;
@@ -574,7 +588,19 @@ export class Table extends BaseElement {
       return `<span part="cell-badge" style="--cell-tone:${toneVar};">${escapeHtml(value.text)}</span>`;
     }
     if (value.kind === "link" && value.href && isSafeHref(value.href)) {
-      return `<a part="cell-link" href="${escapeHtml(value.href)}">${escapeHtml(value.text)}</a>`;
+      const target = typeof value.target === "string" ? ` target="${escapeHtml(value.target)}"` : "";
+      const rel = (typeof value.target === "string" ? value.target.toLowerCase() : "") === "_blank" ? ' rel="noopener"' : "";
+      const download = value.download === true ? ' download=""'
+        : typeof value.download === "string" ? ` download="${escapeHtml(value.download)}"` : "";
+      const label = typeof value.ariaLabel === "string" ? ` aria-label="${escapeHtml(value.ariaLabel)}"` : "";
+      return `<a part="cell-link" href="${escapeHtml(value.href)}"${target}${rel}${download}${label}>${escapeHtml(value.text)}</a>`;
+    }
+    if ((!value.kind || value.kind === "text") && value.tone && CELL_TONES.has(value.tone)) {
+      const tone = value.tone;
+      const color = tone === "neutral" ? "var(--boe-token-text-text, #222222)"
+        : tone === "brand" ? "var(--boe-token-surface-surface-brand, #0061d5)"
+        : `var(--boe-token-text-status-text-${tone}, ${tone === "error" ? "#b92340" : tone === "warning" ? "#805600" : "#187657"})`;
+      return `<span part="cell-text" style="color:${color};">${escapeHtml(value.text)}</span>`;
     }
     return escapeHtml(value.text);
   }
@@ -585,12 +611,12 @@ export class Table extends BaseElement {
       <style>${tableStyles}</style>
       <div part="shell">
         <table part="table">
-          <thead><tr part="header-row"></tr></thead>
+          <thead part="header"><tr part="header-row"></tr></thead>
           <tbody part="body"></tbody>
         </table>
       </div>
     `;
-    this.headEl = this.shadowRoot.querySelector('[part="header-row"]')!;
+    this.headEl = this.shadowRoot.querySelector('[part="header"]')!;
     this.bodyEl = this.shadowRoot.querySelector('[part="body"]')!;
     this.shellEl = this.shadowRoot.querySelector('[part="shell"]')!;
   }
@@ -827,25 +853,46 @@ export class Table extends BaseElement {
       tableEl?.removeAttribute("aria-busy");
     }
 
-    this.headEl.innerHTML =
-      (expandable ? `<th scope="col" aria-label="Row details"></th>` : "") +
-      columns
-        .map(column => {
-          const align = alignAttr(column.align);
-          if (column.sortable) {
-            const sorted = sortKey === column.key;
-            const sort = sorted
-              ? ` aria-sort="${sortDir === "descending" ? "descending" : "ascending"}"`
-              : ' aria-sort="none"';
-            // The state, in words as well as the arrow glyph.
-            const stateLabel = sorted
-              ? `, sorted ${sortDir === "descending" ? "descending" : "ascending"}`
-              : ", not sorted";
-            return `<th part="sortable" scope="col" data-key="${escapeHtml(column.key)}"${align}${sort}><button type="button" part="sort-button" aria-label="Sort by ${escapeHtml(column.label)}${stateLabel}">${escapeHtml(column.label)}<span class="boe-sort-arrow" aria-hidden="true"></span></button></th>`;
-          }
-          return `<th scope="col"${align}>${escapeHtml(column.label)}</th>`;
-        })
-        .join("");
+    const headerCell = (column: TableColumn, rowspan = 1): string => {
+      const align = alignAttr(column.align);
+      const span = rowspan > 1 ? ` rowspan="${rowspan}"` : "";
+      if (column.sortable) {
+        const sorted = sortKey === column.key;
+        const direction = sortDir === "descending" ? "descending" : "ascending";
+        const stateLabel = sorted ? `, sorted ${direction}` : ", not sorted";
+        return `<th part="sortable" scope="col" data-key="${escapeHtml(column.key)}"${align}${span} aria-sort="${sorted ? direction : "none"}"><button type="button" part="sort-button" aria-label="Sort by ${escapeHtml(column.label)}${stateLabel}">${escapeHtml(column.label)}<span class="boe-sort-arrow" aria-hidden="true"></span></button></th>`;
+      }
+      return `<th scope="col"${align}${span}>${escapeHtml(column.label)}</th>`;
+    };
+    const groupOf = (column: TableColumn): string => typeof column.group === "string" ? column.group : "";
+    const grouped = columns.some(column => Boolean(groupOf(column)));
+    const runs: Array<{ group: string; columns: TableColumn[] }> = [];
+    for (const column of columns) {
+      const group = groupOf(column);
+      const previous = runs[runs.length - 1];
+      if (group && previous?.group === group) previous.columns.push(column);
+      else runs.push({ group, columns: [column] });
+    }
+    // Matching colgroups give scope=colgroup a real contiguous column group.
+    tableEl?.querySelectorAll("colgroup").forEach(group => group.remove());
+    if (grouped && tableEl) {
+      for (const span of [...(expandable ? [1] : []), ...runs.map(run => run.columns.length)]) {
+        const group = document.createElement("colgroup");
+        group.span = span;
+        tableEl.insertBefore(group, this.headEl);
+      }
+    }
+    const detailHeader = expandable
+      ? `<th scope="col" aria-label="Row details"${grouped ? ' rowspan="2"' : ""}></th>` : "";
+    if (grouped) {
+      const groups = runs.map(run => run.group
+        ? `<th scope="colgroup" colspan="${run.columns.length}">${escapeHtml(run.group)}</th>`
+        : headerCell(run.columns[0]!, 2)).join("");
+      const leaves = columns.filter(column => Boolean(groupOf(column))).map(column => headerCell(column)).join("");
+      this.headEl.innerHTML = `<tr part="group-header-row">${detailHeader}${groups}</tr><tr part="header-row">${leaves}</tr>`;
+    } else {
+      this.headEl.innerHTML = `<tr part="header-row">${detailHeader}${columns.map(column => headerCell(column)).join("")}</tr>`;
+    }
 
     // A state row is never windowed. Cleared up front so a table that drops
     // into loading/error/empty does not leave the previous window's flag
@@ -927,7 +974,13 @@ export class Table extends BaseElement {
           .map((column, columnIndex) => {
             const align = alignAttr(column.align);
             const value = this.cellValue(row, column, columnIndex);
-            return `<td${align}${cellRole} data-label="${escapeHtml(column.label)}">${this.cellMarkup(value)}</td>`;
+            const rowHeader = column.rowHeader === true;
+            const tag = rowHeader ? "th" : "td";
+            const semantics = rowHeader ? ' scope="row" role="rowheader"' : cellRole;
+            const label = typeof column.group === "string" && column.group
+              ? `${column.group} — ${column.label}`
+              : column.label;
+            return `<${tag}${align}${semantics} data-label="${escapeHtml(label)}">${this.cellMarkup(value)}</${tag}>`;
           })
           .join("");
         const rowMarkup = `<tr${rowAttrs} data-index="${index}" data-id="${escapeHtml(row.id)}">${expanderCell}${cells}</tr>`;

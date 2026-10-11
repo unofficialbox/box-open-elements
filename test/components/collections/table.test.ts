@@ -542,3 +542,136 @@ describe("Table row virtualization", () => {
     expect(el.renderedWindow).toBeNull();
   });
 });
+
+describe("Table row headers, column groups and plain descriptors", () => {
+  afterEach(() => { document.body.innerHTML = ""; });
+
+  it.each(["none", "multiple"] as const)("renders row header semantics in %s mode with selection styling", mode => {
+    const el = document.createElement("box-table") as Table;
+    el.columns = [{ key: "name", label: "Step", rowHeader: true }, { key: "count", label: "Failed" }];
+    el.rows = [{ id: "one", cells: { name: "users.me", count: "3" } }];
+    el.selectionMode = mode;
+    el.stacked = "auto";
+    document.body.append(el);
+    const row = el.shadowRoot!.querySelector('[part="row"]') as HTMLElement;
+    const header = row.querySelector("th")!;
+    expect(header.getAttribute("scope")).toBe("row");
+    expect(header.getAttribute("role")).toBe("rowheader");
+    expect(header.getAttribute("data-label")).toBe("Step");
+    expect(header.textContent).toBe("users.me");
+    expect(row.querySelector("td")?.getAttribute("role")).toBe(mode === "none" ? "cell" : "gridcell");
+    if (mode !== "none") { header.click(); expect(el.selectedIds).toEqual(["one"]); }
+  });
+
+  it("starts body row headers by default while retaining explicit end and center alignment", () => {
+    const el = document.createElement("box-table") as Table;
+    el.columns = [
+      { key: "start", label: "Start", rowHeader: true, align: "start" },
+      { key: "end", label: "End", rowHeader: true, align: "end" },
+      { key: "center", label: "Center", rowHeader: true, align: "center" },
+    ];
+    el.rows = [{ id: "1", cells: { start: "A", end: "B", center: "C" } }];
+    document.body.append(el);
+    const cells = [...el.shadowRoot!.querySelectorAll("tbody th")];
+    expect(cells[1].getAttribute("data-align")).toBe("end");
+    expect(cells[2].getAttribute("data-align")).toBe("center");
+    const styles = el.shadowRoot!.querySelector("style")!.textContent!;
+    expect(styles).toContain("tbody th { text-align: start; }");
+    expect(styles).toContain('th[data-align="end"], td[data-align="end"] { text-align: end; }');
+    expect(styles).toContain('th[data-align="center"], td[data-align="center"] { text-align: center; }');
+  });
+
+  it("keeps distinct grouped leaf labels in stacked cells, including escaped group text", () => {
+    const el = document.createElement("box-table") as Table;
+    el.columns = [
+      { key: "step", label: "Step", rowHeader: true },
+      { key: "current", label: "Calls", group: "This run" },
+      { key: "previous", label: "Calls", group: 'Earlier "run" <prior>' },
+    ];
+    el.rows = [{ id: "1", cells: { step: "users.me", current: "142", previous: "130" } }];
+    el.stacked = "always";
+    document.body.append(el);
+    const cells = [...el.shadowRoot!.querySelectorAll("tbody :is(td, th)")];
+    expect(cells.map(cell => cell.getAttribute("data-label"))).toEqual([
+      "Step", "This run — Calls", 'Earlier "run" <prior> — Calls',
+    ]);
+    expect(cells.map(cell => cell.textContent)).toEqual(["users.me", "142", "130"]);
+    expect(cells[2].children.length).toBe(0);
+  });
+
+  it("spans contiguous groups, keeps ungrouped sortable columns and details aligned, and restores one-row headers", () => {
+    const el = document.createElement("box-table") as Table;
+    el.columns = [
+      { key: "name", label: "Step", rowHeader: true, sortable: true },
+      { key: "a", label: "Calls", group: "This run", sortable: true },
+      { key: "b", label: "Failed", group: "This run" },
+      { key: "c", label: "Calls", group: "Earlier run" },
+      { key: "d", label: "Rate", group: "This run" },
+    ];
+    el.rows = [{ id: "one", cells: { name: "users.me" }, detail: "Detail" }];
+    document.body.append(el);
+    const root = el.shadowRoot!;
+    expect([...root.querySelectorAll('th[scope="colgroup"]')].map(e => [e.textContent, e.getAttribute("colspan")]))
+      .toEqual([["This run", "2"], ["Earlier run", "1"], ["This run", "1"]]);
+    expect([...root.querySelectorAll("colgroup")].map(e => e.span)).toEqual([1, 1, 2, 1, 1]);
+    expect(root.querySelector('th[aria-label="Row details"]')?.getAttribute("rowspan")).toBe("2");
+    expect(root.querySelector('th[data-key="name"]')?.getAttribute("rowspan")).toBe("2");
+    expect(root.querySelectorAll('[part="header-row"] th').length).toBe(4);
+    const sort = vi.fn(); el.addEventListener("sort", sort);
+    (root.querySelector('th[data-key="name"] button') as HTMLElement).click();
+    expect(sort.mock.calls[0][0].detail.key).toBe("name");
+    (root.querySelector('th[data-key="a"] button') as HTMLElement).click();
+    expect(sort.mock.calls[1][0].detail.key).toBe("a");
+    (root.querySelector('[part="expander"]') as HTMLElement).click();
+    expect(root.querySelector('[part="detail-row"] td')?.getAttribute("colspan")).toBe("6");
+    el.columns = [{ key: "name", label: "Step", rowHeader: true }];
+    expect(root.querySelector('[part="group-header-row"]')).toBeNull();
+    expect(root.querySelectorAll("colgroup").length).toBe(0);
+  });
+
+  it("renders omitted-kind toned text without badge chrome and keeps unknown tones escaped", () => {
+    const el = document.createElement("box-table") as Table;
+    el.columns = [{ key: "count", label: "Failed" }];
+    el.rows = [{ id: "one", cells: { count: { text: "3", tone: "error" } } },
+      { id: "two", cells: { count: { text: "<img src=x>", tone: 'bad" onmouseover="alert(1)' } as never } }];
+    document.body.append(el);
+    const text = el.shadowRoot!.querySelector('[part="cell-text"]') as HTMLElement;
+    expect(text.textContent).toBe("3");
+    expect(text.getAttribute("style")).toContain("--boe-token-text-status-text-error");
+    expect(el.shadowRoot!.querySelector('[part="cell-badge"]')).toBeNull();
+    expect(el.shadowRoot!.querySelector("img")).toBeNull();
+    expect(el.shadowRoot!.textContent).toContain("<img src=x>");
+  });
+
+  it("escapes link metadata, supports downloads and labels, and refuses unsafe hrefs", () => {
+    const el = document.createElement("box-table") as Table;
+    el.columns = [{ key: "link", label: "Report" }];
+    const value = { kind: "link" as const, text: "Report", href: "/report", target: "_BLANK", download: 'run".csv', ariaLabel: 'Report" onmouseover="bad' };
+    el.rows = [{ id: "one", cells: { link: value } },
+      { id: "two", cells: { link: { ...value, href: "javascript:bad()" } } },
+      { id: "three", cells: { link: { ...value, download: true } } },
+      { id: "four", cells: { link: { ...value, download: false } } }];
+    document.body.append(el);
+    const links = el.shadowRoot!.querySelectorAll("a");
+    expect(links.length).toBe(3);
+    expect(links[0]?.getAttribute("rel")).toBe("noopener");
+    expect(links[0]?.getAttribute("download")).toBe('run".csv');
+    expect(links[0]?.getAttribute("aria-label")).toBe('Report" onmouseover="bad');
+    expect(links[0]?.hasAttribute("onmouseover")).toBe(false);
+    expect(links[1]?.getAttribute("download")).toBe("");
+    expect(links[2]?.hasAttribute("download")).toBe(false);
+  });
+
+  it("keeps row header semantics and grouped header geometry in a windowed table", () => {
+    const el = document.createElement("box-table") as Table;
+    el.columns = [{ key: "name", label: "Step", rowHeader: true }, { key: "count", label: "Count", group: "This run" }];
+    el.virtualize = true;
+    document.body.append(el);
+    Object.defineProperty(el.shadowRoot!.querySelector('[part="shell"]'), "clientHeight", { value: 300 });
+    el.rows = Array.from({ length: 500 }, (_, i) => ({ id: String(i), cells: { name: "Step "+i, count: "4" } }));
+    expect(el.renderedWindow).not.toBeNull();
+    expect(el.shadowRoot!.querySelectorAll('tbody th[scope="row"]').length).toBeLessThan(500);
+    expect(el.shadowRoot!.querySelector('th[scope="colgroup"]')?.textContent).toBe("This run");
+    expect(el.shadowRoot!.querySelector('[part="spacer"] td')?.getAttribute("colspan")).toBe("2");
+  });
+});

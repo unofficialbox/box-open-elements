@@ -99,3 +99,9 @@ const destructiveDialog = document.createElement("box-dialog");
 destructiveDialog.confirmTone = "danger";
 // @ts-expect-error only the supported confirmation tones are accepted
 destructiveDialog.confirmTone = "warning";
+
+table.columns = [{ key: "step", label: "Step", rowHeader: true },
+  { key: "failed", label: "Failed", group: "This run" }];
+table.rows = [{ id: "run", cells: { step: { kind: "link", text: "Report",
+  href: "/report", target: "_blank", download: "run.csv", ariaLabel: "Run report" },
+  failed: { text: "3", tone: "error" } } }];
