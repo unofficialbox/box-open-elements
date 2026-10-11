@@ -106,6 +106,15 @@ const tableStyles = `
     display: none !important;
   }
 
+  .boe-sr-only {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
   [part="shell"] {
     border: ${boePanel.border};
     border-radius: ${boeRadius.large};
@@ -835,6 +844,26 @@ export class Table extends BaseElement {
 
   protected update(): void {
     if (!this.bodyEl || !this.headEl) return;
+    const activeHeader = this.shadowRoot?.activeElement;
+    const focusedSortKey = activeHeader?.getAttribute("part") === "sort-button" && this.headEl.contains(activeHeader)
+      ? activeHeader.closest<HTMLElement>("th[data-key]")?.dataset.key
+      : undefined;
+    this.renderTable();
+
+    // Restore only after the DOM transaction, including early state returns.
+    // focus() can synchronously trigger a host update; that newer render must
+    // remain final rather than being overwritten by this render’s old rows.
+    // Controlled sort/row updates replace the header. Restore only its active
+    // sort button, by column identity; never steal focus from host controls or
+    // move it to a different column when the active one has been removed.
+    if (focusedSortKey !== undefined) {
+      const header = Array.from(this.headEl.querySelectorAll<HTMLElement>("th[data-key]"))
+        .find(cell => cell.dataset.key === focusedSortKey);
+      header?.querySelector<HTMLButtonElement>('[part="sort-button"]')?.focus({ preventScroll: true });
+    }
+  }
+
+  private renderTable(): void {
     const columns = this.columns;
     const rows = this.rows;
     const selectable = this.selectionMode !== "none";
@@ -883,7 +912,7 @@ export class Table extends BaseElement {
       }
     }
     const detailHeader = expandable
-      ? `<th scope="col" aria-label="Row details"${grouped ? ' rowspan="2"' : ""}></th>` : "";
+      ? `<th scope="col" aria-label="Row details"${grouped ? ' rowspan="2"' : ""}><span class="boe-sr-only">Details</span></th>` : "";
     if (grouped) {
       const groups = runs.map(run => run.group
         ? `<th scope="colgroup" colspan="${run.columns.length}">${escapeHtml(run.group)}</th>`

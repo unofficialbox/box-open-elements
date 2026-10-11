@@ -30,3 +30,9 @@ const report = { kind: "link" as const, text: "Report", href: "/runs/123",
 const csv = { kind: "link" as const, text: "CSV", href: "/runs/123.csv",
   download: "run-123.csv", ariaLabel: "Download run 123 CSV" };
 ```
+
+Expandable tables give the details column a screen-reader text header. Sorting
+remains host-controlled: the `sort` event requests a key/direction, and the host
+updates `sort-key`, `sort-direction` and rows. Those updates retain keyboard
+focus on the active column’s sort button, so repeated Enter or Space can sort
+again; removing that sortable column does not move focus to another column.
