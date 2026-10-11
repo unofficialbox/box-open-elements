@@ -120,6 +120,7 @@ const tableStyles = `
   }
 
   thead {
+    background: var(--boe-token-surface-surface-secondary, #fbfbfb);
     position: sticky;
     top: 0;
     z-index: 1;
