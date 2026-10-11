@@ -94,3 +94,8 @@ mixedModeler.addEventListener('move-request', event => {
   const x: number = event.detail.position.x;
   void id; void x;
 });
+
+const destructiveDialog = document.createElement("box-dialog");
+destructiveDialog.confirmTone = "danger";
+// @ts-expect-error only the supported confirmation tones are accepted
+destructiveDialog.confirmTone = "warning";

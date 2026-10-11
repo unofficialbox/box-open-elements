@@ -98,15 +98,18 @@ describe("Angular adapter", () => {
     dialog.heading = undefined;
     dialog.description = undefined;
     dialog.confirmLabel = undefined;
+    dialog.confirmTone = undefined;
     dialog.size = undefined;
     dialog.heading = "Confirm";
     dialog.description = "Continue?";
     dialog.confirmLabel = "Continue";
+    dialog.confirmTone = "danger";
     dialog.size = "large";
     dialog.open = true;
     expect(dialog.element.heading).toBe("Confirm");
     expect(dialog.element.description).toBe("Continue?");
     expect(dialog.element.confirmLabel).toBe("Continue");
+    expect(dialog.element.confirmTone).toBe("danger");
     expect(dialog.element.size).toBe("large");
     expect(dialog.element.open).toBe(true);
 

@@ -7,7 +7,7 @@
 export { createWebComponent, type WebComponentProps } from "./create-web-component.js";
 export type { CustomEventHandler, ValueChangedDetail } from "./events.js";
 export { Button, type ButtonProps } from "./button.js";
-export { Dialog, type DialogProps, type DialogSize } from "./dialog.js";
+export { Dialog, type DialogProps, type DialogConfirmTone, type DialogSize } from "./dialog.js";
 export {
   ExplorerSelectionController,
   useExplorerSelectionController,

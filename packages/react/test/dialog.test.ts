@@ -60,6 +60,20 @@ describe("Dialog React adapter", () => {
     expect(element.shadowRoot?.activeElement?.getAttribute("part")).toBe("dialog");
   });
 
+  it("syncs confirmTone before opening and keeps destructive focus on Cancel", async () => {
+    await act(async () => {
+      root.render(createElement(Dialog, { open: true, confirmTone: "danger", confirmLabel: "Delete" }));
+      await Promise.resolve();
+    });
+    const element = container.querySelector("box-dialog") as DialogElement;
+    expect(element.confirmTone).toBe("danger");
+    expect(element.shadowRoot?.activeElement?.getAttribute("part")).toBe("cancel");
+    await act(async () => {
+      root.render(createElement(Dialog, { open: true, confirmTone: "primary", confirmLabel: "Continue" }));
+    });
+    expect(element.confirmTone).toBe("primary");
+  });
+
   it("routes close events into React state and restores focus", async () => {
     const onCancel = vi.fn();
 

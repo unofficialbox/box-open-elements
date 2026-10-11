@@ -50,6 +50,61 @@ describe("Dialog", () => {
     expect(element.shadowRoot?.activeElement).toBe(dialog);
   });
 
+  it("reflects danger tone and focuses Cancel only on opening", async () => {
+    const opener = document.createElement("button");
+    const element = new Dialog();
+    document.body.append(opener, element);
+    opener.focus();
+    element.confirmTone = "danger";
+    element.show();
+    await Promise.resolve();
+    const cancel = element.shadowRoot!.querySelector('[part="cancel"]') as HTMLButtonElement;
+    const confirm = element.shadowRoot!.querySelector('[part="confirm"]') as HTMLButtonElement;
+    expect(element.getAttribute("confirm-tone")).toBe("danger");
+    expect(confirm.dataset.tone).toBe("danger");
+    expect(element.shadowRoot!.activeElement).toBe(cancel);
+    confirm.focus();
+    element.confirmBusy = true;
+    element.confirmBusy = false;
+    expect(element.shadowRoot!.querySelector('[part="confirm"]')).toBe(confirm);
+    element.heading = "Delete run?";
+    await Promise.resolve();
+    expect(element.shadowRoot!.activeElement).not.toBe(cancel);
+    element.close();
+    await Promise.resolve();
+    expect(document.activeElement).toBe(opener);
+    element.show();
+    await Promise.resolve();
+    expect(element.shadowRoot!.activeElement?.getAttribute("part")).toBe("cancel");
+    element.confirmTone = "primary";
+    expect(element.confirmTone).toBe("primary");
+    expect(element.shadowRoot!.querySelector('[part="confirm"]')?.getAttribute("data-tone")).toBe("primary");
+  });
+
+  it("does not let stale opening focus steal the restored opener after close", async () => {
+    const opener = document.createElement("button");
+    const element = new Dialog();
+    document.body.append(opener, element);
+    opener.focus();
+    element.confirmTone = "danger";
+    element.show();
+    element.close();
+    await Promise.resolve();
+    expect(document.activeElement).toBe(opener);
+    expect(element.shadowRoot!.activeElement).toBeNull();
+  });
+
+  it("defaults invalid tones to primary and reads a late danger tone before opening focus", async () => {
+    const element = new Dialog();
+    element.setAttribute("confirm-tone", "unknown");
+    document.body.append(element);
+    expect(element.confirmTone).toBe("primary");
+    element.show();
+    element.confirmTone = "danger";
+    await Promise.resolve();
+    expect(element.shadowRoot!.activeElement?.getAttribute("part")).toBe("cancel");
+  });
+
   it("emits confirm and closes", () => {
     const element = document.createElement("box-dialog") as Dialog;
     const confirmed = vi.fn();

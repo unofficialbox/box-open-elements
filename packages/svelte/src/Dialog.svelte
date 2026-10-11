@@ -11,6 +11,7 @@
     heading?: string;
     description?: string;
     confirmLabel?: string;
+    confirmTone?: "primary" | "danger";
     size?: DialogSize;
     onOpenChanged?: (event: CustomEvent<{ open: boolean }>) => void;
     onConfirm?: (event: CustomEvent<null>) => void;
@@ -25,6 +26,7 @@
     heading,
     description,
     confirmLabel,
+    confirmTone,
     size,
     onOpenChanged,
     onConfirm,
@@ -58,6 +60,7 @@
   {heading}
   {description}
   {confirmLabel}
+  {confirmTone}
   {size}
 >
   {@render children?.()}
