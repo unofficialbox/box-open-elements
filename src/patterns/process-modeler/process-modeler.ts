@@ -203,11 +203,12 @@ export class ProcessModeler<
   get selectedBoxes(): readonly ProcessBox<N>[] { return this.projection.boxes.filter(box => this.selectedIds.has(box.id)); }
   get selectedLine() { return this.projection.lines.find(line => line.id === this.selectedLineId) ?? null; }
   get selectedPath(): NodePath | null { return this.selected?.path ? [...this.selected.path] : null; }
-  set selectedPath(path: NodePath | null) {
+  set selectedPath(path: NodePath | null) { this.selectPath(path, true); }
+  private selectPath(path: NodePath | null, reveal: boolean): void {
     if (!this.isRendered && this.documentValue !== undefined) { this.projection = this.model.project(this.documentValue); validateProjection(this.projection); }
     const normalized = normalizeProcessSelectionPath(this.projection, path);
     this.setSelection(normalized === null ? null : this.projection.boxes.find(box => JSON.stringify(box.path) === JSON.stringify(normalized))?.id ?? null, false);
-    this.pendingSelectionReveal = Boolean(this.selected);
+    this.pendingSelectionReveal = reveal && Boolean(this.selected);
     this.revealPendingSelection();
     this.schedulePendingView();
   }
@@ -281,11 +282,12 @@ export class ProcessModeler<
     this.viewport = { x: 0, y: 0, zoom: 1 };
     this.pendingInitialFit = this.initialView === 'fit';
     const view = options.view;
-    if (view && [view.x, view.y, view.zoom].every(Number.isFinite) && view.zoom >= .25 && view.zoom <= 2) {
-      this.viewport = { ...view }; this.pendingInitialFit = false;
+    const hasSavedView = Boolean(view && [view.x, view.y, view.zoom].every(Number.isFinite) && view.zoom >= .25 && view.zoom <= 2);
+    if (hasSavedView) {
+      this.viewport = { ...view! }; this.pendingInitialFit = false;
     }
     this.refresh();
-    if (options.selectedPath) this.selectedPath = options.selectedPath;
+    if (options.selectedPath) this.selectPath(options.selectedPath, !hasSavedView);
   }
   selectMany(ids: readonly string[]): void {
     this.pendingSelectionReveal = false;
@@ -857,8 +859,17 @@ export class ProcessModeler<
     this.viewport.zoom = next;
     this.paintViewport();
   }
+  private syncResponsiveWidth(width: number): void {
+    this.narrowValue = width < 900; this.toggleAttribute('data-narrow', this.narrowValue);
+    this.toggleAttribute('data-phone', width < 560);
+    this.toggleAttribute('data-compact-toolbar', width <= 1100);
+    this.toggleAttribute('data-hide-tidy', width <= 560);
+  }
   private applyInitialFit(): boolean {
     if (!this.pendingInitialFit || !this.isConnected || !this.isRendered) return false;
+    // Apply responsive panel layout before measuring, including synchronous
+    // append/load before the first ResizeObserver delivery.
+    this.syncResponsiveWidth(this.clientWidth);
     const canvas = this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!;
     const width = canvas.clientWidth, height = canvas.clientHeight;
     // Hidden/pre-connected hosts have no useful measurements. Keep the intent
@@ -1126,11 +1137,8 @@ export class ProcessModeler<
       this.resizeObserver = new ResizeObserver(entries => {
         const hostEntry = entries.find(entry => entry.target === this);
         const width = hostEntry?.contentRect.width ?? this.clientWidth;
-        const narrow = width < 900;
-        this.narrowValue = narrow; this.toggleAttribute("data-narrow", narrow);
-        this.toggleAttribute('data-phone', width < 560);
-        this.toggleAttribute('data-compact-toolbar', width <= 1100);
-        this.toggleAttribute('data-hide-tidy', width <= 560);
+        this.syncResponsiveWidth(width);
+        const narrow = this.narrowValue;
         this.renderSelectionToolbar(); this.positionSelectionToolbar();
         if (!narrow) this.closeDrawer();
         root.querySelectorAll<HTMLDialogElement>('[part=pane-drawer]').forEach(dialog => { dialog.inert = narrow && !dialog.open; });

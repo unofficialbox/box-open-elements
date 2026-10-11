@@ -39,7 +39,6 @@ export class FlowCard extends BaseElement {
       </style><button type="button" part="card"><span part="icon" aria-hidden="true"></span><span part="title"></span><span part="kind"></span><span part="description"></span><span part="status"></span><span part="figure" hidden></span><span part="error">Needs attention</span></button>`;
   }
   protected setupListeners(): void { this.shadowRoot!.querySelector("button")!.addEventListener("click", () => emit(this, "node-select", { node: this.node })); }
-  disconnectedCallback(): void { this.composing = false; }
   refresh(): void { if (this.isRendered) this.update(); }
   focus(options?: FocusOptions): void { this.shadowRoot?.querySelector("button")?.focus(options); }
   protected update(): void {
@@ -104,6 +103,7 @@ export class KindPicker extends BaseElement {
       e.preventDefault(); buttons.forEach((button, index) => button.tabIndex = index === next ? 0 : -1); buttons[next].focus();
     });
   }
+  disconnectedCallback(): void { this.composing = false; }
   refresh(): void { if (this.isRendered) this.update(); }
   focus(options?: FocusOptions): void { (this.searchable ? this.shadowRoot?.querySelector<HTMLInputElement>('[part=search]') : this.shadowRoot?.querySelector<HTMLButtonElement>("button"))?.focus(options); }
   protected update(): void {

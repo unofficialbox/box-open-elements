@@ -36,6 +36,19 @@ describe('Process Modeler initial view', () => {
     measure(0, 0); element.selectedPath = ['body', 14]; element.selectMany(['0', '1']);
     measure(); resize(); expect(element.view).toEqual(view);
   });
+  it('measures the responsive canvas before its first observer delivery', () => {
+    const { element, canvas } = fixture(800, 232);
+    Object.defineProperty(canvas, 'clientWidth', { configurable: true, get: () => element.hasAttribute('data-narrow') ? 800 : 232 });
+    element.load({ boxes: graph.boxes.slice(0, 1), lines: [] });
+    expect(element.view.zoom).toBe(1); expect(element.view.x + element.layout.boxes['0'].x + 112).toBe(400);
+  });
+  it.each([false, true])('saved view wins over selectedPath for this load, then later host selection reveals (hidden=%s)', hidden => {
+    const { element, measure, resize } = fixture(); if (hidden) measure(0, 0);
+    const view = { x: 12, y: 34, zoom: .9 }; const changed = vi.fn(); element.addEventListener('selection-changed', changed);
+    element.load(graph, { view, selectedPath: ['body', 14] }); expect(element.selectedPath).toEqual(['body', 14]);
+    if (hidden) { measure(); resize(); } expect(element.view).toEqual(view); expect(changed).not.toHaveBeenCalled();
+    element.selectedPath = ['body', 14]; expect(element.view.zoom).toBe(.9); expect(element.view.x).toBeLessThan(-1000); expect(changed).not.toHaveBeenCalled();
+  });
   it('centers a small document without enlarging beyond 100%', () => {
     const { element } = fixture(); element.load({ boxes: graph.boxes.slice(0, 1), lines: [] });
     expect(element.view.zoom).toBe(1); expect(element.view.x).toBeGreaterThan(64); expect(element.view.y).toBeGreaterThan(72);

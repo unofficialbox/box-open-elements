@@ -802,18 +802,23 @@ describe("Process Modeler prototype interactions", () => {
     expect(requests.mock.calls[0][0].detail).toMatchObject({ type: 'insert', lineId: 'ab', from: 'a', to: 'b', kind: { kind: 'call' } });
     expect(chooser.hidePopover).toHaveBeenCalledOnce();
   });
-  it.each(['isComposing', 'keyCode', 'lifecycle'] as const)('leaves the Modeler chooser open without an edit during IME confirmation (%s)', mode => {
+  it.each(['anchored', 'modal'] as const)('preserves composition in the Modeler %s chooser', route => {
     const { builder, root, canvas } = fixture(); builder.select('a'); const requests = vi.fn(); builder.addEventListener('process-edit-request', requests);
-    const chooser = root.querySelector<HTMLElement>('[part=keyboard-chooser]')!; chooser.showPopover = vi.fn(); chooser.hidePopover = vi.fn();
+    const anchored = root.querySelector<HTMLElement>('[part=keyboard-chooser]')!;
+    anchored.showPopover = route === 'anchored' ? vi.fn() : vi.fn(() => { throw Error('Popover unavailable'); }); anchored.hidePopover = vi.fn();
+    const modal = root.querySelector<HTMLDialogElement>('[part=insert-chooser]')!; modal.showModal = vi.fn(() => { modal.open = true; }); modal.close = vi.fn(() => { modal.open = false; });
     canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'n', bubbles: true, cancelable: true }));
+    const chooser = route === 'anchored' ? anchored : modal;
+    const closes = route === 'anchored' ? anchored.hidePopover : modal.close;
+    vi.mocked(closes).mockClear();
     const search = chooser.querySelector('box-kind-picker')!.shadowRoot!.querySelector<HTMLInputElement>('[part=search]')!;
     search.value = 'call'; search.dispatchEvent(new Event('input'));
-    if (mode === 'lifecycle') search.dispatchEvent(new CompositionEvent('compositionstart'));
-    const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true, ...(mode === 'isComposing' ? { isComposing: true } : mode === 'keyCode' ? { keyCode: 229 } : {}) });
-    search.dispatchEvent(event); expect(event.defaultPrevented).toBe(false); expect(requests).not.toHaveBeenCalled(); expect(chooser.hidePopover).not.toHaveBeenCalled();
-    if (mode === 'lifecycle') search.dispatchEvent(new CompositionEvent('compositionend'));
+    search.dispatchEvent(new CompositionEvent('compositionstart'));
+    const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+    search.dispatchEvent(event); expect(event.defaultPrevented).toBe(false); expect(requests).not.toHaveBeenCalled(); expect(closes).not.toHaveBeenCalled();
+    search.dispatchEvent(new CompositionEvent('compositionend'));
     search.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
-    expect(requests).toHaveBeenCalledOnce(); expect(chooser.hidePopover).toHaveBeenCalledOnce();
+    expect(requests).toHaveBeenCalledOnce(); expect(closes).toHaveBeenCalledOnce();
   });
   it.each([false, true])('restores step focus after a chooser pick and host acceptance (deferred=%s)', deferred => {
     const { builder, root, canvas } = fixture(); builder.select('a');
