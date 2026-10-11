@@ -227,8 +227,8 @@ export class TimeField extends FormAssociatedElement {
       <style>${timeFieldStyles}</style>
       <label part="field">
         <span part="label"></span>
-        <input type="time" part="input" />
         ${formDescriptionMarkup()}
+        <input type="time" part="input" />
         ${formErrorMessageMarkup()}
       </label>
     `;

@@ -563,6 +563,42 @@ describe("Table row headers, column groups and plain descriptors", () => {
     if (mode !== "none") { header.click(); expect(el.selectedIds).toEqual(["one"]); }
   });
 
+  it("starts body row headers by default while retaining explicit end and center alignment", () => {
+    const el = document.createElement("box-table") as Table;
+    el.columns = [
+      { key: "start", label: "Start", rowHeader: true, align: "start" },
+      { key: "end", label: "End", rowHeader: true, align: "end" },
+      { key: "center", label: "Center", rowHeader: true, align: "center" },
+    ];
+    el.rows = [{ id: "1", cells: { start: "A", end: "B", center: "C" } }];
+    document.body.append(el);
+    const cells = [...el.shadowRoot!.querySelectorAll("tbody th")];
+    expect(cells[1].getAttribute("data-align")).toBe("end");
+    expect(cells[2].getAttribute("data-align")).toBe("center");
+    const styles = el.shadowRoot!.querySelector("style")!.textContent!;
+    expect(styles).toContain("tbody th { text-align: start; }");
+    expect(styles).toContain('th[data-align="end"], td[data-align="end"] { text-align: end; }');
+    expect(styles).toContain('th[data-align="center"], td[data-align="center"] { text-align: center; }');
+  });
+
+  it("keeps distinct grouped leaf labels in stacked cells, including escaped group text", () => {
+    const el = document.createElement("box-table") as Table;
+    el.columns = [
+      { key: "step", label: "Step", rowHeader: true },
+      { key: "current", label: "Calls", group: "This run" },
+      { key: "previous", label: "Calls", group: 'Earlier "run" <prior>' },
+    ];
+    el.rows = [{ id: "1", cells: { step: "users.me", current: "142", previous: "130" } }];
+    el.stacked = "always";
+    document.body.append(el);
+    const cells = [...el.shadowRoot!.querySelectorAll("tbody :is(td, th)")];
+    expect(cells.map(cell => cell.getAttribute("data-label"))).toEqual([
+      "Step", "This run — Calls", 'Earlier "run" <prior> — Calls',
+    ]);
+    expect(cells.map(cell => cell.textContent)).toEqual(["users.me", "142", "130"]);
+    expect(cells[2].children.length).toBe(0);
+  });
+
   it("spans contiguous groups, keeps ungrouped sortable columns and details aligned, and restores one-row headers", () => {
     const el = document.createElement("box-table") as Table;
     el.columns = [

@@ -29,6 +29,9 @@ describe("TimeField", () => {
     expect(input.getAttribute("aria-describedby")).toBe(description.id);
     expect(description.textContent).toBe("Choose the local time");
     expect(description.hidden).toBe(false);
+    expect([...description.parentElement!.children].indexOf(description)).toBeLessThan(
+      [...input.parentElement!.children].indexOf(input),
+    );
     expect(input.required).toBe(true);
     expect(label.querySelector(".boe-required-mark")).toBeTruthy();
     expect(input.getAttribute("aria-invalid")).toBe("true");

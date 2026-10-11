@@ -178,6 +178,8 @@ const tableStyles = `
   th[aria-sort="ascending"] .boe-sort-arrow::after { content: " ↑"; opacity: 1; }
   th[aria-sort="descending"] .boe-sort-arrow::after { content: " ↓"; opacity: 1; }
 
+  tbody th { text-align: start; }
+
   tbody :is(td, th) {
     padding: ${boeSpace[2]} ${boeSpace[3]};
     border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
@@ -975,7 +977,10 @@ export class Table extends BaseElement {
             const rowHeader = column.rowHeader === true;
             const tag = rowHeader ? "th" : "td";
             const semantics = rowHeader ? ' scope="row" role="rowheader"' : cellRole;
-            return `<${tag}${align}${semantics} data-label="${escapeHtml(column.label)}">${this.cellMarkup(value)}</${tag}>`;
+            const label = typeof column.group === "string" && column.group
+              ? `${column.group} — ${column.label}`
+              : column.label;
+            return `<${tag}${align}${semantics} data-label="${escapeHtml(label)}">${this.cellMarkup(value)}</${tag}>`;
           })
           .join("");
         const rowMarkup = `<tr${rowAttrs} data-index="${index}" data-id="${escapeHtml(row.id)}">${expanderCell}${cells}</tr>`;
