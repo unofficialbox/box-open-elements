@@ -53,7 +53,7 @@ describe("BoxPlot", () => {
     (chart.shadowRoot?.querySelector('[part="table-toggle"]') as HTMLButtonElement).click();
     expect(chart.shadowRoot?.querySelectorAll("tbody tr")).toHaveLength(1);
     expect(chart.shadowRoot?.querySelector("caption")?.textContent).toBe("Distribution");
-    expect(chart.shadowRoot?.querySelectorAll("thead th")).toHaveLength(12);
+    expect(chart.shadowRoot?.querySelectorAll("thead th")).toHaveLength(11);
     expect(chart.shadowRoot?.querySelector('[part="table-wrap"]')?.getAttribute("tabindex")).toBe("0");
     expect(chart.shadowRoot?.querySelector('[part="table-wrap"]')?.getAttribute("aria-label")).toBe("Distribution data table");
     chart.rows = [row, { ...row, id: "signin", label: "Signing in" }];
@@ -97,5 +97,50 @@ describe("BoxPlot", () => {
     document.body.append(chart);
     expect(chart.shadowRoot?.querySelector('[data-orientation="vertical"]')).toBeTruthy();
     expect(chart.shadowRoot?.querySelectorAll('[part="mark"]')).toHaveLength(1);
+  });
+});
+
+describe("BoxPlot theme, embedding and optional table contracts", () => {
+  afterEach(() => { document.body.innerHTML=""; });
+  const mount=(rows:BoxPlotRow[]):BoxPlot=>{const chart=new BoxPlot();chart.rows=rows;document.body.append(chart);return chart;};
+  const table=(chart:BoxPlot):string[]=>{(chart.shadowRoot!.querySelector('[part="table-toggle"]') as HTMLButtonElement).click();return [...chart.shadowRoot!.querySelectorAll('thead th')].map(th=>th.textContent!);};
+  const basic:BoxPlotRow={id:"basic",label:"One run",min:-2,q1:-1,median:0,q3:1,max:2};
+  it("omits optional columns absent from all valid rows",()=>{
+    const chart=mount([basic,{...basic,id:"bad",mean:NaN}]);
+    expect(table(chart)).toEqual(["Row","Min","5%","25%","Median","75%","95%","99%","Max"]);
+    expect(chart.shadowRoot!.querySelectorAll('tbody tr')).toHaveLength(1);
+  });
+  it("retains zero-valued optional fields and aligns sparse cells",()=>{
+    const chart=mount([basic,{...basic,id:"zero",mean:0,reference:0,count:0}]);
+    expect(table(chart).slice(-3)).toEqual(["Mean","Reference","Count"]);
+    const cells=[...chart.shadowRoot!.querySelectorAll('tbody tr')].map(tr=>[...tr.querySelectorAll('td')].slice(-3).map(td=>td.textContent));
+    expect(cells).toEqual([["—","—","—"],["0","0","0"]]);
+  });
+  it("includes only the supplied optional column",()=>{
+    const chart=mount([{...basic,mean:0}]);expect(table(chart).slice(-1)).toEqual(["Mean"]);
+    expect(chart.shadowRoot!.querySelectorAll('thead th')).toHaveLength(10);
+  });
+  it.each([1,2,3,4,5,6])("uses native heading level%s with embedded and hide-note options",level=>{
+    const chart=new BoxPlot();chart.setAttribute("heading-level",String(level));chart.setAttribute("embedded","");chart.setAttribute("hide-note","");chart.description="Host summary";chart.rows=[basic];document.body.append(chart);
+    expect(chart.shadowRoot!.querySelector('header > div > :first-child')!.tagName).toBe(`H${level}`);
+    expect(chart.shadowRoot!.querySelector('[part="note"]')).toBeNull();
+    expect(chart.shadowRoot!.querySelector('[part="description"]')!.textContent).toBe("Host summary");
+    expect(chart.shadowRoot!.querySelector('[part="mark"]')!.getAttribute('aria-label')).toContain("median 0");
+  });
+  it("uses one continuous vertical grid instead of grids inside each mark",()=>{
+    const chart=mount([basic,{...basic,id:"two"}]);chart.orientation="vertical";
+    const overlay=chart.shadowRoot!.querySelector('[part="gridlines"]')!;
+    expect(overlay).not.toBeNull();expect(overlay.getAttribute('aria-hidden')).toBe('true');
+    expect(overlay.querySelectorAll('[part="gridline"]')).toHaveLength(boxPlotDomain([basic],"linear").ticks.length);
+    expect(chart.shadowRoot!.querySelector('[part="mark"] [part="gridline"]')).toBeNull();
+    expect(chart.shadowRoot!.querySelector('[part="plot-scroll"]')!.getAttribute('tabindex')).toBe('0');
+  });
+  it("derives distribution mark defaults from semantic theme tokens",()=>{
+    const chart=mount([basic]),css=chart.shadowRoot!.querySelector('style')!.textContent!;
+    const rule=(part:string)=>css.match(new RegExp(`\\[part=${part}\\]\\s*\\{([^}]+)\\}`))![1]!;
+    expect(rule('box')).toContain('--boe-token-surface-surface-brand');
+    expect(rule('median')).toContain('--boe-token-text-text');
+    expect(rule('whisker')).toContain('--boe-token-text-text-secondary');
+    expect(rule('gridline')).toContain('--boe-token-stroke-stroke');
   });
 });

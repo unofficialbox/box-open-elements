@@ -5274,6 +5274,24 @@
         },
         {
           "kind": "attribute",
+          "name": "heading-level",
+          "type": "1–6",
+          "description": "Native heading level, default 2; choose the host outline level."
+        },
+        {
+          "kind": "attribute",
+          "name": "embedded",
+          "type": "boolean",
+          "description": "Remove panel background, border, radius and padding."
+        },
+        {
+          "kind": "attribute",
+          "name": "hide-note",
+          "type": "boolean",
+          "description": "Hide the standard statistical note, retaining description and mark summaries."
+        },
+        {
+          "kind": "attribute",
           "name": "description",
           "type": "string",
           "description": "Supporting explanation."

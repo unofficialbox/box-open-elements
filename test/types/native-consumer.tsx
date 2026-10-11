@@ -1,4 +1,4 @@
-import type { Path, Table, TextField } from "@unofficialbox/box-open-elements";
+import type { BoxPlot, Path, Table, TextField } from "@unofficialbox/box-open-elements";
 import type {} from "@unofficialbox/box-open-elements/native-types";
 import type {} from "@unofficialbox/box-open-elements/react-jsx";
 
@@ -116,3 +116,12 @@ const removeButton = document.createElement("box-icon-button");
 removeButton.size = "small";
 removeButton.variant = "quiet";
 removeButton.label = "Remove target";
+
+const distribution: BoxPlot = document.createElement("box-box-plot");
+distribution.headingLevel = 3;
+distribution.embedded = true;
+distribution.hideNote = true;
+const embeddedDistribution = <box-box-plot headingLevel={3} embedded hideNote />;
+void embeddedDistribution;
+// @ts-expect-error native heading levels are restricted to 1–6
+distribution.headingLevel = 7;
