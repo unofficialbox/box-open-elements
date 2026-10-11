@@ -78,6 +78,33 @@ describe("Switch", () => {
     expect(document.activeElement).toBe(element);
   });
 
+  it.each([false, true])("associates policy descriptions when disabled=%s without changing name or state", disabled => {
+    const element = document.createElement("box-switch") as Switch;
+    element.label = "Included";element.description = disabled ? "Required" : "Optional";
+    element.checked = true;element.disabled = disabled;document.body.append(element);
+    const button = element.shadowRoot!.querySelector('[part="switch"]')!;
+    const id = button.getAttribute("aria-describedby");
+    expect(id).toBeTruthy();
+    expect(element.shadowRoot!.getElementById(id!)?.textContent).toBe(element.description);
+    expect(button.getAttribute("aria-label")).toBe("Included");
+    expect(button.getAttribute("aria-checked")).toBe("true");
+    expect(button.getAttribute("aria-disabled")).toBe(String(disabled));
+  });
+  it("updates and removes descriptions while retaining the independent error association", () => {
+    const element = document.createElement("box-switch") as Switch;
+    element.description = "Optional";element.invalid = true;element.errorMessage = "Choose an option";document.body.append(element);
+    const button = element.shadowRoot!.querySelector('[part="switch"]')!;
+    const errorId = button.getAttribute("aria-errormessage")!;
+    expect(element.shadowRoot!.getElementById(errorId)?.textContent).toBe("Choose an option");
+    element.description = "Required";
+    expect(element.shadowRoot!.getElementById(button.getAttribute("aria-describedby")!)?.textContent).toBe("Required");
+    expect(button.getAttribute("aria-errormessage")).toBe(errorId);
+    element.description = "";
+    expect(button.hasAttribute("aria-describedby")).toBe(false);
+    expect(button.getAttribute("aria-errormessage")).toBe(errorId);
+    element.invalid = false;
+    expect(button.hasAttribute("aria-errormessage")).toBe(false);
+  });
   it("uses BUE toggle track geometry", () => {
     const element = document.createElement("box-switch") as Switch;
     document.body.append(element);
