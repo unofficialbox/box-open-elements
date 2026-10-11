@@ -47,7 +47,7 @@ canvas.model = {
   project: doc => ({ boxes: doc.boxes, lines: doc.lines }),
   validate: (doc, projection) => readBackProblems(doc, projection),
 };
-canvas.load(document, { version: 12, positions: savedPositions });
+canvas.load(document, { version: 12, positions: savedPositions, view: savedView });
 canvas.catalog = hostCatalog; // Reuse the same kind list as Flow Builder.
 canvas.outline = hostOutline;
 canvas.fields = hostFieldsByBoxId;
@@ -76,7 +76,13 @@ canvas.addEventListener("readable-projection-changed", event => {
   frames around their children. Cycles remain visible and appear in Checks.
 - `layout` is copied on assignment/read. It preserves positions/sizes, notes,
   sections and line control points separately from workflow data. Missing box
-  positions receive a deterministic fallback. `load(document, options)` accepts
+  positions receive a deterministic fallback. Each `load()` initially fits using
+  measured canvas dimensions, with the reference's readable floor (70% desktop,
+  55% below 900px) and a 100% cap. Content is centered when it fits; oversized
+  content starts at its beginning. Hidden or disconnected hosts defer fitting
+  until visible. Set `initial-view="100"` (or `initialView = "100"`) before load
+  for a 100% origin view. A valid `options.view` or explicit `setView()` wins;
+  later resize and host document echoes preserve the chosen view. `load(document, options)` accepts
   saved positions keyed by `JSON.stringify(path)` or position snapshots; only
   matching paths and explicit matching fingerprints are restored.
 - `catalog` uses `ProcessKind` entries shared with Flow Builder, with optional

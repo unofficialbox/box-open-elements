@@ -82,8 +82,9 @@ export class ProcessModeler<
 > extends BaseElement {
   static readonly tagName = "box-process-modeler";
   static get observedAttributes(): string[] {
-    return ["locked", "snap-to-grid", "heading-level", "disable-connections", "embed-mode"];
+    return ["locked", "snap-to-grid", "heading-level", "disable-connections", "embed-mode", "initial-view"];
   }
+  private pendingInitialFit = false;
   private documentValue?: D;
   private modelValue: ProcessModel<D, N> = {
     project: (document) => document as unknown as ProcessProjection<N>,
@@ -227,9 +228,13 @@ export class ProcessModeler<
   set processTitle(value: string) { this.processTitleValue = value; this.refresh(); }
   get processSummary(): string { return this.processSummaryValue; }
   set processSummary(value: string) { this.processSummaryValue = value; this.refresh(); }
+  /** Initial load policy; a saved load view or explicit setView takes precedence. */
+  get initialView(): "fit" | "100" { return this.getAttribute('initial-view') === '100' ? '100' : 'fit'; }
+  set initialView(value: "fit" | "100") { this.setAttribute('initial-view', value); }
   get view(): Readonly<{ x: number; y: number; zoom: number }> { return { ...this.viewport }; }
   setView(view: { x: number; y: number; zoom: number }): void {
     if (![view.x, view.y, view.zoom].every(Number.isFinite) || view.zoom < 0.25 || view.zoom > 2) return;
+    this.pendingInitialFit = false;
     this.viewport = { ...view };
     if (this.isRendered) this.paintViewport();
   }
@@ -268,6 +273,12 @@ export class ProcessModeler<
     this.layoutValue = restoreProcessPositions(projection, options.positions ?? []);
     this.clearMixedSelection(); this.history.clear(); this.selectedId = null; this.selectedLineId = null; this.selectedIds.clear();
     this.clearClipboard();
+    this.viewport = { x: 0, y: 0, zoom: 1 };
+    this.pendingInitialFit = this.initialView === 'fit';
+    const view = options.view;
+    if (view && [view.x, view.y, view.zoom].every(Number.isFinite) && view.zoom >= .25 && view.zoom <= 2) {
+      this.viewport = { ...view }; this.pendingInitialFit = false;
+    }
     this.refresh();
     if (options.selectedPath) this.selectedPath = options.selectedPath;
   }
@@ -429,7 +440,7 @@ export class ProcessModeler<
     this.drag = undefined;
     this.portDrag = undefined; this.endDrag = undefined; this.pendingReattach = undefined; this.marquee = undefined; this.segmentDrag = undefined;
   }
-  connectedCallback(): void { super.connectedCallback(); this.resizeObserver?.observe(this); this.syncViewMenuDismissal(); }
+  connectedCallback(): void { super.connectedCallback(); this.resizeObserver?.observe(this); const canvas = this.shadowRoot?.querySelector('[part=canvas]'); if (canvas) this.resizeObserver?.observe(canvas); this.syncViewMenuDismissal(); }
   refresh(): void {
     if (this.isRendered) this.update();
   }
@@ -835,7 +846,34 @@ export class ProcessModeler<
     this.viewport.zoom = next;
     this.paintViewport();
   }
-  fit(): void { this.fitTo(0.25); }
+  private applyInitialFit(): boolean {
+    if (!this.pendingInitialFit || !this.isConnected || !this.isRendered) return false;
+    const canvas = this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!;
+    const width = canvas.clientWidth, height = canvas.clientHeight;
+    // Hidden/pre-connected hosts have no useful measurements. Keep the intent
+    // until the canvas itself is observed, rather than fitting a guessed size.
+    if (!width || !height) return false;
+    const rects = [
+      ...this.projection.boxes.map(box => ({ ...this.layoutValue.boxes[box.id], ...this.selectionDimensions(box) })),
+      ...(this.layoutValue.sections ?? []),
+      ...(this.layoutValue.notes ?? []).map(note => ({ ...note, width: 208, height: 80 })),
+    ];
+    this.pendingInitialFit = false;
+    if (!rects.length) return false;
+    const x = Math.min(...rects.map(r => r.x)), y = Math.min(...rects.map(r => r.y));
+    const contentWidth = Math.max(...rects.map(r => r.x + r.width)) - x;
+    const contentHeight = Math.max(...rects.map(r => r.y + r.height)) - y;
+    const padX = width < 600 ? 24 : 64, padY = 72;
+    const minimum = this.clientWidth < 900 ? .55 : .7;
+    const zoom = Math.max(minimum, Math.min(1, (width - 2 * padX) / contentWidth, (height - 2 * padY - 40) / contentHeight));
+    this.viewport = {
+      zoom,
+      x: contentWidth * zoom > width - 2 * padX ? padX - x * zoom : width / 2 - (x + contentWidth / 2) * zoom,
+      y: contentHeight * zoom > height - 2 * padY ? padY - y * zoom : (height - 40) / 2 - (y + contentHeight / 2) * zoom,
+    };
+    return true;
+  }
+  fit(): void { this.pendingInitialFit = false; this.fitTo(0.25); }
   private fitTo(minimumZoom: number): void {
     const bounds = this.bounds();
     const canvas =
@@ -1075,16 +1113,20 @@ export class ProcessModeler<
     canvas.append(floating);
     if (typeof ResizeObserver !== "undefined") {
       this.resizeObserver = new ResizeObserver(entries => {
-        const narrow = entries[0].contentRect.width < 900;
+        const hostEntry = entries.find(entry => entry.target === this);
+        const width = hostEntry?.contentRect.width ?? this.clientWidth;
+        const narrow = width < 900;
         this.narrowValue = narrow; this.toggleAttribute("data-narrow", narrow);
-        this.toggleAttribute('data-phone', entries[0].contentRect.width < 560);
-        this.toggleAttribute('data-compact-toolbar', entries[0].contentRect.width <= 1100);
-        this.toggleAttribute('data-hide-tidy', entries[0].contentRect.width <= 560);
+        this.toggleAttribute('data-phone', width < 560);
+        this.toggleAttribute('data-compact-toolbar', width <= 1100);
+        this.toggleAttribute('data-hide-tidy', width <= 560);
         this.renderSelectionToolbar(); this.positionSelectionToolbar();
         if (!narrow) this.closeDrawer();
         root.querySelectorAll<HTMLDialogElement>('[part=pane-drawer]').forEach(dialog => { dialog.inert = narrow && !dialog.open; });
+        if (this.applyInitialFit()) this.paintViewport();
       });
       this.resizeObserver.observe(this);
+      this.resizeObserver.observe(canvas);
     }
   }
   private openDrawer(pane: 'palette' | 'inspector'): void {
@@ -2473,6 +2515,7 @@ export class ProcessModeler<
     this.renderPalette();
     this.renderChecks();
     this.renderSelection();
+    this.applyInitialFit();
     this.paintViewport();
     this.updateToolbar();
     if (selectionBefore !== JSON.stringify({ items: this.selection, path: this.selectedPath })) this.notify("selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath, ...(this.graphSelection ? { selection: this.selection } : {}) });

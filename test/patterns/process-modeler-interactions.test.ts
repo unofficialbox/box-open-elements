@@ -597,7 +597,7 @@ describe("Process Modeler prototype interactions", () => {
     try {
       const { builder } = fixture();
       for (const width of [559, 560, 561, 560, 559]) {
-        resize([{ contentRect: { width } } as ResizeObserverEntry], {} as ResizeObserver);
+        resize([{ target: builder, contentRect: { width } } as ResizeObserverEntry], {} as ResizeObserver);
         expect(builder.hasAttribute('data-hide-tidy')).toBe(width <= 560);
         expect(builder.hasAttribute('data-phone')).toBe(width < 560);
       }
