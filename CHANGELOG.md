@@ -15,6 +15,16 @@ are kept as written.
 
 ## Unreleased
 
+## 0.38.0 — 2026-10-11
+
+- Add opt-in compact Table phone rows with a row heading, two/three-column
+  label-over-value grid, and one heading per adjacent column group.
+- Preserve existing list cards and wide table layout; compact stacking renders
+  all rows because wrapped card heights cannot use fixed-height virtualization.
+- Restore full-opacity semantic text color for visible DiffViewer line numbers.
+- Associate Switch policy descriptions with the control while preserving its
+  accessible name, checked/disabled states and independent error linkage.
+
 ## 0.37.2 — 2026-10-11
 
 - Preserve small status-label contrast across light/dark themes without changing tone fills.
