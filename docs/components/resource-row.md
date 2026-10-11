@@ -18,8 +18,9 @@ with each row in an `<li>`) when a row also has actions.
 ```
 
 The inner selection button derives its accessible name from the visible label
-and metadata. `aria-pressed` reports selection; `aria-description` supplies the
-status without repeating the metadata. Enter/Space activate it and emit `select` with `{ value }`; the host
+and metadata. `aria-pressed` reports selection; `aria-describedby` references the visible
+status without repeating the metadata. Slotted status text or label changes stay
+current even when they follow a row update. Enter/Space activate it and emit `select` with `{ value }`; the host
 sets `selected` after accepting that event. Actions in the `actions` slot keep
 their own focus, name and events and never emit `select`. `disabled` disables
 only selection; action availability remains the host's decision. `active` is a
