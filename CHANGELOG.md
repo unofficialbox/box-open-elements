@@ -15,6 +15,12 @@ are kept as written.
 
 ## Unreleased
 
+## 0.39.0 — 2026-10-11
+
+- TraceWaterfall supports host search/row wording, hidden axis notes, native heading levels and embedded panels, public initial collapsed ids, and compact phone rows on a shared time axis (#509).
+- BoxPlot follows semantic theme tokens, supports native heading levels and embedded/hidden-note panels, omits wholly absent optional table columns, and keeps vertical distributions on one scrollable line with a continuous shared grid (#508).
+- Vertical BoxPlot marks keep equal statistics aligned despite unequal label heights; tooltips follow host resizing and streaming updates preserve scroll position and keyboard focus.
+
 ## 0.38.0 — 2026-10-11
 
 - Add opt-in compact Table phone rows with a row heading, two/three-column
