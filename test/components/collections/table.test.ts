@@ -675,3 +675,68 @@ describe("Table row headers, column groups and plain descriptors", () => {
     expect(el.shadowRoot!.querySelector('[part="spacer"] td')?.getAttribute("colspan")).toBe("2");
   });
 });
+
+describe("Table expandable header and controlled sort focus", () => {
+  beforeEach(() => { Table.register(); });
+  afterEach(() => { document.body.innerHTML = ""; });
+
+  it.each([false, true])("gives the details header screen-reader text (grouped=%s)", grouped => {
+    const el = create("none");
+    el.columns = [{ key: "name", label: "Name", sortable: true, ...(grouped ? { group: "Files" } : {}) }];
+    el.rows = [{ id: "one", cells: { name: "A" }, detail: "More information" }];
+    const header = el.shadowRoot!.querySelector('th[aria-label="Row details"]')!;
+    expect(header.querySelector(".boe-sr-only")?.textContent).toBe("Details");
+    expect(header.querySelector("[hidden], [aria-hidden=true]")).toBeNull();
+    expect(header.getAttribute("scope")).toBe("col");
+    expect(header.getAttribute("rowspan")).toBe(grouped ? "2" : null);
+  });
+
+  it.each([false, true])("retains repeated controlled sorting focus and state (grouped=%s)", grouped => {
+    const el = create("multiple");
+    el.columns = [{ key: "name", label: "Name", sortable: true, ...(grouped ? { group: "Files" } : {}) }];
+    el.rows = [{ id: "one", cells: { name: "A" }, detail: "More information" }];
+    el.selectedIds = ["one"];
+    const directions: string[] = [];
+    el.addEventListener("sort", event => {
+      const { key, direction } = (event as CustomEvent).detail;
+      directions.push(direction);
+      el.setAttribute("sort-key", key);
+      el.setAttribute("sort-direction", direction);
+      el.rows = [...el.rows];
+    });
+    const button = () => el.shadowRoot!.querySelector<HTMLButtonElement>('[part="sort-button"]')!;
+    button().focus();
+    for (const direction of ["ascending", "descending", "ascending"]) {
+      button().click();
+      expect(el.shadowRoot!.activeElement).toBe(button());
+      expect(button().getAttribute("aria-label")).toBe(`Sort by Name, sorted ${direction}`);
+      expect(el.selectedIds).toEqual(["one"]);
+    }
+    expect(directions).toEqual(["ascending", "descending", "ascending"]);
+  });
+
+  it("retains the same focused column across regrouping and deferred row updates", async () => {
+    const el = create("none");
+    const key = 'name"\\key';
+    el.columns = [{ key, label: "Name", sortable: true }, { key: "owner", label: "Owner" }];
+    el.shadowRoot!.querySelector<HTMLButtonElement>('[part="sort-button"]')!.focus();
+    el.columns = [{ key: "owner", label: "Owner" }, { key, label: "Name", sortable: true, group: "Files" }];
+    await Promise.resolve();
+    el.rows = [...el.rows];
+    const active = el.shadowRoot!.activeElement as HTMLElement;
+    expect(active?.getAttribute("part")).toBe("sort-button");
+    expect(active.closest<HTMLElement>("th")?.dataset.key).toBe(key);
+  });
+
+  it("does not steal external focus or focus another column when the active sortable column disappears", () => {
+    const el = create("none");
+    const external = document.createElement("button");
+    document.body.append(external);
+    external.focus();
+    el.setAttribute("sort-direction", "descending");
+    expect(document.activeElement).toBe(external);
+    el.shadowRoot!.querySelector<HTMLButtonElement>('[part="sort-button"]')!.focus();
+    el.columns = [{ key: "owner", label: "Owner", sortable: true }];
+    expect(el.shadowRoot!.activeElement).toBeNull();
+  });
+});
