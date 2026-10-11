@@ -176,7 +176,7 @@ non-modal, searchable chooser beside the selected box. It names the insertion
 point and, for a simple box with one outgoing line, requests an insert on
 that line; Escape returns focus to the box. Ctrl+Alt+arrows opens the same
 contextual chooser at a directional port; east inserts on a sole outgoing line,
-while other directions add a connected step. Enter focuses the selected step's editor, Delete removes, and Shift+1
+while other directions add a connected step. Enter in the chooser search picks its first filtered match; no match leaves the chooser open. Enter focuses the selected step's editor. When a focused step is removed by the host, focus moves to the next surviving step, the previous one, or the canvas so keyboard undo remains available. Delete removes, and Shift+1
 fits the whole process. Ctrl/Command+A selects all; C/V/D copy, paste and
 duplicate host-owned boxes. A multiple-box duplicate emits one `duplicate` request
 with `sourceIds` and a uniform 48/48 `offset`. The host clones selected roots,

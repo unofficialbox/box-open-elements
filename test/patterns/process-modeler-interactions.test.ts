@@ -665,6 +665,31 @@ describe("Process Modeler prototype interactions", () => {
     expect(builder.layout.boxes.a).toEqual(before.boxes.a);
     expect(builder.layout.boxes.b.x).toBe(before.boxes.b.x + 16);
   });
+  it.each([false, true])('retains keyboard undo after accepted Delete (deferred=%s)', deferred => {
+    const { builder, root } = fixture(); const before = builder.document!; let accept!: () => void;
+    builder.addEventListener('process-edit-request', event => {
+      const request = (event as CustomEvent).detail;
+      const after = { boxes: before.boxes.filter(box => box.id !== request.boxId), lines: [] };
+      accept = () => { builder.document = after; request.accept({ undo: () => { builder.document = before; }, redo: () => { builder.document = after; } }); };
+      if (!deferred) accept();
+    });
+    const step = root.querySelector<HTMLElement>('[data-box-id=b]')!; step.focus();
+    step.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true, cancelable: true }));
+    if (deferred) accept();
+    expect((root.activeElement as HTMLElement).dataset.boxId).toBe('c');
+    expect(builder.selected?.id).toBe('c');
+    root.activeElement!.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true, cancelable: true }));
+    expect(builder.document!.boxes).toHaveLength(3);
+  });
+  it('falls back to the previous step then canvas when focused steps disappear, without stealing external focus', () => {
+    const { builder, root, canvas } = fixture(); root.querySelector<HTMLElement>('[data-box-id=c]')!.focus();
+    builder.document = { boxes: projection.boxes.slice(0, 2), lines: [] };
+    expect((root.activeElement as HTMLElement).dataset.boxId).toBe('b');
+    builder.document = { boxes: [], lines: [] }; expect(root.activeElement).toBe(canvas);
+    builder.document = structuredClone(projection); root.querySelector<HTMLElement>('[data-box-id=a]')!.focus();
+    const outside = document.createElement('input'); document.body.append(outside); outside.focus();
+    builder.document = { boxes: [], lines: [] }; expect(document.activeElement).toBe(outside);
+  });
   it('restores DOM focus without collapsing multiple or controlled host selection', () => {
     const { builder, root } = fixture();
     root.querySelector<HTMLElement>('[data-box-id=a]')!.focus();

@@ -85,7 +85,11 @@ export class KindPicker extends BaseElement {
       const e = event as KeyboardEvent;
       if (this.variant !== "menu") return;
       if (e.key === "Escape") { e.preventDefault(); emit(this, "picker-cancel", {}); return; }
-      if (e.target === this.shadowRoot!.querySelector('[part=search]') && e.key !== "ArrowDown") return;
+      const fromSearch = e.target === this.shadowRoot!.querySelector('[part=search]');
+      if (fromSearch && e.key === "Enter") {
+        e.preventDefault(); this.shadowRoot!.querySelector<HTMLButtonElement>("button")?.click(); return;
+      }
+      if (fromSearch && e.key !== "ArrowDown") return;
       const buttons = Array.from(this.shadowRoot!.querySelectorAll("button"));
       if (!buttons.length) return;
       const current = buttons.indexOf(this.shadowRoot!.activeElement as HTMLButtonElement);

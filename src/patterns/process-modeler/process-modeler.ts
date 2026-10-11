@@ -2414,6 +2414,7 @@ export class ProcessModeler<
       this.portDrag = undefined; this.endDrag = undefined; this.pendingReattach = undefined; this.segmentDrag = undefined; this.frameResize = undefined; this.marquee = undefined; this.drag = undefined; this.pointers.clear();
       const canvas = this.shadowRoot?.querySelector<HTMLElement>('[part=canvas]'); if (canvas) delete canvas.dataset.gesture;
     }
+    const previousBoxIds = this.projection.boxes.map(box => box.id);
     const selectionBefore = JSON.stringify({ items: this.selection, path: this.selectedPath });
     if (this.documentValue !== undefined) {
       this.projection = this.model.project(this.documentValue);
@@ -2474,8 +2475,19 @@ export class ProcessModeler<
     this.updateToolbar();
     if (selectionBefore !== JSON.stringify({ items: this.selection, path: this.selectedPath })) this.notify("selection-changed", { box: this.selected, boxes: this.selectedBoxes, path: this.selectedPath, ...(this.graphSelection ? { selection: this.selection } : {}) });
     if (focused) {
-      this.restoringBoxFocus = true;
-      try { this.focusBox(focused); } finally { this.restoringBoxFocus = false; }
+      if (this.projection.boxes.some(box => box.id === focused)) {
+        this.restoringBoxFocus = true;
+        try { this.focusBox(focused); } finally { this.restoringBoxFocus = false; }
+      } else {
+        // A host may accept removal synchronously or later. Keep the keyboard
+        // in the diagram only when the removed step still owned focus.
+        const index = previousBoxIds.indexOf(focused);
+        const surviving = new Set(this.projection.boxes.map(box => box.id));
+        const next = previousBoxIds.slice(index + 1).find(id => surviving.has(id))
+          ?? previousBoxIds.slice(0, index).reverse().find(id => surviving.has(id));
+        if (next) this.focusBox(next);
+        else this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.focus({ preventScroll: true });
+      }
     } else if (focusedNote) {
       const note = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>('[data-note-id]')).find(note => note.dataset.noteId === focusedNote);
       (note ?? this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]'))?.focus({ preventScroll: true });
