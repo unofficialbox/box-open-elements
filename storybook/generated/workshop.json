@@ -6258,20 +6258,44 @@
       "title": "Components/Actions/Icon Button",
       "category": "Actions",
       "shortDescription": "An icon-only action with an accessible label.",
-      "docsDescription": "A compact action rendering a single glyph; the required `label` provides the accessible name.",
+      "docsDescription": "An icon action named by `label`. Supply a library glyph SVG node with `slot=\"icon\"` without registering a design system; the slot takes precedence over the registered `icon` or escaped text fallback. `size=\"small\"` renders a 24px button and `variant=\"quiet\"` removes resting chrome while keeping hover and keyboard focus visible.",
       "sourceSnippet": "<box-icon-button icon=\"+\" label=\"Add item\"></box-icon-button>",
       "referenceRows": [
+        {
+          "kind": "slot",
+          "name": "icon",
+          "type": "SVG node",
+          "description": "Explicit glyph content, taking precedence over the icon fallback."
+        },
         {
           "kind": "attribute",
           "name": "icon",
           "type": "string",
-          "description": "Icon token or glyph."
+          "description": "Registered icon name or escaped text fallback."
         },
         {
           "kind": "attribute",
           "name": "label",
           "type": "string",
           "description": "Accessible name (visually hidden)."
+        },
+        {
+          "kind": "attribute",
+          "name": "size",
+          "type": "medium | small",
+          "description": "Default 2rem button or 24px compact border box."
+        },
+        {
+          "kind": "attribute",
+          "name": "variant",
+          "type": "default | quiet",
+          "description": "Quiet removes resting border, surface and shadow."
+        },
+        {
+          "kind": "attribute",
+          "name": "tone",
+          "type": "secondary | primary | danger",
+          "description": "Action color, also supported by quiet buttons."
         },
         {
           "kind": "attribute",
@@ -6288,6 +6312,10 @@
         {
           "name": "Settings",
           "html": "<box-icon-button icon=\"gear\" label=\"Settings\"></box-icon-button>"
+        },
+        {
+          "name": "Compact quiet glyph",
+          "html": "<box-icon-button size=\"small\" variant=\"quiet\" label=\"Remove variable\"><svg slot=\"icon\" viewBox=\"0 0 150 150\" width=\"1em\" height=\"1em\" role=\"img\" aria-hidden=\"true\" focusable=\"false\"><g clip-path=\"url(#x-batsu__clip0_1223_836)\">\n<path d=\"M150 75C150 84.8517 148.059 94.607 144.288 103.708C140.517 112.81 134.99 121.079 128.022 128.044C121.054 135.009 112.783 140.533 103.68 144.3C94.5767 148.067 84.8207 150.004 74.9689 150C55.0822 149.994 36.0121 142.09 21.953 128.025C7.89385 113.96 -0.00274341 94.8867 7.14966e-07 75C-0.00274341 55.1133 7.89385 36.0399 21.953 21.9749C36.0121 7.91001 55.0822 0.00549297 74.9689 6.42152e-06C84.8207 -0.00407017 94.5767 1.93285 103.68 5.70013C112.783 9.46741 121.054 14.9912 128.022 21.956C134.99 28.9208 140.517 37.1901 144.288 46.2916C148.059 55.393 150 65.1482 150 75Z\" fill=\"currentColor\" fill-opacity=\"0.3\"/>\n<path d=\"M98.0767 103.609C96.4957 103.608 94.9791 102.982 93.8567 101.869L47.8567 55.8689C47.313 55.3262 46.883 54.6806 46.5918 53.9698C46.3005 53.259 46.1538 52.4973 46.1604 51.7292C46.1669 50.9611 46.3265 50.202 46.6297 49.4962C46.933 48.7905 47.3739 48.1523 47.9267 47.6189C49.056 46.5379 50.5626 45.9403 52.1259 45.9533C53.6892 45.9664 55.1856 46.5891 56.2967 47.6889L102.297 93.6889C102.842 94.2302 103.274 94.8751 103.567 95.5856C103.86 96.2962 104.008 97.058 104.002 97.8265C103.997 98.595 103.838 99.3547 103.534 100.061C103.231 100.767 102.79 101.406 102.237 101.939C101.118 103.012 99.627 103.611 98.0767 103.609Z\" fill=\"currentColor\"/>\n<path d=\"M52.1157 103.61C50.5688 103.609 49.082 103.011 47.9657 101.94C47.4129 101.406 46.972 100.768 46.6687 100.063C46.3655 99.3568 46.2059 98.5977 46.1994 97.8296C46.1929 97.0614 46.3395 96.2997 46.6308 95.589C46.922 94.8782 47.3521 94.2326 47.8957 93.6899L93.8957 47.6899C95.0072 46.5871 96.5057 45.9625 98.0714 45.9494C99.6371 45.9363 101.146 46.5358 102.276 47.6199C102.829 48.1532 103.27 48.7917 103.573 49.4979C103.877 50.2041 104.036 50.9638 104.041 51.7323C104.047 52.5008 103.899 53.2626 103.606 53.9732C103.313 54.6837 102.881 55.3285 102.336 55.8699L56.3357 101.87C55.7821 102.424 55.1241 102.864 54.3998 103.162C53.6755 103.461 52.8992 103.613 52.1157 103.61Z\" fill=\"currentColor\"/>\n</g>\n<defs>\n<clipPath id=\"x-batsu__clip0_1223_836\">\n<rect width=\"150\" height=\"150\" fill=\"currentColor\"/>\n</clipPath>\n</defs></svg></box-icon-button>"
         },
         {
           "name": "Disabled",

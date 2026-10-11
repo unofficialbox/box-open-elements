@@ -90,7 +90,7 @@ export interface BoxElementPropertyKeys {
   "box-grid-view": "items" | "label" | "value";
   "box-guide-tooltip": "heading" | "htmlFor" | "open" | "placement" | "step" | "total";
   "box-help-text": "description" | "label" | "message" | "tone";
-  "box-icon-button": "disabled" | "icon" | "label" | "tone";
+  "box-icon-button": "disabled" | "icon" | "label" | "size" | "tone" | "variant";
   "box-illustration": "asset" | "caption" | "heading" | "message" | "shape";
   "box-indicator": "label" | "tone";
   "box-insert-point": "detail";
