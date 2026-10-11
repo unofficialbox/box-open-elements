@@ -10,6 +10,9 @@ const boxPlot: StoryModule = {
     sourceSnippet: `<box-box-plot heading="Step times" unit="ms" rows='[{"id":"upload","label":"files.upload","min":16,"q1":34,"median":42,"q3":55,"max":126}]'></box-box-plot>`,
     referenceRows: [
       { kind: "attribute", name: "heading", type: "string", description: "Accessible chart name." },
+      { kind: "attribute", name: "heading-level", type: "1–6", description: "Native heading level, default 2; choose the host outline level." },
+      { kind: "attribute", name: "embedded", type: "boolean", description: "Remove panel background, border, radius and padding." },
+      { kind: "attribute", name: "hide-note", type: "boolean", description: "Hide the standard statistical note, retaining description and mark summaries." },
       { kind: "attribute", name: "description", type: "string", description: "Supporting explanation." },
       { kind: "attribute", name: "rows", type: "json", description: "Host-computed summary statistics." },
       { kind: "attribute", name: "whiskers", type: "string", description: "min-max, p5-p95, or p5-p99." },

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import axe from "axe-core";
 import { BoxPlot, boxPlotDomain, boxPlotPosition, boxPlotWhiskerValues, validBoxPlotRow, type BoxPlotRow } from "../../../src/patterns/insights/box-plot.js";
 
@@ -53,7 +53,7 @@ describe("BoxPlot", () => {
     (chart.shadowRoot?.querySelector('[part="table-toggle"]') as HTMLButtonElement).click();
     expect(chart.shadowRoot?.querySelectorAll("tbody tr")).toHaveLength(1);
     expect(chart.shadowRoot?.querySelector("caption")?.textContent).toBe("Distribution");
-    expect(chart.shadowRoot?.querySelectorAll("thead th")).toHaveLength(12);
+    expect(chart.shadowRoot?.querySelectorAll("thead th")).toHaveLength(11);
     expect(chart.shadowRoot?.querySelector('[part="table-wrap"]')?.getAttribute("tabindex")).toBe("0");
     expect(chart.shadowRoot?.querySelector('[part="table-wrap"]')?.getAttribute("aria-label")).toBe("Distribution data table");
     chart.rows = [row, { ...row, id: "signin", label: "Signing in" }];
@@ -97,5 +97,71 @@ describe("BoxPlot", () => {
     document.body.append(chart);
     expect(chart.shadowRoot?.querySelector('[data-orientation="vertical"]')).toBeTruthy();
     expect(chart.shadowRoot?.querySelectorAll('[part="mark"]')).toHaveLength(1);
+  });
+});
+
+describe("BoxPlot theme, embedding and optional table contracts", () => {
+  afterEach(() => { document.body.innerHTML=""; });
+  const mount=(rows:BoxPlotRow[]):BoxPlot=>{const chart=new BoxPlot();chart.rows=rows;document.body.append(chart);return chart;};
+  const table=(chart:BoxPlot):string[]=>{(chart.shadowRoot!.querySelector('[part="table-toggle"]') as HTMLButtonElement).click();return [...chart.shadowRoot!.querySelectorAll('thead th')].map(th=>th.textContent!);};
+  const basic:BoxPlotRow={id:"basic",label:"One run",min:-2,q1:-1,median:0,q3:1,max:2};
+  it("omits optional columns absent from all valid rows",()=>{
+    const chart=mount([basic,{...basic,id:"bad",mean:NaN}]);
+    expect(table(chart)).toEqual(["Row","Min","5%","25%","Median","75%","95%","99%","Max"]);
+    expect(chart.shadowRoot!.querySelectorAll('tbody tr')).toHaveLength(1);
+  });
+  it("retains zero-valued optional fields and aligns sparse cells",()=>{
+    const chart=mount([basic,{...basic,id:"zero",mean:0,reference:0,count:0}]);
+    expect(table(chart).slice(-3)).toEqual(["Mean","Reference","Count"]);
+    const cells=[...chart.shadowRoot!.querySelectorAll('tbody tr')].map(tr=>[...tr.querySelectorAll('td')].slice(-3).map(td=>td.textContent));
+    expect(cells).toEqual([["—","—","—"],["0","0","0"]]);
+  });
+  it("includes only the supplied optional column",()=>{
+    const chart=mount([{...basic,mean:0}]);expect(table(chart).slice(-1)).toEqual(["Mean"]);
+    expect(chart.shadowRoot!.querySelectorAll('thead th')).toHaveLength(10);
+  });
+  it.each([1,2,3,4,5,6])("uses native heading level%s with embedded and hide-note options",level=>{
+    const chart=new BoxPlot();chart.setAttribute("heading-level",String(level));chart.setAttribute("embedded","");chart.setAttribute("hide-note","");chart.description="Host summary";chart.rows=[basic];document.body.append(chart);
+    expect(chart.shadowRoot!.querySelector('header > div > :first-child')!.tagName).toBe(`H${level}`);
+    expect(chart.shadowRoot!.querySelector('[part="note"]')).toBeNull();
+    expect(chart.shadowRoot!.querySelector('[part="description"]')!.textContent).toBe("Host summary");
+    expect(chart.shadowRoot!.querySelector('[part="mark"]')!.getAttribute('aria-label')).toContain("median 0");
+  });
+  it("uses one continuous vertical grid instead of grids inside each mark",()=>{
+    const chart=mount([basic,{...basic,id:"two"}]);chart.orientation="vertical";
+    const overlay=chart.shadowRoot!.querySelector('[part="gridlines"]')!;
+    expect(overlay).not.toBeNull();expect(overlay.getAttribute('aria-hidden')).toBe('true');
+    expect(overlay.querySelectorAll('[part="gridline"]')).toHaveLength(boxPlotDomain([basic],"linear").ticks.length);
+    expect(chart.shadowRoot!.querySelector('[part="mark"] [part="gridline"]')).toBeNull();
+    expect(chart.shadowRoot!.querySelector('[part="plot-scroll"]')!.getAttribute('tabindex')).toBe('0');
+  });
+  it("derives distribution mark defaults from semantic theme tokens",()=>{
+    const chart=mount([basic]),css=chart.shadowRoot!.querySelector('style')!.textContent!;
+    const rule=(part:string)=>css.match(new RegExp(`\\[part=${part}\\]\\s*\\{([^}]+)\\}`))![1]!;
+    expect(rule('box')).toContain('--boe-token-surface-surface-brand');
+    expect(rule('median')).toContain('--boe-token-text-text');
+    expect(rule('whisker')).toContain('--boe-token-text-text-secondary');
+    expect(rule('gridline')).toContain('--boe-token-stroke-stroke');
+  });
+});
+
+describe("BoxPlot vertical lifecycle", () => {
+  afterEach(() => { document.body.innerHTML=""; vi.unstubAllGlobals(); });
+  const mount=():BoxPlot=>{const chart=new BoxPlot();chart.orientation="vertical";chart.rows=Array.from({length:20},(_,i)=>({...row,id:String(i)}));document.body.append(chart);return chart;};
+  it("preserves scroll-region focus and position during row updates and reordering",()=>{
+    const chart=mount();let scroll=chart.shadowRoot!.querySelector<HTMLElement>('[part="plot-scroll"]')!;scroll.scrollLeft=400;scroll.focus();chart.rows=[...chart.rows].reverse();scroll=chart.shadowRoot!.querySelector<HTMLElement>('[part="plot-scroll"]')!;expect(scroll.scrollLeft).toBe(400);expect(chart.shadowRoot!.activeElement).toBe(scroll);
+    const external=document.createElement('button');document.body.append(external);external.focus();chart.rows=[...chart.rows];expect(document.activeElement).toBe(external);expect(chart.shadowRoot!.querySelector<HTMLElement>('[part="plot-scroll"]')!.scrollLeft).toBe(400);
+  });
+  it("retains mark focus on reorder and returns focus to the region when that row disappears",()=>{
+    const chart=mount();chart.shadowRoot!.querySelector<HTMLElement>('[part="mark"]')!.focus();chart.rows=[...chart.rows].reverse();expect(chart.shadowRoot!.activeElement!.getAttribute('data-row-id')).toBe('0');chart.rows=chart.rows.filter(row=>row.id!=='0');expect(chart.shadowRoot!.activeElement!.getAttribute('part')).toBe('plot-scroll');
+  });
+  it("preserves external focus on first connect and transitions without a previous scroller",()=>{
+    const external=document.createElement('input');document.body.append(external);external.focus();
+    const chart=new BoxPlot();chart.orientation="vertical";chart.rows=[row];document.body.append(chart);expect(document.activeElement).toBe(external);
+    chart.rows=[];external.focus();chart.rows=[row];expect(document.activeElement).toBe(external);
+    chart.orientation="horizontal";external.focus();chart.orientation="vertical";expect(document.activeElement).toBe(external);
+  });
+  it("disconnects and recreates its resize observer across reconnect",()=>{
+    const observe=vi.fn(),disconnect=vi.fn(),construct=vi.fn();vi.stubGlobal('ResizeObserver',class{constructor(){construct();}observe=observe;disconnect=disconnect;});const chart=mount();expect(observe).toHaveBeenCalledWith(chart);chart.remove();expect(disconnect).toHaveBeenCalledOnce();document.body.append(chart);expect(construct).toHaveBeenCalledTimes(2);expect(observe).toHaveBeenCalledTimes(2);
   });
 });
