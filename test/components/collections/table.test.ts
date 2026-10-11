@@ -740,3 +740,32 @@ describe("Table expandable header and controlled sort focus", () => {
     expect(el.shadowRoot!.activeElement).toBeNull();
   });
 });
+
+describe("Table focus restoration render transaction", () => {
+  beforeEach(() => { Table.register(); });
+  afterEach(() => { document.body.innerHTML = ""; });
+
+  it.each(["rows", "columns", "loading", "error", "empty"])("keeps a focusin host update as the final DOM after %s rendering", state => {
+    const el = create("multiple");
+    el.shadowRoot!.querySelector<HTMLButtonElement>('[part="sort-button"]')!.focus();
+    el.addEventListener("focusin", () => {
+      el.rows = [{ id: "new", cells: { name: "Replacement B", owner: "New owner" } }];
+      if (state === "columns") el.columns = [{ key: "name", label: "New name", sortable: true }];
+      el.loading = false;
+      el.errorText = "";
+    }, { once: true });
+    if (state === "loading") el.loading = true;
+    else if (state === "error") el.errorText = "Before update";
+    else if (state === "empty") el.rows = [];
+    else el.setAttribute("sort-direction", "descending");
+    expect(el.rows.map(row => row.id)).toEqual(["new"]);
+    expect(el.shadowRoot!.querySelector("tbody")!.textContent).toContain("Replacement B");
+    expect(el.shadowRoot!.querySelector('[part="row"]')?.getAttribute("data-id")).toBe("new");
+    if (state === "columns") {
+      expect(el.shadowRoot!.querySelector("thead")!.textContent).toContain("New name");
+      expect(el.shadowRoot!.querySelectorAll("tbody td").length).toBe(1);
+    }
+    (el.shadowRoot!.querySelector('[part="row"]') as HTMLElement).click();
+    expect(el.selectedIds).toEqual(["new"]);
+  });
+});

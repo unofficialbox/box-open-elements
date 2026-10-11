@@ -848,6 +848,22 @@ export class Table extends BaseElement {
     const focusedSortKey = activeHeader?.getAttribute("part") === "sort-button" && this.headEl.contains(activeHeader)
       ? activeHeader.closest<HTMLElement>("th[data-key]")?.dataset.key
       : undefined;
+    this.renderTable();
+
+    // Restore only after the DOM transaction, including early state returns.
+    // focus() can synchronously trigger a host update; that newer render must
+    // remain final rather than being overwritten by this render’s old rows.
+    // Controlled sort/row updates replace the header. Restore only its active
+    // sort button, by column identity; never steal focus from host controls or
+    // move it to a different column when the active one has been removed.
+    if (focusedSortKey !== undefined) {
+      const header = Array.from(this.headEl.querySelectorAll<HTMLElement>("th[data-key]"))
+        .find(cell => cell.dataset.key === focusedSortKey);
+      header?.querySelector<HTMLButtonElement>('[part="sort-button"]')?.focus({ preventScroll: true });
+    }
+  }
+
+  private renderTable(): void {
     const columns = this.columns;
     const rows = this.rows;
     const selectable = this.selectionMode !== "none";
@@ -905,15 +921,6 @@ export class Table extends BaseElement {
       this.headEl.innerHTML = `<tr part="group-header-row">${detailHeader}${groups}</tr><tr part="header-row">${leaves}</tr>`;
     } else {
       this.headEl.innerHTML = `<tr part="header-row">${detailHeader}${columns.map(column => headerCell(column)).join("")}</tr>`;
-    }
-
-    // Controlled sort/row updates replace the header. Restore only its active
-    // sort button, by column identity; never steal focus from host controls or
-    // move it to a different column when the active one has been removed.
-    if (focusedSortKey !== undefined) {
-      const header = Array.from(this.headEl.querySelectorAll<HTMLElement>("th[data-key]"))
-        .find(cell => cell.dataset.key === focusedSortKey);
-      header?.querySelector<HTMLButtonElement>('[part="sort-button"]')?.focus({ preventScroll: true });
     }
 
     // A state row is never windowed. Cleared up front so a table that drops
