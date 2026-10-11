@@ -50,6 +50,12 @@ const iconButtonStyles = `
       box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
+  [part="button"][data-size="small"] {
+    box-sizing: border-box;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
   [part="button"]:hover:not(:disabled) {
     border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 28%, var(--boe-token-stroke-stroke, #e8e8e8) 72%);
     background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%);
@@ -86,9 +92,40 @@ const iconButtonStyles = `
     color: var(--boe-token-text-text-on-brand, #ffffff);
   }
 
+  [part="button"][data-variant="quiet"] {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+  }
+
+  [part="button"][data-variant="quiet"][data-tone="primary"],
+  [part="button"][data-variant="quiet"][data-tone="primary"]:hover:not(:disabled) {
+    color: var(--boe-token-surface-surface-brand, #0061d5);
+  }
+
+  [part="button"][data-variant="quiet"][data-tone="danger"],
+  [part="button"][data-variant="quiet"][data-tone="danger"]:hover:not(:disabled) {
+    color: var(--boe-token-surface-status-surface-error, #ed3757);
+  }
+
+  [part="button"][data-variant="quiet"]:hover:not(:disabled) {
+    background: color-mix(in srgb, currentColor 10%, transparent);
+    border-color: currentColor;
+  }
+
+  [part="button"][data-variant="quiet"]:active:not(:disabled) {
+    background: color-mix(in srgb, currentColor 18%, transparent);
+  }
+
   [part="button"]:focus-visible {
     outline: none;
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
+  }
+
+  [part="button"][data-variant="quiet"]:focus-visible {
+    outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
+    outline-offset: 2px;
   }
 
   [part="button"]:disabled {
@@ -104,7 +141,8 @@ const iconButtonStyles = `
     line-height: 1;
   }
 
-  [part="icon"] svg {
+  [part="icon"] svg,
+  [part="icon"] ::slotted(svg) {
     width: 1.1em;
     height: 1.1em;
     display: block;
@@ -121,11 +159,13 @@ export class IconButton extends BaseElement {
   };
 
   static get observedAttributes(): string[] {
-    return ["disabled", "icon", "label", "tone"];
+    return ["disabled", "icon", "label", "tone", "size", "variant"];
   }
 
   private buttonEl!: HTMLButtonElement;
   private iconEl!: HTMLElement;
+  private iconSlot!: HTMLSlotElement;
+  private fallbackIconEl!: HTMLElement;
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -163,6 +203,22 @@ export class IconButton extends BaseElement {
     this.setAttribute("tone", value);
   }
 
+  get size(): string {
+    return this.getAttribute("size") ?? "medium";
+  }
+
+  set size(value: string) {
+    this.setAttribute("size", value);
+  }
+
+  get variant(): string {
+    return this.getAttribute("variant") ?? "default";
+  }
+
+  set variant(value: string) {
+    this.setAttribute("variant", value);
+  }
+
   connectedCallback(): void {
     globalThis.addEventListener?.(DESIGN_SYSTEM_CHANGE_EVENT, this.handleDesignSystemChange as EventListener);
     super.connectedCallback();
@@ -180,11 +236,14 @@ export class IconButton extends BaseElement {
     this.shadowRoot.innerHTML = `
       <style>${iconButtonStyles}</style>
       <button type="button" part="button">
-        <span part="icon" aria-hidden="true"></span>
+        <span part="icon" aria-hidden="true"><slot name="icon"><span data-icon-fallback></span></slot></span>
       </button>
     `;
     this.buttonEl = this.shadowRoot.querySelector('[part="button"]')!;
     this.iconEl = this.shadowRoot.querySelector('[part="icon"]')!;
+    this.iconSlot = this.shadowRoot.querySelector('slot[name="icon"]')!;
+    this.fallbackIconEl = this.shadowRoot.querySelector('[data-icon-fallback]')!;
+    this.iconSlot.addEventListener("slotchange", () => this.update());
   }
 
   protected update(): void {
@@ -198,14 +257,18 @@ export class IconButton extends BaseElement {
     this.buttonEl.setAttribute("aria-label", this.label);
     this.buttonEl.setAttribute("title", this.label);
     this.buttonEl.dataset.tone = this.tone;
+    this.buttonEl.dataset.size = this.size;
+    this.buttonEl.dataset.variant = this.variant;
     if (this.disabled) {
       this.buttonEl.setAttribute("disabled", "");
     } else {
       this.buttonEl.removeAttribute("disabled");
     }
 
-    this.iconEl.dataset.iconSource = resolvedIcon ? "design-system" : "text";
-    this.iconEl.innerHTML = iconMarkup;
+    this.iconEl.dataset.iconSource = this.iconSlot.assignedNodes().length
+      ? "slot"
+      : resolvedIcon ? "design-system" : "text";
+    this.fallbackIconEl.innerHTML = iconMarkup;
   }
 }
 

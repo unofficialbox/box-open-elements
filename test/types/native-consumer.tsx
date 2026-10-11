@@ -111,3 +111,8 @@ metric.size = "compact";
 metric.tone = "error";
 // @ts-expect-error compact summaries expose only supported value tones
 metric.tone = "danger";
+
+const removeButton = document.createElement("box-icon-button");
+removeButton.size = "small";
+removeButton.variant = "quiet";
+removeButton.label = "Remove target";
