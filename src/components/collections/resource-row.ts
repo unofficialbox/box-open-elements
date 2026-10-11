@@ -63,14 +63,15 @@ export class ResourceRow extends BaseElement {
     this.statusEl.hidden = this.statusSlot.assignedElements().length > 0;
     this.selectEl.disabled = this.disabled;
     this.selectEl.setAttribute("aria-pressed", String(this.selected));
-    this.selectEl.setAttribute("aria-label", this.label);
+    // The native button derives its name from its visible label and metadata.
+    this.selectEl.removeAttribute("aria-label");
     const slottedStatus = this.statusSlot.assignedNodes({ flatten: true }).map(node =>
       node instanceof Element
         ? node.getAttribute("aria-label") ?? node.getAttribute("label") ?? node.textContent ?? ""
         : node.textContent ?? "",
     ).map(value => value.trim()).filter(Boolean).join(" ");
-    const spokenStatus = this.status || slottedStatus;
-    if (this.meta || spokenStatus) this.selectEl.setAttribute("aria-description", [this.meta.replaceAll("\n", ", "), spokenStatus].filter(Boolean).join("; "));
+    const spokenStatus = this.statusSlot.assignedElements().length > 0 ? slottedStatus : this.status;
+    if (spokenStatus) this.selectEl.setAttribute("aria-description", spokenStatus);
     else this.selectEl.removeAttribute("aria-description");
   }
 }

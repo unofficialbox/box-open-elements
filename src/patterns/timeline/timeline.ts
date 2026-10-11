@@ -1,3 +1,4 @@
+import { toneTextColor } from "../../foundations/tokens/internal/tone-text.js";
 import { isTimelineEventRecord, resolveTimelineTone } from "./types.js";
 import type { TimelineEntrySubmittedDetail, TimelineEvent } from "./types.js";
 import { formatItemDate } from "../content-explorer/adapters/item-summary.js";
@@ -161,7 +162,7 @@ const elementStyles = `
           padding: 0.16rem 0.45rem;
           border-radius: 999px;
           background: color-mix(in srgb, var(--timeline-tone, var(--boe-token-surface-surface-brand, #0061d5)) 12%, transparent);
-          color: color-mix(in srgb, var(--timeline-tone, var(--boe-token-surface-surface-brand, #0061d5)) 74%, black 26%);
+          color: var(--timeline-text, var(--boe-token-text-text-secondary, #6f6f6f));
           font-size: 0.75rem;
           font-weight: 600;
         }
@@ -395,7 +396,7 @@ export class Timeline extends BaseElement {
         const timestamp = event.timestamp ? formatItemDate(event.timestamp) : "";
 
         return `
-          <li part="event" data-event-id="${escapeHtml(event.id)}" style="--timeline-tone:${toneColor(tone)};">
+          <li part="event" data-event-id="${escapeHtml(event.id)}" style="--timeline-tone:${toneColor(tone)};--timeline-text:${toneTextColor(tone)};">
             <span part="marker-rail" aria-hidden="true"><span part="marker"></span></span>
             <div part="event-body">
               <div part="event-topline">

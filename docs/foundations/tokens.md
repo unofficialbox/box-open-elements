@@ -239,3 +239,15 @@ The focus ring always resolves through `--boe-token-surface-surface-brand` (opaq
 
 - Expand the Box default bundle only with tokens and assets actually used by components or the docs site.
 - Add a build-time extraction script if we want to mirror more of `@box/blueprint-web-assets` automatically.
+
+## Status label contrast
+
+Translucent status labels in Path, RunTrace, Table and Timeline use semantic
+`TextStatusTextSuccess`, `TextStatusTextWarning` and `TextStatusTextError` tokens.
+Brand and neutral tinted labels use primary text. Keep these text tokens readable
+on the themed panel surface when overriding status fills.
+
+Opaque Badge fills keep their tone colors and choose black or white text with
+CSS `contrast-color()` when supported. Older browsers use dark text that covers
+the built-in light/dark palettes. A custom opaque palette on those browsers can
+set text through `box-badge::part(badge)`; check small labels at 4.5:1 or better.

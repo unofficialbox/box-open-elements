@@ -24,7 +24,10 @@ describe("box-resource-row", () => {
     const events: string[] = [];
     row.addEventListener("select", (event) => events.push((event as CustomEvent).detail.value));
     const select = row.shadowRoot!.querySelector("button")!;
-    expect(select.getAttribute("aria-label")).toBe("Production Box");
+    expect(select.hasAttribute("aria-label")).toBe(false);
+    expect(select.textContent).toContain("Production Box");
+    expect(select.textContent).toContain("Enterprise 12345");
+    expect(select.getAttribute("aria-description")).toBe("Ready");
     expect(select.getAttribute("aria-pressed")).toBe("false");
     select.click();
     row.querySelector("button")!.click();
@@ -51,6 +54,26 @@ describe("box-resource-row", () => {
       .dispatchEvent(new Event("slotchange"));
     expect(row.shadowRoot!.querySelector("button")!.getAttribute("aria-description"))
       .toContain("Ready for deployment");
+  });
+  it("describes the visible slotted status instead of a hidden fallback", () => {
+    const row = mount();
+    const status = document.createElement("span");
+    status.slot = "status";
+    status.textContent = "Checking";
+    row.append(status);
+    row.shadowRoot!.querySelector<HTMLSlotElement>('slot[name="status"]')!
+      .dispatchEvent(new Event("slotchange"));
+    const select = row.shadowRoot!.querySelector("button")!;
+    expect(select.getAttribute("aria-description")).toBe("Checking");
+    row.meta = "Updated account";
+    expect(select.hasAttribute("aria-label")).toBe(false);
+    expect(select.textContent).toContain("Updated account");
+    status.remove();
+    row.shadowRoot!.querySelector<HTMLSlotElement>('slot[name="status"]')!
+      .dispatchEvent(new Event("slotchange"));
+    expect(select.getAttribute("aria-description")).toBe("Ready");
+    row.status = "";
+    expect(select.hasAttribute("aria-description")).toBe(false);
   });
   it("defines a narrow-width stacking rule", () => {
     expect(rowStyle(mount())).toContain("@container (max-width: 320px)");

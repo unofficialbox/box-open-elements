@@ -17,9 +17,9 @@ with each row in an `<li>`) when a row also has actions.
 </ul>
 ```
 
-The inner selection button has the row label as its accessible name,
-`aria-pressed` for selection, and an `aria-description` containing metadata and
-status. Enter/Space activate it and emit `select` with `{ value }`; the host
+The inner selection button derives its accessible name from the visible label
+and metadata. `aria-pressed` reports selection; `aria-description` supplies the
+status without repeating the metadata. Enter/Space activate it and emit `select` with `{ value }`; the host
 sets `selected` after accepting that event. Actions in the `actions` slot keep
 their own focus, name and events and never emit `select`. `disabled` disables
 only selection; action availability remains the host's decision. `active` is a
@@ -28,5 +28,5 @@ visual emphasis, not a second keyboard-focus model. At container widths below
 
 The `status` text attribute is a non-interactive descriptor. A slotted status
 badge is optional; if used, the component suppresses the duplicate plain-text
-status. The selection button describes either the `status` attribute or the
-slotted badge's `aria-label`, `label`, or text, so hosts need not duplicate it.
+status. The selection button describes the visible slotted badge's `aria-label`, `label`, or text, falling back to the `status` attribute when no status element is slotted,
+so hosts need not duplicate it.

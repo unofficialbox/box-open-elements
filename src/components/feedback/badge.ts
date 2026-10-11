@@ -39,24 +39,38 @@ const badgeStyles = `
 
   [part="badge"][data-tone="info"],
   [part="badge"][data-tone="brand"] {
-    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 50%, #fff);
-    color: #ffffff;
+    --badge-fill: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 50%, #fff);
+    background: var(--badge-fill);
+    color: #07100c;
   }
 
   [part="badge"][data-tone="success"] {
-    background: var(--boe-token-surface-status-surface-success, #26c281);
-    color: #ffffff;
+    --badge-fill: var(--boe-token-surface-status-surface-success, #26c281);
+    background: var(--badge-fill);
+    color: #07100c;
   }
 
   [part="badge"][data-tone="error"] {
-    background: var(--boe-token-surface-status-surface-error, #ed3757);
-    color: #ffffff;
+    --badge-fill: var(--boe-token-surface-status-surface-error, #ed3757);
+    background: var(--badge-fill);
+    color: #07100c;
   }
 
   [part="badge"][data-tone="warning"],
   [part="badge"][data-tone="inprogress"] {
-    background: var(--boe-token-surface-status-surface-inprogress, #f5b31b);
-    color: #ffffff;
+    --badge-fill: var(--boe-token-surface-status-surface-inprogress, #f5b31b);
+    background: var(--badge-fill);
+    color: #07100c;
+  }
+
+  /* Pick black or white from the actual opaque fill. The fallback covers the
+     built-in palettes and browsers without contrast-color(). */
+  @supports (color: contrast-color(#fff)) {
+    [part="badge"][data-tone="info"], [part="badge"][data-tone="brand"],
+    [part="badge"][data-tone="success"], [part="badge"][data-tone="error"],
+    [part="badge"][data-tone="warning"], [part="badge"][data-tone="inprogress"] {
+      color: contrast-color(var(--badge-fill));
+    }
   }
 
   /* Hidden when used as a count that is zero/empty with hide-when-zero. */

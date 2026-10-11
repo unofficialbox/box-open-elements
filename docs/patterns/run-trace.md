@@ -40,3 +40,7 @@ connector pseudo-element.
 Set these on `box-run-trace` (or an ancestor) to override either preset. Keep
 marker size no larger than marker column width; otherwise the glyph can spill
 into the text column. The `plain` variant intentionally hides connectors.
+
+Status labels use semantic text tokens on translucent status fills. Custom themes
+should provide readable `TextStatusTextSuccess`, `TextStatusTextWarning`, and
+`TextStatusTextError` values for their panel surfaces.

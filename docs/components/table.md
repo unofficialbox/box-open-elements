@@ -36,3 +36,6 @@ remains host-controlled: the `sort` event requests a key/direction, and the host
 updates `sort-key`, `sort-direction` and rows. Those updates retain keyboard
 focus on the active column’s sort button, so repeated Enter or Space can sort
 again; removing that sortable column does not move focus to another column.
+
+Badge cells keep their tone fills and use semantic status text tokens for readable
+labels in light and dark themes. Brand and neutral labels use primary text.
