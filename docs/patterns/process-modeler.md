@@ -205,7 +205,7 @@ persistence data is created by BOE.
 Ctrl/Command+Z and Shift+Ctrl/Command+Z undo and
 redo only when local history can handle them; empty or locked history leaves
 the key for the host. Escape closes an open View menu or cancels a connection
-or reattachment. An idle Escape does not announce a cancelled connection.
+or reattachment before changing selection. When no action is in progress, Escape clears the selection and returns the details to the process tabs. An idle Escape does not announce a cancelled connection.
 
 Background drag, Space-drag over a step, and trackpad scroll pan; Control-wheel and two-pointer pinch
 zoom. The floating controls offer zoom, 100% reset, fit, snap and lock. The

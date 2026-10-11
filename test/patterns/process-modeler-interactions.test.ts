@@ -857,6 +857,28 @@ describe("Process Modeler prototype interactions", () => {
     summary.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }));
     expect(menu.open).toBe(false);
   });
+  it.each(['canvas', 'box', 'mixed'] as const)('idle Escape clears selection and returns process tabs (%s)', mode => {
+    const { builder, root, canvas } = fixture();
+    const step = root.querySelector<HTMLElement>('[data-box-id=a]')!; step.focus();
+    if (mode === 'mixed') builder.selectItems([{ type: 'box', id: 'a' }, { type: 'line', id: 'ab' }]);
+    const changed = vi.fn(); builder.addEventListener('selection-changed', changed);
+    const target = mode === 'box' ? step : canvas; target.focus();
+    target.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(builder.selectedPath).toBeNull(); expect(builder.selection).toEqual([]);
+    expect(changed).toHaveBeenCalledOnce(); expect(changed.mock.calls[0][0].detail.path).toBeNull();
+    expect(root.querySelector('[role=tablist]')).not.toBeNull();
+    expect(root.activeElement).toBe(mode === 'box' ? root.querySelector('[data-box-id=a]') : canvas);
+    root.activeElement!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(changed).toHaveBeenCalledOnce();
+  });
+  it('Escape cancels connecting before clearing the source selection', () => {
+    const { builder, root, canvas } = fixture(); builder.select('a');
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'c', bubbles: true, cancelable: true }));
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(builder.selected?.id).toBe('a'); expect(root.querySelector('[part=status]')!.textContent).toBe('Connecting cancelled');
+    canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(builder.selected).toBeNull();
+  });
   it("closes the View menu with Escape and announces cancellation only for an active connection", () => {
     const { builder, root, canvas } = fixture();
     const menu = root.querySelector<HTMLDetailsElement>('[part=view-menu]')!;
