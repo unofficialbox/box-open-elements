@@ -1,3 +1,4 @@
+import { toneTextColor } from "../../foundations/tokens/internal/tone-text.js";
 import { BaseElement, resolveRowWindow, sameRowWindow } from "../../core/index.js";
 import type { RowWindow } from "../../core/index.js";
 import { boePanel, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
@@ -232,7 +233,7 @@ const tableStyles = `
     border-radius: 999px;
     font-size: 0.74rem;
     font-weight: 700;
-    color: color-mix(in srgb, var(--cell-tone, var(--boe-token-text-text-secondary, #6f6f6f)) 76%, black 24%);
+    color: var(--cell-text, var(--boe-token-text-text-secondary, #6f6f6f));
     background: color-mix(in srgb, var(--cell-tone, var(--boe-token-text-text-secondary, #6f6f6f)) 14%, transparent);
     border: 1px solid color-mix(in srgb, var(--cell-tone, var(--boe-token-text-text-secondary, #6f6f6f)) 30%, transparent);
   }
@@ -594,7 +595,7 @@ export class Table extends BaseElement {
           : tone === "brand"
             ? "var(--boe-token-surface-surface-brand, #0061d5)"
             : `var(--boe-token-surface-status-surface-${tone}, #6f6f6f)`;
-      return `<span part="cell-badge" style="--cell-tone:${toneVar};">${escapeHtml(value.text)}</span>`;
+      return `<span part="cell-badge" style="--cell-tone:${toneVar};--cell-text:${toneTextColor(tone)};">${escapeHtml(value.text)}</span>`;
     }
     if (value.kind === "link" && value.href && isSafeHref(value.href)) {
       const target = typeof value.target === "string" ? ` target="${escapeHtml(value.target)}"` : "";

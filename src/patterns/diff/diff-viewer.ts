@@ -405,7 +405,7 @@ export class DiffViewer extends BaseElement {
           <h2 part="title"></h2>
           <span part="stats"></span>
           <span part="nav" hidden>
-            <button type="button" part="nav-previous" aria-label="Previous change">‹ Prev</button>
+            <button type="button" part="nav-previous" aria-label="Previous change">‹ Previous</button>
             <span part="nav-position" aria-live="polite"></span>
             <button type="button" part="nav-next" aria-label="Next change">Next ›</button>
           </span>

@@ -39,3 +39,8 @@ drawer open, for example while confirming unsaved changes. Programmatic
 to the previously focused control after closing; when the header button is
 hidden, initial focus goes to the drawer surface. The host can then move focus
 to its preferred control.
+
+When checking contrast for transparent slotted content, use the painted drawer
+panel as its background. A native dialog's scrim behind the panel is not the
+background behind that text; verify computed ancestor surfaces and screenshot
+pixels if an automated report attributes text contrast to the scrim.

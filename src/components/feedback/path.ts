@@ -155,7 +155,7 @@ const elementStyles = `
 
         [part="stage"][data-state="complete"] {
           background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26a27b) 18%, transparent);
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26a27b) 72%, black 28%);
+          color: var(--boe-token-text-status-text-success, #187657);
         }
 
         [part="stage"][data-state="current"] {

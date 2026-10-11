@@ -358,7 +358,7 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     boeValue: T.SurfaceStatusSurfaceSuccess,
     kind: "color",
     boeComponent: BADGE,
-    boeAnchor: "background: var(--boe-token-surface-status-surface-success, #26c281)",
+    boeAnchor: "--badge-fill: var(--boe-token-surface-status-surface-success, #26c281)",
     upstream: { selector: ".badge-success", state: "base", property: "background" },
     tolerance: 0,
     citation: ".badge-success background",
@@ -370,7 +370,7 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     boeValue: T.SurfaceStatusSurfaceError,
     kind: "color",
     boeComponent: BADGE,
-    boeAnchor: "background: var(--boe-token-surface-status-surface-error, #ed3757)",
+    boeAnchor: "--badge-fill: var(--boe-token-surface-status-surface-error, #ed3757)",
     upstream: { selector: ".badge-error", state: "base", property: "background" },
     tolerance: 0,
     citation: ".badge-error background",
@@ -382,7 +382,7 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     boeValue: T.SurfaceStatusSurfaceInprogress,
     kind: "color",
     boeComponent: BADGE,
-    boeAnchor: "background: var(--boe-token-surface-status-surface-inprogress, #f5b31b)",
+    boeAnchor: "--badge-fill: var(--boe-token-surface-status-surface-inprogress, #f5b31b)",
     upstream: { selector: ".badge-warning", state: "base", property: "background" },
     tolerance: 0,
     citation: ".badge-warning background (box-open-elements inprogress/warning tone)",
@@ -395,7 +395,7 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     kind: "color",
     boeComponent: BADGE,
     boeAnchor:
-      "background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 50%, #fff)",
+      "--badge-fill: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 50%, #fff)",
     // ±1 per channel: the 50/50 sRGB mix lands on #80b0ea (127.5 → 128); upstream
     // authored #7fb0ea (127). Same design intent, sub-perceptual rounding.
     upstream: { selector: ".badge-info", state: "base", property: "background" },
@@ -406,13 +406,14 @@ export const COLOR_CLAIMS: readonly ColorClaim[] = [
     id: "badge.status.text",
     surface: "badge/status",
     boeConst: "badge.ts status tone text",
-    boeValue: "#ffffff",
+    boeValue: "#07100c",
     kind: "color",
     boeComponent: BADGE,
-    boeAnchor: "color: #ffffff",
+    boeAnchor: "color: #07100c",
     upstream: { selector: ".badge-success", state: "base", property: "color" },
     tolerance: 0,
-    citation: ".badge-success color",
+    citation: ".badge-success color (accessible opaque-fill fallback)",
+    accessibilityRationale: "PR515: legacy white small-label text fails contrast on the unchanged success/error/amber/info fills. Dark fallback passes the built-in and Dispatch light/dark palettes at 4.5:1; supported browsers adapt black/white to the actual opaque fill. Real Chrome/Firefox theme, fallback and dark-fill evidence is preserved in the PR515 review handoff.",
   },
 
   // === Menu item selected (box-menu-item[data-selected]) ↔ `.menu-item.is-active` ===

@@ -1,3 +1,4 @@
+import { toneTextColor } from "../../foundations/tokens/internal/tone-text.js";
 import {
   formatRunSummary,
   isRunStepRecord,
@@ -115,19 +116,19 @@ const elementStyles = `
 
         [part="summary"][data-status="completed"] {
           background: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26a27b) 14%, transparent);
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26a27b) 74%, black 26%);
+          color: var(--boe-token-text-status-text-success, #187657);
           border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-success, #26a27b) 32%, transparent);
         }
 
         [part="summary"][data-status="failed"] {
           background: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 14%, transparent);
-          color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 76%, black 24%);
+          color: var(--boe-token-text-status-text-error, #b92340);
           border-color: color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 32%, transparent);
         }
 
         [part="summary"][data-status="running"] {
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 12%, transparent);
-          color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 80%, black 20%);
+          color: var(--boe-token-text-text, #222222);
           border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 30%, transparent);
         }
 
@@ -211,7 +212,7 @@ const elementStyles = `
         [part="status"] {
           font-size: 0.76rem;
           font-weight: 700;
-          color: color-mix(in srgb, var(--run-tone, var(--boe-token-text-text-secondary, #6f6f6f)) 78%, black 22%);
+          color: var(--run-text, var(--boe-token-text-text-secondary, #6f6f6f));
         }
 
         [part="timestamp"],
@@ -287,7 +288,7 @@ const elementStyles = `
         [part="child-status"] {
           font-size: 0.74rem;
           font-weight: 700;
-          color: color-mix(in srgb, var(--run-tone, var(--boe-token-text-text-secondary, #6f6f6f)) 78%, black 22%);
+          color: var(--run-text, var(--boe-token-text-text-secondary, #6f6f6f));
         }
 
         [part="empty"] {
@@ -463,7 +464,7 @@ export class RunTrace extends BaseElement {
         const clamped =
           child.progress === undefined ? null : Math.max(0, Math.min(100, child.progress));
         return `
-          <li part="child" style="--run-tone:${STATUS_TONE[status]};">
+          <li part="child" style="--run-tone:${STATUS_TONE[status]};--run-text:${toneTextColor(status)};">
             <span part="child-label">${escapeHtml(child.label)}</span>
             ${
               clamped === null
@@ -507,7 +508,7 @@ export class RunTrace extends BaseElement {
           </div>
         `;
         return `
-          <li part="step" data-status="${status}" data-step-id="${escapeHtml(step.id)}" style="--run-tone:${STATUS_TONE[status]};">
+          <li part="step" data-status="${status}" data-step-id="${escapeHtml(step.id)}" style="--run-tone:${STATUS_TONE[status]};--run-text:${toneTextColor(status)};">
             <span part="marker" aria-hidden="true" ${settled ? "data-settled" : ""}>${boeStatusGlyph(toStatusKind(status))}</span>
             <div part="step-body">
               <div part="topline">

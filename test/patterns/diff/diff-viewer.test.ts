@@ -157,6 +157,12 @@ describe("box-diff-viewer", () => {
     expect(labels).toEqual(["Executed v2", "Redline v3"]);
   });
 
+  it("includes the visible previous label in the native navigation name", async () => {
+    const element = await mountViewer(el => { el.beforeText = "old"; el.afterText = "new"; });
+    const previous = element.shadowRoot!.querySelector<HTMLButtonElement>('[part="nav-previous"]')!;
+    expect(previous.textContent).toContain("Previous");
+    expect(previous.getAttribute("aria-label")).toBe("Previous change");
+  });
   it("escapes markup in document content", async () => {
     const element = await mountViewer(el => {
       el.beforeText = "safe";

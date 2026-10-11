@@ -149,8 +149,10 @@ jobs:
       # `accepted-divergence` and passes `--strict`; anything left unconfirmed
       # fails it. The conformant-count floor stays as a non-regression backstop.
       - name: Layer 2 colour conformance (--strict, offline)
-        # Two focus shadows and the control edge intentionally diverge for accessibility (#287, #310).
-        run: bun run bue-conformance:color --offline --strict --min-conformant=53
+        # Two focus shadows, control edge and Badge foreground intentionally diverge
+        # for accessibility (#287, #310, PR515). All 64 claims remain grounded;
+        # only badge.status.text moves from conformant to accepted-divergence.
+        run: bun run bue-conformance:color --offline --strict --min-conformant=52
 
   visual-regression:
     name: Visual regression (pixel diff, pinned container)
