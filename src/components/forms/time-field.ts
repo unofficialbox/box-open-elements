@@ -1,11 +1,12 @@
 import {
   FormAssociatedElement,
   boeFormFieldErrorStyles,
+  boeFormFieldSupportStyles,
+  formDescriptionMarkup,
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
-import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
-import { boeRadius } from "../../foundations/geometry/index.js";
+import { boeControl, boeInputControlStyles, boeSpace } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-time-field";
 
@@ -24,55 +25,41 @@ const timeFieldStyles = `
 
   [part="field"] {
     display: grid;
-    gap: 0.45rem;
+    gap: ${boeSpace[2]};
   }
 
   [part="label"] {
-    font-size: 0.8rem;
+    font-size: ${boeControl.fontSize};
     font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    color: var(--boe-token-text-text, #222222);
   }
 
   [part="input"] {
     appearance: none;
+    width: 100%;
     font: inherit;
-    color: var(--boe-token-text-text, #222222);
+    font-size: ${boeControl.fontSize};
     accent-color: var(--boe-token-surface-surface-brand, #0061d5);
-    padding: 0.45rem 0.7rem;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-    border-radius: ${boeRadius.control};
-    background: var(--boe-token-surface-surface, #ffffff);
-    transition:
-      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
-      background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
-      box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
-  [part="input"]:hover:not(:disabled) {
-    border-color: var(--boe-token-stroke-stroke-hover, #bcbcbc);
-  }
+  ${boeInputControlStyles('[part="input"]')}
 
-  [part="input"]:focus-visible {
-    outline: none;
-    border-color: var(--boe-token-surface-surface-brand, #0061d5);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent);
-  }
-
-  [part="input"]:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
+  /* Native date/time inputs share the select-sized form control row. */
+  [part="input"] {
+    min-height: ${boeControl.selectHeight};
+    height: ${boeControl.selectHeight};
+    padding-block: 5px;
   }
 
   ${boeFormFieldErrorStyles}
+  ${boeFormFieldSupportStyles}
 `;
 
 export class TimeField extends FormAssociatedElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
-      ...FormAssociatedElement.formObservedAttributes,
+      ...FormAssociatedElement.fieldObservedAttributes,
       "disabled",
       "label",
       "max",
@@ -85,6 +72,7 @@ export class TimeField extends FormAssociatedElement {
   private valueInternal = "";
   private inputEl!: HTMLInputElement;
   private labelEl!: HTMLElement;
+  private descriptionEl!: HTMLElement;
   private errorEl!: HTMLElement;
 
   get disabled(): boolean {
@@ -239,12 +227,14 @@ export class TimeField extends FormAssociatedElement {
       <style>${timeFieldStyles}</style>
       <label part="field">
         <span part="label"></span>
+        ${formDescriptionMarkup()}
         <input type="time" part="input" />
         ${formErrorMessageMarkup()}
       </label>
     `;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.inputEl = this.shadowRoot.querySelector('[part="input"]')!;
+    this.descriptionEl = this.shadowRoot.querySelector('[part="description"]')!;
     this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
@@ -284,6 +274,7 @@ export class TimeField extends FormAssociatedElement {
       this.inputEl.removeAttribute("disabled");
     }
 
+    this.applyFieldSupport(this.labelEl, this.inputEl, this.descriptionEl);
     this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }

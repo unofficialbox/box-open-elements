@@ -13,6 +13,45 @@ describe("DateField", () => {
     document.body.innerHTML = "";
   });
 
+  it("reactively connects label, description, required and error state without replacing a focused input", () => {
+    const element = document.createElement("box-date-field") as DateField;
+    element.label = "Schedule time";
+    element.description = "Choose the local time";
+    element.required = true;
+    element.invalid = true;
+    element.errorMessage = "Outside the allowed range";
+    document.body.append(element);
+    const input = element.shadowRoot!.querySelector('[part="input"]') as HTMLInputElement;
+    const label = element.shadowRoot!.querySelector('[part="label"]') as HTMLElement;
+    const description = element.shadowRoot!.querySelector('[part="description"]') as HTMLElement;
+    const error = element.shadowRoot!.querySelector('[part="error-message"]') as HTMLElement;
+    expect(input.getAttribute("aria-labelledby")).toBe(label.id);
+    expect(input.getAttribute("aria-describedby")).toBe(description.id);
+    expect(description.textContent).toBe("Choose the local time");
+    expect(description.hidden).toBe(false);
+    expect(input.required).toBe(true);
+    expect(label.querySelector(".boe-required-mark")).toBeTruthy();
+    expect(input.getAttribute("aria-invalid")).toBe("true");
+    expect(input.getAttribute("aria-errormessage")).toBe(error.id);
+    expect(error.hidden).toBe(false);
+    input.focus();
+    element.label = "Updated label";
+    element.description = "";
+    element.required = false;
+    element.invalid = false;
+    element.hideLabel = true;
+    expect(element.shadowRoot!.querySelector('[part="input"]')).toBe(input);
+    expect(element.shadowRoot!.activeElement).toBe(input);
+    expect(input.getAttribute("aria-labelledby")).toBe(label.id);
+    expect(input.hasAttribute("aria-describedby")).toBe(false);
+    expect(description.hidden).toBe(true);
+    expect(input.required).toBe(false);
+    expect(label.querySelector(".boe-required-mark")).toBeNull();
+    expect(input.getAttribute("aria-invalid")).toBe("false");
+    expect(input.hasAttribute("aria-errormessage")).toBe(false);
+    expect(error.hidden).toBe(true);
+  });
+
   it("emits value changes when the date changes", () => {
     const element = document.createElement("box-date-field") as DateField;
     const changed = vi.fn();

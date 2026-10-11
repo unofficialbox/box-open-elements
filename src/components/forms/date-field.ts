@@ -8,7 +8,7 @@ import {
 import type { FormValue } from "../../core/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/interaction.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
-import { boeRadius } from "../../foundations/geometry/index.js";
+import { boeControl, boeInputControlStyles, boeRadius, boeSpace } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-date-field";
 
@@ -27,36 +27,30 @@ const dateFieldStyles = `
 
   [part="field"] {
     display: grid;
-    gap: 0.45rem;
+    gap: ${boeSpace[2]};
   }
 
   [part="label"] {
-    font-size: 0.8rem;
+    font-size: ${boeControl.fontSize};
     font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--boe-token-text-text-secondary, #6f6f6f);
+    color: var(--boe-token-text-text, #222222);
   }
 
   [part="input"] {
     appearance: none;
+    width: 100%;
     font: inherit;
-    color: var(--boe-token-text-text, #222222);
+    font-size: ${boeControl.fontSize};
     accent-color: var(--boe-token-surface-surface-brand, #0061d5);
-    padding: 0.45rem 0.7rem;
-    border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
-    border-radius: ${boeRadius.control};
-    background: var(--boe-token-surface-surface, #ffffff);
-    transition:
-      border-color ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
-      background ${boeMotionDuration.interactive} ${boeMotionEasing.standard},
-      box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
-  ${boeNeutralInteractiveStyles('[part="input"]')}
+  ${boeInputControlStyles('[part="input"]')}
 
-  [part="input"]:focus-visible {
-    border-color: var(--boe-token-surface-surface-brand, #0061d5);
+  /* Native date/time inputs share the select-sized form control row. */
+  [part="input"] {
+    min-height: ${boeControl.selectHeight};
+    height: ${boeControl.selectHeight};
+    padding-block: 5px;
   }
 
   /* Control wrapper — layout-neutral until a clear button appears. */

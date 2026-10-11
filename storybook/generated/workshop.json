@@ -9220,6 +9220,24 @@
       "referenceRows": [
         {
           "kind": "attribute",
+          "name": "description",
+          "type": "string",
+          "description": "Help text associated with the native input."
+        },
+        {
+          "kind": "attribute",
+          "name": "invalid",
+          "type": "boolean",
+          "description": "Marks the input invalid."
+        },
+        {
+          "kind": "attribute",
+          "name": "error-message",
+          "type": "string",
+          "description": "Validation error associated with the input while invalid."
+        },
+        {
+          "kind": "attribute",
           "name": "label",
           "type": "string",
           "description": "Accessible control label."
