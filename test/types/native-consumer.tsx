@@ -105,3 +105,9 @@ table.columns = [{ key: "step", label: "Step", rowHeader: true },
 table.rows = [{ id: "run", cells: { step: { kind: "link", text: "Report",
   href: "/report", target: "_blank", download: "run.csv", ariaLabel: "Run report" },
   failed: { text: "3", tone: "error" } } }];
+
+const metric = document.createElement("box-metric-card");
+metric.size = "compact";
+metric.tone = "error";
+// @ts-expect-error compact summaries expose only supported value tones
+metric.tone = "danger";
