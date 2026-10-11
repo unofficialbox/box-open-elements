@@ -163,6 +163,16 @@ describe("box-diff-viewer", () => {
     expect(previous.textContent).toContain("Previous");
     expect(previous.getAttribute("aria-label")).toBe("Previous change");
   });
+  it("keeps small visible line numbers at the semantic text token's full opacity", async () => {
+    const element = await mountViewer(el => { el.beforeText = "unchanged\nold"; el.afterText = "unchanged\nnew"; });
+    const style = element.shadowRoot!.querySelector("style")!.textContent!;
+    const rule = style.match(/\[part="line-number"\]\s*\{([^}]+)\}/)![1]!;
+    expect(rule).toContain("color: var(--boe-token-text-text-secondary, #6f6f6f);");
+    expect(rule).not.toContain("color: color-mix");
+    const number = element.shadowRoot!.querySelector('[data-kind="equal"] [part="line-number"]')!;
+    expect(number.textContent).toBe("1");
+    expect(number.hasAttribute("aria-hidden")).toBe(false);
+  });
   it("escapes markup in document content", async () => {
     const element = await mountViewer(el => {
       el.beforeText = "safe";
