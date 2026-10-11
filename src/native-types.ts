@@ -23,7 +23,7 @@ export interface BoxElementPropertyKeys {
   "box-badge": "hideWhenZero" | "label" | "max" | "tone";
   "box-badgeable": never;
   "box-bar-chart": "actions" | "heading" | "legend" | "message" | "points" | "summary" | "timeframe";
-  "box-box-plot": "description" | "format" | "heading" | "orientation" | "rows" | "scale" | "unit" | "whiskers";
+  "box-box-plot": "description" | "embedded" | "format" | "heading" | "headingLevel" | "hideNote" | "orientation" | "rows" | "scale" | "unit" | "whiskers";
   "box-breadcrumb": "items" | "label" | "maxItems";
   "box-bulk-action-bar": "actions" | "clearLabel" | "count" | "items" | "label" | "message";
   "box-button": "accessibleLabel" | "disabled" | "isLoading" | "label" | "size" | "tone" | "type";
