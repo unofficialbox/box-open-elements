@@ -145,6 +145,7 @@ export class Switch extends FormAssociatedElement {
   private thumbEl!: HTMLElement;
   private labelEl!: HTMLElement;
   private descriptionEl!: HTMLElement;
+  private readonly descriptionId = "box-switch-description";
   private contentEl!: HTMLElement;
   private errorEl!: HTMLElement;
 
@@ -278,7 +279,7 @@ export class Switch extends FormAssociatedElement {
         </span>
         <span part="content">
           <span part="label"></span>
-          <span part="description"></span>
+          <span part="description" id="${this.descriptionId}"></span>
         </span>
       </button>
       ${formErrorMessageMarkup()}
@@ -325,9 +326,11 @@ export class Switch extends FormAssociatedElement {
     if (desc) {
       this.descriptionEl.textContent = desc;
       this.descriptionEl.style.display = "";
+      this.switchEl.setAttribute("aria-describedby", this.descriptionId);
     } else {
       this.descriptionEl.textContent = "";
       this.descriptionEl.style.display = "none";
+      this.switchEl.removeAttribute("aria-describedby");
     }
 
     this.applyInvalidState(this.switchEl, this.errorEl);
