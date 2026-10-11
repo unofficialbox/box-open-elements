@@ -4,6 +4,7 @@ import type {} from "@unofficialbox/box-open-elements/react-jsx";
 
 const path: Path = document.createElement("box-path");
 const table: Table = document.createElement("box-table");
+table.stackedLayout = "grid";
 const field: TextField = document.createElement("box-text-field");
 
 path.stages = [{ id: "draft", label: "Draft" }];
@@ -36,7 +37,7 @@ document.createElement("box-toast").addEventListener("dismiss", event => {
 
 const view = <>
   <box-path stages={[{ id: "draft", label: "Draft" }]} hasError={true} />
-  <box-table rows={[{ id: "row-1", cells: { name: "Contract" } }]}
+  <box-table stackedLayout="grid" rows={[{ id: "row-1", cells: { name: "Contract" } }]}
     onselection-changed={event => { const ids: string[] = event.detail.selectedIds; void ids; }} />
   <box-resource-row selected={true} />
   <box-alert open={true} />

@@ -769,3 +769,63 @@ describe("Table focus restoration render transaction", () => {
     expect(el.selectedIds).toEqual(["new"]);
   });
 });
+
+describe("Table compact stacked layout", () => {
+  beforeEach(() => { Table.register(); });
+  afterEach(() => { document.body.innerHTML = ""; });
+  const compact = (): Table => {
+    const el = document.createElement("box-table") as Table;
+    el.setAttribute("stacked", "auto");
+    el.setAttribute("stacked-layout", "grid");
+    el.columns = [{key:"step",label:"Step",rowHeader:true},{key:"calls",label:"Calls"},{key:"median",label:"Median",group:"Successful times"},{key:"p95",label:"95% within",group:"Successful times"}];
+    el.rows = [{id:"one",cells:{step:"Upload",calls:"20",median:"48 ms",p95:"98 ms"}}];
+    document.body.append(el);return el;
+  };
+  it("keeps the old list default and reflects the opt-in property", () => {
+    const el = create("none");
+    expect(el.stackedLayout).toBe("list");
+    el.stackedLayout = "grid";
+    expect(el.getAttribute("stacked-layout")).toBe("grid");
+    el.setAttribute("stacked-layout", "invalid");
+    expect(el.stackedLayout).toBe("list");
+  });
+  it("keeps native cells and row header while exposing one contiguous group heading", () => {
+    const el = compact(),row = rowAt(el,0);
+    expect([...row.children].filter(cell => cell.matches("td, th")).length).toBe(4);
+    expect(row.querySelector('th[scope="row"]')?.textContent).toBe("Upload");
+    expect([...row.querySelectorAll('[part="stacked-group"]')].map(e=>e.textContent)).toEqual(["Successful times"]);
+    expect([...row.querySelectorAll('[part="stacked-label"]')].map(e=>e.textContent)).toEqual(["Calls","Median","95% within"]);
+  });
+  it("renders repeated separated groups once per adjacent segment", () => {
+    const el = compact();
+    el.columns = [{key:"a",label:"A",group:"Timing"},{key:"b",label:"B",group:"Timing"},{key:"c",label:"C"},{key:"d",label:"D",group:"Timing"}];
+    expect([...rowAt(el,0).querySelectorAll('[part="stacked-group"]')].map(e=>e.textContent)).toEqual(["Timing","Timing"]);
+    expect(rowAt(el,0).querySelectorAll('[part="stacked-label"]').length).toBe(4);
+  });
+  it("keeps ordinary windowing when the grid preference has no stacked request", () => {
+    const el = compact();el.removeAttribute("stacked");el.virtualize=true;
+    expect(el.renderedWindow).not.toBeNull();
+  });
+  it("escapes compact labels and groups and preserves descriptor controls", () => {
+    const el = compact();el.columns=[{key:"x",label:'<img src=x onerror="bad">',group:'<svg onload="bad">'}];
+    el.rows=[{id:"x",cells:{x:{kind:"link",text:"Report",href:"/report",target:"_blank"}}}];
+    expect(el.shadowRoot!.querySelector("img,svg")).toBeNull();
+    expect(el.shadowRoot!.querySelector('[part="stacked-label"]')?.textContent).toBe('<img src=x onerror="bad">');
+    expect(el.shadowRoot!.querySelector("tbody a")?.getAttribute("rel")).toBe("noopener");
+  });
+  it("retains keyboard focus and selection state with ordinary compact cells", () => {
+    const el = compact();el.columns = el.columns.map(column => ({...column,rowHeader:false}));el.selectionMode="multiple";
+    rowAt(el,0).focus();rowAt(el,0).dispatchEvent(new KeyboardEvent("keydown",{key:" ",bubbles:true,cancelable:true}));
+    expect(el.selectedIds).toEqual(["one"]);
+    expect(rowAt(el,0).getAttribute("aria-selected")).toBe("true");
+    expect(el.shadowRoot!.activeElement).toBe(rowAt(el,0));
+    rowAt(el,0).dispatchEvent(new KeyboardEvent("keydown",{key:" ",bubbles:true,cancelable:true}));
+    expect(el.selectedIds).toEqual([]);
+  });
+  it("suppresses fixed-height windowing only for the compact stacked request", () => {
+    const el = compact();el.virtualize=true;
+    expect(el.renderedWindow).toBeNull();
+    el.stackedLayout="list";
+    expect(el.renderedWindow).not.toBeNull();
+  });
+});
