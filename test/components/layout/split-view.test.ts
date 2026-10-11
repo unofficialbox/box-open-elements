@@ -82,6 +82,70 @@ describe("SplitView", () => {
     );
   });
 
+  it("exposes a focusable window splitter with a local primary pane reference", () => {
+    const element = document.createElement("box-split-view") as SplitView;
+    element.resizable = true;
+    element.ratio = 0.4;
+    document.body.append(element);
+    const separator = element.shadowRoot!.querySelector('[part="separator"]') as HTMLElement;
+    expect(separator.tabIndex).toBe(0);
+    expect(separator.getAttribute("aria-valuenow")).toBe("40");
+    expect(separator.getAttribute("aria-valuemin")).toBe("20");
+    expect(separator.getAttribute("aria-valuemax")).toBe("80");
+    expect(element.shadowRoot!.getElementById(separator.getAttribute("aria-controls")!))
+      .toBe(element.shadowRoot!.querySelector('[part="primary"]'));
+    element.resizable = false;
+    expect(separator.hidden).toBe(true);
+    expect(separator.tabIndex).toBe(-1);
+  });
+
+  it("moves by keyboard steps and limits while retaining focus and emitting real changes", () => {
+    const element = document.createElement("box-split-view") as SplitView;
+    element.resizable = true;
+    element.ratio = 0.4;
+    document.body.append(element);
+    const separator = element.shadowRoot!.querySelector('[part="separator"]') as HTMLElement;
+    separator.focus();
+    const changed = vi.fn();
+    element.addEventListener("ratio-changed", changed);
+    const press = (key: string, shiftKey = false): KeyboardEvent => {
+      const event = new KeyboardEvent("keydown", { key, shiftKey, bubbles: true, cancelable: true });
+      separator.dispatchEvent(event);
+      return event;
+    };
+    expect(press("ArrowRight").defaultPrevented).toBe(true);
+    expect(element.ratio).toBe(0.41);
+    press("ArrowLeft", true);
+    expect(element.ratio).toBe(0.31);
+    press("Home");
+    expect(element.ratio).toBe(0.2);
+    press("ArrowLeft");
+    expect(changed).toHaveBeenCalledTimes(3);
+    press("End");
+    expect(element.ratio).toBe(0.8);
+    press("ArrowRight", true);
+    expect(changed).toHaveBeenCalledTimes(4);
+    expect(changed.mock.calls[3][0]).toMatchObject({ bubbles: true, composed: true, detail: { ratio: 0.8 } });
+    expect(separator.getAttribute("aria-valuenow")).toBe("80");
+    expect(element.shadowRoot!.activeElement).toBe(separator);
+    expect(press("Enter").defaultPrevented).toBe(false);
+  });
+
+  it("ignores resizing keys when disabled or responsively collapsed", () => {
+    const element = document.createElement("box-split-view") as SplitView;
+    document.body.append(element);
+    const separator = element.shadowRoot!.querySelector('[part="separator"]') as HTMLElement;
+    const changed = vi.fn();
+    element.addEventListener("ratio-changed", changed);
+    separator.dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true }));
+    element.resizable = true;
+    element.collapse = "auto";
+    Object.defineProperty(element, "offsetWidth", { value: 390 });
+    separator.dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true }));
+    expect(element.ratio).toBe(0.38);
+    expect(changed).not.toHaveBeenCalled();
+  });
+
   it("keeps the same separator node when ratio changes during a drag", () => {
     const element = document.createElement("box-split-view") as SplitView;
     element.resizable = true;

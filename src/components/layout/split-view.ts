@@ -31,6 +31,11 @@ const splitViewStyles = `
     touch-action: none;
   }
 
+  [part="separator"]:focus-visible {
+    outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
+    outline-offset: -2px;
+  }
+
   [part="separator"][hidden] {
     display: none;
   }
@@ -189,10 +194,10 @@ export class SplitView extends BaseElement {
     this.shadowRoot.innerHTML = `
       <style>${splitViewStyles}</style>
       <section part="split-view">
-        <div part="primary">
+        <div part="primary" id="primary-pane">
           <slot name="primary"></slot>
         </div>
-        <div part="separator" role="separator" aria-orientation="vertical" aria-label="Resize panels" hidden></div>
+        <div part="separator" role="separator" aria-orientation="vertical" aria-label="Resize panels" aria-controls="primary-pane" aria-valuemin="20" aria-valuemax="80" hidden></div>
         <div part="secondary">
           <slot></slot>
         </div>
@@ -224,6 +229,22 @@ export class SplitView extends BaseElement {
           detail: { source: "escape" },
         }),
       );
+    });
+
+    this.separatorEl.addEventListener("keydown", event => {
+      const keyboardEvent = event as KeyboardEvent;
+      if (!this.resizable || (this.collapse === "auto" && this.offsetWidth <= 640)) return;
+      const step = keyboardEvent.shiftKey ? 0.1 : 0.01;
+      let nextRatio: number;
+      switch (keyboardEvent.key) {
+        case "ArrowLeft": nextRatio = this.ratio - step; break;
+        case "ArrowRight": nextRatio = this.ratio + step; break;
+        case "Home": nextRatio = 0.2; break;
+        case "End": nextRatio = 0.8; break;
+        default: return;
+      }
+      keyboardEvent.preventDefault();
+      this.setRatioFromResize(Math.round(nextRatio * 10000000000) / 10000000000);
     });
 
     this.separatorEl.addEventListener("pointerdown", event => {
@@ -276,6 +297,8 @@ export class SplitView extends BaseElement {
     this.splitViewEl.style.gridTemplateColumns = splitColumns;
     this.splitViewEl.setAttribute("aria-label", this.label);
     this.separatorEl.hidden = !resizable;
+    this.separatorEl.tabIndex = resizable ? 0 : -1;
+    this.separatorEl.setAttribute("aria-valuenow", String(Math.round(this.ratio * 100)));
   }
 }
 
