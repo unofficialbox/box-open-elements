@@ -26,6 +26,6 @@ const traceWaterfall: StoryModule = {
       { kind: "slot", name: "session", type: "slot", description: "Host session or median/slowest/failed sample controls." },
     ],
   },
-  variants: [{ name: "Completed run", html: '<box-trace-waterfall heading="Completed run"></box-trace-waterfall>', note: "Parallel spans overlap on a common axis; markers identify host-computed 95% times." }, { name: "Embedded plain wording", html: '<box-trace-waterfall heading="One run" heading-level="2" embedded row-label="Step" rows-label="steps" search-label="Find steps" hide-note></box-trace-waterfall>' }],
+  variants: [{ name: "Completed run", html: '<box-trace-waterfall heading="Completed run"></box-trace-waterfall>', note: "Parallel spans overlap on a common axis; markers identify host-computed 95% times." }],
 };
 export default traceWaterfall;
