@@ -145,7 +145,7 @@ const elementStyles = `
           padding: 0 0.55rem;
           text-align: right;
           vertical-align: top;
-          color: color-mix(in srgb, var(--boe-token-text-text-secondary, #6f6f6f) 72%, transparent);
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
           user-select: none;
           border-right: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 46%, transparent);
         }
