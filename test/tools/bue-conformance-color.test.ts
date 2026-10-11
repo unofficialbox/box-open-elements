@@ -599,15 +599,27 @@ describe("evaluate", () => {
     expect(byId("button.primary.hover.background").delta).toBe(21);
   });
 
-  it("yields the expected verdict mix including two accessibility improvements", () => {
+  it("yields the expected verdict mix including the grounded accessible badge foreground", () => {
     const conformant = rows.filter(r => r.verdict === "conformant").length;
     const accepted = rows.filter(r => r.verdict === "accepted-divergence").length;
     const review = rows.filter(r => r.verdict === "review").length;
     expect({ conformant, accepted, review }).toEqual({
-      conformant: 53,
-      accepted: 11,
+      conformant: 52,
+      accepted: 12,
       review: 0,
     });
+  });
+
+  it("keeps all opaque fills conformant and accepts only the documented foreground delta", () => {
+    for (const id of ["badge.success.background", "badge.error.background", "badge.inprogress.background", "badge.info.background"]) {
+      expect(rows.find(row => row.claim.id === id)?.verdict, id).toBe("conformant");
+    }
+    const text = rows.find(row => row.claim.id === "badge.status.text")!;
+    expect(text.verdict).toBe("accepted-divergence");
+    expect(text.boeCanonical).toBe("rgba(7, 16, 12, 1)");
+    expect(text.claim.accessibilityRationale).toContain("PR515");
+    expect(rows).toHaveLength(64);
+    expect(rows.every(row => row.verdict === "conformant" || row.verdict === "accepted-divergence")).toBe(true);
   });
 
   it("resolves the round-8 surfaces (alert, breadcrumb, chip)", () => {
@@ -793,8 +805,8 @@ describe("renderMarkdown", () => {
     const md = renderMarkdown(rows, ["main.abc.iframe.bundle.js"]);
     expect(md).toContain("Layer 2");
     expect(md).toContain("**1**");
-    expect(md).toContain("| ✅ Conformant | 53 |");
-    expect(md).toContain("| 🎯 Accepted divergence | 11 |");
+    expect(md).toContain("| ✅ Conformant | 52 |");
+    expect(md).toContain("| 🎯 Accepted divergence | 12 |");
     expect(md).toContain("| 🔍 Review | 0 |");
     for (const claim of COLOR_CLAIMS) {
       expect(md).toContain(claim.citation);

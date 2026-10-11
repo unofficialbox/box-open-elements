@@ -45,7 +45,7 @@ export class ResourceRow extends BaseElement {
   get disabled(): boolean { return this.hasAttribute("disabled"); }
   set disabled(value: boolean) { this.toggleAttribute("disabled", value); }
   protected renderTemplate(): void {
-    this.shadowRoot!.innerHTML = `<style>${styles}</style><div part="row"><button part="select" type="button"><slot name="icon"></slot><span part="body"><span part="label"></span><span part="meta"></span></span></button><span part="trailing"><span part="status"></span><slot name="status"></slot><slot name="actions"></slot></span></div>`;
+    this.shadowRoot!.innerHTML = `<style>${styles}</style><div part="row"><button part="select" type="button"><slot name="icon"></slot><span part="body"><span part="label"></span><span part="meta"></span></span></button><span part="trailing"><span part="status" id="row-status-text"></span><slot name="status" id="row-status-slot"></slot><slot name="actions"></slot></span></div>`;
     this.selectEl = this.shadowRoot!.querySelector('[part="select"]')!;
     this.labelEl = this.shadowRoot!.querySelector('[part="label"]')!;
     this.metaEl = this.shadowRoot!.querySelector('[part="meta"]')!;
@@ -65,14 +65,16 @@ export class ResourceRow extends BaseElement {
     this.selectEl.setAttribute("aria-pressed", String(this.selected));
     // The native button derives its name from its visible label and metadata.
     this.selectEl.removeAttribute("aria-label");
-    const slottedStatus = this.statusSlot.assignedNodes({ flatten: true }).map(node =>
-      node instanceof Element
-        ? node.getAttribute("aria-label") ?? node.getAttribute("label") ?? node.textContent ?? ""
-        : node.textContent ?? "",
-    ).map(value => value.trim()).filter(Boolean).join(" ");
-    const spokenStatus = this.statusSlot.assignedElements().length > 0 ? slottedStatus : this.status;
-    if (spokenStatus) this.selectEl.setAttribute("aria-description", spokenStatus);
-    else this.selectEl.removeAttribute("aria-description");
+    // Refer to the visible status node rather than copying its current text:
+    // a slotted badge can update after the row, without emitting slotchange.
+    this.selectEl.removeAttribute("aria-description");
+    if (this.statusSlot.assignedElements().length > 0) {
+      this.selectEl.setAttribute("aria-describedby", "row-status-slot");
+    } else if (this.status) {
+      this.selectEl.setAttribute("aria-describedby", "row-status-text");
+    } else {
+      this.selectEl.removeAttribute("aria-describedby");
+    }
   }
 }
 
