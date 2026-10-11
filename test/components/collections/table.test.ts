@@ -813,6 +813,15 @@ describe("Table compact stacked layout", () => {
     expect(el.shadowRoot!.querySelector('[part="stacked-label"]')?.textContent).toBe('<img src=x onerror="bad">');
     expect(el.shadowRoot!.querySelector("tbody a")?.getAttribute("rel")).toBe("noopener");
   });
+  it("retains keyboard focus and selection state with ordinary compact cells", () => {
+    const el = compact();el.columns = el.columns.map(column => ({...column,rowHeader:false}));el.selectionMode="multiple";
+    rowAt(el,0).focus();rowAt(el,0).dispatchEvent(new KeyboardEvent("keydown",{key:" ",bubbles:true,cancelable:true}));
+    expect(el.selectedIds).toEqual(["one"]);
+    expect(rowAt(el,0).getAttribute("aria-selected")).toBe("true");
+    expect(el.shadowRoot!.activeElement).toBe(rowAt(el,0));
+    rowAt(el,0).dispatchEvent(new KeyboardEvent("keydown",{key:" ",bubbles:true,cancelable:true}));
+    expect(el.selectedIds).toEqual([]);
+  });
   it("suppresses fixed-height windowing only for the compact stacked request", () => {
     const el = compact();el.virtualize=true;
     expect(el.renderedWindow).toBeNull();
