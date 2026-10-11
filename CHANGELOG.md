@@ -15,6 +15,13 @@ are kept as written.
 
 ## Unreleased
 
+## 0.36.5 — 2026-10-11
+
+- Keep invalid connection tooltip text readable in both themes.
+- Focus the diagram when a port or endpoint drag starts so Escape cancels
+  the connection from prior host/inspector focus; also cancel from focused
+  connection controls without changing the graph, layout or undo history.
+
 ## 0.36.4 — 2026-10-10
 
 - Match Process Modeler gateway/event captions, icons, selected Finish rings,
