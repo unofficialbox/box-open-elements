@@ -39,3 +39,28 @@ again; removing that sortable column does not move focus to another column.
 
 Badge cells keep their tone fills and use semantic status text tokens for readable
 labels in light and dark themes. Brand and neutral labels use primary text.
+
+## Compact phone rows
+
+Opt into `stacked-layout="grid"` alongside `stacked="auto"` (under a 560px
+container) or `stacked="always"`. The default `stacked-layout="list"` keeps the
+existing label/value cards. `table.stackedLayout` accepts `"list" | "grid"`.
+
+```html
+<box-table label="Step calls and times" stacked="auto" stacked-layout="grid"></box-table>
+```
+
+In compact rows, a `rowHeader` column becomes the row heading without repeating
+its column label. Other cells show their own sentence-case label above the value,
+in three columns, or two when the container is at most 340px wide. Each adjacent
+group appears once above its cells. Labels use primary body text color; native
+cells, row headers, descriptor links, selection and details remain available.
+Wide `stacked="auto"` tables retain their normal column headers and layout.
+
+The `stacked-label`, `stacked-value`, `stacked-field` and `stacked-group` parts
+allow styling the compact content. Host labels are rendered as supplied and
+escaped; use sentence case in the column data.
+
+`virtualize` is suppressed whenever compact stacking is requested, including
+the wide state of `stacked="auto"`, because wrapped cards have variable heights
+and the windowing contract is fixed-height. `renderedWindow` is then `null`.

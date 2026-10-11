@@ -52,6 +52,8 @@ export interface TableRow {
   detail?: string;
 }
 
+export type TableStackedLayout = "list" | "grid";
+
 export type TableSelectionMode = "none" | "single" | "multiple";
 
 /** Detail of the `sort` event, for typed listeners. */
@@ -356,10 +358,55 @@ const tableStyles = `
     display: block;
   }
 `;
+    const compactRules = (scope: string): string => `
+  ${scope} tr[part="row"] {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem 0.75rem;
+    padding: 0.75rem;
+  }
+  ${scope} tr[part="row"] > :is(td, th) { display: contents; }
+  ${scope} tr[part="row"] > :is(td, th)::before { content: none; }
+  ${scope} tr[part="row"] > th[scope="row"] {
+    display: block;
+    grid-column: 1 / -1;
+    padding: 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+  ${scope} [part="stacked-group"] {
+    display: block;
+    grid-column: 1 / -1;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--boe-token-text-text, #222222);
+    overflow-wrap: anywhere;
+  }
+  ${scope} [part="stacked-field"] { display: grid; gap: 0.18rem; min-width: 0; align-content: start; }
+  ${scope} [part="stacked-label"] {
+    display: block;
+    font-size: 0.74rem;
+    font-weight: 400;
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--boe-token-text-text, #222222);
+    overflow-wrap: anywhere;
+  }
+  ${scope} [part="stacked-value"] { display: block; min-width: 0; overflow-wrap: anywhere; }
+  ${scope} [part="expander-cell"] { display: block; grid-column: 1 / -1; padding: 0; }
+`;
     return `
+  [part="stacked-group"], [part="stacked-label"] { display: none; }
+  [part="stacked-field"], [part="stacked-value"] { display: contents; }
   ${rules(':host([stacked]:not([stacked="auto"]))')}
   @container (max-width: 560px) {
     ${rules(':host([stacked="auto"])')}
+    ${compactRules(':host([stacked="auto"][stacked-layout="grid"])')}
+  }
+  ${compactRules(':host([stacked]:not([stacked="auto"])[stacked-layout="grid"])')}
+  @container (max-width: 340px) {
+    :host([stacked][stacked-layout="grid"]) tr[part="row"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 `;
   })();
@@ -385,6 +432,7 @@ export class Table extends BaseElement {
       "sort-direction",
       "sort-key",
       "stacked",
+      "stacked-layout",
       "virtualize",
       "row-height",
     ];
@@ -445,8 +493,8 @@ export class Table extends BaseElement {
    * would render nothing.
    *
    * A request, not a guarantee. The window arithmetic is fixed-height, so it is
-   * suppressed for a collection whose rows can change height — today that means
-   * any collection where a row declares `detail`. Read `renderedWindow` to see
+   * suppressed when any row declares `detail`, or when compact stacked cards
+   * are requested: their wrapped content has variable height. Read `renderedWindow` to see
    * whether a render actually windowed.
    */
   get virtualize(): boolean {
@@ -530,6 +578,15 @@ export class Table extends BaseElement {
 
   set rows(value: TableRow[]) {
     this.setAttribute("rows", JSON.stringify(value));
+  }
+
+  /** Opt-in compact cards; the existing label/value list remains the default. */
+  get stackedLayout(): TableStackedLayout {
+    return this.getAttribute("stacked-layout") === "grid" ? "grid" : "list";
+  }
+
+  set stackedLayout(value: TableStackedLayout) {
+    this.setAttribute("stacked-layout", value);
   }
 
   get selectionMode(): TableSelectionMode {
@@ -966,7 +1023,10 @@ export class Table extends BaseElement {
     // from transient UI state would flip windowing on and off mid-scroll, which
     // jumps the viewport under the pointer. A collection that can expand never
     // windows; `renderedWindow` returns null so a host can see that it didn't.
-    const virtualizing = this.virtualize && !expandable;
+    // Compact cards can wrap to unequal heights. Keep the fixed-height window
+    // contract honest across container changes rather than guessing spacers.
+    const compactStacked = this.stackedLayout === "grid" && this.hasAttribute("stacked");
+    const virtualizing = this.virtualize && !expandable && !compactStacked;
     const rowWindow = virtualizing ? this.currentWindow() : null;
     this.windowing = virtualizing;
     this.lastWindow = rowWindow;
@@ -1010,7 +1070,18 @@ export class Table extends BaseElement {
             const label = typeof column.group === "string" && column.group
               ? `${column.group} — ${column.label}`
               : column.label;
-            return `<${tag}${align}${semantics} data-label="${escapeHtml(label)}">${this.cellMarkup(value)}</${tag}>`;
+            if (this.stackedLayout !== "grid") {
+              return `<${tag}${align}${semantics} data-label="${escapeHtml(label)}">${this.cellMarkup(value)}</${tag}>`;
+            }
+            if (rowHeader) {
+              return `<${tag}${align}${semantics} data-label="${escapeHtml(label)}"><span part="stacked-value">${this.cellMarkup(value)}</span></${tag}>`;
+            }
+            const group = typeof column.group === "string" ? column.group : "";
+            let groupStart = columnIndex;
+            while (group && groupStart > 0 && columns[groupStart - 1]?.group === group && !columns[groupStart - 1]?.rowHeader) groupStart--;
+            const groupMarkup = group && groupStart === columnIndex
+              ? `<span part="stacked-group">${escapeHtml(group)}</span>` : "";
+            return `<${tag}${align}${semantics} data-label="${escapeHtml(label)}">${groupMarkup}<span part="stacked-field"><span part="stacked-label">${escapeHtml(column.label)}</span><span part="stacked-value">${this.cellMarkup(value)}</span></span></${tag}>`;
           })
           .join("");
         const rowMarkup = `<tr${rowAttrs} data-index="${index}" data-id="${escapeHtml(row.id)}">${expanderCell}${cells}</tr>`;
