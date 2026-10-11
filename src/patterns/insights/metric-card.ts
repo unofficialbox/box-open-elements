@@ -30,7 +30,8 @@ type MetricCardTrend = {
 
 const elementStyles = `
         :host {
-          display: block;
+          display: grid;
+          min-width: 0;
           color: inherit;
           font: inherit;
         }
@@ -41,8 +42,14 @@ const elementStyles = `
           display: none !important;
         }
 
+        [part="content-host"] {
+          display: grid;
+          min-width: 0;
+        }
+
         [part="card"] {
           display: grid;
+          align-content: start;
           gap: ${boePanel.gap};
           padding: ${boePanel.padding};
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
@@ -97,6 +104,30 @@ const elementStyles = `
           line-height: 1;
           letter-spacing: -0.04em;
           color: var(--boe-token-text-text, #1f1e1b);
+        }
+
+        :host([size="compact"]) [part="card"] {
+          gap: 0.5rem;
+          padding: 0.75rem;
+        }
+
+        :host([size="compact"]) [part="title"] {
+          font-size: 0.8rem;
+          font-weight: 500;
+          line-height: 1.35;
+          color: var(--boe-token-text-text-secondary, #6f6f6f);
+        }
+
+        [part="value"][data-tone="error"] {
+          color: var(--boe-token-text-status-text-error, #b92340);
+        }
+
+        [part="value"][data-tone="warning"] {
+          color: var(--boe-token-text-status-text-warning, #805600);
+        }
+
+        [part="value"][data-tone="success"] {
+          color: var(--boe-token-text-status-text-success, #187657);
         }
 
         [part="message"] {
@@ -158,8 +189,25 @@ const elementStyles = `
 export class MetricCard extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["action", "eyebrow", "message", "status", "heading", "trend", "value"];
+    return ["action", "eyebrow", "message", "status", "heading", "trend", "value", "size", "tone"];
   }
+  get size(): "default" | "compact" {
+    return this.getAttribute("size") === "compact" ? "compact" : "default";
+  }
+
+  set size(value: "default" | "compact") {
+    this.setAttribute("size", value);
+  }
+
+  get tone(): "neutral" | "error" | "warning" | "success" {
+    const value = this.getAttribute("tone");
+    return value === "error" || value === "warning" || value === "success" ? value : "neutral";
+  }
+
+  set tone(value: "neutral" | "error" | "warning" | "success") {
+    this.setAttribute("tone", value);
+  }
+
   get action(): MetricCardAction | null {
     return this.parseJsonAttribute<MetricCardAction | null>("action", null);
   }
@@ -315,7 +363,7 @@ export class MetricCard extends BaseElement {
             ${statusMarkup}
           </div>
         </header>
-        <div part="value">${escapeHtml(this.value)}</div>
+        <div part="value" data-tone="${this.tone}">${escapeHtml(this.value)}</div>
         ${messageMarkup}
         <div part="footer">
           ${trendMarkup}
