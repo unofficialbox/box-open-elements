@@ -1,3 +1,4 @@
+import { ValueReconciliation } from "./value-reconciliation.js";
 import {
   FormAssociatedElement,
   boeFormFieldErrorStyles,
@@ -102,6 +103,7 @@ const rangeSliderStyles = `
 `;
 
 export class RangeSlider extends FormAssociatedElement {
+  private readonly valueReconciliation = new ValueReconciliation();
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
@@ -174,6 +176,7 @@ export class RangeSlider extends FormAssociatedElement {
   }
 
   set start(value: number) {
+    this.valueReconciliation.hostWrite(value === this.startInternal);
     this.startInternal = value;
     this.setAttribute("start", String(value));
     this.syncFormAssociation();
@@ -187,6 +190,7 @@ export class RangeSlider extends FormAssociatedElement {
   }
 
   set end(value: number) {
+    this.valueReconciliation.hostWrite(value === this.endInternal);
     this.endInternal = value;
     this.setAttribute("end", String(value));
     this.syncFormAssociation();
@@ -197,14 +201,17 @@ export class RangeSlider extends FormAssociatedElement {
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "start") {
+      this.valueReconciliation.hostWrite(parseNumber(this.getAttribute("start"), this.min) === this.startInternal);
       this.startInternal = parseNumber(this.getAttribute("start"), this.min);
     }
 
     if (name === "end") {
+      this.valueReconciliation.hostWrite(parseNumber(this.getAttribute("end"), this.max) === this.endInternal);
       this.endInternal = parseNumber(this.getAttribute("end"), this.max);
     }
 
     super.attributeChangedCallback(name, oldValue, newValue);
+    if ((name === "start" || name === "end") && oldValue === newValue && this.isRendered) this.update();
   }
 
   protected getFormValue(): FormValue {
@@ -214,6 +221,7 @@ export class RangeSlider extends FormAssociatedElement {
   }
 
   protected restoreFormValue(value: FormValue): void {
+    this.valueReconciliation.hostWrite(false);
     const restored = rangeFromFormValue(value, this.name, {
       start: this.startInternal,
       end: this.endInternal,
@@ -242,19 +250,21 @@ export class RangeSlider extends FormAssociatedElement {
     const normalizedEnd = this.clamp(Math.max(nextValue.start, nextValue.end));
     this.startInternal = normalizedStart;
     this.endInternal = normalizedEnd;
-    this.setAttribute("start", String(normalizedStart));
-    this.setAttribute("end", String(normalizedEnd));
+    this.valueReconciliation.reflect(() => this.setAttribute("start", String(normalizedStart)));
+    this.valueReconciliation.reflect(() => this.setAttribute("end", String(normalizedEnd)));
     this.startValueEl.textContent = String(normalizedStart);
     this.endValueEl.textContent = String(normalizedEnd);
     this.startInputEl.value = String(normalizedStart);
     this.endInputEl.value = String(normalizedEnd);
     this.syncFormAssociation();
-    this.dispatchEvent(
-      new CustomEvent("value-changed", {
-        bubbles: true,
-        composed: true,
-        detail: { start: normalizedStart, end: normalizedEnd },
-      }),
+    this.valueReconciliation.emit(() =>
+      this.dispatchEvent(
+        new CustomEvent("value-changed", {
+          bubbles: true,
+          composed: true,
+          detail: { start: normalizedStart, end: normalizedEnd },
+        }),
+      ),
     );
   }
 
@@ -291,6 +301,7 @@ export class RangeSlider extends FormAssociatedElement {
 
   protected setupListeners(): void {
     this.startInputEl.addEventListener("input", event => {
+      this.valueReconciliation.trackNativeInput(event);
       const nextStart = Number((event.currentTarget as HTMLInputElement).value);
       if (!Number.isFinite(nextStart)) {
         return;
@@ -300,6 +311,7 @@ export class RangeSlider extends FormAssociatedElement {
     });
 
     this.endInputEl.addEventListener("input", event => {
+      this.valueReconciliation.trackNativeInput(event);
       const nextEnd = Number((event.currentTarget as HTMLInputElement).value);
       if (!Number.isFinite(nextEnd)) {
         return;
@@ -332,13 +344,14 @@ export class RangeSlider extends FormAssociatedElement {
       }
     }
 
-    if (this.shadowRoot?.activeElement !== this.startInputEl) {
+    if (this.valueReconciliation.shouldSync(this.shadowRoot?.activeElement === this.startInputEl) && this.startInputEl.value !== String(start)) {
       this.startInputEl.value = String(start);
     }
-    if (this.shadowRoot?.activeElement !== this.endInputEl) {
+    if (this.valueReconciliation.shouldSync(this.shadowRoot?.activeElement === this.endInputEl) && this.endInputEl.value !== String(end)) {
       this.endInputEl.value = String(end);
     }
 
+    this.valueReconciliation.complete();
     this.applyInvalidStateToControls([this.startInputEl, this.endInputEl], this.errorEl);
   }
 }

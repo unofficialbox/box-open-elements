@@ -1,3 +1,4 @@
+import { ValueReconciliation } from "./value-reconciliation.js";
 import {
   FormAssociatedElement,
   boeFormFieldErrorStyles,
@@ -140,6 +141,7 @@ const spinButtonStyles = `
 `;
 
 export class SpinButton extends FormAssociatedElement {
+  private readonly valueReconciliation = new ValueReconciliation();
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
@@ -218,6 +220,7 @@ export class SpinButton extends FormAssociatedElement {
 
   set value(nextValue: number) {
     const normalizedValue = this.clamp(Number.isFinite(nextValue) ? nextValue : 0);
+    this.valueReconciliation.hostWrite(normalizedValue === this.valueInternal);
     this.valueInternal = normalizedValue;
     this.setAttribute("value", String(normalizedValue));
     if (this.isRendered) {
@@ -227,9 +230,11 @@ export class SpinButton extends FormAssociatedElement {
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
+      this.valueReconciliation.hostWrite(parseNumber(this.getAttribute("value"), 0) === this.valueInternal);
       this.valueInternal = parseNumber(this.getAttribute("value"), 0);
     }
     super.attributeChangedCallback(name, oldValue, newValue);
+    if (name === "value" && oldValue === newValue && this.isRendered) this.update();
   }
 
   protected getFormValue(): FormValue {
@@ -237,6 +242,7 @@ export class SpinButton extends FormAssociatedElement {
   }
 
   protected restoreFormValue(value: FormValue): void {
+    this.valueReconciliation.hostWrite(false);
     const parsed =
       typeof value === "string" ? parseNumber(value, this.valueInternal) : this.valueInternal;
     this.valueInternal = this.clamp(parsed);
@@ -260,16 +266,18 @@ export class SpinButton extends FormAssociatedElement {
   private syncValue(nextValue: number): void {
     const normalizedValue = this.clamp(nextValue);
     this.valueInternal = normalizedValue;
-    this.setAttribute("value", String(normalizedValue));
+    this.valueReconciliation.reflect(() => this.setAttribute("value", String(normalizedValue)));
     this.inputEl.value = String(normalizedValue);
     this.syncInputAria();
     this.syncFormAssociation();
-    this.dispatchEvent(
-      new CustomEvent("value-changed", {
-        bubbles: true,
-        composed: true,
-        detail: { value: normalizedValue },
-      }),
+    this.valueReconciliation.emit(() =>
+      this.dispatchEvent(
+        new CustomEvent("value-changed", {
+          bubbles: true,
+          composed: true,
+          detail: { value: normalizedValue },
+        }),
+      ),
     );
   }
 
@@ -314,6 +322,7 @@ export class SpinButton extends FormAssociatedElement {
 
   protected setupListeners(): void {
     this.inputEl.addEventListener("input", event => {
+      this.valueReconciliation.trackNativeInput(event);
       const nextValue = Number((event.currentTarget as HTMLInputElement).value);
       if (!Number.isFinite(nextValue)) {
         return;
@@ -374,7 +383,7 @@ export class SpinButton extends FormAssociatedElement {
       this.inputEl.max = String(this.max);
     }
 
-    if (this.shadowRoot?.activeElement !== this.inputEl) {
+    if (this.valueReconciliation.shouldSync(this.shadowRoot?.activeElement === this.inputEl) && this.inputEl.value !== String(this.valueInternal)) {
       this.inputEl.value = String(this.valueInternal);
     }
 
@@ -388,6 +397,7 @@ export class SpinButton extends FormAssociatedElement {
       }
     }
 
+    this.valueReconciliation.complete();
     this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }

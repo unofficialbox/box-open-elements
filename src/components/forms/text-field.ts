@@ -1,3 +1,4 @@
+import { ValueReconciliation } from "./value-reconciliation.js";
 import {
   FormAssociatedElement,
   boeFormFieldErrorStyles,
@@ -184,6 +185,7 @@ const textFieldStyles = `
 `;
 
 export class TextField extends FormAssociatedElement {
+  private readonly valueReconciliation = new ValueReconciliation();
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
@@ -287,6 +289,7 @@ export class TextField extends FormAssociatedElement {
   }
 
   set value(nextValue: string) {
+    this.valueReconciliation.hostWrite(nextValue === this.valueInternal);
     this.valueInternal = nextValue;
     this.setAttribute("value", nextValue);
     if (this.isRendered) {
@@ -320,9 +323,11 @@ export class TextField extends FormAssociatedElement {
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
+      this.valueReconciliation.hostWrite((this.getAttribute("value") ?? "") === this.valueInternal);
       this.valueInternal = this.getAttribute("value") ?? "";
     }
     super.attributeChangedCallback(name, oldValue, newValue);
+    if (name === "value" && oldValue === newValue && this.isRendered) this.update();
   }
 
   protected getFormValue(): FormValue {
@@ -330,6 +335,7 @@ export class TextField extends FormAssociatedElement {
   }
 
   protected restoreFormValue(value: FormValue): void {
+    this.valueReconciliation.hostWrite(false);
     const next = typeof value === "string" ? value : "";
     this.valueInternal = next;
     this.setAttribute("value", next);
@@ -376,16 +382,19 @@ export class TextField extends FormAssociatedElement {
     });
 
     this.inputEl.addEventListener("input", event => {
+      this.valueReconciliation.trackNativeInput(event);
       const nextValue = (event.currentTarget as HTMLInputElement).value;
       this.valueInternal = nextValue;
-      this.setAttribute("value", nextValue);
+      this.valueReconciliation.reflect(() => this.setAttribute("value", nextValue));
       this.syncFormAssociation();
-      this.dispatchEvent(
-        new CustomEvent<TextFieldValueChangedDetail>("value-changed", {
-          bubbles: true,
-          composed: true,
-          detail: { value: nextValue },
-        }),
+      this.valueReconciliation.emit(() =>
+        this.dispatchEvent(
+          new CustomEvent<TextFieldValueChangedDetail>("value-changed", {
+            bubbles: true,
+            composed: true,
+            detail: { value: nextValue },
+          }),
+        ),
       );
     });
   }
@@ -441,7 +450,7 @@ export class TextField extends FormAssociatedElement {
       this.statusEl.innerHTML = "";
     }
 
-    if (this.shadowRoot?.activeElement !== this.inputEl) {
+    if (this.valueReconciliation.shouldSync(this.shadowRoot?.activeElement === this.inputEl) && this.inputEl.value !== this.valueInternal) {
       this.inputEl.value = this.valueInternal;
     }
 
@@ -453,6 +462,7 @@ export class TextField extends FormAssociatedElement {
 
     // After the label text is (re)set, since it clears the required mark.
     this.applyFieldSupport(this.labelEl, this.inputEl, this.descriptionEl);
+    this.valueReconciliation.complete();
     this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }

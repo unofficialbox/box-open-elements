@@ -1,3 +1,4 @@
+import { ValueReconciliation } from "./value-reconciliation.js";
 import {
   FormAssociatedElement,
   boeFormFieldErrorStyles,
@@ -56,6 +57,7 @@ const timeFieldStyles = `
 `;
 
 export class TimeField extends FormAssociatedElement {
+  private readonly valueReconciliation = new ValueReconciliation();
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
@@ -124,6 +126,7 @@ export class TimeField extends FormAssociatedElement {
   }
 
   set value(nextValue: string) {
+    this.valueReconciliation.hostWrite(nextValue === this.valueInternal);
     this.valueInternal = nextValue;
     this.setAttribute("value", nextValue);
     if (this.isRendered) {
@@ -133,9 +136,11 @@ export class TimeField extends FormAssociatedElement {
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
+      this.valueReconciliation.hostWrite((this.getAttribute("value") ?? "") === this.valueInternal);
       this.valueInternal = this.getAttribute("value") ?? "";
     }
     super.attributeChangedCallback(name, oldValue, newValue);
+    if (name === "value" && oldValue === newValue && this.isRendered) this.update();
   }
 
   protected getFormValue(): FormValue {
@@ -143,6 +148,7 @@ export class TimeField extends FormAssociatedElement {
   }
 
   protected restoreFormValue(value: FormValue): void {
+    this.valueReconciliation.hostWrite(false);
     const next = typeof value === "string" ? value : "";
     this.valueInternal = next;
     this.setAttribute("value", next);
@@ -198,6 +204,7 @@ export class TimeField extends FormAssociatedElement {
       );
       return false;
     }
+    this.valueReconciliation.hostWrite(parsed === this.valueInternal);
     this.syncValue(parsed);
     if (this.isRendered) {
       this.update();
@@ -207,14 +214,16 @@ export class TimeField extends FormAssociatedElement {
 
   private syncValue(nextValue: string): void {
     this.valueInternal = nextValue;
-    this.setAttribute("value", nextValue);
+    this.valueReconciliation.reflect(() => this.setAttribute("value", nextValue));
     this.syncFormAssociation();
-    this.dispatchEvent(
-      new CustomEvent("value-changed", {
-        bubbles: true,
-        composed: true,
-        detail: { value: nextValue },
-      }),
+    this.valueReconciliation.emit(() =>
+      this.dispatchEvent(
+        new CustomEvent("value-changed", {
+          bubbles: true,
+          composed: true,
+          detail: { value: nextValue },
+        }),
+      ),
     );
   }
 
@@ -240,6 +249,7 @@ export class TimeField extends FormAssociatedElement {
 
   protected setupListeners(): void {
     this.inputEl.addEventListener("input", event => {
+      this.valueReconciliation.trackNativeInput(event);
       this.syncValue((event.currentTarget as HTMLInputElement).value);
     });
   }
@@ -264,7 +274,7 @@ export class TimeField extends FormAssociatedElement {
       this.inputEl.removeAttribute("max");
     }
 
-    if (this.shadowRoot?.activeElement !== this.inputEl) {
+    if (this.valueReconciliation.shouldSync(this.shadowRoot?.activeElement === this.inputEl) && this.inputEl.value !== this.valueInternal) {
       this.inputEl.value = this.valueInternal;
     }
 
@@ -275,6 +285,7 @@ export class TimeField extends FormAssociatedElement {
     }
 
     this.applyFieldSupport(this.labelEl, this.inputEl, this.descriptionEl);
+    this.valueReconciliation.complete();
     this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }

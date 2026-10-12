@@ -1,3 +1,4 @@
+import { ValueReconciliation } from "./value-reconciliation.js";
 import {
   FormAssociatedElement,
   boeFormFieldErrorStyles,
@@ -141,6 +142,7 @@ const colorPickerStyles = `
 `;
 
 export class ColorPicker extends FormAssociatedElement {
+  private readonly valueReconciliation = new ValueReconciliation();
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
@@ -205,6 +207,7 @@ export class ColorPicker extends FormAssociatedElement {
 
   set value(nextValue: string) {
     const normalized = normalizeHex(nextValue);
+    this.valueReconciliation.hostWrite(normalized === this.valueInternal);
     this.valueInternal = normalized;
     this.setAttribute("value", normalized);
     this.syncFormAssociation();
@@ -215,9 +218,11 @@ export class ColorPicker extends FormAssociatedElement {
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
+      this.valueReconciliation.hostWrite(normalizeHex(this.getAttribute("value")) === this.valueInternal);
       this.valueInternal = normalizeHex(this.getAttribute("value"));
     }
     super.attributeChangedCallback(name, oldValue, newValue);
+    if (name === "value" && oldValue === newValue && this.isRendered) this.update();
   }
 
   protected getFormValue(): FormValue {
@@ -225,6 +230,7 @@ export class ColorPicker extends FormAssociatedElement {
   }
 
   protected restoreFormValue(value: FormValue): void {
+    this.valueReconciliation.hostWrite(false);
     const next = typeof value === "string" ? normalizeHex(value) : "#3b82f6";
     this.valueInternal = next;
     this.setAttribute("value", next);
@@ -240,14 +246,16 @@ export class ColorPicker extends FormAssociatedElement {
     }
 
     this.valueInternal = nextValue;
-    this.setAttribute("value", nextValue);
+    this.valueReconciliation.reflect(() => this.setAttribute("value", nextValue));
     this.syncFormAssociation();
-    this.dispatchEvent(
-      new CustomEvent("value-changed", {
-        bubbles: true,
-        composed: true,
-        detail: { value: nextValue },
-      }),
+    this.valueReconciliation.emit(() =>
+      this.dispatchEvent(
+        new CustomEvent("value-changed", {
+          bubbles: true,
+          composed: true,
+          detail: { value: nextValue },
+        }),
+      ),
     );
   }
 
@@ -276,6 +284,7 @@ export class ColorPicker extends FormAssociatedElement {
 
   protected setupListeners(): void {
     this.inputEl.addEventListener("input", event => {
+      this.valueReconciliation.trackNativeInput(event);
       const nextValue = normalizeHex((event.currentTarget as HTMLInputElement).value);
       this.emitValueChanged(nextValue);
     });
@@ -299,7 +308,7 @@ export class ColorPicker extends FormAssociatedElement {
     this.inputEl.setAttribute("aria-label", this.label);
     this.valueEl.textContent = this.valueInternal;
 
-    if (this.shadowRoot?.activeElement !== this.inputEl) {
+    if (this.valueReconciliation.shouldSync(this.shadowRoot?.activeElement === this.inputEl) && this.inputEl.value !== this.valueInternal) {
       this.inputEl.value = this.valueInternal;
     }
 
@@ -352,6 +361,7 @@ export class ColorPicker extends FormAssociatedElement {
       });
     }
 
+    this.valueReconciliation.complete();
     this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }

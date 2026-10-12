@@ -77,7 +77,9 @@ Catalog and pattern custom elements extend `BaseElement` from `@unofficialbox/bo
 Do **not** reassign `shadowRoot.innerHTML` from `attributeChangedCallback` or property setters.
 Full rebuilds destroy focus, drop in-progress input, break drag/pointer capture, and kill CSS
 transitions. Dynamic lists may rebuild a dedicated list container inside `update()`; keep the
-outer shell and listeners stable. Focused inputs should not overwrite `.value` while focused.
+outer shell and listeners stable. Preserve focused native editing during internal reflections
+and unchanged post-edit event echoes; authoritative host value writes still update the
+focused control. See the [native-backed field value contract](./api-guidelines.md#native-backed-field-value-writes).
 
 ## Form-associated controls
 
