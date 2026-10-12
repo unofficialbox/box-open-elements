@@ -2,6 +2,90 @@ import { BaseElement } from "../../core/index.js";
 
 const DEFAULT_TAG_NAME = "box-fieldset";
 
+type DisabledOwnership = {
+  control: HTMLElement;
+  consumerDisabled: boolean;
+  owners: Set<Fieldset>;
+  observer: MutationObserver;
+  reflected: Array<{ oldValue: string | null; newValue: string | null }>;
+};
+
+// A moved control keeps consumer intent separate from each group's reflection.
+const disabledOwnership = new WeakMap<HTMLElement, DisabledOwnership>();
+
+const reflectDisabled = (state: DisabledOwnership): void => {
+  const disabled = state.consumerDisabled || state.owners.size > 0;
+  const oldValue = state.control.getAttribute("disabled");
+  if ((oldValue !== null) === disabled) return;
+  state.reflected.push({ oldValue, newValue: disabled ? "" : null });
+  state.control.toggleAttribute("disabled", disabled);
+};
+
+const reconcileDisabledMutations = (
+  state: DisabledOwnership,
+  records: MutationRecord[],
+): void => {
+  for (let index = 0; index < records.length; index++) {
+    const record = records[index];
+    // The following oldValue is this mutation's new value. The final record
+    // uses the live attribute, so multiple writes in one task remain ordered.
+    const newValue = index + 1 < records.length
+      ? records[index + 1].oldValue
+      : state.control.getAttribute("disabled");
+    const reflected = state.reflected[0];
+    if (reflected && record.oldValue === reflected.oldValue && newValue === reflected.newValue) {
+      state.reflected.shift();
+    } else {
+      state.consumerDisabled = newValue !== null;
+    }
+  }
+  reflectDisabled(state);
+};
+
+const hasNativeDisabledAncestor = (control: HTMLElement): boolean => {
+  for (let parent = control.parentElement; parent; parent = parent.parentElement) {
+    if (!(parent instanceof HTMLFieldSetElement)) continue;
+    const state = disabledOwnership.get(parent);
+    // Ignore a native fieldset attribute contributed solely by a custom group
+    // that is being re-enabled; retain consumer and still-disabled group intent.
+    const disabled = state
+      ? state.consumerDisabled || Array.from(state.owners).some(owner => owner.disabled)
+      : parent.disabled;
+    if (!disabled) continue;
+    const firstLegend = Array.from(parent.children).find(child => child.localName === "legend");
+    if (!firstLegend?.contains(control)) return true;
+  }
+  return false;
+};
+
+const acquireDisabledControl = (owner: Fieldset, control: HTMLElement): void => {
+  let state = disabledOwnership.get(control);
+  if (!state) {
+    const observer = new MutationObserver(records => reconcileDisabledMutations(state!, records));
+    state = { control, consumerDisabled: control.hasAttribute("disabled"), owners: new Set(), observer, reflected: [] };
+    disabledOwnership.set(control, state);
+    observer.observe(control, { attributes: true, attributeFilter: ["disabled"], attributeOldValue: true });
+  } else {
+    reconcileDisabledMutations(state, state.observer.takeRecords());
+  }
+  state.owners.add(owner);
+  reflectDisabled(state);
+};
+
+const releaseDisabledControl = (owner: Fieldset, control: HTMLElement): void => {
+  const state = disabledOwnership.get(control);
+  if (!state) return;
+  // Capture consumer writes even if the group is re-enabled before the
+  // observer callback, including same-value setAttribute writes.
+  reconcileDisabledMutations(state, state.observer.takeRecords());
+  state.owners.delete(owner);
+  reflectDisabled(state);
+  if (state.owners.size === 0) {
+    state.observer.disconnect();
+    disabledOwnership.delete(control);
+  }
+};
+
 const DESCRIPTION_ID = "box-fieldset-description";
 
 const fieldsetStyles = `
@@ -56,6 +140,12 @@ const fieldsetStyles = `
  * `<fieldset>`), native `fieldset[disabled]` propagation cannot reach them, so
  * `disabled` is mirrored onto the light-DOM controls directly. Groups arbitrary
  * fields; use `box-checkbox-group`/`box-radio-group` for option lists.
+ *
+ * Consumer intent is retained for preexisting disabled state and observable
+ * disabled-attribute writes. A custom setter using toggleAttribute(true) is a
+ * DOM no-op while a group already owns disabling; it cannot express new intent.
+ * Use setAttribute("disabled", "") to retain disabling after the group enables.
+ * Reconciliation of descendant/ancestor mutations occurs at observer delivery.
  */
 export class Fieldset extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
@@ -64,6 +154,9 @@ export class Fieldset extends BaseElement {
   }
 
   private fieldsetEl!: HTMLFieldSetElement;
+  private childrenObserver: MutationObserver | null = null;
+  private readonly disabledControls = new Set<HTMLElement>();
+  private readonly watchedDefinitions = new Set<string>();
   private bodyEl!: HTMLElement;
   private legendEl: HTMLLegendElement | null = null;
   private descriptionEl: HTMLParagraphElement | null = null;
@@ -103,26 +196,78 @@ export class Fieldset extends BaseElement {
     }
   }
 
-  /**
-   * Reflect the group's disabled state onto the slotted (light-DOM) controls,
-   * which the shadow `<fieldset disabled>` cannot reach. Tracks which controls
-   * this element disabled so re-enabling never clobbers a control the consumer
-   * disabled on its own.
-   */
-  private syncDisabledControls(): void {
-    const controls = this.querySelectorAll<HTMLElement>(
-      "input, select, textarea, button, [disabled], [aria-disabled]",
-    );
-    for (const control of Array.from(controls)) {
-      if (this.disabled) {
-        if (!control.hasAttribute("disabled")) {
-          control.setAttribute("disabled", "");
-          control.setAttribute("data-box-fieldset-disabled", "");
-        }
-      } else if (control.hasAttribute("data-box-fieldset-disabled")) {
-        control.removeAttribute("disabled");
-        control.removeAttribute("data-box-fieldset-disabled");
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.childrenObserver ??= new MutationObserver(() => this.syncDisabledControls());
+    queueMicrotask(() => { if (this.isConnected) this.syncDisabledControls(); });
+    this.childrenObserver.observe(this, {
+      childList: true, subtree: true, attributes: true, attributeFilter: ["disabled"],
+    });
+    for (let parent = this.parentElement; parent; parent = parent.parentElement) {
+      if (parent instanceof HTMLFieldSetElement) {
+        // Sibling legend insertion/removal changes the native first-legend exemption.
+        this.childrenObserver.observe(parent, { childList: true, attributes: true, attributeFilter: ["disabled"] });
       }
+    }
+  }
+
+  disconnectedCallback(): void {
+    this.childrenObserver?.disconnect();
+    this.childrenObserver = null;
+    for (const control of this.disabledControls) releaseDisabledControl(this, control);
+    this.disabledControls.clear();
+    super.disconnectedCallback();
+  }
+
+  private ownsControl(control: HTMLElement): boolean {
+    for (let parent = control.parentElement; parent && parent !== this; parent = parent.parentElement) {
+      if (parent instanceof Fieldset) return false;
+    }
+    return this.contains(control);
+  }
+
+  private awaitControlDefinition(control: HTMLElement): void {
+    const tag = control.localName;
+    const constructor = customElements.get(tag);
+    if (control.namespaceURI !== "http://www.w3.org/1999/xhtml" || !tag.includes("-")
+      || (constructor && control instanceof constructor) || this.watchedDefinitions.has(tag)) return;
+    this.watchedDefinitions.add(tag);
+    // The registry can outlive a detached group whose controls never upgrade.
+    const reference = new WeakRef(this);
+    void customElements.whenDefined(tag).then(() => {
+      const group = reference.deref();
+      if (group?.isConnected) group.syncDisabledControls();
+    }, () => { /* Reserved/invalid HTML names have no custom definition. */ });
+  }
+
+  /** Mirror only this group's contribution, retaining consumer/inner-group intent. */
+  private syncDisabledControls(): void {
+    // Pending consumer writes must precede inherited-state decisions.
+    for (const control of this.disabledControls) {
+      const state = disabledOwnership.get(control);
+      if (state) reconcileDisabledMutations(state, state.observer.takeRecords());
+    }
+    const controls = new Set<HTMLElement>();
+    if (this.isConnected) {
+      for (const control of Array.from(this.querySelectorAll<HTMLElement>("*"))) {
+        this.awaitControlDefinition(control);
+        const supported = typeof (control as HTMLElement & { disabled?: unknown }).disabled === "boolean";
+        // Retain the existing explicit disabled/aria-disabled discovery too.
+        if ((supported || control.matches("[disabled], [aria-disabled]")) && this.ownsControl(control)
+          && (this.disabled || hasNativeDisabledAncestor(control))) {
+          controls.add(control);
+        }
+      }
+    }
+    for (const control of this.disabledControls) {
+      if (!controls.has(control)) {
+        this.disabledControls.delete(control);
+        releaseDisabledControl(this, control);
+      }
+    }
+    for (const control of controls) {
+      this.disabledControls.add(control);
+      acquireDisabledControl(this, control);
     }
   }
 

@@ -182,7 +182,9 @@ export class Combobox extends FormAssociatedElement {
 
   private valueInternal = "";
   private open = false;
+  private composing = false;
   private activeId: string | null = null;
+  private activeValue: string | null = null;
   private filterText: string | null = null;
   private positionCleanup: (() => void) | null = null;
   private listboxId = `box-combobox-list-${Math.random().toString(36).slice(2, 10)}`;
@@ -324,6 +326,7 @@ export class Combobox extends FormAssociatedElement {
   }
 
   disconnectedCallback(): void {
+    this.composing = false;
     document.removeEventListener("pointerdown", this.onDocumentPointerDown);
     this.stopTracking();
     super.disconnectedCallback();
@@ -370,6 +373,7 @@ export class Combobox extends FormAssociatedElement {
     }
     this.open = false;
     this.activeId = null;
+    this.activeValue = null;
     this.filterText = null;
     document.removeEventListener("pointerdown", this.onDocumentPointerDown);
     this.stopTracking();
@@ -384,7 +388,10 @@ export class Combobox extends FormAssociatedElement {
   }
 
   private setActive(id: string | null): void {
+    const eligible = this.optionEls().find(node => node.id === id);
+    id = eligible?.id ?? null;
     this.activeId = id;
+    this.activeValue = eligible?.dataset.value ?? null;
     this.listboxEl.querySelectorAll('[part="option"]').forEach(node => {
       node.classList.toggle("boe-active", node.id === id);
     });
@@ -414,10 +421,10 @@ export class Combobox extends FormAssociatedElement {
   }
 
   private selectActive(): void {
-    if (!this.activeId) {
+    if (this.disabled || !this.activeId) {
       return;
     }
-    const optionEl = this.listboxEl.querySelector<HTMLElement>(`#${this.activeId}`);
+    const optionEl = this.optionEls().find(node => node.id === this.activeId);
     const value = optionEl?.dataset.value;
     if (value == null) {
       return;
@@ -475,7 +482,10 @@ export class Combobox extends FormAssociatedElement {
       this.setActive(first?.id ?? null);
     });
 
+    this.inputEl.addEventListener("compositionstart", () => { this.composing = true; });
+    this.inputEl.addEventListener("compositionend", () => { this.composing = false; });
     this.inputEl.addEventListener("keydown", event => {
+      if (event.isComposing || this.composing || event.keyCode === 229) return;
       const key = (event as KeyboardEvent).key;
       if (key === "ArrowDown") {
         event.preventDefault();
@@ -535,7 +545,8 @@ export class Combobox extends FormAssociatedElement {
     this.inputEl.addEventListener("blur", () => {
       // Resolve typed text (label→value) then close (pointerdown-on-option is
       // prevented above so option clicks complete first).
-      this.commitInputValue(this.inputEl.value);
+      if (!this.composing) this.commitInputValue(this.inputEl.value);
+      this.composing = false;
       this.closeListbox();
     });
   }
@@ -598,9 +609,10 @@ export class Combobox extends FormAssociatedElement {
     this.inputEl.setAttribute("aria-expanded", this.open ? "true" : "false");
 
     if (this.open) {
+      const activeValue = this.activeValue;
       this.renderOptions();
-      // Reassert active highlight after a re-render.
-      this.setActive(this.activeId);
+      // Generated DOM ids encode position; selection intent follows logical value.
+      this.setActive(this.optionEls().find(node => node.dataset.value === activeValue)?.id ?? null);
     } else {
       this.inputEl.removeAttribute("aria-activedescendant");
     }

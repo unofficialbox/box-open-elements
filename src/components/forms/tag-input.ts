@@ -180,6 +180,7 @@ export class TagInput extends FormAssociatedElement {
 
   private tagsInternal: string[] = [];
   private draft = "";
+  private composing = false;
   private lastTagsJson = "";
   private labelEl!: HTMLElement;
   private controlEl!: HTMLElement;
@@ -348,6 +349,7 @@ export class TagInput extends FormAssociatedElement {
   }
 
   private handleKeydown(event: KeyboardEvent): void {
+    if (event.isComposing || this.composing || event.keyCode === 229) return;
     if (event.key === "Enter" || event.key === ",") {
       event.preventDefault();
       if (this.commitDraft(this.inputEl.value)) {
@@ -399,13 +401,21 @@ export class TagInput extends FormAssociatedElement {
     this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
+  disconnectedCallback(): void {
+    this.composing = false;
+    super.disconnectedCallback();
+  }
+
   protected setupListeners(): void {
     this.inputEl.addEventListener("input", event => {
       this.draft = (event.currentTarget as HTMLInputElement).value;
     });
+    this.inputEl.addEventListener("compositionstart", () => { this.composing = true; });
+    this.inputEl.addEventListener("compositionend", () => { this.composing = false; });
     this.inputEl.addEventListener("keydown", event => this.handleKeydown(event));
     this.inputEl.addEventListener("blur", () => {
-      this.commitDraft(this.draft);
+      if (!this.composing) this.commitDraft(this.draft);
+      this.composing = false;
     });
     this.tagsEl.addEventListener("click", event => {
       const button = (event.target as HTMLElement).closest(

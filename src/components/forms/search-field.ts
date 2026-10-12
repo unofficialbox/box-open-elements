@@ -203,6 +203,7 @@ export class SearchField extends FormAssociatedElement {
   }
 
   private valueInternal = "";
+  private composing = false;
   private inputEl!: HTMLInputElement;
   private labelEl!: HTMLElement;
   private descriptionEl!: HTMLElement;
@@ -311,6 +312,11 @@ export class SearchField extends FormAssociatedElement {
     this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
   }
 
+  disconnectedCallback(): void {
+    this.composing = false;
+    super.disconnectedCallback();
+  }
+
   protected setupListeners(): void {
     this.inputEl.addEventListener("input", event => {
       this.valueReconciliation.trackNativeInput(event);
@@ -332,7 +338,10 @@ export class SearchField extends FormAssociatedElement {
         ),
       );
     });
+    this.inputEl.addEventListener("compositionstart", () => { this.composing = true; });
+    this.inputEl.addEventListener("compositionend", () => { this.composing = false; });
     this.inputEl.addEventListener("keydown", event => {
+      if (event.isComposing || this.composing || event.keyCode === 229) return;
       if (this.disabled) {
         return;
       }
@@ -340,6 +349,7 @@ export class SearchField extends FormAssociatedElement {
         this.submitSearch();
       }
     });
+    this.inputEl.addEventListener("blur", () => { this.composing = false; });
     this.submitEl.addEventListener("click", () => {
       if (this.disabled) {
         return;
