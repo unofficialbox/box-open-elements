@@ -18,7 +18,14 @@ describe.each([ButtonGroup, Tabs])("controlled selection focus: %s", Component =
   it("keeps a keyboard entry after removing the selected option", () => {
     const element = new Component(); element.options = options; element.value = "b"; document.body.append(element);
     element.options = [options[0]];
-    expect(element.value).toBe("a"); expect(element.shadowRoot!.querySelector<HTMLButtonElement>("button")!.tabIndex).toBe(0);
+    expect(element.value).toBe("b"); expect(element.shadowRoot!.querySelector<HTMLButtonElement>("button")!.tabIndex).toBe(0);
+  });
+  it("retains a host-controlled value while options are absent or temporarily replaced", () => {
+    const element = new Component(); element.value = "b"; document.body.append(element);
+    expect(element.value).toBe("b"); element.options = [options[0]];
+    expect(element.value).toBe("b"); expect(element.shadowRoot!.querySelector<HTMLButtonElement>("button")!.tabIndex).toBe(0);
+    element.options = options; expect(element.value).toBe("b");
+    expect(element.shadowRoot!.querySelector<HTMLButtonElement>('[data-value="b"]')!.tabIndex).toBe(0);
   });
   it("honors a host focus handoff after keyboard selection, including replacement/reordering", async () => {
     const element = new Component(); element.options = options; document.body.append(element);

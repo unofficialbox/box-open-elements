@@ -188,8 +188,9 @@ export class ButtonGroup extends BaseElement {
     }
 
     const options = this.options;
-    const selectedValue = options.some(option => option.value === this.valueInternal)
-      ? this.valueInternal : options[0]?.value || "";
+    const selectedValue = this.valueInternal || options[0]?.value || "";
+    const tabbableValue = options.some(option => option.value === selectedValue)
+      ? selectedValue : options[0]?.value || "";
     if (selectedValue !== this.valueInternal) {
       this.valueInternal = selectedValue;
       this.setAttribute("value", selectedValue);
@@ -205,7 +206,7 @@ export class ButtonGroup extends BaseElement {
         button.dataset.layout = this.layout;
         button.dataset.selected = String(selected);
         button.setAttribute("aria-checked", String(selected));
-        button.tabIndex = selected ? 0 : -1;
+        button.tabIndex = button.dataset.value === tabbableValue ? 0 : -1;
       });
       return;
     }
@@ -233,7 +234,7 @@ export class ButtonGroup extends BaseElement {
             data-position="${position}"
             data-selected="${String(option.value === selectedValue)}"
             aria-checked="${String(option.value === selectedValue)}"
-            tabindex="${option.value === selectedValue ? "0" : "-1"}"
+            tabindex="${option.value === tabbableValue ? "0" : "-1"}"
           >
             ${escapeHtml(option.label)}
           </button>

@@ -212,6 +212,8 @@ export class Tabs extends BaseElement {
   }
 
   private renderTabsMarkup(options: BoxTabOption[], selectedValue: string): string {
+    const tabbableValue = options.some(option => option.value === selectedValue)
+      ? selectedValue : options[0]?.value || "";
     return options
       .map((option, index) => {
         const position =
@@ -237,7 +239,7 @@ export class Tabs extends BaseElement {
             data-selected="${String(selected)}"
             data-value="${value}"
             aria-selected="${String(selected)}"
-            tabindex="${selected ? "0" : "-1"}"
+            tabindex="${option.value === tabbableValue ? "0" : "-1"}"
           >
             ${escapeHtml(option.label)}
           </button>
@@ -333,8 +335,9 @@ export class Tabs extends BaseElement {
 
     const options = this.options;
     const optionsJson = this.getAttribute("options") ?? "";
-    const selectedValue = options.some(option => option.value === this.valueInternal)
-      ? this.valueInternal : options[0]?.value || "";
+    const selectedValue = this.valueInternal || options[0]?.value || "";
+    const tabbableValue = options.some(option => option.value === selectedValue)
+      ? selectedValue : options[0]?.value || "";
 
     if (selectedValue !== this.valueInternal) {
       this.valueInternal = selectedValue;
@@ -372,7 +375,7 @@ export class Tabs extends BaseElement {
       tab.dataset.position = position;
       tab.dataset.selected = String(selected);
       tab.setAttribute("aria-selected", String(selected));
-      tab.tabIndex = selected ? 0 : -1;
+      tab.tabIndex = option.value === tabbableValue ? 0 : -1;
     });
 
     // Show only the selected tab's panel.
