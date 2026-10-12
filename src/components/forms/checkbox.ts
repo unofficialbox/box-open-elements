@@ -111,11 +111,20 @@ export class Checkbox extends FormAssociatedElement {
     ];
   }
 
+  private formDisabled = false;
+
+  formDisabledCallback(disabled: boolean): void {
+    // Effective platform state includes disabled fieldset ancestry and legend
+    // exemptions. Keep it separate from the consumer-owned host attribute.
+    this.formDisabled = disabled;
+    this.update();
+  }
+
   private checkedInternal = false;
   private indeterminateInternal = false;
   private valueInternal = DEFAULT_VALUE;
   private inputEl!: HTMLInputElement;
-  focus(options?: FocusOptions): void { if (!this.disabled) this.inputEl?.focus(options); }
+  focus(options?: FocusOptions): void { if (!this.disabled && !this.formDisabled) this.inputEl?.focus(options); }
   private labelEl!: HTMLSpanElement;
   private descriptionEl!: HTMLElement;
   private fieldEl!: HTMLElement;
@@ -272,7 +281,7 @@ export class Checkbox extends FormAssociatedElement {
 
   protected setupListeners(): void {
     this.inputEl.addEventListener("change", event => {
-      if (this.disabled) {
+      if (this.disabled || this.formDisabled) {
         return;
       }
       const input = event.currentTarget as HTMLInputElement;
@@ -313,7 +322,7 @@ export class Checkbox extends FormAssociatedElement {
       : String(this.checkedInternal);
     this.inputEl.setAttribute("aria-checked", ariaChecked);
     this.setAttribute("aria-checked", ariaChecked);
-    if (this.disabled) {
+    if (this.disabled || this.formDisabled) {
       this.inputEl.setAttribute("disabled", "");
     } else {
       this.inputEl.removeAttribute("disabled");
