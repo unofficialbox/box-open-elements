@@ -481,7 +481,9 @@ export class CategorySelector extends BaseElement {
     const group = this.rootEl.querySelector('[part="group"]');
     group?.setAttribute("aria-label", this.label);
 
-    const tabbableValue = this.valueInternal || this.selectableOptions()[0]?.value || "";
+    const eligible = this.selectableOptions();
+    const tabbableValue = eligible.some(option => option.value === this.valueInternal)
+      ? this.valueInternal : eligible[0]?.value ?? "";
 
     this.rootEl.querySelectorAll('[part~="pill"]:not([data-more])').forEach(node => {
       const button = node as HTMLButtonElement;
@@ -502,7 +504,7 @@ export class CategorySelector extends BaseElement {
       moreBtn.setAttribute("aria-expanded", this.moreOpen ? "true" : "false");
       // Roving tabindex: the More button is the tabbable entry when it holds the
       // active (overflow) selection; otherwise a visible pill is.
-      moreBtn.tabIndex = selectedInOverflow ? 0 : -1;
+      moreBtn.tabIndex = overflow.some(option => option.value === tabbableValue) ? 0 : -1;
     }
 
     // Reflect the checked overflow option in the menu.

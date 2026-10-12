@@ -476,7 +476,8 @@ export class PillSelectorDropdown extends FormAssociatedElement {
     this.pendingFocus = null;
 
     if (pending === "trigger") {
-      this.triggerEl.focus();
+      const target = this.triggerEl.hidden ? this.customInputEl : this.triggerEl;
+      target?.focus();
       return;
     }
 

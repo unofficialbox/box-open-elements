@@ -4,14 +4,6 @@ import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/ind
 
 const DEFAULT_TAG_NAME = "box-segmented-control";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-
 export interface SegmentedControlOption {
   label: string;
   value: string;
@@ -96,7 +88,6 @@ export class SegmentedControl extends BaseElement {
 
   private valueInternal = "";
   private controlEl!: HTMLElement;
-  private renderedOptions = "";
 
   get disabled(): boolean {
     return this.hasAttribute("disabled");
@@ -163,7 +154,7 @@ export class SegmentedControl extends BaseElement {
 
   private moveSelection(direction: number): void {
     const enabledOptions = this.options.filter(option => !option.disabled);
-    if (enabledOptions.length === 0) {
+    if (this.disabled || enabledOptions.length === 0) {
       return;
     }
 
@@ -179,7 +170,7 @@ export class SegmentedControl extends BaseElement {
     index: number,
     enabledOptions = this.options.filter(option => !option.disabled),
   ): void {
-    if (enabledOptions.length === 0) {
+    if (this.disabled || enabledOptions.length === 0) {
       return;
     }
 
@@ -199,6 +190,8 @@ export class SegmentedControl extends BaseElement {
 
     this.valueInternal = nextValue;
     this.setAttribute("value", nextValue);
+    // Complete our focus intent before host listeners can explicitly hand it off.
+    focusSegment(nextValue);
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,
@@ -207,7 +200,6 @@ export class SegmentedControl extends BaseElement {
       }),
     );
     this.update();
-    focusSegment(nextValue);
   }
 
   protected renderTemplate(): void {
@@ -239,99 +231,91 @@ export class SegmentedControl extends BaseElement {
     this.controlEl.setAttribute("aria-label", this.label);
     this.controlEl.setAttribute("aria-disabled", String(this.disabled));
 
-    const serialized = JSON.stringify(options);
-    if (serialized === this.renderedOptions) {
-      this.controlEl.querySelectorAll<HTMLButtonElement>('[part="segment"]').forEach((button, index) => {
-        const selected = options[index].value === selectedValue;
-        button.dataset.layout = this.layout;
-        button.dataset.selected = String(selected);
-        button.setAttribute("aria-checked", String(selected));
-        button.tabIndex = selected ? 0 : -1;
-        button.disabled = this.disabled || Boolean(options[index].disabled);
-      });
-      return;
+    const existing = new Map<string, HTMLButtonElement[]>();
+    this.controlEl.querySelectorAll<HTMLButtonElement>('[part="segment"]').forEach(button => {
+      const value = button.dataset.value ?? "";
+      const matches = existing.get(value) ?? [];
+      matches.push(button);
+      existing.set(value, matches);
+    });
+    const focused = this.shadowRoot?.activeElement as HTMLButtonElement | null;
+    const entry = options.some(option => !option.disabled && option.value === selectedValue)
+      ? selectedValue : firstEnabledValue;
+    options.forEach((option, index) => {
+      const button = existing.get(option.value)?.shift() ?? document.createElement("button");
+      button.type = "button";
+      button.setAttribute("part", "segment");
+      button.setAttribute("role", "radio");
+      button.dataset.value = option.value;
+      button.dataset.layout = this.layout;
+      button.dataset.position = options.length === 1 ? "only" : index === 0 ? "first" : index === options.length - 1 ? "last" : "middle";
+      button.dataset.selected = String(option.value === selectedValue);
+      button.setAttribute("aria-checked", String(option.value === selectedValue));
+      button.tabIndex = !this.disabled && option.value === entry ? 0 : -1;
+      button.disabled = this.disabled || Boolean(option.disabled);
+      if (button.textContent !== option.label) button.textContent = option.label;
+      if (this.controlEl.children[index] !== button) this.controlEl.insertBefore(button, this.controlEl.children[index] ?? null);
+    });
+    for (const matches of existing.values()) for (const button of matches) button.remove();
+    // Moving a keyed button can drop native focus even though identity survives.
+    if (focused && (document.activeElement === this || document.activeElement === document.body || document.activeElement === null)) {
+      const target = focused.isConnected && !focused.disabled ? focused
+        : Array.from(this.controlEl.querySelectorAll<HTMLButtonElement>('[part="segment"]')).find(button => button.tabIndex === 0);
+      if (target && this.shadowRoot?.activeElement !== target) target.focus();
     }
-    this.renderedOptions = serialized;
-    // Rebuild only when the options themselves change.
-    this.controlEl.innerHTML = options
-      .map((option, index) => {
-        const position =
-          options.length === 1
-            ? "only"
-            : index === 0
-              ? "first"
-              : index === options.length - 1
-                ? "last"
-                : "middle";
+  }
 
-        return `
-          <button
-            type="button"
-            part="segment"
-            data-value="${escapeHtml(option.value)}"
-            data-layout="${this.layout}"
-            data-position="${position}"
-            data-selected="${String(option.value === selectedValue)}"
-            role="radio"
-            aria-checked="${String(option.value === selectedValue)}"
-            tabindex="${option.value === selectedValue ? "0" : "-1"}"
-            ${this.disabled || option.disabled ? "disabled" : ""}
-          >
-            ${escapeHtml(option.label)}
-          </button>
-        `;
-      })
-      .join("");
+  protected setupListeners(): void {
+    this.controlEl.addEventListener("click", event => {
+      const target = (event.target as HTMLElement).closest<HTMLButtonElement>('[part="segment"]');
+      if (!target || !this.controlEl.contains(target)) return;
+      if (target.disabled) {
+        return;
+      }
 
-    this.controlEl.querySelectorAll('[part="segment"]').forEach(button => {
-      button.addEventListener("click", () => {
-        const target = button as HTMLButtonElement;
-        if (target.disabled) {
-          return;
-        }
+      const nextValue = target.dataset.value ?? "";
+      if (!nextValue || nextValue === this.valueInternal) {
+        return;
+      }
 
-        const nextValue = target.dataset.value ?? "";
-        if (!nextValue || nextValue === this.valueInternal) {
-          return;
-        }
+      this.valueInternal = nextValue;
+      this.setAttribute("value", nextValue);
+      this.dispatchEvent(
+        new CustomEvent("value-changed", {
+          bubbles: true,
+          composed: true,
+          detail: { value: nextValue },
+        }),
+      );
+      this.update();
+    });
 
-        this.valueInternal = nextValue;
-        this.setAttribute("value", nextValue);
-        this.dispatchEvent(
-          new CustomEvent("value-changed", {
-            bubbles: true,
-            composed: true,
-            detail: { value: nextValue },
-          }),
-        );
-        this.update();
-      });
+    this.controlEl.addEventListener("keydown", event => {
+      const target = (event.target as HTMLElement).closest<HTMLButtonElement>('[part="segment"]');
+      if (!target || target.disabled || !this.controlEl.contains(target)) return;
+      const keyboardEvent = event as KeyboardEvent;
+      if (keyboardEvent.key === "ArrowRight" || keyboardEvent.key === "ArrowDown") {
+        keyboardEvent.preventDefault();
+        this.moveSelection(1);
+        return;
+      }
 
-      button.addEventListener("keydown", event => {
-        const keyboardEvent = event as KeyboardEvent;
-        if (keyboardEvent.key === "ArrowRight" || keyboardEvent.key === "ArrowDown") {
-          keyboardEvent.preventDefault();
-          this.moveSelection(1);
-          return;
-        }
+      if (keyboardEvent.key === "ArrowLeft" || keyboardEvent.key === "ArrowUp") {
+        keyboardEvent.preventDefault();
+        this.moveSelection(-1);
+        return;
+      }
 
-        if (keyboardEvent.key === "ArrowLeft" || keyboardEvent.key === "ArrowUp") {
-          keyboardEvent.preventDefault();
-          this.moveSelection(-1);
-          return;
-        }
+      if (keyboardEvent.key === "Home") {
+        keyboardEvent.preventDefault();
+        this.moveSelectionTo(0);
+        return;
+      }
 
-        if (keyboardEvent.key === "Home") {
-          keyboardEvent.preventDefault();
-          this.moveSelectionTo(0);
-          return;
-        }
-
-        if (keyboardEvent.key === "End") {
-          keyboardEvent.preventDefault();
-          this.moveSelectionTo(this.options.length - 1);
-        }
-      });
+      if (keyboardEvent.key === "End") {
+        keyboardEvent.preventDefault();
+        this.moveSelectionTo(this.options.length - 1);
+      }
     });
   }
 }
