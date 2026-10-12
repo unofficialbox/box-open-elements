@@ -130,6 +130,9 @@ export class CodeBlock extends BaseElement {
   private copyEl!: HTMLButtonElement;
   private slotEl!: HTMLSlotElement;
   private resetTimer: ReturnType<typeof setTimeout> | null = null;
+  private copyGeneration = 0;
+  private displayedCode = "";
+  private contentObserver: MutationObserver | null = null;
 
   /** The source to render. */
   get code(): string {
@@ -171,21 +174,62 @@ export class CodeBlock extends BaseElement {
     else this.removeAttribute("label");
   }
 
+  private readDisplayedCode(): string {
+    return this.slotEl?.assignedNodes({ flatten: true }).map(node => node.textContent ?? "").join("") ?? "";
+  }
+
+  private resetCopied(): void {
+    if (this.resetTimer) {
+      clearTimeout(this.resetTimer);
+      this.resetTimer = null;
+    }
+    if (this.copyEl) {
+      this.copyEl.dataset.copied = "false";
+      this.copyEl.innerHTML = COPY_ICON;
+    }
+  }
+
+  private invalidateCopy(): void {
+    this.copyGeneration += 1;
+    this.resetCopied();
+  }
+
+  private syncSource(): string {
+    const text = this.readDisplayedCode();
+    if (text !== this.displayedCode) {
+      this.displayedCode = text;
+      this.invalidateCopy();
+    }
+    return text;
+  }
+
+  private consumeContentMutations(): void {
+    // Drain records before starting/settling a copy as clipboard promises can
+    // resolve before the observer callback. This also fences A → B → A edits.
+    if (this.contentObserver?.takeRecords().length) {
+      this.invalidateCopy();
+      this.displayedCode = this.readDisplayedCode();
+    }
+  }
+
   private async copy(): Promise<void> {
-    const text = this.code || this.textContent?.trim() || "";
-    if (!text) {
+    this.consumeContentMutations();
+    const text = this.syncSource();
+    if (!this.isConnected || !text) {
       return;
     }
-
+    const generation = ++this.copyGeneration;
+    let copied = false;
     try {
       await navigator.clipboard.writeText(text);
-      this.markCopied(true);
+      copied = true;
     } catch {
-      // Clipboard access is refused in plenty of ordinary situations — an
-      // insecure origin, a denied permission, a browser that gates it behind a
-      // user gesture it did not see. The button reports failure by simply not
-      // confirming, rather than throwing into the host's console.
-      this.markCopied(false);
+      // Clipboard refusal is reported only for the current copy request.
+    }
+    this.consumeContentMutations();
+    this.syncSource();
+    if (this.isConnected && generation === this.copyGeneration) {
+      this.markCopied(copied);
     }
   }
 
@@ -209,11 +253,23 @@ export class CodeBlock extends BaseElement {
     }
   }
 
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.contentObserver ??= new MutationObserver(records => {
+      if (records.length) {
+        this.invalidateCopy();
+        this.displayedCode = this.readDisplayedCode();
+      }
+    });
+    this.contentObserver.observe(this, {
+      childList: true, characterData: true, subtree: true,
+      attributes: true, attributeFilter: ["slot"],
+    });
+  }
+
   disconnectedCallback(): void {
-    if (this.resetTimer) {
-      clearTimeout(this.resetTimer);
-      this.resetTimer = null;
-    }
+    this.contentObserver?.disconnect();
+    this.invalidateCopy();
   }
 
   protected renderTemplate(): void {
@@ -235,6 +291,7 @@ export class CodeBlock extends BaseElement {
   }
 
   protected setupListeners(): void {
+    this.slotEl.addEventListener("slotchange", () => { this.syncSource(); });
     this.copyEl.addEventListener("click", () => {
       void this.copy();
     });
@@ -266,6 +323,7 @@ export class CodeBlock extends BaseElement {
 
     this.copyEl.setAttribute("aria-label", this.copyLabel);
     this.copyEl.title = this.copyLabel;
+    this.syncSource();
   }
 }
 
