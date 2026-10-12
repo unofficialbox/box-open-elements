@@ -148,3 +148,21 @@ describe("DraggableList", () => {
     expect(slot.assignedElements()[0]).toBe(custom);
   });
 });
+
+describe("DraggableList keyboard entry for every item", () => {
+  afterEach(() => { document.body.innerHTML = ""; });
+  it("makes each handle tabbable before and after reorder without changing existing move keys", () => {
+    const el = createList();
+    expect([...el.shadowRoot!.querySelectorAll<HTMLElement>('[part="handle"]')].map(handle => handle.tabIndex)).toEqual([0, 0, 0]);
+    const second = handleFor(el, "b"); second.focus(); second.dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true }));
+    expect(order(el)).toEqual(["a", "c", "b"]);
+    expect([...el.shadowRoot!.querySelectorAll<HTMLElement>('[part="handle"]')].map(handle => handle.tabIndex)).toEqual([0, 0, 0]);
+    expect((el.shadowRoot!.activeElement?.closest('[part="item"]') as HTMLElement).dataset.value).toBe("b");
+  });
+  it("respects an external caller focus handoff after keyboard reorder", () => {
+    const el = createList(), outside = document.createElement("button"); document.body.append(outside);
+    el.addEventListener("reorder", () => { outside.focus(); el.label = "Current list"; });
+    handleFor(el, "c").focus(); handleFor(el, "c").dispatchEvent(new KeyboardEvent("keydown", { key: "Home", bubbles: true }));
+    expect(document.activeElement).toBe(outside); expect(order(el)).toEqual(["c", "a", "b"]);
+  });
+});

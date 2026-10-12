@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { captureOwnedFocus, restoreOwnedFocus } from "../../core/refresh-controls.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/interaction.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 import { boeRadius } from "../../foundations/geometry/index.js";
@@ -186,6 +187,7 @@ const carouselStyles = `
 
   [part="empty"],
   [part="stage"][hidden],
+  [part="viewport"][hidden],
   [part="controls"][hidden],
   [part="eyebrow"][hidden],
   [part="description"][hidden],
@@ -222,7 +224,6 @@ export class Carousel extends BaseElement {
   }
 
   private valueInternal = 0;
-  private lastItemsJson = "";
 
   private carouselEl!: HTMLElement;
   private labelEl!: HTMLElement;
@@ -402,6 +403,9 @@ export class Carousel extends BaseElement {
 
     this.carouselEl.addEventListener("keydown", event => {
       const keyboardEvent = event as KeyboardEvent;
+      const path = event.composedPath();
+      if (path.slice(0, path.indexOf(this.carouselEl)).some(node => node instanceof Element &&
+        node.matches('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="slider"], [role="spinbutton"], [role="combobox"], [role="listbox"]'))) return;
       if (keyboardEvent.key === "ArrowLeft") {
         keyboardEvent.preventDefault();
         this.changeBy(-1);
@@ -415,12 +419,40 @@ export class Carousel extends BaseElement {
   }
 
   protected update(): void {
+    if (!this.carouselEl) return;
+    const focus = captureOwnedFocus(this);
+    this.renderCarousel();
+    restoreOwnedFocus(this, focus);
+  }
+
+  private updatePagination(titles: readonly string[]): void {
+    titles.forEach((title, index) => {
+      const existing = this.paginationEl.children[index];
+      const button = existing instanceof HTMLButtonElement && existing.dataset.index === String(index)
+        ? existing : document.createElement("button");
+      for (const name of button.getAttributeNames()) {
+        if (!["type", "part", "aria-label", "aria-current", "data-index"].includes(name)) button.removeAttribute(name);
+      }
+      button.replaceChildren();
+      button.type = "button";
+      button.setAttribute("part", index === this.valueInternal ? "dot dot-selected" : "dot");
+      button.setAttribute("aria-label", `Go to slide ${index + 1}: ${title}`);
+      button.setAttribute("aria-current", String(index === this.valueInternal));
+      button.dataset.index = String(index);
+      if (existing !== button) {
+        if (existing) existing.replaceWith(button);
+        else this.paginationEl.append(button);
+      }
+    });
+    while (this.paginationEl.children.length > titles.length) this.paginationEl.lastElementChild!.remove();
+  }
+
+  private renderCarousel(): void {
     if (!this.carouselEl || !this.labelEl || !this.stageEl || !this.mediaEl) {
       return;
     }
 
     const items = this.items;
-    const itemsJson = this.getAttribute("items") ?? "";
     const label = this.label;
 
     this.carouselEl.setAttribute("aria-label", label);
@@ -440,22 +472,7 @@ export class Carousel extends BaseElement {
         slide.toggleAttribute("data-carousel-active", active);
         slide.setAttribute("aria-hidden", active ? "false" : "true");
       });
-      this.paginationEl.innerHTML = slotted
-        .map((slide, index) => {
-          const dotPart = index === this.valueInternal ? "dot dot-selected" : "dot";
-          const title = slide.getAttribute("data-title") ?? slide.getAttribute("aria-label") ?? `${index + 1}`;
-          return `
-            <button
-              type="button"
-              part="${dotPart}"
-              aria-label="Go to slide ${index + 1}: ${escapeHtml(title)}"
-              aria-current="${index === this.valueInternal ? "true" : "false"}"
-              data-index="${index}"
-            ></button>
-          `;
-        })
-        .join("");
-      this.lastItemsJson = "";
+      this.updatePagination(slotted.map((slide, index) => slide.getAttribute("data-title") ?? slide.getAttribute("aria-label") ?? `${index + 1}`));
       return;
     }
 
@@ -467,7 +484,7 @@ export class Carousel extends BaseElement {
       this.stageEl.hidden = true;
       this.controlsEl.hidden = true;
       this.emptyEl.hidden = false;
-      this.lastItemsJson = itemsJson;
+      this.paginationEl.replaceChildren();
       return;
     }
 
@@ -487,31 +504,7 @@ export class Carousel extends BaseElement {
     this.descriptionEl.textContent = activeItem.description ?? "";
     this.descriptionEl.hidden = !activeItem.description;
 
-    if (itemsJson !== this.lastItemsJson) {
-      this.paginationEl.innerHTML = items
-        .map((item, index) => {
-          const dotPart = index === this.valueInternal ? "dot dot-selected" : "dot";
-          return `
-            <button
-              type="button"
-              part="${dotPart}"
-              aria-label="Go to slide ${index + 1}: ${escapeHtml(item.title)}"
-              aria-current="${index === this.valueInternal ? "true" : "false"}"
-              data-index="${index}"
-            ></button>
-          `;
-        })
-        .join("");
-      this.lastItemsJson = itemsJson;
-    } else {
-      this.paginationEl.querySelectorAll('[part~="dot"]').forEach(node => {
-        const button = node as HTMLButtonElement;
-        const index = Number(button.dataset.index ?? "0");
-        const selected = index === this.valueInternal;
-        button.setAttribute("part", selected ? "dot dot-selected" : "dot");
-        button.setAttribute("aria-current", String(selected));
-      });
-    }
+    this.updatePagination(items.map(item => item.title));
   }
 }
 
