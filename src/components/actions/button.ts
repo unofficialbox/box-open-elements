@@ -204,11 +204,16 @@ export class Button extends BaseElement {
   private labelEl!: HTMLElement;
   private iconSlot!: HTMLSlotElement;
   private readonly internals: ElementInternals;
+  private connectionVersion = 0;
 
   constructor() {
     super();
     // Form association lets type="submit"/"reset" drive the owning form.
     this.internals = this.attachInternals();
+  }
+
+  disconnectedCallback(): void {
+    this.connectionVersion += 1;
   }
 
   /** Loading state: shows a spinner and blocks activation (stays focusable). */
@@ -297,20 +302,26 @@ export class Button extends BaseElement {
 
   protected setupListeners(): void {
     this.buttonEl.addEventListener("click", event => {
-      if (this.disabled || this.isLoading) {
+      if (this.disabled || this.isLoading || this.matches(":disabled")) {
         event.preventDefault();
         event.stopImmediatePropagation();
         return;
       }
-      // Drive the owning form for submit/reset (custom elements don't do this
-      // natively). Prefer the form-associated form; fall back to the nearest
-      // ancestor form so it works without full ElementInternals.form support.
-      const form = this.internals.form ?? this.closest("form");
-      if (this.type === "submit") {
-        form?.requestSubmit();
-      } else if (this.type === "reset") {
-        form?.reset();
-      }
+      // Native clicks may checkpoint microtasks between propagation listeners.
+      // Use the next task to observe host/ancestor veto on the original event,
+      // then recheck current state and discard any detached activation.
+      const connectionVersion = this.connectionVersion;
+      setTimeout(() => {
+        if (event.defaultPrevented || connectionVersion !== this.connectionVersion ||
+            !this.isConnected || this.disabled ||
+            this.isLoading || this.matches(":disabled")) return;
+        const form = this.internals.form ?? this.closest("form");
+        if (this.type === "submit") {
+          form?.requestSubmit();
+        } else if (this.type === "reset") {
+          form?.reset();
+        }
+      }, 0);
     });
 
     this.iconSlot.addEventListener("slotchange", () => this.syncIconVisibility());

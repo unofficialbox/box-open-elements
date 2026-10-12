@@ -79,7 +79,7 @@ describe("Button", () => {
     expect(iconEl.hidden).toBe(false);
   });
 
-  it("submits the owning form when type=submit", () => {
+  it("submits the owning form when type=submit", async () => {
     const form = document.createElement("form");
     const el = document.createElement("box-button") as Button;
     el.type = "submit";
@@ -90,10 +90,11 @@ describe("Button", () => {
     const submitted = vi.fn((e: Event) => e.preventDefault());
     form.addEventListener("submit", submitted);
     innerButton(el).click();
+    await new Promise(resolve => setTimeout(resolve, 0));
     expect(submitted).toHaveBeenCalledTimes(1);
   });
 
-  it("resets the owning form when type=reset", () => {
+  it("resets the owning form when type=reset", async () => {
     const form = document.createElement("form");
     form.innerHTML = `<input name="q" value="" />`;
     const el = document.createElement("box-button") as Button;
@@ -106,6 +107,7 @@ describe("Button", () => {
     const reset = vi.fn();
     form.addEventListener("reset", reset);
     innerButton(el).click();
+    await new Promise(resolve => setTimeout(resolve, 0));
     expect(reset).toHaveBeenCalledTimes(1);
   });
 
