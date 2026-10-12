@@ -91,8 +91,8 @@ export class CallConsole extends BaseElement {
       try {
         await model.clear();
         if (generation === this.sessionGeneration) this.dispatchEvent(new CustomEvent("calls-cleared",{bubbles:true,composed:true}));
-      } catch {
-        if (generation === this.sessionGeneration) this.shadowRoot!.querySelector("#copy-status")!.textContent="Unable to clear calls. Try again.";
+      } catch (error) {
+        if (generation === this.sessionGeneration && !(error instanceof DOMException && error.name === "AbortError")) this.shadowRoot!.querySelector("#copy-status")!.textContent="Unable to clear calls. Try again.";
       } finally {
         if (generation === this.sessionGeneration) {this.clearing=false;this.update();}
       }

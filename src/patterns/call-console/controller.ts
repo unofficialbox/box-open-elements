@@ -30,7 +30,18 @@ export class CallConsoleController {
       this.close = this.transport.subscribe(event => {if (!abort.signal.aborted) this.apply(event);}, state => {if (!abort.signal.aborted) {this.connection = state; this.emit();}});
     } catch (error) { if (!abort.signal.aborted) {this.connection = error instanceof Error && error.message === "404" ? "unavailable" : "reconnecting"; this.emit();} }
   }
-  async clear(): Promise<void> { await this.transport.clear(); this.apply({type: "clear"}); }
+  async clear(): Promise<void> {
+    const session = this.abort;
+    const isCurrent = (): boolean => this.abort === session && !session?.signal.aborted;
+    try {
+      await this.transport.clear();
+    } catch (error) {
+      if (!isCurrent()) throw new DOMException("Clear session ended", "AbortError");
+      throw error;
+    }
+    if (!isCurrent()) throw new DOMException("Clear session ended", "AbortError");
+    this.apply({type: "clear"});
+  }
   disconnect(): void {this.abort?.abort(); this.close?.(); this.close = undefined;}
   destroy(): void {this.disconnect(); this.listeners.clear();}
 }

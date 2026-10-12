@@ -141,3 +141,43 @@ describe("call console clear session ownership", () => {
     a.destroy(); b.destroy();
   });
 });
+
+describe("review: async completion boundaries", () => {
+  it.each(["controller-reconnect", "element-remount"])("preserves the fresh snapshot after %s during an old clear", async scenario => {
+    const pending = deferred<void>(); let snapshots = 0;
+    const c = new CallConsoleController({ snapshot: async () => [{ ...entry, id: ++snapshots === 1 ? "old" : "fresh" }], subscribe: () => () => {}, clear: () => pending.promise });
+    await c.connect(); const el = new CallConsole(); el.callController = c; document.body.append(el);
+    const cleared = vi.fn(); el.addEventListener("calls-cleared", cleared);
+    el.shadowRoot!.querySelector<HTMLElement>("#clear")!.click();
+    if (scenario === "element-remount") { el.remove(); document.body.append(el); }
+    await c.connect(); expect(c.entries.map(e => e.id)).toEqual(["fresh"]);
+    pending.resolve(); await flush();
+    expect(c.entries.map(e => e.id)).toEqual(["fresh"]); expect(cleared).not.toHaveBeenCalled();
+    expect(el.shadowRoot!.querySelector("#copy-status")!.textContent).not.toContain("Unable"); c.destroy();
+  });
+  it("preserves a host-owned clear operation across element detach", async () => {
+    const pending = deferred<void>();
+    const c = new CallConsoleController({ snapshot: async () => [entry], subscribe: () => () => {}, clear: () => pending.promise });
+    await c.connect(); const el = new CallConsole(); el.callController = c; document.body.append(el);
+    el.shadowRoot!.querySelector<HTMLElement>("#clear")!.click(); el.remove(); document.body.append(el);
+    const disconnect = vi.spyOn(c, "disconnect");
+    pending.resolve(); await flush();
+    expect(c.entries).toEqual([]); expect(disconnect).not.toHaveBeenCalled(); c.destroy();
+  });
+  it("does not reload a replacement WorkQueue session from a synchronous itemMutated listener", async () => {
+    const nextLoad = deferred<{ items: typeof item[] }>(); let loads = 0; let signal: AbortSignal | undefined;
+    const c = new WorkQueueController({ token: "synthetic", transport: { loadItems: request => { if (++loads === 1) return Promise.resolve({ items: [item] }); signal = request.signal; return nextLoad.promise; }, completeItem: async () => item } });
+    await c.connect(); c.subscribe("itemMutated", () => { c.disconnect(); void c.connect(); });
+    const mutation = c.completeItem("w"); await flush();
+    expect(loads).toBe(2); expect(signal?.aborted).toBe(false);
+    nextLoad.resolve({ items: [{ ...item, id: "fresh" }] }); expect(await mutation).toBeNull();
+    expect(c.getState().items[0]!.id).toBe("fresh"); c.disconnect();
+  });
+  it("returns no obsolete mutation success when its reload finishes in a replacement session", async () => {
+    const reload = deferred<{ items: typeof item[] }>(); let loads = 0;
+    const c = new WorkQueueController({ token: "synthetic", transport: { loadItems: () => ++loads === 2 ? reload.promise : Promise.resolve({ items: [item] }), completeItem: async () => item } });
+    await c.connect(); const mutation = c.completeItem("w"); await flush(); expect(loads).toBe(2);
+    c.disconnect(); await c.connect(); reload.resolve({ items: [] });
+    expect(await mutation).toBeNull(); expect(c.getState().items).toEqual([item]); c.disconnect();
+  });
+});

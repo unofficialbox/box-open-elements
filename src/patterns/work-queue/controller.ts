@@ -186,8 +186,9 @@ export class WorkQueueController extends Controller<WorkQueueState, WorkQueueEve
       const item = await perform();
       if (generation !== this.sessionGeneration) return null;
       this.emit("itemMutated", { kind, item });
+      if (generation !== this.sessionGeneration) return null;
       await this.reload();
-      return item;
+      return generation === this.sessionGeneration ? item : null;
     } catch (error) {
       if (generation !== this.sessionGeneration) return null;
       const message = error instanceof Error ? error.message : `Work-queue ${kind} failed`;
