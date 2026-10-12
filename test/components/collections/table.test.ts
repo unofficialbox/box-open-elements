@@ -1137,3 +1137,65 @@ describe("Table containing-root focus and projected ownership", () => {
     expect(el.selectedIds).toEqual(["a"]);
   });
 });
+
+describe("Table compact scan rows", () => {
+  beforeEach(() => { Table.register(); });
+  afterEach(() => { document.body.innerHTML = ""; });
+
+  it("keeps field labels, explicit summary/hidden choices and row identity", () => {
+    const el = create("none");
+    el.stackedLayout = "compact";
+    el.setAttribute("stacked", "auto");
+    el.columns = [
+      { key: "name", label: "Run", rowHeader: true, compact: "hidden" },
+      { key: "status", label: "Status", compact: "summary", hostContent: true },
+      { key: "duration", label: "Duration", group: "Timing" },
+      { key: "calls", label: "Calls", compact: "hidden" },
+      { key: "report", label: "Report", compact: '<img src=x>' as "summary" },
+    ];
+    el.rows = [{ id: "one", cells: ["Dry run", "Passed", "1 s", "142", "<img src=x>"], actions: [{ key: "view", label: "View" }] }];
+    const cells = rowAt(el, 0).querySelectorAll('th, td');
+    expect(el.stackedLayout).toBe("compact");
+    expect(cells[0]!.getAttribute("role")).toBe("rowheader");
+    expect(cells[0]!.hasAttribute("data-compact")).toBe(false);
+    expect(cells[1]!.getAttribute("data-compact")).toBe("summary");
+    expect(cells[1]!.querySelector('slot')!.name).toBe("cell-one-status");
+    expect(cells[1]!.querySelector('[part="stacked-label"]')!.textContent).toBe("Status: ");
+    expect(cells[2]!.querySelector('[part="stacked-label"]')!.textContent).toBe("Timing — Duration: ");
+    expect(cells[3]!.getAttribute("data-compact")).toBe("hidden");
+    expect(cells[4]!.hasAttribute("data-compact")).toBe(false);
+    expect(el.shadowRoot!.querySelector("img")).toBeNull();
+    expect(el.shadowRoot!.querySelector('[part="row-action"]')!.getAttribute("aria-label")).toBe("View for Dry run");
+    el.virtualize = true;
+    expect(el.renderedWindow).toBeNull();
+  });
+
+  it.each(["list", "grid"] as const)("ignores compact column choices in %s layout", layout => {
+    const el = create("none");
+    el.columns = [{ key: "name", label: "Name", compact: "hidden" }];
+    el.stackedLayout = layout;
+    expect(rowAt(el, 0).querySelector('[data-compact]')).toBeNull();
+    expect(rowAt(el, 0).textContent).toContain("A.pdf");
+  });
+
+  it("retains action focus and current payload through repeated refreshes without selecting", () => {
+    const el = create("multiple");
+    el.stackedLayout = "compact";
+    el.setAttribute("stacked", "always");
+    el.rows = [{ id: "one", cells: { name: "Run 0" }, actions: [{ key: "view", label: "View" }] }];
+    const action = () => el.shadowRoot!.querySelector<HTMLButtonElement>('[part="row-action"]')!;
+    const emit = vi.fn(); el.addEventListener("row-action", emit);
+    action().focus();
+    for (let i = 1; i <= 5; i++) {
+      el.rows = [{ ...el.rows[0]!, cells: { name: `Run ${i}` } }];
+      expect(el.shadowRoot!.activeElement).toBe(action());
+      expect(action().getAttribute("aria-label")).toBe(`View for Run ${i}`);
+    }
+    action().click();
+    expect(emit.mock.calls[0]![0].detail.row.cells.name).toBe("Run 5");
+    expect(el.selectedIds).toEqual([]);
+    el.rows = [{ id: "one", cells: { name: "Run 5" } }, { id: "two", cells: { name: "Run 6" }, actions: [{ key: "view", label: "View" }] }];
+    expect(rowAt(el, 0).querySelector('[part="actions-cell"]')!.hasAttribute("data-empty")).toBe(true);
+    expect(el.shadowRoot!.activeElement).toBeNull();
+  });
+});
