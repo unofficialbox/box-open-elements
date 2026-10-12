@@ -1,4 +1,9 @@
-import { BaseElement } from "../../core/index.js";
+import {
+  BaseElement,
+  formDataFromNamedValues,
+  stringValuesFromFormValue,
+  type FormValue,
+} from "../../core/index.js";
 import { boeRadius } from "../../foundations/geometry/index.js";
 import { boeFocusRingShadow } from "../../foundations/tokens/interaction.js";
 
@@ -155,7 +160,8 @@ const tileStyles = `
  * Each tile wraps a real `<input type="radio">` or `<input type="checkbox">`,
  * visually hidden but present in the tab order and the accessibility tree. That
  * is the whole design: grouping, arrow-key navigation between radios, the
- * roving focus rules, and form participation all come from the platform rather
+ * roving focus rules come from the platform. ElementInternals submits checked
+ * enabled choices to the owning form, rather
  * than being reimplemented on `<div>`s and then subtly diverging from what a
  * screen reader user expects.
  *
@@ -165,9 +171,16 @@ const tileStyles = `
  */
 export class TileGroup extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
+  static formAssociated = true;
+  readonly internals: ElementInternals;
+
+  constructor() {
+    super();
+    this.internals = this.attachInternals();
+  }
 
   static get observedAttributes(): string[] {
-    return ["legend", "multiple", "name", "options", "value"];
+    return ["legend", "multiple", "name", "options", "value", "disabled", "form"];
   }
 
   private groupEl!: HTMLElement;
@@ -239,6 +252,49 @@ export class TileGroup extends BaseElement {
 
   set legend(value: string) {
     this.setAttribute("legend", value);
+  }
+
+  private formDisabled = false;
+  private defaultValue: string | undefined;
+
+  connectedCallback(): void {
+    // Reset restores checked state, including disabled choices omitted from submission.
+    this.defaultValue ??= this.value;
+    super.connectedCallback();
+  }
+
+  formResetCallback(): void {
+    this.value = this.defaultValue ?? "";
+    this.update();
+  }
+
+  formStateRestoreCallback(state: FormValue): void {
+    this.restoreFormValue(state);
+  }
+
+  private syncFormAssociation(): void {
+    // jsdom omits setFormValue; real form association is verified in browsers.
+    const internals = this.internals as ElementInternals & { setFormValue?: ElementInternals["setFormValue"] };
+    internals.setFormValue?.(this.formDisabled || this.hasAttribute("disabled") ? null : this.getFormValue(), this.value);
+  }
+
+  formDisabledCallback(disabled: boolean): void {
+    this.formDisabled = disabled;
+    this.update();
+  }
+
+  private getFormValue(): FormValue {
+    if (!this.name || !this.groupEl) return null;
+    return formDataFromNamedValues(this.name, Array.from(
+      this.groupEl.querySelectorAll<HTMLInputElement>('[part="control"]'),
+    ).filter(input => input.checked && !input.disabled).map(input => input.value));
+  }
+
+  protected restoreFormValue(value: FormValue): void {
+    const values = value instanceof FormData ? [] : stringValuesFromFormValue(value, this.name);
+    if (value instanceof FormData) value.forEach(entry => values.push(String(entry)));
+    this.value = values.join(",");
+    this.update();
   }
 
   private optionsKey(): string {
@@ -342,8 +398,10 @@ export class TileGroup extends BaseElement {
       this.legendEl = legend;
     }
 
+    this.groupEl.toggleAttribute("disabled", this.formDisabled || this.hasAttribute("disabled"));
     this.legendEl.textContent = this.legend;
     this.syncSelection();
+    this.syncFormAssociation();
   }
 }
 

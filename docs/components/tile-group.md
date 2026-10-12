@@ -31,3 +31,12 @@ The control's accessible name remains its label; description, metadata,
 status and disabled reason are linked with `aria-describedby`. Disabled
 choices remain visible and expose their reason, but cannot be selected. Long
 metadata wraps on narrow screens rather than truncating the label.
+
+The host participates in its owning form through `ElementInternals`. Each checked,
+enabled option submits under `name`; `multiple` submits repeated entries. Empty
+selection or an empty name submits nothing. Native shadow controls retain radio
+and checkbox keyboard behavior. A native disabled fieldset, or the host's
+`disabled` attribute, disables editing and omits the group from submission.
+`form` can associate the host with a form by ID outside its ancestors. Form reset
+restores the initial checked selection, including disabled choices, and state
+restoration updates both the public value and checked controls.
