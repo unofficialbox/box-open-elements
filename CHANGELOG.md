@@ -15,6 +15,12 @@ are kept as written.
 
 ## Unreleased
 
+## 0.42.0 — 2026-10-12
+
+- Add opt-in `stacked-layout="compact"` Table scan rows for phone lists with actions. Row headers and explicitly chosen summary columns omit visible repeated labels; other columns keep concise label/value lines, and row actions wrap without a visible Actions label (#578, #579).
+- Add `TableColumn.compact: "summary" | "hidden"`. Hiding is an explicit consumer choice that applies only to compact stacking; row headers stay visible, and desktop/default list/grid layouts keep all columns. Preserve accessible summary labels, row-specific action names, slotted host node identity, keyboard behavior and focus across data updates.
+- Keep the compact current-record marker visible when a leading column is hidden. Compact stacking suppresses fixed-height virtualization because rows can wrap to different heights.
+
 ## 0.41.0 — 2026-10-12
 
 - Add Table host cells, per-row actions, and current-record semantics, with keyed virtual-window focus and current action payloads (#555, #559, #568).
