@@ -123,7 +123,7 @@ export class SavedViewPicker extends BaseElement {
   }
 
   set value(value: string) {
-    this.valueRevision++;
+    if (this.valueInternal !== value) this.valueRevision++;
     this.valueInternal = value;
     this.setAttribute("value", value);
     if (this.isRendered) {
@@ -145,7 +145,11 @@ export class SavedViewPicker extends BaseElement {
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-    if (name === "value") { this.valueRevision++; this.valueInternal = newValue ?? ""; }
+    if (name === "value") {
+      const value = newValue ?? "";
+      if (this.valueInternal !== value) this.valueRevision++;
+      this.valueInternal = value;
+    }
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 

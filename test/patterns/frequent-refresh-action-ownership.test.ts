@@ -53,8 +53,8 @@ describe("SavedViewPicker synchronous focusin ownership",()=>{
   const e=new SavedViewPicker();e.views=actions;e.value="a";document.body.append(e);const input=outside();const changed=vi.fn();e.addEventListener("value-changed",changed);
   button(e,'[data-view-id="b"]').addEventListener("focusin",()=>{e.remove();if(reconnect)document.body.append(e);input.focus();},{once:true});const a=button(e,'[data-view-id="a"]');a.focus();key(a,"ArrowRight");expect(e.value).toBe("a");expect(changed).not.toHaveBeenCalled();expect(document.activeElement).toBe(input);
  });
- it("continues a legitimate same-ID label refresh from focusin",()=>{
+ it("continues a legitimate same-ID label refresh and unchanged controlled value echo from focusin",()=>{
   const e=new SavedViewPicker();e.views=actions;e.value="a";document.body.append(e);const changed=vi.fn();e.addEventListener("value-changed",changed);
-  button(e,'[data-view-id="b"]').addEventListener("focusin",()=>{e.views=actions.map(view=>({...view,label:view.label+" current"}));},{once:true});const a=button(e,'[data-view-id="a"]');a.focus();key(a,"ArrowRight");expect(e.value).toBe("b");expect(changed).toHaveBeenCalledTimes(1);expect(e.shadowRoot!.activeElement).toBe(button(e,'[data-view-id="b"]'));
+  button(e,'[data-view-id="b"]').addEventListener("focusin",()=>{e.views=actions.map(view=>({...view,label:view.label+" current"}));e.value=e.value;},{once:true});const a=button(e,'[data-view-id="a"]');a.focus();key(a,"ArrowRight");expect(e.value).toBe("b");expect(changed).toHaveBeenCalledTimes(1);expect(e.shadowRoot!.activeElement).toBe(button(e,'[data-view-id="b"]'));
  });
 });
