@@ -1,3 +1,4 @@
+import { NativeOutput, emitNative } from "./native-output.js";
 import {
   Directive,
   ElementRef,
@@ -18,20 +19,22 @@ export type OpenChangedEvent = CustomEvent<{ open: boolean }>;
 @Directive({ selector: "box-dialog", standalone: true })
 export class Dialog implements OnDestroy {
   readonly element: DialogElement;
+  private readonly cancelNative = new NativeOutput<CustomEvent<null>>(() => this.element, "cancel");
+  private readonly confirmNative = new NativeOutput<CustomEvent<null>>(() => this.element, "confirm");
+  private readonly openChangedNative = new NativeOutput<OpenChangedEvent>(() => this.element, "open-changed");
   private readonly openChangedListener = (event: Event): void => {
-    this.openChanged.emit(event as OpenChangedEvent);
+    emitNative(this.openChanged, event as OpenChangedEvent);
   };
   private readonly confirmListener = (event: Event): void => {
-    this.confirm.emit(event as CustomEvent<null>);
+    emitNative(this.confirm, event as CustomEvent<null>);
   };
   private readonly cancelListener = (event: Event): void => {
-    this.cancel.emit(event as CustomEvent<null>);
+    emitNative(this.cancel, event as CustomEvent<null>);
   };
 
-  @Output("open-changed") readonly openChanged =
-    new EventEmitter<OpenChangedEvent>();
-  @Output() readonly confirm = new EventEmitter<CustomEvent<null>>();
-  @Output() readonly cancel = new EventEmitter<CustomEvent<null>>();
+  @Output("open-changed") readonly openChanged: EventEmitter<OpenChangedEvent> = this.openChangedNative;
+  @Output() readonly confirm: EventEmitter<CustomEvent<null>> = this.confirmNative;
+  @Output() readonly cancel: EventEmitter<CustomEvent<null>> = this.cancelNative;
 
   constructor(host: ElementRef<DialogElement>) {
     this.element = host.nativeElement;
@@ -68,5 +71,8 @@ export class Dialog implements OnDestroy {
     this.element.removeEventListener("open-changed", this.openChangedListener);
     this.element.removeEventListener("confirm", this.confirmListener);
     this.element.removeEventListener("cancel", this.cancelListener);
+    this.openChangedNative.releaseHost();
+    this.confirmNative.releaseHost();
+    this.cancelNative.releaseHost();
   }
 }

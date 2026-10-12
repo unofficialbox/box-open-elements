@@ -1,3 +1,4 @@
+import { NativeOutput, emitNative } from "./native-output.js";
 import {
   Directive,
   ElementRef,
@@ -18,12 +19,12 @@ export type SelectValueChangedEvent = CustomEvent<ValueChangedDetail>;
 @Directive({ selector: "box-select", standalone: true })
 export class Select implements OnDestroy {
   readonly element: SelectElement;
+  private readonly valueChangedNative = new NativeOutput<SelectValueChangedEvent>(() => this.element, "value-changed");
   private readonly valueChangedListener = (event: Event): void => {
-    this.valueChanged.emit(event as SelectValueChangedEvent);
+    emitNative(this.valueChanged, event as SelectValueChangedEvent);
   };
 
-  @Output("value-changed") readonly valueChanged =
-    new EventEmitter<SelectValueChangedEvent>();
+  @Output("value-changed") readonly valueChanged: EventEmitter<SelectValueChangedEvent> = this.valueChangedNative;
 
   constructor(host: ElementRef<SelectElement>) {
     this.element = host.nativeElement;
@@ -60,5 +61,6 @@ export class Select implements OnDestroy {
 
   ngOnDestroy(): void {
     this.element.removeEventListener("value-changed", this.valueChangedListener);
+    this.valueChangedNative.releaseHost();
   }
 }
