@@ -184,11 +184,6 @@ export class Nudge extends BaseElement {
     this.setAttribute("action-label", value);
   }
 
-  connectedCallback(): void {
-    // Open by default; dismiss() (via the `open` property) manages the closed state.
-    this.openValue = true;
-    super.connectedCallback();
-  }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "open") {

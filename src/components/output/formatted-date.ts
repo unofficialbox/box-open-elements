@@ -23,7 +23,7 @@ export class FormattedDate extends FormattedValue {
   static readonly tagName: string = DEFAULT_TAG_NAME;
 
   static get observedAttributes(): string[] {
-    return ["date-style", "locale", "time-style", "time-zone", "value"];
+    return [...super.observedAttributes, "date-style", "locale", "time-style", "time-zone", "value"];
   }
 
   protected usesTimeElement(): boolean {

@@ -255,10 +255,12 @@ export class Persona extends BaseElement {
         image.src = nextSrc;
         image.hidden = false;
         image.onerror = () => {
+          if (this.src !== nextSrc || image.parentElement !== this.avatarEl) return;
           image.hidden = true;
-          this.showAvatarFallback(existingFallback, fallback);
+          this.showAvatarFallback(this.avatarEl.querySelector('[part="fallback"]'), this.initials || "?");
         };
         image.onload = () => {
+          if (this.src !== nextSrc || image.parentElement !== this.avatarEl) return;
           image.hidden = false;
           this.avatarEl.querySelector('[part="fallback"]')?.remove();
         };
@@ -267,6 +269,7 @@ export class Persona extends BaseElement {
       if (!existingImage) {
         this.avatarEl.append(image);
       }
+      if (existingFallback || image.hidden) this.showAvatarFallback(existingFallback, fallback);
     } else {
       existingImage?.remove();
       this.showAvatarFallback(existingFallback, fallback);
