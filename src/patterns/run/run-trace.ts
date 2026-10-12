@@ -443,6 +443,12 @@ export class RunTrace extends BaseElement {
       } else {
         this.expandedIds.delete(stepId);
       }
+      // Keep the native toggle and projected details alive for repeated use.
+      const visible = this.getAttribute("variant") === "plain" || expanded;
+      toggle.setAttribute("aria-expanded", String(visible));
+      toggle.textContent = visible ? "Hide details" : "Details";
+      const detail = toggle.closest('[part="step"]')?.querySelector<HTMLElement>('[part="detail"]');
+      if (detail) detail.hidden = !visible;
       this.dispatchEvent(
         new CustomEvent("step-toggled", {
           bubbles: true,
@@ -450,7 +456,6 @@ export class RunTrace extends BaseElement {
           detail: { stepId, expanded },
         }),
       );
-      this.update();
     });
   }
 

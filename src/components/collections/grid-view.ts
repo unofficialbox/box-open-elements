@@ -214,6 +214,7 @@ export class GridView extends BaseElement {
     if (nextValue) {
       this.focusValue = nextValue;
       this.update();
+      this.focusTile(nextValue);
     }
   }
 
@@ -227,7 +228,13 @@ export class GridView extends BaseElement {
     if (nextValue) {
       this.focusValue = nextValue;
       this.update();
+      this.focusTile(nextValue);
     }
+  }
+
+  private focusTile(value: string): void {
+    Array.from(this.contentEl.querySelectorAll<HTMLButtonElement>('[part~="tile"]'))
+      .find(tile => tile.dataset.value === value)?.focus();
   }
 
   private renderTiles(items: BoxGridViewItem[]): string {
@@ -363,12 +370,6 @@ export class GridView extends BaseElement {
       });
     }
 
-    if (this.focusValue) {
-      const target = Array.from(this.contentEl.querySelectorAll('[part~="tile"]')).find(
-        node => (node as HTMLButtonElement).dataset.value === this.focusValue,
-      ) as HTMLButtonElement | undefined;
-      target?.focus();
-    }
   }
 }
 

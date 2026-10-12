@@ -217,13 +217,16 @@ export class Menu extends BaseElement {
       const el = (event.target as HTMLElement | null)?.closest('[part="menu-item"]') as HTMLElement | null;
       // Anchors have no `.disabled`; both use aria-disabled / native disabled.
       const isDisabled = el?.hasAttribute("disabled") || el?.getAttribute("aria-disabled") === "true";
-      if (!el || !this.menuEl.contains(el) || isDisabled) {
+      if (!el || !this.menuEl.contains(el)) return;
+      if (isDisabled) {
+        event.preventDefault();
         return;
       }
 
       const itemId = el.getAttribute("data-item-id");
       const item = this.items.find(entry => entry.id === itemId);
       if (!item || this.disabled || item.disabled) {
+        event.preventDefault();
         return;
       }
 
@@ -267,9 +270,9 @@ export class Menu extends BaseElement {
     });
   }
 
-  private enabledMenuItems(): HTMLButtonElement[] {
-    return Array.from(this.menuEl.querySelectorAll<HTMLButtonElement>('[part="menu-item"]')).filter(
-      button => !button.disabled,
+  private enabledMenuItems(): HTMLElement[] {
+    return Array.from(this.menuEl.querySelectorAll<HTMLElement>('[part="menu-item"]')).filter(
+      item => !item.hasAttribute("disabled") && item.getAttribute("aria-disabled") !== "true",
     );
   }
 

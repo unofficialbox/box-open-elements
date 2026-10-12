@@ -188,13 +188,18 @@ export class Tabs extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
 
-  private selectValue(nextValue: string, focusIndex?: number): void {
+  private selectValue(nextValue: string, focus = false): void {
     if (!nextValue || nextValue === this.valueInternal) {
       return;
     }
 
     this.valueInternal = nextValue;
     this.setAttribute("value", nextValue);
+    this.update();
+    if (focus) {
+      Array.from(this.tabsEl.querySelectorAll<HTMLButtonElement>('[part="tab"]'))
+        .find(tab => tab.dataset.value === nextValue)?.focus();
+    }
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,
@@ -204,14 +209,6 @@ export class Tabs extends BaseElement {
     );
     this.update();
 
-    if (typeof focusIndex === "number") {
-      queueMicrotask(() => {
-        const nextTab = this.tabsEl.querySelectorAll('[part="tab"]')[focusIndex] as
-          | HTMLButtonElement
-          | undefined;
-        nextTab?.focus();
-      });
-    }
   }
 
   private renderTabsMarkup(options: BoxTabOption[], selectedValue: string): string {
@@ -325,7 +322,7 @@ export class Tabs extends BaseElement {
         return;
       }
 
-      this.selectValue(nextOption.value, nextIndex);
+      this.selectValue(nextOption.value, true);
     });
   }
 
@@ -336,7 +333,8 @@ export class Tabs extends BaseElement {
 
     const options = this.options;
     const optionsJson = this.getAttribute("options") ?? "";
-    const selectedValue = this.valueInternal || options[0]?.value || "";
+    const selectedValue = options.some(option => option.value === this.valueInternal)
+      ? this.valueInternal : options[0]?.value || "";
 
     if (selectedValue !== this.valueInternal) {
       this.valueInternal = selectedValue;

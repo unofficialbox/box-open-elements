@@ -178,9 +178,11 @@ export class ThumbnailCard extends BaseElement {
   }
 
   protected setupListeners(): void {
-    this.cardEl.addEventListener("click", () => this.activate());
+    this.cardEl.addEventListener("click", event => {
+      if (this.ownsActivation(event)) this.activate();
+    });
     this.cardEl.addEventListener("keydown", event => {
-      if (!this.interactive) {
+      if (!this.interactive || !this.ownsActivation(event)) {
         return;
       }
       const key = (event as KeyboardEvent).key;
@@ -189,6 +191,14 @@ export class ThumbnailCard extends BaseElement {
         this.activate();
       }
     });
+  }
+
+  private ownsActivation(event: Event): boolean {
+    for (const target of event.composedPath()) {
+      if (target === this.cardEl) return true;
+      if (target instanceof HTMLElement && target.matches("button, a[href], input, select, textarea, [role=button], [contenteditable]")) return false;
+    }
+    return false;
   }
 
   private activate(): void {

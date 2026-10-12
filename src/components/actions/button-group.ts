@@ -114,6 +114,7 @@ export class ButtonGroup extends BaseElement {
   }
 
   private valueInternal = "";
+  private lastOptionsJson = "";
   private groupEl!: HTMLElement;
 
   get label(): string {
@@ -187,7 +188,8 @@ export class ButtonGroup extends BaseElement {
     }
 
     const options = this.options;
-    const selectedValue = this.valueInternal || options[0]?.value || "";
+    const selectedValue = options.some(option => option.value === this.valueInternal)
+      ? this.valueInternal : options[0]?.value || "";
     if (selectedValue !== this.valueInternal) {
       this.valueInternal = selectedValue;
       this.setAttribute("value", selectedValue);
@@ -196,7 +198,20 @@ export class ButtonGroup extends BaseElement {
     this.groupEl.dataset.layout = this.layout;
     this.groupEl.setAttribute("aria-label", this.label);
 
-    // Rebuild the option buttons (their count may have changed)
+    const optionsJson = this.getAttribute("options") ?? "";
+    if (optionsJson === this.lastOptionsJson) {
+      this.groupEl.querySelectorAll<HTMLButtonElement>('[part="button"]').forEach(button => {
+        const selected = button.dataset.value === selectedValue;
+        button.dataset.layout = this.layout;
+        button.dataset.selected = String(selected);
+        button.setAttribute("aria-checked", String(selected));
+        button.tabIndex = selected ? 0 : -1;
+      });
+      return;
+    }
+    this.lastOptionsJson = optionsJson;
+
+    // Only structural option changes replace buttons; state updates retain focus.
     this.groupEl.innerHTML = options
       .map((option, index) => {
         const position =
@@ -270,6 +285,10 @@ export class ButtonGroup extends BaseElement {
 
         this.valueInternal = nextOption.value;
         this.setAttribute("value", nextOption.value);
+        this.update();
+        // Complete our focus move before handing control to host listeners.
+        Array.from(this.groupEl.querySelectorAll<HTMLButtonElement>('[part="button"]'))
+          .find(button => button.dataset.value === nextOption.value)?.focus();
         this.dispatchEvent(
           new CustomEvent("value-changed", {
             bubbles: true,
@@ -279,12 +298,6 @@ export class ButtonGroup extends BaseElement {
         );
         this.update();
 
-        queueMicrotask(() => {
-          const nextButton = this.groupEl?.querySelectorAll('[part="button"]')[nextIndex] as
-            | HTMLButtonElement
-            | undefined;
-          nextButton?.focus();
-        });
       });
     });
   }
