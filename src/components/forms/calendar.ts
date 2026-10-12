@@ -433,13 +433,19 @@ export class Calendar extends BaseElement {
     // Complete the native focus move before host listeners take control; a
     // newer focus callback owns any replacement selection or opening lifetime.
     if (!this.isConnected || revision !== this.interactionRevision) return;
-    this.dispatchEvent(
-      new CustomEvent(range ? "range-changed" : "value-changed", {
+    if (range) {
+      this.dispatchEvent(new CustomEvent("range-changed", {
         bubbles: true,
         composed: true,
-        detail: range ?? { value: iso },
-      }),
-    );
+        detail: { end: range.end, start: range.start },
+      }));
+    } else {
+      this.dispatchEvent(new CustomEvent("value-changed", {
+        bubbles: true,
+        composed: true,
+        detail: { value: iso },
+      }));
+    }
   }
 
   /** Move roving focus by `delta` days, following into the neighbouring month if needed. */
