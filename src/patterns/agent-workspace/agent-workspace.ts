@@ -15,6 +15,7 @@ export class AgentWorkspace extends BaseElement {
   private chatsOpen = true;
   private detailsOpen = false;
   private initialized = false;
+  private initialPaneOwnership = { chats: false, details: false };
   private renderedActive: string | null = null;
   private chatIds = "";
   private lastPanes: { chats: boolean; details: boolean } | null = null;
@@ -23,6 +24,10 @@ export class AgentWorkspace extends BaseElement {
   /** Host-controlled pane state; mobile drawers remain mutually exclusive. */
   get panes(): { chats: boolean; details: boolean } { return { chats: this.chatsOpen, details: this.detailsOpen }; }
   set panes(value: { chats?: boolean; details?: boolean }) {
+    if (!this.initialized) {
+      if (value.chats !== undefined) this.initialPaneOwnership.chats = true;
+      if (value.details !== undefined) this.initialPaneOwnership.details = true;
+    }
     let chats = value.chats ?? this.chatsOpen;
     const details = value.details ?? this.detailsOpen;
     if (this.mobile && chats && details) chats = false;
@@ -46,10 +51,13 @@ export class AgentWorkspace extends BaseElement {
     const width = this.getBoundingClientRect().width || 1200;
     const mobile = width < 900;
     if (!this.initialized || mobile !== this.mobile) {
-      this.chatsOpen = !mobile; this.detailsOpen = width >= 1200;
+      let chats = !mobile, details = width >= 1200;
       if (!mobile) {
-        try { const saved = JSON.parse(localStorage.getItem(this.storageKey()) ?? "null"); if (saved && typeof saved.chats === "boolean" && typeof saved.details === "boolean") {this.chatsOpen = saved.chats; this.detailsOpen = saved.details;} } catch {}
+        try { const saved = JSON.parse(localStorage.getItem(this.storageKey()) ?? "null"); if (saved && typeof saved.chats === "boolean" && typeof saved.details === "boolean") { chats = saved.chats; details = saved.details; } } catch {}
       }
+      if (this.initialized || !this.initialPaneOwnership.chats) this.chatsOpen = chats;
+      if (this.initialized || !this.initialPaneOwnership.details) this.detailsOpen = details;
+      if (mobile && this.chatsOpen && this.detailsOpen) this.chatsOpen = false;
       this.mobile = mobile; this.initialized = true;
     }
     this.syncPanes();
@@ -57,6 +65,7 @@ export class AgentWorkspace extends BaseElement {
   private storageKey(): string { return `boe-workspace:${this.getAttribute("viewer-key") ?? "default"}`; }
   toggle(pane: "chats" | "details"): void { this.open(pane, !(pane === "chats" ? this.chatsOpen : this.detailsOpen)); }
   open(pane: "chats" | "details", open: boolean): void {
+    if (!this.initialized) this.initialPaneOwnership[pane] = true;
     if ((pane === "chats" ? this.chatsOpen : this.detailsOpen) === open) return;
     if (pane === "chats") {this.chatsOpen = open; if (this.mobile && open) this.detailsOpen = false;}
     else {this.detailsOpen = open; if (this.mobile && open) this.chatsOpen = false;}
