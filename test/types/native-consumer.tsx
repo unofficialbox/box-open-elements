@@ -163,3 +163,7 @@ const formApiView = <>
   <box-text-area readonly="true" />
 </>;
 void formApiView;
+
+import { TextField as ReactApiTextField } from "@unofficialbox/box-open-elements-react";
+const adapterApiView = <ReactApiTextField readonly={true} ref={element => element?.select()} />;
+void adapterApiView;

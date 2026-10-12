@@ -13,6 +13,7 @@ export type TextFieldProps = WebComponentProps & {
   revealLabel?: string;
   autocomplete?: string;
   disabled?: boolean;
+  readonly?: boolean;
   name?: string;
   invalid?: boolean;
   errorMessage?: string;
@@ -32,6 +33,7 @@ export const TextField = createWebComponent<TextFieldElement, TextFieldProps>({
     "placeholder",
     "type", "reveal", "revealLabel", "autocomplete",
     "disabled",
+    "readonly",
     "name",
     "invalid",
     "errorMessage",
@@ -39,6 +41,7 @@ export const TextField = createWebComponent<TextFieldElement, TextFieldProps>({
   ],
   events: [{ propName: "onValueChanged", eventName: "value-changed" }],
   sync: (element, props) => {
+    if (props.readonly !== undefined) element.readonly = props.readonly;
     if (props.description !== undefined) element.description = props.description;
     if (props.required !== undefined) element.required = props.required;
     if (props.hideLabel !== undefined) element.hideLabel = props.hideLabel;
