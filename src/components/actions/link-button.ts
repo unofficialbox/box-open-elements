@@ -4,18 +4,10 @@ import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/ind
 
 const DEFAULT_TAG_NAME = "box-link-button";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-
 /**
  * Reject dangerous URL schemes (javascript:, data:, vbscript:) before the href
- * reaches the DOM. `escapeHtml` prevents attribute breakout but does NOT stop a
- * scheme from executing on click, so navigable URLs must be scheme-validated.
+ * reaches the DOM. setAttribute safely stores the validated plain string;
+ * navigable schemes still require explicit validation before assignment.
  * Relative URLs, fragments, and query strings have no scheme and are allowed.
  */
 const safeHref = (value: string): string => {
@@ -175,7 +167,7 @@ export class LinkButton extends BaseElement {
     }
 
     this.linkEl.dataset.tone = this.tone;
-    this.linkEl.setAttribute("href", escapeHtml(safeHref(this.href)));
+    this.linkEl.setAttribute("href", safeHref(this.href));
 
     // Rich children (slotted) replace the `label` text; keep the fallback in
     // sync. Detect real host content only — assignedNodes() without flatten

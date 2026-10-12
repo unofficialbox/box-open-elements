@@ -2,6 +2,8 @@ import { ValueReconciliation } from "./value-reconciliation.js";
 import {
   FormAssociatedElement,
   boeFormFieldErrorStyles,
+  boeFormFieldSupportStyles,
+  formDescriptionMarkup,
   formErrorMessageMarkup,
 } from "../../core/index.js";
 import type { FormValue } from "../../core/index.js";
@@ -70,6 +72,7 @@ const textAreaStyles = `
   }
 
   ${boeFormFieldErrorStyles}
+  ${boeFormFieldSupportStyles}
 `;
 
 export class TextArea extends FormAssociatedElement {
@@ -77,7 +80,7 @@ export class TextArea extends FormAssociatedElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
-      ...FormAssociatedElement.formObservedAttributes,
+      ...FormAssociatedElement.fieldObservedAttributes,
       "disabled",
       "label",
       "placeholder",
@@ -90,6 +93,7 @@ export class TextArea extends FormAssociatedElement {
   private textareaEl!: HTMLTextAreaElement;
   focus(options?: FocusOptions): void { if (!this.disabled) this.textareaEl?.focus(options); }
   private labelEl!: HTMLElement;
+  private descriptionEl!: HTMLElement;
   private errorEl!: HTMLElement;
 
   get value(): string {
@@ -174,9 +178,11 @@ export class TextArea extends FormAssociatedElement {
       <label part="field">
         <span part="label"></span>
         <textarea part="textarea"></textarea>
+        ${formDescriptionMarkup()}
         ${formErrorMessageMarkup()}
       </label>
     `;
+    this.descriptionEl = this.shadowRoot.querySelector('[part="description"]')!;
     this.labelEl = this.shadowRoot.querySelector('[part="label"]')!;
     this.textareaEl = this.shadowRoot.querySelector('[part="textarea"]')!;
     this.errorEl = this.shadowRoot.querySelector('[part="error-message"]')!;
@@ -209,6 +215,7 @@ export class TextArea extends FormAssociatedElement {
     this.labelEl.textContent = this.label;
     this.textareaEl.placeholder = this.placeholder;
     this.textareaEl.rows = this.rows;
+    this.applyFieldSupport(this.labelEl, this.textareaEl, this.descriptionEl);
 
     if (this.valueReconciliation.shouldSync(this.shadowRoot?.activeElement === this.textareaEl) && this.textareaEl.value !== this.valueInternal) {
       this.textareaEl.value = this.valueInternal;
