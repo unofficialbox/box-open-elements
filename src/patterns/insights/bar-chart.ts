@@ -401,8 +401,10 @@ export class BarChart extends BaseElement {
   }
   protected update(): void {
     if(!this.isRendered)return;
-    const root=this.shadowRoot!, points=this.points;
+    const root=this.shadowRoot!;
     syncChartHeader(root,this);syncChartLegend(root,this.legend);
+    // Header focus restoration can synchronously replace host data.
+    const points=this.points;
     root.querySelector<HTMLElement>('[part="visual"]')!.hidden=!points.length;
     root.querySelector<HTMLElement>('[part="empty"]')!.hidden=!!points.length;
     const chart=root.querySelector<HTMLElement>('[part="chart"]')!;chart.setAttribute("aria-label",`${this.heading} bar data`);

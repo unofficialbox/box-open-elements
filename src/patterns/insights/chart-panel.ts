@@ -383,8 +383,10 @@ export class ChartPanel extends BaseElement {
   }
   protected update(): void {
     if(!this.isRendered)return;
-    const root=this.shadowRoot!,points=this.points;
+    const root=this.shadowRoot!;
     syncChartHeader(root,this);syncChartLegend(root,this.legend);
+    // Header focus restoration can synchronously replace host data.
+    const points=this.points;
     const chart=root.querySelector<HTMLElement>('[part="chart"]')!;chart.hidden=!points.length;chart.setAttribute("aria-label",`${this.heading} chart data`);
     root.querySelector<HTMLElement>('[part="empty"]')!.hidden=!!points.length;
     const max=points.reduce((max,point)=>Math.max(max,point.value),0)||1;

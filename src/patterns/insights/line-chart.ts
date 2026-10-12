@@ -457,8 +457,10 @@ export class LineChart extends BaseElement {
   }
   protected update(): void {
     if(!this.isRendered)return;
-    const root=this.shadowRoot!, points=this.points,coordinates=this.getCoordinates(points);
+    const root=this.shadowRoot!;
     syncChartHeader(root,this);syncChartLegend(root,this.legend);
+    // Read after any synchronous host focusin refresh, including geometry.
+    const points=this.points,coordinates=this.getCoordinates(points);
     root.querySelector<HTMLElement>('[part="visual"]')!.hidden=!points.length;
     root.querySelector<HTMLElement>('[part="empty"]')!.hidden=!!points.length;
     root.querySelector('[part="chart"]')!.setAttribute("aria-label",`${this.heading} trend line`);

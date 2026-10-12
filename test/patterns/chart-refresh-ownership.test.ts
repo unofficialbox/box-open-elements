@@ -34,3 +34,24 @@ describe("ChartPanel caller-owned chart slot",()=>{
   const e=new ChartPanel();e.points=points;const chart=document.createElement("div");chart.slot="chart";const input=document.createElement("input");input.value="Caller draft";const own=document.createElement("button");own.type="button";own.setAttribute("part","point");own.dataset.pointId="b";chart.append(input,own);e.append(chart);document.body.append(e);const selected=vi.fn();e.addEventListener("point-selected",selected);own.click();expect(selected).not.toHaveBeenCalled();input.focus();input.setSelectionRange(2,6);e.heading="Current";e.points=points.map(p=>({...p,value:p.value+1}));expect(document.activeElement).toBe(input);expect([input.selectionStart,input.selectionEnd]).toEqual([2,6]);expect(e.shadowRoot!.querySelector<HTMLSlotElement>('slot[name="chart"]')!.assignedElements()[0]).toBe(chart);
  });
 });
+
+
+for(const [name,Constructor] of [["BarChart",BarChart],["LineChart",LineChart],["ChartPanel",ChartPanel]] as const) describe(`${name} fallback focusin data ownership`,()=>{
+ it("does not resume an old point snapshot after header action focusin refresh",()=>{
+  const e=new Constructor();e.actions=[{id:"a",label:"Alpha"},{id:"b",label:"Beta"}];e.points=[{id:"old",label:"Old",value:1}];document.body.append(e);const parent=e.shadowRoot!.querySelector('[part="actions"]')!;Object.defineProperty(parent,"moveBefore",{value:undefined,configurable:true});const b=button(e,'[data-action-id="b"]');b.focus();const refreshed=vi.fn();b.addEventListener("focusin",()=>{refreshed();e.points=[{id:"fresh",label:"Fresh",value:2}];},{once:true});e.actions=[{id:"b",label:"Beta"},{id:"a",label:"Alpha"}];expect(refreshed).toHaveBeenCalledTimes(1);expect(e.points.map(p=>p.id)).toEqual(["fresh"]);expect(Array.from(e.shadowRoot!.querySelectorAll<HTMLButtonElement>('[data-point-id]'),b=>b.dataset.pointId)).toEqual(["fresh"]);
+ });
+});
+
+
+describe("ActivityDensity fallback focusin refresh",()=>{
+ it("does not overwrite the newer roster caption after restoring a moved day",()=>{
+  const e=new ActivityDensityStrip();e.referenceTime="2026-10-12T12:00:00Z";e.weeks=3;e.events=[event("old-a","2026-10-10"),event("old-b","2026-10-11")];document.body.append(e);const day=button(e,'button[data-date="2026-10-10"]');day.focus();day.click();Object.defineProperty(day.closest("tr")!,"moveBefore",{value:undefined,configurable:true});const refreshed=vi.fn();day.addEventListener("focusin",()=>{refreshed();e.events=[event("fresh-a","2026-10-10"),event("fresh-b","2026-10-10"),event("fresh-c","2026-10-18")];},{once:true});e.referenceTime="2026-10-19T12:00:00Z";expect(refreshed).toHaveBeenCalledTimes(1);expect(e.density.total).toBe(3);expect(e.shadowRoot!.querySelector('[part="caption"]')!.textContent).toMatch(/^3 events/);expect(e.shadowRoot!.querySelector('button[data-date="2026-10-11"]')).toBeNull();expect(e.shadowRoot!.querySelector('button[data-date="2026-10-18"]')).not.toBeNull();
+ });
+});
+
+
+describe("ActivityDensity nested metadata during fallback rebuild",()=>{
+ it("finishes the current window when focusin only changes the heading",()=>{
+  const e=new ActivityDensityStrip();e.referenceTime="2026-10-12T12:00:00Z";e.weeks=3;e.events=[event("day","2026-10-11")];document.body.append(e);const day=button(e,'button[data-date="2026-10-11"]');day.focus();day.click();Object.defineProperty(day.closest("tr")!,"moveBefore",{value:undefined,configurable:true});const refreshed=vi.fn();day.addEventListener("focusin",()=>{refreshed();e.heading="Fresh density";},{once:true});e.referenceTime="2026-10-19T12:00:00Z";expect(refreshed).toHaveBeenCalledTimes(1);expect(e.shadowRoot!.querySelector('[part="title"]')!.textContent).toBe("Fresh density");const dates=Array.from(e.shadowRoot!.querySelectorAll<HTMLElement>('td[data-date]'),cell=>cell.dataset.date!);expect(dates).toHaveLength(21);expect(new Set(dates).size).toBe(21);expect(dates.every(date=>date>="2026-10-04"&&date<="2026-10-24")).toBe(true);
+ });
+});

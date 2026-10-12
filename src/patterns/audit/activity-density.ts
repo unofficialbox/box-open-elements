@@ -185,6 +185,7 @@ export class ActivityDensityStrip extends BaseElement {
   private rowsEl!: HTMLElement;
 
   private signature = "";
+  private renderRevision = 0;
 
   /** Roving day identity, retained as its week position changes. */
   private activeKey: string | null = null;
@@ -334,7 +335,7 @@ export class ActivityDensityStrip extends BaseElement {
    * contract, since colour alone carries no meaning. A quiet day is an inert
    * cell with a hover title: nothing to drill into, and no extra tab stop.
    */
-  private rebuild(density: ActivityDensity): void {
+  private rebuild(density: ActivityDensity, revision: number): void {
     this.renderedWeeks = density.weeks;
     const byWeekday = new Map<number, ActivityDensityCell[]>();
     for (const cell of density.cells) {
@@ -358,7 +359,8 @@ export class ActivityDensityStrip extends BaseElement {
     // the stable shell, so rebuilding the grid never drops it.
     this.monthsRowEl.innerHTML = `<td></td>${monthCells.join("")}`;
     const rows=Array.from(this.rowsEl.querySelectorAll("tr"));
-    WEEKDAY_LABELS.forEach((_,weekday)=>{
+    for (let weekday=0;weekday<WEEKDAY_LABELS.length;weekday++) {
+      if (revision !== this.renderRevision) return;
       const row=rows[weekday],header=row.firstElementChild!;
       syncKeyedChildren(row,byWeekday.get(weekday)??[],cell=>cell.date,()=>{
         const cell=document.createElement("td");cell.setAttribute("part","cell");return cell;
@@ -371,7 +373,7 @@ export class ActivityDensityStrip extends BaseElement {
           button.dataset.date=cell.date;button.dataset.week=String(cell.week);button.dataset.weekday=String(cell.weekday);button.dataset.count=String(cell.count);button.setAttribute("aria-label",label);
         }else button?.remove();
       },header);
-    });
+    }
   }
 
   protected renderTemplate(): void {
@@ -470,6 +472,7 @@ export class ActivityDensityStrip extends BaseElement {
       return;
     }
 
+    const revision = ++this.renderRevision;
     this.titleEl.textContent = this.heading;
 
     const density = this.density;
@@ -479,8 +482,11 @@ export class ActivityDensityStrip extends BaseElement {
       this.referenceTime,
     ]);
     if (signature !== this.signature) {
+      this.rebuild(density, revision);
+      // A nested focusin refresh owns the completed render. Publish the cache
+      // only after a complete rebuild, so nested metadata changes rebuild too.
+      if (revision !== this.renderRevision) return;
       this.signature = signature;
-      this.rebuild(density);
       // A surviving day keeps its node and entry even when its week shifts.
     }
 
