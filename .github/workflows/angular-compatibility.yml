@@ -1,0 +1,51 @@
+name: Angular output compatibility
+on:
+  pull_request:
+    paths:
+      - 'packages/angular/**'
+      - 'tools/adapters/angular-compatibility/**'
+      - '.github/workflows/angular-compatibility.yml'
+      - 'package.json'
+      - 'bun.lock'
+  push:
+    branches: [main]
+    paths:
+      - 'packages/angular/**'
+      - 'tools/adapters/angular-compatibility/**'
+      - '.github/workflows/angular-compatibility.yml'
+      - 'package.json'
+      - 'bun.lock'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  angular-output:
+    name: Angular ${{ matrix.angular }} compiled output contract
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        angular: ['20.0.0', '20.3.27']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.11'
+      - run: bun install --frozen-lockfile
+      - run: bun run build:core
+      - name: Compile isolated adapter and consumer; check development and production delivery
+        run: bun run frameworks:angular:compatibility ${{ matrix.angular }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: angular-output-${{ matrix.angular }}
+          path: |
+            /tmp/boe-angular-${{ matrix.angular }}-*/REPORT.json
+            /tmp/boe-angular-${{ matrix.angular }}-*/runtime-results.json
+            /tmp/boe-angular-${{ matrix.angular }}-*/package.json
+            /tmp/boe-angular-${{ matrix.angular }}-*/bun.lock
