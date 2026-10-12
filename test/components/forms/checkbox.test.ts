@@ -205,3 +205,32 @@ describe("Checkbox", () => {
     expect(styles).toContain("opacity: var(--boe-profile-disabled-opacity, 0.4)");
   });
 });
+
+describe("native effective fieldset disabling", () => {
+  it("renders native disabled state without taking host-attribute ownership", () => {
+    const element = new Checkbox(); element.checked = true; document.body.append(element);
+    element.formDisabledCallback(true);
+    expect(element.disabled).toBe(false);
+    expect(element.shadowRoot!.querySelector<HTMLInputElement>("input")!.disabled).toBe(true);
+    element.formDisabledCallback(false);
+    expect(element.shadowRoot!.querySelector<HTMLInputElement>("input")!.disabled).toBe(false);
+    expect(element.checked).toBe(true);
+  });
+  it("keeps host disabling when inherited disabling ends", () => {
+    const element = new Checkbox(); document.body.append(element);
+    element.formDisabledCallback(true); element.disabled = true; element.formDisabledCallback(false);
+    expect(element.disabled).toBe(true);
+    expect(element.shadowRoot!.querySelector<HTMLInputElement>("input")!.disabled).toBe(true);
+    element.disabled = false;
+    expect(element.shadowRoot!.querySelector<HTMLInputElement>("input")!.disabled).toBe(false);
+  });
+  it("preserves reset and state restoration under native disabling", () => {
+    const element = new Checkbox(); element.checked = true; element.value = "seed"; document.body.append(element);
+    element.formDisabledCallback(true); element.checked = false; element.formResetCallback();
+    expect(element.checked).toBe(true); expect(element.value).toBe("seed");
+    element.formStateRestoreCallback(null); expect(element.checked).toBe(false);
+    expect(element.shadowRoot!.querySelector<HTMLInputElement>("input")!.disabled).toBe(true);
+    element.formStateRestoreCallback("restored"); expect(element.checked).toBe(true); expect(element.value).toBe("restored");
+    element.formDisabledCallback(false); expect(element.shadowRoot!.querySelector<HTMLInputElement>("input")!.disabled).toBe(false);
+  });
+});
