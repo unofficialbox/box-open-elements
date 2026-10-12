@@ -1,3 +1,4 @@
+import { ValueReconciliation } from "./value-reconciliation.js";
 import {
   FormAssociatedElement,
   boeFormFieldErrorStyles,
@@ -72,6 +73,7 @@ const textAreaStyles = `
 `;
 
 export class TextArea extends FormAssociatedElement {
+  private readonly valueReconciliation = new ValueReconciliation();
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
@@ -95,6 +97,7 @@ export class TextArea extends FormAssociatedElement {
   }
 
   set value(nextValue: string) {
+    this.valueReconciliation.hostWrite(nextValue === this.valueInternal);
     this.valueInternal = nextValue;
     this.setAttribute("value", nextValue);
     if (this.isRendered) {
@@ -140,9 +143,11 @@ export class TextArea extends FormAssociatedElement {
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
+      this.valueReconciliation.hostWrite((this.getAttribute("value") ?? "") === this.valueInternal);
       this.valueInternal = this.getAttribute("value") ?? "";
     }
     super.attributeChangedCallback(name, oldValue, newValue);
+    if (name === "value" && oldValue === newValue && this.isRendered) this.update();
   }
 
   protected getFormValue(): FormValue {
@@ -150,6 +155,7 @@ export class TextArea extends FormAssociatedElement {
   }
 
   protected restoreFormValue(value: FormValue): void {
+    this.valueReconciliation.hostWrite(false);
     const next = typeof value === "string" ? value : "";
     this.valueInternal = next;
     this.setAttribute("value", next);
@@ -180,14 +186,16 @@ export class TextArea extends FormAssociatedElement {
     this.textareaEl.addEventListener("input", event => {
       const nextValue = (event.currentTarget as HTMLTextAreaElement).value;
       this.valueInternal = nextValue;
-      this.setAttribute("value", nextValue);
+      this.valueReconciliation.reflect(() => this.setAttribute("value", nextValue));
       this.syncFormAssociation();
-      this.dispatchEvent(
-        new CustomEvent("value-changed", {
-          bubbles: true,
-          composed: true,
-          detail: { value: nextValue },
-        }),
+      this.valueReconciliation.emit(() =>
+        this.dispatchEvent(
+          new CustomEvent("value-changed", {
+            bubbles: true,
+            composed: true,
+            detail: { value: nextValue },
+          }),
+        ),
       );
     });
   }
@@ -201,7 +209,7 @@ export class TextArea extends FormAssociatedElement {
     this.textareaEl.placeholder = this.placeholder;
     this.textareaEl.rows = this.rows;
 
-    if (this.shadowRoot?.activeElement !== this.textareaEl) {
+    if (this.valueReconciliation.shouldSync(this.shadowRoot?.activeElement === this.textareaEl) && this.textareaEl.value !== this.valueInternal) {
       this.textareaEl.value = this.valueInternal;
     }
 
@@ -211,6 +219,7 @@ export class TextArea extends FormAssociatedElement {
       this.textareaEl.removeAttribute("disabled");
     }
 
+    this.valueReconciliation.complete();
     this.applyInvalidState(this.textareaEl, this.errorEl);
   }
 }

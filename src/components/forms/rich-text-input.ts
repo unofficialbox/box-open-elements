@@ -1,3 +1,4 @@
+import { ValueReconciliation } from "./value-reconciliation.js";
 import {
   FormAssociatedElement,
   boeFormFieldErrorStyles,
@@ -225,6 +226,7 @@ const richTextStyles = `
 `;
 
 export class RichTextInput extends FormAssociatedElement {
+  private readonly valueReconciliation = new ValueReconciliation();
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
@@ -276,6 +278,7 @@ export class RichTextInput extends FormAssociatedElement {
   }
 
   set value(value: string) {
+    this.valueReconciliation.hostWrite(sanitizeRichTextHtml(value) === this.valueInternal);
     this.valueInternal = sanitizeRichTextHtml(value);
     this.setAttribute("value", this.valueInternal);
     this.syncFormAssociation();
@@ -286,10 +289,12 @@ export class RichTextInput extends FormAssociatedElement {
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
+      this.valueReconciliation.hostWrite(sanitizeRichTextHtml(newValue ?? "") === this.valueInternal);
       this.valueInternal = sanitizeRichTextHtml(newValue ?? "");
       this.syncFormAssociation();
     }
     super.attributeChangedCallback(name, oldValue, newValue);
+    if (name === "value" && oldValue === newValue && this.isRendered) this.update();
   }
 
   protected getFormValue(): FormValue {
@@ -297,6 +302,7 @@ export class RichTextInput extends FormAssociatedElement {
   }
 
   protected restoreFormValue(value: FormValue): void {
+    this.valueReconciliation.hostWrite(false);
     const next = typeof value === "string" ? sanitizeRichTextHtml(value) : "";
     this.valueInternal = next;
     this.setAttribute("value", next);
@@ -307,12 +313,14 @@ export class RichTextInput extends FormAssociatedElement {
   }
 
   private emitValueChanged(): void {
-    this.dispatchEvent(
-      new CustomEvent("value-changed", {
-        bubbles: true,
-        composed: true,
-        detail: { value: this.valueInternal },
-      }),
+    this.valueReconciliation.emit(() =>
+      this.dispatchEvent(
+        new CustomEvent("value-changed", {
+          bubbles: true,
+          composed: true,
+          detail: { value: this.valueInternal },
+        }),
+      ),
     );
   }
 
@@ -322,7 +330,7 @@ export class RichTextInput extends FormAssociatedElement {
       this.editor.innerHTML = cleaned;
     }
     this.valueInternal = cleaned;
-    this.setAttribute("value", this.valueInternal);
+    this.valueReconciliation.reflect(() => this.setAttribute("value", this.valueInternal));
     this.syncFormAssociation();
     this.emitValueChanged();
   };
@@ -452,11 +460,12 @@ export class RichTextInput extends FormAssociatedElement {
     });
     applyRovingTabindex(this.toolbarButtons, 0);
 
-    // Only patch editor HTML when not focused to avoid cursor-jump
-    if (this.shadowRoot?.activeElement !== this.editor && this.editor.innerHTML !== this.valueInternal) {
+    // Preserve native editing and input echoes; authoritative writes still win.
+    if (this.valueReconciliation.shouldSync(this.shadowRoot?.activeElement === this.editor) && this.editor.innerHTML !== this.valueInternal) {
       this.editor.innerHTML = sanitizeRichTextHtml(this.valueInternal);
     }
 
+    this.valueReconciliation.complete();
     this.applyInvalidState(this.editor, this.errorEl);
   }
 }

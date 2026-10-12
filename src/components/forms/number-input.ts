@@ -1,3 +1,4 @@
+import { ValueReconciliation } from "./value-reconciliation.js";
 import {
   FormAssociatedElement,
   boeFormFieldErrorStyles,
@@ -77,6 +78,7 @@ const numberInputStyles = `
 `;
 
 export class NumberInput extends FormAssociatedElement {
+  private readonly valueReconciliation = new ValueReconciliation();
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
@@ -165,6 +167,7 @@ export class NumberInput extends FormAssociatedElement {
 
   set value(nextValue: number) {
     const normalizedValue = this.clamp(Number.isFinite(nextValue) ? nextValue : 0);
+    this.valueReconciliation.hostWrite(normalizedValue === this.valueInternal);
     this.valueInternal = normalizedValue;
     this.setAttribute("value", String(normalizedValue));
     if (this.isRendered) {
@@ -174,15 +177,18 @@ export class NumberInput extends FormAssociatedElement {
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
+      this.valueReconciliation.hostWrite(this.clamp(parseNumber(newValue, this.valueInternal)) === this.valueInternal);
       this.valueInternal = this.clamp(parseNumber(newValue, this.valueInternal));
     } else if (name === "min" || name === "max") {
       const clamped = this.clamp(this.valueInternal);
+      this.valueReconciliation.hostWrite(clamped === this.valueInternal);
       this.valueInternal = clamped;
       if (this.getAttribute("value") !== String(clamped)) {
         this.setAttribute("value", String(clamped));
       }
     }
     super.attributeChangedCallback(name, oldValue, newValue);
+    if (name === "value" && oldValue === newValue && this.isRendered) this.update();
   }
 
   protected getFormValue(): FormValue {
@@ -190,6 +196,7 @@ export class NumberInput extends FormAssociatedElement {
   }
 
   protected restoreFormValue(value: FormValue): void {
+    this.valueReconciliation.hostWrite(false);
     const parsed =
       typeof value === "string" ? parseNumber(value, this.valueInternal) : this.valueInternal;
     this.valueInternal = this.clamp(parsed);
@@ -220,14 +227,16 @@ export class NumberInput extends FormAssociatedElement {
       this.clampStatusEl.textContent = "";
     }
     this.valueInternal = normalizedValue;
-    this.setAttribute("value", String(normalizedValue));
+    this.valueReconciliation.reflect(() => this.setAttribute("value", String(normalizedValue)));
     this.syncFormAssociation();
-    this.dispatchEvent(
-      new CustomEvent("value-changed", {
-        bubbles: true,
-        composed: true,
-        detail: { value: normalizedValue },
-      }),
+    this.valueReconciliation.emit(() =>
+      this.dispatchEvent(
+        new CustomEvent("value-changed", {
+          bubbles: true,
+          composed: true,
+          detail: { value: normalizedValue },
+        }),
+      ),
     );
   }
 
@@ -285,7 +294,7 @@ export class NumberInput extends FormAssociatedElement {
       this.inputEl.max = String(this.max);
     }
 
-    if (this.shadowRoot?.activeElement !== this.inputEl) {
+    if (this.valueReconciliation.shouldSync(this.shadowRoot?.activeElement === this.inputEl) && this.inputEl.value !== String(this.valueInternal)) {
       this.inputEl.value = String(this.valueInternal);
     }
 
@@ -296,6 +305,7 @@ export class NumberInput extends FormAssociatedElement {
     }
 
     this.applyFieldSupport(this.labelEl, this.inputEl, this.descriptionEl);
+    this.valueReconciliation.complete();
     this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }

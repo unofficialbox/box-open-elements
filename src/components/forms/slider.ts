@@ -1,3 +1,4 @@
+import { ValueReconciliation } from "./value-reconciliation.js";
 import {
   FormAssociatedElement,
   boeFormFieldErrorStyles,
@@ -80,6 +81,7 @@ const sliderStyles = `
 `;
 
 export class Slider extends FormAssociatedElement {
+  private readonly valueReconciliation = new ValueReconciliation();
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [
@@ -149,6 +151,7 @@ export class Slider extends FormAssociatedElement {
 
   set value(nextValue: number) {
     const normalizedValue = this.clamp(Number.isFinite(nextValue) ? nextValue : this.min);
+    this.valueReconciliation.hostWrite(normalizedValue === this.valueInternal);
     this.valueInternal = normalizedValue;
     this.setAttribute("value", String(normalizedValue));
     if (this.isRendered) {
@@ -158,9 +161,11 @@ export class Slider extends FormAssociatedElement {
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
+      this.valueReconciliation.hostWrite(parseNumber(this.getAttribute("value"), this.min) === this.valueInternal);
       this.valueInternal = parseNumber(this.getAttribute("value"), this.min);
     }
     super.attributeChangedCallback(name, oldValue, newValue);
+    if (name === "value" && oldValue === newValue && this.isRendered) this.update();
   }
 
   protected getFormValue(): FormValue {
@@ -168,6 +173,7 @@ export class Slider extends FormAssociatedElement {
   }
 
   protected restoreFormValue(value: FormValue): void {
+    this.valueReconciliation.hostWrite(false);
     const parsed =
       typeof value === "string" ? parseNumber(value, this.valueInternal) : this.valueInternal;
     this.valueInternal = this.clamp(parsed);
@@ -187,15 +193,17 @@ export class Slider extends FormAssociatedElement {
   private syncValue(nextValue: number): void {
     const normalizedValue = this.clamp(nextValue);
     this.valueInternal = normalizedValue;
-    this.setAttribute("value", String(normalizedValue));
+    this.valueReconciliation.reflect(() => this.setAttribute("value", String(normalizedValue)));
     this.valueEl.textContent = String(normalizedValue);
     this.syncFormAssociation();
-    this.dispatchEvent(
-      new CustomEvent("value-changed", {
-        bubbles: true,
-        composed: true,
-        detail: { value: normalizedValue },
-      }),
+    this.valueReconciliation.emit(() =>
+      this.dispatchEvent(
+        new CustomEvent("value-changed", {
+          bubbles: true,
+          composed: true,
+          detail: { value: normalizedValue },
+        }),
+      ),
     );
   }
 
@@ -243,7 +251,7 @@ export class Slider extends FormAssociatedElement {
     this.inputEl.max = String(this.max);
     this.inputEl.step = String(this.step);
 
-    if (this.shadowRoot?.activeElement !== this.inputEl) {
+    if (this.valueReconciliation.shouldSync(this.shadowRoot?.activeElement === this.inputEl) && this.inputEl.value !== String(this.valueInternal)) {
       this.inputEl.value = String(this.valueInternal);
     }
 
@@ -253,6 +261,7 @@ export class Slider extends FormAssociatedElement {
       this.inputEl.removeAttribute("disabled");
     }
 
+    this.valueReconciliation.complete();
     this.applyInvalidState(this.inputEl, this.errorEl);
   }
 }
