@@ -107,7 +107,8 @@ export class ProgressBar extends BaseElement {
   }
 
   get max(): number {
-    return Number(this.getAttribute("max") ?? "100");
+    const value = Number(this.getAttribute("max") ?? "100");
+    return Number.isFinite(value) ? value : 100;
   }
 
   set max(value: number) {
@@ -115,7 +116,8 @@ export class ProgressBar extends BaseElement {
   }
 
   get value(): number {
-    return Number(this.getAttribute("value") ?? "0");
+    const value = Number(this.getAttribute("value") ?? "0");
+    return Number.isFinite(value) ? value : 0;
   }
 
   set value(value: number) {

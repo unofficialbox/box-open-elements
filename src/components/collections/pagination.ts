@@ -5,6 +5,14 @@ import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-pagination";
 
+// Counts are nonnegative safe integers; invalid attributes use their defaults.
+const count = (raw: string | null, fallback: number, minimum: number): number => {
+  const value = Number(raw ?? fallback);
+  return Number.isFinite(value)
+    ? Math.min(Number.MAX_SAFE_INTEGER, Math.max(minimum, Math.floor(value)))
+    : fallback;
+};
+
 const paginationStyles = `
   :host {
     display: inline-block;
@@ -71,8 +79,11 @@ export class Pagination extends BaseElement {
   private nextEl!: HTMLButtonElement;
   private summaryEl!: HTMLElement;
 
+  /** Effective page. The attribute retains the caller's requested position. */
   get page(): number {
-    return Number(this.getAttribute("page") ?? "1");
+    const requested = count(this.getAttribute("page"), 1, 1);
+    const totalPages = Math.max(1, Math.ceil(this.totalItems / this.pageSize));
+    return Math.min(requested, totalPages);
   }
 
   set page(value: number) {
@@ -80,7 +91,7 @@ export class Pagination extends BaseElement {
   }
 
   get pageSize(): number {
-    return Number(this.getAttribute("page-size") ?? "10");
+    return count(this.getAttribute("page-size"), 10, 1);
   }
 
   set pageSize(value: number) {
@@ -88,7 +99,7 @@ export class Pagination extends BaseElement {
   }
 
   get totalItems(): number {
-    return Number(this.getAttribute("total-items") ?? "0");
+    return count(this.getAttribute("total-items"), 0, 0);
   }
 
   set totalItems(value: number) {
@@ -104,7 +115,7 @@ export class Pagination extends BaseElement {
     totalPages: number;
   } {
     const totalPages = Math.max(1, Math.ceil(this.totalItems / this.pageSize));
-    const currentPage = Math.min(Math.max(1, this.page), totalPages);
+    const currentPage = this.page;
     return {
       canGoNext: currentPage < totalPages,
       canGoPrevious: currentPage > 1,

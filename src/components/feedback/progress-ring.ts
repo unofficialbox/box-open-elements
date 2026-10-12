@@ -86,7 +86,8 @@ export class ProgressRing extends BaseElement {
   }
 
   get max(): number {
-    return Number(this.getAttribute("max") ?? "100");
+    const value = Number(this.getAttribute("max") ?? "100");
+    return Number.isFinite(value) ? value : 100;
   }
 
   set max(value: number) {
@@ -94,7 +95,9 @@ export class ProgressRing extends BaseElement {
   }
 
   get size(): number {
-    return Number(this.getAttribute("size") ?? "88");
+    const value = Number(this.getAttribute("size") ?? "88");
+    // The circumference must also remain representable for finite extreme input.
+    return Number.isFinite(value) && Number.isFinite(Math.max(48, value) * Math.PI) ? value : 88;
   }
 
   set size(value: number) {
@@ -102,7 +105,8 @@ export class ProgressRing extends BaseElement {
   }
 
   get value(): number {
-    return Number(this.getAttribute("value") ?? "0");
+    const value = Number(this.getAttribute("value") ?? "0");
+    return Number.isFinite(value) ? value : 0;
   }
 
   set value(value: number) {
@@ -116,7 +120,7 @@ export class ProgressRing extends BaseElement {
 
     this.shadowRoot.innerHTML = `
       <style>${progressRingStyles}</style>
-      <div part="ring" role="group">
+      <div part="ring">
         <svg part="svg" role="progressbar" aria-valuemin="0">
           <circle part="track" fill="none"></circle>
           <circle part="indicator" fill="none"></circle>
@@ -150,7 +154,6 @@ export class ProgressRing extends BaseElement {
     const dashOffset = circumference - (percentage / 100) * circumference;
     const center = String(size / 2);
 
-    this.ringEl.setAttribute("aria-label", `${this.label} progress`);
     this.svgEl.setAttribute("viewBox", `0 0 ${size} ${size}`);
     this.svgEl.style.width = `${size}px`;
     this.svgEl.style.height = `${size}px`;

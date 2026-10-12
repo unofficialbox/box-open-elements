@@ -1,17 +1,9 @@
-import { DUE_BUCKET_LABELS, formatDueLabel, resolveDueBucket } from "./due-types.js";
+import { formatDueLabel, resolveDueBucket } from "./due-types.js";
 import type { DueBucket } from "./due-types.js";
 import { BaseElement } from "../../core/index.js";
 import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-due-badge";
-
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 
 const elementStyles = `
         :host {
@@ -195,10 +187,7 @@ export class DueBadge extends BaseElement {
       this.removeAttribute("datetime");
     }
 
-    this.badgeEl.setAttribute(
-      "aria-label",
-      bucket === "none" ? escapeHtml(DUE_BUCKET_LABELS.none) : escapeHtml(label),
-    );
+    this.badgeEl.setAttribute("aria-label", label);
   }
 }
 

@@ -68,7 +68,8 @@ export const isPathStageRecord = (value: unknown): value is PathStage => {
     typeof stage.id === "string" &&
     stage.id.length > 0 &&
     typeof stage.label === "string" &&
-    stage.label.length > 0
+    stage.label.length > 0 &&
+    (stage.description === undefined || typeof stage.description === "string")
   );
 };
 
