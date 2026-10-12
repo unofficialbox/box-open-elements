@@ -30,7 +30,7 @@ export const syncChartPoints = (parent: HTMLElement, points: Point[], kind: "bar
     // erase its button semantics. display:contents preserves existing layout.
     const item=document.createElement("div"); item.setAttribute("role","listitem"); item.setAttribute("part","point-item"); item.style.display="contents";
     const button=actionButton("point");
-    button.innerHTML=`${kind==="shell"?'<span part="bar-shell"><span part="bar"></span></span>':kind==="bar"?'<span part="bar"></span>':""}<span part="point-label"></span><span part="point-value"></span>`;
+    button.innerHTML=`${kind==="shell"?'<span part="bar-shell"><span part="bar"></span></span>':kind==="bar"?'<span part="bar"></span>':""}<span part="point-label"></span> <span part="point-value"></span>`;
     item.append(button); return item;
   },(item,point)=>{
     const button=item.querySelector<HTMLButtonElement>("button")!; button.dataset.pointId=point.id; button.dataset.tone=point.tone??"neutral"; button.setAttribute("aria-label",`${point.label}: ${point.value}`);
