@@ -313,6 +313,8 @@ export class Timeline extends BaseElement {
 
   private composerEl!: HTMLElement;
 
+  private composing = false;
+
   private composerInputEl!: HTMLTextAreaElement;
 
   private eventsSignature = "";
@@ -444,6 +446,11 @@ export class Timeline extends BaseElement {
     this.composerInputEl = this.shadowRoot.querySelector('[part="composer-input"]')!;
   }
 
+  disconnectedCallback(): void {
+    this.composing = false;
+    super.disconnectedCallback();
+  }
+
   protected setupListeners(): void {
     this.eventsEl.addEventListener("click", event => {
       const link = (event.target as HTMLElement).closest('[part="evidence-link"]') as HTMLElement | null;
@@ -480,7 +487,11 @@ export class Timeline extends BaseElement {
       }
     });
 
+    this.composerInputEl.addEventListener("compositionstart", () => { this.composing = true; });
+    this.composerInputEl.addEventListener("compositionend", () => { this.composing = false; });
+    this.composerInputEl.addEventListener("blur", () => { this.composing = false; });
     this.composerInputEl.addEventListener("keydown", event => {
+      if (this.composing || event.isComposing || event.keyCode === 229) return;
       if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
         this.emitEntrySubmitted();
@@ -510,6 +521,7 @@ export class Timeline extends BaseElement {
     const composable = this.composable;
     this.composerEl.hidden = !composable;
     this.composerInputEl.disabled = !composable;
+    if (!composable) this.composing = false;
   }
 }
 
