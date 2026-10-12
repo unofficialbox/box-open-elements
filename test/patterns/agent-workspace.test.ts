@@ -49,3 +49,38 @@ describe("AgentWorkspace controlled pane echoes", () => {
     expect(change).toHaveBeenCalledTimes(1); expect(element.querySelector("input")).toBe(input);
   });
 });
+
+describe("AgentWorkspace reentrant pane event ownership", () => {
+  it.each(["property", "method", "property-with-render"] as const)("does not repeat a superseded details event after an A→B→A %s transition", mode => {
+    const element = mount(); element.panes = { chats: true, details: true };
+    const events: Array<{ pane: "chats" | "details"; open: boolean }> = [];
+    element.addEventListener("pane-change", event => {
+      const { pane, open } = (event as CustomEvent<{ pane: "chats" | "details"; open: boolean }>).detail;
+      events.push({ pane, open });
+      if (pane === "chats" && !open && events.length === 1) {
+        if (mode === "method") { element.open("details", true); element.open("details", false); }
+        else {
+          element.panes = { details: true };
+          if (mode === "property-with-render") element.toggleAttribute("hide-toggles");
+          element.panes = { details: false };
+        }
+      }
+    });
+    element.panes = { chats: false, details: false };
+    expect(events).toEqual([{ pane: "chats", open: false }, { pane: "details", open: true }, { pane: "details", open: false }]);
+    expect(element.panes).toEqual({ chats: false, details: false });
+  });
+
+  it("retains an unrelated pending details transition when a listener changes chats", () => {
+    const element = mount(); element.panes = { chats: true, details: true };
+    const events: Array<{ pane: "chats" | "details"; open: boolean }> = [];
+    element.addEventListener("pane-change", event => {
+      const { pane, open } = (event as CustomEvent<{ pane: "chats" | "details"; open: boolean }>).detail;
+      events.push({ pane, open });
+      if (pane === "chats" && !open && events.length === 1) element.panes = { chats: true };
+    });
+    element.panes = { chats: false, details: false };
+    expect(events).toEqual([{ pane: "chats", open: false }, { pane: "chats", open: true }, { pane: "details", open: false }]);
+    expect(element.panes).toEqual({ chats: true, details: false });
+  });
+});

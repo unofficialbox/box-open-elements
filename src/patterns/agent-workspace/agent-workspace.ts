@@ -18,6 +18,7 @@ export class AgentWorkspace extends BaseElement {
   private renderedActive: string | null = null;
   private chatIds = "";
   private lastPanes: { chats: boolean; details: boolean } | null = null;
+  private paneRevisions = { chats: 0, details: 0 };
   private sessions = new Map<string, AgentChat>();
   /** Host-controlled pane state; mobile drawers remain mutually exclusive. */
   get panes(): { chats: boolean; details: boolean } { return { chats: this.chatsOpen, details: this.detailsOpen }; }
@@ -83,9 +84,15 @@ export class AgentWorkspace extends BaseElement {
     const panes = this.panes;
     // Publish before dispatch: a host echo or synchronous render sees the new state.
     this.lastPanes = panes;
+    const revisions = { ...this.paneRevisions };
+    for (const pane of ["chats", "details"] as const) {
+      if (previous?.[pane] !== panes[pane]) revisions[pane] = ++this.paneRevisions[pane];
+    }
     for (const pane of ["chats", "details"] as const) {
       const open = panes[pane];
-      if (previous?.[pane] !== open && this.panes[pane] === open) this.dispatchEvent(new CustomEvent("pane-change", {bubbles:true,composed:true,detail:{pane,open,mobile:this.mobile}}));
+      // A nested transition supersedes this pane's pending event even if it
+      // returns to the same value; unrelated pane changes keep their events.
+      if (previous?.[pane] !== open && this.paneRevisions[pane] === revisions[pane]) this.dispatchEvent(new CustomEvent("pane-change", {bubbles:true,composed:true,detail:{pane,open,mobile:this.mobile}}));
     }
   }
   protected renderTemplate(): void {
