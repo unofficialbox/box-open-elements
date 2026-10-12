@@ -313,6 +313,7 @@ export class SearchField extends FormAssociatedElement {
 
   protected setupListeners(): void {
     this.inputEl.addEventListener("input", event => {
+      this.valueReconciliation.trackNativeInput(event);
       if (this.disabled) {
         return;
       }

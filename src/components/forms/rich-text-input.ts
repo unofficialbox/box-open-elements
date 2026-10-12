@@ -324,7 +324,8 @@ export class RichTextInput extends FormAssociatedElement {
     );
   }
 
-  private handleEditorInput = (): void => {
+  private handleEditorInput = (event?: Event): void => {
+    if (event) this.valueReconciliation.trackNativeInput(event);
     const cleaned = sanitizeRichTextHtml(this.editor.innerHTML);
     if (cleaned !== this.editor.innerHTML) {
       this.editor.innerHTML = cleaned;

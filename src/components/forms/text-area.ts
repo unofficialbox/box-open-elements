@@ -184,6 +184,7 @@ export class TextArea extends FormAssociatedElement {
 
   protected setupListeners(): void {
     this.textareaEl.addEventListener("input", event => {
+      this.valueReconciliation.trackNativeInput(event);
       const nextValue = (event.currentTarget as HTMLTextAreaElement).value;
       this.valueInternal = nextValue;
       this.valueReconciliation.reflect(() => this.setAttribute("value", nextValue));

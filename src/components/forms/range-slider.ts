@@ -301,6 +301,7 @@ export class RangeSlider extends FormAssociatedElement {
 
   protected setupListeners(): void {
     this.startInputEl.addEventListener("input", event => {
+      this.valueReconciliation.trackNativeInput(event);
       const nextStart = Number((event.currentTarget as HTMLInputElement).value);
       if (!Number.isFinite(nextStart)) {
         return;
@@ -310,6 +311,7 @@ export class RangeSlider extends FormAssociatedElement {
     });
 
     this.endInputEl.addEventListener("input", event => {
+      this.valueReconciliation.trackNativeInput(event);
       const nextEnd = Number((event.currentTarget as HTMLInputElement).value);
       if (!Number.isFinite(nextEnd)) {
         return;

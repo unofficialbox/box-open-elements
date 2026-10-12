@@ -284,6 +284,7 @@ export class ColorPicker extends FormAssociatedElement {
 
   protected setupListeners(): void {
     this.inputEl.addEventListener("input", event => {
+      this.valueReconciliation.trackNativeInput(event);
       const nextValue = normalizeHex((event.currentTarget as HTMLInputElement).value);
       this.emitValueChanged(nextValue);
     });

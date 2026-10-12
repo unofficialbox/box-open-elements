@@ -322,6 +322,7 @@ export class SpinButton extends FormAssociatedElement {
 
   protected setupListeners(): void {
     this.inputEl.addEventListener("input", event => {
+      this.valueReconciliation.trackNativeInput(event);
       const nextValue = Number((event.currentTarget as HTMLInputElement).value);
       if (!Number.isFinite(nextValue)) {
         return;

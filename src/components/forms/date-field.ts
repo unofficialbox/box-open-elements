@@ -248,6 +248,7 @@ export class DateField extends FormAssociatedElement {
 
   protected setupListeners(): void {
     this.inputEl.addEventListener("input", event => {
+      this.valueReconciliation.trackNativeInput(event);
       this.syncValue((event.currentTarget as HTMLInputElement).value);
     });
     this.clearEl.addEventListener("click", () => this.clear());

@@ -71,7 +71,7 @@ describe("native edit ownership", () => {
         e.value = a;
         e.value = b;
       });
-      c.dispatchEvent(new Event("input", { bubbles: true }));
+      c.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
       expect(count).toBe(1);
       expect(read(c)).toBe(String(b));
       expect(getMirroredFormValue(e.internals)).toBe(String(b));
@@ -111,7 +111,7 @@ describe("native edit ownership", () => {
       e.setAttribute("value", "01.00");
     });
     c.value = "1.00";
-    c.dispatchEvent(new Event("input", { bubbles: true }));
+    c.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
     expect(c.value).toBe("1.00");
     e.value = 1;
     expect(c.value).toBe("1");
@@ -124,7 +124,7 @@ describe("native edit ownership", () => {
     c.value = "Alpha";
     c.setSelectionRange(2, 2);
     e.addEventListener("value-changed", () => { e.value = e.value; });
-    c.dispatchEvent(new Event("input", { bubbles: true }));
+    c.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
     e.setAttribute("label", "Changed label");
     expect(c.selectionStart).toBe(2);
     expect(c.selectionEnd).toBe(2);
@@ -152,7 +152,7 @@ describe("normalized writes and compound controls", () => {
     c.innerHTML = "<strong>Alpha</strong>";
     const child = c.firstChild;
     e.addEventListener("value-changed", () => { e.value = e.value; });
-    c.dispatchEvent(new Event("input", { bubbles: true }));
+    c.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
     expect(c.firstChild).toBe(child);
     e.value = '<strong>Beta</strong><script>alert("synthetic")</script>';
     expect(c.innerHTML).toBe(e.value);
@@ -168,7 +168,7 @@ describe("normalized writes and compound controls", () => {
     c.value = "synthetic composition";
     c.setSelectionRange(4, 4);
     e.addEventListener("value-changed", () => { e.value = e.value; });
-    c.dispatchEvent(new InputEvent("input", { bubbles: true, isComposing: true }));
+    c.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true, isComposing: true }));
     e.setAttribute("label", "During composition");
     expect(c.value).toBe("synthetic composition");
     expect(c.selectionStart).toBe(4);
@@ -187,7 +187,7 @@ describe("normalized writes and compound controls", () => {
       e.end = 60;
     });
     c.value = "30";
-    c.dispatchEvent(new Event("input", { bubbles: true }));
+    c.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
     expect(c.value).toBe("40");
     expect(e.shadowRoot!.querySelector<HTMLInputElement>("[part=range-end]")!.value).toBe("60");
     c.value = "10";
@@ -197,4 +197,101 @@ describe("normalized writes and compound controls", () => {
     expect(c.value).toBe("20");
     expect((getMirroredFormValue(e.internals) as FormData).get("budget-start")).toBe("20");
   });
+});
+
+describe("original composed native input echoes", () => {
+  for (const source of ["input", "value-changed"]) {
+    for (const raw of ["1.00", ""]) {
+      it(`preserves numeric draft ${JSON.stringify(raw)} echoed from host ${source}`, () => {
+        const e = document.createElement("box-number-input") as Field;
+        e.value = 2;
+        document.body.append(e);
+        const c = control(e);
+        c.focus();
+        let events = 0;
+        e.addEventListener(source, () => {
+          events++;
+          e.value = e.value;
+          e.setAttribute("value", String(e.value));
+        });
+        c.value = raw;
+        c.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
+        expect(events).toBe(1);
+        expect(c.value).toBe(raw);
+        expect(e.value).toBe(Number(raw));
+        expect(getMirroredFormValue(e.internals)).toBe(String(Number(raw)));
+      });
+    }
+  }
+});
+
+describe("constraint reconciliation ownership", () => {
+  for (const constraint of ["min", "max"]) {
+    it(`does not retain authority after a no-op ${constraint} write`, () => {
+      const e = document.createElement("box-number-input") as Field & { min: number; max: number };
+      e[constraint] = constraint === "min" ? 0 : 10;
+      document.body.append(e);
+      const c = control(e);
+      c.focus();
+      e[constraint] = e[constraint];
+      c.value = "1.00";
+      e.setAttribute("label", "Unrelated update");
+      expect(c.value).toBe("1.00");
+      c.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
+      expect(c.value).toBe("1.00");
+      expect(e.value).toBe(1);
+    });
+  }
+  it("still applies real changed-constraint clamping while focused", () => {
+    const e = document.createElement("box-number-input") as Field & { max: number };
+    e.max = 10;
+    e.value = 7;
+    document.body.append(e);
+    const c = control(e);
+    c.focus();
+    c.value = "7.00";
+    e.max = 3;
+    expect(e.value).toBe(3);
+    expect(c.value).toBe("3");
+    expect(getMirroredFormValue(e.internals)).toBe("3");
+  });
+});
+
+it("keeps original input scope through nested native inputs and ends it synchronously", () => {
+  const e = document.createElement("box-number-input") as Field;
+  document.body.append(e);
+  const c = control(e);
+  c.focus();
+  let nested = false;
+  e.addEventListener("value-changed", () => {
+    if (nested) return;
+    nested = true;
+    c.value = "2.00";
+    c.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
+  });
+  e.addEventListener("input", () => { e.value = e.value; });
+  c.value = "1.00";
+  c.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
+  expect(c.value).toBe("2.00");
+  expect(e.value).toBe(2);
+  // Same-value host writes after dispatch are authoritative in the same task.
+  e.value = e.value;
+  expect(c.value).toBe("2");
+});
+
+it("applies genuinely different writes from the original composed input callback", () => {
+  const e = document.createElement("box-number-input") as Field;
+  document.body.append(e);
+  const c = control(e);
+  c.focus();
+  e.addEventListener("input", () => {
+    e.value = e.value;
+    e.value = 7;
+    e.value = e.value;
+  });
+  c.value = "1.00";
+  c.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
+  expect(c.value).toBe("7");
+  expect(e.value).toBe(7);
+  expect(getMirroredFormValue(e.internals)).toBe("7");
 });

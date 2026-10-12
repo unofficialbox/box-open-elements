@@ -179,7 +179,7 @@ export class NumberInput extends FormAssociatedElement {
     if (name === "value") {
       this.valueReconciliation.hostWrite(this.clamp(parseNumber(newValue, this.valueInternal)) === this.valueInternal);
       this.valueInternal = this.clamp(parseNumber(newValue, this.valueInternal));
-    } else if (name === "min" || name === "max") {
+    } else if ((name === "min" || name === "max") && oldValue !== newValue) {
       const clamped = this.clamp(this.valueInternal);
       this.valueReconciliation.hostWrite(clamped === this.valueInternal);
       this.valueInternal = clamped;
@@ -264,6 +264,7 @@ export class NumberInput extends FormAssociatedElement {
 
   protected setupListeners(): void {
     this.inputEl.addEventListener("input", event => {
+      this.valueReconciliation.trackNativeInput(event);
       const nextValue = Number((event.currentTarget as HTMLInputElement).value);
       if (!Number.isFinite(nextValue)) {
         return;

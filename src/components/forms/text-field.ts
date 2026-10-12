@@ -382,6 +382,7 @@ export class TextField extends FormAssociatedElement {
     });
 
     this.inputEl.addEventListener("input", event => {
+      this.valueReconciliation.trackNativeInput(event);
       const nextValue = (event.currentTarget as HTMLInputElement).value;
       this.valueInternal = nextValue;
       this.valueReconciliation.reflect(() => this.setAttribute("value", nextValue));
