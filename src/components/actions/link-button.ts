@@ -21,7 +21,9 @@ const escapeHtml = (value: string): string =>
 const safeHref = (value: string): string => {
   // Strip tab/newline/CR first: browsers ignore them in URLs, so "java\nscript:"
   // normalizes back to the javascript: scheme on navigation and must not slip past.
-  const trimmed = value.replace(/[\t\n\r]/g, "").trim();
+  const trimmed = value.replace(/[\t\n\r]/g, "").trim()
+    // URL parsing strips boundary C0 controls/space, which JS trim alone misses.
+    .replace(/^[\u0000-\u0020]+|[\u0000-\u0020]+$/g, "");
   const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(trimmed);
   if (!scheme) return trimmed; // relative / fragment / query — no scheme to abuse
   return ["http", "https", "mailto", "tel"].includes(scheme[1].toLowerCase()) ? trimmed : "#";
