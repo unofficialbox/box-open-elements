@@ -249,13 +249,23 @@ export class MetadataInspector extends BaseElement {
       if (child !== cursor) {
         const move = (parent as HTMLElement & { moveBefore?: (node: Node, before: Node | null) => void }).moveBefore;
         if (move && child.parentElement === parent && child.isConnected) move.call(parent, child, cursor);
-        else parent.insertBefore(child, cursor);
+        else {
+          // Blur before the DOM move validates its references: a synchronous
+          // host focusout callback may replace the children or start a render.
+          const active = this.shadowRoot?.activeElement as HTMLElement | null;
+          if (active && child.contains(active)) active.blur();
+          if (revision !== this.renderRevision) return false;
+          parent.insertBefore(child, cursor);
+        }
       }
       if (revision !== this.renderRevision) return false;
       cursor = child.nextElementSibling;
     }
     for (const matches of available.values()) {
       for (const child of matches) {
+        const active = this.shadowRoot?.activeElement as HTMLElement | null;
+        if (active && child.contains(active)) active.blur();
+        if (revision !== this.renderRevision) return false;
         child.remove();
         if (revision !== this.renderRevision) return false;
       }
@@ -319,8 +329,7 @@ export class MetadataInspector extends BaseElement {
         const id = `boe-metadata-field-${++nextFieldId}`;
         group.innerHTML = `<dt part="field-term" id="${id}-term"></dt>
           <dd part="field-definition"><button type="button" part="field" aria-labelledby="${id}-term ${id}-value">
-            <div part="field-header"><span part="field-label" aria-hidden="true"></span>
-              <span part="field-value" id="${id}-value"></span></div>
+            <div part="field-header"><span part="field-label" aria-hidden="true"></span> <span part="field-value" id="${id}-value"></span></div>
             <div part="field-description" id="${id}-description" hidden></div>
           </button></dd>`;
         return group;
@@ -337,8 +346,8 @@ export class MetadataInspector extends BaseElement {
         const description = group.querySelector<HTMLElement>('[part="field-description"]')!;
         description.textContent = field.description ?? "";
         description.hidden = !field.description;
-        if (field.description) button.setAttribute("aria-describedby", description.id);
-        else button.removeAttribute("aria-describedby");
+        const term = group.querySelector<HTMLElement>('[part="field-term"]')!;
+        button.setAttribute("aria-labelledby", [term.id, value.id, ...(field.description ? [description.id] : [])].join(" "));
       }, revision);
     }, revision);
     // Legacy insertBefore can drop focus during a move. Restore once the whole

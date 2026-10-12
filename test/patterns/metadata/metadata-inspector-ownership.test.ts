@@ -79,4 +79,14 @@ describe("MetadataInspector owned fields", () => {
     expect(owner(e).dataset.fieldValue).toBe("Newest"); expect(document.activeElement).toBe(input);
   });
 
+  it("stops a legacy section move before a focusout callback invalidates its DOM references", () => {
+    const e = setup(); e.sections = [{ title: "Extra", fields: [{ label: "Other", value: "Keep" }] }, ...fields()];
+    const button = owner(e), container = e.shadowRoot!.querySelector('[part="sections"]')!;
+    Object.defineProperty(container, "moveBefore", { value: undefined }); button.focus();
+    button.addEventListener("focusout", () => { e.sections = fields("Newest"); }, { once: true });
+    e.sections = [...fields("Outer stale"), { title: "Extra", fields: [{ label: "Other", value: "Old" }] }];
+    expect(e.shadowRoot!.querySelectorAll('[part="section"]')).toHaveLength(1);
+    expect(owner(e).dataset.fieldValue).toBe("Newest");
+  });
+
 });
