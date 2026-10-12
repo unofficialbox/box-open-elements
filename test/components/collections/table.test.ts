@@ -460,6 +460,81 @@ describe("Table row virtualization", () => {
     expect(renderedIndices(el)).toContain(9_999);
   });
 
+  it("keeps End/Home focus through delayed measurement and Space selection", async () => {
+    const el = create(200, { viewportHeight: 240 });
+    const key = (value: string): void => {
+      el.shadowRoot!.activeElement!.dispatchEvent(new KeyboardEvent("keydown", { key: value, bubbles: true, cancelable: true }));
+    };
+    const frame = (): Promise<void> => new Promise(resolve => requestAnimationFrame(() => resolve()));
+    // A different measured height queues the same follow-up render that a
+    // native browser produces when the final row loses its bottom border.
+    const height = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({ height: 31.5 } as DOMRect);
+    try {
+      rowAt(el, 0).focus();
+      key("End");
+      expect((el.shadowRoot!.activeElement as HTMLElement).dataset.id).toBe("r-199");
+      await frame();
+      await frame();
+      expect((el.shadowRoot!.activeElement as HTMLElement).dataset.id).toBe("r-199");
+      expect(el.renderedWindow!.totalHeight).toBe(200 * 31.5);
+      key(" ");
+      expect(el.selectedIds).toEqual(["r-199"]);
+      key("Home");
+      await frame();
+      await frame();
+      expect((el.shadowRoot!.activeElement as HTMLElement).dataset.id).toBe("r-0");
+      key(" ");
+      expect(el.selectedIds).toEqual(["r-199", "r-0"]);
+    } finally {
+      height.mockRestore();
+    }
+  });
+
+  it("follows the focused ID through visible reorder and controlled selection, not the old index", () => {
+    const el = create(200, { viewportHeight: 240 });
+    const id = 'row"\\identity';
+    el.rows = [{ id, cells: { name: "Before" } }, ...el.rows.slice(1)];
+    rowAt(el, 0).focus();
+    const rows = el.rows;
+    el.rows = [rows[1]!, { ...rows[0]!, cells: { name: "Current" } }, ...rows.slice(2)];
+    el.selectedIds = [id];
+    const active = el.shadowRoot!.activeElement as HTMLElement;
+    expect(active.dataset.id).toBe(id);
+    expect(active.dataset.index).toBe("1");
+    expect(active.textContent).toContain("Current");
+    active.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true }));
+    expect(el.selectedIds).toEqual([]);
+    el.rows = el.rows.filter(row => row.id !== id);
+    expect(el.shadowRoot!.activeElement).toBeNull();
+  });
+
+  it("does not reclaim focus after a host handoff before a queued window render", async () => {
+    const el = create(200, { viewportHeight: 240 });
+    const external = document.createElement("button");
+    document.body.append(external);
+    rowAt(el, 0).focus();
+    const pending = scrollTo(el, 32);
+    external.focus();
+    await pending;
+    expect(document.activeElement).toBe(external);
+    expect(el.shadowRoot!.activeElement).toBeNull();
+  });
+
+  it("leaves a reentrant focusin host update final and respects its focus handoff", () => {
+    const el = create(200, { viewportHeight: 240 });
+    const external = document.createElement("button");
+    document.body.append(external);
+    rowAt(el, 0).focus();
+    el.addEventListener("focusin", () => {
+      external.focus();
+      el.rows = [{ id: "current", cells: { name: "Host replacement" } }];
+    }, { once: true });
+    el.selectedIds = ["r-0"];
+    expect(rowAt(el, 0).dataset.id).toBe("current");
+    expect(rowAt(el, 0).textContent).toContain("Host replacement");
+    expect(document.activeElement).toBe(external);
+  });
+
   it("skips the re-render while the resolved window is unchanged", async () => {
     const el = create(10_000);
     const before = el.renderedWindow;
