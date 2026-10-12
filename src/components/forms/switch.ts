@@ -10,14 +10,6 @@ import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/ind
 const DEFAULT_TAG_NAME = "box-switch";
 const DEFAULT_VALUE = "on";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-
 /** Track/thumb sized toward BUE `.toggle-simple` 40×20. */
 const switchStyles = `
   :host {
@@ -306,7 +298,7 @@ export class Switch extends FormAssociatedElement {
 
     const checkedStr = String(this.checkedInternal);
 
-    this.switchEl.setAttribute("aria-label", escapeHtml(this.label));
+    this.switchEl.setAttribute("aria-label", this.label);
     this.switchEl.setAttribute("aria-checked", checkedStr);
     this.switchEl.setAttribute("aria-disabled", String(this.disabled));
     if (this.disabled) {

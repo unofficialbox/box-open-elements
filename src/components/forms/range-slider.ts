@@ -318,6 +318,8 @@ export class RangeSlider extends FormAssociatedElement {
     const end = Math.max(this.startInternal, this.endInternal);
 
     this.labelEl.textContent = this.label;
+    this.startInputEl.setAttribute("aria-label", `${this.label} start`);
+    this.endInputEl.setAttribute("aria-label", `${this.label} end`);
     this.startValueEl.textContent = String(start);
     this.endValueEl.textContent = String(end);
 

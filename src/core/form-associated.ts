@@ -157,7 +157,7 @@ export const boeFormFieldErrorStyles = `
 
   [part="error-message"] {
     margin: 0;
-    color: var(--boe-token-surface-status-surface-error, #ed3757);
+    color: color-mix(in srgb, var(--boe-token-text-status-text-error, #b92340) 85%, var(--boe-token-text-text, #222222));
     font-size: 0.82rem;
     line-height: 1.35;
   }
