@@ -138,8 +138,9 @@ export class Breadcrumb extends BaseElement {
 
   /** Max crumbs shown before the middle collapses to an ellipsis. 0 disables collapse. */
   get maxItems(): number {
-    const raw = Number(this.getAttribute("max-items"));
-    return Number.isFinite(raw) && raw > 0 ? raw : 4;
+    const attribute = this.getAttribute("max-items");
+    const max = attribute === null || attribute.trim() === "" ? 4 : Number(attribute);
+    return Number.isFinite(max) && max >= 0 ? max : 4;
   }
 
   set maxItems(value: number) {
@@ -149,7 +150,7 @@ export class Breadcrumb extends BaseElement {
   /** Keep the first crumb + last two, collapsing the middle into an ellipsis. */
   private collapse(items: BreadcrumbItem[]): Crumb[] {
     const max = this.maxItems;
-    if (items.length <= max) {
+    if (max === 0 || items.length <= max) {
       return items;
     }
     return [items[0], ELLIPSIS, ...items.slice(-2)];
