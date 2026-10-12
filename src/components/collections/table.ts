@@ -767,13 +767,18 @@ export class Table extends BaseElement {
     });
 
     this.bodyEl.addEventListener("click", event => {
-      const action = event.composedPath().find(target => target instanceof HTMLElement && target.getAttribute("part") === "row-action") as HTMLElement | undefined;
+      const path = event.composedPath();
+      // Original event ownership survives capture-driven DOM replacement.
+      // Assigned host content can use the same part names without becoming a
+      // built-in table action or expander.
+      const fromHostSlot = path.some(target => target instanceof HTMLSlotElement);
+      const action = !fromHostSlot ? path.find(target => target instanceof HTMLElement && target.getAttribute("part") === "row-action") as HTMLElement | undefined : undefined;
       if (action) {
         this.activateRowAction(action.dataset.rowId ?? "", action.dataset.actionKey ?? "");
         return;
       }
       const expander = (event.target as HTMLElement).closest<HTMLElement>('[part="expander"]');
-      if (expander) {
+      if (expander && !fromHostSlot) {
         this.toggleRowDetail(expander.dataset.rowId ?? "");
         return; // expanding is not selecting
       }

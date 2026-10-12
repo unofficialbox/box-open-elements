@@ -988,6 +988,20 @@ describe("Table host cells, actions and current row", () => {
     expect(el.selectedIds).toEqual([]);
   });
 
+  it.each(["row-action", "expander"])("keeps host buttons independent even when they expose an %s part", part => {
+    const el = create("multiple");
+    el.columns = [{ key: "name", label: "Name", hostContent: true }];
+    el.rows = [{ id: "a", detail: "Details", cells: { name: "A" }, actions: [{ key: "view", label: "View" }] }];
+    const button = document.createElement("button");
+    button.slot = "cell-a-name"; button.setAttribute("part", part);
+    button.dataset.rowId = "a"; button.dataset.actionKey = "view"; el.append(button);
+    const listener = vi.fn(); el.addEventListener("row-action", listener);
+    button.click();
+    expect(listener).not.toHaveBeenCalled();
+    expect(el.selectedIds).toEqual([]);
+    expect(el.expandedRows).toEqual([]);
+  });
+
   it("names actions per row, emits one typed current record and never selects", () => {
     const el = create("multiple");
     el.columns = [{ key: "name", label: "Run", rowHeader: true }];
