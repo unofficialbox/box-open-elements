@@ -207,7 +207,10 @@ sequenceDiagram
 
 `TaskAssignmentPanel` retains compatible assignee, checklist and action controls
 by their role and ID, refreshing current names, checked state and attributes.
-Events resolve current records and state; removed capture targets do not emit.
+Events use the original bounded event path to survive capture-time label refresh,
+then validate current control ownership and data; removed targets do not emit.
+Document IDs are resolved within their originating result block, so a static
+document in another block cannot suppress a safe link with the same ID.
 `FlowSpine` retains model-node/card/button identity through refresh and reorder,
 using the existing model's object identity contract. Removed nodes are not
 refocused, and fresh insert/branch controls use current descriptors.
@@ -221,4 +224,5 @@ DOCKER_DEFAULT_PLATFORM=linux/amd64 bash tools/preview/container-run.sh \
 
 `BOE_COLLECTION_BROWSER=chrome` and optional `BOE_COLLECTION_CHROME_PATH` run the
 same Chrome cases. The fixture covers metadata/reorder, repeated native keys,
-current action data, removal, reconnect and containing-root focus handoffs.
+current action data, descendant clicks during capture refresh/removal, duplicate
+document IDs across blocks, reconnect and containing-root focus handoffs.

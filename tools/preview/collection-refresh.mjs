@@ -167,6 +167,18 @@ for (const tag of ['box-document-list', 'box-result-blocks', 'box-task-assignmen
         }
         return { status: outcomes.every(x => x.kept && x.rootHandoff && x.documentHandoff) ? 'passed' : 'failed', observed: outcomes };
     });
+for(const kind of ['document','assignee','action'])for(const mode of ['refresh','remove'])add('review-descendant-'+kind+'-'+mode,[kind],['A'], 'native descendant click after capture-driven refresh/removal resolves original owner and current data',async({page})=>{
+ await page.evaluate(({kind,mode})=>{window.e=document.createElement(kind==='document'?'box-document-list':'box-task-assignment-panel');if(kind==='document'){e.selectableDocuments=true;e.items=[{id:'a',name:'Original A'}]}else if(kind==='assignee')e.assignees=[{id:'a',name:'Original A'}];else e.actions=[{id:'a',label:'Original A'}];window.events=[];e.addEventListener(kind==='document'?'document-selected':kind==='assignee'?'assignee-changed':'action',x=>events.push(x.detail));e.addEventListener('click',()=>{if(kind==='document')e.items=mode==='remove'?[]:[{id:'a',name:'Current A'}];else if(kind==='assignee')e.assignees=mode==='remove'?[]:[{id:'a',name:'Current A'}];else e.actions=mode==='remove'?[]:[{id:'a',label:'Current A'}]},{capture:true,once:true});stage.append(e);if(kind==='action'){const label=document.createElement('span');label.textContent='Original A';e.shadowRoot.querySelector('[part=action]').append(label)}},{kind,mode});
+ await page.locator(kind==='document'?'box-document-list strong':kind==='assignee'?'box-task-assignment-panel [part=assignee-name]':'box-task-assignment-panel [part=action] span').click();
+ return await page.evaluate(({kind,mode})=>({status:events.length===(mode==='refresh'?1:0)?'passed':'failed',observed:{kind,mode,events,currentText:e.shadowRoot.textContent,currentAssignee:e.currentAssigneeId}}),{kind,mode});
+});
+for(const mode of ['direct','refresh-reorder','remove-origin'])add('review-duplicate-document-blocks-'+mode,['box-result-blocks'],['A'], 'same document ID in distinct blocks keeps originating link eligibility and removal ownership',async({page})=>{
+ await page.evaluate(mode=>{window.e=document.createElement('box-result-blocks');window.blocks=[{id:'static',type:'documents',title:'Static block',items:[{id:'shared',name:'Static same ID'}]},{id:'linked',type:'documents',title:'Link block',items:[{id:'shared',name:'Linked same ID',href:'#safe'}]}];e.blocks=blocks;window.events=[];window.defaultVeto=null;e.addEventListener('document-selected',x=>events.push(x.detail.id));if(mode!=='direct')e.addEventListener('click',()=>{e.blocks=mode==='remove-origin'?[{...blocks[0],items:[{id:'shared',name:'Other link',href:'#other'}]}]:[{...blocks[1],items:[{id:'shared',name:'Current linked ID',href:'#current'}]},blocks[0]]},{capture:true,once:true});e.addEventListener('click',x=>{defaultVeto=x.defaultPrevented;x.preventDefault()},{once:true});stage.append(e)},mode);
+ await page.locator('box-result-blocks a strong').click();
+ return await page.evaluate(mode=>({status:events.length===(mode==='remove-origin'?0:1)&&defaultVeto===(mode==='remove-origin')?'passed':'failed',observed:{mode,events,defaultVeto,blocks:e.blocks,currentText:e.shadowRoot.textContent}}),mode);
+});
+
+
 for (const spec of [{ width: 1440, theme: 'light' }, { width: 390, theme: 'dark' }]) {
     const context = await browser.newContext({ viewport: { width: spec.width, height: 900 }, colorScheme: spec.theme });
     const page = await context.newPage();

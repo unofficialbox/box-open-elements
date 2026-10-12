@@ -53,6 +53,7 @@ export class ResultBlocks extends BaseElement {
   private value: ResultBlock[] = [];
   private verdictLabels: Partial<ResultLabels> = {};
   private renderedBlocks = new Map<string, HTMLElement>();
+  private blockValues = new WeakMap<HTMLElement, ResultBlock>();
   get blocks(): ResultBlock[] { return this.value; }
   set blocks(value: ResultBlock[]) { this.value = value; if (this.isRendered) this.update(); }
   get labels(): Partial<ResultLabels> { return this.verdictLabels; }
@@ -63,9 +64,16 @@ export class ResultBlocks extends BaseElement {
   protected renderTemplate(): void { this.shadowRoot!.innerHTML = `<style>${resultBlockStyles}</style><div part="blocks"></div>`; }
   protected setupListeners(): void {
     this.shadowRoot!.addEventListener("click", event => {
-      const row = (event.target as Element).closest<HTMLElement>("[data-document-id]");
+      // Capture-time refresh may detach the clicked label. The original path
+      // still identifies its control and block; live ownership rejects removal.
+      const path = event.composedPath();
+      const ownedPath = path.slice(0, path.indexOf(this.shadowRoot!));
+      const row = ownedPath.find(node => node instanceof HTMLElement && node.matches("[data-document-id]")) as HTMLElement | undefined;
       if (!row) return;
-      const item = this.value.flatMap(block => block.type === "documents" ? block.items : []).find(item => item.id === row.dataset.documentId);
+      const section = ownedPath.find(node => node instanceof HTMLElement && node.matches('[part="block"]')) as HTMLElement | undefined;
+      const block = section && [...this.renderedBlocks.values()].includes(section) && section.contains(row)
+        ? this.blockValues.get(section) : undefined;
+      const item = block?.type === "documents" ? block.items.find(item => item.id === row.dataset.documentId) : undefined;
       const interactive = item && ((item.href && isSafeHref(item.href)) || this.selectableDocuments);
       // A capture listener can replace/remove the document before this click.
       // Never activate a removed record or navigate a superseded unsafe link.
@@ -95,6 +103,7 @@ export class ResultBlocks extends BaseElement {
           control.dataset.documentId !== undefined ? `document:${control.dataset.documentId}` : "table-frame");
         node.replaceChildren(template.content); node.dataset.signature = signature;
       }
+      this.blockValues.set(node, block);
       next.set(key, node);
       if (parent.children[index] !== node) parent.insertBefore(node, parent.children[index] ?? null);
     });

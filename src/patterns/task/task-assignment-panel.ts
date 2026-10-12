@@ -407,9 +407,10 @@ export class TaskAssignmentPanel extends BaseElement {
   protected setupListeners(): void {
     const host = this.shadowRoot!.querySelector('[part="content-host"]')!;
     host.addEventListener("click", event => {
-      if (!(event.target instanceof Element)) return;
-      const button = event.target.closest<HTMLElement>('[part="action"], [part="assignee"]');
-      if (!button) return;
+      const path = event.composedPath();
+      const button = path.slice(0, path.indexOf(host)).find(node =>
+        node instanceof HTMLElement && node.matches('[part="action"], [part="assignee"]')) as HTMLElement | undefined;
+      if (!button || !host.contains(button)) return;
       const actionId = button.dataset.actionId;
       const assigneeId = button.dataset.assigneeId;
       if (actionId && this.actions.some(action => action.id === actionId)) this.emitAction(actionId);

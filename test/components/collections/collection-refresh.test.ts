@@ -176,3 +176,46 @@ describe("FlowSpine model-node focus continuity", () => {
     el.focusNode(b); expect(el.shadowRoot!.querySelector<FlowCard>("box-flow-card")!.shadowRoot!.activeElement).not.toBeNull();
   });
 });
+
+describe("capture-refreshed descendant event ownership", () => {
+  it.each(["refresh", "remove"])("resolves document labels through the original path (%s)", mode => {
+    const el = documents(); const selected = vi.fn(); el.addEventListener("document-selected", selected);
+    const label = docButton(el, "b").querySelector<HTMLElement>("strong")!;
+    el.addEventListener("click", () => { el.items = mode === "refresh" ? [{ id: "b", name: "Current B" }] : []; }, { capture: true, once: true });
+    label.click(); expect(selected).toHaveBeenCalledTimes(mode === "refresh" ? 1 : 0);
+    if (mode === "refresh") expect(selected.mock.calls[0][0].detail.id).toBe("b");
+  });
+
+  it.each(["refresh", "remove"])("resolves assignee labels through the original path (%s)", mode => {
+    const el = task(); const assigned = vi.fn(); el.addEventListener("assignee-changed", assigned);
+    const label = el.shadowRoot!.querySelector<HTMLElement>('[data-assignee-id="b"] [part="assignee-name"]')!;
+    el.addEventListener("click", () => { el.assignees = mode === "refresh" ? [{ id: "b", name: "Current B" }] : []; }, { capture: true, once: true });
+    label.click(); expect(assigned).toHaveBeenCalledTimes(mode === "refresh" ? 1 : 0);
+    if (mode === "refresh") expect(el.currentAssigneeId).toBe("b");
+  });
+
+  it.each(["refresh", "remove"])("resolves action descendants through the original path (%s)", mode => {
+    const el = task(); const action = vi.fn(); el.addEventListener("action", action);
+    const label = document.createElement("span"); label.textContent = "Complete"; part(el, "action").append(label);
+    el.addEventListener("click", () => { el.actions = mode === "refresh" ? [{ id: "complete", label: "Current complete" }] : []; }, { capture: true, once: true });
+    label.click(); expect(action).toHaveBeenCalledTimes(mode === "refresh" ? 1 : 0);
+  });
+
+  it.each(["direct", "refresh-reorder", "remove-origin"])("scopes duplicate document IDs to their originating block (%s)", mode => {
+    const el = new ResultBlocks();
+    const staticBlock: ResultBlock = { id: "static", type: "documents", items: [{ id: "same", name: "Static" }] };
+    const linkedBlock: ResultBlock = { id: "linked", type: "documents", items: [{ id: "same", name: "Linked", href: "#safe" }] };
+    el.blocks = [staticBlock, linkedBlock]; document.body.append(el);
+    const label = el.shadowRoot!.querySelector<HTMLElement>("a strong")!;
+    const selected = vi.fn(); el.addEventListener("document-selected", selected);
+    if (mode !== "direct") el.addEventListener("click", () => {
+      el.blocks = mode === "remove-origin"
+        ? [{ ...staticBlock, items: [{ id: "same", name: "Other link", href: "#other" }] }]
+        : [{ ...linkedBlock, items: [{ id: "same", name: "Current link", href: "#current" }] }, staticBlock];
+    }, { capture: true, once: true });
+    let veto: boolean | undefined;
+    el.addEventListener("click", event => { veto = event.defaultPrevented; event.preventDefault(); }, { once: true });
+    label.click(); expect(veto).toBe(mode === "remove-origin");
+    expect(selected).toHaveBeenCalledTimes(mode === "remove-origin" ? 0 : 1);
+  });
+});
