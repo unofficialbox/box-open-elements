@@ -182,6 +182,7 @@ export class Combobox extends FormAssociatedElement {
 
   private valueInternal = "";
   private open = false;
+  private composing = false;
   private activeId: string | null = null;
   private activeValue: string | null = null;
   private filterText: string | null = null;
@@ -325,6 +326,7 @@ export class Combobox extends FormAssociatedElement {
   }
 
   disconnectedCallback(): void {
+    this.composing = false;
     document.removeEventListener("pointerdown", this.onDocumentPointerDown);
     this.stopTracking();
     super.disconnectedCallback();
@@ -480,7 +482,10 @@ export class Combobox extends FormAssociatedElement {
       this.setActive(first?.id ?? null);
     });
 
+    this.inputEl.addEventListener("compositionstart", () => { this.composing = true; });
+    this.inputEl.addEventListener("compositionend", () => { this.composing = false; });
     this.inputEl.addEventListener("keydown", event => {
+      if (event.isComposing || this.composing || event.keyCode === 229) return;
       const key = (event as KeyboardEvent).key;
       if (key === "ArrowDown") {
         event.preventDefault();
@@ -540,7 +545,8 @@ export class Combobox extends FormAssociatedElement {
     this.inputEl.addEventListener("blur", () => {
       // Resolve typed text (label→value) then close (pointerdown-on-option is
       // prevented above so option clicks complete first).
-      this.commitInputValue(this.inputEl.value);
+      if (!this.composing) this.commitInputValue(this.inputEl.value);
+      this.composing = false;
       this.closeListbox();
     });
   }

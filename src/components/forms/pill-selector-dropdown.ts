@@ -208,6 +208,7 @@ export class PillSelectorDropdown extends FormAssociatedElement {
 
   private valueInternal: string[] = [];
   private open = false;
+  private composing = false;
   private menuFocusValue: string | null = null;
   private pendingFocus: "menu" | "trigger" | null = null;
 
@@ -338,6 +339,7 @@ export class PillSelectorDropdown extends FormAssociatedElement {
   }
 
   disconnectedCallback(): void {
+    this.composing = false;
     document.removeEventListener("pointerdown", this.onOutsidePointer);
   }
 
@@ -544,7 +546,10 @@ export class PillSelectorDropdown extends FormAssociatedElement {
 
     // Custom pill entry: Enter/comma commit the typed value; Backspace on an
     // empty input removes the last pill; paste splits on commas/newlines.
+    this.customInputEl?.addEventListener("compositionstart", () => { this.composing = true; });
+    this.customInputEl?.addEventListener("compositionend", () => { this.composing = false; });
     this.customInputEl?.addEventListener("keydown", event => {
+      if (event.isComposing || this.composing || event.keyCode === 229) return;
       const input = event.target as HTMLInputElement;
       const key = (event as KeyboardEvent).key;
       if (key === "Enter" || key === ",") {
@@ -574,9 +579,10 @@ export class PillSelectorDropdown extends FormAssociatedElement {
 
     // Commit a half-typed entry when focus leaves the input.
     this.customInputEl?.addEventListener("blur", () => {
-      if (this.customInputEl && this.tryAddCustom(this.customInputEl.value, false)) {
+      if (!this.composing && this.customInputEl && this.tryAddCustom(this.customInputEl.value, false)) {
         this.customInputEl.value = "";
       }
+      this.composing = false;
     });
 
     this.dropdownEl.addEventListener("click", event => {

@@ -240,6 +240,7 @@ export class CommandPalette extends BaseElement {
   private wasOpen = false;
 
   private query = "";
+  private composing = false;
 
   private activeIndex = 0;
 
@@ -374,6 +375,7 @@ export class CommandPalette extends BaseElement {
   }
 
   disconnectedCallback(): void {
+    this.composing = false;
     document.removeEventListener("keydown", this.onDocumentKeydown);
   }
 
@@ -462,6 +464,8 @@ export class CommandPalette extends BaseElement {
   }
 
   protected setupListeners(): void {
+    this.hostEl.addEventListener("compositionstart", () => { this.composing = true; });
+    this.hostEl.addEventListener("compositionend", () => { this.composing = false; });
     this.hostEl.addEventListener("pointerdown", event => {
       const target = event.target as HTMLElement;
       if (target.closest('[part="palette"]')) {
@@ -494,6 +498,7 @@ export class CommandPalette extends BaseElement {
 
     this.hostEl.addEventListener("keydown", event => {
       const keyboardEvent = event as KeyboardEvent;
+      if (keyboardEvent.isComposing || this.composing || keyboardEvent.keyCode === 229) return;
       const palette = this.hostEl.querySelector('[part="palette"]') as HTMLElement | null;
       if (!palette) {
         return;
@@ -544,6 +549,7 @@ export class CommandPalette extends BaseElement {
 
     this.openValue = this.open;
     if (!this.openValue) {
+      this.composing = false;
       const wasOpen = this.wasOpen;
       // Leave the top layer before the element is discarded, not after.
       dismissModal(this.backdropEl);
@@ -629,6 +635,7 @@ export class CommandPalette extends BaseElement {
       // through the component's own dismissal so `open` stays in sync.
       this.backdropEl.addEventListener("cancel", event => {
         event.preventDefault();
+        if (this.composing) return;
         this.dispatchEvent(new CustomEvent("dismissed", { bubbles: true, composed: true }));
         this.open = false;
       });
