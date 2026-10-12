@@ -189,6 +189,29 @@ const buttonStyles = `
 
 export type ButtonType = "button" | "submit" | "reset";
 
+// Native forms suppress recursive submit/reset while that action is running.
+// Capture that boundary before a nested click can defer itself to a later task.
+const runningFormActions = new WeakMap<HTMLFormElement, Set<ButtonType>>();
+const nativeFormEvents = new WeakMap<HTMLFormElement, Partial<Record<"submit" | "reset", Event>>>();
+const observedFormRoots = new WeakSet<EventTarget>();
+const captureNativeFormEvent = (event: Event): void => {
+  const form = event.target as HTMLFormElement | null;
+  if (!event.isTrusted || form?.localName !== "form") return;
+  const events = nativeFormEvents.get(form) ?? {};
+  events[event.type as "submit" | "reset"] = event;
+  nativeFormEvents.set(form, events);
+};
+const observeFormRoot = (root: EventTarget): void => {
+  if (observedFormRoots.has(root)) return;
+  observedFormRoots.add(root);
+  root.addEventListener("submit", captureNativeFormEvent, true);
+  root.addEventListener("reset", captureNativeFormEvent, true);
+};
+// These observers retain no component references. Weak records keep only the
+// last native event per form/kind; its phase distinguishes active dispatch
+// from an independent click immediately after the native method returns.
+if (typeof document !== "undefined") observeFormRoot(document.defaultView ?? document);
+
 export class Button extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static formAssociated = true;
@@ -204,11 +227,22 @@ export class Button extends BaseElement {
   private labelEl!: HTMLElement;
   private iconSlot!: HTMLSlotElement;
   private readonly internals: ElementInternals;
+  private connectionVersion = 0;
 
   constructor() {
     super();
     // Form association lets type="submit"/"reset" drive the owning form.
     this.internals = this.attachInternals();
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    observeFormRoot(this.ownerDocument.defaultView ?? this.ownerDocument);
+    observeFormRoot(this.getRootNode());
+  }
+
+  disconnectedCallback(): void {
+    this.connectionVersion += 1;
   }
 
   /** Loading state: shows a spinner and blocks activation (stays focusable). */
@@ -297,23 +331,58 @@ export class Button extends BaseElement {
 
   protected setupListeners(): void {
     this.buttonEl.addEventListener("click", event => {
-      if (this.disabled || this.isLoading) {
+      if (this.disabled || this.isLoading || this.matches(":disabled")) {
         event.preventDefault();
         event.stopImmediatePropagation();
         return;
       }
-      // Drive the owning form for submit/reset (custom elements don't do this
-      // natively). Prefer the form-associated form; fall back to the nearest
-      // ancestor form so it works without full ElementInternals.form support.
-      const form = this.internals.form ?? this.closest("form");
-      if (this.type === "submit") {
-        form?.requestSubmit();
-      } else if (this.type === "reset") {
-        form?.reset();
+      const clickedForm = this.getActionForm();
+      const runningAtClick = clickedForm && runningFormActions.get(clickedForm);
+      const suppressedActions = new Set(runningAtClick || undefined);
+      const nativeEvents = clickedForm && nativeFormEvents.get(clickedForm);
+      for (const type of ["submit", "reset"] as const) {
+        const nativeEvent = nativeEvents?.[type];
+        if (nativeEvent && nativeEvent.eventPhase !== 0) suppressedActions.add(type);
       }
+      // Native clicks may checkpoint microtasks between propagation listeners.
+      // Use the next task to observe host/ancestor veto on the original event,
+      // then recheck current state and discard any detached activation.
+      const connectionVersion = this.connectionVersion;
+      setTimeout(() => {
+        if (event.defaultPrevented || connectionVersion !== this.connectionVersion ||
+            !this.isConnected || this.disabled ||
+            this.isLoading || this.matches(":disabled")) return;
+        const form = this.getActionForm();
+        const type = this.type;
+        if (!form || type === "button" ||
+            (form === clickedForm && suppressedActions?.has(type))) return;
+        const running = runningFormActions.get(form) ?? new Set<ButtonType>();
+        if (running.has(type)) return;
+        runningFormActions.set(form, running);
+        running.add(type);
+        try {
+          if (type === "submit") form.requestSubmit();
+          else form.reset();
+        } finally {
+          running.delete(type);
+          if (!running.size) runningFormActions.delete(form);
+        }
+      }, 0);
     });
 
     this.iconSlot.addEventListener("slotchange", () => this.syncIconVisibility());
+  }
+
+  private getActionForm(): HTMLFormElement | null {
+    // Null is authoritative when the platform supports native form ownership.
+    if ("form" in this.internals) return this.internals.form;
+    const formId = this.getAttribute("form");
+    if (formId !== null) {
+      const form = this.ownerDocument.getElementById(formId);
+      return form?.localName === "form" && form.namespaceURI === "http://www.w3.org/1999/xhtml"
+        ? form as HTMLFormElement : null;
+    }
+    return this.closest("form");
   }
 
   private syncIconVisibility(): void {
