@@ -66,3 +66,22 @@ describe("ActivityDensity nested metadata during fallback rebuild",()=>{
   const e=new ActivityDensityStrip();e.referenceTime="2026-10-12T12:00:00Z";e.weeks=3;e.events=[event("day","2026-10-11")];document.body.append(e);const day=button(e,'button[data-date="2026-10-11"]');day.focus();day.click();legacyMoves(day.closest("tr")!,e);const refreshed=vi.fn();day.addEventListener("focusin",()=>{refreshed();e.heading="Fresh density";},{once:true});e.referenceTime="2026-10-19T12:00:00Z";expect(refreshed).toHaveBeenCalledTimes(1);expect(e.shadowRoot!.querySelector('[part="title"]')!.textContent).toBe("Fresh density");const dates=Array.from(e.shadowRoot!.querySelectorAll<HTMLElement>('td[data-date]'),cell=>cell.dataset.date!);const expected=e.density.cells.map(cell=>cell.date).sort();expect(dates.sort()).toEqual(expected);expect(new Set(dates).size).toBe(expected.length);
  });
 });
+
+
+describe("ActivityDensity fallback window rollback", () => {
+ it.each([false, true])("reconciles A→B→A rollback with host handoff=%s", handoff => {
+  const e = new ActivityDensityStrip(); e.weeks = 3; e.referenceTime = "2026-10-24T12:00:00Z";
+  e.events = [event("oct18", "2026-10-18"), event("oct25", "2026-10-25")]; document.body.append(e);
+  const day = button(e, 'button[data-date="2026-10-18"]'); day.focus(); day.click(); legacyMoves(day.closest("tr")!, e);
+  const input = outside(), restored = vi.fn();
+  day.addEventListener("focusin", () => { restored(); e.referenceTime = "2026-10-24T12:00:00Z"; if (handoff) { input.focus(); input.setSelectionRange(2, 5); } }, { once: true });
+  e.referenceTime = "2026-10-31T12:00:00Z";
+  expect(restored).toHaveBeenCalledTimes(1); expect(e.referenceTime).toBe("2026-10-24T12:00:00Z");
+  const dates = Array.from(e.shadowRoot!.querySelectorAll<HTMLElement>('td[data-date]'), cell => cell.dataset.date!).sort();
+  expect(dates).toEqual(e.density.cells.map(cell => cell.date).sort());
+  expect(dates).toContain("2026-10-04"); expect(dates).not.toContain("2026-10-25");
+  expect(e.shadowRoot!.querySelector('[part="caption"]')!.textContent).toContain("Oct 4");
+  if (handoff) { expect(document.activeElement).toBe(input); expect([input.selectionStart, input.selectionEnd]).toEqual([2, 5]); }
+  else expect(e.shadowRoot!.activeElement).toBe(day);
+ });
+});

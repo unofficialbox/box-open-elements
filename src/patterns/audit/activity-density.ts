@@ -482,6 +482,9 @@ export class ActivityDensityStrip extends BaseElement {
       this.referenceTime,
     ]);
     if (signature !== this.signature) {
+      // Partial rows match no cached window, including a rollback to the last
+      // completed one during fallback focus restoration.
+      this.signature = "";
       this.rebuild(density, revision);
       // A nested focusin refresh owns the completed render. Publish the cache
       // only after a complete rebuild, so nested metadata changes rebuild too.
