@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
+import { TileGroup } from "../../../src/components/forms/tile-group.js";
+TileGroup.register();
 import { Fieldset } from "../../../src/components/forms/fieldset.js";
 import { TextField } from "../../../src/components/forms/text-field.js";
 import { Select } from "../../../src/components/forms/select.js";
@@ -220,4 +222,32 @@ it("requires an observable consumer write when an already-owned custom disabled 
   observer.disconnect(); outer.disabled = false;
   expect(text.disabled).toBe(true); expect(inner.disabled).toBe(true);
   inner.disabled = false; expect(text.disabled).toBe(true);
+});
+
+it("discovers form-associated TileGroup without an invented disabled property", () => {
+  const tiles = document.createElement("box-tile-group") as TileGroup;
+  tiles.name = "plan"; tiles.options = [{id:"a",label:"Alpha"}]; tiles.value = "a";
+  const e = group(tiles);
+  expect("disabled" in tiles).toBe(false);
+  e.disabled = true;
+  expect(tiles.hasAttribute("disabled")).toBe(true);
+  expect(tiles.shadowRoot!.querySelector("fieldset")!.disabled).toBe(true);
+  tiles.formResetCallback(); expect(tiles.value).toBe("a");
+  e.disabled = false; expect(tiles.hasAttribute("disabled")).toBe(false);
+});
+
+it("retains TileGroup consumer ownership and releases transferred group disabling", async () => {
+  const tiles = new TileGroup(); tiles.options = [{id:"a",label:"Alpha"}]; tiles.value = "a";
+  const a = group(tiles), b = group(); a.disabled = true; b.disabled = true;
+  b.append(tiles); await settle(); a.disabled = false; expect(tiles.hasAttribute("disabled")).toBe(true);
+  b.disabled = false; expect(tiles.hasAttribute("disabled")).toBe(false);
+  b.disabled = true; tiles.setAttribute("disabled", ""); b.disabled = false;
+  expect(tiles.hasAttribute("disabled")).toBe(true);
+});
+
+it("discovers dynamically added form-associated TileGroup after reconnect", async () => {
+  const e = group(); e.disabled = true; e.remove(); document.body.append(e);
+  const tiles = new TileGroup(); tiles.options = [{id:"a",label:"Alpha"}]; e.append(tiles); await settle();
+  expect(tiles.hasAttribute("disabled")).toBe(true);
+  e.disabled = false; expect(tiles.hasAttribute("disabled")).toBe(false);
 });

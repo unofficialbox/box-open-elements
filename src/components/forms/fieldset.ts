@@ -251,7 +251,8 @@ export class Fieldset extends BaseElement {
     if (this.isConnected) {
       for (const control of Array.from(this.querySelectorAll<HTMLElement>("*"))) {
         this.awaitControlDefinition(control);
-        const supported = typeof (control as HTMLElement & { disabled?: unknown }).disabled === "boolean";
+        const supported = typeof (control as HTMLElement & { disabled?: unknown }).disabled === "boolean"
+          || (control.constructor as typeof HTMLElement & { formAssociated?: boolean }).formAssociated === true;
         // Retain the existing explicit disabled/aria-disabled discovery too.
         if ((supported || control.matches("[disabled], [aria-disabled]")) && this.ownsControl(control)
           && (this.disabled || hasNativeDisabledAncestor(control))) {
