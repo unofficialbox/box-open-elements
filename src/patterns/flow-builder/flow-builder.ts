@@ -38,6 +38,7 @@ export class FlowBuilder<N extends FlowNodeBase = FlowNode> extends BaseElement 
   private cleanupInspector?: () => void;
   private inspected: N | null | undefined;
   private headingEl?: HTMLElement;
+  private descriptionEl?: HTMLParagraphElement;
   private renderedRenderer?: InspectorRenderer<N>;
   private observer?: ResizeObserver;
   private narrowValue = false;
@@ -206,6 +207,7 @@ export class FlowBuilder<N extends FlowNodeBase = FlowNode> extends BaseElement 
     this.dispatchEvent(new CustomEvent("flow-changed", { detail: { nodes: this.nodes, node, reason: "insert" }, bubbles: true, composed: true }));
   }
   select(node: N | null): void {
+    if (node === this.selectedValue) return;
     this.selectedValue = node;
     if (this.isRendered) { this.spine.select(node, this.invalidValue); this.updateInspector(); }
     this.dispatchEvent(new CustomEvent("selection-changed", { detail: { node }, bubbles: true, composed: true }));
@@ -232,10 +234,16 @@ export class FlowBuilder<N extends FlowNodeBase = FlowNode> extends BaseElement 
     if (!this.isRendered) return;
     this.spine.refreshNode(node);
     if (node === this.selected) {
-      const title = nodeTitle(node, this.catalog, this.model);
-      if (this.headingEl) this.headingEl.textContent = title;
-      this.drawer.heading = title;
+      this.updateInspectorText();
     }
+  }
+  /** Refresh owned metadata while retaining the host renderer's live controls. */
+  private updateInspectorText(): void {
+    if (!this.selected) return;
+    const title = nodeTitle(this.selected, this.catalog, this.model);
+    if (this.headingEl) this.headingEl.textContent = title;
+    if (this.descriptionEl) this.descriptionEl.textContent = nodeDescription(this.selected, this.catalog, this.model) || "Select a step to inspect its configuration.";
+    this.drawer.heading = title;
   }
   protected update(): void {
     this.spine.nodes = this.nodes; this.spine.catalog = this.catalog; this.spine.model = this.model;
@@ -252,17 +260,20 @@ export class FlowBuilder<N extends FlowNodeBase = FlowNode> extends BaseElement 
     const target = this.narrow ? this.drawer : this.aside;
     if (this.inspector.parentElement !== target) target.append(this.inspector);
     if (this.inspected === this.selected && this.renderedRenderer === this.renderer && (!this.selected || this.headingEl?.tagName === `H${this.headingLevel}`)) {
+      this.updateInspectorText();
       this.drawer.open = this.visible && this.narrow && Boolean(this.selected);
       return;
     }
     this.cleanupInspector?.(); this.cleanupInspector = undefined;
     this.inspector.replaceChildren();
+    this.headingEl = undefined;
+    this.descriptionEl = undefined;
     this.inspected = this.selected;
     this.renderedRenderer = this.renderer;
     if (this.selected) {
       const heading = document.createElement(`h${this.headingLevel}`); heading.setAttribute("part", "inspector-heading"); heading.textContent = nodeTitle(this.selected, this.catalog, this.model); this.inspector.append(heading); this.headingEl = heading;
       if (this.renderer) this.cleanupInspector = this.renderer(this.selected, this.inspector) || undefined;
-      else { const description = document.createElement("p"); description.textContent = nodeDescription(this.selected, this.catalog, this.model) || "Select a step to inspect its configuration."; this.inspector.append(description); }
+      else { const description = document.createElement("p"); description.textContent = nodeDescription(this.selected, this.catalog, this.model) || "Select a step to inspect its configuration."; this.inspector.append(description); this.descriptionEl = description; }
       this.drawer.heading = nodeTitle(this.selected, this.catalog, this.model);
     }
     this.drawer.open = this.visible && this.narrow && Boolean(this.selected);

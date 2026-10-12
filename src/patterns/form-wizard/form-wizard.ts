@@ -312,6 +312,8 @@ export class FormWizard extends BaseElement {
 
   private pendingStart = false;
 
+  private pendingRestart = false;
+
   private unsubscribeFns: Array<() => void> = [];
 
   private validatorsValue: Record<string, WizardStepValidator> = {};
@@ -436,7 +438,7 @@ export class FormWizard extends BaseElement {
 
   set validators(value: Record<string, WizardStepValidator>) {
     this.validatorsValue = value;
-    this.scheduleStart();
+    this.scheduleStart(true);
   }
 
   get initialValues(): Record<string, unknown> {
@@ -445,7 +447,7 @@ export class FormWizard extends BaseElement {
 
   set initialValues(value: Record<string, unknown>) {
     this.initialValuesValue = value;
-    this.scheduleStart();
+    this.scheduleStart(true);
   }
 
   get values(): Record<string, unknown> {
@@ -462,9 +464,10 @@ export class FormWizard extends BaseElement {
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-    // Labels are presentation-only; steps re-create the session.
+    // Equivalent step echoes keep the session; real configuration changes restart it.
     if (name === "steps") {
       this.scheduleStart();
+      return;
     }
     super.attributeChangedCallback(name, oldValue, newValue);
   }
@@ -510,7 +513,8 @@ export class FormWizard extends BaseElement {
     this.controller?.reset();
   }
 
-  private scheduleStart(): void {
+  private scheduleStart(restart = false): void {
+    this.pendingRestart ||= restart;
     if (this.pendingStart) {
       return;
     }
@@ -518,16 +522,29 @@ export class FormWizard extends BaseElement {
     this.pendingStart = true;
     queueMicrotask(() => {
       this.pendingStart = false;
-      this.startController();
+      const restart = this.pendingRestart;
+      this.pendingRestart = false;
+      this.startController(restart);
     });
   }
 
-  private startController(): void {
+  private startController(restart: boolean): void {
     if (!this.isConnected) {
       return;
     }
 
     const steps = this.steps;
+    const currentSteps = this.controller?.config.steps;
+    // Compare the supported fields, independent of JSON spacing/key order or
+    // omitted defaults. Do not replace panels or erase live answers for an echo.
+    if (!restart && currentSteps?.length === steps.length && steps.every((step, index) => {
+      const current = currentSteps[index];
+      return current.id === step.id && current.label === step.label &&
+        (current.description ?? "") === (step.description ?? "") &&
+        (current.optional ?? false) === (step.optional ?? false);
+    })) {
+      return;
+    }
     if (!steps.length) {
       this.teardownController();
       if (this.isRendered) {

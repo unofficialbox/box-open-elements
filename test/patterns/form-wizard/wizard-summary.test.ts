@@ -259,3 +259,54 @@ describe("box-wizard-summary", () => {
     ]);
   });
 });
+
+
+describe("WizardSummary data ownership", () => {
+  it.each(["fields", "steps", "values"] as const)("clears attribute-owned %s on removal or empty replacement", async name => {
+    const element = await mount();
+    const payload = { fields, steps, values }[name];
+    element.setAttribute(name, JSON.stringify(payload));
+    expect(element[name]).toEqual(payload);
+    element.removeAttribute(name);
+    expect(element[name]).toEqual(name === "values" ? {} : []);
+    expect(element.shadowRoot!.textContent).not.toContain(name === "fields" ? "Counterparty" : name === "steps" ? "Parties" : "Acme Corp");
+    element.setAttribute(name, JSON.stringify(payload));
+    element.setAttribute(name, "");
+    expect(element[name]).toEqual(name === "values" ? {} : []);
+    element.removeAttribute(name);
+    expect(element[name]).toEqual(name === "values" ? {} : []);
+  });
+
+  it("preserves property-owned formatter functions and Dates across ownership changes and reconnect", async () => {
+    const element = await mount();
+    const format = (value: unknown) => value instanceof Date ? `Date ${value.getUTCFullYear()}` : String(value ?? "");
+    const date = new Date("2026-10-12T00:00:00Z");
+    element.setAttribute("fields", JSON.stringify(fields));
+    element.fields = [{ key: "date", label: "Date", stepId: "parties", format }];
+    element.setAttribute("values", JSON.stringify(values)); element.values = { date };
+    element.setAttribute("steps", JSON.stringify(steps)); element.steps = steps;
+    element.removeAttribute("fields"); element.removeAttribute("values"); element.removeAttribute("steps");
+    element.heading = "Updated";
+    expect(element.fields[0]!.format).toBe(format); expect(element.values.date).toBe(date);
+    expect(element.shadowRoot!.textContent).toContain("Date 2026");
+    element.remove(); document.body.append(element);
+    expect(element.shadowRoot!.textContent).toContain("Date 2026");
+    element.setAttribute("values", JSON.stringify({ date: "Attribute wins" }));
+    expect(element.values.date).toBe("Attribute wins");
+    element.removeAttribute("values"); expect(element.values).toEqual({});
+  });
+});
+
+
+it("records attribute ownership before connection or a getter reads it", () => {
+  const element = new WizardSummary();
+  element.values = { oldProperty: "Old" };
+  element.fields = fields; element.steps = steps;
+  for (const name of ["fields", "steps", "values"] as const) {
+    element.setAttribute(name, JSON.stringify({ fields, steps, values }[name]));
+    element.removeAttribute(name);
+    expect(element[name]).toEqual(name === "values" ? {} : []);
+  }
+  document.body.append(element);
+  expect(element.shadowRoot!.textContent).not.toContain("Old");
+});

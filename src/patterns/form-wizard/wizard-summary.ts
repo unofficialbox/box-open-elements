@@ -172,6 +172,17 @@ export class WizardSummary extends BaseElement {
 
   private valuesCache: Record<string, unknown> = {};
 
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    // Record ownership even before connection, when rendering has not read the
+    // attribute yet. Property setters clear the raw marker before removing it.
+    if (oldValue !== newValue) {
+      if (name === "fields") void this.fields;
+      if (name === "steps") void this.steps;
+      if (name === "values") void this.values;
+    }
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
   get heading(): string {
     return this.getAttribute("heading") ?? "Review your answers";
   }
@@ -204,13 +215,10 @@ export class WizardSummary extends BaseElement {
    */
   get fields(): WizardSummaryField[] {
     const raw = this.getAttribute("fields");
-    if (!raw) {
-      return [...this.fieldsCache];
-    }
     if (raw !== this.fieldsRaw) {
       this.fieldsRaw = raw;
       try {
-        const parsed: unknown = JSON.parse(raw);
+        const parsed: unknown = raw === null ? null : JSON.parse(raw);
         this.fieldsCache =
           Array.isArray(parsed) && parsed.every(isWizardSummaryFieldRecord)
             ? (parsed as WizardSummaryField[])
@@ -238,13 +246,10 @@ export class WizardSummary extends BaseElement {
 
   get steps(): WizardStepConfig[] {
     const raw = this.getAttribute("steps");
-    if (!raw) {
-      return [...this.stepsCache];
-    }
     if (raw !== this.stepsRaw) {
       this.stepsRaw = raw;
       try {
-        const parsed: unknown = JSON.parse(raw);
+        const parsed: unknown = raw === null ? null : JSON.parse(raw);
         this.stepsCache = Array.isArray(parsed)
           ? (parsed.filter(
               step =>
@@ -270,13 +275,10 @@ export class WizardSummary extends BaseElement {
 
   get values(): Record<string, unknown> {
     const raw = this.getAttribute("values");
-    if (!raw) {
-      return { ...this.valuesCache };
-    }
     if (raw !== this.valuesRaw) {
       this.valuesRaw = raw;
       try {
-        const parsed: unknown = JSON.parse(raw);
+        const parsed: unknown = raw === null ? null : JSON.parse(raw);
         this.valuesCache =
           typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
             ? (parsed as Record<string, unknown>)
