@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { captureOwnedFocus, refreshOwnedControls, restoreOwnedFocus } from "../../core/refresh-controls.js";
 import { boePanel } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
@@ -366,11 +367,13 @@ export class TaskAssignmentPanel extends BaseElement {
 
   private updateAssignee(assigneeId: string): void {
     this.currentAssigneeId = assigneeId;
+    const current = this.currentAssigneeId;
+    if (!this.assignees.some(assignee => assignee.id === current)) return;
     this.dispatchEvent(
       new CustomEvent("assignee-changed", {
         bubbles: true,
         composed: true,
-        detail: { assigneeId },
+        detail: { assigneeId: current },
       }),
     );
   }
@@ -378,11 +381,14 @@ export class TaskAssignmentPanel extends BaseElement {
   private updateChecklist(itemId: string, checked: boolean): void {
     const nextChecklist = this.checklist.map(item => (item.id === itemId ? { ...item, checked } : item));
     this.checklist = nextChecklist;
+    const currentChecklist = this.checklist;
+    const currentItem = currentChecklist.find(item => item.id === itemId);
+    if (!currentItem) return;
     this.dispatchEvent(
       new CustomEvent("checklist-changed", {
         bubbles: true,
         composed: true,
-        detail: { itemId, checked, checklist: nextChecklist },
+        detail: { itemId, checked: Boolean(currentItem.checked), checklist: currentChecklist },
       }),
     );
   }
@@ -398,10 +404,29 @@ export class TaskAssignmentPanel extends BaseElement {
     `;
   }
 
+  protected setupListeners(): void {
+    const host = this.shadowRoot!.querySelector('[part="content-host"]')!;
+    host.addEventListener("click", event => {
+      if (!(event.target instanceof Element)) return;
+      const button = event.target.closest<HTMLElement>('[part="action"], [part="assignee"]');
+      if (!button) return;
+      const actionId = button.dataset.actionId;
+      const assigneeId = button.dataset.assigneeId;
+      if (actionId && this.actions.some(action => action.id === actionId)) this.emitAction(actionId);
+      else if (assigneeId && this.assignees.some(assignee => assignee.id === assigneeId)) this.updateAssignee(assigneeId);
+    });
+    host.addEventListener("change", event => {
+      if (!(event.target instanceof HTMLInputElement) || event.target.getAttribute("part") !== "checkbox") return;
+      const itemId = event.target.dataset.itemId;
+      if (itemId && this.checklist.some(item => item.id === itemId)) this.updateChecklist(itemId, event.target.checked);
+    });
+  }
+
   protected update(): void {
     if (!this.shadowRoot) {
       return;
     }
+    const focus = captureOwnedFocus(this);
 
     const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
     const statusMarkup = this.status ? `<span part="status">${escapeHtml(this.status)}</span>` : "";
@@ -489,7 +514,8 @@ export class TaskAssignmentPanel extends BaseElement {
       return;
     }
 
-    host.innerHTML = `
+    const template = document.createElement("template");
+    template.innerHTML = `
       <section part="panel">
         <header part="header">
           <h2 part="title">${escapeHtml(this.heading)}</h2>
@@ -502,33 +528,13 @@ export class TaskAssignmentPanel extends BaseElement {
       </section>
     `;
 
-    this.shadowRoot.querySelectorAll<HTMLButtonElement>('[part="action"]').forEach(button => {
-      button.addEventListener("click", () => {
-        const actionId = button.dataset.actionId;
-        if (actionId) {
-          this.emitAction(actionId);
-        }
-      });
+    refreshOwnedControls(host, template.content, '[part="action"], [part="assignee"], [part="checkbox"]', control => {
+      const part = control.getAttribute("part");
+      const id = part === "action" ? control.dataset.actionId : part === "assignee" ? control.dataset.assigneeId : control.dataset.itemId;
+      return id === undefined ? undefined : JSON.stringify([part, id]);
     });
-
-    this.shadowRoot.querySelectorAll<HTMLButtonElement>('[part="assignee"]').forEach(button => {
-      button.addEventListener("click", () => {
-        const assigneeId = button.dataset.assigneeId;
-        if (assigneeId) {
-          this.updateAssignee(assigneeId);
-        }
-      });
-    });
-
-    this.shadowRoot.querySelectorAll<HTMLInputElement>('[part="checkbox"]').forEach(input => {
-      input.addEventListener("change", () => {
-        const itemId = input.dataset.itemId;
-        if (itemId) {
-          this.updateChecklist(itemId, input.checked);
-        }
-      });
-    });
-  
+    host.replaceChildren(template.content);
+    restoreOwnedFocus(this, focus);
   }
 }
 

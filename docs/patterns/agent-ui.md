@@ -30,6 +30,13 @@ scroll within a focusable region. Unlinked documents are static unless
 `selectable-documents` is set; safe URLs open in a new tab with an external
 marker and spoken suffix (customizable with `link-suffix`). Selectable rows
 emit `document-selected` with `{ id }`.
+Unique block IDs retain section identity through reorder. Compatible document
+actions retain their nodes and focus by document ID while names, detail and
+safe href metadata refresh. Link/button/static changes replace the action;
+removed or ambiguous duplicate keys do not receive replacement focus. Caller
+focus handoffs remain authoritative. The pure renderer's selectable document
+buttons use `type="button"`, so host-composed results do not submit a form.
+
 `resultDocumentIds(blocks)` and `ResultBlocks.documentIds` support citation
 deduplication. Never place tokens or private URLs in a public demo.
 
@@ -195,3 +202,23 @@ sequenceDiagram
   Transport-->>Session: decision and outcome
   Session-->>UI: actionResolved
 ```
+
+## Collection refresh verification
+
+`TaskAssignmentPanel` retains compatible assignee, checklist and action controls
+by their role and ID, refreshing current names, checked state and attributes.
+Events resolve current records and state; removed capture targets do not emit.
+`FlowSpine` retains model-node/card/button identity through refresh and reorder,
+using the existing model's object identity contract. Removed nodes are not
+refocused, and fresh insert/branch controls use current descriptors.
+
+Run the synthetic native R06/R10 regression in the pinned Firefox container:
+
+```bash
+DOCKER_DEFAULT_PLATFORM=linux/amd64 bash tools/preview/container-run.sh \
+  'bun run build:core && BOE_COLLECTION_BROWSER=firefox BOE_COLLECTION_EVIDENCE_DIR=/work/.regression-tmp/collection-refresh node tools/preview/collection-refresh.mjs'
+```
+
+`BOE_COLLECTION_BROWSER=chrome` and optional `BOE_COLLECTION_CHROME_PATH` run the
+same Chrome cases. The fixture covers metadata/reorder, repeated native keys,
+current action data, removal, reconnect and containing-root focus handoffs.

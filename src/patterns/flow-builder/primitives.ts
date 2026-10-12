@@ -1,4 +1,5 @@
 import { BaseElement } from "../../core/index.js";
+import { captureOwnedFocus, restoreOwnedFocus } from "../../core/refresh-controls.js";
 import { boeFocusVisibleStyles } from "../../foundations/tokens/interaction.js";
 import { cardLabel, defaultFlowModel, insertLabel, nodeDescription, nodeTitle, type FlowBranchRequestDetail, type FlowInsertDetail, type FlowKind, type FlowModel, type FlowNodeBase } from "./model.js";
 
@@ -157,6 +158,7 @@ export class FlowSpine extends BaseElement {
   focusNode(node: FlowNodeBase): void { this.cards.get(node)?.focus(); }
   select(node: FlowNodeBase | null, invalid = this.invalid): void { this.selected = node; this.invalid = invalid; for (const [item, card] of this.cards) { card.selected = item === node; card.invalid = item === invalid; card.refresh(); } }
   protected update(): void {
+    const focus = captureOwnedFocus(this);
     const root = this.shadowRoot!.querySelector("[part=spine]")!;
     const seen = new Set<FlowNodeBase>();
     const title = (node: FlowNodeBase) => nodeTitle(node, this.catalog, this.model);
@@ -211,6 +213,7 @@ export class FlowSpine extends BaseElement {
     const end = document.createElement("div"); end.setAttribute("part", "endpoint"); end.textContent = this.endLabel;
     root.replaceChildren(start, listView(this.nodes, "in the flow", new Set()), end);
     for (const node of this.cards.keys()) if (!seen.has(node)) { this.cards.delete(node); this.figures.delete(node); }
+    restoreOwnedFocus(this, focus);
   }
 }
 FlowCard.register(); InsertPoint.register(); KindPicker.register(); FlowSpine.register();
