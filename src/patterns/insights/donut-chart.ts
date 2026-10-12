@@ -607,7 +607,12 @@ export class DonutChart extends BaseElement {
           this.selectedSegmentId = segment.id;
           this.emitSegmentSelected(segment);
         }
-        this.update();
+        // Selection changes only owned state; retain the active legend button.
+        this.shadowRoot?.querySelectorAll<HTMLButtonElement>('[part="legend-item"]').forEach(item => {
+          const pressed = item.dataset.segmentId === this.selectedSegmentId;
+          item.dataset.pressed = String(pressed);
+          item.setAttribute("aria-pressed", String(pressed));
+        });
       });
     });
   

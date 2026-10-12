@@ -284,6 +284,8 @@ export class Chip extends BaseElement {
     });
 
     this.chipEl.addEventListener("keydown", event => {
+      // The native Remove button owns Enter/Space and its resulting click.
+      if ((event.target as HTMLElement).closest('[part="remove"]')) return;
       if (!this.selectable) {
         return;
       }

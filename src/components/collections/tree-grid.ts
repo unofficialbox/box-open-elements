@@ -112,7 +112,7 @@ const treeGridStyles = `
   }
 
   [part="header-row"],
-  [part="row"] {
+  [part~="row"] {
     display: grid;
     grid-template-columns: var(--tree-grid-columns, minmax(260px, 1.5fr));
     align-items: center;
@@ -135,7 +135,7 @@ const treeGridStyles = `
     border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 78%, transparent);
   }
 
-  [part="row"] {
+  [part~="row"] {
     border-bottom: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
     background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 92%, transparent);
     transition:
@@ -143,12 +143,12 @@ const treeGridStyles = `
       box-shadow ${boeMotionDuration.interactive} ${boeMotionEasing.standard};
   }
 
-  [part="row"]:hover {
+  [part~="row"]:hover {
     background: color-mix(in srgb, var(--boe-token-surface-item-surface-hover, #eef4fb) 68%, var(--boe-token-surface-surface, #ffffff) 32%);
   }
 
-  [part="row-selected"],
-  [part="row-selected"]:hover {
+  [part~="row-selected"],
+  [part~="row-selected"]:hover {
     background: color-mix(in srgb, var(--boe-token-surface-item-surface-selected, #f2f7fd) 78%, var(--boe-token-surface-surface, #ffffff) 22%);
     box-shadow: inset 3px 0 0 var(--boe-token-surface-surface-brand, #0061d5);
   }
@@ -262,6 +262,7 @@ export class TreeGrid extends BaseElement {
   private treeGridEl!: HTMLElement;
   private headerRowEl!: HTMLElement;
   private bodyEl!: HTMLElement;
+  private rowsSignature = "";
 
   get columns(): BoxTreeGridColumn[] {
     const raw = this.getAttribute("columns");
@@ -364,8 +365,8 @@ export class TreeGrid extends BaseElement {
       this.expandedInternal.delete(value);
     }
 
-    this.emitExpandChanged(value, expanded);
     this.update();
+    this.emitExpandChanged(value, expanded);
   }
 
   private expandAll(): void {
@@ -605,9 +606,9 @@ export class TreeGrid extends BaseElement {
         keyboardEvent.preventDefault();
         if (!this.expandedInternal.has(value)) {
           this.expandedInternal.add(value);
-          this.emitExpandChanged(value, true);
           this.focusValue = value;
           this.update();
+          this.emitExpandChanged(value, true);
         }
         return;
       }
@@ -616,9 +617,9 @@ export class TreeGrid extends BaseElement {
         keyboardEvent.preventDefault();
         if (this.expandedInternal.has(value)) {
           this.expandedInternal.delete(value);
-          this.emitExpandChanged(value, false);
           this.focusValue = value;
           this.update();
+          this.emitExpandChanged(value, false);
         }
         return;
       }
@@ -668,19 +669,31 @@ export class TreeGrid extends BaseElement {
       )
       .join("");
 
-    this.bodyEl.innerHTML = this.items.length
-      ? this.renderRows(this.items)
-      : `<div part="empty">No items loaded</div>`;
+    const signature = JSON.stringify([this.getAttribute("items"), [...this.expandedInternal].sort()]);
+    if (signature !== this.rowsSignature) {
+      this.rowsSignature = signature;
+      this.bodyEl.innerHTML = this.items.length
+        ? this.renderRows(this.items)
+        : `<div part="empty">No items loaded</div>`;
+    } else {
+      const tabbableValue = this.focusValue ?? (this.valueInternal || this.items[0]?.value || "");
+      this.bodyEl.querySelectorAll<HTMLElement>('[part~="row"]').forEach(row => {
+        const item = row.querySelector<HTMLButtonElement>('[part~="item"]');
+        if (!item) return;
+        const selected = item.dataset.value === this.valueInternal;
+        row.setAttribute("part", selected ? "row row-selected" : "row");
+        row.dataset.selected = String(selected);
+        row.setAttribute("aria-selected", String(selected));
+        item.setAttribute("part", selected ? "item item-selected" : "item");
+        item.tabIndex = item.dataset.value === tabbableValue ? 0 : -1;
+      });
+    }
 
     if (this.focusValue) {
       const valueToFocus = this.focusValue;
       this.focusValue = null;
-      queueMicrotask(() => {
-        const target = Array.from(this.bodyEl.querySelectorAll('[part~="item"]')).find(
-          node => (node as HTMLButtonElement).dataset.value === valueToFocus,
-        ) as HTMLButtonElement | undefined;
-        target?.focus();
-      });
+      Array.from(this.bodyEl.querySelectorAll<HTMLButtonElement>('[part~="item"]'))
+        .find(item => item.dataset.value === valueToFocus)?.focus();
     }
   }
 }
