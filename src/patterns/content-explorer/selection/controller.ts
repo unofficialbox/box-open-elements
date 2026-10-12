@@ -20,18 +20,15 @@ export class ExplorerSelectionController extends Controller<ExplorerSelectionSta
 
   setItems(items: ExplorerSelectableItem[]): void {
     this.availableItemIds = new Set(items.map(item => item.id));
-    const selectedItemIds = this.filterValidIds(this.state.selectedItemIds);
-
-    this.setState({
-      ...this.state,
-      selectedItemIds,
-    });
-
-    this.emit("selectionChanged", { selectedItemIds });
+    this.select(this.state.selectedItemIds);
   }
 
   select(itemIds: string[]): void {
     const selectedItemIds = this.applySelectionMode(this.filterValidIds(itemIds));
+    if (selectedItemIds.length === this.state.selectedItemIds.length &&
+        selectedItemIds.every((id, index) => id === this.state.selectedItemIds[index])) {
+      return;
+    }
 
     this.setState({
       ...this.state,

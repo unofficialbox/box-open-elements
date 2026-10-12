@@ -275,6 +275,10 @@ export class ContentExplorerController extends Controller<ExplorerState, Explore
   select(itemIds: string[]): void {
     this.selectionController.select(itemIds);
     const selectedItemIds = this.selectionController.getState().selectedItemIds;
+    if (selectedItemIds.length === this.state.selectedItemIds.length &&
+        selectedItemIds.every((id, index) => id === this.state.selectedItemIds[index])) {
+      return;
+    }
 
     this.setState({
       ...this.state,
@@ -287,6 +291,10 @@ export class ContentExplorerController extends Controller<ExplorerState, Explore
   toggleSelection(itemId: string): void {
     this.selectionController.toggleSelection(itemId);
     const selectedItemIds = this.selectionController.getState().selectedItemIds;
+    if (selectedItemIds.length === this.state.selectedItemIds.length &&
+        selectedItemIds.every((id, index) => id === this.state.selectedItemIds[index])) {
+      return;
+    }
 
     this.setState({
       ...this.state,
@@ -299,6 +307,10 @@ export class ContentExplorerController extends Controller<ExplorerState, Explore
   clearSelection(): void {
     this.selectionController.clearSelection();
     const selectedItemIds = this.selectionController.getState().selectedItemIds;
+    if (selectedItemIds.length === this.state.selectedItemIds.length &&
+        selectedItemIds.every((id, index) => id === this.state.selectedItemIds[index])) {
+      return;
+    }
 
     this.setState({
       ...this.state,

@@ -635,6 +635,7 @@ export class ContentExplorer extends BaseElement {
     }
     this.unsubscribeFns = [];
 
+    this.controller?.disconnect();
     this.controller?.destroy();
     this.controller = null;
   }
