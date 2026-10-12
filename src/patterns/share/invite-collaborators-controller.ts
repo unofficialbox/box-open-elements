@@ -32,6 +32,8 @@ export class InviteCollaboratorsController extends Controller<
 > {
   private readonly config: InviteCollaboratorsControllerConfig;
 
+  private submissionGeneration = 0;
+
   constructor(config: InviteCollaboratorsControllerConfig) {
     super({
       recipients: [],
@@ -81,6 +83,7 @@ export class InviteCollaboratorsController extends Controller<
   }
 
   reset(): void {
+    this.submissionGeneration += 1;
     this.update({
       recipients: [],
       message: "",
@@ -96,20 +99,27 @@ export class InviteCollaboratorsController extends Controller<
       return false;
     }
 
+    const generation = ++this.submissionGeneration;
+    const input = {
+      itemId: this.config.itemId,
+      recipients: [...this.state.recipients],
+      role: this.state.role,
+      message: this.state.message || undefined,
+    };
     this.update({ status: "submitting", error: null });
+    if (generation !== this.submissionGeneration) return false;
     try {
-      const result = await this.config.transport.sendInvites({
-        itemId: this.config.itemId,
-        recipients: [...this.state.recipients],
-        role: this.state.role,
-        message: this.state.message || undefined,
-      });
+      const result = await this.config.transport.sendInvites(input);
+      if (generation !== this.submissionGeneration) return false;
       this.update({ status: "success", result });
+      if (generation !== this.submissionGeneration) return false;
       this.emit("submitted", { result });
       return true;
     } catch (caught) {
+      if (generation !== this.submissionGeneration) return false;
       const error = caught instanceof Error ? caught.message : "Failed to send invitations";
       this.update({ status: "error", error });
+      if (generation !== this.submissionGeneration) return false;
       this.emit("error", { error });
       return false;
     }
