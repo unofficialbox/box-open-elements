@@ -1,5 +1,6 @@
+import { syncKeyedChildren, actionButton } from "../internal/keyed-children.js";
 import { BaseElement } from "../../core/index.js";
-import { applyRovingTabindex, handleRovingKeydown } from "../../foundations/a11y/index.js";
+import { applyRovingTabindex, nextRovingIndex } from "../../foundations/a11y/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/interaction.js";
 import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
 import { boePanel } from "../../foundations/geometry/index.js";
@@ -271,113 +272,49 @@ export class BulkActionBar extends BaseElement {
   }
 
   protected renderTemplate(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
+    this.shadowRoot!.innerHTML = `<style>${elementStyles}[hidden]{display:none!important}</style>
+      <div part="content-host"><section part="bar"><div part="topline"><div part="summary">
+      <div part="label"></div><div part="count"></div><div part="message" hidden></div>
+      </div><div part="actions" role="toolbar"></div></div><div part="items" hidden></div></section></div>`;
+  }
 
-    this.shadowRoot.innerHTML = `
-      <style>${elementStyles}</style>
-      <div part="content-host"></div>
-    `;
+  protected setupListeners(): void {
+    const toolbar = this.shadowRoot!.querySelector<HTMLElement>('[part="actions"]')!;
+    toolbar.addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button");
+      if (!button || !toolbar.contains(button)) return;
+      if (button.getAttribute("part") === "clear") this.emitClear();
+      else if (button.dataset.actionId) this.emitAction(button.dataset.actionId);
+    });
+    toolbar.addEventListener("keydown", event => {
+      const keyboard = event as KeyboardEvent;
+      const buttons = Array.from(toolbar.querySelectorAll<HTMLButtonElement>("button"));
+      const current = buttons.indexOf(keyboard.target as HTMLButtonElement);
+      const next = current < 0 ? null : nextRovingIndex(keyboard.key, current, buttons.length, { orientation: "horizontal" });
+      if (next !== null) { keyboard.preventDefault(); applyRovingTabindex(buttons, next); buttons[next]?.focus(); }
+    });
   }
 
   protected update(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const count = this.count;
-    const summaryText = `${count} selected`;
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const itemsMarkup = this.items.length
-      ? `
-          <div part="items">
-            ${this.items
-              .map(
-                item => `
-                  <div part="item">
-                    <span part="item-label">${escapeHtml(item.label)}</span>
-                    ${item.description ? `<span part="item-description">${escapeHtml(item.description)}</span>` : ""}
-                  </div>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions" role="toolbar" aria-label="${escapeHtml(this.label)}">
-            ${this.actions
-              .map(
-                action => `
-                  <button
-                    type="button"
-                    part="action"
-                    data-action-id="${escapeHtml(action.id)}"
-                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
-                    aria-label="${escapeHtml(action.label)}"
-                  >
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-            <button type="button" part="clear" data-action-id="clear-selection">
-              ${escapeHtml(this.clearLabel)}
-            </button>
-          </div>
-        `
-      : `
-          <div part="actions" role="toolbar" aria-label="${escapeHtml(this.label)}">
-            <button type="button" part="clear" data-action-id="clear-selection">
-              ${escapeHtml(this.clearLabel)}
-            </button>
-          </div>
-        `;
-
-    const host = this.shadowRoot.querySelector('[part="content-host"]');
-    if (!host) {
-      return;
-    }
-
-    host.innerHTML = `
-      <section part="bar">
-        <div part="topline">
-          <div part="summary">
-            <div part="label">${escapeHtml(this.label)}</div>
-            <div part="count">${escapeHtml(summaryText)}</div>
-            ${messageMarkup}
-          </div>
-          ${actionsMarkup}
-        </div>
-        ${itemsMarkup}
-      </section>
-    `;
-
-    this.shadowRoot.querySelectorAll<HTMLButtonElement>('[part="action"]').forEach(button => {
-      button.addEventListener("click", () => {
-        const actionId = button.dataset.actionId;
-        if (actionId) {
-          this.emitAction(actionId);
-        }
-      });
+    if (!this.isRendered) return;
+    const root = this.shadowRoot!;
+    root.querySelector('[part="label"]')!.textContent = this.label;
+    root.querySelector('[part="count"]')!.textContent = `${this.count} selected`;
+    const message = root.querySelector<HTMLElement>('[part="message"]')!;
+    message.textContent = this.message; message.hidden = !this.message;
+    const items = root.querySelector<HTMLElement>('[part="items"]')!;
+    items.hidden = !this.items.length;
+    items.innerHTML = this.items.map(item => `<div part="item"><span part="item-label">${escapeHtml(item.label)}</span>${item.description ? `<span part="item-description">${escapeHtml(item.description)}</span>` : ""}</div>`).join("");
+    const toolbar = root.querySelector<HTMLElement>('[part="actions"]')!;
+    toolbar.setAttribute("aria-label", this.label);
+    const previousEntry = toolbar.querySelector<HTMLButtonElement>('button[tabindex="0"]');
+    syncKeyedChildren<BulkAction | null>(toolbar, [...this.actions, null], action => action ? `action:${action.id}` : "clear", action => actionButton(action ? "action" : "clear"), (button, action) => {
+      button.dataset.actionId = action?.id ?? "clear-selection";
+      button.textContent = action?.label ?? this.clearLabel;
+      if (action) { button.dataset.tone = action.tone ?? "neutral"; button.setAttribute("aria-label", action.label); }
     });
-
-    this.shadowRoot.querySelector<HTMLElement>('[part="clear"]')?.addEventListener("click", () => {
-      this.emitClear();
-    });
-
-    const toolbar = this.shadowRoot.querySelector('[part="actions"]');
-    if (toolbar) {
-      const toolbarButtons = Array.from(
-        toolbar.querySelectorAll<HTMLButtonElement>('button[part="action"], button[part="clear"]'),
-      );
-      applyRovingTabindex(toolbarButtons, 0);
-      toolbar.addEventListener("keydown", event => {
-        handleRovingKeydown(event as KeyboardEvent, toolbarButtons, { orientation: "horizontal" });
-      });
-    }
+    const buttons = Array.from(toolbar.querySelectorAll<HTMLButtonElement>("button"));
+    applyRovingTabindex(buttons, Math.max(0, buttons.indexOf(root.activeElement as HTMLButtonElement) >= 0 ? buttons.indexOf(root.activeElement as HTMLButtonElement) : buttons.indexOf(previousEntry!)));
   }
 }
 

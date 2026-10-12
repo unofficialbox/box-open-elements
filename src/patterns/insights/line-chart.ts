@@ -1,15 +1,9 @@
+import { syncKeyedChildren } from "../internal/keyed-children.js";
+import { chartHeader, syncChartHeader, syncChartLegend, bindChartEvents, syncChartPoints } from "./chart-content.js";
 import { BaseElement } from "../../core/index.js";
 import { boePanel } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-line-chart";
-
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 
 type LineChartAction = {
   id: string;
@@ -401,12 +395,18 @@ export class LineChart extends BaseElement {
     const max = points.reduce((value, point) => Math.max(value, point.value), 0) || 1;
     const min = points.reduce((value, point) => Math.min(value, point.value), points[0]?.value ?? 0);
     const spread = Math.max(max - min, 1);
+    // Opposite finite extremes can overflow subtraction. Normalize only that
+    // range; ordinary charts retain their established scaling and rounding.
+    const scale = Number.isFinite(spread) ? 1 : Math.max(Math.abs(max), Math.abs(min));
+    const scaledMin = min / scale;
+    const scaledSpread = Number.isFinite(spread) ? spread : max / scale - scaledMin;
     const horizontalInset = 0;
     const chartWidth = 100 - horizontalInset * 2;
 
     return points.map((point, index) => {
       const x = points.length === 1 ? 50 : horizontalInset + (index / (points.length - 1)) * chartWidth;
-      const y = 47 - ((point.value - min) / spread) * 40;
+      const ratio = scale === 1 ? (point.value - min) / scaledSpread : (point.value / scale - scaledMin) / scaledSpread;
+      const y = 47 - ratio * 40;
       return {
         point,
         x: Number(x.toFixed(2)),
@@ -447,149 +447,29 @@ export class LineChart extends BaseElement {
   }
 
   protected renderTemplate(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    this.shadowRoot.innerHTML = `
-      <style>${elementStyles}</style>
-      <div part="content-host"></div>
-    `;
+    this.shadowRoot!.innerHTML = `<style>${elementStyles}[hidden]{display:none!important}</style><div part="content-host"><article part="panel">${chartHeader}
+      <div part="visual" hidden><svg part="chart" viewBox="0 0 100 56" role="img"><defs><linearGradient id="line-chart-area-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, transparent)"></stop><stop offset="100%" stop-color="color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 3%, transparent)"></stop></linearGradient></defs>
+      <line part="grid-line" x1="0" y1="5" x2="100" y2="5"></line><line part="grid-line" x1="0" y1="20.5" x2="100" y2="20.5"></line><line part="grid-line" x1="0" y1="36" x2="100" y2="36"></line><line part="grid-line" x1="0" y1="51.5" x2="100" y2="51.5"></line><path part="area"></path><path part="path"></path><g part="dots"></g></svg><div part="points" role="list"></div></div>
+      <div part="empty">No line-chart data available.</div><div part="legend" hidden></div></article></div>`;
   }
-
+  protected setupListeners(): void {
+    bindChartEvents(this.shadowRoot!,id=>this.emitAction(id),id=>{const point=this.points.find(point=>point.id===id);if(point)this.emitPointSelected(point);});
+  }
   protected update(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const summaryMarkup = this.summary ? `<div part="summary">${escapeHtml(this.summary)}</div>` : "";
-    const timeframeMarkup = this.timeframe ? `<div part="timeframe">${escapeHtml(this.timeframe)}</div>` : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-    const coordinates = this.getCoordinates(this.points);
-    const linePath = this.buildSmoothPath(coordinates);
-    const areaPath = this.buildAreaPath(coordinates);
-    const chartMarkup = this.points.length
-      ? `
-          <div part="visual">
-            <svg part="chart" viewBox="0 0 100 56" role="img" aria-label="${escapeHtml(this.heading)} trend line">
-              <defs>
-                <linearGradient id="line-chart-area-gradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, transparent)"></stop>
-                  <stop offset="100%" stop-color="color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 3%, transparent)"></stop>
-                </linearGradient>
-              </defs>
-              <line part="grid-line" x1="0" y1="5" x2="100" y2="5"></line>
-              <line part="grid-line" x1="0" y1="20.5" x2="100" y2="20.5"></line>
-              <line part="grid-line" x1="0" y1="36" x2="100" y2="36"></line>
-              <line part="grid-line" x1="0" y1="51.5" x2="100" y2="51.5"></line>
-              <path part="area" d="${areaPath}"></path>
-              <path part="path" d="${linePath}"></path>
-              ${coordinates
-                .map(({ point, x, y }) => {
-                  return `
-                    <circle part="dot-halo" cx="${x}" cy="${y}" r="2.2"></circle>
-                    <circle part="dot" data-tone="${escapeHtml(point.tone ?? "neutral")}" cx="${x}" cy="${y}" r="1.2"></circle>
-                  `;
-                })
-                .join("")}
-            </svg>
-            <div part="points" role="list" aria-label="${escapeHtml(this.heading)} points">
-              ${coordinates
-                .map(
-                  ({ point }) => `
-                    <button
-                      type="button"
-                      part="point"
-                      data-point-id="${escapeHtml(point.id)}"
-                      data-tone="${escapeHtml(point.tone ?? "neutral")}"
-                      aria-label="${escapeHtml(`${point.label}: ${point.value}`)}"
-                    >
-                      <span part="point-label">${escapeHtml(point.label)}</span>
-                      <span part="point-value">${escapeHtml(String(point.value))}</span>
-                    </button>
-                  `,
-                )
-                .join("")}
-            </div>
-          </div>
-        `
-      : `<div part="empty">No line-chart data available.</div>`;
-    const legendMarkup = this.legend.length
-      ? `
-          <div part="legend">
-            ${this.legend
-              .map(
-                item => `
-                  <div part="legend-item" data-tone="${escapeHtml(item.tone ?? "neutral")}">
-                    <span part="legend-swatch"></span>
-                    <span part="legend-label">${escapeHtml(item.label)}</span>
-                    ${item.value ? `<span part="legend-value">${escapeHtml(item.value)}</span>` : ""}
-                  </div>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    const host = this.shadowRoot.querySelector('[part="content-host"]');
-    if (!host) {
-      return;
-    }
-
-    host.innerHTML = `
-      <article part="panel">
-        <header part="header">
-          <div part="meta">
-            <h2 part="title">${escapeHtml(this.heading)}</h2>
-            ${summaryMarkup}
-            ${messageMarkup}
-          </div>
-          <div part="header-side">
-            ${timeframeMarkup}
-            ${actionsMarkup}
-          </div>
-        </header>
-        ${chartMarkup}
-        ${legendMarkup}
-      </article>
-    `;
-
-    this.shadowRoot.querySelectorAll('[part="action"]').forEach(button => {
-      button.addEventListener("click", () => {
-        const actionId = button.getAttribute("data-action-id");
-        if (actionId) {
-          this.emitAction(actionId);
-        }
-      });
-    });
-
-    this.shadowRoot.querySelectorAll('[part="point"]').forEach(button => {
-      button.addEventListener("click", () => {
-        const pointId = button.getAttribute("data-point-id");
-        const point = this.points.find(item => item.id === pointId);
-        if (point) {
-          this.emitPointSelected(point);
-        }
-      });
-    });
-  
+    if(!this.isRendered)return;
+    const root=this.shadowRoot!;
+    syncChartHeader(root,this);syncChartLegend(root,this.legend);
+    // Read after any synchronous host focusin refresh, including geometry.
+    const points=this.points,coordinates=this.getCoordinates(points);
+    root.querySelector<HTMLElement>('[part="visual"]')!.hidden=!points.length;
+    root.querySelector<HTMLElement>('[part="empty"]')!.hidden=!!points.length;
+    root.querySelector('[part="chart"]')!.setAttribute("aria-label",`${this.heading} trend line`);
+    root.querySelector('[part="path"]')!.setAttribute("d",this.buildSmoothPath(coordinates));root.querySelector('[part="area"]')!.setAttribute("d",this.buildAreaPath(coordinates));
+    const svgNS="http://www.w3.org/2000/svg";
+    syncKeyedChildren(root.querySelector('[part="dots"]')!,coordinates,item=>item.point.id,()=>{
+      const group=document.createElementNS(svgNS,"g");for(const [part,r] of [["dot-halo","2.2"],["dot","1.2"]]){const circle=document.createElementNS(svgNS,"circle");circle.setAttribute("part",part);circle.setAttribute("r",r);group.append(circle);}return group;
+    },(group,{point,x,y})=>{for(const circle of Array.from(group.children)){circle.setAttribute("cx",String(x));circle.setAttribute("cy",String(y));}group.querySelector('[part="dot"]')!.setAttribute("data-tone",point.tone??"neutral");});
+    const list=root.querySelector<HTMLElement>('[part="points"]')!;list.setAttribute("aria-label",`${this.heading} points`);syncChartPoints(list,points,"line");
   }
 }
-
 LineChart.register();

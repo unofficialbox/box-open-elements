@@ -1,3 +1,4 @@
+import { syncKeyedChildren, actionButton } from "../internal/keyed-children.js";
 import { BaseElement } from "../../core/index.js";
 import { boePanel } from "../../foundations/geometry/index.js";
 import {
@@ -6,14 +7,6 @@ import {
 } from "../../foundations/tokens/interaction.js";
 
 const DEFAULT_TAG_NAME = "box-search-results-header";
-
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 
 type SearchHeaderAction = {
   id: string;
@@ -238,106 +231,33 @@ export class SearchResultsHeader extends BaseElement {
   }
 
   protected renderTemplate(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
+    this.shadowRoot!.innerHTML = `<style>${elementStyles}[hidden]{display:none!important}</style>
+      <div part="content-host"><section part="header"><div part="topline"><div part="meta">
+      <div part="label"></div><div part="count"></div><div part="context" hidden></div></div>
+      <div part="actions" hidden></div></div><div part="filters" hidden></div></section></div>`;
+  }
 
-    this.shadowRoot.innerHTML = `
-      <style>${elementStyles}</style>
-      <div part="content-host"></div>
-    `;
+  protected setupListeners(): void {
+    this.shadowRoot!.querySelector('[part="content-host"]')!.addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button");
+      if (!button) return;
+      if (button.getAttribute("part") === "action" && button.dataset.actionId) this.emitAction(button.dataset.actionId);
+      if (button.getAttribute("part") === "filter-chip" && button.dataset.filter) this.emitFilterRemoved(button.dataset.filter);
+    });
   }
 
   protected update(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const contextParts = [
-      this.query ? `Query: ${this.query}` : "",
-      this.scope ? `Scope: ${this.scope}` : "",
-      this.sortLabel ? `Sorted by ${this.sortLabel}` : "",
-      this.viewLabel ? `View: ${this.viewLabel}` : "",
-    ].filter(Boolean);
-
-    const filtersMarkup = this.filters.length
-      ? `
-          <div part="filters">
-            ${this.filters
-              .map(
-                filter => `
-                  <button
-                    type="button"
-                    part="filter-chip"
-                    data-filter="${escapeHtml(filter)}"
-                  >
-                    ${escapeHtml(filter)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button
-                    type="button"
-                    part="action"
-                    data-action-id="${escapeHtml(action.id)}"
-                    data-tone="${escapeHtml(action.tone ?? "neutral")}"
-                  >
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    const host = this.shadowRoot.querySelector('[part="content-host"]');
-    if (!host) {
-      return;
-    }
-
-    host.innerHTML = `
-      <section part="header">
-        <div part="topline">
-          <div part="meta">
-            <div part="label">${escapeHtml(this.label)}</div>
-            <div part="count">${escapeHtml(`${this.resultCount} results`)}</div>
-            ${contextParts.length ? `<div part="context">${escapeHtml(contextParts.join(" · "))}</div>` : ""}
-          </div>
-          ${actionsMarkup}
-        </div>
-        ${filtersMarkup}
-      </section>
-    `;
-
-    this.shadowRoot.querySelectorAll<HTMLElement>('[part="action"]').forEach(button => {
-      button.addEventListener("click", () => {
-        const actionId = button.getAttribute("data-action-id");
-        if (actionId) {
-          this.emitAction(actionId);
-        }
-      });
-    });
-
-    this.shadowRoot.querySelectorAll<HTMLElement>('[part="filter-chip"]').forEach(button => {
-      button.addEventListener("click", () => {
-        const filter = button.getAttribute("data-filter");
-        if (filter) {
-          this.emitFilterRemoved(filter);
-        }
-      });
-    });
-  
+    if (!this.isRendered) return;
+    const root = this.shadowRoot!;
+    root.querySelector('[part="label"]')!.textContent = this.label;
+    root.querySelector('[part="count"]')!.textContent = `${this.resultCount} results`;
+    const parts = [this.query ? `Query: ${this.query}` : "", this.scope ? `Scope: ${this.scope}` : "", this.sortLabel ? `Sorted by ${this.sortLabel}` : "", this.viewLabel ? `View: ${this.viewLabel}` : ""].filter(Boolean);
+    const context = root.querySelector<HTMLElement>('[part="context"]')!;
+    context.textContent = parts.join(" · "); context.hidden = !parts.length;
+    const actions = root.querySelector<HTMLElement>('[part="actions"]')!; actions.hidden = !this.actions.length;
+    syncKeyedChildren(actions, this.actions, action => action.id, () => actionButton("action"), (button, action) => { button.dataset.actionId = action.id; button.dataset.tone = action.tone ?? "neutral"; button.textContent = action.label; });
+    const filters = root.querySelector<HTMLElement>('[part="filters"]')!; filters.hidden = !this.filters.length;
+    syncKeyedChildren(filters, this.filters, filter => filter, () => actionButton("filter-chip"), (button, filter) => { button.dataset.filter = filter; button.textContent = filter; });
   }
 }
 

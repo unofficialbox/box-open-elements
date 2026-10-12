@@ -1,3 +1,4 @@
+import { syncKeyedChildren, actionButton } from "../internal/keyed-children.js";
 import { BaseElement } from "../../core/index.js";
 import { boePanel } from "../../foundations/geometry/index.js";
 import {
@@ -6,14 +7,6 @@ import {
 } from "../../foundations/tokens/interaction.js";
 
 const DEFAULT_TAG_NAME = "box-metric-card";
-
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 
 type MetricCardAction = {
   id: string;
@@ -322,63 +315,26 @@ export class MetricCard extends BaseElement {
   }
 
   protected renderTemplate(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    this.shadowRoot.innerHTML = `
-      <style>${elementStyles}</style>
-      <div part="content-host"></div>
-    `;
+    this.shadowRoot!.innerHTML=`<style>${elementStyles}[hidden]{display:none!important}</style><div part="content-host"><article part="card"><header part="header"><div part="eyebrow" hidden></div><div part="title-row"><h2 part="title"></h2></div></header><div part="value"></div><div part="message" hidden></div><div part="footer"><div part="trend" hidden></div></div></article></div>`;
   }
-
+  protected setupListeners(): void {
+    const footer=this.shadowRoot!.querySelector('[part="footer"]')!;
+    footer.addEventListener("click",event=>{
+      const button=(event.target as Element).closest<HTMLButtonElement>('[part="action"]');const action=this.action;
+      if(button&&footer.contains(button)&&action&&action.id===button.dataset.actionId)this.emitAction(action);
+    });
+  }
   protected update(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const action = this.action;
-    const trend = this.trend;
-    const eyebrowMarkup = this.eyebrow ? `<div part="eyebrow">${escapeHtml(this.eyebrow)}</div>` : "";
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const statusMarkup = this.status ? `<span part="status">${escapeHtml(this.status)}</span>` : "";
-    const trendMarkup = trend
-      ? `<div part="trend" data-direction="${escapeHtml(trend.direction ?? "flat")}" data-tone="${escapeHtml(trend.tone ?? "neutral")}">${escapeHtml(trend.label)}</div>`
-      : "";
-    const actionMarkup = action
-      ? `<button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">${escapeHtml(action.label)}</button>`
-      : "";
-
-    const host = this.shadowRoot.querySelector('[part="content-host"]');
-    if (!host) {
-      return;
-    }
-
-    host.innerHTML = `
-      <article part="card">
-        <header part="header">
-          ${eyebrowMarkup}
-          <div part="title-row">
-            <h2 part="title">${escapeHtml(this.heading)}</h2>
-            ${statusMarkup}
-          </div>
-        </header>
-        <div part="value" data-tone="${this.tone}">${escapeHtml(this.value)}</div>
-        ${messageMarkup}
-        <div part="footer">
-          ${trendMarkup}
-          ${actionMarkup}
-        </div>
-      </article>
-    `;
-
-    if (action) {
-      this.shadowRoot.querySelector('[part="action"]')?.addEventListener("click", () => {
-        this.emitAction(action);
-      });
-    }
-  
+    if(!this.isRendered)return;
+    const root=this.shadowRoot!;
+    root.querySelector('[part="title"]')!.textContent=this.heading;
+    const value=root.querySelector<HTMLElement>('[part="value"]')!;value.textContent=this.value;value.dataset.tone=this.tone;
+    for(const [part,text] of [["eyebrow",this.eyebrow],["message",this.message]]){const element=root.querySelector<HTMLElement>(`[part="${part}"]`)!;element.textContent=text;element.hidden=!text;}
+    let status=root.querySelector<HTMLElement>('[part="status"]');
+    if(this.status){if(!status){status=document.createElement("span");status.setAttribute("part","status");root.querySelector('[part="title-row"]')!.append(status);}status.textContent=this.status;}else status?.remove();
+    const trend=root.querySelector<HTMLElement>('[part="trend"]')!,data=this.trend;trend.hidden=!data;trend.textContent=data?.label??"";trend.dataset.direction=data?.direction??"flat";trend.dataset.tone=data?.tone??"neutral";
+    const action=this.action;
+    syncKeyedChildren(root.querySelector('[part="footer"]')!,action?[action]:[],action=>action.id,()=>actionButton("action"),(button,action)=>{button.dataset.actionId=action.id;button.dataset.tone=action.tone??"neutral";button.textContent=action.label;},trend);
   }
 }
-
 MetricCard.register();

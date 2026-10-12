@@ -1,3 +1,4 @@
+import { syncKeyedChildren, actionButton } from "../internal/keyed-children.js";
 import { isLineageNodeRecord } from "./types.js";
 import type { LineageNode } from "./types.js";
 import { computeVersionGraphLayout } from "../versions/graph-layout.js";
@@ -6,14 +7,6 @@ import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/ind
 import { boeRadius } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-provenance-strip";
-
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 
 const elementStyles = `
         [hidden] {
@@ -250,6 +243,7 @@ export class ProvenanceStrip extends BaseElement {
       <div part="content-host"></div>
     `;
     this.hostEl = this.shadowRoot.querySelector('[part="content-host"]')!;
+    this.hostEl.innerHTML = '<ol part="strip" aria-label="Provenance" hidden></ol>';
   }
 
   protected setupListeners(): void {
@@ -287,27 +281,26 @@ export class ProvenanceStrip extends BaseElement {
     const byId = new Map(this.nodesValue.map(node => [node.id, node]));
     const chain = [...layout.placements].reverse().map(placement => byId.get(placement.id)!);
 
-    const items = chain
-      .map((node, index) => {
-        const isCurrent = index === chain.length - 1;
-        const kind = node.kind ?? "";
-        return `
-          <li part="item"${kind ? ` data-kind="${escapeHtml(kind)}"` : ""}>
-            ${index > 0 ? `<span part="separator" aria-hidden="true"></span>` : ""}
-            <button
-              type="button"
-              part="chip"
-              data-id="${escapeHtml(node.id)}"
-              ${isCurrent ? `aria-current="true"` : ""}
-            ><span part="kind-dot" aria-hidden="true"></span>${escapeHtml(node.label)}</button>
-          </li>
-        `;
-      })
-      .join("");
-
-    this.hostEl.innerHTML = chain.length
-      ? `<ol part="strip" aria-label="Provenance">${items}</ol>`
-      : "";
+    const strip = this.hostEl.querySelector<HTMLElement>('[part="strip"]')!;
+    strip.hidden = !chain.length;
+    syncKeyedChildren(strip, chain.map((node, index) => ({ node, index })), item => item.node.id, () => {
+      const item = document.createElement("li"); item.setAttribute("part", "item");
+      const chip = actionButton("chip");
+      const dot = document.createElement("span"); dot.setAttribute("part", "kind-dot"); dot.setAttribute("aria-hidden", "true");
+      chip.append(dot, document.createTextNode("")); item.append(chip); return item;
+    }, (item, { node, index }) => {
+      if (node.kind) item.dataset.kind = node.kind; else item.removeAttribute("data-kind");
+      const edge = item.querySelector('[part="separator"]');
+      if (index === 0) edge?.remove();
+      else if (!edge) {
+        const separator = document.createElement("span"); separator.setAttribute("part", "separator"); separator.setAttribute("aria-hidden", "true");
+        item.prepend(separator);
+      }
+      const chip = item.querySelector<HTMLButtonElement>("button")!;
+      chip.dataset.id = node.id;
+      if (index === chain.length - 1) chip.setAttribute("aria-current", "true"); else chip.removeAttribute("aria-current");
+      chip.lastChild!.textContent = node.label;
+    });
   }
 }
 

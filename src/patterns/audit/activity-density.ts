@@ -1,3 +1,4 @@
+import { syncKeyedChildren, actionButton } from "../internal/keyed-children.js";
 import {
   computeActivityDensity,
   formatUtcDay,
@@ -5,7 +6,7 @@ import {
   resolveAuditDay,
 } from "./types.js";
 import type { ActivityDensity, ActivityDensityCell, AuditEvent } from "./types.js";
-import { escapeHtml, resolveReferenceTime } from "./shared.js";
+import { resolveReferenceTime } from "./shared.js";
 import { isTimelineEventRecord } from "../timeline/types.js";
 import { BaseElement } from "../../core/index.js";
 import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
@@ -184,8 +185,9 @@ export class ActivityDensityStrip extends BaseElement {
   private rowsEl!: HTMLElement;
 
   private signature = "";
+  private renderRevision = 0;
 
-  /** Roving focus position, `week:weekday`. Null until the first render. */
+  /** Roving day identity, retained as its week position changes. */
   private activeKey: string | null = null;
 
   private renderedWeeks = 0;
@@ -321,7 +323,7 @@ export class ActivityDensityStrip extends BaseElement {
   }
 
   private focusButton(button: HTMLButtonElement): void {
-    this.activeKey = `${button.getAttribute("data-week") ?? ""}:${button.getAttribute("data-weekday") ?? ""}`;
+    this.activeKey = button.getAttribute("data-date");
     for (const candidate of this.buttons()) {
       candidate.tabIndex = candidate === button ? 0 : -1;
     }
@@ -333,20 +335,7 @@ export class ActivityDensityStrip extends BaseElement {
    * contract, since colour alone carries no meaning. A quiet day is an inert
    * cell with a hover title: nothing to drill into, and no extra tab stop.
    */
-  private cellHtml(cell: ActivityDensityCell): string {
-    const date = escapeHtml(cell.date);
-    const label = escapeHtml(
-      `${String(cell.count)} ${cell.count === 1 ? "event" : "events"} on ${formatUtcDay(cell.date)}`,
-    );
-    const body =
-      cell.count > 0
-        ? `<button type="button" part="cell-button" tabindex="-1" data-date="${date}" data-week="${String(cell.week)}" data-weekday="${String(cell.weekday)}" data-count="${String(cell.count)}" aria-label="${label}"></button>`
-        : "";
-
-    return `<td part="cell" data-level="${String(cell.level)}" data-date="${date}" data-count="${String(cell.count)}" title="${label}">${body}</td>`;
-  }
-
-  private rebuild(density: ActivityDensity): void {
+  private rebuild(density: ActivityDensity, revision: number): void {
     this.renderedWeeks = density.weeks;
     const byWeekday = new Map<number, ActivityDensityCell[]>();
     for (const cell of density.cells) {
@@ -369,10 +358,22 @@ export class ActivityDensityStrip extends BaseElement {
     // Only the header row and the body are re-minted — the caption is part of
     // the stable shell, so rebuilding the grid never drops it.
     this.monthsRowEl.innerHTML = `<td></td>${monthCells.join("")}`;
-    this.rowsEl.innerHTML = WEEKDAY_LABELS.map((label, weekday) => {
-      const cells = (byWeekday.get(weekday) ?? []).map(cell => this.cellHtml(cell)).join("");
-      return `<tr><th scope="row" part="weekday">${label}</th>${cells}</tr>`;
-    }).join("");
+    const rows=Array.from(this.rowsEl.querySelectorAll("tr"));
+    for (let weekday=0;weekday<WEEKDAY_LABELS.length;weekday++) {
+      if (revision !== this.renderRevision) return;
+      const row=rows[weekday],header=row.firstElementChild!;
+      syncKeyedChildren(row,byWeekday.get(weekday)??[],cell=>cell.date,()=>{
+        const cell=document.createElement("td");cell.setAttribute("part","cell");return cell;
+      },(element,cell)=>{
+        const label=`${cell.count} ${cell.count===1?"event":"events"} on ${formatUtcDay(cell.date)}`;
+        element.dataset.level=String(cell.level);element.dataset.date=cell.date;element.dataset.count=String(cell.count);element.title=label;
+        let button=element.querySelector<HTMLButtonElement>("button");
+        if(cell.count>0){
+          if(!button){button=actionButton("cell-button");button.tabIndex=-1;element.append(button);}
+          button.dataset.date=cell.date;button.dataset.week=String(cell.week);button.dataset.weekday=String(cell.weekday);button.dataset.count=String(cell.count);button.setAttribute("aria-label",label);
+        }else button?.remove();
+      },header);
+    }
   }
 
   protected renderTemplate(): void {
@@ -388,7 +389,7 @@ export class ActivityDensityStrip extends BaseElement {
           <table part="grid">
             <caption part="caption"></caption>
             <thead><tr part="months-row"></tr></thead>
-            <tbody part="rows"></tbody>
+            <tbody part="rows">${WEEKDAY_LABELS.map(label=>`<tr><th scope="row" part="weekday">${label}</th></tr>`).join("")}</tbody>
           </table>
         </div>
         <div part="legend">
@@ -471,6 +472,7 @@ export class ActivityDensityStrip extends BaseElement {
       return;
     }
 
+    const revision = ++this.renderRevision;
     this.titleEl.textContent = this.heading;
 
     const density = this.density;
@@ -480,10 +482,15 @@ export class ActivityDensityStrip extends BaseElement {
       this.referenceTime,
     ]);
     if (signature !== this.signature) {
+      // Partial rows match no cached window, including a rollback to the last
+      // completed one during fallback focus restoration.
+      this.signature = "";
+      this.rebuild(density, revision);
+      // A nested focusin refresh owns the completed render. Publish the cache
+      // only after a complete rebuild, so nested metadata changes rebuild too.
+      if (revision !== this.renderRevision) return;
       this.signature = signature;
-      this.rebuild(density);
-      // Cells are re-minted, so the previous roving position may be gone.
-      this.activeKey = null;
+      // A surviving day keeps its node and entry even when its week shifts.
     }
 
     this.captionEl.textContent = `${String(density.total)} ${density.total === 1 ? "event" : "events"} from ${formatUtcDay(density.start)} to ${formatUtcDay(density.end)}`;
@@ -495,8 +502,7 @@ export class ActivityDensityStrip extends BaseElement {
       (this.activeKey
         ? all.find(
             button =>
-              `${button.getAttribute("data-week") ?? ""}:${button.getAttribute("data-weekday") ?? ""}` ===
-              this.activeKey,
+              button.getAttribute("data-date") === this.activeKey,
           )
         : undefined) ??
       // Default the tab stop to the most recent day with activity — the last
@@ -507,7 +513,7 @@ export class ActivityDensityStrip extends BaseElement {
       button.tabIndex = button === active ? 0 : -1;
     }
     if (active) {
-      this.activeKey = `${active.getAttribute("data-week") ?? ""}:${active.getAttribute("data-weekday") ?? ""}`;
+      this.activeKey = active.getAttribute("data-date");
     }
   }
 }
