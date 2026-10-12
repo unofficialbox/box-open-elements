@@ -767,7 +767,7 @@ export class Table extends BaseElement {
     });
 
     this.bodyEl.addEventListener("click", event => {
-      const path = event.composedPath();
+      const path = this.bodyEventPath(event);
       // Original event ownership survives capture-driven DOM replacement.
       // Assigned host content can use the same part names without becoming a
       // built-in table action or expander.
@@ -818,8 +818,15 @@ export class Table extends BaseElement {
   private isCellInteraction(event: Event): boolean {
     // Slotted/custom controls keep their native keys and host handlers, even
     // when their own shadow root retargets the event to the assigned host.
-    return event.composedPath().some(target => target instanceof Element &&
+    return this.bodyEventPath(event).some(target => target instanceof Element &&
       target.matches('[part="cell-slot"], [part="row-action"], a, button, input, select, textarea, [contenteditable]:not([contenteditable="false"])'));
+  }
+
+  private bodyEventPath(event: Event) {
+    const path = event.composedPath();
+    // Ancestor panels may project the entire table through their own slots.
+    // Only content below this tbody belongs to the table's cell interaction.
+    return path.slice(0, path.indexOf(this.bodyEl));
   }
 
   private cellSlotFor(element: HTMLElement): HTMLSlotElement | null {
@@ -1002,8 +1009,10 @@ export class Table extends BaseElement {
   protected update(): void {
     if (!this.bodyEl || !this.headEl) return;
     const activeHeader = this.shadowRoot?.activeElement;
-    const documentFocus = this.ownerDocument.activeElement;
-    const hostFocus = documentFocus instanceof HTMLElement && this.cellSlotFor(documentFocus) ? documentFocus : null;
+    const root = this.getRootNode();
+    const focusScope = root instanceof ShadowRoot ? root : this.ownerDocument;
+    const scopeFocus = focusScope.activeElement;
+    const hostFocus = scopeFocus instanceof HTMLElement && this.cellSlotFor(scopeFocus) ? scopeFocus : null;
     let hostTarget = hostFocus;
     while (hostTarget?.shadowRoot?.activeElement instanceof HTMLElement) hostTarget = hostTarget.shadowRoot.activeElement;
     const focusedRowId = activeHeader?.getAttribute("part") === "row" && this.bodyEl.contains(activeHeader)
@@ -1041,8 +1050,9 @@ export class Table extends BaseElement {
       // Firefox blurs a light-DOM input when its slot is replaced. Keep the
       // actual host node (including a custom control's inner focused target),
       // only while it is assigned to a current cell and no host handoff won.
-      const active = this.ownerDocument.activeElement;
-      if (active === hostFocus || active === this || active === this.ownerDocument.body) hostTarget.focus({ preventScroll: true });
+      const active = focusScope.activeElement;
+      const blurredToBody = active === null && this.ownerDocument.activeElement === this.ownerDocument.body;
+      if (active === hostFocus || active === this || active === this.ownerDocument.body || blurredToBody) hostTarget.focus({ preventScroll: true });
     }
   }
 

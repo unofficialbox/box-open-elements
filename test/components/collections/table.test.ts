@@ -1082,3 +1082,58 @@ describe("Table host cells, actions and current row", () => {
     expect(el.renderedWindow).not.toBeNull();
   });
 });
+
+describe("Table containing-root focus and projected ownership", () => {
+  afterEach(() => { document.body.innerHTML = ""; });
+
+  it.each(["open", "closed"] as const)("restores the assigned inner target in a %s containing shadow root", mode => {
+    const outer = document.createElement("div"); document.body.append(outer);
+    const scope = outer.attachShadow({ mode });
+    const el = document.createElement("box-table") as Table;
+    el.columns = [{ key: "name", label: "Name", hostContent: true }];
+    el.rows = [{ id: "a", cells: { name: "A" } }]; scope.append(el);
+    const control = document.createElement("div"); control.slot = "cell-a-name";
+    const inner = control.attachShadow({ mode: "open" });
+    const input = document.createElement("input"); inner.append(input); el.append(control);
+    input.focus();
+    const restore = vi.spyOn(input, "focus");
+    // jsdom does not blur when a slot is replaced; native Firefox does. Assert
+    // that restoration addresses the actual target in the containing root.
+    el.rows = [{ id: "a", cells: { name: "Current A" } }];
+    expect(restore).toHaveBeenCalledWith({ preventScroll: true });
+    expect(scope.activeElement).toBe(control);
+    expect(inner.activeElement).toBe(input);
+    const sibling = document.createElement("button"); scope.append(sibling); sibling.focus();
+    restore.mockClear(); el.selectedIds = ["a"];
+    expect(scope.activeElement).toBe(sibling);
+    expect(restore).not.toHaveBeenCalled();
+    const outside = document.createElement("button"); document.body.append(outside); outside.focus();
+    el.rows = [...el.rows];
+    expect(document.activeElement).toBe(outside);
+    expect(restore).not.toHaveBeenCalled(); restore.mockRestore();
+  });
+
+  it.each(["row-action", "expander"])("keeps projected built-ins independent of host %s part names", part => {
+    const panel = document.createElement("div"); document.body.append(panel);
+    panel.attachShadow({ mode: "open" }).innerHTML = '<slot name="panel-content" part="cell-slot"></slot>';
+    const el = document.createElement("box-table") as Table; el.slot = "panel-content";
+    el.selectionMode = "multiple";
+    el.columns = [{ key: "name", label: "Name", hostContent: true }];
+    el.rows = [{ id: "a", cells: { name: "A" }, detail: "Details", actions: [{ key: "view", label: "View" }] }];
+    panel.append(el); const action = vi.fn(); el.addEventListener("row-action", action);
+    (el.shadowRoot!.querySelector('[part="row-action"]') as HTMLButtonElement).click();
+    expect(action).toHaveBeenCalledTimes(1);
+    (el.shadowRoot!.querySelector('[part="expander"]') as HTMLButtonElement).click();
+    expect(el.expandedRows).toEqual(["a"]);
+    const hostButton = document.createElement("button"); hostButton.slot = "cell-a-name";
+    hostButton.setAttribute("part", part); hostButton.dataset.rowId = "a"; hostButton.dataset.actionKey = "view";
+    el.append(hostButton); hostButton.click();
+    expect(action).toHaveBeenCalledTimes(1);
+    expect(el.expandedRows).toEqual(["a"]);
+    expect(el.selectedIds).toEqual([]);
+    // An unrelated ancestor slot's part name must not suppress row keys.
+    const row = el.shadowRoot!.querySelector<HTMLElement>('[part="row"]')!;
+    row.focus(); row.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true, composed: true }));
+    expect(el.selectedIds).toEqual(["a"]);
+  });
+});

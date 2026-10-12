@@ -131,3 +131,18 @@ controls and wrapped content can have variable heights. The `virtualize`
 request stays set and `renderedWindow` returns `null`; removing those features
 restores ordinary windowing. Actions, loading/error/empty states, grouped
 headers and expanded detail rows all include the Actions column in their spans.
+
+The native containing-root regression is repeatable after `bun run build:core`:
+`BOE_TABLE_BROWSER=firefox node tools/preview/table-host-content.mjs`. It checks
+open/closed containing roots, inner-shadow host controls, focus handoffs,
+projected-table actions/expansion, and host part-name collisions. Use the pinned
+Playwright container when Firefox is unavailable locally; set
+`BOE_TABLE_EVIDENCE_DIR` to retain its JSON results. `BOE_TABLE_BROWSER=chrome`
+(and optional `BOE_TABLE_CHROME_PATH`) runs the same Chrome compatibility cases.
+
+For the pinned Firefox container, retain results in the ignored regression folder:
+
+```bash
+DOCKER_DEFAULT_PLATFORM=linux/amd64 bash tools/preview/container-run.sh \
+  'bun run build:core && BOE_TABLE_BROWSER=firefox BOE_TABLE_EVIDENCE_DIR=/work/.regression-tmp/table-host-content node tools/preview/table-host-content.mjs'
+```
