@@ -549,8 +549,11 @@ export class Calendar extends BaseElement {
     }
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      const active = this.activeDate ?? this.resolveActiveDate();
-      this.selectDate(active);
+      const target = event.target instanceof HTMLElement
+        ? event.target.closest<HTMLElement>("button[data-date]") : null;
+      const active = target && this.gridEl.contains(target)
+        ? parseISO(target.dataset.date ?? "") : this.activeDate ?? this.resolveActiveDate();
+      if (active) this.selectDate(active);
     }
   }
 

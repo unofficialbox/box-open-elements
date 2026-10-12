@@ -101,4 +101,10 @@ describe("Calendar active date and range ownership", () => {
  it("does not activate a retained detached range button", () => {
   const e = calendar("range"), old = control(e, '[data-date="2026-10-13"]'), events = vi.fn(); e.addEventListener("range-changed", events); e.remove(); old.click(); expect(events).not.toHaveBeenCalled(); expect(e.start).toBe("");
  });
+ it("uses the focused native date for keyboard activation after an authoritative range reset", () => {
+  const e = calendar("range"), events = vi.fn(); e.start = "2026-10-13"; e.addEventListener("range-changed", events);
+  const current = control(e, '[data-date="2026-10-14"]'); current.focus(); key(current, "Enter");
+  expect(events).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ detail: { start: "2026-10-13", end: "2026-10-14" } }));
+ });
+
 });
