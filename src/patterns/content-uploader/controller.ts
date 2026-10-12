@@ -24,6 +24,8 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
 
   private counter = 0;
 
+  private destroyed = false;
+
   private readonly files = new Map<string, UploadFileLike>();
 
   private readonly abortControllers = new Map<string, AbortController>();
@@ -93,6 +95,10 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
 
     const pending = (async () => {
       const parentFolderId = await this.resolveFolderId(parentPath);
+      // A provider can settle after abort; do not create the next segment.
+      if (this.destroyed) {
+        throw new Error("AbortError");
+      }
       const createFolder = this.config.transport.createFolder;
       if (!createFolder) {
         throw new Error("This transport cannot create folders");
@@ -135,6 +141,9 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
    * destination root — see `UploadTransport.createFolder`.
    */
   addEntries(entries: Array<{ file: UploadFileLike; path?: string }>): UploadQueueItem[] {
+    if (this.destroyed) {
+      return [];
+    }
     const added: UploadQueueItem[] = [];
     const canCreateFolders = typeof this.config.transport.createFolder === "function";
     // Counted against the live queue, so two drops in a row cannot together
@@ -255,7 +264,10 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
     this.setItems(remaining);
   }
 
+  /** Permanently stop this queue; late provider callbacks cannot resume it. */
   destroy(): void {
+    // Mark the lifetime ended before abort listeners can resume the queue.
+    this.destroyed = true;
     for (const abortController of this.abortControllers.values()) {
       abortController.abort();
     }
@@ -294,6 +306,7 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
 
   private pump(): void {
     while (
+      !this.destroyed &&
       summarizeUploadQueue(this.state.items).uploading < this.concurrency &&
       this.state.items.some(item => item.status === "queued")
     ) {
@@ -327,6 +340,9 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
       // created when a file in it actually starts — a queue cancelled before it
       // ran leaves no empty folders behind.
       const folderId = await this.resolveFolderId(item.path ?? "");
+      if (this.destroyed) {
+        return;
+      }
       // Cancelling during folder creation cannot abort the shared request, so
       // the cancellation is honoured here instead, before any bytes move.
       if (abortController?.signal.aborted) {
@@ -346,6 +362,9 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
         language: this.config.language,
         ...(abortController ? { signal: abortController.signal } : {}),
         onProgress: fraction => {
+          if (this.destroyed) {
+            return;
+          }
           const clamped = Math.max(0, Math.min(1, fraction));
           const progressed = this.patchItem(itemId, { progress: clamped });
           if (progressed) {
@@ -353,6 +372,10 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
           }
         },
       });
+
+      if (this.destroyed) {
+        return;
+      }
 
       const succeeded = this.patchItem(itemId, {
         status: "succeeded",
@@ -363,6 +386,9 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
         this.emit("itemSucceeded", { item: succeeded });
       }
     } catch (error) {
+      if (this.destroyed) {
+        return;
+      }
       if (abortController?.signal.aborted || isAbortError(error)) {
         const cancelled = this.patchItem(itemId, { status: "cancelled" });
         if (cancelled) {
@@ -377,8 +403,10 @@ export class ContentUploaderController extends Controller<UploaderState, Uploade
       }
     } finally {
       this.abortControllers.delete(itemId);
-      this.pump();
-      this.checkDrained();
+      if (!this.destroyed) {
+        this.pump();
+        this.checkDrained();
+      }
     }
   }
 

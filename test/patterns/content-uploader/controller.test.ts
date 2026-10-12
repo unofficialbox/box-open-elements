@@ -464,3 +464,81 @@ describe("ContentUploaderController — folder uploads", () => {
     expect(item!.path).toBe("docs/2026");
   });
 });
+
+
+describe("ContentUploaderController lifetime", () => {
+  it.each(["resolve", "reject", "abort"] as const)(
+    "does not start queued work after destroy when the active upload settles by %s",
+    async outcome => {
+      let resolve!: (result: { fileId: string }) => void;
+      let reject!: (error: Error) => void;
+      let request!: UploadRequest;
+      const transport: UploadTransport = {
+        uploadFile: vi.fn(input => {
+          request = input;
+          return new Promise((yes, no) => {
+            resolve = yes;
+            reject = no;
+            if (outcome === "abort") input.signal?.addEventListener("abort", () => no(new Error("AbortError")));
+          });
+        }),
+      };
+      const controller = createController(transport, { concurrency: 1 });
+      controller.addFiles([file("a.txt"), file("b.txt")]);
+      await flush();
+      expect(transport.uploadFile).toHaveBeenCalledTimes(1);
+
+      controller.destroy();
+      controller.destroy();
+      const state = controller.getState();
+      request.onProgress?.(0.8);
+      if (outcome === "resolve") resolve({ fileId: "late" });
+      if (outcome === "reject") reject(new Error("late failure"));
+      await flush();
+      controller.start();
+      controller.addFiles([file("c.txt")]);
+      await flush();
+
+      expect(request.signal?.aborted).toBe(true);
+      expect(transport.uploadFile).toHaveBeenCalledTimes(1);
+      expect(controller.getState()).toBe(state);
+    },
+  );
+
+  it("stops nested folder continuations even when a provider ignores abort", async () => {
+    let resolve!: (result: { folderId: string }) => void;
+    const transport: UploadTransport = {
+      createFolder: vi.fn(() => new Promise(yes => { resolve = yes; })),
+      uploadFile: vi.fn(async () => ({ fileId: "unexpected" })),
+    };
+    const controller = createController(transport, { concurrency: 1 });
+    controller.addEntries([{ file: file("a.txt"), path: "parent/child" }, { file: file("b.txt") }]);
+    await flush();
+    expect(transport.createFolder).toHaveBeenCalledTimes(1);
+    controller.destroy();
+    resolve({ folderId: "late-parent" });
+    await flush();
+    expect(transport.createFolder).toHaveBeenCalledTimes(1);
+    expect(transport.uploadFile).not.toHaveBeenCalled();
+  });
+
+  it("continues the live queue after cancellation and permits retry", async () => {
+    const transport: UploadTransport = {
+      uploadFile: vi.fn()
+        .mockImplementationOnce((request: UploadRequest) => new Promise((_yes, no) => {
+          request.signal?.addEventListener("abort", () => no(new Error("AbortError")));
+        }))
+        .mockResolvedValue({ fileId: "done" }),
+    };
+    const controller = createController(transport, { concurrency: 1 });
+    const [first] = controller.addFiles([file("a.txt"), file("b.txt")]);
+    await flush();
+    controller.cancelItem(first!.id);
+    await flush();
+    expect(controller.getState().items.map(item => item.status)).toEqual(["cancelled", "succeeded"]);
+    controller.retryItem(first!.id);
+    await flush();
+    expect(controller.getState().items.map(item => item.status)).toEqual(["succeeded", "succeeded"]);
+    expect(transport.uploadFile).toHaveBeenCalledTimes(3);
+  });
+});

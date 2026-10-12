@@ -182,6 +182,9 @@ const DEFAULT_ROLES: InviteRole[] = [
  * `transport` + `item-id`). Emits `submitted` on success and `cancel` on
  * dismissal, closing itself in both cases. Structure is built once per open so
  * the live inputs keep focus while only the pills/status update.
+ * Pending submissions belong to that controller and opening. Replacing the
+ * item/transport, detaching, or dismissing them discards their UI completion;
+ * it does not cancel invitations already handed to the transport.
  */
 export class InviteCollaboratorsModal extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
@@ -196,6 +199,7 @@ export class InviteCollaboratorsModal extends BaseElement {
   private rolesSignature = "";
   private readonly focusRestore = new FocusRestore();
   private wasOpen = false;
+  private openSession = 0;
 
   get open(): boolean {
     return this.hasAttribute("open");
@@ -234,6 +238,9 @@ export class InviteCollaboratorsModal extends BaseElement {
   }
 
   set transport(value: InviteCollaboratorsTransport | null) {
+    if (value === this.transportValue) {
+      return;
+    }
     this.transportValue = value;
     this.ensureController(true);
     this.refresh();
@@ -258,9 +265,21 @@ export class InviteCollaboratorsModal extends BaseElement {
     this.teardownController();
   }
 
-  attributeChangedCallback(name: string): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    if (oldValue === newValue) {
+      return;
+    }
     if (name === "item-id") {
       this.ensureController(true);
+    }
+    if (name === "open" && (oldValue === null) !== (newValue === null)) {
+      this.openSession += 1;
+      if (!this.open && this.controller?.getState().status === "submitting") {
+        // A dismissed pending request no longer owns the next opening.
+        this.teardownController();
+      } else if (this.open) {
+        this.ensureController(false);
+      }
     }
     this.refresh();
   }
@@ -435,16 +454,23 @@ export class InviteCollaboratorsModal extends BaseElement {
   }
 
   private async submit(): Promise<void> {
-    if (!this.controller) {
+    const controller = this.controller;
+    const session = this.openSession;
+    if (!controller || !this.open || !this.isConnected) {
       return;
     }
-    const ok = await this.controller.submit();
-    if (ok) {
-      const result = this.controller.getState().result;
+    const ownsSession = () =>
+      this.controller === controller && this.openSession === session && this.open && this.isConnected;
+    const ok = await controller.submit();
+    if (ok && ownsSession()) {
+      const result = controller.getState().result;
       this.dispatchEvent(
         new CustomEvent("submitted", { bubbles: true, composed: true, detail: { result } }),
       );
-      this.open = false;
+      // A submitted listener can synchronously open a replacement session.
+      if (ownsSession()) {
+        this.open = false;
+      }
     }
   }
 
