@@ -112,3 +112,26 @@ describe("DatalistItem", () => {
     });
   });
 });
+
+describe("DatalistItem real slotted content", () => {
+  afterEach(() => { document.body.innerHTML = ""; });
+  const flush = (): Promise<void> => new Promise(resolve => setTimeout(resolve, 0));
+  it("ignores formatting whitespace/comments and restores fallback for a changed direct text node", async () => {
+    const el = new DatalistItem(); el.label = "Invoice.pdf"; el.meta = "PDF";
+    const text = document.createTextNode("\n \t "); el.append(text, document.createComment("formatted")); document.body.append(el); await flush();
+    const body = el.shadowRoot!.querySelector('[part="body"]')!, slot = el.shadowRoot!.querySelector('[part="content"]')!;
+    expect(body.classList.contains("has-slotted")).toBe(false); expect(slot.classList.contains("has-content")).toBe(false);
+    text.data = "Current authored content"; await flush(); expect(body.classList.contains("has-slotted")).toBe(true);
+    text.data = "\n   "; await flush(); expect(body.classList.contains("has-slotted")).toBe(false);
+    expect(el.shadowRoot!.querySelector('[part="label"]')?.textContent).toBe("Invoice.pdf");
+  });
+  it("retains actual host elements and reconnects observation using current content", async () => {
+    const el = new DatalistItem(); el.label = "Fallback"; const custom = document.createElement("span"); custom.textContent = "Custom"; el.append(custom); document.body.append(el); await flush();
+    expect(el.shadowRoot!.querySelector('[part="body"]')?.classList.contains("has-slotted")).toBe(true);
+    el.remove(); custom.remove(); const text = document.createTextNode("   "); el.append(text); document.body.append(el); await flush();
+    expect(el.shadowRoot!.querySelector('[part="body"]')?.classList.contains("has-slotted")).toBe(false);
+    text.data = "Reconnect current"; await flush(); expect(el.shadowRoot!.querySelector('[part="body"]')?.classList.contains("has-slotted")).toBe(true);
+    const selected = vi.fn(); el.addEventListener("select", selected); (el.shadowRoot!.querySelector('[part="item"]') as HTMLElement).click();
+    expect(selected).toHaveBeenCalledTimes(1); expect(selected.mock.calls[0][0].detail.value).toBe("Fallback");
+  });
+});

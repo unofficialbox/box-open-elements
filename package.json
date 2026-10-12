@@ -239,7 +239,8 @@
     "bue-conformance:webapp": "bun tools/bue-conformance/webapp-audit.ts",
     "storybook:extract": "bun storybook/extract.ts",
     "storybook:dev": "bun run build && bun storybook/server.ts",
-    "storybook:build": "bun run build && bun storybook/build.ts"
+    "storybook:build": "bun run build && bun storybook/build.ts",
+    "frameworks:angular:compatibility": "bun tools/adapters/angular-compatibility/run.ts"
   },
   "devDependencies": {
     "@angular/compiler": "20.3.27",

@@ -9,7 +9,17 @@ const field: TextField = document.createElement("box-text-field");
 
 path.stages = [{ id: "draft", label: "Draft" }];
 path.hasError = true;
-table.rows = [{ id: "row-1", cells: { name: "Contract" } }];
+table.columns = [{ key: "name", label: "Name", rowHeader: true, hostContent: true }];
+table.rows = [{ id: "row-1", current: true, cells: { name: "Contract" }, actions: [{ key: "view", label: "View", disabled: false }] }];
+table.addEventListener("row-action", event => {
+  const rowId: string = event.detail.rowId;
+  const action: string = event.detail.action;
+  const current: boolean | undefined = event.detail.row.current;
+  void [rowId, action, current];
+  // @ts-expect-error action identity is a string
+  const invalid: number = event.detail.action;
+  void invalid;
+});
 
 table.addEventListener("selection-changed", event => {
   const selectedIds: string[] = event.detail.selectedIds;
@@ -37,7 +47,9 @@ document.createElement("box-toast").addEventListener("dismiss", event => {
 
 const view = <>
   <box-path stages={[{ id: "draft", label: "Draft" }]} hasError={true} />
-  <box-table stackedLayout="grid" rows={[{ id: "row-1", cells: { name: "Contract" } }]}
+  <box-table stackedLayout="grid" columns={[{ key: "name", label: "Name", hostContent: true }]}
+    rows={[{ id: "row-1", current: true, cells: { name: "Contract" }, actions: [{ key: "view", label: "View" }] }]}
+    onrow-action={event => { const id: string = event.detail.rowId; void id; }}
     onselection-changed={event => { const ids: string[] = event.detail.selectedIds; void ids; }} />
   <box-resource-row selected={true} />
   <box-alert open={true} />
