@@ -15,6 +15,15 @@ are kept as written.
 
 ## Unreleased
 
+## 0.41.0 — 2026-10-12
+
+- Add Table host cells, per-row actions, and current-record semantics, with keyed virtual-window focus and current action payloads (#555, #559, #568).
+- Add Fieldset hidden labels and literal label casing, plus readonly text controls and public text selection methods (#566). Preserve authoritative focused values, IME commits, native disabled groups, captured reset seeds, accessible labels, and eligible keyboard navigation (#541, #546, #551, #552, #554, #556, #558).
+- Preserve host click vetoes before Button submit/reset actions, fence detached activations, retain shared Dialog scroll locks, and reject forbidden LinkButton URL schemes with leading C0 controls (#560, #561, #569).
+- Keep controller subscriptions, asynchronous completions, controlled sessions, overlay state, and framework event routes scoped to their current owners. Verify Angular output contracts at the supported 20.0.0 and 20.3.27 endpoints (#540, #542, #544, #545, #547, #557, #562, #564).
+- Retain focused keyed controls and current metadata through collection, chart, inspector, and output refreshes. Normalize invalid numeric geometry, preserve native labels and copying, and keep host-authored names, raw Accordion values, and navigation state (#543, #548, #549, #550, #553, #563, #565, #567, #568, #571).
+- Preserve Carousel dots and native editing keys, make every DraggableList row reachable by Tab, and keep DatalistItem fallback content visible through whitespace and lifecycle changes (#570).
+
 ## 0.40.1 — 2026-10-11
 
 - Process Modeler keeps host-authored canvas descriptions while omitting details purposes that repeat text already contained in the selected kind summary. Distinct purposes stay visible; controlled description/catalog echoes reconcile without rebuilding the host editor (#534, follow-up to #531).
