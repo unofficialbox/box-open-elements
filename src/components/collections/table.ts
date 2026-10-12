@@ -19,6 +19,9 @@ export interface TableColumn {
   group?: string;
   /** Host-owned `cell-<rowId>-<key>` content with the descriptor as fallback. */
   hostContent?: boolean;
+  /** Compact stacked rows only: unlabeled summary or explicitly omitted cell.
+   * Omitted means a concise labeled field. Row headers always remain visible. */
+  compact?: "summary" | "hidden";
 }
 
 export type TableCellTone = "neutral" | "brand" | "success" | "warning" | "error";
@@ -74,7 +77,7 @@ export interface TableRowActionDetail {
   row: TableRow;
 }
 
-export type TableStackedLayout = "list" | "grid";
+export type TableStackedLayout = "list" | "grid" | "compact";
 
 export type TableSelectionMode = "none" | "single" | "multiple";
 
@@ -449,6 +452,35 @@ const tableStyles = `
   ${scope} [part="expander-cell"] { display: block; grid-column: 1 / -1; padding: 0; }
   ${scope} tr[part="row"] > [part="actions-cell"] { display: block; grid-column: 1 / -1; padding: 0; }
 `;
+    const scanRules = (scope: string): string => `
+  ${scope} tr[part="row"] { padding: 0.6rem 0; }
+  ${scope} tr[part="row"] > :is(td, th) {
+    display: block;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+    padding-block: 0.12rem;
+  }
+  ${scope} tr[part="row"] > :is(td, th)::before { content: none; }
+  ${scope} [part="stacked-label"] {
+    display: inline;
+    font-size: inherit;
+    font-weight: 400;
+    color: var(--boe-token-text-text-secondary, #6f6f6f);
+  }
+  ${scope} tr[part="row"] > th[scope="row"] { font-weight: 700; }
+  ${scope} tr[part="row"] > :is(th[scope="row"], [data-compact="summary"], [part="actions-cell"]) > [part="stacked-label"] {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  ${scope} tr[part="row"] > [data-compact="hidden"] { display: none; }
+  ${scope} tr[part="row"] > [part="actions-cell"][data-empty] { display: none; }
+  ${scope} [part="row-actions"] { margin-block-start: 0.15rem; }
+  ${scope} [part="row-action"] { max-inline-size: 100%; overflow-wrap: anywhere; }
+`;
     return `
   [part="stacked-group"], [part="stacked-label"] { display: none; }
   [part="stacked-field"], [part="stacked-value"] { display: contents; }
@@ -456,8 +488,10 @@ const tableStyles = `
   @container (max-width: 560px) {
     ${rules(':host([stacked="auto"])')}
     ${compactRules(':host([stacked="auto"][stacked-layout="grid"])')}
+    ${scanRules(':host([stacked="auto"][stacked-layout="compact"])')}
   }
   ${compactRules(':host([stacked]:not([stacked="auto"])[stacked-layout="grid"])')}
+  ${scanRules(':host([stacked]:not([stacked="auto"])[stacked-layout="compact"])')}
   @container (max-width: 340px) {
     :host([stacked="auto"][stacked-layout="grid"]) tr[part="row"],
     :host([stacked]:not([stacked="auto"])[stacked-layout="grid"]) tr[part="row"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -636,7 +670,8 @@ export class Table extends BaseElement {
 
   /** Opt-in compact cards; the existing label/value list remains the default. */
   get stackedLayout(): TableStackedLayout {
-    return this.getAttribute("stacked-layout") === "grid" ? "grid" : "list";
+    const layout = this.getAttribute("stacked-layout");
+    return layout === "grid" || layout === "compact" ? layout : "list";
   }
 
   set stackedLayout(value: TableStackedLayout) {
@@ -1162,7 +1197,7 @@ export class Table extends BaseElement {
     // windows; `renderedWindow` returns null so a host can see that it didn't.
     // Compact cards can wrap to unequal heights. Keep the fixed-height window
     // contract honest across container changes rather than guessing spacers.
-    const compactStacked = this.stackedLayout === "grid" && this.hasAttribute("stacked");
+    const compactStacked = this.stackedLayout !== "list" && this.hasAttribute("stacked");
     // Host controls and wrapped action groups can change height independently
     // of the first measured row. The fixed-height window cannot describe them.
     const virtualizing = this.virtualize && !expandable && !compactStacked && !hasActions && !columns.some(column => column.hostContent === true);
@@ -1212,6 +1247,13 @@ export class Table extends BaseElement {
             const label = typeof column.group === "string" && column.group
               ? `${column.group} — ${column.label}`
               : column.label;
+            if (this.stackedLayout === "compact") {
+              // Only explicit, validated consumer choices omit content. A row
+              // header remains visible so the record keeps its identity.
+              const presentation = !rowHeader && (column.compact === "summary" || column.compact === "hidden")
+                ? ` data-compact="${column.compact}"` : "";
+              return `<${tag}${align}${semantics}${presentation} data-label="${escapeHtml(label)}"><span part="stacked-label">${escapeHtml(label)}: </span><span part="stacked-value">${content}</span></${tag}>`;
+            }
             if (this.stackedLayout !== "grid") {
               return `<${tag}${align}${semantics} data-label="${escapeHtml(label)}">${content}</${tag}>`;
             }
@@ -1230,7 +1272,7 @@ export class Table extends BaseElement {
         const nameValue = nameColumn ? this.cellValue(row, nameColumn, columns.indexOf(nameColumn)) : "";
         const rowName = (isCellDescriptor(nameValue) ? nameValue.text : nameValue) || row.id;
         const actionsCell = hasActions
-          ? `<td${cellRole} part="actions-cell" data-label="Actions"><span part="stacked-label">Actions</span><span part="row-actions">${this.actionsFor(row).map(action =>
+          ? `<td${cellRole} part="actions-cell"${this.actionsFor(row).length === 0 ? " data-empty" : ""} data-label="Actions"><span part="stacked-label">Actions</span><span part="row-actions">${this.actionsFor(row).map(action =>
             `<button type="button" part="row-action" data-row-id="${escapeHtml(row.id)}" data-action-key="${escapeHtml(action.key)}" aria-label="${escapeHtml(typeof action.ariaLabel === "string" ? action.ariaLabel : `${action.label} for ${rowName}`)}"${action.disabled ? " disabled" : ""}>${escapeHtml(action.label)}</button>`,
           ).join("")}</span></td>` : "";
         const rowMarkup = `<tr${rowAttrs} data-index="${index}" data-id="${escapeHtml(row.id)}">${expanderCell}${cells}${actionsCell}</tr>`;
