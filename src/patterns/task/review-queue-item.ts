@@ -1,3 +1,4 @@
+import { syncKeyedChildren, actionButton } from "../internal/keyed-children.js";
 import { BaseElement } from "../../core/index.js";
 import { boePanel } from "../../foundations/geometry/index.js";
 import {
@@ -368,111 +369,32 @@ export class ReviewQueueItem extends BaseElement {
   }
 
   protected renderTemplate(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
+    this.shadowRoot!.innerHTML = `<style>${elementStyles}[hidden]{display:none!important}</style>
+      <div part="content-host"><article part="item"><button type="button" part="select"></button>
+      <div part="body"><div part="assignee" hidden></div><div part="metrics" hidden></div><div part="actions" hidden></div></div></article></div>`;
+  }
 
-    this.shadowRoot.innerHTML = `
-      <style>${elementStyles}</style>
-      <div part="content-host"></div>
-    `;
+  protected setupListeners(): void {
+    this.shadowRoot!.querySelector('[part="select"]')!.addEventListener("click", () => this.emitSelected());
+    const actions = this.shadowRoot!.querySelector('[part="actions"]')!;
+    actions.addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button");
+      if (button?.dataset.actionId && actions.contains(button)) { event.stopPropagation(); this.emitAction(button.dataset.actionId); }
+    });
   }
 
   protected update(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const assignee = this.assignee;
-    const itemMarkup = this.itemLabel ? `<div part="item-label">${escapeHtml(this.itemLabel)}</div>` : "";
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const statusMarkup = this.status ? `<span part="status">${escapeHtml(this.status)}</span>` : "";
-    const priorityMarkup = this.priority ? `<span part="priority">${escapeHtml(this.priority)}</span>` : "";
-    const dueDateMarkup = this.dueDate ? `<span part="due-date">Due ${escapeHtml(this.dueDate)}</span>` : "";
-    const assigneeMarkup = assignee
-      ? `
-          <div part="assignee">
-            <span part="assignee-avatar">${escapeHtml(assignee.initials ?? assignee.name.slice(0, 2).toUpperCase())}</span>
-            <span part="assignee-meta">
-              <span part="assignee-name">${escapeHtml(assignee.name)}</span>
-              ${assignee.role ? `<span part="assignee-role">${escapeHtml(assignee.role)}</span>` : ""}
-            </span>
-          </div>
-        `
-      : "";
-    const metricsMarkup = this.metrics.length
-      ? `
-          <div part="metrics">
-            ${this.metrics
-              .map(
-                metric => `
-                  <div part="metric">
-                    <span part="metric-label">${escapeHtml(metric.label)}</span>
-                    <span part="metric-value">${escapeHtml(metric.value)}</span>
-                  </div>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    const host = this.shadowRoot.querySelector('[part="content-host"]');
-    if (!host) {
-      return;
-    }
-
-    host.innerHTML = `
-      <article part="item">
-        <button type="button" part="select" aria-label="Open ${escapeHtml(this.heading)} review item">
-          <header part="header">
-            <div part="title-row">
-              <div part="title">${escapeHtml(this.heading)}</div>
-              ${statusMarkup}
-              ${priorityMarkup}
-            </div>
-            ${itemMarkup}
-            ${messageMarkup}
-            <div part="meta">${dueDateMarkup}</div>
-          </header>
-        </button>
-        <div part="body">
-          ${assigneeMarkup}
-          ${metricsMarkup}
-          ${actionsMarkup}
-        </div>
-      </article>
-    `;
-
-    this.shadowRoot.querySelector('[part="select"]')?.addEventListener("click", () => {
-      this.emitSelected();
-    });
-
-    this.shadowRoot.querySelectorAll<HTMLButtonElement>('[part="action"]').forEach(button => {
-      button.addEventListener("click", event => {
-        event.stopPropagation();
-        const actionId = button.dataset.actionId;
-        if (actionId) {
-          this.emitAction(actionId);
-        }
-      });
-    });
-  
+    if (!this.isRendered) return;
+    const root = this.shadowRoot!;
+    const select = root.querySelector('[part="select"]')!;
+    select.setAttribute("aria-label", `Open ${this.heading} review item`);
+    select.innerHTML = `<header part="header"><div part="title-row"><div part="title">${escapeHtml(this.heading)}</div>${this.status ? `<span part="status">${escapeHtml(this.status)}</span>` : ""}${this.priority ? `<span part="priority">${escapeHtml(this.priority)}</span>` : ""}</div>${this.itemLabel ? `<div part="item-label">${escapeHtml(this.itemLabel)}</div>` : ""}${this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : ""}<div part="meta">${this.dueDate ? `<span part="due-date">Due ${escapeHtml(this.dueDate)}</span>` : ""}</div></header>`;
+    const assignee = root.querySelector<HTMLElement>('[part="assignee"]')!; const person = this.assignee; assignee.hidden = !person;
+    assignee.innerHTML = person ? `<span part="assignee-avatar">${escapeHtml(person.initials ?? person.name.slice(0, 2).toUpperCase())}</span><span part="assignee-meta"><span part="assignee-name">${escapeHtml(person.name)}</span>${person.role ? `<span part="assignee-role">${escapeHtml(person.role)}</span>` : ""}</span>` : "";
+    const metrics = root.querySelector<HTMLElement>('[part="metrics"]')!; metrics.hidden = !this.metrics.length;
+    metrics.innerHTML = this.metrics.map(metric => `<div part="metric"><span part="metric-label">${escapeHtml(metric.label)}</span><span part="metric-value">${escapeHtml(metric.value)}</span></div>`).join("");
+    const actions = root.querySelector<HTMLElement>('[part="actions"]')!; actions.hidden = !this.actions.length;
+    syncKeyedChildren(actions, this.actions, action => action.id, () => actionButton("action"), (button, action) => { button.dataset.actionId = action.id; button.dataset.tone = action.tone ?? "neutral"; button.textContent = action.label; });
   }
 }
 

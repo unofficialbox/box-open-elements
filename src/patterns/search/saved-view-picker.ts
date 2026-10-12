@@ -1,5 +1,6 @@
+import { syncKeyedChildren, actionButton } from "../internal/keyed-children.js";
 import { BaseElement } from "../../core/index.js";
-import { applyRovingTabindex, handleRovingKeydown } from "../../foundations/a11y/index.js";
+import { applyRovingTabindex, nextRovingIndex } from "../../foundations/a11y/index.js";
 import { boeNeutralInteractiveStyles } from "../../foundations/tokens/interaction.js";
 import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
 
@@ -141,14 +142,8 @@ export class SavedViewPicker extends BaseElement {
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-    if (name === "value") {
-      this.valueInternal = this.getAttribute("value") ?? "";
-    
+    if (name === "value") this.valueInternal = newValue ?? "";
     super.attributeChangedCallback(name, oldValue, newValue);
-  }
-    if (this.isRendered) {
-      this.update();
-    }
   }
 
   private parseJsonAttribute<T>(name: string, fallback: T): T {
@@ -175,111 +170,53 @@ export class SavedViewPicker extends BaseElement {
   }
 
   protected renderTemplate(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
+    this.shadowRoot!.innerHTML = `<style>${elementStyles}</style><div part="content-host"><section part="picker" role="radiogroup"><div part="label"></div><div part="views"></div></section></div>`;
+  }
 
-    this.shadowRoot.innerHTML = `
-      <style>${elementStyles}</style>
-      <div part="content-host"></div>
-    `;
+  private selectView(value: string): void {
+    if (!value || value === this.valueInternal) return;
+    this.value = value;
+    this.emitValueChanged();
+  }
+
+  protected setupListeners(): void {
+    const parent = this.shadowRoot!.querySelector<HTMLElement>('[part="views"]')!;
+    parent.addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[part="view"]');
+      if (button && parent.contains(button)) this.selectView(button.dataset.viewId ?? "");
+    });
+    parent.addEventListener("keydown", event => {
+      const keyboard = event as KeyboardEvent;
+      const views = Array.from(parent.querySelectorAll<HTMLButtonElement>('[part="view"]'));
+      // Complete keyboard focus before dispatching to the host; no later focus
+      // restoration may undo a callback's handoff or component teardown.
+      const current = views.indexOf(keyboard.target as HTMLButtonElement);
+      const next = current < 0 ? null : nextRovingIndex(keyboard.key, current, views.length, { orientation: "both" });
+      if (next !== null) {
+        keyboard.preventDefault(); applyRovingTabindex(views, next); views[next]?.focus();
+        this.selectView(views[next]?.dataset.viewId ?? "");
+      } else if (keyboard.key === "Enter" || keyboard.key === " ") {
+        const button = (keyboard.target as HTMLElement).closest<HTMLButtonElement>('[part="view"]');
+        if (button && parent.contains(button)) { keyboard.preventDefault(); this.selectView(button.dataset.viewId ?? ""); }
+      }
+    });
   }
 
   protected update(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const host = this.shadowRoot.querySelector('[part="content-host"]');
-    if (!host) {
-      return;
-    }
-
-    host.innerHTML = `
-      <section part="picker" role="radiogroup" aria-label="${escapeHtml(this.label)}">
-        <div part="label">${escapeHtml(this.label)}</div>
-        <div part="views">
-          ${this.views
-            .map(
-              view => `
-                <button
-                  type="button"
-                  part="view"
-                  role="radio"
-                  aria-checked="${String(this.value === view.id)}"
-                  data-view-id="${escapeHtml(view.id)}"
-                  data-selected="${String(this.value === view.id)}"
-                >
-                  <div part="view-label">${escapeHtml(view.label)}</div>
-                  ${view.description ? `<div part="view-description">${escapeHtml(view.description)}</div>` : ""}
-                  ${typeof view.resultCount === "number" ? `<div part="view-count">${escapeHtml(`${view.resultCount} results`)}</div>` : ""}
-                </button>
-              `,
-            )
-            .join("")}
-        </div>
-      </section>
-    `;
-
-    const views = Array.from(this.shadowRoot.querySelectorAll<HTMLButtonElement>('[part="view"]'));
-    const selectedIndex = Math.max(
-      0,
-      views.findIndex(button => button.getAttribute("data-view-id") === this.valueInternal),
-    );
-    applyRovingTabindex(views, selectedIndex);
-
-    const focusView = (viewId: string): void => {
-      queueMicrotask(() => {
-        const match = Array.from(
-          this.shadowRoot?.querySelectorAll<HTMLButtonElement>('[part="view"]') ?? [],
-        ).find(button => button.getAttribute("data-view-id") === viewId);
-        match?.focus();
-      });
-    };
-
-    const selectView = (nextValue: string, restoreFocus = false): void => {
-      if (!nextValue || nextValue === this.valueInternal) {
-        if (restoreFocus) {
-          focusView(nextValue);
-        }
-        return;
-      }
-      this.valueInternal = nextValue;
-      this.setAttribute("value", nextValue);
-      this.emitValueChanged();
-      // `update()` rebuilds the view buttons; restore focus onto the new node.
-      if (restoreFocus) {
-        focusView(nextValue);
-      }
-    };
-
-    views.forEach(button => {
-      button.addEventListener("click", () => {
-        selectView(button.getAttribute("data-view-id") ?? "");
-      });
+    if (!this.isRendered) return;
+    const root = this.shadowRoot!;
+    root.querySelector('[part="picker"]')!.setAttribute("aria-label", this.label);
+    root.querySelector('[part="label"]')!.textContent = this.label;
+    const parent = root.querySelector<HTMLElement>('[part="views"]')!;
+    syncKeyedChildren(parent, this.views, view => view.id, () => {
+      const button = actionButton("view"); button.setAttribute("role", "radio"); return button;
+    }, (button, view) => {
+      button.dataset.viewId = view.id; button.dataset.selected = String(this.value === view.id);
+      button.setAttribute("aria-checked", String(this.value === view.id));
+      button.innerHTML = `<div part="view-label">${escapeHtml(view.label)}</div>${view.description ? `<div part="view-description">${escapeHtml(view.description)}</div>` : ""}${typeof view.resultCount === "number" ? `<div part="view-count">${escapeHtml(`${view.resultCount} results`)}</div>` : ""}`;
     });
-
-    this.shadowRoot.querySelector('[part="views"]')?.addEventListener("keydown", event => {
-      const keyboardEvent = event as KeyboardEvent;
-      // APG radiogroup: Arrow/Home/End move focus and select the newly focused view.
-      if (handleRovingKeydown(keyboardEvent, views, { orientation: "both" })) {
-        const focused = views.find(button => button.tabIndex === 0);
-        selectView(focused?.getAttribute("data-view-id") ?? "", true);
-        return;
-      }
-
-      if (keyboardEvent.key !== "Enter" && keyboardEvent.key !== " ") {
-        return;
-      }
-      const button = (keyboardEvent.target as HTMLElement).closest(
-        '[part="view"]',
-      ) as HTMLButtonElement | null;
-      if (!button) {
-        return;
-      }
-      keyboardEvent.preventDefault();
-      selectView(button.getAttribute("data-view-id") ?? "", true);
-    });
+    const views = Array.from(parent.querySelectorAll<HTMLButtonElement>('[part="view"]'));
+    applyRovingTabindex(views, Math.max(0, views.findIndex(button => button.dataset.viewId === this.valueInternal)));
   }
 }
 

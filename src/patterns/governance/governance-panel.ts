@@ -1,3 +1,4 @@
+import { syncKeyedChildren, actionButton } from "../internal/keyed-children.js";
 import { BaseElement } from "../../core/index.js";
 import { boePanel } from "../../foundations/geometry/index.js";
 import {
@@ -298,121 +299,37 @@ export class GovernancePanel extends BaseElement {
   }
 
   protected renderTemplate(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
+    this.shadowRoot!.innerHTML = `<style>${elementStyles}[hidden]{display:none!important}</style>
+      <div part="content-host"><section part="panel"><header part="header"><div part="title-row"><h2 part="title"></h2><span part="status" hidden></span></div><div part="message" hidden></div><div part="signals" hidden></div></header>
+      <section part="policies" hidden><div part="section-title">Policy Summary</div><div part="policy-list"></div></section><div part="actions" hidden></div></section></div>`;
+  }
 
-    this.shadowRoot.innerHTML = `
-      <style>${elementStyles}</style>
-      <div part="content-host"></div>
-    `;
+  protected setupListeners(): void {
+    this.shadowRoot!.querySelector('[part="content-host"]')!.addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button");
+      if (!button) return;
+      if (button.getAttribute("part") === "action" && button.dataset.actionId) this.emitAction(button.dataset.actionId);
+      if (button.getAttribute("part") === "policy") this.emitPolicySelected({ label: button.dataset.policyLabel ?? "", value: button.dataset.policyValue ?? "", description: button.dataset.policyDescription || undefined, tone: button.dataset.policyTone || undefined });
+    });
   }
 
   protected update(): void {
-    if (!this.shadowRoot) {
-      return;
+    if (!this.isRendered) return;
+    const root = this.shadowRoot!;
+    root.querySelector('[part="title"]')!.textContent = this.heading;
+    for (const [part, value] of [["status", this.status], ["message", this.message]]) {
+      const element = root.querySelector<HTMLElement>(`[part="${part}"]`)!; element.textContent = value; element.hidden = !value;
     }
-
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const statusMarkup = this.status ? `<span part="status">${escapeHtml(this.status)}</span>` : "";
-    const signalsMarkup = this.signals.length
-      ? `
-          <div part="signals">
-            ${this.signals
-              .map(
-                signal => `
-                  <span part="signal" data-tone="${escapeHtml(signal.tone ?? "neutral")}">${escapeHtml(signal.label)}</span>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-    const policiesMarkup = this.policies.length
-      ? `
-          <section part="policies">
-            <div part="section-title">Policy Summary</div>
-            <div part="policy-list">
-              ${this.policies
-                .map(
-                  policy => `
-                    <button
-                      type="button"
-                      part="policy"
-                      data-policy-label="${escapeHtml(policy.label)}"
-                      data-policy-value="${escapeHtml(policy.value)}"
-                      data-policy-description="${escapeHtml(policy.description ?? "")}"
-                      data-policy-tone="${escapeHtml(policy.tone ?? "neutral")}"
-                    >
-                      <span part="policy-header">
-                        <span part="policy-label">${escapeHtml(policy.label)}</span>
-                        <span part="policy-value" data-tone="${escapeHtml(policy.tone ?? "neutral")}">${escapeHtml(policy.value)}</span>
-                      </span>
-                      ${policy.description ? `<span part="policy-description">${escapeHtml(policy.description)}</span>` : ""}
-                    </button>
-                  `,
-                )
-                .join("")}
-            </div>
-          </section>
-        `
-      : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    const host = this.shadowRoot.querySelector('[part="content-host"]');
-    if (!host) {
-      return;
-    }
-
-    host.innerHTML = `
-      <section part="panel">
-        <header part="header">
-          <div part="title-row">
-            <h2 part="title">${escapeHtml(this.heading)}</h2>
-            ${statusMarkup}
-          </div>
-          ${messageMarkup}
-          ${signalsMarkup}
-        </header>
-        ${policiesMarkup}
-        ${actionsMarkup}
-      </section>
-    `;
-
-    this.shadowRoot.querySelectorAll<HTMLButtonElement>('[part="action"]').forEach(button => {
-      button.addEventListener("click", () => {
-        const actionId = button.dataset.actionId;
-        if (actionId) {
-          this.emitAction(actionId);
-        }
-      });
+    const signals = root.querySelector<HTMLElement>('[part="signals"]')!; signals.hidden = !this.signals.length;
+    signals.innerHTML = this.signals.map(signal => `<span part="signal" data-tone="${escapeHtml(signal.tone ?? "neutral")}">${escapeHtml(signal.label)}</span>`).join("");
+    root.querySelector<HTMLElement>('[part="policies"]')!.hidden = !this.policies.length;
+    syncKeyedChildren(root.querySelector<HTMLElement>('[part="policy-list"]')!, this.policies, policy => policy.label, () => actionButton("policy"), (button, policy) => {
+      button.dataset.policyLabel = policy.label; button.dataset.policyValue = policy.value;
+      button.dataset.policyDescription = policy.description ?? ""; button.dataset.policyTone = policy.tone ?? "neutral";
+      button.innerHTML = `<span part="policy-header"><span part="policy-label">${escapeHtml(policy.label)}</span><span part="policy-value" data-tone="${escapeHtml(policy.tone ?? "neutral")}">${escapeHtml(policy.value)}</span></span>${policy.description ? `<span part="policy-description">${escapeHtml(policy.description)}</span>` : ""}`;
     });
-
-    this.shadowRoot.querySelectorAll<HTMLButtonElement>('[part="policy"]').forEach(button => {
-      button.addEventListener("click", () => {
-        this.emitPolicySelected({
-          label: button.dataset.policyLabel ?? "",
-          value: button.dataset.policyValue ?? "",
-          description: button.dataset.policyDescription || undefined,
-          tone: button.dataset.policyTone || undefined,
-        });
-      });
-    });
-  
+    const actions = root.querySelector<HTMLElement>('[part="actions"]')!; actions.hidden = !this.actions.length;
+    syncKeyedChildren(actions, this.actions, action => action.id, () => actionButton("action"), (button, action) => { button.dataset.actionId = action.id; button.dataset.tone = action.tone ?? "neutral"; button.textContent = action.label; });
   }
 }
 
