@@ -298,7 +298,6 @@ export class TreeGrid extends BaseElement {
 
   set items(value: BoxTreeGridItem[]) {
     this.setAttribute("items", JSON.stringify(value));
-    this.seedExpandedState(value);
   }
 
   get label(): string {
@@ -322,12 +321,12 @@ export class TreeGrid extends BaseElement {
   }
 
   connectedCallback(): void {
-    this.seedExpandedState(this.items);
+    if (!this.isRendered) this.seedExpandedState(this.items);
     super.connectedCallback();
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-    if (name === "items") {
+    if (name === "items" && oldValue !== newValue) {
       this.seedExpandedState(this.items);
     }
 
