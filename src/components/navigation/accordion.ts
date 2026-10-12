@@ -198,10 +198,12 @@ export class Accordion extends BaseElement {
 
   private renderItemsMarkup(items: BoxAccordionItem[]): string {
     return items
-      .map(item => {
+      .map((item, index) => {
         const isOpen = this.isOpen(item.value);
-        const panelId = `panel-${escapeHtml(item.value)}`;
-        const triggerId = `trigger-${escapeHtml(item.value)}`;
+        // IDs are internal to this shadow root; authored values and slot names
+        // remain literal while generated IDREFs stay unique single tokens.
+        const panelId = `panel-${index}`;
+        const triggerId = `trigger-${index}`;
 
         return `
           <section part="item" data-open="${String(isOpen)}" data-value="${escapeHtml(item.value)}">

@@ -200,7 +200,7 @@ export class ContactDatalistItem extends BaseElement {
   }
 
   get value(): string {
-    return this.getAttribute("value") ?? this.email ?? this.name;
+    return this.getAttribute("value") ?? (this.email || this.name);
   }
 
   set value(value: string) {

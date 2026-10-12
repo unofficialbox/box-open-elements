@@ -219,8 +219,8 @@ export class NavSidebar extends BaseElement {
   /**
    * Collapsing hides `[data-nav-label]`, which is a row's only accessible
    * name. Mirror the label text onto `aria-label`/`title` while collapsed —
-   * marked, so expand removes only what collapse added and a host-authored
-   * name is never touched.
+   * recorded by value, so expand removes only unchanged generated attributes
+   * and preserves newer host-authored names and titles.
    */
   private syncCollapsedRowNames(): void {
     for (const row of Array.from(this.querySelectorAll<HTMLElement>("a, button"))) {
@@ -231,19 +231,23 @@ export class NavSidebar extends BaseElement {
         }
         if (!row.hasAttribute("aria-label")) {
           row.setAttribute("aria-label", label);
-          row.setAttribute("data-boe-managed-name", "");
+          row.setAttribute("data-boe-managed-name", label);
         }
         if (!row.hasAttribute("title")) {
           row.setAttribute("title", label);
-          row.setAttribute("data-boe-managed-title", "");
+          row.setAttribute("data-boe-managed-title", label);
         }
       } else {
         if (row.hasAttribute("data-boe-managed-name")) {
-          row.removeAttribute("aria-label");
+          if (row.getAttribute("aria-label") === row.getAttribute("data-boe-managed-name")) {
+            row.removeAttribute("aria-label");
+          }
           row.removeAttribute("data-boe-managed-name");
         }
         if (row.hasAttribute("data-boe-managed-title")) {
-          row.removeAttribute("title");
+          if (row.getAttribute("title") === row.getAttribute("data-boe-managed-title")) {
+            row.removeAttribute("title");
+          }
           row.removeAttribute("data-boe-managed-title");
         }
       }
