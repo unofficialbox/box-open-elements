@@ -295,3 +295,57 @@ it("applies genuinely different writes from the original composed input callback
   expect(e.value).toBe(7);
   expect(getMirroredFormValue(e.internals)).toBe("7");
 });
+
+describe("native capture-phase host policy", () => {
+  for (const write of ["property", "attribute"]) {
+    it(`treats same pre-edit public ${write} writes in capture as authoritative`, () => {
+      const e = document.createElement("box-number-input") as Field;
+      e.value = 1;
+      document.body.append(e);
+      const c = control(e);
+      c.focus();
+      const before: Array<[string | number, string]> = [];
+      e.addEventListener("input", () => {
+        before.push([e.value, c.value]);
+        if (write === "property") e.value = e.value;
+        else e.setAttribute("value", String(e.value));
+      }, { capture: true });
+      c.value = "2.00";
+      c.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
+      expect(before).toEqual([[1, "2.00"]]);
+      expect(c.value).toBe("1");
+      expect(e.value).toBe(1);
+      expect(getMirroredFormValue(e.internals)).toBe("1");
+    });
+  }
+  it("preserves genuinely different authoritative capture-phase writes", () => {
+    const e = document.createElement("box-number-input") as Field;
+    e.value = 1;
+    document.body.append(e);
+    const c = control(e);
+    c.focus();
+    e.addEventListener("input", () => { e.value = 7; }, { capture: true });
+    c.value = "2.00";
+    c.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
+    expect(c.value).toBe("7");
+    expect(e.value).toBe(7);
+    expect(getMirroredFormValue(e.internals)).toBe("7");
+  });
+  it("preserves post-handler echoes while capture only observes pre-edit state", () => {
+    const e = document.createElement("box-number-input") as Field;
+    e.value = 1;
+    document.body.append(e);
+    const c = control(e);
+    c.focus();
+    const seen: Array<[string, string | number]> = [];
+    e.addEventListener("input", () => { seen.push(["capture", e.value]); }, { capture: true });
+    e.addEventListener("value-changed", () => { seen.push(["custom", e.value]); e.value = e.value; });
+    e.addEventListener("input", () => { seen.push(["bubble", e.value]); e.value = e.value; });
+    c.value = "2.00";
+    c.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
+    expect(seen).toEqual([["capture", 1], ["custom", 2], ["bubble", 2]]);
+    expect(c.value).toBe("2.00");
+    expect(e.value).toBe(2);
+    expect(getMirroredFormValue(e.internals)).toBe("2");
+  });
+});
