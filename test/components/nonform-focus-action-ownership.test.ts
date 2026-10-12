@@ -124,3 +124,72 @@ describe.each(["donut", "trace"] as const)("state-only activation retains %s con
     if (element instanceof RunTrace) expect(element.querySelector<HTMLInputElement>("input")!.value).toBe("Host draft");
   });
 });
+
+describe("Toolbar review regressions: native commands and inherited eligibility", () => {
+  it.each(["button", "submit", "reset", "image"].flatMap(type => ["ArrowRight", "End"].map(key => ({ type, key }))))("roves from input command $type with $key", async ({ type, key: value }) => {
+    const element = new Toolbar(); element.innerHTML = `<input type="${type}" value="One"><button>Two</button>`; document.body.append(element); await flush();
+    const first = element.querySelector<HTMLInputElement>("input")!; const last = element.querySelector<HTMLButtonElement>("button")!; first.focus(); key(first, value); await flush();
+    expect(document.activeElement).toBe(last); expect(last.tabIndex).toBe(0);
+  });
+
+  it.each(["text", "search", "number", "range"].flatMap(type => ["Home", "End", "ArrowRight"].map(key => ({ type, key }))))("leaves editing input $type key $key to the native control", async ({ type, key: value }) => {
+    const element = new Toolbar(); element.innerHTML = `<input type="${type}" value="5"><button>Next</button>`; document.body.append(element); await flush();
+    const input = element.querySelector<HTMLInputElement>("input")!; input.focus();
+    const event = new KeyboardEvent("keydown", { key: value, bubbles: true, composed: true, cancelable: true }); input.dispatchEvent(event); await flush();
+    expect(event.defaultPrevented).toBe(false); expect(document.activeElement).toBe(input);
+  });
+
+  it.each(["textarea", "select", "contenteditable"])("leaves %s editing/navigation keys native", async type => {
+    const element = new Toolbar(); element.innerHTML = type === "contenteditable" ? '<div contenteditable="true" tabindex="0">Draft</div><button>Next</button>' : `<${type}>${type === "select" ? '<option>First</option><option>Second</option>' : 'Draft'}</${type}><button>Next</button>`; document.body.append(element); await flush();
+    const editor = element.firstElementChild as HTMLElement; editor.focus();
+    for (const value of ["Home", "End", "ArrowRight"]) {
+      const event = new KeyboardEvent("keydown", { key: value, bubbles: true, composed: true, cancelable: true }); editor.dispatchEvent(event); await flush();
+      expect(event.defaultPrevented).toBe(false); expect(document.activeElement).toBe(editor);
+    }
+  });
+
+  it("excludes CSS-hidden ancestors without requiring layout measurements and observes their changes", async () => {
+    const element = new Toolbar(); element.innerHTML = '<div style="display:none"><button id="hidden-descendant">Hidden</button></div><button id="visible-command">Visible</button>'; document.body.append(element); await flush();
+    const hidden = element.querySelector<HTMLButtonElement>("#hidden-descendant")!; const visible = element.querySelector<HTMLButtonElement>("#visible-command")!;
+    expect(element.controls).toEqual([visible]); expect(hidden.tabIndex).toBe(-1); expect(visible.tabIndex).toBe(0);
+    (element.firstElementChild as HTMLElement).style.display = "block"; await flush(); expect(element.controls).toEqual([hidden, visible]);
+    visible.focus(); key(visible, "Home"); await flush(); expect(document.activeElement).toBe(hidden);
+  });
+
+  it("honors inherited native fieldset disabledness, including its first legend exception", async () => {
+    const element = new Toolbar(); element.innerHTML = '<fieldset disabled><legend><button id="legend-command">Legend</button></legend><button id="fieldset-command">Blocked</button></fieldset><button id="visible-command">Visible</button>'; document.body.append(element); await flush();
+    const legend = element.querySelector<HTMLButtonElement>("#legend-command")!; const blocked = element.querySelector<HTMLButtonElement>("#fieldset-command")!; const visible = element.querySelector<HTMLButtonElement>("#visible-command")!;
+    expect(element.controls).toEqual([legend, visible]); expect(blocked.tabIndex).toBe(-1);
+    legend.remove(); await flush(); expect(element.controls).toEqual([visible]); expect(visible.tabIndex).toBe(0);
+    element.querySelector("fieldset")!.disabled = false; await flush(); expect(element.controls).toEqual([blocked, visible]);
+  });
+
+  it("allows a visible descendant to override inherited CSS visibility", async () => {
+    const element = new Toolbar(); element.innerHTML = '<div style="visibility:hidden"><button style="visibility:visible">Visible override</button></div><button>Last</button>'; document.body.append(element); await flush();
+    expect(element.controls).toHaveLength(2);
+  });
+});
+
+it("ThumbnailCard reserves its action slot for summary, role-link and closed-shadow secondary controls", () => {
+  const element = new ThumbnailCard(); element.interactive = true; element.title = "Report"; element.innerHTML = '<details slot="action"><summary>More</summary><p>Details</p></details><span slot="action" role="link" tabindex="0">Secondary link</span>'; document.body.append(element);
+  const primary = vi.fn(); element.addEventListener("activate", primary);
+  const summary = element.querySelector("summary")!; summary.click(); expect(element.querySelector("details")!.open).toBe(true);
+  const event = new KeyboardEvent("keydown", { key: "Enter", bubbles: true, composed: true, cancelable: true }); summary.dispatchEvent(event); expect(event.defaultPrevented).toBe(false);
+  (element.querySelector('[role="link"]') as HTMLElement).click();
+  let internal!: HTMLButtonElement;
+  const tag = `test-secondary-${Math.random().toString(36).slice(2)}`;
+  customElements.define(tag, class extends HTMLElement { constructor() { super(); internal = document.createElement("button"); internal.textContent = "Closed action"; this.attachShadow({ mode: "closed" }).append(internal); } });
+  const host = document.createElement(tag); host.slot = "action"; element.append(host); internal.click();
+  expect(primary).not.toHaveBeenCalled();
+  (element.shadowRoot!.querySelector('[part="title"]') as HTMLElement).click(); expect(primary).toHaveBeenCalledTimes(1);
+});
+
+it.each(["ArrowLeft", "ArrowRight", "pointer"])("TreeGrid honors an expansion listener's external focus handoff for %s", async action => {
+  const element = new TreeGrid(); element.items = [{ value: "root", label: "Root", children: [{ value: "leaf", label: "Leaf" }] }]; document.body.append(element);
+  if (action === "ArrowRight") (element.shadowRoot!.querySelector('[part~="toggle"]') as HTMLButtonElement).click();
+  const outside = document.createElement("input"); outside.value = "Host draft"; document.body.append(outside);
+  element.addEventListener("expand-changed", () => { outside.focus(); outside.setSelectionRange(1, 4); });
+  const item = element.shadowRoot!.querySelector<HTMLButtonElement>('[part~="item"][data-value="root"]')!; item.focus();
+  if (action === "pointer") (element.shadowRoot!.querySelector('[part~="toggle"]') as HTMLButtonElement).click(); else key(item, action);
+  await flush(); expect(document.activeElement).toBe(outside); expect([outside.selectionStart, outside.selectionEnd]).toEqual([1, 4]);
+});

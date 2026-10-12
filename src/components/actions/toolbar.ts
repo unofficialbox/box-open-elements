@@ -14,6 +14,10 @@ const ORIENTATIONS = new Set(["horizontal", "vertical"]);
  * to carry its own `tabindex`.
  */
 const FOCUSABLE = "button, a[href], input, select, textarea, [tabindex]";
+const EDITING_INPUT_TYPES = new Set([
+  "text", "search", "email", "url", "tel", "password", "number", "range",
+  "date", "datetime-local", "month", "time", "week",
+]);
 
 const toolbarStyles = `
   :host {
@@ -93,9 +97,15 @@ export class Toolbar extends BaseElement {
   /** The controls this toolbar is managing, in document order. */
   get controls(): HTMLElement[] {
     return this.focusableElements().filter(element => {
-      const style = element.ownerDocument.defaultView?.getComputedStyle(element);
-      return !element.hasAttribute("disabled") && element.getAttribute("aria-disabled") !== "true" &&
-        !element.closest("[hidden], [inert]") && style?.display !== "none" && style?.visibility !== "hidden";
+      if (element.matches(":disabled") || element.hasAttribute("disabled") || element.getAttribute("aria-disabled") === "true" || element.closest("[hidden], [inert]")) return false;
+      const view = element.ownerDocument.defaultView;
+      if (view?.getComputedStyle(element).visibility === "hidden") return false;
+      // Ancestor display:none cannot be overridden by a visible child. Read
+      // styles rather than geometry so detached/test controls still work.
+      for (let ancestor: HTMLElement | null = element; ancestor; ancestor = ancestor.parentElement) {
+        if (view?.getComputedStyle(ancestor).display === "none") return false;
+      }
+      return true;
     });
   }
 
@@ -164,7 +174,8 @@ export class Toolbar extends BaseElement {
     this.shadowRoot.querySelector('[part="toolbar"]')?.addEventListener("keydown", event => {
       const target = event.composedPath().find(node => node instanceof HTMLElement) as HTMLElement | undefined;
       // Native editors own their caret/selection keys, even inside a toolbar.
-      if (target?.matches("input, textarea, select") || target?.isContentEditable || target?.closest('[contenteditable]:not([contenteditable="false"])')) return;
+      const editingInput = target?.matches("input") && EDITING_INPUT_TYPES.has((target as HTMLInputElement).type);
+      if (editingInput || target?.matches("textarea, select") || target?.isContentEditable || target?.closest('[contenteditable]:not([contenteditable="false"])')) return;
       handleRovingKeydown(event as KeyboardEvent, this.controls, {
         orientation: this.orientation as "horizontal" | "vertical",
       });

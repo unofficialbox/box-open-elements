@@ -194,7 +194,10 @@ export class ThumbnailCard extends BaseElement {
   }
 
   private ownsActivation(event: Event): boolean {
-    for (const target of event.composedPath()) {
+    const path = event.composedPath();
+    const actionSlot = this.shadowRoot?.querySelector('slot[name="action"]');
+    if (actionSlot && path.includes(actionSlot)) return false;
+    for (const target of path) {
       if (target === this.cardEl) return true;
       if (target instanceof HTMLElement && target.matches("button, a[href], input, select, textarea, [role=button], [contenteditable]")) return false;
     }

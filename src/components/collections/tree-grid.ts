@@ -365,8 +365,8 @@ export class TreeGrid extends BaseElement {
       this.expandedInternal.delete(value);
     }
 
-    this.emitExpandChanged(value, expanded);
     this.update();
+    this.emitExpandChanged(value, expanded);
   }
 
   private expandAll(): void {
@@ -606,9 +606,9 @@ export class TreeGrid extends BaseElement {
         keyboardEvent.preventDefault();
         if (!this.expandedInternal.has(value)) {
           this.expandedInternal.add(value);
-          this.emitExpandChanged(value, true);
           this.focusValue = value;
           this.update();
+          this.emitExpandChanged(value, true);
         }
         return;
       }
@@ -617,9 +617,9 @@ export class TreeGrid extends BaseElement {
         keyboardEvent.preventDefault();
         if (this.expandedInternal.has(value)) {
           this.expandedInternal.delete(value);
-          this.emitExpandChanged(value, false);
           this.focusValue = value;
           this.update();
+          this.emitExpandChanged(value, false);
         }
         return;
       }
