@@ -102,6 +102,17 @@ const tooltipStyles = `
   }
 `;
 
+/** Plain description text from rich content, including authored image names. */
+const descriptionText = (node: Node): string => {
+  if (node instanceof HTMLElement) {
+    if (node.hidden || node.getAttribute("aria-hidden") === "true") return "";
+    const label = node.getAttribute("aria-label");
+    if (label !== null) return label;
+    if (node instanceof HTMLImageElement) return ` ${node.alt} `;
+  }
+  return node.nodeType === Node.TEXT_NODE ? node.textContent ?? "" : Array.from(node.childNodes, descriptionText).join("");
+};
+
 export class Tooltip extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
@@ -120,6 +131,7 @@ export class Tooltip extends BaseElement {
   private describedTrigger: HTMLElement | null = null;
   private describedId: string | null = null;
   private descriptionEl: HTMLElement | null = null;
+  private contentObserver: MutationObserver | null = null;
 
   get label(): string {
     return this.getAttribute("label") ?? "Helpful context";
@@ -229,7 +241,8 @@ export class Tooltip extends BaseElement {
       this.descriptionEl.id = `${this.tooltipId}-description`;
       this.descriptionEl.hidden = true;
     }
-    this.descriptionEl.textContent = this.label;
+    const content = this.shadowRoot!.querySelector<HTMLSlotElement>('slot[name="content"]')!;
+    this.descriptionEl.textContent = [this.label, ...content.assignedNodes({ flatten: true }).map(descriptionText)].join(" ").replace(/\s+/g, " ").trim();
     parent.append(this.descriptionEl);
     return this.descriptionEl.id;
   }
@@ -280,6 +293,7 @@ export class Tooltip extends BaseElement {
         this.hide();
       }
     });
+    this.shadowRoot!.querySelector('slot[name="content"]')!.addEventListener("slotchange", () => this.update());
     this.triggerSlot.addEventListener("slotchange", () => {
       if (this.isRendered) {
         this.update();
@@ -337,7 +351,14 @@ export class Tooltip extends BaseElement {
     this.positionCleanup = null;
   }
 
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.contentObserver ??= new MutationObserver(() => { if (this.openValue) this.update(); });
+    this.contentObserver.observe(this, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["alt", "aria-label", "aria-hidden", "hidden"] });
+  }
+
   disconnectedCallback(): void {
+    this.contentObserver?.disconnect();
     this.clearDescribedBy();
     this.descriptionEl?.remove();
     this.stopTracking();

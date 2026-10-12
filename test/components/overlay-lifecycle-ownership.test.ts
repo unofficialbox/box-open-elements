@@ -95,3 +95,40 @@ describe("AgentWorkspace initial responsive ownership", () => {
     element.panes = { chats: true, details: true }; expect(element.panes).toEqual({ chats: false, details: true });
   });
 });
+
+
+describe("reviewed rich-content and overlapping-drag ownership", () => {
+  it("includes rich slot text in the same-tree description and refreshes it", async () => {
+    const element = new Tooltip(); element.label = "Preview";
+    const trigger = document.createElement("button"); trigger.textContent = "Help";
+    const content = document.createElement("span"); content.slot = "content"; content.innerHTML = "<strong>Retention policy</strong> and <em>details</em>";
+    element.append(trigger, content); document.body.append(element); element.show();
+    const id = trigger.getAttribute("aria-describedby")!;
+    expect(document.getElementById(id)?.textContent).toContain("Retention policy and details");
+    content.textContent = "Updated rich details"; await flush();
+    expect(document.getElementById(id)?.textContent).toContain("Updated rich details");
+    element.remove(); expect(document.getElementById(id)).toBeNull();
+  });
+  it.each(["detach", "pointerup", "pointercancel", "lostpointercapture"].flatMap(reason => ["first", "second"].map(first => [reason, first])))("keeps global drag styles until all drags finish on %s, ending %s first", (reason, first) => {
+    document.body.style.cursor = "crosshair"; document.body.style.userSelect = "text";
+    const a = mountSplit(), b = mountSplit(); pointer(a.separator, "pointerdown", 1); pointer(b.separator, "pointerdown", 2);
+    const ended = first === "first" ? a : b, remaining = first === "first" ? b : a;
+    if (reason === "detach") ended.element.remove(); else pointer(ended.separator, reason, first === "first" ? 1 : 2);
+    expect(document.body.style.cursor).toBe("col-resize"); expect(document.body.style.userSelect).toBe("none");
+    remaining.element.remove(); expect(document.body.style.cursor).toBe("crosshair"); expect(document.body.style.userSelect).toBe("text");
+  });
+  it("preserves live host overrides when overlapping drags finish", () => {
+    const a = mountSplit(), b = mountSplit(); pointer(a.separator, "pointerdown", 1); pointer(b.separator, "pointerdown", 2);
+    document.body.style.cursor = "wait"; document.body.style.userSelect = "all"; a.element.remove(); b.element.remove();
+    expect(document.body.style.cursor).toBe("wait"); expect(document.body.style.userSelect).toBe("all");
+  });
+});
+
+
+it("does not acquire global styles if pointer capture has already become unavailable", () => {
+  const { element, separator } = mountSplit();
+  (separator as HTMLElement).setPointerCapture = () => { throw new DOMException("No active pointer", "NotFoundError"); };
+  document.body.style.cursor = "wait"; document.body.style.userSelect = "text";
+  pointer(separator, "pointerdown"); element.remove();
+  expect(document.body.style.cursor).toBe("wait"); expect(document.body.style.userSelect).toBe("text");
+});

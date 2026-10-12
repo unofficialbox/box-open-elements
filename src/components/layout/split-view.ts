@@ -84,6 +84,19 @@ const splitViewStyles = `
   }
 `;
 
+interface ResizeStyleSession {
+  body: HTMLElement;
+  owners: Set<SplitView>;
+  cursor: string;
+  cursorPriority: string;
+  userSelect: string;
+  userSelectPriority: string;
+}
+
+// Multiple pointers may resize separate instances in the same document.
+// Restore the shared styles only after the last owner releases them.
+const resizeStyleSessions = new WeakMap<HTMLElement, ResizeStyleSession>();
+
 /** Detail of `detail-dismissed`: what asked the slide-over to close. */
 export interface SplitViewDetailDismissedDetail {
   source: "escape";
@@ -97,7 +110,7 @@ export class SplitView extends BaseElement {
 
   private isResizing = false;
   private resizePointerId?: number;
-  private resizeStyles: { body: HTMLElement; cursor: string; cursorPriority: string; userSelect: string; userSelectPriority: string } | null = null;
+  private resizeStyles: ResizeStyleSession | null = null;
   private splitViewEl!: HTMLElement;
   private separatorEl!: HTMLElement;
 
@@ -189,7 +202,9 @@ export class SplitView extends BaseElement {
     if (capturedId !== undefined && this.separatorEl.hasPointerCapture?.(capturedId)) {
       this.separatorEl.releasePointerCapture(capturedId);
     }
-    if (previous) {
+    if (previous) previous.owners.delete(this);
+    if (previous && previous.owners.size === 0) {
+      resizeStyleSessions.delete(previous.body);
       const style = previous.body.style;
       if (style.cursor === "col-resize" && !style.getPropertyPriority("cursor")) style.setProperty("cursor", previous.cursor, previous.cursorPriority);
       if (style.userSelect === "none" && !style.getPropertyPriority("user-select")) style.setProperty("user-select", previous.userSelect, previous.userSelectPriority);
@@ -265,14 +280,21 @@ export class SplitView extends BaseElement {
     this.separatorEl.addEventListener("pointerdown", event => {
       const pointerEvent = event as PointerEvent;
       if (!this.resizable || !this.isConnected || this.isResizing) return;
+      try { this.separatorEl.setPointerCapture?.(pointerEvent.pointerId); }
+      catch { return; } // The pointer can end before capture is acquired.
       const body = this.ownerDocument.body;
       const style = body.style;
-      this.resizeStyles = { body, cursor: style.cursor, cursorPriority: style.getPropertyPriority("cursor"), userSelect: style.userSelect, userSelectPriority: style.getPropertyPriority("user-select") };
+      let session = resizeStyleSessions.get(body);
+      if (!session) {
+        session = { body, owners: new Set(), cursor: style.cursor, cursorPriority: style.getPropertyPriority("cursor"), userSelect: style.userSelect, userSelectPriority: style.getPropertyPriority("user-select") };
+        resizeStyleSessions.set(body, session);
+        style.setProperty("cursor", "col-resize");
+        style.setProperty("user-select", "none");
+      }
+      session.owners.add(this);
+      this.resizeStyles = session;
       this.isResizing = true;
       this.resizePointerId = pointerEvent.pointerId;
-      this.separatorEl.setPointerCapture?.(pointerEvent.pointerId);
-      style.setProperty("cursor", "col-resize");
-      style.setProperty("user-select", "none");
     });
 
     this.separatorEl.addEventListener("pointermove", event => {
