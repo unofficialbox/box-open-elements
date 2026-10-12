@@ -64,3 +64,9 @@ escaped; use sentence case in the column data.
 `virtualize` is suppressed whenever compact stacking is requested, including
 the wide state of `stacked="auto"`, because wrapped cards have variable heights
 and the windowing contract is fixed-height. `renderedWindow` is then `null`.
+
+Selectable rows retain keyboard focus by row ID across queued window measurement
+and host updates while that row remains rendered. Home/End followed by Space can
+therefore select the focused target after the window settles. Removing the row,
+scrolling it out of the rendered window, or moving focus to a host control does
+not move focus to another row or scroll it back into view.

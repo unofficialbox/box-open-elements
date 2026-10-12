@@ -910,6 +910,9 @@ export class Table extends BaseElement {
   protected update(): void {
     if (!this.bodyEl || !this.headEl) return;
     const activeHeader = this.shadowRoot?.activeElement;
+    const focusedRowId = activeHeader?.getAttribute("part") === "row" && this.bodyEl.contains(activeHeader)
+      ? (activeHeader as HTMLElement).dataset.id
+      : undefined;
     const focusedSortKey = activeHeader?.getAttribute("part") === "sort-button" && this.headEl.contains(activeHeader)
       ? activeHeader.closest<HTMLElement>("th[data-key]")?.dataset.key
       : undefined;
@@ -925,6 +928,12 @@ export class Table extends BaseElement {
       const header = Array.from(this.headEl.querySelectorAll<HTMLElement>("th[data-key]"))
         .find(cell => cell.dataset.key === focusedSortKey);
       header?.querySelector<HTMLButtonElement>('[part="sort-button"]')?.focus({ preventScroll: true });
+    } else if (focusedRowId !== undefined) {
+      // Measurement and scroll frames replace the body after Home/End has
+      // focused its target. Follow that row's identity, not its old index,
+      // only while it is still rendered. Do not resurrect focus after a host
+      // handoff or scroll a removed/out-of-window row back into view.
+      this.rowElements().find(row => row.dataset.id === focusedRowId)?.focus({ preventScroll: true });
     }
   }
 
