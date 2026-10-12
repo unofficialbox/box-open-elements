@@ -195,7 +195,7 @@ export class DraggableList extends BaseElement {
               type="button"
               part="handle"
               aria-label="Reorder ${escapeHtml(item.label)}, position ${position} of ${items.length}"
-              tabindex="${item.value === (this.focusValue ?? items[0]?.value) ? "0" : "-1"}"
+              tabindex="0"
             >
               <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
                 <path d="M6 4h.01M10 4h.01M6 8h.01M10 8h.01M6 12h.01M10 12h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>

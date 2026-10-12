@@ -117,6 +117,17 @@ export class DatalistItem extends BaseElement {
   private labelEl!: HTMLElement;
   private metaEl!: HTMLElement;
   private contentSlot!: HTMLSlotElement;
+  private contentObserver?: MutationObserver;
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.contentObserver ??= new MutationObserver(() => { if (this.isConnected) this.syncSlot(); });
+    this.contentObserver.observe(this, { childList: true, characterData: true, subtree: true });
+  }
+
+  disconnectedCallback(): void {
+    this.contentObserver?.disconnect();
+  }
 
   /** Active-descendant highlight — set by a host that keeps DOM focus elsewhere. */
   get active(): boolean {
@@ -227,7 +238,8 @@ export class DatalistItem extends BaseElement {
     if (!this.contentSlot) {
       return;
     }
-    const hasContent = this.contentSlot.assignedNodes({ flatten: true }).length > 0;
+    const hasContent = this.contentSlot.assignedNodes({ flatten: true }).some(node =>
+      node.nodeType === Node.ELEMENT_NODE || (node.nodeType === Node.TEXT_NODE && Boolean(node.textContent?.trim())));
     this.contentSlot.classList.toggle("has-content", hasContent);
     this.bodyEl.classList.toggle("has-slotted", hasContent);
   }
