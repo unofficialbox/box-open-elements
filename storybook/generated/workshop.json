@@ -1375,11 +1375,6 @@
       ],
       "variants": [
         {
-          "name": "Compact run list with actions",
-          "html": "<box-table label=\"Recent runs\" stacked=\"auto\" stacked-layout=\"compact\" columns='[{\"key\":\"run\",\"label\":\"Run\",\"rowHeader\":true},{\"key\":\"status\",\"label\":\"Status\",\"compact\":\"summary\"},{\"key\":\"duration\",\"label\":\"Duration\"},{\"key\":\"calls\",\"label\":\"Calls\",\"compact\":\"hidden\"},{\"key\":\"report\",\"label\":\"Report\",\"compact\":\"hidden\"}]' rows='[{\"id\":\"run-123\",\"current\":true,\"cells\":{\"run\":\"Oct 12, 11:45 AM · dry run\",\"status\":{\"text\":\"✓ Passed\",\"tone\":\"success\"},\"duration\":\"1.2 s\",\"calls\":\"142\",\"report\":\"Ready\"},\"actions\":[{\"key\":\"view\",\"label\":\"View\"},{\"key\":\"compare\",\"label\":\"Compare Report\"}]},{\"id\":\"run-124\",\"cells\":{\"run\":\"Oct 12, 11:40 AM · full validation with a very long scenario name\",\"status\":{\"text\":\"Failed · retry required\",\"tone\":\"error\"},\"duration\":\"45.8 s\",\"calls\":\"980\",\"report\":\"Pending\"},\"actions\":[{\"key\":\"view\",\"label\":\"View\"}]},{\"id\":\"run-125\",\"cells\":{\"run\":\"Oct 12, 11:35 AM · dry run\",\"status\":\"Queued\",\"duration\":\"—\",\"calls\":\"0\",\"report\":\"Pending\"}}]'></box-table>",
-          "note": "At phone widths the header and Status summary lose repeated visible labels. Duration stays labeled; Calls and Report are explicitly omitted. Desktop shows all five columns. Actions retain row-specific accessible names."
-        },
-        {
           "name": "Compact phone comparison",
           "html": "<box-table label=\"Successful call times\" stacked=\"always\" stacked-layout=\"grid\" columns='[{\"key\":\"step\",\"label\":\"Step\",\"rowHeader\":true},{\"key\":\"calls\",\"label\":\"Calls\"},{\"key\":\"median\",\"label\":\"Median\",\"group\":\"Successful times\"},{\"key\":\"p95\",\"label\":\"95% within\",\"group\":\"Successful times\"}]' rows='[{\"id\":\"one\",\"cells\":{\"step\":\"users.me\",\"calls\":\"142\",\"median\":\"48 ms\",\"p95\":\"98 ms\"}}]'></box-table>"
         },
@@ -1407,6 +1402,11 @@
         {
           "name": "Empty",
           "html": "<box-table label=\"Files\" columns='[{\"key\":\"name\",\"label\":\"Name\",\"sortable\":true},{\"key\":\"owner\",\"label\":\"Owner\"},{\"key\":\"modified\",\"label\":\"Modified\",\"align\":\"end\"}]' rows='[]' empty-text=\"No documents match your filter\"></box-table>"
+        },
+        {
+          "name": "Compact run list with actions",
+          "html": "<box-table label=\"Recent runs\" stacked=\"auto\" stacked-layout=\"compact\" columns='[{\"key\":\"run\",\"label\":\"Run\",\"rowHeader\":true},{\"key\":\"status\",\"label\":\"Status\",\"compact\":\"summary\"},{\"key\":\"duration\",\"label\":\"Duration\"},{\"key\":\"calls\",\"label\":\"Calls\",\"compact\":\"hidden\"},{\"key\":\"report\",\"label\":\"Report\",\"compact\":\"hidden\"}]' rows='[{\"id\":\"run-123\",\"current\":true,\"cells\":{\"run\":\"Oct 12, 11:45 AM · dry run\",\"status\":{\"text\":\"✓ Passed\",\"tone\":\"success\"},\"duration\":\"1.2 s\",\"calls\":\"142\",\"report\":\"Ready\"},\"actions\":[{\"key\":\"view\",\"label\":\"View\"},{\"key\":\"compare\",\"label\":\"Compare Report\"}]},{\"id\":\"run-124\",\"cells\":{\"run\":\"Oct 12, 11:40 AM · full validation with a very long scenario name\",\"status\":{\"text\":\"Failed · retry required\",\"tone\":\"error\"},\"duration\":\"45.8 s\",\"calls\":\"980\",\"report\":\"Pending\"},\"actions\":[{\"key\":\"view\",\"label\":\"View\"}]},{\"id\":\"run-125\",\"cells\":{\"run\":\"Oct 12, 11:35 AM · dry run\",\"status\":\"Queued\",\"duration\":\"—\",\"calls\":\"0\",\"report\":\"Pending\"}}]'></box-table>",
+          "note": "At phone widths the header and Status summary lose repeated visible labels. Duration stays labeled; Calls and Report are explicitly omitted. Desktop shows all five columns. Actions retain row-specific accessible names."
         }
       ]
     },
