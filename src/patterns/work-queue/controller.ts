@@ -27,6 +27,8 @@ export class WorkQueueController extends Controller<WorkQueueState, WorkQueueEve
 
   private activeLoadRequestId = 0;
 
+  private sessionGeneration = 0;
+
   private activeLoadAbortController: AbortController | null = null;
 
   constructor(config: WorkQueueSessionConfig) {
@@ -39,6 +41,7 @@ export class WorkQueueController extends Controller<WorkQueueState, WorkQueueEve
       return;
     }
 
+    this.sessionGeneration += 1;
     this.setState({ ...this.state, connected: true });
     this.emit("connected", undefined);
     await this.reload();
@@ -49,6 +52,7 @@ export class WorkQueueController extends Controller<WorkQueueState, WorkQueueEve
       return;
     }
 
+    this.sessionGeneration += 1;
     this.activeLoadRequestId += 1;
     this.activeLoadAbortController?.abort();
     this.activeLoadAbortController = null;
@@ -177,12 +181,16 @@ export class WorkQueueController extends Controller<WorkQueueState, WorkQueueEve
       return null;
     }
 
+    const generation = this.sessionGeneration;
     try {
       const item = await perform();
+      if (generation !== this.sessionGeneration) return null;
       this.emit("itemMutated", { kind, item });
+      if (generation !== this.sessionGeneration) return null;
       await this.reload();
-      return item;
+      return generation === this.sessionGeneration ? item : null;
     } catch (error) {
+      if (generation !== this.sessionGeneration) return null;
       const message = error instanceof Error ? error.message : `Work-queue ${kind} failed`;
       this.setState({ ...this.state, error: message });
       this.emit("mutationFailed", { kind, itemId, message });

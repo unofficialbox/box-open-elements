@@ -602,6 +602,7 @@ export class ContentPicker extends BaseElement {
     }
     this.unsubscribeFns = [];
 
+    this.controller?.disconnect();
     this.controller?.destroy();
     this.controller = null;
   }

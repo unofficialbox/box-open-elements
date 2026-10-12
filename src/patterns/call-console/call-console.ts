@@ -23,9 +23,10 @@ export class CallConsole extends BaseElement {
   private unsubscribe?: () => void;
   private selected = "";
   private clearing = false;
+  private sessionGeneration = 0;
   private rowSignatures = new WeakMap<HTMLButtonElement, string>();
   get callController(): CallConsoleController | null {return this.model;}
-  set callController(value: CallConsoleController | null) {this.unsubscribe?.(); this.model = value; if (this.isConnected) this.listen(); if (this.isRendered) this.update();}
+  set callController(value: CallConsoleController | null) {if (this.model === value) return; this.sessionGeneration += 1; this.clearing = false; this.unsubscribe?.(); this.model = value; if (this.isConnected) this.listen(); if (this.isRendered) this.update();}
   get heading(): string { return this.getAttribute("heading") ?? "API calls"; }
   set heading(value: string) { this.setAttribute("heading", value); }
   get serviceLabels(): Record<string, string> { return this.labels; }
@@ -34,7 +35,7 @@ export class CallConsole extends BaseElement {
   set isFailed(value: (entry: CallEntry) => boolean) { this.failureRule = value; if (this.isRendered) this.update(); }
   private listen(): void {this.unsubscribe?.(); this.unsubscribe = this.model?.subscribe(() => this.update());}
   connectedCallback(): void {super.connectedCallback(); this.listen();}
-  disconnectedCallback(): void {this.unsubscribe?.();}
+  disconnectedCallback(): void {this.sessionGeneration += 1; this.clearing = false; this.unsubscribe?.();}
   protected renderTemplate(): void {
     SplitView.register(); Button.register(); CodeBlock.register();
     this.shadowRoot!.innerHTML = `<style>:host{display:block;min-width:0;color:var(--boe-token-text-text,#222);font:inherit}:host([hidden]){display:none !important}
@@ -84,10 +85,17 @@ export class CallConsole extends BaseElement {
     this.shadowRoot!.querySelector("#retry")!.addEventListener("click", () => {void this.model?.connect();});
     this.shadowRoot!.querySelector("#clear")!.addEventListener("click", async () => {
       if (!this.model || this.clearing) return;
+      const model = this.model;
+      const generation = this.sessionGeneration;
       this.clearing=true;this.update();
-      try {await this.model.clear();this.dispatchEvent(new CustomEvent("calls-cleared",{bubbles:true,composed:true}));}
-      catch {this.shadowRoot!.querySelector("#copy-status")!.textContent="Unable to clear calls. Try again.";}
-      finally {this.clearing=false;this.update();}
+      try {
+        await model.clear();
+        if (generation === this.sessionGeneration) this.dispatchEvent(new CustomEvent("calls-cleared",{bubbles:true,composed:true}));
+      } catch (error) {
+        if (generation === this.sessionGeneration && !(error instanceof DOMException && error.name === "AbortError")) this.shadowRoot!.querySelector("#copy-status")!.textContent="Unable to clear calls. Try again.";
+      } finally {
+        if (generation === this.sessionGeneration) {this.clearing=false;this.update();}
+      }
     });
     this.shadowRoot!.querySelectorAll<HTMLElement>("[data-copy]").forEach(b => b.addEventListener("click", async () => {
       const entry = this.model?.entries.find(e => e.id === this.selected); if (!entry) return;
