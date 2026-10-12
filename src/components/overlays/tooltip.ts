@@ -118,6 +118,8 @@ export class Tooltip extends BaseElement {
   private tooltipEl!: HTMLElement;
   private labelEl!: HTMLElement;
   private describedTrigger: HTMLElement | null = null;
+  private describedId: string | null = null;
+  private descriptionEl: HTMLElement | null = null;
 
   get label(): string {
     return this.getAttribute("label") ?? "Helpful context";
@@ -206,10 +208,30 @@ export class Tooltip extends BaseElement {
   }
 
   private clearDescribedBy(): void {
-    if (this.describedTrigger?.hasAttribute("aria-describedby")) {
-      this.describedTrigger.removeAttribute("aria-describedby");
+    if (this.describedTrigger && this.describedId) {
+      const tokens = (this.describedTrigger.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(token => token && token !== this.describedId);
+      if (tokens.length) this.describedTrigger.setAttribute("aria-describedby", tokens.join(" "));
+      else this.describedTrigger.removeAttribute("aria-describedby");
     }
     this.describedTrigger = null;
+    this.describedId = null;
+  }
+
+  private descriptionId(trigger: HTMLElement): string {
+    if (trigger.getRootNode() === this.shadowRoot) return this.tooltipId;
+    // ID references cannot cross a shadow boundary. Keep the owned text in
+    // the trigger's tree so native accessibility can resolve a slotted trigger.
+    const root = trigger.getRootNode();
+    const parent = root instanceof Document ? root.body : root instanceof ShadowRoot ? root : null;
+    if (!parent) return this.tooltipId;
+    if (!this.descriptionEl) {
+      this.descriptionEl = this.ownerDocument.createElement("span");
+      this.descriptionEl.id = `${this.tooltipId}-description`;
+      this.descriptionEl.hidden = true;
+    }
+    this.descriptionEl.textContent = this.label;
+    parent.append(this.descriptionEl);
+    return this.descriptionEl.id;
   }
 
   protected renderTemplate(): void {
@@ -252,8 +274,9 @@ export class Tooltip extends BaseElement {
     });
     this.triggerHostEl.addEventListener("keydown", event => {
       const keyboardEvent = event as KeyboardEvent;
-      if (keyboardEvent.key === "Escape") {
+      if (this.openValue && keyboardEvent.key === "Escape" && !keyboardEvent.defaultPrevented) {
         keyboardEvent.preventDefault();
+        keyboardEvent.stopPropagation();
         this.hide();
       }
     });
@@ -292,9 +315,14 @@ export class Tooltip extends BaseElement {
 
     this.clearDescribedBy();
     this.stopTracking();
-    if (this.openValue) {
-      trigger.setAttribute("aria-describedby", this.tooltipId);
-      this.describedTrigger = trigger;
+    if (this.openValue && this.isConnected) {
+      const id = this.descriptionId(trigger);
+      const tokens = (trigger.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(Boolean);
+      if (!tokens.includes(id)) {
+        trigger.setAttribute("aria-describedby", [...tokens, id].join(" "));
+        this.describedTrigger = trigger;
+        this.describedId = id;
+      }
       // Position as a fixed-coordinate overlay so it escapes ancestor overflow
       // and flips/shifts to stay on-screen.
       this.positionCleanup = trackAnchor(this.triggerHostEl, this.tooltipEl, {
@@ -310,7 +338,10 @@ export class Tooltip extends BaseElement {
   }
 
   disconnectedCallback(): void {
+    this.clearDescribedBy();
+    this.descriptionEl?.remove();
     this.stopTracking();
+    dismissPopover(this.tooltipEl);
     super.disconnectedCallback?.();
   }
 }

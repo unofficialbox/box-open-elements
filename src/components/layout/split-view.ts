@@ -96,6 +96,8 @@ export class SplitView extends BaseElement {
   }
 
   private isResizing = false;
+  private resizePointerId?: number;
+  private resizeStyles: { body: HTMLElement; cursor: string; cursorPriority: string; userSelect: string; userSelectPriority: string } | null = null;
   private splitViewEl!: HTMLElement;
   private separatorEl!: HTMLElement;
 
@@ -173,17 +175,30 @@ export class SplitView extends BaseElement {
     }
   }
 
+  private ownsPointer(pointerId?: number): boolean {
+    return this.resizePointerId === undefined || pointerId === undefined || pointerId === this.resizePointerId;
+  }
+
   private stopResize(pointerId?: number): void {
+    if (!this.isResizing || !this.ownsPointer(pointerId)) return;
+    const capturedId = this.resizePointerId;
+    const previous = this.resizeStyles;
     this.isResizing = false;
-    if (typeof pointerId === "number") {
-      (
-        this.separatorEl as HTMLElement & {
-          releasePointerCapture?: (nextPointerId: number) => void;
-        }
-      ).releasePointerCapture?.(pointerId);
+    this.resizePointerId = undefined;
+    this.resizeStyles = null;
+    if (capturedId !== undefined && this.separatorEl.hasPointerCapture?.(capturedId)) {
+      this.separatorEl.releasePointerCapture(capturedId);
     }
-    document.body.style.cursor = "";
-    document.body.style.userSelect = "";
+    if (previous) {
+      const style = previous.body.style;
+      if (style.cursor === "col-resize" && !style.getPropertyPriority("cursor")) style.setProperty("cursor", previous.cursor, previous.cursorPriority);
+      if (style.userSelect === "none" && !style.getPropertyPriority("user-select")) style.setProperty("user-select", previous.userSelect, previous.userSelectPriority);
+    }
+  }
+
+  disconnectedCallback(): void {
+    this.stopResize();
+    super.disconnectedCallback?.();
   }
 
   protected renderTemplate(): void {
@@ -249,19 +264,20 @@ export class SplitView extends BaseElement {
 
     this.separatorEl.addEventListener("pointerdown", event => {
       const pointerEvent = event as PointerEvent;
+      if (!this.resizable || !this.isConnected || this.isResizing) return;
+      const body = this.ownerDocument.body;
+      const style = body.style;
+      this.resizeStyles = { body, cursor: style.cursor, cursorPriority: style.getPropertyPriority("cursor"), userSelect: style.userSelect, userSelectPriority: style.getPropertyPriority("user-select") };
       this.isResizing = true;
-      (
-        this.separatorEl as HTMLElement & {
-          setPointerCapture?: (pointerId: number) => void;
-        }
-      ).setPointerCapture?.(pointerEvent.pointerId);
-      document.body.style.cursor = "col-resize";
-      document.body.style.userSelect = "none";
+      this.resizePointerId = pointerEvent.pointerId;
+      this.separatorEl.setPointerCapture?.(pointerEvent.pointerId);
+      style.setProperty("cursor", "col-resize");
+      style.setProperty("user-select", "none");
     });
 
     this.separatorEl.addEventListener("pointermove", event => {
       const pointerEvent = event as PointerEvent;
-      if (!this.isResizing) {
+      if (!this.isResizing || !this.ownsPointer(pointerEvent.pointerId)) {
         return;
       }
 
@@ -278,6 +294,10 @@ export class SplitView extends BaseElement {
       this.stopResize((event as PointerEvent).pointerId);
     });
 
+    this.separatorEl.addEventListener("lostpointercapture", event => {
+      this.stopResize((event as PointerEvent).pointerId);
+    });
+
     this.separatorEl.addEventListener("pointercancel", event => {
       this.stopResize((event as PointerEvent).pointerId);
     });
@@ -290,6 +310,7 @@ export class SplitView extends BaseElement {
 
     const ratioPercent = `${Math.round(this.ratio * 100)}%`;
     const resizable = this.resizable;
+    if (!resizable) this.stopResize();
     const splitColumns = resizable
       ? `minmax(180px, ${ratioPercent}) 12px minmax(0, 1fr)`
       : `minmax(180px, ${ratioPercent}) minmax(0, 1fr)`;

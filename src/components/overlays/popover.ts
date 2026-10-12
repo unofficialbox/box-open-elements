@@ -135,11 +135,15 @@ export class Popover extends BaseElement {
   private positionCleanup: (() => void) | null = null;
   private readonly focusRestore = new FocusRestore();
 
+  private focusRevision = 0;
+  private focusedSurface = false;
+
   private readonly onDocumentKeydown = (event: KeyboardEvent): void => {
-    if (!this.openValue || event.key !== "Escape") {
+    if (!this.openValue || event.key !== "Escape" || event.defaultPrevented) {
       return;
     }
     event.preventDefault();
+    event.stopPropagation();
     this.hide();
   };
 
@@ -218,6 +222,9 @@ export class Popover extends BaseElement {
   }
 
   disconnectedCallback(): void {
+    this.focusRevision++;
+    this.focusedSurface = false;
+    this.focusRestore.clear();
     this.unbindDocumentListeners();
     this.stopPositioning();
   }
@@ -332,20 +339,8 @@ export class Popover extends BaseElement {
     this.triggerEl.addEventListener("click", () => {
       this.toggle();
     });
-    this.triggerEl.addEventListener("keydown", event => {
-      const keyboardEvent = event as KeyboardEvent;
-      if (keyboardEvent.key === "Escape") {
-        keyboardEvent.preventDefault();
-        this.hide();
-      }
-    });
-    this.surfaceEl.addEventListener("keydown", event => {
-      const keyboardEvent = event as KeyboardEvent;
-      if (keyboardEvent.key === "Escape") {
-        keyboardEvent.preventDefault();
-        this.hide();
-      }
-    });
+    this.triggerEl.addEventListener("keydown", this.onDocumentKeydown);
+    this.surfaceEl.addEventListener("keydown", this.onDocumentKeydown);
   }
 
   protected update(): void {
@@ -381,9 +376,18 @@ export class Popover extends BaseElement {
 
     if (justOpened) {
       this.focusRestore.capture(this.triggerEl);
-      queueMicrotask(() => this.focusSurface());
+      const revision = ++this.focusRevision;
+      queueMicrotask(() => {
+        if (this.isConnected && this.openValue && revision === this.focusRevision) {
+          this.focusedSurface = true;
+          this.focusSurface();
+        }
+      });
     } else if (justClosed) {
-      this.focusRestore.restore();
+      this.focusRevision++;
+      if (this.focusedSurface) this.focusRestore.restore();
+      else this.focusRestore.clear();
+      this.focusedSurface = false;
     }
 
     this.wasOpen = this.openValue;
