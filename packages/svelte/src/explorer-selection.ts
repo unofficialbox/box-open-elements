@@ -16,6 +16,8 @@ export type { ExplorerSelectionState };
 export const createExplorerSelectionStore = (
   controller: ExplorerSelectionController,
 ): Readable<Readonly<ExplorerSelectionState>> =>
-  readable(controller.getState(), set =>
-    controller.subscribe("selectionChanged", () => set(controller.getState())),
-  );
+  readable(controller.getState(), set => {
+    // Readables start lazily and restart after their final subscriber leaves.
+    set(controller.getState());
+    return controller.subscribe("selectionChanged", () => set(controller.getState()));
+  });

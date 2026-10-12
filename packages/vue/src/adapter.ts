@@ -1,6 +1,4 @@
 import {
-  onBeforeUnmount,
-  onMounted,
   shallowRef,
   watchEffect,
   type ShallowRef,
@@ -22,19 +20,18 @@ export const useWebComponent = <E extends HTMLElement>(
     if (element.value) sync(element.value);
   });
 
-  onMounted(() => {
-    if (!element.value) return;
+  watchEffect(onCleanup => {
+    const host = element.value;
+    if (!host) return;
     for (const binding of events) {
-      element.value.addEventListener(binding.eventName, binding.listener);
+      host.addEventListener(binding.eventName, binding.listener);
     }
-  });
-
-  onBeforeUnmount(() => {
-    if (!element.value) return;
-    for (const binding of events) {
-      element.value.removeEventListener(binding.eventName, binding.listener);
-    }
-  });
+    onCleanup(() => {
+      for (const binding of events) {
+        host.removeEventListener(binding.eventName, binding.listener);
+      }
+    });
+  }, { flush: "post" });
 
   return element;
 };
