@@ -44,7 +44,8 @@ labels in light and dark themes. Brand and neutral labels use primary text.
 
 Opt into `stacked-layout="grid"` alongside `stacked="auto"` (under a 560px
 container) or `stacked="always"`. The default `stacked-layout="list"` keeps the
-existing label/value cards. `table.stackedLayout` accepts `"list" | "grid"`.
+existing label/value cards. `table.stackedLayout` accepts `"list" | "grid" | "compact"`; the scan-list
+layout is described below.
 
 ```html
 <box-table label="Step calls and times" stacked="auto" stacked-layout="grid"></box-table>
@@ -100,6 +101,8 @@ group name, when present). Put the row header and summaries first in `columns`
 to put them on the first lines. Cells and keyboard tab stops retain authored
 order. Actions wrap below the row content, without a visible Actions label;
 rows with no actions reserve no extra space. Long values wrap without truncation.
+The current-row marker belongs to the compact row, so it stays visible even
+when a leading column is explicitly hidden.
 
 `TableColumn.compact` accepts `"summary" | "hidden"`; omitted or invalid values
 keep the labeled field. These choices apply **only to compact stacked rows**.
@@ -119,7 +122,8 @@ is suppressed when compact stacking is requested, just as for grid cards.
 
 After `bun run build:core`, run `node tools/preview/table-compact.mjs` for native
 Chrome and `BOE_TABLE_BROWSER=firefox node tools/preview/table-compact.mjs` for
-Playwright Firefox. The run-list fixture covers 1440px, 390px dark and 320px,
+Playwright Firefox. This is a dedicated **manual browser regression**, not part of `bun run verify`
+or the aggregate CI/pixel suite. The run-list fixture covers 1440px, 390px dark and 320px,
 long content, explicit hiding, host controls, actions and repeated updates. Set
 `BOE_TABLE_EVIDENCE_DIR` for screenshots/JSON, or `BOE_TABLE_SERVE=1` (optional
 `BOE_TABLE_PORT`) to open the fixture manually.

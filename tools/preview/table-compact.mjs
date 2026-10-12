@@ -84,8 +84,28 @@ try {
     assert.equal(await page.locator('#compact input').isVisible(),false);
     await page.evaluate(()=>t.removeAttribute('stacked'));
     assert.equal(await page.locator('#compact input').isVisible(),true);
+    // Current identity must survive hiding a leading cell (without details).
+    await page.evaluate(()=>{t.columns=[{key:'calls',label:'Calls',compact:'hidden'},{key:'run',label:'Run',rowHeader:true}];t.rows=[{id:'current',current:true,cells:{calls:'142',run:'Current dry run'}}];t.setAttribute('stacked','auto');});
+    const marker=()=>page.evaluate(()=>{const row=t.shadowRoot.querySelector('[part=row]'),first=row.firstElementChild;return {current:row.getAttribute('aria-current'),rowShadow:getComputedStyle(row).boxShadow,firstDisplay:getComputedStyle(first).display,firstShadow:getComputedStyle(first).boxShadow};});
+    const initialMarker=await marker();
+    if(width<560){assert.notEqual(initialMarker.rowShadow,'none');assert.equal(initialMarker.firstDisplay,'none');}
+    else {assert.equal(initialMarker.rowShadow,'none');assert.notEqual(initialMarker.firstShadow,'none');}
+    await page.evaluate(()=>t.setAttribute('stacked','always'));
+    assert.notEqual((await marker()).rowShadow,'none');
+    await page.locator('#compact').screenshot({path:`${dir}/${engine}-${width}-current-hidden-leading.png`});
+    await page.evaluate(()=>t.rows=t.rows.map(r=>({...r,current:false})));
+    assert.equal((await marker()).rowShadow,'none');assert.equal((await marker()).current,null);
+    await page.evaluate(()=>t.rows=t.rows.map(r=>({...r,current:true})));
+    for(const layout of ['list','grid','compact']){
+      await page.evaluate(layout=>t.stackedLayout=layout,layout);
+      const state=await marker();assert.equal(state.current,'true');
+      if(layout==='list'){assert.equal(state.rowShadow,'none');assert.notEqual(state.firstDisplay,'none');assert.notEqual(state.firstShadow,'none');}
+      else assert.notEqual(state.rowShadow,'none');
+    }
+    await page.evaluate(()=>t.removeAttribute('stacked'));
+    assert.equal((await marker()).rowShadow,'none');assert.notEqual((await marker()).firstDisplay,'none');assert.notEqual((await marker()).firstShadow,'none');
     assert.deepEqual(errors,[]);
-    results.push({engine,width,theme:'dark',status:'passed',geometry,accessibility:snapshot,checks:['identity','console','long-content','multiple/no-actions','action-event-current-data','repeated-refresh-focus','host-action-focus','external-handoff','row-keyboard-selection','explicit-hiding-only']});
+    results.push({engine,width,theme:'dark',status:'passed',geometry,initialMarker,accessibility:snapshot,checks:['identity','console','long-content','multiple/no-actions','action-event-current-data','repeated-refresh-focus','host-action-focus','external-handoff','row-keyboard-selection','explicit-hiding-only','current-hidden-leading-column-and-layout-toggles']});
     await context.close();
   }
 } finally {await browser.close();await new Promise(r=>server.close(r));writeFileSync(`${dir}/${engine}-RESULTS.json`,JSON.stringify(results,null,2));}

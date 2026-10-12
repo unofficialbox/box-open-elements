@@ -454,6 +454,10 @@ const tableStyles = `
 `;
     const scanRules = (scope: string): string => `
   ${scope} tr[part="row"] { padding: 0.6rem 0; }
+  /* A consumer may hide the first cell. Keep current identity on the row. */
+  ${scope} tr[part="row"][aria-current="true"] {
+    box-shadow: inset 3px 0 0 var(--boe-token-surface-surface-brand, #0061d5);
+  }
   ${scope} tr[part="row"] > :is(td, th) {
     display: block;
     min-inline-size: 0;
