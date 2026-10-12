@@ -1,15 +1,8 @@
+import { chartHeader, syncChartHeader, syncChartLegend, bindChartEvents, syncChartPoints } from "./chart-content.js";
 import { BaseElement } from "../../core/index.js";
 import { boePanel } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-bar-chart";
-
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 
 type BarChartAction = {
   id: string;
@@ -399,134 +392,22 @@ export class BarChart extends BaseElement {
   }
 
   protected renderTemplate(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    this.shadowRoot.innerHTML = `
-      <style>${elementStyles}</style>
-      <div part="content-host"></div>
-    `;
+    this.shadowRoot!.innerHTML = `<style>${elementStyles}[hidden]{display:none!important}</style><div part="content-host"><article part="panel">${chartHeader}
+      <div part="visual" hidden><div part="chart" role="list"><div part="grid" aria-hidden="true"><span part="grid-line"></span><span part="grid-line"></span><span part="grid-line"></span><span part="grid-line"></span></div></div></div>
+      <div part="empty">No bar-chart data available.</div><div part="legend" hidden></div></article></div>`;
   }
-
+  protected setupListeners(): void {
+    bindChartEvents(this.shadowRoot!, id=>this.emitAction(id), id=>{const point=this.points.find(point=>point.id===id);if(point)this.emitPointSelected(point);});
+  }
   protected update(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
-    const maxValue = this.points.reduce((max, point) => Math.max(max, point.value), 0) || 1;
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const summaryMarkup = this.summary ? `<div part="summary">${escapeHtml(this.summary)}</div>` : "";
-    const timeframeMarkup = this.timeframe ? `<div part="timeframe">${escapeHtml(this.timeframe)}</div>` : "";
-    const actionsMarkup = this.actions.length
-      ? `
-          <div part="actions">
-            ${this.actions
-              .map(
-                action => `
-                  <button type="button" part="action" data-action-id="${escapeHtml(action.id)}" data-tone="${escapeHtml(action.tone ?? "neutral")}">
-                    ${escapeHtml(action.label)}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-    const chartMarkup = this.points.length
-      ? `
-          <div part="visual">
-            <div part="chart" role="list" aria-label="${escapeHtml(this.heading)} bar data">
-              <div part="grid">
-                <span part="grid-line"></span>
-                <span part="grid-line"></span>
-                <span part="grid-line"></span>
-                <span part="grid-line"></span>
-              </div>
-              ${this.points
-                .map(
-                  point => `
-                    <button
-                      type="button"
-                      part="point"
-                      data-point-id="${escapeHtml(point.id)}"
-                      data-tone="${escapeHtml(point.tone ?? "neutral")}"
-                      aria-label="${escapeHtml(`${point.label}: ${point.value}`)}"
-                    >
-                      <span part="bar-shell">
-                        <span part="bar" style="--point-ratio:${Math.max(point.value, 0) / maxValue};"></span>
-                      </span>
-                      <span part="point-label">${escapeHtml(point.label)}</span>
-                      <span part="point-value">${escapeHtml(String(point.value))}</span>
-                    </button>
-                  `,
-                )
-                .join("")}
-            </div>
-          </div>
-        `
-      : `<div part="empty">No bar-chart data available.</div>`;
-    const legendMarkup = this.legend.length
-      ? `
-          <div part="legend">
-            ${this.legend
-              .map(
-                item => `
-                  <div part="legend-item" data-tone="${escapeHtml(item.tone ?? "neutral")}">
-                    <span part="legend-swatch"></span>
-                    <span part="legend-label">${escapeHtml(item.label)}</span>
-                    ${item.value ? `<span part="legend-value">${escapeHtml(item.value)}</span>` : ""}
-                  </div>
-                `,
-              )
-              .join("")}
-          </div>
-        `
-      : "";
-
-    const host = this.shadowRoot.querySelector('[part="content-host"]');
-    if (!host) {
-      return;
-    }
-
-    host.innerHTML = `
-      <article part="panel">
-        <header part="header">
-          <div part="meta">
-            <h2 part="title">${escapeHtml(this.heading)}</h2>
-            ${summaryMarkup}
-            ${messageMarkup}
-          </div>
-          <div part="header-side">
-            ${timeframeMarkup}
-            ${actionsMarkup}
-          </div>
-        </header>
-        ${chartMarkup}
-        ${legendMarkup}
-      </article>
-    `;
-
-    this.shadowRoot.querySelectorAll('[part="action"]').forEach(button => {
-      button.addEventListener("click", () => {
-        const actionId = button.getAttribute("data-action-id");
-        if (actionId) {
-          this.emitAction(actionId);
-        }
-      });
-    });
-
-    this.shadowRoot.querySelectorAll('[part="point"]').forEach(button => {
-      button.addEventListener("click", () => {
-        const pointId = button.getAttribute("data-point-id");
-        const point = this.points.find(item => item.id === pointId);
-        if (point) {
-          this.emitPointSelected(point);
-        }
-      });
-    });
-  
+    if(!this.isRendered)return;
+    const root=this.shadowRoot!, points=this.points;
+    syncChartHeader(root,this);syncChartLegend(root,this.legend);
+    root.querySelector<HTMLElement>('[part="visual"]')!.hidden=!points.length;
+    root.querySelector<HTMLElement>('[part="empty"]')!.hidden=!!points.length;
+    const chart=root.querySelector<HTMLElement>('[part="chart"]')!;chart.setAttribute("aria-label",`${this.heading} bar data`);
+    const max=points.reduce((max,point)=>Math.max(max,point.value),0)||1;
+    syncChartPoints(chart,points,"shell",point=>Math.max(point.value,0)/max,chart.querySelector('[part="grid"]')!);
   }
 }
-
 BarChart.register();
