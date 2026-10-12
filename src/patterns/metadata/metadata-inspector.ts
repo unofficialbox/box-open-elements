@@ -4,13 +4,7 @@ import { boePanel } from "../../foundations/geometry/index.js";
 
 const DEFAULT_TAG_NAME = "box-metadata-inspector";
 
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+let nextFieldId = 0;
 
 type MetadataInspectorField = {
   description?: string;
@@ -90,6 +84,19 @@ const elementStyles = `
           margin: 0;
         }
 
+        [part="field-definition"] { margin: 0; }
+        [part="field-term"] {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip-path: inset(50%);
+          white-space: nowrap;
+          border: 0;
+        }
+
         [part="field"] {
           display: grid;
           gap: 0.4rem;
@@ -147,6 +154,9 @@ export class MetadataInspector extends BaseElement {
   static get observedAttributes(): string[] {
     return ["eyebrow", "heading", "message", "sections"];
   }
+  private renderRevision = 0;
+  private readonly childKeys = new WeakMap<HTMLElement, string>();
+
   get eyebrow(): string {
     return this.getAttribute("eyebrow") ?? "";
   }
@@ -211,84 +221,141 @@ export class MetadataInspector extends BaseElement {
     );
   }
 
-  private renderSections(): string {
-    return this.sections
-      .map(
-        section => `
-          <section part="section">
-            <div part="section-title">${escapeHtml(section.title)}</div>
-            <dl part="section-fields">
-              ${section.fields
-                .map(
-                  field => `
-                    <button
-                      type="button"
-                      part="field"
-                      data-field-label="${escapeHtml(field.label)}"
-                      data-field-value="${escapeHtml(field.value)}"
-                      data-field-section="${escapeHtml(section.title)}"
-                    >
-                      <div part="field-header">
-                        <dt part="field-label">${escapeHtml(field.label)}</dt>
-                        <dd part="field-value" data-tone="${escapeHtml(field.tone ?? "neutral")}">${escapeHtml(field.value)}</dd>
-                      </div>
-                      ${field.description ? `<div part="field-description">${escapeHtml(field.description)}</div>` : ""}
-                    </button>
-                  `,
-                )
-                .join("")}
-            </dl>
-          </section>
-        `,
-      )
-      .join("");
+  /** Move surviving controls in place and abandon work superseded by callbacks. */
+  private syncChildren<T>(
+    parent: HTMLElement,
+    items: readonly T[],
+    key: (item: T) => string,
+    create: () => HTMLElement,
+    update: (element: HTMLElement, item: T) => void,
+    revision: number,
+  ): boolean {
+    const available = new Map<string, HTMLElement[]>();
+    for (const child of Array.from(parent.children) as HTMLElement[]) {
+      const identity = this.childKeys.get(child);
+      if (identity === undefined) continue;
+      const matches = available.get(identity) ?? [];
+      matches.push(child);
+      available.set(identity, matches);
+    }
+    let cursor = parent.firstElementChild;
+    for (const item of items) {
+      if (revision !== this.renderRevision) return false;
+      const identity = key(item);
+      const child = available.get(identity)?.shift() ?? create();
+      this.childKeys.set(child, identity);
+      update(child, item);
+      if (revision !== this.renderRevision) return false;
+      if (child !== cursor) {
+        const move = (parent as HTMLElement & { moveBefore?: (node: Node, before: Node | null) => void }).moveBefore;
+        if (move && child.parentElement === parent && child.isConnected) move.call(parent, child, cursor);
+        else {
+          // Blur before the DOM move validates its references: a synchronous
+          // host focusout callback may replace the children or start a render.
+          const active = this.shadowRoot?.activeElement as HTMLElement | null;
+          if (active && child.contains(active)) active.blur();
+          if (revision !== this.renderRevision) return false;
+          parent.insertBefore(child, cursor);
+        }
+      }
+      if (revision !== this.renderRevision) return false;
+      cursor = child.nextElementSibling;
+    }
+    for (const matches of available.values()) {
+      for (const child of matches) {
+        const active = this.shadowRoot?.activeElement as HTMLElement | null;
+        if (active && child.contains(active)) active.blur();
+        if (revision !== this.renderRevision) return false;
+        child.remove();
+        if (revision !== this.renderRevision) return false;
+      }
+    }
+    return true;
   }
 
   protected renderTemplate(): void {
-    if (!this.shadowRoot) {
-      return;
-    }
-
+    if (!this.shadowRoot) return;
     this.shadowRoot.innerHTML = `
       <style>${elementStyles}</style>
-      <div part="content-host"></div>
+      <div part="content-host">
+        <section part="inspector">
+          <header part="header">
+            <div part="eyebrow" hidden></div>
+            <h2 part="title"></h2>
+            <div part="message" hidden></div>
+          </header>
+          <div part="sections"></div>
+        </section>
+      </div>
     `;
+    const sections = this.shadowRoot.querySelector<HTMLElement>('[part="sections"]')!;
+    sections.style.display = "contents";
+  }
+
+  protected setupListeners(): void {
+    this.shadowRoot?.addEventListener("click", event => {
+      const target = event.target;
+      if (!(target instanceof Element) || !this.isConnected) return;
+      const field = target.closest<HTMLButtonElement>('button[part="field"]');
+      if (!field || !this.shadowRoot?.contains(field)) return;
+      this.emitFieldSelected(field.dataset.fieldLabel ?? "", field.dataset.fieldValue ?? "", field.dataset.fieldSection ?? "");
+    });
   }
 
   protected update(): void {
-    if (!this.shadowRoot) {
-      return;
+    const root = this.shadowRoot;
+    const sections = root?.querySelector<HTMLElement>('[part="sections"]');
+    if (!root || !sections) return;
+    const revision = ++this.renderRevision;
+    const active = root.activeElement as HTMLElement | null;
+    const hadFocus = active && sections.contains(active);
+    root.querySelector('[part="title"]')!.textContent = this.heading;
+    for (const [part, text] of [["eyebrow", this.eyebrow], ["message", this.message]]) {
+      const element = root.querySelector<HTMLElement>(`[part="${part}"]`)!;
+      element.textContent = text;
+      element.hidden = !text;
     }
-
-    const eyebrowMarkup = this.eyebrow ? `<div part="eyebrow">${escapeHtml(this.eyebrow)}</div>` : "";
-    const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-
-    const host = this.shadowRoot.querySelector('[part="content-host"]');
-    if (!host) {
-      return;
+    const current = this.sections;
+    const completed = this.syncChildren(sections, current, section => section.title, () => {
+      const section = document.createElement("section");
+      section.setAttribute("part", "section");
+      section.innerHTML = '<div part="section-title"></div><dl part="section-fields"></dl>';
+      return section;
+    }, (element, section) => {
+      element.querySelector('[part="section-title"]')!.textContent = section.title;
+      const fields = element.querySelector<HTMLElement>('dl')!;
+      this.syncChildren(fields, section.fields, field => field.label, () => {
+        const group = document.createElement("div");
+        const id = `boe-metadata-field-${++nextFieldId}`;
+        group.innerHTML = `<dt part="field-term" id="${id}-term"></dt>
+          <dd part="field-definition"><button type="button" part="field" aria-labelledby="${id}-term ${id}-value">
+            <div part="field-header"><span part="field-label" aria-hidden="true"></span> <span part="field-value" id="${id}-value"></span></div>
+            <div part="field-description" id="${id}-description" hidden></div>
+          </button></dd>`;
+        return group;
+      }, (group, field) => {
+        const button = group.querySelector<HTMLButtonElement>('button')!;
+        button.dataset.fieldLabel = field.label;
+        button.dataset.fieldValue = field.value;
+        button.dataset.fieldSection = section.title;
+        group.querySelector('[part="field-term"]')!.textContent = field.label;
+        group.querySelector('[part="field-label"]')!.textContent = field.label;
+        const value = group.querySelector<HTMLElement>('[part="field-value"]')!;
+        value.textContent = field.value;
+        value.dataset.tone = field.tone ?? "neutral";
+        const description = group.querySelector<HTMLElement>('[part="field-description"]')!;
+        description.textContent = field.description ?? "";
+        description.hidden = !field.description;
+        const term = group.querySelector<HTMLElement>('[part="field-term"]')!;
+        button.setAttribute("aria-labelledby", [term.id, value.id, ...(field.description ? [description.id] : [])].join(" "));
+      }, revision);
+    }, revision);
+    // Legacy insertBefore can drop focus during a move. Restore once the whole
+    // render is complete, unless a host callback has already handed it elsewhere.
+    if (completed && hadFocus && active.isConnected && !root.activeElement
+      && this.ownerDocument.activeElement === this.ownerDocument.body) {
+      active.focus({ preventScroll: true });
     }
-
-    host.innerHTML = `
-      <section part="inspector">
-        <header part="header">
-          ${eyebrowMarkup}
-          <h2 part="title">${escapeHtml(this.heading)}</h2>
-          ${messageMarkup}
-        </header>
-        ${this.renderSections()}
-      </section>
-    `;
-
-    this.shadowRoot.querySelectorAll<HTMLElement>('[part="field"]').forEach(field => {
-      field.addEventListener("click", () => {
-        this.emitFieldSelected(
-          field.dataset.fieldLabel ?? "",
-          field.dataset.fieldValue ?? "",
-          field.dataset.fieldSection ?? "",
-        );
-      });
-    });
-  
   }
 }
 

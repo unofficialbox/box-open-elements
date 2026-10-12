@@ -1,14 +1,15 @@
 /** Reconcile owned children without disconnecting surviving focused controls. */
-const keys = new WeakMap<HTMLElement, string>();
-export const syncKeyedChildren = <T>(
-  parent: HTMLElement,
+const keys = new WeakMap<Element, string>();
+export const syncKeyedChildren = <T, E extends Element = HTMLElement>(
+  parent: Element,
   items: readonly T[],
   key: (item: T) => string,
-  create: (item: T) => HTMLElement,
-  update: (element: HTMLElement, item: T) => void,
+  create: (item: T) => E,
+  update: (element: E, item: T) => void,
+  fixedPrefix?: Element,
 ): void => {
-  const available = new Map<string, HTMLElement[]>();
-  for (const child of Array.from(parent.children) as HTMLElement[]) {
+  const available = new Map<string, E[]>();
+  for (const child of Array.from(parent.children) as E[]) {
     const identity = keys.get(child);
     if (identity !== undefined) {
       const matches = available.get(identity) ?? [];
@@ -18,14 +19,14 @@ export const syncKeyedChildren = <T>(
   const root = parent.getRootNode();
   const active = root instanceof ShadowRoot ? root.activeElement as HTMLElement | null : null;
   const hadFocus = active && parent.contains(active);
-  let cursor = parent.firstElementChild;
+  let cursor = fixedPrefix ? fixedPrefix.nextElementSibling : parent.firstElementChild;
   for (const item of items) {
     const identity = key(item);
     const child = available.get(identity)?.shift() ?? create(item);
     keys.set(child, identity);
     update(child, item);
     if (child !== cursor) {
-      const move = (parent as HTMLElement & { moveBefore?: (node: Node, before: Node | null) => void }).moveBefore;
+      const move = (parent as Element & { moveBefore?: (node: Node, before: Node | null) => void }).moveBefore;
       if (move && child.parentElement === parent && child.isConnected) move.call(parent, child, cursor);
       else parent.insertBefore(child, cursor);
     }
