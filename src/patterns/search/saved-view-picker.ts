@@ -108,6 +108,8 @@ export class SavedViewPicker extends BaseElement {
   }
 
   private valueInternal = "";
+  private valueRevision = 0;
+  private lifetimeRevision = 0;
   get label(): string {
     return this.getAttribute("label") ?? "Saved Views";
   }
@@ -121,6 +123,7 @@ export class SavedViewPicker extends BaseElement {
   }
 
   set value(value: string) {
+    this.valueRevision++;
     this.valueInternal = value;
     this.setAttribute("value", value);
     if (this.isRendered) {
@@ -142,8 +145,13 @@ export class SavedViewPicker extends BaseElement {
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-    if (name === "value") this.valueInternal = newValue ?? "";
+    if (name === "value") { this.valueRevision++; this.valueInternal = newValue ?? ""; }
     super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  disconnectedCallback(): void {
+    this.lifetimeRevision++;
+    super.disconnectedCallback();
   }
 
   private parseJsonAttribute<T>(name: string, fallback: T): T {
@@ -186,6 +194,7 @@ export class SavedViewPicker extends BaseElement {
       if (button && parent.contains(button)) this.selectView(button.dataset.viewId ?? "");
     });
     parent.addEventListener("keydown", event => {
+      if (!this.isConnected) return;
       const keyboard = event as KeyboardEvent;
       const views = Array.from(parent.querySelectorAll<HTMLButtonElement>('[part="view"]'));
       // Complete keyboard focus before dispatching to the host; no later focus
@@ -193,8 +202,14 @@ export class SavedViewPicker extends BaseElement {
       const current = views.indexOf(keyboard.target as HTMLButtonElement);
       const next = current < 0 ? null : nextRovingIndex(keyboard.key, current, views.length, { orientation: "both" });
       if (next !== null) {
-        keyboard.preventDefault(); applyRovingTabindex(views, next); views[next]?.focus();
-        this.selectView(views[next]?.dataset.viewId ?? "");
+        const target = views[next];
+        const valueRevision = this.valueRevision, lifetimeRevision = this.lifetimeRevision;
+        keyboard.preventDefault(); applyRovingTabindex(views, next); target?.focus();
+        // focusin is synchronous: a host can replace membership, write a newer
+        // value or detach/reconnect before navigation resumes.
+        if (target && this.isConnected && this.valueRevision === valueRevision && this.lifetimeRevision === lifetimeRevision && parent.contains(target) && this.views.some(view => view.id === target.dataset.viewId)) {
+          this.selectView(target.dataset.viewId ?? "");
+        }
       } else if (keyboard.key === "Enter" || keyboard.key === " ") {
         const button = (keyboard.target as HTMLElement).closest<HTMLButtonElement>('[part="view"]');
         if (button && parent.contains(button)) { keyboard.preventDefault(); this.selectView(button.dataset.viewId ?? ""); }

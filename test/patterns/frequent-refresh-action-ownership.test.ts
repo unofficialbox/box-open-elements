@@ -36,3 +36,25 @@ describe("SavedViewPicker view identity and focus handoff",()=>{
 describe("ProvenanceStrip chain identity",()=>{
  it("retains same-ID chips through label/kind/parent updates and emits current data",()=>{const e=new ProvenanceStrip();e.nodes=[{id:"a",label:"Alpha"},{id:"b",label:"Beta",parents:[{id:"a"}]}];document.body.append(e);const b=button(e,'[data-id="b"]');b.focus();e.nodes=[{id:"a",label:"Alpha current"},{id:"b",label:"Beta current",kind:"template",parents:[{id:"a"}]}];expect(button(e,'[data-id="b"]')).toBe(b);expect(e.shadowRoot!.activeElement).toBe(b);expect(b.textContent).toContain("Beta current");const selected=vi.fn();e.addEventListener("node-selected",selected);b.click();expect(selected.mock.calls[0][0].detail.node).toMatchObject({id:"b",label:"Beta current",kind:"template"});e.nodes=[{id:"b",label:"Beta root"},{id:"a",label:"Alpha child",parents:[{id:"b"}]}];expect(button(e,'[data-id="b"]')).toBe(b);expect(e.shadowRoot!.activeElement).toBe(b);e.nodes=[{id:"a",label:"Alpha"}];expect(b.isConnected).toBe(false);});
 });
+
+
+describe("SavedViewPicker synchronous focusin ownership",()=>{
+ it("preserves newer membership/value and outside caret during navigation focus",()=>{
+  const e=new SavedViewPicker();e.views=actions;e.value="a";document.body.append(e);const input=outside();const changed=vi.fn();e.addEventListener("value-changed",changed);
+  button(e,'[data-view-id="b"]').addEventListener("focusin",()=>{e.views=[actions[0],{id:"c",label:"Gamma"}];e.value="c";input.focus();input.setSelectionRange(2,5);},{once:true});
+  const a=button(e,'[data-view-id="a"]');a.focus();key(a,"ArrowRight");
+  expect(e.value).toBe("c");expect(changed).not.toHaveBeenCalled();expect(document.activeElement).toBe(input);expect([input.selectionStart,input.selectionEnd]).toEqual([2,5]);expect(e.shadowRoot!.querySelector('[data-view-id="b"]')).toBeNull();
+ });
+ it("does not overwrite an authoritative value write even if the focused view survives",()=>{
+  const e=new SavedViewPicker();e.views=actions;e.value="a";document.body.append(e);const changed=vi.fn();e.addEventListener("value-changed",changed);
+  button(e,'[data-view-id="b"]').addEventListener("focusin",()=>{e.value="b";e.value="a";},{once:true});const a=button(e,'[data-view-id="a"]');a.focus();key(a,"ArrowRight");expect(e.value).toBe("a");expect(changed).not.toHaveBeenCalled();
+ });
+ it.each([false,true])("ignores the resumed navigation after detach/reconnect=%s",reconnect=>{
+  const e=new SavedViewPicker();e.views=actions;e.value="a";document.body.append(e);const input=outside();const changed=vi.fn();e.addEventListener("value-changed",changed);
+  button(e,'[data-view-id="b"]').addEventListener("focusin",()=>{e.remove();if(reconnect)document.body.append(e);input.focus();},{once:true});const a=button(e,'[data-view-id="a"]');a.focus();key(a,"ArrowRight");expect(e.value).toBe("a");expect(changed).not.toHaveBeenCalled();expect(document.activeElement).toBe(input);
+ });
+ it("continues a legitimate same-ID label refresh from focusin",()=>{
+  const e=new SavedViewPicker();e.views=actions;e.value="a";document.body.append(e);const changed=vi.fn();e.addEventListener("value-changed",changed);
+  button(e,'[data-view-id="b"]').addEventListener("focusin",()=>{e.views=actions.map(view=>({...view,label:view.label+" current"}));},{once:true});const a=button(e,'[data-view-id="a"]');a.focus();key(a,"ArrowRight");expect(e.value).toBe("b");expect(changed).toHaveBeenCalledTimes(1);expect(e.shadowRoot!.activeElement).toBe(button(e,'[data-view-id="b"]'));
+ });
+});
