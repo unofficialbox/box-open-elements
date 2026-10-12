@@ -9,6 +9,13 @@ import {
 
 const DEFAULT_TAG_NAME = "box-dialog";
 
+interface BodyScrollLock {
+  owners: Set<Dialog>;
+  overflow: string;
+  priority: string;
+}
+const bodyScrollLocks = new WeakMap<HTMLElement, BodyScrollLock>();
+
 export type DialogConfirmTone = "primary" | "danger";
 const dangerFill = "var(--boe-button-danger-background, color-mix(in srgb, var(--boe-token-surface-status-surface-error, #ed3757) 80%, var(--boe-token-text-text, #222222) 20%))";
 
@@ -172,8 +179,7 @@ export class Dialog extends BaseElement {
 
   private openValue = false;
   private wasOpen = false;
-  private scrollLocked = false;
-  private previousBodyOverflow = "";
+  private lockedBody: HTMLElement | null = null;
   private hostEl!: HTMLElement;
   private titleEl: HTMLElement | null = null;
   private descriptionEl: HTMLElement | null = null;
@@ -258,15 +264,38 @@ export class Dialog extends BaseElement {
 
   /** Lock/unlock background page scroll while the modal is open. */
   private setScrollLock(locked: boolean): void {
-    if (locked === this.scrollLocked) {
+    if (locked) {
+      if (this.lockedBody || !this.isConnected) return;
+      const body = this.ownerDocument.body;
+      if (!body) return;
+      let lock = bodyScrollLocks.get(body);
+      if (!lock) {
+        lock = {
+          owners: new Set(),
+          overflow: body.style.getPropertyValue("overflow"),
+          priority: body.style.getPropertyPriority("overflow"),
+        };
+        bodyScrollLocks.set(body, lock);
+        body.style.setProperty("overflow", "hidden");
+      }
+      lock.owners.add(this);
+      this.lockedBody = body;
       return;
     }
-    this.scrollLocked = locked;
-    if (locked) {
-      this.previousBodyOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = this.previousBodyOverflow;
+
+    const body = this.lockedBody;
+    if (!body) return;
+    this.lockedBody = null;
+    const lock = bodyScrollLocks.get(body);
+    if (!lock) return;
+    lock.owners.delete(this);
+    if (lock.owners.size) return;
+    bodyScrollLocks.delete(body);
+    // Release only the value still owned by the dialogs, preserving host edits.
+    if (body.style.getPropertyValue("overflow") === "hidden"
+      && body.style.getPropertyPriority("overflow") === "") {
+      if (lock.overflow) body.style.setProperty("overflow", lock.overflow, lock.priority);
+      else body.style.removeProperty("overflow");
     }
   }
 
