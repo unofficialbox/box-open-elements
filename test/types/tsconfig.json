@@ -8,7 +8,10 @@
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["react"]
+    "types": ["react"],
+    "paths": {
+      "@unofficialbox/box-open-elements/text-field": ["../../dist/entries/text-field.d.ts"]
+    }
   },
   "include": ["native-consumer.tsx"]
 }

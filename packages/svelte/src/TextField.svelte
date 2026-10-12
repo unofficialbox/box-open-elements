@@ -11,6 +11,7 @@
     value?: string;
     placeholder?: string;
     disabled?: boolean;
+    readonly?: boolean;
     name?: string;
     invalid?: boolean;
     errorMessage?: string;
@@ -25,6 +26,7 @@
     value,
     placeholder,
     disabled = false,
+    readonly,
     name,
     invalid = false,
     errorMessage,
@@ -48,6 +50,7 @@
   {value}
   {placeholder}
   {disabled}
+  {readonly}
   {name}
   {invalid}
   {errorMessage}

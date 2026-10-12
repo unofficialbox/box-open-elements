@@ -122,6 +122,22 @@ const fieldsetStyles = `
     color: var(--boe-token-text-text-secondary, #6f6f6f);
   }
 
+  :host([label-case="preserve"]) [part="legend"] {
+    text-transform: none;
+  }
+
+  :host([hide-label]) [part="legend"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   [part="description"] {
     margin: 0 0 0.5rem;
     font-size: 0.86rem;
@@ -150,7 +166,7 @@ const fieldsetStyles = `
 export class Fieldset extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["description", "disabled", "label"];
+    return ["description", "disabled", "hide-label", "label", "label-case"];
   }
 
   private fieldsetEl!: HTMLFieldSetElement;
@@ -167,6 +183,22 @@ export class Fieldset extends BaseElement {
 
   set label(value: string) {
     this.setAttribute("label", value);
+  }
+
+  get hideLabel(): boolean {
+    return this.hasAttribute("hide-label");
+  }
+
+  set hideLabel(value: boolean) {
+    this.toggleAttribute("hide-label", Boolean(value));
+  }
+
+  get labelCase(): "uppercase" | "preserve" {
+    return this.getAttribute("label-case") === "preserve" ? "preserve" : "uppercase";
+  }
+
+  set labelCase(value: "uppercase" | "preserve") {
+    this.setAttribute("label-case", value);
   }
 
   get description(): string {

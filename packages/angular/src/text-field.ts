@@ -54,6 +54,12 @@ export class TextField implements OnDestroy {
     this.element.disabled = Boolean(value);
   }
 
+  @Input() set readonly(value: boolean | string | null | undefined) {
+    // Static boolean attributes (including empty strings) mean presence;
+    // property bindings can explicitly pass false/null to remove the mode.
+    this.element.readonly = value !== false && value !== null && value !== undefined;
+  }
+
   @Input() set invalid(value: boolean | undefined) {
     this.element.invalid = Boolean(value);
   }

@@ -192,6 +192,7 @@ export class TextField extends FormAssociatedElement {
       ...FormAssociatedElement.fieldObservedAttributes,
       "autocomplete",
       "disabled",
+      "readonly",
       "label",
       "placeholder",
       "reveal",
@@ -295,6 +296,23 @@ export class TextField extends FormAssociatedElement {
     if (this.isRendered) {
       this.update();
     }
+  }
+
+  get readonly(): boolean {
+    return this.hasAttribute("readonly");
+  }
+
+  set readonly(value: boolean) {
+    this.toggleAttribute("readonly", Boolean(value));
+  }
+
+  /** Focus and select the current native text; no queued preconnection work. */
+  select(): void {
+    if (!this.isConnected || this.disabled || this.matches(":disabled")) return;
+    this.inputEl?.focus();
+    // A focus listener may detach/disable the control or hand focus elsewhere.
+    if (this.isConnected && !this.disabled && !this.matches(":disabled")
+      && this.shadowRoot?.activeElement === this.inputEl) this.inputEl.select();
   }
 
   get disabled(): boolean {
@@ -417,6 +435,7 @@ export class TextField extends FormAssociatedElement {
     const revealActive = this.reveal && this.type === "password";
     this.inputEl.type = revealActive && this.revealed ? "text" : this.type;
     this.inputEl.placeholder = this.placeholder;
+    this.inputEl.readOnly = this.readonly;
     if (this.autocomplete) {
       this.inputEl.setAttribute("autocomplete", this.autocomplete);
     } else {

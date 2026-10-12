@@ -74,7 +74,7 @@ export interface BoxElementPropertyKeys {
   "box-explorer-table": "controller" | "itemGesture";
   "box-explorer-toolbar": "controller";
   "box-fact-list": "blocks" | "labels" | "rows" | "selectableDocuments";
-  "box-fieldset": "description" | "disabled" | "label";
+  "box-fieldset": "description" | "disabled" | "hideLabel" | "label" | "labelCase";
   "box-file-request-builder": "fields" | "heading" | "message" | "settings" | "value";
   "box-filter-bar": "filterOptions" | "filters" | "label" | "query" | "sortOptions" | "sortValue" | "viewOptions" | "viewValue";
   "box-flow-builder": "catalog" | "endLabel" | "headingLevel" | "model" | "nodes" | "renderInspector" | "selected" | "startLabel";
@@ -159,8 +159,8 @@ export interface BoxElementPropertyKeys {
   "box-tabs": "label" | "layout" | "options" | "value";
   "box-tag-input": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "name" | "placeholder" | "required" | "tags" | "value";
   "box-task-assignment-panel": "actions" | "assignees" | "checklist" | "currentAssigneeId" | "dueDate" | "heading" | "message" | "priority" | "status";
-  "box-text-area": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "placeholder" | "required" | "rows" | "value";
-  "box-text-field": "autocomplete" | "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "loading" | "name" | "placeholder" | "required" | "reveal" | "revealLabel" | "type" | "valid" | "value";
+  "box-text-area": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "placeholder" | "readonly" | "required" | "rows" | "value";
+  "box-text-field": "autocomplete" | "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "loading" | "name" | "placeholder" | "readonly" | "required" | "reveal" | "revealLabel" | "type" | "valid" | "value";
   "box-thumbnail-card": "cardTitle" | "interactive" | "subtitle";
   "box-tile-group": "legend" | "multiple" | "name" | "options" | "value";
   "box-time-field": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "required" | "step" | "value";

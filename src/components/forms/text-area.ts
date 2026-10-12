@@ -82,6 +82,7 @@ export class TextArea extends FormAssociatedElement {
     return [
       ...FormAssociatedElement.fieldObservedAttributes,
       "disabled",
+      "readonly",
       "label",
       "placeholder",
       "rows",
@@ -107,6 +108,23 @@ export class TextArea extends FormAssociatedElement {
     if (this.isRendered) {
       this.update();
     }
+  }
+
+  get readonly(): boolean {
+    return this.hasAttribute("readonly");
+  }
+
+  set readonly(value: boolean) {
+    this.toggleAttribute("readonly", Boolean(value));
+  }
+
+  /** Focus and select the current native text; no queued preconnection work. */
+  select(): void {
+    if (!this.isConnected || this.disabled || this.matches(":disabled")) return;
+    this.textareaEl?.focus();
+    // A focus listener may detach/disable the control or hand focus elsewhere.
+    if (this.isConnected && !this.disabled && !this.matches(":disabled")
+      && this.shadowRoot?.activeElement === this.textareaEl) this.textareaEl.select();
   }
 
   get disabled(): boolean {
@@ -214,6 +232,7 @@ export class TextArea extends FormAssociatedElement {
 
     this.labelEl.textContent = this.label;
     this.textareaEl.placeholder = this.placeholder;
+    this.textareaEl.readOnly = this.readonly;
     this.textareaEl.rows = this.rows;
     this.applyFieldSupport(this.labelEl, this.textareaEl, this.descriptionEl);
 

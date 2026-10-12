@@ -137,3 +137,33 @@ trace.embedded = true;
 trace.hideNote = true;
 const traceNode = <box-trace-waterfall collapsed={new Set(["run"])} rowLabel="Step" rowsLabel="steps" searchLabel="Find steps" headingLevel={3} embedded hideNote />;
 void traceNode;
+
+// Requested form APIs retain typed native refs and boolean/enum props.
+const apiFieldset = document.createElement("box-fieldset");
+apiFieldset.hideLabel = true;
+apiFieldset.labelCase = "preserve";
+// @ts-expect-error label casing is an explicit option
+apiFieldset.labelCase = "titlecase";
+const apiArea = document.createElement("box-text-area");
+apiArea.readonly = true;
+apiArea.select();
+field.readonly = true;
+field.select();
+// @ts-expect-error readonly is a reflected boolean
+field.readonly = "true";
+// @ts-expect-error select follows the native no-argument contract
+apiArea.select("all");
+const formApiView = <>
+  <box-fieldset hideLabel={true} labelCase="preserve" />
+  <box-text-field readonly={true} />
+  <box-text-area readonly={true} />
+  {/* @ts-expect-error casing must be a supported option */}
+  <box-fieldset labelCase="titlecase" />
+  {/* @ts-expect-error readonly must be boolean */}
+  <box-text-area readonly="true" />
+</>;
+void formApiView;
+
+import { TextField as ReactApiTextField } from "@unofficialbox/box-open-elements-react";
+const adapterApiView = <ReactApiTextField readonly={true} ref={element => element?.select()} />;
+void adapterApiView;

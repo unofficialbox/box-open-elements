@@ -16,6 +16,7 @@ export const TextField = defineComponent({
     value: String,
     placeholder: String,
     disabled: Boolean,
+    readonly: { type: Boolean, default: undefined },
     name: String,
     invalid: Boolean,
     errorMessage: String,
@@ -26,6 +27,7 @@ export const TextField = defineComponent({
   setup(props, { attrs, slots, emit, expose }) {
     const element = useWebComponent<TextFieldElement>(
       host => {
+        if (props.readonly !== undefined) host.readonly = props.readonly;
         if (props.label !== undefined) host.label = props.label;
         if (props.value !== undefined) host.value = props.value;
         if (props.placeholder !== undefined) host.placeholder = props.placeholder;
