@@ -187,3 +187,37 @@ it("reconciles a pending custom upgrade when a disabled group reconnects", async
   expect(late.shadowRoot!.querySelector<HTMLInputElement>("input")!.disabled).toBe(true);
   e.disabled = false; expect((late as TextField).disabled).toBe(false);
 });
+
+it("reconciles external native first-legend insertion/removal without losing consumer intent", async () => {
+  const text = field(), owned = field(); owned.disabled = true;
+  const inner = new Fieldset(), native = document.createElement("fieldset"), legend = document.createElement("legend");
+  const positive = document.createElement("input");
+  inner.append(text, owned); legend.append(positive, inner); native.disabled = true; native.append(legend); document.body.append(native);
+  await settle(); expect(positive.matches(":disabled")).toBe(false); expect(text.disabled).toBe(false);
+  const earlier = document.createElement("legend"); native.prepend(earlier); await settle();
+  expect(positive.matches(":disabled")).toBe(true); expect(text.disabled).toBe(true);
+  earlier.remove(); await settle();
+  expect(positive.matches(":disabled")).toBe(false); expect(text.disabled).toBe(false); expect(owned.disabled).toBe(true);
+  inner.remove(); document.body.append(inner); native.prepend(earlier); await settle();
+  expect(text.disabled).toBe(false);
+  legend.append(inner); await settle(); expect(text.disabled).toBe(true);
+  earlier.remove(); await settle(); expect(text.disabled).toBe(false); expect(owned.disabled).toBe(true);
+});
+
+it("requires an observable consumer write when an already-owned custom disabled setter is a no-op", () => {
+  const text = field(), inner = new Fieldset(); inner.append(text);
+  const outer = group(inner); outer.disabled = true;
+  const observer = new MutationObserver(() => {});
+  observer.observe(text, {attributes:true,attributeFilter:["disabled"]});
+  observer.observe(inner, {attributes:true,attributeFilter:["disabled"]});
+  // These setters toggle an already-present attribute; the DOM reports no
+  // consumer write, so ownership cannot distinguish them from doing nothing.
+  text.disabled = true; inner.disabled = true;
+  expect(observer.takeRecords()).toHaveLength(0);
+  // Explicit attribute writes are observable even when the value is unchanged.
+  text.setAttribute("disabled", ""); inner.setAttribute("disabled", "");
+  expect(observer.takeRecords()).toHaveLength(2);
+  observer.disconnect(); outer.disabled = false;
+  expect(text.disabled).toBe(true); expect(inner.disabled).toBe(true);
+  inner.disabled = false; expect(text.disabled).toBe(true);
+});

@@ -140,6 +140,12 @@ const fieldsetStyles = `
  * `<fieldset>`), native `fieldset[disabled]` propagation cannot reach them, so
  * `disabled` is mirrored onto the light-DOM controls directly. Groups arbitrary
  * fields; use `box-checkbox-group`/`box-radio-group` for option lists.
+ *
+ * Consumer intent is retained for preexisting disabled state and observable
+ * disabled-attribute writes. A custom setter using toggleAttribute(true) is a
+ * DOM no-op while a group already owns disabling; it cannot express new intent.
+ * Use setAttribute("disabled", "") to retain disabling after the group enables.
+ * Reconciliation of descendant/ancestor mutations occurs at observer delivery.
  */
 export class Fieldset extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
@@ -199,7 +205,8 @@ export class Fieldset extends BaseElement {
     });
     for (let parent = this.parentElement; parent; parent = parent.parentElement) {
       if (parent instanceof HTMLFieldSetElement) {
-        this.childrenObserver.observe(parent, { attributes: true, attributeFilter: ["disabled"] });
+        // Sibling legend insertion/removal changes the native first-legend exemption.
+        this.childrenObserver.observe(parent, { childList: true, attributes: true, attributeFilter: ["disabled"] });
       }
     }
   }

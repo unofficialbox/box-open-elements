@@ -282,3 +282,19 @@ Preview-related work stays layered:
 - **Workflow shell** (patterns/preview) — a pluggable preview element that hosts the actual preview provider and orchestrates preview state
 
 See [patterns/preview.md](./patterns/preview.md) for the provider-adapter contract and annotation-first priorities.
+
+### Fieldset disabled ownership
+
+`box-fieldset` mirrors effective disabling onto slotted controls, including native
+fieldset ancestors and their first-legend exemption. It releases its contribution
+when enabled, moved, or disconnected. Existing consumer disabling and observable
+`disabled` attribute writes remain owned by the consumer. Dynamic mutations
+reconcile when the mutation observer runs.
+
+A repeated custom `disabled = true` setter that uses `toggleAttribute` produces no
+DOM mutation when a group has already installed the attribute. That no-op cannot
+be distinguished from no consumer action, for either a field or a nested custom
+fieldset. To retain independent disabling after the enclosing group enables,
+write `control.setAttribute("disabled", "")` explicitly while the group is disabled,
+or set the property before the group takes ownership. This also applies to nested
+`box-fieldset` consumers. Same-value explicit attribute writes are tracked.
