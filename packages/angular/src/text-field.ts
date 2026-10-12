@@ -1,3 +1,4 @@
+import { NativeOutput, emitNative } from "./native-output.js";
 import {
   Directive,
   ElementRef,
@@ -17,12 +18,12 @@ export type ValueChangedEvent = CustomEvent<ValueChangedDetail>;
 @Directive({ selector: "box-text-field", standalone: true })
 export class TextField implements OnDestroy {
   readonly element: TextFieldElement;
+  private readonly valueChangedNative = new NativeOutput<ValueChangedEvent>(() => this.element, "value-changed");
   private readonly valueChangedListener = (event: Event): void => {
-    this.valueChanged.emit(event as ValueChangedEvent);
+    emitNative(this.valueChanged, event as ValueChangedEvent);
   };
 
-  @Output("value-changed") readonly valueChanged =
-    new EventEmitter<ValueChangedEvent>();
+  @Output("value-changed") readonly valueChanged: EventEmitter<ValueChangedEvent> = this.valueChangedNative;
 
   constructor(host: ElementRef<TextFieldElement>) {
     this.element = host.nativeElement;
@@ -59,5 +60,6 @@ export class TextField implements OnDestroy {
 
   ngOnDestroy(): void {
     this.element.removeEventListener("value-changed", this.valueChangedListener);
+    this.valueChangedNative.releaseHost();
   }
 }
