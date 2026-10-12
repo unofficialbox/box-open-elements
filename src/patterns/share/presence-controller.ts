@@ -22,6 +22,7 @@ type PresenceEvents = {
 export class PresenceController extends Controller<PresenceState, PresenceEvents> {
   private readonly config: PresenceControllerConfig;
   private unsubscribe: Unsubscribe | null = null;
+  private connectionGeneration = 0;
 
   constructor(config: PresenceControllerConfig) {
     super({ connected: false, users: config.initialUsers ?? [] });
@@ -41,7 +42,11 @@ export class PresenceController extends Controller<PresenceState, PresenceEvents
       return;
     }
 
+    const generation = ++this.connectionGeneration;
     this.unsubscribe = this.config.transport.subscribe(users => {
+      if (generation !== this.connectionGeneration) {
+        return;
+      }
       this.setState({ ...this.state, users });
       this.emit("presenceChanged", { users });
     });
@@ -54,6 +59,7 @@ export class PresenceController extends Controller<PresenceState, PresenceEvents
       return;
     }
 
+    this.connectionGeneration += 1;
     this.unsubscribe?.();
     this.unsubscribe = null;
     this.setState({ ...this.state, connected: false });
@@ -61,8 +67,7 @@ export class PresenceController extends Controller<PresenceState, PresenceEvents
   }
 
   destroy(): void {
-    this.unsubscribe?.();
-    this.unsubscribe = null;
+    this.disconnect();
     super.destroy();
   }
 }

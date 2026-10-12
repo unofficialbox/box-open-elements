@@ -366,6 +366,9 @@ export class Preview extends BaseElement {
   }
 
   set providerAdapter(value: PreviewProviderAdapter | null) {
+    if (value === this.providerAdapterValue) {
+      return;
+    }
     this.teardownProviderAdapter();
     this.providerAdapterValue = value;
     if (this.isConnected) {
