@@ -70,3 +70,64 @@ and host updates while that row remains rendered. Home/End followed by Space can
 therefore select the focused target after the window settles. Removing the row,
 scrolling it out of the rendered window, or moving focus to a host control does
 not move focus to another row or scroll it back into view.
+
+## Host cells and row actions
+
+Set `TableColumn.hostContent: true` for chosen cells. The table renders a named
+`cell-<rowId>-<columnKey>` slot inside the native cell; its escaped descriptor
+content is the fallback when the host supplies no node. Slot names use the exact
+row ID and column key, so choose combinations with distinct resulting names.
+Host nodes keep their identity and value through row refreshes and reordering.
+The table never accepts an HTML string or render callback.
+
+```ts
+table.columns = [
+  { key: "name", label: "Load stage", rowHeader: true },
+  { key: "users", label: "Test users", hostContent: true },
+];
+table.rows = [{ id: "warmup", cells: { name: "Warm-up", users: "10" },
+  actions: [{ key: "remove", label: "Remove" }] }];
+const users = document.createElement("input");
+users.type = "number";
+users.value = "10";
+users.slot = "cell-warmup-users";
+users.setAttribute("aria-label", "Test users for Warm-up");
+table.append(users);
+```
+
+In stacked list and grid layouts, cells retain their visible column labels and
+row-header semantics. The host supplies each control's accessible name, form
+association, validation and event handling. Clicks and keys in host content and
+descriptor links remain native and do not select or navigate table rows.
+
+`TableRow.actions` adds a built-in Actions column when any row has actions.
+Each action has `key`, visible `label`, optional `disabled`, and optional
+`ariaLabel` for a complete accessible name. The default name is
+`<action label> for <row name>`, using the first row-header column (or first
+column) descriptor text and falling back to the row ID. Use distinct action keys
+within each row. Native buttons work in read-only and selectable tables.
+
+```ts
+table.addEventListener("row-action", event => {
+  const { rowId, action, row } = event.detail;
+  // The row is current authored data at activation time, including refreshed cells.
+  if (action === "remove") table.rows = table.rows.filter(item => item.id !== rowId);
+});
+```
+
+An action emits one bubbling, composed `row-action` with
+`TableRowActionDetail { rowId, action, row }`, independently of selection.
+Activation resolves the current row/action by identity; removed or disabled
+actions do not emit. Focus follows an active action's row ID and action key
+through updates; removed actions receive no replacement focus. External focus
+handoffs remain authoritative.
+
+`TableRow.current: true` gives the record being viewed `aria-current="true"`
+and a leading brand marker. It is independent of `selectedIds`. The host owns
+which row is current and should mark one current record for a single view.
+
+Host cells and row actions suppress fixed-height virtualization, because their
+controls and wrapped content can have variable heights. The `virtualize`
+request stays set and `renderedWindow` returns `null`; removing those features
+restores ordinary windowing. Actions, loading/error/empty states, grouped
+headers and expanded detail rows all include the Actions column in their spans.

@@ -904,3 +904,167 @@ describe("Table compact stacked layout", () => {
     expect(el.renderedWindow).not.toBeNull();
   });
 });
+
+describe("Table host cells, actions and current row", () => {
+  beforeEach(() => { Table.register(); });
+  afterEach(() => { document.body.innerHTML = ""; });
+  const action = (el: Table, key = "view"): HTMLButtonElement =>
+    [...el.shadowRoot!.querySelectorAll<HTMLButtonElement>('[part="row-action"]')].find(button => button.dataset.actionKey === key)!;
+
+  it("renders escaped descriptor fallbacks in opt-in slots and preserves host nodes", () => {
+    const el = create("none");
+    const id = 'row"<unsafe>', key = 'name"<unsafe>';
+    el.columns = [{ key, label: "Name", rowHeader: true, hostContent: true }];
+    el.rows = [{ id, cells: { [key]: '<img src=x onerror="bad">' } }];
+    const slot = el.shadowRoot!.querySelector<HTMLSlotElement>('slot[part="cell-slot"]')!;
+    expect(slot.name).toBe(`cell-${id}-${key}`);
+    expect(slot.textContent).toBe('<img src=x onerror="bad">');
+    expect(el.shadowRoot!.querySelector("img")).toBeNull();
+    const input = document.createElement("input");
+    input.slot = slot.name; input.value = "Host value";
+    el.append(input);
+    expect(slot.assignedElements()).toEqual([input]);
+    el.rows = [{ id, cells: { [key]: { kind: "link", text: "Fallback report", href: "javascript:bad()" } } }];
+    const next = el.shadowRoot!.querySelector<HTMLSlotElement>('slot[part="cell-slot"]')!;
+    expect(next.assignedElements()).toEqual([input]);
+    expect(input.value).toBe("Host value");
+    expect(next.textContent).toBe("Fallback report");
+    expect(next.querySelector("a")).toBeNull();
+    expect(next.closest("th")?.getAttribute("scope")).toBe("row");
+    el.columns = [{ key, label: "Name" }];
+    expect(el.shadowRoot!.querySelector('[part="cell-slot"]')).toBeNull();
+  });
+
+  it("preserves an assigned custom control's focused inner target and external handoff", () => {
+    const el = create("multiple");
+    el.columns = [{ key: "name", label: "Name", hostContent: true }];
+    const control = document.createElement("div"); control.slot = "cell-1-name";
+    const shadow = control.attachShadow({ mode: "open" });
+    const input = document.createElement("input"); shadow.append(input); el.append(control);
+    input.focus();
+    el.rows = [...el.rows].reverse();
+    expect(document.activeElement).toBe(control);
+    expect(shadow.activeElement).toBe(input);
+    const outside = document.createElement("button"); document.body.append(outside); outside.focus();
+    el.selectedIds = ["1"];
+    expect(document.activeElement).toBe(outside);
+    expect(el.querySelector('[slot="cell-1-name"]')).toBe(control);
+  });
+
+  it("keeps compact column labels beside host controls and row header semantics", () => {
+    const el = create("none");
+    el.setAttribute("stacked", "auto"); el.stackedLayout = "grid";
+    el.columns = [{ key: "name", label: "Run", rowHeader: true, hostContent: true }, { key: "rate", label: "Test users", group: "Load", hostContent: true }];
+    el.rows = [{ id: "a", cells: { name: "Run A", rate: "10" } }];
+    const root = el.shadowRoot!;
+    expect(root.querySelector('th[scope="row"] slot')?.getAttribute("name")).toBe("cell-a-name");
+    expect(root.querySelector('td [part="stacked-label"]')?.textContent).toBe("Test users");
+    expect(root.querySelector('td [part="stacked-group"]')?.textContent).toBe("Load");
+    expect(root.querySelector("td")?.getAttribute("data-label")).toBe("Load — Test users");
+    expect(root.querySelector("td slot")?.getAttribute("name")).toBe("cell-a-rate");
+  });
+
+  it.each(["input", "select", "button"])("leaves native %s keys and clicks independent of selection", tag => {
+    const el = create("multiple");
+    el.columns = [{ key: "name", label: "Name", hostContent: true }];
+    const control = document.createElement(tag); control.slot = "cell-1-name";
+    el.append(control);
+    for (const key of [" ", "Home", "End", "ArrowDown", "a", "Escape"]) {
+      const event = new KeyboardEvent("keydown", { key, bubbles: true, composed: true, cancelable: true, ctrlKey: key === "a" });
+      control.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(false);
+    }
+    control.click();
+    expect(el.selectedIds).toEqual([]);
+  });
+
+  it("keeps descriptor links independent of row selection", () => {
+    const el = create("multiple");
+    el.rows = [{ id: "a", cells: { name: { kind: "link", text: "Report", href: "#report" } } }];
+    const link = el.shadowRoot!.querySelector<HTMLAnchorElement>("a")!;
+    const key = new KeyboardEvent("keydown", { key: " ", bubbles: true, cancelable: true });
+    link.dispatchEvent(key); link.click();
+    expect(key.defaultPrevented).toBe(false);
+    expect(el.selectedIds).toEqual([]);
+  });
+
+  it("names actions per row, emits one typed current record and never selects", () => {
+    const el = create("multiple");
+    el.columns = [{ key: "name", label: "Run", rowHeader: true }];
+    el.rows = [{ id: "a", cells: { name: "Run A" }, actions: [{ key: "view", label: "View" }, { key: "compare", label: "Compare", disabled: true }, { key: "report", label: "Report", ariaLabel: "Download A report" }] }];
+    const listener = vi.fn(); el.addEventListener("row-action", listener);
+    expect(action(el).getAttribute("aria-label")).toBe("View for Run A");
+    expect(action(el, "report").getAttribute("aria-label")).toBe("Download A report");
+    action(el).click(); action(el, "compare").click();
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(listener.mock.calls[0][0].detail).toEqual({ rowId: "a", action: "view", row: el.rows[0] });
+    expect(listener.mock.calls[0][0].composed).toBe(true);
+    expect(el.selectedIds).toEqual([]);
+  });
+
+  it.each(["refresh", "remove", "disable", "remove-action"])("resolves action data after a host capture %s", change => {
+    const el = create("multiple");
+    el.rows = [{ id: "a", cells: { name: "Old" }, actions: [{ key: "view", label: "View" }] }];
+    const listener = vi.fn(); el.addEventListener("row-action", listener);
+    el.addEventListener("click", () => {
+      el.rows = change === "remove" ? [] : [{ id: "a", cells: { name: "Current" }, actions: change === "remove-action" ? [] : [{ key: "view", label: "Current View", disabled: change === "disable" }] }];
+    }, { once: true, capture: true });
+    action(el).click();
+    expect(listener).toHaveBeenCalledTimes(change === "refresh" ? 1 : 0);
+    if (change === "refresh") expect(listener.mock.calls[0][0].detail.row.cells.name).toBe("Current");
+    expect(el.selectedIds).toEqual([]);
+  });
+
+  it("retains action focus by row/action ID through reorder and respects removal and external focus", () => {
+    const el = create("multiple");
+    el.rows = [{ id: 'a"\\id', cells: { name: "A" }, actions: [{ key: 'view"\\key', label: "View" }] }, { id: "b", cells: { name: "B" }, actions: [{ key: "view", label: "View" }] }];
+    action(el, 'view"\\key').focus();
+    el.rows = el.rows.map(row => ({ ...row, cells: { name: "Current " + row.id } })).reverse();
+    expect(el.shadowRoot!.activeElement).toBe(action(el, 'view"\\key'));
+    expect((el.shadowRoot!.activeElement as HTMLElement).dataset.rowId).toBe('a"\\id');
+    el.rows = el.rows.filter(row => row.id === "b");
+    expect(el.shadowRoot!.activeElement).toBeNull();
+    const outside = document.createElement("input"); document.body.append(outside); outside.focus();
+    el.selectedIds = ["b"];
+    expect(document.activeElement).toBe(outside);
+  });
+
+  it("escapes action markup, ignores malformed actions and accounts for grouped/detail columns", () => {
+    const el = create("none");
+    el.columns = [{ key: "name", label: "Name", group: "Runs", rowHeader: true }];
+    el.rows = [{ id: 'a"<bad>', detail: "Details", cells: { name: "<svg>" }, actions: [{ key: 'view"<bad>', label: '<img src=x onerror="bad">', ariaLabel: 'View" onclick="bad' }, null as never] }];
+    expect(el.shadowRoot!.querySelector("img,svg")).toBeNull();
+    const button = el.shadowRoot!.querySelector<HTMLButtonElement>('[part="row-action"]')!;
+    expect(button.textContent).toBe('<img src=x onerror="bad">');
+    expect(button.hasAttribute("onclick")).toBe(false);
+    expect(button.dataset.rowId).toBe('a"<bad>');
+    expect(el.shadowRoot!.querySelector('th:last-child')?.getAttribute("rowspan")).toBe("2");
+    (el.shadowRoot!.querySelector('[part="expander"]') as HTMLElement).click();
+    expect(el.shadowRoot!.querySelector('[part="detail-row"] td')?.getAttribute("colspan")).toBe("3");
+    el.loading = true;
+    expect(el.shadowRoot!.querySelector('[part="state-row"] td')?.getAttribute("colspan")).toBe("3");
+  });
+
+  it.each(["none", "multiple"])("marks the current row independently of selection (%s)", mode => {
+    const el = create(mode);
+    el.rows = [{ id: "a", current: true, cells: { name: "A" } }, { id: "b", cells: { name: "B" } }];
+    el.selectedIds = ["b"];
+    expect(rowAt(el, 0).getAttribute("aria-current")).toBe("true");
+    expect(rowAt(el, 1).hasAttribute("aria-current")).toBe(false);
+    expect(el.selectedIds).toEqual(["b"]);
+    el.rows = el.rows.map(row => ({ ...row, current: row.id === "b" }));
+    expect(rowAt(el, 0).hasAttribute("aria-current")).toBe(false);
+    expect(rowAt(el, 1).getAttribute("aria-current")).toBe("true");
+  });
+
+  it.each(["host", "actions"])("declines fixed-height windowing for variable-height %s cells", kind => {
+    const el = create("none"); el.virtualize = true;
+    el.columns = [{ key: "name", label: "Name", hostContent: kind === "host" }];
+    el.rows = Array.from({ length: 200 }, (_, i) => ({ id: String(i), cells: { name: "Row " + i }, ...(kind === "actions" && i === 199 ? { actions: [{ key: "view", label: "View" }] } : {}) }));
+    expect(el.renderedWindow).toBeNull();
+    expect(el.shadowRoot!.querySelectorAll('[part="row"]').length).toBe(200);
+    el.columns = [{ key: "name", label: "Name" }];
+    el.rows = el.rows.map(({ actions, ...row }) => row);
+    expect(el.renderedWindow).not.toBeNull();
+  });
+});

@@ -613,6 +613,7 @@ export interface BoxElementEventMap {
     "checked-changed": CustomEvent<{ checked: boolean; }>;
   };
   "box-table": {
+    "row-action": CustomEvent<import("./components/collections/table.js").TableRowActionDetail>;
     "row-toggled": CustomEvent<import("./components/collections/table.js").TableRowToggledDetail>;
     "selection-changed": CustomEvent<import("./components/collections/table.js").TableSelectionChangedDetail>;
     "sort": CustomEvent<import("./components/collections/table.js").TableSortDetail>;

@@ -17,6 +17,8 @@ export interface TableColumn {
   rowHeader?: boolean;
   /** Adjacent columns sharing a group get a spanning header. */
   group?: string;
+  /** Host-owned `cell-<rowId>-<key>` content with the descriptor as fallback. */
+  hostContent?: boolean;
 }
 
 export type TableCellTone = "neutral" | "brand" | "success" | "warning" | "error";
@@ -50,6 +52,26 @@ export interface TableRow {
    * holding this text plus a `detail-<id>` slot for rich host content.
    */
   detail?: string;
+  /** Independent host-requested actions; activating one never selects a row. */
+  actions?: TableRowAction[];
+  /** The record currently being viewed, independently of row selection. */
+  current?: boolean;
+}
+
+export interface TableRowAction {
+  key: string;
+  /** Visible label; the accessible name also identifies the row. */
+  label: string;
+  disabled?: boolean;
+  /** Optional full accessible name supplied by the host. */
+  ariaLabel?: string;
+}
+
+export interface TableRowActionDetail {
+  rowId: string;
+  action: string;
+  /** The current authored row at activation time, including refreshed cells. */
+  row: TableRow;
 }
 
 export type TableStackedLayout = "list" | "grid";
@@ -212,6 +234,27 @@ const tableStyles = `
     background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, transparent);
   }
 
+  tbody tr[aria-current="true"] > :is(td, th):first-child {
+    box-shadow: inset 3px 0 0 var(--boe-token-surface-surface-brand, #0061d5);
+  }
+
+  [part="row-actions"] { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  [part="cell-slot"]::slotted(*) { max-inline-size: 100%; box-sizing: border-box; }
+  [part="row-action"] {
+    border: 1px solid var(--boe-token-stroke-stroke, #dedede);
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    background: var(--boe-token-surface-surface, #ffffff);
+    color: var(--boe-token-text-text, #222222);
+    font: inherit;
+    cursor: pointer;
+  }
+  [part="row-action"]:disabled { opacity: 0.55; cursor: not-allowed; }
+  [part="row-action"]:focus-visible {
+    outline: 2px solid var(--boe-token-surface-surface-brand, #0061d5);
+    outline-offset: 1px;
+  }
+
   tbody tr[part="row"]:focus-visible :is(td, th) {
     box-shadow: inset 0 0 0 2px var(--boe-token-surface-surface-brand, #0061d5);
   }
@@ -369,6 +412,9 @@ const tableStyles = `
   ${scope} tr[part="row"][aria-selected="true"] {
     background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, transparent);
   }
+  ${scope} tr[part="row"][aria-current="true"] {
+    box-shadow: inset 3px 0 0 var(--boe-token-surface-surface-brand, #0061d5);
+  }
   ${scope} tr[part="row"]:focus-visible {
     box-shadow: inset 0 0 0 2px var(--boe-token-surface-surface-brand, #0061d5);
   }
@@ -401,6 +447,7 @@ const tableStyles = `
   }
   ${scope} [part="stacked-value"] { display: block; min-width: 0; overflow-wrap: anywhere; }
   ${scope} [part="expander-cell"] { display: block; grid-column: 1 / -1; padding: 0; }
+  ${scope} tr[part="row"] > [part="actions-cell"] { display: block; grid-column: 1 / -1; padding: 0; }
 `;
     return `
   [part="stacked-group"], [part="stacked-label"] { display: none; }
@@ -500,8 +547,8 @@ export class Table extends BaseElement {
    * would render nothing.
    *
    * A request, not a guarantee. The window arithmetic is fixed-height, so it is
-   * suppressed when any row declares `detail`, or when compact stacked cards
-   * are requested: their wrapped content has variable height. Read `renderedWindow` to see
+   * suppressed for row details, host cells, row actions or compact stacked
+   * cards: their content can have variable height. Read `renderedWindow` to see
    * whether a render actually windowed.
    */
   get virtualize(): boolean {
@@ -720,11 +767,17 @@ export class Table extends BaseElement {
     });
 
     this.bodyEl.addEventListener("click", event => {
+      const action = event.composedPath().find(target => target instanceof HTMLElement && target.getAttribute("part") === "row-action") as HTMLElement | undefined;
+      if (action) {
+        this.activateRowAction(action.dataset.rowId ?? "", action.dataset.actionKey ?? "");
+        return;
+      }
       const expander = (event.target as HTMLElement).closest<HTMLElement>('[part="expander"]');
       if (expander) {
         this.toggleRowDetail(expander.dataset.rowId ?? "");
         return; // expanding is not selecting
       }
+      if (this.isCellInteraction(event)) return;
       const row = (event.target as HTMLElement).closest<HTMLElement>('[part="row"]');
       if (!row) return;
       const mouse = event as MouseEvent;
@@ -736,6 +789,40 @@ export class Table extends BaseElement {
 
   private rowElements(): HTMLElement[] {
     return Array.from(this.bodyEl.querySelectorAll<HTMLElement>('[part="row"]'));
+  }
+
+  private actionsFor(row: TableRow): TableRowAction[] {
+    return Array.isArray(row.actions) ? row.actions.filter(action =>
+      action && typeof action.key === "string" && typeof action.label === "string",
+    ) : [];
+  }
+
+  private activateRowAction(rowId: string, actionKey: string): void {
+    // A capture listener may synchronously refresh/reorder/remove rows before
+    // this delegated click reaches us. Read current data, never a render closure.
+    const row = this.rows.find(row => row.id === rowId);
+    const action = row && this.actionsFor(row).find(action => action.key === actionKey);
+    if (!row || !action || action.disabled) return;
+    this.dispatchEvent(new CustomEvent<TableRowActionDetail>("row-action", {
+      bubbles: true,
+      composed: true,
+      detail: { rowId: row.id, action: action.key, row },
+    }));
+  }
+
+  private isCellInteraction(event: Event): boolean {
+    // Slotted/custom controls keep their native keys and host handlers, even
+    // when their own shadow root retargets the event to the assigned host.
+    return event.composedPath().some(target => target instanceof Element &&
+      target.matches('[part="cell-slot"], [part="row-action"], a, button, input, select, textarea, [contenteditable]:not([contenteditable="false"])'));
+  }
+
+  private cellSlotFor(element: HTMLElement): HTMLSlotElement | null {
+    for (let node: HTMLElement | null = element; node && node !== this; node = node.parentElement) {
+      const slot = node.assignedSlot;
+      if (slot?.getRootNode() === this.shadowRoot && slot.getAttribute("part") === "cell-slot") return slot;
+    }
+    return null;
   }
 
   private toggleRowDetail(rowId: string): void {
@@ -764,7 +851,7 @@ export class Table extends BaseElement {
   private onBodyKeydown(event: KeyboardEvent): void {
     // Keys aimed at the expander button (Enter/Space activate it natively)
     // must not double as row selection.
-    if ((event.target as HTMLElement).closest('[part="expander"]')) return;
+    if (this.isCellInteraction(event)) return;
     if (this.rowElements().length === 0) return;
     const currentRow = (event.target as HTMLElement).closest<HTMLElement>('[part="row"]');
     const index = currentRow ? Number(currentRow.dataset.index) : -1;
@@ -910,11 +997,18 @@ export class Table extends BaseElement {
   protected update(): void {
     if (!this.bodyEl || !this.headEl) return;
     const activeHeader = this.shadowRoot?.activeElement;
+    const documentFocus = this.ownerDocument.activeElement;
+    const hostFocus = documentFocus instanceof HTMLElement && this.cellSlotFor(documentFocus) ? documentFocus : null;
+    let hostTarget = hostFocus;
+    while (hostTarget?.shadowRoot?.activeElement instanceof HTMLElement) hostTarget = hostTarget.shadowRoot.activeElement;
     const focusedRowId = activeHeader?.getAttribute("part") === "row" && this.bodyEl.contains(activeHeader)
       ? (activeHeader as HTMLElement).dataset.id
       : undefined;
     const focusedSortKey = activeHeader?.getAttribute("part") === "sort-button" && this.headEl.contains(activeHeader)
       ? activeHeader.closest<HTMLElement>("th[data-key]")?.dataset.key
+      : undefined;
+    const focusedAction = activeHeader?.getAttribute("part") === "row-action" && this.bodyEl.contains(activeHeader)
+      ? { rowId: (activeHeader as HTMLElement).dataset.rowId, key: (activeHeader as HTMLElement).dataset.actionKey }
       : undefined;
     this.renderTable();
 
@@ -934,6 +1028,16 @@ export class Table extends BaseElement {
       // only while it is still rendered. Do not resurrect focus after a host
       // handoff or scroll a removed/out-of-window row back into view.
       this.rowElements().find(row => row.dataset.id === focusedRowId)?.focus({ preventScroll: true });
+    } else if (focusedAction) {
+      Array.from(this.bodyEl.querySelectorAll<HTMLButtonElement>('[part="row-action"]'))
+        .find(button => button.dataset.rowId === focusedAction.rowId && button.dataset.actionKey === focusedAction.key && !button.disabled)
+        ?.focus({ preventScroll: true });
+    } else if (hostFocus && hostTarget && this.cellSlotFor(hostFocus)) {
+      // Firefox blurs a light-DOM input when its slot is replaced. Keep the
+      // actual host node (including a custom control's inner focused target),
+      // only while it is assigned to a current cell and no host handoff won.
+      const active = this.ownerDocument.activeElement;
+      if (active === hostFocus || active === this || active === this.ownerDocument.body) hostTarget.focus({ preventScroll: true });
     }
   }
 
@@ -945,7 +1049,8 @@ export class Table extends BaseElement {
     const sortDir = this.getAttribute("sort-direction");
     // A non-string detail is malformed input, not a crash: it gets no expander.
     const expandable = rows.some(row => typeof row.detail === "string");
-    const columnCount = columns.length + (expandable ? 1 : 0);
+    const hasActions = rows.some(row => this.actionsFor(row).length > 0);
+    const columnCount = columns.length + (expandable ? 1 : 0) + (hasActions ? 1 : 0);
 
     const tableEl = this.shadowRoot?.querySelector('[part="table"]');
     tableEl?.setAttribute("aria-label", this.label);
@@ -979,7 +1084,7 @@ export class Table extends BaseElement {
     // Matching colgroups give scope=colgroup a real contiguous column group.
     tableEl?.querySelectorAll("colgroup").forEach(group => group.remove());
     if (grouped && tableEl) {
-      for (const span of [...(expandable ? [1] : []), ...runs.map(run => run.columns.length)]) {
+      for (const span of [...(expandable ? [1] : []), ...runs.map(run => run.columns.length), ...(hasActions ? [1] : [])]) {
         const group = document.createElement("colgroup");
         group.span = span;
         tableEl.insertBefore(group, this.headEl);
@@ -987,14 +1092,15 @@ export class Table extends BaseElement {
     }
     const detailHeader = expandable
       ? `<th scope="col" aria-label="Row details"${grouped ? ' rowspan="2"' : ""}><span class="boe-sr-only">Details</span></th>` : "";
+    const actionsHeader = hasActions ? `<th scope="col"${grouped ? ' rowspan="2"' : ""}>Actions</th>` : "";
     if (grouped) {
       const groups = runs.map(run => run.group
         ? `<th scope="colgroup" colspan="${run.columns.length}">${escapeHtml(run.group)}</th>`
         : headerCell(run.columns[0]!, 2)).join("");
       const leaves = columns.filter(column => Boolean(groupOf(column))).map(column => headerCell(column)).join("");
-      this.headEl.innerHTML = `<tr part="group-header-row">${detailHeader}${groups}</tr><tr part="header-row">${leaves}</tr>`;
+      this.headEl.innerHTML = `<tr part="group-header-row">${detailHeader}${groups}${actionsHeader}</tr><tr part="header-row">${leaves}</tr>`;
     } else {
-      this.headEl.innerHTML = `<tr part="header-row">${detailHeader}${columns.map(column => headerCell(column)).join("")}</tr>`;
+      this.headEl.innerHTML = `<tr part="header-row">${detailHeader}${columns.map(column => headerCell(column)).join("")}${actionsHeader}</tr>`;
     }
 
     // A state row is never windowed. Cleared up front so a table that drops
@@ -1042,7 +1148,9 @@ export class Table extends BaseElement {
     // Compact cards can wrap to unequal heights. Keep the fixed-height window
     // contract honest across container changes rather than guessing spacers.
     const compactStacked = this.stackedLayout === "grid" && this.hasAttribute("stacked");
-    const virtualizing = this.virtualize && !expandable && !compactStacked;
+    // Host controls and wrapped action groups can change height independently
+    // of the first measured row. The fixed-height window cannot describe them.
+    const virtualizing = this.virtualize && !expandable && !compactStacked && !hasActions && !columns.some(column => column.hostContent === true);
     const rowWindow = virtualizing ? this.currentWindow() : null;
     this.windowing = virtualizing;
     this.lastWindow = rowWindow;
@@ -1065,9 +1173,9 @@ export class Table extends BaseElement {
         const index = offset + indexOffset;
         const selected = this.selected.has(row.id);
         const cellRole = selectable ? ' role="gridcell"' : ' role="cell"';
-        const rowAttrs = selectable
+        const rowAttrs = (selectable
           ? ` part="row" role="row" tabindex="${index === tabbableIndex ? "0" : "-1"}" aria-selected="${selected}"`
-          : ' part="row" role="row"';
+          : ' part="row" role="row"') + (row.current === true ? ' aria-current="true"' : "");
         const expanded = this.expandedIds.has(row.id);
         const expanderCell = expandable
           ? `<td${cellRole} part="expander-cell">${
@@ -1080,6 +1188,9 @@ export class Table extends BaseElement {
           .map((column, columnIndex) => {
             const align = alignAttr(column.align);
             const value = this.cellValue(row, column, columnIndex);
+            const content = column.hostContent === true
+              ? `<slot part="cell-slot" name="${escapeHtml(`cell-${row.id}-${column.key}`)}">${this.cellMarkup(value)}</slot>`
+              : this.cellMarkup(value);
             const rowHeader = column.rowHeader === true;
             const tag = rowHeader ? "th" : "td";
             const semantics = rowHeader ? ' scope="row" role="rowheader"' : cellRole;
@@ -1087,20 +1198,27 @@ export class Table extends BaseElement {
               ? `${column.group} — ${column.label}`
               : column.label;
             if (this.stackedLayout !== "grid") {
-              return `<${tag}${align}${semantics} data-label="${escapeHtml(label)}">${this.cellMarkup(value)}</${tag}>`;
+              return `<${tag}${align}${semantics} data-label="${escapeHtml(label)}">${content}</${tag}>`;
             }
             if (rowHeader) {
-              return `<${tag}${align}${semantics} data-label="${escapeHtml(label)}"><span part="stacked-value">${this.cellMarkup(value)}</span></${tag}>`;
+              return `<${tag}${align}${semantics} data-label="${escapeHtml(label)}"><span part="stacked-value">${content}</span></${tag}>`;
             }
             const group = typeof column.group === "string" ? column.group : "";
             let groupStart = columnIndex;
             while (group && groupStart > 0 && columns[groupStart - 1]?.group === group && !columns[groupStart - 1]?.rowHeader) groupStart--;
             const groupMarkup = group && groupStart === columnIndex
               ? `<span part="stacked-group">${escapeHtml(group)}</span>` : "";
-            return `<${tag}${align}${semantics} data-label="${escapeHtml(label)}">${groupMarkup}<span part="stacked-field"><span part="stacked-label">${escapeHtml(column.label)}</span><span part="stacked-value">${this.cellMarkup(value)}</span></span></${tag}>`;
+            return `<${tag}${align}${semantics} data-label="${escapeHtml(label)}">${groupMarkup}<span part="stacked-field"><span part="stacked-label">${escapeHtml(column.label)}</span><span part="stacked-value">${content}</span></span></${tag}>`;
           })
           .join("");
-        const rowMarkup = `<tr${rowAttrs} data-index="${index}" data-id="${escapeHtml(row.id)}">${expanderCell}${cells}</tr>`;
+        const nameColumn = columns.find(column => column.rowHeader === true) ?? columns[0];
+        const nameValue = nameColumn ? this.cellValue(row, nameColumn, columns.indexOf(nameColumn)) : "";
+        const rowName = (isCellDescriptor(nameValue) ? nameValue.text : nameValue) || row.id;
+        const actionsCell = hasActions
+          ? `<td${cellRole} part="actions-cell" data-label="Actions"><span part="stacked-label">Actions</span><span part="row-actions">${this.actionsFor(row).map(action =>
+            `<button type="button" part="row-action" data-row-id="${escapeHtml(row.id)}" data-action-key="${escapeHtml(action.key)}" aria-label="${escapeHtml(typeof action.ariaLabel === "string" ? action.ariaLabel : `${action.label} for ${rowName}`)}"${action.disabled ? " disabled" : ""}>${escapeHtml(action.label)}</button>`,
+          ).join("")}</span></td>` : "";
+        const rowMarkup = `<tr${rowAttrs} data-index="${index}" data-id="${escapeHtml(row.id)}">${expanderCell}${cells}${actionsCell}</tr>`;
         // The detail row renders only while expanded, keeping the roving
         // tabindex and shift-range math on visible [part="row"] rows only.
         const detailRow =
