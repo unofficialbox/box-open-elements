@@ -285,13 +285,17 @@ export class ProvenanceStrip extends BaseElement {
     strip.hidden = !chain.length;
     syncKeyedChildren(strip, chain.map((node, index) => ({ node, index })), item => item.node.id, () => {
       const item = document.createElement("li"); item.setAttribute("part", "item");
-      const edge = document.createElement("span"); edge.setAttribute("part", "separator"); edge.setAttribute("aria-hidden", "true");
       const chip = actionButton("chip");
       const dot = document.createElement("span"); dot.setAttribute("part", "kind-dot"); dot.setAttribute("aria-hidden", "true");
-      chip.append(dot, document.createTextNode("")); item.append(edge, chip); return item;
+      chip.append(dot, document.createTextNode("")); item.append(chip); return item;
     }, (item, { node, index }) => {
       if (node.kind) item.dataset.kind = node.kind; else item.removeAttribute("data-kind");
-      item.querySelector<HTMLElement>('[part="separator"]')!.hidden = index === 0;
+      const edge = item.querySelector('[part="separator"]');
+      if (index === 0) edge?.remove();
+      else if (!edge) {
+        const separator = document.createElement("span"); separator.setAttribute("part", "separator"); separator.setAttribute("aria-hidden", "true");
+        item.prepend(separator);
+      }
       const chip = item.querySelector<HTMLButtonElement>("button")!;
       chip.dataset.id = node.id;
       if (index === chain.length - 1) chip.setAttribute("aria-current", "true"); else chip.removeAttribute("aria-current");
