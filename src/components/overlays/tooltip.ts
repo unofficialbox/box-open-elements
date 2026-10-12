@@ -109,8 +109,13 @@ const descriptionText = (node: Node): string => {
     const label = node.getAttribute("aria-label");
     if (label !== null) return label;
     if (node instanceof HTMLImageElement) return ` ${node.alt} `;
+    if (node.tagName === "BR") return " ";
   }
-  return node.nodeType === Node.TEXT_NODE ? node.textContent ?? "" : Array.from(node.childNodes, descriptionText).join("");
+  const text = node.nodeType === Node.TEXT_NODE ? node.textContent ?? "" : Array.from(node.childNodes, descriptionText).join("");
+  // Rendered block boundaries separate words; adjacent inline fragments can
+  // form one word, so joining every element with spaces would change its name.
+  const display = node instanceof HTMLElement ? getComputedStyle(node).display : "";
+  return /^(block|flow-root|flex|grid|table(?:-row|-cell|-caption)?|list-item)$/.test(display) ? ` ${text} ` : text;
 };
 
 export class Tooltip extends BaseElement {

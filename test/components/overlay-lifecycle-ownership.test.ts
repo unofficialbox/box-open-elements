@@ -132,3 +132,18 @@ it("does not acquire global styles if pointer capture has already become unavail
   pointer(separator, "pointerdown"); element.remove();
   expect(document.body.style.cursor).toBe("wait"); expect(document.body.style.userSelect).toBe("text");
 });
+
+
+describe("Tooltip rich text boundaries", () => {
+  it.each([
+    ["<p>First line</p><p>Second line</p>", "Preview First line Second line"],
+    ["A<br>B", "Preview A B"],
+    ["<span>In</span><em>line</em>", "Preview Inline"],
+    ['<div style="display:inline">In</div><span>line</span>', "Preview Inline"],
+  ])("preserves native text boundaries for %s", (html, expected) => {
+    const tooltip = new Tooltip(); tooltip.label = "Preview";
+    const trigger = document.createElement("button"); const content = document.createElement("span"); content.slot = "content"; content.innerHTML = html;
+    tooltip.append(trigger, content); document.body.append(tooltip); tooltip.show();
+    expect(document.getElementById(trigger.getAttribute("aria-describedby")!)?.textContent).toBe(expected);
+  });
+});
