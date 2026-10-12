@@ -159,8 +159,8 @@ as do form reset and state restoration. RangeSlider uses `start` and `end`. Each
 control retains its existing value normalization and native editing behavior.
 
 The component publishes its processed value before emitting `value-changed`. An
-unchanged synchronous value echo from that event, or from a bubbling native `input`
-listener after the component has handled the input, preserves the live native draft
+unchanged value echo during that event dispatch, or during the original native
+`input` dispatch after the component has handled the input, preserves the live native draft
 without additional normalization or caret changes. A genuinely different host value
 remains authoritative in either listener. For example, NumberInput can retain the
 native draft `1.00` while its public and submitted numeric value is `1`.
@@ -171,9 +171,10 @@ listener are authoritative, including rewriting that same pre-edit value; they c
 replace the pending native draft before the component reads it. Use `value-changed`
 or a post-handler bubbling `input` listener for controlled value echoes.
 
-Echo preservation ends synchronously when event dispatch finishes. A later host
-write, including a same-value write in the same task, is authoritative; protection
-does not continue into a microtask.
+Echo preservation follows event dispatch lifetime. Trusted native events can run
+microtasks between listeners, and a microtask inside an active dispatch remains
+covered. Once dispatch finishes, later host writes are authoritative, including
+same-value writes in the same task or in a subsequent microtask.
 
 
 ## Shared schema contract
