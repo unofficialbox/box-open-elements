@@ -14,3 +14,13 @@ The action checks the current type, form association, connection, disabled
 state (including native disabled fieldsets), and loading state after listeners
 finish. Detaching, disabling or marking the button loading during a click
 blocks the action. A detach/reconnect also discards the old activation. Nested click events keep their own cancellation state.
+
+Clicks raised synchronously inside the resulting form's submit/reset action do
+not queue the same action again, including through another Box Button on that
+form. Separate later clicks and actions on another form remain independent.
+The guard clears even if an overridden form action throws.
+
+Native form ownership is authoritative, including no owner for a missing or
+invalid `form` ID or an externally associated form removed during click. An
+ancestor fallback is used only when the internals implementation lacks the
+native `form` property, and still respects an explicit `form` attribute.
