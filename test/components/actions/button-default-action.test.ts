@@ -101,3 +101,25 @@ for (const type of ["submit", "reset"] as const) {
   native.click();vi.runAllTimers();expect(count).toBe(1);
  });
 }
+
+for (const type of ["submit", "reset"] as const) {
+ for (const sameButton of [true,false]) {
+  it(`${type} retains native-entry reentry suppression through ${sameButton ? "the same" : "another"} Box Button`,()=>{
+   vi.useFakeTimers();const {form,native}=setup(type),other=new Button();other.type=type;form.append(other);let count=0;
+   const repeated=sameButton?native:other.shadowRoot!.querySelector<HTMLButtonElement>("button")!;
+   form.addEventListener(type,event=>{event.preventDefault();count++;if(count<3)repeated.click();});
+   if(type==="submit")form.requestSubmit();else form.reset();vi.runAllTimers();expect(count).toBe(1);
+   native.click();vi.runAllTimers();expect(count).toBe(2);
+  });
+ }
+ it(`${type} allows an independent click immediately after the native action returns`,()=>{
+  vi.useFakeTimers();const {form,native}=setup(type);let count=0;
+  form.addEventListener(type,event=>{event.preventDefault();count++;if(count<3)native.click();});
+  if(type==="submit")form.requestSubmit();else form.reset();native.click();vi.runAllTimers();expect(count).toBe(2);
+ });
+ it(`${type} observes native entry before an existing form capture listener`,()=>{
+  vi.useFakeTimers();const form=document.createElement("form"),button=new Button();button.type=type;let count=0;
+  form.addEventListener(type,event=>{event.preventDefault();count++;if(count<3)button.shadowRoot!.querySelector<HTMLButtonElement>("button")!.click();},{capture:true});
+  form.append(button);document.body.append(form);if(type==="submit")form.requestSubmit();else form.reset();vi.runAllTimers();expect(count).toBe(1);
+ });
+}

@@ -192,6 +192,25 @@ export type ButtonType = "button" | "submit" | "reset";
 // Native forms suppress recursive submit/reset while that action is running.
 // Capture that boundary before a nested click can defer itself to a later task.
 const runningFormActions = new WeakMap<HTMLFormElement, Set<ButtonType>>();
+const nativeFormEvents = new WeakMap<HTMLFormElement, Partial<Record<"submit" | "reset", Event>>>();
+const observedFormRoots = new WeakSet<EventTarget>();
+const captureNativeFormEvent = (event: Event): void => {
+  const form = event.target as HTMLFormElement | null;
+  if (!event.isTrusted || form?.localName !== "form") return;
+  const events = nativeFormEvents.get(form) ?? {};
+  events[event.type as "submit" | "reset"] = event;
+  nativeFormEvents.set(form, events);
+};
+const observeFormRoot = (root: EventTarget): void => {
+  if (observedFormRoots.has(root)) return;
+  observedFormRoots.add(root);
+  root.addEventListener("submit", captureNativeFormEvent, true);
+  root.addEventListener("reset", captureNativeFormEvent, true);
+};
+// These observers retain no component references. Weak records keep only the
+// last native event per form/kind; its phase distinguishes active dispatch
+// from an independent click immediately after the native method returns.
+if (typeof document !== "undefined") observeFormRoot(document.defaultView ?? document);
 
 export class Button extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
@@ -214,6 +233,12 @@ export class Button extends BaseElement {
     super();
     // Form association lets type="submit"/"reset" drive the owning form.
     this.internals = this.attachInternals();
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    observeFormRoot(this.ownerDocument.defaultView ?? this.ownerDocument);
+    observeFormRoot(this.getRootNode());
   }
 
   disconnectedCallback(): void {
@@ -313,7 +338,12 @@ export class Button extends BaseElement {
       }
       const clickedForm = this.getActionForm();
       const runningAtClick = clickedForm && runningFormActions.get(clickedForm);
-      const suppressedActions = runningAtClick ? new Set(runningAtClick) : undefined;
+      const suppressedActions = new Set(runningAtClick || undefined);
+      const nativeEvents = clickedForm && nativeFormEvents.get(clickedForm);
+      for (const type of ["submit", "reset"] as const) {
+        const nativeEvent = nativeEvents?.[type];
+        if (nativeEvent && nativeEvent.eventPhase !== 0) suppressedActions.add(type);
+      }
       // Native clicks may checkpoint microtasks between propagation listeners.
       // Use the next task to observe host/ancestor veto on the original event,
       // then recheck current state and discard any detached activation.

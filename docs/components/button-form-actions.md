@@ -15,9 +15,11 @@ state (including native disabled fieldsets), and loading state after listeners
 finish. Detaching, disabling or marking the button loading during a click
 blocks the action. A detach/reconnect also discards the old activation. Nested click events keep their own cancellation state.
 
-Clicks raised synchronously inside the resulting form's submit/reset action do
+Clicks raised synchronously inside submit/reset listeners, including those
+entered by native `form.requestSubmit()` or `form.reset()`, do
 not queue the same action again, including through another Box Button on that
-form. Separate later clicks and actions on another form remain independent.
+form. Separate clicks after native dispatch finishes and actions on another form
+remain independent.
 The guard clears even if an overridden form action throws.
 
 Native form ownership is authoritative, including no owner for a missing or
