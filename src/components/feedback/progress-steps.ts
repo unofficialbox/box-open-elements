@@ -306,6 +306,8 @@ export class ProgressSteps extends BaseElement {
   }
 
   private valueInternal = "";
+  private valueRevision = 0;
+  private lifetimeRevision = 0;
   private stepsEl!: HTMLElement;
   private liveEl!: HTMLElement;
   private compactToggleEl!: HTMLButtonElement;
@@ -353,7 +355,6 @@ export class ProgressSteps extends BaseElement {
   }
 
   set value(nextValue: string) {
-    this.valueInternal = nextValue;
     this.setAttribute("value", nextValue);
     if (this.isRendered) {
       this.update();
@@ -362,9 +363,15 @@ export class ProgressSteps extends BaseElement {
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
-      this.valueInternal = this.getAttribute("value") ?? "";
+      const nextValue = this.getAttribute("value") ?? "";
+      if (nextValue !== this.valueInternal) this.valueRevision += 1;
+      this.valueInternal = nextValue;
     }
     super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  disconnectedCallback(): void {
+    this.lifetimeRevision += 1;
   }
 
   protected renderTemplate(): void {
@@ -453,27 +460,27 @@ export class ProgressSteps extends BaseElement {
         return;
       }
 
-      this.selectValue(nextStep.item.value);
-      queueMicrotask(() => {
-        const nextButton = this.stepsEl.querySelectorAll('[part="step"]')[nextIndex] as
-          | HTMLButtonElement
-          | undefined;
-        nextButton?.focus();
-      });
+      this.selectValue(nextStep.item.value, true);
     });
   }
 
-  private selectValue(nextValue: string): void {
-    // Disabled buttons never emit clicks and the keyboard path skips them,
-    // but the invariant should not depend on every caller knowing that.
-    const resolved = resolveStepStates(this.items, this.valueInternal);
-    const target = resolved.find(entry => entry.item.value === nextValue);
-    if (!target || !target.interactive) {
-      return;
-    }
+  private selectValue(nextValue: string, focus = false): void {
+    const target = this.resolvedSteps.find(entry => entry.item.value === nextValue);
+    if (!this.isConnected || !target?.interactive) return;
 
-    this.valueInternal = nextValue;
-    this.setAttribute("value", nextValue);
+    this.value = nextValue;
+    this.update();
+    const revision = this.valueRevision;
+    const lifetime = this.lifetimeRevision;
+    if (focus) {
+      Array.from(this.stepsEl.querySelectorAll<HTMLButtonElement>('[part="step"]'))
+        .find(button => button.dataset.value === nextValue)?.focus();
+    }
+    // Focus callbacks may replace the selection, remove a step, or reconnect.
+    const current = this.resolvedSteps.find(entry => entry.item.value === nextValue);
+    if (!this.isConnected || revision !== this.valueRevision || lifetime !== this.lifetimeRevision
+      || this.valueInternal !== nextValue || !current?.interactive) return;
+    this.announceStep(current);
     this.dispatchEvent(
       new CustomEvent("value-changed", {
         bubbles: true,
@@ -481,8 +488,6 @@ export class ProgressSteps extends BaseElement {
         detail: { value: nextValue },
       }),
     );
-    this.update();
-    this.announceStep(target);
   }
 
   /** A polite announcement on user-driven step changes, never on render. */
@@ -521,6 +526,7 @@ export class ProgressSteps extends BaseElement {
 
     const selectedValue = items[activeIndex]?.value ?? "";
     if (selectedValue && selectedValue !== this.valueInternal) {
+      this.valueRevision += 1;
       this.valueInternal = selectedValue;
       this.setAttribute("value", selectedValue);
     }

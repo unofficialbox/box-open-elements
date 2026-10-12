@@ -226,6 +226,7 @@ export class Calendar extends BaseElement {
 
   /** The date the roving tabindex currently points at. */
   private activeDate: CalendarDate | null = null;
+  private interactionRevision = 0;
   private titleEl!: HTMLElement;
   private gridEl!: HTMLElement;
   private weekdayCells = WEEKDAYS.map(
@@ -290,8 +291,14 @@ export class Calendar extends BaseElement {
     oldValue: string | null,
     newValue: string | null,
   ): void {
+    if (oldValue === newValue) return;
+    this.interactionRevision += 1;
     this.activeDate = null;
     super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  disconnectedCallback(): void {
+    this.interactionRevision += 1;
   }
 
   private resolveToday(): CalendarDate {
@@ -396,7 +403,7 @@ export class Calendar extends BaseElement {
    * backwards through a calendar means the same thing as dragging forwards,
    * and refusing it would be pedantry.
    */
-  private selectRange(iso: string): void {
+  private selectRange(iso: string): { start: string; end: string } {
     const start = this.start;
     const end = this.end;
 
@@ -410,40 +417,27 @@ export class Calendar extends BaseElement {
       this.end = iso;
     }
 
-    this.dispatchEvent(
-      new CustomEvent("range-changed", {
-        bubbles: true,
-        composed: true,
-        detail: { end: this.end, start: this.start },
-      }),
-    );
+    return { end: this.end, start: this.start };
   }
 
   private selectDate(date: CalendarDate): void {
     const iso = toISO(date);
-    if (this.disabled || this.isOutOfRange(iso)) {
-      return;
-    }
-    if (this.mode === "range") {
-      this.selectRange(iso);
-      this.setAttribute("month", `${date.y}-${pad(date.m)}`);
-      this.activeDate = date;
-      this.update();
-      this.focusActive();
-      return;
-    }
-    this.setAttribute("value", iso);
-    // Keep the grid on the month of the chosen day.
+    if (!this.isConnected || this.disabled || this.isOutOfRange(iso)) return;
+    const range = this.mode === "range" ? this.selectRange(iso) : null;
+    if (!range) this.setAttribute("value", iso);
     this.setAttribute("month", `${date.y}-${pad(date.m)}`);
-    // `setAttribute` nulls activeDate via attributeChangedCallback — restore after.
     this.activeDate = date;
     this.update();
+    const revision = this.interactionRevision;
     this.focusActive();
+    // Complete the native focus move before host listeners take control; a
+    // newer focus callback owns any replacement selection or opening lifetime.
+    if (!this.isConnected || revision !== this.interactionRevision) return;
     this.dispatchEvent(
-      new CustomEvent("value-changed", {
+      new CustomEvent(range ? "range-changed" : "value-changed", {
         bubbles: true,
         composed: true,
-        detail: { value: iso },
+        detail: range ?? { value: iso },
       }),
     );
   }

@@ -257,7 +257,6 @@ export class Tree extends BaseElement {
 
   set items(value: BoxTreeItem[]) {
     this.setAttribute("items", JSON.stringify(value));
-    this.seedExpandedState(value);
   }
 
   get value(): string {
@@ -270,12 +269,12 @@ export class Tree extends BaseElement {
   }
 
   connectedCallback(): void {
-    this.seedExpandedState(this.items);
+    if (!this.isRendered) this.seedExpandedState(this.items);
     super.connectedCallback();
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-    if (name === "items") {
+    if (name === "items" && oldValue !== newValue) {
       this.seedExpandedState(this.items);
     }
 
@@ -381,6 +380,7 @@ export class Tree extends BaseElement {
                       part="${togglePart}"
                       data-key="${escapeHtml(key)}"
                       aria-expanded="${String(isExpanded)}"
+                      aria-label="${escapeHtml(`${isExpanded ? "Collapse" : "Expand"} ${item.label}`)}"
                     >${this.renderToggleIcon()}</button>`
                   : `<span part="spacer" aria-hidden="true"></span>`
               }
