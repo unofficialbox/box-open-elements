@@ -289,7 +289,7 @@ export class PillSelectorDropdown extends FormAssociatedElement {
   }
 
   /** Add a validated custom pill; flag the input and emit `invalid-entry` otherwise. */
-  private tryAddCustom(text: string): boolean {
+  private tryAddCustom(text: string, returnFocus = true): boolean {
     const trimmed = text.trim();
     if (!trimmed) {
       return false;
@@ -302,7 +302,7 @@ export class PillSelectorDropdown extends FormAssociatedElement {
       return false;
     }
     this.customInputEl?.setAttribute("aria-invalid", "false");
-    this.addValue(trimmed);
+    this.addValue(trimmed, returnFocus);
     return true;
   }
 
@@ -402,7 +402,7 @@ export class PillSelectorDropdown extends FormAssociatedElement {
     );
   }
 
-  private addValue(value: string): void {
+  private addValue(value: string, returnFocus = true): void {
     if (!value || this.valueInternal.includes(value)) {
       return;
     }
@@ -410,7 +410,7 @@ export class PillSelectorDropdown extends FormAssociatedElement {
     const next = [...this.valueInternal, value];
     const remaining = this.options.filter(option => !next.includes(option.value));
     this.menuFocusValue = remaining[0]?.value ?? null;
-    this.pendingFocus = remaining.length ? "menu" : "trigger";
+    this.pendingFocus = returnFocus ? (remaining.length ? "menu" : "trigger") : null;
     this.commit(next);
   }
 
@@ -574,7 +574,7 @@ export class PillSelectorDropdown extends FormAssociatedElement {
 
     // Commit a half-typed entry when focus leaves the input.
     this.customInputEl?.addEventListener("blur", () => {
-      if (this.customInputEl && this.tryAddCustom(this.customInputEl.value)) {
+      if (this.customInputEl && this.tryAddCustom(this.customInputEl.value, false)) {
         this.customInputEl.value = "";
       }
     });

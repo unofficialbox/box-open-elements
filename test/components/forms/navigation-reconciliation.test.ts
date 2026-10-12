@@ -91,3 +91,17 @@ it("PillSelectorDropdown uses the visible trigger when fixed options remain and 
   expect(document.activeElement).toBe(outside);
   expect(e.shadowRoot!.querySelector<HTMLButtonElement>('[part="trigger"]')!.hidden).toBe(false);
 });
+
+it("PillSelectorDropdown blur commits a token without requesting return focus", () => {
+  const e = new PillSelectorDropdown(); e.allowCustom = true; e.options = []; document.body.append(e);
+  const input = e.shadowRoot!.querySelector("input")!, focus = vi.spyOn(input,"focus");
+  input.value = "fresh"; input.dispatchEvent(new FocusEvent("blur"));
+  expect(e.value).toEqual(["fresh"]); expect(focus).not.toHaveBeenCalled(); expect(input.value).toBe("");
+});
+
+it("PillSelectorDropdown blur with fixed choices does not move focus to the visible trigger", () => {
+  const e = new PillSelectorDropdown(); e.allowCustom = true; e.options = options; document.body.append(e);
+  const input = e.shadowRoot!.querySelector("input")!, trigger = e.shadowRoot!.querySelector<HTMLButtonElement>('[part="trigger"]')!;
+  const focus = vi.spyOn(trigger,"focus"); input.value = "fresh"; input.dispatchEvent(new FocusEvent("blur"));
+  expect(e.value).toEqual(["fresh"]); expect(focus).not.toHaveBeenCalled();
+});
