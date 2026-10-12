@@ -214,3 +214,56 @@ describe("Carousel", () => {
     });
   });
 });
+
+describe("Carousel owned navigation and descendant keys", () => {
+  afterEach(() => { document.body.innerHTML = ""; });
+  const create = (): Carousel => {
+    const el = new Carousel(); el.items = [{ title: "One" }, { title: "Two" }]; document.body.append(el); return el;
+  };
+  it("retains dot identity and current metadata across activation and JSON refresh", () => {
+    const el = create(); const dot = el.shadowRoot!.querySelectorAll<HTMLButtonElement>('[part~="dot"]')[1]; dot.focus();
+    const events = vi.fn(); el.addEventListener("value-changed", events); dot.click();
+    el.items = [{ title: "Current One" }, { title: 'Current R&D <Two>' }];
+    expect(el.shadowRoot!.querySelectorAll('[part~="dot"]')[1]).toBe(dot);
+    expect(el.shadowRoot!.activeElement).toBe(dot); expect(dot.getAttribute("aria-current")).toBe("true");
+    expect(dot.getAttribute("aria-label")).toBe('Go to slide 2: Current R&D <Two>');
+    dot.click(); expect(events).toHaveBeenCalledTimes(2);
+  });
+  it("retains slotted dot identity across refresh and preserves caller focus handoff", async () => {
+    const el = new Carousel(); el.innerHTML = '<div slot="slide" data-title="One">One</div><div slot="slide" data-title="Two">Two</div>'; document.body.append(el);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const dot = el.shadowRoot!.querySelectorAll<HTMLButtonElement>('[part~="dot"]')[1]; dot.focus(); dot.click(); el.label = "Current carousel";
+    expect(el.shadowRoot!.querySelectorAll('[part~="dot"]')[1]).toBe(dot); expect(el.shadowRoot!.activeElement).toBe(dot);
+    const outside = document.createElement("input"); document.body.append(outside);
+    el.addEventListener("value-changed", () => { outside.focus(); el.label = "Caller current"; }, { once: true }); dot.click();
+    expect(document.activeElement).toBe(outside);
+    expect(el.shadowRoot!.querySelector("style")?.textContent).toContain('[part="viewport"][hidden]');
+  });
+  it.each(["input", "textarea", "select", "contenteditable", "textbox"])("leaves %s descendant arrows uncanceled", async kind => {
+    const el = new Carousel(); const slide = document.createElement("div"); slide.slot = "slide";
+    const editor = document.createElement(["contenteditable", "textbox"].includes(kind) ? "div" : kind);
+    if (kind === "contenteditable") editor.setAttribute("contenteditable", "true");
+    if (kind === "textbox") editor.setAttribute("role", "textbox");
+    slide.append(editor); const other = document.createElement("div"); other.slot = "slide"; el.append(slide, other); document.body.append(el);
+    await new Promise(resolve => setTimeout(resolve, 0)); const changed = vi.fn(); el.addEventListener("value-changed", changed);
+    for (const key of ["ArrowLeft", "ArrowRight"]) {
+      const event = new KeyboardEvent("keydown", { key, bubbles: true, composed: true, cancelable: true }); editor.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(false);
+    }
+    expect(el.value).toBe(0); expect(changed).not.toHaveBeenCalled();
+  });
+  it("removes empty/shrunk dot targets and prevents obsolete metadata from surviving refresh", () => {
+    const el = create(); const dot = el.shadowRoot!.querySelectorAll<HTMLButtonElement>('[part~="dot"]')[1]; dot.focus(); dot.disabled = true;
+    el.items = [{ title: "Current One" }, { title: "Current Two" }]; expect(dot.disabled).toBe(false);
+    el.items = [{ title: "Only" }]; expect(dot.isConnected).toBe(false); expect(el.shadowRoot!.activeElement).toBeNull();
+    const changed = vi.fn(); el.addEventListener("value-changed", changed); dot.click(); expect(changed).not.toHaveBeenCalled();
+    el.items = []; expect(el.shadowRoot!.querySelectorAll('[part~="dot"]').length).toBe(0);
+  });
+  it("keeps own control arrows working when the entire carousel is projected through an editor-labelled panel", () => {
+    const panel = document.createElement("div"); panel.setAttribute("role", "textbox"); panel.attachShadow({ mode: "open" }).innerHTML = '<slot></slot>'; document.body.append(panel);
+    const el = new Carousel(); el.items = [{ title: "One" }, { title: "Two" }]; panel.append(el);
+    const carousel = el.shadowRoot!.querySelector('[part="carousel"]')!;
+    carousel.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true, composed: true, cancelable: true }));
+    expect(el.value).toBe(1);
+  });
+});
