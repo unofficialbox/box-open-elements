@@ -339,3 +339,57 @@ describe("box-form-wizard", () => {
     expect(element.wizardController).toBeNull();
   });
 });
+
+
+describe("FormWizard controlled configuration", () => {
+  it.each(["property", "formatted-attribute"] as const)("preserves a live session for an equivalent %s steps echo", async mode => {
+    const element = await mountWizard();
+    element.setValue("name", "Kept value");
+    expect(element.next()).toBe(true);
+    await flush();
+    const controller = element.wizardController;
+    const panel = element.shadowRoot!.querySelector('[data-step-id="terms"][part="panel"]');
+    const input = document.createElement("input"); input.slot = "terms"; input.value = "host draft";
+    element.append(input); input.focus(); input.setSelectionRange(2, 5);
+    const changes = vi.fn(); element.addEventListener("step-changed", changes);
+    for (let i = 0; i < 3; i++) {
+      if (mode === "property") element.steps = element.steps.map(step => ({ ...step }));
+      else element.setAttribute("steps", JSON.stringify(element.steps.map(step => ({ optional: false, description: "", label: step.label, id: step.id })), null, 2));
+      await flush();
+    }
+    expect(element.wizardController).toBe(controller);
+    expect(element.activeStep).toBe("terms"); expect(element.values).toEqual({ name: "Kept value" });
+    expect(element.shadowRoot!.querySelector('[data-step-id="terms"][part="panel"]')).toBe(panel);
+    expect(document.activeElement).toBe(input); expect(input.value).toBe("host draft");
+    expect([input.selectionStart, input.selectionEnd]).toEqual([2, 5]);
+    expect(changes).not.toHaveBeenCalled();
+  });
+
+  it("retains validation and submitted state during event-driven echoes", async () => {
+    const element = await mountWizard(el => { el.validators = { details: () => ({ valid: false, message: "Required" }) }; });
+    const original = element.wizardController;
+    element.addEventListener("step-invalid", () => { element.steps = element.steps; });
+    expect(element.next()).toBe(false); await flush();
+    expect(element.wizardController).toBe(original); expect(element.wizardController!.getState().stepError?.message).toBe("Required");
+    element.validators = {}; await flush();
+    element.goTo("review"); await flush();
+    element.addEventListener("submitted", () => { element.steps = element.steps; });
+    expect(element.submit()).toBe(true); const submitted = element.wizardController; await flush();
+    expect(element.wizardController).toBe(submitted); expect(element.wizardController!.getState().submitted).toBe(true);
+  });
+
+  it("restarts for real configuration and seed changes, and creates a new session after reconnect", async () => {
+    const element = await mountWizard();
+    element.setValue("name", "Old"); element.next(); await flush();
+    const original = element.wizardController;
+    element.steps = [{ id: "replacement", label: "Replacement" }]; await flush();
+    expect(element.wizardController).not.toBe(original); expect(element.activeStep).toBe("replacement"); expect(element.values).toEqual({});
+    element.setValue("name", "Edited"); element.initialValues = { name: "New seed" }; await flush();
+    expect(element.values).toEqual({ name: "New seed" });
+    const seeded = element.wizardController; element.steps = element.steps; element.validators = { replacement: () => ({ valid: false }) }; await flush();
+    expect(element.wizardController).not.toBe(seeded); expect(element.submit()).toBe(false);
+    element.remove(); expect(element.wizardController).toBeNull(); document.body.append(element); await flush();
+    expect(element.activeStep).toBe("replacement");
+    element.steps = []; await flush(); expect(element.wizardController).toBeNull();
+  });
+});

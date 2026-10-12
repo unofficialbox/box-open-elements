@@ -1,0 +1,11 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { AgentWorkspace } from "../../src/patterns/agent-workspace/agent-workspace.js";
+afterEach(()=>{document.body.replaceChildren();localStorage.clear();vi.restoreAllMocks();});
+const create=(width:number)=>{const e=new AgentWorkspace();e.setAttribute("viewer-key","synthetic-integration");vi.spyOn(e,"getBoundingClientRect").mockReturnValue({width} as DOMRect);return e;};
+describe("AgentWorkspace explicit initial ownership with controlled no-op guards",()=>{
+ it.each([390,1400])("keeps explicit panes over initial defaults/storage at width %s",width=>{localStorage.setItem("boe-workspace:synthetic-integration",JSON.stringify({chats:true,details:false}));const e=create(width);e.panes={chats:false,details:true};const input=document.createElement("input");input.slot="details";input.value="Host draft";e.append(input);document.body.append(e);expect(e.panes).toEqual({chats:false,details:true});input.focus();input.setSelectionRange(2,6);const changed=vi.fn();e.addEventListener("pane-change",changed);e.panes={...e.panes};e.open("details",true);expect(changed).not.toHaveBeenCalled();expect(document.activeElement).toBe(input);expect([input.selectionStart,input.selectionEnd]).toEqual([2,6]);e.remove();document.body.append(e);expect(e.panes).toEqual({chats:false,details:true});expect(e.querySelector("input")).toBe(input);});
+ it("records a same-default explicit setter before its no-op return",()=>{const e=create(390);e.panes={chats:true};document.body.append(e);expect(e.panes).toEqual({chats:true,details:false});});
+ it.each([[390,"chats",true],[1400,"details",false]] as const)("records same-default open(%s,%s,%s) before its no-op return",(width,pane,open)=>{const e=create(width);e.open(pane,open);document.body.append(e);expect(e.panes[pane]).toBe(open);});
+ it("keeps desktop stored defaults for unowned panes",()=>{localStorage.setItem("boe-workspace:synthetic-integration",JSON.stringify({chats:false,details:false}));const e=create(1400);document.body.append(e);expect(e.panes).toEqual({chats:false,details:false});});
+ it.each([390,1400])("does not claim ownership for an empty panes write at width %s",width=>{const e=create(width);e.panes={};document.body.append(e);expect(e.panes).toEqual(width<900?{chats:false,details:false}:{chats:true,details:true});});
+});

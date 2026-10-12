@@ -102,6 +102,22 @@ const tooltipStyles = `
   }
 `;
 
+/** Plain description text from rich content, including authored image names. */
+const descriptionText = (node: Node): string => {
+  if (node instanceof HTMLElement) {
+    if (node.hidden || node.getAttribute("aria-hidden") === "true") return "";
+    const label = node.getAttribute("aria-label");
+    if (label !== null) return label;
+    if (node instanceof HTMLImageElement) return ` ${node.alt} `;
+    if (node.tagName === "BR") return " ";
+  }
+  const text = node.nodeType === Node.TEXT_NODE ? node.textContent ?? "" : Array.from(node.childNodes, descriptionText).join("");
+  // Rendered block boundaries separate words; adjacent inline fragments can
+  // form one word, so joining every element with spaces would change its name.
+  const display = node instanceof HTMLElement ? getComputedStyle(node).display : "";
+  return /^(block|flow-root|flex|grid|table(?:-row|-cell|-caption)?|list-item)$/.test(display) ? ` ${text} ` : text;
+};
+
 export class Tooltip extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
@@ -118,6 +134,9 @@ export class Tooltip extends BaseElement {
   private tooltipEl!: HTMLElement;
   private labelEl!: HTMLElement;
   private describedTrigger: HTMLElement | null = null;
+  private describedId: string | null = null;
+  private descriptionEl: HTMLElement | null = null;
+  private contentObserver: MutationObserver | null = null;
 
   get label(): string {
     return this.getAttribute("label") ?? "Helpful context";
@@ -206,10 +225,31 @@ export class Tooltip extends BaseElement {
   }
 
   private clearDescribedBy(): void {
-    if (this.describedTrigger?.hasAttribute("aria-describedby")) {
-      this.describedTrigger.removeAttribute("aria-describedby");
+    if (this.describedTrigger && this.describedId) {
+      const tokens = (this.describedTrigger.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(token => token && token !== this.describedId);
+      if (tokens.length) this.describedTrigger.setAttribute("aria-describedby", tokens.join(" "));
+      else this.describedTrigger.removeAttribute("aria-describedby");
     }
     this.describedTrigger = null;
+    this.describedId = null;
+  }
+
+  private descriptionId(trigger: HTMLElement): string {
+    if (trigger.getRootNode() === this.shadowRoot) return this.tooltipId;
+    // ID references cannot cross a shadow boundary. Keep the owned text in
+    // the trigger's tree so native accessibility can resolve a slotted trigger.
+    const root = trigger.getRootNode();
+    const parent = root instanceof Document ? root.body : root instanceof ShadowRoot ? root : null;
+    if (!parent) return this.tooltipId;
+    if (!this.descriptionEl) {
+      this.descriptionEl = this.ownerDocument.createElement("span");
+      this.descriptionEl.id = `${this.tooltipId}-description`;
+      this.descriptionEl.hidden = true;
+    }
+    const content = this.shadowRoot!.querySelector<HTMLSlotElement>('slot[name="content"]')!;
+    this.descriptionEl.textContent = [this.label, ...content.assignedNodes({ flatten: true }).map(descriptionText)].join(" ").replace(/\s+/g, " ").trim();
+    parent.append(this.descriptionEl);
+    return this.descriptionEl.id;
   }
 
   protected renderTemplate(): void {
@@ -252,11 +292,13 @@ export class Tooltip extends BaseElement {
     });
     this.triggerHostEl.addEventListener("keydown", event => {
       const keyboardEvent = event as KeyboardEvent;
-      if (keyboardEvent.key === "Escape") {
+      if (this.openValue && keyboardEvent.key === "Escape" && !keyboardEvent.defaultPrevented) {
         keyboardEvent.preventDefault();
+        keyboardEvent.stopPropagation();
         this.hide();
       }
     });
+    this.shadowRoot!.querySelector('slot[name="content"]')!.addEventListener("slotchange", () => this.update());
     this.triggerSlot.addEventListener("slotchange", () => {
       if (this.isRendered) {
         this.update();
@@ -292,9 +334,14 @@ export class Tooltip extends BaseElement {
 
     this.clearDescribedBy();
     this.stopTracking();
-    if (this.openValue) {
-      trigger.setAttribute("aria-describedby", this.tooltipId);
-      this.describedTrigger = trigger;
+    if (this.openValue && this.isConnected) {
+      const id = this.descriptionId(trigger);
+      const tokens = (trigger.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(Boolean);
+      if (!tokens.includes(id)) {
+        trigger.setAttribute("aria-describedby", [...tokens, id].join(" "));
+        this.describedTrigger = trigger;
+        this.describedId = id;
+      }
       // Position as a fixed-coordinate overlay so it escapes ancestor overflow
       // and flips/shifts to stay on-screen.
       this.positionCleanup = trackAnchor(this.triggerHostEl, this.tooltipEl, {
@@ -309,8 +356,18 @@ export class Tooltip extends BaseElement {
     this.positionCleanup = null;
   }
 
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.contentObserver ??= new MutationObserver(() => { if (this.openValue) this.update(); });
+    this.contentObserver.observe(this, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["alt", "aria-label", "aria-hidden", "hidden"] });
+  }
+
   disconnectedCallback(): void {
+    this.contentObserver?.disconnect();
+    this.clearDescribedBy();
+    this.descriptionEl?.remove();
     this.stopTracking();
+    dismissPopover(this.tooltipEl);
     super.disconnectedCallback?.();
   }
 }

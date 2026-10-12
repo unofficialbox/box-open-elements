@@ -260,3 +260,46 @@ describe("flow-builder", () => {
     builder.remove();
   });
 });
+
+
+describe("FlowBuilder controlled selection and inspector metadata", () => {
+  it("emits once for genuine selection changes and ignores same-identity controlled echoes", () => {
+    const builder = new FlowBuilder(); const first: FlowNode = { kind: "call" }; const second: FlowNode = { kind: "wait" };
+    builder.nodes = [first, second]; document.body.append(builder);
+    const changes: Array<FlowNode | null> = [];
+    builder.addEventListener("selection-changed", event => {
+      const node = (event as CustomEvent<{ node: FlowNode | null }>).detail.node;
+      changes.push(node); if (changes.length < 10) builder.selected = node;
+    });
+    builder.selected = first; builder.selected = first; builder.selected = second; builder.selected = null; builder.selected = null;
+    expect(changes).toEqual([first, second, null]);
+  });
+
+  it("refreshes default inspector metadata on catalog/model changes without replacing cached DOM", () => {
+    const node: FlowNode = { kind: "call" }; const builder = new FlowBuilder(); builder.nodes = [node]; builder.catalog = catalog;
+    document.body.append(builder); builder.selected = node;
+    const heading = builder.shadowRoot!.querySelector('[part="inspector-heading"]')!;
+    const description = heading.nextElementSibling!;
+    builder.catalog = [{ kind: "call", label: "New", description: "New description", create: () => ({ kind: "call" }) }];
+    expect(heading.textContent).toBe("New"); expect(description.textContent).toBe("New description");
+    expect(builder.shadowRoot!.querySelector('[part="inspector-heading"]')).toBe(heading);
+    builder.model = { children: () => [], kind: () => "wait", title: node => node.title, description: node => node.description }; builder.catalog = catalog;
+    expect(heading.textContent).toBe("Wait"); expect(description.textContent).toBe("Pauses the flow");
+    node.title = "Edited"; node.description = "Edited description"; builder.refreshNode(node);
+    expect(heading.textContent).toBe("Edited"); expect(description.textContent).toBe("Edited description");
+  });
+
+  it("retains custom inspector DOM, caret and cleanup ownership during catalog echoes", () => {
+    const node: FlowNode = { kind: "call" }; const builder = new FlowBuilder(); builder.nodes = [node]; builder.catalog = catalog;
+    const cleanup = vi.fn(); const input = document.createElement("input"); input.value = "Draft";
+    const render = vi.fn((_node: FlowNode, container: HTMLElement) => { container.append(input); return cleanup; });
+    builder.renderInspector = render; document.body.append(builder); builder.selected = node; input.focus(); input.setSelectionRange(1, 3);
+    builder.catalog = [{ kind: "call", label: "New", create: () => ({ kind: "call" }) }];
+    builder.selected = node; builder.refresh();
+    expect(builder.shadowRoot!.querySelector('[part="inspector-heading"]')!.textContent).toBe("New");
+    expect(builder.shadowRoot!.activeElement).toBe(input); expect([input.selectionStart, input.selectionEnd]).toEqual([1, 3]);
+    expect(render).toHaveBeenCalledTimes(1); expect(cleanup).not.toHaveBeenCalled();
+    builder.selected = { kind: "wait" }; expect(cleanup).toHaveBeenCalledTimes(1);
+    builder.remove(); expect(cleanup).toHaveBeenCalledTimes(2);
+  });
+});

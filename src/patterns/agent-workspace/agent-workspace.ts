@@ -15,16 +15,24 @@ export class AgentWorkspace extends BaseElement {
   private chatsOpen = true;
   private detailsOpen = false;
   private initialized = false;
+  private initialPaneOwnership = { chats: false, details: false };
   private renderedActive: string | null = null;
   private chatIds = "";
   private lastPanes: { chats: boolean; details: boolean } | null = null;
+  private paneRevisions = { chats: 0, details: 0 };
   private sessions = new Map<string, AgentChat>();
   /** Host-controlled pane state; mobile drawers remain mutually exclusive. */
   get panes(): { chats: boolean; details: boolean } { return { chats: this.chatsOpen, details: this.detailsOpen }; }
   set panes(value: { chats?: boolean; details?: boolean }) {
-    if (value.chats !== undefined) this.chatsOpen = value.chats;
-    if (value.details !== undefined) this.detailsOpen = value.details;
-    if (this.mobile && this.chatsOpen && this.detailsOpen) this.chatsOpen = false;
+    if (!this.initialized) {
+      if (value.chats !== undefined) this.initialPaneOwnership.chats = true;
+      if (value.details !== undefined) this.initialPaneOwnership.details = true;
+    }
+    let chats = value.chats ?? this.chatsOpen;
+    const details = value.details ?? this.detailsOpen;
+    if (this.mobile && chats && details) chats = false;
+    if (chats === this.chatsOpen && details === this.detailsOpen) return;
+    this.chatsOpen = chats; this.detailsOpen = details;
     this.syncPanes();
   }
   get workspaceController(): AgentWorkspaceController | null { return this.model; }
@@ -43,10 +51,13 @@ export class AgentWorkspace extends BaseElement {
     const width = this.getBoundingClientRect().width || 1200;
     const mobile = width < 900;
     if (!this.initialized || mobile !== this.mobile) {
-      this.chatsOpen = !mobile; this.detailsOpen = width >= 1200;
+      let chats = !mobile, details = width >= 1200;
       if (!mobile) {
-        try { const saved = JSON.parse(localStorage.getItem(this.storageKey()) ?? "null"); if (saved && typeof saved.chats === "boolean" && typeof saved.details === "boolean") {this.chatsOpen = saved.chats; this.detailsOpen = saved.details;} } catch {}
+        try { const saved = JSON.parse(localStorage.getItem(this.storageKey()) ?? "null"); if (saved && typeof saved.chats === "boolean" && typeof saved.details === "boolean") { chats = saved.chats; details = saved.details; } } catch {}
       }
+      if (this.initialized || !this.initialPaneOwnership.chats) this.chatsOpen = chats;
+      if (this.initialized || !this.initialPaneOwnership.details) this.detailsOpen = details;
+      if (mobile && this.chatsOpen && this.detailsOpen) this.chatsOpen = false;
       this.mobile = mobile; this.initialized = true;
     }
     this.syncPanes();
@@ -54,6 +65,8 @@ export class AgentWorkspace extends BaseElement {
   private storageKey(): string { return `boe-workspace:${this.getAttribute("viewer-key") ?? "default"}`; }
   toggle(pane: "chats" | "details"): void { this.open(pane, !(pane === "chats" ? this.chatsOpen : this.detailsOpen)); }
   open(pane: "chats" | "details", open: boolean): void {
+    if (!this.initialized) this.initialPaneOwnership[pane] = true;
+    if ((pane === "chats" ? this.chatsOpen : this.detailsOpen) === open) return;
     if (pane === "chats") {this.chatsOpen = open; if (this.mobile && open) this.detailsOpen = false;}
     else {this.detailsOpen = open; if (this.mobile && open) this.chatsOpen = false;}
     if (!this.mobile) try { localStorage.setItem(this.storageKey(), JSON.stringify({chats: this.chatsOpen, details: this.detailsOpen})); } catch {}
@@ -76,11 +89,20 @@ export class AgentWorkspace extends BaseElement {
     this.shadowRoot!.querySelector<HTMLElement>("#conversation")!.inert = overlaid;
     this.shadowRoot!.querySelector<HTMLElement>("#scrim")!.hidden = !overlaid;
     for (const chat of this.sessions.values()) chat.toggleAttribute("hide-citations", this.detailsOpen);
+    const previous = this.lastPanes;
+    const panes = this.panes;
+    // Publish before dispatch: a host echo or synchronous render sees the new state.
+    this.lastPanes = panes;
+    const revisions = { ...this.paneRevisions };
     for (const pane of ["chats", "details"] as const) {
-      const open = this.panes[pane];
-      if (this.lastPanes?.[pane] !== open) this.dispatchEvent(new CustomEvent("pane-change", {bubbles:true,composed:true,detail:{pane,open,mobile:this.mobile}}));
+      if (previous?.[pane] !== panes[pane]) revisions[pane] = ++this.paneRevisions[pane];
     }
-    this.lastPanes = this.panes;
+    for (const pane of ["chats", "details"] as const) {
+      const open = panes[pane];
+      // A nested transition supersedes this pane's pending event even if it
+      // returns to the same value; unrelated pane changes keep their events.
+      if (previous?.[pane] !== open && this.paneRevisions[pane] === revisions[pane]) this.dispatchEvent(new CustomEvent("pane-change", {bubbles:true,composed:true,detail:{pane,open,mobile:this.mobile}}));
+    }
   }
   protected renderTemplate(): void {
     AgentChat.register();
