@@ -29,6 +29,7 @@ export class FormattedNumber extends FormattedValue {
 
   static get observedAttributes(): string[] {
     return [
+      ...super.observedAttributes,
       "currency",
       "format-style",
       "locale",

@@ -95,7 +95,7 @@ const badgeStyles = `
 export class Badge extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["label", "tone", "max", "hide-when-zero", "animate"];
+    return ["hidden", "label", "tone", "max", "hide-when-zero", "animate"];
   }
 
   private badgeEl!: HTMLElement;
@@ -169,6 +169,27 @@ export class Badge extends BaseElement {
     this.badgeEl = this.shadowRoot.querySelector('[part="badge"]')!;
   }
 
+  // A same-value host write can claim an automatically added hidden attribute.
+  private ownsHidden = false;
+  private writingHidden = false;
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    if (name === "hidden") {
+      if (!this.writingHidden) this.ownsHidden = false;
+      return;
+    }
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private syncHidden(shouldHide: boolean): void {
+    if (shouldHide && this.hasAttribute("hidden")) return;
+    if (!shouldHide && !this.ownsHidden) return;
+    this.writingHidden = true;
+    this.ownsHidden = shouldHide;
+    this.toggleAttribute("hidden", shouldHide);
+    this.writingHidden = false;
+  }
+
   protected update(): void {
     if (!this.badgeEl) {
       return;
@@ -176,7 +197,7 @@ export class Badge extends BaseElement {
 
     // Hide when used as a count that is zero/empty and hide-when-zero is set.
     const shouldHide = this.hideWhenZero && this.isEmptyCount();
-    this.toggleAttribute("hidden", shouldHide);
+    this.syncHidden(shouldHide);
 
     const text = this.displayText();
     this.badgeEl.dataset.tone = this.tone;

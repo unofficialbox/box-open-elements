@@ -27,7 +27,7 @@ export class RelativeTime extends FormattedValue {
   static readonly tagName: string = DEFAULT_TAG_NAME;
 
   static get observedAttributes(): string[] {
-    return ["locale", "numeric", "reference-time", "value"];
+    return [...super.observedAttributes, "locale", "numeric", "reference-time", "value"];
   }
 
   protected usesTimeElement(): boolean {

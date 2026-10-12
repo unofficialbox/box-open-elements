@@ -56,7 +56,7 @@ export class FormattedDuration extends FormattedValue {
   static readonly tagName: string = DEFAULT_TAG_NAME;
 
   static get observedAttributes(): string[] {
-    return ["format-style", "locale", "max-units", "value"];
+    return [...super.observedAttributes, "format-style", "locale", "max-units", "value"];
   }
 
   /** Seconds, or an ISO 8601 duration such as `PT1H30M`. */
@@ -113,7 +113,7 @@ export class FormattedDuration extends FormattedValue {
     }
 
     const parts = resolveDurationParts(seconds, this.maxUnits);
-    const machine = toIsoDuration(parts);
+    const machine = toIsoDuration(resolveDurationParts(seconds, 4));
     const style = this.formatStyle;
 
     try {

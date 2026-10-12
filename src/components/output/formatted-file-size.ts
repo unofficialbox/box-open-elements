@@ -28,7 +28,7 @@ export class FormattedFileSize extends FormattedValue {
   static readonly tagName: string = DEFAULT_TAG_NAME;
 
   static get observedAttributes(): string[] {
-    return ["locale", "maximum-fraction-digits", "units", "value"];
+    return [...super.observedAttributes, "locale", "maximum-fraction-digits", "units", "value"];
   }
 
   /** The size in bytes. */

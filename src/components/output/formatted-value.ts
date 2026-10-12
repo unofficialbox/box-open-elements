@@ -39,6 +39,7 @@ const valueStyles = `
  * missing value should look like anyway.
  */
 export abstract class FormattedValue extends BaseElement {
+  static get observedAttributes(): string[] { return ["hidden"]; }
   protected valueEl!: HTMLElement;
 
   /**
@@ -91,15 +92,34 @@ export abstract class FormattedValue extends BaseElement {
     // Output only: nothing to listen to.
   }
 
+  // A same-value host write can claim an automatically added hidden attribute.
+  private ownsHidden = false;
+  private writingHidden = false;
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    if (name === "hidden") {
+      if (!this.writingHidden) this.ownsHidden = false;
+      return;
+    }
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  private syncHidden(shouldHide: boolean): void {
+    if (shouldHide && this.hasAttribute("hidden")) return;
+    if (!shouldHide && !this.ownsHidden) return;
+    this.writingHidden = true;
+    this.ownsHidden = shouldHide;
+    this.toggleAttribute("hidden", shouldHide);
+    this.writingHidden = false;
+  }
+
   protected update(): void {
     if (!this.valueEl) {
       return;
     }
 
     const result = this.formatted();
-    // toggleAttribute rather than `.hidden = `, so a host that set `hidden`
-    // itself is not fought with on every update.
-    this.toggleAttribute("hidden", result === null);
+    this.syncHidden(result === null);
     if (!result) {
       this.valueEl.textContent = "";
       this.valueEl.removeAttribute("datetime");
