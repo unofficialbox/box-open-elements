@@ -1,7 +1,6 @@
 import {
   BaseElement,
   formDataFromNamedValues,
-  stringValuesFromFormValue,
   type FormValue,
 } from "../../core/index.js";
 import { boeRadius } from "../../foundations/geometry/index.js";
@@ -291,9 +290,11 @@ export class TileGroup extends BaseElement {
   }
 
   protected restoreFormValue(value: FormValue): void {
-    const values = value instanceof FormData ? [] : stringValuesFromFormValue(value, this.name);
+    // setFormValue saves our raw comma-separated string as state. Array-looking
+    // IDs are literal identities, not JSON configuration to parse on restore.
+    const values: string[] = [];
     if (value instanceof FormData) value.forEach(entry => values.push(String(entry)));
-    this.value = values.join(",");
+    this.value = typeof value === "string" ? value : values.join(",");
     this.update();
   }
 

@@ -131,3 +131,25 @@ it("TileGroup omits and restores its submission when native disabled callbacks c
   element.formDisabledCallback(true); expect(submission()).toBe(null);
   element.formDisabledCallback(false); expect((submission() as FormData).getAll("plan")).toEqual(["a"]);
 });
+
+it("FilterBar preserves a pending native edit when a host capture listener updates presentation", () => {
+  const element = new FilterBar(); element.query = "Alpha"; document.body.append(element);
+  const input = element.shadowRoot!.querySelector("input")!; input.focus();
+  element.addEventListener("input", () => { element.label = "Updated during input"; }, {capture:true});
+  input.value = "Native edit"; input.setSelectionRange(3,3);
+  input.dispatchEvent(new Event("input", {bubbles:true,composed:true}));
+  expect(element.query).toBe("Native edit"); expect(input.value).toBe("Native edit");
+  expect(input.selectionStart).toBe(3); expect(element.getAttribute("query")).toBe("Native edit");
+});
+
+it("TileGroup restores its exact saved string for array-looking option IDs", () => {
+  const element = new TileGroup(), submitted = vi.fn();
+  Object.defineProperty(element.internals, "setFormValue", {value: submitted});
+  element.name = "plan"; element.options = [{id:"[1]",label:"Array-looking"},{id:"1",label:"Other"}];
+  element.value = "[1]"; document.body.append(element);
+  const state = submitted.mock.lastCall![1]; expect(state).toBe("[1]");
+  element.value = "1"; element.formStateRestoreCallback(state);
+  expect(element.value).toBe("[1]");
+  expect((submitted.mock.lastCall![0] as FormData).getAll("plan")).toEqual(["[1]"]);
+  expect(element.shadowRoot!.querySelector<HTMLInputElement>('input[value="[1]"]')!.checked).toBe(true);
+});

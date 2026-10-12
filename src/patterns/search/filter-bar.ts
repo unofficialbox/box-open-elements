@@ -433,8 +433,10 @@ export class FilterBar extends BaseElement {
     this.barEl.setAttribute("aria-label", this.label);
 
     const active = this.shadowRoot?.activeElement;
-    // Equal echoes leave selection/composition untouched; new host queries apply immediately.
-    if (this.inputEl.value !== this.query) {
+    // Presentation updates can run before our native input handler (host capture
+    // listeners). Preserve that pending edit; query writes reconcile explicitly
+    // in attributeChangedCallback, including same-value authoritative writes.
+    if (active !== this.inputEl && this.inputEl.value !== this.query) {
       this.inputEl.value = this.query;
     }
     if (active !== this.sortEl) {
