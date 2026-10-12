@@ -161,3 +161,29 @@ it("observes a native fieldset outside the custom group and reapplies its state 
   native.disabled = true; await settle(); expect(text.disabled).toBe(true);
   inner.remove(); document.body.append(inner); await settle(); expect(text.disabled).toBe(false);
 });
+
+it("disables a dynamically inserted custom control after its definition upgrades it", async () => {
+  const e = group(); e.disabled = true;
+  const tag = "box-late-disabled-fixture";
+  const late = document.createElement(tag); late.setAttribute("name", "late"); late.setAttribute("value", "Alpha");
+  e.append(late); await settle();
+  customElements.define(tag, class extends TextField {});
+  await settle();
+  const upgraded = late as TextField;
+  expect(upgraded.disabled).toBe(true);
+  expect(upgraded.shadowRoot!.querySelector<HTMLInputElement>("input")!.disabled).toBe(true);
+  e.disabled = false;
+  expect(upgraded.disabled).toBe(false);
+  expect(upgraded.value).toBe("Alpha");
+});
+
+it("reconciles a pending custom upgrade when a disabled group reconnects", async () => {
+  const e = group(); e.disabled = true;
+  const tag = "box-late-reconnected-fixture", late = document.createElement(tag);
+  late.setAttribute("value", "Alpha"); e.append(late); await settle(); e.remove();
+  customElements.define(tag, class extends TextField {}); await settle();
+  document.body.append(e); await settle();
+  expect((late as TextField).disabled).toBe(true);
+  expect(late.shadowRoot!.querySelector<HTMLInputElement>("input")!.disabled).toBe(true);
+  e.disabled = false; expect((late as TextField).disabled).toBe(false);
+});

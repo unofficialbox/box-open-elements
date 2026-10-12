@@ -150,6 +150,7 @@ export class Fieldset extends BaseElement {
   private fieldsetEl!: HTMLFieldSetElement;
   private childrenObserver: MutationObserver | null = null;
   private readonly disabledControls = new Set<HTMLElement>();
+  private readonly watchedDefinitions = new Set<string>();
   private bodyEl!: HTMLElement;
   private legendEl: HTMLLegendElement | null = null;
   private descriptionEl: HTMLParagraphElement | null = null;
@@ -192,6 +193,7 @@ export class Fieldset extends BaseElement {
   connectedCallback(): void {
     super.connectedCallback();
     this.childrenObserver ??= new MutationObserver(() => this.syncDisabledControls());
+    queueMicrotask(() => { if (this.isConnected) this.syncDisabledControls(); });
     this.childrenObserver.observe(this, {
       childList: true, subtree: true, attributes: true, attributeFilter: ["disabled"],
     });
@@ -217,6 +219,20 @@ export class Fieldset extends BaseElement {
     return this.contains(control);
   }
 
+  private awaitControlDefinition(control: HTMLElement): void {
+    const tag = control.localName;
+    const constructor = customElements.get(tag);
+    if (control.namespaceURI !== "http://www.w3.org/1999/xhtml" || !tag.includes("-")
+      || (constructor && control instanceof constructor) || this.watchedDefinitions.has(tag)) return;
+    this.watchedDefinitions.add(tag);
+    // The registry can outlive a detached group whose controls never upgrade.
+    const reference = new WeakRef(this);
+    void customElements.whenDefined(tag).then(() => {
+      const group = reference.deref();
+      if (group?.isConnected) group.syncDisabledControls();
+    }, () => { /* Reserved/invalid HTML names have no custom definition. */ });
+  }
+
   /** Mirror only this group's contribution, retaining consumer/inner-group intent. */
   private syncDisabledControls(): void {
     // Pending consumer writes must precede inherited-state decisions.
@@ -227,6 +243,7 @@ export class Fieldset extends BaseElement {
     const controls = new Set<HTMLElement>();
     if (this.isConnected) {
       for (const control of Array.from(this.querySelectorAll<HTMLElement>("*"))) {
+        this.awaitControlDefinition(control);
         const supported = typeof (control as HTMLElement & { disabled?: unknown }).disabled === "boolean";
         // Retain the existing explicit disabled/aria-disabled discovery too.
         if ((supported || control.matches("[disabled], [aria-disabled]")) && this.ownsControl(control)
