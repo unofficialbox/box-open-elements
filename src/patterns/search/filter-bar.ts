@@ -231,6 +231,10 @@ export class FilterBar extends BaseElement {
     this.syncInternalStateFromAttributes();
 
     super.attributeChangedCallback(name, oldValue, newValue);
+    // A same-value host attribute write can still replace an unconsumed draft.
+    if (name === "query" && this.inputEl && this.inputEl.value !== this.query) {
+      this.inputEl.value = this.query;
+    }
   }
 
   private syncInternalStateFromAttributes(): void {
@@ -372,6 +376,7 @@ export class FilterBar extends BaseElement {
   protected setupListeners(): void {
     this.inputEl.addEventListener("input", event => {
       this.queryInternal = (event.currentTarget as HTMLInputElement).value;
+      this.setAttribute("query", this.queryInternal);
       this.emitValueChanged();
     });
     this.inputEl.addEventListener("change", () => {
@@ -428,7 +433,10 @@ export class FilterBar extends BaseElement {
     this.barEl.setAttribute("aria-label", this.label);
 
     const active = this.shadowRoot?.activeElement;
-    if (active !== this.inputEl) {
+    // Presentation updates can run before our native input handler (host capture
+    // listeners). Preserve that pending edit; query writes reconcile explicitly
+    // in attributeChangedCallback, including same-value authoritative writes.
+    if (active !== this.inputEl && this.inputEl.value !== this.query) {
       this.inputEl.value = this.query;
     }
     if (active !== this.sortEl) {

@@ -269,6 +269,8 @@ export class CommentThread extends BaseElement {
   protected composerEl!: HTMLElement;
   protected composerLabelEl!: HTMLElement;
   protected composerSubmitEl!: HTMLElement;
+  private composing = false;
+
   protected composerInputEl!: HTMLTextAreaElement;
   private entriesSignature = "";
   private actionsSignature = "";
@@ -552,6 +554,11 @@ export class CommentThread extends BaseElement {
     this.composerInputEl = this.shadowRoot.querySelector('[part="composer-input"]')!;
   }
 
+  disconnectedCallback(): void {
+    this.composing = false;
+    super.disconnectedCallback();
+  }
+
   protected setupListeners(): void {
     this.entriesEl.addEventListener("click", event => {
       const button = (event.target as HTMLElement).closest('[part="entry"]') as HTMLButtonElement | null;
@@ -585,7 +592,11 @@ export class CommentThread extends BaseElement {
       }
     });
 
+    this.composerInputEl.addEventListener("compositionstart", () => { this.composing = true; });
+    this.composerInputEl.addEventListener("compositionend", () => { this.composing = false; });
+    this.composerInputEl.addEventListener("blur", () => { this.composing = false; });
     this.composerInputEl.addEventListener("keydown", event => {
+      if (this.composing || event.isComposing || event.keyCode === 229) return;
       if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
         this.submitComposer();
@@ -633,6 +644,7 @@ export class CommentThread extends BaseElement {
     const composable = this.composable;
     this.composerEl.hidden = !composable;
     this.composerInputEl.disabled = !composable;
+    if (!composable) this.composing = false;
   }
 }
 
