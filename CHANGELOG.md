@@ -15,6 +15,11 @@ are kept as written.
 
 ## Unreleased
 
+## 0.42.2 — 2026-10-13
+
+- Wrap Segmented Control options within the available width in both separated and attached layouts, including long labels and narrow flex/grid parents. Preserve roving keyboard selection, host-controlled focus/value updates, disabled behavior and form safety (#583, #587).
+- Give Workshop Table previews a definite canvas width so inline-size-contained hosts render visible rows and responsive layouts. Guard all Table variants, compact text/focus/actions/current markers and neighboring stories at mobile and desktop widths in light/dark (#588).
+
 ## 0.42.1 — 2026-10-13
 
 - Underline Table descriptor links by default, including compact summaries, while preserving host-owned slotted link styling, identity and focus (#582, #584).
