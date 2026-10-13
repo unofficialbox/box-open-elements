@@ -106,3 +106,8 @@ The versioned docs index is at [docs/README.md](https://github.com/unofficialbox
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, the `bun run verify` gate, component conventions, the conformance audits, and the PR workflow. Maintainers: see [RELEASING.md](./RELEASING.md) for publishing to npm.
+
+SolidJS 1.9 and native Preact 11 adapters are implemented in the workspace and
+awaiting review and first publication. See the
+[framework support matrix](docs/integration/framework-adapters.md) for the
+separate implementation and registry-availability status.

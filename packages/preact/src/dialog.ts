@@ -1,0 +1,57 @@
+import type { ComponentChildren } from "preact";
+
+import { Dialog as DialogElement } from "@unofficialbox/box-open-elements/dialog";
+import { createWebComponent, type WebComponentProps } from "./create-web-component.js";
+import type { CustomEventHandler } from "./events.js";
+
+DialogElement.register();
+
+export type DialogConfirmTone = "primary" | "danger";
+export type DialogSize = "small" | "medium" | "large" | "fullscreen";
+
+export type DialogProps = WebComponentProps & {
+  children?: ComponentChildren;
+  open?: boolean;
+  heading?: string;
+  description?: string;
+  confirmLabel?: string;
+  confirmTone?: DialogConfirmTone;
+  confirmDisabled?: boolean;
+  confirmBusy?: boolean;
+  confirmBusyLabel?: string;
+  size?: DialogSize;
+  onOpenChanged?: CustomEventHandler<DialogElement, { open: boolean }>;
+  onConfirm?: CustomEventHandler<DialogElement, null>;
+  onCancel?: CustomEventHandler<DialogElement, null>;
+};
+
+export const Dialog = createWebComponent<DialogElement, DialogProps>({
+  tagName: "box-dialog",
+  propertyNames: ["open", "heading", "description", "confirmLabel", "confirmTone", "confirmDisabled", "confirmBusy", "confirmBusyLabel", "size"],
+  events: [
+    { propName: "onOpenChanged", eventName: "open-changed" },
+    { propName: "onConfirm", eventName: "confirm" },
+    { propName: "onCancel", eventName: "cancel" },
+  ],
+  sync: (element, props) => {
+    if (props.heading !== undefined) {
+      element.heading = props.heading;
+    }
+    if (props.description !== undefined) {
+      element.description = props.description;
+    }
+    if (props.confirmLabel !== undefined) {
+      element.confirmLabel = props.confirmLabel;
+    }
+    if (props.confirmTone !== undefined) element.confirmTone = props.confirmTone;
+    if (props.confirmDisabled !== undefined) element.confirmDisabled = props.confirmDisabled;
+    if (props.confirmBusy !== undefined) element.confirmBusy = props.confirmBusy;
+    if (props.confirmBusyLabel !== undefined) element.confirmBusyLabel = props.confirmBusyLabel;
+    if (props.size !== undefined) {
+      element.size = props.size;
+    }
+    if (props.open !== undefined) {
+      element.open = props.open;
+    }
+  },
+});

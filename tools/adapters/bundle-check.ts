@@ -9,7 +9,7 @@ const root = resolve(import.meta.dir, "../..");
 async function bundle(contents: string, splitting = false) {
   const result = await Bun.build({
     entrypoints: ["virtual:bundle-check"], target: "browser", minify: true, splitting,
-    external: ["react", "react-dom"],
+    external: ["react", "react-dom", "solid-js", "solid-js/web", "preact", "preact/hooks"],
     plugins: [{ name: "fixture", setup(build) {
       build.onResolve({ filter: /^virtual:/ }, () => ({ path: "fixture", namespace: "fixture" }));
       build.onLoad({ filter: /.*/, namespace: "fixture" }, () => ({ contents, loader: "ts", resolveDir: root }));
@@ -30,6 +30,15 @@ const glyph = await bundle(`export { iconCloud } from "${root}/dist/foundations/
 const icons = await bundle(`export { boxIconography } from "${root}/dist/foundations/icons/index.js";`);
 const direct = await bundle(`export { Button } from "${root}/packages/react/dist/button.js";`);
 const barrel = await bundle(`export { Button } from "${root}/packages/react/dist/index.js";`);
+for (const framework of ["solid", "preact"]) {
+  const component = await bundle(`export { Button } from "${root}/packages/${framework}/dist/button.js";`);
+  const entry = await bundle(`export { Button } from "${root}/packages/${framework}/dist/index.js";`);
+  if (entry.bytes > component.bytes * 1.05 || entry.code.includes("box-dialog") || entry.code.includes("box-combobox")) {
+    throw new Error(`${framework} barrel retained unrelated components`);
+  }
+  if (!entry.code.includes("box-button") || !entry.code.includes(".define(")) throw new Error(`${framework} removed required registration`);
+  console.log(`${framework} Button: ${component.bytes} bytes direct, ${entry.bytes} bytes barrel`);
+}
 const coreButton = await bundle(`export { Button } from "${root}/dist/entries/button.js";`);
 const coreRoot = await bundle(`import "${root}/dist/index.js";`);
 if (coreRoot.code.includes("box-code-editor") || coreButton.code.includes("CodeMirror")) throw new Error("Optional code editor leaked into ordinary component imports");

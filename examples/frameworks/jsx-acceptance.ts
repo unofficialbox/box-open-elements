@@ -1,0 +1,92 @@
+import type { TextField } from "@unofficialbox/box-open-elements/text-field";
+import type { Select } from "@unofficialbox/box-open-elements/select";
+import type { Dialog } from "@unofficialbox/box-open-elements/dialog";
+import type { Combobox } from "@unofficialbox/box-open-elements/combobox";
+import type { Drawer } from "@unofficialbox/box-open-elements/drawer";
+
+type Harness = {
+  update(n: number): void; hide(): void; show(): void; transition(): Promise<void>; dispose(): void;
+  refs: Record<string, HTMLElement>; calls: string[];
+  controller: { select(ids: string[]): void };
+};
+const settle = () => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+const check = (condition: unknown, message: string) => { if (!condition) throw new Error(message); };
+
+/** Shared assertions against native framework-rendered hosts, never a mocked UI. */
+export async function acceptance(h: Harness) {
+  await settle();
+  const field = h.refs.field as TextField;
+  const select = h.refs.select as Select;
+  const probe = h.refs.probe as HTMLElement & { payload: { count: number }; items: string[] };
+  const dialog = h.refs.dialog as Dialog;
+  check(field === document.querySelector("#field"), "typed ref targets real host");
+  const input = field.shadowRoot!.querySelector("input")!;
+  field.focus();
+  check(field.shadowRoot!.activeElement === input, "field focus delegates");
+  h.update(1); await settle();
+  check(h.refs.field === field && input === field.shadowRoot!.querySelector("input"), "signal/state update preserves host and input");
+  check(field.value === "1" && input.value === "1", "value update reaches property and DOM");
+  check(document.activeElement === field && field.shadowRoot!.activeElement === input, "updates preserve focus");
+  check(select.options[0]?.label === "Item 1" && select.getAttribute("options") === JSON.stringify([{ label: "Item 1", value: "v" }]), "array reaches BOE setter and its JSON reflection");
+  check(probe.payload.count === 1 && probe.items[0] === "1" && !probe.hasAttribute("payload"), "object and array updates");
+  const event = new CustomEvent("ExactCase", { detail: 7, cancelable: true });
+  check(!probe.dispatchEvent(event) && event.defaultPrevented, "exact native event remains cancelable");
+  probe.dispatchEvent(new CustomEvent("exactcase", { detail: 7 }));
+  check(h.calls.join(",") === "exact:1:7", "case-sensitive event binding");
+  h.update(2); await settle();
+  check(field.disabled && input.disabled && field.hasAttribute("disabled"), "boolean disabled presence");
+  h.update(3); await settle();
+  check(!field.disabled && !input.disabled && !field.hasAttribute("disabled"), "false removes boolean attribute");
+  probe.dispatchEvent(new CustomEvent("ExactCase", { detail: 8 }));
+  check(h.calls.at(-1) === "exact:3:8", "handler replacement reads committed props");
+  input.value = "typed"; input.dispatchEvent(new Event("input", { bubbles: true }));
+  check(h.calls.at(-1) === "value:typed", "actual input produces composed event");
+  check(field.name === "title" && field.required, "form control properties");
+  check(new FormData(document.querySelector<HTMLFormElement>("#form")!).get("title") === "typed", "form submission receives control value");
+  h.update(4); await settle();
+  const count = h.calls.length; probe.dispatchEvent(new CustomEvent("ExactCase", { detail: 9 }));
+  check(h.calls.length === count, "undefined handler removes delivery");
+  // Repeated/batched updates must commit the final value without replacing hosts.
+  await h.transition(); await settle();
+  check(field.value === "33" && h.refs.field === field && probe.payload.count === 33, "transition and repeated updates commit final values");
+  h.controller.select(["b"]); await settle();
+  check(document.querySelector("#selection")!.textContent === "b", "controller composition");
+  check(dialog.querySelector('[slot="footer"]')!.textContent === "Footer slot", "slots preserved");
+  h.refs.button.focus();
+  h.refs.button.shadowRoot!.querySelector("button")!.click(); await settle();
+  check(dialog.open && !!dialog.shadowRoot!.activeElement, "dialog focus entry");
+  dialog.shadowRoot!.querySelector('[part="dialog"]')!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  await settle();
+  check(!dialog.open && h.calls.at(-1) === "cancel", "dialog Escape and native cancel");
+  check(document.activeElement === h.refs.button, "dialog restores opener focus");
+  const combo = h.refs.combo as Combobox;
+  const comboInput = combo.shadowRoot!.querySelector("input")!;
+  combo.focus(); comboInput.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+  comboInput.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+  check(combo.value === "a" && h.calls.at(-1) === "combo:a", "complex combobox keyboard selection and event");
+  const drawer = h.refs.drawer as Drawer;
+  const drawerButton = h.refs.drawerButton;
+  drawer.open = true; await settle();
+  h.update(34); await settle();
+  check(h.refs.drawerButton === drawerButton && drawerButton.isConnected && drawerButton.getAttribute("label") === "Action 34", "drawer preserves reactive child identity while open");
+  drawerButton.shadowRoot!.querySelector("button")!.click();
+  check(h.calls.at(-1) === "drawer-click", "direct native event in drawer");
+  drawer.open = false; h.update(33); await settle();
+  // A host can disconnect/reconnect independently of the framework owner.
+  const parent = probe.parentNode!; probe.remove(); parent.appendChild(probe);
+  probe.dispatchEvent(new CustomEvent("ExactCase", { detail: 10 }));
+  check(h.calls.at(-1) === "exact:33:10", "reconnect preserves owner listener exactly once");
+  h.hide(); await settle();
+  const removedCount = h.calls.length;
+  probe.dispatchEvent(new CustomEvent("ExactCase", { detail: 11 }));
+  check(h.calls.length === removedCount, "unmount removes listeners from detached host");
+  h.show(); await settle();
+  check(h.refs.field !== field && (h.refs.field as TextField).value === "33", "remount syncs current values");
+  const finalProbe = h.refs.probe;
+  h.dispose(); await settle();
+  const disposedCount = h.calls.length;
+  finalProbe.dispatchEvent(new CustomEvent("ExactCase", { detail: 12 }));
+  h.controller.select(["a"]); await settle();
+  check(h.calls.length === disposedCount && !document.querySelector("#field"), "root disposal releases ownership");
+  return { status: "passed", checks: 29 };
+}

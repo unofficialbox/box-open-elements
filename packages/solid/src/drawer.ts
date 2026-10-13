@@ -1,0 +1,33 @@
+import type { JSX } from "solid-js";
+import { Drawer as DrawerRef } from "@unofficialbox/box-open-elements/drawer";
+import { createWebComponent, type WebComponentProps } from "./create-web-component.js";
+import type { CustomEventHandler } from "./events.js";
+
+export type { DrawerRef };
+export type DrawerProps = WebComponentProps & {
+  children?: JSX.Element;
+  heading?: string;
+  description?: string;
+  open?: boolean;
+  position?: string;
+  size?: string;
+  busy?: boolean;
+  hideCloseButton?: boolean;
+  onOpenChanged?: CustomEventHandler<DrawerRef, { open: boolean }>;
+  onDismiss?: CustomEventHandler<DrawerRef, { source: "close-button" | "backdrop" | "escape" }>;
+};
+
+export const Drawer = createWebComponent<DrawerRef, DrawerProps>({
+  tagName: DrawerRef.tagName,
+  propertyNames: ["heading","description","open","position","size","busy","hideCloseButton"],
+  events: [{ propName: "onOpenChanged", eventName: "open-changed" }, { propName: "onDismiss", eventName: "dismiss" }],
+  sync: (element, props) => {
+    if (props.heading !== undefined) element.heading = props.heading;
+    if (props.description !== undefined) element.description = props.description;
+    if (props.open !== undefined) element.open = props.open;
+    if (props.position !== undefined) element.position = props.position;
+    if (props.size !== undefined) element.size = props.size;
+    if (props.busy !== undefined) element.busy = props.busy;
+    if (props.hideCloseButton !== undefined) element.hideCloseButton = props.hideCloseButton;
+  },
+});

@@ -3,7 +3,7 @@
  *
  * Three separate rules, because they answer three different questions:
  *
- * 1. `checkAdapterLockstep` — do the four *published* adapters ship the core's
+ * 1. `checkAdapterLockstep` — do the six workspace adapters ship the core's
  *    version? They release together under one number, so anything else is a
  *    release that half-happened.
  * 2. `checkCorePeerRanges` — does every workspace package that peers on the core
@@ -52,10 +52,10 @@ export const CORE_PACKAGE = "@unofficialbox/box-open-elements";
 export const expectedPeerRange = (coreVersion: string): string => `^${coreVersion}`;
 
 /**
- * Whether the four published adapters carry the core's version.
+ * Whether the six adapters in the release train carry the core's version.
  *
  * Returns *all* problems rather than throwing on the first: a version bump
- * touches five manifests, and fixing them one failed run at a time is how a
+ * touches seven manifests, and fixing them one failed run at a time is how a
  * release drags out.
  */
 export const checkAdapterLockstep = (

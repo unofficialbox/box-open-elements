@@ -58,8 +58,16 @@ const workspaceSource = {
 };
 
 export default defineConfig({
+  resolve: {
+    alias: [
+      { find: /^solid-js\/web$/, replacement: resolve(root, "node_modules/solid-js/web/dist/web.js") },
+      { find: /^solid-js$/, replacement: resolve(root, "node_modules/solid-js/dist/solid.js") },
+    ],
+    dedupe: ["preact"],
+  },
   plugins: [workspaceSource],
   test: {
+    server: { deps: { inline: [/solid-js/] } },
     environment: "jsdom",
     environmentOptions: {
       jsdom: {
