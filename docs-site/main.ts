@@ -443,7 +443,7 @@ const renderComponentPage = (entry: CatalogEntry): void => {
       <p class="preview-note code-frameworks-note">Snippets show a minimal use; the one-time setup (design tokens, Vue <code>isCustomElement</code>, React custom events) is in the <a href="https://github.com/unofficialbox/box-open-elements/blob/main/docs/integration/frameworks.md" target="_blank" rel="noreferrer">Frameworks guide</a>.</p>
       ${(() => {
         const note = variants[0]?.note ?? example.note;
-        return note ? `<p class="preview-note">${escapeHtml(note)}</p>` : `<p class="preview-note" hidden></p>`;
+        return note ? `<p id="variant-note" class="preview-note">${escapeHtml(note)}</p>` : `<p id="variant-note" class="preview-note" hidden></p>`;
       })()}
     </div>
     <div data-panel="api" hidden>
@@ -620,7 +620,7 @@ const renderComponentPage = (entry: CatalogEntry): void => {
     currentHtml = variant.html;
     renderCode();
     const note = variant.note ?? example.note;
-    const noteEl = stageBody.querySelector<HTMLElement>(".preview-note");
+    const noteEl = stageBody.querySelector<HTMLElement>("#variant-note");
     if (noteEl) {
       noteEl.textContent = note ?? "";
       noteEl.hidden = !note;
