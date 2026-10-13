@@ -17,6 +17,16 @@ describe("docs-site guidance", () => {
     expect(usageById["no-such-surface"]).toBeUndefined();
   });
 
+  it("renders Table guidance in readable paragraphs with the compact contract", () => {
+    const html = renderGuidanceCards(resolvePreviewGuidance({ catalogId: "table", roles: [] }));
+    expect(html).toContain('stacked-layout=&quot;compact&quot;');
+    expect(html).toContain('columns.compact=&quot;summary&quot;');
+    expect(html).toContain('No field is hidden by default');
+    expect(html).toContain('desktop/list/grid show every column');
+    expect(html).not.toContain("\n\n");
+    expect((html.match(/<p>/g) ?? []).length).toBe(4);
+  });
+
   it("maps composite roles to Arrow/Home/End keyboard guidance", () => {
     const bullets = keyboardGuidanceForRoles(["listbox", "option"]);
     expect(bullets.some(bullet => bullet.includes("Arrow"))).toBe(true);

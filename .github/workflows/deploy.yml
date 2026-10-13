@@ -41,6 +41,9 @@ jobs:
       - name: Build docs site + workshop
         run: bun run site:build
 
+      - name: Check docs and Workshop artifact before upload
+        run: bun run site:check
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

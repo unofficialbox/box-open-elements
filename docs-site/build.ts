@@ -106,6 +106,7 @@ function buildPageHtml(rootHtml: string, page: PrerenderPage): string {
     .replace('href="./favicon.svg"', 'href="../../favicon.svg"')
     .replace('href="./styles.css"', 'href="../../styles.css"')
     .replace('src="./main.js"', 'src="../../main.js"')
+    .replace('href="./workshop/"', 'href="../../workshop/"')
     .replace('"./lib/index.js"', '"../../lib/index.js"')
     // per-page metadata
     .replace(/<title>[^<]*<\/title>/, `<title>${escapeAttr(page.title)}</title>`)

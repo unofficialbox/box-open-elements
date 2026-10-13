@@ -111,6 +111,37 @@ jobs:
             bun run build:core
           fi
 
+  site-build:
+    name: Clean-checkout docs and Workshop build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - run: bun install --frozen-lockfile
+      - run: bun run site:build
+
+  table-accessibility:
+    name: Compact Table accessibility (pinned Firefox)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - name: Check compact links, host focus and current markers
+        run: bash tools/preview/container-run.sh 'bun run build:core && BOE_TABLE_BROWSER=firefox BOE_TABLE_EVIDENCE_DIR=/work/.regression-tmp/table-links node tools/preview/table-compact.mjs'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compact-table-firefox
+          path: .regression-tmp/table-links
+
   conformance:
     name: box-ui-elements conformance (geometry, strict)
     needs: tier

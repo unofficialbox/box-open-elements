@@ -1,4 +1,4 @@
-// Native-browser regression for #578. Run after bun run build:core.
+// Native-browser regression for #578 and #582. Run after bun run build:core.
 import { chromium, firefox } from 'playwright-core';
 import { createServer } from 'node:http';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -15,13 +15,13 @@ const fixture = `<!doctype html><html lang="en"><meta charset="utf-8"><meta name
 <h1>Recent validation runs</h1><p id="event" role="status">Choose a run action</p><button id="outside">Outside focus</button><main id="stage"></main>
 <script type="module">
 window.lib=await import('/runtime/index.js');lib.registerBoxDarkDesignSystem();lib.applyDesignTokens(document.documentElement,'box-dark');
-window.columns=[{key:'run',label:'Run',rowHeader:true},{key:'status',label:'Status',compact:'summary'},{key:'duration',label:'Duration',hostContent:true},{key:'calls',label:'Calls',compact:'hidden',hostContent:true},{key:'report',label:'Report',compact:'hidden'}];
-window.rows=[{id:'run-123',current:true,cells:{run:'Oct 12, 11:45 AM · dry run',status:{text:'✓ Passed',tone:'success'},duration:'1.2 s',calls:'142',report:'Ready'},actions:[{key:'view',label:'View'},{key:'compare',label:'Compare Report'}]},
-{id:'run-124',cells:{run:'Oct 12, 11:40 AM · full validation with a very long scenario name and unbroken identifier '+ 'scenario'.repeat(12),status:{text:'Failed · retry required',tone:'error'},duration:'45.8 s',calls:'980',report:'Pending'},actions:[{key:'view',label:'View'},{key:'compare',label:'Compare with the most recent successful report for this scenario'},{key:'retry',label:'Retry',disabled:true}]},
+window.columns=[{key:'run',label:'Run',rowHeader:true},{key:'status',label:'Status',compact:'summary'},{key:'duration',label:'Duration',hostContent:true,compact:'summary'},{key:'calls',label:'Calls',compact:'hidden',hostContent:true},{key:'report',label:'Report',compact:'summary'}];
+window.rows=[{id:'run-123',current:true,cells:{run:'Oct 12, 11:45 AM · dry run',status:{text:'✓ Passed',tone:'success'},duration:'1.2 s',calls:'142',report:{kind:'link',text:'Open report',href:location.href+'#report'}},actions:[{key:'view',label:'View'},{key:'compare',label:'Compare Report'}]},
+{id:'run-124',cells:{run:'Oct 12, 11:40 AM · full validation with a very long scenario name and unbroken identifier '+ 'scenario'.repeat(12),status:{text:'Failed · retry required',tone:'error'},duration:'45.8 s',calls:'980',report:{kind:'link',text:'Earlier report',href:location.href+'#earlier-report'}},actions:[{key:'view',label:'View'},{key:'compare',label:'Compare with the most recent successful report for this scenario'},{key:'retry',label:'Retry',disabled:true}]},
 {id:'run-125',cells:{run:'Oct 12, 11:35 AM · dry run',status:'Queued',duration:'—',calls:'0',report:'Pending'}}];
 for(const layout of ['compact','grid','list']){const section=document.createElement('section');section.innerHTML='<h2>'+layout+'</h2>';const t=document.createElement('box-table');t.id=layout;t.label='Recent runs '+layout;t.setAttribute('stacked','auto');t.stackedLayout=layout;t.selectionMode='multiple';t.columns=columns;t.rows=rows;section.append(t);stage.append(section);t.addEventListener('row-action',e=>{window.lastAction=e.detail;document.querySelector('#event').textContent=e.detail.action+' · '+e.detail.rowId});}
 window.t=document.querySelector('#compact');window.hostButton=document.createElement('button');hostButton.textContent='Duration details';hostButton.setAttribute('aria-label','Duration details for dry run');hostButton.slot='cell-run-123-duration';t.append(hostButton);
-window.hiddenInput=document.createElement('input');hiddenInput.value='142';hiddenInput.setAttribute('aria-label','Calls for dry run');hiddenInput.slot='cell-run-123-calls';t.append(hiddenInput);window.ready=true;
+window.hiddenInput=document.createElement('input');hiddenInput.value='142';hiddenInput.setAttribute('aria-label','Calls for dry run');hiddenInput.slot='cell-run-123-calls';t.append(hiddenInput);window.hostLink=document.createElement('a');hostLink.textContent='Host report';hostLink.href='#host-report';hostLink.slot='cell-run-124-duration';hostLink.style.color='var(--boe-token-surface-surface-brand)';t.append(hostLink);window.ready=true;
 </script></html>`;
 const server = createServer((q,r) => {
   try { const name = new URL(q.url, 'http://localhost').pathname;
@@ -38,21 +38,22 @@ if (process.env.BOE_TABLE_SERVE) { console.log(url); await new Promise(()=>{}); 
 const browser = await (engine==='firefox'?firefox:chromium).launch(engine==='firefox'?{headless:!process.env.BOE_TABLE_HEADFUL}:{executablePath:process.env.BOE_TABLE_CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
 const results=[];
 try {
-  for (const width of [1440,390,320]) {
-    const context=await browser.newContext({viewport:{width,height:1000},colorScheme:'dark'});
+  for (const theme of ['light','dark']) for (const width of [1440,390,320]) {
+    const context=await browser.newContext({viewport:{width,height:1000},colorScheme:theme});
     const page=await context.newPage(), errors=[];
     page.on('pageerror', e=>errors.push(e.message));page.on('console', m=>{if(['error','warning'].includes(m.type()))errors.push(m.text());});
-    await page.goto(url);await page.waitForFunction(()=>window.ready);
+    await page.goto(url);await page.waitForFunction(()=>window.ready,{},{timeout:30000}).catch(error=>{throw new Error('Fixture did not initialize: '+errors.join('; '),{cause:error});});
+    await page.evaluate(theme=>{lib.registerBoxDefaultDesignSystem();lib.applyDesignTokens(document.documentElement,theme==='dark'?'box-dark':'box-default');},theme);
     assert.equal(await page.title(),'Compact run list regression');
     const geometry=await page.evaluate(()=>{
       const root=t.shadowRoot, row=root.querySelector('[part=row]'), cells=[...row.querySelectorAll('td,th')];
       return { compact:row.getBoundingClientRect().height,grid:document.querySelector('#grid').shadowRoot.querySelector('[part=row]').getBoundingClientRect().height,
         list:document.querySelector('#list').shadowRoot.querySelector('[part=row]').getBoundingClientRect().height,
-        header:getComputedStyle(root.querySelector('thead')).display,hidden:cells.slice(3,5).map(c=>getComputedStyle(c).display),
+        header:getComputedStyle(root.querySelector('thead')).display,hidden:cells.slice(3,4).map(c=>getComputedStyle(c).display),
         summaryLabel:cells[1].querySelector('[part=stacked-label]').getBoundingClientRect().width,
         noAction:getComputedStyle(root.querySelectorAll('[part=actions-cell]')[2]).display,
         overflow:[...document.querySelectorAll('box-table')].map(el=>({id:el.id,scroll:el.shadowRoot.querySelector('[part=shell]').scrollWidth,client:el.shadowRoot.querySelector('[part=shell]').clientWidth}))};});
-    if(width<560){assert.deepEqual(geometry.hidden,['none','none']);assert.equal(geometry.summaryLabel,1);assert.equal(geometry.noAction,'none');assert.ok(geometry.compact<geometry.grid);assert.equal(geometry.header,'none');assert.ok(geometry.overflow.find(o=>o.id==='compact').scroll<=geometry.overflow.find(o=>o.id==='compact').client+1);}
+    if(width<560){assert.deepEqual(geometry.hidden,['none']);assert.equal(geometry.summaryLabel,1);assert.equal(geometry.noAction,'none');assert.ok(geometry.compact<geometry.grid);assert.equal(geometry.header,'none');assert.ok(geometry.overflow.find(o=>o.id==='compact').scroll<=geometry.overflow.find(o=>o.id==='compact').client+1);}
     else {assert.notEqual(geometry.header,'none');assert.ok(geometry.hidden.every(d=>d==='table-cell'));}
     if(width>560){
       const sizes=await page.evaluate(()=>{
@@ -64,7 +65,27 @@ try {
     const snapshot=await page.locator('#compact').ariaSnapshot();
     assert.ok(snapshot.includes('View for Oct 12, 11:45 AM · dry run'));
     if(width<560){assert.ok(snapshot.includes('Status: ✓ Passed'));assert.ok(!snapshot.includes('Calls for dry run'));}
-    await page.screenshot({path:`${dir}/${engine}-${width}-dark.png`,fullPage:true});
+    // Descriptor and actual slotted links both retain native names and non-color cues.
+    const descriptor=page.locator('#compact').getByRole('link',{name:'Open report'});
+    const host=page.locator('#compact').getByRole('link',{name:'Host report'});
+    await page.addScriptTag({path:path.resolve('node_modules/axe-core/axe.min.js')});
+    // Exercise the text-block rule with adjacent summary text; standalone link-only
+    // cells can be inapplicable depending on axe's block-parent classification.
+    await page.evaluate(()=>{for(const link of [...t.shadowRoot.querySelectorAll('[part=cell-link]'),hostLink]){const value=link.closest('[part=stacked-value]')||link.assignedSlot.closest('[part=stacked-value]');value.append(document.createTextNode(' · Ready'));}});
+    const axeResult=await page.evaluate(async()=>{const result=await axe.run(document,{runOnly:['link-in-text-block']});return {violations:result.violations,inapplicable:result.inapplicable.map(p=>p.id),incomplete:result.incomplete,links:[...t.shadowRoot.querySelectorAll('a')].map(a=>({text:a.textContent,href:a.href,style:getComputedStyle(a).textDecorationLine})),passes:result.passes.map(p=>({id:p.id,nodes:p.nodes.length}))};});
+    writeFileSync(`${dir}/${engine}-${width}-${theme}-axe.json`,JSON.stringify(axeResult,null,2));
+    assert.deepEqual(axeResult.violations,[]);
+    assert.deepEqual(axeResult.incomplete,[]);
+    if(width>560)assert.ok(axeResult.passes.some(p=>p.id==='link-in-text-block'&&p.nodes>0));
+    assert.ok(await descriptor.evaluate(el=>getComputedStyle(el).textDecorationLine.includes('underline')));
+    assert.ok(await host.evaluate(el=>getComputedStyle(el).textDecorationLine.includes('underline')));
+    await descriptor.focus();assert.equal(await descriptor.evaluate(el=>el.getRootNode().activeElement===el),true);
+    await descriptor.press('Enter');assert.deepEqual(await page.evaluate(()=>t.selectedIds),[]);
+    await host.focus();await page.evaluate(()=>{const node=hostLink;for(let i=0;i<3;i++)t.rows=[...t.rows].reverse();window.sameHostLink=node===hostLink&&hostLink.parentElement===t;});
+    assert.equal(await page.evaluate(()=>sameHostLink&&document.activeElement===hostLink),true);
+    await host.press('Enter');assert.deepEqual(await page.evaluate(()=>t.selectedIds),[]);
+    await page.screenshot({path:`${dir}/${engine}-${width}-${theme}.png`,fullPage:true});
+    await page.evaluate(()=>t.rows=rows);
     const view=()=>page.locator('#compact').getByRole('button',{name:/^View for/}).first();
     await view().focus();
     await page.evaluate(()=>{for(let i=1;i<=6;i++)t.rows=[{...rows[0],cells:{...rows[0].cells,run:'Refreshed dry run '+i}},...rows.slice(1)].reverse();});
@@ -92,7 +113,7 @@ try {
     else {assert.equal(initialMarker.rowShadow,'none');assert.notEqual(initialMarker.firstShadow,'none');}
     await page.evaluate(()=>t.setAttribute('stacked','always'));
     assert.notEqual((await marker()).rowShadow,'none');
-    await page.locator('#compact').screenshot({path:`${dir}/${engine}-${width}-current-hidden-leading.png`});
+    await page.locator('#compact').screenshot({path:`${dir}/${engine}-${width}-${theme}-current-hidden-leading.png`});
     await page.evaluate(()=>t.rows=t.rows.map(r=>({...r,current:false})));
     assert.equal((await marker()).rowShadow,'none');assert.equal((await marker()).current,null);
     await page.evaluate(()=>t.rows=t.rows.map(r=>({...r,current:true})));
@@ -105,7 +126,7 @@ try {
     await page.evaluate(()=>t.removeAttribute('stacked'));
     assert.equal((await marker()).rowShadow,'none');assert.notEqual((await marker()).firstDisplay,'none');assert.notEqual((await marker()).firstShadow,'none');
     assert.deepEqual(errors,[]);
-    results.push({engine,width,theme:'dark',status:'passed',geometry,initialMarker,accessibility:snapshot,checks:['identity','console','long-content','multiple/no-actions','action-event-current-data','repeated-refresh-focus','host-action-focus','external-handoff','row-keyboard-selection','explicit-hiding-only','current-hidden-leading-column-and-layout-toggles']});
+    results.push({engine,width,theme,status:'passed',geometry,initialMarker,accessibility:snapshot,axe:axeResult.passes,checks:['descriptor-and-slotted-link-cue','link-axe','link-focus-and-native-activation','slotted-link-identity-through-refresh','identity','console','long-content','multiple/no-actions','action-event-current-data','repeated-refresh-focus','host-action-focus','external-handoff','row-keyboard-selection','explicit-hiding-only','current-hidden-leading-column-and-layout-toggles']});
     await context.close();
   }
 } finally {await browser.close();await new Promise(r=>server.close(r));writeFileSync(`${dir}/${engine}-RESULTS.json`,JSON.stringify(results,null,2));}
