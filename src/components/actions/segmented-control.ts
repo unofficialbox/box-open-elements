@@ -13,6 +13,7 @@ export interface SegmentedControlOption {
 const segmentedControlStyles = `
   :host {
     display: inline-block;
+    max-width: 100%;
     color: inherit;
     font: inherit;
   }
@@ -25,6 +26,9 @@ const segmentedControlStyles = `
 
   [part="control"] {
     display: inline-flex;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    max-width: 100%;
     align-items: stretch;
     gap: 0.25rem;
     padding: 0.25rem;
@@ -39,6 +43,9 @@ const segmentedControlStyles = `
   }
 
   [part="segment"] {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
     appearance: none;
     font: inherit;
     font-weight: 600;
