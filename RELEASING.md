@@ -220,7 +220,7 @@ npm pack --dry-run
 
 ## Sub-packages
 
-The React, Angular, Vue, and Svelte adapters ship **the same version as the core
+The React, Angular, Vue, Svelte, SolidJS, and Preact adapters ship **the same version as the core
 package** and peer-depend on exactly `^<core version>` — five packages, one
 number. `bun run adapters:version` enforces both halves and runs inside `verify`,
 so a drifted manifest fails CI rather than reaching npm.
@@ -234,9 +234,9 @@ nothing failed because the old check only compared the adapters with each other.
 
 Release tags are `adapters-vX.Y.Z`, matching the core's `vX.Y.Z`. **There is no
 separate adapters dispatch** — the single **Cut release** run in Route A does
-all five packages: it tags `vX.Y.Z` *and* `adapters-vX.Y.Z`, publishes both
+all seven packages: it tags `vX.Y.Z` *and* `adapters-vX.Y.Z`, publishes both
 GitHub Releases, and dispatches `.github/workflows/release-adapters.yml` itself
-for the four adapter packages. That last step is the same GITHUB_TOKEN
+for the six adapter packages once bootstrapped. That last step is the same GITHUB_TOKEN
 workaround Route A uses, applied a second time.
 
 Earlier revisions of this section described dispatching a "Cut adapters
@@ -245,7 +245,7 @@ a 404; `cut-release.yml` has covered the adapters since it was written.
 
 ### First publish — done at 0.7.0
 
-All four adapters were bootstrapped onto npm at `0.7.0` from a local session, and
+All six adapters were bootstrapped onto npm at `0.7.0` from a local session, and
 a clean consumer install has been verified against the registry. Nothing here
 needs repeating; it is kept because the *reason* recurs for any new package.
 
@@ -257,7 +257,7 @@ from a local session with npm credentials:
 git checkout adapters-vX.Y.Z          # publish exactly what was tagged
 npm login                             # 2FA prompts once per package
 bun install --frozen-lockfile && bun run build:adapters
-for package_name in react angular vue svelte; do
+for package_name in react angular vue svelte solid preact; do
   ( cd "packages/$package_name" && npm publish --access public )
 done
 ```
@@ -265,10 +265,10 @@ done
 A bootstrap publish carries **no provenance attestation** — that requires the
 CI/OIDC environment. The `0.7.0` adapters therefore have none; the core does.
 
-Each adapter's Trusted Publisher **is now configured** on npmjs.com, for
+The React, Angular, Vue, and Svelte Trusted Publishers **are configured** on npmjs.com, for
 organization `unofficialbox`, this repository, and workflow
 `release-adapters.yml`. Every adapter release since has been OIDC: no token, and
-provenance on all four. Earlier revisions of this section listed that
+provenance on the four published adapters. Earlier revisions of this section listed that
 configuration as a remaining one-time step, and warned that until it was done
 `Cut release` would tag the adapters and skip their publish — neither applies
 any more.
@@ -277,7 +277,7 @@ Verify the public packages after release, including that OIDC actually ran —
 a publish that fell back to some other route would be missing its attestation:
 
 ```bash
-for package_name in react angular vue svelte; do
+for package_name in react angular vue svelte solid preact; do
   npm view "@unofficialbox/box-open-elements-$package_name" version
 done
 
@@ -287,3 +287,24 @@ npm view "@unofficialbox/box-open-elements-react@$(node -p "require('./package.j
 ```
 
 `@box-open-elements/box-server` remains private and is not published.
+
+### New SolidJS and Preact packages (not published)
+
+`@unofficialbox/box-open-elements-solid` and
+`@unofficialbox/box-open-elements-preact` are implemented workspace packages.
+Their manifest version matches the core for lockstep validation; it is not a
+claim that this version exists on npm. Public metadata for both package names
+returned 404 on 2026-10-13. Independent review and explicit release approval are
+required before merging or publishing this addition.
+
+First publication requires an authorized human npm session to create each
+package, followed by configuring the same repository and
+`release-adapters.yml` trusted publisher on each package's npm settings page.
+Do not create persistent credentials, organization grants, or additional tokens
+to work around package bootstrap. Publish only the approved new package/version,
+not all six historical packages in the bootstrap loop. Once both packages exist,
+the existing release train checks and publishes all six adapters in lockstep.
+`cut-release.yml` detects missing packages and skips dispatch with an explicit
+bootstrap notice; it does not manufacture access. Verify registry versions,
+clean installs, and provenance after a later OIDC release before marking these
+frameworks **Supported**.

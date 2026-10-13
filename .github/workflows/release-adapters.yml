@@ -1,6 +1,6 @@
 name: Publish framework adapters to npm
 
-# Publishes the React, Angular, Vue, and Svelte adapters as one lockstep
+# Publishes the React, Angular, Vue, Svelte, SolidJS, and Preact adapters as one lockstep
 # release. They ship the core package's version, so the tag is
 # `adapters-v<core version>` — the same number as the core's `vX.Y.Z`.
 #
@@ -65,7 +65,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # `verify` runs `adapters:version`, which fails unless all four manifests
+      # `verify` runs `adapters:version`, which fails unless all six manifests
       # carry the core version and peer on exactly `^<core version>`.
       - name: Verify repository
         run: bun run verify
@@ -83,7 +83,7 @@ jobs:
         run: |
           published=0
           skipped=0
-          for name in react angular vue svelte; do
+          for name in react angular vue svelte solid preact; do
             package="@unofficialbox/box-open-elements-$name"
             encoded="@unofficialbox%2Fbox-open-elements-$name"
             body="$(curl -sf "https://registry.npmjs.org/$encoded" || true)"

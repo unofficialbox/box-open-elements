@@ -96,7 +96,7 @@ jobs:
               --verify-tag
           fi
 
-      # The adapters ship the core's version, so the same cut releases all five
+      # The adapters ship the core's version, so the same cut releases all seven
       # packages: one number, one dispatch, no second thing to remember. The
       # `adapters-v` tag is what release-adapters.yml validates its ref against.
       - name: Create the adapter tag (skip if it already exists at HEAD)
@@ -148,7 +148,7 @@ jobs:
           missing=""
           published=0
           total=0
-          for name in react angular vue svelte; do
+          for name in react angular vue svelte solid preact; do
             total=$((total + 1))
             body="$(curl -sf "https://registry.npmjs.org/@unofficialbox%2Fbox-open-elements-$name" || true)"
             if [ -z "$body" ]; then
@@ -165,7 +165,7 @@ jobs:
             exit 0
           fi
           if [ "$published" -eq "$total" ]; then
-            echo "npm already has all four adapters at $VERSION; not dispatching a publish."
+            echo "npm already has all six adapters at $VERSION; not dispatching a publish."
             exit 0
           fi
 

@@ -11,7 +11,7 @@ import {
 } from "./version-rules.js";
 import type { AdapterManifest, CorePeer } from "./version-rules.js";
 
-const adapterDirectories = ["react", "angular", "vue", "svelte"] as const;
+const adapterDirectories = ["react", "angular", "vue", "svelte", "solid", "preact"] as const;
 
 const coreVersion = (await Bun.file("package.json").json() as { version: string }).version;
 
@@ -25,7 +25,7 @@ const manifests: AdapterManifest[] = await Promise.all(
   }),
 );
 
-// Every workspace package that peers on the core, not only the four published
+// Every workspace package that peers on the core, not only the six adapters released
 // in lockstep: box-server keeps its own version line but peers on the same
 // core, and the 0.7.0 release left its range at ^0.6.0 precisely because the
 // gate looked only at the adapters. Discovered rather than listed, so a package

@@ -59,3 +59,13 @@ Kept as a record of what this handoff was waiting on, rather than deleted.
 2. ~~Verify clean registry installs, then mark all four adapters Supported.~~
    Verified, and the table above records all four as Supported — which is what
    made this list contradict its own document.
+
+## SolidJS / Preact lane (2026-10-13)
+
+The workspace now includes native SolidJS 1.9 and Preact 11 implementations with
+six representative wrappers (Button, TextField, Select, Dialog, Combobox, Drawer),
+a public factory, and selection controller bindings. Implementation and local
+validation do not imply independent review or public registry availability.
+Both new npm names returned 404 during implementation. See the canonical
+[progress matrix](./framework-adapters.md) and the new package READMEs for
+contracts, SSR/hydration limitations, and release bootstrap requirements.

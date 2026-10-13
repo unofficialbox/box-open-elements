@@ -227,3 +227,14 @@ reference.
   [../foundations/theming.md](../foundations/theming.md).
 - **Framework support status** (validated adapters vs. direct usage) is tracked
   in [framework-adapters.md](./framework-adapters.md).
+
+## SolidJS and Preact (implemented, not yet published)
+
+The optional `@unofficialbox/box-open-elements-solid` and `…-preact` packages
+provide typed Button, TextField, Select, Dialog, Combobox, and Drawer wrappers, a custom wrapper
+factory, and a selection controller binding. They await independent review and
+first npm publication; use workspace builds or tarballs until then. See the
+[SolidJS README](../../packages/solid/README.md) and
+[Preact README](../../packages/preact/README.md) for native JSX, ref, property,
+event, and hydration contracts. Runnable production/SSR fixtures are included in
+`bun run verify`. SolidStart support is not verified.

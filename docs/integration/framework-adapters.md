@@ -1,7 +1,7 @@
 # Framework Adapter Progress
 
 This is the canonical progress tracker for consuming `box-open-elements` from
-React, Angular, Vue, and Svelte. The core package remains framework-agnostic;
+React, Angular, Vue, Svelte, SolidJS, and Preact. The core package remains framework-agnostic;
 framework work lives in optional packages, examples, and integration tests.
 
 > Looking for **how to use the components** in your framework? See
@@ -17,7 +17,6 @@ framework work lives in optional packages, examples, and integration tests.
 | **Validated** | **40%** | A real app or focused test proves the shared custom-element interop checklist |
 | **Beta** | **70%** | Representative controls, overlays, and one pattern/controller composition are covered |
 | **Supported** | **100%** | Published at the core's version, peer-pinned to it, and verified by a clean registry install |
-| **Supported** | **100%** | A clean install from the public registry is published and verified |
 
 Do not mark a framework supported because its runtime can render an arbitrary
 custom element. Each status requires the evidence described above.
@@ -34,6 +33,8 @@ the component catalog changes.
 | Angular 20 | **90%** | **Validated**: strict templates, properties, typed outputs, element access | Standalone directives | **4**: `Button`, `TextField`, `Select`, `Dialog` | `createExplorerSelectionSignal` | Server-safe package import; browser upgrade and focus validated | **Supported** |
 | Vue 3 | **90%** | **Validated**: property sync, typed emits, exposed refs | Typed Vue wrappers | **4**: `Button`, `TextField`, `Select`, `Dialog` | `useExplorerSelectionController` | Vue SSR host rendering; browser upgrade and focus validated | **Supported** |
 | Svelte 5 | **90%** | **Validated**: structured properties, callback events, bindable refs | Typed Svelte wrappers | **4**: `Button`, `TextField`, `Select`, `Dialog` | `createExplorerSelectionStore` | Svelte SSR host rendering; browser upgrade and focus validated | **Supported** |
+| SolidJS 1.9 | **70%** | Native properties and exact events; reactive signals | `createWebComponent` | **6**: Button, TextField, Select, Dialog, Combobox, Drawer | Owner-scoped selection accessor | Solid SSR hosts and real hydration fixture; SolidStart unverified | **Beta — implemented; review pending; unpublished** |
+| Preact 11 | **70%** | Native Preact runtime, committed props, exact events | `createWebComponent` | **6**: Button, TextField, Select, Dialog, Combobox, Drawer | Native selection hook | Preact SSR hosts and real hydration fixture | **Beta — implemented; review pending; unpublished** |
 
 ## Framework lanes
 
@@ -131,7 +132,7 @@ machine, and document client rendering plus SSR/hydration behavior.
 
 ## Decision rules
 
-- Keep React, Angular, Vue, and Svelte dependencies out of `src/`.
+- Keep React, Angular, Vue, Svelte, SolidJS, and Preact dependencies out of `src/`.
 - Start with native custom-element consumption; introduce wrappers only for a
   demonstrated typing, event, ref, or lifecycle gap.
 - Share behavior through headless controllers, not framework-specific stores.
@@ -158,3 +159,29 @@ When a framework milestone lands, update:
 
 Related: [React Adapter](./react.md), [Architecture](../architecture.md), and
 [API Guidelines](../api-guidelines.md).
+
+## SolidJS and Preact implementation lanes
+
+[`packages/solid`](../../packages/solid) supports Solid 1.9.17 and later 1.x.
+[`packages/preact`](../../packages/preact) supports native Preact 11.0.1 and later
+11.x, without `preact/compat` or a React peer. Six typed wrappers and the public
+factory cover property/event/ref gaps; a controller bridge preserves the shared
+selection state machine. Packages are implemented and locally validated but
+await independent review and first publication. **Published availability remains
+limited to React, Angular, Vue, and Svelte.**
+
+Production JSX fixtures in `examples/frameworks/solid` and `preact` compile with
+the real framework runtime. Node SSR fixtures render inert hosts; browser tests
+hydrate the actual server output and assert original host identity. Signals/state,
+structured object/array props, exact-case native events, handler replacement and
+removal, cancellation, repeated updates, reconnect, owner disposal, slots, form
+submission, disabled state, field focus, and dialog focus entry/restoration are
+covered by `frameworks:jsx:browser`. SSR does not render BOE shadow DOM or serialize
+controlled properties. Solid's server response must include its hydration script.
+SolidStart, streaming/async hydration, Safari, and human screen-reader acceptance
+are not verified by this addition.
+
+`adapters:pack-check` installs tarballs into a fresh npm consumer and validates
+public JSX declarations, server-safe exports, production builds, and SSR. CI runs
+native browser contracts with pinned Chromium and Firefox. Local current Chrome
+and pinned Firefox results are reported separately from CI and screenshot review.
