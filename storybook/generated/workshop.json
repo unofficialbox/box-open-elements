@@ -1273,7 +1273,7 @@
       "title": "Components/Collections/Table",
       "category": "Collections",
       "shortDescription": "A semantic, selectable data table.",
-      "docsDescription": "Columns and rows from JSON. `selection-mode=\"single|multiple\"` enables row selection: click, Ctrl/Cmd-click to toggle, Shift-click for a range; Arrow/Home/End move focus, Space toggles, Shift+Arrow extends, Ctrl/Cmd+A selects all, Escape clears. **Sorting and selection are controlled**: `sortable` headers emit `sort` with `{key, direction}` and the table never reorders its own rows — you sort, set `sort-key`/`sort-direction`, and `aria-sort` follows; selection round-trips through `selectedIds` and `selection-changed`. Cells accept **descriptors** beyond plain text — `{kind: \"badge\"}` and `{kind: \"link\"}` objects the table renders itself. Deliberately never an HTML string or a render callback: cell data is server-supplied and stays escaped, and a non-http(s) href renders as plain text. Rows with `detail` get an expander and a full-width detail row (plus a `detail-<id>` slot for rich content); expanding is not selecting. `loading`, `error-text` and empty states are stated in words, and `stacked=\"always\"|\"auto\"` turns rows into labelled cards on narrow containers without losing grid semantics. For production-scale collections add `virtualize`: the table then renders only the rows near the viewport, padding the rest with spacers so the scrollbar still describes the whole collection — a 10,000-row table renders around 20 DOM rows. Indices stay absolute, so selection, shift-range, and keyboard navigation address records rather than the rendered slice, and Home/End reach the ends of the *collection*. `virtualize` is a request, not a guarantee: the window arithmetic is fixed-height, so a collection where any row declares `detail`, or compact `stacked-layout=\"grid\"` cards are requested, renders in full instead — an expanded row adds height the spacers cannot account for, and a scrollbar that lies is worse than a longer render. `renderedWindow` is `null` whenever a render did not window.",
+      "docsDescription": "Columns and rows accept JSON attributes or JavaScript properties. `selection-mode=\"single|multiple\"` enables row selection: click, Ctrl/Cmd-click to toggle, Shift-click for a range; Arrow/Home/End move focus, Space toggles, Shift+Arrow extends, Ctrl/Cmd+A selects all, Escape clears. Sorting and selection are controlled: sortable headers emit `sort` with `{key, direction}`; the host reorders rows and sets `sort-key`/`sort-direction`. Selection round-trips through `selectedIds` and `selection-changed`.\n\nCells accept plain text, badge and link descriptors; text stays escaped and non-http(s) links render as text. Descriptor links are underlined by default. `hostContent: true` projects host-owned nodes into `cell-<rowId>-<columnKey>` slots; the host supplies accessible names and link cues. Rows with `detail` get an expander and a `detail-<id>` slot. `rows.actions` adds native buttons that emit `row-action` with `{rowId, action, row}` independently of selection. `rows.current: true` marks the viewed record with `aria-current` and a leading marker.\n\n`stacked=\"always\"` always stacks; `stacked=\"auto\"` stacks below a 560px container width. The default list keeps each label beside its value. `stacked-layout=\"grid\"` uses label-over-value comparison cards with adjacent group headings. `stacked-layout=\"compact\"` uses scan rows for run lists with wrapping actions: `columns.compact=\"summary\"` hides only the repeated visible label; `\"hidden\"` omits a consumer-chosen field and its slot at stacked widths. No field is hidden by default. Row headers stay visible, and desktop/list/grid show every column. Only hide secondary fields available through a detail action; avoid hiding a focused control.\n\n`loading`, `error-text` and empty states are stated in words. `virtualize` renders viewport rows with spacers; indices remain absolute and Home/End reach collection ends. Fixed-height windowing is suppressed when rows declare detail/actions, columns use hostContent, or stacked grid/compact layouts are requested. The request stays set, and `renderedWindow` is `null` whenever rendering did not window.",
       "sourceSnippet": "<box-table label=\"Files\" selection-mode=\"multiple\"></box-table>",
       "referenceRows": [
         {
@@ -1292,13 +1292,13 @@
           "kind": "attribute",
           "name": "columns",
           "type": "TableColumn[] (JSON)",
-          "description": "{ key, label, align?, sortable?, rowHeader?, group?, hostContent?, compact?: \"summary\" | \"hidden\" }. Adjacent group labels span columns; rowHeader marks body cells."
+          "description": "{ key, label, align?, sortable?, rowHeader?, group?, hostContent?, compact?: \"summary\" | \"hidden\" }. Adjacent group labels span columns; rowHeader marks body cells. hostContent projects cell-<rowId>-<columnKey> slots. In stacked compact mode, summary hides the visible label only; hidden omits the field and its slot. Nothing is hidden by default; rowHeader remains visible, and desktop/list/grid show every column."
         },
         {
           "kind": "attribute",
           "name": "rows",
           "type": "TableRow[] (JSON)",
-          "description": "{ id, cells, detail? } — cells keyed by column key or positional; detail adds an expander and a detail-<id> slot."
+          "description": "{ id, cells, detail?, current?, actions? } — cells keyed by column key or positional; detail adds an expander and a detail-<id> slot. current marks the viewed record with aria-current independently of selection. actions: { key, label, disabled?, ariaLabel? }[] adds native row buttons."
         },
         {
           "kind": "attribute",
@@ -1352,7 +1352,7 @@
           "kind": "attribute",
           "name": "virtualize",
           "type": "boolean",
-          "description": "Render only the rows near the viewport; the shell scrolls within --boe-table-height (default 26rem). Ignored when any row declares detail or compact stacking is requested — fixed-height windowing cannot describe variable-height rows."
+          "description": "Render only the rows near the viewport; the shell scrolls within --boe-table-height (default 26rem). Ignored when any row declares detail/actions, any column uses hostContent, or stacked grid/compact layout is requested — fixed-height windowing cannot describe variable-height rows."
         },
         {
           "kind": "attribute",
@@ -1365,6 +1365,18 @@
           "name": "renderedWindow",
           "type": "RowWindow | null",
           "description": "Read-only: the rendered slice and spacer heights, or null when the render was not windowed."
+        },
+        {
+          "kind": "event",
+          "name": "row-action",
+          "type": "CustomEvent<TableRowActionDetail>",
+          "description": "Detail { rowId, action, row } resolves current authored data on activation; independent of selection."
+        },
+        {
+          "kind": "slot",
+          "name": "cell-<rowId>-<columnKey>",
+          "type": "slot",
+          "description": "Host-owned content for hostContent columns. Preserves node identity and focus through refreshes; host supplies accessible names and styling."
         },
         {
           "kind": "slot",

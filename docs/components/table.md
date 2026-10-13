@@ -115,6 +115,8 @@ No field is hidden by default, and desktop/list/grid still show every column.
 Column labels for headers and summaries and the Actions label remain visually
 hidden screen-reader text. Native cell/row-header roles, meaningful status text,
 button accessible names, action events and focus restoration remain intact.
+Descriptor links are underlined by default in every layout, including compact
+summaries. Hosts supply styling and a non-color cue for their own slotted links.
 Hosts still supply accessible names for slotted controls; hiding a column also
 hides its slot without removing or cloning the host node. Avoid switching a
 focused control's column to hidden during interaction. Fixed-height virtualization
@@ -122,8 +124,11 @@ is suppressed when compact stacking is requested, just as for grid cards.
 
 After `bun run build:core`, run `node tools/preview/table-compact.mjs` for native
 Chrome and `BOE_TABLE_BROWSER=firefox node tools/preview/table-compact.mjs` for
-Playwright Firefox. This is a dedicated **manual browser regression**, not part of `bun run verify`
-or the aggregate CI/pixel suite. The run-list fixture covers 1440px, 390px dark and 320px,
+Playwright Firefox. The dedicated fixture runs in pinned Firefox on PRs through the
+**Compact Table accessibility** CI job. Native Chrome runs and acceptance in the
+user’s browser remain separate manual evidence; this is not part of `bun run verify`
+or the aggregate pixel suite. The run-list fixture covers 1440px, 390px and 320px in light and dark,
+descriptor and actual slotted links with axe `link-in-text-block`,
 long content, explicit hiding, host controls, actions and repeated updates. Set
 `BOE_TABLE_EVIDENCE_DIR` for screenshots/JSON, or `BOE_TABLE_SERVE=1` (optional
 `BOE_TABLE_PORT`) to open the fixture manually.

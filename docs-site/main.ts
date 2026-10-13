@@ -23,12 +23,13 @@ import geometryMd from "../docs/foundations/geometry.md";
 import { renderMarkdown } from "./markdown.js";
 import { highlightCode, normalizeLang } from "./highlight.js";
 import { frameworkIconSvg } from "./framework-icons.js";
+import { renderAttributeReference } from "./api-reference.js";
 import { formatHtml, indentBlock } from "./format-html.js";
 
 // Real, extracted variant states per component (storybook workshop → docs site).
 // Only the components with authored stories have these; everything else keeps
 // its single curated example. No invented placeholder variants.
-type Variant = { name: string; html: string };
+type Variant = { name: string; html: string; note?: string };
 const variantsById: Record<string, Variant[]> = Object.fromEntries(
   workshop.stories.map(story => [story.id, story.variants]),
 );
@@ -441,8 +442,8 @@ const renderComponentPage = (entry: CatalogEntry): void => {
       ${example.setupCode ? `<h2>Controller setup</h2><pre class="code-block"><code>${highlightCode(example.setupCode, "ts")}</code></pre>` : ""}
       <p class="preview-note code-frameworks-note">Snippets show a minimal use; the one-time setup (design tokens, Vue <code>isCustomElement</code>, React custom events) is in the <a href="https://github.com/unofficialbox/box-open-elements/blob/main/docs/integration/frameworks.md" target="_blank" rel="noreferrer">Frameworks guide</a>.</p>
       ${(() => {
-        const note = useExampleVariants ? exampleVariants[0]?.note : example.note;
-        return note ? `<p class="preview-note">${escapeHtml(note)}</p>` : `<p class="preview-note" hidden></p>`;
+        const note = variants[0]?.note ?? example.note;
+        return note ? `<p id="variant-note" class="preview-note">${escapeHtml(note)}</p>` : `<p id="variant-note" class="preview-note" hidden></p>`;
       })()}
     </div>
     <div data-panel="api" hidden>
@@ -515,13 +516,14 @@ const renderComponentPage = (entry: CatalogEntry): void => {
 
   // Observed attributes are a component-level fact — set once.
   const attributesTarget = stageBody.querySelector<HTMLElement>("#api-attributes")!;
-  attributesTarget.innerHTML = observed.length
-    ? `<table class="api-table"><tr><th>Attribute</th></tr>${observed.map(name => `<tr><td><code>${escapeHtml(name)}</code></td></tr>`).join("")}</table>`
-    : '<p class="inspector-empty">This element observes no attributes.</p>';
-  const contracts = workshop.stories.find(story=>story.id===entry.id)?.referenceRows.filter(row=>row.kind==="property" || row.kind==="event") ?? [];
+  const referenceRows = workshop.stories.find(story => story.id === entry.id)?.referenceRows ?? [];
+  attributesTarget.innerHTML = renderAttributeReference(observed, referenceRows);
+  const contracts = referenceRows.filter(row => row.kind === "property" || row.kind === "event");
   stageBody.querySelector("#api-contracts")!.innerHTML = contracts.length
     ? `<table class="api-table"><tr><th>Kind</th><th>Name</th><th>Type / usage</th></tr>${contracts.map(row=>`<tr><td>${escapeHtml(row.kind)}</td><td><code>${escapeHtml(row.name)}</code></td><td><code>${escapeHtml(row.type ?? "")}</code><p>${escapeHtml(row.description)}</p></td></tr>`).join("")}</table>`
     : '<p class="inspector-empty">No property or event contract has been documented for this element.</p>';
+
+  const variantSelect = stageBody.querySelector<HTMLSelectElement>("#variant-select");
 
   // Live inspectors (props / parts / roles) — re-run whenever the variant changes.
   const propList = stageBody.querySelector<HTMLElement>("#prop-list")!;
@@ -561,7 +563,7 @@ const renderComponentPage = (entry: CatalogEntry): void => {
     const guidance = resolvePreviewGuidance({
       catalogId: entry.id,
       roles: inspection.guidanceRoles,
-      exampleNote: example.note,
+      exampleNote: variants[Number(variantSelect?.value ?? 0)]?.note ?? example.note,
     });
     guidanceTarget.innerHTML = renderGuidanceCards(guidance);
     keyboardTarget.innerHTML = guidance.keyboard.length
@@ -590,7 +592,6 @@ const renderComponentPage = (entry: CatalogEntry): void => {
   mount(initialHtml, initialSetup);
 
   // Variant picker — live example setups when present; otherwise extracted HTML.
-  const variantSelect = stageBody.querySelector<HTMLSelectElement>("#variant-select");
   const codeBlock = stageBody.querySelector<HTMLElement>("#code-block")!;
 
   // Framework code tabs — re-render the snippet for the current variant + framework.
@@ -618,8 +619,8 @@ const renderComponentPage = (entry: CatalogEntry): void => {
     mount(variant.html, setup);
     currentHtml = variant.html;
     renderCode();
-    const note = useExampleVariants ? exampleVariants[index]?.note : example.note;
-    const noteEl = stageBody.querySelector<HTMLElement>(".preview-note");
+    const note = variant.note ?? example.note;
+    const noteEl = stageBody.querySelector<HTMLElement>("#variant-note");
     if (noteEl) {
       noteEl.textContent = note ?? "";
       noteEl.hidden = !note;

@@ -288,10 +288,6 @@ const tableStyles = `
 
   [part="cell-link"] {
     color: var(--boe-token-surface-surface-brand, #0061d5);
-    text-decoration: none;
-  }
-
-  [part="cell-link"]:hover {
     text-decoration: underline;
   }
 

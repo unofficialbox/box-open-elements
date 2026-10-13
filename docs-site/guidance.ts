@@ -211,7 +211,7 @@ export const renderGuidanceCards = (guidance: PreviewGuidance): string => {
   if (hasUsageCard(guidance)) {
     const lead = guidance.usage
       ? `<p class="guidance-lead">${renderInlineCode(guidance.usage.shortDescription)}</p>
-         <p>${renderInlineCode(guidance.usage.docsDescription)}</p>`
+         ${guidance.usage.docsDescription.split(/\n\s*\n/).map(paragraph => `<p>${renderInlineCode(paragraph)}</p>`).join("")}`
       : "";
     const note = guidance.usageNote
       ? `<p class="guidance-note"><strong>Note.</strong> ${renderInlineCode(guidance.usageNote)}</p>`
