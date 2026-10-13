@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createComponent, createSignal, createRoot } from "solid-js";
 import { render } from "solid-js/web";
-import { createWebComponent, ExplorerSelectionController, useExplorerSelectionController, TextField } from "../src/index.js";
+import { createWebComponent, ExplorerSelectionController, useExplorerSelectionController, TextField, Dialog, Drawer } from "../src/index.js";
 
 class Probe extends HTMLElement { payload: unknown; }
 customElements.define("solid-probe", Probe);
@@ -10,6 +10,18 @@ const Wrapped = createWebComponent<Probe, { payload: unknown; onCase?: (e: Event
   sync: (el, props) => { el.payload = props.payload; },
 });
 describe("Solid reactive ownership", () => {
+  it("binds events before initially-open Dialog and Drawer synchronize", () => {
+    const root = document.createElement("div"); document.body.appendChild(root);
+    for (const Overlay of [Dialog, Drawer]) {
+      const changed = vi.fn();
+      const dispose = render(() => createComponent(Overlay, { open: true, heading: "Initially open", onOpenChanged: changed }), root);
+      expect(changed).toHaveBeenCalledTimes(1);
+      expect(changed.mock.calls[0][0].detail).toEqual({ open: true });
+      expect(changed.mock.calls[0][0].target).toBe(root.firstElementChild);
+      dispose();
+    }
+    root.remove();
+  });
   it("rejects ownerless subscriptions instead of leaking a controller listener", () => {
     const controller = new ExplorerSelectionController();
     const subscribe = vi.spyOn(controller, "subscribe");

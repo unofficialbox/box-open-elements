@@ -42,6 +42,9 @@ remain framework-native; use Solid's `attr:*`/`bool:*` for explicit attribute mo
 SSR imports require no DOM globals. Server rendering emits inert custom-element
 hosts and light-DOM children; controlled properties and arrays are assigned on
 client hydration, so do not expect populated shadow DOM before JavaScript runs.
+Mapped listeners attach before initial property sync, including synchronous
+`open-changed` notifications from initially-open Dialog and Drawer. Browser
+fixtures cover closed-first and initially-open client/hydrated rendering.
 Include `generateHydrationScript()` in the server HTML and compile both halves
 with Solid's hydratable JSX compiler. SolidStart is not verified.
 

@@ -21,11 +21,7 @@ export function createWebComponent<E extends HTMLElement, P extends object>(
       if (typeof props.ref === "function") return props.ref(node);
       if (props.ref) props.ref.current = node;
     }, [props.ref]);
-    // Only committed renders affect listeners, including interrupted renders.
-    useLayoutEffect(() => {
-      committed.current = props;
-      if (element.current) options.sync(element.current, props);
-    });
+    // Bind before initial sync: opening overlays emits synchronously.
     useLayoutEffect(() => {
       const node = element.current;
       if (!node) return;
@@ -41,6 +37,11 @@ export function createWebComponent<E extends HTMLElement, P extends object>(
         for (const binding of subscriptions) node.removeEventListener(binding.eventName, binding.listener);
       };
     }, []);
+    // Only committed renders affect listeners, including interrupted renders.
+    useLayoutEffect(() => {
+      committed.current = props;
+      if (element.current) options.sync(element.current, props);
+    });
     const host = { ...props } as Record<string, unknown>;
     delete host.ref;
     for (const name of options.propertyNames ?? []) delete host[name];

@@ -14,7 +14,7 @@ Peers: core `^0.42.2` and preact `^11.0.1`.
 import { TextField, Select, Dialog } from "@unofficialbox/box-open-elements-preact";
 
 // Render inside your framework component. Pass normal JSX props, including
-// reactive signal reads in Solid. Structured values go through BOE setters.
+// native Preact state values. Structured values go through BOE setters.
 <TextField name="title" label="Title" value="Example"
   ref={element => element?.focus()}
   onValueChanged={event => console.log(event.detail.value)} />;
@@ -37,11 +37,19 @@ The wrappers retain BOE's optional-property semantics: omitted scalar props leav
 the element value alone; disabled/invalid default to false. Use explicit false,
 empty string, or empty array to clear controlled values. BOE Select intentionally
 reflects its assigned options array as JSON. Host attributes, children, and slots
-remain framework-native; use Solid's `attr:*`/`bool:*` for explicit attribute mode.
+remain framework-native. Use exact camelCase property names for custom-element
+setters; other host props use Preact's normal attribute handling. Boolean wrapper
+props take true/false, while `aria-*` and `data-*` false values remain string
+attributes. If you need an attribute distinct from a custom-element setter, use
+the forwarded ref's `setAttribute`/`removeAttribute` in a lifecycle hook; Preact
+has no Solid-style attribute-prefix API.
 
 SSR imports require no DOM globals. Server rendering emits inert custom-element
 hosts and light-DOM children; controlled properties and arrays are assigned on
 client hydration, so do not expect populated shadow DOM before JavaScript runs.
+Mapped listeners attach before initial property sync, including synchronous
+`open-changed` notifications from initially-open Dialog and Drawer. Browser
+fixtures cover closed-first and initially-open client/hydrated rendering.
 Hydrate with native `preact.hydrate` and use `preact-render-to-string` for server
 rendering. Deduplicate Preact in bundlers to keep renderer/hooks on one runtime.
 

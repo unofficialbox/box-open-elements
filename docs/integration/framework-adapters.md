@@ -175,7 +175,7 @@ the real framework runtime. Node SSR fixtures render inert hosts; browser tests
 hydrate the actual server output and assert original host identity. Signals/state,
 structured object/array props, exact-case native events, handler replacement and
 removal, cancellation, repeated updates, reconnect, owner disposal, slots, form
-submission, disabled state, field focus, and dialog focus entry/restoration are
+submission, disabled state, field focus, initial-open overlay event delivery, and dialog focus entry/restoration are
 covered by `frameworks:jsx:browser`. SSR does not render BOE shadow DOM or serialize
 controlled properties. Solid's server response must include its hydration script.
 SolidStart, streaming/async hydration, Safari, and human screen-reader acceptance

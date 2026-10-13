@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { h, render, createRef } from "preact";
 import { act } from "preact/test-utils";
-import { TextField, Select, createWebComponent, ExplorerSelectionController, useExplorerSelectionController } from "../src/index.js";
+import { TextField, Select, Dialog, Drawer, createWebComponent, ExplorerSelectionController, useExplorerSelectionController } from "../src/index.js";
 
 class Probe extends HTMLElement { payload: unknown; }
 customElements.define("preact-probe", Probe);
@@ -10,6 +10,18 @@ const Wrapped = createWebComponent<Probe, { payload: unknown; onCase?: (e: Event
   sync: (el, props) => { el.payload = props.payload; },
 });
 describe("native Preact lifecycle", () => {
+  it("binds events before initially-open Dialog and Drawer synchronize", () => {
+    const root = document.createElement("div"); document.body.appendChild(root);
+    for (const Overlay of [Dialog, Drawer]) {
+      const changed = vi.fn();
+      act(() => render(h(Overlay, { open: true, heading: "Initially open", onOpenChanged: changed }), root));
+      expect(changed).toHaveBeenCalledTimes(1);
+      expect(changed.mock.calls[0][0].detail).toEqual({ open: true });
+      expect(changed.mock.calls[0][0].target).toBe(root.firstElementChild);
+      act(() => render(null, root));
+    }
+    root.remove();
+  });
   it("preserves hosts, structured properties, latest exact cancelable events, and releases listeners", () => {
     const root = document.createElement("div"); document.body.appendChild(root);
     const ref = createRef<Probe>(); const first = vi.fn(); const latest = vi.fn((e: Event) => e.preventDefault());
