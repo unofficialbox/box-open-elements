@@ -1,14 +1,21 @@
 # Preact adapter
 
-`@unofficialbox/box-open-elements-preact` is implemented, awaiting independent review,
-and **not published**. Use the workspace or a locally packed tarball for now.
-The package version follows core lockstep; it does not indicate npm availability.
+`@unofficialbox/box-open-elements-preact` is published on npm and independently
+reviewed. Its `0.42.2` human bootstrap was verified by integrity/content comparison
+against merged commit `03fa63b33105dbcef9a6c1e6eed770db2e554cb4`, a normal isolated
+registry install, public JSX types, SSR/hydration, and real browser acceptance.
+That bootstrap has no OIDC provenance; publisher setup and first OIDC validation
+are distinct release steps. See [RELEASING.md](../../RELEASING.md).
+
+```sh
+npm install @unofficialbox/box-open-elements-preact preact
+```
 
 Exports: `Button`, `TextField`, `Select`, `Dialog`, `Combobox`, `Drawer`, `createWebComponent`,
 `ExplorerSelectionController`, and `useExplorerSelectionController`, with public
 prop/event/ref declarations and per-component subpath exports.
 
-Peers: core `^0.42.2` and preact `^11.0.1`.
+Peers for this package version: core `^0.42.3` and preact `^11.0.1`.
 
 ```tsx
 import { TextField, Select, Dialog } from "@unofficialbox/box-open-elements-preact";

@@ -33,8 +33,8 @@ the component catalog changes.
 | Angular 20 | **90%** | **Validated**: strict templates, properties, typed outputs, element access | Standalone directives | **4**: `Button`, `TextField`, `Select`, `Dialog` | `createExplorerSelectionSignal` | Server-safe package import; browser upgrade and focus validated | **Supported** |
 | Vue 3 | **90%** | **Validated**: property sync, typed emits, exposed refs | Typed Vue wrappers | **4**: `Button`, `TextField`, `Select`, `Dialog` | `useExplorerSelectionController` | Vue SSR host rendering; browser upgrade and focus validated | **Supported** |
 | Svelte 5 | **90%** | **Validated**: structured properties, callback events, bindable refs | Typed Svelte wrappers | **4**: `Button`, `TextField`, `Select`, `Dialog` | `createExplorerSelectionStore` | Svelte SSR host rendering; browser upgrade and focus validated | **Supported** |
-| SolidJS 1.9 | **70%** | Native properties and exact events; reactive signals | `createWebComponent` | **6**: Button, TextField, Select, Dialog, Combobox, Drawer | Owner-scoped selection accessor | Solid SSR hosts and real hydration fixture; SolidStart unverified | **Beta — implemented; review pending; unpublished** |
-| Preact 11 | **70%** | Native Preact runtime, committed props, exact events | `createWebComponent` | **6**: Button, TextField, Select, Dialog, Combobox, Drawer | Native selection hook | Preact SSR hosts and real hydration fixture | **Beta — implemented; review pending; unpublished** |
+| SolidJS 1.9 | **100%** | Native properties and exact events; reactive signals | `createWebComponent` | **6**: Button, TextField, Select, Dialog, Combobox, Drawer | Owner-scoped selection accessor | Solid SSR hosts and real hydration fixture; SolidStart unverified | **Supported — reviewed; registry bootstrap verified** |
+| Preact 11 | **100%** | Native Preact runtime, committed props, exact events | `createWebComponent` | **6**: Button, TextField, Select, Dialog, Combobox, Drawer | Native selection hook | Preact SSR hosts and real hydration fixture | **Supported — reviewed; registry bootstrap verified** |
 
 ## Framework lanes
 
@@ -64,7 +64,7 @@ Validation evidence:
 
 Shared **Supported** proof set:
 
-Both halves of the Supported proof set are met as of `0.7.0`:
+The original four frameworks met both halves of the Supported proof set at `0.7.0`:
 
 1. all four packages published in lockstep with the core;
 2. a clean consumer install from npm resolves every one of them and loads its
@@ -74,8 +74,9 @@ Both halves of the Supported proof set are met as of `0.7.0`:
    condition.
 
 The bootstrap publish was local, so the `0.7.0` adapters carry no provenance
-attestation. The trusted publishers have since been configured, and every
-adapter release after that one is OIDC-published with provenance. See
+attestation. The trusted publishers have since been configured, and subsequent releases of those original four adapters are OIDC-published
+with provenance. SolidJS and Preact joined through human `0.42.2` bootstrap,
+verified separately without OIDC provenance. See
 [RELEASING.md](../../RELEASING.md#sub-packages).
 
 Do not wrap the whole catalog mechanically. Continue by interaction family so
@@ -166,9 +167,15 @@ Related: [React Adapter](./react.md), [Architecture](../architecture.md), and
 [`packages/preact`](../../packages/preact) supports native Preact 11.0.1 and later
 11.x, without `preact/compat` or a React peer. Six typed wrappers and the public
 factory cover property/event/ref gaps; a controller bridge preserves the shared
-selection state machine. Packages are implemented and locally validated but
-await independent review and first publication. **Published availability remains
-limited to React, Angular, Vue, and Svelte.**
+selection state machine. Both packages were independently reviewed in #591 and
+human-published at `0.42.2` from merged commit
+`03fa63b33105dbcef9a6c1e6eed770db2e554cb4`. Authoritative registry metadata,
+tarball integrity and byte-for-byte content, core/framework peer ranges, normal
+isolated registry installs, public types, SSR and 48 Chrome/Chromium/Firefox
+consumer routes were verified on 2026-10-13. **All six frameworks have published
+adapters.** The two new bootstrap artifacts have no OIDC provenance. The
+maintainer reports their publishers configured; actual configuration and first
+successful OIDC validation are not established by that report alone.
 
 Production JSX fixtures in `examples/frameworks/solid` and `preact` compile with
 the real framework runtime. Node SSR fixtures render inert hosts; browser tests

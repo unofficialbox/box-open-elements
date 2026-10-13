@@ -277,31 +277,30 @@ npm view "@unofficialbox/box-open-elements-react@$(node -p "require('./package.j
 
 `@box-open-elements/box-server` remains private and is not published.
 
-### New SolidJS and Preact packages (not published)
+### SolidJS and Preact bootstrap (verified at 0.42.2)
 
 `@unofficialbox/box-open-elements-solid` and
-`@unofficialbox/box-open-elements-preact` are implemented workspace packages.
-Their manifest version matches the core for lockstep validation; it is not a
-claim that this version exists on npm. Public metadata for both package names
-returned 404 on 2026-10-13. Independent review and explicit release approval are
-required before merging or publishing this addition.
+`@unofficialbox/box-open-elements-preact` were independently reviewed in #591,
+merged at `03fa63b33105dbcef9a6c1e6eed770db2e554cb4`, and human-published at
+`0.42.2` on 2026-10-13. Both artifacts match the approved pack contents and passed
+normal public-registry installation, JSX types, SSR and browser consumers.
+Neither human bootstrap has OIDC provenance. The maintainer reports both new
+publishers configured; their actual settings and first successful OIDC use
+remain separate from that report and publication proof.
 
-First publication requires an authorized human npm session to create each
-package, followed by configuring the same repository and
-`release-adapters.yml` trusted publisher on each package's npm settings page.
-Do not create persistent credentials, organization grants, or additional tokens
-to work around package bootstrap. Publish only the approved new package/version,
-and never republish the original four during bootstrap. Once both packages exist,
-the existing release train checks and publishes all six adapters in lockstep.
-`cut-release.yml` fails its registry preflight before creating any core/adapter
-tag or GitHub Release when any package is missing or the registry cannot be
-validated. It never reports a successful release cut while skipping all adapters
-because additions need bootstrap. `release-adapters.yml` also checks bootstrap
-after its mandatory tag guard and before publishing any package. Verify registry versions,
-clean installs, and provenance after a later OIDC release before marking these
-frameworks **Supported**.
+The `0.42.3` release candidate keeps the core and six adapters in lockstep and
+is intended to validate those publishers through the existing Actions workflow.
+It requires review and bounded merge/release approval. Do not publish it locally
+or republish `0.42.2` to validate OIDC. An already-published version is skipped by
+the workflow and cannot validate a new publisher. The required registry core
+pin refresh remains a separate post-publication PR.
 
-#### Bounded bootstrap procedure (human action after approval)
+`cut-release.yml` checks registry bootstrap before creating any tags or GitHub
+Releases. `release-adapters.yml` checks it after its mandatory tag guard and
+before any npm publication. Missing packages, outages, or invalid metadata fail
+explicitly; package existence does not verify trusted-publisher settings.
+
+#### Reference: bounded first bootstrap (already completed for SolidJS/Preact)
 
 1. Resolve the explicitly approved **source commit, package names, and version**.
    Use a reviewed bootstrap commit containing these packages; an older
@@ -311,8 +310,8 @@ frameworks **Supported**.
    with `npm view @unofficialbox/box-open-elements@APPROVED_VERSION version`.
    If a candidate peers on an unpublished core, stop and coordinate an approved
    bootstrap version/plan rather than changing manifests or creating tags to
-   bypass the preflight. The current draft and its `0.42.2` manifests are not
-   release approval.
+   bypass the preflight. Historical bootstrap approval does not authorize
+   publication of a new version.
 2. In a clean checkout of that exact approved commit, run
    `bun install --frozen-lockfile`, `bun run verify`, `bun run bundles:check`, and
    `bun run adapters:pack-check`. Inspect each selected package with
@@ -336,7 +335,10 @@ frameworks **Supported**.
 4. Verify each public name/version and a fresh consumer registry install.
    Human bootstrap does not establish OIDC provenance or validate a trusted
    publisher. Do not mark the adapters Supported from manifests alone.
-5. At each new package's npm **Settings → Trusted Publisher**, select GitHub
+5. Creating a trusted publisher is a persistent package-specific access grant.
+   Obtain separate explicit approval per package; ordinary publication approval
+   does not authorize account/settings changes. At each new package's npm
+   **Settings → Trusted Publisher**, select GitHub
    Actions and configure only: organization/user `unofficialbox`, repository
    `box-open-elements`, workflow filename `release-adapters.yml` (no path), and
    blank environment because the current job declares none. Allow direct
@@ -353,10 +355,10 @@ frameworks **Supported**.
    and `dist.attestations` for **both** additions. Only then record published
    availability/provenance in the support matrix.
 
-Why a human bootstrap: both new names have no package settings/trusted publisher
-on npm yet, and this repository's publisher authenticates only through those
-package-specific OIDC relationships. Its direct-publish release workflow cannot
-establish that initial relationship. npm also documents staged publishing that
+Why human bootstrap was needed: before creation, the two new names had no
+public package settings/trusted-publisher relationship. This repository's
+direct-publish workflow authenticates through package-specific OIDC relationships
+and cannot establish that initial relationship. npm also documents staged publishing that
 can create a public placeholder for a missing package; that is still a registry
 write requiring separate approval and human authorization, and is not the
 current release workflow. No staging or publication is performed by these steps

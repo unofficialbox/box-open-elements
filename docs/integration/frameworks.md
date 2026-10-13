@@ -1,12 +1,12 @@
-# Using box-open-elements in React, Angular, Vue, and Svelte
+# Using box-open-elements in React, Angular, Vue, Svelte, SolidJS, and Preact
 
 `box-open-elements` ships standard **Web Components** (custom elements), so it
 works in any framework that can render custom elements — which is all of them.
 This guide shows the minimal setup and a working example per framework.
 
-Runnable compiler/build fixtures for all four frameworks live in
+Runnable compiler/build fixtures for all six frameworks live in
 [`examples/frameworks`](../../examples/frameworks) and run as part of
-`bun run verify`. React, Angular, Vue, and Svelte have published adapter packages
+`bun run verify`. All six frameworks have published adapter packages
 at the same version as the core, which they peer-depend on exactly.
 
 The core package is **`@unofficialbox/box-open-elements`**; every direct example
@@ -16,8 +16,10 @@ below uses it. Framework adapters remain thin optional layers and publish as:
 - `@unofficialbox/box-open-elements-angular`
 - `@unofficialbox/box-open-elements-vue`
 - `@unofficialbox/box-open-elements-svelte`
+- `@unofficialbox/box-open-elements-solid`
+- `@unofficialbox/box-open-elements-preact`
 
-All four adapters share one version and `adapters-vX.Y.Z` release train.
+All six adapters share one version and `adapters-vX.Y.Z` release train.
 
 ## Common setup (all frameworks)
 
@@ -228,12 +230,14 @@ reference.
 - **Framework support status** (validated adapters vs. direct usage) is tracked
   in [framework-adapters.md](./framework-adapters.md).
 
-## SolidJS and Preact (implemented, not yet published)
+## SolidJS and Preact
 
 The optional `@unofficialbox/box-open-elements-solid` and `…-preact` packages
 provide typed Button, TextField, Select, Dialog, Combobox, and Drawer wrappers, a custom wrapper
-factory, and a selection controller binding. They await independent review and
-first npm publication; use workspace builds or tarballs until then. See the
+factory, and a selection controller binding. Both were independently reviewed
+and published at `0.42.2`; clean public-registry consumer verification passed.
+Their human bootstrap does not carry OIDC provenance. Install the optional package
+with its native framework peer, then use its exported wrappers. See the
 [SolidJS README](../../packages/solid/README.md) and
 [Preact README](../../packages/preact/README.md) for native JSX, ref, property,
 event, and hydration contracts. Runnable production/SSR fixtures are included in

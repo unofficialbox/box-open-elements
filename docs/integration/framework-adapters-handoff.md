@@ -62,10 +62,14 @@ Kept as a record of what this handoff was waiting on, rather than deleted.
 
 ## SolidJS / Preact lane (2026-10-13)
 
-The workspace now includes native SolidJS 1.9 and Preact 11 implementations with
-six representative wrappers (Button, TextField, Select, Dialog, Combobox, Drawer),
-a public factory, and selection controller bindings. Implementation and local
-validation do not imply independent review or public registry availability.
-Both new npm names returned 404 during implementation. See the canonical
-[progress matrix](./framework-adapters.md) and the new package READMEs for
-contracts, SSR/hydration limitations, and release bootstrap requirements.
+Native SolidJS 1.9 and Preact 11 implementations in #591 were independently
+reviewed and merged at `03fa63b33105dbcef9a6c1e6eed770db2e554cb4`. Each package
+provides six typed wrappers, a public factory, and a controller binding. Human
+`0.42.2` publication was verified against that approved content and through
+normal registry types/build/SSR/browser consumers. Neither bootstrap artifact
+has OIDC provenance. First successful trusted-publisher validation remains a
+separate release outcome; configured settings reported by the maintainer are
+not evidence of a successful OIDC publication.
+
+See the [progress matrix](./framework-adapters.md), package READMEs, and
+[release procedure](../../RELEASING.md) for exact support and publication scope.

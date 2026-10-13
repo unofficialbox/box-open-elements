@@ -3,8 +3,8 @@
 Notable changes to **`@unofficialbox/box-open-elements`**, newest first, one
 section per released version.
 
-The four framework adapters ship the same version as the core and are covered by
-the same sections; see [RELEASING.md](./RELEASING.md) for why those five numbers
+The six framework adapters ship the same version as the core and are covered by
+the same sections; see [RELEASING.md](./RELEASING.md) for why those seven numbers
 move together.
 
 The four sections at the foot of the file are headed by date rather than version.
@@ -14,6 +14,12 @@ are kept as written.
 ---
 
 ## Unreleased
+
+## 0.42.3 — 2026-10-13
+
+- Ship the core and all six framework adapters together at `0.42.3`, including SolidJS and native Preact in the existing trusted-publishing release train.
+- Record independent review and verified `0.42.2` registry bootstrap availability for SolidJS and Preact. Keep their human bootstrap separate from OIDC provenance and first-publisher validation.
+- Update installation/support documentation and the lockstep manifests/core peers. Component and adapter runtime behavior is unchanged from the reviewed implementation in #591.
 
 ## 0.42.2 — 2026-10-13
 
