@@ -121,6 +121,9 @@ body {
   justify-content: center;
   min-height: 90px;
 }
+/* Inline-size containment makes Table's flex intrinsic width zero. The story
+   supplies its available width so rows and container queries can render. */
+.variant-canvas > box-table { inline-size: 100%; min-inline-size: 0; }
 .variant figcaption {
   padding: 8px 12px;
   border-top: 1px solid #e8e8e8;
