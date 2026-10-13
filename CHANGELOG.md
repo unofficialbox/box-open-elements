@@ -15,6 +15,12 @@ are kept as written.
 
 ## Unreleased
 
+## 0.42.1 — 2026-10-13
+
+- Underline Table descriptor links by default, including compact summaries, while preserving host-owned slotted link styling, identity and focus (#582, #584).
+- Restore Workshop publishing in the supported site build, validate complete artifacts before deployment, and resolve Workshop navigation from nested docs pages (#584).
+- Align Table usage and API descriptions with list/grid/compact layouts, explicit summary/hidden choices, host content, row actions/current state and virtualization. Keep selected variant notes current without replacing the Frameworks guide; guard docs types and browser interactions in CI (#584).
+
 ## 0.42.0 — 2026-10-12
 
 - Add opt-in `stacked-layout="compact"` Table scan rows for phone lists with actions. Row headers and explicitly chosen summary columns omit visible repeated labels; other columns keep concise label/value lines, and row actions wrap without a visible Actions label (#578, #579).
