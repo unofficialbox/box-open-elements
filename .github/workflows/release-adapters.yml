@@ -50,6 +50,11 @@ jobs:
             exit 1
           fi
 
+      # Keep the tag guard first. Registry bootstrap must also pass before
+      # any package can publish, including an explicitly dispatched rerun.
+      - name: Check all adapter packages exist before publication
+        run: node tools/adapters/release-preflight.mjs
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.11

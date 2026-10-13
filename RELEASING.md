@@ -221,7 +221,7 @@ npm pack --dry-run
 ## Sub-packages
 
 The React, Angular, Vue, Svelte, SolidJS, and Preact adapters ship **the same version as the core
-package** and peer-depend on exactly `^<core version>` — five packages, one
+package** and peer-depend on exactly `^<core version>` — seven packages, one
 number. `bun run adapters:version` enforces both halves and runs inside `verify`,
 so a drifted manifest fails CI rather than reaching npm.
 
@@ -243,26 +243,15 @@ Earlier revisions of this section described dispatching a "Cut adapters
 release" workflow. No such workflow exists, and trying to dispatch one returns
 a 404; `cut-release.yml` has covered the adapters since it was written.
 
-### First publish — done at 0.7.0
+### Historical first publish at 0.7.0
 
-All six adapters were bootstrapped onto npm at `0.7.0` from a local session, and
-a clean consumer install has been verified against the registry. Nothing here
-needs repeating; it is kept because the *reason* recurs for any new package.
+The original React, Angular, Vue, and Svelte adapters were bootstrapped onto npm
+at `0.7.0` from a local session, and a clean registry install was verified. This
+historical record does not include SolidJS or Preact. The new-package procedure
+below publishes only explicitly approved additions; do not repeat a historical
+four-package or six-package publication loop.
 
-Trusted publishing cannot create a package — npm needs it to exist before you can
-configure a publisher for it. So the first release of any new package has to come
-from a local session with npm credentials:
-
-```bash
-git checkout adapters-vX.Y.Z          # publish exactly what was tagged
-npm login                             # 2FA prompts once per package
-bun install --frozen-lockfile && bun run build:adapters
-for package_name in react angular vue svelte solid preact; do
-  ( cd "packages/$package_name" && npm publish --access public )
-done
-```
-
-A bootstrap publish carries **no provenance attestation** — that requires the
+A local direct bootstrap publish carries **no provenance attestation** — that requires the
 CI/OIDC environment. The `0.7.0` adapters therefore have none; the core does.
 
 The React, Angular, Vue, and Svelte Trusted Publishers **are configured** on npmjs.com, for
@@ -302,9 +291,76 @@ package, followed by configuring the same repository and
 `release-adapters.yml` trusted publisher on each package's npm settings page.
 Do not create persistent credentials, organization grants, or additional tokens
 to work around package bootstrap. Publish only the approved new package/version,
-not all six historical packages in the bootstrap loop. Once both packages exist,
+and never republish the original four during bootstrap. Once both packages exist,
 the existing release train checks and publishes all six adapters in lockstep.
-`cut-release.yml` detects missing packages and skips dispatch with an explicit
-bootstrap notice; it does not manufacture access. Verify registry versions,
+`cut-release.yml` fails its registry preflight before creating any core/adapter
+tag or GitHub Release when any package is missing or the registry cannot be
+validated. It never reports a successful release cut while skipping all adapters
+because additions need bootstrap. `release-adapters.yml` also checks bootstrap
+after its mandatory tag guard and before publishing any package. Verify registry versions,
 clean installs, and provenance after a later OIDC release before marking these
 frameworks **Supported**.
+
+#### Bounded bootstrap procedure (human action after approval)
+
+1. Resolve the explicitly approved **source commit, package names, and version**.
+   Use a reviewed bootstrap commit containing these packages; an older
+   `adapters-vX.Y.Z` tag without them cannot be used. Check the manifests match
+   that approved version and core peer range. For direct bootstrap, choose an
+   approved version whose core peer is already publicly available; verify it
+   with `npm view @unofficialbox/box-open-elements@APPROVED_VERSION version`.
+   If a candidate peers on an unpublished core, stop and coordinate an approved
+   bootstrap version/plan rather than changing manifests or creating tags to
+   bypass the preflight. The current draft and its `0.42.2` manifests are not
+   release approval.
+2. In a clean checkout of that exact approved commit, run
+   `bun install --frozen-lockfile`, `bun run verify`, `bun run bundles:check`, and
+   `bun run adapters:pack-check`. Inspect each selected package with
+   `npm pack ./packages/solid --dry-run --ignore-scripts` and the equivalent
+   Preact command. Confirm its public exports and intended contents.
+3. An existing authorized `unofficialbox` npm maintainer performs the first
+   publication from their own terminal/session, completing npm's 2FA themselves.
+   Do not send session credentials or OTPs through chat, create automation
+   tokens, change organization grants, or run this from an unapproved branch.
+   After explicit approval for **both** additions only:
+
+   ```bash
+   for package_name in solid preact; do
+     npm publish "./packages/$package_name" --access public
+   done
+   ```
+
+   If approval covers only one, execute only that package's command. If a
+   partial bootstrap fails, inspect public versions and publish only the still
+   missing approved version; never overwrite or republish the existing four.
+4. Verify each public name/version and a fresh consumer registry install.
+   Human bootstrap does not establish OIDC provenance or validate a trusted
+   publisher. Do not mark the adapters Supported from manifests alone.
+5. At each new package's npm **Settings → Trusted Publisher**, select GitHub
+   Actions and configure only: organization/user `unofficialbox`, repository
+   `box-open-elements`, workflow filename `release-adapters.yml` (no path), and
+   blank environment because the current job declares none. Allow direct
+   `npm publish`, as used by that workflow; it does not need an additional
+   dist-tag-management grant. Do not alter the four existing package publishers.
+6. Arrange publisher setup when the next explicitly approved OIDC release can
+   complete within npm's current two-day first-publish validation window. The
+   existing workflow skips versions already published by bootstrap, so merely
+   dispatching that same version will not validate either new publisher. Do not
+   invent an unapproved version to satisfy the window; defer configuration if
+   necessary. An approved later release must use the common core/adapter version
+   and matching `adapters-vX.Y.Z` tag, on GitHub-hosted runners.
+7. Confirm the successful OIDC job, registry versions, fresh consumer installs,
+   and `dist.attestations` for **both** additions. Only then record published
+   availability/provenance in the support matrix.
+
+Why a human bootstrap: both new names have no package settings/trusted publisher
+on npm yet, and this repository's publisher authenticates only through those
+package-specific OIDC relationships. Its direct-publish release workflow cannot
+establish that initial relationship. npm also documents staged publishing that
+can create a public placeholder for a missing package; that is still a registry
+write requiring separate approval and human authorization, and is not the
+current release workflow. No staging or publication is performed by these steps
+until explicitly approved.
+
+References: [npm scoped public publication](https://docs.npmjs.com/creating-and-publishing-scoped-public-packages/)
+and [trusted publisher setup and validation](https://docs.npmjs.com/trusted-publishers/).
