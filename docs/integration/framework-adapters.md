@@ -33,8 +33,8 @@ the component catalog changes.
 | Angular 20 | **90%** | **Validated**: strict templates, properties, typed outputs, element access | Standalone directives | **4**: `Button`, `TextField`, `Select`, `Dialog` | `createExplorerSelectionSignal` | Server-safe package import; browser upgrade and focus validated | **Supported** |
 | Vue 3 | **90%** | **Validated**: property sync, typed emits, exposed refs | Typed Vue wrappers | **4**: `Button`, `TextField`, `Select`, `Dialog` | `useExplorerSelectionController` | Vue SSR host rendering; browser upgrade and focus validated | **Supported** |
 | Svelte 5 | **90%** | **Validated**: structured properties, callback events, bindable refs | Typed Svelte wrappers | **4**: `Button`, `TextField`, `Select`, `Dialog` | `createExplorerSelectionStore` | Svelte SSR host rendering; browser upgrade and focus validated | **Supported** |
-| SolidJS 1.9 | **100%** | Native properties and exact events; reactive signals | `createWebComponent` | **6**: Button, TextField, Select, Dialog, Combobox, Drawer | Owner-scoped selection accessor | Solid SSR hosts and real hydration fixture; SolidStart unverified | **Supported — reviewed; registry bootstrap verified** |
-| Preact 11 | **100%** | Native Preact runtime, committed props, exact events | `createWebComponent` | **6**: Button, TextField, Select, Dialog, Combobox, Drawer | Native selection hook | Preact SSR hosts and real hydration fixture | **Supported — reviewed; registry bootstrap verified** |
+| SolidJS 1.9 | **100%** | Native properties and exact events; reactive signals | `createWebComponent` | **6**: Button, TextField, Select, Dialog, Combobox, Drawer | Owner-scoped selection accessor | Solid SSR hosts and real hydration fixture; SolidStart unverified | **Supported — published 0.42.3; OIDC verified** |
+| Preact 11 | **100%** | Native Preact runtime, committed props, exact events | `createWebComponent` | **6**: Button, TextField, Select, Dialog, Combobox, Drawer | Native selection hook | Preact SSR hosts and real hydration fixture | **Supported — published 0.42.3; OIDC verified** |
 
 ## Framework lanes
 
@@ -76,7 +76,9 @@ The original four frameworks met both halves of the Supported proof set at `0.7.
 The bootstrap publish was local, so the `0.7.0` adapters carry no provenance
 attestation. The trusted publishers have since been configured, and subsequent releases of those original four adapters are OIDC-published
 with provenance. SolidJS and Preact joined through human `0.42.2` bootstrap,
-verified separately without OIDC provenance. See
+verified separately without OIDC provenance. All six adapters are now published
+at `0.42.3` with signed provenance; this release completed the first successful
+OIDC publication of SolidJS and Preact. See
 [RELEASING.md](../../RELEASING.md#sub-packages).
 
 Do not wrap the whole catalog mechanically. Continue by interaction family so
@@ -169,13 +171,22 @@ Related: [React Adapter](./react.md), [Architecture](../architecture.md), and
 factory cover property/event/ref gaps; a controller bridge preserves the shared
 selection state machine. Both packages were independently reviewed in #591 and
 human-published at `0.42.2` from merged commit
-`03fa63b33105dbcef9a6c1e6eed770db2e554cb4`. Authoritative registry metadata,
+`03fa63b33105dbcef9a6c1e6eed770db2e554cb4`. Those bootstrap artifacts have no
+OIDC provenance.
+
+**All six frameworks have published adapters at `0.42.3`.** The
+[adapter publication run](https://github.com/unofficialbox/box-open-elements/actions/runs/38465771066)
+published all six packages with signed provenance on 2026-10-13 from
+`0fdd3ccfd282933ef183e80186375b74343e35a8`. This completed the first successful
+OIDC publication of SolidJS and Preact. Authoritative registry metadata,
 tarball integrity and byte-for-byte content, core/framework peer ranges, normal
 isolated registry installs, public types, SSR and 48 Chrome/Chromium/Firefox
-consumer routes were verified on 2026-10-13. **All six frameworks have published
-adapters.** The two new bootstrap artifacts have no OIDC provenance. The
-maintainer reports their publishers configured; actual configuration and first
-successful OIDC validation are not established by that report alone.
+consumer routes were verified for `0.42.3`. The required post-publication core
+pin refresh was completed in [PR #593](https://github.com/unofficialbox/box-open-elements/pull/593),
+merged at `424998eb587bafe2c9d90e3b0ccb2606744ad731`, with successful
+[final main CI](https://github.com/unofficialbox/box-open-elements/actions/runs/38469504127)
+and [docs deployment](https://github.com/unofficialbox/box-open-elements/actions/runs/38469504146).
+See [the completed release record](../../RELEASING.md#completed-0423-release-and-first-oidc-publication).
 
 Production JSX fixtures in `examples/frameworks/solid` and `preact` compile with
 the real framework runtime. Node SSR fixtures render inert hosts; browser tests
