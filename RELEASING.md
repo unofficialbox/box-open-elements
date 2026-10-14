@@ -284,16 +284,38 @@ npm view "@unofficialbox/box-open-elements-react@$(node -p "require('./package.j
 merged at `03fa63b33105dbcef9a6c1e6eed770db2e554cb4`, and human-published at
 `0.42.2` on 2026-10-13. Both artifacts match the approved pack contents and passed
 normal public-registry installation, JSX types, SSR and browser consumers.
-Neither human bootstrap has OIDC provenance. The maintainer reports both new
-publishers configured; their actual settings and first successful OIDC use
-remain separate from that report and publication proof.
+Neither human bootstrap has OIDC provenance.
 
-The `0.42.3` release candidate keeps the core and six adapters in lockstep and
-is intended to validate those publishers through the existing Actions workflow.
-It requires review and bounded merge/release approval. Do not publish it locally
-or republish `0.42.2` to validate OIDC. An already-published version is skipped by
-the workflow and cannot validate a new publisher. The required registry core
-pin refresh remains a separate post-publication PR.
+### Completed 0.42.3 release and first OIDC publication
+
+The core and all six adapters were published at `0.42.3` on 2026-10-13 from
+`0fdd3ccfd282933ef183e80186375b74343e35a8`, after independent review and bounded
+merge/release approval. The [core publication run](https://github.com/unofficialbox/box-open-elements/actions/runs/38465775465)
+and [adapter publication run](https://github.com/unofficialbox/box-open-elements/actions/runs/38465771066)
+succeeded through the existing OIDC workflows with signed provenance. The
+adapter job published all six packages and skipped none. This was the first
+successful trusted-publisher use for SolidJS and Preact; it validates their
+publishers independently of the earlier setup report and human bootstrap.
+
+The [core release](https://github.com/unofficialbox/box-open-elements/releases/tag/v0.42.3)
+and [adapter release](https://github.com/unofficialbox/box-open-elements/releases/tag/adapters-v0.42.3)
+are complete. All seven registry versions and `latest` tags were verified at
+`0.42.3`, with adapter core peers at `^0.42.3`. Tarball integrity, approved pack
+contents, source/workflow provenance, and fresh registry consumers were checked.
+The SolidJS and Preact consumers passed 48 routes across current Chrome and
+pinned Chromium/Firefox, including SSR hydration.
+
+The required post-publication registry core pin refresh was completed in
+[PR #593](https://github.com/unofficialbox/box-open-elements/pull/593), merged at
+`424998eb587bafe2c9d90e3b0ccb2606744ad731`. Its only change was the `bun.lock`
+core resolution and integrity from `0.42.2` to `0.42.3`.
+[Final main CI](https://github.com/unofficialbox/box-open-elements/actions/runs/38469504127)
+and the [docs deployment](https://github.com/unofficialbox/box-open-elements/actions/runs/38469504146)
+succeeded at that commit. Historical `0.42.2` tags were unchanged.
+
+For future new packages, an already-published bootstrap version is skipped by
+the workflow and cannot validate a new publisher. Use the next explicitly
+approved release for that validation; do not republish the bootstrap version.
 
 `cut-release.yml` checks registry bootstrap before creating any tags or GitHub
 Releases. `release-adapters.yml` checks it after its mandatory tag guard and
