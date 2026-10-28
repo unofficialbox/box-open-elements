@@ -10,15 +10,14 @@ publish.
 
 ## Folder tree release compatibility
 
-The new React tree wrappers eagerly import core entrypoints absent from the
-published core 0.42.3. Keep development versions unchanged until the release PR.
-Before publication, bump the core and all adapters together and set every core
-peer to `^<that new release version>`. Publish the new core before the adapters.
-Do not publish these adapters against the old 0.42.3 core.
+The React tree wrappers first ship in core/adapters `0.43.0` and eagerly import
+entrypoints absent from core `0.42.3`. All adapter versions and core peers move
+together; the `0.43.0` adapters require core `^0.43.0`. Publish the new core before
+the adapters. Do not publish these adapters against the old `0.42.3` core.
 
 `bun run release:check` enforces this boundary without requiring a development
 version bump. It runs from the core and React `prepublishOnly` hooks and
-intentionally fails while this branch still carries the published 0.42.3 version.
+rejects the old `0.42.3` version or a React peer that differs from the release.
 The existing `adapters:version` gate also verifies all lockstep versions/peers.
 
 ## One-time setup
@@ -249,7 +248,11 @@ Release tags are `adapters-vX.Y.Z`, matching the core's `vX.Y.Z`. **There is no
 separate adapters dispatch** — the single **Cut release** run in Route A does
 all seven packages: it tags `vX.Y.Z` *and* `adapters-vX.Y.Z`, publishes both
 GitHub Releases, and dispatches `.github/workflows/release-adapters.yml` itself
-for the six adapter packages once bootstrapped. That last step is the same GITHUB_TOKEN
+for the six adapter packages once bootstrapped. The adapter publication waits for the exact core version to appear in the public registry (up to 40 checks
+with 15-second intervals and a 15-second timeout per request), and
+fails closed if it is still missing or registry metadata cannot be verified.
+After a failed core publication, finish the core and rerun adapter publication.
+That last dispatch is the same GITHUB_TOKEN
 workaround Route A uses, applied a second time.
 
 Earlier revisions of this section described dispatching a "Cut adapters

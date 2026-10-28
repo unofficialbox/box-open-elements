@@ -1,6 +1,6 @@
 {
   "name": "@unofficialbox/box-open-elements-preact",
-  "version": "0.42.3",
+  "version": "0.43.0",
   "description": "Optional native preact adapters for box-open-elements Web Components.",
   "license": "MIT",
   "homepage": "https://unofficialbox.github.io/box-open-elements",
@@ -42,7 +42,7 @@
     "node": ">=20.9.0"
   },
   "peerDependencies": {
-    "@unofficialbox/box-open-elements": "^0.42.3",
+    "@unofficialbox/box-open-elements": "^0.43.0",
     "preact": "^11.0.1"
   },
   "scripts": {

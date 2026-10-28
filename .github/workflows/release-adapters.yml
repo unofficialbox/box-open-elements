@@ -75,6 +75,11 @@ jobs:
       - name: Verify repository
         run: bun run verify
 
+      # Cut release dispatches both publication workflows. Never publish an
+      # adapter whose new core peer is still missing from the public registry.
+      - name: Wait for the matching core publication
+        run: node tools/adapters/release-preflight.mjs --wait-for-core
+
       # One loop rather than four steps, and each package checks npm for its own
       # version first. Four unconditional publishes fail-fast: if a previous run
       # got two packages out before dying, the re-run hits the first
