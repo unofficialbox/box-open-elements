@@ -69,6 +69,9 @@ type CreateWebComponentOptions<E extends HTMLElement, P extends AdapterHostProps
   tagName: string;
   /** Sync React props onto the custom element instance (prefer properties over attributes). */
   sync: (element: E, props: P) => void;
+  /** Mount-time attributes establish native form defaults before connection.
+   * Retained unchanged afterward; sync owns subsequent property writes. */
+  initialAttributes?: (props: P) => Record<string, string | undefined>;
   /** Props assigned by `sync`; omit them from React's host-attribute spread. */
   propertyNames?: ReadonlyArray<keyof P & string>;
   /** Map React callback props to composed custom-element event names. */
@@ -89,6 +92,8 @@ export const createWebComponent = <E extends HTMLElement, P extends AdapterHostP
   const Component = forwardRef<E, P>(function WebComponent(props, forwardedRef) {
     const localRef = useRef<E | null>(null);
     const latestPropsRef = useRef<P>(props as P);
+    const initialAttributes = useRef<Record<string, string | undefined> | null>(null);
+    if (initialAttributes.current === null) initialAttributes.current = options.initialAttributes?.(props as P) ?? {};
 
     const setRefs: RefCallback<E> = useCallback(
       node => {
@@ -142,6 +147,7 @@ export const createWebComponent = <E extends HTMLElement, P extends AdapterHostP
 
     return createElement(options.tagName, {
       ...hostProps,
+      ...initialAttributes.current,
       ref: setRefs,
       className,
       style,

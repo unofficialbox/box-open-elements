@@ -80,6 +80,8 @@ export interface BoxElementPropertyKeys {
   "box-flow-builder": "catalog" | "endLabel" | "headingLevel" | "model" | "nodes" | "renderInspector" | "selected" | "startLabel";
   "box-flow-card": "catalog" | "figure" | "invalid" | "model" | "node" | "selected";
   "box-flow-spine": "catalog" | "endLabel" | "figures" | "headingLevel" | "invalid" | "model" | "nodes" | "selected" | "startLabel";
+  "box-folder-tree": "activeId" | "expandedIds" | "filter" | "label" | "loading" | "nodes" | "partial" | "selectedIds" | "selectionDisabled" | "unavailable";
+  "box-folder-tree-diff": "activeId" | "changesOnly" | "expandedIds" | "filter" | "label" | "leftLabel" | "loading" | "mode" | "nodes" | "partial" | "rightLabel" | "selectedIds" | "selectionDisabled" | "unavailable";
   "box-form-wizard": "draftLabel" | "heading" | "initialValues" | "stepStatuses" | "steps" | "stepsLayout" | "submitLabel" | "validators";
   "box-formatted-date": "dateStyle" | "locale" | "timeStyle" | "timeZone" | "value";
   "box-formatted-duration": "formatStyle" | "locale" | "maxUnits" | "value";
@@ -112,7 +114,7 @@ export interface BoxElementPropertyKeys {
   "box-notification-bell": "expanded" | "label" | "max" | "notifications" | "unreadCount";
   "box-notification-inbox": "filter" | "heading" | "notifications" | "typeLabels";
   "box-nudge": "actionLabel" | "heading" | "message" | "open";
-  "box-number-input": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "placeholder" | "required" | "step" | "value";
+  "box-number-input": "allowEmpty" | "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "placeholder" | "required" | "step" | "value" | "valueAsNumber";
   "box-pagination": "page" | "pageSize" | "totalItems";
   "box-path": "current" | "hasError" | "label" | "stages" | "variant";
   "box-permission-matrix": "label" | "options" | "subjects" | "value";
@@ -400,6 +402,22 @@ export interface BoxElementEventMap {
   };
   "box-flow-card": {};
   "box-flow-spine": {};
+  "box-folder-tree": {
+    "active-changed": CustomEvent<import("./patterns/folder-tree/types.js").FolderTreeNodeDetail>;
+    "expanded-changed": CustomEvent<import("./patterns/folder-tree/types.js").FolderTreeExpandedDetail>;
+    "item-activated": CustomEvent<import("./patterns/folder-tree/types.js").FolderTreeNodeDetail>;
+    "load-children": CustomEvent<import("./patterns/folder-tree/types.js").FolderTreeNodeDetail>;
+    "selected-changed": CustomEvent<import("./patterns/folder-tree/types.js").FolderTreeSelectedDetail>;
+  };
+  "box-folder-tree-diff": {
+    "active-changed": CustomEvent<import("./patterns/folder-tree/types.js").FolderTreeNodeDetail>;
+    "changes-only-changed": CustomEvent<{ changesOnly: boolean; }>;
+    "difference-navigated": CustomEvent<{ id: string; node: import("./patterns/folder-tree/types.js").FolderTreeDiffNode; }>;
+    "expanded-changed": CustomEvent<import("./patterns/folder-tree/types.js").FolderTreeExpandedDetail>;
+    "item-activated": CustomEvent<{ id: string; node: import("./patterns/folder-tree/types.js").FolderTreeDiffNode; }>;
+    "load-children": CustomEvent<import("./patterns/folder-tree/types.js").FolderTreeNodeDetail>;
+    "selected-changed": CustomEvent<{ id: string; node: import("./patterns/folder-tree/types.js").FolderTreeDiffNode; selectedIds: string[]; }>;
+  };
   "box-form-wizard": {
     "draft-saved": CustomEvent<{ values: Record<string, unknown>; }>;
     "step-changed": CustomEvent<{ stepId: string; stepIndex: number; }>;
@@ -481,7 +499,7 @@ export interface BoxElementEventMap {
     "dismiss": CustomEvent<unknown>;
   };
   "box-number-input": {
-    "value-changed": CustomEvent<{ value: number; }>;
+    "value-changed": CustomEvent<{ value: number | null; }>;
   };
   "box-pagination": {
     "page-changed": CustomEvent<{ page: number; }>;
@@ -2550,6 +2568,76 @@ declare module "./patterns/flow-builder/flow-builder.js" {
     removeEventListener<K extends keyof HTMLElementEventMap>(
       type: K,
       listener: (this: FlowBuilder, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
+declare module "./patterns/folder-tree/folder-tree.js" {
+  interface FolderTree {
+    addEventListener<K extends keyof BoxElementEventMap["box-folder-tree"] & string>(
+      type: K,
+      listener: (this: FolderTree, event: BoxElementEventMap["box-folder-tree"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: FolderTree, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-folder-tree"] & string>(
+      type: K,
+      listener: (this: FolderTree, event: BoxElementEventMap["box-folder-tree"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: FolderTree, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
+declare module "./patterns/folder-tree/folder-tree-diff.js" {
+  interface FolderTreeDiff {
+    addEventListener<K extends keyof BoxElementEventMap["box-folder-tree-diff"] & string>(
+      type: K,
+      listener: (this: FolderTreeDiff, event: BoxElementEventMap["box-folder-tree-diff"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: FolderTreeDiff, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-folder-tree-diff"] & string>(
+      type: K,
+      listener: (this: FolderTreeDiff, event: BoxElementEventMap["box-folder-tree-diff"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: FolderTreeDiff, event: HTMLElementEventMap[K]) => void,
       options?: boolean | EventListenerOptions,
     ): void;
     removeEventListener(

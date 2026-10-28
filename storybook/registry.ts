@@ -107,6 +107,8 @@ import metricCard from "./stories/metric-card.stories.js";
 import multiSelect from "./stories/multi-select.stories.js";
 import navSidebar from "./stories/nav-sidebar.stories.js";
 import nudge from "./stories/nudge.stories.js";
+import folderTree from "./stories/folder-tree.stories.js";
+import folderTreeDiff from "./stories/folder-tree-diff.stories.js";
 import numberInput from "./stories/number-input.stories.js";
 import pagination from "./stories/pagination.stories.js";
 import permissionMatrix from "./stories/permission-matrix.stories.js";
@@ -277,6 +279,8 @@ export const storyModules: StoryModule[] = [
   navSidebar,
   nudge,
   numberInput,
+  folderTree,
+  folderTreeDiff,
   pagination,
   permissionMatrix,
   persona,

@@ -376,3 +376,6 @@ the task / governance / file-request areas.
 - Keep this document synchronized with the actual `src/patterns` tree and package exports.
 
 - `box-trace-waterfall`: nested execution spans, comparison bars and percentile markers on a shared time axis; keyboard tree grid, details and table fallback. See [Trace waterfall](./trace-waterfall.md).
+
+- [Folder tree and structural diff](./folder-tree.md): provider-neutral read-only
+  hierarchies, host-driven lazy loading, and aligned comparisons.

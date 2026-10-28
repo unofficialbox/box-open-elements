@@ -84,6 +84,7 @@ export class NumberInput extends FormAssociatedElement {
     return [
       ...FormAssociatedElement.fieldObservedAttributes,
       "disabled",
+      "allow-empty",
       "label",
       "max",
       "min",
@@ -93,7 +94,7 @@ export class NumberInput extends FormAssociatedElement {
     ];
   }
 
-  private valueInternal = 0;
+  private valueInternal: number | null = 0;
   private inputEl!: HTMLInputElement;
   focus(options?: FocusOptions): void { if (!this.disabled) this.inputEl?.focus(options); }
   private labelEl!: HTMLElement;
@@ -161,15 +162,24 @@ export class NumberInput extends FormAssociatedElement {
     this.setAttribute("step", String(value));
   }
 
-  get value(): number {
+  /** Opt in to a nullable value. Empty optional fields are omitted from forms. */
+  get allowEmpty(): boolean { return this.hasAttribute("allow-empty"); }
+  set allowEmpty(value: boolean) { this.toggleAttribute("allow-empty", value); }
+
+  get valueAsNumber(): number { return this.valueInternal ?? NaN; }
+  set valueAsNumber(value: number) { this.value = value; }
+
+  private valueText(value = this.valueInternal): string { return value == null ? "" : String(value); }
+
+  get value(): number | null {
     return this.valueInternal;
   }
 
-  set value(nextValue: number) {
-    const normalizedValue = this.clamp(Number.isFinite(nextValue) ? nextValue : 0);
+  set value(nextValue: number | null) {
+    const normalizedValue = this.normalizeValue(nextValue);
     this.valueReconciliation.hostWrite(normalizedValue === this.valueInternal);
     this.valueInternal = normalizedValue;
-    this.setAttribute("value", String(normalizedValue));
+    this.setAttribute("value", this.valueText(normalizedValue));
     if (this.isRendered) {
       this.update();
     }
@@ -177,30 +187,36 @@ export class NumberInput extends FormAssociatedElement {
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (name === "value") {
-      this.valueReconciliation.hostWrite(this.clamp(parseNumber(newValue, this.valueInternal)) === this.valueInternal);
-      this.valueInternal = this.clamp(parseNumber(newValue, this.valueInternal));
-    } else if ((name === "min" || name === "max") && oldValue !== newValue) {
-      const clamped = this.clamp(this.valueInternal);
-      this.valueReconciliation.hostWrite(clamped === this.valueInternal);
-      this.valueInternal = clamped;
-      if (this.getAttribute("value") !== String(clamped)) {
-        this.setAttribute("value", String(clamped));
+      const value = this.allowEmpty ? this.normalizeValue(newValue) : this.clamp(parseNumber(newValue, this.valueInternal ?? 0));
+      this.valueReconciliation.hostWrite(value === this.valueInternal);
+      this.valueInternal = value;
+    } else if (name === "allow-empty" || ((name === "min" || name === "max") && oldValue !== newValue)) {
+      const raw = name === "allow-empty" ? this.getAttribute("value") : this.valueInternal;
+      const value = this.normalizeValue(raw);
+      this.valueReconciliation.hostWrite(value === this.valueInternal);
+      this.valueInternal = value;
+      if (this.getAttribute("value") !== this.valueText()) {
+        this.valueReconciliation.reflect(() => this.setAttribute("value", this.valueText()));
       }
     }
     super.attributeChangedCallback(name, oldValue, newValue);
     if (name === "value" && oldValue === newValue && this.isRendered) this.update();
   }
 
+  private normalizeValue(value: unknown): number | null {
+    if (this.allowEmpty && (value == null || value === "" || (typeof value === "number" && !Number.isFinite(value)))) return null;
+    const number = typeof value === "number" ? value : Number(value);
+    return this.clamp(Number.isFinite(number) ? number : 0);
+  }
+
   protected getFormValue(): FormValue {
-    return String(this.valueInternal);
+    return this.valueInternal == null ? null : String(this.valueInternal);
   }
 
   protected restoreFormValue(value: FormValue): void {
     this.valueReconciliation.hostWrite(false);
-    const parsed =
-      typeof value === "string" ? parseNumber(value, this.valueInternal) : this.valueInternal;
-    this.valueInternal = this.clamp(parsed);
-    this.setAttribute("value", String(this.valueInternal));
+    this.valueInternal = this.allowEmpty ? this.normalizeValue(value) : this.clamp(typeof value === "string" ? parseNumber(value, this.valueInternal ?? 0) : this.valueInternal ?? 0);
+    this.setAttribute("value", this.valueText());
     if (this.isRendered) {
       this.update();
     }
@@ -217,17 +233,17 @@ export class NumberInput extends FormAssociatedElement {
     return normalizedValue;
   }
 
-  private syncValue(nextValue: number): void {
-    const normalizedValue = this.clamp(nextValue);
+  private syncValue(nextValue: number | null): void {
+    const normalizedValue = nextValue == null ? null : this.clamp(nextValue);
     if (normalizedValue !== nextValue) {
-      this.inputEl.value = String(normalizedValue);
-      const boundary = nextValue > normalizedValue ? "most" : "least";
+      this.inputEl.value = this.valueText(normalizedValue);
+      const boundary = (nextValue ?? 0) > (normalizedValue ?? 0) ? "most" : "least";
       this.clampStatusEl.textContent = `Changed to ${normalizedValue}, the ${boundary} allowed`;
     } else {
       this.clampStatusEl.textContent = "";
     }
     this.valueInternal = normalizedValue;
-    this.valueReconciliation.reflect(() => this.setAttribute("value", String(normalizedValue)));
+    this.valueReconciliation.reflect(() => this.setAttribute("value", this.valueText(normalizedValue)));
     this.syncFormAssociation();
     this.valueReconciliation.emit(() =>
       this.dispatchEvent(
@@ -265,8 +281,9 @@ export class NumberInput extends FormAssociatedElement {
   protected setupListeners(): void {
     this.inputEl.addEventListener("input", event => {
       this.valueReconciliation.trackNativeInput(event);
-      const nextValue = Number((event.currentTarget as HTMLInputElement).value);
-      if (!Number.isFinite(nextValue)) {
+      const raw = (event.currentTarget as HTMLInputElement).value;
+      const nextValue = this.allowEmpty && raw === "" ? null : Number(raw);
+      if (nextValue !== null && !Number.isFinite(nextValue)) {
         return;
       }
 
@@ -295,8 +312,8 @@ export class NumberInput extends FormAssociatedElement {
       this.inputEl.max = String(this.max);
     }
 
-    if (this.valueReconciliation.shouldSync(this.shadowRoot?.activeElement === this.inputEl) && this.inputEl.value !== String(this.valueInternal)) {
-      this.inputEl.value = String(this.valueInternal);
+    if (this.valueReconciliation.shouldSync(this.shadowRoot?.activeElement === this.inputEl) && this.inputEl.value !== this.valueText()) {
+      this.inputEl.value = this.valueText();
     }
 
     if (this.disabled) {
@@ -306,6 +323,10 @@ export class NumberInput extends FormAssociatedElement {
     }
 
     this.applyFieldSupport(this.labelEl, this.inputEl, this.descriptionEl);
+    if (this.allowEmpty && this.valueInternal == null) {
+      this.inputEl.required = false;
+      this.inputEl.setAttribute("aria-required", "false");
+    }
     this.valueReconciliation.complete();
     this.applyInvalidState(this.inputEl, this.errorEl);
   }

@@ -24,3 +24,5 @@ export { Alert, type AlertProps, type AlertRef } from "./alert.js";
 export { Toast, type ToastProps, type ToastRef } from "./toast.js";
 export { Drawer, type DrawerProps, type DrawerRef } from "./drawer.js";
 export { CodeBlock, type CodeBlockProps, type CodeBlockRef } from "./code-block.js";
+export { FolderTree, type FolderTreeProps, type FolderTreeRef, type FolderTreeNode } from "./folder-tree.js";
+export { FolderTreeDiff, type FolderTreeDiffProps, type FolderTreeDiffRef, type FolderTreeDiffNode } from "./folder-tree-diff.js";

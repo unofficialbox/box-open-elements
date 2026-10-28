@@ -7,7 +7,8 @@ export type { NumberInputRef };
 export type NumberInputProps = WebComponentProps & {
   children?: ReactNode;
   label?: string;
-  value?: number;
+  value?: number | null;
+  allowEmpty?: boolean;
   min?: number | null;
   max?: number | null;
   step?: number;
@@ -19,16 +20,23 @@ export type NumberInputProps = WebComponentProps & {
   description?: string;
   invalid?: boolean;
   errorMessage?: string;
-  onValueChanged?: CustomEventHandler<NumberInputRef, { value: number }>;
+  onValueChanged?: CustomEventHandler<NumberInputRef, { value: number | null }>;
 };
 
 /** Omitted props preserve imperative state; supplied props are synchronized. */
 export const NumberInput = createWebComponent<NumberInputRef, NumberInputProps>({
   tagName: NumberInputRef.tagName,
   displayName: "NumberInput",
-  propertyNames: ["label","value","min","max","step","placeholder","disabled","name","required","hideLabel","description","invalid","errorMessage"],
+  propertyNames: ["allowEmpty","label","value","min","max","step","placeholder","disabled","name","required","hideLabel","description","invalid","errorMessage"],
+  initialAttributes: props => ({
+    "allow-empty": props.allowEmpty ? "" : undefined,
+    ...(props.min != null ? { min: String(props.min) } : {}),
+    ...(props.max != null ? { max: String(props.max) } : {}),
+    ...(props.value !== undefined ? { value: props.value == null || (props.allowEmpty && !Number.isFinite(props.value)) ? "" : String(props.value) } : {}),
+  }),
   events: [{ propName: "onValueChanged", eventName: "value-changed" }],
   sync: (element, props) => {
+    if (props.allowEmpty !== undefined) element.allowEmpty = props.allowEmpty;
     if (props.label !== undefined) element.label = props.label;
     if (props.value !== undefined) element.value = props.value;
     if (props.min !== undefined) element.min = props.min;

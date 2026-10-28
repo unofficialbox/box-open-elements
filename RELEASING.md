@@ -8,6 +8,19 @@ package. Two routes are supported: an automated GitHub Actions release
 (recommended — it attaches an npm provenance attestation) and a manual local
 publish.
 
+## Folder tree release compatibility
+
+The new React tree wrappers eagerly import core entrypoints absent from the
+published core 0.42.3. Keep development versions unchanged until the release PR.
+Before publication, bump the core and all adapters together and set every core
+peer to `^<that new release version>`. Publish the new core before the adapters.
+Do not publish these adapters against the old 0.42.3 core.
+
+`bun run release:check` enforces this boundary without requiring a development
+version bump. It runs from the core and React `prepublishOnly` hooks and
+intentionally fails while this branch still carries the published 0.42.3 version.
+The existing `adapters:version` gate also verifies all lockstep versions/peers.
+
 ## One-time setup
 
 - **npm org membership.** You must be a member of the `unofficialbox` npm org

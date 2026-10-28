@@ -326,3 +326,12 @@ fieldset. To retain independent disabling after the enclosing group enables,
 write `control.setAttribute("disabled", "")` explicitly while the group is disabled,
 or set the property before the group takes ownership. This also applies to nested
 `box-fieldset` consumers. Same-value explicit attribute writes are tracked.
+
+### Optional number values
+
+`box-number-input` keeps its numeric zero/default behavior unless `allow-empty`
+(`allowEmpty`) is enabled. In that mode `value` accepts/returns `null`;
+`valueAsNumber` returns `NaN` when empty and accepts `NaN` to clear. Empty fields
+show `placeholder`, emit `{ value: null }` when cleared, omit the form value, and
+skip native required/min/max checks. Nonempty values retain existing clamping.
+Explicit host `invalid`/`error-message` validation is still honored.
