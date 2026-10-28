@@ -15,6 +15,14 @@ are kept as written.
 
 ## Unreleased
 
+## 0.43.0 — 2026-10-28
+
+- Add a provider-neutral, read-only Folder Tree with host-controlled selection, expansion and lazy loading; keyboard navigation, ancestor-preserving filters, load-state feedback and React bindings (#596, #598).
+- Add structural Folder Tree Diff with host-provided changes, unified and aligned side-by-side views, status filters and change navigation. Matching, fetching and mutations remain host responsibilities (#597, #598).
+- Add opt-in empty Number Input values with nullable events, placeholders, validation and form reset behavior, including React SSR/hydration (#594, #598). Existing numeric runtime defaults remain unchanged. `NumberInput.value` and value-change event types now include `null`; TypeScript consumers may need to narrow the value or use `valueAsNumber`.
+- Ship core and all six framework adapters together at `0.43.0`. Require core `^0.43.0` so React tree imports cannot resolve against an older core without the new entrypoints.
+- Validation limitation: manual screen-reader acceptance for the tree and diff remains unfinished. Automated accessibility and Chromium interaction checks passed; the optional direct local Firefox tree/diff run could not launch its browser. These are not manual screen-reader or direct Firefox passes.
+
 ## 0.42.3 — 2026-10-13
 
 - Ship the core and all six framework adapters together at `0.42.3`, including SolidJS and native Preact in the existing trusted-publishing release train.
