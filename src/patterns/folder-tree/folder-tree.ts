@@ -108,7 +108,9 @@ export class FolderTree extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
   protected expandedForView(included?: Set<string>): Set<string> {
-    return included ? new Set([...this.expandedInternal, ...included].filter(id => !this.filterCollapsed.has(id))) : this.expandedInternal;
+    if (!included) return this.expandedInternal;
+    const ancestors = [...included].filter(id => this.index.children.get(id)?.some(child => included.has(child.id)));
+    return new Set([...this.expandedInternal, ...ancestors].filter(id => !this.filterCollapsed.has(id)));
   }
   protected nodeLabel(node: FolderTreeNode): string {
     return [node.name, node.type.replace("_", " "), node.status, node.description, node.metadata, this.stateText(node)].filter(Boolean).join(", ");
@@ -127,7 +129,7 @@ export class FolderTree extends BaseElement {
     container.replaceChildren();
     const name = document.createElement("span"); name.setAttribute("part", "name"); name.textContent = node.name;
     container.append(name);
-    for (const [part, text] of [["status", node.status], ["description", node.description], ["metadata", node.metadata ?? (node.childCount == null ? "" : `${node.childCount} children`)], ["state", this.stateText(node)]] as const) {
+    for (const [part, text] of [["status", node.status], ["description", node.description], ["metadata", node.metadata ?? (node.childCount == null ? "" : `${node.childCount} ${node.childCount === 1 ? "child" : "children"}`)], ["state", this.stateText(node)]] as const) {
       if (!text) continue;
       const el = document.createElement("div"); el.setAttribute("part", part); el.textContent = text; container.append(el);
     }
@@ -269,7 +271,10 @@ export class FolderTree extends BaseElement {
     this.treeEl.tabIndex = this.rows.length ? -1 : 0;
     const summary = [this.loading ? "Loading folders and files" : "", this.unavailable ? "Structure unavailable" : "", this.partial ? "Partial structure — more items may exist" : "", !this.rows.length && !this.loading && !this.unavailable ? this.filter ? "No matching items" : "No items" : ""].filter(Boolean).join(". ");
     this.emptyEl.textContent = summary; this.emptyEl.hidden = !summary;
-    const announcement = `${this.rows.length} visible items. ${summary} ${this.rows.map(row => this.stateText(row.node)).filter(Boolean).join(". ")}`;
+    const states = new Set(this.rows
+      .filter(row => row.node.loadState === "loading" || row.node.loadState === "error" || row.node.loadState === "unavailable" || row.node.loadState === "partial")
+      .map(row => this.stateText(row.node)).filter(Boolean));
+    const announcement = `${this.rows.length} visible items. ${summary} ${[...states].join(". ")}`;
     if (announcement !== this.announcement) { this.liveEl.textContent = announcement; this.announcement = announcement; }
     if (focusedId && focusedId !== this.activeInternal) {
       if (this.rows.length) this.focus(); else this.treeEl.focus();

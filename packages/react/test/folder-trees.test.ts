@@ -4,11 +4,28 @@ import { createRoot, type Root } from "react-dom/client";
 import { FolderTree, type FolderTreeRef } from "../src/folder-tree.js";
 import { FolderTreeDiff, type FolderTreeDiffRef } from "../src/folder-tree-diff.js";
 import { NumberInput, type NumberInputRef } from "../src/number-input.js";
+import { getMirroredFormValue } from "../../../src/core/index.js";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT:boolean }).IS_REACT_ACT_ENVIRONMENT=true;
 let root:Root;
 afterEach(()=>{if(root)act(()=>root.unmount());document.body.replaceChildren();});
 const setup=()=>{const host=document.createElement("div");document.body.append(host);root=createRoot(host);};
 describe("React hierarchy wrappers",()=>{
+  it.each([null, 6])("preserves the initial optional reset value %s across prop updates", initialValue => {
+    setup();
+    const ref = createRef<NumberInputRef>();
+    const changed = vi.fn();
+    act(() => root.render(createElement(NumberInput, { ref, value: initialValue, allowEmpty: true, onValueChanged: changed })));
+    act(() => root.render(createElement(NumberInput, { ref, value: 8, allowEmpty: true, onValueChanged: changed })));
+    // Omitting props must preserve the current imperative state and reset seed.
+    act(() => root.render(createElement(NumberInput, { ref, onValueChanged: changed })));
+    expect(ref.current!.allowEmpty).toBe(true);
+    expect(ref.current!.value).toBe(8);
+    act(() => ref.current!.formResetCallback());
+    expect(ref.current!.value).toBe(initialValue);
+    expect(ref.current!.shadowRoot!.querySelector("input")!.value).toBe(initialValue == null ? "" : String(initialValue));
+    expect(getMirroredFormValue(ref.current!.internals)).toBe(initialValue == null ? null : String(initialValue));
+    expect(changed).not.toHaveBeenCalled();
+  });
   it("synchronizes nullable optional values in the correct order and forwards clear events",()=>{
     setup();const ref=createRef<NumberInputRef>();const changed=vi.fn();
     act(()=>root.render(createElement(NumberInput,{ref,allowEmpty:true,value:null,placeholder:"No minimum",onValueChanged:changed})));

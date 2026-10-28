@@ -116,6 +116,23 @@ describe("NumberInput", () => {
 });
 
 describe("optional empty numbers", () => {
+  it("reflects normalized values when empty mode changes without emitting intent", () => {
+    const element = new NumberInput();
+    document.body.append(element);
+    const changed = vi.fn();
+    element.addEventListener("value-changed", changed);
+    element.allowEmpty = true;
+    expect(element.value).toBeNull();
+    expect(element.getAttribute("value")).toBe("");
+    element.min = 5;
+    element.allowEmpty = false;
+    expect(element.value).toBe(5);
+    expect(element.getAttribute("value")).toBe("5");
+    element.allowEmpty = true;
+    expect(element.value).toBe(5);
+    expect(element.getAttribute("value")).toBe("5");
+    expect(changed).not.toHaveBeenCalled();
+  });
   it("supports nullable values, NaN and placeholder without clamping an empty optional field", () => {
     const element = new NumberInput(); element.allowEmpty = true; element.min = 5; element.max = 10; element.placeholder = "No floor"; element.required = true;
     document.body.append(element);

@@ -195,7 +195,7 @@ export class NumberInput extends FormAssociatedElement {
       const value = this.normalizeValue(raw);
       this.valueReconciliation.hostWrite(value === this.valueInternal);
       this.valueInternal = value;
-      if ((name === "min" || name === "max") && this.getAttribute("value") !== this.valueText()) {
+      if (this.getAttribute("value") !== this.valueText()) {
         this.valueReconciliation.reflect(() => this.setAttribute("value", this.valueText()));
       }
     }

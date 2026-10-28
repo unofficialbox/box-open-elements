@@ -71,6 +71,8 @@ type CreateWebComponentOptions<E extends HTMLElement, P extends AdapterHostProps
   sync: (element: E, props: P) => void;
   /** Props assigned by `sync`; omit them from React's host-attribute spread. */
   propertyNames?: ReadonlyArray<keyof P & string>;
+  /** Seed attributes before connection; later changes are handled by `sync`. */
+  initialAttributes?: (props: P) => Record<string, string>;
   /** Map React callback props to composed custom-element event names. */
   events?: ReadonlyArray<{
     propName: keyof P & string;
@@ -89,6 +91,7 @@ export const createWebComponent = <E extends HTMLElement, P extends AdapterHostP
   const Component = forwardRef<E, P>(function WebComponent(props, forwardedRef) {
     const localRef = useRef<E | null>(null);
     const latestPropsRef = useRef<P>(props as P);
+    const initialAttributesRef = useRef(options.initialAttributes?.(props as P));
 
     const setRefs: RefCallback<E> = useCallback(
       node => {
@@ -141,6 +144,7 @@ export const createWebComponent = <E extends HTMLElement, P extends AdapterHostP
     }
 
     return createElement(options.tagName, {
+      ...initialAttributesRef.current,
       ...hostProps,
       ref: setRefs,
       className,

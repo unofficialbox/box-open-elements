@@ -13,6 +13,51 @@ const rows = (tree: FolderTree) => Array.from(tree.shadowRoot!.querySelectorAll<
 const key = (tree: FolderTree, value: string) => tree.shadowRoot!.activeElement!.dispatchEvent(new KeyboardEvent("keydown", { key:value, bubbles:true, cancelable:true }));
 afterEach(() => document.body.replaceChildren());
 describe("folder hierarchy", () => {
+  it("opens only ancestors of included children while filtering", () => {
+    const tree = mount();
+    const load = vi.fn();
+    tree.addEventListener("load-children", load);
+    tree.filter = "Lazy";
+    expect(rows(tree)[0]!.getAttribute("aria-expanded")).toBe("false");
+    tree.focus();
+    key(tree, "ArrowRight");
+    expect(load).toHaveBeenCalledOnce();
+    expect(rows(tree)[0]!.getAttribute("aria-expanded")).toBe("true");
+    tree.filter = "Branch";
+    expect(rows(tree).map(row => row.dataset.nodeId)).toEqual(["root", "branch"]);
+    expect(rows(tree)[0]!.getAttribute("aria-expanded")).toBe("true");
+    expect(rows(tree)[1]!.getAttribute("aria-expanded")).toBe("false");
+    tree.filter = "Needle";
+    expect(rows(tree)).toHaveLength(3);
+    tree.focus();
+    key(tree, "ArrowLeft");
+    expect(rows(tree)).toHaveLength(1);
+    tree.filter = "";
+    expect(rows(tree)[0]!.getAttribute("aria-expanded")).toBe("false");
+  });
+  it("uses singular child metadata and preserves explicit metadata and missing counts", () => {
+    const tree = mount([
+      { id:"one", name:"One", type:"folder", childCount:1 },
+      { id:"two", name:"Two", type:"folder", childCount:2 },
+      { id:"zero", name:"Zero", type:"folder", childCount:0 },
+      { id:"unknown", name:"Unknown", type:"folder", childCount:null },
+      { id:"custom", name:"Custom", type:"folder", childCount:1, metadata:"Host summary" },
+    ]);
+    expect(rows(tree).map(row => row.querySelector('[part="metadata"]')?.textContent ?? "")).toEqual(["1 child", "2 children", "0 children", "", "Host summary"]);
+  });
+  it("announces only distinct notable load states from visible rows", () => {
+    const tree = mount([
+      { id:"root", name:"Root", type:"folder", loadState:"partial" },
+      { id:"hidden", parentId:"root", name:"Hidden", type:"folder", loadState:"error" },
+      ...(["loading", "error", "unavailable", "partial", "unloaded", "loaded"] as const).flatMap(loadState => [0, 1].map(i => ({ id:`${loadState}-${i}`, name:loadState, type:"folder" as const, hasChildren:true, loadState }))),
+    ]);
+    tree.partial = true;
+    const live = () => tree.shadowRoot!.querySelector('[part="live"]')!.textContent!;
+    expect(live()).toBe("13 visible items. Partial structure — more items may exist Partially loaded — more children may exist. Loading children. Could not load children. Collapse and expand to retry.. Children unavailable");
+    expect(rows(tree).find(row => row.dataset.nodeId === "unloaded-0")!.getAttribute("aria-label")).toContain("Children not loaded");
+    tree.filter = "Root";
+    expect(live()).toBe("1 visible items. Partial structure — more items may exist Partially loaded — more children may exist");
+  });
   it("renders only open descendants with position/depth semantics and one tab stop", () => {
     const tree = mount(); expect(rows(tree).map(el => el.dataset.nodeId)).toEqual(["root", "other", "lazy"]);
     tree.expandedIds = ["root", "branch"];

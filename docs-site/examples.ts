@@ -270,6 +270,8 @@ tree.addEventListener("load-children", event => loadChildren(event.detail.id));`
   "folder-tree-diff": {
     html: `<box-folder-tree-diff label="Structural comparison" left-label="Source" right-label="Destination" partial></box-folder-tree-diff>`,
     setup: root => set(root, "box-folder-tree-diff", { nodes: folderDiffDemo }),
+    setupCode: `const diff = document.querySelector("box-folder-tree-diff");
+diff.nodes = ${JSON.stringify(folderDiffDemo, null, 2)};`,
     note: "Counts describe loaded items, not the complete corpus. Before/after rows stay aligned. No file contents, fetching or mutations. Test at 1440px/390px in light/dark.",
     variants: [{name:"Unified",html:`<box-folder-tree-diff left-label="Source" right-label="Destination" partial></box-folder-tree-diff>`,setup:root=>set(root,"box-folder-tree-diff",{nodes:folderDiffDemo})}, { name:"Side by side", html:`<box-folder-tree-diff mode="side-by-side" left-label="Source" right-label="Destination" partial></box-folder-tree-diff>`, setup:root => set(root, "box-folder-tree-diff", { nodes:folderDiffDemo }) }],
   },
