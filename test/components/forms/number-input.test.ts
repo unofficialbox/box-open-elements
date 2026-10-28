@@ -114,3 +114,28 @@ describe("NumberInput", () => {
     expect(getMirroredFormValue(element.internals)).toBe("5");
   });
 });
+
+describe("optional empty numbers", () => {
+  it("supports nullable values, NaN and placeholder without clamping an empty optional field", () => {
+    const element = new NumberInput(); element.allowEmpty = true; element.min = 5; element.max = 10; element.placeholder = "No floor"; element.required = true;
+    document.body.append(element);
+    const input = element.shadowRoot!.querySelector("input")!;
+    expect(element.value).toBeNull(); expect(Number.isNaN(element.valueAsNumber)).toBe(true); expect(input.value).toBe(""); expect(input.placeholder).toBe("No floor"); expect(input.required).toBe(false);
+    element.value = 7; expect(input.value).toBe("7"); expect(input.required).toBe(true);
+    element.valueAsNumber = NaN; expect(element.value).toBeNull(); expect(input.value).toBe("");
+    element.allowEmpty = false; expect(element.value).toBe(5);
+  });
+  it("emits null when cleared, supports controlled echoes, restores/reset empty and keeps default zero", () => {
+    const element = new NumberInput(); element.allowEmpty = true; document.body.append(element); const fn = vi.fn(); element.addEventListener("value-changed", fn);
+    const input = element.shadowRoot!.querySelector("input")!; input.focus(); input.value = "3"; input.dispatchEvent(new Event("input", { bubbles:true }));
+    input.value = ""; input.dispatchEvent(new Event("input", { bubbles:true })); expect(fn.mock.calls.at(-1)![0].detail.value).toBeNull(); expect(element.value).toBeNull();
+    element.value = 8; element.formResetCallback(); expect(element.value).toBeNull(); element.formStateRestoreCallback("4"); expect(element.value).toBe(4); element.formStateRestoreCallback(null); expect(element.value).toBeNull();
+    const normal = new NumberInput(); document.body.append(normal); expect(normal.value).toBe(0);
+  });
+});
+
+it("retains default attribute fallbacks and reflects clamped bounds",()=>{
+  const element=new NumberInput();document.body.append(element);element.value=7;
+  element.setAttribute("value", "");expect(element.value).toBe(7);element.removeAttribute("value");expect(element.value).toBe(7);
+  element.setAttribute("value","bad");expect(element.value).toBe(7);element.max=5;expect(element.value).toBe(5);expect(element.getAttribute("value")).toBe("5");
+});

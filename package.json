@@ -187,6 +187,10 @@
     "./patterns/*": {
       "types": "./dist/patterns/*.d.ts",
       "import": "./dist/patterns/*.js"
+    },
+    "./patterns/folder-tree": {
+      "types": "./dist/patterns/folder-tree/index.d.ts",
+      "import": "./dist/patterns/folder-tree/index.js"
     }
   },
   "files": [

@@ -78,6 +78,8 @@ import type { FilterBar } from "./patterns/search/filter-bar.js";
 import type { FlowBuilder } from "./patterns/flow-builder/flow-builder.js";
 import type { FlowCard } from "./patterns/flow-builder/primitives.js";
 import type { FlowSpine } from "./patterns/flow-builder/primitives.js";
+import type { FolderTree } from "./patterns/folder-tree/folder-tree.js";
+import type { FolderTreeDiff } from "./patterns/folder-tree/folder-tree-diff.js";
 import type { FormWizard } from "./patterns/form-wizard/form-wizard.js";
 import type { FormattedDate } from "./components/output/formatted-date.js";
 import type { FormattedDuration } from "./components/output/formatted-duration.js";
@@ -251,6 +253,8 @@ declare global {
     "box-flow-builder": FlowBuilder;
     "box-flow-card": FlowCard;
     "box-flow-spine": FlowSpine;
+    "box-folder-tree": FolderTree;
+    "box-folder-tree-diff": FolderTreeDiff;
     "box-form-wizard": FormWizard;
     "box-formatted-date": FormattedDate;
     "box-formatted-duration": FormattedDuration;
@@ -426,6 +430,8 @@ export type BoxElementTagName =
   | "box-flow-builder"
   | "box-flow-card"
   | "box-flow-spine"
+  | "box-folder-tree"
+  | "box-folder-tree-diff"
   | "box-form-wizard"
   | "box-formatted-date"
   | "box-formatted-duration"

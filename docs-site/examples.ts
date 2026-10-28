@@ -240,7 +240,39 @@ const boxPlotDemoRows = [
   { id: "signin", label: "Signing in", min: 32, p5: 39, q1: 52, median: 66, q3: 80, p95: 103, max: 148, count: 96 },
 ];
 
+const setupFolderTreeDemo = (root: HTMLElement) => set(root, "box-folder-tree", { nodes: [
+      { id:"root", name:"Projects", type:"folder", childCount:3, loadState:"partial" },
+      { id:"plan", parentId:"root", name:"Launch plan.pdf", type:"file", metadata:"Updated today" },
+      { id:"archive", parentId:"root", name:"Archive", type:"folder", hasChildren:true, loadState:"unloaded" },
+      { id:"link", parentId:"root", name:"Project reference", type:"web_link" },
+    ], expandedIds:["root"] });
+
+const folderDiffDemo = [
+  { id:"root", name:"Projects", path:"/Projects", type:"folder", status:"equal", hasChangedDescendants:true, loadState:"partial" },
+  { id:"added", parentId:"root", name:"New folder", path:"/Projects/New folder", type:"folder", status:"added", hasChildren:true, loadState:"partial" },
+  { id:"new", parentId:"added", name:"Brief.pdf", path:"/Projects/New folder/Brief.pdf", type:"file", status:"added" },
+  { id:"removed", parentId:"root", name:"Archive", path:"/Projects/Archive", type:"folder", status:"removed" },
+  { id:"old", parentId:"removed", name:"Old plan.pdf", path:"/Projects/Archive/Old plan.pdf", type:"file", status:"removed" },
+  { id:"changed", parentId:"root", name:"Plan.pdf", path:"/Projects/Plan.pdf", type:"file", status:"changed", metadata:"Size changed" },
+  { id:"same", parentId:"root", name:"Readme.txt", path:"/Projects/Readme.txt", type:"file", status:"equal" },
+  { id:"moved", parentId:"root", name:"Reference", path:"/Projects/Reference", type:"web_link", status:"moved", before:{path:"/Archive/Reference"}, after:{path:"/Projects/Reference"} },
+];
+
 export const examples: Record<string, ComponentExample> = {
+  "folder-tree": {
+    html: `<box-folder-tree label="Project structure" partial></box-folder-tree>`,
+    setupCode: `tree.nodes = [{ id: "root", name: "Projects", type: "folder", hasChildren: true, loadState: "unloaded" }];
+tree.addEventListener("load-children", event => loadChildren(event.detail.id));`,
+    setup: setupFolderTreeDemo,
+    variants:[{name:"Mixed hierarchy",html:`<box-folder-tree label="Project structure" partial></box-folder-tree>`,setup:setupFolderTreeDemo}, {name:"Loading",html:`<box-folder-tree label="Projects" loading></box-folder-tree>`}, {name:"Unavailable",html:`<box-folder-tree label="Projects" unavailable></box-folder-tree>`}],
+    note: "Host-provided hierarchy and coverage. Arrow keys navigate; Space selects; Enter activates. Loading requests are host events. Test this example at 1440px and 390px in light and dark themes.",
+  },
+  "folder-tree-diff": {
+    html: `<box-folder-tree-diff label="Structural comparison" left-label="Source" right-label="Destination" partial></box-folder-tree-diff>`,
+    setup: root => set(root, "box-folder-tree-diff", { nodes: folderDiffDemo }),
+    note: "Counts describe loaded items, not the complete corpus. Before/after rows stay aligned. No file contents, fetching or mutations. Test at 1440px/390px in light/dark.",
+    variants: [{name:"Unified",html:`<box-folder-tree-diff left-label="Source" right-label="Destination" partial></box-folder-tree-diff>`,setup:root=>set(root,"box-folder-tree-diff",{nodes:folderDiffDemo})}, { name:"Side by side", html:`<box-folder-tree-diff mode="side-by-side" left-label="Source" right-label="Destination" partial></box-folder-tree-diff>`, setup:root => set(root, "box-folder-tree-diff", { nodes:folderDiffDemo }) }],
+  },
   "code-editor": { html: editorHtml, setup: setupCodeEditor, note: "Optional CodeMirror entrypoint. Escape then Tab leaves the editor. Host supplies diagnostics and completions." },
   "process-modeler": { html: modelerHtml, setup: setupProcessModeler, note: "Host-owned boxes and lines. Add, move, connect, remove and undo; save layout separately from your workflow." },
   "flow-builder": { html: flowBuilderDemoHtml, codeHtml: "<box-flow-builder></box-flow-builder>", setup: setupFlowBuilderDemo, setupCode: flowBuilderSetupCode, note: "Add and select steps, edit a name, show validation, remove and undo. The host owns its workflow document and Save action." },
@@ -574,7 +606,7 @@ export const examples: Record<string, ComponentExample> = {
       value: ["morgan", "alex"],
     }),
   },
-  "number-input": { html: `<box-number-input label="Page size" value="25" min="1" max="100"></box-number-input>` },
+  "number-input": { html: `<box-number-input label="Page size" value="25" min="1" max="100"></box-number-input>`, variants:[{name:"Default",html:`<box-number-input label="Page size" value="25" min="1" max="100"></box-number-input>`},{name:"Optional empty", html:`<box-number-input label="Needs at least" allow-empty placeholder="No minimum" min="1"></box-number-input>`}] },
   "radio-group": {
     html: `<box-radio-group label="Access level"></box-radio-group>`,
     setup: root => set(root, "box-radio-group", {

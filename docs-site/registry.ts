@@ -40,6 +40,7 @@ export const catalog: CatalogEntry[] = [
   ...c("Visuals", ["illustration"]),
 
   // Patterns
+  ...p("Content Explorer", ["folder-tree", "folder-tree-diff"]),
   { id: "content-explorer", tier: "patterns", category: "Content Explorer", tag: "box-content-explorer" },
   ...p("Content Explorer", ["explorer-breadcrumbs", "explorer-toolbar", "explorer-list", "explorer-table", "explorer-items", "explorer-action-menu"], "box-"),
   { id: "content-picker", tier: "patterns", category: "Content Picker", tag: "box-content-picker" },

@@ -7190,6 +7190,12 @@
       "referenceRows": [
         {
           "kind": "attribute",
+          "name": "allow-empty",
+          "type": "boolean",
+          "description": "Opt in to nullable empty values and placeholder display."
+        },
+        {
+          "kind": "attribute",
           "name": "label",
           "type": "string",
           "description": "Accessible field label."
@@ -7221,12 +7227,238 @@
       ],
       "variants": [
         {
+          "name": "Optional empty",
+          "html": "<box-number-input label=\"Needs at least\" allow-empty placeholder=\"No minimum\" min=\"1\"></box-number-input>"
+        },
+        {
           "name": "Default",
           "html": "<box-number-input label=\"Page size\" value=\"25\" min=\"1\" max=\"100\"></box-number-input>"
         },
         {
           "name": "Disabled",
           "html": "<box-number-input label=\"Page size\" value=\"25\" min=\"1\" max=\"100\" disabled></box-number-input>"
+        }
+      ]
+    },
+    {
+      "id": "folder-tree",
+      "tag": "box-folder-tree",
+      "title": "Patterns/Content Explorer/Folder Tree",
+      "category": "Content Explorer",
+      "shortDescription": "A read-only hierarchical file and folder view.",
+      "docsDescription": "Provider-neutral IDs, host-driven lazy loading, controlled state and accessible keyboard navigation. See docs/patterns/folder-tree.md.",
+      "sourceSnippet": "<box-folder-tree label=\"Projects\"></box-folder-tree>",
+      "referenceRows": [
+        {
+          "kind": "property",
+          "name": "nodes",
+          "type": "FolderTreeNode[]",
+          "description": "Host snapshot of unique IDs and parent links."
+        },
+        {
+          "kind": "property",
+          "name": "expandedIds",
+          "description": "Authoritative host state; see the folder tree guide."
+        },
+        {
+          "kind": "property",
+          "name": "selectedIds",
+          "description": "Authoritative host state; see the folder tree guide."
+        },
+        {
+          "kind": "property",
+          "name": "activeId",
+          "description": "Authoritative host state; see the folder tree guide."
+        },
+        {
+          "kind": "property",
+          "name": "filter",
+          "description": "Authoritative host state; see the folder tree guide."
+        },
+        {
+          "kind": "property",
+          "name": "loading",
+          "description": "Authoritative host state; see the folder tree guide."
+        },
+        {
+          "kind": "property",
+          "name": "partial",
+          "description": "Authoritative host state; see the folder tree guide."
+        },
+        {
+          "kind": "property",
+          "name": "unavailable",
+          "description": "Authoritative host state; see the folder tree guide."
+        },
+        {
+          "kind": "property",
+          "name": "selectionDisabled",
+          "description": "Authoritative host state; see the folder tree guide."
+        },
+        {
+          "kind": "event",
+          "name": "expanded-changed",
+          "description": "Composed host intent with stable id and node."
+        },
+        {
+          "kind": "event",
+          "name": "selected-changed",
+          "description": "Composed host intent with stable id and node."
+        },
+        {
+          "kind": "event",
+          "name": "active-changed",
+          "description": "Composed host intent with stable id and node."
+        },
+        {
+          "kind": "event",
+          "name": "load-children",
+          "description": "Composed host intent with stable id and node."
+        },
+        {
+          "kind": "event",
+          "name": "item-activated",
+          "description": "Composed host intent with stable id and node."
+        },
+        {
+          "kind": "slot",
+          "name": "status-${id}",
+          "description": "Optional host row content."
+        },
+        {
+          "kind": "slot",
+          "name": "metadata-${id}",
+          "description": "Optional host row content."
+        },
+        {
+          "kind": "slot",
+          "name": "actions-${id}",
+          "description": "Optional host row content."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Mixed hierarchy",
+          "html": "<box-folder-tree label=\"Projects\"></box-folder-tree>"
+        },
+        {
+          "name": "loading",
+          "html": "<box-folder-tree label=\"Projects\" loading></box-folder-tree>"
+        },
+        {
+          "name": "unavailable",
+          "html": "<box-folder-tree label=\"Projects\" unavailable></box-folder-tree>"
+        },
+        {
+          "name": "partial",
+          "html": "<box-folder-tree label=\"Projects\" partial></box-folder-tree>"
+        }
+      ]
+    },
+    {
+      "id": "folder-tree-diff",
+      "tag": "box-folder-tree-diff",
+      "title": "Patterns/Content Explorer/Folder Tree Diff",
+      "category": "Content Explorer",
+      "shortDescription": "Compare host-provided file and folder structures.",
+      "docsDescription": "Unified or aligned before/after rows, difference navigation and explicit partial coverage, without file contents. See docs/patterns/folder-tree.md.",
+      "sourceSnippet": "<box-folder-tree-diff left-label=\"Source\" right-label=\"Destination\"></box-folder-tree-diff>",
+      "referenceRows": [
+        {
+          "kind": "property",
+          "name": "nodes",
+          "type": "FolderTreeDiffNode[]",
+          "description": "Precomputed structural comparison; host owns matching and move detection."
+        },
+        {
+          "kind": "property",
+          "name": "mode",
+          "description": "Host-controlled comparison state; see folder tree guide."
+        },
+        {
+          "kind": "property",
+          "name": "leftLabel",
+          "description": "Host-controlled comparison state; see folder tree guide."
+        },
+        {
+          "kind": "property",
+          "name": "rightLabel",
+          "description": "Host-controlled comparison state; see folder tree guide."
+        },
+        {
+          "kind": "property",
+          "name": "changesOnly",
+          "description": "Host-controlled comparison state; see folder tree guide."
+        },
+        {
+          "kind": "property",
+          "name": "expandedIds",
+          "description": "Host-controlled comparison state; see folder tree guide."
+        },
+        {
+          "kind": "property",
+          "name": "selectedIds",
+          "description": "Host-controlled comparison state; see folder tree guide."
+        },
+        {
+          "kind": "property",
+          "name": "activeId",
+          "description": "Host-controlled comparison state; see folder tree guide."
+        },
+        {
+          "kind": "property",
+          "name": "filter",
+          "description": "Host-controlled comparison state; see folder tree guide."
+        },
+        {
+          "kind": "property",
+          "name": "partial",
+          "description": "Host-controlled comparison state; see folder tree guide."
+        },
+        {
+          "kind": "event",
+          "name": "expanded-changed",
+          "description": "Composed host intent with comparison state."
+        },
+        {
+          "kind": "event",
+          "name": "selected-changed",
+          "description": "Composed host intent with comparison state."
+        },
+        {
+          "kind": "event",
+          "name": "active-changed",
+          "description": "Composed host intent with comparison state."
+        },
+        {
+          "kind": "event",
+          "name": "load-children",
+          "description": "Composed host intent with comparison state."
+        },
+        {
+          "kind": "event",
+          "name": "item-activated",
+          "description": "Composed host intent with comparison state."
+        },
+        {
+          "kind": "event",
+          "name": "difference-navigated",
+          "description": "Composed host intent with comparison state."
+        },
+        {
+          "kind": "event",
+          "name": "changes-only-changed",
+          "description": "Composed host intent with comparison state."
+        }
+      ],
+      "variants": [
+        {
+          "name": "unified",
+          "html": "<box-folder-tree-diff mode=\"unified\" partial></box-folder-tree-diff>"
+        },
+        {
+          "name": "side-by-side",
+          "html": "<box-folder-tree-diff mode=\"side-by-side\" partial></box-folder-tree-diff>"
         }
       ]
     },
