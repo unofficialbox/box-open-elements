@@ -46,7 +46,10 @@ export function visibleRows(index: TreeIndex, expanded: Set<string>, included?: 
   while (work.length) {
     const entry = work.pop()!;
     const children = index.children.get(entry.node.id) ?? [];
-    const branch = children.length > 0 || Boolean(entry.node.hasChildren) || (entry.node.childCount ?? 0) > 0;
+    const hasChildren = children.length > 0 || Boolean(entry.node.hasChildren) || (entry.node.childCount ?? 0) > 0;
+    const mayLoadChildren = entry.node.loadState !== "loaded" &&
+      (children.length === 0 || Boolean(entry.node.loadState));
+    const branch = hasChildren && (!included || children.some(node => included.has(node.id)) || mayLoadChildren);
     const open = branch && expanded.has(entry.node.id);
     rows.push({ ...entry, branch, expanded: open });
     if (open) push(children, entry.level + 1);

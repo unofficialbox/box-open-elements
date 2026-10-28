@@ -139,3 +139,8 @@ it("retains default attribute fallbacks and reflects clamped bounds",()=>{
   element.setAttribute("value", "");expect(element.value).toBe(7);element.removeAttribute("value");expect(element.value).toBe(7);
   element.setAttribute("value","bad");expect(element.value).toBe(7);element.max=5;expect(element.value).toBe(5);expect(element.getAttribute("value")).toBe("5");
 });
+
+it("reflects normalized values when optional mode is disabled and reenabled",()=>{
+  const element=new NumberInput();element.allowEmpty=true;document.body.append(element);element.value=null;element.allowEmpty=false;
+  expect(element.value).toBe(0);expect(element.getAttribute("value")).toBe("0");element.allowEmpty=true;expect(element.value).toBe(0);
+});

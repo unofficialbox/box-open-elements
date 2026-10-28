@@ -108,10 +108,15 @@ export class FolderTree extends BaseElement {
     super.attributeChangedCallback(name, oldValue, newValue);
   }
   protected expandedForView(included?: Set<string>): Set<string> {
-    return included ? new Set([...this.expandedInternal, ...included].filter(id => !this.filterCollapsed.has(id))) : this.expandedInternal;
+    if (!included) return this.expandedInternal;
+    const ancestors = [...included].filter(id => (this.index.children.get(id) ?? []).some(child => included.has(child.id)));
+    return new Set([...this.expandedInternal, ...ancestors].filter(id => !this.filterCollapsed.has(id)));
   }
   protected nodeLabel(node: FolderTreeNode): string {
-    return [node.name, node.type.replace("_", " "), node.status, node.description, node.metadata, this.stateText(node)].filter(Boolean).join(", ");
+    return [node.name, node.type.replace("_", " "), node.status, node.description, this.metadataText(node), this.stateText(node)].filter(Boolean).join(", ");
+  }
+  protected metadataText(node: FolderTreeNode): string {
+    return node.metadata ?? (node.childCount == null ? "" : `${node.childCount} ${node.childCount === 1 ? "child" : "children"}`);
   }
   protected stateText(node: FolderTreeNode): string {
     switch (node.loadState) {
@@ -127,7 +132,7 @@ export class FolderTree extends BaseElement {
     container.replaceChildren();
     const name = document.createElement("span"); name.setAttribute("part", "name"); name.textContent = node.name;
     container.append(name);
-    for (const [part, text] of [["status", node.status], ["description", node.description], ["metadata", node.metadata ?? (node.childCount == null ? "" : `${node.childCount} children`)], ["state", this.stateText(node)]] as const) {
+    for (const [part, text] of [["status", node.status], ["description", node.description], ["metadata", this.metadataText(node)], ["state", this.stateText(node)]] as const) {
       if (!text) continue;
       const el = document.createElement("div"); el.setAttribute("part", part); el.textContent = text; container.append(el);
     }
@@ -260,7 +265,12 @@ export class FolderTree extends BaseElement {
       el.style.paddingInlineStart = `${Math.min(row.level - 1, 8) * .65 + .5}rem`;
       el.querySelector('[part="disclosure"]')!.textContent = row.branch ? row.expanded ? "▾" : "▸" : "";
       const icons = boxIconography as Record<string, string>;
-      el.querySelector('[part="icon"]')!.innerHTML = icons[row.node.type === "folder" ? "folder" : row.node.type === "web_link" ? "link" : "file-blank"] ?? "";
+      const icon = el.querySelector<HTMLElement>('[part="icon"]')!;
+      const iconKey = row.node.type === "folder" ? "folder" : row.node.type === "web_link" ? "link" : "file-blank";
+      if (icon.dataset.iconKey !== iconKey) {
+        icon.innerHTML = icons[iconKey] ?? "";
+        icon.dataset.iconKey = iconKey;
+      }
       // Preserve slotted action focus during host snapshot updates.
       if (!focused || !el.contains(focused)) this.renderContent(el.querySelector('[part="content"]')!, row.node);
       else if (focused === el) this.renderContent(el.querySelector('[part="content"]')!, row.node);
@@ -269,7 +279,10 @@ export class FolderTree extends BaseElement {
     this.treeEl.tabIndex = this.rows.length ? -1 : 0;
     const summary = [this.loading ? "Loading folders and files" : "", this.unavailable ? "Structure unavailable" : "", this.partial ? "Partial structure — more items may exist" : "", !this.rows.length && !this.loading && !this.unavailable ? this.filter ? "No matching items" : "No items" : ""].filter(Boolean).join(". ");
     this.emptyEl.textContent = summary; this.emptyEl.hidden = !summary;
-    const announcement = `${this.rows.length} visible items. ${summary} ${this.rows.map(row => this.stateText(row.node)).filter(Boolean).join(". ")}`;
+    const notable = new Set(this.rows
+      .filter(row => row.node.loadState && row.node.loadState !== "unloaded" && row.node.loadState !== "loaded")
+      .map(row => this.stateText(row.node)));
+    const announcement = `${this.rows.length} visible items. ${summary} ${[...notable].join(". ")}`;
     if (announcement !== this.announcement) { this.liveEl.textContent = announcement; this.announcement = announcement; }
     if (focusedId && focusedId !== this.activeInternal) {
       if (this.rows.length) this.focus(); else this.treeEl.focus();

@@ -43,7 +43,8 @@ children; `childCount` is the host's direct child count, never an inferred total
 branches. Counts and filtering describe loaded items only.
 
 `filter` performs case-insensitive name matching, retaining and opening ancestors.
-Clearing it restores the stored expansion. Closed descendants are omitted from
+Loaded folders without matching children appear as leaf results; lazy branches
+retain their loading affordance. Clearing the filter restores the stored expansion. Closed descendants are omitted from
 DOM; indexing and visible traversal are iterative. Fully expanded large snapshots
 still render all visible rows; host pagination bounds this cost.
 

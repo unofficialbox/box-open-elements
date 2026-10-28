@@ -268,6 +268,12 @@ tree.addEventListener("load-children", event => loadChildren(event.detail.id));`
     note: "Host-provided hierarchy and coverage. Arrow keys navigate; Space selects; Enter activates. Loading requests are host events. Test this example at 1440px and 390px in light and dark themes.",
   },
   "folder-tree-diff": {
+    setupCode: `const diff = document.querySelector("box-folder-tree-diff");
+// The host computes this structural comparison; no file contents are needed.
+diff.nodes = [
+  { id: "projects", name: "Projects", path: "/Projects", type: "folder", status: "equal" },
+  { id: "brief", parentId: "projects", name: "Brief.pdf", path: "/Projects/Brief.pdf", type: "file", status: "added" },
+];`,
     html: `<box-folder-tree-diff label="Structural comparison" left-label="Source" right-label="Destination" partial></box-folder-tree-diff>`,
     setup: root => set(root, "box-folder-tree-diff", { nodes: folderDiffDemo }),
     note: "Counts describe loaded items, not the complete corpus. Before/after rows stay aligned. No file contents, fetching or mutations. Test at 1440px/390px in light/dark.",

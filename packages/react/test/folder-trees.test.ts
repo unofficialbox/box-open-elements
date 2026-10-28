@@ -32,3 +32,12 @@ describe("React hierarchy wrappers",()=>{
     act(()=>ref.current!.nextDifference());expect(fn.mock.calls[0]![0].detail.node.path).toBe("/new");expect(ref.current!.shadowRoot!.textContent).toContain("Not present");
   });
 });
+
+it.each([null, NaN, Infinity, -Infinity])("resets initially empty React value %s back to null after edits and rerenders",initial=>{
+  setup();const ref=createRef<NumberInputRef>();
+  act(()=>root.render(createElement("form",{},createElement(NumberInput,{ref,allowEmpty:true,value:initial,name:"minimum"}))));
+  expect(ref.current!.value).toBeNull();
+  act(()=>root.render(createElement("form",{},createElement(NumberInput,{ref,allowEmpty:true,value:7,name:"minimum"}))));
+  act(()=>ref.current!.formResetCallback());
+  expect(ref.current!.value).toBeNull();expect(ref.current!.shadowRoot!.querySelector("input")!.value).toBe("");
+});

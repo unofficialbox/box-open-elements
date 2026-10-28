@@ -133,3 +133,28 @@ it("navigates hierarchy order, announces expansion intent, and expands new chang
 it("difference navigation reopens ancestors collapsed under search",()=>{
   const tree=new FolderTreeDiff();tree.nodes=diffNodes;document.body.append(tree);tree.filter="changed";tree.focus();key(tree,"ArrowLeft");expect(rows(tree)).toHaveLength(1);tree.nextDifference();expect(tree.activeId).toBe("changed");expect(rows(tree)).toHaveLength(2);
 });
+
+it("does not announce filtered-out descendants as an expanded folder",()=>{
+  const tree=mount();tree.filter="Branch";
+  const branch=rows(tree).find(row=>row.dataset.nodeId==="branch")!;
+  expect(branch.hasAttribute("aria-expanded")).toBe(false);
+  tree.expandedIds=["root","branch"];
+  expect(branch.hasAttribute("aria-expanded")).toBe(false);
+  tree.activeId="branch";tree.focus();key(tree,"ArrowRight");expect(rows(tree)).toHaveLength(2);
+});
+it("keeps aggregate load announcements bounded and avoids repeating unloaded state",()=>{
+  const items:FolderTreeNode[]=Array.from({length:30},(_,i)=>({id:String(i),name:`Folder ${i}`,type:"folder",hasChildren:true,loadState:"unloaded"}));
+  const tree=mount(items);const live=()=>tree.shadowRoot!.querySelector('[role="status"]')!.textContent!;
+  expect(live()).not.toContain("Children not loaded");
+  tree.nodes=items.map((n,i)=>({...n,loadState:i<15?"loading":"error"}));
+  expect(live().match(/Loading children/g)).toHaveLength(1);expect(live().match(/Could not load children/g)).toHaveLength(1);
+});
+it("shares singular child metadata between visible text and the row announcement",()=>{
+  const tree=mount([{id:"one",name:"One",type:"folder",childCount:1}]);
+  expect(rows(tree)[0]!.querySelector('[part="metadata"]')!.textContent).toBe("1 child");expect(rows(tree)[0]!.getAttribute("aria-label")).toContain("1 child");
+});
+it("preserves glyph DOM on state updates and replaces it when file type changes",()=>{
+  const tree=mount([{id:"a",name:"A",type:"file"}]);const glyph=tree.shadowRoot!.querySelector('[part="icon"] svg');
+  tree.selectedIds=["a"];expect(tree.shadowRoot!.querySelector('[part="icon"] svg')).toBe(glyph);
+  tree.nodes=[{id:"a",name:"A",type:"folder"}];expect(tree.shadowRoot!.querySelector('[part="icon"] svg')).not.toBe(glyph);
+});

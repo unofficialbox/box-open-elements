@@ -28,6 +28,12 @@ export const NumberInput = createWebComponent<NumberInputRef, NumberInputProps>(
   tagName: NumberInputRef.tagName,
   displayName: "NumberInput",
   propertyNames: ["allowEmpty","label","value","min","max","step","placeholder","disabled","name","required","hideLabel","description","invalid","errorMessage"],
+  initialAttributes: props => ({
+    "allow-empty": props.allowEmpty ? "" : undefined,
+    ...(props.min != null ? { min: String(props.min) } : {}),
+    ...(props.max != null ? { max: String(props.max) } : {}),
+    ...(props.value !== undefined ? { value: props.value == null || (props.allowEmpty && !Number.isFinite(props.value)) ? "" : String(props.value) } : {}),
+  }),
   events: [{ propName: "onValueChanged", eventName: "value-changed" }],
   sync: (element, props) => {
     if (props.allowEmpty !== undefined) element.allowEmpty = props.allowEmpty;
