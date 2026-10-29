@@ -21,7 +21,18 @@ for (const entry of await readdir(join(modules, "@unofficialbox"))) {
   if (entry !== "box-open-elements") await symlink(join(modules, "@unofficialbox", entry), join(dependencies, "@unofficialbox", entry));
 }
 const adapter = await realpath(join(modules, "@unofficialbox/box-open-elements-solid"));
-const core = dirname(dirname(Bun.resolveSync("@unofficialbox/box-open-elements", adapter)));
+// Resolving the core from an adapter lands on the published peer copy, which
+// would check this checkout's snippets against the last release: a component
+// added here has no tag to document, and one removed here still looks usable.
+// This repo is the core, so check against its own build; an explicit
+// node_modules override means another install is under test, and that
+// install's own copy is the one to resolve.
+const workspaceCore = process.env.BOE_DOCS_JSX_NODE_MODULES
+  ? null
+  : await Bun.file("package.json").json()
+    .then((manifest: { name?: string }) => manifest.name === "@unofficialbox/box-open-elements" ? resolve(".") : null)
+    .catch(() => null);
+const core = workspaceCore ?? dirname(dirname(Bun.resolveSync("@unofficialbox/box-open-elements", adapter)));
 await symlink(core, join(dependencies, "@unofficialbox/box-open-elements"));
 await writeFile(join(directory, "package.json"), JSON.stringify({ private: true, type: "module" }));
 const run = (command: string, args: string[], cwd = directory): string => {
