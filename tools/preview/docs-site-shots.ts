@@ -498,7 +498,7 @@ try {
     // that a whole-page screenshot can push below the fold.
     for (const width of [1440, 390]) for (const theme of ["light", "dark"]) {
       await page.setViewportSize({ width, height: 940 });
-      for (const id of ["chart-panel", "bar-chart", "line-chart", "donut-chart", "box-plot", "metric-card"]) {
+      for (const id of ["chart-panel", "bar-chart", "line-chart", "donut-chart", "box-plot", "distribution-timeline", "metric-card"]) {
         await page.goto(`http://localhost:${PORT}/#patterns/${id}`, { waitUntil: "networkidle" });
         await page.waitForSelector(`body[data-route-ready="patterns/${id}"]`);
         await page.evaluate(target => {
