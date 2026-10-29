@@ -57,18 +57,18 @@ describe("donut composition", () => {
     expect([...element.shadowRoot!.querySelectorAll('[part="legend-share"]')].map(node => node.textContent)).toEqual(["75%", "25%"]);
     expect(element.shadowRoot!.querySelectorAll('[role="listitem"]')).toHaveLength(2);
   });
-  it("links pointer and keyboard inspection to the corresponding ring segment", () => {
+  it("links pointer inspection and selection to the corresponding ring segment", () => {
     const element = new DonutChart();
     element.segments = [point("a", 3), point("b", 1)];
     document.body.append(element);
     const row = element.shadowRoot!.querySelector<HTMLButtonElement>('[part="legend-item"][data-segment-id="a"]')!;
     const other = element.shadowRoot!.querySelector<SVGElement>('[part="segment"][data-segment-id="b"]')!;
-    row.focus();
+    row.dispatchEvent(new Event("pointerenter"));
     expect(other.dataset.muted).toBe("true");
     row.click();
     expect(row.getAttribute("aria-pressed")).toBe("true");
     expect(element.shadowRoot!.querySelector<SVGElement>('[part="segment"][data-segment-id="a"]')!.dataset.selected).toBe("true");
-    row.blur();
+    row.dispatchEvent(new Event("pointerleave"));
     expect(other.dataset.muted).toBe("false");
     other.dispatchEvent(new Event("pointerenter"));
     expect(element.shadowRoot!.querySelector<HTMLElement>('[part="legend-item"][data-segment-id="b"]')!.dataset.active).toBe("true");
@@ -80,6 +80,15 @@ describe("donut composition", () => {
     element.segments = [point("a", 9870), point("b", 6)];
     document.body.append(element);
     expect(element.shadowRoot!.querySelector('[part="center"] [part="summary"]')!.textContent).toBe("9876");
+  });
+  it("removes binary noise from fractional totals and preserves host summaries", () => {
+    const element = new DonutChart();
+    element.segments = [point("a", .1), point("b", .2)];
+    document.body.append(element);
+    const summary = () => element.shadowRoot!.querySelector('[part="center"] [part="summary"]')!.textContent;
+    expect(summary()).toBe("0.3");
+    element.summary = "Custom total";
+    expect(summary()).toBe("Custom total");
   });
   it("handles empty, single and finite extreme segments without invalid arcs", () => {
     const element = new DonutChart();

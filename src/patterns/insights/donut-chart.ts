@@ -294,7 +294,7 @@ export class DonutChart extends BaseElement {
       : this.heading;
     const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
     const total = arcs.reduce((sum, { segment }) => sum + segment.value, 0);
-    const centerValue = this.summary || (Number.isFinite(total) ? String(total) : "—");
+    const centerValue = this.summary || (Number.isFinite(total) ? String(Number(total.toPrecision(15))) : "—");
     const summaryMarkup = `<div part="summary">${escapeHtml(centerValue)}</div>`;
     const timeframeMarkup = this.timeframe ? `<div part="timeframe">${escapeHtml(this.timeframe)}</div>` : "";
     const actionsMarkup = this.actions.length
@@ -400,7 +400,8 @@ export class DonutChart extends BaseElement {
     });
 
     const highlight = (id: string | null): void => {
-      const activeId = id ?? (this.shadowRoot?.activeElement as HTMLElement | null)?.dataset.segmentId ?? null;
+      const focused = this.shadowRoot?.activeElement as HTMLElement | null;
+      const activeId = id ?? (focused?.matches(":focus-visible") ? focused.dataset.segmentId : null) ?? null;
       this.shadowRoot?.querySelectorAll<HTMLElement | SVGElement>('[data-segment-id]').forEach(item => {
         item.dataset.active = String(item.dataset.segmentId === activeId);
         if (item.getAttribute("part") === "segment") item.dataset.muted = String(activeId !== null && item.dataset.segmentId !== activeId);
@@ -413,7 +414,9 @@ export class DonutChart extends BaseElement {
     this.shadowRoot.querySelectorAll<HTMLElement>('[part="legend-item"]').forEach(button => {
       button.addEventListener("pointerenter", () => highlight(button.dataset.segmentId ?? null));
       button.addEventListener("pointerleave", () => highlight(null));
-      button.addEventListener("focus", () => highlight(button.dataset.segmentId ?? null));
+      button.addEventListener("focus", () => {
+        if (button.matches(":focus-visible")) highlight(button.dataset.segmentId ?? null);
+      });
       button.addEventListener("blur", () => highlight(null));
       button.addEventListener("click", () => {
         const segmentId = button.getAttribute("data-segment-id");

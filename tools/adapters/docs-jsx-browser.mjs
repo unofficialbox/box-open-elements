@@ -56,7 +56,8 @@ try {
         const styled = [...source.body.querySelectorAll("*")].filter(el=>!["STYLE","SCRIPT"].includes(el.tagName));
         const rendered = [...root.querySelectorAll("*")].filter(el=>!["STYLE","SCRIPT"].includes(el.tagName));
         const styles = styled.map((el,i)=> el.hasAttribute("style") || el.hasAttribute("class") ? Object.fromEntries(["display","gap","fontSize","color"].map(key=>[key,getComputedStyle(rendered[i])[key]])) : null);
-        return { styles, registered: authored.every(el=>!!customElements.get(el.localName)), tags:actual.map(el=>el.localName), content: content(root), json: JSON.parse(JSON.stringify(json)) };
+        const svg = [...root.querySelectorAll("svg")].map(el => [...el.querySelectorAll("*")].map(node => Object.fromEntries([...node.attributes].filter(attr => /^(fill-rule|clip-rule|stroke-width|stroke-linecap|stroke-linejoin)$/.test(attr.name)).map(attr => [attr.name,attr.value]))));
+        return { svg, styles, registered: authored.every(el=>!!customElements.get(el.localName)), tags:actual.map(el=>el.localName), content: content(root), json: JSON.parse(JSON.stringify(json)) };
       }, item);
       assert(snapshot.registered, `${result.framework}/${item.file}: unregistered element`);
       if (baseline) assert.deepEqual(snapshot, baseline[snapshots.length], `${result.framework}/${item.file}: content or data differs from native HTML`);

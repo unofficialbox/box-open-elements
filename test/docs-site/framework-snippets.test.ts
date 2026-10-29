@@ -35,6 +35,13 @@ describe("framework-neutral docs examples", () => {
       }
     });
   }
+  it("preserves native SVG attributes in Preact while converting React attributes", () => {
+    const svg = '<svg viewBox="0 0 16 16"><g stroke-width="2"><path fill-rule="evenodd" clip-rule="evenodd" stroke-linecap="round" d="M0 0" /></g></svg>';
+    for (const name of ["stroke-width", "fill-rule", "clip-rule", "stroke-linecap"]) {
+      expect(formatFrameworkMarkup(svg, "preact")).toContain(name + '=');
+      expect(formatFrameworkMarkup(svg, "react")).not.toContain(name + '=');
+    }
+  });
   it("uses native array and numeric bindings without changing string-valued controls", () => {
     for (const {id} of FRAMEWORKS.filter(item => item.id !== "html")) {
       const rating = frameworkSnippet(id,"rating","box-rating",'<box-rating value="4"></box-rating>');

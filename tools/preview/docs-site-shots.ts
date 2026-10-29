@@ -171,6 +171,12 @@ try {
     if (BOX_PLOT_ONLY && name !== "patterns-box-plot") continue;
     await page.goto(`http://localhost:${PORT}/${hash}`, { waitUntil: "networkidle" });
     await page.waitForSelector(`body[data-route-ready="${readyMarker}"]`, { timeout: 15_000 });
+    if (readyMarker.startsWith("lessons/")) {
+      const files = await page.locator(".lesson-own .lesson-file").allTextContents();
+      const controller = page.locator(".lesson-own").getByRole("button", { name: "Copy controller.js", exact: true });
+      const starter = await page.locator(".lesson-own").getByRole("button", { name: "Copy index.html", exact: true }).getAttribute("data-copy");
+      if (files.join(",") !== "index.html,controller.js" || !starter?.includes('./controller.js') || !(await controller.getAttribute("data-copy"))?.includes("export function mountExample")) throw new Error("Lesson build-along module filenames are inconsistent");
+    }
     await applyDeterministicFonts(page);
     // A hash-only goto does not reload, so scroll persists between routes.
     // Reset it so each shot is independent of the order they run in.
@@ -568,6 +574,10 @@ try {
         if (["bar-chart", "chart-panel", "line-chart", "donut-chart"].includes(id)) {
           const control = chart.locator(id === "donut-chart" ? '[part="legend-item"]' : '[part="point"]').first();
           await control.focus();
+          if (id === "donut-chart") {
+            await control.press("Tab");
+            await page.keyboard.press("Shift+Tab");
+          }
           await control.press("Enter");
           if (id === "donut-chart" && await control.getAttribute("aria-pressed") !== "true") throw new Error("Donut keyboard selection failed");
           if (id === "donut-chart") {
@@ -577,6 +587,12 @@ try {
               return focused && active && focused.dataset.segmentId === active.dataset.segmentId;
             });
             if (!linked) throw new Error("Donut focus is not linked to its ring segment");
+            await control.evaluate(button => (button as HTMLElement).blur());
+            await control.click();
+            await page.mouse.move(0, 0);
+            if (await chart.locator('[part="segment"][data-muted="true"]').count()) throw new Error("Donut retains mouse focus emphasis after pointerleave");
+            await control.press("Tab");
+            if (!await chart.locator('[part="segment"][data-muted="true"]').count()) throw new Error("Donut lost keyboard focus emphasis");
           }
           if (Number(await page.locator("#event-count").textContent()) < 1) throw new Error(`${id} did not emit a keyboard event`);
         }

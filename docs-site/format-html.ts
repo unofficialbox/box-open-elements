@@ -157,7 +157,7 @@ export const formatHtml = (html: string, jsx = false): string =>
 export const formatFrameworkMarkup = (html: string, framework: string): string => {
   const jsx = ["react", "solid", "preact"].includes(framework);
   const nodes = parse(html.replace(/<!--[\s\S]*?-->/g, ""));
-  const visit = (node: Node, parent?: string): void => {
+  const visit = (node: Node, parent?: string, inSvg = false): void => {
     if (node.type === "text") {
       if (parent === "style" || parent === "script") {
         if (jsx) node.value = `{${JSON.stringify(node.value)}}`;
@@ -168,6 +168,7 @@ export const formatFrameworkMarkup = (html: string, framework: string): string =
       if (framework === "angular") node.value = node.value.replace(/@/g, "&#64;");
       return;
     }
+    const isSvg = inSvg || node.name === "svg";
     if (node.name === "box-number-input") node.attrs.sort((a, b) => Number(b.name === "allow-empty") - Number(a.name === "allow-empty"));
     for (const attr of node.attrs) {
       const type = workshop.stories.find(story => story.tag === node.name)?.referenceRows.find(row => row.name === attr.name && ["attribute", "property"].includes(row.kind))?.type;
@@ -196,7 +197,7 @@ export const formatFrameworkMarkup = (html: string, framework: string): string =
       if (jsx && framework !== "solid") {
         const names: Record<string, string> = { class: "className", for: "htmlFor", tabindex: "tabIndex", readonly: "readOnly", autofocus: "autoFocus", contenteditable: "contentEditable", spellcheck: "spellCheck", "xlink:href": "xlinkHref" };
         attr.name = names[attr.name] ?? attr.name;
-        if (!node.name.includes("-") && !/^(aria-|data-)/.test(attr.name)) attr.name = attr.name.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase());
+        if ((framework !== "preact" || !isSvg) && !node.name.includes("-") && !/^(aria-|data-)/.test(attr.name)) attr.name = attr.name.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase());
       }
       if (jsx && attr.name === "style" && attr.value !== null) {
         const declarations = Object.fromEntries(attr.value.split(";").filter(value => value.trim()).map(value => {
@@ -209,7 +210,7 @@ export const formatFrameworkMarkup = (html: string, framework: string): string =
       }
       if (jsx && !node.name.includes("-") && /^(tabindex|rowspan|colspan|maxlength|minlength|rows|cols|size|start)$/i.test(attr.name) && attr.value !== null && Number.isFinite(Number(attr.value))) attr.expression = String(Number(attr.value));
     }
-    node.children.forEach(child => visit(child, node.name));
+    node.children.forEach(child => visit(child, node.name, isSvg && node.name !== "foreignObject"));
   };
   nodes.forEach(node => visit(node));
   const markup = nodes.map(node => render(node, 0, jsx)).join("\n");

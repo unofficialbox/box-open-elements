@@ -564,8 +564,8 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
             <p>The live lesson above needs nothing installed. To build it locally, drop these two files together and run them — same code, run against the published package.</p>
             <p class="lesson-anchor"><span class="lesson-file">index.html</span></p>
             ${codeBlock(lesson.starterHtml, new Set<number>(), "Copy index.html")}
-            <p class="lesson-anchor"><span class="lesson-file">app.js</span> — the complete lesson</p>
-            ${codeBlock(finalCode, new Set<number>(), "Copy app.js")}
+            <p class="lesson-anchor"><span class="lesson-file">controller.js</span> — the complete lesson</p>
+            ${codeBlock(finalCode, new Set<number>(), "Copy controller.js")}
             <p class="prose"><strong>Run it:</strong> ${escapeHtml(lesson.install)}</p>
           </section>
         </div>
