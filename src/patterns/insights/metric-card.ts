@@ -41,7 +41,8 @@ const elementStyles = chartStyles + `
           min-width: 0;
         }
 
-        [part="card"] { display:grid; align-content:start; gap:1rem; padding:1.25rem; border:1px solid var(--boe-token-stroke-stroke,#e8e8e8); border-radius:.75rem; background:var(--boe-token-surface-surface,#fff); }
+        [part="value"][data-loading="true"] { min-block-size:3rem; background:var(--boe-token-surface-surface-secondary,#f4f6f8); border-radius:.25rem; }
+        [part="card"] { display:grid; align-content:start; gap:1rem; padding:1.5rem; border:1px solid var(--boe-token-stroke-stroke,#e8e8e8); border-radius:.375rem; background:var(--boe-token-surface-surface,#fff); }
         [part="header"] {
           display: grid;
           gap: 0.25rem;
@@ -50,7 +51,7 @@ const elementStyles = chartStyles + `
         [part="eyebrow"] {
           font-size: 0.76rem;
           font-weight: 600;
-          letter-spacing: 0.08em;
+          letter-spacing: 0;
           text-transform: none;
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
@@ -65,9 +66,9 @@ const elementStyles = chartStyles + `
         [part="title"] {
           margin: 0;
           font: inherit;
-          font-size: 1rem;
+          font-size: 1.125rem;
           font-weight: 600;
-          color: var(--boe-token-text-text, #1f1e1b);
+          color:inherit;
         }
 
         [part="status"] {
@@ -84,13 +85,13 @@ const elementStyles = chartStyles + `
         }
 
         [part="value"] {
-          font-size: 2.5rem;
+          font-size: 2rem;
           font-variant-numeric: tabular-nums;
           overflow-wrap: anywhere;
           font-weight: 600;
           line-height: 1;
           letter-spacing: -0.04em;
-          color: var(--boe-token-text-text, #1f1e1b);
+          color:inherit;
         }
 
         :host([size="compact"]) [part="card"] {
@@ -131,25 +132,15 @@ const elementStyles = chartStyles + `
           gap: ${boePanel.gap};
         }
 
-        [part="trend"] {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.35rem;
-          padding: 0.22rem 0.48rem;
-          border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-tertiary, #e8e8e8) 72%, var(--boe-token-surface-surface, #ffffff) 28%);
-          color: var(--boe-token-text-text, #222222);
-          font-size: 0.76rem;
-          font-weight: 600;
-        }
+        [part="trend"] { display:block; padding:0; background:none; color:var(--boe-token-text-text-secondary,#566781); font-size:.8125rem; font-weight:500; line-height:1.5; }
 
-        [part="trend"][data-direction="up"] {
-          background: color-mix(in srgb, #26c281 14%, var(--boe-token-surface-surface, #ffffff) 86%);
+        [part="trend"][data-tone="success"] {
+          background:none;
           color: var(--boe-token-text-status-text-success, #187657);
         }
 
-        [part="trend"][data-direction="down"] {
-          background: color-mix(in srgb, #ed3757 14%, var(--boe-token-surface-surface, #ffffff) 86%);
+        [part="trend"][data-tone="error"] {
+          background:none;
           color: var(--boe-token-text-status-text-error, #b92340);
         }
 
@@ -177,7 +168,7 @@ const elementStyles = chartStyles + `
 export class MetricCard extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["action", "eyebrow", "message", "status", "heading", "trend", "value", "size", "tone"];
+    return ["state", "status-message", "action", "eyebrow", "message", "status", "heading", "trend", "value", "size", "tone"];
   }
   get size(): "default" | "compact" {
     return this.getAttribute("size") === "compact" ? "compact" : "default";
@@ -196,6 +187,10 @@ export class MetricCard extends BaseElement {
     this.setAttribute("tone", value);
   }
 
+  get state(): string { return this.getAttribute("state") ?? "ready"; }
+  set state(value: string) { this.setAttribute("state", value); }
+  get statusMessage(): string { return this.getAttribute("status-message") ?? ""; }
+  set statusMessage(value: string) { this.setAttribute("status-message", value); }
   get action(): MetricCardAction | null {
     return this.parseJsonAttribute<MetricCardAction | null>("action", null);
   }
@@ -310,7 +305,7 @@ export class MetricCard extends BaseElement {
   }
 
   protected renderTemplate(): void {
-    this.shadowRoot!.innerHTML=`<style>${elementStyles}[hidden]{display:none!important}</style><div part="content-host"><article part="card"><header part="header"><div part="eyebrow" hidden></div><div part="title-row"><h2 part="title"></h2></div></header><div part="value"></div><div part="message" hidden></div><div part="footer"><div part="trend" hidden></div></div></article></div>`;
+    this.shadowRoot!.innerHTML=`<style>${elementStyles}[hidden]{display:none!important}</style><div part="content-host"><article part="card"><header part="header"><div part="title-row"><h2 part="title"></h2></div><div part="eyebrow" hidden></div><slot name="header"></slot></header><div part="value"></div><div part="footer"><div part="trend" hidden></div></div><div part="message" hidden></div><slot name="footer"></slot></article></div>`;
   }
   protected setupListeners(): void {
     const footer=this.shadowRoot!.querySelector('[part="footer"]')!;
@@ -323,11 +318,13 @@ export class MetricCard extends BaseElement {
     if(!this.isRendered)return;
     const root=this.shadowRoot!;
     root.querySelector('[part="title"]')!.textContent=this.heading;
-    const value=root.querySelector<HTMLElement>('[part="value"]')!;value.textContent=this.value;value.dataset.tone=this.tone;
+    const value=root.querySelector<HTMLElement>('[part="value"]')!;value.textContent=this.state === "loading" || this.state === "error" ? "" : this.value;value.dataset.tone=this.tone;value.dataset.loading=String(this.state === "loading");
     for(const [part,text] of [["eyebrow",this.eyebrow],["message",this.message]]){const element=root.querySelector<HTMLElement>(`[part="${part}"]`)!;element.textContent=text;element.hidden=!text;}
     let status=root.querySelector<HTMLElement>('[part="status"]');
-    if(this.status){if(!status){status=document.createElement("span");status.setAttribute("part","status");root.querySelector('[part="title-row"]')!.append(status);}status.textContent=this.status;}else status?.remove();
-    const trend=root.querySelector<HTMLElement>('[part="trend"]')!,data=this.trend;trend.hidden=!data;trend.textContent=data?.label??"";trend.dataset.direction=data?.direction??"flat";trend.dataset.tone=data?.tone??"neutral";
+    const stateStatus=this.statusMessage || ({loading:"Loading snapshot…",error:"Snapshot could not be loaded.",partial:"Partial snapshot.",stale:"Cached snapshot."} as Record<string,string>)[this.state] || this.status;
+    root.querySelector('[part="card"]')!.setAttribute("aria-busy",String(this.state === "loading"));
+    if(stateStatus){if(!status){status=document.createElement("span");status.setAttribute("part","status");root.querySelector('[part="title-row"]')!.append(status);}status.textContent=stateStatus;status.setAttribute("role","status");}else status?.remove();
+    const trend=root.querySelector<HTMLElement>('[part="trend"]')!,data=this.trend;trend.hidden=!data || ["loading","error","partial"].includes(this.state);trend.textContent=data?.label??"";trend.dataset.direction=data?.direction??"flat";trend.dataset.tone=data?.tone??"neutral";
     const action=this.action;
     syncKeyedChildren(root.querySelector('[part="footer"]')!,action?[action]:[],action=>action.id,()=>actionButton("action"),(button,action)=>{button.dataset.actionId=action.id;button.dataset.tone=action.tone??"neutral";button.textContent=action.label;},trend);
   }

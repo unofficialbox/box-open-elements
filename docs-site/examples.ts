@@ -1,3 +1,4 @@
+import { periodChartHtml, periodVariants, metricChartHtml, storageChartHtml, dailyChartHtml, distributionChartHtml, dataStateVariants } from "../storybook/fixtures/insights.js";
 /**
  * Curated live examples per catalog entry. `html` is the canonical usage-first
  * snippet (shown verbatim on the Code tab); `setup` binds rich properties that
@@ -234,11 +235,7 @@ const onSidebarToggle = (target: Element | null, run: (expanded: boolean) => voi
   });
 };
 
-const boxPlotDemoRows = [
-  { id: "upload", label: "files.upload", min: 16, p5: 21, q1: 34, median: 42, q3: 55, p95: 84, max: 126, count: 1204, reference: 50, samples: [21, 31, 42, 47, 65, 84] },
-  { id: "user", label: "users.me", min: 8, p5: 12, q1: 18, median: 24, q3: 31, p95: 45, max: 72, count: 984 },
-  { id: "signin", label: "Signing in", min: 32, p5: 39, q1: 52, median: 66, q3: 80, p95: 103, max: 148, count: 96 },
-];
+
 
 const distributionTimelineDemoPoints = [
   { at: 0, min: 15, q1: 29, median: 38, q3: 50, max: 90, count: 1180, samples: [42, 46, 46, 49, 51, 64] },
@@ -276,6 +273,8 @@ const folderDiffDemo = [
 
 /** A curated insight starts with exactly the data shown in its Code tab. */
 const insightExample = (html: string): ComponentExample => ({ html, variants: [{ name: "Example", html }] });
+
+const periodExample = (kind: "bar-chart" | "line-chart"): ComponentExample => ({html:periodChartHtml(kind), variants:periodVariants(kind)});
 
 export const examples: Record<string, ComponentExample> = {
   "folder-tree": {
@@ -1846,19 +1845,22 @@ diff.nodes = ${JSON.stringify(folderDiffDemo, null, 2)};`,
       actions: [{ id: "audit", label: "View audit log" }],
     }),
   },
-  "metric-card": insightExample(`<box-metric-card heading="Active shared links" value="1,284" eyebrow="Last 30 days" message="Up from 1,102 in the prior period." trend='{"label":"+16.5% vs. previous period","tone":"success","direction":"up"}'></box-metric-card>`),
-  "chart-panel": insightExample(`<box-chart-panel heading="Weekly uploads" summary="103 uploads" timeframe="Monday–Friday" message="Files uploaded each day · example data" points='[{"id":"mon","label":"Mon","value":12},{"id":"tue","label":"Tue","value":18},{"id":"wed","label":"Wed","value":24},{"id":"thu","label":"Thu","value":21},{"id":"fri","label":"Fri","value":28}]' legend='[{"label":"Uploads"}]' actions='[{"id":"open-report","label":"Open report"}]'></box-chart-panel>`),
-  "bar-chart": insightExample(`<box-bar-chart heading="Uploads per week" summary="276 uploads" timeframe="Last 5 weeks" message="Files uploaded each week · example data" points='[{"id":"w1","label":"W1","value":42},{"id":"w2","label":"W2","value":51},{"id":"w3","label":"W3","value":48},{"id":"w4","label":"W4","value":64},{"id":"w5","label":"W5","value":71}]'></box-bar-chart>`),
-  "line-chart": insightExample(`<box-line-chart heading="Weekly active users" summary="431 users" timeframe="Most recent week" message="Distinct users each week · example data" points='[{"id":"w1","label":"W1","value":310},{"id":"w2","label":"W2","value":355},{"id":"w3","label":"W3","value":348},{"id":"w4","label":"W4","value":402},{"id":"w5","label":"W5","value":431}]'></box-line-chart>`),
-  "donut-chart": insightExample(`<box-donut-chart heading="Storage by file type" summary="100 GB" timeframe="Current storage" message="Storage in GB · example data" segments='[{"id":"docs","label":"Documents","value":46},{"id":"media","label":"Media","value":32},{"id":"other","label":"Other","value":22}]'></box-donut-chart>`),
+  "metric-card": { html:metricChartHtml, variants:dataStateVariants(metricChartHtml,"box-metric-card") },
+  "chart-panel": { html:dailyChartHtml, variants:dataStateVariants(dailyChartHtml,"box-chart-panel") },
+  "bar-chart": periodExample("bar-chart"),
+  "line-chart": periodExample("line-chart"),
+  "donut-chart": {html:storageChartHtml,variants:[
+    ...dataStateVariants(storageChartHtml,"box-donut-chart"),
+    {name:"Incomplete classification",html:`<box-donut-chart readonly heading="Storage by file type" unit="GB" total="250" state="partial" note="Illustrative data · Shares use the full 250 GB denominator" segments='[{"id":"docs","label":"Documents","value":115},{"id":"media","label":"Media","value":80}]'></box-donut-chart>`},
+    {name:"Zero measured",html:`<box-donut-chart readonly heading="Storage by file type" unit="GB" segments='[{"id":"docs","label":"Documents","value":0},{"id":"media","label":"Media","value":0}]'></box-donut-chart>`},
+    {name:"No observations",html:`<box-donut-chart readonly heading="Storage by file type" unit="GB"></box-donut-chart>`},
+  ]},
   "box-plot": {
-    html: `<box-box-plot heading="Step times" description="Summary of sampled calls in one run" unit="ms" whiskers="p5-p95"></box-box-plot>`,
-    codeHtml: `<box-box-plot heading="Step times" unit="ms" whiskers="p5-p95" rows='[{"id":"upload","label":"files.upload","min":16,"p5":21,"q1":34,"median":42,"q3":55,"p95":84,"max":126,"count":1204}]'></box-box-plot>`,
-    setup: root => set(root, "box-box-plot", { rows: boxPlotDemoRows }),
+    html: distributionChartHtml,
+    codeHtml: distributionChartHtml,
     variants: [{
       name: "Horizontal · linear scale",
-      html: `<box-box-plot heading="Step times" description="Summary of sampled calls in one run" unit="ms" whiskers="p5-p95"></box-box-plot>`,
-      setup: root => set(root, "box-box-plot", { rows: boxPlotDemoRows }),
+      html: distributionChartHtml,
     }, {
       name: "Vertical · log scale",
       html: `<box-box-plot heading="Response times by run" unit="ms" orientation="vertical" scale="log" whiskers="p5-p99"></box-box-plot>`,

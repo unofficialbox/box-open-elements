@@ -1,10 +1,10 @@
 import { chartScale, formatChartValue } from "./chart-scale.js";
 import { actionButton, syncKeyedChildren } from "../internal/keyed-children.js";
-interface Point { id: string; label: string; value: number; tone?: string; }
+import type { ChartPoint as Point } from "./chart-presentation.js";
 interface Action { id: string; label: string; tone?: string; }
 interface Legend { label: string; value?: string; tone?: string; }
 const escapeHtml = (value: string): string => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
-export const chartHeader = `<header part="header"><div part="meta"><h2 part="title"></h2><div part="summary" hidden></div><div part="message" hidden></div></div><div part="header-side"><div part="timeframe" hidden></div><div part="actions" hidden></div></div></header>`;
+export const chartHeader = `<header part="header"><div part="meta"><h2 part="title"></h2><div part="timeframe" hidden></div><div part="message" hidden></div><slot name="header"></slot></div><div part="header-side"><div part="summary" hidden></div></div></header>`;
 export const syncChartHeader = (root: ShadowRoot, data: { heading: string; summary: string; message: string; timeframe: string; actions: Action[] }): void => {
   root.querySelector('[part="title"]')!.textContent = data.heading;
   for (const [part, text] of [["summary",data.summary],["message",data.message],["timeframe",data.timeframe]]) {
@@ -34,28 +34,29 @@ export const syncChartPoints = (parent: HTMLElement, points: Point[], kind: "bar
     button.innerHTML=`${kind==="shell"?'<span part="bar-shell"><span part="bar"></span></span>':kind==="bar"?'<span part="bar"></span>':""}<span part="point-label"></span> <span part="point-value"></span>`;
     item.append(button); return item;
   },(item,point)=>{
-    const button=item.querySelector<HTMLButtonElement>("button")!; button.dataset.pointId=point.id; button.dataset.tone=point.tone??"neutral"; button.setAttribute("aria-label",`${point.label}: ${point.value}`);
-    button.querySelector('[part="point-label"]')!.textContent=point.label; button.querySelector('[part="point-value"]')!.textContent=String(point.value);
+    const button=item.querySelector<HTMLButtonElement>("button")!; button.dataset.pointId=point.id; button.dataset.partial=String(point.partial === true); button.dataset.tone=point.tone??"neutral"; button.setAttribute("aria-label",`${point.label}: ${point.value == null ? "Not observed" : point.value}${point.partial ? ", incomplete" : ""}`);
+    button.querySelector('[part="point-label"]')!.textContent=point.label; button.querySelector('[part="point-value"]')!.textContent=point.value == null ? "—" : String(point.value) + (point.partial ? "*" : "");
     if(ratio)button.querySelector<HTMLElement>('[part="bar"]')!.style.setProperty("--point-ratio",String(ratio(point)));
   },fixedPrefix);
 };
 
 /** Keep every column on one scale and baseline; a zero value has zero area. */
-export const syncBarScale = (chart: HTMLElement, points: Point[]): void => {
+export const syncBarScale = (chart: HTMLElement, points: Point[], bounds: number[] = []): void => {
   const valid = points.filter(point => Number.isFinite(point.value));
-  const scale = chartScale(valid.map(point => point.value));
-  chart.style.setProperty("--label-lane", valid.some(point => point.value < 0) ? "2.75rem" : "2rem");
+  const scale = chartScale([...valid.map(point => point.value as number), ...bounds]);
+  chart.style.setProperty("--label-lane", valid.some(point => (point.value ?? 0) < 0) ? "2.75rem" : "2rem");
   const grid = chart.querySelector<HTMLElement>('[part="grid"]')!;
   grid.innerHTML = scale.ticks.map(value => `<span part="grid-line" style="bottom:${scale.position(value) * 100}%"><span part="axis-label">${formatChartValue(value)}</span></span>`).join("");
-  syncChartPoints(chart, valid, "shell", undefined, grid);
+  syncChartPoints(chart, points, "shell", undefined, grid);
   chart.querySelectorAll<HTMLButtonElement>('[part="point"]').forEach((button, index) => {
-    const value = valid[index].value;
+    const value = points[index].value ?? 0;
+    button.dataset.missing = String(points[index].value == null);
     button.dataset.negative = String(value < 0);
     const zero = scale.position(0), position = scale.position(value);
     const bar = button.querySelector<HTMLElement>('[part="bar"]')!;
     button.style.setProperty("--value-position", String(position));
     bar.style.setProperty("--bar-bottom", `${Math.min(zero, position) * 100}%`);
     bar.style.setProperty("--bar-height", `${Math.abs(position - zero) * 100}%`);
-    button.title = `${valid[index].label}: ${value}`;
+    button.title = `${points[index].label}: ${points[index].value == null ? "Not observed" : value}`;
   });
 };

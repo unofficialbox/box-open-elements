@@ -9,6 +9,11 @@ const boxPlot: StoryModule = {
     docsDescription: "Provide host-computed summary rows. The box is Q1–Q3, its line is the median, and whiskers can use extremes or percentiles. Use the format property for custom value labels.",
     sourceSnippet: `<box-box-plot heading="Step times" unit="ms" rows='[{"id":"upload","label":"files.upload","min":16,"q1":34,"median":42,"q3":55,"max":126}]'></box-box-plot>`,
     referenceRows: [
+      { kind: "attribute", name: "selectable", type: "boolean", description: "Enable explicit row selection and persistent details." },
+      { kind: "attribute", name: "selected-id", type: "string", description: "Selected row ID." },
+      { kind: "property", name: "domain", type: "number[]", description: "Optional containing minimum/maximum bounds for a shared linear domain." },
+      { kind: "attribute", name: "state", type: "string", description: "ready, loading, error, partial or stale." },
+      { kind: "attribute", name: "status-message", type: "string", description: "Host coverage/status and cache timestamp." },
       { kind: "attribute", name: "heading", type: "string", description: "Accessible chart name." },
       { kind: "attribute", name: "heading-level", type: "1–6", description: "Native heading level, default 2; choose the host outline level." },
       { kind: "attribute", name: "embedded", type: "boolean", description: "Remove panel background, border, radius and padding." },

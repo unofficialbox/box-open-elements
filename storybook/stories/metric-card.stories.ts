@@ -1,3 +1,4 @@
+import { metricChartHtml } from "../fixtures/insights.js";
 import type { StoryModule } from "../metadata.js";
 
 const metricCard: StoryModule = {
@@ -7,8 +8,10 @@ const metricCard: StoryModule = {
     tag: "box-metric-card",
     shortDescription: "A KPI card with optional trend.",
     docsDescription: "Surface a headline metric; pass optional JSON `trend` for delta tone/label. Cards stretch within grid and flex rows. Use `size=compact` for summary figures and `tone` to color the value independently of a status chip.",
-    sourceSnippet: `<box-metric-card heading="Active shared links" value="1,284" eyebrow="Last 30 days" status="Healthy" trend='{"label":"+16.5%","tone":"success"}'></box-metric-card>`,
+    sourceSnippet: metricChartHtml,
     referenceRows: [
+      { kind: "attribute", name: "state", type: "string", description: "ready, loading, error, partial or stale." },
+      { kind: "attribute", name: "status-message", type: "string", description: "Host-provided state and cache timestamp." },
       { kind: "attribute", name: "heading", type: "string", description: "Metric title." },
       { kind: "attribute", name: "size", type: "default | compact", description: "Compact uses a small secondary heading above the value." },
       { kind: "attribute", name: "tone", type: "neutral | error | warning | success", description: "Semantic value color independent of status and trend." },
@@ -22,11 +25,11 @@ const metricCard: StoryModule = {
   variants: [
     {
       name: "Compact summary row",
-      html: `<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px"><box-metric-card size="compact" heading="Times through the steps a second, on average" value="84"></box-metric-card><box-metric-card size="compact" heading="Box calls" value="142" tone="success"></box-metric-card><box-metric-card size="compact" heading="Failed calls" value="3" tone="error"></box-metric-card></div>`,
+      html: `<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px"><box-metric-card size="compact" heading="Times through the steps a second, on average" value="84"></box-metric-card><box-metric-card size="compact" heading="Box calls" value="142"></box-metric-card><box-metric-card size="compact" heading="Failed calls" value="3" tone="error"></box-metric-card></div>`,
     },
     {
       name: "Default",
-      html: `<box-metric-card heading="Active shared links" value="1,284" eyebrow="Last 30 days" message="Up from 1,102 in the prior period." status="Healthy" trend='{"label":"+16.5%","tone":"success"}'></box-metric-card>`,
+      html: `<box-metric-card heading="Active shared links" value="1,284" eyebrow="As of Oct 29, 2026" message="Active = not expired or revoked. Illustrative definition." trend='{"label":"+182 (+16.5%) vs Sep 29 · 1,102","tone":"neutral"}'></box-metric-card>`,
     },
   ],
 };
