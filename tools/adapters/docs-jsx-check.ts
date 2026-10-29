@@ -1,6 +1,6 @@
-import { mkdtemp, mkdir, symlink, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readdir, realpath, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import { catalog } from "../../docs-site/registry.js";
 import { examples } from "../../docs-site/examples.js";
@@ -10,7 +10,19 @@ import workshop from "../../storybook/generated/workshop.json" with { type: "jso
 
 const directory = await mkdtemp(join(tmpdir(), "boe-docs-jsx-"));
 const modules = resolve(process.env.BOE_DOCS_JSX_NODE_MODULES ?? "node_modules");
-await symlink(modules, join(directory, "node_modules"), "dir");
+// Bun may install the core only as an adapter's peer, without a root link.
+// Give isolated snippets the same real package resolution as that adapter.
+const dependencies = join(directory, "node_modules");
+await mkdir(join(dependencies, "@unofficialbox"), { recursive: true });
+for (const entry of await readdir(modules)) {
+  if (entry !== "@unofficialbox") await symlink(join(modules, entry), join(dependencies, entry));
+}
+for (const entry of await readdir(join(modules, "@unofficialbox"))) {
+  if (entry !== "box-open-elements") await symlink(join(modules, "@unofficialbox", entry), join(dependencies, "@unofficialbox", entry));
+}
+const adapter = await realpath(join(modules, "@unofficialbox/box-open-elements-solid"));
+const core = dirname(dirname(Bun.resolveSync("@unofficialbox/box-open-elements", adapter)));
+await symlink(core, join(dependencies, "@unofficialbox/box-open-elements"));
 await writeFile(join(directory, "package.json"), JSON.stringify({ private: true, type: "module" }));
 const run = (command: string, args: string[], cwd = directory): string => {
   try { return execFileSync(command, args, { cwd, stdio: "pipe", maxBuffer: 16_000_000 }).toString(); }
