@@ -4,3 +4,4 @@ export * from "./bar-chart.js";
 export * from "./line-chart.js";
 export * from "./donut-chart.js";
 export * from "./box-plot.js";
+export * from "./distribution-timeline.js";

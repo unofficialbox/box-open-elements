@@ -334,6 +334,7 @@ have to come back to:
 - `bar-chart` — **built**
 - `box-plot` — **built**
 - `chart-panel` — **built**
+- `distribution-timeline` — **built**
 - `donut-chart` — **built**
 - `line-chart` — **built**
 - `metric-card` — **built**

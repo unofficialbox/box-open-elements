@@ -56,6 +56,7 @@ export interface BoxElementPropertyKeys {
   "box-date-field": "clearable" | "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "required" | "value";
   "box-dialog": "confirmBusy" | "confirmBusyLabel" | "confirmDisabled" | "confirmLabel" | "confirmTone" | "description" | "heading" | "open" | "size";
   "box-diff-viewer": "afterLabel" | "afterText" | "beforeLabel" | "beforeText" | "heading" | "mode";
+  "box-distribution-timeline": "description" | "embedded" | "format" | "heading" | "headingLevel" | "hideNote" | "hideSamples" | "maxSamples" | "points" | "scale" | "timeUnit" | "unit";
   "box-divider": "label" | "orientation";
   "box-document-list": "blocks" | "items" | "labels" | "selectableDocuments";
   "box-donut-chart": "actions" | "heading" | "message" | "segments" | "summary" | "timeframe";
@@ -344,6 +345,7 @@ export interface BoxElementEventMap {
   "box-diff-viewer": {
     "change-focused": CustomEvent<{ index: number; total: number; }>;
   };
+  "box-distribution-timeline": {};
   "box-divider": {};
   "box-document-list": {
     "document-selected": CustomEvent<{ id: string | undefined; }>;

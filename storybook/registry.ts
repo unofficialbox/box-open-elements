@@ -24,6 +24,7 @@ import table from "./stories/table.stories.js";
 import thumbnailCard from "./stories/thumbnail-card.stories.js";
 import barChart from "./stories/bar-chart.stories.js";
 import boxPlot from "./stories/box-plot.stories.js";
+import distributionTimeline from "./stories/distribution-timeline.stories.js";
 import bulkActionBar from "./stories/bulk-action-bar.stories.js";
 import buttonGroup from "./stories/button-group.stories.js";
 import button from "./stories/button.stories.js";
@@ -243,6 +244,7 @@ export const storyModules: StoryModule[] = [
   grid,
   donutChart,
   boxPlot,
+  distributionTimeline,
   draggableList,
   drawer,
   dropZone,
