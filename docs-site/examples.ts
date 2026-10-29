@@ -258,6 +258,9 @@ const folderDiffDemo = [
   { id:"moved", parentId:"root", name:"Reference", path:"/Projects/Reference", type:"web_link", status:"moved", before:{path:"/Archive/Reference"}, after:{path:"/Projects/Reference"} },
 ];
 
+/** A curated insight starts with exactly the data shown in its Code tab. */
+const insightExample = (html: string): ComponentExample => ({ html, variants: [{ name: "Example", html }] });
+
 export const examples: Record<string, ComponentExample> = {
   "folder-tree": {
     html: `<box-folder-tree label="Project structure" partial></box-folder-tree>`,
@@ -1827,48 +1830,11 @@ diff.nodes = ${JSON.stringify(folderDiffDemo, null, 2)};`,
       actions: [{ id: "audit", label: "View audit log" }],
     }),
   },
-  "metric-card": {
-    html: `<box-metric-card heading="Active shared links" value="1,284" eyebrow="Last 30 days" message="Up from 1,102 in the prior period." status="Healthy"></box-metric-card>`,
-    setup: root => set(root, "box-metric-card", { trend: { label: "+16.5%", tone: "success" } }),
-  },
-  "chart-panel": {
-    html: `<box-chart-panel heading="Usage" summary="89%" timeframe="Last 7 days" message="Weekly rollups across the enterprise." points='[{"id":"mon","label":"Mon","value":12},{"id":"tue","label":"Tue","value":18},{"id":"wed","label":"Wed","value":24,"tone":"accent"},{"id":"thu","label":"Thu","value":21},{"id":"fri","label":"Fri","value":28}]' legend='[{"label":"Usage","tone":"brand","value":"89%"}]' actions='[{"id":"open-report","label":"Open report","tone":"primary"}]'></box-chart-panel>`,
-  },
-  "bar-chart": {
-    html: `<box-bar-chart heading="Uploads per week" timeframe="Last 5 weeks" summary="Steady growth across the quarter."></box-bar-chart>`,
-    setup: root => set(root, "box-bar-chart", {
-      points: [
-        { id: "w1", label: "W1", value: 42 },
-        { id: "w2", label: "W2", value: 51 },
-        { id: "w3", label: "W3", value: 48 },
-        { id: "w4", label: "W4", value: 64 },
-        { id: "w5", label: "W5", value: 71 },
-      ],
-      legend: [{ label: "Uploads", tone: "brand" }],
-    }),
-  },
-  "line-chart": {
-    html: `<box-line-chart heading="Active users" timeframe="Last 5 weeks"></box-line-chart>`,
-    setup: root => set(root, "box-line-chart", {
-      points: [
-        { id: "w1", label: "W1", value: 310 },
-        { id: "w2", label: "W2", value: 355 },
-        { id: "w3", label: "W3", value: 348 },
-        { id: "w4", label: "W4", value: 402 },
-        { id: "w5", label: "W5", value: 431 },
-      ],
-    }),
-  },
-  "donut-chart": {
-    html: `<box-donut-chart heading="Storage by type"></box-donut-chart>`,
-    setup: root => set(root, "box-donut-chart", {
-      segments: [
-        { id: "docs", label: "Documents", value: 46 },
-        { id: "media", label: "Media", value: 32 },
-        { id: "other", label: "Other", value: 22 },
-      ],
-    }),
-  },
+  "metric-card": insightExample(`<box-metric-card heading="Active shared links" value="1,284" eyebrow="Last 30 days" message="Up from 1,102 in the prior period." trend='{"label":"+16.5% vs. previous period","tone":"success","direction":"up"}'></box-metric-card>`),
+  "chart-panel": insightExample(`<box-chart-panel heading="Weekly uploads" summary="103 uploads" timeframe="Monday–Friday" message="Files uploaded each day · example data" points='[{"id":"mon","label":"Mon","value":12},{"id":"tue","label":"Tue","value":18},{"id":"wed","label":"Wed","value":24},{"id":"thu","label":"Thu","value":21},{"id":"fri","label":"Fri","value":28}]' legend='[{"label":"Uploads"}]' actions='[{"id":"open-report","label":"Open report"}]'></box-chart-panel>`),
+  "bar-chart": insightExample(`<box-bar-chart heading="Uploads per week" summary="276 uploads" timeframe="Last 5 weeks" message="Files uploaded each week · example data" points='[{"id":"w1","label":"W1","value":42},{"id":"w2","label":"W2","value":51},{"id":"w3","label":"W3","value":48},{"id":"w4","label":"W4","value":64},{"id":"w5","label":"W5","value":71}]'></box-bar-chart>`),
+  "line-chart": insightExample(`<box-line-chart heading="Weekly active users" summary="431 users" timeframe="Most recent week" message="Distinct users each week · example data" points='[{"id":"w1","label":"W1","value":310},{"id":"w2","label":"W2","value":355},{"id":"w3","label":"W3","value":348},{"id":"w4","label":"W4","value":402},{"id":"w5","label":"W5","value":431}]'></box-line-chart>`),
+  "donut-chart": insightExample(`<box-donut-chart heading="Storage by file type" summary="100 GB" timeframe="Current storage" message="Storage in GB · example data" segments='[{"id":"docs","label":"Documents","value":46},{"id":"media","label":"Media","value":32},{"id":"other","label":"Other","value":22}]'></box-donut-chart>`),
   "box-plot": {
     html: `<box-box-plot heading="Step times" description="Summary of sampled calls in one run" unit="ms" whiskers="p5-p95"></box-box-plot>`,
     codeHtml: `<box-box-plot heading="Step times" unit="ms" whiskers="p5-p95" rows='[{"id":"upload","label":"files.upload","min":16,"p5":21,"q1":34,"median":42,"q3":55,"p95":84,"max":126,"count":1204}]'></box-box-plot>`,

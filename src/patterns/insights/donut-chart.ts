@@ -1,6 +1,5 @@
 import { BaseElement } from "../../core/index.js";
-import { boeMotionDuration, boeMotionEasing } from "../../foundations/motion/index.js";
-import { boePanel, boeRadius } from "../../foundations/geometry/index.js";
+import { chartStyles } from "./chart-styles.js";
 
 const DEFAULT_TAG_NAME = "box-donut-chart";
 
@@ -37,231 +36,32 @@ type DonutSegmentArc = {
 const SEGMENT_PALETTE = ["#0061d5", "#5a7cf7", "#26c281", "#f59e0b", "#8b5cf6", "#ec4899"];
 
 
-const elementStyles = `
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
-
-        /* The host's own display would otherwise beat the UA rule for [hidden],
-           leaving the element on screen when a host hides it. */
-        :host([hidden]) {
-          display: none !important;
-        }
-
-        [part="panel"] {
-          display: grid;
-          gap: ${boePanel.gap};
-          padding: ${boePanel.padding};
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: ${boePanel.radius};
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, var(--boe-token-surface-surface, #ffffff) 4%);
-        }
-
-        [part="header"] {
-          display: flex;
-          flex-wrap: wrap;
-          gap: ${boePanel.gap};
-          justify-content: space-between;
-          align-items: start;
-        }
-
-        [part="meta"] {
-          display: grid;
-          gap: 0.3rem;
-        }
-
-        [part="header-side"] {
-          display: grid;
-          gap: 0.45rem;
-          justify-items: end;
-        }
-
-        [part="title"] {
-          margin: 0;
-          font: inherit;
-          font-size: 1.05rem;
-          font-weight: 700;
-          color: var(--boe-token-text-text, #1f1e1b);
-        }
-
-        [part="summary"] {
-          font-size: 1.35rem;
-          font-weight: 700;
-          line-height: 1;
-          letter-spacing: -0.04em;
-          color: var(--boe-token-text-text, #1f1e1b);
-        }
-
-        [part="message"] {
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          line-height: 1.42;
-        }
-
-        [part="timeframe"] {
-          font-size: 0.8rem;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-
-        [part="actions"] {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.5rem;
-          justify-content: flex-end;
-        }
-
-        [part="action"] {
-          appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
-          border-radius: 999px;
-          background: var(--boe-token-surface-surface, #ffffff);
-          color: inherit;
-          font: inherit;
-          padding: 0.4rem 0.7rem;
-          cursor: pointer;
-        }
-
-        [part="action"][data-tone="primary"] {
-          border-color: transparent;
-          background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: var(--boe-token-text-text-on-brand, #ffffff);
-        }
-
-        [part="visual"] {
-          display: grid;
-          grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
-          gap: ${boePanel.gap};
-          align-items: center;
-          padding: 0.65rem;
-          border-radius: ${boePanel.radius};
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 88%, #eef4fb 12%);
-        }
-
-        [part="donut-wrap"] {
-          position: relative;
-          inline-size: min(100%, 14rem);
-          aspect-ratio: 1;
-          margin-inline: auto;
-        }
-
-        [part="chart"] {
-          inline-size: 100%;
-          block-size: 100%;
-        }
-
-        [part="track"] {
-          fill: none;
-          stroke: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 30%, transparent);
-          stroke-width: 13;
-        }
-
-        [part="segment"] {
-          filter: drop-shadow(0 8px 14px rgba(15, 23, 42, 0.06));
-        }
-
-        [part="center"] {
-          position: absolute;
-          inset: 50%;
-          transform: translate(-50%, -50%);
-          display: grid;
-          gap: 0.28rem;
-          justify-items: center;
-          text-align: center;
-          inline-size: 52%;
-          min-block-size: 52%;
-          align-content: center;
-          padding: 0.65rem;
-          border-radius: 999px;
-          background: radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.98) 0%, rgba(244, 248, 252, 0.98) 100%);
-          box-shadow:
-            0 10px 24px rgba(0, 67, 146, 0.05),
-            inset 0 0 0 1px rgba(0, 97, 213, 0.08);
-        }
-
-        [part="legend"] {
-          display: grid;
-          gap: ${boePanel.gap};
-        }
-
-        [part="legend-item"] {
-          appearance: none;
-          display: grid;
-          grid-template-columns: auto 1fr;
-          gap: ${boePanel.gap};
-          align-items: center;
-          padding: 0.4rem 0.55rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
-          border-radius: ${boeRadius.med};
-          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 90%, #eef4fb 10%);
-          color: inherit;
-          font: inherit;
-          text-align: left;
-          cursor: pointer;
-          transition:
-            transform ${boeMotionDuration.fast} ${boeMotionEasing.standard},
-            border-color ${boeMotionDuration.fast} ${boeMotionEasing.standard},
-            box-shadow ${boeMotionDuration.fast} ${boeMotionEasing.standard};
-        }
-
-        [part="legend-item"]:hover {
-          transform: translateY(-1px);
-          border-color: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 74%, transparent);
-          box-shadow: 0 10px 18px rgba(15, 23, 42, 0.05);
-        }
-
-        [part="legend-item"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
-        }
-
-        [part="legend-swatch"] {
-          inline-size: 0.9rem;
-          block-size: 0.9rem;
-          border-radius: 999px;
-          background: var(--segment-color, var(--boe-token-surface-surface-brand, #0061d5));
-          box-shadow: 0 0 0 4px color-mix(in srgb, var(--segment-color, var(--boe-token-surface-surface-brand, #0061d5)) 16%, transparent);
-        }
-
-        [part="legend-copy"] {
-          display: grid;
-          gap: 0.18rem;
-        }
-
-        [part="legend-label"] {
-          font-size: 0.8rem;
-          font-weight: 700;
-          color: var(--boe-token-text-text, #1f1e1b);
-        }
-
-        [part="legend-item"][data-pressed="true"] {
-          border-color: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 8%, var(--boe-token-surface-surface, #ffffff) 92%);
-          box-shadow: 0 10px 18px rgba(15, 23, 42, 0.06);
-        }
-
-        [part="legend-value"] {
-          font-size: 0.76rem;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-
-        [part="empty"] {
-          padding: ${boePanel.padding};
-          border-radius: ${boePanel.radius};
-          border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-
-        @media (max-width: 720px) {
-          [part="visual"] {
-            grid-template-columns: 1fr;
-          }
-        }
-      `;
+const elementStyles = chartStyles + `
+  :host { container-type:inline-size; }
+  [part="visual"] { display:grid; grid-template-columns:minmax(10rem,15rem) minmax(12rem,1fr); gap:2rem; align-items:center; }
+  [part="donut-wrap"] { position:relative; inline-size:100%; max-inline-size:15rem; aspect-ratio:1; margin-inline:auto; }
+  [part="chart"] { display:block; inline-size:100%; block-size:100%; }
+  [part="track"] { fill:none; stroke:var(--boe-token-stroke-stroke,#e8e8e8); stroke-width:16; }
+  [part="center"] { position:absolute; inset:26%; display:grid; align-content:center; justify-items:center; gap:.25rem; text-align:center; pointer-events:none; }
+  [part="center"] [part="summary"] { font-size:clamp(1.25rem,5cqi,2rem); }
+  [part="center-label"] { font-size:.75rem; color:var(--boe-token-text-text-secondary,#6f6f6f); }
+  [part="legend"] { display:grid; gap:0; }
+  [part="legend-item"] { appearance:none; display:grid; grid-template-columns:auto minmax(0,1fr) auto 3rem; inline-size:100%; gap:.625rem; padding:.875rem .5rem; font:inherit; color:inherit; background:transparent; border:1px solid transparent; border-radius:.375rem; text-align:start; cursor:pointer; }
+  [part="legend-item"]:hover, [part="legend-item"][data-pressed="true"] { background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 6%,transparent); }
+  [part="legend-item"][data-pressed="true"] { border-color:var(--boe-token-surface-surface-brand,#0061d5); }
+  [part="legend-item"] [part="legend-swatch"] { background:var(--segment-color); inline-size:.625rem; block-size:.625rem; }
+  [part="legend-copy"] { display:contents; }
+  [part="legend-label"] { font-size:.875rem; font-weight:500; overflow-wrap:anywhere; }
+  [part="legend-value"], [part="legend-share"] { text-align:end; font-size:.8125rem; font-variant-numeric:tabular-nums; }
+  [part="legend-value"] { color:var(--boe-token-text-text,#1f1e1b); font-weight:600; }
+  [part="legend-share"] { color:var(--boe-token-text-text-secondary,#6f6f6f); }
+  [part="segment"] { transition:opacity 120ms ease; }
+  [part="segment"][data-muted="true"] { opacity:.25; }
+  [part="segment"][data-selected="true"] { stroke:var(--boe-token-text-text,#1f1e1b); stroke-width:.7; }
+  [part="legend-item"][data-active="true"] { background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 6%,transparent); }
+  @media (prefers-reduced-motion:reduce) { [part="segment"] { transition:none; } }
+  @container (max-width:520px) { [part="visual"] { grid-template-columns:1fr; gap:1rem; } [part="donut-wrap"] { max-inline-size:12rem; } }
+`;
 
 export class DonutChart extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
@@ -408,7 +208,7 @@ export class DonutChart extends BaseElement {
     };
   }
 
-  private describeSegmentPath(startAngle: number, endAngle: number, outerRadius = 44, innerRadius = 31): string {
+  private describeSegmentPath(startAngle: number, endAngle: number, outerRadius = 44, innerRadius = 28): string {
     const sweep = endAngle - startAngle;
     if (sweep >= 359.9) {
       const midpoint = startAngle + sweep / 2;
@@ -450,13 +250,14 @@ export class DonutChart extends BaseElement {
   }
 
   private getArcs(): DonutSegmentArc[] {
-    const positiveSegments = this.segments.filter(segment => segment.value > 0);
-    const total = positiveSegments.reduce((sum, segment) => sum + segment.value, 0) || 1;
+    const positiveSegments = this.segments.filter(segment => Number.isFinite(segment.value) && segment.value > 0);
+    const magnitude = positiveSegments.reduce((max, segment) => Math.max(max, segment.value), 1);
+    const total = positiveSegments.reduce((sum, segment) => sum + segment.value / magnitude, 0) || 1;
     const gap = positiveSegments.length > 1 ? 2.4 : 0;
     let current = 0;
     return positiveSegments.map((segment, index) => {
       const start = current;
-      const sweep = (segment.value / total) * 360;
+      const sweep = (segment.value / magnitude / total) * 360;
       current += sweep;
       const safeGap = sweep > gap ? gap : 0;
       return {
@@ -492,7 +293,9 @@ export class DonutChart extends BaseElement {
       ? `${this.heading}. ${segmentSummary}`
       : this.heading;
     const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const summaryMarkup = this.summary ? `<div part="summary">${escapeHtml(this.summary)}</div>` : "";
+    const total = arcs.reduce((sum, { segment }) => sum + segment.value, 0);
+    const centerValue = this.summary || (Number.isFinite(total) ? String(Number(total.toPrecision(15))) : "—");
+    const summaryMarkup = `<div part="summary">${escapeHtml(centerValue)}</div>`;
     const timeframeMarkup = this.timeframe ? `<div part="timeframe">${escapeHtml(this.timeframe)}</div>` : "";
     const actionsMarkup = this.actions.length
       ? `
@@ -514,12 +317,13 @@ export class DonutChart extends BaseElement {
           <div part="visual">
             <div part="donut-wrap">
               <svg part="chart" viewBox="0 0 100 100" role="img" aria-label="${escapeHtml(chartAriaLabel)}">
-                <circle part="track" cx="50" cy="50" r="37.5"></circle>
+                <circle part="track" cx="50" cy="50" r="36"></circle>
                 ${arcs
                   .map(
                     ({ segment, displayStart, displayEnd, index }) => `
                       <path
                         part="segment"
+                        data-selected="${String(this.selectedSegmentId === segment.id)}"
                         data-segment-id="${escapeHtml(segment.id)}"
                         data-tone="${escapeHtml(segment.tone ?? "neutral")}"
                         d="${this.describeSegmentPath(displayStart, displayEnd)}"
@@ -531,7 +335,7 @@ export class DonutChart extends BaseElement {
               </svg>
               <div part="center">
                 ${summaryMarkup}
-                ${timeframeMarkup}
+                <span part="center-label">Total</span>
               </div>
             </div>
             <div part="legend" role="list" aria-label="${escapeHtml(this.heading)} segments">
@@ -540,7 +344,7 @@ export class DonutChart extends BaseElement {
                   ({ segment, index }) => {
                     const isPressed = this.selectedSegmentId === segment.id;
                     return `
-                    <button
+                    <div role="listitem"><button
                       type="button"
                       part="legend-item"
                       data-segment-id="${escapeHtml(segment.id)}"
@@ -554,7 +358,8 @@ export class DonutChart extends BaseElement {
                         <span part="legend-label">${escapeHtml(segment.label)}</span>
                         <span part="legend-value">${escapeHtml(String(segment.value))}</span>
                       </span>
-                    </button>
+                      <span part="legend-share">${Number(((arcs[index].end - arcs[index].start) / 3.6).toFixed(1))}%</span>
+                    </button></div>
                   `;
                   },
                 )
@@ -577,6 +382,7 @@ export class DonutChart extends BaseElement {
             ${messageMarkup}
           </div>
           <div part="header-side">
+            ${timeframeMarkup}
             ${actionsMarkup}
           </div>
         </header>
@@ -593,7 +399,25 @@ export class DonutChart extends BaseElement {
       });
     });
 
-    this.shadowRoot.querySelectorAll('[part="legend-item"]').forEach(button => {
+    const highlight = (id: string | null): void => {
+      const focused = this.shadowRoot?.activeElement as HTMLElement | null;
+      const activeId = id ?? (focused?.matches(":focus-visible") ? focused.dataset.segmentId : null) ?? null;
+      this.shadowRoot?.querySelectorAll<HTMLElement | SVGElement>('[data-segment-id]').forEach(item => {
+        item.dataset.active = String(item.dataset.segmentId === activeId);
+        if (item.getAttribute("part") === "segment") item.dataset.muted = String(activeId !== null && item.dataset.segmentId !== activeId);
+      });
+    };
+    this.shadowRoot.querySelectorAll<SVGElement>('[part="segment"]').forEach(segment => {
+      segment.addEventListener("pointerenter", () => highlight(segment.dataset.segmentId ?? null));
+      segment.addEventListener("pointerleave", () => highlight(null));
+    });
+    this.shadowRoot.querySelectorAll<HTMLElement>('[part="legend-item"]').forEach(button => {
+      button.addEventListener("pointerenter", () => highlight(button.dataset.segmentId ?? null));
+      button.addEventListener("pointerleave", () => highlight(null));
+      button.addEventListener("focus", () => {
+        if (button.matches(":focus-visible")) highlight(button.dataset.segmentId ?? null);
+      });
+      button.addEventListener("blur", () => highlight(null));
       button.addEventListener("click", () => {
         const segmentId = button.getAttribute("data-segment-id");
         const segment = this.segments.find(item => item.id === segmentId);
@@ -612,6 +436,9 @@ export class DonutChart extends BaseElement {
           const pressed = item.dataset.segmentId === this.selectedSegmentId;
           item.dataset.pressed = String(pressed);
           item.setAttribute("aria-pressed", String(pressed));
+        });
+        this.shadowRoot?.querySelectorAll<SVGElement>('[part="segment"]').forEach(item => {
+          item.dataset.selected = String(item.dataset.segmentId === this.selectedSegmentId);
         });
       });
     });

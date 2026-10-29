@@ -85,6 +85,7 @@ try {
   for (const id of sectionIds) {
     const target = join(OUT_DIR, `${id.replace(/^section-/, "")}.png`);
 
+
     // Photograph each section alone.
     //
     // An element screenshot clips at the element's bounding box, and glyphs
@@ -101,6 +102,11 @@ try {
       }
       window.scrollTo(0, 0);
     }, id);
+
+    if (id === "section-insights") {
+      const widths = await page.locator("#section-insights box-bar-chart, #section-insights box-donut-chart").evaluateAll(charts => charts.map(chart => chart.getBoundingClientRect().width));
+      if (widths.length !== 2 || widths.some(width => width < 280)) throw new Error(`Charts collapsed in their flex composition: ${JSON.stringify(widths)}`);
+    }
 
     // Container-query hosts must not collapse in content-sized flex rows.
     // Check actual inner controls, not only page overflow or the host's bounds.

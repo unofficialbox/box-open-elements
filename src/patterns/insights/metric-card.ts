@@ -1,3 +1,4 @@
+import { chartStyles } from "./chart-styles.js";
 import { syncKeyedChildren, actionButton } from "../internal/keyed-children.js";
 import { BaseElement } from "../../core/index.js";
 import { boePanel } from "../../foundations/geometry/index.js";
@@ -21,7 +22,7 @@ type MetricCardTrend = {
 };
 
 
-const elementStyles = `
+const elementStyles = chartStyles + `
         :host {
           display: grid;
           min-width: 0;
@@ -40,16 +41,7 @@ const elementStyles = `
           min-width: 0;
         }
 
-        [part="card"] {
-          display: grid;
-          align-content: start;
-          gap: ${boePanel.gap};
-          padding: ${boePanel.padding};
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: ${boePanel.radius};
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, var(--boe-token-surface-surface, #ffffff) 4%);
-        }
-
+        [part="card"] { display:grid; align-content:start; gap:1rem; padding:1.25rem; border:1px solid var(--boe-token-stroke-stroke,#e8e8e8); border-radius:.75rem; background:var(--boe-token-surface-surface,#fff); }
         [part="header"] {
           display: grid;
           gap: 0.25rem;
@@ -57,7 +49,7 @@ const elementStyles = `
 
         [part="eyebrow"] {
           font-size: 0.76rem;
-          font-weight: 700;
+          font-weight: 600;
           letter-spacing: 0.08em;
           text-transform: none;
           color: var(--boe-token-text-text-secondary, #6f6f6f);
@@ -73,8 +65,8 @@ const elementStyles = `
         [part="title"] {
           margin: 0;
           font: inherit;
-          font-size: 1.05rem;
-          font-weight: 700;
+          font-size: 1rem;
+          font-weight: 600;
           color: var(--boe-token-text-text, #1f1e1b);
         }
 
@@ -86,14 +78,16 @@ const elementStyles = `
           background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, var(--boe-token-surface-surface, #ffffff) 90%);
           color: var(--boe-token-surface-surface-brand, #0061d5);
           font-size: 0.74rem;
-          font-weight: 700;
+          font-weight: 600;
           letter-spacing: 0.05em;
           text-transform: none;
         }
 
         [part="value"] {
-          font-size: 1.35rem;
-          font-weight: 700;
+          font-size: 2.5rem;
+          font-variant-numeric: tabular-nums;
+          overflow-wrap: anywhere;
+          font-weight: 600;
           line-height: 1;
           letter-spacing: -0.04em;
           color: var(--boe-token-text-text, #1f1e1b);
@@ -125,7 +119,8 @@ const elementStyles = `
 
         [part="message"] {
           color: var(--boe-token-text-text-secondary, #6f6f6f);
-          line-height: 1.42;
+          font-size: .8125rem;
+          line-height: 1.5;
         }
 
         [part="footer"] {
@@ -145,17 +140,17 @@ const elementStyles = `
           background: color-mix(in srgb, var(--boe-token-surface-surface-tertiary, #e8e8e8) 72%, var(--boe-token-surface-surface, #ffffff) 28%);
           color: var(--boe-token-text-text, #222222);
           font-size: 0.76rem;
-          font-weight: 700;
+          font-weight: 600;
         }
 
         [part="trend"][data-direction="up"] {
           background: color-mix(in srgb, #26c281 14%, var(--boe-token-surface-surface, #ffffff) 86%);
-          color: #138a58;
+          color: var(--boe-token-text-status-text-success, #187657);
         }
 
         [part="trend"][data-direction="down"] {
           background: color-mix(in srgb, #ed3757 14%, var(--boe-token-surface-surface, #ffffff) 86%);
-          color: #bf2340;
+          color: var(--boe-token-text-status-text-error, #b92340);
         }
 
         [part="action"] {

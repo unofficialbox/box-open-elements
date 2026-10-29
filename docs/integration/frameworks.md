@@ -234,51 +234,82 @@ reference.
 
 The optional `@unofficialbox/box-open-elements-solid` and `…-preact` packages
 provide typed Button, TextField, Select, Dialog, Combobox, and Drawer wrappers, a custom wrapper
-factory, and a selection controller binding. Both were independently reviewed
-and published at `0.42.2`; clean public-registry consumer verification passed.
-Their human bootstrap does not carry OIDC provenance. Install the optional package
+factory, and a selection controller binding. Both publish alongside the other adapters at `0.43.0`, with OIDC provenance. Install the optional package
 with its native framework peer, then use its exported wrappers. See the
 [SolidJS README](../../packages/solid/README.md) and
 [Preact README](../../packages/preact/README.md) for native JSX, ref, property,
 event, and hydration contracts. Runnable production/SSR fixtures are included in
 `bun run verify`. SolidStart support is not verified.
 
-### Solid and Preact Code tabs
+### Consistent Code tabs
 
-The docs Code tab includes Solid and native Preact for every component and
-pattern, plus cumulative snippets for every build-along lesson step. The
-component snippets use the published `createWebComponent` factory; this also
-covers components such as Number Input, Folder Tree and Folder Tree Diff that
-do not have named Solid/Preact wrapper exports. Do not import those names from
-the adapter package.
+HTML, React, Angular, Vue, Svelte, Solid and Preact show the same example,
+attributes, nested content and slots in every component and pattern Code tab.
+These are native custom-element examples; they do not construct an adapter in
+one framework while showing direct markup in another. Optional adapters remain
+available when an application needs their typed property/event bindings.
 
-Install the adapter alongside the matching core and framework:
+One-time project configuration belongs in the app setup, rather than in each
+copied example:
 
-```bash
-npm install @unofficialbox/box-open-elements @unofficialbox/box-open-elements-solid solid-js
-# or
-npm install @unofficialbox/box-open-elements @unofficialbox/box-open-elements-preact preact
-```
+- Install the core and your framework. Adapter packages are optional for the
+  native Code-tab examples.
+- Configure React, Solid and Preact JSX with their native runtime; use the Solid
+  Vite plugin for Solid, and `jsxImportSource: "preact"` for native Preact.
+- For TypeScript JSX custom tags, provide an intrinsic-element declaration once
+  in the application (the existing `react-jsx` entry supplies React property and
+  event types). The docs compiler fixtures also check native JSX markup.
+- Configure Vue's `isCustomElement` for `box-*` tags. Angular standalone examples
+  declare `CUSTOM_ELEMENTS_SCHEMA`; Svelte recognizes custom-element tags.
+- Apply the design system and tokens once in browser startup. Keep browser DOM
+  work out of server rendering.
 
-Configure the app for native JSX (`jsxImportSource: "solid-js"` with the Solid
-Vite plugin, or `jsxImportSource: "preact"`). Copied Preact snippets include an
-explicit JSX pragma and do not use React or `preact/compat`.
-
-Factory `propertyNames` keep rich values out of host attributes. Assign these
-properties in `sync`, and map dashed DOM events through `events`. Solid reads
-controlled values with signal accessors (`selected()`); Preact uses hook values
-(`selected`). The tree examples echo `expanded-changed` and `selected-changed`
-into that state. The optional number example preserves `number | null` and
-seeds `allow-empty` as a host attribute before connection so native form reset
-captures the empty initial value.
-
-The lesson snippets are JavaScript JSX (`Example.jsx`): they keep the lesson's
-imperative controller inside Solid `onMount`/`onCleanup` or Preact
-`useLayoutEffect`. Each mount owns its DOM and removes its custom elements on
-unmount. Component Code tabs demonstrate reactive property/event binding. Apply
-design tokens in the browser; imports and server rendering do not run the
-lesson mount code.
+Every build-along step provides a shared `controller.js` containing its data,
+property assignments and events, plus a small framework entry file that imports
+it. Save both files beside each other. Only the mount/unmount lifecycle differs;
+all frameworks run the same controller. DOM lookups stay inside the mounted host,
+and cleanup disconnects its custom elements when the framework removes the view.
+For TypeScript projects, enable `allowJs: true` in `tsconfig.json` so the local
+`controller.js` module is included and its exports are inferred; `checkJs: false`
+keeps the teaching controller as plain JavaScript. The docs compiler fixtures
+validate this setup with strict framework entry files.
 
 Core and all six adapters are published at `0.43.0` through the existing OIDC
 workflows with provenance. The earlier `0.42.2` Solid/Preact human bootstrap is
 historical; it does not describe the provenance of this release.
+
+For native Solid and Preact TypeScript examples, add this once in
+`custom-elements.d.ts` (choose your framework's module):
+
+```ts
+import type { BoxElementTagName } from "@unofficialbox/box-open-elements";
+
+type CustomTags = { [Tag in BoxElementTagName]: Record<string, unknown> };
+declare module "preact" {
+  namespace JSX { interface IntrinsicElements extends CustomTags {} }
+}
+// For Solid, use declare module "solid-js" with the same JSX declaration.
+```
+
+This enables the native tag vocabulary. It intentionally does not replace the
+optional adapters' detailed prop/event types. React applications can import the
+generated `react-jsx` type entry described above instead. The docs compile all
+seven sets of examples, and compare their rendered content, properties, slots
+and representative styles against native HTML in a browser.
+
+If your framework's SVG typings omit standard attributes used by slotted icons,
+extend them once alongside the custom tags:
+
+```ts
+import "solid-js";
+declare module "solid-js" {
+  namespace JSX { interface SvgSVGAttributes<T> { focusable?: string; } }
+}
+```
+
+```ts
+import "svelte/elements";
+declare module "svelte/elements" {
+  interface SVGAttributes<T extends EventTarget> { slot?: string; }
+}
+```
