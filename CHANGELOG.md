@@ -15,7 +15,11 @@ are kept as written.
 
 ## Unreleased
 
-- Add a read-only Distribution Timeline that plots one measurement's host-computed interval summaries over time: the minimum-to-maximum range, the Q1–Q3 band, the median line, and optional raw samples thinned to an even spread across the time axis. The component aggregates nothing and leaves interval resolution to the host.
+## 0.44.0 — 2026-10-29
+
+- Add a read-only Distribution Timeline that plots one measurement's host-computed interval summaries over time: the minimum-to-maximum range, the Q1–Q3 band, the median line, and optional raw samples thinned to an even spread across the time axis (#606). The component aggregates nothing and leaves interval resolution to the host; `max-samples` caps the plotted dots and the thinning keeps a near-equal number in each slice of the time axis.
+- Fix the docs snippet check, which resolved the core from an adapter and so typechecked the repository's own snippets against the last published release (#606). A component added in a branch had no tag to document, and one removed in a branch still looked usable.
+- Ship core and all six framework adapters together at `0.44.0`, with every core peer at `^0.44.0`.
 
 ## 0.43.0 — 2026-10-28
 
