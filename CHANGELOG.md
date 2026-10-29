@@ -15,6 +15,8 @@ are kept as written.
 
 ## Unreleased
 
+- Add a read-only Distribution Timeline that plots one measurement's host-computed interval summaries over time: the minimum-to-maximum range, the Q1–Q3 band, the median line, and optional raw samples thinned to an even spread across the time axis. The component aggregates nothing and leaves interval resolution to the host.
+
 ## 0.43.0 — 2026-10-28
 
 - Add a provider-neutral, read-only Folder Tree with host-controlled selection, expansion and lazy loading; keyboard navigation, ancestor-preserving filters, load-state feedback and React bindings (#596, #598).

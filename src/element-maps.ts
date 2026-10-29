@@ -54,6 +54,7 @@ import type { DatalistItem } from "./components/collections/datalist-item.js";
 import type { DateField } from "./components/forms/date-field.js";
 import type { Dialog } from "./components/overlays/dialog.js";
 import type { DiffViewer } from "./patterns/diff/diff-viewer.js";
+import type { DistributionTimeline } from "./patterns/insights/distribution-timeline.js";
 import type { Divider } from "./components/layout/divider.js";
 import type { DocumentList } from "./components/collections/document-list.js";
 import type { DonutChart } from "./patterns/insights/donut-chart.js";
@@ -229,6 +230,7 @@ declare global {
     "box-date-field": DateField;
     "box-dialog": Dialog;
     "box-diff-viewer": DiffViewer;
+    "box-distribution-timeline": DistributionTimeline;
     "box-divider": Divider;
     "box-document-list": DocumentList;
     "box-donut-chart": DonutChart;
@@ -406,6 +408,7 @@ export type BoxElementTagName =
   | "box-date-field"
   | "box-dialog"
   | "box-diff-viewer"
+  | "box-distribution-timeline"
   | "box-divider"
   | "box-document-list"
   | "box-donut-chart"
