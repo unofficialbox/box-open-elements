@@ -1,3 +1,5 @@
+import type { Framework } from "./framework-snippets.js";
+import { jsxLessonSnippet } from "./lesson-jsx.js";
 /**
  * Build-along lessons — pure, framework-free data.
  *
@@ -95,10 +97,23 @@ export interface Lesson {
    * `steps` (the step's own `code` is the vanilla / "HTML" tab). Lets the
    * framework version stay in lockstep with each teaching step.
    */
-  stepFrameworks: StepFrameworks;
+  stepFrameworks: StepFrameworks & Record<"solid" | "preact", string[]>;
 }
 
-export type FrameworkId = "html" | "react" | "angular" | "vue" | "svelte";
+export type FrameworkId = Framework;
+
+const withJSXFrameworks = (lesson: Omit<Lesson, "frameworks" | "stepFrameworks"> & {
+  frameworks: Record<Exclude<FrameworkId, "solid" | "preact">, string>;
+  stepFrameworks: StepFrameworks;
+}): Lesson => {
+  const solid = lesson.steps.map(step => jsxLessonSnippet("solid", step.code));
+  const preact = lesson.steps.map(step => jsxLessonSnippet("preact", step.code));
+  return {
+    ...lesson,
+    frameworks: { ...lesson.frameworks, solid: solid.at(-1)!, preact: preact.at(-1)! },
+    stepFrameworks: { ...lesson.stepFrameworks, solid, preact },
+  };
+};
 
 const importMapSnippet = `{ "imports": { "@unofficialbox/box-open-elements": "https://esm.sh/@unofficialbox/box-open-elements@0.1.0" } }`;
 
@@ -227,7 +242,7 @@ const EXPLORER_STEP5 = `${EXPLORER_STEP4}
 explorer.setAttribute("selection-mode", "multiple");
 explorer.setAttribute("page-size", "50");`;
 
-export const explorerLesson: Lesson = {
+export const explorerLesson: Lesson = withJSXFrameworks({
   id: "explorer",
   title: "Explorer",
   area: "Build Alongs",
@@ -443,7 +458,7 @@ const onSelectionChanged = (event: CustomEvent) => {
 ></box-content-explorer>`,
   },
   stepFrameworks: explorerStepFrameworks,
-};
+});
 
 // ── Share lesson source, built up cumulatively ───────────────────────────────
 
@@ -514,7 +529,7 @@ panel.addEventListener("collaborator-selected", event => {
   console.log("collaborator", event.detail.name);
 });`;
 
-export const shareLesson: Lesson = {
+export const shareLesson: Lesson = withJSXFrameworks({
   id: "share",
   title: "Share",
   area: "Build Alongs",
@@ -735,7 +750,7 @@ const onCollaborator = (event: CustomEvent) => console.log("collaborator", event
 ></box-share-panel>`,
   },
   stepFrameworks: shareStepFrameworks,
-};
+});
 
 // ── Preview lesson source, built up cumulatively ─────────────────────────────
 
@@ -802,7 +817,7 @@ preview.addEventListener("action", event => {
   console.log("action", event.detail.action, event.detail.providerId);
 });`;
 
-export const previewLesson: Lesson = {
+export const previewLesson: Lesson = withJSXFrameworks({
   id: "preview",
   title: "Preview",
   area: "Build Alongs",
@@ -1029,7 +1044,7 @@ const onAction = (event: CustomEvent) =>
 ></box-preview-element>`,
   },
   stepFrameworks: previewStepFrameworks,
-};
+});
 
 // ── Intake lesson source, built up cumulatively ──────────────────────────────
 // The composition lesson: three patterns — form wizard, work queue, timeline —
@@ -1177,7 +1192,7 @@ queue.addEventListener("item-selected", (event) => {
   console.log("open:", event.detail.item.title);
 });`;
 
-export const intakeLesson: Lesson = {
+export const intakeLesson: Lesson = withJSXFrameworks({
   id: "intake",
   title: "Intake Workspace",
   area: "Build Alongs",
@@ -1331,7 +1346,7 @@ export const intakeLesson: Lesson = {
     svelte: intakeStepFrameworks.svelte[5],
   },
   stepFrameworks: intakeStepFrameworks,
-};
+});
 
 export const lessons: Lesson[] = [explorerLesson, shareLesson, previewLesson, intakeLesson];
 
