@@ -133,6 +133,8 @@ export const normalizeLang = (info: string): HighlightLang => {
     case "js":
     case "jsx":
     case "javascript":
+    case "solid":
+    case "preact":
     case "react":
     case "angular":
       return "ts";

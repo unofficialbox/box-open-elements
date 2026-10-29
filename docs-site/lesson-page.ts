@@ -15,13 +15,7 @@ import { frameworkIconSvg } from "./framework-icons.js";
 import type { FrameworkId } from "./lessons.js";
 
 /** Framework selector for a lesson's "Use it in your framework" section. */
-const LESSON_FRAMEWORKS: Array<{ id: FrameworkId; label: string }> = [
-  { id: "html", label: "HTML" },
-  { id: "react", label: "React" },
-  { id: "angular", label: "Angular" },
-  { id: "vue", label: "Vue" },
-  { id: "svelte", label: "Svelte" },
-];
+import { FRAMEWORKS as LESSON_FRAMEWORKS } from "./framework-snippets.js";
 import { lessonMockTransport } from "./lesson-mock-transport.js";
 import type { Lesson, LessonStep, PreviewKey } from "./lessons.js";
 
@@ -480,6 +474,8 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
       angular: lesson.stepFrameworks.angular[index],
       vue: lesson.stepFrameworks.vue[index],
       svelte: lesson.stepFrameworks.svelte[index],
+      solid: lesson.stepFrameworks.solid[index],
+      preact: lesson.stepFrameworks.preact[index],
     },
   }));
 

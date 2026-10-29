@@ -1110,3 +1110,9 @@ table.api-table code { font-family: ui-monospace, Menlo, monospace; font-size: 1
   .mast-nav { gap: 0; }
   .mast-nav a { padding-inline: 4px; font-size: 11px; letter-spacing: 0; }
 }
+
+.code-tab[aria-selected="true"][data-code="solid"] { color: #446b9e; }
+.code-tab[aria-selected="true"][data-code="preact"] { color: #673ab8; }
+:root[data-theme="dark"] .code-tab[aria-selected="true"][data-code="solid"] { color: #8fb8e8; }
+:root[data-theme="dark"] .code-tab[aria-selected="true"][data-code="preact"] { color: #bd9cf4; }
+#framework-code-copy + .code-block { padding-top: 44px; }

@@ -277,7 +277,7 @@ const collectComponentPaths = (dir: string): Set<string> =>
   );
 
 describe("lesson framework snippets", () => {
-  const FRAMEWORKS = ["html", "react", "angular", "vue", "svelte"] as const;
+  const FRAMEWORKS = ["html", "react", "angular", "vue", "svelte", "solid", "preact"] as const;
 
   // The snippets are hand-written, so validate every flat component subpath
   // against the generated public entrypoints.
@@ -314,7 +314,7 @@ describe("lesson framework snippets", () => {
         }
       });
 
-      const STEP_FRAMEWORKS = ["react", "angular", "vue", "svelte"] as const;
+      const STEP_FRAMEWORKS = ["react", "angular", "vue", "svelte", "solid", "preact"] as const;
 
       it("has a per-step snippet for every framework, indexed to the steps", () => {
         for (const framework of STEP_FRAMEWORKS) {

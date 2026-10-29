@@ -23,8 +23,9 @@ import geometryMd from "../docs/foundations/geometry.md";
 import { renderMarkdown } from "./markdown.js";
 import { highlightCode, normalizeLang } from "./highlight.js";
 import { frameworkIconSvg } from "./framework-icons.js";
+import { FRAMEWORKS, frameworkSnippet, type Framework } from "./framework-snippets.js";
 import { renderAttributeReference } from "./api-reference.js";
-import { formatHtml, indentBlock } from "./format-html.js";
+import { formatHtml } from "./format-html.js";
 
 // Real, extracted variant states per component (storybook workshop → docs site).
 // Only the components with authored stories have these; everything else keeps
@@ -167,55 +168,6 @@ const toKebab = (value: string): string =>
   value.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
 
 // ── Framework code snippets (docs "Code" tab) ────────────────────────────────
-
-type Framework = "html" | "react" | "angular" | "vue" | "svelte";
-
-const FRAMEWORKS: Array<{ id: Framework; label: string }> = [
-  { id: "html", label: "HTML" },
-  { id: "react", label: "React" },
-  { id: "angular", label: "Angular" },
-  { id: "vue", label: "Vue" },
-  { id: "svelte", label: "Svelte" },
-];
-
-/**
- * The demo's representative root element, pretty-printed in self-closing (JSX)
- * and full forms. Attribute-heavy elements would otherwise be a single ~500
- * character line.
- */
-const representativeTag = (html: string, tag: string): { selfClose: string; full: string } => {
-  const open = new RegExp(`<${tag}(?:\\s[^>]*)?>`).exec(html)?.[0] ?? `<${tag}>`;
-  return {
-    selfClose: formatHtml(open.replace(/\s*>$/, "/>"), true),
-    full: formatHtml(`${open}</${tag}>`),
-  };
-};
-
-/** True when a formatted snippet spans more than one line. */
-const isMultiline = (code: string): boolean => code.includes("\n");
-
-/** A minimal copy-pasteable per-framework usage snippet for one component. */
-const frameworkSnippet = (framework: Framework, id: string, tag: string, html: string): string => {
-  if (framework === "html") return formatHtml(html);
-  const { selfClose, full } = representativeTag(html, tag);
-  const componentPath = id === "preview-element" ? "preview" : id;
-  const imp = `import "@unofficialbox/box-open-elements/${componentPath}";`;
-  switch (framework) {
-    case "react": {
-      // Multi-line JSX has to be parenthesised after `return`.
-      const body = isMultiline(selfClose)
-        ? `  return (\n${indentBlock(selfClose, 4)}\n  );`
-        : `  return ${selfClose};`;
-      return `${imp}\n\nexport function Example() {\n${body}\n}`;
-    }
-    case "angular":
-      return `import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";\n${imp}\n\n@Component({\n  standalone: true,\n  schemas: [CUSTOM_ELEMENTS_SCHEMA],\n  template: \`\n${indentBlock(full, 4)}\n  \`,\n})\nexport class Example {}`;
-    case "vue":
-      return `<script setup lang="ts">\n${imp}\n</script>\n\n<template>\n${indentBlock(full, 2)}\n</template>`;
-    case "svelte":
-      return `<script lang="ts">\n${indentBlock(imp, 2)}\n</script>\n\n${full}`;
-  }
-};
 
 // ── State + routing ──────────────────────────────────────────────────────────
 
@@ -438,9 +390,9 @@ const renderComponentPage = (entry: CatalogEntry): void => {
             `<button type="button" class="code-tab" data-code="${framework.id}" role="tab" aria-selected="${index === 0}" title="${framework.label}"><span class="code-tab-icon">${frameworkIconSvg(framework.id)}</span><span class="visually-hidden">${framework.label}</span></button>`,
         ).join("")}
       </div>
-      <pre class="code-block"><code id="code-block">${highlightCode(formatHtml(example.codeHtml ?? initialHtml), "html")}</code></pre>
+      <div class="code-wrap"><button type="button" class="code-copy" id="framework-code-copy">Copy code</button><pre class="code-block"><code id="code-block">${highlightCode(formatHtml(example.codeHtml ?? initialHtml), "html")}</code></pre></div>
       ${example.setupCode ? `<h2>Controller setup</h2><pre class="code-block"><code>${highlightCode(example.setupCode, "ts")}</code></pre>` : ""}
-      <p class="preview-note code-frameworks-note">Snippets show a minimal use; the one-time setup (design tokens, Vue <code>isCustomElement</code>, React custom events) is in the <a href="https://github.com/unofficialbox/box-open-elements/blob/main/docs/integration/frameworks.md" target="_blank" rel="noreferrer">Frameworks guide</a>.</p>
+      <p class="preview-note code-frameworks-note">Snippets show a minimal use; the one-time setup (design tokens, Vue <code>isCustomElement</code>, Solid/Preact factory property and event binding) is in the <a href="https://github.com/unofficialbox/box-open-elements/blob/main/docs/integration/frameworks.md" target="_blank" rel="noreferrer">Frameworks guide</a>.</p>
       ${(() => {
         const note = variants[0]?.note ?? example.note;
         return note ? `<p id="variant-note" class="preview-note">${escapeHtml(note)}</p>` : `<p id="variant-note" class="preview-note" hidden></p>`;
@@ -593,6 +545,10 @@ const renderComponentPage = (entry: CatalogEntry): void => {
 
   // Variant picker — live example setups when present; otherwise extracted HTML.
   const codeBlock = stageBody.querySelector<HTMLElement>("#code-block")!;
+
+  stageBody.querySelector<HTMLButtonElement>("#framework-code-copy")!.addEventListener("click", () => {
+    void navigator.clipboard?.writeText(codeBlock.textContent ?? "");
+  });
 
   // Framework code tabs — re-render the snippet for the current variant + framework.
   let currentHtml = initialHtml;
@@ -770,7 +726,7 @@ const renderHomePage = (): void => {
     <section class="home" aria-labelledby="home-hero">
       <p class="home-eyebrow">Box Open Elements · Edition 01</p>
       <h1 class="home-hero" id="home-hero">Build the interface.<br><span class="accent">Keep the freedom.</span></h1>
-      <p class="home-lede">Framework-agnostic Web Components that track Box's design language — drop them into React, Angular, Vue, Svelte, or plain HTML. No lock-in, no wrapper tax.</p>
+      <p class="home-lede">Framework-agnostic Web Components that track Box's design language — drop them into React, Angular, Vue, Svelte, Solid, Preact, or plain HTML. No lock-in, no wrapper tax.</p>
       <div class="home-actions">
         <a class="home-cta primary" href="${pageHref("components", firstComponent)}">Explore the catalog →</a>
         <a class="home-cta ghost" href="https://github.com/unofficialbox/box-open-elements" target="_blank" rel="noreferrer">View on GitHub <span aria-hidden="true">↗</span></a>

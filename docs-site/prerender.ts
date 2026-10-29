@@ -124,7 +124,7 @@ export const homePage = (): PrerenderPage => {
     <section class="home" aria-labelledby="home-hero">
       <p class="home-eyebrow">Box Open Elements · Edition 01</p>
       <h1 class="home-hero" id="home-hero">Build the interface.<br><span class="accent">Keep the freedom.</span></h1>
-      <p class="home-lede">Framework-agnostic Web Components that track Box's design language — drop them into React, Angular, Vue, Svelte, or plain HTML. No lock-in, no wrapper tax.</p>
+      <p class="home-lede">Framework-agnostic Web Components that track Box's design language — drop them into React, Angular, Vue, Svelte, Solid, Preact, or plain HTML. No lock-in, no wrapper tax.</p>
       <div class="home-actions">
         <a class="home-cta primary" href="components/${firstComponent}/">Explore the catalog →</a>
         <a class="home-cta ghost" href="https://github.com/unofficialbox/box-open-elements" target="_blank" rel="noreferrer">View on GitHub <span aria-hidden="true">↗</span></a>
@@ -148,7 +148,7 @@ export const homePage = (): PrerenderPage => {
     path: "",
     route: { tier: "home", id: "home" },
     title: "Box Open Elements — Web Components design system for Box",
-    description: "Framework-agnostic Web Components that track Box's design language — for React, Angular, Vue, Svelte, or plain HTML.",
+    description: "Framework-agnostic Web Components that track Box's design language — for React, Angular, Vue, Svelte, Solid, Preact, or plain HTML.",
     breadcrumbHtml: "<b>Home</b>",
     bodyHtml,
   };

@@ -228,6 +228,7 @@
     "preview:capture": "bun run build && bun tools/preview/capture.ts",
     "docs": "bun run build && bun docs-site/server.ts",
     "docs:typecheck": "tsc -p docs-site/tsconfig.json",
+    "docs:snippets": "bun tools/adapters/docs-jsx-check.ts",
     "docs:build": "bun run build && bun docs-site/build.ts",
     "site:build": "bun run build && bun run storybook:extract && bun storybook/build.ts && bun docs-site/build.ts --include-workshop && bun run site:check",
     "site:check": "bun tools/preview/site-artifact-check.ts",

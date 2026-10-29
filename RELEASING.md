@@ -329,6 +329,30 @@ core resolution and integrity from `0.42.2` to `0.42.3`.
 and the [docs deployment](https://github.com/unofficialbox/box-open-elements/actions/runs/38469504146)
 succeeded at that commit. Historical `0.42.2` tags were unchanged.
 
+### Completed 0.43.0 folder-tree release
+
+The core and all six adapters were published at `0.43.0` from
+`c5bc4291d43b26538e8feed80d619f2d71f6f458` after release PR #599 passed the
+full minor-release gate, including 3,714 tests and strict pinned pixel and
+geometry/color conformance. [Core publication](https://github.com/unofficialbox/box-open-elements/actions/runs/40790782474)
+and [adapter publication](https://github.com/unofficialbox/box-open-elements/actions/runs/40790779296)
+succeeded using OIDC. The adapter gate waited for the exact core version to
+become publicly available before any adapter was published.
+
+All seven registry versions and `latest` tags, core peers `^0.43.0`, tarball
+integrity and approved contents, and provenance source/workflow/tag identities
+were verified. A fresh public-registry install passed `npm audit signatures`
+with no invalid or missing signatures, all-adapter public types, React tree and
+nullable Number Input types/SSR, and Solid/Preact production builds and SSR.
+Their Chromium client/hydration/initial-event checks passed at desktop/mobile
+widths. Release main CI, Angular compatibility and docs deployment passed.
+
+Manual tree/diff screen-reader verification remains unfinished; the user
+explicitly approved deferring it with the limitation documented in the release
+notes. The optional direct local Firefox tree/diff run could not launch; pinned
+Firefox consumer suites passed. Neither is recorded as a manual screen-reader
+or direct Firefox tree/diff pass.
+
 For future new packages, an already-published bootstrap version is skipped by
 the workflow and cannot validate a new publisher. Use the next explicitly
 approved release for that validation; do not republish the bootstrap version.

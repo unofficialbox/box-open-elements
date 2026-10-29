@@ -242,3 +242,43 @@ with its native framework peer, then use its exported wrappers. See the
 [Preact README](../../packages/preact/README.md) for native JSX, ref, property,
 event, and hydration contracts. Runnable production/SSR fixtures are included in
 `bun run verify`. SolidStart support is not verified.
+
+### Solid and Preact Code tabs
+
+The docs Code tab includes Solid and native Preact for every component and
+pattern, plus cumulative snippets for every build-along lesson step. The
+component snippets use the published `createWebComponent` factory; this also
+covers components such as Number Input, Folder Tree and Folder Tree Diff that
+do not have named Solid/Preact wrapper exports. Do not import those names from
+the adapter package.
+
+Install the adapter alongside the matching core and framework:
+
+```bash
+npm install @unofficialbox/box-open-elements @unofficialbox/box-open-elements-solid solid-js
+# or
+npm install @unofficialbox/box-open-elements @unofficialbox/box-open-elements-preact preact
+```
+
+Configure the app for native JSX (`jsxImportSource: "solid-js"` with the Solid
+Vite plugin, or `jsxImportSource: "preact"`). Copied Preact snippets include an
+explicit JSX pragma and do not use React or `preact/compat`.
+
+Factory `propertyNames` keep rich values out of host attributes. Assign these
+properties in `sync`, and map dashed DOM events through `events`. Solid reads
+controlled values with signal accessors (`selected()`); Preact uses hook values
+(`selected`). The tree examples echo `expanded-changed` and `selected-changed`
+into that state. The optional number example preserves `number | null` and
+seeds `allow-empty` as a host attribute before connection so native form reset
+captures the empty initial value.
+
+The lesson snippets are JavaScript JSX (`Example.jsx`): they keep the lesson's
+imperative controller inside Solid `onMount`/`onCleanup` or Preact
+`useLayoutEffect`. Each mount owns its DOM and removes its custom elements on
+unmount. Component Code tabs demonstrate reactive property/event binding. Apply
+design tokens in the browser; imports and server rendering do not run the
+lesson mount code.
+
+Core and all six adapters are published at `0.43.0` through the existing OIDC
+workflows with provenance. The earlier `0.42.2` Solid/Preact human bootstrap is
+historical; it does not describe the provenance of this release.
