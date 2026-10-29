@@ -88,18 +88,18 @@ export function boxPlotPosition(value: number, domain: BoxPlotDomain, scale: Box
 }
 
 const styles = `
-  :host { display:block; container-type:inline-size; color:var(--boe-token-text-text, #1f1e1b); font:inherit; min-width:0 }
+  :host { display:block; container-type:inline-size; contain-intrinsic-inline-size:36rem; color:var(--boe-token-text-text, #1f1e1b); font:inherit; min-width:0 }
   :host([orientation=vertical]) { contain:layout }
   :host([hidden]) { display:none !important }
-  [part=panel] { padding:1rem; background:var(--boe-token-surface-surface, #fff); border:1px solid var(--boe-token-stroke-stroke, #dedfe4); border-radius:0.75rem; min-width:0 }
-  [part=header] { display:flex; justify-content:space-between; align-items:start; gap:0.75rem; flex-wrap:wrap; margin-bottom:0.8rem }
+  [part=panel] { padding:1.25rem; background:var(--boe-token-surface-surface, #fff); border:1px solid var(--boe-token-stroke-stroke, #dedfe4); border-radius:0.75rem; min-width:0 }
+  [part=header] { display:flex; justify-content:space-between; align-items:start; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.5rem }
   :host([embedded]) [part=panel] { padding:0; background:none; border:0; border-radius:0 }
-  :is(h1,h2,h3,h4,h5,h6) { margin:0; font:inherit; font-weight:700; font-size:1.05rem }
+  :is(h1,h2,h3,h4,h5,h6) { margin:0; font:inherit; font-weight:600; font-size:1rem }
   [part=description], [part=note] { color:var(--boe-token-text-text-secondary, #626b7d); font-size:0.82rem; line-height:1.4 }
-  [part=note] { margin:0.3rem 0 0 }
+  [part=note] { margin:0.75rem 0 0; max-inline-size:65ch; font-size:.75rem }
   button[part=table-toggle] { font:inherit; color:inherit; background:none; border:0; border-radius:0.25rem; cursor:pointer; padding:0.2rem 0.35rem; text-decoration:underline; text-underline-offset:0.2em }
   button:focus-visible { outline:2px solid var(--boe-token-surface-surface-brand, #0061d5); outline-offset:3px }
-  [part=plot] { display:grid; gap:0.25rem; min-width:0 }
+  [part=plot] { display:grid; gap:0.75rem; min-width:0 }
   [part=axis], [part=row] { display:grid; grid-template-columns:minmax(7rem, 11rem) minmax(0,1fr); gap:0.7rem; align-items:center; min-width:0 }
   [part=axis] { margin-bottom:0.2rem }
   [part=ticks] { position:relative; height:1.8rem; color:var(--boe-token-text-text-secondary, #626b7d); font-size:0.72rem }
@@ -108,10 +108,10 @@ const styles = `
   [part=label] { min-width:0; overflow-wrap:anywhere; font-size:0.82rem; font-weight:600 }
   [part=row] { border-radius:0.3rem; padding:0.1rem 0 }
   [part=row]:hover, [part=row]:focus-within { background:var(--boe-token-surface-surface-secondary, #f5f7fb) }
-  [part=mark] { position:relative; appearance:none; display:block; width:100%; height:2.4rem; padding:0; border:0; background:none; cursor:help; color:inherit }
+  [part=mark] { position:relative; appearance:none; display:block; width:100%; height:2.8rem; padding:0; border:0; background:none; cursor:help; color:inherit }
   [part=mark]:focus-visible { outline:2px solid var(--boe-token-surface-surface-brand, #0061d5); outline-offset:2px }
   [part=gridline] { position:absolute; top:0; bottom:0; border-left:1px solid var(--boe-boxplot-grid, var(--boe-token-stroke-stroke, #dedfe4)); pointer-events:none }
-  [part=whisker] { position:absolute; top:50%; height:0; border-top:2px solid var(--boe-boxplot-whisker, var(--boe-token-text-text-secondary, #626b7d)); pointer-events:none }
+  [part=whisker] { position:absolute; top:50%; height:0; border-top:1px solid var(--boe-boxplot-whisker, var(--boe-token-text-text-secondary, #626b7d)); pointer-events:none }
   [part=cap], [part=median], [part=reference] { position:absolute; top:25%; height:50%; width:2px; transform:translateX(-50%); background:var(--boe-boxplot-whisker, var(--boe-token-text-text-secondary, #626b7d)); pointer-events:none }
   [part=box] { position:absolute; top:25%; height:50%; box-sizing:border-box; border:2px solid var(--boe-boxplot-edge, var(--boe-token-surface-surface-brand, #0061d5)); border-radius:0.2rem; background:var(--boe-boxplot-fill, color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, var(--boe-token-surface-surface, #fff))); pointer-events:none }
   [part=median] { top:20%; height:60%; width:3px; background:var(--boe-boxplot-median, var(--boe-token-text-text, #1f1e1b)) }
@@ -141,7 +141,7 @@ const styles = `
   [data-orientation=vertical] [part=reference] { left:16% !important; width:68%; height:0; border-left:0; border-top:2px dashed var(--boe-boxplot-reference, #b54a1b) }
   [data-orientation=vertical] [part=dot] { left:var(--jitter) !important; bottom:var(--pos); top:auto; transform:translate(-50%,50%) }
   [data-orientation=vertical] [part=detail] { position:fixed; left:var(--_boxplot-detail-x, 0px); top:var(--_boxplot-detail-y, 0px); bottom:auto; transform:none }
-  @container (max-width:600px) { [part=panel] { padding:0.75rem } [part=axis], [part=row] { display:block } [part=axis] { padding-top:0.2rem } [part=label] { display:block; margin-bottom:0.1rem } [part=mark] { height:2.6rem } [data-orientation=vertical] [part=axis] { padding:0 } }
+  @container (max-width:600px) { [part=panel] { padding:1rem } [part=axis], [part=row] { display:block } [part=axis] { padding-top:0.2rem } [part=label] { display:block; margin-bottom:0.1rem } [part=mark] { height:2.6rem } [data-orientation=vertical] [part=axis] { padding:0 } }
   @media (prefers-reduced-motion:reduce) { *, *::before, *::after { transition:none !important; animation:none !important } }
 `;
 

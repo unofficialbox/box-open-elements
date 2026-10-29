@@ -17,6 +17,7 @@ const chromiumExecutablePath = (): string | undefined => {
 const ROOT = new URL("../..", import.meta.url).pathname;
 const OUT_DIR = process.env.DOCS_SHOTS_OUT_DIR ?? join(ROOT, "docs/screenshots/docs-site");
 const BOX_PLOT_ONLY = process.argv.includes("--box-plot-only");
+const INSIGHTS_ONLY = process.argv.includes("--insights-only");
 const PORT = 4601;
 const BANNER_TIMEOUT_MS = 20_000;
 const SETTLE_INTERVAL_MS = 250;
@@ -165,6 +166,7 @@ try {
     }
   });
 
+  if (!INSIGHTS_ONLY) {
   for (const [name, hash, readyMarker, scrollTo] of routes) {
     if (BOX_PLOT_ONLY && name !== "patterns-box-plot") continue;
     await page.goto(`http://localhost:${PORT}/${hash}`, { waitUntil: "networkidle" });
@@ -386,6 +388,9 @@ try {
     if (violations.length) throw new Error(`${label} axe violations: ${JSON.stringify(violations)}`);
   };
   await verifyBoxPlotAxe("horizontal mobile light");
+  await page.locator("#variant-select").focus();
+  await page.mouse.move(0, 0);
+  await page.evaluate(() => window.scrollTo(0, 0));
   await waitForVisualSettle(page, "patterns-box-plot-mobile");
   await page.locator("box-box-plot").screenshot({ path: join(OUT_DIR, "patterns-box-plot-mobile.png"), animations: "disabled" });
   await page.locator('box-box-plot [part="table-toggle"]').click();
@@ -428,11 +433,17 @@ try {
   await verifyBoxPlotTooltips("vertical mobile");
   await page.locator("#variant-select").focus();
   await page.mouse.move(0, 0);
+  await page.locator("#variant-select").focus();
+  await page.mouse.move(0, 0);
+  await page.evaluate(() => window.scrollTo(0, 0));
   await waitForVisualSettle(page, "patterns-box-plot-vertical-mobile");
   await page.locator("box-box-plot").screenshot({ path: join(OUT_DIR, "patterns-box-plot-vertical-mobile.png"), animations: "disabled" });
   await page.evaluate(() => document.getElementById("theme-toggle")?.click());
   await page.waitForSelector('html[data-theme="dark"]');
   await verifyBoxPlotAxe("vertical mobile dark");
+  await page.locator("#variant-select").focus();
+  await page.mouse.move(0, 0);
+  await page.evaluate(() => window.scrollTo(0, 0));
   await waitForVisualSettle(page, "patterns-box-plot-vertical-mobile-dark");
   await page.locator("box-box-plot").screenshot({ path: join(OUT_DIR, "patterns-box-plot-vertical-mobile-dark.png"), animations: "disabled" });
   await page.locator("#variant-select").selectOption("0");
@@ -473,6 +484,108 @@ try {
   await page.locator("box-agent-workspace").screenshot({path:join(OUT_DIR,"patterns-agent-workspace-mobile.png"),animations:"disabled"});
   console.log("captured workspace wide and mobile fixtures");
   }
+  }
+
+  if (!BOX_PLOT_ONLY) {
+    // Insight charts keep readable labels, theme surfaces and native controls
+    // at both documentation widths. Capture the chart itself to catch changes
+    // that a whole-page screenshot can push below the fold.
+    for (const width of [1440, 390]) for (const theme of ["light", "dark"]) {
+      await page.setViewportSize({ width, height: 940 });
+      for (const id of ["chart-panel", "bar-chart", "line-chart", "donut-chart", "box-plot", "metric-card"]) {
+        await page.goto(`http://localhost:${PORT}/#patterns/${id}`, { waitUntil: "networkidle" });
+        await page.waitForSelector(`body[data-route-ready="patterns/${id}"]`);
+        await page.evaluate(target => {
+          if (document.documentElement.dataset.theme !== target) document.getElementById("theme-toggle")?.click();
+        }, theme);
+        await applyDeterministicFonts(page);
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await page.mouse.move(0, 0);
+        await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+        if (!await page.evaluate(() => "axe" in window)) await page.addScriptTag({ path: join(ROOT, "node_modules/axe-core/axe.min.js") });
+        const chart = page.locator(`box-${id}`).first();
+        if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)) throw new Error(`${id} page overflows at ${width}`);
+        if (id === "bar-chart" || id === "chart-panel") {
+          const fits = await chart.evaluate(element => {
+            const visual = element.shadowRoot!.querySelector('[part="visual"]')!.getBoundingClientRect();
+            return [...element.shadowRoot!.querySelectorAll('[part="bar"]')].every(bar => {
+              const bounds = bar.getBoundingClientRect();
+              return bounds.left >= visual.left && bounds.right <= visual.right + 1;
+            });
+          });
+          if (!fits) throw new Error(`${id} clips a demo column at ${width}`);
+          const labelsAboveMarks = await chart.evaluate(element => [...element.shadowRoot!.querySelectorAll('[part="point"]')].every(point => {
+            const label = point.querySelector('[part="point-value"]')!.getBoundingClientRect();
+            const bar = point.querySelector('[part="bar"]')!.getBoundingClientRect();
+            return label.bottom <= bar.top + 1;
+          }));
+          if (!labelsAboveMarks) throw new Error(`${id} values do not sit above their marks`);
+        }
+        const violations = await page.evaluate(async tag => {
+          const axe = (window as unknown as { axe: { run: (target: Element, options: object) => Promise<{violations: Array<{id: string}>}> } }).axe;
+          return (await axe.run(document.querySelector(tag)!, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa"] } })).violations.map(v => v.id);
+        }, `box-${id}`);
+        if (violations.length) throw new Error(`${id} ${width} ${theme}: ${violations.join(", ")}`);
+        await waitForVisualSettle(page, `insights-${id}-${width}-${theme}`);
+        await chart.screenshot({ path: join(OUT_DIR, `insights-${id}-${width}-${theme}.png`), animations: "disabled" });
+        if (id === "line-chart") {
+          const circular = await chart.locator('[part="dot"]').evaluateAll(dots => dots.every(dot => {
+            const bounds = dot.getBoundingClientRect();
+            return Math.abs(bounds.width - bounds.height) < 1;
+          }));
+          if (!circular) throw new Error(`Line markers stretch at ${width}`);
+          const aligned = await chart.evaluate(element => {
+            const dots = [...element.shadowRoot!.querySelectorAll('[part="dot"]')];
+            return [...element.shadowRoot!.querySelectorAll('[part="point"]')].every((point, index) => {
+              const value = point.querySelector('[part="point-value"]')!.getBoundingClientRect();
+              const label = point.querySelector('[part="point-label"]')!.getBoundingClientRect();
+              const dot = dots[index].getBoundingClientRect();
+              return value.bottom <= dot.top + 1 && Math.abs(label.left + label.width / 2 - dot.left - dot.width / 2) < 1;
+            });
+          });
+          if (!aligned) throw new Error(`Line labels are detached from their marks at ${width}`);
+          const toneWorks = await chart.evaluate(element => {
+            const host = element as HTMLElement & { points: Array<{id:string;label:string;value:number;tone?:string}> };
+            const original = host.points;
+            const first = () => host.shadowRoot!.querySelector('[part="dot"]')!;
+            const before = getComputedStyle(first()).stroke;
+            host.points = original.map((point, index) => index === 0 ? { ...point, tone: "accent" } : point);
+            const changed = getComputedStyle(first()).stroke !== before;
+            host.points = original;
+            return changed;
+          });
+          if (!toneWorks) throw new Error("Line point tones lost their visual distinction");
+          if (width === 1440) {
+            await page.getByRole("button", { name: "Mobile", exact: true }).click();
+            await page.waitForFunction(() => {
+              const dot = document.querySelector("box-line-chart")?.shadowRoot?.querySelector('[part="dot"]');
+              const bounds = dot?.getBoundingClientRect();
+              return bounds && Math.abs(bounds.width - bounds.height) < 1;
+            });
+            await page.getByRole("button", { name: "Full", exact: true }).click();
+          }
+        }
+        if (["bar-chart", "chart-panel", "line-chart", "donut-chart"].includes(id)) {
+          const control = chart.locator(id === "donut-chart" ? '[part="legend-item"]' : '[part="point"]').first();
+          await control.focus();
+          await control.press("Enter");
+          if (id === "donut-chart" && await control.getAttribute("aria-pressed") !== "true") throw new Error("Donut keyboard selection failed");
+          if (id === "donut-chart") {
+            const linked = await chart.evaluate(element => {
+              const focused = element.shadowRoot!.querySelector<HTMLElement>('[part="legend-item"][data-active="true"]');
+              const active = element.shadowRoot!.querySelector<SVGElement>('[part="segment"][data-active="true"]');
+              return focused && active && focused.dataset.segmentId === active.dataset.segmentId;
+            });
+            if (!linked) throw new Error("Donut focus is not linked to its ring segment");
+          }
+          if (Number(await page.locator("#event-count").textContent()) < 1) throw new Error(`${id} did not emit a keyboard event`);
+        }
+
+      }
+    }
+    console.log("captured and accessibility-checked all six insight charts in desktop/mobile light/dark");
+  }
+
 } finally {
   await browser?.close();
   server.kill();

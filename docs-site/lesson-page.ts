@@ -464,12 +464,11 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
 
   const finalCode = lesson.steps[lesson.steps.length - 1].code;
 
-  // Per-step code in every framework: html = the vanilla diff-highlighted lines,
-  // the rest = that step's cumulative component. Captured for the tab handler.
+  // Every entry mounts the same cumulative controller for this step.
   const stepVariants: StepVariant[] = lesson.steps.map((step, index) => ({
-    htmlLines: diffLinesHtml(step.code, addedLines(index === 0 ? "" : lesson.steps[index - 1].code, step.code)),
+    htmlLines: highlightCode(lesson.stepFrameworks.html[index], "html"),
     codes: {
-      html: step.code,
+      html: lesson.stepFrameworks.html[index],
       react: lesson.stepFrameworks.react[index],
       angular: lesson.stepFrameworks.angular[index],
       vue: lesson.stepFrameworks.vue[index],
@@ -496,9 +495,12 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
           ).join("")}
         </div>
         <div class="code-wrap">
-          <button type="button" class="code-copy" data-copy="${escapeHtml(step.code)}">${isSetup ? "Copy app.js" : "Copy file"}</button>
+          <button type="button" class="code-copy" data-copy="${escapeHtml(variant.codes.html)}">Copy entry</button>
           <pre class="code-block"><code id="step-code-${index}">${variant.htmlLines}</code></pre>
         </div>
+        <h3>Shared controller — controller.js</h3>
+        <p>The same data and event behavior is used by every framework. Save this beside the entry file above.</p>
+        ${codeBlock(lesson.controllers[index], addedLines(index === 0 ? "" : lesson.controllers[index - 1], lesson.controllers[index]), "Copy controller.js")}
         <div class="lesson-result">
           <p class="section-label">Result</p>
           <div class="preview-canvas lesson-canvas" data-preview="${step.preview}"></div>
@@ -515,7 +517,7 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
   const frameworksHtml = `
     <section class="lesson-frameworks">
       <p class="section-label">Use it in your framework</p>
-      <p>Prefer to skip the walkthrough? Here is the finished lesson — the same element, properties, and events — wired up the way each framework expects. The step-by-step below builds it with plain DOM calls.</p>
+      <p>Prefer to skip the walkthrough? Here is the finished lesson — the same element, properties, and events — wired up the way each framework expects. Every framework uses the same controller.js below; only mount and cleanup syntax differs.</p>
       <div class="code-tabs" role="tablist" aria-label="Framework">
         ${LESSON_FRAMEWORKS.map(
           (framework, index) =>
@@ -526,6 +528,8 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
         <button type="button" class="code-copy" id="lesson-framework-copy" data-copy="${escapeHtml(lesson.frameworks.html)}">Copy</button>
         <pre class="code-block"><code id="lesson-framework-code">${highlightCode(lesson.frameworks.html, "html")}</code></pre>
       </div>
+      <h3>Shared controller — controller.js</h3>
+      ${codeBlock(lesson.controllers.at(-1)!, new Set(), "Copy controller.js")}
     </section>`;
 
   stageBody.innerHTML = `
@@ -632,7 +636,7 @@ export const renderLessonPage = (lesson: Lesson, stageBody: HTMLElement, breadcr
   stageBody.addEventListener("click", onFramework);
 
   // Per-step framework tabs: swap that step's code block (and copy target)
-  // between the vanilla walkthrough and the cumulative framework component.
+  // between native framework entry files. The shared controller stays visible.
   const onStepFramework = (event: Event): void => {
     const tab = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-step-tab]");
     if (!tab) return;

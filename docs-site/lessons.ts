@@ -1,27 +1,7 @@
+import packageInfo from "../package.json" with { type: "json" };
 import type { Framework } from "./framework-snippets.js";
-import { jsxLessonSnippet } from "./lesson-jsx.js";
-/**
- * Build-along lessons — pure, framework-free data.
- *
- * This module is intentionally DOM-free and does NOT import
- * `box-open-elements`, so it can be unit-tested in a node environment and
- * kept as the single source of truth for lesson content. The browser
- * renderer (`lesson-page.ts`) turns this data into a live, build-it-yourself
- * page; the delta highlight per step is derived by diffing each step's
- * cumulative source against the previous step, so there are no
- * hand-maintained line numbers to drift.
- *
- * Contract: see docs/workshop/build-alongs.md. Lessons are live-website-first
- * (each step runs in the browser against the already-deployed library) with a
- * copyable complete-source "build it in your own project" path.
- */
-import {
-  explorerStepFrameworks,
-  intakeStepFrameworks,
-  shareStepFrameworks,
-  previewStepFrameworks,
-  type StepFrameworks,
-} from "./lesson-frameworks.js";
+import { lessonController, lessonEntry } from "./lesson-controller.js";
+import { FRAMEWORKS } from "./framework-snippets.js";
 
 /** Which live preview state the renderer should build for a step. */
 export type PreviewKey =
@@ -97,25 +77,25 @@ export interface Lesson {
    * `steps` (the step's own `code` is the vanilla / "HTML" tab). Lets the
    * framework version stay in lockstep with each teaching step.
    */
-  stepFrameworks: StepFrameworks & Record<"solid" | "preact", string[]>;
+  stepFrameworks: Record<FrameworkId, string[]>;
+  controllers: string[];
 }
 
 export type FrameworkId = Framework;
 
-const withJSXFrameworks = (lesson: Omit<Lesson, "frameworks" | "stepFrameworks"> & {
-  frameworks: Record<Exclude<FrameworkId, "solid" | "preact">, string>;
-  stepFrameworks: StepFrameworks;
-}): Lesson => {
-  const solid = lesson.steps.map(step => jsxLessonSnippet("solid", step.code));
-  const preact = lesson.steps.map(step => jsxLessonSnippet("preact", step.code));
+const withFrameworkExamples = (lesson: Omit<Lesson, "frameworks" | "stepFrameworks" | "controllers">): Lesson => {
+  const controllers = lesson.steps.map(step => lessonController(step.code));
   return {
     ...lesson,
-    frameworks: { ...lesson.frameworks, solid: solid.at(-1)!, preact: preact.at(-1)! },
-    stepFrameworks: { ...lesson.stepFrameworks, solid, preact },
+    install: lesson.install.replaceAll("app.js", "controller.js"),
+    steps: lesson.steps.map((step, index) => ({ ...step, file: "controller.js", anchor: step.anchor.replaceAll("app.js", "controller.js"), code: controllers[index] })),
+    frameworks: Object.fromEntries(FRAMEWORKS.map(({ id }) => [id, lessonEntry(id)])) as Record<FrameworkId, string>,
+    stepFrameworks: Object.fromEntries(FRAMEWORKS.map(({ id }) => [id, lesson.steps.map(() => lessonEntry(id))])) as Record<FrameworkId, string[]>,
+    controllers,
   };
 };
 
-const importMapSnippet = `{ "imports": { "@unofficialbox/box-open-elements": "https://esm.sh/@unofficialbox/box-open-elements@0.1.0" } }`;
+const importMapSnippet = `{ "imports": { "@unofficialbox/box-open-elements": "https://esm.sh/@unofficialbox/box-open-elements@${packageInfo.version}" } }`;
 
 const starterHtml = (title: string, mountComment: string): string => `<!doctype html>
 <html lang="en">
@@ -132,7 +112,10 @@ const starterHtml = (title: string, mountComment: string): string => `<!doctype 
   <body>
     <!-- ${mountComment} -->
     <div id="app"></div>
-    <script type="module" src="./app.js"></script>
+    <script type="module">
+      import { mountExample } from "./controller.js";
+      mountExample(document.getElementById("app"));
+    </script>
   </body>
 </html>`;
 
@@ -242,7 +225,7 @@ const EXPLORER_STEP5 = `${EXPLORER_STEP4}
 explorer.setAttribute("selection-mode", "multiple");
 explorer.setAttribute("page-size", "50");`;
 
-export const explorerLesson: Lesson = withJSXFrameworks({
+export const explorerLesson: Lesson = withFrameworkExamples({
   id: "explorer",
   title: "Explorer",
   area: "Build Alongs",
@@ -323,141 +306,6 @@ export const explorerLesson: Lesson = withJSXFrameworks({
       preview: "multiselect",
     },
   ],
-  frameworks: {
-    html: `<box-content-explorer
-  id="explorer"
-  root-folder-id="0"
-  token="developer-token"
-  selection-mode="multiple"
-></box-content-explorer>
-
-<script type="module">
-  import {
-    ContentExplorer,
-    registerBoxDefaultDesignSystem,
-  } from "@unofficialbox/box-open-elements";
-
-  registerBoxDefaultDesignSystem();
-
-  const explorer = document.getElementById("explorer");
-  // transport is an object, so it is set as a property, not an attribute.
-  explorer.transport = transport;
-
-  explorer.addEventListener("folder-loaded", event => {
-    console.log("You are in:", event.detail.folder.name);
-  });
-  explorer.addEventListener("selection-changed", event => {
-    console.log("Selected:", event.detail.selectedItemIds);
-  });
-</script>`,
-    react: `import { useEffect, useRef } from "react";
-import "@unofficialbox/box-open-elements/content-explorer";
-
-
-export function Explorer({ transport }) {
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    // Object props and custom events both need the ref: React sets attributes
-    // for strings, but does not subscribe to custom events.
-    el.transport = transport;
-
-    const onFolder = event => console.log("You are in:", event.detail.folder.name);
-    const onSelect = event => console.log("Selected:", event.detail.selectedItemIds);
-    el.addEventListener("folder-loaded", onFolder);
-    el.addEventListener("selection-changed", onSelect);
-    return () => {
-      el.removeEventListener("folder-loaded", onFolder);
-      el.removeEventListener("selection-changed", onSelect);
-    };
-  }, [transport]);
-
-  return (
-    <box-content-explorer
-      ref={ref}
-      root-folder-id="0"
-      token="developer-token"
-      selection-mode="multiple"
-    />
-  );
-}`,
-    angular: `import { Component, CUSTOM_ELEMENTS_SCHEMA, Input } from "@angular/core";
-import "@unofficialbox/box-open-elements/content-explorer";
-
-
-@Component({
-  standalone: true,
-  selector: "app-explorer",
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  template: \`
-    <box-content-explorer
-      [transport]="transport"
-      root-folder-id="0"
-      token="developer-token"
-      selection-mode="multiple"
-      (folder-loaded)="onFolderLoaded($event)"
-      (selection-changed)="onSelectionChanged($event)"
-    ></box-content-explorer>
-  \`,
-})
-export class ExplorerComponent {
-  @Input() transport!: unknown;
-
-  onFolderLoaded(event: CustomEvent) {
-    console.log("You are in:", event.detail.folder.name);
-  }
-
-  onSelectionChanged(event: CustomEvent) {
-    console.log("Selected:", event.detail.selectedItemIds);
-  }
-}`,
-    vue: `<script setup lang="ts">
-import "@unofficialbox/box-open-elements/content-explorer";
-
-
-const props = defineProps<{ transport: unknown }>();
-
-const onFolderLoaded = (event: CustomEvent) => {
-  console.log("You are in:", event.detail.folder.name);
-};
-const onSelectionChanged = (event: CustomEvent) => {
-  console.log("Selected:", event.detail.selectedItemIds);
-};
-</script>
-
-<template>
-  <box-content-explorer
-    :transport="props.transport"
-    root-folder-id="0"
-    token="developer-token"
-    selection-mode="multiple"
-    @folder-loaded="onFolderLoaded"
-    @selection-changed="onSelectionChanged"
-  ></box-content-explorer>
-</template>`,
-    svelte: `<script lang="ts">
-  import "@unofficialbox/box-open-elements/content-explorer";
-
-
-  export let transport;
-
-  let el;
-  // Objects must be assigned as properties; attributes are strings only.
-  $: if (el) el.transport = transport;
-</script>
-
-<box-content-explorer
-  bind:this={el}
-  root-folder-id="0"
-  token="developer-token"
-  selection-mode="multiple"
-  on:folder-loaded={event => console.log("You are in:", event.detail.folder.name)}
-  on:selection-changed={event => console.log("Selected:", event.detail.selectedItemIds)}
-></box-content-explorer>`,
-  },
-  stepFrameworks: explorerStepFrameworks,
 });
 
 // ── Share lesson source, built up cumulatively ───────────────────────────────
@@ -529,7 +377,7 @@ panel.addEventListener("collaborator-selected", event => {
   console.log("collaborator", event.detail.name);
 });`;
 
-export const shareLesson: Lesson = withJSXFrameworks({
+export const shareLesson: Lesson = withFrameworkExamples({
   id: "share",
   title: "Share",
   area: "Build Alongs",
@@ -610,146 +458,6 @@ export const shareLesson: Lesson = withJSXFrameworks({
       preview: "share-actions",
     },
   ],
-  frameworks: {
-    html: `<box-share-panel id="share" heading="Share Quarterly Plan.pdf"></box-share-panel>
-
-<script type="module">
-  import {
-    SharePanel,
-    registerBoxDefaultDesignSystem,
-  } from "@unofficialbox/box-open-elements";
-
-  registerBoxDefaultDesignSystem();
-
-  const panel = document.getElementById("share");
-  // sharedLink, collaborators and actions are object/array properties.
-  panel.sharedLink = { url: "https://box.com/s/example", access: "company" };
-  panel.collaborators = [{ name: "Morgan Lee", role: "Editor" }];
-  panel.actions = [
-    { id: "copy", label: "Copy link" },
-    { id: "invite", label: "Invite people", tone: "primary" },
-  ];
-
-  panel.addEventListener("action", event => {
-    console.log("action", event.detail.action);
-  });
-  panel.addEventListener("collaborator-selected", event => {
-    console.log("collaborator", event.detail.name);
-  });
-</script>`,
-    react: `import { useEffect, useRef } from "react";
-import "@unofficialbox/box-open-elements/share-panel";
-
-
-export function SharePanel() {
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    el.sharedLink = { url: "https://box.com/s/example", access: "company" };
-    el.collaborators = [{ name: "Morgan Lee", role: "Editor" }];
-    el.actions = [
-      { id: "copy", label: "Copy link" },
-      { id: "invite", label: "Invite people", tone: "primary" },
-    ];
-
-    const onAction = event => console.log("action", event.detail.action);
-    const onCollaborator = event => console.log("collaborator", event.detail.name);
-    el.addEventListener("action", onAction);
-    el.addEventListener("collaborator-selected", onCollaborator);
-    return () => {
-      el.removeEventListener("action", onAction);
-      el.removeEventListener("collaborator-selected", onCollaborator);
-    };
-  }, []);
-
-  return <box-share-panel ref={ref} heading="Share Quarterly Plan.pdf" />;
-}`,
-    angular: `import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
-import "@unofficialbox/box-open-elements/share-panel";
-
-
-@Component({
-  standalone: true,
-  selector: "app-share",
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  template: \`
-    <box-share-panel
-      heading="Share Quarterly Plan.pdf"
-      [sharedLink]="sharedLink"
-      [collaborators]="collaborators"
-      [actions]="actions"
-      (action)="onAction($event)"
-      (collaborator-selected)="onCollaborator($event)"
-    ></box-share-panel>
-  \`,
-})
-export class ShareComponent {
-  sharedLink = { url: "https://box.com/s/example", access: "company" };
-  collaborators = [{ name: "Morgan Lee", role: "Editor" }];
-  actions = [
-    { id: "copy", label: "Copy link" },
-    { id: "invite", label: "Invite people", tone: "primary" },
-  ];
-
-  onAction(event: CustomEvent) {
-    console.log("action", event.detail.action);
-  }
-
-  onCollaborator(event: CustomEvent) {
-    console.log("collaborator", event.detail.name);
-  }
-}`,
-    vue: `<script setup lang="ts">
-import "@unofficialbox/box-open-elements/share-panel";
-
-
-const sharedLink = { url: "https://box.com/s/example", access: "company" };
-const collaborators = [{ name: "Morgan Lee", role: "Editor" }];
-const actions = [
-  { id: "copy", label: "Copy link" },
-  { id: "invite", label: "Invite people", tone: "primary" },
-];
-
-const onAction = (event: CustomEvent) => console.log("action", event.detail.action);
-const onCollaborator = (event: CustomEvent) => console.log("collaborator", event.detail.name);
-</script>
-
-<template>
-  <box-share-panel
-    heading="Share Quarterly Plan.pdf"
-    :sharedLink="sharedLink"
-    :collaborators="collaborators"
-    :actions="actions"
-    @action="onAction"
-    @collaborator-selected="onCollaborator"
-  ></box-share-panel>
-</template>`,
-    svelte: `<script lang="ts">
-  import "@unofficialbox/box-open-elements/share-panel";
-
-
-  let el;
-  // Object and array props are assigned, not passed as attributes.
-  $: if (el) {
-    el.sharedLink = { url: "https://box.com/s/example", access: "company" };
-    el.collaborators = [{ name: "Morgan Lee", role: "Editor" }];
-    el.actions = [
-      { id: "copy", label: "Copy link" },
-      { id: "invite", label: "Invite people", tone: "primary" },
-    ];
-  }
-</script>
-
-<box-share-panel
-  bind:this={el}
-  heading="Share Quarterly Plan.pdf"
-  on:action={event => console.log("action", event.detail.action)}
-  on:collaborator-selected={event => console.log("collaborator", event.detail.name)}
-></box-share-panel>`,
-  },
-  stepFrameworks: shareStepFrameworks,
 });
 
 // ── Preview lesson source, built up cumulatively ─────────────────────────────
@@ -817,7 +525,7 @@ preview.addEventListener("action", event => {
   console.log("action", event.detail.action, event.detail.providerId);
 });`;
 
-export const previewLesson: Lesson = withJSXFrameworks({
+export const previewLesson: Lesson = withFrameworkExamples({
   id: "preview",
   title: "Preview",
   area: "Build Alongs",
@@ -898,152 +606,6 @@ export const previewLesson: Lesson = withJSXFrameworks({
       preview: "preview-actions",
     },
   ],
-  frameworks: {
-    html: `<box-preview-element
-  id="preview"
-  heading="Quarterly Plan.pdf"
-  item-label="PDF · 2.4 MB"
-  status="Ready"
-></box-preview-element>
-
-<script type="module">
-  import {
-    Preview,
-    registerBoxDefaultDesignSystem,
-  } from "@unofficialbox/box-open-elements";
-
-  registerBoxDefaultDesignSystem();
-
-  const preview = document.getElementById("preview");
-  // provider, adapterState and actions are object/array properties.
-  preview.provider = { id: "content-preview", label: "Box Content Preview" };
-  preview.adapterState = { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%" };
-  preview.actions = [
-    { id: "open-provider", label: "Open provider", tone: "primary" },
-    { id: "download", label: "Download" },
-  ];
-
-  preview.addEventListener("action", event => {
-    console.log("action", event.detail.action, event.detail.providerId);
-  });
-</script>`,
-    react: `import { useEffect, useRef } from "react";
-import "@unofficialbox/box-open-elements/preview";
-
-
-export function Preview() {
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    el.provider = { id: "content-preview", label: "Box Content Preview" };
-    el.adapterState = { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%" };
-    el.actions = [
-      { id: "open-provider", label: "Open provider", tone: "primary" },
-      { id: "download", label: "Download" },
-    ];
-
-    const onAction = event =>
-      console.log("action", event.detail.action, event.detail.providerId);
-    el.addEventListener("action", onAction);
-    return () => {
-      el.removeEventListener("action", onAction);
-    };
-  }, []);
-
-  return (
-    <box-preview-element
-      ref={ref}
-      heading="Quarterly Plan.pdf"
-      item-label="PDF · 2.4 MB"
-      status="Ready"
-    />
-  );
-}`,
-    angular: `import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
-import "@unofficialbox/box-open-elements/preview";
-
-
-@Component({
-  standalone: true,
-  selector: "app-preview",
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  template: \`
-    <box-preview-element
-      heading="Quarterly Plan.pdf"
-      item-label="PDF · 2.4 MB"
-      status="Ready"
-      [provider]="provider"
-      [adapterState]="adapterState"
-      [actions]="actions"
-      (action)="onAction($event)"
-    ></box-preview-element>
-  \`,
-})
-export class PreviewComponent {
-  provider = { id: "content-preview", label: "Box Content Preview" };
-  adapterState = { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%" };
-  actions = [
-    { id: "open-provider", label: "Open provider", tone: "primary" },
-    { id: "download", label: "Download" },
-  ];
-
-  onAction(event: CustomEvent) {
-    console.log("action", event.detail.action, event.detail.providerId);
-  }
-}`,
-    vue: `<script setup lang="ts">
-import "@unofficialbox/box-open-elements/preview";
-
-
-const provider = { id: "content-preview", label: "Box Content Preview" };
-const adapterState = { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%" };
-const actions = [
-  { id: "open-provider", label: "Open provider", tone: "primary" },
-  { id: "download", label: "Download" },
-];
-
-const onAction = (event: CustomEvent) =>
-  console.log("action", event.detail.action, event.detail.providerId);
-</script>
-
-<template>
-  <box-preview-element
-    heading="Quarterly Plan.pdf"
-    item-label="PDF · 2.4 MB"
-    status="Ready"
-    :provider="provider"
-    :adapterState="adapterState"
-    :actions="actions"
-    @action="onAction"
-  ></box-preview-element>
-</template>`,
-    svelte: `<script lang="ts">
-  import "@unofficialbox/box-open-elements/preview";
-
-
-  let el;
-  $: if (el) {
-    el.provider = { id: "content-preview", label: "Box Content Preview" };
-    el.adapterState = { ready: true, pageLabel: "Page 2 of 34", zoomLabel: "100%" };
-    el.actions = [
-      { id: "open-provider", label: "Open provider", tone: "primary" },
-      { id: "download", label: "Download" },
-    ];
-  }
-</script>
-
-<box-preview-element
-  bind:this={el}
-  heading="Quarterly Plan.pdf"
-  item-label="PDF · 2.4 MB"
-  status="Ready"
-  on:action={event =>
-    console.log("action", event.detail.action, event.detail.providerId)}
-></box-preview-element>`,
-  },
-  stepFrameworks: previewStepFrameworks,
 });
 
 // ── Intake lesson source, built up cumulatively ──────────────────────────────
@@ -1192,7 +754,7 @@ queue.addEventListener("item-selected", (event) => {
   console.log("open:", event.detail.item.title);
 });`;
 
-export const intakeLesson: Lesson = withJSXFrameworks({
+export const intakeLesson: Lesson = withFrameworkExamples({
   id: "intake",
   title: "Intake Workspace",
   area: "Build Alongs",
@@ -1273,79 +835,6 @@ export const intakeLesson: Lesson = withJSXFrameworks({
       preview: "intake-workspace",
     },
   ],
-  frameworks: {
-    html: `<box-form-wizard id="wizard" heading="Contract intake" submit-label="Submit request">
-  <div slot="parties"><label>Counterparty <input id="counterparty" /></label></div>
-  <div slot="terms"><label>Contract value <input id="value" /></label></div>
-  <div slot="review"><p>Review the request, then submit for triage.</p></div>
-</box-form-wizard>
-<box-work-queue id="queue" heading="Intake queue" token="developer-token" assignee-id="you"></box-work-queue>
-<box-timeline id="activity" heading="Activity"></box-timeline>
-
-<script type="module">
-  import {
-    FormWizard,
-    WorkQueue,
-    Timeline,
-    registerBoxDefaultDesignSystem,
-  } from "@unofficialbox/box-open-elements";
-
-  registerBoxDefaultDesignSystem();
-
-  const wizard = document.getElementById("wizard");
-  wizard.steps = [
-    { id: "parties", label: "Parties" },
-    { id: "terms", label: "Key terms" },
-    { id: "review", label: "Review & submit" },
-  ];
-  wizard.validators = {
-    parties: values => (values.counterparty ? { valid: true } : { valid: false, message: "Name the counterparty." }),
-  };
-
-  const queue = document.getElementById("queue");
-  const requests = [];
-  queue.transport = {
-    loadItems: () => Promise.resolve({ items: requests.map(item => ({ ...item })) }),
-    claimItem: ({ itemId, assigneeId }) => {
-      const item = requests.find(entry => entry.id === itemId);
-      item.assignee = { id: assigneeId, name: "You" };
-      return Promise.resolve({ ...item });
-    },
-    completeItem: ({ itemId }) => {
-      const item = requests.find(entry => entry.id === itemId);
-      item.status = "completed";
-      return Promise.resolve({ ...item });
-    },
-  };
-
-  const timeline = document.getElementById("activity");
-  let activity = [];
-  const record = (action, summary) => {
-    activity = [{ id: "a-" + (activity.length + 1), action, summary, timestamp: new Date().toISOString() }, ...activity];
-    timeline.events = activity;
-  };
-
-  wizard.addEventListener("submitted", event => {
-    requests.push({
-      id: "req-" + (requests.length + 1),
-      title: "Intake: " + (event.detail.values.counterparty || "New request"),
-      type: "intake",
-      status: "open",
-    });
-    queue.refresh();
-    record("Intake submitted", "Request entered triage.");
-  });
-  const actionLabels = { claim: "Work item claimed", complete: "Work item completed" };
-  queue.addEventListener("item-mutated", event => {
-    record(actionLabels[event.detail.kind] || "Work item updated", event.detail.item.title);
-  });
-</script>`,
-    react: intakeStepFrameworks.react[5],
-    angular: intakeStepFrameworks.angular[5],
-    vue: intakeStepFrameworks.vue[5],
-    svelte: intakeStepFrameworks.svelte[5],
-  },
-  stepFrameworks: intakeStepFrameworks,
 });
 
 export const lessons: Lesson[] = [explorerLesson, shareLesson, previewLesson, intakeLesson];

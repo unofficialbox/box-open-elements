@@ -331,7 +331,7 @@ const renderComponentPage = (entry: CatalogEntry): void => {
     : workshopVariants;
   const hasVariants = variants.length >= 2;
   const workshopDefaultHtml = workshopVariants[0]?.html;
-  const initialHtml = hasVariants
+  const initialHtml = useExampleVariants || hasVariants
     ? variants[0].html
     : example.setup || !workshopDefaultHtml || example.html.length >= workshopDefaultHtml.length
       ? example.html
@@ -391,8 +391,8 @@ const renderComponentPage = (entry: CatalogEntry): void => {
         ).join("")}
       </div>
       <div class="code-wrap"><button type="button" class="code-copy" id="framework-code-copy">Copy code</button><pre class="code-block"><code id="code-block">${highlightCode(formatHtml(example.codeHtml ?? initialHtml), "html")}</code></pre></div>
-      ${example.setupCode ? `<h2>Controller setup</h2><pre class="code-block"><code>${highlightCode(example.setupCode, "ts")}</code></pre>` : ""}
-      <p class="preview-note code-frameworks-note">Snippets show a minimal use; the one-time setup (design tokens, Vue <code>isCustomElement</code>, Solid/Preact factory property and event binding) is in the <a href="https://github.com/unofficialbox/box-open-elements/blob/main/docs/integration/frameworks.md" target="_blank" rel="noreferrer">Frameworks guide</a>.</p>
+      ${example.setupCode ? `<h2>Shared controller setup — all frameworks</h2><pre class="code-block"><code>${highlightCode(example.setupCode, "ts")}</code></pre>` : ""}
+      <p class="preview-note code-frameworks-note">Every tab shows the same complete markup and shared controller setup. One-time framework configuration, design tokens and optional adapters are covered in the <a href="https://github.com/unofficialbox/box-open-elements/blob/main/docs/integration/frameworks.md" target="_blank" rel="noreferrer">Frameworks guide</a>.</p>
       ${(() => {
         const note = variants[0]?.note ?? example.note;
         return note ? `<p id="variant-note" class="preview-note">${escapeHtml(note)}</p>` : `<p id="variant-note" class="preview-note" hidden></p>`;

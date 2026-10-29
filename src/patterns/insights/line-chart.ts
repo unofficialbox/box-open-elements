@@ -1,7 +1,8 @@
 import { syncKeyedChildren } from "../internal/keyed-children.js";
 import { chartHeader, syncChartHeader, syncChartLegend, bindChartEvents, syncChartPoints } from "./chart-content.js";
 import { BaseElement } from "../../core/index.js";
-import { boePanel } from "../../foundations/geometry/index.js";
+import { chartStyles } from "./chart-styles.js";
+import { chartScale, formatChartValue } from "./chart-scale.js";
 
 const DEFAULT_TAG_NAME = "box-line-chart";
 
@@ -31,243 +32,25 @@ type ChartCoordinate = {
 };
 
 
-const elementStyles = `
-        :host {
-          display: block;
-          color: inherit;
-          font: inherit;
-        }
-
-        /* The host's own display would otherwise beat the UA rule for [hidden],
-           leaving the element on screen when a host hides it. */
-        :host([hidden]) {
-          display: none !important;
-        }
-
-        [part="panel"] {
-          display: grid;
-          gap: ${boePanel.gap};
-          padding: ${boePanel.padding};
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 82%, transparent);
-          border-radius: ${boePanel.radius};
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 96%, var(--boe-token-surface-surface, #ffffff) 4%);
-        }
-
-        [part="header"] {
-          display: flex;
-          flex-wrap: wrap;
-          gap: ${boePanel.gap};
-          justify-content: space-between;
-          align-items: start;
-        }
-
-        [part="meta"] {
-          display: grid;
-          gap: 0.3rem;
-        }
-
-        [part="header-side"] {
-          display: grid;
-          gap: 0.45rem;
-          justify-items: end;
-        }
-
-        [part="title"] {
-          margin: 0;
-          font: inherit;
-          font-size: 1.05rem;
-          font-weight: 700;
-          color: var(--boe-token-text-text, #1f1e1b);
-        }
-
-        [part="summary"] {
-          font-size: 1.35rem;
-          font-weight: 700;
-          line-height: 1.05;
-          letter-spacing: -0.03em;
-          color: var(--boe-token-text-text, #1f1e1b);
-        }
-
-        [part="message"] {
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-          line-height: 1.4;
-          max-inline-size: 42rem;
-        }
-
-        [part="timeframe"] {
-          font-size: 0.72rem;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-
-        [part="actions"] {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.5rem;
-          justify-content: flex-end;
-        }
-
-        [part="action"] {
-          appearance: none;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
-          border-radius: 999px;
-          background: var(--boe-token-surface-surface, #ffffff);
-          color: inherit;
-          font: inherit;
-          padding: 0.4rem 0.7rem;
-          cursor: pointer;
-        }
-
-        [part="action"][data-tone="primary"] {
-          border-color: transparent;
-          background: var(--boe-token-surface-surface-brand, #0061d5);
-          color: var(--boe-token-text-text-on-brand, #ffffff);
-        }
-
-        [part="visual"] {
-          display: grid;
-          grid-template-rows: auto auto;
-          gap: ${boePanel.gap};
-          padding: 0.2rem 0.2rem 0.45rem;
-          border-radius: ${boePanel.radius};
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
-          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, #eef4fb 14%);
-        }
-
-        [part="chart"] {
-          display: block;
-          inline-size: 100%;
-          block-size: auto;
-          aspect-ratio: 16 / 6;
-          min-block-size: 13rem;
-        }
-
-        [part="grid-line"] {
-          stroke: color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 52%, transparent);
-          stroke-width: 0.7;
-          stroke-dasharray: 0.85 2;
-        }
-
-        [part="area"] {
-          fill: url(#line-chart-area-gradient);
-        }
-
-        [part="path"] {
-          fill: none;
-          stroke: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 82%, transparent);
-          stroke-width: 0.65;
-          stroke-linecap: round;
-          stroke-linejoin: round;
-          filter: drop-shadow(
-            0 6px 10px color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, transparent)
-          );
-        }
-
-        [part="dot-halo"] {
-          fill: rgba(255, 255, 255, 0.92);
-        }
-
-        [part="dot"] {
-          fill: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
-          stroke: rgba(255, 255, 255, 0.98);
-          stroke-width: 0.75;
-        }
-
-        [part="dot"][data-tone="accent"] {
-          fill: rgba(90, 124, 247, 0.94);
-        }
-
-        [part="dot"][data-tone="success"] {
-          fill: rgba(38, 194, 129, 0.94);
-        }
-
-        [part="points"] {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.6rem;
-        }
-
-        [part="point"] {
-          appearance: none;
-          display: inline-flex;
-          align-items: center;
-          gap: 0.45rem;
-          padding: 0.45rem 0.7rem;
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 52%, transparent);
-          border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-secondary, #fbfbfb) 90%, var(--boe-token-surface-surface, #ffffff) 10%);
-          color: inherit;
-          font: inherit;
-          text-align: left;
-          cursor: pointer;
-        }
-
-        [part="point"]:focus-visible {
-          outline: 2px solid color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 34%, transparent);
-          outline-offset: 2px;
-        }
-
-        [part="point-label"] {
-          font-size: 0.74rem;
-          font-weight: 700;
-          color: var(--boe-token-text-text, #1f1e1b);
-        }
-
-        [part="point-value"] {
-          font-size: 0.72rem;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-
-        [part="legend"] {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.5rem;
-        }
-
-        [part="legend-item"] {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.45rem;
-          padding: 0.34rem 0.56rem;
-          border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface, #ffffff) 86%, #eef4fb 14%);
-          border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 48%, transparent);
-        }
-
-        [part="legend-swatch"] {
-          inline-size: 0.7rem;
-          block-size: 0.7rem;
-          border-radius: 999px;
-          background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 88%, var(--boe-token-surface-surface, #ffffff) 12%);
-        }
-
-        [part="legend-item"][data-tone="accent"] [part="legend-swatch"] {
-          background: rgba(90, 124, 247, 0.94);
-        }
-
-        [part="legend-item"][data-tone="success"] [part="legend-swatch"] {
-          background: rgba(38, 194, 129, 0.94);
-        }
-
-        [part="legend-label"] {
-          font-size: 0.76rem;
-          font-weight: 700;
-        }
-
-        [part="legend-value"] {
-          font-size: 0.72rem;
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-
-        [part="empty"] {
-          padding: ${boePanel.padding};
-          border-radius: ${boePanel.radius};
-          border: 1px dashed color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 70%, transparent);
-          color: var(--boe-token-text-text-secondary, #6f6f6f);
-        }
-      `;
+const elementStyles = chartStyles + `
+  :host { container-type:inline-size; }
+  [part="visual"] { display:grid; grid-template-columns:3rem minmax(0,1fr); grid-template-rows:12rem auto; gap:.75rem 0; }
+  [part="axis"] { position:relative; margin-block:.857142rem; }
+  [part="axis-label"] { position:absolute; inset-inline-end:.6rem; transform:translateY(50%); font-size:.6875rem; line-height:1; font-variant-numeric:tabular-nums; color:var(--boe-token-text-text-secondary,#6f6f6f); white-space:nowrap; }
+  [part="chart"] { display:block; inline-size:100%; block-size:12rem; overflow:visible; }
+  [part="grid-line"] { stroke:var(--boe-token-stroke-stroke,#e8e8e8); stroke-width:1; vector-effect:non-scaling-stroke; shape-rendering:crispEdges; }
+  [part="area"] { display:none; }
+  [part="path"] { fill:none; stroke:var(--boe-token-surface-surface-brand,#0061d5); stroke-width:2; vector-effect:non-scaling-stroke; stroke-linejoin:round; stroke-linecap:round; }
+  [part="dot-halo"] { display:none; }
+  [part="dot"] { fill:var(--boe-token-surface-surface,#fff); stroke:var(--boe-token-surface-surface-brand,#0061d5); stroke-width:2; vector-effect:non-scaling-stroke; }
+  [part="dot"][data-tone="accent"] { stroke:#7c5cce; }
+  [part="dot"][data-tone="success"] { stroke:#21856d; }
+  [part="points"] { grid-column:2; position:relative; block-size:2rem; }
+  [part="point"] { appearance:none; position:absolute; inset-inline-start:var(--point-x); inset-block-end:0; transform:translateX(-50%); block-size:2rem; display:grid; align-items:end; padding:.3rem; background:transparent; border:0; border-radius:3px; font:inherit; color:inherit; cursor:pointer; }
+  [part="point"]:hover { background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 6%,transparent); }
+  [part="point-label"] { font-size:.75rem; white-space:nowrap; }
+  [part="point-value"] { position:absolute; inset-inline-start:50%; transform:translateX(-50%); bottom:calc(2.75rem + var(--point-height) * 12rem + .45rem); pointer-events:none; font-size:.75rem; font-weight:600; font-variant-numeric:tabular-nums; }
+`;
 
 export class LineChart extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
@@ -345,8 +128,33 @@ export class LineChart extends BaseElement {
     this.setAttribute("heading", value);
   }
 
+  private resizeObserver?: ResizeObserver;
+
   connectedCallback(): void {
     super.connectedCallback();
+    if (typeof ResizeObserver !== "undefined") {
+      this.resizeObserver = new ResizeObserver(() => this.syncDotSizes());
+      this.resizeObserver.observe(this);
+    }
+  }
+
+  disconnectedCallback(): void {
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = undefined;
+    super.disconnectedCallback();
+  }
+
+  // The plot stretches horizontally while its height stays fixed. Compensate
+  // the marker radii so data points stay circular at every container width.
+  private syncDotSizes(): void {
+    const chart = this.shadowRoot?.querySelector('[part="chart"]');
+    if (!chart) return;
+    const { width, height } = chart.getBoundingClientRect();
+    if (!width || !height) return;
+    this.shadowRoot!.querySelectorAll('[part="dot"]').forEach(dot => {
+      dot.setAttribute("rx", String(3 * 100 / width));
+      dot.setAttribute("ry", String(3 * 56 / height));
+    });
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
@@ -392,30 +200,23 @@ export class LineChart extends BaseElement {
       return [];
     }
 
-    const max = points.reduce((value, point) => Math.max(value, point.value), 0) || 1;
-    const min = points.reduce((value, point) => Math.min(value, point.value), points[0]?.value ?? 0);
-    const spread = Math.max(max - min, 1);
-    // Opposite finite extremes can overflow subtraction. Normalize only that
-    // range; ordinary charts retain their established scaling and rounding.
-    const scale = Number.isFinite(spread) ? 1 : Math.max(Math.abs(max), Math.abs(min));
-    const scaledMin = min / scale;
-    const scaledSpread = Number.isFinite(spread) ? spread : max / scale - scaledMin;
-    const horizontalInset = 0;
-    const chartWidth = 100 - horizontalInset * 2;
+    const scale = chartScale(points.map(point => point.value));
+    const horizontalInset = 3;
+    const chartWidth = 94;
 
     return points.map((point, index) => {
       const x = points.length === 1 ? 50 : horizontalInset + (index / (points.length - 1)) * chartWidth;
-      const ratio = scale === 1 ? (point.value - min) / scaledSpread : (point.value / scale - scaledMin) / scaledSpread;
-      const y = 47 - ratio * 40;
+      const ratio = scale.position(point.value);
+      const y = 52 - ratio * 48;
       return {
         point,
         x: Number(x.toFixed(2)),
-        y: Number(Math.max(4, Math.min(47, y)).toFixed(2)),
+        y: Number(Math.max(4, Math.min(52, y)).toFixed(2)),
       };
     });
   }
 
-  private buildSmoothPath(coordinates: ChartCoordinate[]): string {
+  private buildLinePath(coordinates: ChartCoordinate[]): string {
     if (coordinates.length === 0) {
       return "";
     }
@@ -425,13 +226,7 @@ export class LineChart extends BaseElement {
       return `M ${x} ${y}`;
     }
 
-    let path = `M ${coordinates[0].x} ${coordinates[0].y}`;
-    for (let index = 0; index < coordinates.length - 1; index += 1) {
-      const current = coordinates[index];
-      const next = coordinates[index + 1];
-      const controlX = Number(((current.x + next.x) / 2).toFixed(2));
-      path += ` C ${controlX} ${current.y}, ${controlX} ${next.y}, ${next.x} ${next.y}`;
-    }
+    const path = coordinates.map(({ x, y }, index) => `${index ? "L" : "M"} ${x} ${y}`).join(" ");
     return path;
   }
 
@@ -440,7 +235,7 @@ export class LineChart extends BaseElement {
       return "";
     }
 
-    const linePath = this.buildSmoothPath(coordinates);
+    const linePath = this.buildLinePath(coordinates);
     const first = coordinates[0];
     const last = coordinates[coordinates.length - 1];
     return `${linePath} L ${last.x} 52 L ${first.x} 52 Z`;
@@ -448,8 +243,8 @@ export class LineChart extends BaseElement {
 
   protected renderTemplate(): void {
     this.shadowRoot!.innerHTML = `<style>${elementStyles}[hidden]{display:none!important}</style><div part="content-host"><article part="panel">${chartHeader}
-      <div part="visual" hidden><svg part="chart" viewBox="0 0 100 56" role="img"><defs><linearGradient id="line-chart-area-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 26%, transparent)"></stop><stop offset="100%" stop-color="color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 3%, transparent)"></stop></linearGradient></defs>
-      <line part="grid-line" x1="0" y1="5" x2="100" y2="5"></line><line part="grid-line" x1="0" y1="20.5" x2="100" y2="20.5"></line><line part="grid-line" x1="0" y1="36" x2="100" y2="36"></line><line part="grid-line" x1="0" y1="51.5" x2="100" y2="51.5"></line><path part="area"></path><path part="path"></path><g part="dots"></g></svg><div part="points" role="list"></div></div>
+      <div part="visual" hidden><div part="axis" aria-hidden="true"></div><svg part="chart" viewBox="0 0 100 56" preserveAspectRatio="none" role="img">
+      <g part="grid"></g><path part="area"></path><path part="path"></path><g part="dots"></g></svg><div part="points" role="list"></div></div>
       <div part="empty">No line-chart data available.</div><div part="legend" hidden></div></article></div>`;
   }
   protected setupListeners(): void {
@@ -460,16 +255,25 @@ export class LineChart extends BaseElement {
     const root=this.shadowRoot!;
     syncChartHeader(root,this);syncChartLegend(root,this.legend);
     // Read after any synchronous host focusin refresh, including geometry.
-    const points=this.points,coordinates=this.getCoordinates(points);
+    const points=this.points.filter(point=>Number.isFinite(point.value)),coordinates=this.getCoordinates(points);
     root.querySelector<HTMLElement>('[part="visual"]')!.hidden=!points.length;
     root.querySelector<HTMLElement>('[part="empty"]')!.hidden=!!points.length;
     root.querySelector('[part="chart"]')!.setAttribute("aria-label",`${this.heading} trend line`);
-    root.querySelector('[part="path"]')!.setAttribute("d",this.buildSmoothPath(coordinates));root.querySelector('[part="area"]')!.setAttribute("d",this.buildAreaPath(coordinates));
+    root.querySelector('[part="path"]')!.setAttribute("d",this.buildLinePath(coordinates));root.querySelector('[part="area"]')!.setAttribute("d",this.buildAreaPath(coordinates));
+    const scale = chartScale(points.map(point => point.value));
+    root.querySelector('[part="axis"]')!.innerHTML = scale.ticks.map(value => `<span part="axis-label" style="bottom:${scale.position(value) * 100}%">${formatChartValue(value)}</span>`).join("");
+    root.querySelector('[part="grid"]')!.innerHTML = scale.ticks.map(value => `<line part="grid-line" x1="3" x2="97" y1="${52-scale.position(value)*48}" y2="${52-scale.position(value)*48}"></line>`).join("");
     const svgNS="http://www.w3.org/2000/svg";
     syncKeyedChildren(root.querySelector('[part="dots"]')!,coordinates,item=>item.point.id,()=>{
-      const group=document.createElementNS(svgNS,"g");for(const [part,r] of [["dot-halo","2.2"],["dot","1.2"]]){const circle=document.createElementNS(svgNS,"circle");circle.setAttribute("part",part);circle.setAttribute("r",r);group.append(circle);}return group;
+      const group=document.createElementNS(svgNS,"g");for(const [part,r] of [["dot-halo","2.2"],["dot","1.2"]]){const circle=document.createElementNS(svgNS,part === "dot" ? "ellipse" : "circle");circle.setAttribute("part",part);circle.setAttribute("r",r);group.append(circle);}return group;
     },(group,{point,x,y})=>{for(const circle of Array.from(group.children)){circle.setAttribute("cx",String(x));circle.setAttribute("cy",String(y));}group.querySelector('[part="dot"]')!.setAttribute("data-tone",point.tone??"neutral");});
     const list=root.querySelector<HTMLElement>('[part="points"]')!;list.setAttribute("aria-label",`${this.heading} points`);syncChartPoints(list,points,"line");
+    list.querySelectorAll<HTMLElement>('[part="point"]').forEach((button, index) => {
+      const { x, y } = coordinates[index];
+      button.style.setProperty("--point-x", `${x}%`);
+      button.style.setProperty("--point-height", String(1 - y / 56));
+    });
+    this.syncDotSizes();
   }
 }
 LineChart.register();

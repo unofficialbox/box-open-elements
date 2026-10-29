@@ -1,3 +1,4 @@
+import { chartScale, formatChartValue } from "./chart-scale.js";
 import { actionButton, syncKeyedChildren } from "../internal/keyed-children.js";
 interface Point { id: string; label: string; value: number; tone?: string; }
 interface Action { id: string; label: string; tone?: string; }
@@ -37,4 +38,24 @@ export const syncChartPoints = (parent: HTMLElement, points: Point[], kind: "bar
     button.querySelector('[part="point-label"]')!.textContent=point.label; button.querySelector('[part="point-value"]')!.textContent=String(point.value);
     if(ratio)button.querySelector<HTMLElement>('[part="bar"]')!.style.setProperty("--point-ratio",String(ratio(point)));
   },fixedPrefix);
+};
+
+/** Keep every column on one scale and baseline; a zero value has zero area. */
+export const syncBarScale = (chart: HTMLElement, points: Point[]): void => {
+  const valid = points.filter(point => Number.isFinite(point.value));
+  const scale = chartScale(valid.map(point => point.value));
+  chart.style.setProperty("--label-lane", valid.some(point => point.value < 0) ? "2.75rem" : "2rem");
+  const grid = chart.querySelector<HTMLElement>('[part="grid"]')!;
+  grid.innerHTML = scale.ticks.map(value => `<span part="grid-line" style="bottom:${scale.position(value) * 100}%"><span part="axis-label">${formatChartValue(value)}</span></span>`).join("");
+  syncChartPoints(chart, valid, "shell", undefined, grid);
+  chart.querySelectorAll<HTMLButtonElement>('[part="point"]').forEach((button, index) => {
+    const value = valid[index].value;
+    button.dataset.negative = String(value < 0);
+    const zero = scale.position(0), position = scale.position(value);
+    const bar = button.querySelector<HTMLElement>('[part="bar"]')!;
+    button.style.setProperty("--value-position", String(position));
+    bar.style.setProperty("--bar-bottom", `${Math.min(zero, position) * 100}%`);
+    bar.style.setProperty("--bar-height", `${Math.abs(position - zero) * 100}%`);
+    button.title = `${valid[index].label}: ${value}`;
+  });
 };

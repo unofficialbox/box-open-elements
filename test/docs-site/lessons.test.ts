@@ -83,12 +83,12 @@ const assertLessonShape = (lesson: Lesson, previewKeys: PreviewKey[]): void => {
     expect(significant(lesson.steps[i].code).length).toBeGreaterThan(prevLines.length);
   }
 
-  expect(lesson.starterHtml).toContain("app.js");
+  expect(lesson.starterHtml).toContain("controller.js");
   expect(lesson.starterHtml).toContain("box-open-elements");
   expect(lesson.starterHtml).toContain('id="app"');
   expect(lesson.starterHtml).toMatch(/box-open-elements@\d+\.\d+\.\d+/);
   expect(lesson.install.toLowerCase()).toContain("install");
-  expect(lesson.starterHtml).toContain('src="./app.js"');
+  expect(lesson.starterHtml).toContain('mountExample(document.getElementById("app"))');
   expect(lesson.starterHtml).not.toContain(".ts");
 
   for (const step of lesson.steps) {
@@ -310,7 +310,7 @@ describe("lesson framework snippets", () => {
 
       it("imports from the published package name", () => {
         for (const framework of FRAMEWORKS) {
-          expect(lesson.frameworks[framework]).toContain("@unofficialbox/box-open-elements");
+          expect(lesson.frameworks[framework]).toContain("./controller.js");
         }
       });
 
@@ -338,7 +338,7 @@ describe("lesson framework snippets", () => {
                 `${lesson.id}/${framework} imports ${componentPath}`,
               ).toContain(componentPath);
             }
-            expect(source).toContain("@unofficialbox/box-open-elements");
+            expect(source).toContain("./controller.js");
           }
         }
       });
