@@ -1,3 +1,5 @@
+import { chartFamilyExamples, chartFamilyVariants, chartFamilySetupCode, extendedLineVariants } from "../storybook/fixtures/chart-family.js";
+import { animatedChartIds, withChartMotionVariants } from "../storybook/fixtures/chart-motion.js";
 import {distributionTimelineHtml,distributionTimelineSamplesHtml,distributionTimelineLogHtml} from "../storybook/fixtures/distribution-timeline.js";
 import {stackedBarsHtml, rangesHtml, numericLineHtml, findingsHtml} from "../storybook/fixtures/analytic-charts.js";
 import { periodChartHtml, periodVariants, metricChartHtml, storageChartHtml, dailyChartHtml, distributionChartHtml, dataStateVariants } from "../storybook/fixtures/insights.js";
@@ -73,6 +75,7 @@ type SetupFn = (root: HTMLElement) => void | (() => void);
 export interface ExampleVariant {
   name: string;
   html: string;
+  codeHtml?: string;
   setup?: SetupFn;
   note?: string;
 }
@@ -1833,13 +1836,21 @@ diff.nodes = ${JSON.stringify(folderDiffDemo, null, 2)};`,
       actions: [{ id: "audit", label: "View audit log" }],
     }),
   },
+  "grouped-bar-chart": {html:chartFamilyExamples["grouped-bar-chart"],variants:chartFamilyVariants("grouped-bar-chart"),setupCode:chartFamilySetupCode("grouped-bar-chart")},
+  "scatter-chart": {html:chartFamilyExamples["scatter-chart"],variants:chartFamilyVariants("scatter-chart"),setupCode:chartFamilySetupCode("scatter-chart")},
+  "bubble-chart": {html:chartFamilyExamples["bubble-chart"],variants:chartFamilyVariants("bubble-chart"),setupCode:chartFamilySetupCode("bubble-chart")},
+  "area-chart": {html:chartFamilyExamples["area-chart"],variants:chartFamilyVariants("area-chart"),setupCode:chartFamilySetupCode("area-chart")},
+  "mixed-chart": {html:chartFamilyExamples["mixed-chart"],variants:chartFamilyVariants("mixed-chart"),setupCode:chartFamilySetupCode("mixed-chart")},
+  "pie-chart": {html:chartFamilyExamples["pie-chart"],variants:chartFamilyVariants("pie-chart"),setupCode:chartFamilySetupCode("pie-chart")},
+  "radar-chart": {html:chartFamilyExamples["radar-chart"],variants:chartFamilyVariants("radar-chart"),setupCode:chartFamilySetupCode("radar-chart")},
+  "polar-area-chart": {html:chartFamilyExamples["polar-area-chart"],variants:chartFamilyVariants("polar-area-chart"),setupCode:chartFamilySetupCode("polar-area-chart")},
   "stacked-bar-chart": {html:stackedBarsHtml},
   "range-chart": {html:rangesHtml},
   "findings-disclosure": {html:findingsHtml},
   "metric-card": { html:metricChartHtml, variants:dataStateVariants(metricChartHtml,"box-metric-card") },
   "chart-panel": { html:dailyChartHtml, variants:dataStateVariants(dailyChartHtml,"box-chart-panel") },
   "bar-chart": periodExample("bar-chart"),
-  "line-chart": {...periodExample("line-chart"),variants:[...periodVariants("line-chart"),{name:"Numeric series",html:numericLineHtml},{name:"Logarithmic series",html:numericLineHtml.replace('<box-line-chart ','<box-line-chart x-scale="log" y-scale="log" ')}]},
+  "line-chart": {...periodExample("line-chart"),variants:[...periodVariants("line-chart"),...extendedLineVariants,{name:"Numeric series",html:numericLineHtml},{name:"Logarithmic series",html:numericLineHtml.replace('<box-line-chart ','<box-line-chart x-scale="log" y-scale="log" ')}]},
   "donut-chart": {html:storageChartHtml,variants:[
     ...dataStateVariants(storageChartHtml,"box-donut-chart"),
     {name:"Incomplete classification",html:`<box-donut-chart readonly heading="Storage by file type" unit="GB" total="250" state="partial" note="Illustrative data · Shares use the full 250 GB denominator" segments='[{"id":"docs","label":"Documents","value":115},{"id":"media","label":"Media","value":80}]'></box-donut-chart>`},
@@ -1869,3 +1880,9 @@ diff.nodes = ${JSON.stringify(folderDiffDemo, null, 2)};`,
     variants:[{name:"Interval summaries",html:distributionTimelineHtml},{name:"With sampled values",html:distributionTimelineSamplesHtml},{name:"Log scale",html:distributionTimelineLogHtml}],
   },
 };
+
+// Append optional motion without changing the static/default examples.
+for (const id of animatedChartIds) {
+  const example = examples[id];
+  if (example) example.variants = withChartMotionVariants(id, example.variants ?? [{ name: "Default", html: example.html, setup: example.setup }], example.codeHtml);
+}

@@ -1,4 +1,5 @@
-import { BaseElement } from "../../core/index.js";
+export type { ChartAnimationPreset, ChartAnimationEasing } from "./chart-motion.js";
+import { ChartElement, chartAnimationAttributes } from "./chart-element.js";
 import { chartStyles } from "./chart-styles.js";
 
 const DEFAULT_TAG_NAME = "box-donut-chart";
@@ -17,7 +18,7 @@ type DonutChartAction = {
   tone?: string;
 };
 
-type DonutChartSegment = {
+export type DonutChartSegment = {
   id: string;
   label: string;
   tone?: string;
@@ -25,8 +26,6 @@ type DonutChartSegment = {
 };
 
 type DonutSegmentArc = {
-  displayEnd: number;
-  displayStart: number;
   index: number;
   segment: DonutChartSegment;
   start: number;
@@ -56,6 +55,7 @@ const elementStyles = chartStyles + `
   [part="legend-value"] { color:var(--boe-token-text-text,#1f1e1b); font-weight:600; }
   [part="legend-share"] { color:var(--boe-token-text-text-secondary,#6f6f6f); }
   [part="segment"] { transition:opacity 120ms ease; }
+  [part="separator"] { stroke:var(--boe-token-surface-surface,#fff); pointer-events:none; }
   [part="segment"][data-muted="true"] { opacity:.25; }
   [part="segment"][data-selected="true"] { stroke:var(--boe-token-text-text,#1f1e1b); stroke-width:.7; }
   [part="legend-item"][data-active="true"] { background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 6%,transparent); }
@@ -74,10 +74,12 @@ const elementStyles = chartStyles + `
   @container (max-width:520px) { [part="visual"] { grid-template-columns:1fr; gap:1rem; } [part="donut-wrap"] { max-inline-size:12rem; } }
 `;
 
-export class DonutChart extends BaseElement {
+export class DonutChart extends ChartElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
+  private static nextClipId = 0;
+  private readonly separatorClipId = `boe-donut-separators-${DonutChart.nextClipId++}`;
   static get observedAttributes(): string[] {
-    return ["readonly", "category-label", "unit", "total", "total-label", "note", "state", "status-message", "actions", "heading", "message", "segments", "summary", "timeframe"];
+    return [...chartAnimationAttributes, "readonly", "category-label", "unit", "total", "total-label", "note", "state", "status-message", "actions", "heading", "message", "segments", "summary", "timeframe"];
   }
 
   get categoryLabel(): string { return this.getAttribute("category-label") ?? "Category"; }
@@ -235,7 +237,10 @@ export class DonutChart extends BaseElement {
     };
   }
 
-  private describeSegmentPath(startAngle: number, endAngle: number, outerRadius = 44, innerRadius = 28): string {
+  protected get cutoutRadius(): number { return 28; }
+  protected get invalidDataMessage(): string | null { return null; }
+
+  private describeSegmentPath(startAngle: number, endAngle: number, outerRadius = 44, innerRadius = this.cutoutRadius): string {
     const sweep = endAngle - startAngle;
     if (sweep >= 359.9) {
       const midpoint = startAngle + sweep / 2;
@@ -280,20 +285,16 @@ export class DonutChart extends BaseElement {
     const positiveSegments = this.segments.map((segment,index) => ({segment,index})).filter(({segment}) => Number.isFinite(segment.value) && segment.value > 0);
     const magnitude = positiveSegments.reduce((max, {segment}) => Math.max(max, segment.value), 1);
     const total = Math.max(positiveSegments.reduce((sum, {segment}) => sum + segment.value / magnitude, 0), (this.total ?? 0) / magnitude) || 1;
-    const gap = positiveSegments.length > 1 ? 2.4 : 0;
     let current = 0;
     return positiveSegments.map(({segment, index}) => {
       const start = current;
       const sweep = (segment.value / magnitude / total) * 360;
       current += sweep;
-      const safeGap = sweep > gap ? gap : 0;
       return {
         segment,
         index,
         start,
         end: current,
-        displayStart: start + safeGap / 2,
-        displayEnd: current - safeGap / 2,
       };
     });
   }
@@ -309,7 +310,7 @@ export class DonutChart extends BaseElement {
     `;
   }
 
-  protected update(): void {
+  protected renderChart(): void {
     if (!this.shadowRoot) {
       return;
     }
@@ -322,6 +323,11 @@ export class DonutChart extends BaseElement {
     const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
     const total = Number(arcs.reduce((sum, { segment }) => sum + segment.value, 0).toPrecision(15));
     const centerTotal = Math.max(this.total ?? 0, total);
+    // Keep the actual sector angles intact. A clipped, non-scaling stroke makes
+    // each divider equally wide from the inner edge (or pie centre) to the rim.
+    const boundaryAngles = arcs.length > 1 || centerTotal > total
+      ? [...arcs.map(arc => arc.start), ...(arcs.length && centerTotal > total ? [arcs[arcs.length - 1].end] : [])]
+      : [];
     const roundedShares = arcs.some(arc => Math.abs((arc.end-arc.start)/3.6 - Number(((arc.end-arc.start)/3.6).toFixed(1))) > 1e-7);
     const centerValue = this.summary || (Number.isFinite(centerTotal) ? String(Number(centerTotal.toPrecision(15))) + (this.unit ? ` ${this.unit}` : "") : "—");
     const summaryMarkup = `<div part="summary">${escapeHtml(centerValue)}</div>`;
@@ -341,7 +347,7 @@ export class DonutChart extends BaseElement {
           </div>
         `
       : "";
-    const chartMarkup = this.total !== null || this.segments.some(segment => Number.isFinite(segment.value) && segment.value >= 0)
+    const chartMarkup = this.invalidDataMessage ? `<div part="status" role="status">${escapeHtml(this.invalidDataMessage)}</div>` : this.total !== null || this.segments.some(segment => Number.isFinite(segment.value) && segment.value >= 0)
       ? `
           <div part="visual">
             <div part="donut-wrap">
@@ -349,18 +355,24 @@ export class DonutChart extends BaseElement {
                 <circle part="track" cx="50" cy="50" r="36"></circle>
                 ${arcs
                   .map(
-                    ({ segment, displayStart, displayEnd, index }) => `
+                    ({ segment, start, end, index }) => `
                       <path
                         part="segment"
                         data-selected="${String(this.selectedSegmentId === segment.id)}"
                         data-segment-id="${escapeHtml(segment.id)}"
                         data-tone="${escapeHtml(segment.tone ?? "neutral")}"
-                        d="${this.describeSegmentPath(displayStart, displayEnd)}"
+                        d="${this.describeSegmentPath(start, end)}"
                         fill="${this.segmentColor(segment, index)}"
                       ></path>
                     `,
                   )
                   .join("")}
+                ${boundaryAngles.length ? `<defs><clipPath id="${this.separatorClipId}"><path d="${this.describeSegmentPath(0, 360)}"></path></clipPath></defs>
+                <g part="separators" clip-path="url(#${this.separatorClipId})" aria-hidden="true">${boundaryAngles.map(angle => {
+                  const inner = this.polarToCartesian(50, 50, this.cutoutRadius, angle);
+                  const outer = this.polarToCartesian(50, 50, 44, angle);
+                  return `<path part="separator" d="M ${inner.x} ${inner.y} L ${outer.x} ${outer.y}" fill="none" stroke-width="1.5" vector-effect="non-scaling-stroke"></path>`;
+                }).join("")}</g>` : ""}
               </svg>
               <div part="center">
                 ${summaryMarkup}

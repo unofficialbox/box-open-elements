@@ -17,11 +17,11 @@ export const categoricalColors = [
   "var(--boe-chart-series-4,var(--boe-token-text-status-text-warning,#805600))",
 ];
 /** Values are CSS token names, never arbitrary CSS supplied through HTML. */
-export function categoryColor(id: string, index: number, tokens: Record<string,string>, tone?: string): string {
+export function categoryColor(id: string, index: number, tokens: Record<string,string>, tone?: string, palette:readonly string[]=categoricalColors): string {
   const named: Record<string,string> = {primary:"--boe-token-surface-surface-brand",accent:"--boe-chart-series-2",neutral:"--boe-token-text-text-secondary",success:"--boe-token-text-status-text-success",warning:"--boe-token-text-status-text-warning",error:"--boe-token-text-status-text-error"};
   const name = typeof tone === "string" ? tone : "";
   const token = tokens[id] ?? (name.startsWith("--") ? name : named[name]);
-  const fallback = categoricalColors[index % categoricalColors.length];
+  const fallback = palette[index % palette.length];
   return typeof token === "string" && /^--[a-zA-Z0-9_-]+$/.test(token) ? `var(${token},${fallback})` : fallback;
 }
 export function analyticScale(values: number[], logarithmic = false, options: {includeZero?:boolean} = {}) {
@@ -62,3 +62,14 @@ button{font:inherit}button[part=table-toggle]{justify-self:start;appearance:none
 [part=inspection]{min-block-size:3rem}[part=status]:empty{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%)}
 @media(max-width:480px){[part=axis]{margin-inline-start:0}[part=panel]{padding:1rem}[part=plot-row]{grid-template-columns:minmax(0,1fr);gap:.4rem}}
 `;
+
+/** Keep invalid numeric input distinguishable from an intentionally missing null. */
+export function chartDataJson(value: unknown): string {
+  return JSON.stringify(value, (_key, entry) => typeof entry === "number" && !Number.isFinite(entry) ? String(entry) : entry);
+}
+
+/** Brand and cool neutrals for new quantitative families; status colors remain opt-in. */
+export const quantitativeColors = [
+  categoricalColors[0], categoricalColors[1], categoricalColors[2],
+  "var(--boe-chart-series-3,#647891)", "var(--boe-chart-series-4,color-mix(in srgb,var(--boe-token-text-text-secondary,#566781) 80%,var(--boe-token-surface-surface-brand,#0061d5)))",
+];

@@ -1,4 +1,5 @@
-import { BaseElement } from "../../core/index.js";
+export type { ChartAnimationPreset, ChartAnimationEasing } from "./chart-motion.js";
+import { ChartElement, chartAnimationAttributes } from "./chart-element.js";
 import { analyticStyles, categoryColor, chartArrayAttributeValid, chartJson, escapeChartText as escape, formatAnalyticValue, formatAnalyticShare } from "./analytic-shared.js";
 import { chartScale } from "./chart-scale.js";
 
@@ -24,9 +25,9 @@ const styles = analyticStyles + `
  [data-orientation=vertical] [part=axis] span{position:absolute;inset-block-end:var(--position);inset-inline-end:0;transform:translateY(50%)}
 }
 `;
-export class StackedBarChart extends BaseElement {
+export class StackedBarChart extends ChartElement {
   static readonly tagName = DEFAULT_TAG_NAME;
-  static get observedAttributes():string[]{return ["heading","description","bars","orientation","unit","state","status-message","series-tokens"];}
+  static get observedAttributes():string[]{return [...chartAnimationAttributes, "heading","description","bars","orientation","unit","state","status-message","series-tokens"];}
   private tableVisible=false;
   private inspected:{bar:string;segment:string}|null=null;
   private formatter:((value:number)=>string)|null=null;
@@ -74,7 +75,7 @@ export class StackedBarChart extends BaseElement {
     this.shadowRoot!.querySelector<HTMLElement>('[part="table-wrap"]')!.hidden=!this.tableVisible;
     const toggle=this.shadowRoot!.querySelector<HTMLButtonElement>('[part="table-toggle"]')!;toggle.textContent=this.tableVisible?"Hide data table":"Show data table";toggle.setAttribute("aria-expanded",String(this.tableVisible));
   }
-  protected update():void{
+  protected renderChart():void{
     if(!this.isRendered)return;
     const root=this.shadowRoot!,bars=this.bars;
     const focused=root.activeElement as HTMLElement|null;

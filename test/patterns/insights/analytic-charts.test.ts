@@ -109,7 +109,7 @@ it("reports partial/stale coverage and handles malformed/duplicate snapshots wit
 it("handles empty/loading numeric series and preserves a focused series through updates",()=>{
  const chart=new LineChart();chart.series=[];document.body.append(chart);const view=()=>chart.shadowRoot!.querySelector('[part="series-host"]')!.shadowRoot!;
  expect(view().querySelector('[part="status"]')!.textContent).toBe('No observations.');chart.series=series;view().querySelector<HTMLButtonElement>('[part="legend-item"]')!.focus();chart.message="Refreshed";expect(view().activeElement?.getAttribute('data-series-id')).toBe('flat');
- chart.state="loading";expect(view().querySelector<HTMLElement>('[part="visual"]')!.hidden).toBe(true);expect(view().activeElement?.getAttribute('part')).toBe('heading');chart.state="ready";chart.series=[{id:"a",label:"Exact",points:[{x:38978,y:20237}]}];expect(view().querySelector('tbody')!.textContent).toContain('38,97820,237');
+ chart.state="loading";expect(view().querySelector<HTMLElement>('[part="visual"]')!.hidden).toBe(true);expect(view().activeElement?.getAttribute('part')).toBe('heading');chart.state="ready";chart.series=[{id:"a",label:"Exact",points:[{x:38978,y:20237}]}];view().querySelector<HTMLButtonElement>('[part="table-toggle"]')!.click();expect(view().querySelector('tbody')!.textContent).toContain('38,97820,237');
 });
 
 it("retains every missing interval when a numeric series has no observed y values",()=>{

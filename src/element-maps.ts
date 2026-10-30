@@ -16,6 +16,7 @@ import type { AnnotationInspector } from "./patterns/preview/annotation-inspecto
 import type { AnnotationThread } from "./patterns/preview/annotation-thread.js";
 import type { AnnotationToolbar } from "./patterns/preview/annotation-toolbar.js";
 import type { AppShell } from "./components/layout/app-shell.js";
+import type { AreaChart } from "./patterns/insights/area-chart.js";
 import type { AuditLog } from "./patterns/audit/audit-log.js";
 import type { Avatar } from "./components/identity/avatar.js";
 import type { Badge } from "./components/feedback/badge.js";
@@ -23,6 +24,7 @@ import type { Badgeable } from "./components/feedback/badgeable.js";
 import type { BarChart } from "./patterns/insights/bar-chart.js";
 import type { BoxPlot } from "./patterns/insights/box-plot.js";
 import type { Breadcrumb } from "./components/navigation/breadcrumb.js";
+import type { BubbleChart } from "./patterns/insights/bubble-chart.js";
 import type { BulkActionBar } from "./patterns/item/bulk-action-bar.js";
 import type { Button } from "./components/actions/button.js";
 import type { ButtonGroup } from "./components/actions/button-group.js";
@@ -90,6 +92,7 @@ import type { FormattedNumber } from "./components/output/formatted-number.js";
 import type { GovernancePanel } from "./patterns/governance/governance-panel.js";
 import type { Grid } from "./components/layout/grid.js";
 import type { GridView } from "./components/collections/grid-view.js";
+import type { GroupedBarChart } from "./patterns/insights/grouped-bar-chart.js";
 import type { GuideTooltip } from "./components/overlays/guide-tooltip.js";
 import type { HelpText } from "./components/feedback/help-text.js";
 import type { IconButton } from "./components/actions/icon-button.js";
@@ -108,6 +111,7 @@ import type { MenuItem } from "./components/actions/menu-item.js";
 import type { MetadataFilterBuilder } from "./patterns/metadata/metadata-filter-builder.js";
 import type { MetadataInspector } from "./patterns/metadata/metadata-inspector.js";
 import type { MetricCard } from "./patterns/insights/metric-card.js";
+import type { MixedChart } from "./patterns/insights/mixed-chart.js";
 import type { ModeIndicator } from "./components/feedback/mode-indicator.js";
 import type { MultiSelect } from "./components/forms/multi-select.js";
 import type { NavSidebar } from "./components/layout/nav-sidebar.js";
@@ -119,8 +123,10 @@ import type { Pagination } from "./components/collections/pagination.js";
 import type { Path } from "./components/feedback/path.js";
 import type { PermissionMatrix } from "./patterns/share/permission-matrix.js";
 import type { Persona } from "./components/identity/persona.js";
+import type { PieChart } from "./patterns/insights/pie-chart.js";
 import type { PillCloud } from "./components/forms/pill-cloud.js";
 import type { PillSelectorDropdown } from "./components/forms/pill-selector-dropdown.js";
+import type { PolarAreaChart } from "./patterns/insights/polar-area-chart.js";
 import type { Popover } from "./components/overlays/popover.js";
 import type { Presence } from "./patterns/share/presence.js";
 import type { Preview } from "./patterns/preview/preview-element.js";
@@ -130,6 +136,7 @@ import type { ProgressBar } from "./components/feedback/progress-bar.js";
 import type { ProgressRing } from "./components/feedback/progress-ring.js";
 import type { ProgressSteps } from "./components/feedback/progress-steps.js";
 import type { ProvenanceStrip } from "./patterns/lineage/provenance-strip.js";
+import type { RadarChart } from "./patterns/insights/radar-chart.js";
 import type { RadioGroup } from "./components/forms/radio-group.js";
 import type { RangeChart } from "./patterns/insights/range-chart.js";
 import type { RangeSlider } from "./components/forms/range-slider.js";
@@ -142,6 +149,7 @@ import type { RichTextInput } from "./components/forms/rich-text-input.js";
 import type { RunSummary } from "./patterns/run/run-summary.js";
 import type { RunTrace } from "./patterns/run/run-trace.js";
 import type { SavedViewPicker } from "./patterns/search/saved-view-picker.js";
+import type { ScatterChart } from "./patterns/insights/scatter-chart.js";
 import type { SearchField } from "./components/forms/search-field.js";
 import type { SearchResultsHeader } from "./patterns/search/search-results-header.js";
 import type { Section } from "./components/layout/section.js";
@@ -195,6 +203,7 @@ declare global {
     "box-annotation-thread": AnnotationThread;
     "box-annotation-toolbar": AnnotationToolbar;
     "box-app-shell": AppShell;
+    "box-area-chart": AreaChart;
     "box-audit-log": AuditLog;
     "box-avatar": Avatar;
     "box-badge": Badge;
@@ -202,6 +211,7 @@ declare global {
     "box-bar-chart": BarChart;
     "box-box-plot": BoxPlot;
     "box-breadcrumb": Breadcrumb;
+    "box-bubble-chart": BubbleChart;
     "box-bulk-action-bar": BulkActionBar;
     "box-button": Button;
     "box-button-group": ButtonGroup;
@@ -269,6 +279,7 @@ declare global {
     "box-governance-panel": GovernancePanel;
     "box-grid": Grid;
     "box-grid-view": GridView;
+    "box-grouped-bar-chart": GroupedBarChart;
     "box-guide-tooltip": GuideTooltip;
     "box-help-text": HelpText;
     "box-icon-button": IconButton;
@@ -287,6 +298,7 @@ declare global {
     "box-metadata-filter-builder": MetadataFilterBuilder;
     "box-metadata-inspector": MetadataInspector;
     "box-metric-card": MetricCard;
+    "box-mixed-chart": MixedChart;
     "box-mode-indicator": ModeIndicator;
     "box-multi-select": MultiSelect;
     "box-nav-sidebar": NavSidebar;
@@ -298,8 +310,10 @@ declare global {
     "box-path": Path;
     "box-permission-matrix": PermissionMatrix;
     "box-persona": Persona;
+    "box-pie-chart": PieChart;
     "box-pill-cloud": PillCloud;
     "box-pill-selector-dropdown": PillSelectorDropdown;
+    "box-polar-area-chart": PolarAreaChart;
     "box-popover": Popover;
     "box-presence": Presence;
     "box-preview-element": Preview;
@@ -309,6 +323,7 @@ declare global {
     "box-progress-ring": ProgressRing;
     "box-progress-steps": ProgressSteps;
     "box-provenance-strip": ProvenanceStrip;
+    "box-radar-chart": RadarChart;
     "box-radio-group": RadioGroup;
     "box-range-chart": RangeChart;
     "box-range-slider": RangeSlider;
@@ -321,6 +336,7 @@ declare global {
     "box-run-summary": RunSummary;
     "box-run-trace": RunTrace;
     "box-saved-view-picker": SavedViewPicker;
+    "box-scatter-chart": ScatterChart;
     "box-search-field": SearchField;
     "box-search-results-header": SearchResultsHeader;
     "box-section": Section;
@@ -376,6 +392,7 @@ export type BoxElementTagName =
   | "box-annotation-thread"
   | "box-annotation-toolbar"
   | "box-app-shell"
+  | "box-area-chart"
   | "box-audit-log"
   | "box-avatar"
   | "box-badge"
@@ -383,6 +400,7 @@ export type BoxElementTagName =
   | "box-bar-chart"
   | "box-box-plot"
   | "box-breadcrumb"
+  | "box-bubble-chart"
   | "box-bulk-action-bar"
   | "box-button"
   | "box-button-group"
@@ -450,6 +468,7 @@ export type BoxElementTagName =
   | "box-governance-panel"
   | "box-grid"
   | "box-grid-view"
+  | "box-grouped-bar-chart"
   | "box-guide-tooltip"
   | "box-help-text"
   | "box-icon-button"
@@ -468,6 +487,7 @@ export type BoxElementTagName =
   | "box-metadata-filter-builder"
   | "box-metadata-inspector"
   | "box-metric-card"
+  | "box-mixed-chart"
   | "box-mode-indicator"
   | "box-multi-select"
   | "box-nav-sidebar"
@@ -479,8 +499,10 @@ export type BoxElementTagName =
   | "box-path"
   | "box-permission-matrix"
   | "box-persona"
+  | "box-pie-chart"
   | "box-pill-cloud"
   | "box-pill-selector-dropdown"
+  | "box-polar-area-chart"
   | "box-popover"
   | "box-presence"
   | "box-preview-element"
@@ -490,6 +512,7 @@ export type BoxElementTagName =
   | "box-progress-ring"
   | "box-progress-steps"
   | "box-provenance-strip"
+  | "box-radar-chart"
   | "box-radio-group"
   | "box-range-chart"
   | "box-range-slider"
@@ -502,6 +525,7 @@ export type BoxElementTagName =
   | "box-run-summary"
   | "box-run-trace"
   | "box-saved-view-picker"
+  | "box-scatter-chart"
   | "box-search-field"
   | "box-search-results-header"
   | "box-section"

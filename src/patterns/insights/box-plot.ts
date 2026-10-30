@@ -1,6 +1,7 @@
+export type { ChartAnimationPreset, ChartAnimationEasing } from "./chart-motion.js";
 import { renderHeadingHtml, type HeadingLevel } from "../../foundations/a11y/heading.js";
 import { chartDomain } from "./chart-presentation.js";
-import { BaseElement } from "../../core/index.js";
+import { ChartElement, chartAnimationAttributes } from "./chart-element.js";
 
 export interface BoxPlotRow {
   id: string;
@@ -118,6 +119,7 @@ const styles = `
   [part=row] { border-radius:0.3rem; padding:0.1rem 0 }
   [part=row]:hover, [part=row]:focus-within { background:var(--boe-token-surface-surface-secondary, #f5f7fb) }
   [part=mark] { position:relative; appearance:none; display:block; width:100%; height:2.8rem; padding:0; border:0; background:none; cursor:help; color:inherit }
+  [part=distribution] { position:absolute; inset:0; pointer-events:none }
   [part=mark]:focus-visible { outline:2px solid var(--boe-token-surface-surface-brand, #0061d5); outline-offset:2px }
   [part=gridline] { position:absolute; top:0; bottom:0; border-left:1px solid var(--boe-boxplot-grid, var(--boe-token-stroke-stroke, #dedfe4)); pointer-events:none }
   [part=whisker] { position:absolute; top:50%; height:0; border-top:1px solid var(--boe-boxplot-whisker, var(--boe-token-text-text-secondary, #626b7d)); pointer-events:none }
@@ -177,9 +179,9 @@ const styles = `
 `;
 
 /** Distribution chart for host-computed summary statistics. Invalid rows are omitted. */
-export class BoxPlot extends BaseElement {
+export class BoxPlot extends ChartElement {
   static readonly tagName = "box-box-plot";
-  static get observedAttributes(): string[] { return ["selected-id", "selectable", "domain", "state", "status-message", "heading", "heading-level", "embedded", "hide-note", "description", "rows", "orientation", "scale", "whiskers", "unit"]; }
+  static get observedAttributes(): string[] { return [...chartAnimationAttributes, "selected-id", "selectable", "domain", "state", "status-message", "heading", "heading-level", "embedded", "hide-note", "description", "rows", "orientation", "scale", "whiskers", "unit"]; }
   get selectedId(): string | null { return this.getAttribute("selected-id"); }
   set selectedId(value: string | null) { value === null ? this.removeAttribute("selected-id") : this.setAttribute("selected-id",value); }
   get selectable(): boolean { return this.hasAttribute("selectable"); }
@@ -256,7 +258,7 @@ export class BoxPlot extends BaseElement {
   get format(): (value: number) => string { return this._formatter ?? ((value) => `${new Intl.NumberFormat(undefined, { maximumSignificantDigits: 4 }).format(value)}${this.unit ? ` ${this.unit}` : ""}`); }
   set format(value: (value: number) => string) { this._formatter = value; this.update(); }
   protected renderTemplate(): void { if (this.shadowRoot) this.shadowRoot.innerHTML = `<style>${styles}</style><div part="content-host"></div>`; }
-  protected update(): void {
+  protected renderChart(): void {
     const host = this.shadowRoot?.querySelector('[part="content-host"]');
     if (!host) return;
     if (this.detailFrame !== null) cancelAnimationFrame(this.detailFrame);
@@ -286,7 +288,7 @@ export class BoxPlot extends BaseElement {
       const summary = `${row.label}: median ${formatValue(row.median)}, middle half ${formatValue(row.q1)} to ${formatValue(row.q3)}, ${whiskerLabel(row, this.whiskers)} ${formatValue(low)} to ${formatValue(high)}, minimum ${formatValue(row.min)}, maximum ${formatValue(row.max)}${row.count === undefined ? "" : `, ${new Intl.NumberFormat().format(row.count)} calls`}${row.mean === undefined ? "" : `, mean ${formatValue(row.mean)}`}${row.reference === undefined ? "" : `, reference ${formatValue(row.reference)}`}`;
       const dots = (row.samples?.length ?? 0) <= 30 ? (row.samples ?? []).map((value, index) => `<span part="dot" style="left:${position(value)}%;top:${38 + (index % 5) * 6}%;--pos:${position(value)}%;--jitter:${35 + (index % 5) * 7}%"></span>`).join("") : "";
       const caps = [low, high].map(value => `<span part="cap" style="left:${position(value)}%;--pos:${position(value)}%"></span>`).join("");
-      return `<div part="row" data-selected="${this.selectedId === row.id}"><span part="label">${escapeHtml(row.label)}<span part="row-summary">Median ${fmt(row.median)}${row.count === undefined ? "" : ` · n = ${new Intl.NumberFormat().format(row.count)}`}</span>${row.reference === undefined ? "" : `<span part="reference-label">Reference ${fmt(row.reference)}</span>`}${this.selectedId === row.id ? '<span part="selected-label">Selected</span>' : ""}</span><div tabindex="0" role="${this.selectable ? "button" : "img"}" ${this.selectable ? `aria-pressed="${this.selectedId === row.id}"` : ""} part="mark" data-row-id="${escapeHtml(row.id)}" aria-label="${escapeHtml(summary)}">${this.orientation === "vertical" ? "" : grid}<span part="whisker" style="left:${position(low)}%;width:${round(position(high) - position(low))}%;${range(low, high)}"></span>${caps}<span part="box" style="left:${position(row.q1)}%;width:${round(position(row.q3) - position(row.q1))}%;${range(row.q1, row.q3)}"></span><span part="median" style="left:${position(row.median)}%;--pos:${position(row.median)}%"></span>${row.reference === undefined ? "" : `<span part="reference" style="left:${position(row.reference)}%;--pos:${position(row.reference)}%"></span>`}${dots}<span part="detail" aria-hidden="true">${escapeHtml(summary)}</span></div></div>`;
+      return `<div part="row" data-selected="${this.selectedId === row.id}"><span part="label">${escapeHtml(row.label)}<span part="row-summary">Median ${fmt(row.median)}${row.count === undefined ? "" : ` · n = ${new Intl.NumberFormat().format(row.count)}`}</span>${row.reference === undefined ? "" : `<span part="reference-label">Reference ${fmt(row.reference)}</span>`}${this.selectedId === row.id ? '<span part="selected-label">Selected</span>' : ""}</span><div tabindex="0" role="${this.selectable ? "button" : "img"}" ${this.selectable ? `aria-pressed="${this.selectedId === row.id}"` : ""} part="mark" data-row-id="${escapeHtml(row.id)}" aria-label="${escapeHtml(summary)}">${this.orientation === "vertical" ? "" : grid}<span part="distribution" data-animation-axis="${this.orientation === "vertical" ? "y" : "x"}" data-animation-origin="${this.orientation === "vertical" ? `50% ${round(100 - (position(row.q1) + position(row.q3)) / 2)}%` : `${round((position(row.q1) + position(row.q3)) / 2)}% 50%`}"><span part="whisker" style="left:${position(low)}%;width:${round(position(high) - position(low))}%;${range(low, high)}"></span>${caps}<span part="box" style="left:${position(row.q1)}%;width:${round(position(row.q3) - position(row.q1))}%;${range(row.q1, row.q3)}"></span><span part="median" style="left:${position(row.median)}%;--pos:${position(row.median)}%"></span>${dots}</span>${row.reference === undefined ? "" : `<span part="reference" style="left:${position(row.reference)}%;--pos:${position(row.reference)}%"></span>`}<span part="detail" aria-hidden="true">${escapeHtml(summary)}</span></div></div>`;
     }).join("");
     const headers = ["Row", "Median", "Range", "Count"];
     const tableRows = rows.map(row => {

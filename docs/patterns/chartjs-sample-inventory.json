@@ -1,0 +1,541 @@
+[
+  {
+    "path": "advanced/data-decimation.md",
+    "title": "Data Decimation",
+    "category": "advanced",
+    "lines": 118,
+    "url": "https://www.chartjs.org/docs/latest/samples/advanced/data-decimation.html"
+  },
+  {
+    "path": "advanced/derived-axis-type.md",
+    "title": "Derived Axis Type",
+    "category": "advanced",
+    "lines": 55,
+    "url": "https://www.chartjs.org/docs/latest/samples/advanced/derived-axis-type.html"
+  },
+  {
+    "path": "advanced/derived-chart-type.md",
+    "title": "Derived Chart Type",
+    "category": "advanced",
+    "lines": 50,
+    "url": "https://www.chartjs.org/docs/latest/samples/advanced/derived-chart-type.html"
+  },
+  {
+    "path": "advanced/linear-gradient.md",
+    "title": "Linear Gradient",
+    "category": "advanced",
+    "lines": 118,
+    "url": "https://www.chartjs.org/docs/latest/samples/advanced/linear-gradient.html"
+  },
+  {
+    "path": "advanced/programmatic-events.md",
+    "title": "Programmatic Event Triggers",
+    "category": "advanced",
+    "lines": 115,
+    "url": "https://www.chartjs.org/docs/latest/samples/advanced/programmatic-events.html"
+  },
+  {
+    "path": "advanced/progress-bar.md",
+    "title": "Animation Progress Bar",
+    "category": "advanced",
+    "lines": 152,
+    "url": "https://www.chartjs.org/docs/latest/samples/advanced/progress-bar.html"
+  },
+  {
+    "path": "advanced/radial-gradient.md",
+    "title": "Radial Gradient",
+    "category": "advanced",
+    "lines": 122,
+    "url": "https://www.chartjs.org/docs/latest/samples/advanced/radial-gradient.html"
+  },
+  {
+    "path": "animations/delay.md",
+    "title": "Delay",
+    "category": "animations",
+    "lines": 87,
+    "url": "https://www.chartjs.org/docs/latest/samples/animations/delay.html"
+  },
+  {
+    "path": "animations/drop.md",
+    "title": "Drop",
+    "category": "animations",
+    "lines": 136,
+    "url": "https://www.chartjs.org/docs/latest/samples/animations/drop.html"
+  },
+  {
+    "path": "animations/loop.md",
+    "title": "Loop",
+    "category": "animations",
+    "lines": 141,
+    "url": "https://www.chartjs.org/docs/latest/samples/animations/loop.html"
+  },
+  {
+    "path": "animations/progressive-line-easing.md",
+    "title": "Progressive Line With Easing",
+    "category": "animations",
+    "lines": 189,
+    "url": "https://www.chartjs.org/docs/latest/samples/animations/progressive-line-easing.html"
+  },
+  {
+    "path": "animations/progressive-line.md",
+    "title": "Progressive Line",
+    "category": "animations",
+    "lines": 107,
+    "url": "https://www.chartjs.org/docs/latest/samples/animations/progressive-line.html"
+  },
+  {
+    "path": "area/line-boundaries.md",
+    "title": "Line Chart Boundaries",
+    "category": "area",
+    "lines": 127,
+    "url": "https://www.chartjs.org/docs/latest/samples/area/line-boundaries.html"
+  },
+  {
+    "path": "area/line-datasets.md",
+    "title": "Line Chart Datasets",
+    "category": "area",
+    "lines": 174,
+    "url": "https://www.chartjs.org/docs/latest/samples/area/line-datasets.html"
+  },
+  {
+    "path": "area/line-drawtime.md",
+    "title": "Line Chart drawTime",
+    "category": "area",
+    "lines": 121,
+    "url": "https://www.chartjs.org/docs/latest/samples/area/line-drawtime.html"
+  },
+  {
+    "path": "area/line-stacked.md",
+    "title": "Line Chart Stacked",
+    "category": "area",
+    "lines": 180,
+    "url": "https://www.chartjs.org/docs/latest/samples/area/line-stacked.html"
+  },
+  {
+    "path": "area/radar.md",
+    "title": "Radar Chart Stacked",
+    "category": "area",
+    "lines": 148,
+    "url": "https://www.chartjs.org/docs/latest/samples/area/radar.html"
+  },
+  {
+    "path": "bar/border-radius.md",
+    "title": "Bar Chart Border Radius",
+    "category": "bar",
+    "lines": 76,
+    "url": "https://www.chartjs.org/docs/latest/samples/bar/border-radius.html"
+  },
+  {
+    "path": "bar/floating.md",
+    "title": "Floating Bars",
+    "category": "bar",
+    "lines": 74,
+    "url": "https://www.chartjs.org/docs/latest/samples/bar/floating.html"
+  },
+  {
+    "path": "bar/horizontal.md",
+    "title": "Horizontal Bar Chart",
+    "category": "bar",
+    "lines": 128,
+    "url": "https://www.chartjs.org/docs/latest/samples/bar/horizontal.html"
+  },
+  {
+    "path": "bar/stacked-groups.md",
+    "title": "Stacked Bar Chart with Groups",
+    "category": "bar",
+    "lines": 88,
+    "url": "https://www.chartjs.org/docs/latest/samples/bar/stacked-groups.html"
+  },
+  {
+    "path": "bar/stacked.md",
+    "title": "Stacked Bar Chart",
+    "category": "bar",
+    "lines": 77,
+    "url": "https://www.chartjs.org/docs/latest/samples/bar/stacked.html"
+  },
+  {
+    "path": "bar/vertical.md",
+    "title": "Vertical Bar Chart",
+    "category": "bar",
+    "lines": 119,
+    "url": "https://www.chartjs.org/docs/latest/samples/bar/vertical.html"
+  },
+  {
+    "path": "information.md",
+    "title": "Chart.js Samples",
+    "category": "information",
+    "lines": 15,
+    "url": "https://www.chartjs.org/docs/latest/samples/information.html"
+  },
+  {
+    "path": "legend/events.md",
+    "title": "Events",
+    "category": "legend",
+    "lines": 63,
+    "url": "https://www.chartjs.org/docs/latest/samples/legend/events.html"
+  },
+  {
+    "path": "legend/html.md",
+    "title": "HTML Legend",
+    "category": "legend",
+    "lines": 142,
+    "url": "https://www.chartjs.org/docs/latest/samples/legend/html.html"
+  },
+  {
+    "path": "legend/point-style.md",
+    "title": "Point Style",
+    "category": "legend",
+    "lines": 69,
+    "url": "https://www.chartjs.org/docs/latest/samples/legend/point-style.html"
+  },
+  {
+    "path": "legend/position.md",
+    "title": "Position",
+    "category": "legend",
+    "lines": 74,
+    "url": "https://www.chartjs.org/docs/latest/samples/legend/position.html"
+  },
+  {
+    "path": "legend/title.md",
+    "title": "Alignment and Title Position",
+    "category": "legend",
+    "lines": 79,
+    "url": "https://www.chartjs.org/docs/latest/samples/legend/title.html"
+  },
+  {
+    "path": "line/interpolation.md",
+    "title": "Interpolation Modes",
+    "category": "line",
+    "lines": 83,
+    "url": "https://www.chartjs.org/docs/latest/samples/line/interpolation.html"
+  },
+  {
+    "path": "line/line.md",
+    "title": "Line Chart",
+    "category": "line",
+    "lines": 118,
+    "url": "https://www.chartjs.org/docs/latest/samples/line/line.html"
+  },
+  {
+    "path": "line/multi-axis.md",
+    "title": "Multi Axis Line Chart",
+    "category": "line",
+    "lines": 94,
+    "url": "https://www.chartjs.org/docs/latest/samples/line/multi-axis.html"
+  },
+  {
+    "path": "line/point-styling.md",
+    "title": "Point Styling",
+    "category": "line",
+    "lines": 150,
+    "url": "https://www.chartjs.org/docs/latest/samples/line/point-styling.html"
+  },
+  {
+    "path": "line/segments.md",
+    "title": "Line Segment Styling",
+    "category": "line",
+    "lines": 53,
+    "url": "https://www.chartjs.org/docs/latest/samples/line/segments.html"
+  },
+  {
+    "path": "line/stepped.md",
+    "title": "Stepped Line Charts",
+    "category": "line",
+    "lines": 98,
+    "url": "https://www.chartjs.org/docs/latest/samples/line/stepped.html"
+  },
+  {
+    "path": "line/styling.md",
+    "title": "Line Styling",
+    "category": "line",
+    "lines": 81,
+    "url": "https://www.chartjs.org/docs/latest/samples/line/styling.html"
+  },
+  {
+    "path": "other-charts/bubble.md",
+    "title": "Bubble",
+    "category": "other-charts",
+    "lines": 112,
+    "url": "https://www.chartjs.org/docs/latest/samples/other-charts/bubble.html"
+  },
+  {
+    "path": "other-charts/combo-bar-line.md",
+    "title": "Combo bar/line",
+    "category": "other-charts",
+    "lines": 123,
+    "url": "https://www.chartjs.org/docs/latest/samples/other-charts/combo-bar-line.html"
+  },
+  {
+    "path": "other-charts/doughnut.md",
+    "title": "Doughnut",
+    "category": "other-charts",
+    "lines": 139,
+    "url": "https://www.chartjs.org/docs/latest/samples/other-charts/doughnut.html"
+  },
+  {
+    "path": "other-charts/multi-series-pie.md",
+    "title": "Multi Series Pie",
+    "category": "other-charts",
+    "lines": 96,
+    "url": "https://www.chartjs.org/docs/latest/samples/other-charts/multi-series-pie.html"
+  },
+  {
+    "path": "other-charts/pie.md",
+    "title": "Pie",
+    "category": "other-charts",
+    "lines": 114,
+    "url": "https://www.chartjs.org/docs/latest/samples/other-charts/pie.html"
+  },
+  {
+    "path": "other-charts/polar-area-center-labels.md",
+    "title": "Polar area centered point labels",
+    "category": "other-charts",
+    "lines": 107,
+    "url": "https://www.chartjs.org/docs/latest/samples/other-charts/polar-area-center-labels.html"
+  },
+  {
+    "path": "other-charts/polar-area.md",
+    "title": "Polar area",
+    "category": "other-charts",
+    "lines": 95,
+    "url": "https://www.chartjs.org/docs/latest/samples/other-charts/polar-area.html"
+  },
+  {
+    "path": "other-charts/radar-skip-points.md",
+    "title": "Radar skip points",
+    "category": "other-charts",
+    "lines": 91,
+    "url": "https://www.chartjs.org/docs/latest/samples/other-charts/radar-skip-points.html"
+  },
+  {
+    "path": "other-charts/radar.md",
+    "title": "Radar",
+    "category": "other-charts",
+    "lines": 116,
+    "url": "https://www.chartjs.org/docs/latest/samples/other-charts/radar.html"
+  },
+  {
+    "path": "other-charts/scatter-multi-axis.md",
+    "title": "Scatter - Multi axis",
+    "category": "other-charts",
+    "lines": 136,
+    "url": "https://www.chartjs.org/docs/latest/samples/other-charts/scatter-multi-axis.html"
+  },
+  {
+    "path": "other-charts/scatter.md",
+    "title": "Scatter",
+    "category": "other-charts",
+    "lines": 112,
+    "url": "https://www.chartjs.org/docs/latest/samples/other-charts/scatter.html"
+  },
+  {
+    "path": "other-charts/stacked-bar-line.md",
+    "title": "Stacked bar/line",
+    "category": "other-charts",
+    "lines": 130,
+    "url": "https://www.chartjs.org/docs/latest/samples/other-charts/stacked-bar-line.html"
+  },
+  {
+    "path": "plugins/chart-area-border.md",
+    "title": "Chart Area Border",
+    "category": "plugins",
+    "lines": 69,
+    "url": "https://www.chartjs.org/docs/latest/samples/plugins/chart-area-border.html"
+  },
+  {
+    "path": "plugins/doughnut-empty-state.md",
+    "title": "Doughnut Empty State",
+    "category": "plugins",
+    "lines": 83,
+    "url": "https://www.chartjs.org/docs/latest/samples/plugins/doughnut-empty-state.html"
+  },
+  {
+    "path": "plugins/quadrants.md",
+    "title": "Quadrants",
+    "category": "plugins",
+    "lines": 85,
+    "url": "https://www.chartjs.org/docs/latest/samples/plugins/quadrants.html"
+  },
+  {
+    "path": "scale-options/center.md",
+    "title": "Center Positioning",
+    "category": "scale-options",
+    "lines": 94,
+    "url": "https://www.chartjs.org/docs/latest/samples/scale-options/center.html"
+  },
+  {
+    "path": "scale-options/grid.md",
+    "title": "Grid Configuration",
+    "category": "scale-options",
+    "lines": 107,
+    "url": "https://www.chartjs.org/docs/latest/samples/scale-options/grid.html"
+  },
+  {
+    "path": "scale-options/ticks.md",
+    "title": "Tick Configuration",
+    "category": "scale-options",
+    "lines": 103,
+    "url": "https://www.chartjs.org/docs/latest/samples/scale-options/ticks.html"
+  },
+  {
+    "path": "scale-options/titles.md",
+    "title": "Title Configuration",
+    "category": "scale-options",
+    "lines": 85,
+    "url": "https://www.chartjs.org/docs/latest/samples/scale-options/titles.html"
+  },
+  {
+    "path": "scales/linear-min-max-suggested.md",
+    "title": "Linear Scale - Suggested Min-Max",
+    "category": "scales",
+    "lines": 63,
+    "url": "https://www.chartjs.org/docs/latest/samples/scales/linear-min-max-suggested.html"
+  },
+  {
+    "path": "scales/linear-min-max.md",
+    "title": "Linear Scale - Min-Max",
+    "category": "scales",
+    "lines": 60,
+    "url": "https://www.chartjs.org/docs/latest/samples/scales/linear-min-max.html"
+  },
+  {
+    "path": "scales/linear-step-size.md",
+    "title": "Linear Scale - Step Size",
+    "category": "scales",
+    "lines": 148,
+    "url": "https://www.chartjs.org/docs/latest/samples/scales/linear-step-size.html"
+  },
+  {
+    "path": "scales/log.md",
+    "title": "Log Scale",
+    "category": "scales",
+    "lines": 82,
+    "url": "https://www.chartjs.org/docs/latest/samples/scales/log.html"
+  },
+  {
+    "path": "scales/stacked.md",
+    "title": "Stacked Linear / Category",
+    "category": "scales",
+    "lines": 77,
+    "url": "https://www.chartjs.org/docs/latest/samples/scales/stacked.html"
+  },
+  {
+    "path": "scales/time-combo.md",
+    "title": "Time Scale - Combo Chart",
+    "category": "scales",
+    "lines": 91,
+    "url": "https://www.chartjs.org/docs/latest/samples/scales/time-combo.html"
+  },
+  {
+    "path": "scales/time-line.md",
+    "title": "Time Scale",
+    "category": "scales",
+    "lines": 116,
+    "url": "https://www.chartjs.org/docs/latest/samples/scales/time-line.html"
+  },
+  {
+    "path": "scales/time-max-span.md",
+    "title": "Time Scale - Max Span",
+    "category": "scales",
+    "lines": 131,
+    "url": "https://www.chartjs.org/docs/latest/samples/scales/time-max-span.html"
+  },
+  {
+    "path": "scriptable/bar.md",
+    "title": "Bar Chart",
+    "category": "scriptable",
+    "lines": 81,
+    "url": "https://www.chartjs.org/docs/latest/samples/scriptable/bar.html"
+  },
+  {
+    "path": "scriptable/bubble.md",
+    "title": "Bubble Chart",
+    "category": "scriptable",
+    "lines": 114,
+    "url": "https://www.chartjs.org/docs/latest/samples/scriptable/bubble.html"
+  },
+  {
+    "path": "scriptable/line.md",
+    "title": "Line Chart",
+    "category": "scriptable",
+    "lines": 99,
+    "url": "https://www.chartjs.org/docs/latest/samples/scriptable/line.html"
+  },
+  {
+    "path": "scriptable/pie.md",
+    "title": "Pie Chart",
+    "category": "scriptable",
+    "lines": 92,
+    "url": "https://www.chartjs.org/docs/latest/samples/scriptable/pie.html"
+  },
+  {
+    "path": "scriptable/polar.md",
+    "title": "Polar Area Chart",
+    "category": "scriptable",
+    "lines": 82,
+    "url": "https://www.chartjs.org/docs/latest/samples/scriptable/polar.html"
+  },
+  {
+    "path": "scriptable/radar.md",
+    "title": "Radar Chart",
+    "category": "scriptable",
+    "lines": 99,
+    "url": "https://www.chartjs.org/docs/latest/samples/scriptable/radar.html"
+  },
+  {
+    "path": "subtitle/basic.md",
+    "title": "Basic",
+    "category": "subtitle",
+    "lines": 61,
+    "url": "https://www.chartjs.org/docs/latest/samples/subtitle/basic.html"
+  },
+  {
+    "path": "title/alignment.md",
+    "title": "Alignment",
+    "category": "title",
+    "lines": 74,
+    "url": "https://www.chartjs.org/docs/latest/samples/title/alignment.html"
+  },
+  {
+    "path": "tooltip/content.md",
+    "title": "Custom Tooltip Content",
+    "category": "tooltip",
+    "lines": 72,
+    "url": "https://www.chartjs.org/docs/latest/samples/tooltip/content.html"
+  },
+  {
+    "path": "tooltip/html.md",
+    "title": "External HTML Tooltip",
+    "category": "tooltip",
+    "lines": 172,
+    "url": "https://www.chartjs.org/docs/latest/samples/tooltip/html.html"
+  },
+  {
+    "path": "tooltip/interactions.md",
+    "title": "Interaction Modes",
+    "category": "tooltip",
+    "lines": 136,
+    "url": "https://www.chartjs.org/docs/latest/samples/tooltip/interactions.html"
+  },
+  {
+    "path": "tooltip/point-style.md",
+    "title": "Point Style",
+    "category": "tooltip",
+    "lines": 89,
+    "url": "https://www.chartjs.org/docs/latest/samples/tooltip/point-style.html"
+  },
+  {
+    "path": "tooltip/position.md",
+    "title": "Position",
+    "category": "tooltip",
+    "lines": 108,
+    "url": "https://www.chartjs.org/docs/latest/samples/tooltip/position.html"
+  },
+  {
+    "path": "utils.md",
+    "title": "Utils",
+    "category": "information",
+    "lines": 21,
+    "url": "https://www.chartjs.org/docs/latest/samples/utils.html"
+  }
+]

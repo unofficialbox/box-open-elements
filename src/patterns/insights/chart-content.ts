@@ -54,6 +54,7 @@ export const syncBarScale = (chart: HTMLElement, points: Point[], bounds: number
     button.dataset.negative = String(value < 0);
     const zero = scale.position(0), position = scale.position(value);
     const bar = button.querySelector<HTMLElement>('[part="bar"]')!;
+    bar.dataset.animationOrigin = value < 0 ? "50% 0%" : "50% 100%";
     button.style.setProperty("--value-position", String(position));
     bar.style.setProperty("--bar-bottom", `${Math.min(zero, position) * 100}%`);
     bar.style.setProperty("--bar-height", `${Math.abs(position - zero) * 100}%`);

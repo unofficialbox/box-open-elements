@@ -330,9 +330,11 @@ const renderComponentPage = (entry: CatalogEntry): void => {
     ? exampleVariants.map(variant => ({ name: variant.name, html: variant.html, note: variant.note }))
     : workshopVariants;
   const hasVariants = variants.length >= 2;
+  const initialVariantIndex = Math.max(0, variants.findIndex(variant => variant.name === "Animated entrance"));
+  const initialCodeHtml = (useExampleVariants ? exampleVariants[initialVariantIndex]?.codeHtml : undefined) ?? example.codeHtml;
   const workshopDefaultHtml = workshopVariants[0]?.html;
   const initialHtml = useExampleVariants || hasVariants
-    ? variants[0].html
+    ? variants[initialVariantIndex].html
     : example.setup || !workshopDefaultHtml || example.html.length >= workshopDefaultHtml.length
       ? example.html
       : workshopDefaultHtml;
@@ -357,7 +359,7 @@ const renderComponentPage = (entry: CatalogEntry): void => {
             ${hasVariants
               ? `<label class="variant-picker">Variant
                   <select id="variant-select" aria-label="Preview variant">
-                    ${variants.map((variant, index) => `<option value="${index}">${escapeHtml(variant.name)}</option>`).join("")}
+                    ${variants.map((variant, index) => `<option value="${index}"${index === initialVariantIndex ? " selected" : ""}>${escapeHtml(variant.name)}</option>`).join("")}
                   </select>
                 </label>`
               : ""}
@@ -390,11 +392,11 @@ const renderComponentPage = (entry: CatalogEntry): void => {
             `<button type="button" class="code-tab" data-code="${framework.id}" role="tab" aria-selected="${index === 0}" title="${framework.label}"><span class="code-tab-icon">${frameworkIconSvg(framework.id)}</span><span class="visually-hidden">${framework.label}</span></button>`,
         ).join("")}
       </div>
-      <div class="code-wrap"><button type="button" class="code-copy" id="framework-code-copy">Copy code</button><pre class="code-block"><code id="code-block">${highlightCode(formatHtml(example.codeHtml ?? initialHtml), "html")}</code></pre></div>
+      <div class="code-wrap"><button type="button" class="code-copy" id="framework-code-copy">Copy code</button><pre class="code-block"><code id="code-block">${highlightCode(formatHtml(initialCodeHtml ?? initialHtml), "html")}</code></pre></div>
       ${example.setupCode ? `<h2>Shared controller setup — all frameworks</h2><pre class="code-block"><code>${highlightCode(example.setupCode, "ts")}</code></pre>` : ""}
       <p class="preview-note code-frameworks-note">Every tab shows the same complete markup and shared controller setup. One-time framework configuration, design tokens and optional adapters are covered in the <a href="https://github.com/unofficialbox/box-open-elements/blob/main/docs/integration/frameworks.md" target="_blank" rel="noreferrer">Frameworks guide</a>.</p>
       ${(() => {
-        const note = variants[0]?.note ?? example.note;
+        const note = variants[initialVariantIndex]?.note ?? example.note;
         return note ? `<p id="variant-note" class="preview-note">${escapeHtml(note)}</p>` : `<p id="variant-note" class="preview-note" hidden></p>`;
       })()}
     </div>
@@ -537,7 +539,7 @@ const renderComponentPage = (entry: CatalogEntry): void => {
     refreshInspectors();
   };
   const initialSetup: SetupFn | undefined = useExampleVariants
-    ? exampleVariants[0]?.setup
+    ? exampleVariants[initialVariantIndex]?.setup
     : hasVariants
       ? undefined
       : example.setup;
@@ -552,9 +554,10 @@ const renderComponentPage = (entry: CatalogEntry): void => {
 
   // Framework code tabs — re-render the snippet for the current variant + framework.
   let currentHtml = initialHtml;
+  let currentCodeHtml = initialCodeHtml ?? initialHtml;
   let currentFramework: Framework = "html";
   const renderCode = (): void => {
-    const snippet = frameworkSnippet(currentFramework, entry.id, entry.tag, example.codeHtml ?? currentHtml);
+    const snippet = frameworkSnippet(currentFramework, entry.id, entry.tag, currentCodeHtml);
     codeBlock.innerHTML = highlightCode(snippet, normalizeLang(currentFramework));
   };
   stageBody.querySelectorAll<HTMLButtonElement>(".code-tab").forEach(tab => {
@@ -574,6 +577,7 @@ const renderComponentPage = (entry: CatalogEntry): void => {
     const setup = useExampleVariants ? exampleVariants[index]?.setup : undefined;
     mount(variant.html, setup);
     currentHtml = variant.html;
+    currentCodeHtml = (useExampleVariants ? exampleVariants[index]?.codeHtml : undefined) ?? example.codeHtml ?? currentHtml;
     renderCode();
     const note = variant.note ?? example.note;
     const noteEl = stageBody.querySelector<HTMLElement>("#variant-note");

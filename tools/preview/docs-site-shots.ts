@@ -507,9 +507,12 @@ try {
     // that a whole-page screenshot can push below the fold.
     for (const width of [1440, 390]) for (const theme of ["light", "dark"]) {
       await page.setViewportSize({ width, height: 940 });
-      for (const id of ["chart-panel", "bar-chart", "line-chart", "donut-chart", "box-plot", "distribution-timeline", "metric-card", "stacked-bar-chart", "range-chart", "findings-disclosure"]) {
+      for (const id of ["chart-panel", "bar-chart", "line-chart", "donut-chart", "box-plot", "distribution-timeline", "metric-card", "stacked-bar-chart", "range-chart", "findings-disclosure", "grouped-bar-chart", "scatter-chart", "bubble-chart", "area-chart", "mixed-chart", "pie-chart", "radar-chart", "polar-area-chart"]) {
         await page.goto(`http://localhost:${PORT}/#patterns/${id}`, { waitUntil: "networkidle" });
         await page.waitForSelector(`body[data-route-ready="patterns/${id}"]`);
+        // Element screenshots may scroll a tall chart under the sticky header.
+        // Keep the header in normal flow so it cannot occlude the chart pixels.
+        await page.addStyleTag({ content: ".masthead{position:static!important}" });
         await page.evaluate(target => {
           if (document.documentElement.dataset.theme !== target) document.getElementById("theme-toggle")?.click();
         }, theme);
@@ -519,6 +522,9 @@ try {
         await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
         if (!await page.evaluate(() => "axe" in window)) await page.addScriptTag({ path: join(ROOT, "node_modules/axe-core/axe.min.js") });
         const chart = page.locator(`box-${id}`).first();
+        // Static baselines and contrast checks use settled marks, not a random
+        // opacity midway through entrance. Motion frames have their own harness.
+        await chart.evaluate(element => (element as HTMLElement & { finishAnimation?: () => void }).finishAnimation?.());
         if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)) throw new Error(`${id} page overflows at ${width}`);
         if (id === "bar-chart" || id === "chart-panel") {
           const fits = await chart.evaluate(element => {
@@ -612,6 +618,13 @@ try {
           if (Number(await page.locator("#event-count").textContent()) < 1) throw new Error(`${id} did not emit a keyboard event`);
         }
 
+        if(id==="grouped-bar-chart"||id==="area-chart"){
+          for(const label of id==="grouped-bar-chart"?["Diverging stacks","Grouped stacks"]:["Stacked area"]){
+            await page.getByLabel("Preview variant").selectOption({label});
+            await waitForVisualSettle(page,`${id}-${label}-${width}-${theme}`);
+            await chart.screenshot({path:join(OUT_DIR,`insights-${id}-${label.toLowerCase().replaceAll(" ","-")}-${width}-${theme}.png`),animations:"disabled"});
+          }
+        }
         if(id==="stacked-bar-chart"){
           await chart.evaluate(element=>element.setAttribute("orientation","vertical"));
           await waitForVisualSettle(page, `stacked-vertical-${width}-${theme}`);
@@ -623,7 +636,7 @@ try {
           await chart.screenshot({path:join(OUT_DIR,`insights-findings-disclosure-expanded-${width}-${theme}.png`),animations:"disabled"});
         }
         if(id==="line-chart"){
-          for(const [label,suffix] of [["Numeric series","series"],["Logarithmic series","series-log"]]){
+          for(const [label,suffix] of [["Numeric series","series"],["Logarithmic series","series-log"],["Stepped numeric series","stepped"],["Monotone interpolation","monotone"],["Calendar time axis","calendar"],["Separate y axes","dual-axes"]]){
             await page.getByLabel("Preview variant").selectOption({label});
             await waitForVisualSettle(page,`numeric-${suffix}-${width}-${theme}`);
             await chart.screenshot({path:join(OUT_DIR,`insights-line-chart-${suffix}-${width}-${theme}.png`),animations:"disabled"});

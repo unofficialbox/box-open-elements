@@ -18,13 +18,15 @@ export interface BoxElementPropertyKeys {
   "box-annotation-thread": "actions" | "anchor" | "composable" | "composerLabel" | "entries" | "heading" | "message" | "placeholder" | "selectedEntryId";
   "box-annotation-toolbar": "actions" | "activeToolId" | "colorOptions" | "currentColor" | "label" | "tools";
   "box-app-shell": "asideLabel" | "heading" | "navLabel";
+  "box-area-chart": "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "description" | "heading" | "interpolation" | "selectedId" | "series" | "seriesTokens" | "sizeLabel" | "stacked" | "state" | "statusMessage" | "timeZone" | "unit" | "xFormat" | "xLabel" | "xScale" | "yAxes" | "yFormat" | "yLabel";
   "box-audit-log": "events" | "exportable" | "facets" | "groupBy" | "heading" | "headingHeight" | "referenceTime" | "rowHeight" | "virtualize";
   "box-avatar": "alt" | "badge" | "initials" | "name" | "size" | "src" | "tone";
   "box-badge": "hideWhenZero" | "label" | "max" | "tone";
   "box-badgeable": never;
-  "box-bar-chart": "actions" | "domain" | "heading" | "legend" | "message" | "note" | "points" | "selectedId" | "state" | "statusMessage" | "summary" | "timeframe" | "unit" | "xLabel";
-  "box-box-plot": "description" | "domain" | "embedded" | "format" | "heading" | "headingLevel" | "hideNote" | "orientation" | "rows" | "scale" | "selectable" | "selectedId" | "state" | "statusMessage" | "unit" | "whiskers";
+  "box-bar-chart": "actions" | "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "domain" | "heading" | "legend" | "message" | "note" | "points" | "selectedId" | "state" | "statusMessage" | "summary" | "timeframe" | "unit" | "xLabel";
+  "box-box-plot": "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "description" | "domain" | "embedded" | "format" | "heading" | "headingLevel" | "hideNote" | "orientation" | "rows" | "scale" | "selectable" | "selectedId" | "state" | "statusMessage" | "unit" | "whiskers";
   "box-breadcrumb": "items" | "label" | "maxItems";
+  "box-bubble-chart": "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "description" | "heading" | "interpolation" | "selectedId" | "series" | "seriesTokens" | "sizeLabel" | "stacked" | "state" | "statusMessage" | "timeZone" | "unit" | "xFormat" | "xLabel" | "xScale" | "yAxes" | "yFormat" | "yLabel";
   "box-bulk-action-bar": "actions" | "clearLabel" | "count" | "items" | "label" | "message";
   "box-button": "accessibleLabel" | "disabled" | "isLoading" | "label" | "size" | "tone" | "type";
   "box-button-group": "label" | "layout" | "options" | "value";
@@ -33,7 +35,7 @@ export interface BoxElementPropertyKeys {
   "box-card": "eyebrow" | "heading";
   "box-carousel": "items" | "label" | "value";
   "box-category-selector": "label" | "maxLinks" | "options" | "value";
-  "box-chart-panel": "actions" | "domain" | "heading" | "legend" | "message" | "note" | "points" | "selectedId" | "state" | "statusMessage" | "summary" | "timeframe" | "unit" | "xLabel";
+  "box-chart-panel": "actions" | "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "domain" | "heading" | "legend" | "message" | "note" | "points" | "selectedId" | "state" | "statusMessage" | "summary" | "timeframe" | "unit" | "xLabel";
   "box-check-list": "blocks" | "labels" | "rows" | "selectableDocuments";
   "box-checkbox": "checked" | "description" | "disabled" | "errorMessage" | "hideLabel" | "indeterminate" | "invalid" | "label" | "name" | "required" | "value";
   "box-checkbox-group": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "options" | "required" | "value";
@@ -56,10 +58,10 @@ export interface BoxElementPropertyKeys {
   "box-date-field": "clearable" | "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "required" | "value";
   "box-dialog": "confirmBusy" | "confirmBusyLabel" | "confirmDisabled" | "confirmLabel" | "confirmTone" | "description" | "heading" | "open" | "size";
   "box-diff-viewer": "afterLabel" | "afterText" | "beforeLabel" | "beforeText" | "heading" | "mode";
-  "box-distribution-timeline": "description" | "embedded" | "format" | "heading" | "headingLevel" | "hideNote" | "hideSamples" | "maxSamples" | "points" | "scale" | "showSamples" | "timeUnit" | "unit";
+  "box-distribution-timeline": "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "description" | "embedded" | "format" | "heading" | "headingLevel" | "hideNote" | "hideSamples" | "maxSamples" | "points" | "scale" | "showSamples" | "timeUnit" | "unit";
   "box-divider": "label" | "orientation";
   "box-document-list": "blocks" | "items" | "labels" | "selectableDocuments";
-  "box-donut-chart": "actions" | "categoryLabel" | "heading" | "message" | "note" | "readOnly" | "segments" | "state" | "statusMessage" | "summary" | "timeframe" | "total" | "totalLabel" | "unit";
+  "box-donut-chart": "actions" | "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "categoryLabel" | "heading" | "message" | "note" | "readOnly" | "segments" | "state" | "statusMessage" | "summary" | "timeframe" | "total" | "totalLabel" | "unit";
   "box-draggable-list": "items" | "label";
   "box-drawer": "busy" | "description" | "heading" | "hideCloseButton" | "open" | "position" | "size";
   "box-drop-zone": "accept" | "browseLabel" | "description" | "directories" | "folderLabel" | "label" | "message" | "variant";
@@ -92,6 +94,7 @@ export interface BoxElementPropertyKeys {
   "box-governance-panel": "actions" | "heading" | "message" | "policies" | "signals" | "status";
   "box-grid": "columns" | "rowHeight";
   "box-grid-view": "items" | "label" | "value";
+  "box-grouped-bar-chart": "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "description" | "heading" | "interpolation" | "selectedId" | "series" | "seriesTokens" | "sizeLabel" | "stacked" | "state" | "statusMessage" | "timeZone" | "unit" | "xFormat" | "xLabel" | "xScale" | "yAxes" | "yFormat" | "yLabel";
   "box-guide-tooltip": "heading" | "htmlFor" | "open" | "placement" | "step" | "total";
   "box-help-text": "description" | "label" | "message" | "tone";
   "box-icon-button": "disabled" | "icon" | "label" | "size" | "tone" | "variant";
@@ -102,14 +105,15 @@ export interface BoxElementPropertyKeys {
   "box-item-details-panel": "actions" | "eyebrow" | "heading" | "message" | "meta" | "owner" | "status";
   "box-item-form": "disabled" | "fields" | "label" | "mode" | "submitLabel" | "value";
   "box-kind-picker": "catalog" | "searchable" | "variant";
-  "box-line-chart": "actions" | "domain" | "heading" | "legend" | "markers" | "message" | "note" | "points" | "selectedId" | "series" | "seriesTokens" | "state" | "statusMessage" | "summary" | "timeframe" | "unit" | "xFormat" | "xLabel" | "xScale" | "yFormat" | "yLabel" | "yScale";
+  "box-line-chart": "actions" | "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "domain" | "heading" | "interpolation" | "legend" | "markers" | "message" | "note" | "points" | "selectedId" | "series" | "seriesTokens" | "state" | "statusMessage" | "summary" | "timeZone" | "timeframe" | "unit" | "xFormat" | "xLabel" | "xScale" | "yAxes" | "yFormat" | "yLabel" | "yScale";
   "box-lineage-graph": "arrows" | "heading" | "nodes";
   "box-link-button": "href" | "label" | "rel" | "target" | "tone";
   "box-menu": "disabled" | "items" | "label";
   "box-menu-item": "disabled" | "label" | "selected" | "value";
   "box-metadata-filter-builder": "fields" | "label" | "rules";
   "box-metadata-inspector": "eyebrow" | "heading" | "message" | "sections";
-  "box-metric-card": "action" | "eyebrow" | "heading" | "message" | "size" | "state" | "status" | "statusMessage" | "tone" | "trend" | "value";
+  "box-metric-card": "action" | "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "eyebrow" | "heading" | "message" | "size" | "state" | "status" | "statusMessage" | "tone" | "trend" | "value";
+  "box-mixed-chart": "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "description" | "heading" | "interpolation" | "selectedId" | "series" | "seriesTokens" | "sizeLabel" | "stacked" | "state" | "statusMessage" | "timeZone" | "unit" | "xFormat" | "xLabel" | "xScale" | "yAxes" | "yFormat" | "yLabel";
   "box-mode-indicator": "detail" | "interactive" | "mode" | "namePrefix";
   "box-multi-select": "description" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "options" | "required" | "value";
   "box-nav-sidebar": "collapsed" | "label";
@@ -121,8 +125,10 @@ export interface BoxElementPropertyKeys {
   "box-path": "current" | "hasError" | "label" | "stages" | "variant";
   "box-permission-matrix": "label" | "options" | "subjects" | "value";
   "box-persona": "description" | "initials" | "name" | "size" | "src" | "status" | "subtitle" | "tone";
+  "box-pie-chart": "actions" | "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "categoryLabel" | "heading" | "message" | "note" | "readOnly" | "segments" | "state" | "statusMessage" | "summary" | "timeframe" | "total" | "totalLabel" | "unit";
   "box-pill-cloud": "description" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "options" | "required" | "value";
   "box-pill-selector-dropdown": "allowCustom" | "description" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "options" | "pattern" | "placeholder" | "required" | "value";
+  "box-polar-area-chart": "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "axes" | "description" | "heading" | "maximum" | "segments" | "selectedId" | "series" | "seriesTokens" | "state" | "statusMessage" | "unit";
   "box-popover": "disabled" | "label" | "open" | "placement";
   "box-presence": "label" | "max" | "transport" | "users";
   "box-preview-element": "actions" | "adapterState" | "heading" | "itemLabel" | "message" | "provider" | "providerAdapter" | "providerLabel" | "status";
@@ -132,8 +138,9 @@ export interface BoxElementPropertyKeys {
   "box-progress-ring": "label" | "max" | "size" | "value";
   "box-progress-steps": "compact" | "items" | "label" | "value";
   "box-provenance-strip": "nodes";
+  "box-radar-chart": "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "axes" | "description" | "heading" | "maximum" | "segments" | "selectedId" | "series" | "seriesTokens" | "state" | "statusMessage" | "unit";
   "box-radio-group": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "options" | "required" | "value";
-  "box-range-chart": "description" | "format" | "heading" | "rows" | "seriesTokens" | "state" | "statusMessage" | "unit";
+  "box-range-chart": "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "description" | "format" | "heading" | "rows" | "seriesTokens" | "state" | "statusMessage" | "unit";
   "box-range-slider": "description" | "disabled" | "end" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "required" | "start" | "step";
   "box-rating": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "name" | "required" | "value";
   "box-relative-time": "locale" | "numeric" | "referenceTime" | "value";
@@ -144,6 +151,7 @@ export interface BoxElementPropertyKeys {
   "box-run-summary": "open" | "turn";
   "box-run-trace": "density" | "heading" | "steps";
   "box-saved-view-picker": "label" | "value" | "views";
+  "box-scatter-chart": "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "description" | "heading" | "interpolation" | "selectedId" | "series" | "seriesTokens" | "sizeLabel" | "stacked" | "state" | "statusMessage" | "timeZone" | "unit" | "xFormat" | "xLabel" | "xScale" | "yAxes" | "yFormat" | "yLabel";
   "box-search-field": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "loading" | "name" | "placeholder" | "required" | "value";
   "box-search-results-header": "actions" | "filters" | "label" | "query" | "resultCount" | "scope" | "sortLabel" | "viewLabel";
   "box-section": "description" | "eyebrow" | "heading";
@@ -158,7 +166,7 @@ export interface BoxElementPropertyKeys {
   "box-spin-button": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "required" | "step" | "value";
   "box-spinner": "label" | "size";
   "box-split-view": "collapse" | "detailOpen" | "label" | "ratio" | "resizable";
-  "box-stacked-bar-chart": "bars" | "description" | "format" | "heading" | "orientation" | "seriesTokens" | "state" | "statusMessage" | "unit";
+  "box-stacked-bar-chart": "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "bars" | "description" | "format" | "heading" | "orientation" | "seriesTokens" | "state" | "statusMessage" | "unit";
   "box-status-icon": "kind" | "label";
   "box-switch": "checked" | "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "required" | "value";
   "box-table": "columns" | "emptyText" | "errorText" | "label" | "loading" | "rowHeight" | "rows" | "selectedIds" | "selectionMode" | "stackedLayout" | "virtualize";
@@ -225,6 +233,9 @@ export interface BoxElementEventMap {
     "tool-selected": CustomEvent<{ disabled?: boolean | undefined; icon?: string | undefined; id: string; label: string; }>;
   };
   "box-app-shell": {};
+  "box-area-chart": {
+    "point-selected": CustomEvent<{ selectedId: string | null; point: import("./patterns/insights/cartesian-model.js").CartesianPoint | null; seriesId: string | null; }>;
+  };
   "box-audit-log": {
     "correlation-selected": CustomEvent<{ correlationId: string; events: import("./patterns/timeline/types.js").TimelineEvent[]; }>;
     "event-selected": CustomEvent<{ event: import("./patterns/timeline/types.js").TimelineEvent; }>;
@@ -248,6 +259,9 @@ export interface BoxElementEventMap {
   };
   "box-breadcrumb": {
     "navigate": CustomEvent<{ value: string; href: string | undefined; }>;
+  };
+  "box-bubble-chart": {
+    "point-selected": CustomEvent<{ selectedId: string | null; point: import("./patterns/insights/cartesian-model.js").CartesianPoint | null; seriesId: string | null; }>;
   };
   "box-bulk-action-bar": {
     "action": CustomEvent<{ action: string; count: number; items: ({ description?: string | undefined; id?: string | undefined; label: string; })[]; }>;
@@ -452,6 +466,9 @@ export interface BoxElementEventMap {
   "box-grid-view": {
     "value-changed": CustomEvent<{ value: string; }>;
   };
+  "box-grouped-bar-chart": {
+    "point-selected": CustomEvent<{ selectedId: string | null; point: import("./patterns/insights/cartesian-model.js").CartesianPoint | null; seriesId: string | null; }>;
+  };
   "box-guide-tooltip": {
     "open-changed": CustomEvent<{ open: boolean; }>;
   };
@@ -499,6 +516,9 @@ export interface BoxElementEventMap {
   "box-metric-card": {
     "action": CustomEvent<{ id: string; label: string; tone?: string | undefined; }>;
   };
+  "box-mixed-chart": {
+    "point-selected": CustomEvent<{ selectedId: string | null; point: import("./patterns/insights/cartesian-model.js").CartesianPoint | null; seriesId: string | null; }>;
+  };
   "box-mode-indicator": {
     "activate": CustomEvent<unknown>;
   };
@@ -526,12 +546,19 @@ export interface BoxElementEventMap {
     "value-changed": CustomEvent<{ value: { [x: string]: string; }; }>;
   };
   "box-persona": {};
+  "box-pie-chart": {
+    "action": CustomEvent<{ action: string; }>;
+    "segment-selected": CustomEvent<{ id: string; label: string; tone?: string | undefined; value: number; }>;
+  };
   "box-pill-cloud": {
     "value-changed": CustomEvent<{ value: string[]; }>;
   };
   "box-pill-selector-dropdown": {
     "invalid-entry": CustomEvent<{ value: string; }>;
     "value-changed": CustomEvent<{ value: string[]; }>;
+  };
+  "box-polar-area-chart": {
+    "item-selected": CustomEvent<{ selectedId: string | null; }>;
   };
   "box-popover": {
     "open-changed": CustomEvent<{ open: boolean; }>;
@@ -573,6 +600,9 @@ export interface BoxElementEventMap {
   "box-provenance-strip": {
     "node-selected": CustomEvent<{ node: import("./patterns/lineage/types.js").LineageNode; }>;
   };
+  "box-radar-chart": {
+    "item-selected": CustomEvent<{ selectedId: string | null; }>;
+  };
   "box-radio-group": {
     "value-changed": CustomEvent<{ value: string; }>;
   };
@@ -603,6 +633,9 @@ export interface BoxElementEventMap {
   };
   "box-saved-view-picker": {
     "value-changed": CustomEvent<{ value: string; }>;
+  };
+  "box-scatter-chart": {
+    "point-selected": CustomEvent<{ selectedId: string | null; point: import("./patterns/insights/cartesian-model.js").CartesianPoint | null; seriesId: string | null; }>;
   };
   "box-search-field": {
     "clear": CustomEvent<{ value: string; }>;
@@ -1021,6 +1054,41 @@ declare module "./patterns/preview/annotation-toolbar.js" {
   }
 }
 
+declare module "./patterns/insights/area-chart.js" {
+  interface AreaChart {
+    addEventListener<K extends keyof BoxElementEventMap["box-area-chart"] & string>(
+      type: K,
+      listener: (this: AreaChart, event: BoxElementEventMap["box-area-chart"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: AreaChart, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-area-chart"] & string>(
+      type: K,
+      listener: (this: AreaChart, event: BoxElementEventMap["box-area-chart"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: AreaChart, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
 declare module "./patterns/audit/audit-log.js" {
   interface AuditLog {
     addEventListener<K extends keyof BoxElementEventMap["box-audit-log"] & string>(
@@ -1151,6 +1219,41 @@ declare module "./components/navigation/breadcrumb.js" {
     removeEventListener<K extends keyof HTMLElementEventMap>(
       type: K,
       listener: (this: Breadcrumb, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
+declare module "./patterns/insights/bubble-chart.js" {
+  interface BubbleChart {
+    addEventListener<K extends keyof BoxElementEventMap["box-bubble-chart"] & string>(
+      type: K,
+      listener: (this: BubbleChart, event: BoxElementEventMap["box-bubble-chart"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: BubbleChart, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-bubble-chart"] & string>(
+      type: K,
+      listener: (this: BubbleChart, event: BoxElementEventMap["box-bubble-chart"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: BubbleChart, event: HTMLElementEventMap[K]) => void,
       options?: boolean | EventListenerOptions,
     ): void;
     removeEventListener(
@@ -2876,6 +2979,41 @@ declare module "./components/collections/grid-view.js" {
   }
 }
 
+declare module "./patterns/insights/grouped-bar-chart.js" {
+  interface GroupedBarChart {
+    addEventListener<K extends keyof BoxElementEventMap["box-grouped-bar-chart"] & string>(
+      type: K,
+      listener: (this: GroupedBarChart, event: BoxElementEventMap["box-grouped-bar-chart"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: GroupedBarChart, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-grouped-bar-chart"] & string>(
+      type: K,
+      listener: (this: GroupedBarChart, event: BoxElementEventMap["box-grouped-bar-chart"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: GroupedBarChart, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
 declare module "./components/overlays/guide-tooltip.js" {
   interface GuideTooltip {
     addEventListener<K extends keyof BoxElementEventMap["box-guide-tooltip"] & string>(
@@ -3261,6 +3399,41 @@ declare module "./patterns/insights/metric-card.js" {
   }
 }
 
+declare module "./patterns/insights/mixed-chart.js" {
+  interface MixedChart {
+    addEventListener<K extends keyof BoxElementEventMap["box-mixed-chart"] & string>(
+      type: K,
+      listener: (this: MixedChart, event: BoxElementEventMap["box-mixed-chart"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: MixedChart, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-mixed-chart"] & string>(
+      type: K,
+      listener: (this: MixedChart, event: BoxElementEventMap["box-mixed-chart"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: MixedChart, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
 declare module "./components/feedback/mode-indicator.js" {
   interface ModeIndicator {
     addEventListener<K extends keyof BoxElementEventMap["box-mode-indicator"] & string>(
@@ -3506,6 +3679,41 @@ declare module "./patterns/share/permission-matrix.js" {
   }
 }
 
+declare module "./patterns/insights/pie-chart.js" {
+  interface PieChart {
+    addEventListener<K extends keyof BoxElementEventMap["box-pie-chart"] & string>(
+      type: K,
+      listener: (this: PieChart, event: BoxElementEventMap["box-pie-chart"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: PieChart, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-pie-chart"] & string>(
+      type: K,
+      listener: (this: PieChart, event: BoxElementEventMap["box-pie-chart"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: PieChart, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
 declare module "./components/forms/pill-cloud.js" {
   interface PillCloud {
     addEventListener<K extends keyof BoxElementEventMap["box-pill-cloud"] & string>(
@@ -3566,6 +3774,41 @@ declare module "./components/forms/pill-selector-dropdown.js" {
     removeEventListener<K extends keyof HTMLElementEventMap>(
       type: K,
       listener: (this: PillSelectorDropdown, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
+declare module "./patterns/insights/polar-area-chart.js" {
+  interface PolarAreaChart {
+    addEventListener<K extends keyof BoxElementEventMap["box-polar-area-chart"] & string>(
+      type: K,
+      listener: (this: PolarAreaChart, event: BoxElementEventMap["box-polar-area-chart"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: PolarAreaChart, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-polar-area-chart"] & string>(
+      type: K,
+      listener: (this: PolarAreaChart, event: BoxElementEventMap["box-polar-area-chart"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: PolarAreaChart, event: HTMLElementEventMap[K]) => void,
       options?: boolean | EventListenerOptions,
     ): void;
     removeEventListener(
@@ -3776,6 +4019,41 @@ declare module "./patterns/lineage/provenance-strip.js" {
     removeEventListener<K extends keyof HTMLElementEventMap>(
       type: K,
       listener: (this: ProvenanceStrip, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
+declare module "./patterns/insights/radar-chart.js" {
+  interface RadarChart {
+    addEventListener<K extends keyof BoxElementEventMap["box-radar-chart"] & string>(
+      type: K,
+      listener: (this: RadarChart, event: BoxElementEventMap["box-radar-chart"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: RadarChart, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-radar-chart"] & string>(
+      type: K,
+      listener: (this: RadarChart, event: BoxElementEventMap["box-radar-chart"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: RadarChart, event: HTMLElementEventMap[K]) => void,
       options?: boolean | EventListenerOptions,
     ): void;
     removeEventListener(
@@ -4091,6 +4369,41 @@ declare module "./patterns/search/saved-view-picker.js" {
     removeEventListener<K extends keyof HTMLElementEventMap>(
       type: K,
       listener: (this: SavedViewPicker, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
+declare module "./patterns/insights/scatter-chart.js" {
+  interface ScatterChart {
+    addEventListener<K extends keyof BoxElementEventMap["box-scatter-chart"] & string>(
+      type: K,
+      listener: (this: ScatterChart, event: BoxElementEventMap["box-scatter-chart"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: ScatterChart, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-scatter-chart"] & string>(
+      type: K,
+      listener: (this: ScatterChart, event: BoxElementEventMap["box-scatter-chart"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: ScatterChart, event: HTMLElementEventMap[K]) => void,
       options?: boolean | EventListenerOptions,
     ): void;
     removeEventListener(

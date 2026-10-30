@@ -1,6 +1,7 @@
+export type { ChartAnimationPreset, ChartAnimationEasing } from "./chart-motion.js";
 import { chartStyles } from "./chart-styles.js";
 import { renderHeadingHtml, type HeadingLevel } from "../../foundations/a11y/heading.js";
-import { BaseElement } from "../../core/index.js";
+import { ChartElement, chartAnimationAttributes } from "./chart-element.js";
 import { boxPlotDomain, boxPlotPosition, type BoxPlotDomain, type BoxPlotRow, type BoxPlotScale } from "./box-plot.js";
 
 /**
@@ -128,10 +129,10 @@ const styles = chartStyles + `
 `;
 
 /** One measurement over time: discrete interval spreads and a median trajectory. */
-export class DistributionTimeline extends BaseElement {
+export class DistributionTimeline extends ChartElement {
   static readonly tagName = "box-distribution-timeline";
   static get observedAttributes(): string[] {
-    return ["heading", "heading-level", "embedded", "hide-note", "description", "points", "scale", "unit", "time-unit", "hide-samples", "show-samples", "max-samples"];
+    return [...chartAnimationAttributes, "heading", "heading-level", "embedded", "hide-note", "description", "points", "scale", "unit", "time-unit", "hide-samples", "show-samples", "max-samples"];
   }
   private _points: DistributionTimelinePoint[] | null = null;
   private _formatter: ((value: number) => string) | null = null;
@@ -180,7 +181,7 @@ export class DistributionTimeline extends BaseElement {
   protected renderTemplate(): void {
     if (this.shadowRoot) this.shadowRoot.innerHTML = `<style>${styles}</style><div part="content-host"></div>`;
   }
-  protected update(): void {
+  protected renderChart(): void {
     const host=this.shadowRoot?.querySelector('[part="content-host"]');if(!host)return;
     const focusedPart=this.shadowRoot?.activeElement?.getAttribute("part");
     const scrollLeft=host.querySelector('[part="chart-wrap"]')?.scrollLeft??0;

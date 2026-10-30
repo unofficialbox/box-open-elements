@@ -43,3 +43,9 @@ All three chart modes accept `state` (`ready`, `loading`, `error`, `partial`, `s
 Use `seriesTokens: Record<string, string>` to map stable segment/series IDs to CSS custom-property names, for example `{ tools: "--app-tools-color" }`. Named tones map to semantic tokens; custom tone values may also name a CSS custom property. `--boe-chart-series-0` through `--boe-chart-series-4` override the default categorical ramp. Token names are validated; arbitrary style text is never interpolated. Match the same ID/token across charts. The native property/JSX contracts are generated for all frameworks; the docs expose equivalent seven-framework snippets.
 
 Table wrappers may scroll locally for many numeric series or enlarged text, with keyboard access. The page itself must not overflow. Avoid making essential conclusions depend on hover. Respect keyboard focus, reduced motion and host text zoom. Automated accessibility testing is recorded separately from actual screen-reader testing.
+
+
+See [the extended chart-family contract](./chart-family.md) for grouped/signed stacks, scatter, bubble, area, mixed charts, pie, radar, polar area, calendar axes and line interpolation.
+## Animation
+
+Every insight component supports optional `animated` motion and shared timing, preset, loop and pause properties. See [chart animation](chart-animation.md) for the common contract and live-example variants.

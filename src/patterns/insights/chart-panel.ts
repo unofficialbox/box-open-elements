@@ -1,6 +1,7 @@
+export type { ChartAnimationPreset, ChartAnimationEasing } from "./chart-motion.js";
 import { ChartPresentation, chartDomain, presentationAttributes, presentationMarkup, presentationFooter, type ChartInspection } from "./chart-presentation.js";
 import { chartHeader, syncChartHeader, syncChartLegend, bindChartEvents } from "./chart-content.js";
-import { BaseElement } from "../../core/index.js";
+import { ChartElement, chartAnimationAttributes } from "./chart-element.js";
 import { chartStyles, barStyles } from "./chart-styles.js";
 import { syncBarScale } from "./chart-content.js";
 
@@ -30,10 +31,10 @@ type ChartPanelPoint = {
 
 const elementStyles = chartStyles + barStyles;
 
-export class ChartPanel extends BaseElement {
+export class ChartPanel extends ChartElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return [...presentationAttributes, "actions", "heading", "legend", "message", "points", "summary", "timeframe"];
+    return [...chartAnimationAttributes, ...presentationAttributes, "actions", "heading", "legend", "message", "points", "summary", "timeframe"];
   }
   private presentation = new ChartPresentation(this, () => this.update(), () => this.emitSelectionCleared());
   get selectedId(): string | null { return this.getAttribute("selected-id"); }
@@ -173,7 +174,7 @@ export class ChartPanel extends BaseElement {
     this.presentation.setup();
     bindChartEvents(this.shadowRoot!,id=>this.emitAction(id),id=>{const point=this.points.find(point=>point.id===id);if(point){this.presentation.select(id);this.emitPointSelected(point);}});
   }
-  protected update(): void {
+  protected renderChart(): void {
     if(!this.isRendered)return;
     const root=this.shadowRoot!;
     syncChartHeader(root,this);syncChartLegend(root,this.legend);
