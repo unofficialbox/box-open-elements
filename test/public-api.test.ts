@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  GroupedBarChart, ScatterChart, BubbleChart, AreaChart, MixedChart, PieChart, RadarChart, PolarAreaChart,
   StackedBarChart,
   RangeChart,
   FindingsDisclosure,
@@ -48,6 +49,14 @@ describe("concise component API", () => {
     expect(OptimizedFolderTreeDiff).toBe(FolderTreeDiff);
   });
 
+  it("exposes the new chart family through matching selective entrypoints", async () => {
+    const charts = { GroupedBarChart, ScatterChart, BubbleChart, AreaChart, MixedChart, PieChart, RadarChart, PolarAreaChart };
+    for (const [name, Component] of Object.entries(charts)) {
+      const path = Component.tagName.replace(/^box-/, "");
+      expect((await import(`../src/entries/${path}.ts`))[name]).toBe(Component);
+      expect(Component.register()).toBe(Component);
+    }
+  });
   it("keeps imports and registration safe without browser globals", () => {
     expect(globalThis.customElements).toBeUndefined();
     expect(Accordion.register()).toBe(Accordion);
@@ -63,6 +72,6 @@ describe("concise component API", () => {
     const entries = readdirSync(join(import.meta.dirname, "../src/entries"))
       .filter(file => file.endsWith(".ts"));
 
-    expect(entries).toHaveLength(167);
+    expect(entries).toHaveLength(175);
   });
 });

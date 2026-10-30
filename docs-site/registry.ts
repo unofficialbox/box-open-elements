@@ -74,7 +74,7 @@ export const catalog: CatalogEntry[] = [
   ...p("File Request", ["file-request-builder"]),
   ...p("Task", ["task-assignment-panel", "review-queue-item"]),
   ...p("Governance", ["governance-panel", "findings-disclosure"]),
-  ...p("Insights", ["metric-card", "chart-panel", "bar-chart", "stacked-bar-chart", "range-chart", "line-chart", "donut-chart", "box-plot", "distribution-timeline"]),
+  ...p("Insights", ["metric-card", "chart-panel", "bar-chart", "stacked-bar-chart", "grouped-bar-chart", "scatter-chart", "bubble-chart", "area-chart", "mixed-chart", "pie-chart", "radar-chart", "polar-area-chart", "range-chart", "line-chart", "donut-chart", "box-plot", "distribution-timeline"]),
   ...p("Builders", ["flow-builder", "process-modeler"]),
 ];
 

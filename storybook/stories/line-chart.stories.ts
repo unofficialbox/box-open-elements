@@ -1,3 +1,4 @@
+import { extendedLineVariants } from "../fixtures/chart-family.js";
 import {numericLineHtml} from "../fixtures/analytic-charts.js";
 import { periodChartHtml, periodVariants } from "../fixtures/insights.js";
 import type { StoryModule } from "../metadata.js";
@@ -11,9 +12,12 @@ const lineChart: StoryModule = {
     docsDescription: "Pass JSON `points`, `legend`, and `actions`; use string attributes for heading, summary, timeframe, and message.",
     sourceSnippet: periodChartHtml("line-chart"),
     referenceRows: [
+      {kind:"attribute",name:"interpolation",type:"linear | monotone | step-before | step-after | step-middle",description:"Linear by default. Optional monotone curves add no local extrema; missing intervals remain gaps."},
+      {kind:"attribute",name:"time-zone",type:"string",description:"IANA time zone for time-axis calendar ticks; UTC by default."},
+      {kind:"property",name:"yAxes",type:"CartesianAxis[]",description:"Optional one or two named axes in numeric-series mode. Series use axis IDs; units and independent domains remain explicit."},
       {kind:"property",name:"series",type:"LineChartSeries[]",description:"Opt into numeric multi-series mode. Ordered x/y points, stable IDs and optional host summaries; remove the attribute to return to categorical points."},
       {kind:"property",name:"markers",type:"LineChartMarker[]",description:"Labelled x/y references supplied by the host, including crossover markers."},
-      {kind:"attribute",name:"x-scale",type:"linear | log",description:"Numeric x spacing; logarithmic axes require positive values."},
+      {kind:"attribute",name:"x-scale",type:"linear | log | time",description:"Numeric or calendar-aware time spacing; logarithmic axes require positive values."},
       {kind:"attribute",name:"y-scale",type:"linear | log",description:"Shared y scale; logarithmic axes require positive values."},
       {kind:"property",name:"xFormat / yFormat",type:"(value: number) => string",description:"Independent host axis/value formatters."},
       {kind:"property",name:"seriesTokens",type:"Record<string, string>",description:"Stable series IDs mapped to CSS token names."},
@@ -36,7 +40,7 @@ const lineChart: StoryModule = {
       { kind: "event", name: "action", description: "Emitted when an action is selected." },
     ],
   },
-  variants: [...periodVariants("line-chart"),{name:"Numeric series",html:numericLineHtml},{name:"Logarithmic series",html:numericLineHtml.replace('<box-line-chart ','<box-line-chart x-scale="log" y-scale="log" ')}],
+  variants: [...periodVariants("line-chart"),...extendedLineVariants,{name:"Numeric series",html:numericLineHtml},{name:"Logarithmic series",html:numericLineHtml.replace('<box-line-chart ','<box-line-chart x-scale="log" y-scale="log" ')}],
 };
 
 export default lineChart;

@@ -1,6 +1,7 @@
+export type { ChartAnimationPreset, ChartAnimationEasing } from "./chart-motion.js";
 import { chartStyles } from "./chart-styles.js";
 import { syncKeyedChildren, actionButton } from "../internal/keyed-children.js";
-import { BaseElement } from "../../core/index.js";
+import { ChartElement, chartAnimationAttributes } from "./chart-element.js";
 import { boePanel } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
@@ -166,10 +167,10 @@ const elementStyles = chartStyles + `
         }
       `;
 
-export class MetricCard extends BaseElement {
+export class MetricCard extends ChartElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["state", "status-message", "action", "eyebrow", "message", "status", "heading", "trend", "value", "size", "tone"];
+    return [...chartAnimationAttributes, "state", "status-message", "action", "eyebrow", "message", "status", "heading", "trend", "value", "size", "tone"];
   }
   get size(): "default" | "compact" {
     return this.getAttribute("size") === "compact" ? "compact" : "default";
@@ -315,7 +316,7 @@ export class MetricCard extends BaseElement {
       if(button&&footer.contains(button)&&action&&action.id===button.dataset.actionId)this.emitAction(action);
     });
   }
-  protected update(): void {
+  protected renderChart(): void {
     if(!this.isRendered)return;
     const root=this.shadowRoot!;
     root.querySelector('[part="title"]')!.textContent=this.heading;

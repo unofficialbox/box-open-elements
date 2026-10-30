@@ -1,10 +1,13 @@
+export type { ChartAnimationPreset, ChartAnimationEasing } from "./chart-motion.js";
+import { linePath as interpolatedPath, type ChartInterpolation, type CartesianAxis } from "./cartesian-model.js";
+import { formatCalendar } from "./calendar-scale.js";
 import { NumericLineView, type LineChartSeries, type LineChartMarker } from "./numeric-line-view.js";
-import { chartJson, formatAnalyticValue } from "./analytic-shared.js";
+import { chartJson, chartDataJson, formatAnalyticValue } from "./analytic-shared.js";
 export type { LineChartSeries, LineChartMarker, NumericLinePoint } from "./numeric-line-view.js";
 import { ChartPresentation, chartDomain, presentationAttributes, presentationMarkup, presentationFooter, type ChartInspection } from "./chart-presentation.js";
 import { syncKeyedChildren } from "../internal/keyed-children.js";
 import { chartHeader, syncChartHeader, syncChartLegend, bindChartEvents, syncChartPoints } from "./chart-content.js";
-import { BaseElement } from "../../core/index.js";
+import { ChartElement, chartAnimationAttributes } from "./chart-element.js";
 import { chartStyles } from "./chart-styles.js";
 import { chartScale, formatChartValue } from "./chart-scale.js";
 
@@ -62,10 +65,10 @@ const elementStyles = chartStyles + `
   [part="point-value"] { position:absolute; inset-inline-start:50%; transform:translateX(-50%); bottom:calc(2.75rem + var(--point-height) * 12rem + .45rem); pointer-events:none; font-size:.75rem; font-weight:600; font-variant-numeric:tabular-nums; }
 `;
 
-export class LineChart extends BaseElement {
+export class LineChart extends ChartElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["series", "markers", "x-scale", "y-scale", "y-label", "series-tokens", ...presentationAttributes, "actions", "legend", "message", "points", "summary", "timeframe", "heading"];
+    return [...chartAnimationAttributes, "interpolation", "time-zone", "y-axes", "series", "markers", "x-scale", "y-scale", "y-label", "series-tokens", ...presentationAttributes, "actions", "legend", "message", "points", "summary", "timeframe", "heading"];
   }
   private presentation = new ChartPresentation(this, () => this.update(), () => this.emitSelectionCleared());
   get selectedId(): string | null { return this.getAttribute("selected-id"); }
@@ -156,7 +159,7 @@ export class LineChart extends BaseElement {
   private resizeObserver?: ResizeObserver;
 
   connectedCallback(): void {
-    this.upgradeProperties(["heading","series","markers","xScale","yScale","xLabel","yLabel","xFormat","yFormat","seriesTokens"]);
+    this.upgradeProperties(["interpolation","timeZone","yAxes","heading","series","markers","xScale","yScale","xLabel","yLabel","xFormat","yFormat","seriesTokens"]);
     super.connectedCallback();
     if (typeof ResizeObserver !== "undefined") {
       this.resizeObserver = new ResizeObserver(() => this.update());
@@ -227,16 +230,22 @@ export class LineChart extends BaseElement {
   private numericXFormatter: ((value:number)=>string)|null=null;
   private numericYFormatter: ((value:number)=>string)|null=null;
   get series():LineChartSeries[]{const data=chartJson<unknown>(this,"series",[]);return Array.isArray(data)?data as LineChartSeries[]:[];}
-  set series(value:LineChartSeries[]){this.setAttribute("series",JSON.stringify(value));}
+  set series(value:LineChartSeries[]){this.setAttribute("series",chartDataJson(value));}
   get markers():LineChartMarker[]{const data=chartJson<unknown>(this,"markers",[]);return Array.isArray(data)?data as LineChartMarker[]:[];}
   set markers(value:LineChartMarker[]){this.setAttribute("markers",JSON.stringify(value));}
-  get xScale():"linear"|"log"{return this.getAttribute("x-scale")==="log"?"log":"linear";}
-  set xScale(value:"linear"|"log"){this.setAttribute("x-scale",value);}
+  get xScale():"linear"|"log"|"time"{const value=this.getAttribute("x-scale");return value==="time"?"time":value==="log"?"log":"linear";}
+  set xScale(value:"linear"|"log"|"time"){this.setAttribute("x-scale",value);}
+  get interpolation():ChartInterpolation{return (this.getAttribute("interpolation")??"linear") as ChartInterpolation;}
+  set interpolation(value:ChartInterpolation){this.setAttribute("interpolation",value);}
+  get timeZone():string{return this.getAttribute("time-zone")??"UTC";}
+  set timeZone(value:string){this.setAttribute("time-zone",value);}
+  get yAxes():CartesianAxis[]{return chartJson(this,"y-axes",[]);}
+  set yAxes(value:CartesianAxis[]){this.setAttribute("y-axes",JSON.stringify(value));}
   get yScale():"linear"|"log"{return this.getAttribute("y-scale")==="log"?"log":"linear";}
   set yScale(value:"linear"|"log"){this.setAttribute("y-scale",value);}
   get yLabel():string{return this.getAttribute("y-label")??this.unit;}
   set yLabel(value:string){this.setAttribute("y-label",value);}
-  get xFormat():(value:number)=>string{return this.numericXFormatter??formatAnalyticValue;}
+  get xFormat():(value:number)=>string{return this.numericXFormatter??(this.xScale==="time"?(value=>formatCalendar(value,this.timeZone,true)):formatAnalyticValue);}
   set xFormat(value:(value:number)=>string){this.numericXFormatter=value;this.update();}
   get yFormat():(value:number)=>string{return this.numericYFormatter??formatAnalyticValue;}
   set yFormat(value:(value:number)=>string){this.numericYFormatter=value;this.update();}
@@ -284,6 +293,10 @@ export class LineChart extends BaseElement {
       return `M ${x} ${y}`;
     }
 
+    if (this.interpolation !== "linear") {
+      const points = coordinates.flatMap((point, i) => i && point.index !== coordinates[i - 1].index + 1 ? [{x:point.x,y:null},{x:point.x,y:point.y}] : [{x:point.x,y:point.y}]);
+      return interpolatedPath(points, this.interpolation);
+    }
     const path = coordinates.map(({ x, y, index }, i) => `${i && index === coordinates[i - 1].index + 1 ? "L" : "M"} ${x} ${y}`).join(" ");
     return path;
   }
@@ -309,7 +322,7 @@ export class LineChart extends BaseElement {
     this.presentation.setup();
     bindChartEvents(this.shadowRoot!,id=>this.emitAction(id),id=>{const point=this.points.find(point=>point.id===id);if(point){this.presentation.select(id);this.emitPointSelected(point);}});
   }
-  protected update(): void {
+  protected renderChart(): void {
     if(!this.isRendered)return;
     const root=this.shadowRoot!;
     const numeric=this.hasAttribute("series");
@@ -332,7 +345,7 @@ export class LineChart extends BaseElement {
     const svgNS="http://www.w3.org/2000/svg";
     syncKeyedChildren(root.querySelector('[part="dots"]')!,coordinates,item=>item.point.id,()=>{
       const group=document.createElementNS(svgNS,"g");for(const [part,r] of [["dot-halo","2.2"],["dot","1.2"]]){const circle=document.createElementNS(svgNS,part === "dot" ? "ellipse" : "circle");circle.setAttribute("part",part);circle.setAttribute("r",r);group.append(circle);}return group;
-    },(group,{point,x,y})=>{for(const circle of Array.from(group.children)){circle.setAttribute("cx",String(x));circle.setAttribute("cy",String(y));}group.querySelector('[part="dot"]')!.setAttribute("data-tone",point.tone??"neutral");});
+    },(group,{point,x,y})=>{for(const circle of Array.from(group.children)){circle.setAttribute("cx",String(x));circle.setAttribute("cy",String(y));circle.setAttribute("data-animation-point-id",point.id);}group.querySelector('[part="dot"]')!.setAttribute("data-tone",point.tone??"neutral");});
     const list=root.querySelector<HTMLElement>('[part="points"]')!;list.setAttribute("aria-label",`${this.heading} points`);syncChartPoints(list,points,"line");
     list.querySelectorAll<HTMLElement>('[part="point"]').forEach((button, index) => {
       const coordinate = coordinates.find(item => item.point.id === button.dataset.pointId);

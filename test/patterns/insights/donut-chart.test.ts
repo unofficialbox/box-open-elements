@@ -5,6 +5,50 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DonutChart,
 } from "../../../src/patterns/insights/donut-chart.js";
+import { PieChart } from "../../../src/patterns/insights/pie-chart.js";
+
+describe.each([DonutChart, PieChart])("%s sector boundaries", Chart => {
+  afterEach(() => document.body.replaceChildren());
+
+  it("preserves adjacent sector angles and uses constant-width clipped dividers", () => {
+    const chart = new Chart();
+    chart.segments = [{ id: "a", label: "A", value: 1 }, { id: "b", label: "B", value: 1 }];
+    document.body.append(chart);
+    const root = chart.shadowRoot!;
+    const sectors = root.querySelectorAll('[part="segment"]');
+    // Equal halves meet at the exact top and bottom of the circle, with no
+    // angular padding taken out of either data sector.
+    expect(sectors[0].getAttribute("d")).toMatch(/^M 50\.00 6\.00 A 44 44 0 0 1 50\.00 94\.00 /);
+    expect(sectors[1].getAttribute("d")).toMatch(/^M 50\.00 94\.00 A 44 44 0 0 1 50\.00 6\.00 /);
+    const dividers = root.querySelectorAll('[part="separator"]');
+    expect(dividers).toHaveLength(2);
+    for (const divider of dividers) {
+      expect(divider.getAttribute("vector-effect")).toBe("non-scaling-stroke");
+      expect(divider.getAttribute("stroke-width")).toBe("1.5");
+    }
+    const clipId = root.querySelector("clipPath")!.id;
+    expect(root.querySelector('[part="separators"]')!.getAttribute("clip-path")).toBe(`url(#${clipId})`);
+    expect(root.querySelector('[part="separators"]')!.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("avoids a false seam in a complete circle and separates an unclassified remainder", () => {
+    const chart = new Chart();
+    chart.segments = [{ id: "a", label: "A", value: 50 }];
+    document.body.append(chart);
+    expect(chart.shadowRoot!.querySelectorAll('[part="separator"]')).toHaveLength(0);
+    chart.total = 100;
+    expect(chart.shadowRoot!.querySelectorAll('[part="separator"]')).toHaveLength(2);
+    expect(chart.shadowRoot!.textContent).toContain("Unclassified");
+    expect(chart.shadowRoot!.querySelector('[part="legend-share"]')!.textContent).toBe("50%");
+  });
+
+  it("keeps clipping independent between simultaneously mounted charts", () => {
+    const charts = [new Chart(), new Chart()];
+    for (const chart of charts) { chart.segments = [{ id: "a", label: "A", value: 1 }, { id: "b", label: "B", value: 2 }]; document.body.append(chart); }
+    const ids = charts.map(chart => chart.shadowRoot!.querySelector("clipPath")!.id);
+    expect(ids[0]).not.toBe(ids[1]);
+  });
+});
 
 describe("DonutChart", () => {
   beforeEach(() => {

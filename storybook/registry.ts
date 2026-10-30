@@ -1,3 +1,12 @@
+import { withChartMotionVariants, animatedChartIds } from "./fixtures/chart-motion.js";
+import grouped_bar_chart from "./stories/grouped-bar-chart.stories.js";
+import scatter_chart from "./stories/scatter-chart.stories.js";
+import bubble_chart from "./stories/bubble-chart.stories.js";
+import area_chart from "./stories/area-chart.stories.js";
+import mixed_chart from "./stories/mixed-chart.stories.js";
+import pie_chart from "./stories/pie-chart.stories.js";
+import radar_chart from "./stories/radar-chart.stories.js";
+import polar_area_chart from "./stories/polar-area-chart.stories.js";
 import stackedBarChart from "./stories/stacked-bar-chart.stories.js";
 import rangeChart from "./stories/range-chart.stories.js";
 import findingsDisclosure from "./stories/findings-disclosure.stories.js";
@@ -170,6 +179,7 @@ import codeEditor from "./stories/code-editor.stories.js";
 import processModeler from "./stories/process-modeler.stories.js";
 import { purposeExamples } from "./fixtures/purpose-demos.js";
 export const storyModules: StoryModule[] = [
+  grouped_bar_chart, scatter_chart, bubble_chart, area_chart, mixed_chart, pie_chart, radar_chart, polar_area_chart,
   stackedBarChart, rangeChart, findingsDisclosure,
   ...agentUiStories,
   flowBuilder,
@@ -336,4 +346,16 @@ export const storyModules: StoryModule[] = [
 for (const story of storyModules) {
   const example = purposeExamples[story.meta.id];
   if (example) story.variants.unshift({ name: "Interactive", html: example.html, setup: example.setup, note: example.note });
+}
+
+for (const story of storyModules) {
+  if (!animatedChartIds.includes(story.meta.id)) continue;
+  story.variants = withChartMotionVariants(story.meta.id, story.variants);
+  story.meta.referenceRows.push(
+    { kind: "attribute", name: "animated", type: "boolean", description: "Opt-in chart animation; default false. Reduced motion always shows final geometry." },
+    { kind: "property", name: "animationPreset", type: "auto | fade | delay | drop | loop | progressive | progressive-easing", description: "Shared entrance or active-mark animation preset." },
+    { kind: "property", name: "animationDuration", type: "number", description: "Cycle duration in milliseconds (default 600). Delay and stagger are separately configurable." },
+    { kind: "property", name: "animationLoop", type: "boolean", description: "Repeat motion; native pause/resume controls are supplied." },
+    { kind: "property", name: "animationPaused", type: "boolean", description: "Pause/resume motion without changing observations or selection." },
+  );
 }

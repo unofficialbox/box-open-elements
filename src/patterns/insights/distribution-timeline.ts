@@ -1,7 +1,8 @@
+export type { ChartAnimationPreset, ChartAnimationEasing } from "./chart-motion.js";
 import { chartStyles } from "./chart-styles.js";
 import { chartDomain } from "./chart-presentation.js";
 import { renderHeadingHtml, type HeadingLevel } from "../../foundations/a11y/heading.js";
-import { BaseElement } from "../../core/index.js";
+import { ChartElement, chartAnimationAttributes } from "./chart-element.js";
 import { boxPlotDomain, boxPlotPosition, type BoxPlotDomain, type BoxPlotRow, type BoxPlotScale } from "./box-plot.js";
 
 /**
@@ -144,10 +145,10 @@ const styles = chartStyles + `
 `;
 
 /** One measurement over time: discrete interval spreads and a median trajectory. */
-export class DistributionTimeline extends BaseElement {
+export class DistributionTimeline extends ChartElement {
   static readonly tagName = "box-distribution-timeline";
   static get observedAttributes(): string[] {
-    return ["heading", "heading-level", "embedded", "hide-note", "description", "points", "scale", "unit", "time-unit", "hide-samples", "show-samples", "max-samples",
+    return [...chartAnimationAttributes, "heading", "heading-level", "embedded", "hide-note", "description", "points", "scale", "unit", "time-unit", "hide-samples", "show-samples", "max-samples",
       "selectable", "selected-id", "domain", "state", "status-message", "x-label"];
   }
   private _points: DistributionTimelinePoint[] | null = null;
@@ -190,7 +191,7 @@ export class DistributionTimeline extends BaseElement {
     try { const value: unknown = JSON.parse(this.getAttribute("points") ?? "[]"); return Array.isArray(value) ? value as DistributionTimelinePoint[] : []; }
     catch { return []; }
   }
-  set points(value: DistributionTimelinePoint[]) { this._points = value; this.update(); }
+  set points(value: DistributionTimelinePoint[]) { this._points = value; this.invalidateAnimationData(); this.update(); }
   get scale(): DistributionTimelineScale { return this.getAttribute("scale") === "log" ? "log" : "linear"; }
   set scale(value: DistributionTimelineScale) { this.setAttribute("scale", value); }
   get unit(): string { return this.getAttribute("unit") ?? ""; }
@@ -221,7 +222,7 @@ export class DistributionTimeline extends BaseElement {
   protected renderTemplate(): void {
     if (this.shadowRoot) this.shadowRoot.innerHTML = `<style>${styles}</style><div part="content-host"></div>`;
   }
-  protected update(): void {
+  protected renderChart(): void {
     const host=this.shadowRoot?.querySelector('[part="content-host"]');if(!host)return;
     const focused=this.shadowRoot?.activeElement as HTMLElement|null;
     const focusedPart=focused?.getAttribute("part"),focusedPoint=focused?.dataset?.pointId;
@@ -251,7 +252,7 @@ export class DistributionTimeline extends BaseElement {
     const selected=this.selectable?points.find(point=>intervalId(point)===this.selectedId):undefined;
     const marks=points.map(point=>{
       const at=x(point.at),half=width/2;
-      return `<g part="interval" data-selected="${point===selected}"><title>${escapeHtml(summaryOf(point))}</title><line part="range" x1="${at}" x2="${at}" y1="${y(point.min)}" y2="${y(point.max)}"></line><line part="range-cap" x1="${at-half/2}" x2="${at+half/2}" y1="${y(point.min)}" y2="${y(point.min)}"></line><line part="range-cap" x1="${at-half/2}" x2="${at+half/2}" y1="${y(point.max)}" y2="${y(point.max)}"></line><rect part="band" x="${at-half}" y="${y(point.q3)}" width="${width}" height="${round(y(point.q1)-y(point.q3))}"></rect><line part="interval-median" x1="${at-half}" x2="${at+half}" y1="${y(point.median)}" y2="${y(point.median)}"></line></g>`;
+      return `<g part="interval" data-animation-point-id="${escapeHtml(intervalId(point))}" data-selected="${point===selected}"><title>${escapeHtml(summaryOf(point))}</title><line part="range" x1="${at}" x2="${at}" y1="${y(point.min)}" y2="${y(point.max)}"></line><line part="range-cap" x1="${at-half/2}" x2="${at+half/2}" y1="${y(point.min)}" y2="${y(point.min)}"></line><line part="range-cap" x1="${at-half/2}" x2="${at+half/2}" y1="${y(point.max)}" y2="${y(point.max)}"></line><rect part="band" x="${at-half}" y="${y(point.q3)}" width="${width}" height="${round(y(point.q1)-y(point.q3))}"></rect><line part="interval-median" x1="${at-half}" x2="${at+half}" y1="${y(point.median)}" y2="${y(point.median)}"></line></g>`;
     }).join("");
     const columns=Math.max(1,Math.min(240,Math.ceil(this.maxSamples/5))),perColumn=Math.max(1,Math.floor(this.maxSamples/columns));
     const suppliedSamples=points.reduce((sum,point)=>sum+(point.samples?.length??0),0);

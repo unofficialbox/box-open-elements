@@ -1,4 +1,5 @@
-import { BaseElement } from "../../core/index.js";
+export type { ChartAnimationPreset, ChartAnimationEasing } from "./chart-motion.js";
+import { ChartElement, chartAnimationAttributes } from "./chart-element.js";
 import { analyticStyles, categoryColor, chartArrayAttributeValid, chartJson, escapeChartText as escape, formatAnalyticValue } from "./analytic-shared.js";
 import { chartScale } from "./chart-scale.js";
 
@@ -17,9 +18,9 @@ const styles=analyticStyles+`
 [part=range]:focus-visible{outline:2px solid var(--boe-token-text-text,#102347);outline-offset:3px}
 [part=range-values]{display:block;overflow-wrap:anywhere;font-size:.8125rem;font-variant-numeric:tabular-nums;color:var(--boe-token-text-text-secondary,#566781);margin-block-start:.25rem}
 `;
-export class RangeChart extends BaseElement {
+export class RangeChart extends ChartElement {
   static readonly tagName=DEFAULT_TAG_NAME;
-  static get observedAttributes():string[]{return ["heading","description","rows","unit","state","status-message","series-tokens"];}
+  static get observedAttributes():string[]{return [...chartAnimationAttributes, "heading","description","rows","unit","state","status-message","series-tokens"];}
   private tableVisible=false;
   private inspected:{row:string;series:string}|null=null;
   private formatter:((value:number)=>string)|null=null;
@@ -70,7 +71,7 @@ export class RangeChart extends BaseElement {
     const button=this.shadowRoot!.querySelector<HTMLButtonElement>('[part="table-toggle"]')!;
     button.textContent=this.tableVisible?"Hide data table":"Show data table";button.setAttribute("aria-expanded",String(this.tableVisible));
   }
-  protected update():void{
+  protected renderChart():void{
     if(!this.isRendered)return;
     const root=this.shadowRoot!,rows=this.rows;
     const focused=root.activeElement as HTMLElement|null;
