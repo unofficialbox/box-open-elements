@@ -332,7 +332,7 @@ export abstract class CartesianChart extends ChartElement {
     }
     const labelSize=namedCoordinates?[...names.values()].reduce((size,label)=>Math.max(size,Math.min(100,label.length*6)),44):90;
     const tickBudget=Math.max(2,Math.floor(width/labelSize));
-    const candidates=namedCoordinates?categories:xScale.ticks;
+    const candidates=categorical||namedCoordinates?categories:xScale.ticks;
     const tickValues=candidates.length<=tickBudget?candidates:[...new Set(Array.from({length:tickBudget},(_,i)=>candidates[Math.round(i*(candidates.length-1)/(tickBudget-1))]))];
     const xText=(v:number)=>namedCoordinates?names.get(v)!:this.xScale==="time"&&!this.xFormatter?formatCalendarTick(v,this.timeZone,categories[categories.length-1]-categories[0]):this.xFormatter?this.xFormat(v):formatChartValue(v);
     let xLabels=tickValues.map(xText);

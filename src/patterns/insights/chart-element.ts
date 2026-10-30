@@ -27,7 +27,7 @@ export abstract class ChartElement extends BaseElement {
   finishAnimation(): void { this.motion.finish(); }
   private numberOption(name: string, fallback: number): number {
     const raw = this.getAttribute(name), value = Number(raw);
-    return raw !== null && Number.isFinite(value) && value >= 0 ? Math.min(value, 60000) : fallback;
+    return raw !== null && raw.trim() !== "" && Number.isFinite(value) && value >= 0 ? Math.min(value, 60000) : fallback;
   }
   connectedCallback(): void {
     this.upgradeProperties(["animated", "animationPreset", "animationDuration", "animationDelay", "animationStagger", "animationEasing", "animationLoop", "animationPaused"]);

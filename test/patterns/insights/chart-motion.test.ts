@@ -245,3 +245,14 @@ it("does not start a queued inspection pulse after its chart disconnects",async(
   chart.shadowRoot!.querySelector<HTMLButtonElement>('[part="interval-control"]')!.focus();chart.remove();await flush();
   expect(recorded).toHaveLength(before);
 });
+
+it("uses documented defaults for blank timing attributes while preserving explicit zero",async()=>{
+ const chart=mount("grouped-bar-chart","animated");
+ for(const value of ["","  ","\t\n"]){
+  chart.setAttribute("animation-duration",value);chart.setAttribute("animation-delay",value);chart.setAttribute("animation-stagger",value);await flush();
+  expect(chart.animationDuration).toBe(600);expect(chart.animationDelay).toBe(0);expect(chart.animationStagger).toBe(40);
+  expect(recorded.at(-1)!.options.duration).toBeGreaterThan(0);
+ }
+ chart.animationDuration=0;await flush();expect(chart.animationDuration).toBe(0);
+ expect(chart.shadowRoot!.querySelector('[part="animation-controls"]')).toBeNull();
+});

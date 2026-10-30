@@ -280,3 +280,28 @@ it("runs the same controlled-selection demo host with cleanup",async()=>{
  expect(chart.selectedId).toBe("upload-0");plot.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true}));expect(chart.selectedId).toBeNull();
  cleanup?.();plot.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",bubbles:true}));expect(chart.selectedId).toBeNull();
 });
+
+it.each(["unlabelled","conflicting labels","time"])("keeps grouped-bar ticks at category centers for %s coordinates",kind=>{
+ const chart=new GroupedBarChart();
+ const coordinates=kind==="time"?[2,5,9].map(hour=>Date.UTC(2026,9,30,hour)):[2,5,9];
+ if(kind==="time")chart.xScale="time";
+ chart.series=[{id:"s",label:"S",points:coordinates.map((x,i)=>({id:`p${i}`,x,y:i+1,...(kind==="conflicting labels"?{label:`A${i}`}:{})}))}];
+ if(kind==="conflicting labels")chart.series=[...chart.series,{id:"other",label:"Other",points:coordinates.map((x,i)=>({id:`other${i}`,x,y:i+2,label:`B${i}`}))}];
+ const root=mount(chart),ticks=[...root.querySelectorAll<HTMLElement>('[part="x-ticks"] > span')];
+ expect(ticks).toHaveLength(3);
+ ticks.forEach((tick,i)=>expect(parseFloat(tick.style.getPropertyValue("--position"))).toBeCloseTo((i+.5)/3*100,5));
+ if(kind!=="time")expect(ticks.map(tick=>tick.textContent)).toEqual(["2","5","9"]);
+});
+
+it("keeps numeric-line paging focus through repeated changes and boundary pages",async()=>{
+ const {LineChart}=await import("../../../src/patterns/insights/line-chart.js");const chart=new LineChart();
+ chart.series=[{id:"s",label:"S",points:Array.from({length:101},(_,x)=>({x,y:x}))}];mount(chart);
+ const root=chart.shadowRoot!.querySelector('[part="series-host"]')!.shadowRoot!;
+ root.querySelector<HTMLButtonElement>('[part="table-toggle"]')!.click();
+ for(const [direction,first]of [[1,"50"],[1,"100"],[-1,"50"],[-1,"0"]]as const){
+  const button=root.querySelector<HTMLButtonElement>(`[data-table-step="${direction}"]`)!;button.focus();button.click();
+  expect(root.querySelector('tbody th')!.textContent).toBe(first);
+  const replacement=root.querySelector<HTMLButtonElement>(`[data-table-step="${direction}"]`)!;
+  expect(root.activeElement).toBe(replacement.disabled?root.querySelector('[part="table-wrap"]'):replacement);
+ }
+});

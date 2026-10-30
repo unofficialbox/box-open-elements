@@ -1,3 +1,4 @@
+import type { ReferenceRow } from "../metadata.js";
 import type { CartesianSeries } from "../../src/patterns/insights/cartesian-model.js";
 const json = (v: unknown) => JSON.stringify(v).replaceAll("&", "&amp;").replaceAll("'", "&#39;");
 const labels = ["Oct 5", "Oct 12", "Oct 19", "Oct 26"];
@@ -67,3 +68,15 @@ export function chartFamilySetupCode(id:string):string|undefined {
   const event=id==="radar-chart"||id==="polar-area-chart"?"item-selected":"point-selected";
   return `// Run after the custom element mounts; use the same controller in every framework.\nconst chart = document.querySelector("box-${id}")!;\nchart.addEventListener("${event}", event => {\n  const { selectedId } = (event as CustomEvent<{ selectedId: string | null }>).detail;\n  chart.selectedId = selectedId;\n});`;
 }
+
+export const cartesianReferenceRows: ReferenceRow[] = [
+ {kind:"property",name:"yAxes",type:"CartesianAxis[]",description:"One or two named y axes with optional explicit domains and linear/log scales. Series identify their axis by ID."},
+ {kind:"attribute",name:"x-scale",type:"linear | log | time",description:"Actual coordinate spacing. Time uses epoch milliseconds and calendar-aware ticks; bars require linear zero baselines."},
+ {kind:"attribute",name:"time-zone",type:"string",description:"IANA time zone for calendar ticks and exact timestamps; UTC by default."},
+ {kind:"attribute",name:"interpolation",type:"linear | monotone | step-before | step-after | step-middle",description:"Opt-in curve behavior; every missing observation remains a gap."},
+ {kind:"attribute",name:"stacked",type:"boolean",description:"Signed stacking with separate positive/negative accumulation. Stack IDs form groups; axes never accumulate together."},
+ {kind:"attribute",name:"selected-id",type:"string",description:"Host-controlled observation ID. Inspection does not change scale, order or denominator."},
+ {kind:"event",name:"point-selected",description:"Emits selectedId, point and seriesId; null requests clearing. Assign selectedId in the host to commit the selection."},
+ { kind: "attribute", name: "state", type: "ready | loading | error | partial | stale", description: "Loading and errors suppress cached geometry; supply status-message with the data scope or timestamp." },
+ { kind: "property", name: "series", type: "CartesianSeries[]", description: "Typed host observations with stable IDs; full source values remain available." },
+ ];

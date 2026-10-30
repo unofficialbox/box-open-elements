@@ -54,7 +54,11 @@ export class NumericLineView {
     container.addEventListener("pointerleave",()=>activate(null));
     root.addEventListener("click",event=>{
       const direction=(event.target as Element).closest<HTMLElement>('[data-table-step]')?.dataset.tableStep;
-      if(direction){this.tablePage=Math.max(0,Math.min(this.tablePages-1,this.tablePage+Number(direction)));this.syncTable();}
+      if(direction){
+        this.tablePage=Math.max(0,Math.min(this.tablePages-1,this.tablePage+Number(direction)));this.syncTable();
+        const replacement=root.querySelector<HTMLButtonElement>(`[data-table-step="${direction}"]:not([disabled])`);
+        (replacement??root.querySelector<HTMLElement>('[part="table-wrap"]'))?.focus();
+      }
     });
     root.querySelector('button[part="table-toggle"]')!.addEventListener("click",()=>{this.tableVisible=!this.tableVisible;this.syncTable();});
   }
