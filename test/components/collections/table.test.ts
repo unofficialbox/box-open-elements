@@ -969,7 +969,7 @@ describe("Table host cells, actions and current row", () => {
     el.columns = [{ key: "name", label: "Name", hostContent: true }];
     const control = document.createElement(tag); control.slot = "cell-1-name";
     el.append(control);
-    for (const key of [" ", "Home", "End", "ArrowDown", "a", "Escape"]) {
+    for (const key of [" ", "Enter", "Home", "End", "ArrowDown", "a", "Escape"]) {
       const event = new KeyboardEvent("keydown", { key, bubbles: true, composed: true, cancelable: true, ctrlKey: key === "a" });
       control.dispatchEvent(event);
       expect(event.defaultPrevented).toBe(false);
@@ -1198,4 +1198,20 @@ describe("Table compact scan rows", () => {
     expect(rowAt(el, 0).querySelector('[part="actions-cell"]')!.hasAttribute("data-empty")).toBe(true);
     expect(el.shadowRoot!.activeElement).toBeNull();
   });
+});
+
+
+it.each(["single","multiple"] as const)("selects focused %s rows on Enter without activating nested controls",mode=>{
+  const el=document.createElement("box-table") as Table;el.selectionMode=mode;el.columns=[{key:"name",label:"Name"}];el.rows=[{id:"a",cells:{name:"A"}},{id:"b",cells:{name:"B"}}];document.body.append(el);
+  const selected=vi.fn();el.addEventListener("selection-changed",selected);
+  const row=()=>el.shadowRoot!.querySelector<HTMLElement>('[part="row"][data-index="1"]')!;
+  row().focus();const key=new KeyboardEvent("keydown",{key:"Enter",bubbles:true,cancelable:true});row().dispatchEvent(key);
+  expect(key.defaultPrevented).toBe(true);expect(el.selectedIds).toEqual(["b"]);expect(selected).toHaveBeenCalledTimes(1);
+  row().dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",bubbles:true,cancelable:true}));
+  expect(el.selectedIds).toEqual(mode==="multiple"?[]:["b"]);el.remove();
+});
+it.each(['none','single','multiple'])("does not cancel Enter or Space from a closed-shadow detail control in %s mode",mode=>{
+ const el=create(mode);el.rows=[{id:'1',cells:{name:'A'},detail:'Rich detail'}];el.shadowRoot!.querySelector<HTMLButtonElement>('[part="expander"]')!.click();
+ const host=document.createElement('div');host.slot='detail-1';const shadow=host.attachShadow({mode:'closed'});const link=document.createElement('a');link.href='#detail';link.textContent='Details';shadow.append(link);el.append(host);
+ for(const key of ['Enter',' ']){const event=new KeyboardEvent('keydown',{key,bubbles:true,composed:true,cancelable:true});link.dispatchEvent(event);expect(event.defaultPrevented).toBe(false);}expect(el.selectedIds).toEqual([]);el.remove();
 });

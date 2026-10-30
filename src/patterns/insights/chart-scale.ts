@@ -1,15 +1,23 @@
-/** Zero-inclusive linear scales with readable 1/2/5 tick intervals. */
-export const chartScale = (values: number[]) => {
+/** Linear scales with readable 1/2/5 ticks; include zero by default. */
+export const chartScale = (values: number[], {includeZero = true}: {includeZero?:boolean} = {}) => {
   const finite = values.filter(Number.isFinite);
   let magnitude = 0;
   for (const value of finite) magnitude = Math.max(magnitude, Math.abs(value));
   magnitude ||= 1;
-  let low = 0, high = 0;
+  let low = includeZero || !finite.length ? 0 : Infinity, high = includeZero || !finite.length ? 0 : -Infinity;
   for (const value of finite) {
     low = Math.min(low, value / magnitude);
     high = Math.max(high, value / magnitude);
   }
-  if (low === high) high = 1;
+  if (low === high) {
+    if (includeZero) high = 1;
+    else {
+      const padding = Math.abs(low) * .01 || 1;
+      const limit = Number.MAX_VALUE / magnitude;
+      low = Math.max(-limit, low - padding);
+      high = Math.min(limit, high + padding);
+    }
+  }
   let ticks = Array.from({ length: 5 }, (_, index) => (low + (high - low) * index / 4) * magnitude);
 
   // Normalize first: subtracting opposite finite extremes can overflow. Keep
@@ -31,9 +39,10 @@ export const chartScale = (values: number[]) => {
     if (Number.isFinite(niceLow) && Number.isFinite(niceHigh)) {
       low = niceLow / magnitude;
       high = niceHigh / magnitude;
-      ticks = Array.from({ length: last - first + 1 }, (_, index) => Number(((first + index) * step).toPrecision(14)));
+      ticks = Array.from({ length: last - first + 1 }, (_, index) => Number(((first + index) * step).toPrecision(includeZero ? 14 : 17)));
     }
   }
+  if (!includeZero) ticks = [...new Set(ticks)];
   const position = (value: number) => (value / magnitude - low) / (high - low);
   return { position, ticks };
 };

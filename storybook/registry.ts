@@ -1,3 +1,6 @@
+import stackedBarChart from "./stories/stacked-bar-chart.stories.js";
+import rangeChart from "./stories/range-chart.stories.js";
+import findingsDisclosure from "./stories/findings-disclosure.stories.js";
 import type { StoryModule } from "./metadata.js";
 import accessStats from "./stories/access-stats.stories.js";
 import accordion from "./stories/accordion.stories.js";
@@ -167,6 +170,7 @@ import codeEditor from "./stories/code-editor.stories.js";
 import processModeler from "./stories/process-modeler.stories.js";
 import { purposeExamples } from "./fixtures/purpose-demos.js";
 export const storyModules: StoryModule[] = [
+  stackedBarChart, rangeChart, findingsDisclosure,
   ...agentUiStories,
   flowBuilder,
   codeEditor,

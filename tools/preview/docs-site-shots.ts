@@ -507,7 +507,7 @@ try {
     // that a whole-page screenshot can push below the fold.
     for (const width of [1440, 390]) for (const theme of ["light", "dark"]) {
       await page.setViewportSize({ width, height: 940 });
-      for (const id of ["chart-panel", "bar-chart", "line-chart", "donut-chart", "box-plot", "distribution-timeline", "metric-card"]) {
+      for (const id of ["chart-panel", "bar-chart", "line-chart", "donut-chart", "box-plot", "distribution-timeline", "metric-card", "stacked-bar-chart", "range-chart", "findings-disclosure"]) {
         await page.goto(`http://localhost:${PORT}/#patterns/${id}`, { waitUntil: "networkidle" });
         await page.waitForSelector(`body[data-route-ready="patterns/${id}"]`);
         await page.evaluate(target => {
@@ -612,9 +612,27 @@ try {
           if (Number(await page.locator("#event-count").textContent()) < 1) throw new Error(`${id} did not emit a keyboard event`);
         }
 
+        if(id==="stacked-bar-chart"){
+          await chart.evaluate(element=>element.setAttribute("orientation","vertical"));
+          await waitForVisualSettle(page, `stacked-vertical-${width}-${theme}`);
+          await chart.screenshot({path:join(OUT_DIR,`insights-stacked-bar-chart-vertical-${width}-${theme}.png`),animations:"disabled"});
+        }
+        if(id==="findings-disclosure"){
+          await chart.getByRole("button",{name:/Show .*findings/}).press("Enter");
+          await waitForVisualSettle(page,`findings-expanded-${width}-${theme}`);
+          await chart.screenshot({path:join(OUT_DIR,`insights-findings-disclosure-expanded-${width}-${theme}.png`),animations:"disabled"});
+        }
+        if(id==="line-chart"){
+          for(const [label,suffix] of [["Numeric series","series"],["Logarithmic series","series-log"]]){
+            await page.getByLabel("Preview variant").selectOption({label});
+            await waitForVisualSettle(page,`numeric-${suffix}-${width}-${theme}`);
+            await chart.screenshot({path:join(OUT_DIR,`insights-line-chart-${suffix}-${width}-${theme}.png`),animations:"disabled"});
+          }
+        }
+
       }
     }
-    console.log("captured and accessibility-checked all six insight charts in desktop/mobile light/dark");
+    console.log("captured and accessibility-checked the insight family and findings disclosure in desktop/mobile light/dark");
   }
 
 } finally {

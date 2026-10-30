@@ -1,32 +1,39 @@
 # Distribution timeline
 
-`box-distribution-timeline` shows how one measurement's distribution moves over time. Each host-supplied point is an interval's summary: the shaded range spans minimum to maximum, the band inside it is Q1–Q3, and the line through it is the median. Optional raw samples draw as dots, thinned to an even spread across the time axis so a long run stays legible. Where `box-box-plot` compares distributions side by side, this compares one distribution against itself as a run progresses.
+`box-distribution-timeline` follows one measurement’s distribution across host-supplied intervals. It does not fetch or aggregate samples. Supply ordered five-number summaries (`min`, `q1`, `median`, `q3`, `max`), the time `at`, and optional `count` and sampled values.
 
-```ts
-import { DistributionTimeline, type DistributionTimelinePoint }
-  from "@unofficialbox/box-open-elements/distribution-timeline";
+The default view uses a separate quartile box and capped min–max whisker at each interval, with a straight median trajectory. It preserves the actual numeric spacing of timestamps. There are no continuous filled envelopes between intervals. A compact key names the three encodings, and the latest interval’s time, median and optional count remain readable without hover.
 
-const chart = document.querySelector<DistributionTimeline>("box-distribution-timeline")!;
-chart.points = [
-  { at: 0, min: 18, q1: 31, median: 42, q3: 58, max: 126, count: 1204,
-    samples: [21, 38, 44, 61, 92] },
-  { at: 5, min: 17, q1: 29, median: 39, q3: 54, max: 98, count: 1190 },
-];
-chart.format = value => `${Math.round(value)} ms`;
-// Set points again as a new array when streaming further intervals.
-chart.points = [...chart.points, { at: 10, min: 19, q1: 33, median: 45, q3: 61, max: 141 }];
-```
+## Example
 
 ```html
-<box-distribution-timeline heading="Upload latency" unit="ms" time-unit="s"></box-distribution-timeline>
+<box-distribution-timeline heading="Upload latency" unit="ms" time-unit="s"
+  points='[{"at":0,"min":18,"q1":31,"median":42,"q3":58,"max":126,"count":1204}]'>
+</box-distribution-timeline>
 ```
 
-Properties: `points: DistributionTimelinePoint[]`, `format: (value: number) => string`, `scale: "linear" | "log"`, `maxSamples: number` (default 2000), `hideSamples`, `heading`, `description`, `unit`, and `timeUnit`. `points` can also be JSON in an attribute. The formatter is a JavaScript property, not an HTML attribute. A point needs `at`, `min`, `q1`, `median`, `q3` and `max`; `count` and `samples` are optional. Points arrive in any order and are sorted by `at`. Log scale requires all values to be positive. Points whose five-number summary is not monotonic, or whose values the scale cannot plot, are omitted rather than drawn inaccurately; validate upstream data before presenting it. The value axis includes plotted samples so no dot is clipped.
+Import the `distribution-timeline` entry or `patterns/insights`. Root, optimized and native framework typings share the same data model. The docs and Workshop use one canonical thirteen-interval fixture; every framework tab reproduces the actual preview rather than a different one-point example.
 
-The component aggregates nothing: it plots the summaries the host computes. Supply more intervals to raise time resolution, not more samples — `maxSamples` caps total dots, and the thinning keeps a near-equal number in each slice of the time axis so a dense early phase cannot crowd out a sparse later one. `hide-samples` drops the dots entirely and leaves the summary geometry.
+## Samples and table
 
-The plot is one keyboard-focusable image whose accessible name gives the interval count, the time span, the first and last medians, and the highest value of any interval with the time it occurred. “Show as a table” exposes every interval's numbers in native table semantics, one row per interval; its scroll region is keyboard-focusable on narrow screens. The Count column appears only when some point carries `count`; other rows then show an em dash. Band, range and median are distinguishable by position and thickness rather than color alone. The component has no data-fetching, raw-sample aggregation, or ambient motion. Theme its `--boe-distribution-grid`, `--boe-distribution-range`, `--boe-distribution-band`, `--boe-distribution-median`, and `--boe-distribution-dot` properties without replacing geometry.
+Sampled values are an inspection layer, **off by default**. The “Sampled values” toggle uses a stable name and `aria-pressed` to expose its state. Toggle it or set `showSamples` / `show-samples` to enable the layer. `hideSamples` / `hide-samples` forces both the layer and its control off. The control emits `samples-toggled` with `{ visible: boolean }`.
 
-Embedding: `heading-level` / `headingLevel` chooses a native heading from 1 through 6 (default 2); choose the level that follows the host outline. `embedded` removes the panel background, border, radius and padding. `hide-note` / `hideNote` hides the standard band/range explanation, retaining the host description and the plot's complete summary.
+`maxSamples` / `max-samples` defaults to 600. All supplied samples are shown when they fit the cap; larger sets are thinned across the time axis. The note and control name disclose the actual shown and supplied counts. Dots retain a circular, fixed-pixel shape at desktop/mobile widths. They are not a continuous density estimate.
 
-Default range and band use semantic surface and brand tokens; the median uses primary text, value ticks use secondary text and grid lines use stroke. Switching or overriding the host design tokens updates those defaults. Explicit `--boe-distribution-*` overrides retain precedence.
+“Show as a table” retains **every valid interval’s** time, minimum, Q1, median, Q3, maximum and optional count. The named scroll region is keyboard accessible at narrow widths. Empty data stays explicit even if it arrives while the table is open.
+
+## Scale, state and accessibility
+
+`scale="linear|log"` reuses the box-plot value scale. Log requires positive statistics/samples. Invalid intervals are omitted and counted in the visible method note. A single valid interval is centered at its actual timestamp; it does not claim an extra interval of elapsed time. The time axis uses readable numeric ticks, including subsecond times.
+
+`heading`, `headingLevel` / `heading-level`, `description`, `embedded` and `hideNote` / `hide-note` retain their roles. `format` is a value formatter callback; `unit` and `timeUnit` / `time-unit` label the two axes. Focus remains on equivalent controls after updates, and moves to the heading if a focused view disappears.
+
+The plot remains one keyboard-focusable image. Its accessible name states the interval count, actual start/end times, first/last medians and the highest interval value with its time. Shape, thickness, labels and the exact table supplement color. Automated accessibility checks are recorded separately from manual screen-reader acceptance; no manual pass is claimed.
+
+Theme via `--boe-distribution-grid`, `--boe-distribution-range`, `--boe-distribution-band`, `--boe-distribution-edge`, `--boe-distribution-median` and `--boe-distribution-dot`, with the shared Box tokens as defaults.
+
+## Presentation migration
+
+The previous continuous min–max/Q1–Q3 filled areas have been replaced by discrete interval marks. `range` now identifies a whisker line, and `band` identifies each interval’s quartile rectangle; custom `::part()` themes should account for that geometry. Sample dots now require the inspection control or `show-samples`; existing `hide-samples` continues to suppress them. The statistics, value scale, full table and host data model remain intact.
+
+Long runs retain every interval in a locally scrollable plot with minimum mark spacing. The value axis stays visible, and the full-run latest summary and exact table remain available. Keyboard users can focus the plot region and scroll horizontally.

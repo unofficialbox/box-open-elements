@@ -73,8 +73,8 @@ export const catalog: CatalogEntry[] = [
   ...p("Preview", ["annotation-toolbar", "annotation-inspector", "annotation-thread", "preview-element"]),
   ...p("File Request", ["file-request-builder"]),
   ...p("Task", ["task-assignment-panel", "review-queue-item"]),
-  ...p("Governance", ["governance-panel"]),
-  ...p("Insights", ["metric-card", "chart-panel", "bar-chart", "line-chart", "donut-chart", "box-plot", "distribution-timeline"]),
+  ...p("Governance", ["governance-panel", "findings-disclosure"]),
+  ...p("Insights", ["metric-card", "chart-panel", "bar-chart", "stacked-bar-chart", "range-chart", "line-chart", "donut-chart", "box-plot", "distribution-timeline"]),
   ...p("Builders", ["flow-builder", "process-modeler"]),
 ];
 

@@ -51,6 +51,17 @@ export abstract class BaseElement extends HTMLElementBase {
     this.attachShadow({ mode: "open" });
   }
 
+  /** Replay host properties that were assigned before custom-element upgrade. */
+  protected upgradeProperties(names: readonly string[]): void {
+    const host = this as unknown as Record<string, unknown>;
+    for (const name of names) {
+      if (!Object.prototype.hasOwnProperty.call(this, name)) continue;
+      const value = host[name];
+      delete host[name];
+      host[name] = value;
+    }
+  }
+
   connectedCallback(): void {
     if (!this.isRendered) {
       this.renderTemplate();

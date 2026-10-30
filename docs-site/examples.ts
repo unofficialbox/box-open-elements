@@ -1,3 +1,5 @@
+import {distributionTimelineHtml,distributionTimelineSamplesHtml,distributionTimelineLogHtml} from "../storybook/fixtures/distribution-timeline.js";
+import {stackedBarsHtml, rangesHtml, numericLineHtml, findingsHtml} from "../storybook/fixtures/analytic-charts.js";
 import { periodChartHtml, periodVariants, metricChartHtml, storageChartHtml, dailyChartHtml, distributionChartHtml, dataStateVariants } from "../storybook/fixtures/insights.js";
 /**
  * Curated live examples per catalog entry. `html` is the canonical usage-first
@@ -237,21 +239,7 @@ const onSidebarToggle = (target: Element | null, run: (expanded: boolean) => voi
 
 
 
-const distributionTimelineDemoPoints = [
-  { at: 0, min: 15, q1: 29, median: 38, q3: 50, max: 90, count: 1180, samples: [42, 46, 46, 49, 51, 64] },
-  { at: 5, min: 16, q1: 30, median: 40, q3: 53, max: 93, count: 1187, samples: [16, 27, 36, 39, 41, 64] },
-  { at: 10, min: 16, q1: 30, median: 41, q3: 55, max: 95, count: 1194, samples: [36, 41, 75, 79, 87, 92] },
-  { at: 15, min: 20, q1: 34, median: 43, q3: 58, max: 98, count: 1201, samples: [22, 43, 55, 69, 72, 83] },
-  { at: 20, min: 20, q1: 34, median: 44, q3: 56, max: 96, count: 1208, samples: [37, 40, 44, 47, 53, 80] },
-  { at: 25, min: 21, q1: 35, median: 46, q3: 59, max: 99, count: 1215, samples: [24, 44, 71, 86, 95, 97] },
-  { at: 30, min: 28, q1: 42, median: 51, q3: 65, max: 133, count: 1222, samples: [44, 52, 60, 76, 83, 111] },
-  { at: 35, min: 28, q1: 42, median: 52, q3: 67, max: 135, count: 1229, samples: [30, 35, 81, 103, 106, 118] },
-  { at: 40, min: 26, q1: 40, median: 51, q3: 63, max: 103, count: 1236, samples: [61, 62, 64, 73, 87, 97] },
-  { at: 45, min: 29, q1: 43, median: 52, q3: 65, max: 105, count: 1243, samples: [31, 40, 47, 57, 60, 70] },
-  { at: 50, min: 30, q1: 44, median: 54, q3: 68, max: 108, count: 1250, samples: [55, 61, 70, 81, 91, 104] },
-  { at: 55, min: 31, q1: 45, median: 56, q3: 71, max: 111, count: 1257, samples: [38, 39, 40, 49, 83, 96] },
-  { at: 60, min: 34, q1: 48, median: 57, q3: 69, max: 109, count: 1264, samples: [35, 43, 81, 86, 103, 105] },
-];
+
 
 const setupFolderTreeDemo = (root: HTMLElement) => set(root, "box-folder-tree", { nodes: [
       { id:"root", name:"Projects", type:"folder", childCount:3, loadState:"partial" },
@@ -1845,10 +1833,13 @@ diff.nodes = ${JSON.stringify(folderDiffDemo, null, 2)};`,
       actions: [{ id: "audit", label: "View audit log" }],
     }),
   },
+  "stacked-bar-chart": {html:stackedBarsHtml},
+  "range-chart": {html:rangesHtml},
+  "findings-disclosure": {html:findingsHtml},
   "metric-card": { html:metricChartHtml, variants:dataStateVariants(metricChartHtml,"box-metric-card") },
   "chart-panel": { html:dailyChartHtml, variants:dataStateVariants(dailyChartHtml,"box-chart-panel") },
   "bar-chart": periodExample("bar-chart"),
-  "line-chart": periodExample("line-chart"),
+  "line-chart": {...periodExample("line-chart"),variants:[...periodVariants("line-chart"),{name:"Numeric series",html:numericLineHtml},{name:"Logarithmic series",html:numericLineHtml.replace('<box-line-chart ','<box-line-chart x-scale="log" y-scale="log" ')}]},
   "donut-chart": {html:storageChartHtml,variants:[
     ...dataStateVariants(storageChartHtml,"box-donut-chart"),
     {name:"Incomplete classification",html:`<box-donut-chart readonly heading="Storage by file type" unit="GB" total="250" state="partial" note="Illustrative data · Shares use the full 250 GB denominator" segments='[{"id":"docs","label":"Documents","value":115},{"id":"media","label":"Media","value":80}]'></box-donut-chart>`},
@@ -1874,17 +1865,7 @@ diff.nodes = ${JSON.stringify(folderDiffDemo, null, 2)};`,
     }],
   },
   "distribution-timeline": {
-    html: `<box-distribution-timeline heading="Upload latency" description="Each interval of one run, summarised" unit="ms" time-unit="s"></box-distribution-timeline>`,
-    codeHtml: `<box-distribution-timeline heading="Upload latency" unit="ms" time-unit="s" points='[{"at":0,"min":18,"q1":31,"median":42,"q3":58,"max":126,"count":1204}]'></box-distribution-timeline>`,
-    setup: root => set(root, "box-distribution-timeline", { points: distributionTimelineDemoPoints }),
-    variants: [{
-      name: "Linear scale · sampled points",
-      html: `<box-distribution-timeline heading="Upload latency" description="Each interval of one run, summarised" unit="ms" time-unit="s"></box-distribution-timeline>`,
-      setup: root => set(root, "box-distribution-timeline", { points: distributionTimelineDemoPoints }),
-    }, {
-      name: "Log scale · summaries only",
-      html: `<box-distribution-timeline heading="Upload latency" unit="ms" time-unit="s" scale="log" hide-samples></box-distribution-timeline>`,
-      setup: root => set(root, "box-distribution-timeline", { points: distributionTimelineDemoPoints }),
-    }],
+    html:distributionTimelineHtml,
+    variants:[{name:"Interval summaries",html:distributionTimelineHtml},{name:"With sampled values",html:distributionTimelineSamplesHtml},{name:"Log scale",html:distributionTimelineLogHtml}],
   },
 };

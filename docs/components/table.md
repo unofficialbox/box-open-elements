@@ -67,7 +67,7 @@ the wide state of `stacked="auto"`, because wrapped cards have variable heights
 and the windowing contract is fixed-height. `renderedWindow` is then `null`.
 
 Selectable rows retain keyboard focus by row ID across queued window measurement
-and host updates while that row remains rendered. Home/End followed by Space can
+and host updates while that row remains rendered. Home/End followed by Enter or Space can
 therefore select the focused target after the window settles. Removing the row,
 scrolling it out of the rendered window, or moving focus to a host control does
 not move focus to another row or scroll it back into view.
@@ -208,3 +208,6 @@ For the pinned Firefox container, retain results in the ignored regression folde
 DOCKER_DEFAULT_PLATFORM=linux/amd64 bash tools/preview/container-run.sh \
   'bun run build:core && BOE_TABLE_BROWSER=firefox BOE_TABLE_EVIDENCE_DIR=/work/.regression-tmp/table-host-content node tools/preview/table-host-content.mjs'
 ```
+
+
+Both Enter and Space select a focused selectable row. In multiple mode, either key toggles that row. Keys on nested links, inputs, buttons and expanders retain their native behavior and do not also select the row.

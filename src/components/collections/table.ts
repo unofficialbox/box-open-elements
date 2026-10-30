@@ -917,9 +917,13 @@ export class Table extends BaseElement {
       }
       return;
     }
-    if (event.key === " ") {
-      event.preventDefault();
-      this.activateRow(index, { toggle: this.selectionMode === "multiple" });
+    if (event.key === " " || event.key === "Enter") {
+      // Only the focused selectable row owns activation. A closed-shadow
+      // control projected into a detail slot must keep its native key action.
+      if (currentRow === event.target && this.selectionMode !== "none") {
+        event.preventDefault();
+        this.activateRow(index, { toggle: this.selectionMode === "multiple" });
+      }
       return;
     }
 
