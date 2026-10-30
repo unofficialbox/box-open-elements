@@ -195,7 +195,7 @@ it("honors unpadded host bounds containing observations and references", () => {
 it("identifies percentile fallbacks per table row even with the note hidden", () => {
   const chart=new BoxPlot();chart.rows=[row,{...row,id:"fallback",label:"Fallback",p95:undefined}];chart.whiskers="p5-p95";chart.hideNote=true;document.body.append(chart);
   chart.shadowRoot!.querySelector<HTMLButtonElement>('[part="table-toggle"]')!.click();
-  expect([...chart.shadowRoot!.querySelectorAll('[part="whisker-label"]')].map(n=>n.textContent)).toEqual(["5% to 95%","minimum to maximum"]);
+  expect([...chart.shadowRoot!.querySelectorAll('[part="whisker-label"]')].map(n=>n.textContent)).toEqual(["P5–P95","Min–max"]);
   chart.remove();
 });
 it("shows empty state when rows disappear during table inspection and can recover", () => {

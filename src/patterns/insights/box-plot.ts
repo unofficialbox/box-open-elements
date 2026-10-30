@@ -89,7 +89,7 @@ export function boxPlotPosition(value: number, domain: BoxPlotDomain, scale: Box
 }
 
 const styles = `
-[part="whisker-label"]{display:block;font-size:.75rem;color:var(--boe-token-text-text-secondary,#566781);white-space:normal}
+[part="whisker-label"]{display:block;font-size:.75rem;color:var(--boe-token-text-text-secondary,#566781);white-space:nowrap}
   :host { display:block; container-type:inline-size; contain-intrinsic-inline-size:36rem; color:var(--boe-chart-ink,color-mix(in srgb,var(--boe-token-text-text,#102347) 88%,var(--boe-token-surface-surface-brand,#0061d5))); font:inherit; min-width:0 }
   :host([orientation=vertical]) { contain:layout }
   :host([hidden]) { display:none !important }
@@ -291,7 +291,9 @@ export class BoxPlot extends BaseElement {
     const headers = ["Row", "Median", "Range", "Count"];
     const tableRows = rows.map(row => {
       const [low,high] = boxPlotWhiskerValues(row,this.whiskers);
-      return `<tr part="table-summary"><th scope="row">${escapeHtml(row.label)}${this.selectedId === row.id ? '<span part="selected-label">Selected</span>' : ""}</th><td>${fmt(row.median)}</td><td>${fmt(low)} – ${fmt(high)}<small part="whisker-label">${escapeHtml(whiskerLabel(row, this.whiskers))}</small></td><td>${row.count === undefined ? "—" : new Intl.NumberFormat().format(row.count)}</td></tr><tr part="table-detail"><td colspan="4"><details><summary>${escapeHtml(row.label)} quartiles &amp; extremes</summary><div>Q1 ${fmt(row.q1)} · Q3 ${fmt(row.q3)}<br>Minimum ${fmt(row.min)} · Maximum ${fmt(row.max)}${(["p5","p95","p99"] as const).filter(key=>row[key] !== undefined).map(key=>`<br>${key.toUpperCase()} ${fmt(row[key]!)}`).join("")}${row.mean === undefined ? "" : `<br>Mean ${fmt(row.mean)}`}${row.reference === undefined ? "" : `<br>Reference ${fmt(row.reference)}`}</div></details></td></tr>`;
+      const label = whiskerLabel(row,this.whiskers).replace("5% to 95%","P5–P95").replace("5% to 99%","P5–P99").replace("minimum to maximum","Min–max");
+      const formattedRange = this._formatter ? `${fmt(low)} – ${fmt(high)}` : `${escapeHtml(defaultFormatter.format(low))}–${fmt(high)}`;
+      return `<tr part="table-summary"><th scope="row">${escapeHtml(row.label)}${this.selectedId === row.id ? '<span part="selected-label">Selected</span>' : ""}</th><td>${fmt(row.median)}</td><td>${formattedRange}<small part="whisker-label">${label}</small></td><td>${row.count === undefined ? "—" : new Intl.NumberFormat().format(row.count)}</td></tr><tr part="table-detail"><td colspan="4"><details><summary>${escapeHtml(row.label)} quartiles &amp; extremes</summary><div>Q1 ${fmt(row.q1)} · Q3 ${fmt(row.q3)}<br>Minimum ${fmt(row.min)} · Maximum ${fmt(row.max)}${(["p5","p95","p99"] as const).filter(key=>row[key] !== undefined).map(key=>`<br>${key.toUpperCase()} ${fmt(row[key]!)}`).join("")}${row.mean === undefined ? "" : `<br>Mean ${fmt(row.mean)}`}${row.reference === undefined ? "" : `<br>Reference ${fmt(row.reference)}`}</div></details></td></tr>`;
     }).join("");
     const selected = rows.find(row => row.id === this.selectedId);
     const selection = selected && !["loading","error"].includes(this.state) ? `<footer part="selection">${this.tableVisible ? "" : `<strong>${escapeHtml(selected.label)} details</strong><div>Q1 ${fmt(selected.q1)} · Median ${fmt(selected.median)} · Q3 ${fmt(selected.q3)}</div><div>${escapeHtml(whiskerLabel(selected,this.whiskers))} ${fmt(boxPlotWhiskerValues(selected,this.whiskers)[0])}–${fmt(boxPlotWhiskerValues(selected,this.whiskers)[1])} · Min–max ${fmt(selected.min)}–${fmt(selected.max)}</div>`}<button type="button" part="clear-selection">Clear selection</button></footer>` : "";
