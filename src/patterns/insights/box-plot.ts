@@ -89,6 +89,7 @@ export function boxPlotPosition(value: number, domain: BoxPlotDomain, scale: Box
 }
 
 const styles = `
+[part="whisker-label"]{display:block;font-size:.75rem;color:var(--boe-token-text-text-secondary,#566781);white-space:normal}
   :host { display:block; container-type:inline-size; contain-intrinsic-inline-size:36rem; color:var(--boe-chart-ink,color-mix(in srgb,var(--boe-token-text-text,#102347) 88%,var(--boe-token-surface-surface-brand,#0061d5))); font:inherit; min-width:0 }
   :host([orientation=vertical]) { contain:layout }
   :host([hidden]) { display:none !important }
@@ -267,7 +268,7 @@ export class BoxPlot extends BaseElement {
     const rows = this.rows.filter(row => validBoxPlotRow(row, this.scale));
     const domain = boxPlotDomain(rows, this.scale);
     const bounds = this.domain;
-    if (bounds.length && this.scale === "linear" && bounds[0] <= domain.min && bounds[1] >= domain.max) {
+    if (bounds.length && this.scale === "linear" && rows.every(row => bounds[0] <= Math.min(row.min, row.reference ?? row.min) && bounds[1] >= Math.max(row.max, row.reference ?? row.max))) {
       domain.min = bounds[0]; domain.max = bounds[1]; domain.ticks = Array.from({length:4},(_,i)=>domain.min+(domain.max-domain.min)*i/3);
     }
     const span = domain.max - domain.min;
@@ -287,10 +288,10 @@ export class BoxPlot extends BaseElement {
       const caps = [low, high].map(value => `<span part="cap" style="left:${position(value)}%;--pos:${position(value)}%"></span>`).join("");
       return `<div part="row" data-selected="${this.selectedId === row.id}"><span part="label">${escapeHtml(row.label)}<span part="row-summary">Median ${fmt(row.median)}${row.count === undefined ? "" : ` · n = ${new Intl.NumberFormat().format(row.count)}`}</span>${row.reference === undefined ? "" : `<span part="reference-label">Reference ${fmt(row.reference)}</span>`}${this.selectedId === row.id ? '<span part="selected-label">Selected</span>' : ""}</span><div tabindex="0" role="${this.selectable ? "button" : "img"}" ${this.selectable ? `aria-pressed="${this.selectedId === row.id}"` : ""} part="mark" data-row-id="${escapeHtml(row.id)}" aria-label="${escapeHtml(summary)}">${this.orientation === "vertical" ? "" : grid}<span part="whisker" style="left:${position(low)}%;width:${round(position(high) - position(low))}%;${range(low, high)}"></span>${caps}<span part="box" style="left:${position(row.q1)}%;width:${round(position(row.q3) - position(row.q1))}%;${range(row.q1, row.q3)}"></span><span part="median" style="left:${position(row.median)}%;--pos:${position(row.median)}%"></span>${row.reference === undefined ? "" : `<span part="reference" style="left:${position(row.reference)}%;--pos:${position(row.reference)}%"></span>`}${dots}<span part="detail" aria-hidden="true">${escapeHtml(summary)}</span></div></div>`;
     }).join("");
-    const headers = ["Row", "Median", `${this.whiskers === "min-max" ? "Min–max" : this.whiskers === "p5-p95" ? "P5–P95" : "P5–P99"}`, "Count"];
+    const headers = ["Row", "Median", "Range", "Count"];
     const tableRows = rows.map(row => {
       const [low,high] = boxPlotWhiskerValues(row,this.whiskers);
-      return `<tr part="table-summary"><th scope="row">${escapeHtml(row.label)}${this.selectedId === row.id ? '<span part="selected-label">Selected</span>' : ""}</th><td>${fmt(row.median)}</td><td>${fmt(low)} – ${fmt(high)}</td><td>${row.count === undefined ? "—" : new Intl.NumberFormat().format(row.count)}</td></tr><tr part="table-detail"><td colspan="4"><details><summary>${escapeHtml(row.label)} quartiles &amp; extremes</summary><div>Q1 ${fmt(row.q1)} · Q3 ${fmt(row.q3)}<br>Minimum ${fmt(row.min)} · Maximum ${fmt(row.max)}${(["p5","p95","p99"] as const).filter(key=>row[key] !== undefined).map(key=>`<br>${key.toUpperCase()} ${fmt(row[key]!)}`).join("")}${row.mean === undefined ? "" : `<br>Mean ${fmt(row.mean)}`}${row.reference === undefined ? "" : `<br>Reference ${fmt(row.reference)}`}</div></details></td></tr>`;
+      return `<tr part="table-summary"><th scope="row">${escapeHtml(row.label)}${this.selectedId === row.id ? '<span part="selected-label">Selected</span>' : ""}</th><td>${fmt(row.median)}</td><td>${fmt(low)} – ${fmt(high)}<small part="whisker-label">${escapeHtml(whiskerLabel(row, this.whiskers))}</small></td><td>${row.count === undefined ? "—" : new Intl.NumberFormat().format(row.count)}</td></tr><tr part="table-detail"><td colspan="4"><details><summary>${escapeHtml(row.label)} quartiles &amp; extremes</summary><div>Q1 ${fmt(row.q1)} · Q3 ${fmt(row.q3)}<br>Minimum ${fmt(row.min)} · Maximum ${fmt(row.max)}${(["p5","p95","p99"] as const).filter(key=>row[key] !== undefined).map(key=>`<br>${key.toUpperCase()} ${fmt(row[key]!)}`).join("")}${row.mean === undefined ? "" : `<br>Mean ${fmt(row.mean)}`}${row.reference === undefined ? "" : `<br>Reference ${fmt(row.reference)}`}</div></details></td></tr>`;
     }).join("");
     const selected = rows.find(row => row.id === this.selectedId);
     const selection = selected && !["loading","error"].includes(this.state) ? `<footer part="selection">${this.tableVisible ? "" : `<strong>${escapeHtml(selected.label)} details</strong><div>Q1 ${fmt(selected.q1)} · Median ${fmt(selected.median)} · Q3 ${fmt(selected.q3)}</div><div>${escapeHtml(whiskerLabel(selected,this.whiskers))} ${fmt(boxPlotWhiskerValues(selected,this.whiskers)[0])}–${fmt(boxPlotWhiskerValues(selected,this.whiskers)[1])} · Min–max ${fmt(selected.min)}–${fmt(selected.max)}</div>`}<button type="button" part="clear-selection">Clear selection</button></footer>` : "";
@@ -301,12 +302,13 @@ export class BoxPlot extends BaseElement {
     const note = this.hideNote ? "" : `<p part="note">Box: middle 50%; line: median; whiskers: ${this.whiskers === "min-max" ? "minimum–maximum" : this.whiskers === "p5-p95" ? "P5–P95" : "P5–P99"}${this.whiskers !== "min-max" && rows.some(row=>row.p5 === undefined || (this.whiskers === "p5-p95" ? row.p95 === undefined : row.p99 === undefined)) ? " (missing percentiles use minimum–maximum)" : ""}. ${this.scale === "log" ? "Logarithmic scale." : ""}</p>`;
     const unavailable = this.state === "loading" || this.state === "error";
     const content = unavailable ? `<div part="empty" data-loading="${this.state === "loading"}" role="status">${escapeHtml(this.statusMessage || (this.state === "loading" ? "Loading observations…" : "Observations could not be loaded."))}</div>`
+      : !rows.length ? `<div part="empty" id="boxplot-chart">No valid distribution rows to display.</div>`
       : this.tableVisible ? `<div part="table-wrap" id="boxplot-table" role="region" aria-label="${heading} data table" tabindex="0"><table><caption>${heading}</caption><thead><tr>${headers.map(label=>`<th scope="col">${label}</th>`).join("")}</tr></thead><tbody>${tableRows}</tbody></table></div>`
       : rows.length ? plot : `<div part="empty" id="boxplot-chart">No valid distribution rows to display.</div>`;
     host.innerHTML = `<section part="panel" data-orientation="${this.orientation}" aria-label="${heading}" aria-busy="${this.state === "loading"}" style="--row-count:${Math.max(1,rows.length)}">
       <header part="header"><div>${renderHeadingHtml(this.heading,{level:this.headingLevel,part:"heading"})}${this.description ? `<div part="description">${escapeHtml(this.description)}</div>` : ""}</div></header>
       ${content}${unavailable ? "" : note}${selection}
-      <footer part="footer"><button part="table-toggle" type="button" ${unavailable ? "hidden" : ""} aria-expanded="${this.tableVisible}" aria-controls="${this.tableVisible ? "boxplot-table" : "boxplot-chart"}">${this.tableVisible ? "Show chart" : "Show as a table"}</button><slot name="footer"></slot></footer>
+      <footer part="footer"><button part="table-toggle" type="button" ${unavailable || !rows.length ? "hidden" : ""} aria-expanded="${this.tableVisible}" aria-controls="${this.tableVisible ? "boxplot-table" : "boxplot-chart"}">${this.tableVisible ? "Show chart" : "Show as a table"}</button><slot name="footer"></slot></footer>
       ${this.state === "partial" || this.state === "stale" ? `<div part="note" role="status">${escapeHtml(this.statusMessage || (this.state === "partial" ? "Partial sample coverage." : "Cached observations."))}</div>` : ""}
     </section>`;
 

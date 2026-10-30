@@ -190,3 +190,23 @@ it("does not invent unknown storage from decimal addition noise",()=>{
  expect(chart.shadowRoot!.querySelectorAll("tbody tr")).toHaveLength(2);
  expect(chart.shadowRoot!.querySelector('[part="note"]')?.textContent ?? "").not.toContain("Supplied total");
 });
+
+
+it("keeps zero-prefixed donut category colors consistent in arcs and table",()=>{
+  const chart=new DonutChart();chart.segments=[point("zero",0),point("a",3),point("b",1)];document.body.append(chart);
+  for(const id of ["a","b"]){
+    const arc=chart.shadowRoot!.querySelector(`[part="segment"][data-segment-id="${id}"]`)!;
+    const swatch=chart.shadowRoot!.querySelector<HTMLElement>(`[data-segment-id="${id}"] [part="legend-swatch"]`)!;
+    expect(arc.getAttribute("fill")).toBe(swatch.style.getPropertyValue("--segment-color"));
+  }
+});
+it("uses the same responsive positions for missing and observed line intervals",()=>{
+  const chart=new LineChart();chart.points=[point("a",10),point("b",20),point("c",30)];document.body.append(chart);
+  const svg=chart.shadowRoot!.querySelector('[part="chart"]')!;
+  Object.defineProperty(svg,"getBoundingClientRect",{value:()=>({width:300})});
+  chart.heading="Measured values";
+  const positions=()=>[...chart.shadowRoot!.querySelectorAll<HTMLElement>('[part="point"]')].map(n=>n.style.getPropertyValue("--point-x"));
+  const before=positions();chart.points=chart.points.map((p,i)=>({...p,value:i===1?20:null}));
+  expect(positions()).toEqual(before);
+  chart.points=[{id:"only",label:"Only",value:null}];expect(positions()).toEqual(["50%"]);
+});

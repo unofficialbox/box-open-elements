@@ -129,6 +129,23 @@ for (const width of [1440,390]) for (const theme of ["light","dark"]) {
         const before=color();host.trend={...original,direction:"flat"};const unchanged=color()===before;host.trend=original;return unchanged;
       });
       check(directionOnly,"Metric direction alone implies success/error");
+      const metricState=await chart.evaluate(element=>{
+        const host=element as HTMLElement & {status:string;state:string;statusMessage:string};
+        const root=host.shadowRoot!,live=root.querySelector('[part="data-status"]')!;
+        const original={status:host.status,state:host.state,message:host.statusMessage,style:host.getAttribute("style")};
+        host.style.setProperty("--boe-chart-ink","rgb(241, 242, 243)");
+        host.style.setProperty("--boe-token-surface-surface","rgb(16, 35, 71)");
+        const themed=["title","value"].every(part=>getComputedStyle(root.querySelector(`[part="${part}"]`)!).color==="rgb(241, 242, 243)");
+        host.status="Needs attention";host.statusMessage="";
+        const states=["loading","error","partial","stale"].every(state=>{
+          host.state=state;
+          return root.querySelector('[part="data-status"]')===live && !!live.textContent && !live.closest('[aria-busy="true"]') && root.querySelector('[part="status"]')?.textContent==="Needs attention";
+        });
+        host.status=original.status;host.state=original.state;host.statusMessage=original.message;
+        if(original.style===null)host.removeAttribute("style");else host.setAttribute("style",original.style);
+        return themed&&states;
+      });
+      check(metricState,"Metric local theme, health or persistent announcement regressed");
     }
     await page.emulateMedia({reducedMotion:"reduce"});
     await page.evaluate(()=>document.documentElement.style.fontSize="200%");

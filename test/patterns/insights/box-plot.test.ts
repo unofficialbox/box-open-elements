@@ -107,12 +107,12 @@ describe("BoxPlot theme, embedding and optional table contracts", () => {
   const basic:BoxPlotRow={id:"basic",label:"One run",min:-2,q1:-1,median:0,q3:1,max:2};
   it("keeps a compact summary table and excludes invalid rows",()=>{
     const chart=mount([basic,{...basic,id:"bad",mean:NaN}]);
-    expect(table(chart)).toEqual(["Row","Median","Min–max","Count"]);
+    expect(table(chart)).toEqual(["Row","Median","Range","Count"]);
     expect(chart.shadowRoot!.querySelectorAll('tbody tr[part="table-summary"]')).toHaveLength(1);
   });
   it("retains zero-valued optional fields and aligns sparse cells",()=>{
     const chart=mount([basic,{...basic,id:"zero",mean:0,reference:0,count:0}]);
-    expect(table(chart)).toEqual(["Row","Median","Min–max","Count"]);
+    expect(table(chart)).toEqual(["Row","Median","Range","Count"]);
     const rows=[...chart.shadowRoot!.querySelectorAll('tbody tr[part="table-summary"]')];
     expect(rows.map(tr=>tr.lastElementChild!.textContent)).toEqual(["—","0"]);
     expect(rows[1].nextElementSibling!.querySelector('details')!.textContent).toContain("Mean 0");
@@ -182,4 +182,27 @@ describe("distribution inspection",()=>{
   expect(root.querySelector('[part="table-summary"] [part="selected-label"]')!.textContent).toBe("Selected");
   (root.querySelector('[part="clear-selection"]') as HTMLButtonElement).click();expect(chart.selectedId).toBeNull();expect(root.querySelector('[part="selection"]')).toBeNull();expect(root.activeElement).toBe(root.querySelector('[part="table-toggle"]'));chart.remove();
  });
+});
+
+
+it("honors unpadded host bounds containing observations and references", () => {
+  const chart=new BoxPlot();chart.rows=[{id:"a",label:"A",min:16,q1:30,median:50,q3:80,max:126,reference:129}];chart.domain=[0,130];document.body.append(chart);
+  const ticks=()=>[...chart.shadowRoot!.querySelectorAll('[part="tick"]')].map(n=>n.textContent);
+  expect(ticks().at(-1)).toBe("130");
+  chart.domain=[0,128];expect(ticks().at(-1)).toBe("150");
+  chart.remove();
+});
+it("identifies percentile fallbacks per table row even with the note hidden", () => {
+  const chart=new BoxPlot();chart.rows=[row,{...row,id:"fallback",label:"Fallback",p95:undefined}];chart.whiskers="p5-p95";chart.hideNote=true;document.body.append(chart);
+  chart.shadowRoot!.querySelector<HTMLButtonElement>('[part="table-toggle"]')!.click();
+  expect([...chart.shadowRoot!.querySelectorAll('[part="whisker-label"]')].map(n=>n.textContent)).toEqual(["5% to 95%","minimum to maximum"]);
+  chart.remove();
+});
+it("shows empty state when rows disappear during table inspection and can recover", () => {
+  const chart=new BoxPlot();chart.rows=[row];document.body.append(chart);
+  chart.shadowRoot!.querySelector<HTMLButtonElement>('[part="table-toggle"]')!.click();chart.rows=[];
+  expect(chart.shadowRoot!.querySelector('[part="empty"]')?.textContent).toContain("No valid distribution");
+  expect(chart.shadowRoot!.querySelector<HTMLButtonElement>('[part="table-toggle"]')!.hidden).toBe(true);
+  expect(chart.shadowRoot!.querySelector('table')).toBeNull();
+  chart.rows=[row];expect(chart.shadowRoot!.querySelector('table')).not.toBeNull();chart.remove();
 });

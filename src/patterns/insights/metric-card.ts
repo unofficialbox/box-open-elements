@@ -26,7 +26,7 @@ const elementStyles = chartStyles + `
         :host {
           display: grid;
           min-width: 0;
-          color: inherit;
+          color: var(--boe-chart-ink,color-mix(in srgb,var(--boe-token-text-text,#102347) 88%,var(--boe-token-surface-surface-brand,#0061d5)));
           font: inherit;
         }
 
@@ -68,7 +68,7 @@ const elementStyles = chartStyles + `
           font: inherit;
           font-size: 1.125rem;
           font-weight: 600;
-          color:inherit;
+          color:var(--boe-chart-ink,color-mix(in srgb,var(--boe-token-text-text,#102347) 88%,var(--boe-token-surface-surface-brand,#0061d5)));
         }
 
         [part="status"] {
@@ -91,7 +91,7 @@ const elementStyles = chartStyles + `
           font-weight: 600;
           line-height: 1;
           letter-spacing: -0.04em;
-          color:inherit;
+          color:var(--boe-chart-ink,color-mix(in srgb,var(--boe-token-text-text,#102347) 88%,var(--boe-token-surface-surface-brand,#0061d5)));
         }
 
         :host([size="compact"]) [part="card"] {
@@ -118,7 +118,8 @@ const elementStyles = chartStyles + `
           color: var(--boe-token-text-status-text-success, #187657);
         }
 
-        [part="message"] {
+        [part="data-status"]:empty { position:absolute; inline-size:1px; block-size:1px; overflow:hidden; clip-path:inset(50%); }
+        [part="data-status"], [part="message"] {
           color: var(--boe-token-text-text-secondary, #6f6f6f);
           font-size: .8125rem;
           line-height: 1.5;
@@ -149,7 +150,7 @@ const elementStyles = chartStyles + `
           border: 1px solid color-mix(in srgb, var(--boe-token-stroke-stroke, #e8e8e8) 64%, transparent);
           border-radius: 999px;
           background: var(--boe-token-surface-surface, #ffffff);
-          color: inherit;
+          color: var(--boe-chart-ink,color-mix(in srgb,var(--boe-token-text-text,#102347) 88%,var(--boe-token-surface-surface-brand,#0061d5)));
           font: inherit;
           padding: 0.4rem 0.7rem;
           cursor: pointer;
@@ -305,7 +306,7 @@ export class MetricCard extends BaseElement {
   }
 
   protected renderTemplate(): void {
-    this.shadowRoot!.innerHTML=`<style>${elementStyles}[hidden]{display:none!important}</style><div part="content-host"><article part="card"><header part="header"><div part="title-row"><h2 part="title"></h2></div><div part="eyebrow" hidden></div><slot name="header"></slot></header><div part="value"></div><div part="footer"><div part="trend" hidden></div></div><div part="message" hidden></div><slot name="footer"></slot></article></div>`;
+    this.shadowRoot!.innerHTML=`<style>${elementStyles}[hidden]{display:none!important}</style><div part="content-host"><article part="card"><header part="header"><div part="title-row"><h2 part="title"></h2></div><div part="eyebrow" hidden></div><slot name="header"></slot></header><div part="data-status" role="status" aria-live="polite" aria-atomic="true"></div><div part="value"></div><div part="footer"><div part="trend" hidden></div></div><div part="message" hidden></div><slot name="footer"></slot></article></div>`;
   }
   protected setupListeners(): void {
     const footer=this.shadowRoot!.querySelector('[part="footer"]')!;
@@ -321,9 +322,14 @@ export class MetricCard extends BaseElement {
     const value=root.querySelector<HTMLElement>('[part="value"]')!;value.textContent=this.state === "loading" || this.state === "error" ? "" : this.value;value.dataset.tone=this.tone;value.dataset.loading=String(this.state === "loading");
     for(const [part,text] of [["eyebrow",this.eyebrow],["message",this.message]]){const element=root.querySelector<HTMLElement>(`[part="${part}"]`)!;element.textContent=text;element.hidden=!text;}
     let status=root.querySelector<HTMLElement>('[part="status"]');
-    const stateStatus=this.statusMessage || ({loading:"Loading snapshot…",error:"Snapshot could not be loaded.",partial:"Partial snapshot.",stale:"Cached snapshot."} as Record<string,string>)[this.state] || this.status;
-    root.querySelector('[part="card"]')!.setAttribute("aria-busy",String(this.state === "loading"));
-    if(stateStatus){if(!status){status=document.createElement("span");status.setAttribute("part","status");root.querySelector('[part="title-row"]')!.append(status);}status.textContent=stateStatus;status.setAttribute("role","status");}else status?.remove();
+    if(this.status){
+      if(!status){status=document.createElement("span");status.setAttribute("part","status");root.querySelector('[part="title-row"]')!.append(status);}
+      status.textContent=this.status;
+    }else status?.remove();
+    const stateStatus=this.statusMessage || ({loading:"Loading snapshot…",error:"Snapshot could not be loaded.",partial:"Partial snapshot.",stale:"Cached snapshot."} as Record<string,string>)[this.state] || "";
+    value.setAttribute("aria-busy",String(this.state === "loading"));
+    const announcement=root.querySelector<HTMLElement>('[part="data-status"]')!;
+    if(announcement.textContent!==stateStatus)announcement.textContent=stateStatus;
     const trend=root.querySelector<HTMLElement>('[part="trend"]')!,data=this.trend;trend.hidden=!data || ["loading","error","partial"].includes(this.state);trend.textContent=data?.label??"";trend.dataset.direction=data?.direction??"flat";trend.dataset.tone=data?.tone??"neutral";
     const action=this.action;
     syncKeyedChildren(root.querySelector('[part="footer"]')!,action?[action]:[],action=>action.id,()=>actionButton("action"),(button,action)=>{button.dataset.actionId=action.id;button.dataset.tone=action.tone??"neutral";button.textContent=action.label;},trend);

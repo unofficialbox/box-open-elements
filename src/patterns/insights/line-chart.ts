@@ -221,20 +221,25 @@ export class LineChart extends BaseElement {
 
   private pointWidthRem(): number { return this.getBoundingClientRect().width <= 480 ? 2.75 : 3.5; }
 
+  private xPosition(index: number, count: number): number {
+    const width = this.shadowRoot?.querySelector('[part="chart"]')?.getBoundingClientRect().width ?? 0;
+    const labelInset = (parseFloat(getComputedStyle(this.ownerDocument.documentElement).fontSize) || 16) * this.pointWidthRem() / 2;
+    const horizontalInset = width ? Math.min(20, Math.max(3,labelInset / width * 100)) : 3;
+    const chartWidth = 100 - horizontalInset * 2;
+
+    return count === 1 ? 50 : horizontalInset + index / (count - 1) * chartWidth;
+  }
+
   private getCoordinates(points: LineChartPoint[]): ChartCoordinate[] {
     if (points.length === 0) {
       return [];
     }
 
     const scale = chartScale([...points.flatMap(point => point.value == null ? [] : [point.value]), ...chartDomain(this)]);
-    const width = this.shadowRoot?.querySelector('[part="chart"]')?.getBoundingClientRect().width ?? 0;
-    const labelInset = (parseFloat(getComputedStyle(this.ownerDocument.documentElement).fontSize) || 16) * this.pointWidthRem() / 2;
-    const horizontalInset = width ? Math.min(20, Math.max(3,labelInset / width * 100)) : 3;
-    const chartWidth = 100 - horizontalInset * 2;
 
     return points.flatMap((point, index) => {
       if (point.value == null) return [];
-      const x = points.length === 1 ? 50 : horizontalInset + (index / (points.length - 1)) * chartWidth;
+      const x = this.xPosition(index, points.length);
       const ratio = scale.position(point.value);
       const y = 52 - ratio * 48;
       return [{
@@ -303,7 +308,7 @@ export class LineChart extends BaseElement {
     const list=root.querySelector<HTMLElement>('[part="points"]')!;list.setAttribute("aria-label",`${this.heading} points`);syncChartPoints(list,points,"line");
     list.querySelectorAll<HTMLElement>('[part="point"]').forEach((button, index) => {
       const coordinate = coordinates.find(item => item.point.id === button.dataset.pointId);
-      const x = coordinate?.x ?? (points.length === 1 ? 50 : 3 + index / (points.length - 1) * 94), y = coordinate?.y ?? 52;
+      const x = coordinate?.x ?? Number(this.xPosition(index, points.length).toFixed(2)), y = coordinate?.y ?? 52;
       button.style.setProperty("--point-x", `${x}%`);
       button.style.setProperty("--point-height", String(1 - y / 56));
     });

@@ -277,12 +277,12 @@ export class DonutChart extends BaseElement {
   }
 
   private getArcs(): DonutSegmentArc[] {
-    const positiveSegments = this.segments.filter(segment => Number.isFinite(segment.value) && segment.value > 0);
-    const magnitude = positiveSegments.reduce((max, segment) => Math.max(max, segment.value), 1);
-    const total = Math.max(positiveSegments.reduce((sum, segment) => sum + segment.value / magnitude, 0), (this.total ?? 0) / magnitude) || 1;
+    const positiveSegments = this.segments.map((segment,index) => ({segment,index})).filter(({segment}) => Number.isFinite(segment.value) && segment.value > 0);
+    const magnitude = positiveSegments.reduce((max, {segment}) => Math.max(max, segment.value), 1);
+    const total = Math.max(positiveSegments.reduce((sum, {segment}) => sum + segment.value / magnitude, 0), (this.total ?? 0) / magnitude) || 1;
     const gap = positiveSegments.length > 1 ? 2.4 : 0;
     let current = 0;
-    return positiveSegments.map((segment, index) => {
+    return positiveSegments.map(({segment, index}) => {
       const start = current;
       const sweep = (segment.value / magnitude / total) * 360;
       current += sweep;
